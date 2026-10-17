@@ -443,6 +443,18 @@ mod tests {
         (grid.width() as u32, grid.height() as u32)
     }
 
+    /// Sells `sim` its land in strips `depth` tiles deep.
+    fn with_strip_depth(sim: &mut Sim, depth: u32) {
+        let content = sim.world().resource::<crate::Content>().0;
+        let mut tuning = content.tuning;
+        tuning.land_strip_depth = depth;
+        let pack = Box::leak(Box::new(terri_data::ContentPack {
+            tuning,
+            ..content.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+    }
+
     /// Every position, path step, wall, window and floor, read as sorted
     /// lists keyed by entity index where there is one.
     #[allow(clippy::type_complexity)]
@@ -534,13 +546,7 @@ mod tests {
         sim.world_mut().insert_resource(Funds::from_dollars(30_000));
         assert!(quote(sim.world(), Side::Left).affordable());
         // Too large: a strip that would pass the loader's side limit.
-        let mut tuning = sim.world().resource::<crate::Content>().0.tuning;
-        tuning.land_strip_depth = MAX_SIDE;
-        let pack = Box::leak(Box::new(terri_data::ContentPack {
-            tuning,
-            ..sim.world().resource::<crate::Content>().0.clone()
-        }));
-        sim.world_mut().insert_resource(crate::Content(pack));
+        with_strip_depth(&mut sim, MAX_SIDE);
         sim.world_mut().insert_resource(Funds(i64::MAX / 4));
         assert_eq!(buy(sim.world_mut(), Side::Left), Err(LandRefusal::TooLarge));
         // A frozen legacy layout cannot grow.
@@ -968,6 +974,153 @@ mod tests {
             assert!(
                 crate::placement::current_layout(sim.world()).is_ok(),
                 "{side:?}: lot edits find the layout"
+            );
+        }
+    }
+
+    /// A strip that brings a side to exactly `MAX_SIDE` tiles is bought,
+    /// and one tile deeper is refused. The rear strip grows the width and
+    /// the left strip the height, so each side's limit is met on its own.
+    #[test]
+    fn a_strip_that_reaches_the_side_limit_is_bought_and_one_tile_deeper_is_refused() {
+        for side in [Side::Rear, Side::Left] {
+            let mut sim = rich();
+            sim.world_mut().insert_resource(Funds(i64::MAX / 4));
+            let (width, height) = dims(&sim);
+            let (growing, grown) = match side {
+                Side::Rear => (width, (MAX_SIDE, height)),
+                Side::Left | Side::Right => (height, (width, MAX_SIDE)),
+            };
+            with_strip_depth(&mut sim, MAX_SIDE - growing + 1);
+            assert_eq!(
+                validate(sim.world(), side),
+                Err(LandRefusal::TooLarge),
+                "{side:?}: one tile past the limit"
+            );
+            with_strip_depth(&mut sim, MAX_SIDE - growing);
+            assert_eq!(
+                buy(sim.world_mut(), side).map(|quoted| quoted.depth),
+                Ok(MAX_SIDE - growing),
+                "{side:?}: exactly the limit"
+            );
+            assert_eq!(dims(&sim), grown, "{side:?}");
+        }
+    }
+
+    /// Each purchase moves the lot-edit revision by one, which is how the
+    /// shell's lot tools learn that the lot changed; a refusal leaves it
+    /// alone.
+    #[test]
+    fn each_purchase_moves_the_lot_edit_revision_once_and_a_refusal_does_not() {
+        let revision = |sim: &Sim| {
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .revision
+        };
+        let mut sim = rich();
+        let start = revision(&sim);
+        buy(sim.world_mut(), Side::Left).unwrap();
+        assert_eq!(revision(&sim), start + 1);
+        buy(sim.world_mut(), Side::Rear).unwrap();
+        assert_eq!(revision(&sim), start + 2);
+        sim.world_mut().insert_resource(Funds(0));
+        assert_eq!(
+            buy(sim.world_mut(), Side::Right),
+            Err(LandRefusal::CannotAfford)
+        );
+        assert_eq!(revision(&sim), start + 2);
+    }
+
+    /// Every blocked tile moves with the world, and the new land has none.
+    #[test]
+    fn every_blocked_tile_moves_with_the_world_and_new_land_is_open() {
+        let blocked = |sim: &Sim| -> Vec<(i32, i32)> {
+            let grid = sim.world().resource::<TileGrid>();
+            (0..grid.height() as i32)
+                .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
+                .filter(|&(x, y)| !grid.is_walkable(x, y))
+                .collect()
+        };
+        for (side, dx, dy) in [
+            (Side::Rear, 10, 0),
+            (Side::Right, 0, 10),
+            (Side::Left, 0, 0),
+        ] {
+            let mut sim = rich();
+            let before = blocked(&sim);
+            assert!(!before.is_empty(), "the shipped lot has blocked tiles");
+            buy(sim.world_mut(), side).unwrap();
+            let mut moved: Vec<_> = before.iter().map(|&(x, y)| (x + dx, y + dy)).collect();
+            moved.sort_by_key(|&(x, y)| (y, x));
+            assert_eq!(blocked(&sim), moved, "{side:?}");
+        }
+    }
+
+    /// Painted floors and windows move with everything else. The shipped
+    /// lot has neither, so the test lays two coverings and fits a window on
+    /// the house's east wall first. Every coordinate is 10 or more, which
+    /// makes a wrong move show as a wrong place rather than an overflow.
+    #[test]
+    fn painted_floors_and_windows_move_with_the_world() {
+        use crate::placement::floors::FloorEdit;
+        use crate::placement::windows::{apply_window_edit, WindowEdit};
+        use terri_core::windows::{WindowModel, WindowPlacement};
+        let window = |dx: u32, dy: u32| WindowPlacement {
+            line: WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 16 + dx,
+                y: 10 + dy,
+            },
+            model: WindowModel::Sash,
+        };
+        for (side, dx, dy) in [
+            (Side::Rear, 10, 0),
+            (Side::Right, 0, 10),
+            (Side::Left, 0, 0),
+        ] {
+            let mut sim = rich();
+            for (x, y, covering) in [(13, 11, 1), (17, 14, 3)] {
+                crate::placement::floors::commit(sim.world_mut(), FloorEdit { x, y, covering });
+            }
+            assert_eq!(
+                apply_window_edit(sim.world_mut(), WindowEdit::Fit(window(0, 0))).reason,
+                None
+            );
+            buy(sim.world_mut(), side).unwrap();
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().window_placements(),
+                vec![window(dx, dy)],
+                "{side:?}"
+            );
+            assert_eq!(
+                sim.world().resource::<SavedFloors>().tiles(),
+                [(13 + dx, 11 + dy, 1), (17 + dx, 14 + dy, 3)],
+                "{side:?}"
+            );
+        }
+    }
+
+    /// No purchase meets a legacy wall list: `validate` refuses the layout,
+    /// and `buy` is the only caller of `grow`. `grow` still moves the
+    /// list's cells with everything else, so that move is checked here
+    /// directly, in the rear strip's shape and the right strip's.
+    #[test]
+    fn growing_moves_a_legacy_wall_list_with_the_world() {
+        for (dx, dy) in [(10, 0), (0, 10)] {
+            let mut sim = rich();
+            sim.world_mut().insert_resource(SavedLayout::LegacyCells {
+                walls: vec![(13, 11), (17, 14)],
+            });
+            assert_eq!(
+                validate(sim.world(), Side::Rear),
+                Err(LandRefusal::UnsupportedLayout)
+            );
+            grow(sim.world_mut(), (dx, dy), (dx, dy));
+            assert_eq!(
+                *sim.world().resource::<SavedLayout>(),
+                SavedLayout::LegacyCells {
+                    walls: vec![(13 + dx, 11 + dy), (17 + dx, 14 + dy)],
+                }
             );
         }
     }
