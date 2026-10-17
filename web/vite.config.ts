@@ -45,7 +45,13 @@ export default defineConfig(({ mode }) => ({
   plugins: [changelogPlugin()],
   // The browser downloads the coverage file before anything samples it; Node
   // tests read the same committed file from disk instead.
-  test: { setupFiles: ['./tests/setup/coverage-payload.ts'] },
+  //
+  // Twenty seconds per test rather than vitest's five. The suite runs the
+  // release wasm, hashes atlas pages and prepares whole characters; on a
+  // shared CI runner the slowest of those take five to seven seconds, and a
+  // timeout there reports a failure the code did not cause. Twenty is still
+  // far below a hang.
+  test: { setupFiles: ['./tests/setup/coverage-payload.ts'], testTimeout: 20_000 },
   server: {
     // Development proofs read these isolated asset exports.
     // Trial assets do not enter public/ or the production atlas.
