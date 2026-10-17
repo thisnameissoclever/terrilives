@@ -13,6 +13,9 @@
 Natural Causes is a dark-comedy life sim that runs in the browser. The current
 cast is Tim, Bill, and Casey.
 
+Version 1.0.0. The number is set once in `web/package.json`, shown at the top
+of the Options panel, and matched by the Rust workspace version in `Cargo.toml`.
+
 **`terrilives` was the working title and is still the internal codename.** The
 repository, the play URL, the `terri-*` crates, the browser storage keys, and
 the save file all keep it on purpose: renaming the storage keys would reset
