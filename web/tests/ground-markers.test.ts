@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
-  GROUND_MARKER_COMMAND, HOUSEMATE_MARKER_RADIUS, MARKER_BLUE, MARKER_RED, MARKER_UNIFORM_FLOATS,
+  GROUND_MARKER_COMMAND, GROUND_MARKER_DEPTH, GroundSelectionRenderer, HOUSEMATE_MARKER_RADIUS, MARKER_BLUE, MARKER_RED, MARKER_UNIFORM_FLOATS,
   MARKER_UNIFORM_HEADER_FLOATS, MARKER_UNIFORM_LAYOUT, MAX_GROUND_MARKERS, OFFSET_MARKER_SEMI_AXIS_X,
   OFFSET_MARKER_SEMI_AXIS_Y, PLACEMENT_MARKER_MARGIN, drawAroundMarkers, groundMarkerPipelineDescriptor,
   groundMarkerRows, groundSelectionShader, MARKER_LOOK, markerAxes, placementMarkerSemiAxis, wgslFloat,
@@ -11,11 +11,12 @@ import { buildInstanceBatch, type RenderSource } from '../src/frame.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import {
   ARCHITECTURE_DEPTH, ARCHITECTURE_FLOOR, FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, MAX_ARCHITECTURE_FINISH_SLOT,
-  OFFSET_SCREEN_X, OFFSET_SCREEN_Y, OFFSET_WALL_DEPTH_STEP, OFFSET_WALL_MASK, REGISTERED_SURFACE_DEPTH,
+  OFFSET_DEPTH, OFFSET_SCREEN_X, OFFSET_SCREEN_Y, OFFSET_WALL_DEPTH_STEP, OFFSET_WALL_MASK, REGISTERED_SURFACE_DEPTH,
   SURFACE_DEPTH_PROJECTION, SURFACE_PLANE_PROJECTION, VERTICES_PER_QUAD, architectureMode, decodeArchitectureMode,
 } from '../src/render/instances.js';
 import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH, screenX, screenY } from '../src/render/iso.js';
 import { SCENE_SAMPLE_SCALE } from '../src/render/scene-sampling.js';
+import type { SceneTarget } from '../src/render/scene-target.js';
 import { spritePipelineDescriptors } from '../src/render/sprite-pipelines.js';
 import type { PlacementPreview } from '../src/bridge.js';
 
@@ -123,12 +124,14 @@ describe('placement marker geometry', () => {
 });
 
 describe('marker uniform blocks', () => {
-  it.each([1, 2, 0.6])('keeps the housemate marker the approved 30 by 19.6875 pixel ellipse at scale %s', scale => {
+  it.each([1, 2, 0.6])('keeps the housemate marker the 30 by 19.6875 pixel ellipse the game shipped, at scale %s', scale => {
     const row = housemateRow();
     expect(row[OFFSET_MARKER_SEMI_AXIS_X]).toBe(Math.fround(HOUSEMATE_MARKER_RADIUS));
     expect(row[OFFSET_MARKER_SEMI_AXIS_Y]).toBe(Math.fround(HOUSEMATE_MARKER_RADIUS));
     const block = uniform(row, scale);
     expect([block[L.center], block[L.center + 1]]).toEqual([120, 80]);
+    // On the floor-decal plane: depth 0 would draw the marker over everything in front of it.
+    expect(block[L.depth]).toBe(Math.fround(GROUND_MARKER_DEPTH));
     expect(block[L.extent]).toBeCloseTo(30 * scale, 5);
     expect(block[L.extent + 1]).toBeCloseTo(19.6875 * scale, 5);
     expect(Array.from(block.slice(L.color, L.color + 3))).toEqual(MARKER_BLUE.map(Math.fround));
@@ -139,10 +142,11 @@ describe('marker uniform blocks', () => {
     }
   });
 
-  it('colors a placement marker by its validity and writes the marker command', () => {
+  it('colors a placement marker by its validity, lays it on the floor-decal plane and writes the marker command', () => {
     const valid = uniform(placementRow(1, 2), 1), refused = uniform(placementRow(1, 2, false), 1);
     expect(Array.from(valid.slice(L.color, L.color + 3))).toEqual(MARKER_BLUE.map(Math.fround));
     expect(Array.from(refused.slice(L.color, L.color + 3))).toEqual(MARKER_RED.map(Math.fround));
+    expect([valid[L.depth], refused[L.depth]]).toEqual([Math.fround(GROUND_MARKER_DEPTH), Math.fround(GROUND_MARKER_DEPTH)]);
     const row = placementRow(2, 2);
     expect(row[OFFSET_WALL_MASK]).toBe(GROUND_MARKER_COMMAND);
     expect(row[OFFSET_WALL_DEPTH_STEP]).toBe(0);
@@ -159,6 +163,84 @@ describe('marker uniform blocks', () => {
     writeMarkerUniform(out, MARKER_UNIFORM_FLOATS, housemateRow(), 0, 1);
     expect(Array.from(out.slice(0, MARKER_UNIFORM_FLOATS))).toEqual(Array(MARKER_UNIFORM_FLOATS).fill(7));
     expect(Array.from(out.slice(2 * MARKER_UNIFORM_FLOATS))).toEqual(Array(MARKER_UNIFORM_FLOATS).fill(7));
+  });
+
+  it('carries the row depth into the block', () => {
+    const row = housemateRow();
+    row[OFFSET_DEPTH] = 0.25;
+    expect(uniform(row, 1)[L.depth]).toBe(0.25);
+  });
+});
+
+describe('the marker renderer', () => {
+  it('uploads the logical canvas size and one block per marker, then draws one instance per marker', () => {
+    vi.stubGlobal('GPUBufferUsage', { UNIFORM: 64, COPY_DST: 8 });
+    try {
+      const module = { label: 'shader' }, layout = { label: 'layout' }, group = { label: 'group' };
+      const pipeline = { getBindGroupLayout: (index: number) => { expect(index).toBe(0); return layout; } };
+      let created: GPUBufferDescriptor | null = null, destroyed = false;
+      const buffer = { destroy: () => { destroyed = true; } };
+      const writes: { buffer: unknown; offset: number; data: number[]; dataOffset: number; size: number }[] = [];
+      const device = {
+        createShaderModule: (descriptor: GPUShaderModuleDescriptor) => {
+          expect(descriptor.code).toBe(groundSelectionShader);
+          return module;
+        },
+        createRenderPipeline: (descriptor: GPURenderPipelineDescriptor) => {
+          expect(descriptor).toEqual(groundMarkerPipelineDescriptor(module as unknown as GPUShaderModule));
+          return pipeline;
+        },
+        createBuffer: (descriptor: GPUBufferDescriptor) => { created = descriptor; return buffer; },
+        createBindGroup: (descriptor: GPUBindGroupDescriptor) => {
+          expect(descriptor.layout).toBe(layout);
+          expect(Array.from(descriptor.entries)).toEqual([{ binding: 0, resource: { buffer } }]);
+          return group;
+        },
+        queue: {
+          writeBuffer: (target: unknown, offset: number, data: Float32Array, dataOffset: number, size: number) => {
+            writes.push({ buffer: target, offset, data: Array.from(data), dataOffset, size });
+          },
+        },
+      };
+      const renderer = new GroundSelectionRenderer(device as unknown as GPUDevice);
+      expect(created).toEqual({ size: (MARKER_UNIFORM_HEADER_FLOATS + MAX_GROUND_MARKERS * MARKER_UNIFORM_FLOATS) * 4,
+        usage: 64 | 8 });
+
+      const instances = new Float32Array(5 * FLOATS_PER_INSTANCE);
+      writeHousemateMarker(instances, 1, 120, 80);
+      writePlacementMarker(instances, 3, 300, 200, 1, 2, false);
+      const rows = Int32Array.from([1, 3, 0, 0]);
+      const recorded: unknown[][] = [];
+      const pass = {
+        setPipeline: (value: unknown) => recorded.push(['setPipeline', value]),
+        setBindGroup: (index: number, value: unknown) => recorded.push(['setBindGroup', index, value]),
+        draw: (...args: number[]) => recorded.push(['draw', ...args]),
+      };
+      // The scene renders at twice the canvas resolution; the shader works in canvas pixels.
+      const target = { logicalWidth: 640, logicalHeight: 480, width: 1280, height: 960 };
+      renderer.draw(pass as unknown as GPURenderPassEncoder, target as unknown as SceneTarget, instances, rows, 2, 1.5);
+
+      expect(writes).toHaveLength(1);
+      const [write] = writes;
+      expect([write.buffer, write.offset, write.dataOffset, write.size])
+        .toEqual([buffer, 0, 0, MARKER_UNIFORM_HEADER_FLOATS + 2 * MARKER_UNIFORM_FLOATS]);
+      expect(write.data.slice(0, 2)).toEqual([640, 480]);
+      for (let marker = 0; marker < 2; marker++) {
+        const expected = new Float32Array(MARKER_UNIFORM_FLOATS);
+        writeMarkerUniform(expected, 0, instances, rows[marker], 1.5);
+        const start = MARKER_UNIFORM_HEADER_FLOATS + marker * MARKER_UNIFORM_FLOATS;
+        expect(write.data.slice(start, start + MARKER_UNIFORM_FLOATS)).toEqual(Array.from(expected));
+      }
+      expect(recorded).toEqual([['setPipeline', pipeline], ['setBindGroup', 0, group], ['draw', VERTICES_PER_QUAD, 2]]);
+
+      renderer.draw(pass as unknown as GPURenderPassEncoder, target as unknown as SceneTarget, instances, rows, 0, 1.5);
+      expect(writes).toHaveLength(1);
+      expect(recorded).toHaveLength(3);
+      renderer.destroy();
+      expect(destroyed).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
@@ -478,7 +560,7 @@ describe('the marker shader, replayed on the CPU', () => {
     }
   });
 
-  it.each(blocks)('gives the %s marker a 1.95 pixel border all the way round', (_, block) => {
+  it.each(blocks)('gives the %s marker a 1.95 pixel border all the way around', (_, block) => {
     const quad = replay(block);
     for (let k = 0; k < 16; k++) {
       const { point, normal } = edgePoint(block, k * Math.PI / 8);
@@ -505,7 +587,7 @@ describe('the marker shader, replayed on the CPU', () => {
     }
   });
 
-  // The approved softening is the distance one scene sample's step covers
+  // The current softening is the distance one scene sample's step covers
   // across the edge, half a pixel per screen axis in the game, and never less
   // than 0.42 pixels. Between 0.9 and 0.1 of full strength, smoothstep spans
   // 2 * (t(0.9) - t(0.1)) of that softening. The 10% allowance covers the
@@ -514,7 +596,7 @@ describe('the marker shader, replayed on the CPU', () => {
   const expectSoftening = (measured: number, softening: number) =>
     expect(Math.abs(measured - span * softening)).toBeLessThan(0.1 * span * softening);
 
-  it.each(blocks)('fades the %s marker border out over the approved softening width', (_, block) => {
+  it.each(blocks)('fades the %s marker border out over the current softening width', (_, block) => {
     const quad = replay(block);
     for (let k = 0; k < 16; k++) {
       const { point, normal } = edgePoint(block, k * Math.PI / 8);
@@ -538,7 +620,7 @@ describe('the marker shader, replayed on the CPU', () => {
       let reach = 0;
       for (let s = 0; s <= look.boxMargin + 2; s += 0.01) {
         const value = fragment(quad, point[0] + s * normal[0], point[1] + s * normal[1]);
-        // 0.001 is the approved discard threshold: anything stronger must lie on the drawn quad.
+        // 0.001 is the current discard threshold: anything stronger must lie on the drawn quad.
         if (value.opacity >= 0.001) {
           expect(value.covered).toBe(true);
           reach = s;

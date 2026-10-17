@@ -18,7 +18,7 @@ function marker(data:Float32Array,count:number):Float32Array {
   throw new Error('The selected person has no floor indicator.');
 }
 
-it('keeps ring sprites without the marker command, such as the tile highlight, out of the marker pass',()=>{
+it('keeps ring sprites without the marker command, such as the tile highlight, out of the floor-marker draw',()=>{
   const data=new Float32Array(FLOATS_PER_INSTANCE*3),rows=new Int32Array(MAX_GROUND_MARKERS);
   for(let row=0;row<3;row++)data[row*FLOATS_PER_INSTANCE+3]=spriteIndex('selectionRing');
   expect(groundMarkerRows(data,3,rows)).toBe(0);

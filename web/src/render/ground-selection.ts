@@ -52,8 +52,9 @@ export const GROUND_MARKER_DEPTH=FLOOR_DEPTH-DEPTH_LAYER_STEP/4;
 
 /**
  * The housemate marker is a world circle of this radius in tiles. Through
- * the isometric projection it is the approved 30 by 19.6875 pixel ellipse at
- * scale 1: 30 = 32 * sqrt(2) * r and 19.6875 = 21 * sqrt(2) * r.
+ * the isometric projection it is the 30 by 19.6875 pixel ellipse the game
+ * already shipped at scale 1: 30 = 32 * sqrt(2) * r and
+ * 19.6875 = 21 * sqrt(2) * r.
  */
 export const HOUSEMATE_MARKER_RADIUS=30/(TILE_HALF_WIDTH*Math.SQRT2);
 
@@ -161,16 +162,19 @@ export const MARKER_UNIFORM_FLOATS=16;
 /**
  * Where each `struct Marker` member starts within a marker's block, in
  * floats: center (2), the screen box's half-extent (2), the two rows of the
- * screen-to-unit-circle matrix (2 each), color (4) and depth (1).
+ * matrix that maps screen offsets into the ellipse's unit-circle space
+ * (2 each), color (4) and depth (1).
  */
 export const MARKER_UNIFORM_LAYOUT={center:0,extent:2,row0:4,row1:6,color:8,depth:12} as const;
 const axes=new Float64Array(4);
 
 /**
  * Writes marker row `row`'s uniform block into `out` from `at`. The block
- * maps a screen offset from the center to the unit circle with the inverse
- * of the matrix whose columns are `markerAxes`' u and v, and bounds the
- * ellipse with its screen box.
+ * maps a screen offset from the center into the space where the ellipse is
+ * the unit circle, with the inverse of the matrix whose columns are
+ * `markerAxes`' u and v; points outside the ellipse, such as the quad's
+ * corners, land outside that circle. It also bounds the ellipse with its
+ * screen box and carries the row's color and depth.
  */
 export function writeMarkerUniform(out:Float32Array|Float64Array,at:number,instances:Float32Array,row:number,scale:number):void {
  const base=row*FLOATS_PER_INSTANCE,L=MARKER_UNIFORM_LAYOUT;
