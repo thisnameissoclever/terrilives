@@ -1,6 +1,8 @@
-//! The calendar's two boundary reads - [CAL-hud] and [CAL-evidence] item 5
-//! in `docs/specs/2026-10-06-calendar.md`: the weekday of the current tick,
-//! and the working days and hours of a person's career.
+//! The calendar's boundary reads - [CAL-hud] and [CAL-evidence] item 5 in
+//! `docs/specs/2026-10-06-calendar.md`: the weekday of the current tick, and
+//! the working days and hours of a person's career; and [SEA-evidence] in
+//! `docs/specs/2026-10-17-seasons.md`: the season of the current tick and
+//! the yard's seasonal looks.
 
 use super::*;
 use terri_core::SimClock;
@@ -186,4 +188,95 @@ fn weekday_index_applies_the_tuning_offset() {
     assert_eq!(set_tick(day - 1), 6, "the last minute of day 1");
     assert_eq!(set_tick(day), 0, "day 2 is a Monday");
     assert_eq!(set_tick(7 * day), 6, "day 8 is a Sunday again");
+}
+
+/// [SEA-year] at the boundary: a new game starts in Spring, and the season
+/// turns on the first tick of day 8, 15 and 22, back to Spring on day 29.
+/// Reading it changes neither the save nor the world hash.
+#[test]
+fn season_index_starts_in_spring_and_turns_every_seven_days() {
+    let mut handle = SimHandle::from_lot();
+    let day = u64::from(handle.day_ticks());
+    let bytes = handle.save_bytes();
+    let hash = handle.world_hash();
+    assert_eq!(handle.season_index(), 0, "a new game starts in Spring");
+    assert_eq!(
+        handle.save_bytes(),
+        bytes,
+        "reading the season saves nothing"
+    );
+    assert_eq!(handle.world_hash(), hash);
+
+    let mut set_tick = |tick: u64| {
+        handle.sim.world_mut().resource_mut::<SimClock>().tick = tick;
+        handle.season_index()
+    };
+    for (season, first_day) in [(0, 0u64), (1, 7), (2, 14), (3, 21)] {
+        assert_eq!(
+            set_tick(first_day * day),
+            season,
+            "first tick of season {season}"
+        );
+        assert_eq!(
+            set_tick((first_day + 7) * day - 1),
+            season,
+            "last tick of season {season}"
+        );
+    }
+    assert_eq!(set_tick(28 * day), 0, "day 29 is Spring again");
+    assert_eq!(
+        set_tick(u64::MAX),
+        u32::from(terri_core::clock::season(u64::MAX, day as u32, 7, 0)),
+        "the top of the tick range still names a season"
+    );
+}
+
+/// [SEA-year]: the boundary applies the tuning's season length and first
+/// season, the numbers `terri_core::clock::season` is given everywhere, so
+/// a read that hardcoded either would disagree here.
+#[test]
+fn season_index_applies_the_tuning_length_and_offset() {
+    let mut handle = SimHandle::from_lot();
+    let day = u64::from(handle.day_ticks());
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    retuned.tuning.days_per_season = 2;
+    retuned.tuning.first_season = 3;
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    assert_eq!(
+        handle.season_index(),
+        3,
+        "day 1 is in Winter under offset 3"
+    );
+
+    let mut set_tick = |tick: u64| {
+        handle.sim.world_mut().resource_mut::<SimClock>().tick = tick;
+        handle.season_index()
+    };
+    assert_eq!(set_tick(2 * day - 1), 3, "the last minute of day 2");
+    assert_eq!(set_tick(2 * day), 0, "day 3 is in Spring");
+    assert_eq!(set_tick(4 * day), 1, "day 5 is in Summer");
+    assert_eq!(set_tick(8 * day), 3, "day 9 is in Winter again");
+}
+
+/// [SEA-yard]: the yard's four seasonal looks cross the boundary as twelve
+/// numbers, Spring first, exactly as the compiled tuning holds them.
+#[test]
+fn season_yard_looks_reports_the_four_rows_in_season_order() {
+    let handle = SimHandle::from_lot();
+    let looks = handle
+        .sim
+        .world()
+        .resource::<Content>()
+        .0
+        .tuning
+        .season_yard_looks;
+    assert_eq!(
+        handle.season_yard_looks(),
+        looks.iter().flatten().copied().collect::<Vec<_>>()
+    );
+    assert_eq!(handle.season_yard_looks()[..3], [0.0, 1.0, 0.0]);
+    assert_eq!(handle.season_yard_looks()[9..], looks[3]);
 }
