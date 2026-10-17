@@ -330,8 +330,8 @@ pub struct TuningFile {
     pub need_interactions: crate::NeedInteractionTuning,
     /// Chance per contact minute that a communal activity pays its communal
     /// rate to a person toward a housemate they hate, at or below
-    /// `grief_hated_affinity`; the other minutes pay ordinary proximity
-    /// (communal affinity, issue 257). Finite, from 0 to 1. Required, like
+    /// `grief_hated_affinity`; a refused minute pays the ordinary proximity
+    /// rate with friction still suspended (communal affinity, issue 257). Finite, from 0 to 1. Required, like
     /// every other root knob.
     pub hated_communal_chance: f32,
 }

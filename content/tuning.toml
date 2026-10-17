@@ -555,8 +555,8 @@ relationship_delta_scale = 0.5
 # other participant (feeling at or below grief_hated_affinity, the same
 # cutoff grief uses for a hated person) gets that reward only on this
 # fraction of contact minutes, decided by a roll seeded from the saved
-# generator, the tick and the pair; the refused minutes pay ordinary
-# proximity instead. 0 means hatred refuses every communal minute; 1 means
+# generator, the tick and the pair; a refused minute pays the ordinary
+# proximity rate and still suspends friction. 0 means hatred refuses every communal minute; 1 means
 # it refuses none. Must be finite, from 0 to 1. Appended to the compiled
 # tuning after the need-interaction values, so packs published before it
 # reconstruct the shipped 0.35.

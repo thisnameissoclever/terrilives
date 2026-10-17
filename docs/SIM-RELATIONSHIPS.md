@@ -164,8 +164,9 @@ incompatibility friction. Conversations receive one completion reward.
 A Sim who already hates the other participant (feeling at or below
 `grief_hated_affinity`, the cutoff grief uses for a hated person) earns the
 communal rate only on a tuned fraction of contact minutes
-(`hated_communal_chance`, 0.35); the refused minutes pay ordinary proximity,
-so hatred slows recovery without blocking it. The roll is seeded from the
+(`hated_communal_chance`, 0.35); a refused minute pays the ordinary proximity
+rate and still suspends incompatibility friction, so hatred slows recovery
+without blocking it. The roll is seeded from the
 saved generator, the tick and the pair, and consumes nothing from the shared
 simulation stream. Hygiene and unhelped critical needs still block the gain
 as for any positive contact.

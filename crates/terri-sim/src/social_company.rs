@@ -762,12 +762,13 @@ pub(crate) fn tick_meals(world: &mut World) {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     /// Which pairs of activities count as one communal activity: the same
     /// table, the same device used the same way, or the same shared group
     /// on different objects that both people accept. Anything else, not.
     #[test]
     fn communal_pairs_need_the_same_table_or_device_and_distinct_shared_objects() {
-        use super::Communal;
         let mut world = bevy_ecs::prelude::World::new();
         let (one, two) = (world.spawn_empty().id(), world.spawn_empty().id());
         let table = |station| Communal::Table { station };
@@ -794,7 +795,6 @@ mod tests {
         assert!(!shared(one, "reading").pairs_with(&table(one), yes));
     }
 
-    use super::*;
     #[test]
     fn critical_social_does_not_create_phantom_media_emergencies() {
         for company in [false, true] {

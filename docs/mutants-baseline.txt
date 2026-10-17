@@ -28,4 +28,4 @@ crates/terri-sim/src/systems/circadian.rs:101:66: replace > with >= in curve_at
 crates/terri-sim/src/systems/interact.rs:251:27: replace > with >= in tick_interactions
 crates/terri-sim/src/systems/satisfaction.rs:59:19: replace > with >= in bleed_neglect
 crates/terri-sim/src/systems/social.rs:157:27: replace > with >= in tick_social
-crates/terri-sim/src/relationship_dynamics.rs:103:5: replace < with <= in hated_communal_gain
+crates/terri-sim/src/relationship_dynamics.rs:102:61: replace < with <= in hated_communal_gain

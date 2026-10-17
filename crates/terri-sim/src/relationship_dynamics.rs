@@ -236,18 +236,24 @@ pub(crate) fn tick(world: &mut World) {
                 .map_or(0.0, |r| r.feeling(other.id));
             // A person who already hates the other participant (the same
             // cutoff grief uses for a hated person) earns the communal rate
-            // only on the minutes the roll allows; the rest of the minutes
-            // are ordinary company, so hatred never blocks recovery outright.
-            let shared = shared
-                && (before > tuning.grief_hated_affinity
-                    || hated_communal_gain(&tuning, stream, tick, subject.id, other.id));
-            let (cause, requested) = if shared {
+            // only on the minutes the roll allows. A refused minute pays
+            // the ordinary proximity rate and still suspends friction, so
+            // hatred slows recovery without ever blocking it.
+            let refused = shared
+                && before <= tuning.grief_hated_affinity
+                && !hated_communal_gain(&tuning, stream, tick, subject.id, other.id);
+            let (cause, requested) = if shared && !refused {
                 (
                     RelationshipCause::SharedActivity,
                     rates.proximity_per_hour
                         * rates.shared_activity_multiplier
                         * positive_scale(score)
                         / 60.0,
+                )
+            } else if refused {
+                (
+                    RelationshipCause::Proximity,
+                    rates.proximity_per_hour / 60.0,
                 )
             } else if score < rates.incompatible_below {
                 (
@@ -688,6 +694,58 @@ mod tests {
         };
         assert_eq!(pattern(5), pattern(5));
         assert_ne!(pattern(5), pattern(6));
+    }
+
+    /// A refused minute is ordinary company at the proximity rate, not a
+    /// friction minute: the shared activity still suspends incompatibility
+    /// for a hated, incompatible pair.
+    #[test]
+    fn a_refused_minute_pays_proximity_and_keeps_friction_suspended() {
+        let (mut sim, a, b) = watching_with_chance(0.0);
+        let pack = sim.world().resource::<Content>().0;
+        let reading = pack.find("bookshelf").unwrap();
+        let exercise = pack.find("moving_box").unwrap();
+        for (entity, weight) in [(a, 2.0), (b, 0.0)] {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(Personality::with_dispositions(
+                    [1.0; 7],
+                    [1.0; 7],
+                    vec![(exercise, 0, weight), (reading, 0, 1.0)],
+                ));
+        }
+        let score = sim.compatibility(SimId(0), SimId(1)).unwrap();
+        let rates = pack.tuning.relationships;
+        assert!(
+            score < rates.incompatible_below,
+            "the pair is incompatible: {score}"
+        );
+        for minute in 0..30 {
+            assert_eq!(
+                minute_cause(&mut sim, a, pack.tuning.grief_hated_affinity, minute),
+                Some(RelationshipCause::Proximity)
+            );
+            assert!(
+                (feeling(&sim, a, SimId(1))
+                    - (pack.tuning.grief_hated_affinity + rates.proximity_per_hour / 60.0))
+                    .abs()
+                    < 1e-7
+            );
+        }
+        // The same pair, not hated, is a plain friction case once the
+        // television is gone: nothing here has changed the ordinary rule.
+        sim.world_mut()
+            .entity_mut(a)
+            .remove::<Target>()
+            .remove::<Eating>();
+        sim.world_mut()
+            .entity_mut(b)
+            .remove::<Target>()
+            .remove::<Eating>();
+        assert_eq!(
+            minute_cause(&mut sim, a, 0.0, 31),
+            Some(RelationshipCause::Incompatibility)
+        );
     }
 
     #[test]
