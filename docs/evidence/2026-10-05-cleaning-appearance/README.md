@@ -50,7 +50,7 @@ appearance quality. Saved poses separately verify wrist placement.
 
 ## Final played result
 
-![Casey mopping in the game](casey-mopping.gif)
+[Casey mopping in the game (archived)](https://github.com/thisnameissoclever/terrilives/blob/7c7cfa2274729716b35fda168653c2dfe687d079/docs/evidence/2026-10-05-cleaning-appearance/casey-mopping.gif)
 
 The final capture loads an explicitly staged review save with Casey on the open
 kitchen tile at (6,3). The native fixture queues the normal floor-cleaning command

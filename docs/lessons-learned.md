@@ -12053,3 +12053,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the module served three exports. The bath loop uses only its wardrobe function, but a receipt pins the whole file, so an edit to the washing pose broke the bath receipt without changing any shipped bath pixel. Skipping CI hid the failure until the next unrelated push.
 3. Prevention: before editing a file under `assets/models`, search the export receipts (`grep -rn <file name> assets/models/*/actions/export assets/models/*/export`) for its path. If a shipped receipt pins it, either run that export again and review the art, or put the new work in a separate module the receipt does not pin. Never push a change to pinned inputs with `[skip ci]`.
 4. Verification: run `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'` and `python assets/sprites/gen/build.py --check` locally before pushing; both fail on a changed pinned input. After merging, confirm the CI run on main passed and the Pages deployment ran.
+
+## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
+
+1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
+2. Root cause: the deletion filter protected literal filenames in documentation and source, but some readers assemble filenames from naming patterns or structured reports. A file's location under `docs/evidence/` does not establish that it is disposable.
+3. Prevention: inspect file readers, expand their supported naming patterns, and follow report fields used as input paths. Preserve the inputs required by useful retained tools. Distinguish generated review output from test fixtures and asset production inputs before deciding which checks apply.
+4. Verification: run the affected postprocessors with isolated outputs, verify preserved input bytes against Git, and confirm the deletion set contains no code, functional assets, or required test inputs. Update current documentation when a capture sequence moves into Git history.
