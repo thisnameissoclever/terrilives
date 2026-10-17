@@ -29,7 +29,7 @@ function uniform(row: Float32Array, scale: number): Float64Array {
 
 const L = MARKER_UNIFORM_LAYOUT;
 
-/** A screen offset from the marker center, mapped to the marker's unit circle. */
+/** A screen offset from the marker center, mapped into the space where the marker's ellipse is the unit circle. */
 function unit(block: Float64Array, x: number, y: number): [number, number] {
   return [block[L.row0] * x + block[L.row0 + 1] * y, block[L.row1] * x + block[L.row1 + 1] * y];
 }
@@ -77,7 +77,7 @@ describe('placement marker geometry', () => {
   it('turns a 1 by 2 marker with the object: its long axis follows the longer footprint side', () => {
     const along = (width: number, depth: number) => {
       const block = uniform(placementRow(width, depth), 1);
-      // How far one tile along each world axis reaches in the marker's unit circle:
+      // How far one tile along each world axis reaches in the space where the ellipse is the unit circle:
       // the longer the marker along that axis, the shorter the reach.
       const [xu, xv] = unit(block, 32, 21), [yu, yv] = unit(block, -32, 21);
       return { worldX: Math.hypot(xu, xv), worldY: Math.hypot(yu, yv) };
@@ -135,7 +135,7 @@ describe('marker uniform blocks', () => {
     expect(block[L.extent]).toBeCloseTo(30 * scale, 5);
     expect(block[L.extent + 1]).toBeCloseTo(19.6875 * scale, 5);
     expect(Array.from(block.slice(L.color, L.color + 3))).toEqual(MARKER_BLUE.map(Math.fround));
-    // The unit circle is the old length(local / radius) for every screen offset.
+    // The radius in that space equals the old length(local / radius) for every screen offset.
     for (const [x, y] of [[30, 0], [0, 19.6875], [12, -7], [-25, 11]]) {
       const [ox, oy] = [x * scale, y * scale];
       expect(Math.hypot(...unit(block, ox, oy))).toBeCloseTo(Math.hypot(ox / (30 * scale), oy / (19.6875 * scale)), 5);
@@ -468,7 +468,7 @@ function sample(quad: Replay, px: number, py: number): Fragment {
 function edgePoint(block: Float64Array, t: number): { point: [number, number]; normal: [number, number] } {
   const [a, b, c, d] = [block[L.row0], block[L.row0 + 1], block[L.row1], block[L.row1 + 1]];
   const det = a * d - b * c, cos = Math.cos(t), sin = Math.sin(t);
-  // The inverse of the screen-to-unit-circle map takes the unit circle back to the screen.
+  // The inverse map takes the unit circle back to the marker's ellipse on the screen.
   const point: [number, number] = [(d * cos - b * sin) / det, (-c * cos + a * sin) / det];
   const nx = a * cos + c * sin, ny = b * cos + d * sin, length = Math.hypot(nx, ny);
   return { point, normal: [nx / length, ny / length] };
