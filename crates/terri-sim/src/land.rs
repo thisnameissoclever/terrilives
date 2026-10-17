@@ -371,3 +371,300 @@ fn remap_key(
         ChoreKind::Dishes | ChoreKind::Surfaces | ChoreKind::Bins => key,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Sim;
+    use terri_core::chores::SavedChores;
+    use terri_core::layout::EdgeAxis;
+
+    fn rich() -> Sim {
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+        crate::chores::ensure(sim.world_mut());
+        sim.world_mut()
+            .insert_resource(Funds::from_dollars(1_000_000));
+        sim
+    }
+
+    fn dims(sim: &Sim) -> (u32, u32) {
+        let grid = sim.world().resource::<TileGrid>();
+        (grid.width() as u32, grid.height() as u32)
+    }
+
+    /// Every position, path step, wall, window and floor, read as sorted
+    /// lists keyed by entity index where there is one.
+    #[allow(clippy::type_complexity)]
+    fn geometry(
+        sim: &mut Sim,
+    ) -> (
+        Vec<(u32, (f32, f32))>,
+        Vec<(u32, Vec<(i32, i32)>)>,
+        Vec<WallEdge>,
+        Vec<WallLine>,
+        Vec<(u32, u32, u8)>,
+    ) {
+        let mut positions: Vec<_> = sim
+            .world_mut()
+            .query::<(Entity, &Position)>()
+            .iter(sim.world())
+            .map(|(e, p)| (e.index_u32(), (p.x, p.y)))
+            .collect();
+        positions.sort_by_key(|p| p.0);
+        let mut paths: Vec<_> = sim
+            .world_mut()
+            .query::<(Entity, &Path)>()
+            .iter(sim.world())
+            .map(|(e, p)| (e.index_u32(), p.steps.clone()))
+            .collect();
+        paths.sort_by_key(|p| p.0);
+        let world = sim.world();
+        let layout = world.resource::<SavedLayout>();
+        let mut edges = layout.edges().to_vec();
+        edges.sort_by_key(|e| (e.axis as u8, e.x, e.y));
+        let mut windows = layout.window_lines();
+        windows.sort();
+        let floors = world
+            .get_resource::<SavedFloors>()
+            .map_or_else(Vec::new, |f| f.tiles().to_vec());
+        (positions, paths, edges, windows, floors)
+    }
+
+    /// The issue's first example: a 10 by 20 side strip at $150 a square
+    /// costs $30,000 and makes the next square $180; a second one costs
+    /// $36,000 and makes it $210; a rear strip after the first side strip
+    /// is 10 by 26, costs $46,800 and makes it $219.
+    #[test]
+    fn the_pricing_examples_of_the_issue_hold() {
+        let tuning = &terri_data::pack().tuning;
+        assert_eq!(square_price_cents(tuning, 0), 15_000);
+        assert_eq!(square_price_cents(tuning, 200), 18_000);
+        assert_eq!(square_price_cents(tuning, 400), 21_000);
+        assert_eq!(square_price_cents(tuning, 460), 21_900);
+        let mut sim = rich();
+        let first = quote(sim.world(), Side::Left);
+        assert_eq!((first.length, first.depth, first.area), (20, 10, 200));
+        assert_eq!(first.price_cents, 3_000_000);
+        assert_eq!(first.remaining_cents, 100_000_000 - 3_000_000);
+        assert!(first.affordable());
+        assert_eq!(buy(sim.world_mut(), Side::Left), Ok(first));
+        assert_eq!(sim.funds(), 100_000_000 - 3_000_000);
+        assert_eq!(lot_frame::frame(sim.world()).unwrap().purchased_area, 200);
+        let second = quote(sim.world(), Side::Left);
+        assert_eq!((second.area, second.price_cents), (200, 3_600_000));
+        let rear = quote(sim.world(), Side::Rear);
+        assert_eq!((rear.length, rear.depth, rear.area), (26, 10, 260));
+        assert_eq!(rear.price_cents, 4_680_000);
+        assert_eq!(buy(sim.world_mut(), Side::Rear), Ok(rear));
+        assert_eq!(square_price_cents(tuning, 460), 21_900);
+        assert_eq!(lot_frame::frame(sim.world()).unwrap().purchased_area, 460);
+        assert_eq!(dims(&sim), (30, 26));
+    }
+
+    /// A quote changes nothing; a refused purchase changes nothing either.
+    #[test]
+    fn quotes_and_refusals_write_nothing() {
+        let mut sim = rich();
+        let before = sim.world_hash();
+        let _ = quote(sim.world(), Side::Rear);
+        assert_eq!(sim.world_hash(), before);
+        assert_eq!(Side::from_index(3), None);
+        sim.world_mut().insert_resource(Funds::from_dollars(29_999));
+        let hash = sim.world_hash();
+        assert_eq!(
+            buy(sim.world_mut(), Side::Left),
+            Err(LandRefusal::CannotAfford)
+        );
+        assert_eq!(sim.world_hash(), hash);
+        assert!(!quote(sim.world(), Side::Left).affordable());
+        sim.world_mut().insert_resource(Funds::from_dollars(30_000));
+        assert!(quote(sim.world(), Side::Left).affordable());
+        // Too large: a strip that would pass the loader's side limit.
+        let mut tuning = sim.world().resource::<crate::Content>().0.tuning;
+        tuning.land_strip_depth = MAX_SIDE;
+        let pack = Box::leak(Box::new(terri_data::ContentPack {
+            tuning,
+            ..sim.world().resource::<crate::Content>().0.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+        sim.world_mut().insert_resource(Funds(i64::MAX / 4));
+        assert_eq!(buy(sim.world_mut(), Side::Left), Err(LandRefusal::TooLarge));
+        // A frozen legacy layout cannot grow.
+        let mut legacy = rich();
+        legacy
+            .world_mut()
+            .insert_resource(SavedLayout::LegacyAuthoredV1);
+        assert_eq!(
+            buy(legacy.world_mut(), Side::Left),
+            Err(LandRefusal::UnsupportedLayout)
+        );
+        // A lot with no frame cannot grow either.
+        let mut custom = Sim::new_with_lot(8, 8);
+        custom
+            .world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+        custom.world_mut().insert_resource(Funds(i64::MAX / 4));
+        assert_eq!(
+            buy(custom.world_mut(), Side::Rear),
+            Err(LandRefusal::UnsupportedLayout)
+        );
+    }
+
+    /// The left side is south: the grid gains rows below everything, and
+    /// no coordinate moves.
+    #[test]
+    fn a_left_strip_adds_rows_to_the_south_and_moves_nothing() {
+        let mut sim = rich();
+        let before = geometry(&mut sim);
+        let frame = lot_frame::frame(sim.world()).unwrap();
+        buy(sim.world_mut(), Side::Left).unwrap();
+        assert_eq!(dims(&sim), (20, 26));
+        assert_eq!(geometry(&mut sim), before);
+        assert_eq!(lot_frame::frame(sim.world()).unwrap().origin, frame.origin);
+        assert_eq!(lot_frame::street_exit(sim.world()), Some((19, 2)));
+        for y in 16..26 {
+            for x in 0..20 {
+                assert!(sim.world().resource::<TileGrid>().is_walkable(x, y));
+            }
+        }
+    }
+
+    /// The right side is north and the rear is west: everything moves by
+    /// the strip's depth, the house's implicit shell becomes a barrier on
+    /// the moved edge, the content coordinates follow the frame, and every
+    /// room keeps its tiles.
+    #[test]
+    fn rear_and_right_strips_move_the_whole_world() {
+        for (side, dx, dy, expected) in [
+            (Side::Rear, 10, 0, (30, 16)),
+            (Side::Right, 0, 10, (20, 26)),
+        ] {
+            let mut sim = rich();
+            sim.tick();
+            sim.tick();
+            let (positions, paths, edges, windows, floors) = geometry(&mut sim);
+            let rooms = RoomRegions::from_world(sim.world());
+            let chores = sim.world().resource::<SavedChores>().clone();
+            let door = lot_frame::front_door(sim.world()).unwrap();
+            buy(sim.world_mut(), side).unwrap();
+            assert_eq!(dims(&sim), expected);
+            let (new_positions, new_paths, new_edges, new_windows, new_floors) = geometry(&mut sim);
+            let shift = |(x, y): (i32, i32)| (x + dx as i32, y + dy as i32);
+            assert_eq!(
+                new_positions,
+                positions
+                    .iter()
+                    .map(|(e, (x, y))| (*e, (x + dx as f32, y + dy as f32)))
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(
+                new_paths,
+                paths
+                    .iter()
+                    .map(|(e, steps)| (*e, steps.iter().map(|&s| shift(s)).collect()))
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(
+                new_edges,
+                edges
+                    .iter()
+                    .map(|e| WallEdge {
+                        axis: e.axis,
+                        x: e.x + dx,
+                        y: e.y + dy,
+                        doorway: e.doorway
+                    })
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(
+                new_windows,
+                windows
+                    .iter()
+                    .map(|w| WallLine {
+                        axis: w.axis,
+                        x: w.x + dx,
+                        y: w.y + dy
+                    })
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(
+                new_floors,
+                floors
+                    .iter()
+                    .map(|&(x, y, c)| (x + dx, y + dy, c))
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(lot_frame::frame(sim.world()).unwrap().origin, (dx, dy));
+            assert_eq!(
+                lot_frame::front_door(sim.world()),
+                Some((door.0 + dx, door.1 + dy))
+            );
+            let house = lot_frame::house(sim.world()).unwrap();
+            assert_eq!(
+                (house.x, house.y, house.width, house.height),
+                (dx, dy, 16, 12)
+            );
+            assert_eq!(
+                lot_frame::street_exit(sim.world()),
+                Some((expected.0 - 1, door.1 + dy))
+            );
+            // The implicit shell: a barrier between house and new land.
+            let grid = sim.world().resource::<TileGrid>();
+            if dx > 0 {
+                for y in 0..12 {
+                    assert!(
+                        !grid.can_cross((dx as i32 - 1, y), (dx as i32, y)),
+                        "west shell row {y}"
+                    );
+                }
+                assert!(
+                    grid.can_cross((dx as i32 - 1, 13), (dx as i32, 13)),
+                    "the yard is open"
+                );
+            }
+            if dy > 0 {
+                for x in 0..16 {
+                    assert!(
+                        !grid.can_cross((x, dy as i32 - 1), (x, dy as i32)),
+                        "north shell column {x}"
+                    );
+                }
+                assert!(
+                    grid.can_cross((17, dy as i32 - 1), (17, dy as i32)),
+                    "the yard is open"
+                );
+            }
+            // Rooms: every old tile's room moved with it, and the chore
+            // board names the moved rooms.
+            let new_rooms = RoomRegions::from_world(sim.world());
+            let mut seen = std::collections::BTreeMap::new();
+            for y in 0..16i32 {
+                for x in 0..20i32 {
+                    let old = rooms.at((x, y));
+                    let new = new_rooms.at(shift((x, y)));
+                    assert_eq!(old.is_some(), new.is_some(), "tile {x},{y}");
+                    if let (Some(old), Some(new)) = (old, new) {
+                        assert_eq!(*seen.entry(old).or_insert(new), new, "room {old} split");
+                    }
+                }
+            }
+            let new_chores = sim.world().resource::<SavedChores>();
+            assert_eq!(new_chores.assignments.len(), chores.assignments.len());
+            for (before, after) in chores.assignments.iter().zip(&new_chores.assignments) {
+                assert_eq!(after.owner, before.owner);
+                assert_eq!(after.key.kind, before.key.kind);
+                match before.key.kind {
+                    ChoreKind::Floors | ChoreKind::CounterSurfaces | ChoreKind::TableSurfaces => {
+                        assert_eq!(after.key.target, seen[&before.key.target]);
+                    }
+                    _ => assert_eq!(after.key.target, before.key.target),
+                }
+            }
+            // The world goes on: people keep walking and nothing panics.
+            for _ in 0..200 {
+                sim.tick();
+            }
+            let _ = EdgeAxis::Vertical;
+        }
+    }
+}
