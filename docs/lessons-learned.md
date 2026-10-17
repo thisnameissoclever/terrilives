@@ -12088,3 +12088,38 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the capture script passed the chore owner's stable person ID to an API expecting the person's live entity index. Queue acceptance did not prove that the drain found a person or started work.
 3. Prevention: resolve stable person IDs through the live render identity columns before calling entity-based APIs. Inspect the resulting order, task, or physical progress before naming a fixture for that state.
 4. Verification: retain the original historical bytes unchanged. Capture separate queued-order and active-work fixtures with the original producer, pin their hashes, and require distinct bytes plus a nonzero physical work measure. See `crates/terri-wasm/tests/fixtures/room-identities-v14/cleaning-work-manifest.json`.
+
+## [L-legacy-shape-inference] Keep historical shape inference out of current constructors
+
+1. What happened: current blank lots could be mistaken for the authored house when their dimensions matched it. Loading a blank lot into an existing household also risked retaining that household's portals.
+2. Root cause: absence of an explicit lot frame triggered a historical shape fallback. The fallback did not distinguish a current intentional absence from missing historical data.
+3. Prevention: initialize current blank architecture and room state explicitly. Restrict historical inference to historical restoration, then make its result explicit before conversion. Replace carried world resources deliberately during adoption.
+4. Verification: round-trip current blank lots at 1x1, 6x4, and the starter lot's 20x16 dimensions into an existing authored household. Require no inherited portals, valid room records, and unchanged historical fixture bytes.
+
+## [L-fixture-factory-occupancy] Separate object factories from validated build edits
+
+1. What happened: a historical-fixture harness spawned disposable furniture and tried to sell it for land-purchase funds. The sale was refused.
+2. Root cause: the low-level spawner deliberately leaves grid occupancy unchanged. Selling reconstructs the layout and requires occupancy to match the objects. The two operations have different preconditions.
+3. Prevention: use validated build operations for a playable layout. For historical test preconditions, edit only the required frozen saved-data fields, prove all other fields identical, and require the original game to accept and round-trip the seed before performing its commands. Keep cents and whole-dollar mirrors consistent.
+4. Verification: record each scenario's receipt immediately. Require the original producer's successful land/career results and exact save round trip. Decode stored task flags and paths before claiming suspended work; action labels alone cannot prove it.
+
+## [L-current-capture-versus-historical-output] Keep current restoration independent of historical exports
+
+1. What happened: a nested current restore called a public historical capture helper after stable room identities were installed. A valid queued outdoor-cleaning command reached a refusing historical projection and could panic. A separate projection check also ignored room cells absent from the old map.
+2. Root cause: an older raw capture call acquired export semantics without an impact scan of internal restoration callers. Filtering missing legacy membership weakened the representability check.
+3. Prevention: give internal current capture an explicit path. Restrict fallible historical projection to requested historical output. Require complete target membership under the old interpretation before exporting it.
+4. Verification: load current saves with both queued outdoor-cleaning command variants. Require malformed references to fail without a panic or live-state change. Refuse a historical projection of a room extending beyond its old target, even when the extension is clean. Preserve exact projection of genuine old inputs.
+
+## [L-board-duties-versus-cleaning-work] Preserve valid work outside the automatic chore board
+
+1. What happened: final-room reconciliation used the automatic board's keys as its complete work list. A valid explicit surface wipe disappeared on rename or migration, and object-specific bin work could not find a replacement contact.
+2. Root cause: automatically assigned duties and explicitly requested physical work are different sets. Missing board membership does not make a task invalid.
+3. Prevention: validate existing work through its own target rules. Preserve valid object keys and replan eligible object work when its contact changes. Keep ownership, dirt, completed units, and unrelated paths separate from board membership.
+4. Verification: rename during an actual partial explicit wipe and migrate the corresponding historical save. Block a bin's current contact while leaving another reachable. Require retained work and unchanged unrelated paths, with no invented completion credit or neglect.
+
+## [L-construction-versus-stale-visits] Preserve ordinary resets when refreshing room memory
+
+1. What happened: a rename refreshed a deliberately stale saved visit to the person's current room. The next ordinary entry/reset could then be suppressed.
+2. Root cause: the refresh treated every mismatch as a construction effect, even when it existed in the confirmed baseline.
+3. Prevention: compare stored history with baseline physical membership before updating a continuing visit. Refresh construction-induced changes only; leave preexisting stale history for the ordinary movement/reset rules.
+4. Verification: rename before the next tick of a migrated stale visit. Require the normal next transition to reset its old remembered state. Separately preserve the known and noticed sets of a genuinely continuing visit.
