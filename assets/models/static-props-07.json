@@ -1,0 +1,23 @@
+{
+ "version": 1,
+ "objects": [
+  {
+   "name": "offlinePool",
+   "directory": "outdoor/owner-review-pending/pool/candidate-04",
+   "proof_sha256": "16a2df511c205bbb6aedf708c61c9813060ae2327091c9cee56f08781d0a11e9",
+   "review_status": "accepted-independent-review"
+  },
+  {
+   "name": "offlinePoolLounger",
+   "directory": "outdoor/owner-review-pending/lounger/candidate-01",
+   "proof_sha256": "1d0732b374b7bf9afbae571ba0bb57a43460ccb7d12652e7831396b97a0f7f6c",
+   "review_status": "accepted-independent-review"
+  },
+  {
+   "name": "offlinePatioUmbrella",
+   "directory": "outdoor/owner-review-pending/umbrella/candidate-02",
+   "proof_sha256": "e47eef5eeed4fcf21e255971de039da4dc64013b254c3f097c1f10126ce252c9",
+   "review_status": "accepted-independent-review"
+  }
+ ]
+}

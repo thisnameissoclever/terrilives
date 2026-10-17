@@ -1,0 +1,105 @@
+{
+  "state": "complete",
+  "object": "umbrella",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "outdoor/render_umbrella.py": "d21f1fa9788d71107fd1954394bc971639941e6e77791ca189c3b139a56db0db",
+    "outdoor/umbrella_model.py": "07ba1fa37bc7890d72ca2ce4215b2fb92863d6d09c9d17d4207f830cf555fd1c",
+    "outdoor/umbrella_layout.py": "498a48dd4597efebd1a8b724efbe9c3ece9f7bdf58e69779c618c74fa1b57bc5",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "570d0f8f2a76b99fbd196be9509e5f549829b4636388a308893f08f678fdcf9c"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "0179147605c00ed4aaabe192c3f04079db8b00a2da37431f5eab20197f59ebd0"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "49d1d72eb6bbed2d8cb94a75543c592e71db9efd53bec4add0b716bc7e43bfd5"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "169a197ed31284d906b05bc4d084ccea4038784ba8ae2f7783a29af8fa7a67be"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint": [
+      1,
+      1
+    ],
+    "base_diameter": 0.4,
+    "canopy_width": 1.56,
+    "canopy_low": 1.9,
+    "canopy_high": 2.19,
+    "finial_top": 2.25,
+    "canopy_sides": 8,
+    "overhangs_tile": true
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Umbrella base collar",
+    "Umbrella canopy fabric",
+    "Umbrella finial cap",
+    "Umbrella finial knob",
+    "Umbrella pole",
+    "Umbrella tilt collar",
+    "Umbrella weighted base"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "60603f6ecc2c46737bc85288c1104223562017a8a6f343d9a127313e8d2fa195"
+}

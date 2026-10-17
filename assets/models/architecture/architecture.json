@@ -66,6 +66,10 @@
       "kind": "conversation-icons",
       "catalog": "assets/sprites/conversation-icons.json",
       "canonicalSha256": "537d048dfb4b64b98bdd1a5a9288582c391a2e582befc36dc2743dc9c905405d"
+    },
+    {
+      "catalog": "assets/models/static-props-07.json",
+      "canonicalSha256": "ad19cb6b272360a9979e122a3b55eda335ea3b28f7ce00d79d9093cbc05470ce"
     }
   ],
   "historicalFiles": {

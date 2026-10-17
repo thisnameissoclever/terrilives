@@ -451,8 +451,17 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
         terri_data::content_fingerprint(&legacy),
         "new sitting actions belong to V6, not the published positional shape"
     );
-    assert_eq!(current.objects.len(), legacy.objects.len());
-    for actual in &current.objects {
+    // The yard furniture (issue 250) appends after every published model,
+    // so the published models keep their positions and are compared below.
+    let (retained, appended) = current.objects.split_at(legacy.objects.len());
+    assert_eq!(
+        appended.iter().map(|o| o.id.as_str()).collect::<Vec<_>>(),
+        ["pool", "pool_lounger", "patio_umbrella"]
+    );
+    for object in appended {
+        assert!(published.find(&object.id).is_none(), "{} is new", object.id);
+    }
+    for actual in retained {
         let expected = published.object(
             published
                 .find(&actual.id)

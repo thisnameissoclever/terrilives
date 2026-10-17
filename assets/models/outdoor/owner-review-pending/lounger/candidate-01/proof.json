@@ -1,0 +1,115 @@
+{
+  "state": "complete",
+  "object": "lounger",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "outdoor/render_lounger.py": "697263e9a77e1d430319789fc5aa6800cc00bce9bce0f4c1847e34ca6867e8da",
+    "outdoor/lounger_model.py": "ccde80161527177eb69ebda7b85c7d48b5993a276b9dfb024d31c21b3391fdc0",
+    "outdoor/lounger_layout.py": "e0fb0124f40199758b558184700769bc70028bfe8feca737e1d768581d0c4a7a",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "ab066f740029e4dc3df550b26347019a5d25d8a335b466c6577765442bae6c4d"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "6a8886e52da363d2299a05814095e7fd5a405ff229431834cb639ebad7ab08ad"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "14f6c80c83958e38fca7945282b59dc8fb84b3dd6fa139505ff45163f7bc4928"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "6d59f6f02b45dfdd4da47ccc10d9343b213436de6ed770c106a52b3d1bee9371"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint": [
+      1,
+      2
+    ],
+    "long_axis": "Y",
+    "backrest_end": "+Y",
+    "outer_bounds": [
+      0.62,
+      1.8,
+      0.7974723178863623
+    ],
+    "cushion_top": 0.42,
+    "back_angle_degrees": 40,
+    "sitting_pose": "generic chair edge sit"
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Lounger back board",
+    "Lounger back cushion",
+    "Lounger back prop +0.28",
+    "Lounger back prop -0.28",
+    "Lounger deck board",
+    "Lounger end rail -1",
+    "Lounger end rail 1",
+    "Lounger leg +0.28 +0.88",
+    "Lounger leg +0.28 -0.88",
+    "Lounger leg -0.28 +0.88",
+    "Lounger leg -0.28 -0.88",
+    "Lounger seat cushion",
+    "Lounger side rail -1",
+    "Lounger side rail 1"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "e91167dacccdd14e0ed9e775f388320c34b07be789fb5238f23d49928495e699"
+}
