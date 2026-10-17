@@ -1326,14 +1326,11 @@ was a chord of the ellipse inscribed in the head's box while the head
 itself is a rounded rectangle, so skin showed at both top corners of
 every sim. `hair_cap` in `objects.py` traces the head instead.
 
-### [A-animations] Several ordinary actions are still static poses
+### [A-animations] Action-specific household motion
 
-**Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
-
-The owner requested missing sitting poses and animations soon on 2026-10-01.
-Deliver seating for meals, reading, TV and listening with the early
-[S-activity-seating] slice. Reuse the existing armchair sitting and seated-reading
-poses where they fit, and add the remaining seat and activity combinations.
+Household actions select their own rigged motion and physical fixture contacts.
+Seating for meals, reading, TV and listening shares the physical-seat lease in
+[S-activity-seating]. The device remains the gameplay target when its user sits.
 
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
@@ -1342,9 +1339,8 @@ samples in each of four directions, with matching furniture contributions and
 forward pedalling. The older two-pose supplement and failed mirrored-bike
 contacts remain historical evidence, not the current bike's limitation. See
 `docs/assets/review-evidence/furniture/README.md` for GPU and played checks.
-All Sims share one approved appearance with household-specific shirts. The lower bunk also
-has a generated foreground layer, so its upper mattress, near posts, rail, and
-ladder cover the horizontal body correctly. Cooking, dish carrying and washing,
+Characters keep their configured appearance during interactions. Sleeping uses
+fitted held poses under the bed cover. Cooking, dish carrying and washing,
 floor mopping, counter and table wiping, and bin emptying have action clips.
 Cleaning tools follow the hands; the bin lid follows the bag-lifting sequence.
 Using the toilet has a fitted seated loop on the fixture's seat socket in all
@@ -1363,16 +1359,18 @@ Working at the desk seats the Sim on a chair placed against the desk and
 facing it (any fitted seat type) through the same physical-seat lease as
 television and radio viewing, entered from a free side of the chair; a desk
 without such a chair keeps the standing use.
-Double-bed sleeping, showering and ordinary idling remain static poses.
+Showering uses a looping washing motion and localized translucent steam around
+the chest and pelvis. The long sofa's Lie down action uses a fitted reclining
+pose rather than an upright sitting pose. Ordinary idling remains a held pose.
 Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
 Eat prepared food needs an available prepared portion for the selected Sim.
 Moving a table does not move independently placed chairs. The generic
 `Using object` activity stays deliberately text-only until each category has
 an honest anchor and body contract.
 
-This is the largest single lever on how alive the game looks, and it is
-mostly generator work once the simulation can name an exact action and anchor;
-the shared frame-selection path already generalises.
+Current character and interaction verification is recorded in
+[the creator runtime contract](specs/2026-10-12-character-creator-runtime.md)
+and [the seating and shower evidence](evidence/2026-10-15-seating-selection-shower/report.md).
 
 ## Explicitly out of scope for v1
 

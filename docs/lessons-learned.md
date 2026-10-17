@@ -12012,6 +12012,27 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: never commit or upload review videos, including videos embedded in trace archives or converted into animated GIF loops. Disable recording in routine capture scripts. Retain selected screenshots, measurements, reproduction settings, and written findings; keep temporary recordings in ignored local scratch storage.
 4. Verification: inspect the complete candidate tree and archive contents before publication. Require no review video files, no broken recording links, and no claim that retaining a recording establishes continuous visual review. Use a squash merge so rejected artifact commits do not enter main history.
 
+## [L-retire-superseded-runtime] Compare paused work with the merged replacement before resuming
+
+1. What happened: a separate shower-water experiment remained uncommitted after another branch merged the accepted steam design.
+2. Root cause: the old working tree retained implementation assumptions and task status that no longer described main.
+3. Prevention: fetch remote state, inspect the replacement and confirm the current owner decision before integration. Archive useful source and measured results before restoring obsolete edits. Identify shared stashes by exact commit, not changing list positions; remove only attributed entries with verified portable recovery.
+4. Verification: compare production files with fresh main, verify archive hashes and recovery prerequisites, and confirm unrelated stash identities remain unchanged. Keep historical checks separate from verification of the retained implementation. See [the retirement record](evidence/2026-10-17-shower-retirement/README.md).
+
+## [L-filter-thin-effect-coverage] Preserve subpixel stroke energy before increasing opacity
+
+1. What happened: thin shower droplets disappeared at some normal-scale sample registrations even after opacity increased.
+2. Root cause: the geometry could miss every sample center; edge shading then reduced the few surviving samples further.
+3. Prevention: rasterize the filtering support and weight samples by the true stroke coverage. Do not substitute a minimum apparent width or draw through solid geometry to force visibility.
+4. Verification: move a stroke across a complete sample interval and measure nonzero, stable integrated color. Inspect normal-size motion separately. The retired reference and its limited measurements are linked from [effect verification](rendering/effect-verification.md); no water effect is installed in the game.
+
+## [L-bound-large-git-inventories] Bound the first inventory of a large asset change
+
+1. What happened: an upstream review-capture cleanup generated thousands of entries in a full Git statistics listing while a small unrelated branch was integrating it.
+2. Root cause: the first inspection requested every path and binary size before checking the change's scale. The merge also generated the same large summary.
+3. Prevention: aggregate a `--name-only` or `--name-status` inventory first. Inspect targeted paths next. Use `git merge --no-stat` for a known large capture cleanup; preserve normal merge checks and hooks.
+4. Verification: confirm the intended parents, inspect the bounded branch-only diff, and verify removed upstream files are not restored. Do not treat a large informational summary as implementation evidence.
+
 ## [L-activity-surface-support] Verify finite support and floor indicators during actual activities
 
 1. What happened: a seated pose matched its authored source yet perched at a cushion's edge. Selection markers followed raised ankle height and used object depth, so they painted over people, shower trays, and bed covers. Kitchen artwork also crossed the wall's physical room face.
