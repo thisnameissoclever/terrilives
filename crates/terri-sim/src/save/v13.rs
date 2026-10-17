@@ -15,10 +15,10 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV13 {
     }
 }
 
-/// The frame must keep the house on the grid, the purchased area must fit
-/// the grid, and the cents must agree with the whole dollars the older
-/// field carries; anything else refuses the whole save before the live
-/// world is touched.
+/// The frame must keep the house on the grid, the purchased area must be
+/// exactly the grid's squares beyond the content lot, and the cents must
+/// agree with the whole dollars the older field carries; anything else
+/// refuses the whole save before the live world is touched.
 pub(crate) fn restore(
     snapshot: SaveSnapshotV13,
     content: &'static terri_data::ContentPack,
@@ -42,7 +42,9 @@ pub(crate) fn restore(
                     .origin_y
                     .checked_add(house_height)
                     .is_some_and(|bottom| bottom <= height)
-                && u64::from(frame.purchased_area) <= u64::from(width) * u64::from(height);
+                && u64::from(frame.purchased_area)
+                    + u64::from(content.lot.width) * u64::from(content.lot.height)
+                    == u64::from(width) * u64::from(height);
             if !fits {
                 return Err(SaveError::InvalidValue);
             }
@@ -156,8 +158,9 @@ mod tests {
     }
 
     /// A frame that would push the house off the grid, a purchased area
-    /// larger than the grid, cents that disagree with the dollars, or no
-    /// frame on a content-shaped grid refuse the whole load.
+    /// other than the grid's squares beyond the content lot, cents that
+    /// disagree with the dollars, or no frame on a content-shaped grid
+    /// refuse the whole load.
     #[test]
     fn schema_thirteen_refuses_a_bad_frame_or_disagreeing_cents() {
         let sim = grown();
@@ -175,6 +178,14 @@ mod tests {
             (
                 "area past the grid",
                 Box::new(|s| s.lot_frame.as_mut().unwrap().purchased_area = 30 * 16 + 1),
+            ),
+            (
+                "area short of the bought squares",
+                Box::new(|s| s.lot_frame.as_mut().unwrap().purchased_area = 159),
+            ),
+            (
+                "area reset to nothing",
+                Box::new(|s| s.lot_frame.as_mut().unwrap().purchased_area = 0),
             ),
             ("cents off by a dollar", Box::new(|s| s.funds_cents += 100)),
             (

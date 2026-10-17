@@ -33,6 +33,9 @@ impl ActivePortals {
 pub struct PortalBuffer {
     pub positions: Vec<f32>,
     previous_positions: Vec<f32>,
+    /// The lot revision the history was last reseeded at: a lot edit can
+    /// move a door at once (land expansion), and a door must not slide.
+    revision: u64,
     pub openness: Vec<f32>,
     pub previous_openness: Vec<f32>,
     pub depth_offsets: Vec<f32>,
@@ -204,6 +207,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     {
         buffer.previous_openness.clone_from(&buffer.openness);
     }
+    let revision = world
+        .get_resource::<crate::placement::LotEditState>()
+        .map_or(0, |state| state.revision);
+    if buffer.revision != revision {
+        buffer.previous_positions.clone_from(&buffer.positions);
+        buffer.revision = revision;
+    }
 }
 
 fn state_amount(state: u32) -> f32 {
@@ -226,7 +236,6 @@ fn through_amount(position: &Position, state: u32, (x, y): (u32, u32), horizonta
     (1.5 - distance).clamp(0.0, 1.0)
 }
 
-/// The width of the lot this world loaded, or 0 when it has no grid.
 /// `active`, each moved by the lot frame's origin, so a portal authored at
 /// the content lot's corner is drawn where the content lot now stands
 /// (land expansion, issue 254).
@@ -241,6 +250,7 @@ fn placed_portals(
         .collect()
 }
 
+/// The width of the lot this world loaded, or 0 when it has no grid.
 fn lot_width(world: &World) -> u32 {
     world
         .get_resource::<TileGrid>()
@@ -282,13 +292,6 @@ pub fn front_portal(content: &terri_data::ContentPack) -> Option<&terri_data::Co
             .iter()
             .find(|portal| portal.position == door)
     })
-}
-
-/// The front door's line on a lot `width` tiles wide, from the content's
-/// front door matched to its portal ([OS-door]), or `None` when the door has
-/// no yard beyond it.
-pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    front_portal(content).and_then(|portal| door_line(portal, width))
 }
 
 /// Whether `position` stands on `tile`, within a hundredth of a tile on each

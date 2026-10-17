@@ -2593,7 +2593,7 @@ impl SimHandle {
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload = postcard::to_allocvec(&self.sim.save_snapshot_v13())
-            .expect("SaveSnapshotV13 serialises");
+            .expect("SaveSnapshotV13 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
