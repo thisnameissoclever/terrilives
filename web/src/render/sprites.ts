@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import {loadIndicatorCoverage} from './indicator-coverage.js';
 import {SceneTarget} from './scene-target.js';
-import {GroundSelectionRenderer,selectionCommand} from './ground-selection.js';
+import {GroundSelectionRenderer,MAX_GROUND_MARKERS,drawAroundMarkers,groundMarkerRows} from './ground-selection.js';
 import {spriteShaderSource,spriteBindGroupLayoutEntries,spritePipelineDescriptors} from './sprite-pipelines.js';
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
@@ -292,6 +292,9 @@ export class SpriteRenderer {
   private depthTexture: GPUTexture | null = null;
   private sceneTarget:SceneTarget|null=null;
   private readonly groundSelection:GroundSelectionRenderer;
+  /** Reused every frame: the dynamic rows holding floor markers, and their slots in the instance buffer. */
+  private readonly markerRows=new Int32Array(MAX_GROUND_MARKERS);
+  private readonly markerSlots=new Int32Array(MAX_GROUND_MARKERS);
   private readonly ownedTextures: GPUTexture[];
   private readonly ownedBuffers: GPUBuffer[];
   private readonly finishCount: number;
@@ -651,11 +654,9 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
-  private drawOpaqueRange(pass:GPURenderPassEncoder,start:number,count:number,selection:number):void {
-    if(selection<start||selection>=start+count){pass.draw(VERTICES_PER_QUAD,count,0,start);return;}
-    if(selection>start)pass.draw(VERTICES_PER_QUAD,selection-start,0,start);
-    const after=selection+1;
-    if(after<start+count)pass.draw(VERTICES_PER_QUAD,start+count-after,0,after);
+  /** Floor marker rows take their own pass after the opaque scene, so the sprite pass leaves them out. */
+  private drawOpaqueRange(pass:GPURenderPassEncoder,start:number,count:number,markers:number):void {
+    drawAroundMarkers(pass,start,count,this.markerSlots,markers);
   }
 
   /**
@@ -725,19 +726,20 @@ export class SpriteRenderer {
       this.gpu.device.queue.writeBuffer(this.grimeOpacityBuffer!,0,this.grimeOpacity,0,this.grimeCount);
     }
     const depth = this.ensureDepth(canvas.width, canvas.height);
+    // Found before any pass opens: the housemate's and a placement's floor markers.
+    const markers=groundMarkerRows(instances,count,this.markerRows);
+    for(let i=0;i<markers;i++)this.markerSlots[i]=this.staticCount+this.markerRows[i];
     const encoder = this.gpu.device.createCommandEncoder();
     const pass = this.sceneTarget!.begin(encoder);
-    const selection=selectionCommand(instances,count);
-    const selectionSlot=selection<0?-1:this.staticCount+selection;
 
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.bindGroup);
     pass.setVertexBuffer(0, this.instanceBuffer);
     pass.setVertexBuffer(1,this.ownerBuffer);
     // Opaque floor, rear walls, objects and Sims establish depth first.
-    this.drawOpaqueRange(pass,0,this.staticCount+annotations.start,selectionSlot);
+    this.drawOpaqueRange(pass,0,this.staticCount+annotations.start,markers);
     const afterAnnotations=annotations.start+annotations.count;
-    if(count>afterAnnotations)this.drawOpaqueRange(pass,this.staticCount+afterAnnotations,count-afterAnnotations,selectionSlot);
+    if(count>afterAnnotations)this.drawOpaqueRange(pass,this.staticCount+afterAnnotations,count-afterAnnotations,markers);
     if (drawDynamicScene) {
       drawDynamicScene(pass);
       pass.setBindGroup(0, this.bindGroup);
@@ -757,7 +759,7 @@ export class SpriteRenderer {
       pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
     }
     pass.end();
-    this.groundSelection.draw(encoder,this.sceneTarget!,instances,selection,scale);
+    this.groundSelection.draw(encoder,this.sceneTarget!,instances,this.markerRows,markers,scale);
     drawEffects?.(encoder,this.sceneTarget!);
     if(annotations.count){
       const annotationPass=this.sceneTarget!.beginAnnotations(encoder,owners!.subarray(annotations.start,afterAnnotations));

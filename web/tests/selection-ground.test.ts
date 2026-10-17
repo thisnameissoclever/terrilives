@@ -7,7 +7,7 @@ import {CharacterScenePlan} from '../src/render/character/scene-plan.js';
 import {spriteIndex} from '../src/render/atlas.js';
 import {FLOATS_PER_INSTANCE} from '../src/render/instances.js';
 import {FLOOR_DEPTH,LAYER_PROP,layeredDepth,screenX,screenY} from '../src/render/iso.js';
-import {GROUND_SELECTION_COMMAND,selectionCommand} from '../src/render/ground-selection.js';
+import {GROUND_SELECTION_COMMAND,MAX_GROUND_MARKERS,groundMarkerRows} from '../src/render/ground-selection.js';
 
 let memory:WebAssembly.Memory;
 beforeAll(async()=>{memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;});
@@ -18,13 +18,14 @@ function marker(data:Float32Array,count:number):Float32Array {
   throw new Error('The selected person has no floor indicator.');
 }
 
-it('keeps placement tile rings separate from the selected-person ellipse',()=>{
-  const data=new Float32Array(FLOATS_PER_INSTANCE*3);
+it('keeps ring sprites without the marker command, such as the tile highlight, out of the marker pass',()=>{
+  const data=new Float32Array(FLOATS_PER_INSTANCE*3),rows=new Int32Array(MAX_GROUND_MARKERS);
   for(let row=0;row<3;row++)data[row*FLOATS_PER_INSTANCE+3]=spriteIndex('selectionRing');
-  expect(selectionCommand(data,3)).toBe(-1);
+  expect(groundMarkerRows(data,3,rows)).toBe(0);
   data[FLOATS_PER_INSTANCE+8]=GROUND_SELECTION_COMMAND;
-  expect(selectionCommand(data,3)).toBe(1);
-  expect(selectionCommand(data,1)).toBe(-1);
+  expect(groundMarkerRows(data,3,rows)).toBe(1);
+  expect(rows[0]).toBe(1);
+  expect(groundMarkerRows(data,1,rows)).toBe(0);
 });
 
 it.each([.13,.185,.568,1.1])('keeps the indicator on the ground beneath a pose with feet at height %s',height=>{
