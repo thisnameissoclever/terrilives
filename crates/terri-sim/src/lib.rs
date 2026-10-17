@@ -53,6 +53,7 @@ mod reservations;
 #[cfg(test)]
 mod reservations_tests;
 mod room_regions;
+pub mod rooms;
 mod save;
 mod seating;
 mod shyness;
