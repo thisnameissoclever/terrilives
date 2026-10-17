@@ -25,5 +25,7 @@ No renderer change was required.
 
 [The render report](render-report.json) records sample results and camera settings.
 [The source receipt](source-receipt.json) records hashes and inspection limits.
+[The independent visual review](independent-visual-review.md) assesses both named
+captures separately from those measurements.
 The generated WebAssembly module is not used by this fixture. Actual in-game
 purchase, cancellation, reload, and cleaning remain separate acceptance checks.
