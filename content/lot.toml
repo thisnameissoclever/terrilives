@@ -93,6 +93,8 @@ covering = [
   { name = "Tiles", hue = -25.0, strength = 0.55, lightness = 0.1 },
   # Deep and soft: carpet.
   { name = "Carpet", hue = -20.0, strength = 1.6, lightness = -0.18 },
+  # Rectangular stone paving, usable inside or outside.
+  { name = "Outdoor patio", hue = 0.0, strength = 1.0, lightness = 0.0 },
 ]
 
 # Where a commute ends and the worker crosses the front door - [E4]. The

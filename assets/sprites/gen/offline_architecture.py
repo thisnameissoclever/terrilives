@@ -1,5 +1,6 @@
 """Import reviewed architecture as a separate logical suffix with paired textures."""
 from dataclasses import dataclass
+from copy import deepcopy
 import gzip
 import hashlib
 import json
@@ -46,6 +47,42 @@ class ArchitectureExport:
     widths: dict
     missing_directions: list
     depth_registration_errors: list
+    catalogue_extensions: tuple = ()
+
+
+def load_catalogue_extensions(config):
+    """Read pinned finish descriptors without changing accepted export inputs."""
+    result=[]; paths=set()
+    for extension in config.get('catalogueExtensions',[]):
+        path=inside(ROOT,extension['catalog'])
+        assert path not in paths, 'duplicate architecture finish catalogue'
+        paths.add(path)
+        data=json.loads(path.read_text())
+        canonical=json.dumps(data,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+        assert hashlib.sha256(canonical).hexdigest()==extension['canonicalSha256'], 'architecture finish catalogue changed'
+        result.append(data)
+    return tuple(result)
+
+
+def append_catalogue(base,extensions,resources):
+    """Only append identities; source catalogue definitions keep their meanings."""
+    catalogue=deepcopy(base)
+    for extension in extensions:
+        assert extension['schema']==1, 'unsupported finish catalogue schema'
+        assert set(extension)=={'schema','patterns','palettes','finishes','coverings'}, 'unknown finish catalogue section'
+        for section in ('patterns','palettes','finishes','coverings'):
+            additions=extension[section]
+            assert not catalogue[section].keys() & additions.keys(), 'catalogue extension overwrites '+section
+            assert all(isinstance(key,str) and key for key in additions), 'invalid catalogue identity'
+            if section=='coverings':
+                first=len(catalogue[section])
+                assert set(additions)=={str(i) for i in range(first,first+len(additions))}, 'covering IDs must append contiguously'
+            catalogue[section].update(deepcopy(additions))
+        for finish in extension['finishes'].values():
+            look=finish.get('authoredContentLook',[])
+            assert len(look)==3 and all(isinstance(n,(int,float)) and math.isfinite(n) for n in look) and look[1]>0, 'invalid authored content look'
+        validate_catalogue(catalogue,resources,require_shipped=True)
+    return catalogue
 
 
 def validate_manifest(data,proof):
@@ -158,16 +195,19 @@ def load_reviewed_architecture(catalog_path=None, *, require_review=True):
         review=json.loads((directory/'review.json').read_text())
         assert review['status']=='accepted' and review['independent'] is True, 'architecture independent review pending'
         assert review['manifestSha256']==digest(directory/'manifest.json'), 'reviewed manifest changed'
-    return ArchitectureExport(data,directory,list(MODELS),{i:v[1] for i,v in MODELS.items()},[],[])
+    extensions=load_catalogue_extensions(config)
+    append_catalogue(data['catalogue'],extensions,data['patternResources'])
+    return ArchitectureExport(data,directory,list(MODELS),{i:v[1] for i,v in MODELS.items()},[],[],extensions)
 
 
 def generated_files(batch,historical_count):
     data=batch.manifest
     resources={key:f"architecture-{sha}.{COMPRESSED_EXTENSIONS.get(key,'png')}" for key,sha in data['hashes'].items()}
     patterns={key:{**value,'url':f"architecture-pattern-{value['sha256']}.png"} for key,value in data['patternResources'].items() if value['shipped']}
-    validate_catalogue(data['catalogue'],patterns,require_shipped=True)
+    catalogue=append_catalogue(data['catalogue'],batch.catalogue_extensions,patterns)
+    validate_catalogue(catalogue,patterns,require_shipped=True)
     descriptor={'schema':1,'baseSpriteId':historical_count,'width':data['width'],'height':data['height'],
-                'resources':resources,'hashes':data['hashes'],'patterns':patterns,'catalogue':data['catalogue'],
+                'resources':resources,'hashes':data['hashes'],'patterns':patterns,'catalogue':catalogue,
                 'budgets':data['budgets'],
                 'finishContract':{'roleIds':{'wall':1,'floor':2,'frame':3,'glazing':4,'trim':5},
                                   'patternColorSpace':'linear','patternRowOrigin':'lower-left',

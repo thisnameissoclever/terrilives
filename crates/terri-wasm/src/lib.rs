@@ -7908,7 +7908,7 @@ mod boundary_tests {
         use terri_sim::placement::PlacementRefusal;
         let mut handle = SimHandle::from_lot();
         let coverings = handle.covering_names();
-        assert_eq!(coverings, ["Boards", "Tiles", "Carpet"]);
+        assert_eq!(coverings, ["Boards", "Tiles", "Carpet", "Outdoor patio"]);
         assert!(handle.floor_tiles().is_empty(), "nobody has painted yet");
 
         assert!(handle.set_floor(3.0, 2.0, 2.0));
@@ -7956,6 +7956,15 @@ mod boundary_tests {
             vec![1, 0, 1],
             "a refusal writes nothing"
         );
+
+        assert!(handle.set_floor(18.0, 2.0, 4.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 18, 2, 4]);
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.floor_tiles(), handle.floor_tiles());
+        assert_eq!(restored.save_bytes(), bytes);
     }
 
     /// [FL-save], and review findings [F1] to [F3] on PR 128: a painted
@@ -10353,7 +10362,10 @@ mod window_boundary_tests {
         assert!(restored.load_bytes(&saved));
         assert_eq!(restored.window_placements(), [0, 8, 4, 1]);
         assert_eq!(restored.window_lines(), [0, 8, 4]);
-        assert_eq!(restored.covering_names(), ["Boards", "Tiles", "Carpet"]);
+        assert_eq!(
+            restored.covering_names(),
+            ["Boards", "Tiles", "Carpet", "Outdoor patio"]
+        );
         for id in 0..=3 {
             assert!(restored.set_floor(3., 2., id as f64));
             restored.flush_commands();

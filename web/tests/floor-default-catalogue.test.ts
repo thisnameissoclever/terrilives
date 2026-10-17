@@ -37,7 +37,7 @@ describe.each(['palette', 'pattern'])('default production catalogue %s addition'
       palettes: { ...original.palettes, blue: { multiply: [.2, .5, 1] } },
       finishes: { ...original.finishes, fixture: { patternKey: kind === 'palette' ? 'floor.tiles' : 'fixture',
         paletteKey: 'blue', authoredContentLook: [0, 1, 0] } },
-      coverings: { ...original.coverings, 4: 'fixture' } };
+      coverings: { ...original.coverings, 5: 'fixture' } };
     vi.resetModules();
     vi.doMock('../src/render/architecture-data.js', () => ({ ARCHITECTURE: { ...ARCHITECTURE, catalogue } }));
     [floorModule, finishModule, tileModule] = await Promise.all([
@@ -51,17 +51,17 @@ describe.each(['palette', 'pattern'])('default production catalogue %s addition'
     const { floorMaterial, activeFloorFinishKeys } = floorModule;
     const { prepareArchitectureFinishes } = finishModule;
     const { buildStaticInstances } = tileModule;
-    const material = floorMaterial(4, 'house', 0, 0);
+    const material = floorMaterial(5, 'house', 0, 0);
     expect(material.accepted).toBe(false);
     expect(material.sprite.name).toContain('neutral');
-    const keys = activeFloorFinishKeys([0, 0, 4], null);
+    const keys = activeFloorFinishKeys([0, 0, 5], null);
     expect(keys).toEqual(['fixture']);
     expect(floorMaterial(1, 'house', 0, 0).accepted).toBe(true);
     const finishes = prepareArchitectureFinishes(keys, { maxSampledTexturesPerShaderStage: 16,
       maxTextureDimension2D: 8192, maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8 });
     const rows = buildStaticInstances({ width: 1, height: 1, walls: new Uint32Array(), edges: new Uint32Array(),
-      architecture: { windows: [], catalogue: [], finishes }, floors: new Uint32Array([0, 0, 4]),
-      coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]) }, 0, 0, 2);
+      architecture: { windows: [], catalogue: [], finishes }, floors: new Uint32Array([0, 0, 5]),
+      coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0, 0, 1, 0]) }, 0, 0, 2);
     expect(rows.instances[8]).toBe(architectureMode(true, 1));
     expect(Array.from(finishes.table.slice(4, 7))).toEqual([Math.fround(.2), .5, 1]);
   });

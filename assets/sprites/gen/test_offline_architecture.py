@@ -9,7 +9,8 @@ from PIL import Image
 from coverage_payload import compress
 from offline_architecture import (SOURCE,PUBLIC,load_reviewed_architecture,validate_manifest,
                                   validate_pixels,generated_files,ArchitectureExport,
-                                  load_historical_extensions,is_current,obsolete_files)
+                                  load_historical_extensions,is_current,obsolete_files,
+                                  append_catalogue,load_catalogue_extensions)
 
 
 class ArchitectureImport(unittest.TestCase):
@@ -29,6 +30,55 @@ class ArchitectureImport(unittest.TestCase):
 
     def test_manifest_clean_control(self):
         validate_manifest(self.data,self.proof)
+
+    def test_patio_extension_preserves_accepted_catalogue_and_baked_pixels(self):
+        batch=load_reviewed_architecture()
+        original=copy.deepcopy(batch.manifest)
+        files=generated_files(batch,1700)
+        descriptor=json.loads(files[SOURCE.parents[2]/'web/src/render/architecture-data.ts'].decode().split('export const ARCHITECTURE = ')[1].removesuffix(' as const;\n'))
+        catalogue=descriptor['catalogue']
+        for section,entries in original['catalogue'].items():
+            for key,value in entries.items():
+                self.assertEqual(catalogue[section][key],value)
+        self.assertEqual(catalogue['coverings']['4'],'floor.outdoor-patio')
+        self.assertEqual(catalogue['patterns']['floor.outdoor-patio'],
+                         {'role':'floor','period':[4,2],'resource':'tiles'})
+        self.assertEqual(catalogue['palettes']['stone-gray']['multiply'],[.55,.58,.60])
+        base=ArchitectureExport(batch.manifest,batch.directory,[],{},[],[])
+        base_files=generated_files(base,1700)
+        for path,value in base_files.items():
+            if path.name!='architecture-data.ts': self.assertEqual(files[path],value)
+        self.assertEqual(batch.manifest,original)
+
+    def test_catalogue_extensions_refuse_overwrites_gaps_and_invalid_resources(self):
+        config=json.loads((SOURCE/'architecture.json').read_text())
+        extension=load_catalogue_extensions(config)[0]
+        for section in ('patterns','palettes','finishes','coverings'):
+            with self.subTest(section=section):
+                bad=copy.deepcopy(extension)
+                key,value=next(iter(self.data['catalogue'][section].items()))
+                bad[section][key]=value
+                with self.assertRaisesRegex(AssertionError,'catalogue extension overwrites'):
+                    append_catalogue(self.data['catalogue'],[bad],self.data['patternResources'])
+        for label,change in (
+                ('covering IDs must append contiguously',lambda e:e['coverings'].update({'6':e['coverings'].pop('4')})),
+                ('unknown pattern resource',lambda e:e['patterns']['floor.outdoor-patio'].update(resource='missing')),
+                ('pattern resource is not shipped',lambda e:e['patterns']['floor.outdoor-patio'].update(resource='fixture-checks')),
+                ('invalid repeat period',lambda e:e['patterns']['floor.outdoor-patio'].update(period=[4,0])),
+                ('invalid palette',lambda e:e['palettes']['stone-gray'].update(multiply=[-1,1,1])),
+                ('invalid authored content look',lambda e:e['finishes']['floor.outdoor-patio'].update(authoredContentLook=[0,0,0]))):
+            with self.subTest(label=label):
+                bad=copy.deepcopy(extension); change(bad)
+                with self.assertRaisesRegex(AssertionError,label):
+                    append_catalogue(self.data['catalogue'],[bad],self.data['patternResources'])
+        self.assertEqual(self.data['catalogue']['coverings'],
+                         {'0':'floor.neutral','1':'floor.boards','2':'floor.tiles','3':'floor.carpet'})
+
+    def test_catalogue_extension_hash_is_pinned(self):
+        config=json.loads((SOURCE/'architecture.json').read_text())
+        config['catalogueExtensions'][0]['canonicalSha256']='0'*64
+        with self.assertRaisesRegex(AssertionError,'architecture finish catalogue changed'):
+            load_catalogue_extensions(config)
 
     def assert_invalid(self,label,change,target='proof'):
         original=(self.directory/'render-proof.json').read_bytes()
