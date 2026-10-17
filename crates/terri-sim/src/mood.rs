@@ -411,7 +411,7 @@ mod tests {
         assert_eq!(
             taken.len(),
             17,
-            "seven needs, two labels each, the all-clear and feeling sick"
+            "seven needs, two labels each, the all-clear, feeling sick and burnt dinner"
         );
         for trait_def in &terri_data::pack().traits {
             assert!(

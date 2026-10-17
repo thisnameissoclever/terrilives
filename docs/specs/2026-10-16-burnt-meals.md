@@ -28,9 +28,16 @@ burning less likely, down to one meal in five hundred at the top of the ladder.
    state and a replay burns on the same tick.
 4. **Burnt.** The carried item is removed, the chain counter returns to step
    0 with a fresh fumble scale, the station is released as any completed step
-   releases it, and the hob still counts as used for grime. The step still
-   teaches the cooking skill, as a fumbled step does. The recipe's origin (a
-   player-selected station) is kept, so the restart routes to the same stove.
+   releases it, and the hob still counts as used for grime. Practice already
+   earned stays: the shipped dinner teaches at the tagged Cook step before the
+   roll, and a tagged hob step would still teach on a burn, as a fumbled step
+   does. The recipe's origin keeps its selected step; if that station's use
+   was already marked complete (the fridge of a Cook dinner order), the
+   lowest-indexed placed object of that model is pinned again so the restart
+   routes there and a save taken mid-restart still loads. A selected hob keeps
+   its pin, because its use is marked complete only when the step ends
+   without burning. With no object of that model left, the recipe is
+   abandoned as a sold station abandons it.
 5. **Mood.** A burn records the cook and an end tick, `now +
    burnt_meal_mood_ticks` (shipped 240, four game hours). While the end tick
    is ahead, the mood projection lists a Burnt dinner moodlet scoring
@@ -38,10 +45,14 @@ burning less likely, down to one meal in five hundred at the top of the ladder.
    rather than stacking it. Expired entries are dropped at the start of each
    tick.
 6. **Save.** Schema eleven appends the burnt-meal rows to the schema-ten
-   envelope: one row per person, sorted by id, naming a living person. A
-   schema-ten payload still loads, with no burnt meals. A schema-eleven
-   payload whose rows name nobody living, repeat a person or arrive out of
-   order is refused whole, and the live world is untouched. The list enters
+   envelope: one row per person, sorted by id, naming a living person, with
+   an end tick no further ahead than the longest moodlet any tuning allows
+   (10080 ticks). A dead cook's row goes with them. A schema-ten payload
+   still loads, with no burnt meals, and the browser keeps an untouched
+   schema-ten recovery copy the first time it writes schema eleven over
+   one. A schema-eleven payload whose rows name nobody living, repeat a
+   person, arrive out of order or end too far ahead is refused whole, and
+   the live world is untouched. The list enters
    the world hash whenever it holds anything, so a household that never
    burnt a meal hashes as it did before.
 7. **Tuning.** `burn_chance_novice`, `burn_chance_master`,
@@ -68,9 +79,12 @@ steps are last hob steps. Chain tests drive a three-step fixture recipe with
 the chance pinned at one (every pass burns: food dropped, counter reset,
 moodlet at the tuned score, a later burn restarts it, the table is never
 reached, and the hob still teaches), at zero for a master cook (the meal
-completes and feeds them with nothing recorded), the moodlet's end tick, and
-the single seeded draw per meal (one seed gives one history, another seed
-another). Save tests round-trip schema eleven with the digest unchanged, load
-schema ten with no burnt meals, and refuse unknown, repeated or unsorted rows.
+completes and feeds them with nothing recorded), the moodlet's end tick, the
+seeded roll (one seed gives one history, another seed another, and both
+outcomes occur at a half chance), and a shipped Cook dinner order that burns,
+repins the fridge and saves and loads mid-restart. Save tests round-trip
+schema eleven with the digest unchanged, load schema ten with no burnt meals,
+drop a dead cook's row, and refuse unknown, repeated, unsorted or endless
+rows.
 A wasm boundary test checks the public envelope writes schema eleven, reads
 both schemas, and refuses a bad row without touching the live world.

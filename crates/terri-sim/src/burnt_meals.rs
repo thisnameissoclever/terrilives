@@ -47,6 +47,11 @@ impl BurntMeals {
         self.0.iter().any(|(id, until)| *id == sim && now < *until)
     }
 
+    /// Drops the person's row, as death drops every other per-person record.
+    pub fn forget(&mut self, sim: SimId) {
+        self.0.retain(|(id, _)| *id != sim);
+    }
+
     /// Drops every moodlet whose tick has passed.
     pub fn expire(&mut self, now: u64) {
         self.0.retain(|(_, until)| now < *until);

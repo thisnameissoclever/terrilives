@@ -619,8 +619,7 @@ pub fn tick_chain_steps(
                     station,
                     dining_setting,
                 );
-                if !crate::recipe_actions::repin_after_restart(world, sim, completed_step, station)
-                {
+                if !crate::recipe_actions::repin_after_restart(world, sim) {
                     world
                         .entity_mut(sim)
                         .remove::<crate::recipe_actions::ActiveRecipe>()
@@ -1229,11 +1228,11 @@ mod tests {
         panic!("Bill never took the dinner off the hob");
     }
 
-    /// The roll takes exactly one draw per meal, at the last hob step, so
-    /// two worlds from one seed burn on the same tick and a novice with the
-    /// shipped chances burns sometimes but not always over many dinners.
+    /// The roll is seeded: two worlds from one seed burn on the same ticks,
+    /// another seed burns on others, and at a half chance both outcomes
+    /// occur over many dinners.
     #[test]
-    fn the_burn_roll_is_one_seeded_draw_per_meal() {
+    fn the_burn_roll_is_seeded_and_both_outcomes_occur() {
         let run = |seed: u64| {
             let (mut sim, agent) = burn_world(burn_pack(0.5, 0.5, 3), 0.0);
             sim.world_mut()

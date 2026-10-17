@@ -98,18 +98,15 @@ impl Origin {
 }
 
 /// After a burnt meal (issue 243) the recipe is back at its first step, so a
-/// selected station that was already used must be pinned again or the
-/// origin reads as complete at a step before the selected one, which no
-/// save would accept. The hob just used is the pin when the selected step
-/// was that hob step; otherwise the lowest-indexed placed object of the
-/// selected model. Returns false when no such object exists, and the caller
-/// abandons the recipe as a sold station abandons it.
-pub(crate) fn repin_after_restart(
-    world: &mut World,
-    person: Entity,
-    burnt_step: u32,
-    used: Option<Entity>,
-) -> bool {
+/// selected station already used must be pinned again or the origin reads
+/// as complete at a step before the selected one, which no save would
+/// accept. A selected hob keeps its pin through the burn, because its use
+/// is marked complete only when the step ends without burning; what needs
+/// a pin is an earlier station such as the fridge of a Cook dinner order,
+/// and the lowest-indexed placed object of that model gets it. Returns
+/// false when no such object exists, and the caller abandons the recipe as
+/// a sold station abandons it.
+pub(crate) fn repin_after_restart(world: &mut World, person: Entity) -> bool {
     let Some(origin) = world.get::<Origin>(person).cloned() else {
         return true;
     };
@@ -125,16 +122,15 @@ pub(crate) fn repin_after_restart(
         return true;
     };
     let pack = world.resource::<crate::Content>().0;
-    let pinned = used.filter(|_| *selected_step == burnt_step).or_else(|| {
-        world
-            .try_query::<(Entity, &terri_core::SmartObject)>()
-            .and_then(|mut q| {
-                q.iter(world)
-                    .filter(|(_, object)| pack.object(object.0).id == *model)
-                    .map(|(entity, _)| entity)
-                    .min_by_key(|entity| entity.index_u32())
-            })
-    });
+    let _ = selected_step;
+    let pinned = world
+        .try_query::<(Entity, &terri_core::SmartObject)>()
+        .and_then(|mut q| {
+            q.iter(world)
+                .filter(|(_, object)| pack.object(object.0).id == *model)
+                .map(|(entity, _)| entity)
+                .min_by_key(|entity| entity.index_u32())
+        });
     match pinned {
         Some(station) => {
             world

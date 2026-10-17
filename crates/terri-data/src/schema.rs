@@ -334,8 +334,8 @@ pub struct TuningFile {
     /// rate with friction still suspended (communal affinity, issue 257).
     /// Finite, from 0 to 1. Required, like every other root knob.
     pub hated_communal_chance: f32,
-    /// Chance that a hob step burns the food for a cook with no cooking
-    /// practice (burnt meals, issue 243). Finite, from 0 to 1.
+    /// Chance that a meal burns as it leaves the hob, for a cook with no
+    /// cooking practice (burnt meals, issue 243). Finite, from 0 to 1.
     pub burn_chance_novice: f32,
     /// The same chance at full cooking mastery. Finite, from 0 to
     /// `burn_chance_novice`.

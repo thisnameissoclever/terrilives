@@ -22,6 +22,8 @@ const v8 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 8, 0, 29, 128, 0, 0, 
 const V9_BACKUP = 'terri-save-1.v9-backup.bin';
 const v9 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 9, 0, 29, 128, 0, 0, 0, 1]);
 const v10 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 10, 0, 29, 128, 0, 0, 0, 1]);
+const V10_BACKUP = 'terri-save-1.v10-backup.bin';
+const v11 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 11, 0, 29, 128, 0, 0, 0, 1]);
 
 type Response = { id: number; ok: boolean; bytes?: ArrayBuffer | null; error?: string };
 
@@ -76,7 +78,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
       return result;
     }),
   };
-  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' | 'v9' = false) {
+  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' | 'v9' | 'v10' = false) {
     const waiting = new Map<number, (response: Response) => void>();
     const port = {
       onmessage: null as ((event: { data: unknown }) => void) | null,
@@ -93,6 +95,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
     else if (legacy === 'v7') await import('./fixtures/v7-worker/save-worker.js');
     else if (legacy === 'v8') await import('./fixtures/v8-worker/save-worker.js');
     else if (legacy === 'v9') await import('./fixtures/v9-worker/save-worker.js');
+    else if (legacy === 'v10') await import('./fixtures/v10-worker/save-worker.js');
     else await import('../src/storage/save-worker.js');
     let id = 0;
     function request(kind: 'load' | 'save' | 'clear', bytes: Uint8Array = v10): Promise<Response> {
@@ -136,8 +139,16 @@ describe('save worker recovery backup', () => {
     expect(await cached('save', v9)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v10);
   });
+  it('preserves V10 before V11 and refuses a cached V10 writer', async () => {
+    const slot = await workerSlot(v10);
+    expect(await slot.request('save', v11)).toMatchObject({ ok: true });
+    expect(slot.files.get(V10_BACKUP)).toEqual(v10);
+    const cached = await slot.connect('v10');
+    expect(await cached('save', v10)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v11);
+  });
   it.each(['local-character-0', 'main-social-active'])(
-    'preserves exact %s V9 recovery bytes before writing a real V10 save', async (name) => {
+    'preserves exact %s V9 recovery bytes before writing a real current save', async (name) => {
       const { readFileSync } = await import('node:fs');
       const { default: init, SimHandle } = await import('../src/wasm/terri_wasm.js');
       await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });

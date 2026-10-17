@@ -19,8 +19,13 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV11 {
     }
 }
 
-/// Rows must name living people, once each, in id order; anything else
-/// refuses the whole save before the live world is touched.
+/// The longest moodlet any tuning may set, so a saved end tick can be
+/// bounded without trusting the pack the save was written with.
+const LONGEST_MOODLET_TICKS: u64 = 10_080;
+
+/// Rows must name living people, once each, in id order, with end ticks no
+/// further ahead than the longest moodlet allowed; anything else refuses
+/// the whole save before the live world is touched.
 pub(crate) fn restore(
     snapshot: SaveSnapshotV11,
     content: &'static terri_data::ContentPack,
@@ -31,10 +36,11 @@ pub(crate) fn restore(
         return Err(SaveError::InvalidValue);
     }
     let mut candidate = super::v10::restore(snapshot.legacy, content, portals)?;
-    if rows
-        .iter()
-        .any(|row| crate::edit::living_entity(candidate.world(), row.sim).is_none())
-    {
+    let now = candidate.world().resource::<terri_core::SimClock>().tick;
+    if rows.iter().any(|row| {
+        row.until_tick > now.saturating_add(LONGEST_MOODLET_TICKS)
+            || crate::edit::living_entity(candidate.world(), row.sim).is_none()
+    }) {
         return Err(SaveError::InvalidValue);
     }
     candidate
@@ -104,16 +110,35 @@ mod tests {
         );
     }
 
-    /// Rows that name nobody living, repeat a person, or arrive out of
-    /// order refuse the whole load and leave the live world alone.
+    /// A cook who dies takes their row with them, so a save taken after
+    /// the death still loads.
     #[test]
-    fn schema_eleven_refuses_unknown_repeated_or_unsorted_rows() {
+    fn a_dead_cooks_row_is_forgotten_so_the_save_still_loads() {
+        let mut sim = shipped_with_a_burn();
+        let cook = crate::edit::living_entity(sim.world(), 1).unwrap();
+        crate::mortality::remove_person(sim.world_mut(), cook);
+        assert!(sim.world().resource::<BurntMeals>().entries().is_empty());
+        let snapshot = sim.save_snapshot_v11();
+        assert!(snapshot.burnt_meals.is_empty());
+        let mut fresh = Sim::new_from_shipped_lot();
+        assert_eq!(fresh.load_snapshot_v11(snapshot), Ok(()));
+    }
+
+    /// Rows that name nobody living, repeat a person, arrive out of order,
+    /// or end further ahead than any moodlet can last refuse the whole
+    /// load and leave the live world alone.
+    #[test]
+    fn schema_eleven_refuses_unknown_repeated_unsorted_or_endless_rows() {
         let sim = shipped_with_a_burn();
         let clean = sim.save_snapshot_v11();
         for rows in [
             vec![SavedBurntMeal {
                 sim: 99,
                 until_tick: 300,
+            }],
+            vec![SavedBurntMeal {
+                sim: 1,
+                until_tick: 40 + LONGEST_MOODLET_TICKS + 1,
             }],
             vec![
                 SavedBurntMeal {

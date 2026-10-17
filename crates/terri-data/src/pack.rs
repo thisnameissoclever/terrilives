@@ -1073,9 +1073,9 @@ pub struct Tuning {
     /// person toward a housemate they hate (communal affinity, issue 257).
     /// Appended after the balance values, per the rule above.
     pub hated_communal_chance: f32,
-    /// Chance that a hob step burns the food for a cook with no cooking
-    /// practice (burnt meals, issue 243). Appended after the communal
-    /// chance, per the rule above, with the three knobs after it.
+    /// Chance that a meal burns as it leaves the hob, for a cook with no
+    /// cooking practice (burnt meals, issue 243). Appended after the
+    /// communal chance, per the rule above, with the three knobs after it.
     pub burn_chance_novice: f32,
     /// The same chance at full cooking mastery; at most the novice chance.
     pub burn_chance_master: f32,
