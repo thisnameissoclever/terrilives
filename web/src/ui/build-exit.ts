@@ -2,7 +2,8 @@
 // footer's Confirm and Cancel finish the batch and then leave. Every other way
 // out (Exit build, the Build button, Escape with nothing selected) reaches the
 // furniture builder's exit, whose beforeExit is `gate`: while a change is not
-// confirmed, it opens a dialog instead of leaving.
+// confirmed, it opens a dialog instead of leaving. Escape anywhere on the page
+// comes here too, so the dialog can take it wherever focus is.
 
 /** What leaving Build mode needs from the page. */
 export interface BuildExitHooks {
@@ -16,6 +17,10 @@ export interface BuildExitHooks {
   leave(): boolean;
   /** Gives the game view focus when the control that asked to leave cannot take it back. */
   focusView(): void;
+  /** Escape in Build mode with the dialog closed: clears the selection, or asks to leave. */
+  escapeBuild(): void;
+  /** Whether Build mode reads Escape now: building, with no menu or other dialog in the way. */
+  escapeAllowed(): boolean;
   /** Closes anything the dialog would otherwise leave open behind it. */
   beforeAsk?(): void;
 }
@@ -56,13 +61,20 @@ const CONFIRM = 'confirm';
 const DISCARD = 'discard';
 const KEEP = 'keep';
 /**
- * How long a pointer click outside the dialog is ignored after the dialog
- * closes or Build mode is left. A double-click on a dialog button, or on the
- * footer's Confirm or Cancel, otherwise lands its second click on the game,
- * which can order the selected housemate about. The usual double-click
- * interval on Windows is 500 ms.
+ * A pointer click this soon before the dialog closes or Build mode is left
+ * is the click that did it. The close event follows its click within a task.
  */
-export const STRAY_CLICK_MS = 500;
+const CAUSE_MS = 250;
+/**
+ * The longest the rest of a double-click is watched for after the click that
+ * closed the dialog or left Build mode. Its second click would otherwise land
+ * on the game and could order the selected housemate about. The browser's own
+ * click count decides what belongs to the double-click; this only bounds it.
+ */
+export const STRAY_CLICK_MS = 1000;
+
+/** A pointer click: when it happened and the browser's count of clicks in its run. */
+interface PointerClick { readonly at: number; readonly detail: number }
 
 export class BuildExit {
   private readonly dialog: HTMLDialogElement;
@@ -71,8 +83,10 @@ export class BuildExit {
   private chosen = false;
   /** What had focus when the dialog opened; it gets focus back if Build mode stays. */
   private opener: Element | null = null;
-  /** When the dialog last closed or Build mode was last left from here. */
-  private strayClicksFrom = -Infinity;
+  /** The latest pointer click anywhere on the page. */
+  private lastPointerClick: PointerClick | null = null;
+  /** The pointer click that closed the dialog or left Build mode, while the rest of its run is dropped. */
+  private closingClick: PointerClick | null = null;
 
   constructor(private readonly document: Document, private readonly hooks: BuildExitHooks,
     private readonly now: () => number = () => performance.now()) {
@@ -85,20 +99,17 @@ export class BuildExit {
     required('build-batch-cancel').addEventListener('click', () => { this.discardAndLeave(); });
     this.dialog = required<HTMLDialogElement>('build-exit-dialog');
     this.keep = required<HTMLButtonElement>('build-exit-keep');
-    // The form's method is dialog, so each button closes it with its value
-    // and Escape closes it with none; the close event reads the answer.
+    // The form's method is dialog, so each button closes it with its value;
+    // the close event reads the answer.
     this.dialog.addEventListener('close', () => {
-      this.strayClicksFrom = this.now();
+      this.watchForTheRestOfTheClick();
       this.answer(this.dialog.returnValue);
-    });
-    // Escape held from the game view opens the dialog, and its repeats then
-    // reach the dialog: cancelling them keeps it open until a fresh press.
-    this.dialog.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && event.repeat) event.preventDefault();
     });
     // Capturing on the document runs before the game view's own click
     // listener, as input.ts does for a menu's stray click.
-    document.addEventListener('click', event => this.ignoreStrayClick(event), true);
+    document.addEventListener('click', event => this.onClick(event), true);
+    // Bubbling, so the game view's own Escape and an open menu's come first.
+    document.addEventListener('keydown', event => this.onKeydown(event));
   }
 
   /** Closes the dialog as Keep building, when something more urgent needs the screen. */
@@ -106,13 +117,55 @@ export class BuildExit {
     if (this.dialog.open) this.dialog.close(KEEP);
   }
 
-  private ignoreStrayClick(event: MouseEvent): void {
-    // A keyboard activation has no click count, and is never a stray.
-    if (event.detail === 0 || this.now() - this.strayClicksFrom > STRAY_CLICK_MS) return;
-    const target = event.target as Element | null;
-    if (typeof target?.closest === 'function' && target.closest('dialog[open]')) return;
+  /**
+   * Escape in Build mode, from the game view or anywhere else on the page.
+   * While the dialog is open it is Keep building and the build behind is left
+   * alone. A held key counts once: its repeats do nothing.
+   */
+  pressEscape(repeat: boolean): void {
+    if (repeat) return;
+    if (this.dialog.open) this.dialog.close(KEEP);
+    else this.hooks.escapeBuild();
+  }
+
+  private onKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape' || event.defaultPrevented || !this.hooks.escapeAllowed()) return;
+    if (!this.dialog.open) {
+      // Another dialog or a text field keeps its own Escape.
+      const target = event.target as Element | null;
+      if (typeof target?.closest === 'function'
+        && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
+    }
+    this.pressEscape(event.repeat);
+    // The browser's own close request would close the dialog with no answer,
+    // or reopen nothing on a repeat; this listener has answered already.
     event.preventDefault();
-    event.stopPropagation();
+  }
+
+  private onClick(event: MouseEvent): void {
+    // A keyboard activation has no click count: neither a cause nor a stray.
+    if (event.detail === 0) return;
+    const closing = this.closingClick;
+    if (closing && this.now() - closing.at <= STRAY_CLICK_MS && event.detail > closing.detail) {
+      const target = event.target as Element | null;
+      if (!(typeof target?.closest === 'function' && target.closest('dialog[open]'))) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
+    this.lastPointerClick = { at: this.now(), detail: event.detail };
+  }
+
+  /**
+   * After the dialog closes or Build mode is left: when a pointer click did
+   * it, the clicks that continue its run (a double-click's second, as the
+   * browser counts them) are dropped. A later separate click starts a new run
+   * and goes through, as do keyboard closes, which arm nothing.
+   */
+  private watchForTheRestOfTheClick(): void {
+    const click = this.lastPointerClick;
+    this.closingClick = click && this.now() - click.at <= CAUSE_MS ? click : null;
   }
 
   /** The builder's beforeExit: true lets Build mode close now. */
@@ -122,7 +175,9 @@ export class BuildExit {
       this.ask();
       return false;
     }
-    return this.hooks.discard();
+    const discarded = this.hooks.discard();
+    if (discarded) this.watchForTheRestOfTheClick();
+    return discarded;
   }
 
   /** The footer's Confirm and the dialog's Confirm changes. */
@@ -138,9 +193,7 @@ export class BuildExit {
   private leaveAsChosen(): boolean {
     this.chosen = true;
     try {
-      const left = this.hooks.leave();
-      if (left) this.strayClicksFrom = this.now();
-      return left;
+      return this.hooks.leave();
     } finally {
       this.chosen = false;
     }

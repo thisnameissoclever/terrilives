@@ -31,27 +31,45 @@ interface FakeClick {
   stopPropagation(): void;
 }
 
+interface FakeKey {
+  readonly type: 'keydown';
+  readonly target: FakeElement;
+  readonly key: string;
+  readonly repeat: boolean;
+  defaultPrevented: boolean;
+  preventDefault(): void;
+}
+
 class FakeDocument {
   activeElement: FakeElement | null = null;
   readonly body = new FakeElement(this);
   readonly nodes = new Map<string, FakeElement>();
-  private readonly capturing: ((event: FakeClick) => void)[] = [];
+  private readonly capturingClicks: ((event: FakeClick) => void)[] = [];
+  private readonly keydowns: ((event: FakeKey) => void)[] = [];
   querySelector(selector: string) { return this.nodes.get(selector) ?? null; }
-  addEventListener(type: string, listener: (event: FakeClick) => void, capture?: boolean) {
-    if (type !== 'click' || capture !== true) throw new Error(`Unexpected document listener: ${type}`);
-    this.capturing.push(listener);
+  addEventListener(type: string, listener: (event: never) => void, capture?: boolean) {
+    if (type === 'click' && capture === true) this.capturingClicks.push(listener as (event: FakeClick) => void);
+    else if (type === 'keydown' && capture !== true) this.keydowns.push(listener as (event: FakeKey) => void);
+    else throw new Error(`Unexpected document listener: ${type}`);
   }
   /**
-   * A pointer click on `target` (detail 0 is a keyboard activation): the
-   * document's capturing listeners run first, then the target's own unless
-   * one stopped it. True when the click reached the target.
+   * A click on `target` with the browser's click count `detail`, 0 for a
+   * keyboard activation: the document's capturing listeners run first, then
+   * the target's own unless one stopped it. True when the click reached it.
    */
   click(target: FakeElement, detail = 1): boolean {
     let stopped = false;
     const event: FakeClick = { type: 'click', target, detail, preventDefault() {}, stopPropagation() { stopped = true; } };
-    for (const listener of this.capturing) listener(event);
+    for (const listener of this.capturingClicks) listener(event);
     if (!stopped) target.click();
     return !stopped;
+  }
+  /** A keydown on `target` that bubbles to the document. True when a listener cancelled it. */
+  keydown(target: FakeElement, key: string, repeat = false): boolean {
+    const event: FakeKey = { type: 'keydown', target, key, repeat, defaultPrevented: false,
+      preventDefault() { this.defaultPrevented = true; } };
+    for (const listener of this.keydowns) listener(event);
+    return event.defaultPrevented;
   }
 }
 
@@ -69,7 +87,7 @@ class FakeElement {
   fire(type: string, event?: unknown) { for (const listener of this.listeners.get(type) ?? []) listener(event); }
   click() { if (!this.disabled) this.fire('click'); }
   focus() { this.doc.activeElement = this; }
-  closest(selector: string) {
+  closest(selector: string): FakeElement | null {
     return selector === 'dialog[open]' && this.container?.open ? this.container : null;
   }
 }
@@ -116,6 +134,8 @@ function fixture() {
   const view = { focus: vi.fn() };
   const beforeAsk = vi.fn();
   const clock = { time: 1_000 };
+  /** False while a menu or another dialog would take Escape first. */
+  const page = { escapeAllowed: true };
   const buy = new BuyTool(sim, handle.lot_width(), handle.lot_height(), { changed() {} });
   let builder: FurnitureBuilder;
   // The page's own pending check, given the tools this fixture has.
@@ -149,6 +169,9 @@ function fixture() {
     },
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => view.focus(),
+    // As main.ts: Escape with the dialog closed goes through the tools first.
+    escapeBuild: () => { routeBuildKey('Escape', [buy], builder); },
+    escapeAllowed: () => builder.active && page.escapeAllowed,
     beforeAsk,
   }, () => clock.time);
   builder = new FurnitureBuilder(sim, new OverlayPauseController({ setSpeed() {} }, () => {}, 1), {
@@ -168,7 +191,7 @@ function fixture() {
   /** Clicks Exit build, as the panel's heading button does. */
   const clickExit = () => { exitButton.focus(); exitButton.click(); };
   return { handle, sim, doc, session, builder, buy, exit, dialog, keep, exitButton, confirmButton,
-    cancelButton, stage, status, view, beforeAsk, clock, enterWithMove, clickExit,
+    cancelButton, stage, status, view, beforeAsk, clock, page, enterWithMove, clickExit,
     get gameClicks() { return gameClicks; } };
 }
 
@@ -443,32 +466,80 @@ describe('Escape in Build mode', () => {
     try {
       f.enterWithMove();
       f.builder.select(22);
-      expect(routeBuildKey('Escape', [], f.builder)).toBe(true);
+      // From the game view, as main.ts's canvas listener calls it.
+      f.exit.pressEscape(false);
       expect([f.builder.selected, f.builder.active, f.dialog.open]).toEqual([null, true, false]);
-      expect(routeBuildKey('Escape', [], f.builder)).toBe(true);
+      f.exit.pressEscape(false);
       expect([f.builder.active, f.dialog.open]).toEqual([true, true]);
-      f.dialog.close();
-      expect(f.builder.active).toBe(true);
+      f.exit.pressEscape(false);
+      expect([f.builder.active, f.dialog.open]).toEqual([true, false]);
     } finally { f.handle.free(); }
   });
 
-  it('held down, keeps the dialog it opened: the dialog cancels repeated Escapes and not a fresh one', () => {
+  it('with focus outside the open dialog, chooses Keep building and leaves the selection alone', () => {
     const f = fixture();
     try {
       f.enterWithMove();
-      expect(routeBuildKey('Escape', [], f.builder)).toBe(true);
+      const moved = f.sim.saveBytes();
+      f.builder.select(22);
+      f.clickExit();
       expect(f.dialog.open).toBe(true);
-      const press = (repeat: boolean) => {
-        const event = { key: 'Escape', repeat, preventDefault: vi.fn() };
-        f.dialog.fire('keydown', event);
-        return event.preventDefault.mock.calls.length > 0;
-      };
-      // A cancelled keydown is not a close request, so the dialog stays open.
-      expect(press(true)).toBe(true);
-      expect(press(false)).toBe(false);
-      const other = { key: 'Enter', repeat: true, preventDefault: vi.fn() };
-      f.dialog.fire('keydown', other);
-      expect(other.preventDefault).not.toHaveBeenCalled();
+      // A click on the backdrop or the dialog's text puts focus on the page body.
+      f.doc.body.focus();
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(false);
+      expect(f.dialog.returnValue).toBe('keep');
+      expect([f.builder.selected, f.builder.active]).toEqual([22, true]);
+      expect(f.sim.saveBytes()).toEqual(moved);
+    } finally { f.handle.free(); }
+  });
+
+  it('inside the open dialog, chooses Keep building too', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.clickExit();
+      expect(f.doc.keydown(f.keep, 'Escape')).toBe(true);
+      expect([f.dialog.open, f.dialog.returnValue, f.builder.active]).toEqual([false, 'keep', true]);
+    } finally { f.handle.free(); }
+  });
+
+  it('held down, counts once wherever focus is, so the dialog it opens stays open', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.doc.body.focus();
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(true);
+      // Repeats reach the dialog's button, or the body after a click on the backdrop.
+      expect(f.doc.keydown(f.keep, 'Escape', true)).toBe(true);
+      expect(f.doc.keydown(f.doc.body, 'Escape', true)).toBe(true);
+      expect(f.dialog.open).toBe(true);
+      f.exit.pressEscape(true);
+      expect(f.dialog.open).toBe(true);
+      expect(f.doc.keydown(f.keep, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(false);
+      // With the dialog closed, a repeat from the game view does not reopen it.
+      f.exit.pressEscape(true);
+      expect(f.dialog.open).toBe(false);
+    } finally { f.handle.free(); }
+  });
+
+  it('leaves another dialog, a text field, a menu and other keys alone', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.builder.select(22);
+      const field = new FakeElement(f.doc);
+      field.closest = (selector: string) => selector.includes('input') ? field : null;
+      expect(f.doc.keydown(field, 'Escape')).toBe(false);
+      expect(f.doc.keydown(f.doc.body, 'Enter')).toBe(false);
+      f.page.escapeAllowed = false;
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(false);
+      expect([f.builder.selected, f.dialog.open]).toEqual([22, false]);
+      f.page.escapeAllowed = true;
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.builder.selected).toBeNull();
     } finally { f.handle.free(); }
   });
 
@@ -476,7 +547,7 @@ describe('Escape in Build mode', () => {
     const f = fixture();
     try {
       f.builder.enter();
-      expect(routeBuildKey('Escape', [], f.builder)).toBe(true);
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
       expect([f.builder.active, f.dialog.open]).toEqual([false, false]);
     } finally { f.handle.free(); }
   });
@@ -583,20 +654,26 @@ describe('what counts as pending', () => {
 });
 
 describe('a double-click that closes the dialog or leaves', () => {
-  it('keeps the second click of a dialog button off the game', () => {
+  /** A dialog button, as a target inside the open dialog. */
+  const dialogButton = (f: ReturnType<typeof fixture>) => {
+    const button = new FakeElement(f.doc);
+    button.container = f.dialog;
+    return button;
+  };
+
+  it('keeps the second click of a dialog button off the game, and lets a separate click through', () => {
     const f = fixture();
     try {
       f.enterWithMove();
       f.clickExit();
-      const discard = new FakeElement(f.doc);
-      discard.container = f.dialog;
-      expect(f.doc.click(discard, 1)).toBe(true);
+      expect(f.doc.click(dialogButton(f), 1)).toBe(true);
       f.dialog.close('discard');
       expect(f.builder.active).toBe(false);
       f.clock.time += 150;
       expect(f.doc.click(f.stage, 2)).toBe(false);
       expect(f.gameClicks).toBe(0);
-      f.clock.time += STRAY_CLICK_MS;
+      // A new click, counted from one again by the browser, is deliberate.
+      f.clock.time += 100;
       expect(f.doc.click(f.stage, 1)).toBe(true);
       expect(f.gameClicks).toBe(1);
     } finally { f.handle.free(); }
@@ -614,18 +691,54 @@ describe('a double-click that closes the dialog or leaves', () => {
     } finally { f.handle.free(); }
   });
 
-  it('lets through keyboard activations, clicks inside an open dialog, and clicks before any close', () => {
+  it('keeps the second click of Exit build off the game when nothing is pending', () => {
+    const f = fixture();
+    try {
+      f.builder.enter();
+      f.exitButton.focus();
+      expect(f.doc.click(f.exitButton, 1)).toBe(true);
+      expect([f.builder.active, f.dialog.open]).toEqual([false, false]);
+      f.clock.time += 120;
+      expect(f.doc.click(f.stage, 2)).toBe(false);
+      expect(f.gameClicks).toBe(0);
+    } finally { f.handle.free(); }
+  });
+
+  it('arms nothing when the dialog closes from the keyboard', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.clickExit();
+      // Enter on Keep building: a click with no count, then the close.
+      expect(f.doc.click(f.keep, 0)).toBe(true);
+      f.dialog.close('keep');
+      f.clock.time += 50;
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      // Escape with focus anywhere.
+      f.clock.time += 2_000;
+      f.clickExit();
+      f.clock.time += 2_000;
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(false);
+      f.clock.time += 50;
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      expect(f.doc.click(f.stage, 2)).toBe(true);
+      expect(f.gameClicks).toBe(3);
+    } finally { f.handle.free(); }
+  });
+
+  it('lets through clicks inside an open dialog, clicks before any close, and a late continuation', () => {
     const f = fixture();
     try {
       expect(f.doc.click(f.stage, 2)).toBe(true);
       f.enterWithMove();
-      f.clickExit();
-      f.dialog.close('keep');
-      f.clock.time += 50;
-      expect(f.doc.click(f.stage, 0)).toBe(true);
+      expect(f.doc.click(f.confirmButton, 1)).toBe(true);
+      f.clock.time += STRAY_CLICK_MS + 1;
+      expect(f.doc.click(f.stage, 2)).toBe(true);
+      f.builder.enter(); f.builder.select(22); f.builder.moveTo(9, 3);
       f.clickExit();
       expect(f.dialog.open).toBe(true);
-      expect(f.doc.click(f.keep, 1)).toBe(true);
+      expect(f.doc.click(dialogButton(f), 2)).toBe(true);
       expect(f.gameClicks).toBe(2);
     } finally { f.handle.free(); }
   });
@@ -710,12 +823,23 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
     expect(MAIN_TS).toContain('confirmRefusal(builder.hasPlacementChange)');
-    // A discard resets the Land tool as a Load does, so a dropped purchase cannot leave it waiting.
-    expect(MAIN_TS.split('landTool.resetAfterLoad(lotWidth, lotHeight);')).toHaveLength(3);
     expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
   });
 
-  it('main.ts source: both Escape listeners act on one press of a held key', () => {
-    expect(MAIN_TS.split('if (!event.repeat) escapeBuild(); event.preventDefault();')).toHaveLength(3);
+  it('main.ts source: a discard resets the Land tool as a Load does, inside restoreBuildPresentation', () => {
+    const start = MAIN_TS.indexOf('function restoreBuildPresentation(): void {');
+    expect(start).toBeGreaterThan(0);
+    const body = MAIN_TS.slice(start, MAIN_TS.indexOf('\n  }\n', start));
+    expect(body).toContain('landTool.resetAfterLoad(lotWidth, lotHeight);');
+    expect(body).not.toContain('landTool.setLotSize');
+    expect(MAIN_TS).toContain('restored: () => restoreBuildPresentation(),');
+  });
+
+  it('main.ts source: Escape from the game view goes to BuildExit, which reads the rest of the page', () => {
+    expect(MAIN_TS.split('buildExit.pressEscape(event.repeat); event.preventDefault(); return;')).toHaveLength(2);
+    expect(MAIN_TS).toContain("escapeBuild: () => { routeBuildKey('Escape', buildTools, builder); },");
+    expect(MAIN_TS).toContain("escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),");
+    // No second page-wide Escape listener for Build mode in main.ts.
+    expect(MAIN_TS).not.toMatch(/event\.key !== 'Escape' \|\| menu\.isShowing\(\)\) return;/);
   });
 });

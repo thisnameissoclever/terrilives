@@ -1887,12 +1887,11 @@ async function main(): Promise<void> {
     },
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
+    // Escape clears the current tool's selection first; with none, it asks to leave.
+    escapeBuild: () => { routeBuildKey('Escape', buildTools, builder); },
+    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
   });
-  /** Escape clears the current tool's selection first; with none, it asks to leave Build mode. */
-  function escapeBuild(): void {
-    routeBuildKey('Escape', buildTools, builder);
-  }
   function syncBuildOptionsHost(): void {
     if (!optionsRoot) return;
     const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
@@ -1979,8 +1978,8 @@ async function main(): Promise<void> {
     if (event.defaultPrevented) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
-        // A held key repeats; Build mode reads one press, so a dialog it opens stays open.
-        if (!event.repeat) escapeBuild(); event.preventDefault(); return;
+        // BuildExit also reads Escape from the rest of the page.
+        buildExit.pressEscape(event.repeat); event.preventDefault(); return;
       }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
@@ -2151,15 +2150,6 @@ async function main(): Promise<void> {
     menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
       rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
-  document.addEventListener('keydown', (event) => {
-    if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
-    const target = event.target;
-    if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (!overlayPause.suspendedExcept('builder')) {
-      if (!event.repeat) escapeBuild(); event.preventDefault();
-    }
-  });
-
   const timer = new FrameTimer(FRAME_WINDOW);
   const characterMeasurement=stressParam===null?null:new CharacterFrameMeasurement(()=>gpu.device.queue);
   let previousFrameMs = performance.now();
