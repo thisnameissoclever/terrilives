@@ -299,6 +299,19 @@ The shipped yard and room tools already let the player build more house and buy 
 
 **Status: Partial.**
 
+Rooms provides Select rooms for naming and Build room for rectangle construction.
+Detection covers irregular enclosures and purchased land. Open-plan spaces form one
+room; all unenclosed owned ground shares Outside. Name edits and automatic room
+changes apply only at Confirm. Splits, merges, and lost enclosures receive a review
+showing proposed identities and chore responsibilities. Back to build keeps the
+draft; Cancel restores the last confirmed batch. The native transaction supplies
+committed save bytes while editing. See [room identity and naming](specs/2026-10-17-room-identities.md).
+
+Floor-cleaning eligibility follows material independently of enclosure. Boards,
+Tiles, Carpet, and Outdoor patio are cleanable indoors and outdoors. Outdoor
+counters and tables also receive duties; grass and the street do not receive floor
+cleaning. Outside does not create lot-wide indoor privacy or affinity effects.
+
 **What exists.** Build mode pauses the game. Edits remain a draft until Confirm at the bottom of the build flyout; Cancel, Escape, and unconfirmed Exit build restore the last confirmed state, including purchases and refunds. Saves contain only confirmed changes. Rooms include solid walls on the owned plot perimeter. See [build confirmation](specs/2026-10-13-build-confirmation.md). The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
 **Completed slices.** Buy mode (PR 96), walls (95), whole rooms (97), vertical hinged doors (98), front-door reachability (99), catalogue need filtering (100), sales (101), compact build controls (102), rotated lighting (103), placed and purchased colourways (104, 105), the larger yard lot (106), street (107), visible build walls (112), floating placement controls (113), daylight (116), windows (126) and floor painting (128). These are merged features, not branch-only work. FEATURES.md records the individual merge and play evidence.

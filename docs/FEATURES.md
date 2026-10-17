@@ -1136,6 +1136,16 @@ Sims.
 
 **Status: Complete for the room and furniture builder slice; wider build scope remains under [S-build].**
 
+Rooms detects enclosures across the owned lot and lets the player name them in
+Build mode. Select rooms uses the confirmed map; Build room retains rectangular
+construction. Open-plan spaces count as one room, and Outside is one shared room.
+Confirm resolves final boundaries, names, and cleaning duties together, with a
+review for splits, merges, and lost enclosures. Native transactions preserve the
+last confirmed save and unfinished work until adoption. Outdoor flooring and
+surfaces are cleanable, while grass and the street are excluded. Outdoor patio is
+an additional covering. See [room identity and naming](specs/2026-10-17-room-identities.md)
+and [build confirmation](specs/2026-10-13-build-confirmation.md).
+
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
 that commit. The Walls tool shipped in PR 95 at merge `1a90a75`; main's CI
@@ -1174,8 +1184,8 @@ as requested on 2026-09-20. Build pauses the household, selects any
 placed furniture, and previews its destination and supported direction.
 Confirm applies a validated command; Cancel leaves the world unchanged.
 Collision, walls, interaction approaches, active reservations, remaining
-walking routes and the front-door landing are protected. The current Save V5 preserves
-positions, directions and room architecture, retaining older-save support. Keyboard controls and compact
+walking routes and the front-door landing are protected. Current saves preserve
+positions, directions, room architecture and named identities, retaining older-save support. Keyboard controls and compact
 touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
