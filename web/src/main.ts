@@ -25,6 +25,8 @@ import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
+import { LandTool } from './ui/land-tool.js';
+import { LandToolControls } from './ui/land-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
@@ -54,8 +56,8 @@ import {
   advanceSimulationFrame,
   buildInstanceBatch,
 } from './frame.js';
-import { cameraOrigin } from './render/iso.js';
-import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT, cameraOrigin } from './render/iso.js';
+import { landExtent, clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { CreatorSession } from './ui/character-creator/session.js';
 import { CreatorView } from './ui/character-creator/view.js';
 import { CreatorPreview } from './ui/character-creator/preview.js';
@@ -837,6 +839,7 @@ async function main(): Promise<void> {
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
     floorControls?.setCompact(event.matches);
+    landControls?.setCompact(event.matches);
     placementActions?.invalidate();
     syncBuildOptionsHost();
   });
@@ -1079,11 +1082,7 @@ async function main(): Promise<void> {
       .then((loaded) => {
         if (loaded) {
           wallFade.reset();
-          lotWidth = handle.lot_width();
-          lotHeight = handle.lot_height();
-          depthScale = Math.max(lotWidth, lotHeight);
-          lot.width = lotWidth;
-          lot.height = lotHeight;
+          adoptLotShape();
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
@@ -1120,6 +1119,7 @@ async function main(): Promise<void> {
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
           floorTool.resetAfterLoad(lotWidth, lotHeight);
+          landTool.resetAfterLoad(lotWidth, lotHeight);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -1341,7 +1341,8 @@ async function main(): Promise<void> {
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
-    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
+    houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
@@ -1352,7 +1353,7 @@ async function main(): Promise<void> {
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows);
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1370,13 +1371,16 @@ async function main(): Promise<void> {
    * through here; a clamp applied by SOME writers is a lot that can
    * still be flung away by the one that forgot.
    */
+  // How far the Land tool's strips reach beyond the lot; set once the tool exists.
+  let landReach = (): number => 0;
   function clampCamera(): void {
     const bounded = clampOrigin(
       camera.originX,
       camera.originY,
-      lotExtent(
+      landExtent(
         lotWidth,
         lotHeight,
+        landReach(),
         tallestSprite,
         tallestBoundarySprite,
         camera.scale,
@@ -1438,6 +1442,11 @@ async function main(): Promise<void> {
       );
       camera.originX = origin.x;
       camera.originY = origin.y;
+      // The house stands away from the grid's origin once land lies behind
+      // or beside it; the view opens framed on it where it is.
+      const [houseX, houseY] = lot.houseOrigin;
+      camera.originX -= (houseX - houseY) * TILE_HALF_WIDTH * camera.scale;
+      camera.originY -= (houseX + houseY) * TILE_HALF_HEIGHT * camera.scale;
       cameraInitialised = true;
     }
     clampCamera();
@@ -1648,7 +1657,20 @@ async function main(): Promise<void> {
     syncFloorScene();
   };
   syncFloorResources();
-  const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
+  // Rule 8 of the land expansion spec: a strip of land beside the lot,
+  // quoted by the simulation and confirmed twice.
+  let landControls: LandToolControls | undefined;
+  const landTool = new LandTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      clampCamera();
+      cameraDirty = true;
+      landControls?.render();
+      toolSwitch?.render();
+      placementActions?.invalidate();
+    },
+  });
+  landReach = () => landTool.reach();
+  const buildTools = [wallTool, roomTool, buyTool, floorTool, landTool] as const;
   // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
@@ -1706,6 +1728,7 @@ async function main(): Promise<void> {
       roomTool.exit();
       buyTool.exit();
       floorTool.exit();
+      landTool.exit();
       compactHud.endEditing();
       syncBuildOptionsHost();
       optionsMenu.close();
@@ -1722,11 +1745,12 @@ async function main(): Promise<void> {
   }
   function settleBuildControllers(): boolean {
     wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
-    floorTool.afterCommands(); buyTool.afterCommands();
+    floorTool.afterCommands(); buyTool.afterCommands(); landTool.afterCommands();
+    if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
     return !builder.pending && wallTool.pending === null && windowTool.pending === null
-      && !roomTool.pending && !buyTool.pending && floorTool.pending === null
+      && !roomTool.pending && !buyTool.pending && floorTool.pending === null && !landTool.pending
       && sim.pendingBookCommands() === 0;
   }
   function prepareBuildConfirmation(): boolean {
@@ -1750,13 +1774,47 @@ async function main(): Promise<void> {
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
     if (buildSession.active) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
   }
+  /**
+   * Reads the lot's size and the house's place from the simulation; true
+   * when either changed, as a land purchase, its cancellation or a Load
+   * changes them. The view keeps the house where it was on screen.
+   */
+  function adoptLotShape(): boolean {
+    const width = handle.lot_width();
+    const height = handle.lot_height();
+    const [houseX, houseY] = sim.houseOrigin();
+    const [oldX, oldY] = lot.houseOrigin;
+    if (width === lotWidth && height === lotHeight && houseX === oldX && houseY === oldY) return false;
+    lotWidth = width; lotHeight = height;
+    depthScale = Math.max(lotWidth, lotHeight);
+    lot.width = lotWidth; lot.height = lotHeight;
+    lot.houseOrigin = [houseX, houseY];
+    lot.street = sim.streetColumn();
+    camera.originX -= ((houseX - oldX) - (houseY - oldY)) * TILE_HALF_WIDTH * camera.scale;
+    camera.originY -= ((houseX - oldX) + (houseY - oldY)) * TILE_HALF_HEIGHT * camera.scale;
+    lightingDirty = true; cameraDirty = true;
+    return true;
+  }
+  /** After the lot changed shape under Build mode: every tool and the walls start afresh on the new lot. */
+  function refreshLotPresentation(): void {
+    wallFade.reset(); keyboardTargets.clear();
+    builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
+    windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
+    buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
+    landTool.setLotSize(lotWidth, lotHeight);
+    characterWorld.reset(); characterWorld.prepareFixtures(sim);
+    refreshBuildArchitecture(); clampCamera();
+    toolSwitch?.render(); placementActions?.invalidate();
+  }
   function restoreBuildPresentation(): void {
+    adoptLotShape();
     menu.close(); keyboardTargets.clear(); wallFade.reset();
     bookResults.resetAfterLoad(); bookCommerce.resetAfterLoad();
     builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
     windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
     buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
-    refreshBuildArchitecture(); audio.reset('load');
+    landTool.setLotSize(lotWidth, lotHeight); characterWorld.reset(); characterWorld.prepareFixtures(sim);
+    refreshBuildArchitecture(); audio.reset('load'); clampCamera();
     toolSwitch?.render(); placementActions?.invalidate();
   }
   function cancelBuildBatch(): void {
@@ -1770,7 +1828,7 @@ async function main(): Promise<void> {
     buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : 'Finish or cancel the current placement before confirming.';
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
-      roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection();
+      roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
     }
   });
@@ -1823,6 +1881,8 @@ async function main(): Promise<void> {
   floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
     drawFloorSwatch(canvas, covering, lot.coveringLooks.subarray((covering - 1) * 3, covering * 3)), () => floorResources.retry());
   floorControls.setCompact(compactBuildQuery.matches);
+  landControls = new LandToolControls(document, landTool);
+  landControls.setCompact(compactBuildQuery.matches);
   document.querySelector<HTMLButtonElement>('#builder-exit')?.addEventListener('click', () => builder.exit());
   const zoomView = (direction: -1 | 1): void => {
     const rect = stage.getBoundingClientRect();
@@ -1844,6 +1904,7 @@ async function main(): Promise<void> {
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
     { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
+    { tool: landTool, button: 'build-tool-land', panel: 'land-tool' },
   ], {
     leaveFurniture() {
       builder.cancel();
@@ -2003,6 +2064,10 @@ async function main(): Promise<void> {
           if (world) floorTool.choosePoint(world[0], world[1]);
           return;
         }
+        if (landTool.active) {
+          if (world) landTool.choosePoint(world[0], world[1]);
+          return;
+        }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
       },
@@ -2103,11 +2168,14 @@ async function main(): Promise<void> {
     bookResults.drain();
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    landTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
     windowTool.afterCommands();
     roomTool.afterCommands();
     floorTool.afterCommands();
     buyTool.afterCommands();
+    landTool.afterCommands();
+    if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands();
     syncCharacterContacts();
     bedAssignmentPanel.afterCommands();
@@ -2147,7 +2215,7 @@ async function main(): Promise<void> {
         lightingMode.isFlat() ? null : lighting,
         undefined,
         buyTool.ghost() ?? builder.preview,
-        wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
+        wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
         buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,

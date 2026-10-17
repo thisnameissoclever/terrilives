@@ -486,7 +486,7 @@ describe('the Walls tool in the page', () => {
     // Escape wherever focus is.
     expect(MAIN_TS.split('routeBuildKey(event.key, buildTools, builder)')).toHaveLength(2);
     expect(MAIN_TS.split('cancelBuildBatch(); event.preventDefault();')).toHaveLength(3);
-    expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;');
+    expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool, floorTool, landTool] as const;');
     expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
   });
 });

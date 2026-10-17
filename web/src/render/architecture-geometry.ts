@@ -12,6 +12,8 @@ export interface ArchitectureWalls {
   readonly width: number;
   readonly height: number;
   readonly house: readonly [number, number];
+  /** The house's north-west tile; the origin unless land lies behind or beside it. */
+  readonly houseOrigin?: readonly [number, number];
   readonly edges: Uint32Array;
   readonly windows: readonly WindowPlacement[];
   readonly catalogue: readonly WindowDefinition[];
@@ -32,9 +34,10 @@ export function buildArchitectureWallGeometry(lot: ArchitectureWalls): EdgeWallP
   const apertures = new Set<string>();
   const panels: EdgeWallPanel[] = [];
   const side = lot.side ?? 'front';
+  const [houseX, houseY] = lot.houseOrigin ?? [0, 0];
   const isRearShell = (axis: number, x: number, y: number): boolean => axis === 0
-    ? x === 0 && y >= 0 && y < Math.min(lot.height, lot.house[1])
-    : y === 0 && x >= 0 && x < Math.min(lot.width, lot.house[0]);
+    ? x === houseX && y >= houseY && y < Math.min(lot.height, houseY + lot.house[1])
+    : y === houseY && x >= houseX && x < Math.min(lot.width, houseX + lot.house[0]);
   const hinged = new Set<string>();
   for (let i = 0; i + 1 < (lot.hinged?.length ?? 0); i += 2) {
     hinged.add(lineKey(0, lot.hinged![i], lot.hinged![i + 1]));
@@ -86,14 +89,14 @@ export function buildArchitectureWallGeometry(lot: ArchitectureWalls): EdgeWallP
     arm(x, y, axis === 0 ? 1 : 0, height, cells);
     arm(x + (axis === 1 ? 1 : 0), y + (axis === 0 ? 1 : 0), axis === 0 ? 3 : 2, height, cells);
   };
-  for (let y = 0; y < Math.min(lot.height, lot.house[1]); y++) segment(0, 0, y, false, false);
-  for (let x = 0; x < Math.min(lot.width, lot.house[0]); x++) segment(1, x, 0, false, false);
+  for (let y = houseY; y < Math.min(lot.height, houseY + lot.house[1]); y++) segment(0, houseX, y, false, false);
+  for (let x = houseX; x < Math.min(lot.width, houseX + lot.house[0]); x++) segment(1, x, houseY, false, false);
   for (let i = 0; i + 3 < lot.edges.length; i += 4) {
     const axis = lot.edges[i];
     if (axis !== 0 && axis !== 1) throw new Error('Invalid wall axis');
     const x = lot.edges[i + 1];
     const y = lot.edges[i + 2];
-    const rearPerimeter = axis === 0 ? x === 0 : y === 0;
+    const rearPerimeter = axis === 0 ? x === houseX : y === houseY;
     segment(axis, x, y, lot.edges[i + 3] === 1, lot.cutaway && !rearPerimeter);
   }
   for (const vertex of vertices.values()) {

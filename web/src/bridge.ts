@@ -272,6 +272,38 @@ export function relationWord(code: number): string | null {
   return RELATION_WORDS[code] ?? null;
 }
 
+/** Why a land purchase was refused, as `last_land_result` numbers it. */
+export function landReason(code: number): string {
+  switch (code) {
+    case 1: return 'That side of the lot is not known.';
+    case 2: return 'This house\'s walls cannot be changed, so its land cannot grow.';
+    case 3: return 'The lot cannot grow any further on that side.';
+    case 4: return 'There is not enough money for this land.';
+    default: return `The land could not be bought (reason ${code}).`;
+  }
+}
+
+/** One strip of land as the simulation prices it (land expansion, issue 254). */
+export interface LandQuote {
+  readonly side: 0 | 1 | 2;
+  /** Along the lot's side and away from it, in tiles. */
+  readonly length: number;
+  readonly depth: number;
+  readonly area: number;
+  readonly priceCents: number;
+  /** The household's cents after the purchase; negative when it cannot afford it. */
+  readonly remainingCents: number;
+  readonly affordable: boolean;
+}
+
+/** What the drain did with the last land purchase. */
+export interface LandResult {
+  readonly side: number;
+  /** 0 when the land was bought; else the refusal `landReason` names. */
+  readonly reason: number;
+  readonly chargedCents: number;
+}
+
 export function floorReason(code: number): string {
   return FLOOR_REASONS[code] ?? 'That change is not possible.';
 }
@@ -528,6 +560,33 @@ export class SimBridge {
   houseSize(): [number, number] {
     const [width, height] = this.handle.house_size();
     return [width, height];
+  }
+
+  /**
+   * `[x, y]` of the house's north-west tile: the grid's origin until land is
+   * bought behind or beside the house (land expansion, issue 254).
+   */
+  houseOrigin(): [number, number] {
+    const [x, y] = this.handle.house_origin();
+    return [x, y];
+  }
+
+  /** The strip on `side` (0 behind the house, 1 left, 2 right) as the simulation prices it, or null for an unknown side. */
+  landQuote(side: number): LandQuote | null {
+    const values = this.handle.land_quote(side);
+    if (values.length < 6 || side < 0 || side > 2) return null;
+    return { side: side as 0 | 1 | 2, length: values[0], depth: values[1], area: values[2],
+      priceCents: values[3], remainingCents: values[4], affordable: values[5] === 1 };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastLandResult`. */
+  buyLand(side: number): boolean {
+    return this.handle.buy_land(side);
+  }
+
+  lastLandResult(): LandResult | null {
+    const values = this.handle.last_land_result();
+    return values.length === 0 ? null : { side: values[0], reason: values[1], chargedCents: values[2] };
   }
 
   /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
@@ -1771,9 +1830,14 @@ export class SimBridge {
     return this.handle.queued_orders_of(entityIndex);
   }
 
-  /** The household's money - E4. One number for the lot, not per sim. */
+  /** The household's money in whole dollars, rounded down - E4. One number for the lot, not per sim. */
   funds(): number {
     return this.handle.funds();
+  }
+
+  /** The household's money to the cent (land expansion, issue 254). */
+  fundsCents(): number {
+    return this.handle.funds_cents();
   }
 
   /**

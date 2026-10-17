@@ -9,6 +9,7 @@ export interface FixtureRegistrationSource {
   lotRevision?():number;
   wallEdges?():Uint32Array|undefined;
   houseSize?():readonly [number,number];
+  houseOrigin?():readonly [number,number];
 }
 
 export interface FixtureRegistration {
@@ -18,7 +19,7 @@ export interface FixtureRegistration {
 
 interface CachedRegistration extends FixtureRegistration {
   revision:number|undefined;count:number;edges:Uint32Array|undefined;house:readonly [number,number]|undefined;
-  limits:Float64Array;preview:Float32Array;
+  houseOrigin:readonly [number,number];limits:Float64Array;preview:Float32Array;
 }
 type Bounds=readonly [number,number,number,number];
 const registrations=new WeakMap<object,CachedRegistration>();
@@ -50,11 +51,12 @@ function wallConstraint(axis:number,wx:number,wy:number,bounds:Bounds,x:number,y
 function measure(record:CachedRegistration,sprite:number,x:number,y:number,out:Float32Array,at:number):boolean {
   out[at]=0;out[at+1]=0;
   const bounds=boundsBySprite.get(sprite);if(!bounds)return true;
-  const {limits,edges,house}=record;
+  const {limits,edges,house,houseOrigin}=record;
   limits[0]=-Infinity;limits[1]=Infinity;limits[2]=-Infinity;limits[3]=Infinity;
   if(house){
-    for(let wy=0;wy<house[1];wy++)wallConstraint(0,0,wy,bounds,x,y,limits);
-    for(let wx=0;wx<house[0];wx++)wallConstraint(1,wx,0,bounds,x,y,limits);
+    // The house's implicit shell, where the house stands.
+    for(let wy=0;wy<house[1];wy++)wallConstraint(0,houseOrigin[0],houseOrigin[1]+wy,bounds,x,y,limits);
+    for(let wx=0;wx<house[0];wx++)wallConstraint(1,houseOrigin[0]+wx,houseOrigin[1],bounds,x,y,limits);
   }
   if(edges)for(let edge=0;edge+3<edges.length;edge+=4){
     // Door openings do not contain the full solid wall represented by an edge.
@@ -73,12 +75,13 @@ export function fixtureRegistration(source:FixtureRegistrationSource):FixtureReg
   if(record&&revision!==undefined&&record.revision===revision&&record.count===source.count)return record;
   if(!record||record.offsets.length<source.count*2){
     record={offsets:new Float32Array(source.count*2),infeasible:new Uint8Array(source.count),revision:undefined,count:source.count,
-      edges:undefined,house:undefined,limits:new Float64Array(4),preview:new Float32Array(2)};
+      edges:undefined,house:undefined,houseOrigin:[0,0],limits:new Float64Array(4),preview:new Float32Array(2)};
     registrations.set(source,record);
   }
   record.offsets.fill(0);record.infeasible.fill(0);record.revision=revision;record.count=source.count;
   // Finish potentially allocating bridge calls before borrowing renderer views.
   record.edges=source.wallEdges?.()?.slice();record.house=source.houseSize?.();
+  record.houseOrigin=source.houseOrigin?.()??[0,0];
   const positions=source.positions(),sprites=source.sprites();
   for(let row=0;row<source.count;row++)if(!measure(record,sprites[row],positions[row*2],positions[row*2+1],record.offsets,row*2)){
     // Native state remains loadable when an unchanged model cannot fit a narrow room.

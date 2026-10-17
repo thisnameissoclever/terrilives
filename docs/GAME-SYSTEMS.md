@@ -315,7 +315,7 @@ The 2026-10-01 local implementation adds nine window models, whole-span window e
 
 1. Wall-painting controls, additional finish choices and room-wide floor painting.
 2. Horizontal hinged-door art and final recolour palettes.
-3. Other lot sizes or player-directed expansion beyond the shipped 20 by 16 lot.
+3. Lots of other starting sizes. The player can buy strips of land beside the shipped 20 by 16 lot with the Land tool since land expansion (`specs/2026-10-17-land-expansion.md`).
 4. Multiple floors and stairs; pathfinding, rendering and the camera assume one floor.
 5. Roofs and exterior presentation under [S-outside].
 6. Undo/redo and building costs under [S-money].

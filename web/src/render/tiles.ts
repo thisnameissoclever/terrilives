@@ -72,6 +72,11 @@ export interface Lot {
   readonly width: number;
   readonly height: number;
   /**
+   * The house's north-west tile; the grid's origin until land is bought
+   * behind or beside the house (land expansion, issue 254).
+   */
+  readonly houseOrigin?: readonly [number, number];
+  /**
    * Impassable interior tiles, interleaved `[x0, y0, x1, y1, ...]`, as
    * `SimHandle.wall_tiles` reports them. The lot boundary is not in
    * here; see `boundary` below. Ignored when explicit `edges` are supplied.
@@ -213,17 +218,18 @@ export function buildStaticInstances(
   sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
+  const houseOrigin = lot.houseOrigin ?? [0, 0];
   const windowLayout = lot.architecture && lot.edges != null
     ? windowPreviewLayout(lot.edges, lot.architecture.windows, lot.architecture.catalogue, lot.windowPreview) : null;
   const edgePanels = lot.edges == null ? null : lot.architecture
-    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: windowLayout!.edges,
+    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, houseOrigin, edges: windowLayout!.edges,
       windows: windowLayout!.windows, catalogue: lot.architecture.catalogue,
       hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [], cutaway: lot.showCutAwayWalls !== true })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [], false, lot.horizontalDoors ?? [])
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [], false, lot.horizontalDoors ?? [], houseOrigin)
       : buildShortEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? [], lot.horizontalDoors ?? []);
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? [], lot.horizontalDoors ?? [], houseOrigin);
   // Only the small wall batch needs painter ordering. Entities retain depth ordering.
   edgePanels?.sort((a, b) => Number(a.low === true) - Number(b.low === true)
     || (a.x + a.y) - (b.x + b.y) || a.y - b.y);
@@ -247,9 +253,10 @@ export function buildStaticInstances(
     }
   }
   const street = lot.street ?? null;
+  const inHouse = (x: number, y: number): boolean => x >= houseOrigin[0] && x < houseOrigin[0] + house[0]
+    && y >= houseOrigin[1] && y < houseOrigin[1] + house[1];
   const lookOf = (x: number, y: number): number => painted.get(x * lot.height + y)
-    ?? (x === street ? 2
-      : x >= house[0] || y >= house[1] ? 1 : 0);
+    ?? (x === street ? 2 : inHouse(x, y) ? 0 : 1);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),

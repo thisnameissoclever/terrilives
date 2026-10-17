@@ -33,7 +33,9 @@ export const OPEN_SKY: SkyExposure = { width: 0, height: 0, values: new Float32A
  * reach outside `(0, 1]`. An empty edge list is a house with no walls, which
  * the sky reaches into from the yard on every side, still losing
  * `reachPerTile` per tile. `windows` contains expanded `[axis, x, y]` rows;
- * only rear lines at x = 0 or y = 0 seed virtual outside sky.
+ * only rear lines on the house's west or north shell seed virtual outside
+ * sky. `houseOrigin` is the house's north-west tile: the origin unless land
+ * lies behind or beside the house (land expansion, issue 254).
  */
 export function buildSkyExposure(
   width: number,
@@ -42,6 +44,7 @@ export function buildSkyExposure(
   house: readonly [number, number] | null,
   reachPerTile: number,
   windows: ArrayLike<number> = [],
+  houseOrigin: readonly [number, number] = [0, 0],
 ): SkyExposure {
   if (edges === null || house === null
     || !Number.isSafeInteger(width) || !Number.isSafeInteger(height)
@@ -60,10 +63,13 @@ export function buildSkyExposure(
       || x < 0 || y < 0 || x >= width || y >= height) continue;
     walls[y * width + x] |= axis === 0 ? 1 : 2;
   }
+  const [houseX, houseY] = houseOrigin;
+  const inHouse = (x: number, y: number): boolean => x >= houseX && x < houseX + house[0]
+    && y >= houseY && y < houseY + house[1];
   const queue: number[] = [];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (x >= house[0] || y >= house[1]) {
+      if (!inHouse(x, y)) {
         values[y * width + x] = 1;
         queue.push(y * width + x);
       }
@@ -76,8 +82,8 @@ export function buildSkyExposure(
     const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
     if (!Number.isInteger(x) || !Number.isInteger(y)
       || x < 0 || y < 0 || x >= width || y >= height
-      || x >= house[0] || y >= house[1]) continue;
-    const rear = (axis === 0 && x === 0) || (axis === 1 && y === 0);
+      || !inHouse(x, y)) continue;
+    const rear = (axis === 0 && x === houseX) || (axis === 1 && y === houseY);
     const at = y * width + x;
     if (!rear || (walls[at] & (axis === 0 ? 1 : 2)) !== 0 || values[at] >= 0) continue;
     values[at] = Math.max(0, 1 - reachPerTile);

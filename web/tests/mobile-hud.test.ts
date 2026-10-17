@@ -26,7 +26,7 @@ describe('the compact build layout', () => {
     expect(DOCK_CSS).toContain('@media (max-width: 600px), (max-height: 480px)');
   });
   it('keeps all five tools, Exit build and shortcuts reachable', () => {
-    for (const tool of ['furniture','walls','room','buy','floors']) expect(INDEX_HTML).toContain(`id="build-tool-${tool}"`);
+    for (const tool of ['furniture','walls','room','buy','floors','land']) expect(INDEX_HTML).toContain(`id="build-tool-${tool}"`);
     expect(INDEX_HTML).toContain('class="build-navigation"');
     expect(BUILD_CSS).toContain('overflow-y: auto');
     expect(BUILD_CSS).toContain('min-height: 44px');

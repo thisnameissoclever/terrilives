@@ -870,6 +870,7 @@ export interface RenderSource {
   lotRevision?():number;
   wallEdges?():Uint32Array|undefined;
   houseSize?():readonly [number,number];
+  houseOrigin?():readonly [number,number];
   portals?(): PortalSource;
   readonly count: number;
   positions(): Float32Array;
