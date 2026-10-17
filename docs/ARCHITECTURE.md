@@ -15,7 +15,7 @@ from other docs and from discussion. Do not renumber them.
 | Presentation | 2.5D, fixed isometric camera |
 | Simulation core | Rust, compiled to `wasm32` and native from one source |
 | Shell (first) | TypeScript + WebGPU renderer, DOM-based UI |
-| Shell (later) | Native desktop, as a shell swap rather than a rewrite; options and multithreading paths in [the desktop app research](plans/2026-10-17-desktop-app.md) |
+| Shell (later) | Native desktop, as a shell swap rather than a rewrite |
 | Scale target | "Town" tier: ~1k-5k sims, ~100k objects |
 | Multiplayer v1 | Layer 1 only (asynchronous, no time coupling) |
 | Multiplayer later | Layer 2 (synchronous sessions), designed for but not built |
