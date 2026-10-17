@@ -961,6 +961,10 @@ pub enum ContentError {
     CookingTuningOutOfRange {
         key: &'static str,
     },
+    /// Fights (issue 248): a fight knob outside its range.
+    FightTuningOutOfRange {
+        key: &'static str,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -2163,6 +2167,15 @@ impl fmt::Display for ContentError {
                  master chance at most the novice chance; \
                  burnt_meal_mood_penalty finite and not negative; \
                  burnt_meal_mood_ticks from 1 to 10080"
+            ),
+            ContentError::FightTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: \
+                 fight_affinity_threshold must be finite, from -1 to 1; \
+                 fight_chance_per_tick finite, from 0 to 1; \
+                 fight_relationship_loss finite, from 0 to 2; \
+                 fight_mood_penalty finite and not negative; \
+                 fight_mood_ticks from 1 to 10080"
             ),
             ContentError::AffinityTuningOutOfRange { key } => write!(
                 f,

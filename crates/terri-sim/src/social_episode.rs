@@ -282,6 +282,10 @@ pub(crate) fn tag_code(tag: &str) -> u32 {
         "bathing" | "bath" => 20,
         "washing" | "hygiene" => 16,
         "cleaning" => 17,
+        // Fights (issue 248): what the fight is about, drawn in red.
+        "fight-dishes" => 24,
+        "fight-chore" => 25,
+        "fight" => 26,
         _ => 7,
     }
 }
@@ -292,10 +296,10 @@ pub(crate) fn begin_topics(world: &mut World) {
     let mut talks: Vec<_> = world
         .query::<(Entity, &Socialising)>()
         .iter(world)
-        .map(|(e, s)| (e, s.partner))
+        .map(|(e, s)| (e, s.partner, s.interaction))
         .collect();
-    talks.sort_by_key(|(e, _)| e.index_u32());
-    for (initiator, listener) in talks {
+    talks.sort_by_key(|(e, _, _)| e.index_u32());
+    for (initiator, listener, interaction) in talks {
         if world
             .resource::<SocialEpisodes>()
             .topics
@@ -304,6 +308,28 @@ pub(crate) fn begin_topics(world: &mut World) {
             continue;
         }
         let pack = world.resource::<crate::Content>().0;
+        // A fight's topic is its reason, not a draw: the listener's missed
+        // chore when there is one, a plain argument otherwise.
+        if pack
+            .social
+            .get(interaction as usize)
+            .is_some_and(crate::fights::is_fight)
+        {
+            let reason = world
+                .get::<terri_core::SimId>(listener)
+                .copied()
+                .and_then(|id| crate::fights::reason_against(world, id));
+            world.resource_mut::<SocialEpisodes>().topics.insert(
+                initiator,
+                Topic {
+                    code: crate::fights::Reason::code(reason),
+                    tag: crate::fights::Reason::tag(reason).into(),
+                    initiator_preference: -1.,
+                    listener_preference: -1.,
+                },
+            );
+            continue;
+        }
         let prefs = |person| {
             crate::compatibility::preferences(
                 pack,

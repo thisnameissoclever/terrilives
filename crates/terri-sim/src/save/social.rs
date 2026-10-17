@@ -146,6 +146,41 @@ pub(super) fn restore_into(
         {
             return Err(SaveError::InvalidEntityReference);
         }
+        // Fights (issue 248): a fight carries exactly a fight topic, with
+        // both preferences at -1; a chat never does.
+        let fighting = candidate
+            .world
+            .get::<Socialising>(i)
+            .and_then(|s| content.social.get(s.interaction as usize))
+            .is_some_and(crate::fights::is_fight);
+        let fight_topic = crate::fights::Reason::from_tag(&t.tag);
+        if fighting != fight_topic.is_some() {
+            return Err(SaveError::InvalidValue);
+        }
+        if let Some(reason) = fight_topic {
+            if t.code != crate::fights::Reason::code(reason)
+                || t.initiator_preference != -1.0
+                || t.listener_preference != -1.0
+            {
+                return Err(SaveError::InvalidValue);
+            }
+            if state
+                .topics
+                .insert(
+                    i,
+                    Topic {
+                        code: t.code,
+                        tag: t.tag,
+                        initiator_preference: -1.0,
+                        listener_preference: -1.0,
+                    },
+                )
+                .is_some()
+            {
+                return Err(SaveError::InvalidValue);
+            }
+            continue;
+        }
         if !(3..=23).contains(&t.code)
             || t.code == 6
             || t.tag.is_empty()
@@ -487,6 +522,80 @@ mod tests {
             interaction: 0,
         });
         assert!(restored.load_snapshot_v10(cyclic).is_err());
+    }
+
+    /// Fights (issue 248): a fight's topic is one of the three fight tags
+    /// with its code and both preferences at -1, and only a fight carries
+    /// one; a chat topic on a fight, or a fight topic on a chat, refuses
+    /// the load.
+    #[test]
+    fn a_fight_topic_loads_only_on_a_fight() {
+        let pack = terri_data::pack();
+        let fight = crate::fights::fight_index(pack).expect("the shipped pack has a fight");
+        let mut source = populated();
+        let initiator = *source
+            .world
+            .resource::<SocialEpisodes>()
+            .topics
+            .keys()
+            .next()
+            .unwrap();
+        source
+            .world
+            .get_mut::<Socialising>(initiator)
+            .unwrap()
+            .interaction = fight;
+        source.world.resource_mut::<SocialEpisodes>().topics.insert(
+            initiator,
+            Topic {
+                code: 26,
+                tag: "fight".into(),
+                initiator_preference: -1.0,
+                listener_preference: -1.0,
+            },
+        );
+        let saved = source.save_snapshot_v10();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored.load_snapshot_v10(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v10(), saved);
+        let row = saved
+            .social
+            .topics
+            .iter()
+            .position(|t| t.initiator == initiator.index_u32())
+            .unwrap();
+        let refuse = |case: &str, change: &dyn Fn(&mut terri_core::SaveSnapshotV10)| {
+            let mut invalid = saved.clone();
+            change(&mut invalid);
+            let mut live = Sim::new_from_shipped_lot();
+            let before = live.world_hash();
+            assert!(live.load_snapshot_v10(invalid).is_err(), "{case}");
+            assert_eq!(live.world_hash(), before, "{case}");
+        };
+        refuse("a chat topic on a fight", &|s| {
+            s.social.topics[row].code = 8;
+            s.social.topics[row].tag = "reading".into();
+            s.social.topics[row].initiator_preference = 0.5;
+        });
+        refuse("the wrong code for the tag", &|s| {
+            s.social.topics[row].code = 25;
+        });
+        refuse("a preference that is not -1", &|s| {
+            s.social.topics[row].listener_preference = 0.0;
+        });
+        refuse("a fight topic on a chat", &|s| {
+            s.legacy
+                .legacy
+                .world
+                .entities
+                .iter_mut()
+                .find(|r| r.index == initiator.index_u32())
+                .unwrap()
+                .socialising
+                .as_mut()
+                .unwrap()
+                .interaction = 0;
+        });
     }
 
     #[test]

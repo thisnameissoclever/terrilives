@@ -86,6 +86,9 @@ fn table_retirement_public_v6_preserves_every_unrelated_field_and_order_identity
         assert!(live.load_bytes(input), "authentic pre-retirement V6 loads");
         let actual = live.sim.save_snapshot_v6();
         expected.legacy.world.content_fingerprint = actual.legacy.world.content_fingerprint;
+        // The manifest names today's social vocabulary, which has grown
+        // since the fixture was written (Fight, issue 248).
+        expected.actions.social = actual.actions.social.clone();
         assert_eq!(
             actual, expected,
             "only documented table references may change"

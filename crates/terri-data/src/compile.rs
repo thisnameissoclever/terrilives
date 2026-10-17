@@ -3037,6 +3037,33 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = cooking_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::CookingTuningOutOfRange { key });
     }
+    let fight_rules = [
+        (
+            "fight_affinity_threshold",
+            tuning.fight_affinity_threshold.is_finite()
+                && (-1.0..=1.0).contains(&tuning.fight_affinity_threshold),
+        ),
+        (
+            "fight_chance_per_tick",
+            chance(tuning.fight_chance_per_tick),
+        ),
+        (
+            "fight_relationship_loss",
+            tuning.fight_relationship_loss.is_finite()
+                && (0.0..=2.0).contains(&tuning.fight_relationship_loss),
+        ),
+        (
+            "fight_mood_penalty",
+            tuning.fight_mood_penalty.is_finite() && tuning.fight_mood_penalty >= 0.0,
+        ),
+        (
+            "fight_mood_ticks",
+            (1..=10_080).contains(&tuning.fight_mood_ticks),
+        ),
+    ];
+    if let Some((key, _)) = fight_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::FightTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -3607,6 +3634,11 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             burn_chance_master: tuning.burn_chance_master,
             burnt_meal_mood_penalty: tuning.burnt_meal_mood_penalty,
             burnt_meal_mood_ticks: tuning.burnt_meal_mood_ticks,
+            fight_affinity_threshold: tuning.fight_affinity_threshold,
+            fight_chance_per_tick: tuning.fight_chance_per_tick,
+            fight_relationship_loss: tuning.fight_relationship_loss,
+            fight_mood_penalty: tuning.fight_mood_penalty,
+            fight_mood_ticks: tuning.fight_mood_ticks,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4788,6 +4820,11 @@ mod tests {
     /// appended after the communal chance (burnt meals, issue 243):** three
     /// floats and a varint tick count. The witnesses reconstruct the shipped
     /// 0.12, 0.002, 10.0 and 240, which the live fixture also carries.
+    ///
+    /// **The fight knobs moved it by eighteen more, appended after the
+    /// burnt-meal knobs (fights, issue 248):** four floats and a varint tick
+    /// count. The witnesses reconstruct the shipped -0.9, 0.01, 0.1, 12.0
+    /// and 480, which the live fixture also carries.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Classification None and an empty physical-seat vector append two zero bytes
@@ -5023,6 +5060,11 @@ mod tests {
             burn_chance_master: crate::Tuning::SHIPPED_BURN_CHANCE_MASTER,
             burnt_meal_mood_penalty: crate::Tuning::SHIPPED_BURNT_MEAL_MOOD_PENALTY,
             burnt_meal_mood_ticks: crate::Tuning::SHIPPED_BURNT_MEAL_MOOD_TICKS,
+            fight_affinity_threshold: crate::Tuning::SHIPPED_FIGHT_AFFINITY_THRESHOLD,
+            fight_chance_per_tick: crate::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK,
+            fight_relationship_loss: crate::Tuning::SHIPPED_FIGHT_RELATIONSHIP_LOSS,
+            fight_mood_penalty: crate::Tuning::SHIPPED_FIGHT_MOOD_PENALTY,
+            fight_mood_ticks: crate::Tuning::SHIPPED_FIGHT_MOOD_TICKS,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6597,6 +6639,11 @@ mod tests {
         assert_eq!(tuning.burn_chance_master, 0.002);
         assert_eq!(tuning.burnt_meal_mood_penalty, 10.0);
         assert_eq!(tuning.burnt_meal_mood_ticks, 240);
+        assert_eq!(tuning.fight_affinity_threshold, -0.9);
+        assert_eq!(tuning.fight_chance_per_tick, 0.01);
+        assert_eq!(tuning.fight_relationship_loss, 0.1);
+        assert_eq!(tuning.fight_mood_penalty, 12.0);
+        assert_eq!(tuning.fight_mood_ticks, 480);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -9073,6 +9120,46 @@ mod tests {
         .expect("the edges are legal");
         assert_eq!(compiled.tuning.burn_chance_master, 0.5);
         assert_eq!(compiled.tuning.burnt_meal_mood_ticks, 10_080);
+    }
+
+    /// Fights (issue 248): the threshold is a feeling, the chance a
+    /// probability, the loss a bounded feeling change, the penalty a
+    /// non-negative mood score and the moodlet lasts from one tick to a week.
+    #[test]
+    fn rejects_fight_tuning_outside_its_ranges() {
+        // (refused key, threshold, chance, loss, penalty, ticks)
+        for (expected, threshold, chance, loss, penalty, ticks) in [
+            ("fight_affinity_threshold", -1.5, 0.01, 0.1, 12.0, 480),
+            ("fight_affinity_threshold", f32::NAN, 0.01, 0.1, 12.0, 480),
+            ("fight_chance_per_tick", -0.9, 1.5, 0.1, 12.0, 480),
+            ("fight_relationship_loss", -0.9, 0.01, -0.1, 12.0, 480),
+            ("fight_relationship_loss", -0.9, 0.01, 2.5, 12.0, 480),
+            ("fight_mood_penalty", -0.9, 0.01, 0.1, -1.0, 480),
+            ("fight_mood_ticks", -0.9, 0.01, 0.1, 12.0, 0),
+            ("fight_mood_ticks", -0.9, 0.01, 0.1, 12.0, 10_081),
+        ] {
+            let compiled = compile_tuned(tuning_where(|t| {
+                t.fight_affinity_threshold = threshold;
+                t.fight_chance_per_tick = chance;
+                t.fight_relationship_loss = loss;
+                t.fight_mood_penalty = penalty;
+                t.fight_mood_ticks = ticks;
+            }));
+            match compiled {
+                Err(ContentError::FightTuningOutOfRange { key }) => assert_eq!(key, expected),
+                other => panic!("{expected}: {other:?}"),
+            }
+        }
+        let compiled = compile_tuned(tuning_where(|t| {
+            t.fight_affinity_threshold = 1.0;
+            t.fight_chance_per_tick = 1.0;
+            t.fight_relationship_loss = 2.0;
+            t.fight_mood_penalty = 0.0;
+            t.fight_mood_ticks = 10_080;
+        }))
+        .expect("the edges are legal");
+        assert_eq!(compiled.tuning.fight_relationship_loss, 2.0);
+        assert_eq!(compiled.tuning.fight_mood_ticks, 10_080);
     }
 
     /// Communal affinity (issue 257): the hated communal chance is a

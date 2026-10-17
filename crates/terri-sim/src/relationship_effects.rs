@@ -18,6 +18,8 @@ pub enum RelationshipCause {
     ChoreNeglected,
     /// Another person using something the affected person hates - [OA-use].
     Nuisance,
+    /// A finished fight, felt by both sides (fights, issue 248).
+    Fight,
 }
 
 #[derive(Debug, Clone, Copy)]

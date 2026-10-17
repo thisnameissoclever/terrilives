@@ -106,6 +106,13 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("burn_chance_master", toml::Value::Float(0.002)),
         ("burnt_meal_mood_penalty", toml::Value::Float(10.0)),
         ("burnt_meal_mood_ticks", toml::Value::Integer(240)),
+        // Fights (issue 248): the shipped values, reconstructed by the
+        // published-pack conversions too.
+        ("fight_affinity_threshold", toml::Value::Float(-0.9)),
+        ("fight_chance_per_tick", toml::Value::Float(0.01)),
+        ("fight_relationship_loss", toml::Value::Float(0.1)),
+        ("fight_mood_penalty", toml::Value::Float(12.0)),
+        ("fight_mood_ticks", toml::Value::Integer(480)),
     ] {
         tuning
             .as_table_mut()

@@ -1976,6 +1976,12 @@ pub fn select_action(
                 family,
             );
             for (index, advert) in content.0.social.iter().enumerate() {
+                // A fight is never chosen for what it gives, because it
+                // gives nothing (fights, issue 248); the fight trigger
+                // owns that decision.
+                if crate::fights::is_fight(advert) {
+                    continue;
+                }
                 let scale = relationship
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),

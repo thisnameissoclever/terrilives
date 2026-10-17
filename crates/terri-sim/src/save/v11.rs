@@ -21,7 +21,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV11 {
 
 /// The longest moodlet any tuning may set, so a saved end tick can be
 /// bounded without trusting the pack the save was written with.
-const LONGEST_MOODLET_TICKS: u64 = 10_080;
+pub(crate) const LONGEST_MOODLET_TICKS: u64 = 10_080;
 
 /// Rows must name living people, once each, in id order, with end ticks no
 /// further ahead than the longest moodlet allowed; anything else refuses
@@ -43,13 +43,13 @@ pub(crate) fn restore(
     }) {
         return Err(SaveError::InvalidValue);
     }
-    candidate
-        .world_mut()
-        .insert_resource(BurntMeals::from_entries(
+    candidate.world_mut().insert_resource(BurntMeals(
+        crate::moodlet_timers::MoodletTimers::from_entries(
             rows.into_iter()
                 .map(|row| (SimId(row.sim), row.until_tick))
                 .collect(),
-        ));
+        ),
+    ));
     Ok(candidate)
 }
 

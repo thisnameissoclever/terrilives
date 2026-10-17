@@ -440,9 +440,11 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
     let legacy = compile_objects(legacy).unwrap();
     let current = terri_data::pack();
     let published = terri_data::contextual_pre_books_pack();
+    // The fingerprint covers the shipped social vocabulary too; it moved
+    // when Fight joined Chat in content/social.toml (fights, issue 248).
     assert_eq!(
         terri_data::content_fingerprint(&legacy),
-        0xcf78_7472_e9e8_38f5
+        0x2687_0b74_cf00_e249
     );
     assert_ne!(
         terri_data::content_fingerprint(current),

@@ -130,3 +130,21 @@ slots = 2
 # does not stop at the need deltas.
 tags = ["socialising"]
 satisfaction = 2.0
+
+# FIGHTS - issue 248. The second row of the right-click menu over a
+# person, and index 1 of TalkTo. The `fighting` tag is what makes it a
+# fight: selection never scores a fight, delivery fills nothing, and
+# completion lowers both relationships and leaves a Had a fight moodlet
+# (tuning.toml, FIGHTS). A person starts one alone only over a missed
+# chore; see docs/specs/2026-10-16-fights.md. The talk presentation and
+# duration are the chat's: both face each other and the voice clips set
+# the length. It advertises nothing, so no need level can make it
+# attractive, and it pays no satisfaction.
+[[interaction]]
+id = "fight"
+label = "Fight"
+visual = { action = "talk", anchor = "partner", facing = "toward_anchor" }
+advertises = {}
+duration_ticks = 67
+slots = 2
+tags = ["fighting"]

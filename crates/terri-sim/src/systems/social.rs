@@ -70,6 +70,7 @@ pub fn tick_social(
         Option<&mut terri_core::Traits>,
     )>,
     mut skills: Query<&mut terri_core::Skills>,
+    mut fights: ResMut<crate::fights::Fights>,
 ) {
     let tuning = content.0.tuning;
 
@@ -168,6 +169,59 @@ pub fn tick_social(
 
         socialising.remaining_ticks = socialising.remaining_ticks.saturating_sub(1);
         if socialising.remaining_ticks > 0 {
+            continue;
+        }
+
+        // **A fight ends the other way round** (fights, issue 248): no
+        // hobby payout, no practice, no gain. Each side's feeling for the
+        // other falls by the tuned loss and each records a Had a fight
+        // moodlet; a second fight restarts the moodlet. The order pop and
+        // the release below are the chat's.
+        if crate::fights::is_fight(act) {
+            for (me, other) in [(initiator, partner), (partner, initiator)] {
+                let (Ok(&my_id), Some(other_id)) = (sim_ids.get(me), other_sim_id(&sim_ids, other))
+                else {
+                    continue;
+                };
+                let loss = -tuning.fight_relationship_loss;
+                let before = relationships.get(me).map_or(0.0, |r| r.feeling(other_id));
+                match relationships.get_mut(me) {
+                    Ok(mut mine) => mine.bump(other_id, loss),
+                    Err(_) => {
+                        let mut fresh = Relationships::default();
+                        fresh.bump(other_id, loss);
+                        commands.entity(me).try_insert(fresh);
+                    }
+                }
+                diagnostics.effects.push(RelationshipEffect {
+                    tick: clock.tick,
+                    event: 0,
+                    cause: RelationshipCause::Fight,
+                    responsible: other_id,
+                    affected: my_id,
+                    requested: loss,
+                    actual: (before + loss).clamp(-1.0, 1.0) - before,
+                    emergency: false,
+                    directed: false,
+                });
+                fights.record(my_id, clock.tick + u64::from(tuning.fight_mood_ticks));
+            }
+            if let Ok(mut queue) = queues.get_mut(initiator) {
+                queue.remove_first(terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
+                    object: partner,
+                    interaction: socialising.interaction,
+                });
+            }
+            let mut initiator_commands = commands.entity(initiator);
+            initiator_commands
+                .remove::<Socialising>()
+                .remove::<terri_core::ConversationVoice>();
+            if owns_target {
+                initiator_commands.remove::<Target>();
+            }
+            commands.entity(partner).try_remove::<Reserved>();
             continue;
         }
 

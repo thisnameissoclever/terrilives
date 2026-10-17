@@ -1375,16 +1375,17 @@ export function buildInstanceBatch(
   batch.annotations.start=slot;
   for (let i = 0; i < count; i++) {
     const preference = conversationPreferences?.[i] ?? 0;
-    const conversation = conversationBubble(activities[i], conversationTopics?.[i] ?? 0, preference);
+    const topic = conversationTopics?.[i] ?? 0;
+    const conversation = conversationBubble(activities[i], topic, preference);
     const sprite = kinds[i] === KIND_AGENT ? conversation ?? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const configured=dynamic?.actorAt(i);
     if(configured){const [x,y,z]=configured.head;
       writeInstance(scratch,slot++,screenX(x,y,originX,scale),indicatorAnchorY(sprite,screenY(x,y,originY,scale)-z*Math.sqrt(1166)*scale,scale),
         layeredDepth(x,y,gridSize,LAYER_FOREGROUND),sprite,
-        conversation===null?1:conversationTint(preference,0),
-        conversation===null?1:conversationTint(preference,1),
-        conversation===null?1:conversationTint(preference,2));batch.owners[slot-1]=i+1;continue;}
+        conversation===null?1:conversationTint(preference,0,topic),
+        conversation===null?1:conversationTint(preference,1,topic),
+        conversation===null?1:conversationTint(preference,2,topic));batch.owners[slot-1]=i+1;continue;}
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)+fixtureOffsets[positionRow*2];
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)+fixtureOffsets[positionRow*2+1];
@@ -1432,9 +1433,9 @@ export function buildInstanceBatch(
         : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(bx, by, gridSize, LAYER_FOREGROUND),
       sprite,
-      conversation === null ? 1 : conversationTint(preference, 0),
-      conversation === null ? 1 : conversationTint(preference, 1),
-      conversation === null ? 1 : conversationTint(preference, 2),
+      conversation === null ? 1 : conversationTint(preference, 0, topic),
+      conversation === null ? 1 : conversationTint(preference, 1, topic),
+      conversation === null ? 1 : conversationTint(preference, 2, topic),
     );
     batch.owners[slot-1]=i+1;
   }
