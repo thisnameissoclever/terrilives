@@ -1159,3 +1159,99 @@ fn review_existing_unassigned_duty_stays_unassigned_when_another_room_splits() {
         "only the new duty draws an owner"
     );
 }
+
+fn new_outside_duty_with_saved_week(saved_week: Option<u64>) {
+    let mut sim = Sim::new_from_shipped_lot();
+    ensure(sim.world_mut());
+    let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
+    board::reconcile(sim.world(), &mut state);
+    state.week = saved_week;
+    if saved_week.is_none() {
+        state.assignments.clear();
+        state.episodes.clear();
+        state.dish_contributions.clear();
+    }
+    sim.world_mut().insert_resource(state);
+    let day_ticks = sim.world().resource::<crate::Content>().0.tuning.day_ticks;
+    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day_ticks) * 7;
+    let saved = sim.save_snapshot_v15();
+    let mut admitted = Sim::new_from_shipped_lot();
+    admitted
+        .load_snapshot_v15(saved.clone())
+        .expect("the initial saved week is valid");
+    assert_eq!(admitted.save_snapshot_v15(), saved);
+    let original = admitted.world().resource::<SavedChores>().clone();
+    let outside = ChoreKey {
+        kind: ChoreKind::Floors,
+        target: 0,
+    };
+    assert!(!keys(admitted.world()).contains(&outside));
+    let before = RoomChangeContext::capture(admitted.world()).unwrap();
+    admitted
+        .world_mut()
+        .resource_mut::<terri_core::layout::SavedFloors>()
+        .set(17, 13, 4);
+    let resolved = resolve(&admitted, &before, false);
+    reconcile_committed_rooms(&mut admitted, &before, &resolved).unwrap();
+    let current = admitted.save_snapshot_v15();
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded
+        .load_snapshot_v15(current.clone())
+        .expect("new duty must keep a coherent saved assignment week");
+    assert_eq!(loaded.save_snapshot_v15(), current);
+    let after = admitted.world().resource::<SavedChores>();
+    assert_eq!(after.week, Some(saved_week.unwrap_or(1)));
+    assert!(after
+        .assignments
+        .iter()
+        .all(|row| Some(row.week) == after.week));
+    assert_eq!(
+        after
+            .assignments
+            .iter()
+            .filter(|row| row.key != outside)
+            .cloned()
+            .collect::<Vec<_>>(),
+        original.assignments
+    );
+    assert_eq!(
+        &after.episodes[..original.episodes.len()],
+        original.episodes.as_slice()
+    );
+    assert_eq!(
+        after
+            .assignments
+            .iter()
+            .filter(|row| row.key == outside)
+            .count(),
+        1
+    );
+    let mut expected_rng = original.rng.unwrap();
+    expected_rng.next_f32();
+    assert_eq!(after.rng, Some(expected_rng));
+}
+
+#[test]
+fn review_new_duty_initializes_an_absent_saved_week_only_when_assigned() {
+    new_outside_duty_with_saved_week(None);
+    let mut empty = Sim::new_with_lot(3, 3);
+    ensure(empty.world_mut());
+    empty
+        .world_mut()
+        .init_resource::<terri_core::layout::SavedFloors>();
+    let before = RoomChangeContext::capture(empty.world()).unwrap();
+    empty
+        .world_mut()
+        .resource_mut::<terri_core::layout::SavedFloors>()
+        .set(1, 1, 4);
+    let resolved = resolve(&empty, &before, false);
+    reconcile_committed_rooms(&mut empty, &before, &resolved).unwrap();
+    let state = empty.world().resource::<SavedChores>();
+    assert!(state.assignments.is_empty());
+    assert_eq!(state.week, None);
+}
+
+#[test]
+fn review_new_duty_preserves_a_stale_saved_week_and_existing_decisions() {
+    new_outside_duty_with_saved_week(Some(0));
+}

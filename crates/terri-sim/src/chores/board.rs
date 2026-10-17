@@ -199,13 +199,17 @@ pub(super) fn assign_new_duties(world: &World, state: &mut SavedChores, new: &[C
         })
         .map(|key| (*key, cost(world, *key)))
         .collect();
+    let assignment_week = state.week.unwrap_or(day / 7);
     state.assignments = policy::assign_with_existing(
         &weighted,
         &profiles,
-        day / 7,
+        assignment_week,
         state.rng.as_mut().expect("chore stream is initialized"),
         &state.assignments,
     );
+    if !state.assignments.is_empty() {
+        state.week = Some(assignment_week);
+    }
     let added = state
         .assignments
         .iter()

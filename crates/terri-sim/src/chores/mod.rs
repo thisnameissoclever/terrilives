@@ -468,7 +468,8 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
         ChoreKind::Bins => u32::from(value(&state.bins, key.target)),
         ChoreKind::Floors => {
             let grid = world.resource::<terri_core::TileGrid>();
-            let rooms = crate::room_regions::RoomRegions::cleanable(world);
+            let legacy = (!crate::rooms::stable(world))
+                .then(|| crate::room_regions::RoomRegions::legacy(world));
             state
                 .floors
                 .iter()
@@ -477,7 +478,11 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
                         (*cell as usize % grid.width()) as i32,
                         (*cell as usize / grid.width()) as i32,
                     );
-                    grid.is_walkable(xy.0, xy.1) && rooms.at(xy) == Some(key.target)
+                    let room = legacy.as_ref().map_or_else(
+                        || crate::rooms::cleaning_area_at(world, xy).map(|area| area.key()),
+                        |rooms| rooms.at(xy),
+                    );
+                    grid.is_walkable(xy.0, xy.1) && room == Some(key.target)
                 })
                 .map(|r| u32::from(r.1))
                 .max()
