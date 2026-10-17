@@ -264,6 +264,15 @@ export class BuyTool {
     this.clear();
   }
 
+  /**
+   * The art a card shows: the base-facing sprites, from the query the ghost
+   * uses at a tile that always has them ([store catalogue], rule 2).
+   */
+  art(item: CatalogueItem): { sprite: number; foreground: number | null } {
+    const preview = this.source.purchasePreview(item.definition, 0, 0, item.baseFacing);
+    return { sprite: preview.sprite, foreground: preview.foreground };
+  }
+
   /** The colourway the ghost is drawn in, while this is the tool in use. */
   ghostColourway(): number {
     return this.active ? this.colourway : 0;
