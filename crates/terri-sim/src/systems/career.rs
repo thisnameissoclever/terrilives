@@ -313,12 +313,16 @@ pub fn commute_and_work(
         else {
             continue;
         };
-        if matches!(commuting, Some(Commuting::Inbound)) && !has_path {
+        if matches!(commuting, Some(Commuting::Inbound)) {
+            // Walking home, with or without a job: a person dismissed on
+            // the return keeps the marker for the walk like anyone else.
+            if has_path {
+                continue;
+            }
             // Home on the landing. The walk was a normal one and the shift
             // was paid when it began, so the marker comes off, and a review
             // that fell due during the walk is applied now (the careers
-            // spec, rule 6). This needs no job: a person dismissed on the
-            // return arrives home all the same.
+            // spec, rule 6).
             commands.entity(worker).remove::<Commuting>();
             commands.queue(move |world: &mut World| {
                 crate::careers::settle_due_review(world, worker);
@@ -326,11 +330,11 @@ pub fn commute_and_work(
             continue;
         }
         let Some(career) = career.map(|career| &content.0.careers[career.0 as usize]) else {
-            // Unemployed and not walking home: nothing to count down.
-            commands
-                .entity(worker)
-                .remove::<AtWork>()
-                .remove::<Commuting>();
+            // Unemployed with a work marker: nothing to count down or clock
+            // in to. The game never makes this state (a dismissal lands on
+            // the return, and the commands refuse anyone away), and tests
+            // park people this way to keep them out of a scene, so the
+            // marker is left alone as it always was.
             continue;
         };
 

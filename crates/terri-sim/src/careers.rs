@@ -582,7 +582,8 @@ fn raised_pay(job: &CompiledCareer, pay: u32) -> u32 {
 /// Rule 6, rule 7, rule 8, rule 9 and rule 14 for the week that ended at
 /// `tick`: every employed person who completed a shift in it is reviewed,
 /// in id order. A person at work or commuting when the week ends is
-/// reviewed on their return instead (`complete_shift`), so no outcome
+/// reviewed when they come home instead (`complete_shift` at the shift's
+/// end, or `settle_due_review` at the end of the walk), so no outcome
 /// changes a job while its shift is being worked.
 fn review(world: &mut World, ended_week: u64, tick: u64) {
     let pack = world.resource::<Content>().0;
@@ -971,10 +972,12 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
                 .any(|pair| pair[0].week >= pair[1].week)
             || record.consecutive_poor > 100_000
             || record.consecutive_good > 100_000
-            // A review waits only for a person away from home, for a week
-            // after the last one reviewed and before the one running.
+            // A review waits only for a person away from home, with the
+            // week's scores to review, for a week after the last one
+            // reviewed and before the one running.
             || record.review_due.is_some_and(|due| {
                 due >= week
+                    || record.shifts.is_empty()
                     || record.history.last().is_some_and(|last| last.week >= due)
                     || (world.get::<AtWork>(entity).is_none()
                         && world.get::<Commuting>(entity).is_none())
@@ -2027,23 +2030,54 @@ mod tests {
                 }),
             ),
             (
-                "a review due for a week still running",
-                Box::new(|s| s.careers.records[0].review_due = Some(9)),
-            ),
-            (
                 "a review due for a person at home",
-                Box::new(|s| s.careers.records[0].review_due = Some(1)),
-            ),
-            (
-                "a review due for a week already reviewed",
                 Box::new(|s| {
-                    s.careers.records[0].review_due = Some(0);
+                    s.careers.records[0].review_due = Some(1);
                     s.careers.records[0].shifts.push(50.0);
                 }),
             ),
         ];
         for (case, change) in cases {
             let mut invalid = clean.clone();
+            change(&mut invalid);
+            let mut live = Sim::new_from_shipped_lot();
+            let before = live.world_hash();
+            assert!(
+                live.load_snapshot_v14(invalid).is_err(),
+                "{case} must refuse"
+            );
+            assert_eq!(live.world_hash(), before, "{case} changes nothing");
+        }
+
+        // The week rules, checked on a person at work so that the at-home
+        // rule cannot refuse for them; the same person with a due week
+        // between the last reviewed and the running one loads.
+        let (_, entity) = worker(&mut sim);
+        sim.world_mut().entity_mut(entity).insert(AtWork {
+            remaining_ticks: 50,
+        });
+        let mut away = sim.save_snapshot_v14();
+        away.careers.records[0].shifts.push(50.0);
+        away.careers.records[0].review_due = Some(1);
+        let mut live = Sim::new_from_shipped_lot();
+        live.load_snapshot_v14(away.clone())
+            .expect("a review due while at work loads");
+        let away_cases: Vec<(&str, Change)> = vec![
+            (
+                "a review due for a week still running",
+                Box::new(|s| s.careers.records[0].review_due = Some(2)),
+            ),
+            (
+                "a review due for a week already reviewed",
+                Box::new(|s| s.careers.records[0].review_due = Some(0)),
+            ),
+            (
+                "a review due with nothing scored",
+                Box::new(|s| s.careers.records[0].shifts.clear()),
+            ),
+        ];
+        for (case, change) in away_cases {
+            let mut invalid = away.clone();
             change(&mut invalid);
             let mut live = Sim::new_from_shipped_lot();
             let before = live.world_hash();
@@ -2281,6 +2315,17 @@ mod tests {
             .insert(AtWork { remaining_ticks: 2 });
         sim.tick();
         assert_eq!(record_of(&sim, id).review_due, Some(0), "the review waits");
+        sim.tick();
+        sim.tick();
+        assert!(
+            sim.world().get::<Career>(entity).is_none(),
+            "dismissed on the return"
+        );
+        assert!(
+            sim.world().get::<Commuting>(entity).is_some()
+                && sim.world().get::<terri_core::Path>(entity).is_some(),
+            "still walking home with the marker on"
+        );
         for _ in 0..80 {
             sim.tick();
         }
