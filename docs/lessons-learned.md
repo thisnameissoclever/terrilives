@@ -3630,6 +3630,17 @@ lot, agrees with itself, and passes. Measured. The fix was to ask the
 question of `from_lot()`'s real lot instead. **A control that rebuilds its
 world from the values it is testing is not a control.**
 
+**Correction, 2026-10-17:** the safety argument above stopped holding when
+varied autonomy (#143, commit `413412814`) moved live selection from
+`sample_softmax` to `autonomy::grouped_probabilities`. That function always
+weighs a wander candidate beside any object candidates and computes
+`f64::exp` in `autonomy::probabilities`, so `exp` results are in
+`build_scenario`'s causal chain even with one fridge, and `sample_softmax`
+has no production caller. The vector still agrees across native and wasm32
+by measurement, but it would catch a last-bit `exp` difference only if a
+draw landed near a bucket boundary. [L-confirm-live-callers-before-citing-comments]
+records how this claim outlived the code it described.
+
 ---
 
 ## [L37] A WebGPU canvas read outside a rAF callback is black, and the screenshot is what proves it
