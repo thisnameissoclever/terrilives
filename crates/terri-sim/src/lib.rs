@@ -3498,7 +3498,7 @@ impl Sim {
             .find(|entity| entity.index_u32() == index)
     }
 
-    /// The Career section's numbers for the person carrying `index`
+    /// The Career tab's numbers for the person carrying `index`
     /// (`careers::report`), or `None` without a job.
     pub fn career_report(&self, index: u32) -> Option<Vec<f32>> {
         careers::report(&self.world, self.person_at(index)?)

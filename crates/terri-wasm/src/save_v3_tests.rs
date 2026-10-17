@@ -2117,7 +2117,12 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     assert_eq!(source.career_level_titles(1)[0], "Lowly barista");
     assert!(source.career_level_titles(9).is_empty());
     let report = source.career_report(worker);
-    assert_eq!(report.len(), 15);
+    assert_eq!(report.len(), 17);
+    assert_eq!(
+        (report[15], report[16]),
+        (40.0, 65.0),
+        "the shipped thresholds"
+    );
     assert_eq!((report[0], report[1], report[2]), (0.0, 0.0, 4.0));
     assert_eq!(report[3], report[4], "starting pay");
     assert_eq!(source.career_factors(worker).len(), 6);

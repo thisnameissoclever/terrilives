@@ -3,6 +3,8 @@ import { buildGrimeInstances } from './render/grime-decals.js';
 import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
+import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
+import { CareerPanel, createCareerPanelSurface } from './ui/career-panel.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
 import { countAlongside } from './load-progress.js';
 // The simulation runs in WASM at a fixed 10 Hz. The bridge exposes its state
@@ -711,6 +713,28 @@ async function main(): Promise<void> {
   skillsBlock.addEventListener('toggle', () => {
     if (skillsBlock.open) skillsPanel.update(performance.now(), true);
   });
+  // The Career tab (rule 18 of docs/specs/2026-10-17-careers.md) and the
+  // Overview row's trend and information control. Hidden, it does no
+  // periodic reads; the forced updates below read whether or not it shows.
+  const careerSection = document.querySelector<HTMLElement>('#sim-career');
+  const careerEmpty = document.querySelector<HTMLElement>('#career-empty');
+  const careerContent = document.querySelector<HTMLElement>('#career-content');
+  const careerRowTitle = document.querySelector<HTMLElement>('#career-value');
+  const careerRowInfo = document.querySelector<HTMLButtonElement>('#career-info');
+  const careerRowGraph = document.querySelector<HTMLElement>('#career-row-graph');
+  if (!careerSection || !careerEmpty || !careerContent || !careerRowTitle || !careerRowInfo || !careerRowGraph) {
+    throw new Error('missing career markup');
+  }
+  const careerSurface = createCareerPanelSurface(document, {
+    section: careerSection, empty: careerEmpty, content: careerContent,
+    rowTitle: careerRowTitle, rowInfo: careerRowInfo, rowGraph: careerRowGraph,
+  }, {
+    choose: path => careerPanel.choose(path),
+    assign: () => careerPanel.assign(),
+    quit: () => careerPanel.quit(),
+  });
+  const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
+    () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
   // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
   // no periodic reads; opening it reads at once, and the forced updates at
   // start, after Load and after an edit read whether or not it is open.
@@ -821,6 +845,15 @@ async function main(): Promise<void> {
   const deathControls = new DeathControls(sim, deathInput);
   deathControls.update();
   deathInput.addEventListener('change', () => { if (!buildSession.active) deathControls.change(); });
+  // Rule 15 of the careers spec: two settings the drain applies as one command.
+  const careerChangeInput = document.querySelector<HTMLInputElement>('#career-autonomous-change');
+  const careerSearchInput = document.querySelector<HTMLInputElement>('#career-autonomous-search');
+  if (!careerChangeInput || !careerSearchInput) throw new Error('missing career settings');
+  const careerAutonomy = new CareerAutonomyControls(sim, careerChangeInput, careerSearchInput);
+  careerAutonomy.update();
+  for (const input of [careerChangeInput, careerSearchInput]) {
+    input.addEventListener('change', () => { if (!buildSession.active) careerAutonomy.change(); });
+  }
 
   attachOptionsMenu(
     document as unknown as OptionsDocument,
@@ -882,6 +915,7 @@ async function main(): Promise<void> {
   personalDetailsPanel.update(initialHudMs, true);
   skillsPanel.update(initialHudMs, true);
   affinitiesPanel.update(initialHudMs, true);
+  careerPanel.update(initialHudMs, true);
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
@@ -1114,6 +1148,7 @@ async function main(): Promise<void> {
           housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
           characterWorld.reset();characterWorld.prepareFixtures(sim);
           bedAssignmentPanel.resetAfterLoad();
+          careerPanel.resetAfterLoad();
           syncNewHousemateButton();
           syncEditHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
@@ -1132,6 +1167,7 @@ async function main(): Promise<void> {
           skillsPanel.update(nowMs, true);
           affinitiesPanel.update(nowMs, true);
           bedAssignmentPanel.update(nowMs, true);
+          careerPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -1170,6 +1206,7 @@ async function main(): Promise<void> {
       personalDetailsPanel.update(nowMs, true);
       skillsPanel.update(nowMs, true);
       affinitiesPanel.update(nowMs, true);
+      careerPanel.update(nowMs, true);
     },new CharacterContactOwner(characterContacts,contactRoster));
     housemateView?.destroy();
     housemateView = new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,
@@ -1748,12 +1785,13 @@ async function main(): Promise<void> {
     document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
     document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
     deathInput!.disabled = buildSession.active;
+    careerAutonomy.setDisabled(buildSession.active);
   }
   function settleBuildControllers(): boolean {
     wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
     floorTool.afterCommands(); buyTool.afterCommands(); landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
-    housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); bookResults.drain();
+    housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
     return !builder.pending && wallTool.pending === null && windowTool.pending === null
       && !roomTool.pending && !buyTool.pending && floorTool.pending === null && !landTool.pending
@@ -2189,6 +2227,7 @@ async function main(): Promise<void> {
     housemateView?.afterCommands();
     syncCharacterContacts();
     bedAssignmentPanel.afterCommands();
+    careerPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
     if (builder.afterCommands()) {
       refreshBuildArchitecture();
@@ -2259,6 +2298,7 @@ async function main(): Promise<void> {
     actionQueue.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
+    careerAutonomy.update();
     syncNewHousemateButton();
     syncEditHousemateButton();
     peoplePanel.update(nowMs);
@@ -2268,6 +2308,7 @@ async function main(): Promise<void> {
     skillsPanel.update(nowMs);
     affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
+    careerPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
       lastBookRefreshMs = nowMs; bookCommerce.render(builder.active ? builder.selected : null, overlayPause.suspendedExcept('builder'));
