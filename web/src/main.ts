@@ -107,6 +107,7 @@ import { ActionQueue } from './ui/action-queue.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
+import { showGameVersion } from './ui/game-version.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -837,6 +838,11 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  // The version line at the top of the panel; its markup is empty so the
+  // number comes only from web/package.json (issue 276).
+  const gameVersion = document.getElementById('game-version');
+  if (!gameVersion) throw new Error('missing the game version line');
+  showGameVersion(gameVersion);
   optionsToggle.addEventListener('click', () => compactHud.close());
   const optionsClose = document.getElementById('options-close');
   if (!optionsClose) throw new Error('missing Options close button');
