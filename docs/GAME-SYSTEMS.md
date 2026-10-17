@@ -516,7 +516,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons built on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet, and its lengths, looks and scope are autonomous decisions waiting for the owner to confirm; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
@@ -697,7 +697,7 @@ infrastructure. FEATURES.md owns the same current priority.
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.
 4. **[S-calendar] and [F-notifications].** Weekdays and working days shipped on
-   2026-10-06, and seasons were built on 2026-10-17. Dates, pay days and a
+   2026-10-06, and seasons shipped on 2026-10-17. Dates, pay days and a
    history with channels and mutes remain.
    Buying, selling and their Funds changes are already done.
 5. **[S-acclimation] part two.** Part one, negative mood from overdoing

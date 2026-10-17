@@ -447,7 +447,7 @@ Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an acti
 
 The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours; see `specs/2026-10-06-calendar.md`.
 
-The seasons slice of [S-calendar] (issue 251) was built on 2026-10-17: the year is Spring, Summer, Autumn and Winter, seven days each, a new game starts in Spring, the clock names the season before the time, and the yard's grass takes a tint in each season. The season has no gameplay effect yet, and its lengths, looks and scope wait for the owner to confirm them. Dates, pay days and scheduled events remain open; see `specs/2026-10-17-seasons.md`.
+The seasons slice of [S-calendar] (issue 251) shipped on 2026-10-17: the year is Spring, Summer, Autumn and Winter, seven days each, a new game starts in Spring, the clock names the season before the time, and the yard's grass takes a tint in each season. The season has no gameplay effect yet. Dates, pay days and scheduled events remain open; see `specs/2026-10-17-seasons.md`.
 
 The first object-affinities slice [B-object-affinities] shipped on 2026-10-06: every person has a value for plants, the aquarium, the television and the radio, shown as Loves to Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood, and somebody else using a television or radio a person dislikes in the same room lowers their mood and their feeling toward that person. Colour preferences, editing the values, the general nuisance field and pets remain open; see `specs/2026-10-06-object-affinities.md`.
 
@@ -1387,7 +1387,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
 | **Native desktop build** | Shell swap, deferred by choice, not blocked |
-| **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle and the yard's seasonal tint are built ([S-calendar]); seasons with gameplay effects are not. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
+| **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle and the yard's seasonal tint have shipped ([S-calendar]); seasons with gameplay effects have not. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
 ## Design tone

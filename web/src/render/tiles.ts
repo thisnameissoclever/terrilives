@@ -3,12 +3,14 @@
  *
  * These are the only things on screen that are not entities. They change
  * only when the lot does: a Load, or a lot edit such as a wall or a moved,
- * turned or bought light. So this runs only through `main.ts`'s
- * camera-dirty gate: at startup, after Load, after a lot edit, when the
- * window or camera changes, when flat lighting changes the static tint,
- * and when the season turns and the yard's grass changes color. Its
- * output is uploaded to the front of the instance buffer and left there
- * between changes.
+ * turned or bought light. So `main.ts` runs this only inside `applyCamera`,
+ * which three places call: the camera-dirty gate in the frame loop (at
+ * startup, after Load, after a lot edit, when the window or camera changes,
+ * when flat lighting changes the static tint, and when the season turns and
+ * the yard's grass changes color), the build actions surface when it pans
+ * the camera to keep the selection in view, and the publish of newly loaded
+ * floor materials. Its output is uploaded to the front of the instance
+ * buffer and left there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
