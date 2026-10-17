@@ -29,3 +29,7 @@ crates/terri-sim/src/systems/interact.rs:251:27: replace > with >= in tick_inter
 crates/terri-sim/src/systems/satisfaction.rs:59:19: replace > with >= in bleed_neglect
 crates/terri-sim/src/systems/social.rs:157:27: replace > with >= in tick_social
 crates/terri-sim/src/relationship_dynamics.rs:102:61: replace < with <= in hated_communal_gain
+crates/terri-sim/src/moodlet_timers.rs:32:48: replace < with <= in MoodletTimers::record
+crates/terri-sim/src/save/v11.rs:35:19: replace > with == in restore
+crates/terri-sim/src/save/v11.rs:35:19: replace > with >= in restore
+crates/terri-sim/src/systems/chain.rs:562:38: replace < with <= in tick_chain_steps
