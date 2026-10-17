@@ -1,7 +1,7 @@
 import { displayValue, hex, rgb, type CharacterField, type FieldValue } from '../../character/fields.js';
 import { floatBits, type Rgb } from '../../character/schema.js';
 import type { CharacterDraft } from '../../character/draft.js';
-import { reviewValue } from '../../character/presentation.js';
+import { readableNumber, reviewValue } from '../../character/presentation.js';
 
 export const traitLimitDescriptionId='creator-trait-limit';
 
@@ -27,13 +27,14 @@ export function fieldControl(document:Document, field:CharacterField, draft:Char
     limits.textContent=`${min} to ${max}${field.unit==='hours'?' hours':field.unit??''}`;label.append(limits);
     for(const input of [range,number])input.setAttribute('aria-describedby',describedBy+' '+limits.id);
     number.disabled=!applicable;
-    const formatted=(value:FieldValue)=>{const n=Number(displayValue(field,value)),rounded=Math.round(n/step)*step;return String(Math.abs(n-rounded)<Math.max(1,Math.abs(n))*1e-6?Number(rounded.toFixed(8)):Number(n.toFixed(4)));};
+    const formatted=(value:FieldValue)=>{const n=Number(displayValue(field,value)),rounded=Math.round(n/step)*step;return Math.abs(n-rounded)<Math.max(1,Math.abs(n))*1e-6?String(Number(rounded.toFixed(8))):readableNumber(n);};
     for(const input of [range,number]){input.min=String(min);input.max=String(max);input.step=String(step);input.value=formatted(value);}
-    number.title=String(displayValue(field,value));
+    const tooltip=(value:FieldValue)=>{const shown=displayValue(field,value);number.title=typeof shown==='number'?readableNumber(shown):String(shown);};
+    tooltip(value);
     const update=(input:HTMLInputElement)=>{
       const raw=input.valueAsNumber/scale;
       commit(field.kind==='float'?floatBits(raw):raw);
-      const current=formatted(field.get(draft.value));range.value=number.value=current;
+      const stored=field.get(draft.value),current=formatted(stored);range.value=number.value=current;tooltip(stored);
     };
     range.addEventListener('input',()=>{try{update(range);}catch(error){fail(error);}});
     number.addEventListener('change',()=>{try{update(number);}catch(error){fail(error);}});

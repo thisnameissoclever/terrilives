@@ -7144,6 +7144,11 @@ state, assert the closed state explicitly, because that is the one an author
 `dialog.open` went false. Reload afterwards and require it stays closed.
 Reopen it and require it returns at the first instruction. Moving the layout
 `display` back onto the unconditional rule must fail the closed-state check.
+`scripts/help-dialog-proof.cjs` performs exactly this sequence against a
+running server, in a mobile context, and its `--expect-regression` mode
+injects that unconditional rule and requires the closed-state check to fail,
+so the detector proves it can still see the bug. It does not emulate
+`env(safe-area-inset-*)`, and says so in its report.
 
 **Related.** A stale module in an already-open browser tab reported a
 constructor arity error from a file that had since been corrected, which sent
