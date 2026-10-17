@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends and working days |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days and seasons |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -516,7 +516,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; dates, seasons and scheduled events open.** The clock shows the day number, the weekday and the time, and a new game starts on a Monday. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. There are no dates, months or seasons. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
@@ -697,7 +697,8 @@ infrastructure. FEATURES.md owns the same current priority.
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.
 4. **[S-calendar] and [F-notifications].** Weekdays and working days shipped on
-   2026-10-06. Dates, pay days and a history with channels and mutes remain.
+   2026-10-06, and seasons shipped on 2026-10-17. Dates, pay days and a
+   history with channels and mutes remain.
    Buying, selling and their Funds changes are already done.
 5. **[S-acclimation] part two.** Part one, negative mood from overdoing
    activities and feeling sick from overeating, shipped on 2026-10-06. A fading

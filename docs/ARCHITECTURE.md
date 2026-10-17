@@ -15,7 +15,7 @@ from other docs and from discussion. Do not renumber them.
 | Presentation | 2.5D, fixed isometric camera |
 | Simulation core | Rust, compiled to `wasm32` and native from one source |
 | Shell (first) | TypeScript + WebGPU renderer, DOM-based UI |
-| Shell (later) | Native desktop, as a shell swap rather than a rewrite |
+| Shell (later) | Native desktop, as a shell swap rather than a rewrite; options and multithreading paths in [the desktop app research](plans/2026-10-17-desktop-app.md) |
 | Scale target | "Town" tier: ~1k-5k sims, ~100k objects |
 | Multiplayer v1 | Layer 1 only (asynchronous, no time coupling) |
 | Multiplayer later | Layer 2 (synchronous sessions), designed for but not built |
@@ -906,7 +906,13 @@ Activity bubbles occupy a separate annotation pass after physical and translucen
 
 Short walls and grime use separate translucent draws after opaque geometry. They test existing scene depth without claiming an entire opaque pixel. Render passes restore their pipeline, bind group, and vertex streams after dynamic draws. Wall adjacency and build-mode behavior remain defined in `docs/specs/2026-09-30-cutaway-walls.md`.
 
-The selected person's ellipse uses an explicit packed command distinct from placement tile rings. It draws smooth translucent color at scene resolution on the floor-decal plane. Posed foot height never raises it above the floor, and it cannot replace physical depth or object identity. Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Both effects finish before activity annotations and color reduction.
+Floor markers use an explicit packed command outside every architecture mode: the selected person's ellipse and the single ellipse under an object being placed in Build mode. Each marker row carries its world semi-axes and color.
+
+One instanced draw inside the scene pass, after opaque geometry, people and grime and before short walls, renders every marker as smooth translucent color at scene resolution on the floor-decal plane, with a border of constant screen width. Short walls write no depth, so drawing them afterwards is what lets them cover a marker behind them.
+
+Posed foot height never raises the person's marker above the floor, and no marker can replace physical depth or object identity. A placement marker passes just outside the corners of the object's footprint, so it tilts with a footprint that is longer on one side ([PM-marker] in `docs/specs/2026-10-17-placement-marker.md`). The tile highlight that the Walls, Room, Floors, Land and Window tools show for a line or an area remains one ring sprite per tile.
+
+Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Floor markers and steam both finish before activity annotations and color reduction.
 
 The art direction remains Muted Line: reviewed offline Blender artwork, historical procedural sprites, and configured cartoon character meshes. Registered color and depth share source samples; ordinary image interpolation uses premultiplied linear values. Existing colorway and lighting meanings are preserved. Dated evidence distinguishes source preservation, actual visual comparisons, graphics measurements, and owner acceptance.
 
@@ -934,8 +940,9 @@ step, passing doorways and stopping at walls, and is rebuilt with the lamp
 field. Each instance carries its tile's shade (one minus its exposure) in the
 spare fourth float of its colourway attribute, instance slot 15; static rows
 bake it with the camera block, and people, furniture, doors and the placement
-preview sample it per frame. Markers (the selection and footprint rings, the
-tile highlight and activity bubbles) stay unshaded. The sprite
+preview sample it per frame. Markers (the floor markers under a selected
+person and an object being placed, the tile highlight and activity bubbles)
+stay unshaded. The sprite
 uniform grows by one vec4, `sky`, whose first float is
 `interior_daylight_shade` times the sun's strength, or 0 in flat light. The
 shader multiplies the ambient by one minus that times the instance's shade
@@ -1138,7 +1145,8 @@ The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
 size from the lot's north-west corner, and every other tile is yard: walkable
 floor to the simulation, drawn by the shell as the floor under the lot's
-`yard_look` colour shift. Neither is saved. The house's east and south walls are
+`yard_look` colour shift with the current season's color change on top
+([SEA-yard] in `docs/specs/2026-10-17-seasons.md`). Neither is saved. The house's east and south walls are
 ordinary wall edges, and the front door stands on the east one, its line a
 doorway that `portals::front_door_lines` names from the content, never from the
 presentation-only portal rows: the front door swings for a sim walking through

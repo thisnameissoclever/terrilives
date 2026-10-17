@@ -385,6 +385,30 @@ describe('SimBridge', () => {
     expect(bridge.yardLook().map((value) => Math.round(value * 100) / 100)).toEqual([65, 2, -0.22]);
   });
 
+  // [SEA-year] and [SEA-yard] in docs/specs/2026-10-17-seasons.md: a new game
+  // starts in Spring, the season turns after seven days, and the yard's four
+  // seasonal looks cross the boundary as twelve numbers, Spring first.
+  it('reports the season and the yard look of each season', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.seasonIndex()).toBe(0);
+    const looks = bridge.seasonYardLooks();
+    expect(looks).toBeInstanceOf(Float32Array);
+    expect(Array.from(looks, (value) => Math.round(value * 100) / 100)).toEqual([
+      0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14,
+    ]);
+    // An empty room runs the same clock and content quickly: the last minute
+    // of day 7 is still Spring, and the next tick begins Summer.
+    const room = new SimHandle(5, 4);
+    const empty = new SimBridge(room, wasmMemory);
+    const week = empty.dayTicks() * 7;
+    for (let tick = 0; tick < week - 1; tick++) room.tick();
+    expect(empty.clockTick()).toBe(week - 1);
+    expect(empty.seasonIndex()).toBe(0);
+    room.tick();
+    expect(empty.seasonIndex()).toBe(1);
+  });
+
   // [OS-street]: the street's column and look, and no street without a yard.
   it("reports the street's column and look", () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);

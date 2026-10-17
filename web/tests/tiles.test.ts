@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
+  seasonalYardLook,
   setCutAwayWalls,
+  setSeason,
 } from '../src/render/tiles.js';
 import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
@@ -839,6 +842,99 @@ describe('the street', () => {
     const street = [0, -0.85, -0.22];
     // Row by row: (0, 0) house, (1, 0) yard, (2, 0) street, then the yard row.
     expect(shifts(built)).toEqual([drawn, yard, street, yard, yard, street]);
+  });
+});
+
+// [SEA-yard] in docs/specs/2026-10-17-seasons.md: the yard's grass takes
+// the current season's color change on top of the lot's yard look; the
+// house, the street and any covering laid on the yard do not.
+describe('the yard through the seasons', () => {
+  const shifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const out: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      out.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return out;
+  };
+  // The shipped rows, Spring first.
+  const SEASONS = Float32Array.from([0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14]);
+  const lot = {
+    width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
+    house: [1, 1] as [number, number], yardLook: [65, 2, -0.22] as [number, number, number],
+    street: 2, streetLook: [0, 0.15, -0.22] as [number, number, number], seasonYardLooks: SEASONS,
+  };
+
+  it("draws the yard under its look and the season's change, and the house and street as before", () => {
+    const drawn = [0, 0, 0];
+    const street = [0, -0.85, -0.22];
+    // Each row composed with [65, 2, -0.22]: hues add, strengths multiply,
+    // lightness adds; the strength reaches the instance as its distance
+    // from 1. Spring is the yard look itself.
+    const yards = [[65, 1, -0.22], [45, 0.7, -0.18], [20, 0.8, -0.27], [77, -0.4, -0.08]];
+    yards.forEach((yard, season) => {
+      const built = buildStaticInstances({ ...lot, season }, ORIGIN_X, ORIGIN_Y, GRID);
+      // Row by row: (0, 0) house, (1, 0) yard, (2, 0) street, then yard, yard, street.
+      expect(shifts(built), `season ${season}`).toEqual([drawn, yard, street, yard, yard, street]);
+    });
+  });
+
+  it('keeps a covering laid on the yard as it is in every season', () => {
+    const coveringLooks = Float32Array.from([18, 1.15, -0.12]);
+    for (const season of [0, 1, 2, 3]) {
+      const built = buildStaticInstances({ ...lot, season, coveringLooks, floors: Uint32Array.from([1, 0, 1]) },
+        ORIGIN_X, ORIGIN_Y, GRID);
+      expect(shifts(built)[1]).toEqual([18, 0.15, -0.12]);
+    }
+  });
+
+  it('composes a season row with the yard look the way the shader applies two shifts', () => {
+    const [hue, strength, lightness] = seasonalYardLook([65, 2, -0.22], SEASONS, 3);
+    expect(hue).toBeCloseTo(77, 5);
+    expect(strength).toBeCloseTo(0.6, 5);
+    expect(lightness).toBeCloseTo(-0.08, 5);
+    expect(seasonalYardLook([10, 0.5, 0.1], [1, 2, 3, 4, 3, -0.2], 1)).toEqual([14, 1.5, -0.1]);
+  });
+
+  it('keeps the yard look when there is no table or the season has no row', () => {
+    const yard = [65, 2, -0.22] as const;
+    expect(seasonalYardLook(yard, null, 2)).toBe(yard);
+    expect(seasonalYardLook(yard, undefined, 2)).toBe(yard);
+    expect(seasonalYardLook(yard, SEASONS, null)).toBe(yard);
+    expect(seasonalYardLook(yard, SEASONS, undefined)).toBe(yard);
+    for (const season of [-1, 4, 1.5, Number.NaN]) {
+      expect(seasonalYardLook(yard, SEASONS, season), `season ${season}`).toBe(yard);
+    }
+    // A table one number short of a full Winter row has no Winter.
+    expect(seasonalYardLook(yard, SEASONS.subarray(0, 11), 3)).toBe(yard);
+    // Without a season, or without a table, the yard keeps its own look.
+    const yardOnly = [[0, 0, 0], [65, 1, -0.22], [0, -0.85, -0.22], [65, 1, -0.22], [65, 1, -0.22], [0, -0.85, -0.22]];
+    expect(shifts(buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID))).toEqual(yardOnly);
+    expect(shifts(buildStaticInstances({ ...lot, seasonYardLooks: null, season: 2 }, ORIGIN_X, ORIGIN_Y, GRID)))
+      .toEqual(yardOnly);
+  });
+
+  it('rebuilds only when the season turns', () => {
+    const state: { season?: number | null } = { season: 0 };
+    expect([setSeason(state, 0), setSeason(state, 1), setSeason(state, 1), setSeason(state, 3),
+      setSeason(state, 0), setSeason(state, 0)]).toEqual([false, true, false, true, true, false]);
+    expect(state.season).toBe(0);
+    const unset: { season?: number | null } = {};
+    expect(setSeason(unset, 0)).toBe(true);
+  });
+
+  it('is asked every frame whether the season turned, and marks the static block dirty when it did', () => {
+    const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+    expect(main).toContain('seasonYardLooks: sim.seasonYardLooks(), season: sim.seasonIndex() };');
+    expect(main).toContain('    if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;\n');
+    // The check sits beside the cut-away walls check, before the gated rebuild.
+    const check = main.indexOf('if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;');
+    const rebuild = main.indexOf('if (cameraDirty) applyCamera();');
+    expect(check).toBeGreaterThan(main.indexOf('if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;'));
+    expect(rebuild).toBeGreaterThan(check);
   });
 });
 
