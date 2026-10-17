@@ -2965,9 +2965,10 @@ impl SimHandle {
     /// (careers, issue 249): `[path, level, levels, pay, pay_min, pay_max,
     /// shifts this week, mean so far or -1, last performance or -1,
     /// consecutive poor, consecutive good, advance weeks, job satisfaction,
-    /// warned, trend]`, where trend is 1 after three good reviews in a row
-    /// and -1 after three poor. Empty for the unemployed and for anything
-    /// that is not a living person.
+    /// warned, trend, poor threshold, good threshold]`, where trend is 1
+    /// after three good reviews in a row and -1 after three poor, and the
+    /// thresholds are the tuning's. Empty for the unemployed and for
+    /// anything that is not a living person.
     pub fn career_report(&self, entity_index: u32) -> Vec<f64> {
         self.sim
             .career_report(entity_index)

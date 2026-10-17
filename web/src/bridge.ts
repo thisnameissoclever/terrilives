@@ -51,6 +51,59 @@ export interface BedPlaceStatus extends BedPlace {
   readonly assigneeName: string | null;
   readonly occupantName: string | null;
 }
+/** One person's standing in their job - rule 18 of the careers spec. */
+export interface CareerReport {
+  readonly path: number;
+  readonly level: number;
+  readonly levels: number;
+  readonly pay: number;
+  readonly payMin: number;
+  readonly payMax: number;
+  /** Shifts completed in the current week. */
+  readonly shifts: number;
+  /** The mean score so far this week, or null before a shift. */
+  readonly mean: number | null;
+  /** The last review's performance, or null before a review. */
+  readonly last: number | null;
+  readonly poor: number;
+  readonly good: number;
+  readonly advanceWeeks: number;
+  readonly jobSatisfaction: number;
+  readonly warned: boolean;
+  /** 1 after three good reviews in a row, -1 after three poor, else 0. */
+  readonly trend: -1 | 0 | 1;
+  readonly poorThreshold: number;
+  readonly goodThreshold: number;
+}
+
+export interface CareerWeek {
+  readonly week: number;
+  readonly performance: number;
+  /** 0 none, 1 promotion, 2 raise, 3 demotion, 4 dismissal, 5 a change of path. */
+  readonly event: number;
+}
+
+export interface CareerFactors {
+  readonly fit: number;
+  readonly traitFit: number;
+  readonly socialCapacity: number;
+  readonly socialDemand: number;
+  readonly mastery: number;
+  readonly mood: number;
+}
+
+export interface CareerResult {
+  readonly sequence: bigint;
+  readonly agent: number;
+  readonly reason: string | null;
+}
+
+const CAREER_REASONS: Readonly<Record<number, string>> = {
+  1: 'That person is no longer here.',
+  2: 'Not while they are at work or on the way.',
+  3: 'That career path is not known.',
+};
+
 export interface BedAssignmentResult {
   readonly sequence: bigint;
   readonly agent: number;
@@ -2037,6 +2090,92 @@ export class SimBridge {
     const values = this.handle.career_schedule_of(entityIndex);
     if (values.length !== 3) return null;
     return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
+  }
+
+  /**
+   * The selected person's standing in their job, or null for the
+   * unemployed and for everything that is not a person. The seventeen
+   * numbers are the runtime's `career_report` order.
+   */
+  careerReport(entityIndex: number): CareerReport | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.career_report(entityIndex);
+    if (values.length !== 17 || Array.from(values).some(value => !Number.isFinite(value))) return null;
+    const [path, level, levels, pay, payMin, payMax, shifts, mean, last, poor, good, advanceWeeks,
+      jobSatisfaction, warned, trend, poorThreshold, goodThreshold] = values;
+    if (![path, level, levels, pay, payMin, payMax, shifts, poor, good, advanceWeeks].every(isU32)) return null;
+    if (level >= levels || payMin > payMax || pay < payMin || pay > payMax) return null;
+    if ((warned !== 0 && warned !== 1) || ![-1, 0, 1].includes(trend)) return null;
+    if (mean < -1 || mean > 100 || last < -1 || last > 100) return null;
+    return { path, level, levels, pay, payMin, payMax, shifts, mean: mean < 0 ? null : mean,
+      last: last < 0 ? null : last, poor, good, advanceWeeks, jobSatisfaction, warned: warned === 1,
+      trend: trend as -1 | 0 | 1, poorThreshold, goodThreshold };
+  }
+
+  /** The reviewed weeks in week order; empty without a job. */
+  careerHistory(entityIndex: number): CareerWeek[] {
+    if (!isU32(entityIndex)) return [];
+    const values = this.handle.career_history(entityIndex);
+    if (values.length % 3 !== 0) return [];
+    const weeks: CareerWeek[] = [];
+    for (let at = 0; at < values.length; at += 3) {
+      const [week, performance, event] = [values[at], values[at + 1], values[at + 2]];
+      if (!isU32(week) || !Number.isFinite(performance) || !isU32(event) || event > 5) return [];
+      if (weeks.length > 0 && week <= weeks[weeks.length - 1].week) return [];
+      weeks.push({ week, performance: Math.min(100, Math.max(0, performance)), event });
+    }
+    return weeks;
+  }
+
+  /** The factors behind the shift score, or null without a job. */
+  careerFactors(entityIndex: number): CareerFactors | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.career_factors(entityIndex);
+    if (values.length !== 6 || Array.from(values).some(value => !Number.isFinite(value))) return null;
+    const [fit, traitFit, socialCapacity, socialDemand, mastery, mood] = values;
+    return { fit, traitFit, socialCapacity, socialDemand, mastery, mood };
+  }
+
+  /** The labels of the career paths, in path order. */
+  careerPathLabels(): string[] {
+    return Array.from(this.handle.career_path_labels());
+  }
+
+  /** The titles of one path's levels, in level order; empty for an unknown path. */
+  careerLevelTitles(path: number): string[] {
+    if (!isU32(path)) return [];
+    return Array.from(this.handle.career_level_titles(path));
+  }
+
+  assignCareer(entityIndex: number, path: number): boolean {
+    if (!isU32(entityIndex) || !isU32(path)) return false;
+    return this.handle.assign_career(entityIndex, path);
+  }
+
+  quitCareer(entityIndex: number): boolean {
+    if (!isU32(entityIndex)) return false;
+    return this.handle.quit_career(entityIndex);
+  }
+
+  /** What the drain did with the last career command, or null before any. */
+  lastCareerResult(): CareerResult | null {
+    const sequence = this.handle.career_result_sequence();
+    const values = this.handle.last_career_result();
+    if (typeof sequence !== 'bigint' || sequence <= 0n || values.length !== 2) return null;
+    const [agent, refusal] = values;
+    if (!isU32(agent) || !isU32(refusal) || (refusal !== 0 && !Object.hasOwn(CAREER_REASONS, refusal))) return null;
+    return { sequence, agent, reason: refusal === 0 ? null : CAREER_REASONS[refusal] };
+  }
+
+  /** Whether people change path and look for work on their own. */
+  careerAutonomy(): { change: boolean; search: boolean } | null {
+    const values = this.handle.career_autonomy();
+    if (values.length !== 2 || values.some(value => value !== 0 && value !== 1)) return null;
+    return { change: values[0] === 1, search: values[1] === 1 };
+  }
+
+  setCareerAutonomy(change: boolean, search: boolean): boolean {
+    return this.handle.set_career_autonomy(change, search);
   }
 
   /**

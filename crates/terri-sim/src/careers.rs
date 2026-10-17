@@ -1002,8 +1002,9 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
 /// The Career section's numbers for `entity`, or `None` for the
 /// unemployed: `[path, level, levels, pay, pay_min, pay_max, shifts this
 /// week, mean so far, last performance, consecutive poor, consecutive good,
-/// advance weeks, job satisfaction, warned, trend]`, where trend is 1 when
-/// the last three reviews were all good, -1 when all poor, else 0.
+/// advance weeks, job satisfaction, warned, trend, poor threshold, good
+/// threshold]`, where trend is 1 when the last three reviews were all
+/// good, -1 when all poor, else 0, and the thresholds are the tuning's.
 pub fn report(world: &World, entity: Entity) -> Option<Vec<f32>> {
     let pack = world.resource::<Content>().0;
     let job = job_of(world, pack, entity)?;
@@ -1052,6 +1053,8 @@ pub fn report(world: &World, entity: Entity) -> Option<Vec<f32>> {
         record.job_satisfaction,
         if record.warned() { 1.0 } else { 0.0 },
         trend,
+        tuning.career_poor_threshold,
+        tuning.career_good_threshold,
     ])
 }
 

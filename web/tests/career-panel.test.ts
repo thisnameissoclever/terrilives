@@ -1,0 +1,408 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import type { CareerFactors, CareerReport, CareerResult, CareerWeek } from '../src/bridge.js';
+import {
+  CAREER_WARNING,
+  CareerPanel,
+  careerFactorLines,
+  careerJobView,
+  createCareerPanelSurface,
+  type CareerPanelSource,
+  type CareerPanelState,
+} from '../src/ui/career-panel.js';
+import { careerEventTitle, careerGraphKey, renderCareerGraph } from '../src/ui/career-graph.js';
+
+const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+
+function report(overrides: Partial<CareerReport> = {}): CareerReport {
+  return { path: 0, level: 1, levels: 4, pay: 170, payMin: 160, payMax: 200, shifts: 2, mean: 71.5, last: 80.2,
+    poor: 0, good: 2, advanceWeeks: 3, jobSatisfaction: 58, warned: false, trend: 0, poorThreshold: 40,
+    goodThreshold: 65, ...overrides };
+}
+
+const FACTORS: CareerFactors = { fit: 0.4, traitFit: 0.4, socialCapacity: 0.7, socialDemand: 0.3, mastery: 0.25, mood: -0.1 };
+
+const WEEKS: CareerWeek[] = [
+  { week: 0, performance: 70, event: 0 },
+  { week: 1, performance: 82, event: 2 },
+  { week: 2, performance: 90, event: 1 },
+  { week: 3, performance: 20, event: 3 },
+  { week: 4, performance: 55, event: 5 },
+];
+
+class Source implements CareerPanelSource {
+  selected: number | null = 7;
+  title: string | null = 'Senior clerk';
+  report_: CareerReport | null = report();
+  history: CareerWeek[] = WEEKS;
+  factors: CareerFactors | null = FACTORS;
+  paths = ['Office', 'Cafe', 'Night watch'];
+  result: CareerResult | null = null;
+  accept = true;
+  readonly sent: unknown[][] = [];
+  selectedIndex(): number | null { return this.selected; }
+  dayTicks(): number { return 1440; }
+  careerOf(): string | null { return this.title; }
+  careerScheduleOf() { return { workingDays: 31, shiftStart: 360, shiftTicks: 480 }; }
+  careerReport(): CareerReport | null { return this.report_; }
+  careerHistory(): readonly CareerWeek[] { return this.history; }
+  careerFactors(): CareerFactors | null { return this.factors; }
+  careerPathLabels(): readonly string[] { return this.paths; }
+  assignCareer(entity: number, path: number): boolean { this.sent.push(['assign', entity, path]); return this.accept; }
+  quitCareer(entity: number): boolean { this.sent.push(['quit', entity]); return this.accept; }
+  lastCareerResult(): CareerResult | null { return this.result; }
+}
+
+/**
+ * A small DOM model, enough for the surface: elements with classes,
+ * attributes, a dataset, children, listeners and the selectors the tests
+ * use (`tag`, `.class`, `.a:not(.b)`, `tag[attr="v"]`, and one level of
+ * descent with a space).
+ */
+class Node_ {
+  textContent = '';
+  className = '';
+  value = '';
+  type = '';
+  tabIndex = 0;
+  disabled = false;
+  parent: Node_ | null = null;
+  nodes: Node_[] = [];
+  attributes = new Map<string, string>();
+  dataset: Record<string, string> = {};
+  listeners = new Map<string, (() => void)[]>();
+  constructor(readonly tagName: string, readonly document: Doc) {}
+  get hidden(): boolean { return this.attributes.has('hidden'); }
+  set hidden(value: boolean) { if (value) this.attributes.set('hidden', ''); else this.attributes.delete('hidden'); }
+  get children() { return { item: (index: number) => this.nodes[index] ?? null, length: this.nodes.length }; }
+  get lastElementChild() { return this.nodes[this.nodes.length - 1] ?? null; }
+  get options() { return this.nodes.filter(node => node.tagName === 'option'); }
+  get activeElementIsHere() { return this.contains(this.document.activeElement); }
+  append(...nodes: Node_[]) { for (const node of nodes) { node.remove(); node.parent = this; this.nodes.push(node); } }
+  replaceChildren() { for (const node of this.nodes) node.parent = null; this.nodes = []; }
+  remove() { if (this.parent) this.parent.nodes = this.parent.nodes.filter(node => node !== this); this.parent = null; }
+  contains(node: Node_ | null): boolean { return node === this || this.nodes.some(child => child.contains(node)); }
+  setAttribute(key: string, value: string) { this.attributes.set(key, value); if (key === 'class') this.className = value; }
+  getAttribute(key: string) { return this.attributes.get(key) ?? null; }
+  hasAttribute(key: string) { return this.attributes.has(key); }
+  removeAttribute(key: string) { this.attributes.delete(key); }
+  toggleAttribute(key: string, force: boolean) { if (force) this.attributes.set(key, ''); else this.attributes.delete(key); }
+  addEventListener(event: string, listener: () => void) { this.listeners.set(event, [...this.listeners.get(event) ?? [], listener]); }
+  dispatch(event: string) { this.listeners.get(event)?.forEach(listener => listener()); }
+  click() { this.dispatch('click'); }
+  focus() { this.document.activeElement = this; }
+  classes(): string[] { return this.className.split(/\s+/).filter(Boolean); }
+  matches(simple: string): boolean {
+    let selector = simple;
+    const nots: string[] = [];
+    selector = selector.replace(/:not\(([^)]+)\)/g, (_, inner: string) => { nots.push(inner); return ''; });
+    const attr = selector.match(/\[([a-z-]+)="([^"]+)"\]/);
+    if (attr) selector = selector.replace(attr[0], '');
+    const parts = selector.split('.');
+    const tag = parts[0];
+    const classes = parts.slice(1);
+    if (tag && tag !== this.tagName) return false;
+    if (!classes.every(cls => this.classes().includes(cls))) return false;
+    if (attr && this.getAttribute(attr[1]) !== attr[2]) return false;
+    return nots.every(not => !this.matches(not));
+  }
+  all(): Node_[] { return [this, ...this.nodes.flatMap(node => node.all())]; }
+  querySelectorAll(selector: string): Node_[] {
+    const [first, second] = selector.split(' ');
+    const heads = this.all().filter(node => node !== this && node.matches(first));
+    if (!second) return heads;
+    return heads.flatMap(head => head.all().filter(node => node !== head && node.matches(second)));
+  }
+  querySelector(selector: string): Node_ | null { return this.querySelectorAll(selector)[0] ?? null; }
+}
+
+class Doc {
+  activeElement: Node_ | null = null;
+  readonly body = new Node_('body', this);
+  createElement(tag: string) { return new Node_(tag, this); }
+  createElementNS(_ns: string, tag: string) { return new Node_(tag, this); }
+}
+
+function doc(): Document { return new Doc() as unknown as Document; }
+
+describe('careerJobView', () => {
+  it('words the job, the week, the review, the factors and the streaks', () => {
+    const view = careerJobView('Senior clerk', 'Office', 'Senior clerk, Monday to Friday, 06:00 to 14:00', report(), FACTORS, WEEKS);
+    expect(view.level).toBe('Level 2 of 4');
+    expect(view.pay).toBe('$170 per shift, from $160 to $200 at this level');
+    expect(view.weekSoFar).toBe('2 shifts this week, scoring 72 on average.');
+    expect(view.lastReview).toBe('Last review: 80 of 100.');
+    expect(view.streaks).toBe('Good weeks in a row: 2.');
+    expect(view.nextPromotion).toBe('The next promotion needs 3 good weeks in a row.');
+    expect(view.warning).toBeNull();
+    expect(view.factors).toEqual(careerFactorLines(FACTORS));
+    expect(view.factors[2]).toBe("Social capacity 70% against the job's 30%");
+    expect(view.trend).toBe(0);
+    expect(view.thresholds).toEqual({ poor: 40, good: 65 });
+  });
+
+  it('words a fresh job, a warning, the top of the path and the trends', () => {
+    const fresh = careerJobView('Lowly barista', 'Cafe', 'Lowly barista', report({ shifts: 0, mean: null, last: null, good: 0, level: 0 }), null, []);
+    expect(fresh.weekSoFar).toBe('No shifts completed this week.');
+    expect(fresh.lastReview).toBe('No review yet.');
+    expect(fresh.streaks).toBe('No streak running.');
+    expect(fresh.factors).toEqual([]);
+    expect(fresh.level).toBe('Level 1 of 4');
+    const warned = careerJobView('t', 'p', 's', report({ poor: 2, good: 0, warned: true, trend: -1 }), FACTORS, WEEKS);
+    expect(warned.warning).toBe(CAREER_WARNING);
+    expect(warned.streaks).toBe('Poor weeks in a row: 2.');
+    expect(warned.trend).toBe(-1);
+    const top = careerJobView('t', 'p', 's', report({ level: 3, trend: 1, advanceWeeks: 1 }), FACTORS, WEEKS);
+    expect(top.nextPromotion).toBe('At the top of this path.');
+    expect(top.trend).toBe(1);
+    const one = careerJobView('t', 'p', 's', report({ shifts: 1, mean: 50, advanceWeeks: 1 }), FACTORS, WEEKS);
+    expect(one.weekSoFar).toBe('1 shift this week, scoring 50 on average.');
+    expect(one.nextPromotion).toBe('The next promotion needs 1 good week in a row.');
+  });
+});
+
+describe('career graph', () => {
+  it('names every event and keys the drawing by its weeks and thresholds', () => {
+    expect([0, 1, 2, 3, 4, 5].map(careerEventTitle)).toEqual([null, 'Promoted', 'Got a raise', 'Demoted', 'Fired', 'Changed path']);
+    expect(careerGraphKey(WEEKS, { poor: 40, good: 65 })).not.toBe(careerGraphKey(WEEKS.slice(1), { poor: 40, good: 65 }));
+    expect(careerGraphKey(WEEKS, { poor: 40, good: 65 })).not.toBe(careerGraphKey(WEEKS, { poor: 30, good: 65 }));
+  });
+
+  it('draws a line, the two rules and one titled marker per event', () => {
+    const document = doc();
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as SVGSVGElement;
+    renderCareerGraph(document, svg, WEEKS, { poor: 40, good: 65 });
+    const model = svg as unknown as Node_;
+    expect(model.querySelectorAll('polyline')).toHaveLength(1);
+    expect(model.querySelectorAll('.career-rule')).toHaveLength(2);
+    expect(model.querySelectorAll('.career-point')).toHaveLength(5);
+    const marks = model.querySelectorAll('.career-mark');
+    expect(marks.map(mark => mark.dataset.event)).toEqual(['2', '1', '3', '5']);
+    expect(marks.map(mark => mark.querySelector('title')?.textContent)).toEqual([
+      'Week 2: Got a raise', 'Week 3: Promoted', 'Week 4: Demoted', 'Week 5: Changed path']);
+    expect(model.querySelector('.career-mark-up')).not.toBeNull();
+    expect(model.querySelector('.career-mark-down')).not.toBeNull();
+    expect(model.querySelector('.career-mark-raise')?.textContent).toBe('$');
+    expect(model.querySelectorAll('.career-axis').map(axis => axis.textContent)).toContain('Week 5');
+    renderCareerGraph(document, svg, [], { poor: 40, good: 65 });
+    expect(model.querySelectorAll('polyline')).toHaveLength(0);
+    expect(model.querySelectorAll('.career-rule')).toHaveLength(2);
+  });
+});
+
+function panel(source: Source, active = () => true) {
+  const states: CareerPanelState[] = [];
+  const controller = new CareerPanel(source, state => states.push(state), 100, active);
+  return { controller, states, last: () => states[states.length - 1] };
+}
+
+describe('CareerPanel', () => {
+  it('reads the job on demand and words an unemployed or unreadable person', () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().job?.title).toBe('Senior clerk');
+    expect(last().job?.pathLabel).toBe('Office');
+    expect(last().paths).toEqual(source.paths);
+    source.title = null;
+    controller.update(50);
+    expect(last().job?.title, 'inside the refresh interval nothing is read').toBe('Senior clerk');
+    controller.update(200);
+    expect(last().job).toBeNull();
+    expect(last().unavailable).toBe(false);
+    source.title = 'Senior clerk';
+    source.report_ = null;
+    controller.update(400);
+    expect(last().unavailable).toBe(true);
+    source.report_ = report({ path: 9 });
+    controller.update(600);
+    expect(last().unavailable, 'a path the labels do not have').toBe(true);
+  });
+
+  it('does not read while inactive and reads at once when the selection changes', () => {
+    const source = new Source();
+    let active = false;
+    const { controller, last, states } = panel(source, () => active);
+    controller.update(0);
+    expect(states, 'the new selection shows at once, unread').toHaveLength(1);
+    expect(last().job).toBeNull();
+    controller.update(50);
+    expect(states, 'nothing is read while hidden').toHaveLength(1);
+    active = true;
+    controller.update(50);
+    expect(last().job).not.toBeNull();
+    source.selected = 8;
+    source.title = 'Barista';
+    controller.update(10);
+    expect(last().agent).toBe(8);
+    expect(last().job?.title).toBe('Barista');
+  });
+
+  it('assigns a chosen path, reports the drain result and quits', () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    controller.choose(1);
+    expect(last().choice).toBe(1);
+    controller.assign();
+    expect(source.sent).toEqual([['assign', 7, 1]]);
+    expect(last().pending).toBe(true);
+    expect(last().status).toBe('Assigning the career…');
+    controller.afterCommands();
+    expect(last().pending, 'no result yet').toBe(true);
+    source.result = { sequence: 1n, agent: 7, reason: null };
+    source.title = 'Lowly barista';
+    source.report_ = report({ path: 1, level: 0 });
+    controller.afterCommands();
+    expect(last().pending).toBe(false);
+    expect(last().status).toBe('Career assigned.');
+    expect(last().job?.title).toBe('Lowly barista');
+    controller.quit();
+    expect(source.sent).toEqual([['assign', 7, 1], ['quit', 7]]);
+    source.result = { sequence: 2n, agent: 7, reason: 'Not while they are at work or on the way.' };
+    controller.afterCommands();
+    expect(last().status).toBe('Not while they are at work or on the way.');
+    source.result = { sequence: 3n, agent: 7, reason: null };
+    source.title = null;
+    controller.quit();
+    expect(last().status).toBe('This person has no job to leave.');
+  });
+
+  it('refuses a second command while one is pending and words a refused send', () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    controller.choose(2);
+    controller.assign();
+    controller.choose(0);
+    expect(last().choice).toBe(2);
+    controller.quit();
+    expect(source.sent).toHaveLength(1);
+    source.result = { sequence: 1n, agent: 9, reason: null };
+    controller.afterCommands();
+    expect(last().status).toBe('Another career change was handled. Check the current job.');
+    source.accept = false;
+    controller.choose(1);
+    controller.assign();
+    expect(last().status).toBe('The career change could not be sent.');
+    expect(last().pending).toBe(false);
+  });
+
+  it('forgets everything after a load', () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    controller.choose(1);
+    controller.assign();
+    source.selected = null;
+    controller.resetAfterLoad();
+    expect(last()).toMatchObject({ agent: null, job: null, choice: null, pending: false, status: '' });
+  });
+});
+
+describe('career panel surface', () => {
+  function build() {
+    const document = new Doc();
+    const section = document.createElement('section');
+    const empty = document.createElement('p');
+    const content = document.createElement('div');
+    const rowTitle = document.createElement('span');
+    const rowInfo = document.createElement('button');
+    const rowGraph = document.createElement('div');
+    section.append(empty, content);
+    document.body.append(section, rowTitle, rowInfo, rowGraph);
+    const actions = { chosen: [] as (number | null)[], assigned: 0, quit: 0 };
+    const render = createCareerPanelSurface(document as unknown as Document, {
+      section: section as unknown as HTMLElement, empty: empty as unknown as HTMLElement, content: content as unknown as HTMLElement,
+      rowTitle: rowTitle as unknown as HTMLElement, rowInfo: rowInfo as unknown as HTMLButtonElement,
+      rowGraph: rowGraph as unknown as HTMLElement,
+    }, { choose: path => actions.chosen.push(path), assign: () => { actions.assigned += 1; }, quit: () => { actions.quit += 1; } });
+    return { section, empty, content, rowTitle, rowInfo, rowGraph, render, actions };
+  }
+
+  const employed = (overrides: Partial<CareerPanelState> = {}): CareerPanelState => ({
+    agent: 7, unavailable: false, paths: ['Office', 'Cafe'], choice: null, pending: false, status: '',
+    job: careerJobView('Senior clerk', 'Office', 'Senior clerk, Monday to Friday, 06:00 to 14:00', report({ trend: 1 }), FACTORS, WEEKS),
+    ...overrides,
+  });
+
+  it('shows every line, the graph, the trend and the controls for a held job', () => {
+    const { section, content, rowTitle, rowInfo, rowGraph, render, actions } = build();
+    render(employed());
+    expect(section.dataset.state).toBe('employed');
+    expect(content.querySelector('.career-title')?.textContent).toBe('Senior clerk');
+    expect(content.querySelector('.career-title')?.dataset.trend).toBe('up');
+    expect(rowTitle.dataset.trend).toBe('up');
+    expect(content.querySelector('.career-path')?.textContent).toBe('Path: Office');
+    expect(content.querySelector('.career-level')?.textContent).toBe('Level 2 of 4');
+    expect(content.querySelectorAll('.career-factors li')).toHaveLength(5);
+    expect(content.querySelector('.career-warning')?.hidden).toBe(true);
+    expect(content.querySelector('.career-graph:not(.career-graph-mini)')?.hidden).toBe(false);
+    expect(content.querySelectorAll('.career-graph:not(.career-graph-mini) .career-mark')).toHaveLength(4);
+    const select = content.querySelector('select')!;
+    expect(select.options.map(option => option.textContent)).toEqual(['Choose a path', 'Office', 'Cafe']);
+    const [assign, quit] = content.querySelectorAll('.career-actions button');
+    expect(quit.disabled).toBe(false);
+    expect(assign.disabled).toBe(true);
+    select.value = '1';
+    select.dispatch('change');
+    expect(actions.chosen).toEqual([1]);
+    assign.click();
+    quit.click();
+    expect([actions.assigned, actions.quit]).toEqual([1, 1]);
+    const info = content.querySelector('.career-info')!;
+    expect(info.hidden).toBe(false);
+    info.click();
+    expect(info.getAttribute('aria-expanded')).toBe('true');
+    expect(content.querySelector('.career-graph-mini')?.hidden).toBe(false);
+    expect(rowInfo.hidden).toBe(false);
+    rowInfo.click();
+    expect(rowGraph.hidden).toBe(false);
+    expect(rowGraph.querySelectorAll('.career-mark')).toHaveLength(4);
+    render(employed({ choice: 1 }));
+    expect(assign.disabled).toBe(false);
+    expect(select.value).toBe('1');
+  });
+
+  it('words the warning, a job without reviews, the unemployed, the unavailable and the pending states', () => {
+    const { section, empty, content, rowTitle, rowInfo, render } = build();
+    render(employed({ job: careerJobView('t', 'p', 's', report({ warned: true, trend: -1 }), FACTORS, []) }));
+    expect(content.querySelector('.career-warning')?.textContent).toBe(CAREER_WARNING);
+    expect(content.querySelector('.career-warning')?.hidden).toBe(false);
+    expect(content.querySelector('.career-title')?.dataset.trend).toBe('down');
+    expect(content.querySelector('.career-graph:not(.career-graph-mini)')?.hidden).toBe(true);
+    expect(content.querySelector('.career-no-reviews')?.hidden).toBe(false);
+    expect(content.querySelector('.career-info')?.hidden).toBe(true);
+    expect(rowInfo.hidden).toBe(true);
+    render(employed({ job: null }));
+    expect(section.dataset.state).toBe('unemployed');
+    expect(empty.textContent).toBe('Unemployed. Choose a path below to assign one.');
+    expect(empty.hidden).toBe(false);
+    const [, quit] = content.querySelectorAll('.career-actions button');
+    expect(quit.disabled).toBe(true);
+    expect(rowTitle.dataset.trend).toBe('level');
+    render(employed({ job: null, unavailable: true }));
+    expect(empty.textContent).toBe('Career unavailable.');
+    expect(content.querySelector('fieldset')!.disabled).toBe(true);
+    render(employed({ agent: null, job: null }));
+    expect(empty.textContent).toBe('Select a person to see their career.');
+    render(employed({ pending: true, status: 'Assigning the career…', choice: 1 }));
+    expect(content.querySelector('fieldset')!.disabled).toBe(true);
+    expect(content.querySelector('p[role="status"]:not(.career-warning)')?.textContent).toBe('Assigning the career…');
+    expect(content.querySelector('select')!.value).toBe('1');
+  });
+
+  it('is wired into the sheet, the Overview row and the Options flyout', () => {
+    expect(INDEX_HTML).toContain('data-open-sim-panel="career"');
+    expect(INDEX_HTML).toContain('id="sim-career"');
+    expect(INDEX_HTML).toContain('id="career-info"');
+    expect(INDEX_HTML).toContain('id="career-row-graph"');
+    expect(INDEX_HTML).toContain('id="career-autonomous-change"');
+    expect(INDEX_HTML).toContain('id="career-autonomous-search"');
+    expect(MAIN_TS).toContain('createCareerPanelSurface(');
+    expect(MAIN_TS).toContain('careerPanel.afterCommands()');
+    expect(MAIN_TS).toContain('careerPanel.resetAfterLoad()');
+    expect(MAIN_TS).toContain('new CareerAutonomyControls(');
+  });
+});
