@@ -859,9 +859,9 @@ from outside and outdoor objects remain.
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles and Carpet. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
-Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
+Room-wide painting remains separate work. Floor cleaning follows eligible material and lot ownership, as defined in `docs/specs/2026-10-17-room-identities.md`. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for the original material evidence and acceptance limits.
 
 ### [B-windows] Windows admit daylight
 

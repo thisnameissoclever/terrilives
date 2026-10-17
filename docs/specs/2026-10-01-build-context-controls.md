@@ -2,7 +2,7 @@
 
 ## Panels and shortcuts
 
-All five desktop tools have a 304px outer panel, including padding and scrollbar space. The heading and Exit build precede tool navigation, settings, selection feedback, pointer instructions and a native Shortcuts disclosure. Catalogue filters, object identity, colours, prices and sale refusals remain available. Action labels are centered; descriptions and form labels retain reading alignment.
+Desktop Build tools share a 304px outer panel, including padding and scrollbar space. The heading and Exit build precede tool navigation, settings, selection feedback, pointer instructions and a native Shortcuts disclosure. Catalogue filters, object identity, colours, prices and sale refusals remain available. Action labels are centered; descriptions and form labels retain reading alignment.
 
 Build uses a bottom panel at widths of 700px or less, or heights of 480px or less. Navigation and Exit build remain outside scrolling tool content. Wide labels retain their natural width; navigation scrolls horizontally when necessary. The unrelated Sim dock retains its 600px / 480px breakpoint. Compact world controls reserve separate areas for status and zoom / Options.
 

@@ -17,7 +17,7 @@ node scripts/verify-action-colors.cjs output/playwright/action-colors
 
 ## Inspection of final captures
 
-The browser verifier's author inspected all 20 files below at their supplied resolution. This inspection records visible findings; the computed checks alone cannot establish appearance. Fresh independent review belongs to the parent task.
+The browser verifier's author inspected all 20 files below at their supplied resolution. This inspection records visible findings; the computed checks alone cannot establish appearance. A [fresh independent review](independent-review.md) inspected the same final captures and approved the action color scope.
 
 | Capture in `final/` | Visible result |
 | --- | --- |
@@ -46,7 +46,7 @@ The browser verifier's author inspected all 20 files below at their supplied res
 
 The original forced-colors CSS used system Highlight and HighlightText for emphasized controls. Native Chrome drew a white text backplate behind white Confirm text, making the label unreadable. This remained reproducible in a clean session without dragging or selected text. [The diagnostic receipt](forced-colors-diagnostic.json) records an empty Selection and automatic forced-color adjustment.
 
-`forced-colors-clean-focus.png` retains the defective actual-game result. `forced-colors-buttonface-diagnostic.png` retains a controlled CSS override using ButtonFace and ButtonText, which restored the label. These diagnostic files are separate from the final actual-source capture. The parent arranged the production CSS correction and will record the blinded rejection check and fresh review. The final source capture is `final/build-forced-colors.png`.
+`forced-colors-clean-focus.png` retains the defective actual-game result. `forced-colors-buttonface-diagnostic.png` retains a controlled CSS override using ButtonFace and ButtonText, which restored the label. These diagnostic files are separate from the final actual-source capture. The [blind review](forced-colors-blind-review.md) rejected the defective Case A before learning the condition mapping, accepted the diagnostic Case B, and then accepted the actual repaired source capture in `final/build-forced-colors.png`.
 
 ## Evidence limits
 
