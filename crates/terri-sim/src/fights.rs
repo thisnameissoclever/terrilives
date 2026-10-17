@@ -161,11 +161,12 @@ fn approachable(world: &mut World, person: Entity) -> bool {
 }
 
 /// Withdraws a fight nobody ordered once it can no longer be served: the
-/// other person has left for work, is commuting, or is gone from the game
-/// while the initiator was still waiting to set off. A player's order
-/// waits for its partner to come home; an order the trigger made up does
-/// not deserve that wait, and without this the initiator would stand
-/// blocked for a whole shift. An order already under way (the initiator
+/// other person has left for work or is commuting while the initiator was
+/// still waiting to set off. (Death already strips every order naming the
+/// dead from every queue; the despawn check below is a guard, not a
+/// path.) A player's order waits for its partner to come home; an order
+/// the trigger made up does not deserve that wait, and without this the
+/// initiator would stand blocked for a whole shift. An order already under way (the initiator
 /// has a target) is the rendezvous system's to release, as it releases any
 /// approach a shift start interrupts. Only the queue entry the trigger
 /// pushed is watched, by its id, so a player's identical order is never
