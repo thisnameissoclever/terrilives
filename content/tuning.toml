@@ -704,8 +704,10 @@ neglect_floor = 15.0
 # minutes past midnight, and careers.toml writes shift times in it.
 # 2.4 real minutes at 1x. Seven days make a week, counted from
 # first_weekday below - [CAL-week] in docs/specs/2026-10-06-calendar.md.
-# There is no month or year. Must be at least 1 - a zero-tick day divides
-# by zero the first time a career asks the hour.
+# Four seasons of days_per_season days make a year - [SEA-year] in
+# docs/specs/2026-10-17-seasons.md. There is no month or date. Must be at
+# least 1 - a zero-tick day divides by zero the first time a career asks
+# the hour.
 day_ticks = 1440
 
 # The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week].
@@ -714,6 +716,39 @@ day_ticks = 1440
 # is worked out from the tick and this number, so nothing about it is
 # saved; changing it moves every saved game to a different weekday.
 first_weekday = 0
+
+# SEASONS - issue 251 ([SEA-year] in docs/specs/2026-10-17-seasons.md).
+# The year is Spring, Summer, Autumn and Winter, in that order, each
+# days_per_season days long, so the shipped year is 28 days and day 8 is
+# the first day of Summer. first_season names the season of the first
+# day, 0 (Spring) to 3 (Winter). Like the weekday, the season is worked
+# out from the tick and these two numbers, so nothing about it is saved;
+# changing either can move a saved game to a different season. The
+# season changes how the yard's grass looks and nothing else: needs,
+# moods, careers and autonomy do not read it. days_per_season must be at
+# least 1 and first_season at most 3. Appended to the compiled tuning
+# after career_mood_fired_ticks, with season_yard_looks below, so packs
+# published before them reconstruct these shipped values.
+days_per_season = 7
+first_season = 0
+
+# The yard grass's color change in each season, in season order, as
+# [hue, strength, lightness] like the yard look in lot.toml ([SEA-yard]).
+# Each row is applied on top of the lot's yard look: its hue turn is
+# added, its strength multiplies the color strength, and its lightness
+# is added, which equals the shader applying the two shifts in turn
+# while no color is clamped. [0, 1, 0]
+# leaves the grass as authored. The house floors, the street and any
+# floor laid on the yard do not change. Each row has the same ranges as
+# a lot look: hue -180 to 180 degrees (negative turns green toward
+# yellow), strength 0 to 2, lightness -0.25 to 0.25. Kept small so the
+# grass pattern stays readable in every season.
+season_yard_looks = [
+  [0.0, 1.0, 0.0],      # Spring: the grass as authored
+  [-6.0, 0.9, 0.02],    # Summer: a little warmer, drier and lighter
+  [-45.0, 0.9, -0.05],  # Autumn: a yellow-brown cast
+  [12.0, 0.3, 0.14],    # Winter: pale and desaturated, a frosty lightness
+]
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # One crisis costs about 0.0144 points per game day, alongside its mood

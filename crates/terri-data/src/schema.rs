@@ -422,6 +422,14 @@ pub struct TuningFile {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    /// How many days each season lasts, at least 1 - [SEA-year] in
+    /// `docs/specs/2026-10-17-seasons.md`.
+    pub days_per_season: u32,
+    /// The season of the first day, 0 (Spring) to 3 (Winter) - [SEA-year].
+    pub first_season: u8,
+    /// The yard grass's `[hue, strength, lightness]` change in each season,
+    /// Spring first, each in a lot look's ranges - [SEA-yard].
+    pub season_yard_looks: [[f32; 3]; 4],
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1376,7 +1384,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 127] = [
+    const TUNING_LINES: [(&str, &str); 130] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1450,6 +1458,12 @@ mod tests {
         ("career_mood_promoted_ticks", "1400"),
         ("career_mood_demoted_ticks", "2800"),
         ("career_mood_fired_ticks", "5700"),
+        ("days_per_season", "9"),
+        ("first_season", "3"),
+        (
+            "season_yard_looks",
+            "[[0.5, 1.25, 0.03125], [-7.5, 0.875, 0.0625], [-40.5, 0.8125, -0.046875], [11.5, 0.375, 0.125]]",
+        ),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1592,6 +1606,17 @@ mod tests {
         assert_eq!(parsed.career_review_noise, 9.5);
         assert_eq!(parsed.career_search_tick, 12);
         assert_eq!(parsed.career_mood_fired_ticks, 5700);
+        assert_eq!(parsed.days_per_season, 9);
+        assert_eq!(parsed.first_season, 3);
+        assert_eq!(
+            parsed.season_yard_looks,
+            [
+                [0.5, 1.25, 0.03125],
+                [-7.5, 0.875, 0.0625],
+                [-40.5, 0.8125, -0.046875],
+                [11.5, 0.375, 0.125]
+            ]
+        );
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);

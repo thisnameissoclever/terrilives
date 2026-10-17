@@ -146,6 +146,28 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("career_mood_promoted_ticks", toml::Value::Integer(1440)),
         ("career_mood_demoted_ticks", toml::Value::Integer(2880)),
         ("career_mood_fired_ticks", toml::Value::Integer(5760)),
+        // Seasons (issue 251): the shipped values, reconstructed by the
+        // published-pack conversions too.
+        ("days_per_season", toml::Value::Integer(7)),
+        ("first_season", toml::Value::Integer(0)),
+        // The table is read from the same constant the conversions use,
+        // rather than a third copy of twelve numbers; each f32 widens to an
+        // f64 that narrows back to itself when the tuning is parsed.
+        (
+            "season_yard_looks",
+            toml::Value::Array(
+                pack::Tuning::SHIPPED_SEASON_YARD_LOOKS
+                    .iter()
+                    .map(|row| {
+                        toml::Value::Array(
+                            row.iter()
+                                .map(|value| toml::Value::Float(f64::from(*value)))
+                                .collect(),
+                        )
+                    })
+                    .collect(),
+            ),
+        ),
     ] {
         tuning
             .as_table_mut()

@@ -1159,6 +1159,17 @@ pub struct Tuning {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    /// How many days each season lasts, at least 1 (seasons, issue 251;
+    /// [SEA-year] in `docs/specs/2026-10-17-seasons.md`). Read through
+    /// `terri_core::clock::season`. Appended after the career knobs, per
+    /// the rule above, with the two knobs after it.
+    pub days_per_season: u32,
+    /// The season of day 0, 0 (Spring) to 3 (Winter) - [SEA-year].
+    pub first_season: u8,
+    /// The yard grass's `[hue, strength, lightness]` change in each season,
+    /// Spring first, composed with `CompiledLot::yard_look` by the shell -
+    /// [SEA-yard]. Presentation only; the simulation never reads it.
+    pub season_yard_looks: [[f32; 3]; 4],
 }
 
 impl Tuning {
@@ -1212,6 +1223,16 @@ impl Tuning {
     pub const SHIPPED_CAREER_MOOD_PROMOTED_TICKS: u32 = 1440;
     pub const SHIPPED_CAREER_MOOD_DEMOTED_TICKS: u32 = 2880;
     pub const SHIPPED_CAREER_MOOD_FIRED_TICKS: u32 = 5760;
+    /// The shipped season knobs, reconstructed the same way for packs
+    /// published before they existed.
+    pub const SHIPPED_DAYS_PER_SEASON: u32 = 7;
+    pub const SHIPPED_FIRST_SEASON: u8 = 0;
+    pub const SHIPPED_SEASON_YARD_LOOKS: [[f32; 3]; 4] = [
+        [0.0, 1.0, 0.0],
+        [-6.0, 0.9, 0.02],
+        [-45.0, 0.9, -0.05],
+        [12.0, 0.3, 0.14],
+    ];
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -2058,6 +2079,14 @@ mod tests {
             career_mood_promoted_ticks: 1500,
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
+            days_per_season: 5,
+            first_season: 2,
+            season_yard_looks: [
+                [0.5, 1.25, 0.03125],
+                [-7.5, 0.875, 0.0625],
+                [-40.5, 0.8125, -0.046875],
+                [11.5, 0.375, 0.125],
+            ],
         }
     }
 
@@ -2816,8 +2845,9 @@ mod tests {
     /// ([OA-hud], [OA-values]), the twelve before the need-interaction
     /// balance values, which precede the four bytes of
     /// `hated_communal_chance`, the fourteen of the burnt-meal knobs, the
-    /// eighteen of the fight knobs and the final four of the land knobs;
-    /// every established field stays put.
+    /// eighteen of the fight knobs, the four of the land knobs, the
+    /// ninety-five of the career knobs and the final fifty of the season
+    /// knobs; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2831,12 +2861,57 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Careers (issue 249): the twenty-six career knobs are the final
-        // ninety-five bytes: twenty-two floats, the search tick (one byte
-        // at 11) and three tick knobs of two bytes each.
-        let career = before.len() - 95;
+        // Seasons (issue 251): the three season knobs are the final fifty
+        // bytes: the season length as a one-byte varint (5), the first
+        // season as one raw byte (2), then the four yard looks as twelve
+        // floats in season order, with no length prefix because the table
+        // has a fixed size.
+        let season = before.len() - 50;
+        assert_eq!(before[season..season + 2], [5, 2]);
+        assert_eq!(
+            before[season + 2..],
+            [
+                0.5f32, 1.25, 0.03125, -7.5, 0.875, 0.0625, -40.5, 0.8125, -0.046875, 11.5, 0.375,
+                0.125
+            ]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect::<Vec<_>>()
+        );
+        assert_eq!(
+            changed(Tuning {
+                days_per_season: 6,
+                ..a_tuning()
+            }),
+            vec![season],
+            "season length"
+        );
+        assert_eq!(
+            changed(Tuning {
+                first_season: 3,
+                ..a_tuning()
+            }),
+            vec![season + 1],
+            "first season"
+        );
+        // Winter's lightness, the last float: 0.125 and 0.1875 differ only
+        // in their third byte.
+        let mut looks = a_tuning().season_yard_looks;
+        looks[3][2] = 0.1875;
+        assert_eq!(
+            changed(Tuning {
+                season_yard_looks: looks,
+                ..a_tuning()
+            }),
+            vec![before.len() - 2],
+            "winter lightness"
+        );
+        // Careers (issue 249): the twenty-six career knobs are the
+        // ninety-five bytes before them: twenty-two floats, the search
+        // tick (one byte at 11) and three tick knobs of two bytes each.
+        let career = season - 95;
         assert_eq!(before[career..career + 4], 8.5f32.to_le_bytes());
-        assert_eq!(before[before.len() - 2..], [0xA8, 0x2D]);
+        assert_eq!(before[season - 2..season], [0xA8, 0x2D]);
         assert_eq!(
             changed(Tuning {
                 career_review_noise: 8.75,
@@ -2850,7 +2925,7 @@ mod tests {
                 career_mood_fired_ticks: 5801,
                 ..a_tuning()
             }),
-            vec![before.len() - 2],
+            vec![season - 2],
             "career fired ticks"
         );
         // Land expansion (issue 254): the three land knobs are the four
