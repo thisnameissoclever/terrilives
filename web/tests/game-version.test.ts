@@ -14,7 +14,18 @@ const CARGO_LOCK = read('../../Cargo.lock');
 const INDEX_HTML = read('../index.html');
 const MAIN_TS = read('../src/main.ts');
 const README = read('../../README.md');
-const CRATES = ['terri-core', 'terri-data', 'terri-sim', 'terri-wasm'];
+
+/** The member paths under `[workspace] members` in the root Cargo.toml, so a new crate is checked too. */
+function workspaceMembers(): string[] {
+  const list = /^\[workspace\]\s*$[\s\S]*?^members\s*=\s*\[([\s\S]*?)\]/m.exec(CARGO_TOML)?.[1] ?? '';
+  return [...list.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+}
+const MEMBERS = workspaceMembers();
+
+/** The `[package] name` in one member's Cargo.toml. */
+function packageName(manifest: string): string | undefined {
+  return /^\[package\]\s*$[\s\S]*?^name\s*=\s*"([^"]+)"/m.exec(manifest)?.[1];
+}
 
 /** The `version` in the root Cargo.toml's `[workspace.package]` table. */
 function cargoWorkspaceVersion(): string | undefined {
@@ -49,12 +60,19 @@ describe('the game version', () => {
   });
 
   it('matches the Version line in README.md', () => {
-    expect(README).toContain(`Version ${version}. The number is set once in \`web/package.json\``);
+    expect(/^Version (\S+?)\. /m.exec(README)?.[1]).toBe(version);
   });
 
-  it.each(CRATES)('is inherited by %s from the workspace and recorded in Cargo.lock', (name) => {
-    expect(read(`../../crates/${name}/Cargo.toml`)).toMatch(/^version\.workspace = true$/m);
-    expect(lockedCrateVersion(name)).toBe(version);
+  it('finds the workspace members in Cargo.toml', () => {
+    expect(MEMBERS.length).toBeGreaterThan(0);
+  });
+
+  it.each(MEMBERS)('is inherited by %s from the workspace and recorded in Cargo.lock', (member) => {
+    const manifest = read(`../../${member}/Cargo.toml`);
+    expect(manifest).toMatch(/^version\.workspace = true$/m);
+    const name = packageName(manifest);
+    expect(name).toBeDefined();
+    expect(lockedCrateVersion(name!)).toBe(version);
   });
 });
 

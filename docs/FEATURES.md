@@ -1384,7 +1384,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Shared civic projects** | Depends on a backend beyond content sync |
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
-| **Native desktop build** | Shell swap, deferred by choice, not blocked |
+| **Native desktop build** | Shell swap, deferred by choice, not blocked. Shell options, costs and multithreading paths are in [the desktop app research](plans/2026-10-17-desktop-app.md) |
 | **Weather, seasons, vehicles** | Classic expansion-pack material. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
