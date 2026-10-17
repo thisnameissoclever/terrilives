@@ -8,7 +8,7 @@ A played check of the Build mode Land tool (issue 254, part two) on the producti
 | `02-unaffordable-strip-chosen.jpg` | Behind the house picked with $0 | The west strip filled in the red tint; the status in red reads the size, 160 squares, $24,000 and "You have $0." |
 | `08-cancel-only-dialog.jpg` | Buy land with $0 | The confirmation repeats the total and says the land cannot be bought yet; only Cancel is offered. |
 | `03-affordable-quote.jpg` | Behind the house picked with $1,000,000 | The strip filled in the blue tint; the status reads "$976,000 would remain." |
-| `04-rear-strip-bought.jpg` | After Buy in the confirmation | The house and everything in it where they were on screen; ten tiles of yard beyond the west wall; floor and shell walls along the house; funds 976,000; status "Bought 160 squares behind the house for $24,000." |
+| `04-rear-strip-bought.jpg` | After Buy in the confirmation | The house and everything in it where they were on screen; ten tiles of yard beyond the west wall; floor and shell walls along the house; funds 976,120; status "Bought 160 squares behind the house for $24,000." |
 | `05-cancel-restores-lot.jpg` | After Cancel in the build panel | The original lot and funds back, the house still in place; status "Pending changes cancelled." |
 | `06-right-strip-bought.jpg` | Right side bought | Ten tiles of yard beyond the north wall; the house in place; funds 970,120. |
 | `07-play-after-confirm.jpg` | After Confirm and Exit build | Normal play on the grown lot. |
