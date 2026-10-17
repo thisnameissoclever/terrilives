@@ -12053,3 +12053,24 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the module served three exports. The bath loop uses only its wardrobe function, but a receipt pins the whole file, so an edit to the washing pose broke the bath receipt without changing any shipped bath pixel. Skipping CI hid the failure until the next unrelated push.
 3. Prevention: before editing a file under `assets/models`, search the export receipts (`grep -rn <file name> assets/models/*/actions/export assets/models/*/export`) for its path. If a shipped receipt pins it, either run that export again and review the art, or put the new work in a separate module the receipt does not pin. Never push a change to pinned inputs with `[skip ci]`.
 4. Verification: run `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'` and `python assets/sprites/gen/build.py --check` locally before pushing; both fail on a changed pinned input. After merging, confirm the CI run on main passed and the Pages deployment ran.
+
+## [L-browser-readiness-lifecycle] Match readiness checks to the component lifecycle
+
+1. What happened: a browser verifier reported that startup never finished after the house and Help appeared.
+2. Root cause: the verifier negated an optional hidden property. The loading cover is removed after its fade, so the absent element produced a false loading result. Closing an unfinished page could also create a preparation-cancelled error during cleanup.
+3. Prevention: inspect the actual readiness owner's lifecycle. Require cover removal, absence of a failure card, and a successful game control interaction. Record errors before cleanup and keep waits bounded; do not blame the browser before validating the predicate.
+4. Verification: exercise successful startup and an actual Build transition. A removed cover must count as finished, while a failure card must refuse readiness even after the cover is gone.
+
+## [L-action-color-owning-selectors] Verify semantic colors through the owning component rules
+
+1. What happened: semantic action attributes and focused interface tests passed while the radial menu retained neutral colors.
+2. Root cause: an ID-specific radial entry rule overrode the shared normal and interaction styles. Attribute assertions did not exercise the browser's cascade.
+3. Prevention: make each component's normal, hover, focus, active, and disabled rules consume shared role variables. Audit inline colors and specific selectors before accepting a shared palette.
+4. Verification: inspect computed colors on actual radial navigation and cancellation controls, alongside contextual controls, creator controls, disabled states, and forced colors. Preserve a visible keyboard focus indicator and verify that ordinary actions remain neutral.
+
+## [L-room-identity-coordinate-translation] Keep room identities separate from tile coordinates
+
+1. What happened: a land-expansion regression for the new room registry transformed a stable room ID as though it were a tile index.
+2. Root cause: the older translation code correctly remapped geometry-derived region seeds, but its integer representation did not distinguish those seeds from permanent identities.
+3. Prevention: branch translation on the explicit room representation. Translate anchors, membership, paths, dirt, and work cells; preserve stable room, object, person, and episode IDs. Keep the historical seed conversion in its historical path.
+4. Verification: buy land on north and west sides with a stable ID larger than the tile count. Require unchanged IDs, names, assignments, and object-key targets alongside the correctly translated geometry and tile-indexed state.
