@@ -5,9 +5,10 @@
  * only when the lot does: a Load, or a lot edit such as a wall or a moved,
  * turned or bought light. So this runs only through `main.ts`'s
  * camera-dirty gate: at startup, after Load, after a lot edit, when the
- * window or camera changes, and when flat lighting changes the static
- * tint. Its output is uploaded to the front of the instance buffer and left
- * there between changes.
+ * window or camera changes, when flat lighting changes the static tint,
+ * and when the season turns and the yard's grass changes color. Its
+ * output is uploaded to the front of the instance buffer and left there
+ * between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
@@ -112,6 +113,15 @@ export interface Lot {
   readonly house?: readonly [number, number] | null;
   /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
   readonly yardLook?: readonly [number, number, number] | null;
+  /**
+   * The yard grass's `[hue, strength, lightness]` change in each season,
+   * flattened, Spring first ([SEA-yard] in `docs/specs/2026-10-17-seasons.md`).
+   * Composed with `yardLook` by `seasonalYardLook`; absent, the yard keeps
+   * its own look all year.
+   */
+  readonly seasonYardLooks?: ArrayLike<number> | null;
+  /** The current season, 0 (Spring) to 3 (Winter), which picks a row above. */
+  readonly season?: number | null;
   /** The street's column, where commutes end ([OS-street]); absent, no street. */
   readonly street?: number | null;
   /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
@@ -137,6 +147,42 @@ export function setCutAwayWalls(lot: { showCutAwayWalls?: boolean }, show: boole
   if ((lot.showCutAwayWalls === true) === show) return false;
   lot.showCutAwayWalls = show;
   return true;
+}
+
+/**
+ * [SEA-yard]: sets the season the yard is drawn in, and says whether that
+ * changed, so the static block is rebuilt when the season turns or a Load
+ * lands in another season, and not every frame.
+ */
+export function setSeason(lot: { season?: number | null }, season: number): boolean {
+  if (lot.season === season) return false;
+  lot.season = season;
+  return true;
+}
+
+/**
+ * The yard's look in `season` ([SEA-yard]): the lot's yard look with that
+ * season's row of `seasonLooks` applied on top. The hue turns add, the color
+ * strengths multiply and the lightness shifts add, so the one shift the
+ * shader applies equals the two applied one after the other in OKLab while
+ * no color is clamped. Without a table, or for a season the table has no
+ * row for, the yard look is returned unchanged.
+ */
+export function seasonalYardLook(
+  yardLook: readonly [number, number, number],
+  seasonLooks: ArrayLike<number> | null | undefined,
+  season: number | null | undefined,
+): readonly [number, number, number] {
+  if (seasonLooks == null || season == null || !Number.isInteger(season) || season < 0
+    || 3 * season + 2 >= seasonLooks.length) {
+    return yardLook;
+  }
+  const row = 3 * season;
+  return [
+    yardLook[0] + seasonLooks[row],
+    yardLook[1] * seasonLooks[row + 1],
+    yardLook[2] + seasonLooks[row + 2],
+  ];
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -239,10 +285,11 @@ export function buildStaticInstances(
   // ([RC-shift]).
   // Rows 0 to 2 are where a tile is: the house, the yard, the street. The
   // coverings the player may lay follow, so a painted tile writes row 3
-  // upward and nothing else changes ([FL-draw]).
+  // upward and nothing else changes ([FL-draw]). Only the yard's grass takes
+  // the season's color ([SEA-yard]); a covering laid on the yard hides it.
   const lookShifts = Float32Array.from([
-    0, 1, 0, ...(lot.yardLook ?? [0, 1, 0]), ...(lot.streetLook ?? [0, 1, 0]),
-    ...(lot.coveringLooks ?? []),
+    0, 1, 0, ...seasonalYardLook(lot.yardLook ?? [0, 1, 0], lot.seasonYardLooks, lot.season),
+    ...(lot.streetLook ?? [0, 1, 0]), ...(lot.coveringLooks ?? []),
   ]);
   // The covering on each painted tile, keyed by tile ([FL-save]).
   const painted = new Map<number, number>();
