@@ -97,6 +97,9 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("affinity_band_loves", toml::Value::Float(0.6)),
         ("affinity_band_likes", toml::Value::Float(0.2)),
         ("affinity_from_mild_trait", toml::Value::Float(0.4)),
+        // Communal affinity (issue 257): the shipped value, which the
+        // published-pack conversions reconstruct too.
+        ("hated_communal_chance", toml::Value::Float(0.35)),
     ] {
         tuning
             .as_table_mut()

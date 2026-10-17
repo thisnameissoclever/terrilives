@@ -487,6 +487,7 @@ impl From<PublishedTuning> for Tuning {
             affinity_band_likes: old.affinity_band_likes,
             affinity_from_mild_trait: old.affinity_from_mild_trait,
             need_interactions: crate::NeedInteractionTuning::default(),
+            hated_communal_chance: Tuning::SHIPPED_HATED_COMMUNAL_CHANCE,
         }
     }
 }

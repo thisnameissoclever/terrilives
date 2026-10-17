@@ -157,9 +157,15 @@ Positive contact requires acceptable hygiene in the other Sim and no critical
 need in the subject left unhelped by the current activity. Existing dislike or
 relationship mood cannot prevent recovery. Simultaneous reading, exercise and
 aquarium watching on separate objects earn ten times passive contact when both
-participants enjoy the activity. Shared activities replace passive rewards and
-suspend incompatibility friction. Conversations receive one completion reward.
-Shared meals and TV currently do not earn this recognition bonus.
+participants enjoy the activity. Two diners seated at the same table during a
+meal, and two people actively using the same television or radio, earn the
+same communal rate. Shared activities replace passive rewards and suspend
+incompatibility friction. Conversations receive one completion reward.
+A Sim who already hates the other participant still earns the communal gain,
+but only on a tuned fraction of contact minutes (`hated_communal_chance`,
+0.35), decided by a seeded roll from the tick and the pair rather than from
+the shared simulation stream. Hygiene and unhelped critical needs still block
+the gain as for any positive contact.
 
 Compatibility uses personality interaction preferences, disposition traits and
 hobbies, with each activity tag counted once. Recipe preferences use the recipe's

@@ -328,6 +328,10 @@ pub struct TuningFile {
     pub relationships: crate::RelationshipTuning,
     #[serde(default)]
     pub need_interactions: crate::NeedInteractionTuning,
+    /// Chance per contact minute that a communal activity still warms a
+    /// person toward a housemate they hate (communal affinity, issue 257).
+    /// Finite, from 0 to 1. Required, like every other root knob.
+    pub hated_communal_chance: f32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1252,7 +1256,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 88] = [
+    const TUNING_LINES: [(&str, &str); 89] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1287,6 +1291,7 @@ mod tests {
         ("relationship_gain_per_talk", "0.4375"),
         ("relationship_decay_per_tick", "0.001953125"),
         ("relationship_delta_scale", "0.875"),
+        ("hated_communal_chance", "0.359375"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1413,6 +1418,7 @@ mod tests {
         assert_eq!(parsed.relationship_gain_per_talk, 0.4375);
         assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
         assert_eq!(parsed.relationship_delta_scale, 0.875);
+        assert_eq!(parsed.hated_communal_chance, 0.359375);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);

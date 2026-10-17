@@ -1069,6 +1069,17 @@ pub struct Tuning {
     pub affinity_from_mild_trait: f32,
     /// Appended balance values; saves reconstruct these from current content.
     pub need_interactions: crate::NeedInteractionTuning,
+    /// Chance per contact minute that a communal activity still warms a
+    /// person toward a housemate they hate (communal affinity, issue 257).
+    /// Appended after the balance values, per the rule above.
+    pub hated_communal_chance: f32,
+}
+
+impl Tuning {
+    /// What a pack published before `hated_communal_chance` existed
+    /// reconstructs for it: the shipped `content/tuning.toml` value, which
+    /// the authentic published-pack test pins against current content.
+    pub const SHIPPED_HATED_COMMUNAL_CHANCE: f32 = 0.35;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1849,6 +1860,7 @@ mod tests {
             affinity_band_likes: 0.1875,
             affinity_from_mild_trait: 0.34375,
             need_interactions: crate::NeedInteractionTuning::default(),
+            hated_communal_chance: 0.359375,
         }
     }
 
@@ -2575,8 +2587,9 @@ mod tests {
     /// ([CAL-week]), the byte before the seven affinity knobs ([OA-values]),
     /// which are the twenty-five before the two trait bands ([TL-affinity]),
     /// the eight before the word bands and the mild trait value
-    /// ([OA-hud], [OA-values]), the final twelve; every established field
-    /// stays put.
+    /// ([OA-hud], [OA-values]), the twelve before the need-interaction
+    /// balance values, which precede the final four bytes of
+    /// `hated_communal_chance`; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2590,12 +2603,26 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // [OA-hud], [OA-values]: the two word bands and the mild trait value
-        // are the last twelve bytes, three floats in declaration order. Each
-        // changed float differs from the fixture's only in its third byte.
-        let need_start = before.len() - 12;
+        // Communal affinity (issue 257): the hated communal chance is the
+        // last four bytes, one float; a change differs from the fixture's
+        // only in its third byte.
+        let chance = before.len() - 4;
+        assert_eq!(before[chance..], 0.359375f32.to_le_bytes());
         assert_eq!(
-            &before[need_start..],
+            changed(Tuning {
+                hated_communal_chance: 0.390625,
+                ..a_tuning()
+            }),
+            vec![chance + 2]
+        );
+        // The need-interaction balance values are the twelve bytes before
+        // it, three floats in declaration order; the two word bands and the
+        // mild trait value ([OA-hud], [OA-values]) are the twelve before
+        // those. Each changed float differs from the fixture's only in its
+        // third byte.
+        let need_start = chance - 12;
+        assert_eq!(
+            &before[need_start..chance],
             [40.0f32, 2. / 90., 0.12]
                 .into_iter()
                 .flat_map(f32::to_le_bytes)

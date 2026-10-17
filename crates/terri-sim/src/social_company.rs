@@ -128,14 +128,66 @@ impl SocialCompany {
             },
         )
     }
-    pub(crate) fn shared_activity(&self, owner: Entity) -> Option<(Entity, String)> {
+    /// What `owner` is doing in company, for affinity recognition.
+    pub(crate) fn communal_activity(&self, owner: Entity) -> Option<Communal> {
         let me = self.participants.iter().find(|p| p.entity == owner)?;
-        if let Activity::Shared(group) = &me.activity {
-            Some((me.station, group.clone()))
-        } else {
-            None
+        Some(match &me.activity {
+            Activity::Shared(group) => Communal::Shared {
+                station: me.station,
+                group: group.clone(),
+            },
+            Activity::Media(interaction) => Communal::Device {
+                station: me.station,
+                interaction: *interaction,
+            },
+            Activity::Meal => Communal::Table {
+                station: me.station,
+            },
+        })
+    }
+}
+
+/// An active communal activity, keyed by what a partner must share.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum Communal {
+    /// The same shared-activity group on a different object.
+    Shared { station: Entity, group: String },
+    /// The same television or radio, in the same way.
+    Device { station: Entity, interaction: u32 },
+    /// A seat at the same table during a meal.
+    Table { station: Entity },
+}
+
+impl Communal {
+    /// Whether two people's activities count as one communal activity.
+    /// Shared groups also need both people to accept the activity;
+    /// `accepts` answers that for the group name.
+    pub(crate) fn pairs_with(&self, other: &Self, accepts: impl Fn(&str) -> bool) -> bool {
+        match (self, other) {
+            (
+                Self::Shared { station, group },
+                Self::Shared {
+                    station: theirs,
+                    group: their_group,
+                },
+            ) => station != theirs && group == their_group && accepts(group),
+            (
+                Self::Device {
+                    station,
+                    interaction,
+                },
+                Self::Device {
+                    station: theirs,
+                    interaction: their_interaction,
+                },
+            ) => station == theirs && interaction == their_interaction,
+            (Self::Table { station }, Self::Table { station: theirs }) => station == theirs,
+            _ => false,
         }
     }
+}
+
+impl SocialCompany {
     fn allowed(
         &self,
         owner: Entity,

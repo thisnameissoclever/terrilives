@@ -75,7 +75,29 @@ struct Contact {
     needs: Needs,
     preferences: Preferences,
     helped: Vec<(u8, f32)>,
-    activity: Option<(Entity, String)>,
+    activity: Option<crate::social_company::Communal>,
+}
+
+/// Whether a person who hates a housemate still gains from their shared
+/// activity this minute: a seeded roll against `hated_communal_chance`.
+/// The seed mixes the tick and both people, so the roll never consumes the
+/// shared simulation stream and two runs always agree.
+pub(crate) fn hated_communal_gain(
+    tuning: &terri_data::Tuning,
+    tick: u64,
+    subject: SimId,
+    other: SimId,
+) -> bool {
+    let chance = tuning.hated_communal_chance;
+    if chance >= 1.0 {
+        return true;
+    }
+    let mut hash = terri_core::FnvHasher::default();
+    hash.write_u64(tuning.rng_seed);
+    hash.write_u64(tick);
+    hash.write_u64(u64::from(subject.0));
+    hash.write_u64(u64::from(other.0));
+    terri_core::SimRng::from_seed(hash.finish()).next_f32() < chance
 }
 
 pub(crate) fn tick(world: &mut World) {
@@ -162,7 +184,7 @@ pub(crate) fn tick(world: &mut World) {
                 },
                 activity: world
                     .resource::<crate::social_company::SocialCompany>()
-                    .shared_activity(entity),
+                    .communal_activity(entity),
             })
         })
         .collect();
@@ -192,12 +214,21 @@ pub(crate) fn tick(world: &mut World) {
                 .activity
                 .as_ref()
                 .zip(other.activity.as_ref())
-                .is_some_and(|((a, group), (b, theirs))| {
-                    a != b
-                        && group == theirs
-                        && subject.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
-                        && other.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
+                .is_some_and(|(mine, theirs)| {
+                    mine.pairs_with(theirs, |group| {
+                        subject.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
+                            && other.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
+                    })
                 });
+            let before = world
+                .get::<Relationships>(subject.entity)
+                .map_or(0.0, |r| r.feeling(other.id));
+            if shared
+                && before <= -tuning.affinity_band_loves
+                && !hated_communal_gain(&tuning, tick, subject.id, other.id)
+            {
+                continue;
+            }
             let (cause, requested) = if shared {
                 (
                     RelationshipCause::SharedActivity,
@@ -225,9 +256,6 @@ pub(crate) fn tick(world: &mut World) {
             {
                 continue;
             }
-            let before = world
-                .get::<Relationships>(subject.entity)
-                .map_or(0.0, |r| r.feeling(other.id));
             let mut feelings = world
                 .get::<Relationships>(subject.entity)
                 .cloned()
@@ -450,6 +478,150 @@ mod tests {
         assert!(events
             .iter()
             .all(|e| e.cause == crate::relationship_effects::RelationshipCause::SharedActivity));
+    }
+
+    /// Two people, each with a running television interaction on `device`,
+    /// standing where the lot admits them as viewers.
+    fn watching_together(sim: &mut Sim, a: Entity, b: Entity) -> Entity {
+        let pack = sim.world().resource::<Content>().0;
+        let television = pack.find("television").unwrap();
+        let device = sim.spawn_object(Position { x: 2.0, y: 3.0 }, television);
+        crate::apply_object_placement(
+            sim.world_mut(),
+            device,
+            pack.object(television),
+            Position { x: 2.0, y: 3.0 },
+            terri_core::Facing::SouthEast,
+        );
+        for (entity, y) in [(a, 3.0), (b, 4.0)] {
+            sim.world_mut().entity_mut(entity).insert((
+                Position { x: 3.0, y },
+                Target {
+                    object: device,
+                    interaction: 0,
+                },
+                Eating {
+                    object: television,
+                    interaction: 0,
+                    remaining_ticks: 30,
+                },
+            ));
+        }
+        device
+    }
+
+    #[test]
+    fn watching_one_television_together_pays_the_shared_activity_rate() {
+        let (mut sim, a, b) = pair();
+        let device = watching_together(&mut sim, a, b);
+        tick(sim.world_mut());
+        assert!((feeling(&sim, a, SimId(1)) - 0.02 / 60.0).abs() < 0.0000001);
+        assert!((feeling(&sim, b, SimId(0)) - 0.02 / 60.0).abs() < 0.0000001);
+        let events = sim.relationship_effects();
+        assert_eq!(events.len(), 2);
+        assert!(events
+            .iter()
+            .all(|e| e.cause == crate::relationship_effects::RelationshipCause::SharedActivity));
+
+        // A second television beside the first is a different device, so
+        // the pair falls back to ordinary proximity.
+        let pack = sim.world().resource::<Content>().0;
+        let television = pack.find("television").unwrap();
+        let second = sim.spawn_object(Position { x: 5.0, y: 3.0 }, television);
+        crate::apply_object_placement(
+            sim.world_mut(),
+            second,
+            pack.object(television),
+            Position { x: 5.0, y: 3.0 },
+            terri_core::Facing::SouthEast,
+        );
+        assert_ne!(device, second);
+        sim.world_mut().entity_mut(b).insert(Target {
+            object: second,
+            interaction: 0,
+        });
+        sim.world_mut()
+            .entity_mut(a)
+            .insert(Relationships::default());
+        sim.world_mut()
+            .entity_mut(b)
+            .insert(Relationships::default());
+        crate::relationship_effects::reset(sim.world_mut());
+        tick(sim.world_mut());
+        assert!((feeling(&sim, a, SimId(1)) - 0.002 / 60.0).abs() < 0.0000001);
+        assert_eq!(sim.relationship_effects().len(), 2);
+        assert!(sim
+            .relationship_effects()
+            .iter()
+            .all(|e| e.cause == crate::relationship_effects::RelationshipCause::Proximity));
+    }
+
+    /// Hatred does not block a communal gain outright: the tuned chance
+    /// decides each contact minute, from a seed that mixes the tick and the
+    /// pair, so the same minute always rolls the same way.
+    #[test]
+    fn a_hated_viewer_still_warms_on_the_tuned_fraction_of_minutes() {
+        let shipped = terri_data::pack().tuning;
+        assert_eq!(shipped.hated_communal_chance, 0.35);
+        let outcomes = |chance: f32, minutes: u64| -> Vec<bool> {
+            let (mut sim, a, b) = pair();
+            let mut pack = sim.world().resource::<Content>().0.clone();
+            pack.tuning.hated_communal_chance = chance;
+            sim.world_mut()
+                .insert_resource(Content(Box::leak(Box::new(pack))));
+            watching_together(&mut sim, a, b);
+            let hates = -sim
+                .world()
+                .resource::<Content>()
+                .0
+                .tuning
+                .affinity_band_loves;
+            (0..minutes)
+                .map(|minute| {
+                    let mut feelings = Relationships::default();
+                    feelings.bump(SimId(1), hates);
+                    sim.world_mut().entity_mut(a).insert(feelings);
+                    sim.world_mut().resource_mut::<SimClock>().tick = minute;
+                    tick(sim.world_mut());
+                    feeling(&sim, a, SimId(1)) > hates
+                })
+                .collect()
+        };
+        let shipped = outcomes(0.35, 400);
+        let warmed = shipped.iter().filter(|&&w| w).count();
+        assert!(
+            (100..=180).contains(&warmed),
+            "about 35% of 400 minutes should warm, not {warmed}"
+        );
+        assert_eq!(
+            shipped,
+            outcomes(0.35, 400),
+            "the roll is seeded, not clocked"
+        );
+        assert!(
+            outcomes(0.0, 60).iter().all(|&w| !w),
+            "0 blocks every minute"
+        );
+        assert!(outcomes(1.0, 60).iter().all(|&w| w), "1 blocks none");
+        // Just above the Hates edge the chance no longer applies.
+        let (mut sim, a, b) = pair();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.tuning.hated_communal_chance = 0.0;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        watching_together(&mut sim, a, b);
+        let dislikes = -sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .affinity_band_loves
+            + 0.01;
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(1), dislikes);
+        sim.world_mut().entity_mut(a).insert(feelings);
+        tick(sim.world_mut());
+        assert!(feeling(&sim, a, SimId(1)) > dislikes);
     }
 
     #[test]
