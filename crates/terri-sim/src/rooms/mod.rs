@@ -6,6 +6,9 @@ use terri_core::{
     TileGrid,
 };
 
+mod matching;
+pub use matching::*;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TopologyCell {
     NotFloor,
@@ -37,6 +40,13 @@ pub enum RoomError {
     InvalidArchitecture,
     AllocationFailed,
     FloodFillBound,
+    InvalidRoomMap,
+    InvalidRegistry,
+    InvalidChoice,
+    InvalidName,
+    IdExhausted,
+    DefaultNameExhausted,
+    TooManyRecords,
 }
 
 impl RoomTopology {
@@ -308,5 +318,7 @@ fn architecture(
     Ok(boundaries)
 }
 
+#[cfg(test)]
+mod identity_tests;
 #[cfg(test)]
 mod tests;

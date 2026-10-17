@@ -16,6 +16,7 @@ pub mod ids;
 pub mod layout;
 pub mod needs;
 pub mod rng;
+pub mod rooms;
 pub mod save;
 pub mod save_v6;
 pub use save_v6::SaveSnapshotV6;
