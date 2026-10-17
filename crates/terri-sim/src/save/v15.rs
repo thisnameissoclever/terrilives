@@ -134,6 +134,7 @@ fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Resu
         ..Default::default()
     };
     let mut active = BTreeSet::new();
+    let mut physical_participants = BTreeSet::new();
     let mut autonomous = BTreeSet::new();
     let mut orders = BTreeSet::new();
     let mut owned_targets = Vec::new();
@@ -184,6 +185,12 @@ fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Resu
         };
         let phase = live_phase(r.phase);
         if phase != RequestPhase::Suspended && !active.insert(initiator) {
+            return Err(SaveError::InvalidValue);
+        }
+        if matches!(phase, RequestPhase::Approaching | RequestPhase::Talking)
+            && (!physical_participants.insert(initiator)
+                || !physical_participants.insert(recipient))
+        {
             return Err(SaveError::InvalidValue);
         }
         let expected = Target {

@@ -285,4 +285,34 @@ mod tests {
         );
         assert!((a[0] - b[0] - b[1]).abs() < 1e-12);
     }
+    #[test]
+    fn critical_boundary_and_unavailable_relief_preserve_the_ordinary_distribution() {
+        let rows = [(0, 0, 0.01), (1, 0, 100.)];
+        let risks = [0.; 2];
+        let mut helpful = NeedOutcome::default();
+        helpful.net_change[NeedId::Hunger.index()] = 1.;
+        let outcomes = [helpful, NeedOutcome::default()];
+        let mut needs = Needs::all_at(60.);
+        let policy = Some(AutonomyTuning::default());
+        let ordinary =
+            super::super::autonomy::grouped_probabilities(&rows, &risks, 0.06, 0.005, 1e-9);
+        let evaluate = |needs: &Needs, outcomes: &[NeedOutcome]| {
+            critical_choice_probabilities(
+                &rows, &risks, outcomes, needs, 20., policy, 0.06, 0.005, 1e-9,
+            )
+        };
+        needs.set(NeedId::Hunger, f32::from_bits(20f32.to_bits() + 1));
+        assert_eq!(evaluate(&needs, &outcomes), ordinary);
+        needs.set(NeedId::Hunger, 20.);
+        let single = evaluate(&needs, &outcomes);
+        assert!(single[1] <= 0.050000001);
+        assert_eq!(
+            evaluate(&needs, &[NeedOutcome::default(), NeedOutcome::default()]),
+            ordinary
+        );
+        needs.set(NeedId::Social, 20.);
+        let multiple = evaluate(&needs, &outcomes);
+        assert!(multiple[0] >= single[0], "Another critical need with unchanged attainable effects and utilities cannot reduce the existing remedy's chance");
+        assert!(multiple[1] > 0. && multiple[1] <= 0.010000001);
+    }
 }

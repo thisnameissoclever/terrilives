@@ -1451,7 +1451,7 @@ pub fn select_action(
         .iter()
         .filter(|(_, _, needs, queue, _, _, _, _, _, _, wander, path)| {
             queue.is_none_or(|queue| queue.is_empty())
-                && (wander.is_none_or(|w| path.is_none() && w.pause_ticks == 0)
+                && ((path.is_none() && wander.is_none_or(|w| w.pause_ticks == 0))
                     || NeedId::ALL
                         .iter()
                         .any(|id| needs.get(*id) <= content.0.tuning.mood_critical_need_level))
@@ -2176,6 +2176,42 @@ pub fn select_action(
 
         crate::beds::prefer_assignments(&mut candidates, &mut risks, &admissions);
 
+        // Concrete reading plans share the same crisis draw as other actions.
+        // A second book draw could otherwise replace useful relief with an
+        // unrelated title or seat after its probability had already been capped.
+        let concrete_reading_enabled = content.0.tuning.autonomy.is_some()
+            && NeedId::ALL
+                .iter()
+                .any(|id| needs.get(*id) <= content.0.tuning.mood_critical_need_level);
+        let mut concrete_reading = std::collections::HashMap::new();
+        let mut choice_outcomes = Vec::new();
+        for ((object, interaction, score), risk) in std::mem::take(&mut candidates)
+            .into_iter()
+            .zip(std::mem::take(&mut risks))
+        {
+            let plans = concrete_reading_enabled
+                .then(|| {
+                    reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, object, interaction)))
+                })
+                .flatten();
+            if let Some(plans) = plans {
+                for plan in
+                    crate::reading::representatives(plans, agent, None, &occupancy, &reading_copies)
+                {
+                    concrete_reading.insert(candidates.len(), plan.clone());
+                    candidates.push((object, interaction, plan.score));
+                    risks.push(plan.risk);
+                    choice_outcomes.push(plan.need_outcome.clone());
+                }
+            } else {
+                candidates.push((object, interaction, score));
+                risks.push(risk);
+                choice_outcomes.push(outcomes.remove(&(object, interaction)).unwrap_or_default());
+            }
+        }
+
         // Waiting targets and their interactions are sampled like available targets.
         let mut waiting_choices = Vec::new();
         for (target, score, waiting) in waiting_rows {
@@ -2211,10 +2247,7 @@ pub fn select_action(
         );
         candidates.push((agent, u32::MAX, idle_threshold - wander_risk));
         risks.push(wander_risk);
-        let choice_outcomes: Vec<_> = candidates
-            .iter()
-            .map(|(target, row, _)| outcomes.remove(&(*target, *row)).unwrap_or_default())
-            .collect();
+        choice_outcomes.resize_with(candidates.len(), Default::default);
         let probabilities = super::critical_choices::critical_choice_probabilities(
             &candidates,
             &risks,
@@ -2234,6 +2267,10 @@ pub fn select_action(
                 .iter()
                 .map(|id| needs.get(*id))
                 .fold(100.0, f32::min),
+            critical_need_count: NeedId::ALL
+                .iter()
+                .filter(|id| needs.get(**id) <= content.0.tuning.mood_critical_need_level)
+                .count() as u8,
             chosen: picked,
             relief_masks: choice_outcomes
                 .iter()
@@ -2311,21 +2348,25 @@ pub fn select_action(
                 .get(interaction as usize)
                 .is_some_and(|a| a.book_reading)
             {
-                if let Some(plan) = reading
-                    .as_ref()
-                    .and_then(|r| r.0.get(&(agent, object, interaction)))
-                    .and_then(|choices| {
-                        crate::reading::choose_plan(
-                            choices,
-                            agent,
-                            None,
-                            &occupancy,
-                            &reading_copies,
-                            &mut rng,
-                            content.0,
-                        )
-                    })
-                {
+                let plan = if concrete_reading_enabled {
+                    concrete_reading.remove(&picked)
+                } else {
+                    reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, object, interaction)))
+                        .and_then(|choices| {
+                            crate::reading::choose_plan(
+                                choices,
+                                agent,
+                                None,
+                                &occupancy,
+                                &reading_copies,
+                                &mut rng,
+                                content.0,
+                            )
+                        })
+                };
+                if let Some(plan) = plan {
                     reading_copies.insert(plan.copy);
                     crate::reading::publish_plan(&mut occupancy, agent, &plan);
                     commands.queue(move |world: &mut World| {

@@ -5285,9 +5285,8 @@ mod boundary_tests {
         /// The probe is found by HIGHEST ENTITY INDEX, not by row: it is
         /// the newest spawn and nothing despawns during the run, so the
         /// index is unambiguous, while query rows come out in archetype
-        /// order and the probe - which carries no `SimId` - sits in a
-        /// different archetype from the household ([L47]'s row-is-not-an-id
-        /// lesson, met in a test helper).
+        /// order. Public spawns have stable Sim identities; row order still
+        /// does not identify the newest entity ([L47]).
         fn moves_from(tile: (f32, f32)) -> bool {
             fn probe_position(handle: &SimHandle) -> (f32, f32) {
                 use terri_core::Entity;
@@ -5303,6 +5302,21 @@ mod boundary_tests {
             }
 
             let mut handle = SimHandle::from_lot();
+            // Existing household choices must not reserve the geometry probe.
+            let household: Vec<_> = handle
+                .sim
+                .world_mut()
+                .query::<(terri_core::Entity, &terri_core::Agent)>()
+                .iter(handle.sim.world())
+                .map(|(person, _)| person)
+                .collect();
+            for person in household {
+                handle
+                    .sim
+                    .world_mut()
+                    .entity_mut(person)
+                    .insert(terri_core::Reserved);
+            }
             let count = handle.entity_count();
             handle.spawn_agent(tile.0, tile.1, 20.0);
             if handle.entity_count() == count {
@@ -9972,7 +9986,17 @@ mod instinct_boundary_tests {
     fn self_preservation_debug_spawn_uses_rng_and_refused_spawn_draws_nothing() {
         let mut handle = SimHandle::new(4, 4);
         let mut reference = handle.sim.world().resource::<terri_core::SimRng>().clone();
-        let expected = reference.range(101) as u8;
+        let (min, width) = match reference.range(100) {
+            0..=4 => (11, 20),
+            5..=14 => (31, 20),
+            15..=24 => (51, 10),
+            25..=49 => (61, 10),
+            50..=79 => (71, 10),
+            80..=94 => (81, 10),
+            95..=99 => (91, 5),
+            _ => unreachable!(),
+        };
+        let expected = min + reference.range(width) as u8;
         handle.spawn_agent(1.0, 1.0, 50.0);
         assert_eq!(handle.self_preservation_of(0), f64::from(expected));
         assert_eq!(

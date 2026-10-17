@@ -1,4 +1,5 @@
 //! A chosen chat keeps its identity while its recipient finishes another action.
+pub(crate) mod route_cache;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{
@@ -354,10 +355,9 @@ pub(crate) fn enqueue(
     Some(id)
 }
 
-/// Historical and low-level test worlds can contain an active chat without its new metadata.
-/// Project that missing identity without changing the clock or random generator.
-pub(crate) fn snapshot(world: &World) -> ConversationRequests {
-    let mut state = world.resource::<ConversationRequests>().clone();
+/// Derive the same legacy identity for read-only capture and live adoption.
+fn legacy_requests(world: &World) -> Vec<ConversationRequest> {
+    let state = world.resource::<ConversationRequests>();
     let mut missing = BTreeMap::new();
     for (&recipient, &initiator) in &world.resource::<super::SocialEpisodes>().rendezvous {
         if let Some(t) = world
@@ -376,6 +376,8 @@ pub(crate) fn snapshot(world: &World) -> ConversationRequests {
         }
     }
     let pack = world.resource::<crate::Content>().0;
+    let mut next_id = state.next_id;
+    let mut rows = Vec::new();
     for (initiator, (recipient, interaction, phase)) in missing {
         if world.get::<terri_core::SimId>(initiator).is_none()
             || world.get::<terri_core::SimId>(recipient).is_none()
@@ -389,32 +391,86 @@ pub(crate) fn snapshot(world: &World) -> ConversationRequests {
         {
             continue;
         }
-        let id = state.next_id;
+        let id = next_id;
         let Some(next) = id.checked_add(1) else {
-            continue;
+            break;
         };
-        state.next_id = next;
-        state.requests.insert(
+        next_id = next;
+        rows.push(ConversationRequest {
             id,
-            ConversationRequest {
-                id,
-                initiator,
-                recipient,
-                interaction,
-                origin: ConversationOrigin::LegacyUnattributed,
-                created: world.resource::<SimClock>().tick,
-                phase,
-                waiting_tile: None,
-            },
-        );
+            initiator,
+            recipient,
+            interaction,
+            origin: ConversationOrigin::LegacyUnattributed,
+            created: world.resource::<SimClock>().tick,
+            phase,
+            waiting_tile: None,
+        });
+    }
+    rows
+}
+
+/// Historical and low-level worlds can contain a chat without request metadata.
+/// Project its identity without changing the clock or random generator.
+pub(crate) fn snapshot(world: &World) -> ConversationRequests {
+    let mut state = world.resource::<ConversationRequests>().clone();
+    for request in legacy_requests(world) {
+        state.next_id = request.id + 1;
+        state.requests.insert(request.id, request);
     }
     state
 }
 
 pub(crate) fn migrate_legacy(world: &mut World) {
+    recover_legacy_approaches(world);
     let state = snapshot(world);
     world.insert_resource(state);
     refresh_markers(world);
+}
+
+/// Older envelopes retain the physical reservation but omit rendezvous metadata.
+/// Current-format ownership is validated before this adoption boundary.
+fn recover_legacy_approaches(world: &mut World) {
+    let pack = world.resource::<crate::Content>().0;
+    let mut claims: BTreeMap<Entity, Vec<Entity>> = BTreeMap::new();
+    for (initiator, target) in world
+        .query_filtered::<(Entity, &Target), With<Agent>>()
+        .iter(world)
+    {
+        if world.get::<terri_core::SimId>(initiator).is_none()
+            || world.get::<terri_core::SimId>(target.object).is_none()
+            || world.get::<Agent>(target.object).is_none()
+            || world.get::<Reserved>(target.object).is_none()
+            || world.get::<Socialising>(initiator).is_some()
+            || is_talking(world, target.object)
+            || pack
+                .social
+                .get(target.interaction as usize)
+                .is_none_or(crate::fights::is_fight)
+            || world
+                .resource::<ConversationRequests>()
+                .requests
+                .values()
+                .any(|request| {
+                    request.initiator == initiator
+                        && request.recipient == target.object
+                        && request.interaction == target.interaction
+                })
+        {
+            continue;
+        }
+        claims.entry(target.object).or_default().push(initiator);
+    }
+    for (recipient, owners) in claims {
+        // Only a unique existing physical claim identifies the old approach.
+        if let [initiator] = owners.as_slice() {
+            world
+                .resource_mut::<super::SocialEpisodes>()
+                .rendezvous
+                .entry(recipient)
+                .or_insert(*initiator);
+        }
+    }
 }
 
 pub(crate) fn refresh_markers(world: &mut World) {
@@ -436,52 +492,13 @@ pub(crate) fn refresh_markers(world: &mut World) {
     }
 }
 
-/// Import frozen claims only when no new-format request already owns them.
+/// Import legacy claims using the same phases and identities as capture.
 fn adopt_legacy(world: &mut World) {
-    let claims: Vec<_> = world
-        .resource::<super::SocialEpisodes>()
-        .rendezvous
-        .iter()
-        .map(|(r, i)| (*r, *i))
-        .collect();
-    for (recipient, initiator) in claims {
-        let Some(t) = world
-            .get::<Target>(initiator)
-            .copied()
-            .filter(|t| t.object == recipient)
-        else {
-            continue;
-        };
-        let pack = world.resource::<crate::Content>().0;
-        if pack
-            .social
-            .get(t.interaction as usize)
-            .is_none_or(crate::fights::is_fight)
-            || world
-                .resource::<ConversationRequests>()
-                .requests
-                .values()
-                .any(|r| r.initiator == initiator && r.recipient == recipient)
-        {
-            continue;
-        }
-        let id = world.resource::<ConversationRequests>().next_id;
-        let Some(next) = id.checked_add(1) else {
-            continue;
-        };
-        let r = ConversationRequest {
-            id,
-            initiator,
-            recipient,
-            interaction: t.interaction,
-            origin: ConversationOrigin::LegacyUnattributed,
-            created: world.resource::<SimClock>().tick,
-            phase: RequestPhase::Waiting,
-            waiting_tile: None,
-        };
+    for request in legacy_requests(world) {
+        let (id, initiator) = (request.id, request.initiator);
         let mut state = world.resource_mut::<ConversationRequests>();
-        state.next_id = next;
-        state.requests.insert(id, r);
+        state.next_id = id + 1;
+        state.requests.insert(id, request);
         world
             .entity_mut(initiator)
             .insert(CommittedConversation(id));
@@ -655,6 +672,7 @@ pub(crate) fn before_movement(world: &mut World) {
 }
 
 fn process(world: &mut World, routes: bool) {
+    route_cache::prune(world);
     let mut requests: Vec<_> = world
         .resource::<ConversationRequests>()
         .requests
@@ -718,7 +736,7 @@ fn process(world: &mut World, routes: bool) {
             || later_player_choice
             || reserved_elsewhere;
         let ready = !receiver_work && !receiver_busy;
-        let plan = (!receiver_work).then(|| plan_route(world, &r, ready));
+        let plan = (!receiver_work).then(|| route_cache::plan(world, &r, ready));
         // A failed route retains the request but cannot hold the recipient or
         // win the per-pass recipient slot ahead of a reachable conversation.
         if plan.as_ref().is_some_and(Result::is_err) {

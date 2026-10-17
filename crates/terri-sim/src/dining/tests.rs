@@ -1000,6 +1000,17 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     historical.dining = None;
     let mut migrated = Sim::new_from_shipped_lot();
     migrated.load_snapshot_v5(historical).unwrap();
+    let origins = migrated.save_snapshot_v6().chain_origins;
+    assert_eq!(origins.len(), 1);
+    assert!(matches!(
+        &origins[0].origin,
+        terri_core::save_v6::ChainOrigin::Action { model, action, recipe, selected_step }
+            if model == "fridge" && action == "cook_dinner" && recipe == "cook_dinner" && *selected_step == 0
+    ));
+    assert_eq!(
+        origins[0].selected_use,
+        terri_core::save_v6::SavedSelectedUse::Complete
+    );
     assert_eq!(migrated.world().resource::<SavedDining>().diners.len(), 1);
     assert!(migrated
         .world()

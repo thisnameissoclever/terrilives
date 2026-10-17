@@ -190,7 +190,7 @@ with several. Self-preservation and preferences still influence which useful
 action appeals most. A chosen conversation remains committed while the
 recipient finishes care; low meters do not repeatedly cancel and restart it.
 Prediction and delivery share physical reward scaling and restoration ceilings.
-Reading retains its physical taste and disposition effects. Forecasts separate
+Reading retains its physical taste and disposition effects. During critical-need selection, each eligible book and seat contributes its own predicted outcome to the shared choice distribution. Execution uses that selected plan without a second title draw. Forecasts separate
 active rewards from travel, pickup, return and shelving, and apply food payment
 after work's decay has clamped at zero. Unknown future failures and changes in
 company still make these nominal forecasts rather than guaranteed outcomes.

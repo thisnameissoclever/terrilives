@@ -2,11 +2,60 @@ use super::*;
 use crate::{test_content, Content, Sim};
 use bevy_ecs::system::RunSystemOnce;
 use terri_core::{
-    CommandQueue, Hobbies, IntentQueue, Personality, Relationships, Reserved, SimCommand, SimId,
-    SimIdAllocator,
+    CommandQueue, Hobbies, IntentQueue, Personality, Position, Relationships, Reserved, SimCommand,
+    SimId, SimIdAllocator,
 };
 
 mod decision_tests;
+
+#[test]
+fn current_save_rejects_shared_physical_conversation_participants() {
+    for approaching in [false, true] {
+        let (mut sim, a, b) = chat_fixture();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.reading = terri_data::pack().reading;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        sim.world_mut().get_mut::<Position>(a).unwrap().x = 6.;
+        let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                id,
+                Position { x: 8., y: 1. },
+                Needs::all_at(90.),
+                Relationships::default(),
+            ))
+            .id();
+        start(&mut sim, a, b, 30);
+        if approaching {
+            sim.world_mut().entity_mut(c).insert(Target {
+                object: b,
+                interaction: 0,
+            });
+            sim.world_mut()
+                .resource_mut::<SocialEpisodes>()
+                .rendezvous
+                .insert(b, c);
+        } else {
+            start(&mut sim, c, b, 30);
+        }
+        let bad = sim.save_snapshot_v15();
+        assert_eq!(bad.conversation_requests.requests.len(), 2);
+        let mut live = Sim::new_with_lot_and_content(12, 8, *sim.world().resource::<Content>());
+        let before = live.world_hash();
+        assert!(
+            live.load_snapshot_v15(bad).is_err(),
+            "approaching={approaching}"
+        );
+        assert_eq!(
+            live.world_hash(),
+            before,
+            "rejection preserves the live world"
+        );
+    }
+}
 
 fn chat_fixture() -> (Sim, Entity, Entity) {
     let pack = test_content::pack_with_social(

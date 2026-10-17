@@ -457,7 +457,7 @@ fn preference(a: &Plan, b: &Plan) -> std::cmp::Ordering {
 }
 
 /// One available route per title/seat ticket, shared by advertising and execution.
-fn representatives<'a>(
+pub(crate) fn representatives<'a>(
     choices: &'a [Plan],
     person: Entity,
     title: Option<&str>,

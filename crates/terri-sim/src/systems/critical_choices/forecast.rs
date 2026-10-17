@@ -135,7 +135,7 @@ mod tests {
     fn constant_phase_matches_tick_delivery_across_floor_and_restoration_ceiling() {
         for initial in [0., 10., 39., 40., 41., 80., 100.] {
             for decay in [0., 0.0625, 0.5, 2., 5.] {
-                for rate in [-2., 0., 0.125, 1., 5.] {
+                for rate in [-2.0f32, 0., 0.125, 1., 5.] {
                     for ticks in [0, 1, 2, 10, 100, 400] {
                         for cap in [None, Some(40.)] {
                             let mut actual: f32 = initial;

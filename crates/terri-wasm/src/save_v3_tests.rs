@@ -158,7 +158,33 @@ pub(super) fn expect_affinity_seed(handle: &SimHandle, expected: &mut SaveSnapsh
 fn assert_current_resave_is_stable(handle: &SimHandle) {
     let bytes = handle.save_bytes();
     let mut next = SimHandle::from_lot();
-    assert!(next.load_bytes(&bytes));
+    if !next.load_bytes(&bytes) {
+        let saved = handle.sim.save_snapshot_v15();
+        let v10 = &saved.legacy.legacy.legacy.legacy.legacy;
+        eprintln!(
+            "current requests: {:?}; legacy rendezvous: {:?}; origins: {:?}",
+            saved.conversation_requests, v10.social.rendezvous, v10.legacy.chain_origins
+        );
+        for row in v10
+            .legacy
+            .legacy
+            .world
+            .entities
+            .iter()
+            .filter(|row| row.agent)
+        {
+            eprintln!(
+                "agent {} sim {:?} target {:?} reserved {} social {:?} chain {:?}",
+                row.index, row.sim_id, row.target, row.reserved, row.socialising, row.chain
+            );
+        }
+        let mut inner = SimHandle::from_lot();
+        eprintln!(
+            "inner V14 result: {:?}",
+            inner.sim.load_snapshot_v14(saved.legacy)
+        );
+        panic!("current resave rejected");
+    }
     assert_eq!(next.save_bytes(), bytes);
 }
 

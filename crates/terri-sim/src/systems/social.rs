@@ -2302,6 +2302,15 @@ mod tests {
         );
         assert!(sim.world().get::<terri_core::Path>(b).is_some());
 
+        assert!(
+            sim.world()
+                .resource::<super::super::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .all(|decision| decision.agent != b.index_u32()),
+            "A healthy walker keeps the existing path without a fresh choice"
+        );
+
         for _ in 0..60 {
             sim.tick();
             if sim

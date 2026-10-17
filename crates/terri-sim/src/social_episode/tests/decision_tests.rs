@@ -1,4 +1,53 @@
 use super::*;
+use terri_core::Position;
+
+#[test]
+fn a_legacy_approach_without_episode_metadata_resaves_before_another_tick() {
+    let (mut source, a, b) = chat_fixture();
+    let mut pack = source.world().resource::<Content>().0.clone();
+    pack.reading = terri_data::pack().reading;
+    let pack = Box::leak(Box::new(pack));
+    source.world_mut().insert_resource(Content(pack));
+    talk(&mut source, a, b);
+    source.tick();
+    assert!(source.world().get::<Socialising>(a).is_none());
+    assert!(source.world().get::<Path>(a).is_some());
+    assert!(source.world().get::<Reserved>(b).is_some());
+    let mut migrated = crate::test_content::sim_with(12, 8, pack);
+    migrated
+        .load_snapshot_v5(source.save_snapshot_v5())
+        .unwrap();
+    let request = migrated
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .requests
+        .values()
+        .next()
+        .unwrap();
+    assert_eq!(
+        request.origin,
+        requests::ConversationOrigin::LegacyUnattributed
+    );
+    assert_eq!(request.phase, requests::RequestPhase::Approaching);
+    assert_eq!(
+        migrated
+            .world()
+            .resource::<super::super::SocialEpisodes>()
+            .rendezvous
+            .get(&b),
+        Some(&a)
+    );
+    let mut replay = crate::test_content::sim_with(12, 8, pack);
+    replay
+        .load_snapshot_v15(migrated.save_snapshot_v15())
+        .unwrap();
+    assert_eq!(replay.world_hash(), migrated.world_hash());
+    for _ in 0..100 {
+        migrated.tick();
+        replay.tick();
+        assert_eq!(replay.world_hash(), migrated.world_hash());
+    }
+}
 
 #[test]
 fn passive_conversation_listener_waits_for_the_active_owner_remaining_time() {
@@ -23,6 +72,9 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
         .collect();
     let a = people.iter().find(|(id, _)| *id == 0).unwrap().1;
     let b = people.iter().find(|(id, _)| *id == 1).unwrap().1;
+    let c = people.iter().find(|(id, _)| *id == 2).unwrap().1;
+    // Hold the third housemate during setup to isolate private-care routing.
+    sim.world_mut().entity_mut(c).insert(Reserved);
     let pack = sim.world().resource::<Content>().0;
     let toilet = sim
         .world_mut()
@@ -40,6 +92,7 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
         });
     talk(&mut sim, a, b);
     sim.tick();
+    sim.world_mut().entity_mut(c).remove::<Reserved>();
     assert!(
         sim.world().get::<Path>(b).is_some(),
         "Privacy protection begins while the recipient still travels to care"
@@ -364,6 +417,9 @@ fn arrived_conversation_wait_is_reported_as_waiting() {
         render.activities[row],
         crate::render_buffer::activity::WAITING
     );
+    let context = sim.activity_status_of(a.index_u32()).unwrap();
+    assert_eq!(context.code, 2);
+    assert_eq!(context.partner, Some(b.index_u32()));
 }
 
 #[test]
@@ -916,4 +972,333 @@ fn final_walking_step_keeps_its_gait_until_the_actual_motion_finishes() {
             crate::render_buffer::visual_action::WALK
         );
     }
+}
+
+#[test]
+fn unchanged_blocked_chat_retries_only_after_navigation_inputs_change() {
+    let (mut sim, a, b) = chat_fixture();
+    for neighbor in [(0, 1), (2, 1), (1, 0), (1, 2)] {
+        sim.world_mut()
+            .resource_mut::<terri_core::TileGrid>()
+            .set_edge_blocked((1, 1), neighbor, true);
+    }
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    sim.world_mut().increment_change_tick();
+    requests::before_choices(sim.world_mut());
+    let first = requests::route_cache::attempts(sim.world());
+    assert_eq!(first, 1);
+    for _ in 0..20 {
+        requests::before_choices(sim.world_mut());
+    }
+    assert_eq!(
+        requests::route_cache::attempts(sim.world()),
+        first,
+        "An unchanged blocked request must not repeat its route search"
+    );
+    assert!(sim.world().get::<Reserved>(b).is_none());
+    assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 5);
+
+    crate::systems::interpersonal::prepare(sim.world_mut());
+    requests::before_movement(sim.world_mut());
+    let phase_attempts = requests::route_cache::attempts(sim.world());
+    assert_eq!(phase_attempts, first + 1);
+    for _ in 0..20 {
+        crate::systems::interpersonal::prepare(sim.world_mut());
+        requests::before_movement(sim.world_mut());
+        sim.world_mut()
+            .remove_resource::<crate::systems::interpersonal::InterpersonalPhase>();
+        requests::before_choices(sim.world_mut());
+    }
+    assert_eq!(
+        requests::route_cache::attempts(sim.world()),
+        phase_attempts,
+        "Equivalent phase snapshots cannot invalidate a failed route"
+    );
+
+    sim.world_mut()
+        .entity_mut(b)
+        .insert(Position { x: 8., y: 1. });
+    requests::before_choices(sim.world_mut());
+    assert_eq!(
+        requests::route_cache::attempts(sim.world()),
+        phase_attempts + 1,
+        "Moving the recipient must retry the route"
+    );
+
+    sim.world_mut()
+        .resource_mut::<terri_core::TileGrid>()
+        .set_edge_blocked((1, 1), (2, 1), false);
+    requests::before_movement(sim.world_mut());
+    assert!(
+        sim.world().get::<Path>(a).is_some(),
+        "Opening the barrier must resume the committed approach"
+    );
+    assert!(sim.world().get::<Reserved>(b).is_some());
+}
+
+#[test]
+fn a_geometry_edit_on_the_same_change_tick_cannot_reuse_a_failed_route() {
+    let (mut sim, a, b) = chat_fixture();
+    for neighbor in [(0, 1), (2, 1), (1, 0), (1, 2)] {
+        sim.world_mut()
+            .resource_mut::<terri_core::TileGrid>()
+            .set_edge_blocked((1, 1), neighbor, true);
+    }
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    requests::before_choices(sim.world_mut());
+    assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 5);
+    sim.world_mut()
+        .resource_mut::<terri_core::TileGrid>()
+        .set_edge_blocked((1, 1), (2, 1), false);
+    requests::before_movement(sim.world_mut());
+    assert!(
+        sim.world().get::<Path>(a).is_some(),
+        "An edit in the observation tick must reopen the route immediately"
+    );
+    assert!(sim.world().get::<Reserved>(b).is_some());
+}
+
+#[test]
+fn privacy_changes_invalidate_a_blocked_chat_without_geometry_edits() {
+    let mut sim = Sim::new_from_shipped_lot_with_seed(42);
+    let people: Vec<_> = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .map(|(e, id)| (id.0, e))
+        .collect();
+    let a = people.iter().find(|(id, _)| *id == 0).unwrap().1;
+    let b = people.iter().find(|(id, _)| *id == 1).unwrap().1;
+    let c = people.iter().find(|(id, _)| *id == 2).unwrap().1;
+    let pack = sim.world().resource::<Content>().0;
+    let toilet = sim
+        .world_mut()
+        .query::<(Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, o)| pack.object(o.0).id == "toilet")
+        .unwrap()
+        .0;
+    let p = *sim.world().get::<Position>(a).unwrap();
+    let from = (p.x.round() as i32, p.y.round() as i32);
+    for neighbor in [
+        (from.0 - 1, from.1),
+        (from.0 + 1, from.1),
+        (from.0, from.1 - 1),
+        (from.0, from.1 + 1),
+    ] {
+        sim.world_mut()
+            .resource_mut::<terri_core::TileGrid>()
+            .set_edge_blocked(from, neighbor, true);
+    }
+    sim.world_mut().entity_mut(b).insert(Reserved);
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    sim.world_mut().increment_change_tick();
+    crate::systems::interpersonal::prepare(sim.world_mut());
+    requests::before_movement(sim.world_mut());
+    assert_eq!(requests::route_cache::attempts(sim.world()), 1);
+    let toilet_position = *sim.world().get::<Position>(toilet).unwrap();
+    let c_position = *sim.world().get::<Position>(c).unwrap();
+    let footprint = crate::placed_footprint(
+        pack,
+        sim.world()
+            .get::<terri_core::SmartObject>(toilet)
+            .unwrap()
+            .0,
+        sim.world().get::<terri_core::ObjectFacing>(toilet),
+    );
+    let path = sim
+        .world()
+        .resource::<terri_core::TileGrid>()
+        .find_path_adjacent(
+            (c_position.x.round() as i32, c_position.y.round() as i32),
+            (
+                toilet_position.x.round() as i32,
+                toilet_position.y.round() as i32,
+            ),
+            footprint,
+        )
+        .unwrap();
+    let contact = path
+        .last()
+        .copied()
+        .unwrap_or((c_position.x.round() as i32, c_position.y.round() as i32));
+    let object = sim
+        .world()
+        .get::<terri_core::SmartObject>(toilet)
+        .unwrap()
+        .0;
+    sim.world_mut().entity_mut(c).insert((
+        Position {
+            x: contact.0 as f32,
+            y: contact.1 as f32,
+        },
+        Target {
+            object: toilet,
+            interaction: 0,
+        },
+        Eating {
+            object,
+            interaction: 0,
+            remaining_ticks: 50,
+        },
+    ));
+    sim.world_mut().entity_mut(toilet).insert(Reserved);
+    crate::systems::interpersonal::prepare(sim.world_mut());
+    requests::before_movement(sim.world_mut());
+    assert_eq!(
+        requests::route_cache::attempts(sim.world()),
+        2,
+        "A new private user changes the safe navigation grid even when architecture is unchanged"
+    );
+    crate::systems::interpersonal::prepare(sim.world_mut());
+    requests::before_movement(sim.world_mut());
+    assert_eq!(requests::route_cache::attempts(sim.world()), 2);
+}
+
+#[test]
+fn crisis_probability_limits_hold_at_every_instinct_anchor_with_death_on_or_off() {
+    for instinct in [0, 30, 50, 70, 100] {
+        for enabled in [false, true] {
+            for critical_count in [1, 4] {
+                for hygiene in [39.9, 40.] {
+                    let mut sim = Sim::new_from_shipped_lot_with_seed(42);
+                    let people: Vec<_> = sim
+                        .world_mut()
+                        .query::<(Entity, &SimId)>()
+                        .iter(sim.world())
+                        .map(|(e, id)| (e, id.0))
+                        .collect();
+                    let a = people.iter().find(|(_, id)| *id == 0).unwrap().0;
+                    for (person, _) in people.iter().filter(|(person, _)| *person != a) {
+                        sim.world_mut().entity_mut(*person).insert(Reserved);
+                    }
+                    let mut needs = Needs::all_at(60.);
+                    for need in [NeedId::Hunger, NeedId::Energy, NeedId::Social, NeedId::Fun]
+                        .into_iter()
+                        .take(critical_count)
+                    {
+                        needs.set(need, 10.);
+                    }
+                    needs.set(NeedId::Hygiene, hygiene);
+                    sim.world_mut()
+                        .entity_mut(a)
+                        .insert((needs, terri_core::SelfPreservation(instinct)));
+                    sim.world_mut()
+                        .resource_mut::<terri_core::save::SavedMortality>()
+                        .enabled = enabled;
+                    sim.tick();
+                    let telemetry = sim
+                        .world()
+                        .resource::<crate::systems::autonomy::DecisionTelemetry>();
+                    let decision = telemetry
+                        .0
+                        .iter()
+                        .find(|d| d.agent == a.index_u32())
+                        .unwrap();
+                    assert!(decision.relief_masks.iter().any(|m| *m != 0));
+                    assert!(decision.choices.iter().all(|c| c.4.is_finite() && c.4 > 0.));
+                    assert!((decision.choices.iter().map(|c| c.4).sum::<f64>() - 1.).abs() < 1e-12);
+                    let unrelated: f64 = decision
+                        .choices
+                        .iter()
+                        .zip(&decision.relief_masks)
+                        .filter(|(_, mask)| **mask == 0)
+                        .map(|(choice, _)| choice.4)
+                        .sum();
+                    let limit = if critical_count == 1 {
+                        0.050000001
+                    } else {
+                        0.010000001
+                    };
+                    assert!(unrelated <= limit, "instinct={instinct}, death={enabled}, critical={critical_count}, hygiene={hygiene}: unrelated={unrelated}");
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn death_disabled_without_reachable_care_reports_unavailable_relief() {
+    let mut sim = Sim::new_with_lot(4, 4);
+    let a = sim.spawn_agent(Position { x: 1., y: 1. }, 10.);
+    sim.world_mut()
+        .resource_mut::<terri_core::save::SavedMortality>()
+        .enabled = false;
+    for neighbor in [(0, 1), (2, 1), (1, 0), (1, 2)] {
+        sim.world_mut()
+            .resource_mut::<terri_core::TileGrid>()
+            .set_edge_blocked((1, 1), neighbor, true);
+    }
+    for _ in 0..10 {
+        sim.tick();
+        let status = sim.activity_status_of(a.index_u32()).unwrap();
+        assert_eq!(
+            status.code, 6,
+            "Blocked care must have an explanation even when death is disabled"
+        );
+        assert_ne!(status.needs & 1, 0);
+    }
+}
+
+#[test]
+fn retargeted_chat_finishes_the_current_fractional_segment_before_turning() {
+    let (mut sim, a, b) = chat_fixture();
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    sim.world_mut().entity_mut(a).insert((
+        Position { x: 1.25, y: 1. },
+        Path {
+            steps: vec![(2, 1), (3, 1)],
+            cursor: 0,
+        },
+    ));
+    sim.world_mut()
+        .entity_mut(b)
+        .insert(Position { x: 0., y: 1. });
+    for expected in [1.5, 1.75, 2.] {
+        crate::systems::interpersonal::prepare(sim.world_mut());
+        requests::before_movement(sim.world_mut());
+        assert_eq!(
+            sim.world().get::<Path>(a).unwrap().next_step(),
+            Some((2, 1)),
+            "A changed destination cannot reverse an unfinished physical segment"
+        );
+        sim.world_mut()
+            .run_system_once(crate::systems::movement::follow_path)
+            .unwrap();
+        assert_eq!(sim.world().get::<Position>(a).unwrap().x, expected);
+    }
+    requests::before_movement(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Path>(a).unwrap().next_step(),
+        Some((1, 1)),
+        "The new route can turn after reaching the next tile"
+    );
 }

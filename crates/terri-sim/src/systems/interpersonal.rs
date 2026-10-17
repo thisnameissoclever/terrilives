@@ -41,9 +41,47 @@ struct AffinityEffect {
     directed: bool,
 }
 
+#[derive(Clone, PartialEq, Eq)]
+pub(crate) struct NavigationConstraints {
+    current: Option<u32>,
+    private_rooms: Vec<u32>,
+    geometry: [u32; 3],
+    house: crate::lot_frame::HouseRect,
+    geometry_fresh: bool,
+}
+
+impl NavigationConstraints {
+    pub(crate) fn cacheable(&self) -> bool {
+        !self.geometry_fresh
+    }
+}
+
+fn navigation_geometry(world: &World) -> [u32; 3] {
+    [
+        world
+            .get_resource_ref::<terri_core::TileGrid>()
+            .unwrap()
+            .last_changed()
+            .get(),
+        world
+            .get_resource_ref::<terri_core::layout::SavedLayout>()
+            .unwrap()
+            .last_changed()
+            .get(),
+        world
+            .get_resource_ref::<Content>()
+            .unwrap()
+            .last_changed()
+            .get(),
+    ]
+}
+
 /// Exists only between movement preparation and effect application.
 #[derive(Resource)]
 pub struct InterpersonalPhase {
+    geometry: [u32; 3],
+    house: crate::lot_frame::HouseRect,
+    geometry_fresh: bool,
     rooms: RoomRegions,
     domestic: Option<terri_core::save::SavedDomestic>,
     domestic_occupants: Vec<crate::domestic::BoundaryOccupant>,
@@ -121,7 +159,13 @@ pub(crate) fn prepare(world: &mut World) {
     let social = world
         .resource::<crate::social_company::SocialCompany>()
         .clone();
+    let geometry = navigation_geometry(world);
+    let house = crate::lot_frame::house_or_grid(world);
+    let geometry_fresh = geometry.contains(&world.read_change_tick().get());
     world.insert_resource(InterpersonalPhase {
+        geometry,
+        house,
+        geometry_fresh,
         domestic,
         domestic_occupants,
         rooms,
@@ -137,6 +181,30 @@ pub(crate) fn prepare(world: &mut World) {
 }
 
 impl InterpersonalPhase {
+    pub(crate) fn navigation_constraints(&self, agent: Entity) -> NavigationConstraints {
+        let current = self
+            .participants
+            .iter()
+            .find(|p| p.entity == agent)
+            .and_then(|p| p.room);
+        let mut private_rooms: Vec<_> = self
+            .participants
+            .iter()
+            .filter(|p| p.entity != agent)
+            .filter_map(|p| p.private_room)
+            .filter(|room| Some(*room) != current)
+            .collect();
+        private_rooms.sort_unstable();
+        private_rooms.dedup();
+        NavigationConstraints {
+            current,
+            private_rooms,
+            geometry: self.geometry,
+            house: self.house,
+            geometry_fresh: self.geometry_fresh,
+        }
+    }
+
     pub(crate) fn entry_blocked(&self, agent: Entity, position: Position) -> bool {
         let room = self.rooms.at(tile(position));
         room.is_some()

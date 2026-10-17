@@ -15,7 +15,7 @@ pub(crate) mod persistence;
 pub(crate) mod placement;
 mod planning;
 pub(crate) use planning::{
-    best_plan, choose_plan, effective_benefits, plans, prepare, publish_plan,
+    best_plan, choose_plan, effective_benefits, plans, prepare, publish_plan, representatives,
 };
 pub use planning::{Options, Plan};
 #[cfg(test)]

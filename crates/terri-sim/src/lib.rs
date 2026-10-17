@@ -1197,7 +1197,7 @@ impl SnapshotSource<'_> {
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v10` for complete persistence of a current world.
+    /// Use `save_snapshot_v15` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -1227,7 +1227,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1241,7 +1241,7 @@ impl Sim {
         SnapshotSource { world: &self.world }.save_snapshot_v4()
     }
 
-    /// Legacy V5 projection. It omits books, social episodes and appearance; use V10.
+    /// Legacy V5 projection. Use V15 to retain the complete current state.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
         SnapshotSource { world: &self.world }.save_snapshot_v5()
@@ -1255,7 +1255,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let active_portals = save::Carried::for_load(&self.world);
         let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1264,7 +1264,7 @@ impl Sim {
         save::v6::capture(self)
     }
 
-    /// Current persistence, including social episodes, appearance and creator command ordering.
+    /// Historical V10 projection with social episodes, appearance and creator command ordering.
     pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
         save::v10::capture(self)
     }
@@ -1427,7 +1427,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::books_migration::restore(snapshot, content, portals)?;
-        self.adopt(candidate);
+        self.adopt(candidate)?;
         Ok(())
     }
 
@@ -1446,7 +1446,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1465,7 +1465,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1478,11 +1478,13 @@ impl Sim {
     ///
     /// A house saved before the yard grows into it first ([OS-migrate]), so
     /// every loader passes through the same growth.
-    fn adopt(&mut self, mut restored: Sim) {
+    fn adopt(&mut self, mut restored: Sim) -> Result<(), SaveError> {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
+        recipe_actions::migrate_legacy(&mut restored)?;
         self.adopt_current(restored);
+        Ok(())
     }
 
     fn adopt_current(&mut self, mut restored: Sim) {
@@ -1517,7 +1519,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
