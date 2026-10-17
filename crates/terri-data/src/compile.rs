@@ -9043,24 +9043,23 @@ mod tests {
     /// mood score and the moodlet lasts from one tick to a week.
     #[test]
     fn rejects_burnt_meal_tuning_outside_its_ranges() {
-        let bad: [(&str, fn(&mut TuningFile)); 7] = [
-            ("burn_chance_novice", |t| t.burn_chance_novice = 1.5),
-            ("burn_chance_novice", |t| t.burn_chance_novice = f32::NAN),
-            ("burn_chance_master", |t| t.burn_chance_master = -0.1),
-            ("burn_chance_master", |t| {
-                t.burn_chance_novice = 0.1;
-                t.burn_chance_master = 0.2;
-            }),
-            ("burnt_meal_mood_penalty", |t| {
-                t.burnt_meal_mood_penalty = -1.0
-            }),
-            ("burnt_meal_mood_ticks", |t| t.burnt_meal_mood_ticks = 0),
-            ("burnt_meal_mood_ticks", |t| {
-                t.burnt_meal_mood_ticks = 10_081
-            }),
-        ];
-        for (expected, mutate) in bad {
-            match compile_tuned(tuning_where(mutate)) {
+        // (refused key, novice, master, penalty, ticks)
+        for (expected, novice, master, penalty, ticks) in [
+            ("burn_chance_novice", 1.5, 0.002, 10.0, 240),
+            ("burn_chance_novice", f32::NAN, 0.002, 10.0, 240),
+            ("burn_chance_master", 0.12, -0.1, 10.0, 240),
+            ("burn_chance_master", 0.1, 0.2, 10.0, 240),
+            ("burnt_meal_mood_penalty", 0.12, 0.002, -1.0, 240),
+            ("burnt_meal_mood_ticks", 0.12, 0.002, 10.0, 0),
+            ("burnt_meal_mood_ticks", 0.12, 0.002, 10.0, 10_081),
+        ] {
+            let compiled = compile_tuned(tuning_where(|t| {
+                t.burn_chance_novice = novice;
+                t.burn_chance_master = master;
+                t.burnt_meal_mood_penalty = penalty;
+                t.burnt_meal_mood_ticks = ticks;
+            }));
+            match compiled {
                 Err(ContentError::CookingTuningOutOfRange { key }) => assert_eq!(key, expected),
                 other => panic!("{expected}: {other:?}"),
             }
