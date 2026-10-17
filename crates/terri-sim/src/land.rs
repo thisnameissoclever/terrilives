@@ -519,6 +519,9 @@ mod tests {
         let before = sim.world_hash();
         let _ = quote(sim.world(), Side::Rear);
         assert_eq!(sim.world_hash(), before);
+        assert_eq!(Side::from_index(0), Some(Side::Rear));
+        assert_eq!(Side::from_index(1), Some(Side::Left));
+        assert_eq!(Side::from_index(2), Some(Side::Right));
         assert_eq!(Side::from_index(3), None);
         sim.world_mut().insert_resource(Funds::from_dollars(29_999));
         let hash = sim.world_hash();
