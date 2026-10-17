@@ -221,16 +221,14 @@ pub(crate) fn tick(world: &mut World) {
                 continue;
             }
             let score = compatibility::between(&subject.preferences, &other.preferences);
+            // Participation already excludes anyone who dislikes a shared
+            // group and anyone whose attempt failed, so a pair of
+            // participants needs no further acceptance check here.
             let shared = subject
                 .activity
                 .as_ref()
                 .zip(other.activity.as_ref())
-                .is_some_and(|(mine, theirs)| {
-                    mine.pairs_with(theirs, |group| {
-                        subject.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
-                            && other.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
-                    })
-                });
+                .is_some_and(|(mine, theirs)| mine.pairs_with(theirs));
             let before = world
                 .get::<Relationships>(subject.entity)
                 .map_or(0.0, |r| r.feeling(other.id));
