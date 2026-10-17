@@ -12165,6 +12165,13 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: floor coordinates name tile centers. Three painted tiles centered at 4, 5, and 6 cover 3.5 through 6.5, not 4 through 7. The nominal texture period also hid a smaller exact repeat, so coordinate arithmetic alone overstated the visual risk.
 3. Prevention: derive probe bounds from physical tile footprints and independently verify the sampled material. Inspect actual rendered captures before changing shader coordinates or material transport. Check texture repetition when a nominal period suggests a phase change.
 4. Verification: compare only interior Patio samples at the same screen positions before and after land translation. Require material controls and identical pixel values. Keep controlled-renderer evidence separate from actual game commands, cancellation, and save/reload verification.
+
+## [L-submit-before-side-effects] Validate a prepared submission before draining new input
+
+1. What happened: the native Build submission path drained queued edits before checking whether its review still matched the draft. A refused old review could therefore apply pending edits during the failed submit.
+2. Root cause: submission reused preparation's input-settlement step. Preparation may settle edits to construct a review; submission must accept only the arrangement already reviewed.
+3. Prevention: check the full review token and raw draft, including queued commands, before any submit mutation. Do not drain new input as part of accepting an existing prepared candidate.
+4. Verification: prepare a review, queue another accepted edit, and submit the old review. Require identical raw draft, queue, view revision, and committed baseline after refusal. Return to editing, drain the retained input, and confirm a fresh review to prove the edits remain usable.
 ## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
 
 1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
