@@ -455,9 +455,13 @@ pub fn advance_chains(
 pub fn tick_chain_steps(
     mut commands: Commands,
     content: Res<Content>,
-    mut rng: ResMut<terri_core::SimRng>,
-    clock: Res<terri_core::SimClock>,
-    mut burnt_meals: ResMut<crate::burnt_meals::BurntMeals>,
+    // The burn roll's inputs (issue 243): the generator it draws from, the
+    // clock the moodlet's end is measured from, and the list it records in.
+    mut burning: (
+        ResMut<terri_core::SimRng>,
+        Res<terri_core::SimClock>,
+        ResMut<crate::burnt_meals::BurntMeals>,
+    ),
     mut origins: Query<&mut crate::recipe_actions::Origin>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
     dining: Option<Res<terri_core::save::SavedDining>>,
@@ -555,7 +559,7 @@ pub fn tick_chain_steps(
                     crate::burnt_meals::COOKING_TAG,
                 )
                 .unwrap_or(0.0);
-                rng.next_f32() < crate::burnt_meals::burn_chance(&content.0.tuning, mastery)
+                burning.0.next_f32() < crate::burnt_meals::burn_chance(&content.0.tuning, mastery)
             };
 
         // The hands, first: the step's whole observable effect below
@@ -600,10 +604,8 @@ pub fn tick_chain_steps(
             chain_state.step = 0;
             chain_state.fumble_scale = 1.0;
             if let Some(id) = sim_id {
-                burnt_meals.record(
-                    *id,
-                    clock.tick + u64::from(content.0.tuning.burnt_meal_mood_ticks),
-                );
+                let until = burning.1.tick + u64::from(content.0.tuning.burnt_meal_mood_ticks);
+                burning.2.record(*id, until);
             }
             // The hob was used all the same, and a selected station already
             // used must be pinned again for the restart; with none left the
