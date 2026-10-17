@@ -5,16 +5,19 @@ and weekly commitments.
 
 ## Household work
 
-1. Indoor walkable floor tiles gain grime only when a Sim enters them. The
+1. Eligible walkable floor tiles gain grime only when a Sim enters them. The
    chance ranges linearly from 2% for cleanliness 1 to 10% for cleanliness 0.
-   Standing, spawning and loading do not create footsteps. Yard tiles remain
-   outside the chore system. A successful roll adds 100 units, or ten percentage
+   Standing, spawning and loading do not create footsteps. Default house flooring
+   and Boards, Tiles, Carpet, and Outdoor patio coverings are eligible indoors or
+   outdoors. Default grass and the street are not. A successful roll adds 100 units, or ten percentage
    points of opacity, capped at 1000. Unused areas stay clean.
-   Clean floor targets a room. Each stop cleans the standing tile and up to eight
+   Clean floor targets a room or the single shared Outside room. Each stop cleans the standing tile and up to eight
    neighbors over 24 work ticks, plus travel. Eligible tiles must be walkable,
-   in the same architectural room and reachable without crossing a wall edge or
+   in the same cleaning area and reachable without crossing a wall edge or
    diagonal corner. The next stop uses the nearest reachable dirt, with stable
-   tile-order ties. Dirty neighbors already cleaned are skipped.
+   tile-order ties. Dirty neighbors already cleaned are skipped. Routes may cross
+   grass, but cleaning patches never clean it. Disconnected outdoor patches finish
+   reachable work and release inaccessible work without repeatedly retrying it.
 2. Completed uses of counters and tables roll for grime at twice the floor
    probability. Preparation, plating, eating and ordinary table use each count
    once when completed. Cooking and washing also roll independently for counters
@@ -26,9 +29,10 @@ and weekly commitments.
    The board groups wiping by room and type: counter surfaces or table surfaces.
    A group includes dirty members added during work and drops members sold or
    moved elsewhere. Buying the first surface creates its duty; removing the last
-   retires it. Room partitions recalculate membership. Unchanged assignments keep
+   retires it. Confirmed room changes recalculate membership. Unchanged assignments keep
    their owners within the week. Removed dirt and inaccessible work do not count
-   as neglect. Walls block both walking and cleaning contact.
+   as neglect. Outdoor counters and tables remain eligible even when standing on
+   grass. Walls block both walking and cleaning contact.
 3. Food preparation adds waste to an existing bin. Empty bin removes accumulated
    waste through a reachable, timed chore. Missing bins do not erase household
    waste; waste waits for a usable bin.
@@ -66,7 +70,10 @@ Surface wiping reduces actual grime over 45 ticks; emptying bins takes 60 ticks.
 The per-tick reduction is the current amount divided by remaining ticks, rounded
 up. Completion reaches zero, including new dirt within the active patch. Pausing
 or suspension freezes work. Cancellation preserves the amount already removed.
-Claims and completion credit refer to real work. Build edits revalidate the patch.
+Claims and completion credit refer to real work. Confirm revalidates the patch
+against the final build, rather than each intermediate wall edit. Removing a
+covering preserves dormant dirt on its tile without cleaning credit. Re-covering
+the tile makes that dirt eligible again.
 
 Grime mood effects apply the [cleanliness response](2026-10-13-cleanliness.md)
 to each floor tile or surface before averaging separately within the current
@@ -118,6 +125,30 @@ cleanliness affinity toward a real performer. Avoidable neglect loses 0.008 +
 also loses 0.004 toward that owner. No Sim applies these effects to itself.
 The panel retains eight days of episodes and identifies actual performers.
 
+Board location labels use saved room names, including Outside's editable name.
+Changing a name refreshes existing rows without changing their targets or owners.
+
+## Confirmed room changes
+
+Room names, assignments, daily decisions, work progress, and random streams remain
+unchanged while a build is a draft. Confirm compares the final arrangement with
+the last confirmed rooms. A removed and restored wall therefore does not retire a
+duty. Cancel restores that baseline. See [room identity and naming](2026-10-17-room-identities.md).
+
+A surviving room keeps its floor owner. Grouped counter and table duties match by
+surviving object IDs within the same chore kind. Combined groups prefer an existing
+owner from the surviving room, then the group contributing the most objects, then
+the old room ID. A split retains one assignment and creates the other duties
+through the ordinary assignment policy. Existing unassigned duties remain
+unassigned during construction reconciliation; genuinely new duties receive owners
+only when automatic assignment is enabled.
+
+Preserve the retained daily decision and settled history. Construction retirement
+creates neither completion credit nor neglect. Keep a valid physical task exactly;
+otherwise replan its remaining work while retaining cleaned quantities. Release
+only that task's paths and reservations, including when unrelated activity has
+suspended it. A rename alone does not interrupt an explicit surface wipe.
+
 ## Persistence and boundaries
 
 Append targeted cleanup after the published V5 skill and affinity fields, then append chores
@@ -131,6 +162,12 @@ settled episodes. Hash every value that affects future simulation. Validate
 references, numeric bounds, ordering and exclusive claims before adoption.
 Older saves adopt clean surfaces and neutral history without rerolling existing
 work or changing existing dish responsibility.
+
+The room schema adds stable identities around the unchanged published save shapes.
+Historical room seeds are validated under their original meanings before explicit
+conversion; object IDs and tile indexes retain their own meanings. Current saves
+validate room records before dependent chores and work. Do not project an expanded
+cleaning area into an older room seed when the old map cannot represent every tile.
 
 ### Unpublished preview saves
 
