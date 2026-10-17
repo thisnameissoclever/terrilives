@@ -54,7 +54,7 @@
         "Decode original fresh.sav as unchanged V14 wire records; prove exact original re-encoding",
         "Set only matching $100000 funds in cents and whole dollars; prove all non-money fields exact",
         "Load that seed into original source and require exact round trip",
-        "Purchase north then west strips using original game commands",
+        "Purchase Side::Rear=0 then Side::Left=1: west then south, from the street-facing interface",
         "Advance240 ordinary ticks",
         "Assign the first person to a different career path using the original command"
       ],

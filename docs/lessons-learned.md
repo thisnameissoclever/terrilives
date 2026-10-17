@@ -12123,3 +12123,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the refresh treated every mismatch as a construction effect, even when it existed in the confirmed baseline.
 3. Prevention: compare stored history with baseline physical membership before updating a continuing visit. Refresh construction-induced changes only; leave preexisting stale history for the ordinary movement/reset rules.
 4. Verification: rename before the next tick of a migrated stale visit. Require the normal next transition to reset its old remembered state. Separately preserve the known and noticed sets of a genuinely continuing visit.
+
+## [L-relative-land-directions] Verify world movement behind relative side labels
+
+1. What happened: fixture instructions called land sides 0 and 1 north and west, but the saved origin showed west and south purchases.
+2. Root cause: the interface names sides from the street facing the house. The numeric order is not a compass order: Rear is west, Left is south, and Right is north.
+3. Prevention: read the side mapping and record the actual house origin after each purchase. Keep relative interface labels and world coordinates distinct in tests and evidence.
+4. Verification: sides 0 then 2 move the starter origin to (10,10); sides 0 then 1 move it to (10,0). Assert those measured origins before naming a fixture for north/west translation. Correct provenance text without rewriting the original captured bytes.
