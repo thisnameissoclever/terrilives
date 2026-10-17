@@ -14,7 +14,7 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
   page.setDefaultTimeout(10000);
   page.on('pageerror',e=>evidence.errors.push(e.message));
   await page.goto((process.env.GAME_URL || 'http://127.0.0.1:5174')+'?stress=0&audio=0');
-  await page.waitForFunction(()=>document.querySelector('#buy-object').options.length>1);
+  await page.waitForFunction(()=>document.querySelectorAll('#buy-object .catalogue-card').length>0);
   assert(await page.locator('#help-panel').isVisible());
   await page.locator('#close-help').click();
   await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
@@ -31,10 +31,9 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
      await page.locator('#builder-object').selectOption(id);
    }
    if(tool==='buy') {
-    const id=await page.locator('#buy-object option').nth(1).getAttribute('value');
-    // Native disabled options remain unavailable to the player; select the first affordable item if one exists.
-    const available=await page.locator('#buy-object option:not([disabled])').evaluateAll(a=>a.find(o=>o.value)?.value);
-    if(available) await page.locator('#buy-object').selectOption(available);
+    // A greyed card cannot be pressed; press the first affordable card if one exists.
+    const cards=page.locator('#buy-object .catalogue-card:not([disabled]):not([hidden])');
+    if(await cards.count()) await cards.first().click();
    }
    if(tool==='room') { await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter'); await page.keyboard.press('ArrowDown'); }
    if(tool==='floors') {
@@ -117,7 +116,7 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
     const result=await bounds(`${width}x${height}-${tool}`);
     if(tool==='buy'&&width===1440) {
      await page.locator('[data-context-action="choose"]').click();
-     assert.equal(await page.evaluate(()=>document.activeElement.id),'buy-object');
+     assert(await page.evaluate(()=>document.activeElement.classList.contains('catalogue-card')),'Choose item focuses a card');
     }
     if(tool==='furniture'&&width===1440) {
      await page.evaluate(()=>{
@@ -235,10 +234,10 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
     assert(await page.locator(selector).evaluate(e=>document.activeElement===e),`Panel focus at ${width}: ${selector}`);
    }
   }
-  await select('buy');await page.locator('#buy-object').focus();
+  await select('buy');await page.locator('#buy-object .catalogue-card[tabindex="0"]').focus();
   for(const width of [700,701]) {
    await page.setViewportSize({width,height:800});await settle();
-   assert.equal(await page.evaluate(()=>document.activeElement.id),'buy-object');
+   assert(await page.evaluate(()=>document.activeElement.classList.contains('catalogue-card')),`Card focus at ${width}`);
   }
   evidence.checks.push('Build selectors, Shortcuts and Exit retain focus across 701/700 in both directions');
   // Review the other panels through their real controls.
@@ -278,7 +277,7 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
    page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:ratio,hasTouch:true});
    try {
     await page.goto(process.env.GAME_URL || 'http://127.0.0.1:5174');
-    await page.waitForFunction(()=>document.querySelector('#buy-object').options.length>1);
+    await page.waitForFunction(()=>document.querySelectorAll('#buy-object .catalogue-card').length>0);
     await page.locator('#close-help').click();await page.locator('#build-toggle').click();
     await select('walls');await bounds(`390x844-device-pixel-ratio-${ratio}`);
     const turn=await page.locator('[data-context-action="right"]').boundingBox();
