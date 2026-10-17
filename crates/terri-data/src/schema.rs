@@ -348,8 +348,8 @@ pub struct TuningFile {
     /// The feeling at or below which a person may start a fight on their
     /// own (fights, issue 248). Finite, from -1 to 1.
     pub fight_affinity_threshold: f32,
-    /// Chance per idle tick, with a reason, that the fight starts. Finite,
-    /// from 0 to 1.
+    /// Chance, per idle tick and per grudge with a reason, that the fight
+    /// starts. Finite, from 0 to 1.
     pub fight_chance_per_tick: f32,
     /// How much a finished fight lowers each side's feeling for the other.
     /// Finite, from 0 to 2.

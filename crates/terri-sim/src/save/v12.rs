@@ -41,7 +41,7 @@ pub(crate) fn restore(
     }
     candidate
         .world_mut()
-        .insert_resource(Fights(MoodletTimers::from_entries(
+        .insert_resource(Fights::from_timers(MoodletTimers::from_entries(
             rows.into_iter()
                 .map(|row| (SimId(row.sim), row.until_tick))
                 .collect(),

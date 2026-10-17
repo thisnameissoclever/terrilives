@@ -18,18 +18,40 @@ pub const FIGHT_TAG: &str = "fighting";
 
 /// Who had a fight and the tick their Had a fight moodlet ends. Saved in
 /// schema twelve; in the world hash whenever it holds anything.
+///
+/// `provoked` is the set of people whose front order is a fight nobody
+/// gave them, so `retract` can withdraw it when the other person leaves
+/// the lot. It is not saved: after a load such an order waits as a
+/// player's would, at most until the other person comes home.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
-pub struct Fights(pub MoodletTimers);
+pub struct Fights {
+    pub timers: MoodletTimers,
+    provoked: std::collections::BTreeSet<Entity>,
+}
+
+impl Fights {
+    pub fn from_timers(timers: MoodletTimers) -> Self {
+        Self {
+            timers,
+            provoked: Default::default(),
+        }
+    }
+
+    /// Whether `person`'s front order is a fight the trigger started.
+    pub fn provoked(&self, person: Entity) -> bool {
+        self.provoked.contains(&person)
+    }
+}
 
 impl std::ops::Deref for Fights {
     type Target = MoodletTimers;
     fn deref(&self) -> &MoodletTimers {
-        &self.0
+        &self.timers
     }
 }
 impl std::ops::DerefMut for Fights {
     fn deref_mut(&mut self) -> &mut MoodletTimers {
-        &mut self.0
+        &mut self.timers
     }
 }
 
@@ -136,18 +158,61 @@ fn approachable(world: &mut World, person: Entity) -> bool {
             .any(|talk| talk.partner == person)
 }
 
+/// Withdraws a fight nobody ordered once it can no longer be served: the
+/// other person has left for work or vanished while the initiator was
+/// still waiting to set off. A player's order waits for its partner to
+/// come home; an order the trigger made up does not deserve that wait,
+/// and without this the initiator would stand blocked for a whole shift.
+/// An order already under way (the initiator has a target) is the
+/// rendezvous system's to release, as it releases any approach a shift
+/// start interrupts.
+pub(crate) fn retract(world: &mut World, fight: u32) {
+    let provoked: Vec<Entity> = world
+        .resource::<Fights>()
+        .provoked
+        .iter()
+        .copied()
+        .collect();
+    for person in provoked {
+        let front = world
+            .get::<IntentQueue>(person)
+            .and_then(IntentQueue::front)
+            .filter(|intent| intent.interaction == fight && intent.cleanup.is_none());
+        let Some(intent) = front else {
+            world.resource_mut::<Fights>().provoked.remove(&person);
+            continue;
+        };
+        if world.get::<terri_core::Target>(person).is_some() {
+            continue;
+        }
+        let gone = world.get_entity(intent.object).is_err()
+            || world.get::<terri_core::AtWork>(intent.object).is_some()
+            || world.get::<terri_core::Commuting>(intent.object).is_some();
+        if !gone {
+            continue;
+        }
+        if let Some(mut queue) = world.get_mut::<IntentQueue>(person) {
+            queue.remove_first(intent);
+        }
+        world.entity_mut(person).remove::<terri_core::Blocked>();
+        world.resource_mut::<Fights>().provoked.remove(&person);
+    }
+}
+
 /// Starts fights nobody ordered. Each tick, in id order, every idle person
 /// without a running Had a fight moodlet looks at every other living
 /// person, in id order: a feeling at or below the tuned threshold and a
 /// reason against them earn one seeded draw, and a draw under the tuned
 /// chance pushes a Fight order to the front of the initiator's queue,
 /// which is then served exactly as a player's order is. The first draw
-/// that passes ends the initiator's search this tick.
+/// that passes ends the initiator's search this tick. Orders this made
+/// earlier are withdrawn first when they can no longer be served.
 pub(crate) fn provoke(world: &mut World) {
     let pack = world.resource::<crate::Content>().0;
     let Some(fight) = fight_index(pack) else {
         return;
     };
+    retract(world, fight);
     let threshold = pack.tuning.fight_affinity_threshold;
     let chance = pack.tuning.fight_chance_per_tick;
     let now = world.resource::<SimClock>().tick;
@@ -196,6 +261,7 @@ pub(crate) fn provoke(world: &mut World) {
                     entity.insert(queue);
                 }
             }
+            world.resource_mut::<Fights>().provoked.insert(person);
             break;
         }
     }
@@ -472,6 +538,50 @@ mod tests {
         provoke(sim.world_mut());
         assert!(!queued_fight(&sim, a, b));
         sim.world_mut().resource_mut::<Fights>().forget(a_id);
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, b));
+    }
+
+    /// An order the trigger made up is withdrawn when the other person
+    /// leaves for work before it is served, and the initiator is unblocked;
+    /// a player's order to the same person is left alone.
+    #[test]
+    fn a_provoked_order_is_withdrawn_when_the_other_person_leaves() {
+        let (mut sim, a, b) = household(-1.0);
+        let mut tuning = sim.world().resource::<crate::Content>().0.tuning;
+        tuning.fight_chance_per_tick = 1.0;
+        let pack = Box::leak(Box::new(ContentPack {
+            tuning,
+            ..sim.world().resource::<crate::Content>().0.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+        plant_reason(&mut sim, b);
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, b));
+        assert!(sim.world().resource::<Fights>().provoked(a));
+        // Still here: the order stays, as `serve_intents` would wait.
+        sim.world_mut().entity_mut(a).insert(terri_core::Blocked);
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, b));
+        // Gone to work: withdrawn, unblocked, and not pushed again while
+        // they are away.
+        sim.world_mut().entity_mut(b).insert(terri_core::AtWork {
+            remaining_ticks: 100,
+        });
+        provoke(sim.world_mut());
+        assert!(!queued_fight(&sim, a, b));
+        assert!(sim.world().get::<terri_core::Blocked>(a).is_none());
+        assert!(!sim.world().resource::<Fights>().provoked(a));
+        // A player's own order survives the same departure.
+        sim.world_mut()
+            .get_mut::<IntentQueue>(a)
+            .unwrap()
+            .push_front(Intent {
+                cleanup: None,
+                chore: None,
+                object: b,
+                interaction: 1,
+            });
         provoke(sim.world_mut());
         assert!(queued_fight(&sim, a, b));
     }

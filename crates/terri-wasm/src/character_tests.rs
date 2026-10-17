@@ -139,6 +139,43 @@ fn creator_queue_loads_pre_box_save_and_reproduces_its_completed_bytes() {
     assert_eq!(changed.unwrap().name, "Ann");
 }
 
+/// A historical fixture re-expressed under today's content: the action
+/// manifest names today's social vocabulary (Fight joined Chat in issue 248)
+/// and the world carries today's content digest. A restore rewrites exactly
+/// those two things, so every other byte must still match the fixture.
+fn with_current_content(
+    handle: &SimHandle,
+    mut legacy: terri_core::save_v6::SaveSnapshotV6,
+) -> Vec<u8> {
+    let pack = handle.sim.world().resource::<terri_sim::Content>().0;
+    legacy.actions.social = pack.social.iter().map(|a| a.id.clone()).collect();
+    legacy.legacy.world.content_fingerprint = handle
+        .sim
+        .save_snapshot_v6()
+        .legacy
+        .world
+        .content_fingerprint;
+    postcard::to_allocvec(&legacy).unwrap()
+}
+
+/// The schema-nine fixture bytes as today's content would have written them.
+fn legacy_character_bytes_under_current_content(handle: &SimHandle, bytes: &[u8]) -> Vec<u8> {
+    let (fixture, rest) = postcard::take_from_bytes::<
+        terri_core::save_v10::LegacyCharacterSnapshotV9,
+    >(&bytes[SAVE_HEADER_BYTES..])
+    .unwrap();
+    assert!(rest.is_empty());
+    let legacy = with_current_content(handle, fixture.legacy);
+    let (reread, _) =
+        postcard::take_from_bytes::<terri_core::save_v6::SaveSnapshotV6>(&legacy).unwrap();
+    postcard::to_allocvec(&terri_core::save_v10::LegacyCharacterSnapshotV9 {
+        legacy: reread,
+        characters: fixture.characters,
+        command_order: fixture.command_order,
+    })
+    .unwrap()
+}
+
 fn assert_legacy_character_projection(handle: &SimHandle, bytes: &[u8]) {
     let saved = handle.sim.save_snapshot_v10();
     let legacy = terri_core::save_v10::LegacyCharacterSnapshotV9 {
@@ -148,7 +185,7 @@ fn assert_legacy_character_projection(handle: &SimHandle, bytes: &[u8]) {
     };
     assert_eq!(
         postcard::to_allocvec(&legacy).unwrap(),
-        &bytes[SAVE_HEADER_BYTES..]
+        legacy_character_bytes_under_current_content(handle, bytes)
     );
 }
 
@@ -240,9 +277,17 @@ fn authentic_main_v9_social_saves_migrate_without_losing_episode_state() {
     ] {
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(bytes));
+        let (fixture, rest) =
+            postcard::take_from_bytes::<terri_core::SaveSnapshotV9>(&bytes[SAVE_HEADER_BYTES..])
+                .unwrap();
+        assert!(rest.is_empty());
+        let expected = terri_core::SaveSnapshotV9 {
+            legacy: postcard::from_bytes(&with_current_content(&loaded, fixture.legacy)).unwrap(),
+            social: fixture.social,
+        };
         assert_eq!(
             postcard::to_allocvec(&loaded.sim.save_snapshot_v9()).unwrap(),
-            &bytes[SAVE_HEADER_BYTES..]
+            postcard::to_allocvec(&expected).unwrap()
         );
         let current = loaded.save_bytes();
         let mut resumed = SimHandle::from_lot();

@@ -1087,7 +1087,8 @@ pub struct Tuning {
     /// own (fights, issue 248). Appended after the burnt-meal knobs, per
     /// the rule above, with the four knobs after it.
     pub fight_affinity_threshold: f32,
-    /// Chance per idle tick, with a reason, that the fight starts.
+    /// Chance, per idle tick and per grudge with a reason, that the fight
+    /// starts.
     pub fight_chance_per_tick: f32,
     /// How much a finished fight lowers each side's feeling for the other.
     pub fight_relationship_loss: f32,
