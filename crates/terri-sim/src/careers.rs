@@ -488,6 +488,30 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     }
 }
 
+/// Applies a review that fell due while the person was away, if one
+/// waits (rule 6): called at the end of the walk home, for a week that
+/// ended during the walk. A review due at the shift's end is applied by
+/// `complete_shift` before the walk begins.
+pub(crate) fn settle_due_review(world: &mut World, worker: Entity) {
+    let pack = world.resource::<Content>().0;
+    let Some(sim) = world.get::<SimId>(worker).copied() else {
+        return;
+    };
+    let due = world.get_resource_mut::<Careers>().and_then(|mut careers| {
+        careers
+            .records
+            .get_mut(&sim)
+            .and_then(|r| r.review_due.take())
+    });
+    let Some(ended_week) = due else {
+        return;
+    };
+    let tick = world.resource::<SimClock>().tick;
+    let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
+    review_person(world, &mut careers, pack, sim, worker, ended_week, tick);
+    world.insert_resource(careers);
+}
+
 /// Every living person with their id, in id order.
 fn people(world: &mut World) -> Vec<(SimId, Entity)> {
     let mut people: Vec<(SimId, Entity)> = world
@@ -947,7 +971,14 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
                 .any(|pair| pair[0].week >= pair[1].week)
             || record.consecutive_poor > 100_000
             || record.consecutive_good > 100_000
-            || record.review_due.is_some_and(|due| due >= week)
+            // A review waits only for a person away from home, for a week
+            // after the last one reviewed and before the one running.
+            || record.review_due.is_some_and(|due| {
+                due >= week
+                    || record.history.last().is_some_and(|last| last.week >= due)
+                    || (world.get::<AtWork>(entity).is_none()
+                        && world.get::<Commuting>(entity).is_none())
+            })
         {
             return Err(InvalidValue);
         }
@@ -1996,6 +2027,17 @@ mod tests {
                 "a review due for a week still running",
                 Box::new(|s| s.careers.records[0].review_due = Some(9)),
             ),
+            (
+                "a review due for a person at home",
+                Box::new(|s| s.careers.records[0].review_due = Some(1)),
+            ),
+            (
+                "a review due for a week already reviewed",
+                Box::new(|s| {
+                    s.careers.records[0].review_due = Some(0);
+                    s.careers.records[0].shifts.push(50.0);
+                }),
+            ),
         ];
         for (case, change) in cases {
             let mut invalid = clean.clone();
@@ -2212,6 +2254,91 @@ mod tests {
             i64::from(job.pay) * Funds::CENTS_PER_DOLLAR,
             "the last shift is paid"
         );
+    }
+
+    /// A dismissal applied on the return still brings the person home
+    /// through the whole tick loop and the shipped door: the walk from
+    /// the door ends with the marker off, so the player can hire them
+    /// again.
+    #[test]
+    fn a_person_dismissed_on_the_return_arrives_home_and_can_be_rehired() {
+        let week_ticks = 1440 * 7;
+        let mut sim = pinned(|t| t.career_fire_base = 1.0);
+        set_autonomy(sim.world_mut(), false, false);
+        let (id, entity) = worker(&mut sim);
+        {
+            let mut careers = sim.world_mut().resource_mut::<Careers>();
+            let record = careers.records.get_mut(&id).unwrap();
+            record.consecutive_poor = 2;
+            record.shifts.extend([0.0; 5]);
+        }
+        sim.world_mut().resource_mut::<SimClock>().tick = week_ticks - 1;
+        sim.world_mut()
+            .entity_mut(entity)
+            .insert(AtWork { remaining_ticks: 2 });
+        sim.tick();
+        assert_eq!(record_of(&sim, id).review_due, Some(0), "the review waits");
+        for _ in 0..80 {
+            sim.tick();
+        }
+        assert!(sim.world().get::<Career>(entity).is_none(), "dismissed");
+        assert!(
+            sim.world().get::<AtWork>(entity).is_none()
+                && sim.world().get::<Commuting>(entity).is_none(),
+            "home with every marker off"
+        );
+        assert!(sim.world().resource::<Careers>().record(id).is_none());
+        assign(sim.world_mut(), entity.index_u32(), 0);
+        assert_eq!(
+            sim.world()
+                .resource::<Careers>()
+                .last_result
+                .and_then(|r| r.reason),
+            None,
+            "hired again"
+        );
+    }
+
+    /// A week that ends during the walk home is reviewed when the walk
+    /// ends, so the next shift is paid at the reviewed pay.
+    #[test]
+    fn a_review_due_during_the_walk_home_is_applied_on_arrival() {
+        let week_ticks = 1440 * 7;
+        let mut sim = pinned(|t| t.career_raise_base = 1.0);
+        set_autonomy(sim.world_mut(), false, false);
+        let (id, entity) = worker(&mut sim);
+        let job = pack(&sim).careers[0].clone();
+        {
+            let mut careers = sim.world_mut().resource_mut::<Careers>();
+            let record = careers.records.get_mut(&id).unwrap();
+            record.shifts.extend([100.0; 5]);
+        }
+        let landing = crate::portals::front_portal(pack(&sim))
+            .expect("the shipped lot has a door")
+            .inward;
+        sim.world_mut().resource_mut::<SimClock>().tick = week_ticks - 1;
+        sim.world_mut().entity_mut(entity).insert((
+            terri_core::Position {
+                x: landing.0 as f32,
+                y: landing.1 as f32 - 1.0,
+            },
+            Commuting::Inbound,
+            terri_core::Path {
+                steps: vec![(landing.0 as i32, landing.1 as i32)],
+                cursor: 0,
+            },
+        ));
+        sim.tick();
+        assert_eq!(record_of(&sim, id).review_due, Some(0), "the review waits");
+        for _ in 0..20 {
+            sim.tick();
+        }
+        assert!(sim.world().get::<Commuting>(entity).is_none(), "home");
+        let record = record_of(&sim, id);
+        assert_eq!(record.review_due, None);
+        assert_eq!(record.history.len(), 1, "reviewed on arrival");
+        assert_eq!(record.history[0].event, EVENT_RAISE);
+        assert_eq!(record.pay, raised_pay(&job, job.pay));
     }
 
     /// Death drops the person's record and timers with their other

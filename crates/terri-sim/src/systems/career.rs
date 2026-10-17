@@ -284,14 +284,17 @@ pub fn commute_and_work(
     mut workers: Query<
         (
             Entity,
-            &Career,
+            Option<&Career>,
             &Position,
             &mut Needs,
             Option<&mut AtWork>,
             Option<&Commuting>,
             Has<Path>,
         ),
-        With<Agent>,
+        (
+            With<Agent>,
+            Or<(With<Career>, With<Commuting>, With<AtWork>)>,
+        ),
     >,
 ) {
     // Entity order: Funds is shared state and addition commutes, but
@@ -310,16 +313,28 @@ pub fn commute_and_work(
         else {
             continue;
         };
-        let career = &content.0.careers[career.0 as usize];
+        if matches!(commuting, Some(Commuting::Inbound)) && !has_path {
+            // Home on the landing. The walk was a normal one and the shift
+            // was paid when it began, so the marker comes off, and a review
+            // that fell due during the walk is applied now (the careers
+            // spec, rule 6). This needs no job: a person dismissed on the
+            // return arrives home all the same.
+            commands.entity(worker).remove::<Commuting>();
+            commands.queue(move |world: &mut World| {
+                crate::careers::settle_due_review(world, worker);
+            });
+            continue;
+        }
+        let Some(career) = career.map(|career| &content.0.careers[career.0 as usize]) else {
+            // Unemployed and not walking home: nothing to count down.
+            commands
+                .entity(worker)
+                .remove::<AtWork>()
+                .remove::<Commuting>();
+            continue;
+        };
 
         match commuting {
-            Some(Commuting::Inbound) if !has_path => {
-                // Home on the landing. The walk was a normal one and the
-                // shift was paid when it began, so there is nothing to do
-                // but take the marker off.
-                commands.entity(worker).remove::<Commuting>();
-                continue;
-            }
             Some(Commuting::Outbound) if !has_path => {
                 // Arrived. The rabbit hole swallows the sim: render skips
                 // it, selection and the people loops exclude it, and its

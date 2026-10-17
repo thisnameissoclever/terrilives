@@ -3046,7 +3046,9 @@ impl SimHandle {
 
     /// How many career commands a drain has handled, applied or refused;
     /// rises by one with each, so the shell can tell a fresh
-    /// `last_career_result` from the one it already read.
+    /// `last_career_result` from the one it already read. The settings
+    /// command does not count. The count is saved and the result is not,
+    /// so after a load the count carries on while the result is empty.
     pub fn career_result_sequence(&self) -> u64 {
         self.sim.career_command_count()
     }
