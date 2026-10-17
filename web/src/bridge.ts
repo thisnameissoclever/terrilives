@@ -819,6 +819,23 @@ export class SimBridge {
     return this.handle.weekday_index();
   }
 
+  /**
+   * The season of the current tick, 0 (Spring) to 3 (Winter), as the
+   * simulation works it out ([SEA-year] in `docs/specs/2026-10-17-seasons.md`).
+   * Like the weekday, the shell never derives one from the day number.
+   */
+  seasonIndex(): number {
+    return this.handle.season_index();
+  }
+
+  /**
+   * The yard grass's `[hue, strength, lightness]` change in each season,
+   * flattened, Spring first ([SEA-yard]). Content, so read once and kept.
+   */
+  seasonYardLooks(): Float32Array {
+    return Float32Array.from(this.handle.season_yard_looks());
+  }
+
   /** Versioned simulation bytes for browser-owned storage. */
   saveBytes(): Uint8Array {
     return this.handle.save_bytes();

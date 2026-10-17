@@ -866,6 +866,27 @@ mod tests {
         assert_eq!(office.working_days, 0b0011111);
     }
 
+    /// [SEA-year] and [SEA-yard] in `docs/specs/2026-10-17-seasons.md`: a
+    /// new game starts in Spring, each season lasts seven days, and Spring
+    /// draws the grass as authored. The live tuning is not compared with
+    /// the `Tuning::SHIPPED_*` values that packs published before the
+    /// seasons reconstruct: a later retune changes the live file alone.
+    #[test]
+    fn the_shipped_season_content_matches_the_spec() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.days_per_season, 7);
+        assert_eq!(tuning.first_season, 0);
+        assert_eq!(tuning.season_yard_looks[0], [0.0, 1.0, 0.0]);
+        // Autumn turns the grass toward yellow and Winter pales it: a turn
+        // below zero, and a Winter strength below every other season's with
+        // a lightness above every other season's.
+        let [spring, summer, autumn, winter] = tuning.season_yard_looks;
+        assert!(autumn[0] < 0.0);
+        for other in [spring, summer, autumn] {
+            assert!(winter[1] < other[1] && winter[2] > other[2]);
+        }
+    }
+
     /// [OA-kinds]: the four shipped kinds, in the order every person's values
     /// are listed in, each with its reach, its one object and, for the
     /// aquarium and the television, a trait tag.

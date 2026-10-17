@@ -425,6 +425,226 @@ pub struct TuningFile {
     /// Optional extension; historical packs retain their existing wire records.
     #[serde(default)]
     pub autonomy: Option<crate::AutonomyTuning>,
+    /// How many days each season lasts, at least 1 - [SEA-year] in
+    /// `docs/specs/2026-10-17-seasons.md`.
+    pub days_per_season: u32,
+    /// The season of the first day, 0 (Spring) to 3 (Winter) - [SEA-year].
+    pub first_season: u8,
+    /// The yard grass's `[hue, strength, lightness]` change in each season,
+    /// Spring first - [SEA-yard]. Authored as one table per season, named
+    /// by [`SEASON_KEYS`], each with the three keys of [`SEASON_LOOK_KEYS`],
+    /// and read by [`read_season_yard_looks`], which refuses a malformed
+    /// table by name. The compile step holds each row to a lot look's
+    /// ranges.
+    #[serde(deserialize_with = "read_season_yard_looks")]
+    pub season_yard_looks: [[f32; 3]; 4],
+}
+
+/// The seasons as `season_yard_looks` names them in `tuning.toml`, in the
+/// order the year runs, which is the order the compiled tuning stores their
+/// looks - [SEA-yard] in `docs/specs/2026-10-17-seasons.md`.
+pub const SEASON_KEYS: [&str; terri_core::clock::SEASON_COUNT as usize] =
+    ["spring", "summer", "autumn", "winter"];
+
+/// The keys of one season's look, in the order the compiled tuning stores
+/// its three numbers: a lot look's hue, strength and lightness ([OS-yard]).
+pub const SEASON_LOOK_KEYS: [&str; 3] = ["hue", "strength", "lightness"];
+
+/// Reads `season_yard_looks` into the compiled tuning's four rows, Spring
+/// first - [SEA-yard].
+///
+/// Read by hand rather than derived so that every malformed shape is
+/// refused with the season and the key named wherever one is at fault: a
+/// season missing, a key
+/// that is not a season, a season or the whole table written as anything
+/// but a table, a look missing a key or carrying one it does not know, a
+/// value that is not a number, and a TOML date or time in place of the
+/// table, a look or a number. A derived reader names a missing or unknown
+/// key but not the season it sits in, and a fixed-size list of rows would
+/// drop a fifth row or a fourth number without a word.
+/// A key given twice needs no check here: TOML refuses it before any value
+/// is read.
+fn read_season_yard_looks<'de, D>(deserializer: D) -> Result<[[f32; 3]; 4], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    deserializer.deserialize_map(SeasonYardLooks)
+}
+
+/// The one key of the map the `toml` crate hands a visitor for a TOML date,
+/// time or date-time; the value under it is the date as text. The crate
+/// keeps the name private (`toml_datetime`'s `FIELD`), so it is copied here
+/// to report a date as a date rather than as a season or a key with this
+/// name. The date tests in this module fail if a `toml` upgrade renames it.
+const TOML_DATE_KEY: &str = "$__toml_private_datetime";
+
+/// Visits `season_yard_looks`: one look per season, keyed by its name.
+struct SeasonYardLooks;
+
+impl<'de> serde::de::Visitor<'de> for SeasonYardLooks {
+    type Value = [[f32; 3]; 4];
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(
+            "season_yard_looks as one table for each of spring, summer, autumn and \
+             winter, each with a hue, a strength and a lightness",
+        )
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut looks = [None; 4];
+        while let Some(key) = map.next_key::<String>()? {
+            if key == TOML_DATE_KEY {
+                return Err(serde::de::Error::custom(
+                    "season_yard_looks is a date or time; it needs one table for each of \
+                     spring, summer, autumn and winter, each with a hue, a strength \
+                     and a lightness",
+                ));
+            }
+            let Some(season) = SEASON_KEYS.iter().position(|name| *name == key) else {
+                return Err(serde::de::Error::custom(format!(
+                    "season_yard_looks has a look for `{key}`, which is not a season; \
+                     the seasons are spring, summer, autumn and winter"
+                )));
+            };
+            looks[season] = Some(map.next_value_seed(SeasonLook(SEASON_KEYS[season]))?);
+        }
+        let mut rows = [[0.0; 3]; 4];
+        for ((row, look), season) in rows.iter_mut().zip(looks).zip(SEASON_KEYS) {
+            *row = look.ok_or_else(|| {
+                serde::de::Error::custom(format!(
+                    "season_yard_looks has no look for {season}; it needs one for each \
+                     of spring, summer, autumn and winter"
+                ))
+            })?;
+        }
+        Ok(rows)
+    }
+}
+
+/// Reads one season's look, a table of hue, strength and lightness, naming
+/// the season in every refusal.
+struct SeasonLook(&'static str);
+
+impl<'de> serde::de::DeserializeSeed<'de> for SeasonLook {
+    type Value = [f32; 3];
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(self)
+    }
+}
+
+impl<'de> serde::de::Visitor<'de> for SeasonLook {
+    type Value = [f32; 3];
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "season_yard_looks.{} as a table with a hue, a strength and a lightness",
+            self.0
+        )
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let season = self.0;
+        let mut look = [None; 3];
+        while let Some(key) = map.next_key::<String>()? {
+            if key == TOML_DATE_KEY {
+                return Err(serde::de::Error::custom(format!(
+                    "season_yard_looks.{season} is a date or time; a season's look is a table \
+                     of hue, strength and lightness"
+                )));
+            }
+            let Some(index) = SEASON_LOOK_KEYS.iter().position(|name| *name == key) else {
+                return Err(serde::de::Error::custom(format!(
+                    "season_yard_looks.{season} has an unknown key `{key}`; a season's \
+                     look takes hue, strength and lightness"
+                )));
+            };
+            look[index] = Some(map.next_value_seed(LookNumber {
+                season,
+                key: SEASON_LOOK_KEYS[index],
+            })?);
+        }
+        let mut values = [0.0; 3];
+        for ((value, given), key) in values.iter_mut().zip(look).zip(SEASON_LOOK_KEYS) {
+            *value = given.ok_or_else(|| {
+                serde::de::Error::custom(format!(
+                    "season_yard_looks.{season} has no {key}; a season's look takes \
+                     hue, strength and lightness"
+                ))
+            })?;
+        }
+        Ok(values)
+    }
+}
+
+/// Reads one number of a season's look, naming the season and the key when
+/// the value is not a number.
+struct LookNumber {
+    season: &'static str,
+    key: &'static str,
+}
+
+impl<'de> serde::de::DeserializeSeed<'de> for LookNumber {
+    type Value = f32;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_f32(self)
+    }
+}
+
+impl<'de> serde::de::Visitor<'de> for LookNumber {
+    type Value = f32;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "a number for season_yard_looks.{}.{}",
+            self.season, self.key
+        )
+    }
+
+    // The conversions serde's own `f32` reader makes: a TOML float narrows
+    // to the nearest f32, and a whole number converts, so `hue = -20` reads
+    // as -20.0 like every other look in the content.
+    fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E> {
+        Ok(value as f32)
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E> {
+        Ok(value as f32)
+    }
+
+    // A TOML date, time or date-time reaches a number as a one-key map; any
+    // other table here is refused as the wrong type, as serde would.
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        if map.next_key::<String>()?.as_deref() == Some(TOML_DATE_KEY) {
+            return Err(serde::de::Error::custom(format!(
+                "season_yard_looks.{}.{} is a date or time, not a number",
+                self.season, self.key
+            )));
+        }
+        Err(serde::de::Error::invalid_type(
+            serde::de::Unexpected::Map,
+            &self,
+        ))
+    }
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1379,7 +1599,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 127] = [
+    const TUNING_LINES: [(&str, &str); 130] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1453,6 +1673,9 @@ mod tests {
         ("career_mood_promoted_ticks", "1400"),
         ("career_mood_demoted_ticks", "2800"),
         ("career_mood_fired_ticks", "5700"),
+        ("days_per_season", "9"),
+        ("first_season", "3"),
+        ("season_yard_looks", SEASON_YARD_LOOKS),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1514,6 +1737,16 @@ mod tests {
         // for the same reason the numbers are pairwise distinct.
         ("sleep_tag", "\"snooze\""),
     ];
+
+    /// The four seasonal looks as one inline table, each value distinct and
+    /// exact in binary32 like the knobs above. Winter is declared first and
+    /// Spring's keys are out of order, so a reader that took seasons or
+    /// numbers in file order rather than by name would misplace them.
+    const SEASON_YARD_LOOKS: &str = "{ \
+        winter = { hue = 11.5, strength = 0.375, lightness = 0.125 }, \
+        spring = { lightness = 0.03125, hue = 0.5, strength = 1.25 }, \
+        summer = { hue = -7.5, strength = 0.875, lightness = 0.0625 }, \
+        autumn = { hue = -40.5, strength = 0.8125, lightness = -0.046875 } }";
 
     /// The decay table, which is the twelfth knob and the only one that is
     /// not a scalar. Its key is named separately because a TOML table has
@@ -1595,6 +1828,17 @@ mod tests {
         assert_eq!(parsed.career_review_noise, 9.5);
         assert_eq!(parsed.career_search_tick, 12);
         assert_eq!(parsed.career_mood_fired_ticks, 5700);
+        assert_eq!(parsed.days_per_season, 9);
+        assert_eq!(parsed.first_season, 3);
+        assert_eq!(
+            parsed.season_yard_looks,
+            [
+                [0.5, 1.25, 0.03125],
+                [-7.5, 0.875, 0.0625],
+                [-40.5, 0.8125, -0.046875],
+                [11.5, 0.375, 0.125]
+            ]
+        );
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);
@@ -1696,6 +1940,318 @@ mod tests {
                 "the error must name the missing knob '{omitted}'; got {err}"
             );
         }
+    }
+
+    /// One look per season, in season order, for the refusals below to
+    /// take apart. The values are the fixture's.
+    const SEASON_LOOKS: [(&str, &str); 4] = [
+        (
+            "spring",
+            "{ hue = 0.5, strength = 1.25, lightness = 0.03125 }",
+        ),
+        (
+            "summer",
+            "{ hue = -7.5, strength = 0.875, lightness = 0.0625 }",
+        ),
+        (
+            "autumn",
+            "{ hue = -40.5, strength = 0.8125, lightness = -0.046875 }",
+        ),
+        (
+            "winter",
+            "{ hue = 11.5, strength = 0.375, lightness = 0.125 }",
+        ),
+    ];
+
+    /// `season_yard_looks` as an inline table of these seasons and looks.
+    fn season_table(entries: &[(&str, &str)]) -> String {
+        let body: Vec<String> = entries
+            .iter()
+            .map(|(season, look)| format!("{season} = {look}"))
+            .collect();
+        format!("{{ {} }}", body.join(", "))
+    }
+
+    /// The shipped four with `season`'s look written as `look`.
+    fn season_table_with(season: &str, look: &str) -> String {
+        let entries: Vec<(&str, &str)> = SEASON_LOOKS
+            .iter()
+            .map(|&(name, given)| (name, if name == season { look } else { given }))
+            .collect();
+        season_table(&entries)
+    }
+
+    /// What parsing the fixture with `season_yard_looks = {value}` reports.
+    /// It must fail; the season knob goes first, ahead of the decay table.
+    fn season_looks_error(value: &str) -> String {
+        let source = format!(
+            "season_yard_looks = {value}\n{}",
+            tuning_toml_without("season_yard_looks")
+        );
+        match toml::from_str::<TuningFile>(&source) {
+            Ok(parsed) => panic!(
+                "season_yard_looks = {value} must not parse; got {:?}",
+                parsed.season_yard_looks
+            ),
+            Err(err) => err.to_string(),
+        }
+    }
+
+    /// [SEA-yard]: the looks are read by season name, in the dotted-key
+    /// layout `content/tuning.toml` uses, and a whole number counts as a
+    /// number, as it does in a lot look.
+    #[test]
+    fn season_looks_are_read_by_name_and_take_whole_numbers() {
+        let source = format!(
+            "season_yard_looks.autumn = {{ hue = -45, strength = 1, lightness = 0 }}\n\
+             season_yard_looks.winter = {{ hue = 12.5, strength = 0.25, lightness = 0.1875 }}\n\
+             season_yard_looks.spring = {{ hue = 0.75, strength = 2, lightness = -0.25 }}\n\
+             season_yard_looks.summer = {{ hue = -20, strength = 0.5, lightness = 0.09375 }}\n{}",
+            tuning_toml_without("season_yard_looks")
+        );
+        let parsed: TuningFile = toml::from_str(&source).expect("dotted season looks parse");
+        assert_eq!(
+            parsed.season_yard_looks,
+            [
+                [0.75, 2.0, -0.25],
+                [-20.0, 0.5, 0.09375],
+                [-45.0, 1.0, 0.0],
+                [12.5, 0.25, 0.1875]
+            ]
+        );
+    }
+
+    /// [SEA-yard]: a fifth season, or a season by a name the year does not
+    /// have, is refused with that name rather than dropped.
+    #[test]
+    fn a_season_look_for_no_season_is_refused_by_name() {
+        let mut five = SEASON_LOOKS.to_vec();
+        five.push(("monsoon", "{ hue = 1.0, strength = 1.0, lightness = 0.0 }"));
+        for (value, name) in [
+            (season_table(&five), "monsoon"),
+            (
+                season_table(&[
+                    SEASON_LOOKS[0],
+                    SEASON_LOOKS[1],
+                    ("fall", SEASON_LOOKS[2].1),
+                    SEASON_LOOKS[3],
+                ]),
+                "fall",
+            ),
+        ] {
+            let err = season_looks_error(&value);
+            assert!(
+                err.contains(&format!(
+                    "season_yard_looks has a look for `{name}`, which is not a season"
+                )),
+                "{err}"
+            );
+        }
+    }
+
+    /// [SEA-yard]: every season needs a look; leaving out any one of the
+    /// four is refused with that season named.
+    #[test]
+    fn a_missing_season_look_is_refused_by_name() {
+        for (index, (season, _)) in SEASON_LOOKS.iter().enumerate() {
+            let mut three = SEASON_LOOKS.to_vec();
+            three.remove(index);
+            let err = season_looks_error(&season_table(&three));
+            assert!(
+                err.contains(&format!("season_yard_looks has no look for {season};")),
+                "{err}"
+            );
+        }
+    }
+
+    /// [SEA-yard]: a season's look needs exactly a hue, a strength and a
+    /// lightness. Each key left out, a misspelled key and a fourth number
+    /// are refused with the season and the key named.
+    #[test]
+    fn a_season_look_with_a_missing_or_unknown_key_is_refused_by_name() {
+        for (season, look, expected) in [
+            (
+                "spring",
+                "{ strength = 1.25, lightness = 0.03125 }",
+                "season_yard_looks.spring has no hue;",
+            ),
+            (
+                "autumn",
+                "{ hue = -40.5, lightness = -0.046875 }",
+                "season_yard_looks.autumn has no strength;",
+            ),
+            (
+                "summer",
+                "{ hue = -7.5, strength = 0.875 }",
+                "season_yard_looks.summer has no lightness;",
+            ),
+            (
+                "summer",
+                "{ hues = -7.5, strength = 0.875, lightness = 0.0625 }",
+                "season_yard_looks.summer has an unknown key `hues`;",
+            ),
+            (
+                "winter",
+                "{ hue = 11.5, strength = 0.375, lightness = 0.125, saturation = 0.5 }",
+                "season_yard_looks.winter has an unknown key `saturation`;",
+            ),
+        ] {
+            let err = season_looks_error(&season_table_with(season, look));
+            assert!(err.contains(expected), "{season} = {look}: {err}");
+        }
+    }
+
+    /// [SEA-yard]: a season written as a list of numbers, three or four,
+    /// and the whole table written as a list of rows, five or four, are
+    /// refused with the expected shape spelled out. A value that is not a
+    /// number names the season and the key.
+    #[test]
+    fn a_season_look_of_the_wrong_shape_or_type_is_refused_by_name() {
+        let summer_shape = "expected season_yard_looks.summer as a table with a hue, \
+                            a strength and a lightness";
+        let table_shape = "expected season_yard_looks as one table for each of spring, \
+                           summer, autumn and winter, each with a hue, a strength and a \
+                           lightness";
+        for (value, expected) in [
+            (
+                season_table_with("summer", "[-7.5, 0.875, 0.0625, 0.5]"),
+                summer_shape,
+            ),
+            (
+                season_table_with("summer", "[-7.5, 0.875, 0.0625]"),
+                summer_shape,
+            ),
+            (
+                "[[0.0, 1.0, 0.0], [-20.0, 0.85, 0.04], [-45.0, 0.9, -0.05], \
+                 [12.0, 0.3, 0.14], [9.0, 1.0, 0.0]]"
+                    .to_string(),
+                table_shape,
+            ),
+            (
+                "[[0.0, 1.0, 0.0], [-20.0, 0.85, 0.04], [-45.0, 0.9, -0.05], [12.0, 0.3, 0.14]]"
+                    .to_string(),
+                table_shape,
+            ),
+            (
+                season_table_with(
+                    "autumn",
+                    "{ hue = \"yellow\", strength = 0.8125, lightness = -0.046875 }",
+                ),
+                "expected a number for season_yard_looks.autumn.hue",
+            ),
+            (
+                season_table_with(
+                    "spring",
+                    "{ hue = { turn = 0.5 }, strength = 1.25, lightness = 0.03125 }",
+                ),
+                "invalid type: map, expected a number for season_yard_looks.spring.hue",
+            ),
+        ] {
+            let err = season_looks_error(&value);
+            assert!(err.contains(expected), "{value}: {err}");
+        }
+    }
+
+    /// [SEA-yard]: a TOML date, time or date-time where a season's table or a
+    /// look's number belongs, or in place of the whole table, is refused as a
+    /// date or time, naming the season and the key wherever one is at fault
+    /// (a date in place of the whole table names neither). The `toml` crate hands
+    /// a visitor each of them as a map under a private key, which must not
+    /// reach the message.
+    #[test]
+    fn a_date_in_the_season_looks_is_refused_as_a_date_or_time() {
+        for (value, expected) in [
+            (
+                "1979-05-27".to_string(),
+                "season_yard_looks is a date or time; it needs one table for each of spring",
+            ),
+            (
+                season_table_with("spring", "1979-05-27T07:32:00Z"),
+                "season_yard_looks.spring is a date or time; a season's look is a table of hue",
+            ),
+            (
+                season_table_with("winter", "07:32:00"),
+                "season_yard_looks.winter is a date or time;",
+            ),
+            (
+                season_table_with(
+                    "spring",
+                    "{ hue = 1979-05-27, strength = 1.25, lightness = 0.03125 }",
+                ),
+                "season_yard_looks.spring.hue is a date or time, not a number",
+            ),
+            (
+                season_table_with(
+                    "autumn",
+                    "{ hue = -40.5, strength = 0.8125, lightness = 1979-05-27T07:32:00 }",
+                ),
+                "season_yard_looks.autumn.lightness is a date or time, not a number",
+            ),
+        ] {
+            let err = season_looks_error(&value);
+            assert!(err.contains(expected), "{value}: {err}");
+            assert!(!err.contains("toml_private"), "{value}: {err}");
+        }
+    }
+
+    /// The fixture with each season's look written under its own
+    /// `[season_yard_looks.{season}]` header, one key per line, after the
+    /// decay table. `looks` gives each season's inline table.
+    fn header_layout(looks: &[(&str, &str)]) -> String {
+        let mut source = tuning_toml_without("season_yard_looks");
+        for (season, look) in looks {
+            source.push_str(&format!("\n[season_yard_looks.{season}]\n"));
+            for pair in look
+                .trim_matches(|c| c == '{' || c == '}' || c == ' ')
+                .split(", ")
+            {
+                source.push_str(&format!("{pair}\n"));
+            }
+        }
+        source
+    }
+
+    /// [SEA-yard]: the table-header layout reads like the inline one, each
+    /// season under its own header, here written Winter first.
+    #[test]
+    fn season_looks_under_table_headers_parse() {
+        let mut looks = SEASON_LOOKS.to_vec();
+        looks.reverse();
+        let parsed: TuningFile =
+            toml::from_str(&header_layout(&looks)).expect("header-layout season looks parse");
+        assert_eq!(
+            parsed.season_yard_looks,
+            [
+                [0.5, 1.25, 0.03125],
+                [-7.5, 0.875, 0.0625],
+                [-40.5, 0.8125, -0.046875],
+                [11.5, 0.375, 0.125]
+            ]
+        );
+    }
+
+    /// [SEA-yard]: the refusals name the season in the table-header layout
+    /// too, where the offending line does not show it.
+    #[test]
+    fn a_season_look_under_a_table_header_is_refused_by_name() {
+        let looks: Vec<(&str, &str)> = SEASON_LOOKS
+            .iter()
+            .map(|&(season, look)| {
+                let look = if season == "summer" {
+                    "{ hue = -7.5, strenght = 0.875, lightness = 0.0625 }"
+                } else {
+                    look
+                };
+                (season, look)
+            })
+            .collect();
+        let err = toml::from_str::<TuningFile>(&header_layout(&looks))
+            .expect_err("a misspelled key must not parse")
+            .to_string();
+        assert!(
+            err.contains("season_yard_looks.summer has an unknown key `strenght`;"),
+            "{err}"
+        );
     }
 
     /// [CAL-careers]: `working_days` is required. A career written before

@@ -33,6 +33,34 @@ pub fn weekday(tick: u64, day_ticks: u32, first_weekday: u8) -> u8 {
     ((tick / day_ticks as u64 % week + first_weekday as u64) % week) as u8
 }
 
+/// Seasons in a year. Season 0 is Spring, 1 Summer, 2 Autumn and 3
+/// Winter - [SEA-year] in `docs/specs/2026-10-17-seasons.md`.
+pub const SEASON_COUNT: u8 = 4;
+
+/// The season of the day `tick` falls in: 0 for Spring through 3 for
+/// Winter.
+///
+/// Day `d` is `tick / day_ticks`, the day index [`weekday`] reads. Each
+/// season lasts `days_per_season` days, and `first_season` names the
+/// season of day 0, so the season is
+/// `(d / days_per_season + first_season) % 4`. Like the weekday, nothing
+/// about it is saved: it is a pure function of the saved tick and content,
+/// so the boundary, and any simulation rule that later reads the season,
+/// share this one definition.
+///
+/// # Panics
+///
+/// Divides by `day_ticks` and by `days_per_season`, so it panics if either
+/// is 0. The content compiler refuses both, so values read from a compiled
+/// pack's tuning are never 0.
+pub fn season(tick: u64, day_ticks: u32, days_per_season: u32, first_season: u8) -> u8 {
+    let year = SEASON_COUNT as u64;
+    let day = tick / day_ticks as u64;
+    // Reduced before the offset is added, so a one-tick day at the top of
+    // the tick range cannot overflow, as in `weekday`.
+    ((day / days_per_season as u64 % year + first_season as u64) % year) as u8
+}
+
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SimClock {
     pub tick: u64,
@@ -134,5 +162,60 @@ mod tests {
         // 1 plus 6 is 0 mod 7. Adding the offset before the modulo would
         // overflow.
         assert_eq!(weekday(u64::MAX, 1, 6), 0);
+    }
+
+    /// [SEA-year]: the shipped year is four seven-day seasons from Spring.
+    /// Both edges of every season boundary in the first year, and the turn
+    /// into the second year, so a dropped division, a hardcoded season
+    /// length or an off-by-one moves an assertion.
+    #[test]
+    fn season_counts_whole_seasons_of_seven_days_from_spring() {
+        let day = 1440u64;
+        for (season_index, first_day) in [(0u8, 0u64), (1, 7), (2, 14), (3, 21)] {
+            assert_eq!(season(first_day * day, 1440, 7, 0), season_index);
+            assert_eq!(
+                season((first_day + 7) * day - 1, 1440, 7, 0),
+                season_index,
+                "the last tick of season {season_index}"
+            );
+        }
+        assert_eq!(season(28 * day, 1440, 7, 0), 0, "day 29 is Spring again");
+    }
+
+    /// [SEA-year]: `first_season` 3 starts the year in Winter and wraps to
+    /// Spring after one season; a one-day season changes every day; and a
+    /// day length other than 1440 counts its own days.
+    #[test]
+    fn season_applies_the_offset_and_any_season_or_day_length() {
+        let day = 1440u64;
+        assert_eq!(season(0, 1440, 7, 3), 3);
+        assert_eq!(season(7 * day - 1, 1440, 7, 3), 3);
+        assert_eq!(season(7 * day, 1440, 7, 3), 0);
+        assert_eq!(season(21 * day, 1440, 7, 3), 2);
+        assert_eq!(season(28 * day, 1440, 7, 3), 3);
+        // One-day seasons: the season is the day index, wrapped.
+        for d in 0..9u64 {
+            assert_eq!(season(d * day, 1440, 1, 0), (d % 4) as u8, "day index {d}");
+            assert_eq!(season(d * day + 1439, 1440, 1, 3), ((d + 3) % 4) as u8);
+        }
+        // A 100-tick day: tick 699 is the last of day index 6, tick 700
+        // the first of day index 7, the first day of Summer.
+        assert_eq!(season(699, 100, 7, 0), 0);
+        assert_eq!(season(700, 100, 7, 0), 1);
+    }
+
+    /// [SEA-year]: the largest tick neither overflows nor panics.
+    #[test]
+    fn season_is_defined_at_the_top_of_the_tick_range() {
+        // u64::MAX / 1440 is 12810238940076077; divided by 7 that is
+        // 1830034134296582, which is 2 mod 4, and 2 plus 3 is 1 mod 4.
+        assert_eq!(season(u64::MAX, 1440, 7, 3), 1);
+        // A one-tick day and a one-day season: u64::MAX is 3 mod 4, and 3
+        // plus 3 is 2 mod 4. Adding the offset before the modulo would
+        // overflow.
+        assert_eq!(season(u64::MAX, 1, 1, 3), 2);
+        // The longest season: u64::MAX / u32::MAX is 2^32 + 1, which is 1
+        // mod 4.
+        assert_eq!(season(u64::MAX, 1, u32::MAX, 0), 1);
     }
 }
