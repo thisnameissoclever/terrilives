@@ -113,16 +113,10 @@ pub(crate) fn repin_after_restart(world: &mut World, person: Entity) -> bool {
     if origin.1 != SelectedUse::Complete {
         return true;
     }
-    let ChainOrigin::Action {
-        model,
-        selected_step,
-        ..
-    } = &origin.0
-    else {
+    let ChainOrigin::Action { model, .. } = &origin.0 else {
         return true;
     };
     let pack = world.resource::<crate::Content>().0;
-    let _ = selected_step;
     let pinned = world
         .try_query::<(Entity, &terri_core::SmartObject)>()
         .and_then(|mut q| {

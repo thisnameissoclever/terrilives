@@ -168,5 +168,14 @@ mod tests {
             assert!(target.load_snapshot_v11(snapshot).is_err());
             assert_eq!(target.world_hash(), before);
         }
+        // The bound itself is allowed: a moodlet may end exactly the
+        // longest duration any tuning permits after the saved tick.
+        let mut at_bound = clean.clone();
+        at_bound.burnt_meals = vec![SavedBurntMeal {
+            sim: 1,
+            until_tick: 40 + LONGEST_MOODLET_TICKS,
+        }];
+        let mut target = Sim::new_from_shipped_lot();
+        assert!(target.load_snapshot_v11(at_bound).is_ok());
     }
 }

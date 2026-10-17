@@ -78,7 +78,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
       return result;
     }),
   };
-  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' | 'v9' | 'v11' = false) {
+  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' | 'v9' | 'v10' = false) {
     const waiting = new Map<number, (response: Response) => void>();
     const port = {
       onmessage: null as ((event: { data: unknown }) => void) | null,
