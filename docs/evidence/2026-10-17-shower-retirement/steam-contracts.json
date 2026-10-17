@@ -1,0 +1,92 @@
+{
+  "sourceHashes": {
+    "web/src/render/character/shower-steam.ts": "ab6cc787acde477abfc4312f2a13b9fcc1b6e5bfcf57d1c934fa8bca1a7280c6",
+    "web/src/render/scene-target.ts": "5b1153498326f8494e61b90495944f033f96c2550d8da1cb39bc16fa0cc1ad8c",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "web/src/render/scene-sampling.ts": "c953df5c8d2a603847ccb7dabf6ef9aa13bc1d5c87ebde9210905cb6ebe97066",
+    "web/proofs/steam-contracts.ts": "01fd9e0fdf0a001ac79b36ba51e2ebe765030aba12a2f7aec0267a8abfe8b8c8",
+    "web/proofs/steam-contracts.html": "de279b6b889d8a7139911de70734df3d68ce81ee1a8f503ce85ed21a96727a55"
+  },
+  "harnessSha256": "0e75611464ba7eaa695e0ced6f680ad8b1cd4193b14fa0503aedc7e0d436403d",
+  "frozenAt": "2026-10-17T18:33:03.965Z",
+  "cases": [
+    {
+      "name": "production",
+      "expected": "PASS",
+      "accepted": true,
+      "result": {
+        "status": "PASS",
+        "size": [
+          384,
+          384
+        ],
+        "exposedSamples": 8734,
+        "foregroundChanges": 0,
+        "identityBytes": 589824,
+        "surfaceBytes": 589824,
+        "picks": [
+          41,
+          73
+        ],
+        "hardwareDepthWitness": true,
+        "emptyFieldClears": true,
+        "heldPhaseStable": true,
+        "disposedDrawInert": true
+      },
+      "errors": []
+    },
+    {
+      "name": "depth-write",
+      "expected": "REJECT",
+      "accepted": true,
+      "result": {
+        "status": "FAIL",
+        "error": "Error: Steam wrote hardware depth and blocked the farther witness."
+      },
+      "errors": []
+    },
+    {
+      "name": "retained-field",
+      "expected": "REJECT",
+      "accepted": true,
+      "result": {
+        "status": "FAIL",
+        "error": "Error: Cleared steam retained a visible field."
+      },
+      "errors": []
+    },
+    {
+      "name": "missing-draw",
+      "expected": "REJECT",
+      "accepted": true,
+      "result": {
+        "status": "FAIL",
+        "error": "Error: Steam did not affect any exposed sample."
+      },
+      "errors": []
+    },
+    {
+      "name": "identity-write",
+      "expected": "REJECT",
+      "accepted": true,
+      "result": {
+        "status": "FAIL",
+        "error": "Error: Steam overwrote scene identity."
+      },
+      "errors": []
+    },
+    {
+      "name": "surface-write",
+      "expected": "REJECT",
+      "accepted": true,
+      "result": {
+        "status": "FAIL",
+        "error": "Error: Steam overwrote physical surface depth."
+      },
+      "errors": []
+    }
+  ],
+  "browser": "155.0.8059.85",
+  "status": "PASS",
+  "cleanupErrors": []
+}

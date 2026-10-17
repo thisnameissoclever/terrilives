@@ -12012,6 +12012,27 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: never commit or upload review videos, including videos embedded in trace archives or converted into animated GIF loops. Disable recording in routine capture scripts. Retain selected screenshots, measurements, reproduction settings, and written findings; keep temporary recordings in ignored local scratch storage.
 4. Verification: inspect the complete candidate tree and archive contents before publication. Require no review video files, no broken recording links, and no claim that retaining a recording establishes continuous visual review. Use a squash merge so rejected artifact commits do not enter main history.
 
+## [L-retire-superseded-runtime] Compare paused work with the merged replacement before resuming
+
+1. What happened: a separate shower-water experiment remained uncommitted after another branch merged the accepted steam design.
+2. Root cause: the old working tree retained implementation assumptions and task status that no longer described main.
+3. Prevention: fetch remote state, inspect the replacement and confirm the current owner decision before integration. Archive useful source and measured results before restoring obsolete edits. Identify shared stashes by exact commit, not changing list positions; remove only attributed entries with verified portable recovery.
+4. Verification: compare production files with fresh main, verify archive hashes and recovery prerequisites, and confirm unrelated stash identities remain unchanged. Keep historical checks separate from verification of the retained implementation. See [the retirement record](evidence/2026-10-17-shower-retirement/README.md).
+
+## [L-filter-thin-effect-coverage] Preserve subpixel stroke energy before increasing opacity
+
+1. What happened: thin shower droplets disappeared at some normal-scale sample registrations even after opacity increased.
+2. Root cause: the geometry could miss every sample center; edge shading then reduced the few surviving samples further.
+3. Prevention: rasterize the filtering support and weight samples by the true stroke coverage. Do not substitute a minimum apparent width or draw through solid geometry to force visibility.
+4. Verification: move a stroke across a complete sample interval and measure nonzero, stable integrated color. Inspect normal-size motion separately. The retired reference and its limited measurements are linked from [effect verification](rendering/effect-verification.md); no water effect is installed in the game.
+
+## [L-bound-large-git-inventories] Bound the first inventory of a large asset change
+
+1. What happened: an upstream review-capture cleanup generated thousands of entries in a full Git statistics listing while a small unrelated branch was integrating it.
+2. Root cause: the first inspection requested every path and binary size before checking the change's scale. The merge also generated the same large summary.
+3. Prevention: aggregate a `--name-only` or `--name-status` inventory first. Inspect targeted paths next. Use `git merge --no-stat` for a known large capture cleanup; preserve normal merge checks and hooks.
+4. Verification: confirm the intended parents, inspect the bounded branch-only diff, and verify removed upstream files are not restored. Do not treat a large informational summary as implementation evidence.
+
 ## [L-activity-surface-support] Verify finite support and floor indicators during actual activities
 
 1. What happened: a seated pose matched its authored source yet perched at a cushion's edge. Selection markers followed raised ankle height and used object depth, so they painted over people, shower trays, and bed covers. Kitchen artwork also crossed the wall's physical room face.
@@ -12053,3 +12074,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the module served three exports. The bath loop uses only its wardrobe function, but a receipt pins the whole file, so an edit to the washing pose broke the bath receipt without changing any shipped bath pixel. Skipping CI hid the failure until the next unrelated push.
 3. Prevention: before editing a file under `assets/models`, search the export receipts (`grep -rn <file name> assets/models/*/actions/export assets/models/*/export`) for its path. If a shipped receipt pins it, either run that export again and review the art, or put the new work in a separate module the receipt does not pin. Never push a change to pinned inputs with `[skip ci]`.
 4. Verification: run `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'` and `python assets/sprites/gen/build.py --check` locally before pushing; both fail on a changed pinned input. After merging, confirm the CI run on main passed and the Pages deployment ran.
+
+## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
+
+1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
+2. Root cause: the deletion filter protected literal filenames in documentation and source, but some readers assemble filenames from naming patterns or structured reports. A file's location under `docs/evidence/` does not establish that it is disposable.
+3. Prevention: inspect file readers, expand their supported naming patterns, and follow report fields used as input paths. Preserve the inputs required by useful retained tools. Distinguish generated review output from test fixtures and asset production inputs before deciding which checks apply.
+4. Verification: run the affected postprocessors with isolated outputs, verify preserved input bytes against Git, and confirm the deletion set contains no code, functional assets, or required test inputs. Update current documentation when a capture sequence moves into Git history.

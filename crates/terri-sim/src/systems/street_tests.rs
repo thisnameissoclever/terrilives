@@ -35,6 +35,84 @@ fn walk(sim: &mut Sim, entity: Entity, done: impl Fn(&Sim) -> bool) -> Vec<(f32,
     panic!("the commute never finished");
 }
 
+/// A shift keeps an unfinished errand for home, but on the way to work, at
+/// work and on the way home the worker is not doing it, so the errand line
+/// is blank throughout; home again, the kept errand shows. The errand is
+/// started on the tick before the shift, as a worker caught mid-snack
+/// would have it, and every stage is observed rather than predicted.
+#[test]
+fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let tim = worker(&mut sim);
+    let content = sim.world().resource::<crate::Content>().0;
+    let shift_start = u64::from(content.careers[0].shift_start);
+    let day_ticks = u64::from(content.tuning.day_ticks);
+    let snack = content
+        .chains
+        .iter()
+        .position(|chain| chain.id == "prepare_snack")
+        .expect("the shipped pack has the snack chain") as u32;
+    let index = tim.index_u32();
+    for _ in 0..day_ticks {
+        if sim.world().resource::<terri_core::SimClock>().tick % day_ticks == shift_start - 1 {
+            break;
+        }
+        sim.tick();
+    }
+    assert!(
+        sim.world().get::<Commuting>(tim).is_none() && sim.world().get::<AtWork>(tim).is_none(),
+        "home on the tick before the shift"
+    );
+    sim.world_mut()
+        .entity_mut(tim)
+        .insert(terri_core::ChainState {
+            chain: snack,
+            step: 0,
+            fumble_scale: 1.0,
+        });
+    let mut stages = Vec::new();
+    for _ in 0..3_000 {
+        sim.tick();
+        let stage = match (
+            sim.world().get::<Commuting>(tim),
+            sim.world().get::<AtWork>(tim),
+        ) {
+            (Some(Commuting::Outbound), _) => "out",
+            (Some(Commuting::Inbound), _) => "in",
+            (None, Some(_)) => "work",
+            (None, None) => "home",
+        };
+        if stages.last() != Some(&stage) {
+            stages.push(stage);
+        }
+        if stage == "home" {
+            if stages.len() > 1 {
+                break;
+            }
+            continue;
+        }
+        assert!(
+            sim.world().get::<terri_core::ChainState>(tim).is_some(),
+            "the shift keeps the errand ({stage})"
+        );
+        assert_eq!(
+            sim.chain_status_of(index),
+            None,
+            "no errand line while away ({stage})"
+        );
+    }
+    // The shift starts on the very next tick, so the first stage seen is the walk out.
+    assert_eq!(stages, ["out", "work", "in", "home"]);
+    assert!(
+        sim.world().get::<terri_core::ChainState>(tim).is_some(),
+        "the errand is still kept on arrival"
+    );
+    let status = sim
+        .chain_status_of(index)
+        .expect("home again, the kept errand shows");
+    assert!(status.contains(" - step: "), "{status}");
+}
+
 /// Out through the front door and across the yard to the street's exit, at
 /// work there out of sight, then home along a path back through the door to
 /// the landing, paid once.
