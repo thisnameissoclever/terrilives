@@ -1,0 +1,7 @@
+Found 40 mutants to test
+ok       Unmutated baseline in 18s build + 178s test
+ INFO Auto-set test timeout to 713s
+MISSED   crates/terri-sim/src/relationship_dynamics.rs:102:61: replace < with <= in hated_communal_gain in 7s build + 238s test
+MISSED   crates/terri-sim/src/relationship_dynamics.rs:231:29: replace && with || in tick in 16s build + 197s test
+40 mutants tested in 2h: 2 missed, 34 caught, 4 unviable
+mutants exit=2

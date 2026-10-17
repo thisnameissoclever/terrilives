@@ -1,0 +1,7 @@
+crates/terri-sim/src/relationship_dynamics.rs:114:5: replace tick with ()
+crates/terri-sim/src/social_company.rs:166:9: replace Communal::pairs_with -> bool with true
+crates/terri-sim/src/social_company.rs:166:9: replace Communal::pairs_with -> bool with false
+crates/terri-sim/src/social_company.rs:167:13: delete match arm (Self::Shared{station, group}, Self::Shared{station:theirs, group:their_group,},) in Communal::pairs_with
+crates/terri-sim/src/social_company.rs:173:36: replace && with || in Communal::pairs_with
+crates/terri-sim/src/social_company.rs:173:26: replace != with == in Communal::pairs_with
+crates/terri-sim/src/social_company.rs:173:45: replace == with != in Communal::pairs_with
