@@ -127,11 +127,12 @@ it('colours both the placed sofa and its Build preview through the real frame wr
       const expected = [...sim.colourwayShifts().slice(colourway * 3, colourway * 3 + 3)];
       expected[1] -= 1;
       shifts.forEach((value, index) => expect(value).toBeCloseTo(expected[index], 5));
-      const preview = new Float32Array(3 * FLOATS_PER_INSTANCE);
+      // One floor marker for the two-tile sofa, then its art.
+      const preview = new Float32Array(2 * FLOATS_PER_INSTANCE);
       expect(writePlacementPreview(preview, 0, sim.placementPreview(11, 10, 0, 0),
-        0, 0, 16, 1, null, sim.colourwayShifts(), colourway)).toBe(3);
-      expect(preview[2 * FLOATS_PER_INSTANCE + 3]).toBe(atlas.spriteIndex('offlineLongSofa'));
-      expect([...preview.slice(2 * FLOATS_PER_INSTANCE + 12, 2 * FLOATS_PER_INSTANCE + 15)]).toEqual(shifts);
+        0, 0, 16, 1, null, sim.colourwayShifts(), colourway)).toBe(2);
+      expect(preview[FLOATS_PER_INSTANCE + 3]).toBe(atlas.spriteIndex('offlineLongSofa'));
+      expect([...preview.slice(FLOATS_PER_INSTANCE + 12, FLOATS_PER_INSTANCE + 15)]).toEqual(shifts);
     }
   } finally {
     handle.free();

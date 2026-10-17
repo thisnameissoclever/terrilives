@@ -1,0 +1,48 @@
+# Placement marker in Build mode
+
+While the Buy tool shows a purchase ghost, or the Furniture tool has a placed object selected to move, the object stands on one floor marker: an ellipse in the style of the marker under a selected housemate, sized and shaped to the object's footprint. One marker belongs to one object, as the owner asked. It replaces one square ring sprite per footprint tile, which gave a multi-tile object such as the Standard Double bed (2 by 2) one square per tile.
+
+## Contents
+
+- [[PM-marker] One floor ellipse per object](#pm-marker-one-floor-ellipse-per-object)
+- [[PM-rows] Marker rows and the marker draw](#pm-rows-marker-rows-and-the-marker-draw)
+- [Verification](#verification)
+
+## [PM-marker] One floor ellipse per object
+
+1. **Shape.** The marker is an ellipse on the floor whose axes run along world x and world y. For a footprint $w$ tiles along world x and $d$ tiles along world y, as the preview reports them after facing, its semi-axes are $a = w/\sqrt{2} + m$ and $b = d/\sqrt{2} + m$ tiles, with the margin $m = 0.08$ (`PLACEMENT_MARKER_MARGIN` in `web/src/render/ground-selection.ts`). With $m = 0$ the ellipse passes through the footprint's four corners, which lie at $(\pm w/2, \pm d/2)$ from its center, because $\frac{(w/2)^2}{w^2/2} + \frac{(d/2)^2}{d^2/2} = 1$. Any positive margin keeps every corner, and so the whole object, inside the marker.
+2. **Center.** Tile centers are whole numbers, so the footprint of a preview at tile $(x, y)$ is centered at $(x + (w-1)/2, y + (d-1)/2)$. The marker takes the same fixture registration offset as the ghost's art, so the marker of a wall-registered fixture stays under the drawn fixture, as the housemate marker follows a registered fixture.
+3. **Projection.** At zoom $s$, the isometric projection draws world x along $u = a s (32, 21)$ and world y along $v = b s (-32, 21)$ in screen pixels. The marker is every point $c + u \cos t + v \sin t$ around its screen center $c$. A square footprint gives an upright ellipse with the housemate marker's proportions. A 1 by 2 footprint gives one long ellipse tilted along the object's length, and turning the object turns the ellipse.
+4. **Look.** Placement and housemate markers share one draw and one set of numbers: a 1.95 pixel border at 0.94 opacity, a fill at 0.105 opacity, and the same anti-aliasing. These numbers live in `MARKER_LOOK`, which the shader text interpolates. The border keeps that width all the way around, on a stretched or tilted ellipse as on the housemate's circle.
+
+   The vertex shader maps each corner's screen offset from the center into the space where the ellipse is the unit circle; the quad's corners land outside that circle. The fragment shader receives the interpolated value, `unit`, takes `f = length(unit) - 1`, and divides `f` by the length of its screen gradient to estimate the distance to the edge in pixels. The edge softening comes from the screen derivatives of `f` divided by that same length, so the center, where the gradient's direction is undefined, stays at the plain fill.
+5. **Color.** A placement the game accepts draws the housemate marker's blue, sRGB (0.29, 0.77, 0.98). A refused placement draws a coral red, sRGB (0.98, 0.34, 0.29): the blue's saturation and brightness at the hue of the refused ghost tint (229, 140, 133). The ghost's art keeps its existing accepted and refused tints.
+6. **Depth and draw order.** The marker lies on the floor-decal plane, `FLOOR_DEPTH - DEPTH_LAYER_STEP / 4`, as the housemate marker does. It is drawn inside the scene pass after the opaque sprites, the people and the grime, and before the short cutaway walls. It tests depth without writing it, so opaque surfaces in front of the floor, the ghost among them, hide its middle while its rim shows around the object.
+
+   Where a rim runs under a wall, the wall and its baseboard, a strip of trim 0.14 units high (about 5 pixels at zoom 1), stand in front of that floor and hide it, as they hide the floor itself. Short walls write no depth, so they cover the marker because they are drawn after it; any surface that covers a floor point is in front of it. Shower steam and activity bubbles are drawn later still.
+
+   The marker writes neither surface depth nor identity, so picking passes through it, and it takes neither local light nor sky shade.
+
+## [PM-rows] Marker rows and the marker draw
+
+1. `writePlacementPreview` writes the marker as the first of its rows, then the art and any foreground layer. A preview therefore writes two or three rows whatever its footprint size, and `placementInstanceCount` counts the same.
+2. Every marker row holds `GROUND_MARKER_COMMAND` in instance field 8. The value is $-2^{23}$, below every projection mode the sprite shader knows, including every architecture mode, and exact in a 32-bit float. Fields 0 and 1 hold the marker's screen center, field 2 its depth, field 3 the selection ring sprite (never sampled), fields 4 to 6 its color, and fields 10 and 11 its world semi-axes in tiles. `web/src/render/ground-selection.ts` owns this layout and the two marker writers.
+3. The sprite renderer finds every marker row before the frame's passes begin and draws the other dynamic rows around them. Marker rows follow the activity bubbles, so the annotation draw never includes one, and the grime and short-wall draws read separate instance ranges.
+4. A frame holds at most two marker rows, one for the selected housemate and one for a placement; in the game only one is drawn at a time, because Build mode, which owns every placement, does not draw the housemate marker. Every marker is an instance of one draw inside the scene pass, reading a uniform buffer sized once for four markers (`MAX_GROUND_MARKERS`). The uniform and its staging array are allocated once, so the markers add no render pass, texture view or buffer to a frame. A fifth marker row throws rather than reaching the sprite draws.
+5. The tile highlight keeps one ring sprite per tile. The Walls, Room, Floors, Land and Window tools use it to mark the tiles a choice covers, a line or an area, rather than one object.
+
+## Verification
+
+Unit tests in `web/tests/ground-markers.test.ts` and `web/tests/placement-preview.test.ts` cover the semi-axes, the projected axes for 1 by 1, 2 by 2 and 1 by 2 footprints in both orientations, footprint corners on the marker without margin and inside it with margin, the screen box, and the housemate marker's 30 by 19.6875 pixel ellipse. They also cover exactly one marker row per preview with its command, center, depth and color for accepted and refused placements, the command's place outside every architecture mode, discovery of a housemate marker and a placement marker in one frame, marker rows after the activity bubbles, and the sprite draws around marker slots.
+
+Each marker's uniform block must carry its row's depth, which puts both markers on the floor-decal plane. A test of the renderer with a stand-in graphics device checks that it uploads the canvas size in canvas pixels and one block per marker, then draws one instance per marker in the open pass, and that it uploads and draws nothing when no marker is present.
+
+The marker's border, fill, softening, discard, center and box-margin numbers live in `MARKER_LOOK` in `web/src/render/ground-selection.ts`. The shader text interpolates them and the tests read them. A test checks that each one's WGSL text is a valid float literal with the same value.
+
+The tests replay the shader on the CPU statement by statement. Each WGSL statement of the vertex shader, the fragment shader and the color conversion sits beside the TypeScript that does the same. A test drops the shader's comments, collapses each run of whitespace to one space in both the shader text and the table, removes whitespace next to punctuation, and then requires the statements of those three functions to equal the table, so a formatting pass keeps the tie and any other edit to those statements breaks it. The same test requires the vertex output struct's text, normalized the same way, and the layout test below ties the `Marker` and `Markers` structs.
+
+The replay runs the vertex statements for the quad's six corners, interpolates their outputs across the quad as the rasterizer does, and runs the fragment statements on the result. With it, the tests check a 1.95 pixel border measured across the edge at sixteen points around each marker, the edge at 0.94 opacity in the premultiplied marker color, and a visible plain 0.105 fill within two pixels of the center. They check an edge softening of one scene sample's step across the edge and never less than 0.42 pixels, at the game's two samples per pixel and at four. Sampled along 32 lines running out from the edge of each marker, every fragment at or above the 0.001 discard threshold lies on the drawn quad.
+
+The replay also shows that the earlier softening, taken from the derivatives of the pixel distance, lit the samples around an exact center. Source checks tie the WGSL structs to the uniform layout and the marker draw to its place after grime and before the short walls.
+
+The Node tests cannot run WGSL or a graphics device, so the shader itself and the draw order on screen are verified by reading and by a played check in the game. A played check shows a two by two object, a 1 by 2 object in both facings, an accepted and a refused placement, a marker whose rim passes behind a short wall, and the housemate marker's border against a placement marker's at the same zoom. The two markers never share a frame in the game: while Build mode is open, the selection the frame draws is the chosen furniture rather than a housemate, so the housemate marker shows only outside Build mode.
