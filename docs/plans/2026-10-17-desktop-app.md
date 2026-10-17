@@ -2,13 +2,13 @@
 
 Status: research record, written 2026-10-17 while issue 276 was being worked. Nothing in this document is built or scheduled.
 
-Issue 276 asks for version numbers, with v1.0.0 as the default when no version is set, and for the number to be shown; for Mac and Windows installers; for a release mechanism and releases; and for a "local install" section in the README that explains how the installed game differs from the browser version. The version number is delivered by a separate change. The installer, release and README requests remain open, so neither change resolves the issue; [What an installed app would add and cost](#what-an-installed-app-would-add-and-cost) is groundwork for that README section.
+Issue 276 asks for version numbers, with v1.0.0 as the default when no version is set, and for the number to be shown; for Mac and Windows installers; for a release mechanism and releases; and for a "local install" section in the README that explains how the installed game differs from the browser version. The version number is delivered by pull request 282 (`698048582`). The installer, release and README requests remain open, so neither change resolves the issue; [What an installed app would add and cost](#what-an-installed-app-would-add-and-cost) is groundwork for that README section.
 
 In conversation on 2026-10-17, the owner said: "Ship only the version number now and display it at the top of the options panel. And document all of this information for later consideration, including how we can later add multi-thread support in an installable desktop application version, which will eventually be critical." This document records what the project's documents already planned, the browser limits in today's code, what an installed app would change, the shell options, and the routes to a multithreaded simulation.
 
 Two kinds of fact appear here. A statement that names a repository file, test, lesson or tag was checked against the repository when this document was added. A statement that begins "Reported (2026-10-17):", or a table introduced that way, came from outside research and was not verified in this repository; recheck it before acting on it, because browser engines, web views and app frameworks change quickly. External version numbers, including a product's major version, appear only where the repository pins them or inside a reported statement or table.
 
-Two terms recur. The simulation is Rust compiled to WebAssembly (wasm), the compact binary format that browsers run beside JavaScript; wasm32 is its 32-bit form, the one the game ships today. The DOM is the page's tree of HTML elements, which the game's interface panels are built from.
+These terms recur. The simulation is Rust compiled to WebAssembly (wasm), the compact binary format that browsers run beside JavaScript; wasm32 is its 32-bit form, the one the game ships today. The DOM is the page's tree of HTML elements, which the game's interface panels are built from. WebGPU is the browser graphics interface the game draws with, and a web view is a browser engine embedded in an app's window, showing a web page without the browser's own controls.
 
 ## Contents
 
@@ -32,7 +32,7 @@ Issue 276 asks for version numbers and gives v1.0.0 as the default "if version i
 
 1. The first version is 1.0.0. Before issue 276's work the root `Cargo.toml` declared 0.1.0 and `web/package.json` had no version. Asked to choose, the owner chose 1.0.0, which matches the issue's default. The owner asked for the number at the top of the Options panel; the wording "Version 1.0.0" is the implementer's.
 2. Installers, when they come, will be unsigned.
-3. Installers are deferred. Issue 276's work adds no installer, no release workflow and no dependency.
+3. Installers are deferred. Pull request 282 (`698048582`) adds no installer, no release workflow and no dependency.
 4. Multithreading in an installable desktop version "will eventually be critical".
 
 ## What the project's documents planned
@@ -69,13 +69,13 @@ An installed app would add these:
 2. Control of response headers. Reported (2026-10-17): the shell serves the game to its own web view, so it can make the page cross-origin isolated without a web host's help (Path A below).
 3. A choice about background behavior. Reported (2026-10-17): Electron can turn off background throttling for a window, so the game could keep time while minimized. Whether it should is an open decision.
 4. Sound without a first gesture. Reported (2026-10-17): Electron accepts an autoplay policy that removes the gesture requirement.
-5. Offline play and a desktop icon. Reported (2026-10-17): with Electron, the project rather than each player's browser chooses the browser engine version.
+5. Offline play and a desktop icon. The installer carries the whole build (item 8 under Browser limits), so the game does not need to download anything to start.
 6. More memory headroom, by one of two routes. A native simulation (Path B) leaves the wasm32 address space behind. Reported (2026-10-17): 64-bit WebAssembly memory (Memory64) has shipped in Chromium and Firefox, but Rust's `wasm64-unknown-unknown` target is tier 3, with no prebuilt standard library, so a 64-bit wasm build is possible in principle and unsupported in practice. A shell that runs today's wasm32 build keeps the 4 GB limit.
 
 It would cost these:
 
 1. A release pipeline that does not exist: builds for each operating system, installers, update delivery and continuous integration for all of them.
-2. Warnings for unsigned installers. Reported (2026-10-17): Windows SmartScreen warns about unsigned downloads from a publisher without reputation; macOS Gatekeeper blocks apps that are not signed with an Apple Developer ID and notarized, so the player must approve the app in System Settings; Apple silicon Macs refuse native code with no signature at all, so builds need at least an ad hoc signature; and automatic updates on macOS generally require a signed app.
+2. Warnings for unsigned installers. Reported (2026-10-17): Windows SmartScreen warns about unsigned downloads from a publisher without reputation; macOS Gatekeeper blocks apps that are not signed with an Apple Developer ID and notarized, meaning checked by an Apple service before release, so the player must approve the app in System Settings; Apple silicon Macs refuse native code with no signature at all, so builds need at least an ad hoc signature, one made without a developer certificate; and automatic updates on macOS generally require a signed app.
 3. Installer size and upkeep. Reported (2026-10-17): Electron ships its own Chromium and Node.js with every installer and needs a new release whenever Chromium needs a security fix, while Tauri uses the operating system's web view and produces much smaller installers.
 4. Electron's share of an installer. Reported (2026-10-17): Electron's runtime adds roughly 80 to 100 MB compressed; the report gives no compression method. The game's own build is about 122 MB as a gzip level 6 archive of a tar of `web/dist` at commit `698048582` (item 8 under Browser limits), so Electron would add very roughly two thirds to four fifths of that. The comparison is approximate, because the two figures may use different compression.
 5. A second runtime to verify. The played visual passes in `docs/testing-protocol.md` section 9 and the audio checks would need repeating in the shell.
@@ -98,11 +98,11 @@ Reported (2026-10-17): every cell in the table below comes from outside research
 
 This recommendation rests on the reported facts in the table above and is only as current as they are.
 
-Use Electron for the first installers, for WebGPU consistency rather than size. Reported (2026-10-17): it runs the existing web build in a known Chromium, so WebGPU behaves as it does in Chrome on the same computer, and the shell can send COOP and COEP itself. Saves can become ordinary files through a small bridge. Its costs are keeping Chromium current and installer size: the reported 80 to 100 MB it adds is very roughly two thirds to four fifths of the game's own build compressed with gzip, an approximate comparison.
+Use Electron for the first installers, for WebGPU consistency rather than size. Reported (2026-10-17): it runs the existing web build in a known Chromium, so WebGPU behaves as it does in Chrome on the same computer, and the shell can send COOP and COEP itself. Saves can become ordinary files through a small bridge. Its costs are keeping Chromium current and installer size (cost item 4).
 
 Choose Tauri instead if the goal becomes a native Rust simulation (Path B). Its Rust side can run `terri-sim` natively beside the web view. Reported (2026-10-17): Tauri's current major version is 2, and the cost is testing three web view engines and requiring macOS 26 for WebGPU on macOS.
 
-An installable progressive web app is a cheap interim step, but it lifts almost none of the browser limits. A native Rust port contradicts the documented plan of "a shell swap rather than a rewrite" and gives up the DOM interface; it is not recommended.
+An installable progressive web app is a cheap interim step, but it lifts almost none of the browser limits. A native Rust port gives up the DOM interface, which `docs/TECH_STACK.md` calls the stack's decisive advantage; it is not recommended.
 
 ## Multithreading in a desktop build
 
@@ -149,12 +149,10 @@ Path C moves the published web build to a host that sets response headers, as [T
 | B | Yes, native threads | No | Yes, for the desktop simulation | Every frame's render state is copied across a process boundary | None for the native build; identical math depends on [DA-math] |
 | C | Not applicable | Yes, with Path A's build | As Path A | As Path A | As Path A |
 
-Path A with Path C gives one threaded build everywhere. Path B gives the desktop app the most room and leaves the browser as it is.
-
 ## Decisions still open
 
 1. [DA-signing] Signing accounts and their costs, if unsigned installers draw too many warnings or support requests: a Windows code-signing certificate and the Apple Developer Program. No prices are recorded here.
-2. [DA-identity] Product name and app identifier. [T1] in `docs/TIM-TODO.md` settled "Natural Causes" as the title and kept `terrilives` in storage keys and save fingerprints. An installer also needs a stable app identifier, usually in reverse domain form. Reported (2026-10-17): Windows and macOS key app data and updates on that identifier.
+2. [DA-identity] Product name and app identifier. [T1] in `docs/TIM-TODO.md` settled "Natural Causes" as the title and kept `terrilives` in storage keys and save fingerprints. An installer also needs a stable app identifier. Reported (2026-10-17): Windows and macOS key app data and updates on that identifier.
 3. [DA-save-transfer] Save transfer between the web and desktop versions: an export and import file, its format version, and what happens when both copies have changed.
 4. [DA-macos-minimum] The minimum macOS version, which the chosen shell's WebGPU support bounds. Reported (2026-10-17): macOS 26 for Tauri.
 5. [DA-web-host] The web host: stay on GitHub Pages without COOP and COEP, try the reported service-worker workaround, or move to a host that sets headers ([T17], [T18]).
@@ -163,4 +161,4 @@ Path A with Path C gives one threaded build everywhere. Path B gives the desktop
 8. [DA-linux] Whether Linux is a target, given that WebGPU in WebKitGTK was not established by this research.
 9. [DA-background] Whether simulated time passes while the desktop window is minimized.
 10. [DA-version-bumps] When the version changes and what each part means: which changes raise the major, minor or patch number, who decides, and whether a bump happens with each merge to main, each published release or each installer. A desktop shell should take its app version from the same source as the web build rather than adding another copy. Reported (2026-10-17): Electron's app version comes from `package.json` by default, and Tauri's configuration can point its version at a `package.json` file.
-11. [DA-math] How math functions that Rust does not promise to the last bit give identical results on every target; today `exp`, `hypot` and `powi` reach simulation decisions. The options are one pure-Rust math library compiled into every target, fixed-point arithmetic, or shipping only wasm32 builds from one toolchain, which rules out Path B because native builds call the platform C math library for `exp` and `hypot`. It is the owner's decision.
+11. [DA-math] How math functions that Rust does not promise to the last bit give identical results on every target; today `exp`, `hypot` and `powi` reach simulation decisions. The options are one pure-Rust math library compiled into every target, fixed-point arithmetic, or shipping only wasm32 builds from one toolchain, which rules out Path B. It is the owner's decision.
