@@ -385,7 +385,7 @@ export function buildStaticInstances(
     const look = lookOf(x, y);
     const covering = lot.floorPreview?.[0] === x && lot.floorPreview[1] === y
       ? lot.floorPreview[2] : look >= 3 ? look - 2 : 0;
-    const zone = x === street ? 'street' : x >= house[0] || y >= house[1] ? 'yard' : 'house';
+    const zone = x === street ? 'street' : inHouse(x, y) ? 'house' : 'yard';
     const material = lot.architecture ? floorMaterial(covering, zone, x, y, lot.architecture.floorCatalogue) : null;
     writeInstance(
       instances,
