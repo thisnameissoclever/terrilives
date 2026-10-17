@@ -176,10 +176,6 @@ pub struct Sim {
     /// interpolation history is reseeded whenever this list changes, not only
     /// when its length does. Render history only, like the set above.
     render_rows: Vec<Entity>,
-    /// The grid's size at the last sync. A lot that changed shape moved
-    /// every position at once (land expansion), so the history is reseeded
-    /// rather than sliding everyone across the screen to where they stand.
-    render_lot: (usize, usize),
 }
 
 #[derive(Debug)]
@@ -1823,7 +1819,6 @@ impl Sim {
             portals: portals::PortalBuffer::default(),
             socket_projected_entities: std::collections::HashSet::new(),
             render_rows: Vec::new(),
-            render_lot: (0, 0),
         }
     }
 
@@ -2995,13 +2990,8 @@ impl Sim {
         // the guard compares the rows' entities, which catches every change
         // the length check caught and that one too ([SL-render]).
         let entities: Vec<Entity> = rows.iter().map(|row| row.entity).collect();
-        let lot = {
-            let grid = self.world.resource::<terri_core::TileGrid>();
-            (grid.width(), grid.height())
-        };
         if self.render_rows != entities
             || self.render.prev_positions.len() != self.render.positions.len()
-            || self.render_lot != lot
         {
             self.render.prev_positions = self.render.positions.clone();
         } else {
@@ -3016,7 +3006,6 @@ impl Sim {
             }
         }
         self.render_rows = entities;
-        self.render_lot = lot;
         previous_socket_projection.clear();
         previous_socket_projection.extend(
             rows.iter()
