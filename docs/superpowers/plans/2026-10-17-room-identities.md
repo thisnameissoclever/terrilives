@@ -140,7 +140,7 @@ Transaction bridge methods mirror Task 5. Encode tokens as three u64 values with
 
 - [ ] Add real WebAssembly boundary tests for names, provisional review choices, stale tokens, current save bytes, and old reference conversion. Keep published command bytes unchanged.
 - [ ] Add a V14 recovery backup and immutable V14 worker fixture. Test new-schema writes over V14, failed backup writes, New game recovery retention, and cached old-worker refusal.
-- [ ] Test manual Save, autosave, graphics recovery, and update-save while the draft is dirty or a review is open. Each must write baseline bytes, never the draft.
+- [ ] Test manual Save, visibility-triggered saving and autosave while the draft is dirty or a review is open. Each must write baseline bytes, never the draft. Verify that graphics recovery preserves the native handle and transaction.
 - [ ] Run `cargo test -p terri-wasm` and `npm --prefix web test -- --maxWorkers=1` for the storage/persistence test files.
 - [ ] Implement bridge codecs and native committed-byte routing. Update native/browser version markers together. Preserve exact historical recovery names and older fixtures.
 - [ ] Rebuild WebAssembly with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, then run the browser storage tests against those actual bytes. Commit the complete persistence boundary.

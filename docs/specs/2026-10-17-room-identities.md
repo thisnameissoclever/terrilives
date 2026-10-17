@@ -86,7 +86,9 @@ Extend the existing Build session with a simulation-owned transaction. One modul
 7. Confirm changes adopts that exact candidate and replaces the baseline atomically. A stale token, replay failure, or validation failure changes neither the draft nor the baseline. Retain the draft, stay paused, and report the actual failure.
 8. Back to build discards only the prepared review. Cancel or Exit build restores the baseline and discards the journal and pending names. Confirming one batch and cancelling a later batch retains the first batch.
 
-Every persistence path, including manual Save, autosave, application update, and graphics recovery, requests committed bytes. Never serialize a partly reconciled draft as a resumable save. A successful Load replaces the baseline and clears the old journal; a rejected Load changes neither. The draft is intentionally transient, but ordinary untrusted save validation remains strict.
+Every persistence path, including manual Save, visibility-triggered saving and autosave, requests committed bytes. Never serialize a partly reconciled draft as a resumable save. Graphics recovery preserves the native handle and transaction.
+
+A successful Load replaces the baseline and clears the old journal. During active Build, the privately loaded household settles its saved command stream once, without advancing time, before establishing the fresh baseline, as at Build entry. Rejected loading or settlement leaves the live household and transaction unchanged. The draft is intentionally transient, but ordinary untrusted save validation remains strict.
 
 The journal records build actions, including book transactions, floor covering, recoloring, and land purchases. Coordinate-changing purchases retain their original command order. Reserve journal storage before applying an action so allocation failure cannot produce an unrecorded edit. Replaying the journal is bounded by its recorded length; it must not advance the clock, run autonomy, or emit irreversible gameplay effects per intermediate edit.
 
