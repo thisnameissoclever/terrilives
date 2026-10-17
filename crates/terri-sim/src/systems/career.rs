@@ -277,6 +277,7 @@ pub fn commute_and_work(
     mut commands: Commands,
     content: Res<Content>,
     grid: Res<TileGrid>,
+    frame: Option<Res<crate::lot_frame::LotFrame>>,
     mut funds: ResMut<Funds>,
     mut workers: Query<
         (
@@ -296,7 +297,11 @@ pub fn commute_and_work(
     // the discipline is cheaper than the argument for skipping it.
     let mut working: Vec<Entity> = workers.iter().map(|(entity, ..)| entity).collect();
     working.sort_by_key(|entity| entity.index());
-    let front_portal = crate::portals::front_portal(content.0);
+    // The door and its landing where the content lot now stands (land
+    // expansion, issue 254): the walk home ends on the moved landing.
+    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
+    let front_portal = crate::portals::front_portal(content.0)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin));
 
     for worker in working {
         let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
@@ -345,7 +350,7 @@ pub fn commute_and_work(
             // comes home at rock bottom, not in debt.
             let mut returning = commands.entity(worker);
             returning.remove::<AtWork>();
-            if let Some(portal) = front_portal {
+            if let Some(portal) = &front_portal {
                 // Home along a path to the landing: from the street's exit
                 // back through the door ([OS-street]), from the door tile the
                 // one step in it always was. A landing the grid cannot reach

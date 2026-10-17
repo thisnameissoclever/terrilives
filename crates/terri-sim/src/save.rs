@@ -1200,6 +1200,14 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     }
     let pre_aquarium_bike =
         terri_data::content_fingerprint_is_pre_aquarium_bike(pack, snapshot.content_fingerprint);
+    // Dollars become cents on load; a sum that cannot is corrupt.
+    if snapshot
+        .funds
+        .checked_mul(Funds::CENTS_PER_DOLLAR)
+        .is_none()
+    {
+        return Err(SaveError::InvalidValue);
+    }
 
     let width = snapshot.grid_width as usize;
     let height = snapshot.grid_height as usize;
@@ -1350,7 +1358,7 @@ fn validate_portal_returns(
     // way, so it needs a path, found from the exit tile as the walk home
     // finds it. Anywhere else, the door tile included, the straight line to
     // the landing must cross no wall, as it always had to.
-    let exit = crate::portals::street_exit(content, grid.width() as u32);
+    let exit = crate::portals::street_exit_at(content, origin, grid.width() as u32);
     for worker in snapshot
         .entities
         .iter()

@@ -43,7 +43,8 @@ prices rounded up, funds rounded down.
    path step, every wall edge, window and painted floor, every chore cell,
    patch and traffic count, every room id (a room's id is its lowest cell in
    row order, and a translation keeps that order), every diner's endpoint,
-   the saved boundary goals, and the content-derived house and front door.
+   and the content-derived house and front door, including the landing the
+   walk home from work ends on.
    The world keeps a `LotFrame` resource, `{ origin: (x, y) }`, the tile where
    the content lot's north-west corner now stands; the house rectangle is
    `origin + content house size`, the front door and its landing are
@@ -61,8 +62,8 @@ prices rounded up, funds rounded down.
 4. **Yard.** New land is yard: walkable, painted with the yard shift, no
    walls. The former lot edge becomes ordinary lines outside the house;
    along the house the implicit shell stays the shell: a wall, doorway or
-   opening on it is refused as it was at the grid's edge, and only glazing
-   and restoring glass touch it. Explicit perimeter solids the player built
+   opening on it is refused as it was at the grid's edge, by the Walls tool
+   and the Room tool alike, and only glazing and restoring glass touch it. Explicit perimeter solids the player built
    against the old edge stay as walls; the new edge is the implicit
    perimeter, and a room against it still needs its far wall
    ([BC-perimeter] in the build confirmation spec).
@@ -87,6 +88,9 @@ prices rounded up, funds rounded down.
    total. The runtime exposes `land_quote(side)` as
    `[width, depth, area, price_cents, remaining_cents, affordable]` for the
    interface, computed from the same tuning and totals as the purchase.
+   The drain applies commands in order, so a command queued behind a
+   purchase names the lot before it grew; the interface sends a purchase
+   on its own.
 8. **Build mode.** Land is a build tool like Walls or Floors. Choosing it
    draws the three strips as outlines; picking one shows its dimensions,
    area, price and the funds that would remain, using the display rules
@@ -102,9 +106,10 @@ prices rounded up, funds rounded down.
    still decodes; the cents field is authoritative when present. A
    schema-twelve or older payload loads with the frame derived from its grid
    size, no purchased area, and its dollars times 100. A frame whose house
-   would leave the grid, a purchased area larger than the grid, cents that
-   disagree with the dollars by a dollar or more, or a missing frame on a
-   grid shaped like the content lot refuse the load. The frame, the
+   would leave the grid, a purchased area other than the grid's squares
+   beyond the content lot, cents that disagree with the dollars by a dollar
+   or more, or a missing frame on a grid shaped like the content lot refuse
+   the load. The frame, the
    purchased area and the cents enter the world hash.
 10. **Tuning.** `land_strip_depth`, `land_price_cents` and
     `land_price_step_cents` are root knobs in `content/tuning.toml`, appended
@@ -125,8 +130,10 @@ frame, the house, the front door, the street exit, every entity's position,
 every path, wall, window, floor, chore cell, room id, patch and diner
 endpoint against the same world translated by hand, that records keyed by a
 person or an object keep their ids, that the shell blocks between house and
-new land, that lot edits still find the layout they expect and refuse a
-doorway on the shell, and that the moved world ticks on without a panic;
+new land, that lot edits still find the layout they expect and that the
+Walls tool and the Room tool refuse a doorway on the shell, that the walk
+home from work ends on the moved landing, and that the moved world ticks
+on without a panic;
 they check the left-then-rear geometry (10 by 26), the three pricing
 examples of the issue, the refusals, and that a quote changes nothing. Save
 tests round-trip schema thirteen with the same barriers, load schema twelve

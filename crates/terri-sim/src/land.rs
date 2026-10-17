@@ -41,8 +41,9 @@ impl Side {
     }
 }
 
-/// The grid may not pass this many tiles on a side; the loader refuses
-/// more, so a purchase must too.
+/// The grid may not pass this many tiles on a side. The loader bounds the
+/// tile count, not a side; this keeps a lot a shape the view and the tools
+/// were made for, and keeps every price inside an `i64`.
 pub const MAX_SIDE: u32 = 1024;
 
 /// Why a purchase was refused, numbered for the shell.
@@ -129,7 +130,10 @@ pub fn quote(world: &World, side: Side) -> Quote {
     let purchased = lot_frame::frame(world).map_or(0, |f| f.purchased_area);
     let (length, depth) = strip(tuning, side, grid.width() as u32, grid.height() as u32);
     let area = length * depth;
-    let price_cents = i64::from(area) * square_price_cents(tuning, purchased);
+    // A price past `i64` saturates and is refused as too large, never wrapped.
+    let price_cents = i64::from(area)
+        .checked_mul(square_price_cents(tuning, purchased))
+        .unwrap_or(i64::MAX);
     let funds = world.get_resource::<Funds>().map_or(0, |f| f.0);
     Quote {
         side,
@@ -137,7 +141,7 @@ pub fn quote(world: &World, side: Side) -> Quote {
         depth,
         area,
         price_cents,
-        remaining_cents: funds - price_cents,
+        remaining_cents: funds.saturating_sub(price_cents),
     }
 }
 
@@ -160,7 +164,11 @@ pub fn validate(world: &World, side: Side) -> Result<Quote, LandRefusal> {
         Side::Rear => (width + quoted.depth, height),
         Side::Left | Side::Right => (width, height + quoted.depth),
     };
-    if grown.0 > MAX_SIDE || grown.1 > MAX_SIDE || quoted.area == 0 {
+    if grown.0 > MAX_SIDE
+        || grown.1 > MAX_SIDE
+        || quoted.area == 0
+        || quoted.price_cents == i64::MAX
+    {
         return Err(LandRefusal::TooLarge);
     }
     if !quoted.affordable() {
@@ -355,6 +363,13 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     // The social company keeps its own copy of the room map; rebuild it
     // now rather than one tick late.
     crate::social_company::refresh(world);
+    // Every position moved at once: the renderer must not slide anyone
+    // from where they stood to where they stand.
+    let mut placed = world.query_filtered::<Entity, With<Position>>();
+    let moved: Vec<Entity> = placed.iter(world).collect();
+    if let Some(mut state) = world.get_resource_mut::<crate::placement::LotEditState>() {
+        state.discontinuities.extend(moved);
+    }
 }
 
 fn remap_key(
@@ -375,6 +390,7 @@ fn remap_key(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::placement::rooms::{validate_room, RoomEdit};
     use crate::placement::walls::{validate_wall_edit, WallEdit};
     use crate::Sim;
     use terri_core::chores::SavedChores;
@@ -683,6 +699,22 @@ mod tests {
                 validate_wall_edit(sim.world(), shell),
                 Err(crate::placement::PlacementRefusal::OutOfBounds)
             ));
+            // The Room tool refuses the same line as a room's doorway.
+            let room = RoomEdit {
+                x0: dx,
+                y0: dy,
+                x1: dx + 2,
+                y1: dy + 2,
+                doorway: Some(WallLine {
+                    axis: shell.axis,
+                    x: shell.x,
+                    y: shell.y,
+                }),
+            };
+            assert!(matches!(
+                validate_room(sim.world(), room),
+                Err(crate::placement::PlacementRefusal::InvalidInput)
+            ));
             // The world goes on: people keep walking and nothing panics.
             for _ in 0..200 {
                 sim.tick();
@@ -794,5 +826,35 @@ mod tests {
         let dining = sim.world().resource::<SavedDining>();
         assert_eq!(dining.diners[0].endpoint, (13, 6));
         assert_eq!(dining.opportunities[0].room, moved_room);
+    }
+
+    /// The walk home from work ends on the landing where it now stands:
+    /// once land lies behind the house, the content landing is a room.
+    #[test]
+    fn the_walk_home_from_work_ends_on_the_moved_landing() {
+        let mut sim = rich();
+        buy(sim.world_mut(), Side::Rear).unwrap();
+        let portal =
+            lot_frame::front_portal(sim.world()).expect("the shipped lot has a front door");
+        let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
+        assert!(landing.0 >= 10, "the landing moved with the house");
+        let mut walked_home = false;
+        for _ in 0..3000 {
+            sim.tick();
+            let mut commuters = sim.world_mut().query::<(&terri_core::Commuting, &Path)>();
+            for (commuting, path) in commuters.iter(sim.world()) {
+                if matches!(commuting, terri_core::Commuting::Inbound) {
+                    assert_eq!(path.steps.last().copied(), Some(landing));
+                    walked_home = true;
+                }
+            }
+            if walked_home {
+                break;
+            }
+        }
+        assert!(
+            walked_home,
+            "the shipped worker goes to work and walks home within two days"
+        );
     }
 }
