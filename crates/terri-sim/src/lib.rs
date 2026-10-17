@@ -11,6 +11,9 @@ pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod fights;
 pub use fights::Fights;
+pub mod land;
+pub mod lot_frame;
+pub use lot_frame::LotFrame;
 pub mod character_draft;
 pub mod chores;
 pub mod moodlet_timers;
@@ -1208,7 +1211,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV2,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1243,7 +1246,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV5,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
         self.adopt(restored);
         Ok(())
@@ -1268,7 +1271,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV10,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v10::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1289,8 +1292,25 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV12,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v12::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
+    /// Schema thirteen: everything schema twelve holds, then the lot frame
+    /// and the funds in cents (land expansion, issue 254).
+    pub fn save_snapshot_v13(&self) -> terri_core::SaveSnapshotV13 {
+        save::v13::capture(self)
+    }
+
+    pub fn load_snapshot_v13(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV13,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = save::Carried::for_load(&self.world);
+        let candidate = save::v13::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
     }
@@ -1300,7 +1320,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV11,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v11::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1314,7 +1334,7 @@ impl Sim {
         character: Option<terri_core::save_v10::LegacyCharacterSnapshotV9>,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let social = social.and_then(|snapshot| {
             save::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals).ok()
         });
@@ -1334,7 +1354,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1345,7 +1365,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_historical_v7(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1357,7 +1377,7 @@ impl Sim {
         snapshot: terri_core::save_v6::FrozenSaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_frozen_owned(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1366,7 +1386,7 @@ impl Sim {
     /// Production V1-V5 migration. Native older helpers remain legacy projections.
     pub fn load_legacy_snapshot(&mut self, snapshot: LegacySnapshot) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::books_migration::restore(snapshot, content, portals)?;
         self.adopt(candidate);
         Ok(())
@@ -1378,7 +1398,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV4,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1397,7 +1417,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV3,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1447,7 +1467,7 @@ impl Sim {
     /// On any error `self` is untouched.
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1900,6 +1920,9 @@ impl Sim {
             }
         }
         sim.world.insert_resource(grid);
+        // The content lot stands at the grid's origin until land is bought
+        // west or north of it (land expansion, issue 254).
+        sim.world.insert_resource(LotFrame::default());
 
         for placement in &lot.placements {
             let origin = terri_core::Position {
@@ -3061,8 +3084,8 @@ impl Sim {
             .map(|(_, ledger)| ledger.value())
     }
 
-    /// The household's money - [E4], read by both the debug overlay and
-    /// the normal HUD. One number for the lot, not per sim.
+    /// The household's money in cents - [E4], read by both the debug
+    /// overlay and the normal HUD. One number for the lot, not per sim.
     pub fn funds(&self) -> i64 {
         self.world.resource::<terri_core::Funds>().0
     }
@@ -4100,6 +4123,7 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     Character(command) => vec![30, terri_core::character_hash::command(command)],
+                    BuyLand { side } => vec![31, u64::from(*side)],
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26
@@ -4559,6 +4583,16 @@ impl Sim {
         save::social::hash(&self.world, &mut hasher);
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
+        // The lot frame enters only once it differs from what the grid's
+        // shape implies, so every older world hashes as it did.
+        if let Some(frame) = lot_frame::frame(&self.world) {
+            if frame != LotFrame::default() {
+                hasher.write_bytes(b"lot-frame-v1");
+                hasher.write_u64(u64::from(frame.origin.0));
+                hasher.write_u64(u64::from(frame.origin.1));
+                hasher.write_u64(u64::from(frame.purchased_area));
+            }
+        }
         hasher.finish()
     }
 }

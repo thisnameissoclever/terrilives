@@ -3064,6 +3064,20 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = fight_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::FightTuningOutOfRange { key });
     }
+    let land_rules = [
+        (
+            "land_strip_depth",
+            (1..=100).contains(&tuning.land_strip_depth),
+        ),
+        ("land_price_cents", tuning.land_price_cents <= 1_000_000_000),
+        (
+            "land_price_step_cents",
+            tuning.land_price_step_cents <= 1_000_000_000,
+        ),
+    ];
+    if let Some((key, _)) = land_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::LandTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -3639,6 +3653,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             fight_relationship_loss: tuning.fight_relationship_loss,
             fight_mood_penalty: tuning.fight_mood_penalty,
             fight_mood_ticks: tuning.fight_mood_ticks,
+            land_strip_depth: tuning.land_strip_depth,
+            land_price_cents: tuning.land_price_cents,
+            land_price_step_cents: tuning.land_price_step_cents,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4825,6 +4842,10 @@ mod tests {
     /// burnt-meal knobs (fights, issue 248):** four floats and a varint tick
     /// count. The witnesses reconstruct the shipped -0.9, 0.01, 0.1, 12.0
     /// and 480, which the live fixture also carries.
+    ///
+    /// **The land knobs moved it by four more, appended after the fight
+    /// knobs (land expansion, issue 254):** three varints, 10, 15000 and 15,
+    /// which the witnesses reconstruct and the live fixture also carries.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Classification None and an empty physical-seat vector append two zero bytes
@@ -5065,6 +5086,9 @@ mod tests {
             fight_relationship_loss: crate::Tuning::SHIPPED_FIGHT_RELATIONSHIP_LOSS,
             fight_mood_penalty: crate::Tuning::SHIPPED_FIGHT_MOOD_PENALTY,
             fight_mood_ticks: crate::Tuning::SHIPPED_FIGHT_MOOD_TICKS,
+            land_strip_depth: crate::Tuning::SHIPPED_LAND_STRIP_DEPTH,
+            land_price_cents: crate::Tuning::SHIPPED_LAND_PRICE_CENTS,
+            land_price_step_cents: crate::Tuning::SHIPPED_LAND_PRICE_STEP_CENTS,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6644,6 +6668,9 @@ mod tests {
         assert_eq!(tuning.fight_relationship_loss, 0.1);
         assert_eq!(tuning.fight_mood_penalty, 12.0);
         assert_eq!(tuning.fight_mood_ticks, 480);
+        assert_eq!(tuning.land_strip_depth, 10);
+        assert_eq!(tuning.land_price_cents, 15_000);
+        assert_eq!(tuning.land_price_step_cents, 15);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -9120,6 +9147,35 @@ mod tests {
         .expect("the edges are legal");
         assert_eq!(compiled.tuning.burn_chance_master, 0.5);
         assert_eq!(compiled.tuning.burnt_meal_mood_ticks, 10_080);
+    }
+
+    /// Land expansion (issue 254): a strip is one to a hundred tiles deep
+    /// and the two prices are at most a thousand million cents.
+    #[test]
+    fn rejects_land_tuning_outside_its_ranges() {
+        for (expected, depth, price, step) in [
+            ("land_strip_depth", 0, 15_000, 15),
+            ("land_strip_depth", 101, 15_000, 15),
+            ("land_price_cents", 10, 1_000_000_001, 15),
+            ("land_price_step_cents", 10, 15_000, 1_000_000_001),
+        ] {
+            let compiled = compile_tuned(tuning_where(|t| {
+                t.land_strip_depth = depth;
+                t.land_price_cents = price;
+                t.land_price_step_cents = step;
+            }));
+            match compiled {
+                Err(ContentError::LandTuningOutOfRange { key }) => assert_eq!(key, expected),
+                other => panic!("{expected}: {other:?}"),
+            }
+        }
+        let compiled = compile_tuned(tuning_where(|t| {
+            t.land_strip_depth = 100;
+            t.land_price_cents = 0;
+            t.land_price_step_cents = 0;
+        }))
+        .expect("the edges are legal");
+        assert_eq!(compiled.tuning.land_strip_depth, 100);
     }
 
     /// Fights (issue 248): the threshold is a feeling, the chance a

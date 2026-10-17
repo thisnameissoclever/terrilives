@@ -63,10 +63,7 @@ impl Sim {
 
     pub fn load_snapshot_v9(&mut self, snapshot: SaveSnapshotV9) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self
-            .world
-            .get_resource::<crate::portals::ActivePortals>()
-            .copied();
+        let portals = super::Carried::for_load(&self.world);
         let candidate =
             super::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals)?;
         self.adopt_current(candidate);

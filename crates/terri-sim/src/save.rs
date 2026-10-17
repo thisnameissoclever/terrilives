@@ -24,6 +24,37 @@ use terri_data::{ContentPack, ObjectDefId};
 
 const MAX_TILES: usize = 1_048_576;
 pub(super) const MAX_ENTITIES: usize = 100_000;
+
+/// What the running game hands a restore besides the payload: the portal
+/// rows it keeps live, and the lot frame a schema-thirteen payload carries.
+/// The frame goes into the candidate world before the grid, the walls, the
+/// people and the front door are rebuilt, because every one of them reads
+/// it (land expansion, issue 254).
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct Carried {
+    pub portals: Option<ActivePortals>,
+    pub lot_frame: Option<crate::lot_frame::LotFrame>,
+}
+
+impl Carried {
+    /// For loading a payload: the running game's portals and no frame,
+    /// which is all any schema below thirteen carries.
+    pub(crate) fn for_load(world: &World) -> Self {
+        Self {
+            portals: world.get_resource::<ActivePortals>().copied(),
+            lot_frame: None,
+        }
+    }
+
+    /// For rebuilding the live world from a capture of itself: its portals
+    /// and its frame, so a grown lot comes back grown.
+    pub(crate) fn for_rebuild(world: &World) -> Self {
+        Self {
+            portals: world.get_resource::<ActivePortals>().copied(),
+            lot_frame: world.get_resource::<crate::lot_frame::LotFrame>().copied(),
+        }
+    }
+}
 const MAX_LIST_ENTRIES: usize = 100_000;
 /// The most bytes any saved name may hold; the loader refuses a save with
 /// a longer one. Public so the wasm boundary can refuse a queued command
@@ -49,6 +80,7 @@ mod table_retirement;
 pub(crate) mod v10;
 pub(crate) mod v11;
 pub(crate) mod v12;
+pub(crate) mod v13;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -121,7 +153,8 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
         content_fingerprint: terri_data::content_fingerprint(pack),
         tick: world.resource::<SimClock>().tick,
         rng: world.resource::<SimRng>().clone(),
-        funds: world.resource::<Funds>().0,
+        // Whole dollars, rounded down: the schema-one field predates cents.
+        funds: world.resource::<Funds>().dollars(),
         issued_sim_ids: world.resource::<SimIdAllocator>().issued(),
         grid_width: grid.width() as u32,
         grid_height: grid.height() as u32,
@@ -278,6 +311,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             preferences: *preferences,
         },
         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
+        SimCommand::BuyLand { side } => SavedCommand::BuyLand { side: *side },
         SimCommand::Book(_) | SimCommand::Character(_) => {
             unreachable!("Versioned commands are captured separately")
         }
@@ -493,7 +527,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
 pub(super) fn restore(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
 ) -> Result<Sim, SaveError> {
     let candidate = restore_legacy(snapshot, content, active_portals)?;
     let candidate = wall_migration::upgrade(candidate, content);
@@ -501,6 +535,7 @@ pub(super) fn restore(
         &capture(&candidate),
         candidate.world.resource::<TileGrid>(),
         content,
+        crate::lot_frame::origin(&candidate.world),
     )?;
     crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
@@ -509,7 +544,7 @@ pub(super) fn restore(
 pub(super) fn restore_legacy(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
 ) -> Result<Sim, SaveError> {
     restore_with_facings(
         snapshot,
@@ -527,7 +562,7 @@ pub(super) fn restore_legacy(
 fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
@@ -535,14 +570,19 @@ fn restore_with_facings(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
-    if let Some(active_portals) = active_portals {
+    if let Some(active_portals) = active_portals.portals {
         sim.world.insert_resource(active_portals);
+    }
+    if let Some(frame) = active_portals.lot_frame {
+        sim.world.insert_resource(frame);
     }
     sim.world.insert_resource(SimClock {
         tick: snapshot.tick,
     });
     sim.world.insert_resource(snapshot.rng);
-    sim.world.insert_resource(Funds(snapshot.funds));
+    // Dollars times a hundred until schema thirteen restores the cents.
+    sim.world
+        .insert_resource(Funds::from_dollars(snapshot.funds));
 
     // Resumed at the saved count rather than counted up to it: the loader's
     // bound on the count must not be the only thing keeping a Load quick.
@@ -657,6 +697,7 @@ fn restore_entity(
     saved_facing: Option<terri_core::Facing>,
 ) -> Result<(), SaveError> {
     let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
+    let origin = crate::lot_frame::origin(world);
     let mut target = world.entity_mut(entity);
 
     if let Some(position) = saved.position {
@@ -825,7 +866,11 @@ fn restore_entity(
             .path
             .as_ref()
             .and_then(|path| path.steps.last().copied());
-        target.insert(crate::systems::career::saved_commute(pack, destination));
+        target.insert(crate::systems::career::saved_commute(
+            pack,
+            origin,
+            destination,
+        ));
     }
     if let Some(remaining_ticks) = saved.at_work_ticks {
         target.insert(AtWork { remaining_ticks });
@@ -945,6 +990,7 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             preferences,
         },
         SavedCommand::SetChoreBoard { enabled } => SimCommand::SetChoreBoard { enabled },
+        SavedCommand::BuyLand { side } => SimCommand::BuyLand { side },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -1154,6 +1200,14 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     }
     let pre_aquarium_bike =
         terri_data::content_fingerprint_is_pre_aquarium_bike(pack, snapshot.content_fingerprint);
+    // Dollars become cents on load; a sum that cannot is corrupt.
+    if snapshot
+        .funds
+        .checked_mul(Funds::CENTS_PER_DOLLAR)
+        .is_none()
+    {
+        return Err(SaveError::InvalidValue);
+    }
 
     let width = snapshot.grid_width as usize;
     let height = snapshot.grid_height as usize;
@@ -1254,7 +1308,8 @@ pub(crate) fn candidate_grid_loads(
     v6::validate_live_books(world).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::seating::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::reading::persistence::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
-    validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    validate_portal_returns(&snapshot, grid, content, crate::lot_frame::origin(world))
+        .map_err(|_| LoadProblem::PortalReturn)?;
     // Every edge layout, not one named version: a house with a window is
     // still an edge house, and naming the version here is what let review
     // finding [F1] on PR 126 skip this whole check for a glazed house.
@@ -1272,13 +1327,19 @@ fn validate_portal_returns(
     snapshot: &SaveSnapshotV1,
     grid: &TileGrid,
     content: &ContentPack,
+    origin: (u32, u32),
 ) -> Result<(), SaveError> {
-    let Some(portal) = content.lot.front_door.and_then(|door| {
-        content
-            .portals
-            .iter()
-            .find(|portal| portal.position == door)
-    }) else {
+    let Some(portal) = content
+        .lot
+        .front_door
+        .and_then(|door| {
+            content
+                .portals
+                .iter()
+                .find(|portal| portal.position == door)
+        })
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+    else {
         return Ok(());
     };
     if !snapshot
@@ -1297,7 +1358,7 @@ fn validate_portal_returns(
     // way, so it needs a path, found from the exit tile as the walk home
     // finds it. Anywhere else, the door tile included, the straight line to
     // the landing must cross no wall, as it always had to.
-    let exit = crate::portals::street_exit(content, grid.width() as u32);
+    let exit = crate::portals::street_exit_at(content, origin, grid.width() as u32);
     for worker in snapshot
         .entities
         .iter()
@@ -1331,6 +1392,15 @@ fn validate_command(
         SavedCommand::CleanChore { .. }
         | SavedCommand::CleanChoreFirst { .. }
         | SavedCommand::SetChoreBoard { .. } => Ok(()),
+        // A side the drain would refuse restores as one it refuses; only
+        // an unrepresentable number is a corrupt save.
+        SavedCommand::BuyLand { side } => {
+            if *side <= 2 {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::SetChoreProfile {
             responsibility,
             preferences,

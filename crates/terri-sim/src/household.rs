@@ -287,18 +287,12 @@ pub(crate) fn personality_from(
 /// the front door's tile; a lot with no front door, the first open tile and
 /// no walk.
 pub(crate) fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), HousemateRefusal> {
-    let content = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
     let at = |(x, y): (i32, i32)| Position {
         x: x as f32,
         y: y as f32,
     };
-    let portal = content.lot.front_door.and_then(|door| {
-        content
-            .portals
-            .iter()
-            .find(|portal| portal.position == door)
-    });
+    let portal = crate::lot_frame::front_portal(world);
     let Some(portal) = portal else {
         return (0..grid.height() as i32)
             .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
@@ -308,7 +302,7 @@ pub(crate) fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), Hous
     };
     let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
     let door = (portal.position.0 as i32, portal.position.1 as i32);
-    crate::portals::street_exit(content, grid.width() as u32)
+    crate::lot_frame::street_exit(world)
         .map(|(x, y)| (x as i32, y as i32))
         .into_iter()
         .chain([door])

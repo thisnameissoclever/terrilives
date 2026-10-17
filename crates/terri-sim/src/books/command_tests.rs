@@ -31,7 +31,8 @@ fn fixture() -> (Sim, Entity, Entity, String, String) {
         .find(|(_, o)| o.0 == shelf)
         .unwrap()
         .0;
-    sim.world_mut().insert_resource(Funds(100_000));
+    sim.world_mut()
+        .insert_resource(Funds::from_dollars(100_000));
     (sim, person, object, action, title)
 }
 fn issue(sim: &mut Sim, command: BookCommand) {
@@ -69,7 +70,7 @@ fn book_command_paused_transactions_charge_once_and_refuse_without_mutation() {
     assert_eq!(sim.book_copies().len(), 1);
     assert_eq!(
         sim.world().resource::<Funds>().0,
-        100_000 - i64::from(price)
+        (100_000 - i64::from(price)) * Funds::CENTS_PER_DOLLAR
     );
     assert_eq!(sim.save_snapshot_v6().legacy.world.tick, tick);
     assert_eq!(sim.take_book_results()[0].copy, Some(0));

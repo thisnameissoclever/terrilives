@@ -113,6 +113,11 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("fight_relationship_loss", toml::Value::Float(0.1)),
         ("fight_mood_penalty", toml::Value::Float(12.0)),
         ("fight_mood_ticks", toml::Value::Integer(480)),
+        // Land expansion (issue 254): the shipped values, reconstructed by
+        // the published-pack conversions too.
+        ("land_strip_depth", toml::Value::Integer(10)),
+        ("land_price_cents", toml::Value::Integer(15_000)),
+        ("land_price_step_cents", toml::Value::Integer(15)),
     ] {
         tuning
             .as_table_mut()

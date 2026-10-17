@@ -33,6 +33,9 @@ impl ActivePortals {
 pub struct PortalBuffer {
     pub positions: Vec<f32>,
     previous_positions: Vec<f32>,
+    /// The lot revision the history was last reseeded at: a lot edit can
+    /// move a door at once (land expansion), and a door must not slide.
+    revision: u64,
     pub openness: Vec<f32>,
     pub previous_openness: Vec<f32>,
     pub depth_offsets: Vec<f32>,
@@ -59,10 +62,12 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     buffer.states.clear();
     buffer.far_sides.clear();
 
-    let Some(portals) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
+    let Some(active) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
         buffer.previous_openness.clear();
         return;
     };
+    // The lot's portals where they now stand (land expansion, issue 254).
+    let portals = placed_portals(world, active);
     let content: &'static terri_data::ContentPack = world.resource::<Content>().0;
     let doors = interior_door_lines(world);
     let horizontal_doors = interior_horizontal_door_lines(world);
@@ -76,7 +81,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         Option<&Career>,
     ), With<Agent>>();
 
-    for portal in portals {
+    for portal in &portals {
         // [OS-door]: a door with a yard beyond it swings for a sim walking
         // through its line, as an interior door does, as well as for a
         // commuter; the more open of the two wins.
@@ -150,8 +155,11 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
 
     // [DR-derived]: doors on both axes follow the front door's row, keeping
     // its index stable. The renderer selects the model's matching orientation.
-    let Some(art) = door_art(portals) else {
+    let Some(art) = door_art(&portals) else {
         buffer.previous_openness.clone_from(&buffer.openness);
+        buffer.revision = world
+            .get_resource::<crate::placement::LotEditState>()
+            .map_or(0, |state| state.revision);
         return;
     };
     for (horizontal, (x, y)) in doors
@@ -202,6 +210,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     {
         buffer.previous_openness.clone_from(&buffer.openness);
     }
+    let revision = world
+        .get_resource::<crate::placement::LotEditState>()
+        .map_or(0, |state| state.revision);
+    if buffer.revision != revision {
+        buffer.previous_positions.clone_from(&buffer.positions);
+        buffer.revision = revision;
+    }
 }
 
 fn state_amount(state: u32) -> f32 {
@@ -222,6 +237,20 @@ fn through_amount(position: &Position, state: u32, (x, y): (u32, u32), horizonta
         (position.x - (x as f32 - 0.5)).abs()
     };
     (1.5 - distance).clamp(0.0, 1.0)
+}
+
+/// `active`, each moved by the lot frame's origin, so a portal authored at
+/// the content lot's corner is drawn where the content lot now stands
+/// (land expansion, issue 254).
+fn placed_portals(
+    world: &World,
+    active: &[terri_data::CompiledPortal],
+) -> Vec<terri_data::CompiledPortal> {
+    let origin = crate::lot_frame::origin(world);
+    active
+        .iter()
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+        .collect()
 }
 
 /// The width of the lot this world loaded, or 0 when it has no grid.
@@ -251,7 +280,8 @@ pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
     let width = lot_width(world);
     world
         .get_resource::<Content>()
-        .and_then(|content| front_door_line(content.0, width))
+        .and_then(|_| crate::lot_frame::front_portal(world))
+        .and_then(|portal| door_line(&portal, width))
         .into_iter()
         .collect()
 }
@@ -265,13 +295,6 @@ pub fn front_portal(content: &terri_data::ContentPack) -> Option<&terri_data::Co
             .iter()
             .find(|portal| portal.position == door)
     })
-}
-
-/// The front door's line on a lot `width` tiles wide, from the content's
-/// front door matched to its portal ([OS-door]), or `None` when the door has
-/// no yard beyond it.
-pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    front_portal(content).and_then(|portal| door_line(portal, width))
 }
 
 /// Whether `position` stands on `tile`, within a hundredth of a tile on each
@@ -290,7 +313,20 @@ pub fn on_tile(position: (f32, f32), tile: (u32, u32)) -> bool {
 /// the door's row. `None` when the door has no yard beyond it, where a
 /// commute ends on the door's own tile.
 pub fn street_exit(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    front_door_line(content, width).map(|(_, y)| (width - 1, y))
+    street_exit_at(content, (0, 0), width)
+}
+
+/// [`street_exit`] for a content lot standing at `origin` on the grid
+/// (land expansion, issue 254).
+pub fn street_exit_at(
+    content: &terri_data::ContentPack,
+    origin: (u32, u32),
+    width: u32,
+) -> Option<(u32, u32)> {
+    front_portal(content)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+        .and_then(|portal| door_line(&portal, width))
+        .map(|(_, y)| (width - 1, y))
 }
 
 /// The authored +X front door supplies the interior door style. The renderer
@@ -529,7 +565,8 @@ pub fn crossing_position(world: &World, entity: Entity, position: Position) -> P
     // [OS-street]: through a door with a yard beyond it the sim really
     // walks, so only a door on the lot's edge takes the offset.
     let width = lot_width(world);
-    let Some(portal) = portals.0.iter().find(|portal| {
+    let placed = placed_portals(world, portals.0);
+    let Some(portal) = placed.iter().find(|portal| {
         door_line(portal, width).is_none()
             && (endpoint == (portal.position.0 as i32, portal.position.1 as i32)
                 || endpoint == (portal.inward.0 as i32, portal.inward.1 as i32))

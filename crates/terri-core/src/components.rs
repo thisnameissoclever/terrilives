@@ -783,8 +783,27 @@ pub struct AtWork {
 /// than per sim, because the household is the economic unit build mode
 /// will spend from. `i64` so a future bill can take it negative
 /// without a wrap. In the world hash.
+///
+/// **In cents** since land expansion (issue 254): a dollar is 100. Prices
+/// authored in whole dollars (furniture, books, pay) multiply by
+/// [`Funds::CENTS_PER_DOLLAR`] at the moment they are charged or paid.
+/// The schema-one save field keeps whole dollars, rounded down; schema
+/// thirteen saves the cents.
 #[derive(Resource, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Funds(pub i64);
+
+impl Funds {
+    pub const CENTS_PER_DOLLAR: i64 = 100;
+
+    /// Whole dollars, rounded down, as the interface shows funds.
+    pub fn dollars(self) -> i64 {
+        self.0.div_euclid(Self::CENTS_PER_DOLLAR)
+    }
+
+    pub fn from_dollars(dollars: i64) -> Self {
+        Self(dollars * Self::CENTS_PER_DOLLAR)
+    }
+}
 
 /// The chain this sim is partway through - [K4]'s program counter.
 /// `chain` indexes the pack's chain list, `step` the next (or current)

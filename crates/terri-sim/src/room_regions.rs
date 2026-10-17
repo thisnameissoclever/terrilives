@@ -11,18 +11,12 @@ impl RoomRegions {
     pub(crate) fn from_world(world: &World) -> Self {
         let grid = world.resource::<terri_core::TileGrid>();
         let layout = world.resource::<SavedLayout>();
-        let lot = &world.resource::<crate::Content>().0.lot;
         let width = grid.width();
         let height = grid.height();
-        let (house_width, house_height) =
-            if (width, height) == (lot.width as usize, lot.height as usize) {
-                (lot.house.0 as usize, lot.house.1 as usize)
-            } else {
-                (width, height)
-            };
+        let house = crate::lot_frame::house_or_grid(world);
         let mut floor = vec![false; width * height];
-        for y in 0..house_height.min(height) {
-            for x in 0..house_width.min(width) {
+        for y in house.y as usize..(house.y + house.height).min(height as u32) as usize {
+            for x in house.x as usize..(house.x + house.width).min(width as u32) as usize {
                 floor[y * width + x] = true;
             }
         }
@@ -56,6 +50,12 @@ impl RoomRegions {
         }
         for window in layout.window_lines() {
             block(window.axis, window.x, window.y);
+        }
+        // The house's implicit north and west shell: the grid's edge while
+        // the house stands at the origin, a wall between house and bought
+        // land once it does not (land expansion, issue 254).
+        for line in house.rear_lines() {
+            block(line.axis, line.x, line.y);
         }
         // The frozen cell-wall house has five known doorway gaps. Retained
         // legacy saves still use them even when migration is inapplicable.

@@ -79,6 +79,7 @@ pub fn start_shift(
     clock: Res<SimClock>,
     content: Res<Content>,
     grid: Res<TileGrid>,
+    frame: Option<Res<crate::lot_frame::LotFrame>>,
     workers: Query<
         (
             Entity,
@@ -94,7 +95,13 @@ pub fn start_shift(
 ) {
     // Post-validation: a pack with a worker carries a door, so this
     // guard is for hand-built test worlds rather than shipped content.
-    let Some(door) = content.0.lot.front_door else {
+    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
+    let Some(door) = content
+        .0
+        .lot
+        .front_door
+        .map(|(x, y)| (x + origin.0, y + origin.1))
+    else {
         return;
     };
     let day_ticks = content.0.tuning.day_ticks as u64;
@@ -177,7 +184,7 @@ pub fn start_shift(
         };
         // Furniture a house was saved with can stand on the exit; the
         // worker then leaves by the door, as it did before the street.
-        match crate::portals::street_exit(content.0, grid.width() as u32)
+        match crate::portals::street_exit_at(content.0, origin, grid.width() as u32)
             .and_then(route)
             .or_else(|| route(door))
         {
@@ -230,9 +237,11 @@ pub(crate) fn works_today(
 /// without one, and loads to clock in where it stands.
 pub(crate) fn saved_commute(
     content: &terri_data::ContentPack,
+    origin: (u32, u32),
     destination: Option<(i32, i32)>,
 ) -> Commuting {
     let landing = crate::portals::front_portal(content)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
         .map(|portal| (portal.inward.0 as i32, portal.inward.1 as i32));
     if destination.is_some() && destination == landing {
         Commuting::Inbound
@@ -268,6 +277,7 @@ pub fn commute_and_work(
     mut commands: Commands,
     content: Res<Content>,
     grid: Res<TileGrid>,
+    frame: Option<Res<crate::lot_frame::LotFrame>>,
     mut funds: ResMut<Funds>,
     mut workers: Query<
         (
@@ -287,7 +297,11 @@ pub fn commute_and_work(
     // the discipline is cheaper than the argument for skipping it.
     let mut working: Vec<Entity> = workers.iter().map(|(entity, ..)| entity).collect();
     working.sort_by_key(|entity| entity.index());
-    let front_portal = crate::portals::front_portal(content.0);
+    // The door and its landing where the content lot now stands (land
+    // expansion, issue 254): the walk home ends on the moved landing.
+    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
+    let front_portal = crate::portals::front_portal(content.0)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin));
 
     for worker in working {
         let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
@@ -336,7 +350,7 @@ pub fn commute_and_work(
             // comes home at rock bottom, not in debt.
             let mut returning = commands.entity(worker);
             returning.remove::<AtWork>();
-            if let Some(portal) = front_portal {
+            if let Some(portal) = &front_portal {
                 // Home along a path to the landing: from the street's exit
                 // back through the door ([OS-street]), from the door tile the
                 // one step in it always was. A landing the grid cannot reach
@@ -350,7 +364,7 @@ pub fn commute_and_work(
                 returning.insert((Commuting::Inbound, Path { steps, cursor: 0 }));
             }
             needs.drain(NeedId::Energy, career.energy_cost);
-            funds.0 += career.pay as i64;
+            funds.0 += career.pay as i64 * Funds::CENTS_PER_DOLLAR;
             satisfaction.reward(career.satisfaction);
         }
     }
@@ -538,12 +552,12 @@ mod tests {
             Some((15, 3)),
             "the return crosses one authored tile into the lot"
         );
-        assert_eq!(sim.funds(), 130, "the completed shift pays once");
+        assert_eq!(sim.funds(), 130 * 100, "the completed shift pays once");
 
         let snapshot = sim.save_snapshot();
         let mut restored = test_content::sim_with_portals(16, 12, pack);
         assert_eq!(restored.load_snapshot(snapshot), Ok(()));
-        assert_eq!(restored.funds(), 130);
+        assert_eq!(restored.funds(), 130 * 100);
 
         for _ in 0..20 {
             restored.tick();
@@ -558,7 +572,7 @@ mod tests {
         assert_eq!((position.x, position.y), (15.0, 3.0));
         assert_eq!(
             restored.funds(),
-            130,
+            130 * 100,
             "finishing the doorway walk cannot pay again"
         );
     }
@@ -655,7 +669,7 @@ mod tests {
             );
             assert_eq!(
                 sim.funds(),
-                a_career().pay as i64,
+                a_career().pay as i64 * 100,
                 "the {axis}-axis worker's one shift pays once"
             );
         }
@@ -800,7 +814,7 @@ mod tests {
                 .expect("the shipped household has an employed Sim")
         };
         let career = &content.careers[sim.world().get::<Career>(worker).unwrap().0 as usize];
-        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64);
+        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64 * 100);
         assert_eq!(today(&sim), 0, "day 1 is a Monday");
 
         let mut left_at = None;
@@ -940,7 +954,7 @@ mod tests {
             sim.world().get::<AtWork>(worker).is_none(),
             "clocked in at {started}, so the return is well before tick 29"
         );
-        assert_eq!(sim.funds(), 130, "one shift, one pay packet");
+        assert_eq!(sim.funds(), 130 * 100, "one shift, one pay packet");
         assert_eq!(
             sim.world().get::<Satisfaction>(worker).unwrap().value(),
             2.25 * Satisfaction::REWARD_SCALE,
@@ -1441,11 +1455,11 @@ mod tests {
         for _ in 0..29 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 130, "day one pays once");
+        assert_eq!(sim.funds(), 130 * 100, "day one pays once");
         for _ in 0..30 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 260, "day two pays again");
+        assert_eq!(sim.funds(), 260 * 100, "day two pays again");
     }
 
     /// [CAL-careers], [CAL-evidence] 3: over one 30-tick week a Monday to
@@ -1477,7 +1491,7 @@ mod tests {
         assert_eq!(clock(&sim), 209);
         assert_eq!(
             sim.funds(),
-            5 * weekday_career().pay as i64,
+            5 * weekday_career().pay as i64 * 100,
             "five working days, five pay packets"
         );
     }
@@ -1490,7 +1504,7 @@ mod tests {
             working_days: 0b1000000,
             ..a_career()
         };
-        let pay = sunday.pay as i64;
+        let pay = sunday.pay as i64 * 100;
         let pack = pack_with_career(sunday, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1541,7 +1555,7 @@ mod tests {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64;
+        let pay = late.pay as i64 * 100;
         let pack = pack_with_career(late, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1586,7 +1600,7 @@ mod tests {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64;
+        let pay = late.pay as i64 * 100;
         let pack = with_front_portal(
             pack_with_career(late, vec![], thirty_tick_day()),
             (15, 2),
@@ -1702,7 +1716,7 @@ mod tests {
         let worker = a_worker(&mut sim, 15.0, 2.0);
 
         assert_eq!(departures(&mut sim, worker, 59), vec![33]);
-        assert_eq!(sim.funds(), weekday_career().pay as i64);
+        assert_eq!(sim.funds(), weekday_career().pay as i64 * 100);
     }
 
     /// Both new hash inputs, each from both sides: two worlds equal in

@@ -1,7 +1,7 @@
 //! Whole-window edits. Validation owns the finished layout before anything is written.
 
 use super::{current_layout, walls::check_new_walls, LotEditState, PlacementRefusal};
-use crate::Content;
+use crate::lot_frame::HouseRect;
 use bevy_ecs::prelude::*;
 use std::collections::BTreeSet;
 use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallLine, WallState};
@@ -38,20 +38,23 @@ pub(crate) fn record(line: WallLine, doorway: bool) -> WallEdge {
     }
 }
 
-pub(crate) fn is_rear(line: WallLine) -> bool {
-    match line.axis {
-        EdgeAxis::Vertical => line.x == 0,
-        EdgeAxis::Horizontal => line.y == 0,
-    }
+/// A line nothing can be built on as a wall: the house's implicit north and
+/// west shell (`house`, which may stand away from the grid's edge once land
+/// is bought, issue 254), or the grid's own north and west edge.
+pub(crate) fn is_rear(line: WallLine, house: HouseRect) -> bool {
+    house.is_rear(line)
+        || match line.axis {
+            EdgeAxis::Vertical => line.x == 0,
+            EdgeAxis::Horizontal => line.y == 0,
+        }
 }
 
 /// Rear glazing belongs only to the house's implicit north/west shell.
-pub fn window_line_in_bounds(line: WallLine, width: u32, height: u32, house: (u32, u32)) -> bool {
-    if is_rear(line) {
-        match line.axis {
-            EdgeAxis::Vertical => line.y < height.min(house.1),
-            EdgeAxis::Horizontal => line.x < width.min(house.0),
-        }
+pub fn window_line_in_bounds(line: WallLine, width: u32, height: u32, house: HouseRect) -> bool {
+    if house.is_rear(line) {
+        true
+    } else if is_rear(line, house) {
+        false
     } else {
         record(line, false).in_bounds(width, height)
     }
@@ -82,7 +85,7 @@ pub fn validate_window_layout(
     layout: &SavedLayout,
     width: u32,
     height: u32,
-    house: (u32, u32),
+    house: HouseRect,
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
     let mut seen = BTreeSet::new();
@@ -99,7 +102,7 @@ pub fn validate_window_layout(
         let lines = window.checked_lines().ok_or(OutOfBounds)?;
         for line in lines {
             if !window_line_in_bounds(line, width, height, house)
-                || (is_rear(line) && !matches!(layout, SavedLayout::EdgeWallsV3 { .. }))
+                || (is_rear(line, house) && !matches!(layout, SavedLayout::EdgeWallsV3 { .. }))
             {
                 return Err(OutOfBounds);
             }
@@ -139,9 +142,9 @@ pub(crate) fn with_architecture(
     }
 }
 
-pub(crate) fn restore_solid(edges: &mut Vec<WallEdge>, lines: &[WallLine]) {
+pub(crate) fn restore_solid(edges: &mut Vec<WallEdge>, lines: &[WallLine], house: HouseRect) {
     for &line in lines {
-        if !is_rear(line) {
+        if !is_rear(line, house) {
             edges.push(record(line, false));
         }
     }
@@ -160,9 +163,10 @@ pub(crate) fn validate_restored_windows(world: &World) -> Result<(), PlacementRe
     {
         return Err(PlacementRefusal::BlockedDoor);
     }
+    let house = crate::lot_frame::house_or_grid(world);
     let walls: Vec<_> = lines
         .into_iter()
-        .filter(|&line| !is_rear(line))
+        .filter(|&line| !is_rear(line, house))
         .map(|line| record(line, false).cells())
         .collect();
     check_new_walls(world, &current.rectangles, grid, &walls)
@@ -179,7 +183,7 @@ pub fn validate_window_edit(
         .ok_or(UnsupportedLayout)?;
     let current = current_layout(world)?;
     let live = world.resource::<TileGrid>();
-    let house = world.resource::<Content>().0.lot.house;
+    let house = crate::lot_frame::house_or_grid(world);
     let clicked = match edit {
         WindowEdit::Fit(w) => w.line,
         WindowEdit::Remove(line) => line,
@@ -194,7 +198,7 @@ pub fn validate_window_edit(
     if let Some(owner) = owner {
         affected_lines = owner.checked_lines().ok_or(OutOfBounds)?;
         windows.retain(|w| *w != owner);
-        restore_solid(&mut edges, &affected_lines);
+        restore_solid(&mut edges, &affected_lines, house);
     }
     let placement = match edit {
         WindowEdit::Fit(mut window) => {
@@ -214,7 +218,7 @@ pub fn validate_window_edit(
                 }
                 let selected = owner.is_some_and(|w| w.lines().contains(&line));
                 let solid_wall = layout.state_of(line) == WallState::Wall
-                    || (is_rear(line) && layout.window_at(line).is_none());
+                    || (is_rear(line, house) && layout.window_at(line).is_none());
                 if !(selected || solid_wall) {
                     return Err(WindowRequiresWall);
                 }
@@ -250,7 +254,7 @@ pub fn validate_window_edit(
     let mut grid = live.clone();
     let walls: Vec<_> = affected_lines
         .iter()
-        .filter(|&&line| !is_rear(line))
+        .filter(|&&line| !is_rear(line, house))
         .map(|&line| record(line, false).cells())
         .collect();
     for &[a, b] in &walls {

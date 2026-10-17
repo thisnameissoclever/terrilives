@@ -6,7 +6,7 @@ fn book_boundary_commands_query_and_pending_round_trip() {
     handle
         .sim
         .world_mut()
-        .insert_resource(terri_core::Funds(100_000));
+        .insert_resource(terri_core::Funds::from_dollars(100_000));
     let title = handle.sim.book_titles()[0].id.clone();
     let price = handle.sim.book_titles()[0].price;
     let funds = handle.sim.save_snapshot_v6().legacy.world.funds;
@@ -327,7 +327,7 @@ fn book_boundary_shelf_masks_cover_slot_31_and_32_without_truncating_capacity() 
     handle
         .sim
         .world_mut()
-        .insert_resource(terri_core::Funds(100000));
+        .insert_resource(terri_core::Funds::from_dollars(100000));
     let title = handle.sim.book_titles()[0].id.clone();
     for _ in 0..33 {
         assert!(handle.buy_book(title.clone(), Some(0.0)));

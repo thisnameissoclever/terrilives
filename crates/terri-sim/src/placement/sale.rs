@@ -137,7 +137,7 @@ pub(crate) fn commit(world: &mut World, object: u32) {
         world
             .get_resource_or_insert_with(RetiredIndices::default)
             .retire(plan.entity.index_u32());
-        world.resource_mut::<Funds>().0 += i64::from(plan.payout);
+        world.resource_mut::<Funds>().0 += i64::from(plan.payout) * Funds::CENTS_PER_DOLLAR;
         let mut state = world.resource_mut::<LotEditState>();
         state.revision = state.revision.saturating_add(1);
         payout = Some(plan.payout);

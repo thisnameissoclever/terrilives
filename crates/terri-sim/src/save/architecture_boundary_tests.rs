@@ -1,6 +1,17 @@
 use super::*;
 use terri_core::{layout::WallEdge, Agent, Footprint, Path, Position, Reserved, Target};
 
+/// A house of `width` by `height` at the grid's origin, as every test lot
+/// stands.
+fn house(width: u32, height: u32) -> crate::lot_frame::HouseRect {
+    crate::lot_frame::HouseRect {
+        x: 0,
+        y: 0,
+        width,
+        height,
+    }
+}
+
 #[test]
 fn furniture_rejects_internal_edges_and_accepts_its_outer_perimeter() {
     let mut source = Sim::new_with_lot(8, 8);
@@ -103,7 +114,7 @@ fn legacy_wall_cells_must_be_unique_blocked_and_inside_each_grid_axis() {
             &SavedLayout::LegacyCells {
                 walls: vec![(2, 1)]
             },
-            (4, 3)
+            house(4, 3)
         ),
         Ok(())
     );
@@ -119,7 +130,7 @@ fn legacy_wall_cells_must_be_unique_blocked_and_inside_each_grid_axis() {
                 &SavedLayout::LegacyCells {
                     walls: walls.clone()
                 },
-                (4, 3)
+                house(4, 3)
             ),
             Err(SaveError::InvalidGrid),
             "walls {walls:?}"
@@ -405,7 +416,7 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
             SavedLayout::from_window_placements(vec![edge], vec![]),
         ] {
             let mut grid = TileGrid::new(4, 3);
-            assert_eq!(apply_layout(&mut grid, &layout, (2, 2)), Ok(()));
+            assert_eq!(apply_layout(&mut grid, &layout, house(2, 2)), Ok(()));
             assert_eq!(grid.blocked_edges().count(), 0);
         }
         let mut grid = TileGrid::new(4, 3);
@@ -416,7 +427,7 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
             }],
         };
         assert_eq!(
-            apply_layout(&mut grid, &door, (2, 2)),
+            apply_layout(&mut grid, &door, house(2, 2)),
             Err(SaveError::InvalidGrid)
         );
     }
@@ -437,7 +448,7 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
             }],
         };
         assert_eq!(
-            apply_layout(&mut TileGrid::new(4, 3), &layout, (2, 2)),
+            apply_layout(&mut TileGrid::new(4, 3), &layout, house(2, 2)),
             Err(SaveError::InvalidGrid)
         );
     }

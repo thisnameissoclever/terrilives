@@ -1,6 +1,6 @@
 //! Retire one historical table command only after restoring its complete source.
 use super::{action_refs, v6, SaveError};
-use crate::{portals::ActivePortals, Sim};
+use crate::Sim;
 use std::{
     collections::{BTreeMap, BTreeSet},
     sync::{Mutex, OnceLock},
@@ -71,7 +71,7 @@ pub(super) fn needed(snapshot: &SaveSnapshotV6, content: &ContentPack) -> bool {
 pub(super) fn restore(
     snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
     migration: bool,
 ) -> Result<Sim, SaveError> {
     let source = snapshot

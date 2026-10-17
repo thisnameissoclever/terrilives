@@ -328,7 +328,7 @@ impl BookLibrary {
         world: &BookWorld<'_>,
     ) -> Result<BookCopyId, BookError> {
         validate_saved(&self.saved, world)?;
-        let price = i64::from(world.title(title)?.price);
+        let price = i64::from(world.title(title)?.price) * Funds::CENTS_PER_DOLLAR;
         let home = target
             .map(|shelf| {
                 world

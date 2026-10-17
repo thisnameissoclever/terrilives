@@ -28,9 +28,13 @@ fn context() -> BookWorld<'static> {
 fn quotes_are_stable_and_leave_ownership_unchanged() {
     let library = BookLibrary::new(43);
     let before = library.state().clone();
-    let quote = library.quote_purchase(Funds(100), &context()).unwrap();
+    let quote = library
+        .quote_purchase(Funds::from_dollars(100), &context())
+        .unwrap();
     assert_eq!(
-        library.quote_purchase(Funds(100), &context()).unwrap(),
+        library
+            .quote_purchase(Funds::from_dollars(100), &context())
+            .unwrap(),
         quote
     );
     assert_eq!(*library.state(), before);
@@ -52,19 +56,24 @@ fn purchase_uses_the_less_populated_case_even_when_books_are_borrowed() {
         .purchase(
             "the_locked_laundry",
             Some(BookShelfId(7)),
-            &mut Funds(100),
+            &mut Funds::from_dollars(100),
             &context(),
         )
         .unwrap();
     library.reserve(first, SimId(1), &context()).unwrap();
     library.pick_up(first, SimId(1), &context()).unwrap();
-    let quote = library.quote_purchase(Funds(100), &context()).unwrap();
+    let quote = library
+        .quote_purchase(Funds::from_dollars(100), &context())
+        .unwrap();
     assert_eq!(quote.home.shelf, BookShelfId(8));
-    let mut funds = Funds(100);
+    let mut funds = Funds::from_dollars(100);
     let id = library
         .purchase_quoted(&quote, &mut funds, &context())
         .unwrap();
-    assert_eq!(funds.0, 100 - i64::from(quote.price));
+    assert_eq!(
+        funds.0,
+        (100 - i64::from(quote.price)) * Funds::CENTS_PER_DOLLAR
+    );
     assert_eq!(library.copy(id).unwrap().home, Some(quote.home));
     assert_eq!(
         library.copy(first).unwrap().home.unwrap().shelf,
@@ -75,8 +84,10 @@ fn purchase_uses_the_less_populated_case_even_when_books_are_borrowed() {
 #[test]
 fn stale_purchase_cannot_charge_or_create_another_copy() {
     let mut library = BookLibrary::new(43);
-    let quote = library.quote_purchase(Funds(100), &context()).unwrap();
-    let mut funds = Funds(100);
+    let quote = library
+        .quote_purchase(Funds::from_dollars(100), &context())
+        .unwrap();
+    let mut funds = Funds::from_dollars(100);
     library
         .purchase_quoted(&quote, &mut funds, &context())
         .unwrap();
@@ -94,7 +105,9 @@ fn absent_or_full_cases_refuse_purchases_without_an_inventory_fallback() {
     let mut library = BookLibrary::new(43);
     let mut world = context();
     world.shelves = &[];
-    assert!(library.quote_purchase(Funds(100), &world).is_err());
+    assert!(library
+        .quote_purchase(Funds::from_dollars(100), &world)
+        .is_err());
     world.shelves = &[ShelfCapacity {
         id: BookShelfId(7),
         slots: 1,
@@ -103,11 +116,13 @@ fn absent_or_full_cases_refuse_purchases_without_an_inventory_fallback() {
         .purchase(
             "the_locked_laundry",
             Some(BookShelfId(7)),
-            &mut Funds(100),
+            &mut Funds::from_dollars(100),
             &world,
         )
         .unwrap();
-    assert!(library.quote_purchase(Funds(100), &world).is_err());
+    assert!(library
+        .quote_purchase(Funds::from_dollars(100), &world)
+        .is_err());
 }
 
 #[test]
@@ -117,7 +132,7 @@ fn sale_is_shelf_local_and_refuses_borrowed_and_forged_quotes() {
         .purchase(
             "the_locked_laundry",
             Some(BookShelfId(7)),
-            &mut Funds(100),
+            &mut Funds::from_dollars(100),
             &context(),
         )
         .unwrap();
@@ -148,13 +163,18 @@ fn inventory_arrivals_balance_and_keep_existing_homes() {
         .purchase(
             "the_locked_laundry",
             Some(BookShelfId(7)),
-            &mut Funds(100),
+            &mut Funds::from_dollars(100),
             &context(),
         )
         .unwrap();
     let home = library.copy(existing).unwrap().home;
     let arrival = library
-        .purchase("a_second_cup", None, &mut Funds(100), &context())
+        .purchase(
+            "a_second_cup",
+            None,
+            &mut Funds::from_dollars(100),
+            &context(),
+        )
         .unwrap();
     assert_eq!(library.shelve_inventory(&context()).unwrap(), vec![arrival]);
     assert_eq!(library.copy(existing).unwrap().home, home);

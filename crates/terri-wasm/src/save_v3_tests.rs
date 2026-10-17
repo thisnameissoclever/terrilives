@@ -716,10 +716,13 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV12>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV13>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &12u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &13u16.to_le_bytes());
+    // A custom lot has no frame; a content lot's frame has bought nothing.
+    assert!(decoded.lot_frame.is_none_or(|f| f.purchased_area == 0));
+    let decoded = decoded.legacy;
     assert!(decoded.fights.is_empty());
     let decoded = decoded.legacy;
     assert!(decoded.burnt_meals.is_empty());
@@ -1877,21 +1880,29 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&current_bytes(&overdone)));
     assert_eq!(handle.sim.save_snapshot_v10(), overdone);
-    // A schema-ten payload resaves as schema twelve with no burnt meals
-    // and no fights.
-    let mut twelve = SAVE_MAGIC.to_vec();
-    twelve.extend_from_slice(&12u16.to_le_bytes());
-    twelve.extend(
-        postcard::to_allocvec(&terri_core::SaveSnapshotV12 {
-            legacy: terri_core::SaveSnapshotV11 {
-                legacy: overdone.clone(),
-                burnt_meals: vec![],
+    // A schema-ten payload resaves as schema thirteen with no burnt meals,
+    // no fights, the frame its grid implies and its dollars as cents.
+    let mut thirteen = SAVE_MAGIC.to_vec();
+    thirteen.extend_from_slice(&13u16.to_le_bytes());
+    thirteen.extend(
+        postcard::to_allocvec(&terri_core::SaveSnapshotV13 {
+            legacy: terri_core::SaveSnapshotV12 {
+                legacy: terri_core::SaveSnapshotV11 {
+                    legacy: overdone.clone(),
+                    burnt_meals: vec![],
+                },
+                fights: vec![],
             },
-            fights: vec![],
+            lot_frame: Some(terri_core::save_v13::SavedLotFrame {
+                origin_x: 0,
+                origin_y: 0,
+                purchased_area: 0,
+            }),
+            funds_cents: overdone.legacy.legacy.world.funds * 100,
         })
         .unwrap(),
     );
-    assert_eq!(handle.save_bytes(), twelve, "2.0 round-trips exactly");
+    assert_eq!(handle.save_bytes(), thirteen, "2.0 round-trips exactly");
 }
 
 /// Burnt meals (issue 243): schema eleven carries them through the public
@@ -1908,7 +1919,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        12u16.to_le_bytes()
+        13u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -1973,7 +1984,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        12u16.to_le_bytes()
+        13u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -1982,6 +1993,20 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
         &[(terri_core::SimId(0), 500)]
     );
     assert_eq!(loaded.world_hash(), source.world_hash());
+    // A schema-twelve payload of the same world still loads its fights.
+    let mut twelve = SAVE_MAGIC.to_vec();
+    twelve.extend_from_slice(&12u16.to_le_bytes());
+    twelve.extend(postcard::to_allocvec(&source.sim.save_snapshot_v12()).unwrap());
+    let mut from_twelve = SimHandle::from_lot();
+    assert!(from_twelve.load_bytes(&twelve));
+    assert_eq!(
+        from_twelve
+            .sim
+            .world()
+            .resource::<terri_sim::Fights>()
+            .entries(),
+        &[(terri_core::SimId(0), 500)]
+    );
 
     let mut eleven = SAVE_MAGIC.to_vec();
     eleven.extend_from_slice(&11u16.to_le_bytes());
@@ -1999,6 +2024,57 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     bad.fights[0].sim = 42;
     let mut refused = SAVE_MAGIC.to_vec();
     refused.extend_from_slice(&12u16.to_le_bytes());
+    refused.extend(postcard::to_allocvec(&bad).unwrap());
+    let mut target = SimHandle::from_lot();
+    let before = target.world_hash();
+    assert!(!target.load_bytes(&refused));
+    assert_eq!(target.world_hash(), before);
+}
+
+/// Land expansion (issue 254): schema thirteen carries the lot frame and
+/// the cents through the public envelope, a grown lot comes back grown, a
+/// schema-twelve payload still loads with its dollars as cents, and a frame
+/// that leaves the house off the grid refuses the whole load.
+#[test]
+fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
+    let mut source = SimHandle::from_lot();
+    source
+        .sim
+        .world_mut()
+        .insert_resource(terri_core::Funds(500_000_055));
+    assert!(source.buy_land(0));
+    source.flush_commands();
+    assert_eq!(source.last_land_result(), vec![0.0, 0.0, 2_400_000.0]);
+    assert_eq!((source.lot_width(), source.lot_height()), (30, 16));
+    assert_eq!(source.house_origin(), vec![10, 0]);
+    assert_eq!(source.funds_cents(), 500_000_055.0 - 2_400_000.0);
+    assert_eq!(source.funds(), 4_976_000.0);
+    let bytes = source.save_bytes();
+    assert_eq!(
+        bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
+        13u16.to_le_bytes()
+    );
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    assert_eq!((loaded.lot_width(), loaded.lot_height()), (30, 16));
+    assert_eq!(loaded.house_origin(), vec![10, 0]);
+    assert_eq!(loaded.funds_cents(), source.funds_cents());
+    assert_eq!(loaded.world_hash(), source.world_hash());
+    assert_eq!(loaded.save_bytes(), bytes);
+
+    let mut twelve = SAVE_MAGIC.to_vec();
+    twelve.extend_from_slice(&12u16.to_le_bytes());
+    let plain = SimHandle::from_lot();
+    twelve.extend(postcard::to_allocvec(&plain.sim.save_snapshot_v12()).unwrap());
+    let mut old = SimHandle::from_lot();
+    assert!(old.load_bytes(&twelve));
+    assert_eq!(old.house_origin(), vec![0, 0]);
+    assert_eq!(old.funds_cents(), plain.funds() * 100.0);
+
+    let mut bad = source.sim.save_snapshot_v13();
+    bad.lot_frame.as_mut().unwrap().origin_x = 20;
+    let mut refused = SAVE_MAGIC.to_vec();
+    refused.extend_from_slice(&13u16.to_le_bytes());
     refused.extend(postcard::to_allocvec(&bad).unwrap());
     let mut target = SimHandle::from_lot();
     let before = target.world_hash();

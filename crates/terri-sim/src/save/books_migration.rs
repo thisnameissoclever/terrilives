@@ -1,7 +1,7 @@
 //! Published saves enter the frozen content first, then acquire current book state.
 
 use super::{action_refs, architecture, v6, SaveError};
-use crate::{books::BookLibrary, portals::ActivePortals, Content, Sim};
+use crate::{books::BookLibrary, Content, Sim};
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{
     SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SaveSnapshotV5, SaveSnapshotV6,
@@ -31,7 +31,7 @@ const LEGACY_TASTE_SEED: u64 = 0x626f_6f6b_732d_7631;
 pub(crate) fn restore(
     snapshot: LegacySnapshot,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     let (snapshot, source) = match snapshot {
         LegacySnapshot::V5Source(value, source) => (LegacySnapshot::V5(value), Some(source)),

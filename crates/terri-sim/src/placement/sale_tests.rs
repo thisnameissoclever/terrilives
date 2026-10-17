@@ -42,7 +42,7 @@ fn house_with(funds: i64, edit: impl FnOnce(&mut ContentPack)) -> (Sim, Entity, 
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
-    sim.world_mut().insert_resource(Funds(funds));
+    sim.world_mut().insert_resource(Funds::from_dollars(funds));
     (sim, fridge, rack)
 }
 
@@ -118,7 +118,10 @@ fn a_sale_takes_the_object_away_opens_its_tiles_and_pays_back_part_of_its_price(
         !sim.world().resource::<TileGrid>().is_walkable(3, 3),
         "the rack stays"
     );
-    assert_eq!(sim.world().resource::<Funds>().0, 7 + i64::from(payout));
+    assert_eq!(
+        sim.world().resource::<Funds>().dollars(),
+        7 + i64::from(payout)
+    );
     assert_eq!(revision(&sim), before + 1, "one sale, one revision");
     // Selling the same index again finds nothing there.
     refused(&mut sim, fridge, PlacementRefusal::UnknownObject);

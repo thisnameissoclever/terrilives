@@ -965,6 +965,10 @@ pub enum ContentError {
     FightTuningOutOfRange {
         key: &'static str,
     },
+    /// Land expansion (issue 254): a land knob outside its range.
+    LandTuningOutOfRange {
+        key: &'static str,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -2167,6 +2171,12 @@ impl fmt::Display for ContentError {
                  master chance at most the novice chance; \
                  burnt_meal_mood_penalty finite and not negative; \
                  burnt_meal_mood_ticks from 1 to 10080"
+            ),
+            ContentError::LandTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: land_strip_depth \
+                 from 1 to 100; land_price_cents and land_price_step_cents at \
+                 most 1000000000"
             ),
             ContentError::FightTuningOutOfRange { key } => write!(
                 f,

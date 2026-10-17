@@ -14,7 +14,7 @@ fn restore_without_portals(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
 ) -> Result<Sim, SaveError> {
-    restore(snapshot, content, None)
+    restore(snapshot, content, crate::save::Carried::default())
 }
 
 /// A save from before the bathtub turned, made, as every such save was, on

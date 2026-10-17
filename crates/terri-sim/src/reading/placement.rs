@@ -52,9 +52,7 @@ pub(crate) fn prepare(
     let mut candidate = crate::save::v6::restore(
         crate::save::v6::capture_world(world),
         pack,
-        world
-            .get_resource::<crate::portals::ActivePortals>()
-            .copied(),
+        crate::save::Carried::for_rebuild(world),
     )
     .map_err(|_| bad())?;
     let moved = crate::dining::entity(&candidate.world, shelf.index_u32()).ok_or_else(bad)?;

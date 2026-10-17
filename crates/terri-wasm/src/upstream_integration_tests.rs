@@ -190,7 +190,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
     handle
         .sim
         .world_mut()
-        .insert_resource(terri_core::Funds(100));
+        .insert_resource(terri_core::Funds::from_dollars(100));
     let title = handle.sim.book_titles()[0].id.clone();
     let next = handle.sim.save_snapshot_v6().books.next_copy_id;
     assert!(handle.buy_book(title, None));

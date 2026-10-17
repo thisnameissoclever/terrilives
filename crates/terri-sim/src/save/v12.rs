@@ -1,6 +1,6 @@
 //! Fights ride the schema-eleven envelope - issue 248.
 use super::SaveError;
-use crate::{fights::Fights, moodlet_timers::MoodletTimers, portals::ActivePortals, Sim};
+use crate::{fights::Fights, moodlet_timers::MoodletTimers, Sim};
 use terri_core::{save_v12::SavedFight, SaveSnapshotV12, SimId};
 
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV12 {
@@ -25,7 +25,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV12 {
 pub(crate) fn restore(
     snapshot: SaveSnapshotV12,
     content: &'static terri_data::ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     let rows = snapshot.fights;
     if rows.len() > super::MAX_ENTITIES || rows.windows(2).any(|pair| pair[0].sim >= pair[1].sim) {

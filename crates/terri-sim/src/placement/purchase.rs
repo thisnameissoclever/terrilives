@@ -60,7 +60,7 @@ pub fn validate_purchase(
         return Err(UnsupportedFacing);
     }
     let funds = world.get_resource::<Funds>().map_or(0, |funds| funds.0);
-    if funds < i64::from(price) {
+    if funds < i64::from(price) * Funds::CENTS_PER_DOLLAR {
         return Err(CannotAfford);
     }
     let footprint = definition.footprint_at(purchase.facing);
@@ -114,7 +114,7 @@ fn commit_in(world: &mut World, purchase: Purchase, colourway: Option<u32>) {
                 .entity_mut(entity)
                 .insert(terri_core::Colourway(colourway));
         }
-        world.resource_mut::<Funds>().0 -= i64::from(plan.price);
+        world.resource_mut::<Funds>().0 -= i64::from(plan.price) * Funds::CENTS_PER_DOLLAR;
         let mut state = world.resource_mut::<LotEditState>();
         state.revision = state.revision.saturating_add(1);
         object = Some(entity.index_u32());

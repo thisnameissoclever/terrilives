@@ -43,7 +43,7 @@ fn house_with(funds: i64, edges: Vec<WallEdge>, edit: impl FnOnce(&mut ContentPa
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
-    sim.world_mut().insert_resource(Funds(funds));
+    sim.world_mut().insert_resource(Funds::from_dollars(funds));
     sim
 }
 
@@ -97,8 +97,9 @@ fn stage(sim: &mut Sim, purchase: Purchase) {
     sim.flush_commands();
 }
 
+/// The household's whole dollars, as every expectation here is written.
 fn funds(sim: &Sim) -> i64 {
-    sim.world().resource::<Funds>().0
+    sim.world().resource::<Funds>().dollars()
 }
 
 fn revision(sim: &Sim) -> u64 {
@@ -215,9 +216,10 @@ fn a_purchase_stands_the_object_blocks_its_tiles_and_takes_the_price() {
 fn exactly_the_price_is_enough_and_one_less_is_not() {
     let mut sim = house(0, vec![]);
     let cost = price("chair");
-    sim.world_mut().insert_resource(Funds(cost - 1));
+    sim.world_mut()
+        .insert_resource(Funds(cost * Funds::CENTS_PER_DOLLAR - 1));
     refused(&mut sim, chair(3, 3), CannotAfford);
-    sim.world_mut().insert_resource(Funds(cost));
+    sim.world_mut().insert_resource(Funds::from_dollars(cost));
     bought(&mut sim, chair(3, 3));
     assert_eq!(funds(&sim), 0);
 }
@@ -258,7 +260,7 @@ fn a_purchase_is_refused_for_each_reason_in_the_order_the_design_lists() {
     );
     // 3. Too dear, even off the lot.
     refused(&mut sim, buy(chair_index, 7, 3, base), CannotAfford);
-    sim.world_mut().insert_resource(Funds(1_000));
+    sim.world_mut().insert_resource(Funds::from_dollars(1_000));
     // 4. Then every placement rule, as for a move.
     refused(&mut sim, buy(chair_index, 7, 3, base), OutOfBounds);
     refused(&mut sim, buy(chair_index, 3, u32::MAX, base), OutOfBounds);
@@ -406,7 +408,8 @@ fn a_bought_object_is_a_placed_object_a_move_and_the_next_purchase_both_see() {
 fn two_purchases_in_one_drain_apply_in_stream_order_and_each_sees_the_one_before() {
     let mut sim = house(0, vec![]);
     let cost = price("chair");
-    sim.world_mut().insert_resource(Funds(cost + cost / 2));
+    sim.world_mut()
+        .insert_resource(Funds::from_dollars(cost + cost / 2));
     let one = chair(2, 2);
     let two = chair(4, 4);
     {
@@ -667,7 +670,7 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
         for _ in 0..ticks {
             sim.tick();
         }
-        sim.world_mut().insert_resource(Funds(1_000));
+        sim.world_mut().insert_resource(Funds::from_dollars(1_000));
         let base = sim.save_snapshot_v10();
         let (width, height) = {
             let grid = sim.world().resource::<TileGrid>();
@@ -951,7 +954,7 @@ fn the_world_hash_names_a_staged_purchase_by_its_object_id() {
 fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
     let buy = |x: u32, y: u32| {
         let mut sim = Sim::new_from_shipped_lot();
-        sim.world_mut().insert_resource(Funds(1_000));
+        sim.world_mut().insert_resource(Funds::from_dollars(1_000));
         let mut queue = sim.world_mut().resource_mut::<CommandQueue>();
         queue.push(SimCommand::SetWallEdge {
             axis: terri_core::layout::EdgeAxis::Vertical,
@@ -980,7 +983,7 @@ fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
 fn nothing_is_bought_onto_the_streets_exit() {
     let buy = |x: u32, y: u32| {
         let mut sim = Sim::new_from_shipped_lot();
-        sim.world_mut().insert_resource(Funds(1_000));
+        sim.world_mut().insert_resource(Funds::from_dollars(1_000));
         sim.world_mut()
             .resource_mut::<CommandQueue>()
             .push(command(chair(x, y)));
