@@ -574,6 +574,57 @@ mod tests {
         }
     }
 
+    /// Someone in a conversation, their own or as the one being talked to,
+    /// is not approached for a fight until it ends; a conversation between
+    /// two other people holds nothing off.
+    #[test]
+    fn a_fight_waits_while_the_other_person_is_being_talked_to() {
+        let (mut sim, a, b) = household(-1.0);
+        certain(&mut sim);
+        plant_reason(&mut sim, b);
+        let c = sim.world_mut().spawn_empty().id();
+        let d = sim.world_mut().spawn_empty().id();
+        let talk = |partner| Socialising {
+            interaction: 0,
+            partner,
+            remaining_ticks: 10,
+        };
+        sim.world_mut().entity_mut(c).insert(talk(b));
+        provoke(sim.world_mut());
+        assert!(!queued_fight(&sim, a, b), "b is being talked to");
+        sim.world_mut().entity_mut(c).remove::<Socialising>();
+        sim.world_mut().entity_mut(b).insert(talk(d));
+        provoke(sim.world_mut());
+        assert!(
+            !queued_fight(&sim, a, b),
+            "b is in a conversation of its own"
+        );
+        sim.world_mut().entity_mut(b).remove::<Socialising>();
+        sim.world_mut().entity_mut(c).insert(talk(d));
+        provoke(sim.world_mut());
+        assert!(
+            queued_fight(&sim, a, b),
+            "a talk between two others holds nothing off"
+        );
+    }
+
+    /// Each tick's expiry drops a moodlet whose end has passed and keeps a
+    /// running one, so the saved and hashed list holds only running rows.
+    #[test]
+    fn expiry_drops_only_finished_moodlets() {
+        let (mut sim, a, b) = household(0.0);
+        let a_id = *sim.world().get::<SimId>(a).unwrap();
+        let b_id = *sim.world().get::<SimId>(b).unwrap();
+        {
+            let mut fights = sim.world_mut().resource_mut::<Fights>();
+            fights.record(a_id, 10);
+            fights.record(b_id, 1000);
+        }
+        sim.world_mut().resource_mut::<SimClock>().tick = 500;
+        expire(sim.world_mut());
+        assert_eq!(sim.world().resource::<Fights>().entries(), &[(b_id, 1000)]);
+    }
+
     /// An order the trigger made up is withdrawn when the other person
     /// leaves for work before it is served, and the initiator is unblocked;
     /// a player's order to the same person is left alone.
