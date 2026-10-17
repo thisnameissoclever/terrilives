@@ -50,15 +50,33 @@ it('shows numeric units and the editable range without changing the stored value
   expect(draft.value).toEqual(source);
 });
 
-it('shows the value box and its tooltip at two decimals, never a widened float',()=>{
+function numberBox(row:Element):Element {
+  const inputs:Element[]=[];const walk=(node:Element)=>{if(node.tag==='input'&&node.type==='number')inputs.push(node);node.children.forEach(walk);};walk(row);
+  expect(inputs).toHaveLength(1);return inputs[0];
+}
+
+it('shows the value box and its tooltip through one formatter, never a widened float',()=>{
   // 0.29 widens to 28.999999165534973%; a spawned 0.123456 is off the 1% step.
-  for(const [stored,box,tooltip] of [[.29,'29','29'],[.123456,'12.35','12.35']] as const){
+  for(const [stored,shown] of [[.29,'29'],[.123456,'12.35']] as const){
     const source=neutralDraft('Name');source.behavior.cleanliness=floatBits(stored);
-    const draft=CharacterDraft.edit(source,7,catalog,[]),row=control(draft,'behavior.cleanliness');
-    const inputs:Element[]=[];const walk=(node:Element)=>{if(node.tag==='input'&&node.type==='number')inputs.push(node);node.children.forEach(walk);};walk(row);
-    expect(inputs).toHaveLength(1);
-    expect(inputs[0].value).toBe(box);
-    expect((inputs[0] as unknown as {title?:string}).title).toBe(tooltip);
+    const draft=CharacterDraft.edit(source,7,catalog,[]),box=numberBox(control(draft,'behavior.cleanliness'));
+    expect(box.value).toBe(shown);
+    expect((box as unknown as {title?:string}).title).toBe(shown);
     expect(draft.value).toEqual(source);
   }
+  // A tiny spawned preference keeps two significant digits in both places
+  // rather than reading as 0 in the box and 0.0031 in the tooltip.
+  const withPlants:CharacterCatalog={...catalog,affinities:[{id:'plants',label:'Plants',description:'Potted plants around the house.'}]};
+  const source=neutralDraft('Name');source.affinities=[{id:'plants',value:floatBits(.0031)}];
+  const draft=CharacterDraft.edit(source,7,withPlants,[]),box=numberBox(control(draft,JSON.stringify(['affinity','plants'])));
+  expect(box.value).toBe('0.0031');
+  expect((box as unknown as {title?:string}).title).toBe('0.0031');
+});
+
+it('refreshes the value box tooltip after an edit',()=>{
+  const source=neutralDraft('Name');source.behavior.cleanliness=floatBits(.29);
+  const draft=CharacterDraft.edit(source,7,catalog,[]),box=numberBox(control(draft,'behavior.cleanliness'));
+  (box as unknown as {valueAsNumber:number}).valueAsNumber=41;box.fire('change');
+  expect(box.value).toBe('41');
+  expect((box as unknown as {title?:string}).title).toBe('41');
 });
