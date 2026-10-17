@@ -268,6 +268,40 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         },
         SavedLayout::LegacyAuthoredV1 => SavedLayout::LegacyAuthoredV1,
     };
+    // A record on the old lot's edge, a perimeter solid a room or a wall
+    // edit left there, had no barrier while the edge was the grid's edge.
+    // Inside the grid it blocks, exactly as the lot-edit rebuild and the
+    // loader apply it; a purchase must leave the grid they would build.
+    {
+        let (width, height) = (new_width, new_height);
+        let house = lot_frame::house_or_grid(world);
+        let framed = lot_frame::house(world);
+        let mut grid = world.resource_mut::<TileGrid>();
+        for edge in moved.edges() {
+            if edge.in_bounds(width, height) {
+                let [a, b] = edge.cells();
+                grid.set_edge_blocked(a, b, !edge.doorway);
+            }
+        }
+        for window in moved.window_lines() {
+            if crate::placement::windows::is_rear(window, house) {
+                continue;
+            }
+            let edge = WallEdge {
+                axis: window.axis,
+                x: window.x,
+                y: window.y,
+                doorway: false,
+            };
+            if edge.in_bounds(width, height) {
+                let [a, b] = edge.cells();
+                grid.set_edge_blocked(a, b, true);
+            }
+        }
+        if let Some(house) = framed {
+            lot_frame::block_shell(&mut grid, house);
+        }
+    }
     world.insert_resource(moved);
     if let Some(floors) = world.get_resource::<SavedFloors>() {
         let mut shifted = SavedFloors::default();
@@ -699,16 +733,25 @@ mod tests {
                 validate_wall_edit(sim.world(), shell),
                 Err(crate::placement::PlacementRefusal::OutOfBounds)
             ));
-            // The Room tool refuses the same line as a room's doorway.
+            // The Room tool refuses a shell line on a room's outline as its
+            // doorway: the room's north-west corner is the house's.
             let room = RoomEdit {
                 x0: dx,
                 y0: dy,
                 x1: dx + 2,
                 y1: dy + 2,
-                doorway: Some(WallLine {
-                    axis: shell.axis,
-                    x: shell.x,
-                    y: shell.y,
+                doorway: Some(if dx > 0 {
+                    WallLine {
+                        axis: EdgeAxis::Vertical,
+                        x: dx,
+                        y: dy + 1,
+                    }
+                } else {
+                    WallLine {
+                        axis: EdgeAxis::Horizontal,
+                        x: dx + 1,
+                        y: dy,
+                    }
                 }),
             };
             assert!(matches!(
@@ -856,5 +899,73 @@ mod tests {
             walked_home,
             "the shipped worker goes to work and walks home within two days"
         );
+    }
+
+    /// A perimeter solid recorded on the old lot's edge blocks once the
+    /// lot grows past it, on every side, and the lot edits still find the
+    /// layout they expect: the grid a purchase leaves is the grid the
+    /// loader would build.
+    #[test]
+    fn a_record_on_the_old_edge_blocks_once_the_lot_grows_past_it() {
+        for (side, line, cells) in [
+            (
+                Side::Left,
+                WallEdge {
+                    axis: EdgeAxis::Horizontal,
+                    x: 3,
+                    y: 16,
+                    doorway: false,
+                },
+                ((3, 15), (3, 16)),
+            ),
+            (
+                Side::Rear,
+                WallEdge {
+                    axis: EdgeAxis::Vertical,
+                    x: 0,
+                    y: 14,
+                    doorway: false,
+                },
+                ((9, 14), (10, 14)),
+            ),
+            (
+                Side::Right,
+                WallEdge {
+                    axis: EdgeAxis::Horizontal,
+                    x: 18,
+                    y: 0,
+                    doorway: false,
+                },
+                ((18, 9), (18, 10)),
+            ),
+        ] {
+            let mut sim = rich();
+            {
+                let mut layout = sim.world_mut().resource_mut::<SavedLayout>();
+                match &mut *layout {
+                    SavedLayout::EdgeWallsV1 { edges }
+                    | SavedLayout::EdgeWallsV2 { edges, .. }
+                    | SavedLayout::EdgeWallsV3 { edges, .. } => edges.push(line),
+                    _ => panic!("the shipped lot has edge walls"),
+                }
+            }
+            assert_eq!(
+                crate::placement::current_layout(sim.world())
+                    .map(|_| ())
+                    .err(),
+                None,
+                "{side:?}: the record on the edge is a valid layout"
+            );
+            buy(sim.world_mut(), side).unwrap();
+            let grid = sim.world().resource::<TileGrid>();
+            assert!(
+                !grid.can_cross(cells.0, cells.1),
+                "{side:?}: the record blocks"
+            );
+            assert!(
+                crate::placement::current_layout(sim.world()).is_ok(),
+                "{side:?}: lot edits find the layout"
+            );
+        }
     }
 }
