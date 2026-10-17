@@ -6,8 +6,8 @@ import { emissiveForSprite } from '../src/render/lighting.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { BuyTool, CHOOSE_ITEM, listed } from '../src/ui/buy-tool.js';
 import { BuyToolControls, cardName, roomWord, servesLabel } from '../src/ui/buy-tool-controls.js';
-import { drawCataloguePreviews, visibleBounds } from '../src/ui/catalogue-previews.js';
-import { SPRITES } from '../src/render/atlas.js';
+import { drawCataloguePreviews, makeCropLayer, visibleBounds } from '../src/ui/catalogue-previews.js';
+import { SPRITES, SPRITE_ANCHORS, type AtlasSprite } from '../src/render/atlas.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -865,6 +865,34 @@ describe('the catalogue pictures', () => {
     expect(visibleBounds(rgba, width, 3)).toEqual([1, 1, 3, 3]);
   });
 
+  it('cuts a layer down to its visible pixels, in logical pixels, and empties its scratch canvas', async () => {
+    // A density-2 sprite at (5, 7) on its page, 12 by 24 texels, whose
+    // visible texels run from (2, 4) to (9, 19).
+    const sprite = { name: 'test', x: 5, y: 7, w: 12, h: 24, pixel_density: 2, page: 0 } as AtlasSprite;
+    const alpha = new Uint8ClampedArray(12 * 24 * 4);
+    alpha[(4 * 12 + 2) * 4 + 3] = 255;
+    alpha[(19 * 12 + 9) * 4 + 3] = 255;
+    const copies: unknown[][] = [];
+    const bitmaps: unknown[][] = [];
+    const scratch = { width: 0, height: 0, getContext: () => ({
+      drawImage: (...args: unknown[]) => { copies.push(args); },
+      getImageData: () => ({ data: alpha }),
+    }) } as unknown as HTMLCanvasElement;
+    const page = { page: 0 } as unknown as ImageBitmap;
+    const image = { close() {} } as unknown as ImageBitmap;
+    const crop = makeCropLayer({ canvas: () => scratch,
+      bitmap: async (...args) => { bitmaps.push(args); return image; } });
+    const cut = await crop(page, sprite);
+    expect(copies).toEqual([[page, 5, 7, 12, 24, 0, 0, 12, 24]]);
+    expect(bitmaps).toEqual([[scratch, 2, 4, 8, 16]]);
+    expect(cut?.bounds).toEqual([1, 2, 5, 10]);
+    expect(cut?.image).toBe(image);
+    expect([scratch.width, scratch.height]).toEqual([0, 0]);
+    alpha.fill(0);
+    expect(await crop(page, sprite), 'a sprite with no visible pixels has no cut-out').toBeNull();
+    expect(bitmaps).toHaveLength(1);
+  });
+
   /** A canvas that records what is drawn on it and when it is cleared. */
   const recorder = (name: string, log: string[], fail = false) => ({ width: 144, height: 144, getContext: () => ({
     imageSmoothingEnabled: false, imageSmoothingQuality: 'low',
@@ -884,24 +912,37 @@ describe('the catalogue pictures', () => {
   /** Cut-outs 20 by 40 logical pixels at (10, 20), labeled by page. */
   const crops = (log: string[], failing: number[] = []) => async (page: ImageBitmap) => {
     const at = (page as unknown as { page: number }).page;
+    log.push(`crop on ${at}`);
     if (failing.includes(at)) throw new Error(`crop on ${at} failed`);
     return { image: { label: `p${at}` } as unknown as CanvasImageSource, bounds: [10, 20, 30, 60] as const,
       close: () => { log.push(`release p${at}`); } };
   };
 
-  it('reads each page once, then draws the base before the foreground, scaled to fit the visible pixels', async () => {
+  it('reads each page and cuts each sprite once, then draws the base before the foreground, placed by their anchors', async () => {
     const log: string[] = [];
     const [two, three] = [indexOn(2), indexOn(3)];
     expect(Math.min(two, three)).toBeGreaterThanOrEqual(0);
     // The base's page comes after the foreground's: the base is still drawn first.
     await drawCataloguePreviews([{ canvas: recorder('lone', log), sprite: three, foreground: null },
       { canvas: recorder('pair', log), sprite: three, foreground: two }], pages(log), crops(log));
-    expect(log.slice(0, 4)).toEqual(['load 2', 'close 2', 'load 3', 'close 3']);
+    expect(log.slice(0, 6), 'the sprite both cards share is cut out once')
+      .toEqual(['load 2', 'crop on 2', 'close 2', 'load 3', 'crop on 3', 'close 3']);
     // A 20 by 40 cut-out in a 144 canvas scales by 3.6 and is centered across.
-    expect(log[4]).toBe('lone:p3:36,0,72,144');
-    expect(log[5].startsWith('pair:p3:')).toBe(true);
-    expect(log[6].startsWith('pair:p2:')).toBe(true);
-    expect(log.slice(7).sort()).toEqual(['release p2', 'release p3']);
+    const drawn = log.slice(6, 9);
+    expect(drawn).toContain('lone:p3:36,0,72,144');
+    // The foreground sits where the anchors put it: the base's anchor minus
+    // its own, both in logical pixels, the renderer's bottom center by default.
+    const anchorOf = (index: number) => SPRITE_ANCHORS[index]
+      ?? [SPRITES[index].w / (SPRITES[index].pixel_density ?? 1) / 2, SPRITES[index].h / (SPRITES[index].pixel_density ?? 1)];
+    const [sx, sy] = [anchorOf(three)[0] - anchorOf(two)[0], anchorOf(three)[1] - anchorOf(two)[1]];
+    const box = [10 + Math.min(0, sx), 20 + Math.min(0, sy), 30 + Math.max(0, sx), 60 + Math.max(0, sy)];
+    const scale = Math.min(144 / (box[2] - box[0]), 144 / (box[3] - box[1]));
+    const [ox, oy] = [(144 - (box[2] - box[0]) * scale) / 2, (144 - (box[3] - box[1]) * scale) / 2];
+    const rect = (shiftX: number, shiftY: number) => [ox + (10 + shiftX - box[0]) * scale, oy + (20 + shiftY - box[1]) * scale,
+      20 * scale, 40 * scale].map(value => Math.round(value)).join(',');
+    const pair = drawn.filter(line => line.startsWith('pair:'));
+    expect(pair).toEqual([`pair:p3:${rect(0, 0)}`, `pair:p2:${rect(sx, sy)}`]);
+    expect(log.slice(9).sort()).toEqual(['release p2', 'release p3']);
   });
 
   it('leaves a card blank when one of its layers cannot be read, draws the rest, and reports the failure last', async () => {
@@ -916,6 +957,8 @@ describe('the catalogue pictures', () => {
     expect(log.filter(line => line.startsWith('lost-')), 'neither half-read card is drawn').toEqual([]);
     expect(log.some(line => line.startsWith('whole:p2:'))).toBe(true);
     expect(log).toContain('load 3');
+    expect(log.findIndex(line => line.startsWith('whole:p2:')), 'a card is drawn once its own pages are read')
+      .toBeLessThan(log.indexOf('load 3'));
   });
 
   it('leaves a card blank when its cut-out or its drawing fails, and still draws the others', async () => {

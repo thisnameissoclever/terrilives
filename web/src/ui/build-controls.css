@@ -159,6 +159,7 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
    panel's bottom edge and nothing scrolls into view beneath it, and the
    buttons sit where they always did. The footer also covers the side
    padding, so a focus ring cannot show past it, and a control scrolled into
-   view stops above it. */
-body[data-building='true'] #builder-controls { padding-bottom: 0; scroll-padding-bottom: 72px; }
+   view stops above it with its focus ring clear: the footer is 72 pixels
+   tall and a ring reaches 4 pixels outside its control. */
+body[data-building='true'] #builder-controls { padding-bottom: 0; scroll-padding-bottom: 80px; }
 body[data-building='true'] #build-batch-actions { padding-bottom: 20px; margin-inline: -12px; padding-inline: 12px; }
