@@ -75,7 +75,39 @@ struct Contact {
     needs: Needs,
     preferences: Preferences,
     helped: Vec<(u8, f32)>,
-    activity: Option<(Entity, String)>,
+    activity: Option<crate::social_company::Communal>,
+}
+
+/// Whether a person who hates a housemate still gains from their shared
+/// activity this minute: a seeded roll against `hated_communal_chance`.
+///
+/// `stream` is a digest of the saved simulation generator, so the roll
+/// differs between games and between saves without consuming a draw; the
+/// tick and both people then separate every pair and every minute. A roll
+/// is therefore a pure function of saved state, and a replay or a reload
+/// rolls the same way. At chance 1 every draw passes, because `next_f32`
+/// never reaches 1; at chance 0 none does.
+pub(crate) fn hated_communal_gain(
+    tuning: &terri_data::Tuning,
+    stream: u64,
+    tick: u64,
+    subject: SimId,
+    other: SimId,
+) -> bool {
+    let mut hash = terri_core::FnvHasher::default();
+    hash.write_u64(stream);
+    hash.write_u64(tick);
+    hash.write_u64(u64::from(subject.0));
+    hash.write_u64(u64::from(other.0));
+    terri_core::SimRng::from_seed(hash.finish()).next_f32() < tuning.hated_communal_chance
+}
+
+/// The digest `hated_communal_gain` takes: the generator's exact state,
+/// read without advancing it.
+fn stream_digest(world: &World) -> u64 {
+    let mut hash = terri_core::FnvHasher::default();
+    world.resource::<terri_core::SimRng>().hash_into(&mut hash);
+    hash.finish()
 }
 
 pub(crate) fn tick(world: &mut World) {
@@ -162,13 +194,14 @@ pub(crate) fn tick(world: &mut World) {
                 },
                 activity: world
                     .resource::<crate::social_company::SocialCompany>()
-                    .shared_activity(entity),
+                    .communal_activity(entity),
             })
         })
         .collect();
     contacts.sort_by_key(|p| p.entity.index());
     world.resource_mut::<RelationshipContext>().0 = profiles;
     let tick = world.resource::<SimClock>().tick;
+    let stream = stream_digest(world);
     for subject in &contacts {
         for other in &contacts {
             if subject.entity == other.entity
@@ -188,23 +221,37 @@ pub(crate) fn tick(world: &mut World) {
                 continue;
             }
             let score = compatibility::between(&subject.preferences, &other.preferences);
+            // Participation already excludes anyone who dislikes a shared
+            // group and anyone whose attempt failed, so a pair of
+            // participants needs no further acceptance check here.
             let shared = subject
                 .activity
                 .as_ref()
                 .zip(other.activity.as_ref())
-                .is_some_and(|((a, group), (b, theirs))| {
-                    a != b
-                        && group == theirs
-                        && subject.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
-                        && other.preferences.get(group).copied().unwrap_or(0.0) >= 0.0
-                });
-            let (cause, requested) = if shared {
+                .is_some_and(|(mine, theirs)| mine.pairs_with(theirs));
+            let before = world
+                .get::<Relationships>(subject.entity)
+                .map_or(0.0, |r| r.feeling(other.id));
+            // A person who already hates the other participant (the same
+            // cutoff grief uses for a hated person) earns the communal rate
+            // only on the minutes the roll allows. A refused minute pays
+            // the ordinary proximity rate and still suspends friction, so
+            // hatred slows recovery without ever blocking it.
+            let refused = shared
+                && before <= tuning.grief_hated_affinity
+                && !hated_communal_gain(&tuning, stream, tick, subject.id, other.id);
+            let (cause, requested) = if shared && !refused {
                 (
                     RelationshipCause::SharedActivity,
                     rates.proximity_per_hour
                         * rates.shared_activity_multiplier
                         * positive_scale(score)
                         / 60.0,
+                )
+            } else if refused {
+                (
+                    RelationshipCause::Proximity,
+                    rates.proximity_per_hour / 60.0,
                 )
             } else if score < rates.incompatible_below {
                 (
@@ -225,9 +272,6 @@ pub(crate) fn tick(world: &mut World) {
             {
                 continue;
             }
-            let before = world
-                .get::<Relationships>(subject.entity)
-                .map_or(0.0, |r| r.feeling(other.id));
             let mut feelings = world
                 .get::<Relationships>(subject.entity)
                 .cloned()
@@ -450,6 +494,256 @@ mod tests {
         assert!(events
             .iter()
             .all(|e| e.cause == crate::relationship_effects::RelationshipCause::SharedActivity));
+    }
+
+    /// Two people, each with a running television interaction on `device`,
+    /// standing where the lot admits them as viewers.
+    fn watching_together(sim: &mut Sim, a: Entity, b: Entity) -> Entity {
+        let pack = sim.world().resource::<Content>().0;
+        let television = pack.find("television").unwrap();
+        let device = sim.spawn_object(Position { x: 2.0, y: 3.0 }, television);
+        crate::apply_object_placement(
+            sim.world_mut(),
+            device,
+            pack.object(television),
+            Position { x: 2.0, y: 3.0 },
+            terri_core::Facing::SouthEast,
+        );
+        for (entity, y) in [(a, 3.0), (b, 4.0)] {
+            sim.world_mut().entity_mut(entity).insert((
+                Position { x: 3.0, y },
+                Target {
+                    object: device,
+                    interaction: 0,
+                },
+                Eating {
+                    object: television,
+                    interaction: 0,
+                    remaining_ticks: 30,
+                },
+            ));
+        }
+        device
+    }
+
+    #[test]
+    fn watching_one_television_together_pays_the_shared_activity_rate() {
+        let (mut sim, a, b) = pair();
+        let device = watching_together(&mut sim, a, b);
+        tick(sim.world_mut());
+        assert!((feeling(&sim, a, SimId(1)) - 0.02 / 60.0).abs() < 0.0000001);
+        assert!((feeling(&sim, b, SimId(0)) - 0.02 / 60.0).abs() < 0.0000001);
+        let events = sim.relationship_effects();
+        assert_eq!(events.len(), 2);
+        assert!(events
+            .iter()
+            .all(|e| e.cause == crate::relationship_effects::RelationshipCause::SharedActivity));
+
+        // A second television beside the first is a different device, so
+        // the pair falls back to ordinary proximity.
+        let pack = sim.world().resource::<Content>().0;
+        let television = pack.find("television").unwrap();
+        let second = sim.spawn_object(Position { x: 5.0, y: 3.0 }, television);
+        crate::apply_object_placement(
+            sim.world_mut(),
+            second,
+            pack.object(television),
+            Position { x: 5.0, y: 3.0 },
+            terri_core::Facing::SouthEast,
+        );
+        assert_ne!(device, second);
+        sim.world_mut().entity_mut(b).insert(Target {
+            object: second,
+            interaction: 0,
+        });
+        sim.world_mut()
+            .entity_mut(a)
+            .insert(Relationships::default());
+        sim.world_mut()
+            .entity_mut(b)
+            .insert(Relationships::default());
+        crate::relationship_effects::reset(sim.world_mut());
+        tick(sim.world_mut());
+        assert!((feeling(&sim, a, SimId(1)) - 0.002 / 60.0).abs() < 0.0000001);
+        assert_eq!(sim.relationship_effects().len(), 2);
+        assert!(sim
+            .relationship_effects()
+            .iter()
+            .all(|e| e.cause == crate::relationship_effects::RelationshipCause::Proximity));
+    }
+
+    /// What one watcher's minute toward the other paid: the communal rate,
+    /// ordinary proximity, or nothing.
+    fn minute_cause(
+        sim: &mut Sim,
+        subject: Entity,
+        feeling_toward_other: f32,
+        minute: u64,
+    ) -> Option<RelationshipCause> {
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(1), feeling_toward_other);
+        sim.world_mut().entity_mut(subject).insert(feelings);
+        sim.world_mut().resource_mut::<SimClock>().tick = minute;
+        crate::relationship_effects::reset(sim.world_mut());
+        tick(sim.world_mut());
+        sim.relationship_effects()
+            .iter()
+            .find(|e| e.affected == SimId(0) && e.responsible == SimId(1))
+            .map(|e| e.cause)
+    }
+
+    fn watching_with_chance(chance: f32) -> (Sim, Entity, Entity) {
+        let (mut sim, a, b) = pair();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.tuning.hated_communal_chance = chance;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        watching_together(&mut sim, a, b);
+        (sim, a, b)
+    }
+
+    /// Hatred does not block a communal gain outright: the tuned chance
+    /// decides each contact minute, and a minute the roll refuses still
+    /// pays ordinary proximity. The cutoff is the one grief uses for a
+    /// hated person, and only the hater's own minutes are rolled.
+    #[test]
+    fn a_hated_viewer_still_warms_on_the_tuned_fraction_of_minutes() {
+        let shipped = terri_data::pack().tuning;
+        assert_eq!(shipped.hated_communal_chance, 0.35);
+        let hates = shipped.grief_hated_affinity;
+        assert_eq!(hates, -0.5);
+        let causes = |chance: f32, feeling: f32, minutes: u64| -> Vec<RelationshipCause> {
+            let (mut sim, a, _) = watching_with_chance(chance);
+            (0..minutes)
+                .map(|minute| minute_cause(&mut sim, a, feeling, minute).expect("a→b effect"))
+                .collect()
+        };
+        let communal = |causes: &[RelationshipCause]| {
+            causes
+                .iter()
+                .filter(|&&c| c == RelationshipCause::SharedActivity)
+                .count()
+        };
+        let at_shipped = causes(0.35, hates, 400);
+        let warmed = communal(&at_shipped);
+        assert!(
+            (100..=180).contains(&warmed),
+            "about 35% of 400 minutes should pay the communal rate, not {warmed}"
+        );
+        assert!(
+            at_shipped
+                .iter()
+                .all(|&c| c == RelationshipCause::SharedActivity
+                    || c == RelationshipCause::Proximity),
+            "a refused minute still pays proximity"
+        );
+        assert!(
+            at_shipped.contains(&RelationshipCause::Proximity),
+            "some minutes are refused"
+        );
+        for feeling in [hates, -1.0] {
+            assert_eq!(
+                communal(&causes(0.0, feeling, 60)),
+                0,
+                "0 refuses every minute at {feeling}"
+            );
+            assert_eq!(
+                communal(&causes(1.0, feeling, 60)),
+                60,
+                "1 refuses none at {feeling}"
+            );
+        }
+        // Just above the cutoff the chance no longer applies.
+        assert_eq!(communal(&causes(0.0, hates + 0.01, 60)), 60);
+        // The other watcher does not hate anybody, so their minutes are
+        // never rolled.
+        let (mut sim, a, _) = watching_with_chance(0.0);
+        minute_cause(&mut sim, a, hates, 7);
+        assert!(sim
+            .relationship_effects()
+            .iter()
+            .any(|e| e.affected == SimId(1)
+                && e.responsible == SimId(0)
+                && e.cause == RelationshipCause::SharedActivity));
+    }
+
+    /// Two games with different saved generator states roll different
+    /// minutes, so the pattern is not a fixed property of the tick alone;
+    /// the same state always rolls the same way.
+    #[test]
+    fn the_hated_roll_follows_the_saved_generator_without_consuming_it() {
+        let pattern = |seed: u64| -> Vec<bool> {
+            let (mut sim, a, _) = watching_with_chance(0.35);
+            sim.world_mut()
+                .insert_resource(terri_core::SimRng::from_seed(seed));
+            let before = sim.world().resource::<terri_core::SimRng>().clone();
+            let pattern = (0..120)
+                .map(|minute| {
+                    minute_cause(&mut sim, a, -0.5, minute)
+                        == Some(RelationshipCause::SharedActivity)
+                })
+                .collect();
+            assert_eq!(
+                *sim.world().resource::<terri_core::SimRng>(),
+                before,
+                "the roll draws nothing from the shared stream"
+            );
+            pattern
+        };
+        assert_eq!(pattern(5), pattern(5));
+        assert_ne!(pattern(5), pattern(6));
+    }
+
+    /// A refused minute is ordinary company at the proximity rate, not a
+    /// friction minute: the shared activity still suspends incompatibility
+    /// for a hated, incompatible pair.
+    #[test]
+    fn a_refused_minute_pays_proximity_and_keeps_friction_suspended() {
+        let (mut sim, a, b) = watching_with_chance(0.0);
+        let pack = sim.world().resource::<Content>().0;
+        let reading = pack.find("bookshelf").unwrap();
+        let exercise = pack.find("moving_box").unwrap();
+        for (entity, weight) in [(a, 2.0), (b, 0.0)] {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(Personality::with_dispositions(
+                    [1.0; 7],
+                    [1.0; 7],
+                    vec![(exercise, 0, weight), (reading, 0, 1.0)],
+                ));
+        }
+        let score = sim.compatibility(SimId(0), SimId(1)).unwrap();
+        let rates = pack.tuning.relationships;
+        assert!(
+            score < rates.incompatible_below,
+            "the pair is incompatible: {score}"
+        );
+        for minute in 0..30 {
+            assert_eq!(
+                minute_cause(&mut sim, a, pack.tuning.grief_hated_affinity, minute),
+                Some(RelationshipCause::Proximity)
+            );
+            assert!(
+                (feeling(&sim, a, SimId(1))
+                    - (pack.tuning.grief_hated_affinity + rates.proximity_per_hour / 60.0))
+                    .abs()
+                    < 1e-7
+            );
+        }
+        // The same pair, not hated, is a plain friction case once the
+        // television is gone: nothing here has changed the ordinary rule.
+        sim.world_mut()
+            .entity_mut(a)
+            .remove::<Target>()
+            .remove::<Eating>();
+        sim.world_mut()
+            .entity_mut(b)
+            .remove::<Target>()
+            .remove::<Eating>();
+        assert_eq!(
+            minute_cause(&mut sim, a, 0.0, 31),
+            Some(RelationshipCause::Incompatibility)
+        );
     }
 
     #[test]

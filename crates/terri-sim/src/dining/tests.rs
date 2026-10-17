@@ -1,4 +1,5 @@
 use super::*;
+use crate::relationship_effects::RelationshipCause;
 use crate::Sim;
 use terri_core::{Carrying, NeedId, Needs, Relationships, SimClock};
 
@@ -106,6 +107,91 @@ fn critical_comfort_relationship_help_recognizes_actual_meal_seating() {
             "Only real chair Comfort helps the critical need"
         );
     }
+}
+
+/// Seated diners at one table share a communal meal, so each warms toward
+/// the other at the shared-activity rate; the diner left standing is only
+/// nearby and earns ordinary proximity in both directions.
+#[test]
+fn seated_diners_at_one_table_earn_the_shared_activity_affinity_rate() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    for person in &people {
+        let place = places
+            .iter()
+            .find(|p| p.person == person.index_u32())
+            .unwrap();
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .remove::<terri_core::Traits>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork {
+                    remaining_ticks: 10,
+                },
+                Needs::all_at(100.),
+                terri_core::Personality::neutral(),
+                Relationships::default(),
+            ));
+    }
+    let seated: Vec<_> = people
+        .iter()
+        .copied()
+        .filter(|p| {
+            places
+                .iter()
+                .find(|d| d.person == p.index_u32())
+                .unwrap()
+                .chair
+                .is_some()
+        })
+        .collect();
+    assert_eq!(seated.len(), 2, "two chairs, three diners");
+    crate::relationship_dynamics::tick(sim.world_mut());
+    let rates = sim.world().resource::<Content>().0.tuning.relationships;
+    let id = |p: Entity| *sim.world().get::<SimId>(p).unwrap();
+    for (effect, cause) in sim.relationship_effects().iter().map(|e| (e, e.cause)) {
+        let both_seated = seated.iter().any(|&p| id(p) == effect.affected)
+            && seated.iter().any(|&p| id(p) == effect.responsible);
+        assert_eq!(
+            cause,
+            if both_seated {
+                RelationshipCause::SharedActivity
+            } else {
+                RelationshipCause::Proximity
+            },
+            "{effect:?}"
+        );
+    }
+    let communal = sim
+        .world()
+        .get::<Relationships>(seated[0])
+        .unwrap()
+        .feeling(id(seated[1]));
+    assert!(
+        (communal - rates.proximity_per_hour * rates.shared_activity_multiplier / 60.).abs()
+            < 0.000001,
+        "{communal}"
+    );
+    let standing = people
+        .iter()
+        .copied()
+        .find(|p| !seated.contains(p))
+        .unwrap();
+    let nearby = sim
+        .world()
+        .get::<Relationships>(seated[0])
+        .unwrap()
+        .feeling(id(standing));
+    assert!(
+        (nearby - rates.proximity_per_hour / 60.).abs() < 0.000001,
+        "{nearby}"
+    );
 }
 
 #[test]

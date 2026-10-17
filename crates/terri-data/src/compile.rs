@@ -3012,6 +3012,11 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     {
         return Err(ContentError::InvalidInterpersonalTuning);
     }
+    if !tuning.hated_communal_chance.is_finite()
+        || !(0.0..=1.0).contains(&tuning.hated_communal_chance)
+    {
+        return Err(ContentError::InvalidInterpersonalTuning);
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -3577,6 +3582,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             shyness_wander_reconsider_strength: tuning.shyness_wander_reconsider_strength,
             relationships: tuning.relationships,
             need_interactions: tuning.need_interactions,
+            hated_communal_chance: tuning.hated_communal_chance,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4747,6 +4753,12 @@ mod tests {
     /// `affinity_from_mild_trait` follow the trait bands, on their own row:
     /// the fixture's floats 0.5625, 0.1875 and 0.34375. Every byte up to and
     /// including the trait bands kept its offset. 544 bytes to 556.
+    ///
+    /// **The communal hatred chance moved the live layout by four bytes,
+    /// appended to `Tuning` after the need-interaction balance values
+    /// (communal affinity, issue 257).** The frozen witnesses below predate
+    /// it; their conversions reconstruct the shipped 0.35, which the live
+    /// fixture also carries, so what they decode to is unchanged.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Classification None and an empty physical-seat vector append two zero bytes
@@ -4975,6 +4987,9 @@ mod tests {
             relationships: crate::RelationshipTuning::default(),
 
             need_interactions: crate::NeedInteractionTuning::default(),
+            // Equal to what the frozen witnesses reconstruct, so the golden
+            // vector's conversion check still compares like with like.
+            hated_communal_chance: crate::Tuning::SHIPPED_HATED_COMMUNAL_CHANCE,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6544,6 +6559,7 @@ mod tests {
         assert_eq!(tuning.affinity_band_loves, 0.5625);
         assert_eq!(tuning.affinity_band_likes, 0.1875);
         assert_eq!(tuning.affinity_from_mild_trait, 0.34375);
+        assert_eq!(tuning.hated_communal_chance, 0.35);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -8983,6 +8999,27 @@ mod tests {
             ContentError::ZeroDayTicks
         );
         assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
+    }
+
+    /// Communal affinity (issue 257): the hated communal chance is a
+    /// probability, so anything outside 0 to 1, or not a number, is refused;
+    /// both edges are legal, since 0 and 1 are the two documented switches.
+    #[test]
+    fn rejects_a_hated_communal_chance_outside_zero_to_one() {
+        for bad in [-0.01, 1.01, f32::NAN, f32::INFINITY] {
+            assert!(
+                matches!(
+                    compile_tuned(tuning_where(|t| t.hated_communal_chance = bad)),
+                    Err(ContentError::InvalidInterpersonalTuning)
+                ),
+                "{bad}"
+            );
+        }
+        for good in [0.0, 1.0, 0.35] {
+            let compiled = compile_tuned(tuning_where(|t| t.hated_communal_chance = good))
+                .unwrap_or_else(|e| panic!("{good}: {e}"));
+            assert_eq!(compiled.tuning.hated_communal_chance, good);
+        }
     }
 
     /// [CAL-week]: `first_weekday` names a weekday, 0 (Monday) to 6

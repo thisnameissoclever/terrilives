@@ -1,0 +1,2 @@
+crates/terri-sim/src/relationship_dynamics.rs:102:61: replace < with <= in hated_communal_gain
+crates/terri-sim/src/relationship_dynamics.rs:231:29: replace && with || in tick

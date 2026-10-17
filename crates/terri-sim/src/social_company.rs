@@ -128,14 +128,66 @@ impl SocialCompany {
             },
         )
     }
-    pub(crate) fn shared_activity(&self, owner: Entity) -> Option<(Entity, String)> {
+    /// What `owner` is doing in company, for affinity recognition.
+    pub(crate) fn communal_activity(&self, owner: Entity) -> Option<Communal> {
         let me = self.participants.iter().find(|p| p.entity == owner)?;
-        if let Activity::Shared(group) = &me.activity {
-            Some((me.station, group.clone()))
-        } else {
-            None
+        Some(match &me.activity {
+            Activity::Shared(group) => Communal::Shared {
+                station: me.station,
+                group: group.clone(),
+            },
+            Activity::Media(interaction) => Communal::Device {
+                station: me.station,
+                interaction: *interaction,
+            },
+            Activity::Meal => Communal::Table {
+                station: me.station,
+            },
+        })
+    }
+}
+
+/// An active communal activity, keyed by what a partner must share.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum Communal {
+    /// The same shared-activity group on a different object.
+    Shared { station: Entity, group: String },
+    /// The same television or radio, in the same way.
+    Device { station: Entity, interaction: u32 },
+    /// A seat at the same table during a meal.
+    Table { station: Entity },
+}
+
+impl Communal {
+    /// Whether two people's activities count as one communal activity.
+    /// A `Shared` participant already accepts the group and has not
+    /// failed the attempt; `participation` filters both out.
+    pub(crate) fn pairs_with(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                Self::Shared { station, group },
+                Self::Shared {
+                    station: theirs,
+                    group: their_group,
+                },
+            ) => station != theirs && group == their_group,
+            (
+                Self::Device {
+                    station,
+                    interaction,
+                },
+                Self::Device {
+                    station: theirs,
+                    interaction: their_interaction,
+                },
+            ) => station == theirs && interaction == their_interaction,
+            (Self::Table { station }, Self::Table { station: theirs }) => station == theirs,
+            _ => false,
         }
     }
+}
+
+impl SocialCompany {
     fn allowed(
         &self,
         owner: Entity,
@@ -711,6 +763,36 @@ pub(crate) fn tick_meals(world: &mut World) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Which pairs of activities count as one communal activity: the same
+    /// table, the same device used the same way, or the same shared group
+    /// on different objects. Anything else, not.
+    #[test]
+    fn communal_pairs_need_the_same_table_or_device_and_distinct_shared_objects() {
+        let mut world = bevy_ecs::prelude::World::new();
+        let (one, two) = (world.spawn_empty().id(), world.spawn_empty().id());
+        let table = |station| Communal::Table { station };
+        let device = |station, interaction| Communal::Device {
+            station,
+            interaction,
+        };
+        let shared = |station, group: &str| Communal::Shared {
+            station,
+            group: group.to_string(),
+        };
+        assert!(table(one).pairs_with(&table(one)));
+        assert!(!table(one).pairs_with(&table(two)));
+        assert!(device(one, 0).pairs_with(&device(one, 0)));
+        assert!(!device(one, 0).pairs_with(&device(two, 0)));
+        assert!(!device(one, 0).pairs_with(&device(one, 1)));
+        assert!(shared(one, "reading").pairs_with(&shared(two, "reading")));
+        assert!(!shared(one, "reading").pairs_with(&shared(one, "reading")));
+        assert!(!shared(one, "reading").pairs_with(&shared(two, "exercise")));
+        assert!(!table(one).pairs_with(&device(one, 0)));
+        assert!(!device(one, 0).pairs_with(&shared(two, "reading")));
+        assert!(!shared(one, "reading").pairs_with(&table(one)));
+    }
+
     #[test]
     fn critical_social_does_not_create_phantom_media_emergencies() {
         for company in [false, true] {

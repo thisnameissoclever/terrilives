@@ -1,0 +1,48 @@
+head=0e480146292ad972789ce7c470c62ddb068f5246
+== fmt
+fmt exit=0
+== clippy
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\nifty-morse-1d549a\crates\terri-sim)
+    Checking terri-wasm v0.1.0 (D:\VIBES\.worktrees\terrilives\nifty-morse-1d549a\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 27.11s
+clippy exit=0
+== test
+test result: ok. 146 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.95s
+test result: ok. 322 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.06s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.37s
+test result: ok. 1397 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 153.59s
+test result: ok. 274 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 82.22s
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.63s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test exit=0
+== doc-ids
+Documentation ids are unique and allocation-free.
+docids exit=0
+== changelog
+Built changelog: D:\VIBES\.worktrees\terrilives\nifty-morse-1d549a\web\dist\changelog\index.html
+== wasm
+[INFO]: :-) Done in 51.97s
+[INFO]: :-) Your wasm pkg is ready to publish at web\src\wasm.
+wasm exit=0
+== typecheck
+> tsc --noEmit
+
+typecheck exit=0
+== webtest
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/atlas.test.ts > the atlas manifest > appends registered model clips without losing their source anchors or hand contacts
+Error: Test timed out in 5000ms.
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the blue shirt palette
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the red shirt palette
+Error: Test timed out in 5000ms.
+ Test Files  1 failed | 254 passed (255)
+      Tests  3 failed | 3351 passed (3354)
+webtest exit=1
+== core-deps
+core-deps done
