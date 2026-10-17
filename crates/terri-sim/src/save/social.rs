@@ -66,7 +66,7 @@ impl Sim {
         let portals = super::Carried::for_load(&self.world);
         let candidate =
             super::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 }

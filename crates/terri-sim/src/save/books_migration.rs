@@ -69,11 +69,23 @@ pub(crate) fn restore(
         None => Content::pre_books().0,
     };
     let (mut verified, has_sleeping) = match snapshot {
-        LegacySnapshot::V1(value) => (super::restore(value, frozen, portals)?, false),
-        LegacySnapshot::V2(value) => (architecture::restore(value, frozen, portals)?, false),
-        LegacySnapshot::V3(value) => (architecture::restore_v3(value, frozen, portals)?, false),
-        LegacySnapshot::V4(value) => (architecture::restore_v4(value, frozen, portals)?, false),
-        LegacySnapshot::V5(value) => (architecture::restore_v5(*value, frozen, portals)?, true),
+        LegacySnapshot::V1(value) => (super::restore(value, frozen, portals.clone())?, false),
+        LegacySnapshot::V2(value) => (
+            architecture::restore(value, frozen, portals.clone())?,
+            false,
+        ),
+        LegacySnapshot::V3(value) => (
+            architecture::restore_v3(value, frozen, portals.clone())?,
+            false,
+        ),
+        LegacySnapshot::V4(value) => (
+            architecture::restore_v4(value, frozen, portals.clone())?,
+            false,
+        ),
+        LegacySnapshot::V5(value) => (
+            architecture::restore_v5(*value, frozen, portals.clone())?,
+            true,
+        ),
         LegacySnapshot::V5Source(..) => unreachable!("source tag normalized above"),
     };
     crate::seating::validate_exclusive(&verified.world)?;

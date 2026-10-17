@@ -4,8 +4,28 @@ use terri_core::{save::SavedDomestic, Agent, Needs, Position, SimId, SimRng, Til
 
 fn room(width: usize, clean: f32) -> (Sim, Entity, Vec<u32>) {
     let mut sim = Sim::new_with_lot(width, 3);
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let edges = (0..width as u32)
+        .flat_map(|x| {
+            [0, 3].map(move |y| WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x,
+                y,
+                doorway: false,
+            })
+        })
+        .chain((0..3).flat_map(|y| {
+            [0, width as u32].map(move |x| WallEdge {
+                axis: EdgeAxis::Vertical,
+                x,
+                y,
+                doorway: false,
+            })
+        }))
+        .collect();
     sim.world_mut()
-        .insert_resource(terri_core::layout::SavedLayout::LegacyCells { walls: vec![] });
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut()).unwrap();
     let person = sim
         .world_mut()
         .spawn((
@@ -86,7 +106,7 @@ fn cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_
     for (clean, threshold) in [(0.0, 400), (0.5, 225), (1.0, 50)] {
         for kind in [ChoreKind::Floors, ChoreKind::CounterSurfaces] {
             let (mut sim, person, surfaces) = room(4, clean);
-            let key = ChoreKey { kind, target: 0 };
+            let key = ChoreKey { kind, target: 1 };
             let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
             board::reconcile(sim.world(), &mut state);
             let initial_rng = state.rng.clone();
@@ -227,7 +247,7 @@ fn cleanliness_does_not_change_bin_threshold_or_explicit_small_cleanup_orders() 
         let key = ChoreKey {
             kind,
             target: if kind == ChoreKind::Floors {
-                0
+                1
             } else {
                 surfaces[0]
             },
@@ -263,7 +283,7 @@ fn cleanliness_group_credit_uses_the_duty_owner_and_keeps_active_dirt_needed() {
     let (mut sim, person, surfaces) = room(4, 1.0);
     let key = ChoreKey {
         kind: ChoreKind::CounterSurfaces,
-        target: 0,
+        target: 1,
     };
     let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
     board::reconcile(sim.world(), &mut state);
@@ -332,7 +352,7 @@ fn group_credit_with_opposite_cleanliness(owner_clean: f32, helper_clean: f32, c
     ensure(sim.world_mut());
     let key = ChoreKey {
         kind: ChoreKind::CounterSurfaces,
-        target: 0,
+        target: 1,
     };
     let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
     board::reconcile(sim.world(), &mut state);

@@ -1,8 +1,12 @@
 //! Household dirt, timed work, preferences and weekly commitments.
 mod board;
+mod room_changes;
 pub(crate) use board::work_needed;
+pub use room_changes::*;
+pub(crate) use room_changes::{reconcile_migrated_work, validate_current_work};
 pub(crate) mod grime;
 mod groups;
+pub(crate) use groups::legacy_room_labels;
 mod patches;
 pub(crate) mod presentation;
 mod save;
@@ -389,10 +393,10 @@ pub fn keys(world: &World) -> Vec<ChoreKey> {
         target: 0,
     }]);
     let grid = world.resource::<terri_core::TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     for y in 0..grid.height() {
         for x in 0..grid.width() {
-            if grid.is_walkable(x as i32, y as i32) {
+            if crate::rooms::stable(world) || grid.is_walkable(x as i32, y as i32) {
                 if let Some(room) = rooms.at((x as i32, y as i32)) {
                     keys.insert(ChoreKey {
                         kind: ChoreKind::Floors,
@@ -458,7 +462,7 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
         ChoreKind::Bins => u32::from(value(&state.bins, key.target)),
         ChoreKind::Floors => {
             let grid = world.resource::<terri_core::TileGrid>();
-            let rooms = crate::room_regions::RoomRegions::from_world(world);
+            let rooms = crate::room_regions::RoomRegions::cleanable(world);
             state
                 .floors
                 .iter()
@@ -477,7 +481,7 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
 }
 
 pub fn floor_at(world: &World, x: i32, y: i32) -> Option<ChoreKey> {
-    let target = crate::room_regions::RoomRegions::from_world(world).at((x, y))?;
+    let target = crate::room_regions::RoomRegions::cleanable(world).at((x, y))?;
     let key = ChoreKey {
         kind: ChoreKind::Floors,
         target,
@@ -559,7 +563,7 @@ pub fn location_label(world: &World, key: ChoreKey) -> String {
     let Some(pos) = world.get::<terri_core::Position>(object) else {
         return "Removed object".into();
     };
-    let room = crate::room_regions::RoomRegions::from_world(world)
+    let room = crate::room_regions::RoomRegions::architectural(world)
         .at((pos.x.round() as i32, pos.y.round() as i32));
     room.map_or_else(|| "Outside".into(), |id| groups::room_label(world, id))
 }
@@ -584,4 +588,17 @@ pub fn history_rows(world: &World) -> Vec<u32> {
         })
         .flatten()
         .collect()
+}
+
+#[cfg(test)]
+fn commit_test_rooms(sim: &mut crate::Sim, before: &RoomChangeContext) -> DutyChangeReport {
+    let topology = crate::rooms::RoomTopology::from_world(sim.world()).unwrap();
+    let proposal = crate::rooms::match_rooms(&before.map, &topology, (0, 0));
+    let resolved = crate::rooms::resolve_rooms(
+        &proposal,
+        &crate::rooms::RoomChoices::default(),
+        sim.world().resource::<terri_core::rooms::SavedRooms>(),
+    )
+    .unwrap();
+    reconcile_committed_rooms(sim, before, &resolved).unwrap()
 }

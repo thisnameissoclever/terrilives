@@ -90,7 +90,7 @@ fn cost(world: &World, key: ChoreKey) -> u32 {
         };
     }
     let grid = world.resource::<terri_core::TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     (0..grid.height())
         .flat_map(|y| (0..grid.width()).map(move |x| (x, y)))
         .filter(|(x, y)| {

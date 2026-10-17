@@ -8,6 +8,11 @@ use terri_core::{
 
 mod matching;
 pub use matching::*;
+mod runtime;
+pub use runtime::*;
+#[cfg(test)]
+mod integration_tests;
+pub(crate) mod migration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TopologyCell {

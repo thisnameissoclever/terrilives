@@ -246,6 +246,9 @@ fn placed_portals(
     world: &World,
     active: &[terri_data::CompiledPortal],
 ) -> Vec<terri_data::CompiledPortal> {
+    if crate::rooms::stable(world) && crate::lot_frame::frame(world).is_none() {
+        return vec![];
+    }
     let origin = crate::lot_frame::origin(world);
     active
         .iter()

@@ -96,6 +96,11 @@ pub fn frame(world: &World) -> Option<LotFrame> {
     if let Some(frame) = world.get_resource::<LotFrame>() {
         return Some(*frame);
     }
+    // Current saves distinguish a blank lot from an authored lot explicitly.
+    // Shape inference belongs only to frozen historical restoration.
+    if crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>() {
+        return None;
+    }
     let grid = world.get_resource::<TileGrid>()?;
     let lot = &world.get_resource::<Content>()?.0.lot;
     ((grid.width() as u32, grid.height() as u32) == (lot.width, lot.height))
@@ -136,6 +141,11 @@ pub fn house_or_grid(world: &World) -> HouseRect {
 
 /// The content's front door tile where it now stands.
 pub fn front_door(world: &World) -> Option<(u32, u32)> {
+    if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
+        && frame(world).is_none()
+    {
+        return None;
+    }
     let (ox, oy) = origin(world);
     world
         .resource::<Content>()
@@ -147,6 +157,11 @@ pub fn front_door(world: &World) -> Option<(u32, u32)> {
 
 /// The content's portals where they now stand.
 pub fn portals(world: &World) -> Vec<terri_data::CompiledPortal> {
+    if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
+        && frame(world).is_none()
+    {
+        return vec![];
+    }
     let (ox, oy) = origin(world);
     world
         .resource::<Content>()

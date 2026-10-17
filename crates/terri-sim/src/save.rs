@@ -30,10 +30,12 @@ pub(super) const MAX_ENTITIES: usize = 100_000;
 /// The frame goes into the candidate world before the grid, the walls, the
 /// people and the front door are rebuilt, because every one of them reads
 /// it (land expansion, issue 254).
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(crate) struct Carried {
     pub portals: Option<ActivePortals>,
     pub lot_frame: Option<crate::lot_frame::LotFrame>,
+    pub rooms: Option<terri_core::rooms::SavedRooms>,
+    pub room_mode: crate::rooms::RoomReferenceMode,
 }
 
 impl Carried {
@@ -43,6 +45,8 @@ impl Carried {
         Self {
             portals: world.get_resource::<ActivePortals>().copied(),
             lot_frame: None,
+            rooms: None,
+            room_mode: crate::rooms::RoomReferenceMode::Legacy,
         }
     }
 
@@ -52,6 +56,13 @@ impl Carried {
         Self {
             portals: world.get_resource::<ActivePortals>().copied(),
             lot_frame: world.get_resource::<crate::lot_frame::LotFrame>().copied(),
+            rooms: world
+                .get_resource::<terri_core::rooms::SavedRooms>()
+                .cloned(),
+            room_mode: world
+                .get_resource::<crate::rooms::RoomReferenceMode>()
+                .copied()
+                .unwrap_or_default(),
         }
     }
 }
@@ -82,6 +93,7 @@ pub(crate) mod v11;
 pub(crate) mod v12;
 pub(crate) mod v13;
 pub(crate) mod v14;
+pub(crate) mod v15;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -580,6 +592,18 @@ fn restore_with_facings(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
+    sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
+    sim.world.remove_resource::<crate::rooms::RoomMap>();
+    sim.world
+        .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
+    if (active_portals.room_mode == crate::rooms::RoomReferenceMode::Stable)
+        != active_portals.rooms.is_some()
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    if let Some(rooms) = active_portals.rooms {
+        sim.world.insert_resource(rooms);
+    }
     if let Some(active_portals) = active_portals.portals {
         sim.world.insert_resource(active_portals);
     }

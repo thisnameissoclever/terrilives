@@ -53,7 +53,7 @@ pub(crate) fn footstep(world: &mut World, person: Entity, from: (i32, i32), to: 
     }
     let grid = world.resource::<TileGrid>();
     if !grid.is_walkable(to.0, to.1)
-        || crate::room_regions::RoomRegions::from_world(world)
+        || crate::room_regions::RoomRegions::cleanable(world)
             .at(to)
             .is_none()
     {
@@ -75,7 +75,7 @@ pub(crate) fn adjacent_counters(world: &World, station: Entity) -> Vec<u32> {
     let pack = world.resource::<crate::Content>().0;
     let footprint =
         crate::placed_footprint(pack, def.0, world.get::<terri_core::ObjectFacing>(station));
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::architectural(world);
     let origin = (pos.x.round() as i32, pos.y.round() as i32);
     let room = rooms.at(origin);
     let Some(mut query) = world.try_query::<(Entity, &Position, &SmartObject)>() else {

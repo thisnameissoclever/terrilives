@@ -9,6 +9,46 @@ pub(crate) struct RoomRegions {
 }
 impl RoomRegions {
     pub(crate) fn from_world(world: &World) -> Self {
+        if !crate::rooms::stable(world) {
+            return Self::legacy(world);
+        }
+        let mut rooms = Self::architectural(world);
+        for cell in &mut rooms.cells {
+            if *cell == Some(0) {
+                *cell = None;
+            }
+        }
+        rooms
+    }
+    pub(crate) fn architectural(world: &World) -> Self {
+        if !crate::rooms::stable(world) {
+            return Self::legacy(world);
+        }
+        let map = world.resource::<crate::rooms::RoomMap>();
+        let width = map.topology.width as usize;
+        let cells = (0..map.topology.cells.len())
+            .map(|index| {
+                map.selection_at(((index % width) as u32, (index / width) as u32))
+                    .map(|room| room.key())
+            })
+            .collect();
+        Self { cells, width }
+    }
+    pub(crate) fn cleanable(world: &World) -> Self {
+        if !crate::rooms::stable(world) {
+            return Self::legacy(world);
+        }
+        let mut rooms = Self::architectural(world);
+        for (index, cell) in rooms.cells.iter_mut().enumerate() {
+            *cell = crate::rooms::cleaning_area_at(
+                world,
+                ((index % rooms.width) as i32, (index / rooms.width) as i32),
+            )
+            .map(|area| area.key());
+        }
+        rooms
+    }
+    pub(crate) fn legacy(world: &World) -> Self {
         let grid = world.resource::<terri_core::TileGrid>();
         let layout = world.resource::<SavedLayout>();
         let width = grid.width();
@@ -146,7 +186,7 @@ mod tests {
         ] {
             let mut sim = Sim::new_with_lot(16, 12);
             sim.world_mut().insert_resource(layout.clone());
-            let rooms = RoomRegions::from_world(sim.world());
+            let rooms = RoomRegions::legacy(sim.world());
             let mut ids = [(1, 1), (9, 1), (1, 8), (8, 8), (14, 8)]
                 .map(|tile| rooms.at(tile).unwrap())
                 .to_vec();
@@ -181,7 +221,7 @@ mod tests {
         sim.world_mut()
             .resource_mut::<TileGrid>()
             .set_blocked(0, 0, true);
-        let rooms = RoomRegions::from_world(sim.world());
+        let rooms = RoomRegions::legacy(sim.world());
         assert!(rooms.at((0, 0)).is_some());
         assert_eq!(rooms.at((1, 0)), None);
         assert_eq!(rooms.at((2, 1)), None);
@@ -211,7 +251,7 @@ mod tests {
         sim.world_mut()
             .resource_mut::<TileGrid>()
             .set_blocked(1, 1, true);
-        let regions = RoomRegions::from_world(sim.world());
+        let regions = RoomRegions::legacy(sim.world());
         assert_eq!(regions.at((0, 1)), regions.at((1, 1)));
         assert_ne!(regions.at((2, 1)), regions.at((3, 1)));
         assert_ne!(regions.at((2, 2)), regions.at((3, 2)));
@@ -220,7 +260,7 @@ mod tests {
         assert_eq!(regions.at((0, 4)), None);
         sim.world_mut()
             .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
-        let open = RoomRegions::from_world(sim.world());
+        let open = RoomRegions::legacy(sim.world());
         assert_eq!(open.at((2, 1)), open.at((3, 1)));
     }
     #[test]
@@ -253,7 +293,7 @@ mod tests {
                 }],
             };
             sim.world_mut().insert_resource(layout.clone());
-            let rooms = RoomRegions::from_world(sim.world());
+            let rooms = RoomRegions::legacy(sim.world());
             for at in 1..4 {
                 let (before, after) = if axis == EdgeAxis::Vertical {
                     ((2, at), (3, at))
@@ -265,7 +305,7 @@ mod tests {
             assert_eq!(sim.world().resource::<SavedLayout>(), &layout);
             sim.world_mut()
                 .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
-            let open = RoomRegions::from_world(sim.world());
+            let open = RoomRegions::legacy(sim.world());
             assert_eq!(open.at((2, 2)), open.at((3, 3)));
         }
     }

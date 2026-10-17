@@ -357,6 +357,13 @@ fn finish_restore(
     }
     let typed = matches!(layout, SavedLayout::EdgeWallsV3 { .. });
     candidate.world.insert_resource(layout);
+    if let Some(rooms) = candidate
+        .world
+        .get_resource::<terri_core::rooms::SavedRooms>()
+        .cloned()
+    {
+        crate::rooms::install(&mut candidate.world, rooms).map_err(|_| SaveError::InvalidValue)?;
+    }
     if typed {
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;

@@ -1160,6 +1160,30 @@ mod tests {
                 })
                 .collect(),
         });
+        let mut edges = sim.world().resource::<SavedLayout>().edges().to_vec();
+        edges.extend((0..16).flat_map(|x| {
+            [0, 16].map(move |y| WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x,
+                y,
+                doorway: false,
+            })
+        }));
+        edges.extend((0..16).flat_map(|y| {
+            [0, 16].map(move |x| WallEdge {
+                axis: EdgeAxis::Vertical,
+                x,
+                y,
+                doorway: false,
+            })
+        }));
+        edges.sort_by_key(|edge| (edge.axis as u8, edge.x, edge.y));
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        crate::rooms::initialize(sim.world_mut()).unwrap();
+        let rooms = sim.world().resource::<crate::rooms::RoomMap>();
+        assert_eq!(rooms.topology.components.len(), 2);
+        assert_ne!(rooms.selection_at((3, 3)), rooms.selection_at((3, 4)));
         assert!(crate::media::valid_standing_contact(
             sim.world(),
             second.index_u32(),
