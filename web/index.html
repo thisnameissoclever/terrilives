@@ -976,9 +976,14 @@
       }
       #object-menu.object-menu-radial .menu-entry {
         position: fixed; width: max-content; min-width: 60px; min-height: 44px;
-        padding: 8px 12px; border: 1px solid var(--hud-edge); border-radius: 4px;
-        background: var(--hud-bg); color: var(--hud-text); pointer-events: auto;
+        padding: 8px 12px; border: 1px solid var(--action-border, var(--hud-edge)); border-radius: 4px;
+        background: var(--action-background, var(--hud-bg)); color: var(--action-text, var(--hud-text)); pointer-events: auto;
         font: inherit; line-height: 1.25; text-align: center; white-space: normal;
+      }
+      #object-menu.object-menu-radial .menu-entry:is(:hover, :focus-visible, :active):not(:disabled) {
+        background: var(--action-hover-background, var(--hud-bg));
+        color: var(--action-text, var(--hud-text));
+        border-color: var(--action-border, var(--hud-edge));
       }
       .action-price, .menu-secondary { display: block; color: var(--hud-muted); font-size: .8em; margin-top: 3px; }
       .book-commerce { margin-top: 10px; }
