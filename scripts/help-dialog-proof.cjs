@@ -28,8 +28,14 @@
  *
  * `--expect-regression` is the positive control. It injects the known
  * defective rule, `#help-panel { display: flex }`, before the page loads and
- * requires the closed-state check to FAIL. A run that passes with the defect
- * in place proves the detector is blind, and exits 1.
+ * requires the bug's exact signature after Got it: `dialog.open` false and
+ * the computed display not `none`. A run that still hides the dialog proves
+ * the detector is blind; a run where the dialog never closed at all proves
+ * nothing about the cascade. Both exit 1.
+ *
+ * The JSON report is always written, even when a tap times out: the steps
+ * taken so far are the evidence, and an unexpected error is recorded as a
+ * failed step.
  *
  * Exit codes: 0 pass, 1 fail.
  *
@@ -156,6 +162,11 @@ async function waitForBoot(page) {
   return booted;
 }
 
+/** The bug's exact signature: the attribute is gone but the box still renders. */
+function closedButRendering(state) {
+  return state !== null && !state.open && state.display !== 'none';
+}
+
 async function run(browser, url, expectRegression) {
   const context = await browser.newContext({
     viewport: PORTRAIT,
@@ -188,86 +199,106 @@ async function run(browser, url, expectRegression) {
     steps.push({ name, pass, detail });
     return pass;
   };
+  let booted = false;
+  let afterClose = null;
 
-  await page.goto(target.toString(), { waitUntil: 'load', timeout: 60_000 });
-  if (!(await waitForBoot(page))) {
-    const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 1000));
+  // Every tap can throw a Playwright timeout. The steps already taken are
+  // the evidence, so an unexpected error becomes a failed step in the
+  // report rather than a crash that prints nothing.
+  try {
+    await page.goto(target.toString(), { waitUntil: 'load', timeout: 60_000 });
+    booted = await waitForBoot(page);
+    if (!booted) {
+      const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 1000));
+      step('the app booted', false, { bodyText });
+    } else {
+      // 1. A first visit opens it. The context is fresh, so nothing is stored.
+      const firstVisit = await page.evaluate(DIALOG_STATE);
+      step('opens on a first visit', isShowing(firstVisit), firstVisit);
+
+      // 2. Tap "Got it", then ask the cascade rather than the attribute.
+      await page.tap('#close-help');
+      await page
+        .waitForFunction(() => !document.querySelector('#help-panel').open, undefined, {
+          polling: 50,
+          timeout: 5_000,
+        })
+        .catch(() => undefined);
+      afterClose = await page.evaluate(DIALOG_STATE);
+      const closedHides = step('closing hides it', isHidden(afterClose), afterClose);
+
+      // A dialog that is still rendering sits over the whole HUD and swallows
+      // every later tap, so the remaining steps would only time out. Stop
+      // here and report what was seen; this is the defect the script exists
+      // for.
+      if (closedHides) {
+        // 3. Reload. The dismissal is stored, so it must not come back.
+        await page.reload({ waitUntil: 'load', timeout: 60_000 });
+        const rebooted = await waitForBoot(page);
+        const afterReload = rebooted ? await page.evaluate(DIALOG_STATE) : null;
+        if (!step('stays closed after a reload', rebooted && isHidden(afterReload), afterReload)) {
+          throw new Error('the dialog did not stay closed, so reopening it proves nothing');
+        }
+
+        // 4. Reopen from the Options menu, the way a player does.
+        await page.tap('#options-toggle');
+        await page.waitForSelector('#show-help', { state: 'visible', timeout: 5_000 });
+        await page.tap('#show-help');
+        await page
+          .waitForFunction(() => document.querySelector('#help-panel').open, undefined, {
+            polling: 50,
+            timeout: 5_000,
+          })
+          .catch(() => undefined);
+        const reopened = await page.evaluate(DIALOG_STATE);
+        step(
+          'reopens at the first instruction with focus on the title',
+          isShowing(reopened) &&
+            reopened.bodyScrollTop === 0 &&
+            reopened.activeElementId === 'help-title',
+          reopened,
+        );
+
+        // 5. The confirm button is reachable in both phone orientations.
+        const portrait = await page.evaluate(BUTTON_PLACEMENT);
+        step('Got it sits inside the 375x812 portrait viewport', portrait?.inside === true, portrait);
+        await page.setViewportSize(LANDSCAPE);
+        // Two frames so the layout has settled under the new size.
+        await page.evaluate(
+          () =>
+            new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+        );
+        const landscape = await page.evaluate(BUTTON_PLACEMENT);
+        step('Got it sits inside the 640x360 landscape viewport', landscape?.inside === true, landscape);
+      }
+    }
+  } catch (error) {
+    step('no unexpected error', false, { error: String(error) });
+  } finally {
     await context.close();
-    return { booted: false, bodyText, pageErrors, steps };
   }
 
-  // 1. A first visit opens it. The context is fresh, so nothing is stored.
-  const firstVisit = await page.evaluate(DIALOG_STATE);
-  step('opens on a first visit', isShowing(firstVisit), firstVisit);
-
-  // 2. Tap "Got it", then ask the cascade rather than the attribute.
-  await page.tap('#close-help');
-  await page
-    .waitForFunction(() => !document.querySelector('#help-panel').open, undefined, {
-      polling: 50,
-      timeout: 5_000,
-    })
-    .catch(() => undefined);
-  const afterClose = await page.evaluate(DIALOG_STATE);
-  const closedHides = step('closing hides it', isHidden(afterClose), afterClose);
-  if (!closedHides) {
-    // A dialog that is still rendering sits over the whole HUD and swallows
-    // every later tap, so the remaining steps would only time out. Stop here
-    // and report what was seen; this is the defect the script exists for.
-    await context.close();
-    return finish(false);
-  }
-
-  // 3. Reload. The dismissal is stored, so it must not come back.
-  await page.reload({ waitUntil: 'load', timeout: 60_000 });
-  const rebooted = await waitForBoot(page);
-  const afterReload = rebooted ? await page.evaluate(DIALOG_STATE) : null;
-  step('stays closed after a reload', rebooted && isHidden(afterReload), afterReload);
-
-  // 4. Reopen from the Options menu, the way a player does.
-  await page.tap('#options-toggle');
-  await page.waitForSelector('#show-help', { state: 'visible', timeout: 5_000 });
-  await page.tap('#show-help');
-  await page
-    .waitForFunction(() => document.querySelector('#help-panel').open, undefined, {
-      polling: 50,
-      timeout: 5_000,
-    })
-    .catch(() => undefined);
-  const reopened = await page.evaluate(DIALOG_STATE);
-  step(
-    'reopens at the first instruction with focus on the title',
-    isShowing(reopened) && reopened.bodyScrollTop === 0 && reopened.activeElementId === 'help-title',
-    reopened,
-  );
-
-  // 5. The confirm button is reachable in both phone orientations.
-  const portrait = await page.evaluate(BUTTON_PLACEMENT);
-  step('Got it sits inside the 375x812 portrait viewport', portrait?.inside === true, portrait);
-  await page.setViewportSize(LANDSCAPE);
-  // Two frames so the layout has settled under the new size.
-  await page.evaluate(
-    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-  );
-  const landscape = await page.evaluate(BUTTON_PLACEMENT);
-  step('Got it sits inside the 640x360 landscape viewport', landscape?.inside === true, landscape);
-
-  await context.close();
-  return finish(closedHides);
-
-  function finish(hid) {
-    return {
-      booted: true,
-      expectRegression,
-      pageErrors,
-      steps,
-      closedHides: hid,
-      notCovered: [
-        'env(safe-area-inset-*) padding: Playwright mobile emulation does not emulate insets, and this script does not set Emulation.setDeviceMetricsOverride over CDP.',
-      ],
-      pass: pageErrors.length === 0 && steps.every((entry) => entry.pass),
-    };
-  }
+  const closedHides = isHidden(afterClose);
+  // What the positive control must see: Got it ran and cleared the attribute,
+  // and the author display rule kept the box rendering anyway. A dialog that
+  // never closed at all would mean the detector was not exercised.
+  const controlCaught = closedButRendering(afterClose);
+  return {
+    booted,
+    expectRegression,
+    pageErrors,
+    steps,
+    closedHides,
+    controlCaught,
+    notCovered: [
+      'env(safe-area-inset-*) padding: Playwright mobile emulation does not emulate insets, and this script does not set Emulation.setDeviceMetricsOverride over CDP.',
+    ],
+    // The one verdict `main` prints: in the ordinary run every step passed;
+    // in the positive control the injected rule produced the bug's signature.
+    pass:
+      pageErrors.length === 0 &&
+      (expectRegression ? controlCaught : steps.every((entry) => entry.pass)),
+  };
 }
 
 async function main() {
@@ -284,7 +315,7 @@ async function main() {
   } finally {
     await browser.close();
   }
-  const json = JSON.stringify(report, null, 2);
+  const json = `${JSON.stringify(report, null, 2)}\n`;
   if (args.output !== null) fs.writeFileSync(args.output, json, 'utf8');
   console.log(json);
   if (!report.booted) {
@@ -306,22 +337,36 @@ async function main() {
       process.exitCode = 1;
       return;
     }
-    console.log(
-      'PASS (positive control): the injected author display rule kept the closed ' +
-        'dialog rendering, and the closed-state check caught it.',
-    );
-    return;
+    if (!report.controlCaught) {
+      console.error(
+        'FAIL: the dialog never closed at all, so the display check was not exercised ' +
+          'and the positive control proves nothing. See the JSON above.',
+      );
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    const failed = report.steps.find((entry) => !entry.pass);
+    if (failed !== undefined) {
+      console.error(`FAIL: ${failed.name}: ${JSON.stringify(failed.detail)}`);
+      process.exitCode = 1;
+      return;
+    }
   }
-  const failed = report.steps.find((entry) => !entry.pass);
-  if (failed !== undefined) {
-    console.error(`FAIL: ${failed.name}: ${JSON.stringify(failed.detail)}`);
+  // Every branch above returns, so reaching here and `report.pass` disagreeing
+  // would mean the verdict printed and the verdict recorded had drifted apart.
+  if (!report.pass) {
+    console.error('FAIL: the report did not pass. See the JSON above.');
     process.exitCode = 1;
     return;
   }
   console.log(
-    'PASS: Got it hid the dialog, it stayed hidden after a reload, Help brought it ' +
-      'back at the top with the title focused, and Got it is reachable in both ' +
-      'phone orientations. Safe-area insets are not covered; see notCovered.',
+    args.expectRegression
+      ? 'PASS (positive control): the injected author display rule kept the closed ' +
+          'dialog rendering, and the closed-state check caught it.'
+      : 'PASS: Got it hid the dialog, it stayed hidden after a reload, Help brought it ' +
+          'back at the top with the title focused, and Got it is reachable in both ' +
+          'phone orientations. Safe-area insets are not covered; see notCovered.',
   );
 }
 

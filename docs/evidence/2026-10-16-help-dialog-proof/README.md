@@ -6,10 +6,11 @@ hides when closed. Script: `scripts/help-dialog-proof.cjs`.
 ## Runs
 
 Both runs drove the live working tree served by Vite on
-`http://127.0.0.1:5174/` from the branch worktree at the head that carried
-the final review fixes for the communal affinity work (`0e4801462`), whose
-help dialog markup, styles and wiring are identical to `origin/main` at
-`618a69369`. The browser was the Chrome channel through the Playwright Core
+`http://127.0.0.1:5174/` from the branch worktree of the communal affinity
+work (`5c394fa2f`), whose help dialog markup, styles and wiring
+(`web/index.html`, `web/src/ui/help-panel.ts`, `web/src/main.ts`,
+`web/src/ui/options-menu.ts`) are identical to `origin/main` at
+`8111ce623`. The browser was the Chrome channel through the Playwright Core
 bundled with the Codex Playwright CLI, headed, with `--mute-audio`, in a
 375x812 Android mobile context, then resized to 640x360 for the landscape
 check.
@@ -17,7 +18,7 @@ check.
 | Command | Result | Exit |
 | --- | --- | --- |
 | `node scripts/help-dialog-proof.cjs --url http://127.0.0.1:5174/` | PASS. Closing: `open false, display none, height 0`. After reload: the same. Reopened from Options, Help: `open true, display flex, height 560, bodyScrollTop 0, activeElementId help-title`. Got it inside both viewports. | 0 |
-| `node scripts/help-dialog-proof.cjs --url http://127.0.0.1:5174/ --expect-regression` | PASS (positive control). With `#help-panel { display: flex; }` injected before load, closing reported `open false, display flex, height 560`; the closed-state check rejected it and the run stopped there, because the still-rendered dialog would swallow every later tap. | 0 |
+| `node scripts/help-dialog-proof.cjs --url http://127.0.0.1:5174/ --expect-regression` | PASS (positive control). With `#help-panel { display: flex; }` injected before load, closing reported `open false, display flex, height 560`, the bug's exact signature; the closed-state check rejected it and the run stopped there, because the still-rendered dialog would swallow every later tap. The report records `controlCaught true` and `pass true` for this mode. | 0 |
 
 `help-proof-pass.json` and `help-proof-regression.json` are the two reports.
 

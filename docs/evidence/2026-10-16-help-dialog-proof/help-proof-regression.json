@@ -27,8 +27,9 @@
     }
   ],
   "closedHides": false,
+  "controlCaught": true,
   "notCovered": [
     "env(safe-area-inset-*) padding: Playwright mobile emulation does not emulate insets, and this script does not set Emulation.setDeviceMetricsOverride over CDP."
   ],
-  "pass": false
+  "pass": true
 }
