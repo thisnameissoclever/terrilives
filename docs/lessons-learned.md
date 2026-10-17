@@ -12158,6 +12158,13 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: daily assignment policy and construction reconciliation shared a path that treated absence of an assignment as a new duty. A rename-only shortcut would leave the same defect in other edits.
 3. Prevention: retain the baseline target set independently of its assignments. Map existing targets through the final geometry, preserve their assigned or unassigned state, and apply construction assignment policy only to genuinely new duties. Leave ordinary daily maintenance to its normal phase.
 4. Verification: rename an existing unassigned Outside duty and require identical assignment state and randomness. Split a different room and require the old unassigned duty to remain unchanged, with only the genuinely new target consuming an owner draw. Exercise both automatic-assignment settings.
+
+## [L-floor-probe-footprints] Verify a render probe stays inside its intended material
+
+1. What happened: a floor-translation probe sampled neighboring unpainted flooring and initially reported color differences as possible Patio movement. Restricting the samples to the actual paved footprint produced identical pixels.
+2. Root cause: floor coordinates name tile centers. Three painted tiles centered at 4, 5, and 6 cover 3.5 through 6.5, not 4 through 7. The nominal texture period also hid a smaller exact repeat, so coordinate arithmetic alone overstated the visual risk.
+3. Prevention: derive probe bounds from physical tile footprints and independently verify the sampled material. Inspect actual rendered captures before changing shader coordinates or material transport. Check texture repetition when a nominal period suggests a phase change.
+4. Verification: compare only interior Patio samples at the same screen positions before and after land translation. Require material controls and identical pixel values. Keep controlled-renderer evidence separate from actual game commands, cancellation, and save/reload verification.
 ## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
 
 1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
