@@ -1,4 +1,5 @@
 //! Owned conversation rendezvous, topics and bounded shared activity episodes.
+pub(crate) mod requests;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Agent, Eating, NeedId, Needs, Path, SimRng, Socialising, Target};
@@ -47,6 +48,7 @@ pub(crate) fn urgent(world: &World, person: Entity) -> bool {
 }
 
 pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
+    requests::started(world, initiator, partner);
     let mut episodes = world.resource_mut::<SocialEpisodes>();
     episodes.topics.remove(&initiator);
     if episodes.rendezvous.get(&partner) == Some(&initiator) {
@@ -55,6 +57,15 @@ pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
 }
 
 pub(crate) fn cancel_incoming(world: &mut World, recipient: Entity) {
+    if world
+        .resource::<requests::ConversationRequests>()
+        .requests
+        .values()
+        .any(|r| r.recipient == recipient)
+    {
+        requests::defer_incoming(world, recipient);
+        return;
+    }
     let Some(initiator) = world
         .resource_mut::<SocialEpisodes>()
         .rendezvous
@@ -83,6 +94,7 @@ pub(crate) fn cancel_incoming(world: &mut World, recipient: Entity) {
 }
 
 pub(crate) fn forget_person(world: &mut World, person: Entity) {
+    requests::forget_person(world, person);
     let topics: BTreeSet<_> = world
         .resource::<SocialEpisodes>()
         .topics
@@ -107,6 +119,7 @@ pub(crate) fn forget_person(world: &mut World, person: Entity) {
 }
 
 pub(crate) fn maintain(world: &mut World) {
+    requests::maintain(world);
     let mut claims: Vec<_> = world
         .resource::<SocialEpisodes>()
         .rendezvous
@@ -115,6 +128,14 @@ pub(crate) fn maintain(world: &mut World) {
         .collect();
     claims.sort_by_key(|(recipient, _)| recipient.index_u32());
     for (recipient, initiator) in claims {
+        if world
+            .resource::<requests::ConversationRequests>()
+            .requests
+            .values()
+            .any(|r| r.initiator == initiator && r.recipient == recipient)
+        {
+            continue;
+        }
         let target = world.get::<Target>(initiator).copied();
         let valid = world.get::<Agent>(recipient).is_some()
             && target.is_some_and(|t| t.object == recipient)

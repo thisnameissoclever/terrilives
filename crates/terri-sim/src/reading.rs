@@ -640,21 +640,18 @@ fn read_tick(world: &mut World, person: Entity) {
         .get::<Personality>(person)
         .cloned()
         .unwrap_or_default();
+    let benefits = effective_benefits(pack, &act).unwrap();
+    let effects = crate::need_interactions::physical::reading_effects(
+        benefits.fun,
+        benefits.comfort_for_ticks(1),
+        work.reward_factor,
+        taste,
+        fumble,
+        &personality,
+    );
     if let Some(mut needs) = world.get_mut::<Needs>(person) {
-        needs.fill(
-            NeedId::Fun,
-            work.reward_factor
-                * taste
-                * fumble
-                * effective_benefits(pack, &act).unwrap().fun
-                * personality.satisfaction[NeedId::Fun as usize],
-        );
-        needs.fill(
-            NeedId::Comfort,
-            effective_benefits(pack, &act).unwrap().comfort_for_ticks(1)
-                * fumble
-                * personality.satisfaction[NeedId::Comfort as usize],
-        );
+        needs.fill(NeedId::Fun, effects[NeedId::Fun.index()]);
+        needs.fill(NeedId::Comfort, effects[NeedId::Comfort.index()]);
     }
     let payout = crate::systems::satisfaction::hobby_payout(
         work.satisfaction * taste,

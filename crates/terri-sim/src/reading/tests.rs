@@ -4,6 +4,51 @@ use terri_core::command::BookCommand;
 mod priority;
 
 #[test]
+fn review_physical_reading_prediction_respects_disposition_that_changes_actual_fun() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    let pack = sim.world().resource::<Content>().0;
+    let model = sim.world().get::<SmartObject>(seat).unwrap().0;
+    let row = pack
+        .object(model)
+        .interactions
+        .iter()
+        .position(|a| a.book_reading)
+        .unwrap() as u32;
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::with_dispositions(
+            [1.; 7],
+            [1.; 7],
+            vec![(model, row, 0.)],
+        ));
+    sim.world_mut()
+        .get_mut::<Needs>(person)
+        .unwrap()
+        .set(NeedId::Fun, 0.);
+    let target = Target {
+        object: seat,
+        interaction: row,
+    };
+    let options = plans(sim.world_mut(), person, target, Some(&title));
+    let plan = options.iter().find(|p| p.target == target).unwrap();
+    assert_eq!(
+        plan.need_outcome.net_change[NeedId::Fun.index()],
+        0.,
+        "Reading's disposition changes delivered Fun, not just appeal"
+    );
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world().get::<Needs>(person).unwrap().get(NeedId::Fun),
+        0.
+    );
+}
+
+#[test]
 fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
     let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
     let mut pack = sim.world().resource::<Content>().0.clone();
@@ -99,10 +144,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
                 assert_eq!(fun, previous, "completed book work supplies no further Fun");
             }
             held_fun = Some(fun);
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v10(), snapshot);
+            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v15(), snapshot);
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         if stage(&sim, person) == Some(ReadingStage::Read)
@@ -118,10 +163,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
             );
         }
         if saw_completed_hold && stage(&sim, person) == Some(ReadingStage::Return) {
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v10(), snapshot);
+            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v15(), snapshot);
             break;
         }
     }

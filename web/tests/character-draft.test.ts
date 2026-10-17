@@ -3,12 +3,25 @@ import { CharacterDraft } from '../src/character/draft.js';
 import { characterNames, nameGroups } from '../src/character/names.js';
 import { defaultAppearance, floatBits, neutralDraft } from '../src/character/schema.js';
 import type { CharacterCatalog } from '../src/character/catalog.js';
+import { creationInstinctBands } from './helpers/creation-instinct-bands.js';
 
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,
+const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,self_preservation_bands:creationInstinctBands,
   traits:Array.from({length:6},(_,i)=>({id:`trait${i}`,label:`Trait ${i}`,description:'',kind:i===0?'condition' as const:'disposition' as const,initial_state:floatBits(i===0?.5:0),weights:[]})),
   affinities:[{id:'plants',label:'Plants',description:''}],skills:[{id:'reading',label:'Reading',description:'',thresholds:[floatBits(0),floatBits(.1),floatBits(.3)]}],
   hobbies:[{id:'reading',label:'Reading'}],activities:[{object:'chair',action:'read',label:'Read',tags:['reading']}],personalities:[]};
 const household=[{sim_id:7,name:'Mira'}];
+
+it('reserves extreme instinct values for explicit edits rather than random creation',()=>{
+  for(let seed=0;seed<64;seed++){
+    const draft=CharacterDraft.create(seed,catalog,household);
+    expect(draft.resolve().behavior.self_preservation).toBeGreaterThanOrEqual(11);
+    expect(draft.resolve().behavior.self_preservation).toBeLessThanOrEqual(95);
+    draft.set('behavior.self_preservation',0);
+    expect(draft.resolve().behavior.self_preservation).toBe(0);
+    draft.set('behavior.self_preservation',100);
+    expect(draft.resolve().behavior.self_preservation).toBe(100);
+  }
+});
 
 it('uses the exact 40/40/20 pool with no duplicate names',()=>{
   expect(Object.values(nameGroups).map(group=>group.length)).toEqual([40,40,20]);

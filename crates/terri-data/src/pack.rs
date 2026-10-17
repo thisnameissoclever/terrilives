@@ -1159,6 +1159,9 @@ pub struct Tuning {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    /// Optional extension; historical packs retain their existing wire records.
+    #[serde(default)]
+    pub autonomy: Option<crate::AutonomyTuning>,
 }
 
 impl Tuning {
@@ -2058,6 +2061,7 @@ mod tests {
             career_mood_promoted_ticks: 1500,
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
+            autonomy: None,
         }
     }
 
@@ -2831,12 +2835,16 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Careers (issue 249): the twenty-six career knobs are the final
+        // The optional autonomy extension appends one None marker. All older
+        // tuning fields retain their byte offsets before that extension.
+        let historical_end = before.len() - 1;
+        assert_eq!(before[historical_end], 0);
+        // Careers (issue 249): the twenty-six career knobs are the preceding
         // ninety-five bytes: twenty-two floats, the search tick (one byte
         // at 11) and three tick knobs of two bytes each.
-        let career = before.len() - 95;
+        let career = historical_end - 95;
         assert_eq!(before[career..career + 4], 8.5f32.to_le_bytes());
-        assert_eq!(before[before.len() - 2..], [0xA8, 0x2D]);
+        assert_eq!(before[historical_end - 2..historical_end], [0xA8, 0x2D]);
         assert_eq!(
             changed(Tuning {
                 career_review_noise: 8.75,
@@ -2848,9 +2856,10 @@ mod tests {
         assert_eq!(
             changed(Tuning {
                 career_mood_fired_ticks: 5801,
+                autonomy: None,
                 ..a_tuning()
             }),
-            vec![before.len() - 2],
+            vec![historical_end - 2],
             "career fired ticks"
         );
         // Land expansion (issue 254): the three land knobs are the four

@@ -41,8 +41,8 @@
 
 use std::collections::BTreeMap;
 use terri_core::{
-    Eating, Entity, NeedId, Needs, Path, Relationships, Reserved, SimId, SimName, Socialising,
-    Wander, NEED_COUNT,
+    Eating, Entity, NeedId, Needs, Path, Relationships, Reserved, SimId, SimName, SmartObject,
+    Socialising, Wander, NEED_COUNT,
 };
 use terri_sim::Sim;
 #[path = "trace/catalogue.rs"]
@@ -207,6 +207,22 @@ fn main() {
     let mut risky_choices = 0usize;
     let mut decision_bands = [0u64; 4];
     let mut probability_sums: BTreeMap<(u32, u32, u32), (f64, usize)> = BTreeMap::new();
+    let mut crisis_with_relief = 0usize;
+    let mut crisis_unrelated_chosen = 0usize;
+    let mut crisis_unrelated_mass_max = 0.0f64;
+    let mut activity_context_ticks = [0u64; 9];
+    let mut critical_idle_run = vec![0u32; sims.len()];
+    let mut critical_idle_max = vec![0u32; sims.len()];
+    let mut critical_need_ticks = [0u64; NEED_COUNT];
+    let mut critical_meter_rises = [0u64; NEED_COUNT];
+    let mut previous_levels = vec![[100.0f32; NEED_COUNT]; sims.len()];
+    let mut previous_requests =
+        BTreeMap::<u64, (terri_core::save_v15::SavedConversationRequest, u32)>::new();
+    let mut request_starts = 0u64;
+    let mut request_completions = 0u64;
+    let mut request_disappearances = 0u64;
+    let mut maximum_pending_age = 0u64;
+    let mut capped_handwash_choices = 0u64;
 
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
@@ -216,6 +232,43 @@ fn main() {
         sim.tick();
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
+
+        let saved_requests = sim.save_snapshot_v15().conversation_requests;
+        let now = sim.world().resource::<terri_core::SimClock>().tick;
+        let mut current_requests = BTreeMap::new();
+        for request in saved_requests.requests {
+            let talking = request.phase == terri_core::save_v15::SavedConversationPhase::Talking;
+            if talking
+                && previous_requests
+                    .get(&request.id)
+                    .is_none_or(|(r, _)| r.phase != request.phase)
+            {
+                request_starts += 1;
+            }
+            if !talking {
+                maximum_pending_age = maximum_pending_age.max(now.saturating_sub(request.created));
+            }
+            let remaining = sim
+                .world()
+                .try_query::<(&terri_core::SimId, &Socialising)>()
+                .unwrap()
+                .iter(sim.world())
+                .find(|(id, _)| id.0 == request.initiator)
+                .map_or(0, |(_, s)| s.remaining_ticks);
+            current_requests.insert(request.id, (request, remaining));
+        }
+        for (id, (request, remaining)) in &previous_requests {
+            if !current_requests.contains_key(id) {
+                if request.phase == terri_core::save_v15::SavedConversationPhase::Talking
+                    && *remaining == 1
+                {
+                    request_completions += 1;
+                } else {
+                    request_disappearances += 1;
+                }
+            }
+        }
+        previous_requests = current_requests;
 
         let world = sim.world();
         if let Some(telemetry) =
@@ -234,6 +287,30 @@ fn main() {
                 };
                 decision_bands[band] += 1;
                 risky_choices += usize::from(decision.choices[decision.chosen].3 > 0.0);
+                if band == 0 && decision.relief_masks.iter().any(|mask| *mask != 0) {
+                    crisis_with_relief += 1;
+                    crisis_unrelated_chosen +=
+                        usize::from(decision.relief_masks[decision.chosen] == 0);
+                    let unrelated = decision
+                        .choices
+                        .iter()
+                        .zip(&decision.relief_masks)
+                        .filter(|(_, mask)| **mask == 0)
+                        .map(|(choice, _)| choice.4)
+                        .sum::<f64>();
+                    crisis_unrelated_mass_max = crisis_unrelated_mass_max.max(unrelated);
+                }
+                if band == 0 && decision.relief_masks[decision.chosen] == 0 {
+                    let choice = decision.choices[decision.chosen];
+                    let is_handwash = world
+                        .try_query::<(Entity, &SmartObject)>()
+                        .unwrap()
+                        .iter(world)
+                        .find(|(e, _)| e.index_u32() == choice.0)
+                        .and_then(|(_, o)| pack.object(o.0).interactions.get(choice.1 as usize))
+                        .is_some_and(|a| a.id == "wash_hands");
+                    capped_handwash_choices += u64::from(is_handwash);
+                }
                 let mut per_decision = BTreeMap::<(u32, u32), f64>::new();
                 for (target, row, _, _, probability) in &decision.choices {
                     *per_decision.entry((*target, *row)).or_default() += probability;
@@ -252,8 +329,25 @@ fn main() {
             let Some(needs) = world.get::<Needs>(agent) else {
                 continue;
             };
+            if let Some(status) = sim.activity_status_of(agent.index_u32()) {
+                activity_context_ticks[status.code as usize] += 1;
+                let critical = NeedId::ALL
+                    .iter()
+                    .any(|id| needs.get(*id) <= pack.tuning.mood_critical_need_level);
+                critical_idle_run[index] = if status.code == 8 && critical {
+                    critical_idle_run[index] + 1
+                } else {
+                    0
+                };
+                critical_idle_max[index] = critical_idle_max[index].max(critical_idle_run[index]);
+            }
             for (need, id) in NeedId::ALL.iter().enumerate() {
                 let level = needs.get(*id);
+                if level <= pack.tuning.mood_critical_need_level {
+                    critical_need_ticks[need] += 1;
+                    critical_meter_rises[need] += u64::from(level > previous_levels[index][need]);
+                }
+                previous_levels[index][need] = level;
                 low[index][need] = low[index][need].min(level);
                 high[index][need] = high[index][need].max(level);
             }
@@ -1103,6 +1197,11 @@ fn main() {
         decision_bands[0], decision_bands[1], decision_bands[2], decision_bands[3]
     );
     println!("ACTUAL CHOICE PROBABILITIES (mean while candidate available)");
+    println!("critical decisions with viable relief {crisis_with_relief}; unrelated choices {crisis_unrelated_chosen}; maximum unrelated mass {crisis_unrelated_mass_max:.9}");
+    println!("activity context ticks [active,approach,wait,work,privacy,no-route,no-relief,pause,idle]: {activity_context_ticks:?}");
+    println!("longest critical Idle interval per Sim: {critical_idle_max:?} ticks");
+    println!("critical ticks by need: {critical_need_ticks:?}; ticks with actual meter rise while critical: {critical_meter_rises:?}");
+    println!("conversation request starts {request_starts}; completions {request_completions}; other disappearances {request_disappearances}; maximum pending age {maximum_pending_age} ticks; unrelated hand-washing choices while critical {capped_handwash_choices}");
     for ((agent, target, row), (sum, count)) in probability_sums {
         println!(
             "  Sim {agent} target {target} row {row}: {:.6} ({count} decisions)",

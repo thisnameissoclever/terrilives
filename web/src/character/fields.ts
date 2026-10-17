@@ -92,7 +92,7 @@ export function characterFields(catalog:CharacterCatalog,household:readonly Hous
   fields.push(
     pathField('behavior.shyness','personality','Temperament','Shyness','number','Sets privacy boundaries, avoidance of occupied bathrooms, and reactions to unwanted interruptions.',{min:1,max:100,step:1}),
     pathField('behavior.cleanliness','personality','Temperament','Cleanliness','float','Affects tolerance for mess and willingness to clean.',{min:0,max:1,step:.01,display_scale:100,unit:'%'}),
-    pathField('behavior.self_preservation','personality','Temperament','Self-preservation','number','Affects survival-risk adjustments to autonomous choices.',scalarRange),
+    pathField('behavior.self_preservation','personality','Temperament','Self-preservation','number','Influences urgent-need priorities and survival risks. Random creation uses weighted values from 11 to 95.',scalarRange),
     pathField('behavior.chronotype_offset_ticks','needs','Sleep timing','Sleep timing','number','Earlier (-) or later (+) in the daily rhythm.',{min:-180,max:180,step:30,display_scale:1/60,unit:'hours'}),
   );
   for(const key of ['drain','recovery'] as const)for(let index=0;index<7;index++)fields.push(pathField(`behavior.${key}.${index}`,'needs','Advanced need rates',`${needLabels[index]} ${key}`,'float',

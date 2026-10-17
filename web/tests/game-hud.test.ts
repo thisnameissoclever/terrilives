@@ -50,6 +50,19 @@ function source(overrides: Partial<GameHudSource> = {}): GameHudSource {
 }
 
 describe('game HUD formatting', () => {
+  it('calls the residual state idle instead of implying ongoing deliberation', () => {
+    expect(formatActivity(0, null, null)).toBe('Idle');
+  });
+
+  it('identifies the person a committed initiator is waiting to talk to', () => {
+    const r = roots();
+    const s = source({ activityOf: () => 2,
+      activityStatusOf: () => ({ code: 2, partner: 35, needs: 0 }),
+      simName: () => 'Bill' });
+    const hud = new GameHud(r, 100);
+    hud.update(1000, s);
+    expect(r.activity.textContent).toBe('Waiting to talk to Bill');
+  });
   it.each([
     [12, 'Showering'], [13, 'Using the toilet'], [14, 'Watching TV'],
     [15, 'Lying down'], [16, 'Washing hands'], [17, 'Washing dishes'],

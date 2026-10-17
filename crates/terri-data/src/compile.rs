@@ -3169,6 +3169,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = fight_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::FightTuningOutOfRange { key });
     }
+    if tuning.autonomy.is_some_and(|policy| !policy.valid()) {
+        return Err(ContentError::InvalidAutonomyTuning);
+    }
     let land_rules = [
         (
             "land_strip_depth",
@@ -3905,6 +3908,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             career_mood_promoted_ticks: tuning.career_mood_promoted_ticks,
             career_mood_demoted_ticks: tuning.career_mood_demoted_ticks,
             career_mood_fired_ticks: tuning.career_mood_fired_ticks,
+            autonomy: tuning.autonomy,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -5364,6 +5368,7 @@ mod tests {
             career_mood_promoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
+            autonomy: None,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the

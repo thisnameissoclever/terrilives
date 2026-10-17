@@ -422,6 +422,9 @@ pub struct TuningFile {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    /// Optional extension; historical packs retain their existing wire records.
+    #[serde(default)]
+    pub autonomy: Option<crate::AutonomyTuning>,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and

@@ -1,9 +1,11 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
+#[cfg(test)]
+use terri_core::Needs;
 use terri_core::{
-    Agent, CommandQueue, NeedId, Needs, Position, SimCommand, TileGrid, NEED_MAX, NEED_MIN,
-    SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    Agent, CommandQueue, NeedId, Position, SimCommand, TileGrid, NEED_MAX, NEED_MIN, SAVE_MAGIC,
+    SAVE_SCHEMA_VERSION,
 };
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
@@ -1810,25 +1812,7 @@ impl SimHandle {
         {
             return;
         }
-        // Hunger is the only need JavaScript can set, because it is the
-        // only one anything advertises against. The other six start
-        // satisfied, which is what keeps a spawned agent's behaviour
-        // identical to the single-need version.
-        let instinct = self
-            .sim
-            .world_mut()
-            .resource_mut::<terri_core::SimRng>()
-            .range(101) as u8;
-        // Empty practice, so a tagged completion teaches this agent as it
-        // teaches everyone else, and a reload (which gives every person a
-        // `Skills`) continues the same world ([SK-save]).
-        self.sim.world_mut().spawn((
-            terri_core::SelfPreservation(instinct),
-            Agent,
-            Position { x, y },
-            Needs::with(NeedId::Hunger, hunger),
-            terri_core::Skills::default(),
-        ));
+        self.sim.spawn_agent(Position { x, y }, hunger);
         self.sim.sync_render_buffer();
     }
 
@@ -2592,8 +2576,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v14())
-            .expect("SaveSnapshotV14 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v15())
+            .expect("SaveSnapshotV15 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2617,6 +2601,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 15 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV15>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v15(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 14 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v14(snapshot).is_ok(),
@@ -3113,6 +3103,13 @@ impl SimHandle {
     /// contract.
     pub fn stall_reason_of(&self, entity_index: u32) -> String {
         self.sim.stall_reason_of(entity_index).unwrap_or_default()
+    }
+
+    pub fn activity_status_of(&self, entity_index: u32) -> Vec<u32> {
+        self.sim
+            .activity_status_of(entity_index)
+            .map(|s| vec![s.code, s.partner.unwrap_or(u32::MAX), u32::from(s.needs)])
+            .unwrap_or_default()
     }
 
     /// Current action followed by every waiting order, in display order.
@@ -4552,8 +4549,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            14,
-            "the public writer must emit the schema-14 envelope"
+            15,
+            "the public writer must emit the schema-15 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();

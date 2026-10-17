@@ -1,0 +1,212 @@
+[
+  {
+    "x": 9,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.4166500000000086,
+    "label": "Idle"
+  },
+  {
+    "x": 8.791662499999983,
+    "y": 2,
+    "clip": "walk",
+    "sample": 1.6667000000001337,
+    "label": "Idle"
+  },
+  {
+    "x": 8.500112499999995,
+    "y": 2,
+    "clip": "walk",
+    "sample": 3.999100000000041,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 8.250149999999994,
+    "y": 2,
+    "clip": "walk",
+    "sample": 5.998800000000045,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7.958449999999994,
+    "y": 2,
+    "clip": "walk",
+    "sample": 0.33240000000004954,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7.7084249999999885,
+    "y": 2,
+    "clip": "walk",
+    "sample": 2.3326000000000917,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7.416737499999999,
+    "y": 2,
+    "clip": "walk",
+    "sample": 4.666100000000007,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7.166799999999984,
+    "y": 2,
+    "clip": "walk",
+    "sample": 6.665600000000126,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7,
+    "y": 1.916774999999998,
+    "clip": "walk",
+    "sample": 0.6658000000000168,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7,
+    "y": 1.625124999999989,
+    "clip": "walk",
+    "sample": 2.9990000000000876,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 7,
+    "y": 1.375,
+    "clip": "walk",
+    "sample": 5,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 6.500112499999996,
+    "y": 1,
+    "clip": "walk",
+    "sample": 3.999100000000034,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 6.250187499999993,
+    "y": 1,
+    "clip": "walk",
+    "sample": 5.998500000000057,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 6.000124999999989,
+    "y": 1,
+    "clip": "walk",
+    "sample": 7.999000000000088,
+    "label": "Walking to talk to Casey"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.5416875000000072,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.791599999999999,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 1.4999000000000162,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 1.7499250000000028,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 2.0415875000000048,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 2.2915875000000048,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 2.5832250000000023,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 2.8332999999999995,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 3.0832999999999995,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 3.374925000000003,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 3.6249625000000014,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 3.9165750000000115,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.16658750000000566,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.4582500000000067,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.7082999999999995,
+    "label": "Talking"
+  },
+  {
+    "x": 6,
+    "y": 1,
+    "clip": "talk",
+    "sample": 0.9998875000000051,
+    "label": "Talking"
+  }
+]

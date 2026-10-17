@@ -179,7 +179,12 @@ fn retargeting_a_conversation_preserves_the_other_occupant() {
     let (mut sim, object, first, second, target) = fixture();
     let other = sim
         .world_mut()
-        .spawn((Agent, Needs::all_at(80.0), Position { x: 9.0, y: 5.0 }))
+        .spawn((
+            Agent,
+            SimId(2),
+            Needs::all_at(80.0),
+            Position { x: 9.0, y: 5.0 },
+        ))
         .id();
     sim.world_mut()
         .entity_mut(first)

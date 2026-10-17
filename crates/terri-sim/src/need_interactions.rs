@@ -1,4 +1,5 @@
 //! Contextual need effects and the matching benefits used by decisions.
+pub(crate) mod physical;
 #[cfg(test)]
 mod tests;
 use crate::Content;
@@ -15,18 +16,22 @@ pub(crate) fn cap_delta(
     need: u8,
     delta: f32,
 ) -> f32 {
-    if delta > 0.
-        && need as usize == NeedId::Hygiene.index()
-        && act.activity == Some(terri_data::CompiledActivity::WashingHands)
-    {
-        delta.min(
-            (pack.tuning.need_interactions.handwashing_hygiene_ceiling
-                - needs.get(NeedId::Hygiene))
-            .max(0.),
-        )
-    } else {
-        delta
+    if delta > 0. {
+        if let Some(ceiling) = restoration_ceiling(pack, act, need) {
+            return delta.min((ceiling - needs.get(NeedId::ALL[usize::from(need)])).max(0.));
+        }
     }
+    delta
+}
+
+pub(crate) fn restoration_ceiling(
+    pack: &terri_data::ContentPack,
+    act: &terri_data::CompiledInteraction,
+    need: u8,
+) -> Option<f32> {
+    (usize::from(need) == NeedId::Hygiene.index()
+        && act.activity == Some(terri_data::CompiledActivity::WashingHands))
+    .then_some(pack.tuning.need_interactions.handwashing_hygiene_ceiling)
 }
 
 /// Sparse benefits at a planned or occupied place; costs remain intact.
@@ -396,16 +401,17 @@ pub(crate) fn tick(world: &mut World) {
             let personality = world.get::<Personality>(person);
             (
                 person,
-                if comfort > 0. {
-                    comfort * personality.map_or(1., |p| p.satisfaction[NeedId::Comfort.index()])
-                } else {
-                    comfort
-                },
-                social
-                    * personality.map_or(1., |p| p.satisfaction[NeedId::Social.index()])
-                    * world
+                physical::support_rate(
+                    comfort,
+                    personality.map_or(1., |p| p.satisfaction[NeedId::Comfort.index()]),
+                ),
+                physical::shared_rate(
+                    social,
+                    personality.map_or(1., |p| p.satisfaction[NeedId::Social.index()]),
+                    world
                         .resource::<crate::social_company::SocialCompany>()
                         .active_scale(person, &feelings),
+                ),
             )
         })
         .collect();

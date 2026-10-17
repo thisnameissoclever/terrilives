@@ -341,7 +341,10 @@ pub fn follow_path(
                         || talks.iter().any(|talk| talk.partner == target.object)
                         || talks.get(target.object).is_ok();
                 let owns_incoming = beds.owns_incoming(entity, target.object);
-                if owns_incoming && (busy || partners.get(target.object).is_err()) {
+                let committed = beds.requests.owns(entity, *target);
+                if (committed && !beds.requests.admitted(entity, target.object))
+                    || (owns_incoming && (busy || partners.get(target.object).is_err()))
+                {
                     commands
                         .entity(entity)
                         .remove::<Path>()

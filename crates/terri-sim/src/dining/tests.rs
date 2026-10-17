@@ -1010,7 +1010,7 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     for _ in 0..40 {
         let mut replay = Sim::new_from_shipped_lot();
         replay
-            .load_snapshot_v5(migrated.save_snapshot_v5())
+            .load_snapshot_v15(migrated.save_snapshot_v15())
             .unwrap();
         assert_eq!(replay.world_hash(), migrated.world_hash());
         migrated.tick();
