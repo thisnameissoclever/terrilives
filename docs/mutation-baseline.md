@@ -1677,3 +1677,36 @@ The sweep that recorded this: `cargo mutants --in-diff <branch diff>
 --package terri-data --package terri-sim --test-workspace true
 --timeout-multiplier 4 --minimum-test-timeout 120`, with the result in
 `docs/evidence/2026-10-16-communal-affinity/`.
+
+## 2026-10-17: burnt meals, four accepted survivors
+
+The in-diff sweep of the burnt meals change (issue 243, pull request 263)
+ran 91 mutants: 78 caught, 9 unviable, 4 missed, none timed out. The four
+misses are equivalent within the accepted input domain and are added to
+`mutants-baseline.txt`; the fights change (issue 248, pull request 266)
+moved the first one's home from `burnt_meals.rs` to `moodlet_timers.rs`,
+and the entry names where it lives on `main`.
+
+1. `MoodletTimers::record`: `partition_point(|(id, _)| *id < sim)` changed
+   to `<=`. The line before it removes every row for `sim`, so no row equals
+   `sim` when the partition point is found, and the two comparisons pick the
+   same insertion index for every input. `one_entry_per_person_and_a_new_event_restarts_the_moodlet`
+   covers the behavior that would change if the removal were dropped.
+2. `save::v11::restore`: `rows.len() > MAX_ENTITIES` changed to `==` or
+   `>=`. A row list past the cap is refused by the cap; a row list that
+   passes the cap but names more people than can live on a lot is refused a
+   few lines later, because every row must name a living person with a
+   distinct, ascending id and `MAX_ENTITIES` bounds the entity indices. The
+   outcome is `InvalidValue` either way, which is all a caller can observe.
+   The same argument covers the fights list in `save::v12::restore`.
+3. `tick_chain_steps`: the burn roll `next_f32() < burn_chance(...)` changed
+   to `<=`. The draw is a multiple of 2^-24 in [0, 1); the shipped chances,
+   0.12 at no mastery and 0.002 at full mastery with a straight line between,
+   are not multiples of 2^-24, so the two operators never differ on shipped
+   content. The accepted `hated_communal_gain` entry above has the same shape.
+
+The sweep that recorded this: `cargo mutants --in-place --in-diff <branch
+diff> --package terri-core --package terri-sim --package terri-data
+--package terri-wasm --test-workspace true --timeout-multiplier 4
+--minimum-test-timeout 120 --build-timeout 600`, run locally on the merged
+head of pull request 263.
