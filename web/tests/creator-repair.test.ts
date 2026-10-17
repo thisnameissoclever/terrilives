@@ -106,11 +106,12 @@ it('decodes in-progress skill practice and formats saved affinity precision read
 
 it('reviews surroundings and trait influences at two decimals, never float noise',()=>{
   // A 32-bit 0.71 reads as 0.7099999785423279 once widened; a spawned draw can
-  // carry any number of digits. Neither belongs in the review.
+  // carry any number of digits. Neither belongs in the review, which shows
+  // only what the creator's 0.01 steps can set.
   const affinity={id:'plants',label:'Plants',description:'Potted plants around the house.'};
   const withAffinity:CharacterCatalog={...catalog,affinities:[affinity]};
   const source=neutralDraft('Test');
-  for(const [value,expected] of [[.71,'Likes (0.71)'],[-.57,'Dislikes (-0.57)'],[.164,'Likes (0.16)'],[0,'Neutral (0)'],[.001,'Likes (0.001)']] as const){
+  for(const [value,expected] of [[.71,'Likes (0.71)'],[-.57,'Dislikes (-0.57)'],[.164,'Likes (0.16)'],[0,'Neutral (0)'],[.001,'Likes (0.001)'],[.001234,'Likes (0.0012)']] as const){
     source.affinities=[{id:affinity.id,value:floatBits(value)}];
     const draft=CharacterDraft.edit(source,1,withAffinity,[]),field=draft.fields.find(field=>field.id===JSON.stringify(['affinity',affinity.id]))!;
     expect(reviewValue(field,source,withAffinity)).toBe(expected);

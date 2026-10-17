@@ -49,3 +49,11 @@ it('shows numeric units and the editable range without changing the stored value
   }
   expect(draft.value).toEqual(source);
 });
+
+it('formats the number box tooltip like the review instead of showing a widened float',()=>{
+  const source=neutralDraft('Name');source.behavior.cleanliness=floatBits(.29);
+  const draft=CharacterDraft.edit(source,7,catalog,[]),row=control(draft,'behavior.cleanliness');
+  const inputs:Element[]=[];const walk=(node:Element)=>{if(node.tag==='input'&&node.type==='number')inputs.push(node);node.children.forEach(walk);};walk(row);
+  expect(inputs).toHaveLength(1);
+  expect(inputs[0].attributes.title??(inputs[0] as unknown as {title?:string}).title).toBe('29');
+});
