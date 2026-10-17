@@ -229,12 +229,13 @@ mod tests {
         }));
     }
 
-    /// Two bought frames that differ only in where the content lot sits
-    /// hash differently, since a frame other than the default enters the
-    /// world hash; the default frame hashes as a world without one.
+    /// Two frames that differ only in where the content lot sits hash
+    /// differently, since a frame other than the default enters the world
+    /// hash; a saved default frame hashes as a world with no saved frame.
     #[test]
     fn a_moved_frame_changes_the_world_hash() {
         let mut sim = crate::Sim::new_from_shipped_lot();
+        sim.world_mut().remove_resource::<LotFrame>();
         let without = sim.world_hash();
         let mut at = |origin| {
             sim.world_mut().insert_resource(LotFrame {

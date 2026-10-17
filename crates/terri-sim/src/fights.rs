@@ -592,6 +592,14 @@ mod tests {
         sim.world_mut().entity_mut(c).insert(talk(b));
         provoke(sim.world_mut());
         assert!(!queued_fight(&sim, a, b), "b is being talked to");
+        sim.world_mut().entity_mut(c).remove::<Socialising>();
+        sim.world_mut().entity_mut(b).insert(talk(d));
+        provoke(sim.world_mut());
+        assert!(
+            !queued_fight(&sim, a, b),
+            "b is in a conversation of its own"
+        );
+        sim.world_mut().entity_mut(b).remove::<Socialising>();
         sim.world_mut().entity_mut(c).insert(talk(d));
         provoke(sim.world_mut());
         assert!(
