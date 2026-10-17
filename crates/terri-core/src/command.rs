@@ -305,6 +305,22 @@ pub enum SimCommand {
     BuyLand {
         side: u32,
     },
+    /// Careers (issue 249): put `agent` on the first level of career path
+    /// `path`, replacing any job they hold. Code 32.
+    AssignCareer {
+        agent: u32,
+        path: u32,
+    },
+    /// Careers: make `agent` unemployed. Code 33.
+    QuitCareer {
+        agent: u32,
+    },
+    /// Careers: whether people change path and look for work on their own.
+    /// Code 34.
+    SetCareerAutonomy {
+        change: bool,
+        search: bool,
+    },
 }
 
 /// Resolved creator commands append after every published command discriminant.
@@ -978,12 +994,51 @@ mod window_wire_tests {
                 vec![27, 34, 90, 0, 0, 0, 0],
             ),
             (SimCommand::SetChoreBoard { enabled: true }, vec![28, 1]),
+            (SimCommand::BuyLand { side: 2 }, vec![31, 2]),
+            (
+                SimCommand::AssignCareer { agent: 34, path: 1 },
+                vec![32, 34, 1],
+            ),
+            (SimCommand::QuitCareer { agent: 34 }, vec![33, 34]),
+            (
+                SimCommand::SetCareerAutonomy {
+                    change: true,
+                    search: false,
+                },
+                vec![34, 1, 0],
+            ),
         ];
         for (command, bytes) in cases {
             assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
             assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
-            let saved: SavedCommand = postcard::from_bytes(&bytes).unwrap();
-            assert_eq!(postcard::to_allocvec(&saved).unwrap(), bytes);
+            // The saved form shares the code only below the versioned
+            // commands it leaves out; the later ones have their own.
+            if bytes[0] < 29 {
+                let saved: SavedCommand = postcard::from_bytes(&bytes).unwrap();
+                assert_eq!(postcard::to_allocvec(&saved).unwrap(), bytes);
+            }
+        }
+        let saved = [
+            (SavedCommand::BuyLand { side: 2 }, vec![29, 2]),
+            (
+                SavedCommand::AssignCareer { agent: 34, path: 1 },
+                vec![30, 34, 1],
+            ),
+            (SavedCommand::QuitCareer { agent: 34 }, vec![31, 34]),
+            (
+                SavedCommand::SetCareerAutonomy {
+                    change: true,
+                    search: false,
+                },
+                vec![32, 1, 0],
+            ),
+        ];
+        for (command, bytes) in saved {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(
+                postcard::from_bytes::<SavedCommand>(&bytes).unwrap(),
+                command
+            );
         }
     }
 }

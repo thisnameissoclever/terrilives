@@ -716,10 +716,13 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV13>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &13u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &14u16.to_le_bytes());
+    // Nobody holds a job in this fixture, so the careers are a new game's.
+    assert_eq!(decoded.careers, terri_sim::Careers::default().to_saved());
+    let decoded = decoded.legacy;
     // A custom lot has no frame; a content lot's frame has bought nothing.
     assert!(decoded.lot_frame.is_none_or(|f| f.purchased_area == 0));
     let decoded = decoded.legacy;
@@ -1880,29 +1883,33 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&current_bytes(&overdone)));
     assert_eq!(handle.sim.save_snapshot_v10(), overdone);
-    // A schema-ten payload resaves as schema thirteen with no burnt meals,
-    // no fights, the frame its grid implies and its dollars as cents.
-    let mut thirteen = SAVE_MAGIC.to_vec();
-    thirteen.extend_from_slice(&13u16.to_le_bytes());
-    thirteen.extend(
-        postcard::to_allocvec(&terri_core::SaveSnapshotV13 {
-            legacy: terri_core::SaveSnapshotV12 {
-                legacy: terri_core::SaveSnapshotV11 {
-                    legacy: overdone.clone(),
-                    burnt_meals: vec![],
+    // A schema-ten payload resaves as schema fourteen with no burnt meals,
+    // no fights, the frame its grid implies, its dollars as cents and a new
+    // game's careers.
+    let mut fourteen = SAVE_MAGIC.to_vec();
+    fourteen.extend_from_slice(&14u16.to_le_bytes());
+    fourteen.extend(
+        postcard::to_allocvec(&terri_core::SaveSnapshotV14 {
+            legacy: terri_core::SaveSnapshotV13 {
+                legacy: terri_core::SaveSnapshotV12 {
+                    legacy: terri_core::SaveSnapshotV11 {
+                        legacy: overdone.clone(),
+                        burnt_meals: vec![],
+                    },
+                    fights: vec![],
                 },
-                fights: vec![],
+                lot_frame: Some(terri_core::save_v13::SavedLotFrame {
+                    origin_x: 0,
+                    origin_y: 0,
+                    purchased_area: 0,
+                }),
+                funds_cents: overdone.legacy.legacy.world.funds * 100,
             },
-            lot_frame: Some(terri_core::save_v13::SavedLotFrame {
-                origin_x: 0,
-                origin_y: 0,
-                purchased_area: 0,
-            }),
-            funds_cents: overdone.legacy.legacy.world.funds * 100,
+            careers: terri_sim::Careers::default().to_saved(),
         })
         .unwrap(),
     );
-    assert_eq!(handle.save_bytes(), thirteen, "2.0 round-trips exactly");
+    assert_eq!(handle.save_bytes(), fourteen, "2.0 round-trips exactly");
 }
 
 /// Burnt meals (issue 243): schema eleven carries them through the public
@@ -1919,7 +1926,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        13u16.to_le_bytes()
+        14u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -1984,7 +1991,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        13u16.to_le_bytes()
+        14u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2052,7 +2059,7 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        13u16.to_le_bytes()
+        14u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2080,4 +2087,94 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let before = target.world_hash();
     assert!(!target.load_bytes(&refused));
     assert_eq!(target.world_hash(), before);
+}
+
+/// Careers (issue 249): schema fourteen carries the careers through the
+/// public envelope, a schema-thirteen payload still loads with the
+/// defaults, a record the world cannot account for refuses the load, and
+/// the career exports read and direct the household.
+#[test]
+fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
+    let mut source = SimHandle::from_lot();
+    let worker = source
+        .sim
+        .world()
+        .try_query::<(terri_core::Entity, &terri_core::Agent, &terri_core::Career)>()
+        .expect("registered")
+        .iter(source.sim.world())
+        .next()
+        .expect("the shipped household has a worker")
+        .0
+        .index_u32();
+    assert_eq!(source.career_autonomy(), vec![1, 1]);
+    assert!(source.set_career_autonomy(false, true));
+    source.flush_commands();
+    assert_eq!(source.career_autonomy(), vec![0, 1]);
+    assert_eq!(
+        source.career_path_labels(),
+        vec!["Office", "Cafe", "Night watch"]
+    );
+    assert_eq!(source.career_level_titles(1)[0], "Lowly barista");
+    assert!(source.career_level_titles(9).is_empty());
+    let report = source.career_report(worker);
+    assert_eq!(report.len(), 15);
+    assert_eq!((report[0], report[1], report[2]), (0.0, 0.0, 4.0));
+    assert_eq!(report[3], report[4], "starting pay");
+    assert_eq!(source.career_factors(worker).len(), 6);
+    assert!(source.career_history(worker).is_empty());
+    assert!(source.career_report(9999).is_empty());
+
+    assert!(source.assign_career(worker, 1));
+    source.flush_commands();
+    assert_eq!(source.last_career_result(), vec![f64::from(worker), 0.0]);
+    assert_eq!(source.career_report(worker)[0], 1.0);
+    assert_eq!(source.career_of(worker), "Lowly barista");
+    assert!(source.assign_career(worker, 9));
+    source.flush_commands();
+    assert_eq!(source.last_career_result(), vec![f64::from(worker), 3.0]);
+    assert_eq!(
+        source.career_report(worker)[0],
+        1.0,
+        "a refusal changes nothing"
+    );
+
+    let bytes = source.save_bytes();
+    assert_eq!(
+        bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
+        14u16.to_le_bytes()
+    );
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    assert_eq!(loaded.career_autonomy(), vec![0, 1]);
+    assert_eq!(loaded.career_report(worker), source.career_report(worker));
+    assert_eq!(loaded.world_hash(), source.world_hash());
+    assert_eq!(loaded.save_bytes(), bytes);
+
+    let mut thirteen = SAVE_MAGIC.to_vec();
+    thirteen.extend_from_slice(&13u16.to_le_bytes());
+    thirteen.extend(postcard::to_allocvec(&source.sim.save_snapshot_v13()).unwrap());
+    let mut old = SimHandle::from_lot();
+    assert!(old.load_bytes(&thirteen));
+    assert_eq!(old.career_autonomy(), vec![1, 1], "the settings default on");
+    assert_eq!(
+        old.career_report(worker)[0],
+        1.0,
+        "the job itself rides in the older record"
+    );
+
+    let mut bad = source.sim.save_snapshot_v14();
+    bad.careers.records[0].pay = 0;
+    let mut refused = SAVE_MAGIC.to_vec();
+    refused.extend_from_slice(&14u16.to_le_bytes());
+    refused.extend(postcard::to_allocvec(&bad).unwrap());
+    let mut target = SimHandle::from_lot();
+    let before = target.world_hash();
+    assert!(!target.load_bytes(&refused));
+    assert_eq!(target.world_hash(), before);
+
+    assert!(source.quit_career(worker));
+    source.flush_commands();
+    assert_eq!(source.last_career_result(), vec![f64::from(worker), 0.0]);
+    assert!(source.career_report(worker).is_empty());
+    assert_eq!(source.career_of(worker), "");
 }

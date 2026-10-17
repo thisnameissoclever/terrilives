@@ -38,6 +38,8 @@ itself on having personality.
 | Need moodlets | Hungry; Starving; Tired; Exhausted; Needs a wash; Very dirty; Needs the toilet; Desperate for the toilet; Lonely; Very lonely; Bored; Very bored; Uncomfortable; Very uncomfortable; Needs met | `crates/terri-sim/src/mood.rs` |
 | Traits panel | Traits; No traits.; Traits unavailable; Skill {n}%; Severity {n}% | `web/index.html`, `web/src/ui/traits-panel.ts` |
 | Trait and environment moodlets | authored condition-trait label; Comforted by {name}; Uneasy around {name} | `content/traits.toml`, `crates/terri-sim/src/mood.rs` |
+| Career moodlets | Enjoys the job; Hates the job; Warned at work; Promoted; Got a raise; Demoted; Fired | `crates/terri-sim/src/mood.rs`; [careers](specs/2026-10-17-careers.md) |
+| Career paths and titles | Office; Cafe; Night watch; Office clerk; Senior clerk; Office manager; Director of paperwork; Lowly barista; Barista; Shift lead; Senior espresso sorcerer; Night watch; Senior night watch; Night supervisor; Keeper of the keys, provisional per [L58] | `content/careers.toml` |
 | People | People; How {name} feels; Select a person to see how they feel about the household.; There is nobody else in the household.; Hostile; Dislikes; Wary; Stranger; Warm; Friendly; Close | `web/index.html`, `web/src/ui/people-panel.ts` |
 | Speed | Pause; 1x; 2x; 3x | `web/src/ui/time-controls.ts` |
 | Walls tool | Furniture; Walls; Wall; Doorway; Remove; Choose a line between two floor tiles.; No wall on this line.; A wall stands on this line.; This line is a doorway.; Wall built.; Doorway made.; Wall removed.; That change could not be sent.; the collapsed Shortcuts reference; Tap near the line between two tiles. Drag to pan; pinch to zoom. | `web/index.html`, `web/src/ui/wall-tool.ts` |

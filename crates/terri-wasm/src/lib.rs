@@ -2592,8 +2592,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v13())
-            .expect("SaveSnapshotV13 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v14())
+            .expect("SaveSnapshotV14 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2617,6 +2617,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 14 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v14(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 13 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV13>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v13(snapshot).is_ok(),
@@ -2953,6 +2959,102 @@ impl SimHandle {
                 ]
             })
             .unwrap_or_default()
+    }
+
+    /// The Career section's numbers for the person carrying `entity_index`
+    /// (careers, issue 249): `[path, level, levels, pay, pay_min, pay_max,
+    /// shifts this week, mean so far or -1, last performance or -1,
+    /// consecutive poor, consecutive good, advance weeks, job satisfaction,
+    /// warned, trend]`, where trend is 1 after three good reviews in a row
+    /// and -1 after three poor. Empty for the unemployed and for anything
+    /// that is not a living person.
+    pub fn career_report(&self, entity_index: u32) -> Vec<f64> {
+        self.sim
+            .career_report(entity_index)
+            .map(|report| report.into_iter().map(f64::from).collect())
+            .unwrap_or_default()
+    }
+
+    /// The reviewed weeks of the person carrying `entity_index`, as
+    /// `[week, performance, event]` triples in week order; event is 0 for
+    /// none, 1 promotion, 2 raise, 3 demotion, 4 dismissal, 5 a change of
+    /// path. Empty without a job.
+    pub fn career_history(&self, entity_index: u32) -> Vec<f64> {
+        self.sim
+            .career_history(entity_index)
+            .into_iter()
+            .map(f64::from)
+            .collect()
+    }
+
+    /// The factors behind the person's shift score, as `[fit, trait fit,
+    /// social capacity, the job's social demand, skill mastery, mood term]`.
+    /// Empty without a job.
+    pub fn career_factors(&self, entity_index: u32) -> Vec<f64> {
+        self.sim
+            .career_factors(entity_index)
+            .map(|factors| factors.into_iter().map(f64::from).collect())
+            .unwrap_or_default()
+    }
+
+    /// The labels of the career paths, in path order.
+    pub fn career_path_labels(&self) -> Vec<String> {
+        self.sim.career_path_labels()
+    }
+
+    /// The titles of the levels of career path `path`, in level order;
+    /// empty for an unknown path.
+    pub fn career_level_titles(&self, path: u32) -> Vec<String> {
+        self.sim.career_level_titles(path)
+    }
+
+    /// Stages putting the person carrying `entity_index` on the first level
+    /// of career path `path`. Queue acceptance only; `last_career_result`
+    /// reports what the drain did.
+    pub fn assign_career(&mut self, entity_index: u32, path: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::AssignCareer {
+            agent: entity_index,
+            path,
+        })
+        .expect("a career assignment serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// Stages making the person carrying `entity_index` unemployed.
+    pub fn quit_career(&mut self, entity_index: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::QuitCareer {
+            agent: entity_index,
+        })
+        .expect("a resignation serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[agent, refusal]` of the last career command a drain handled:
+    /// refusal 0 when it applied, else 1 for no such living person, 2 for
+    /// a person at work or commuting, 3 for an unknown path. Empty before
+    /// any career command.
+    pub fn last_career_result(&self) -> Vec<f64> {
+        self.sim
+            .last_career_result()
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    f64::from(result.agent),
+                    f64::from(result.reason.map_or(0, |r| r as u32)),
+                ]
+            })
+    }
+
+    /// `[change, search]`: whether people change path and look for work
+    /// on their own.
+    pub fn career_autonomy(&self) -> Vec<u8> {
+        let (change, search) = self.sim.career_autonomy();
+        vec![u8::from(change), u8::from(search)]
+    }
+
+    pub fn set_career_autonomy(&mut self, change: bool, search: bool) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::SetCareerAutonomy { change, search })
+            .expect("the career settings serialize");
+        self.enqueue_command(&bytes)
     }
 
     /// Authored furniture name, or the empty string for non-objects and

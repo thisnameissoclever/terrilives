@@ -1533,6 +1533,13 @@ fn edit_work_world() -> (Sim, Entity) {
             energy_cost: 11.5,
             satisfaction: 2.25,
             working_days: 0b1111111,
+            path: 0,
+            level: 0,
+            pay_max: 130,
+            advance_weeks: 1,
+            social_demand: 0.0,
+            skill_tag: None,
+            trait_fit: Vec::new(),
         }],
         ..base.clone()
     });

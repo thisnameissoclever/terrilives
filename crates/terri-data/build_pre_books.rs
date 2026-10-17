@@ -118,6 +118,34 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("land_strip_depth", toml::Value::Integer(10)),
         ("land_price_cents", toml::Value::Integer(15_000)),
         ("land_price_step_cents", toml::Value::Integer(15)),
+        // Careers (issue 249): the shipped values, reconstructed by the
+        // published-pack conversions too.
+        ("career_review_noise", toml::Value::Float(10.0)),
+        ("career_poor_threshold", toml::Value::Float(40.0)),
+        ("career_good_threshold", toml::Value::Float(65.0)),
+        ("career_fire_base", toml::Value::Float(0.08)),
+        ("career_demote_base", toml::Value::Float(0.15)),
+        ("career_promote_base", toml::Value::Float(0.22)),
+        ("career_raise_base", toml::Value::Float(0.18)),
+        ("career_search_tick", toml::Value::Integer(540)),
+        ("career_search_chance", toml::Value::Float(0.5)),
+        ("career_change_fit", toml::Value::Float(-0.3)),
+        ("career_change_gap", toml::Value::Float(0.5)),
+        ("career_change_chance", toml::Value::Float(0.25)),
+        ("career_satisfaction_rate", toml::Value::Float(4.0)),
+        ("career_job_misery", toml::Value::Float(35.0)),
+        ("career_job_joy", toml::Value::Float(65.0)),
+        ("career_misery_satisfaction", toml::Value::Float(0.5)),
+        ("career_mood_joy", toml::Value::Float(6.0)),
+        ("career_mood_misery", toml::Value::Float(8.0)),
+        ("career_mood_warned", toml::Value::Float(6.0)),
+        ("career_mood_promoted", toml::Value::Float(12.0)),
+        ("career_mood_raise", toml::Value::Float(8.0)),
+        ("career_mood_demoted", toml::Value::Float(12.0)),
+        ("career_mood_fired", toml::Value::Float(16.0)),
+        ("career_mood_promoted_ticks", toml::Value::Integer(1440)),
+        ("career_mood_demoted_ticks", toml::Value::Integer(2880)),
+        ("career_mood_fired_ticks", toml::Value::Integer(5760)),
     ] {
         tuning
             .as_table_mut()
@@ -131,17 +159,39 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         .and_then(toml::Value::as_array_mut)
     {
         for row in rows {
-            row.as_table_mut()
-                .expect("career table")
-                .entry("working_days".to_string())
-                .or_insert_with(|| {
-                    toml::Value::Array(
-                        schema::WEEKDAY_NAMES
-                            .iter()
-                            .map(|day| toml::Value::String((*day).into()))
-                            .collect(),
-                    )
-                });
+            let table = row.as_table_mut().expect("career table");
+            table.entry("working_days".to_string()).or_insert_with(|| {
+                toml::Value::Array(
+                    schema::WEEKDAY_NAMES
+                        .iter()
+                        .map(|day| toml::Value::String((*day).into()))
+                        .collect(),
+                )
+            });
+            // Careers (issue 249): a frozen career is one job; it becomes a
+            // path of one level, titled as it was labeled and paying what it
+            // paid, with the path named after the job.
+            if !table.contains_key("level") {
+                let mut level = table.clone();
+                level.insert("title".to_string(), table["label"].clone());
+                level.insert("pay_max".to_string(), table["pay"].clone());
+                let path_id = format!("{}_path", table["id"].as_str().expect("career id"));
+                for key in [
+                    "shift_start",
+                    "shift_ticks",
+                    "pay",
+                    "energy_cost",
+                    "satisfaction",
+                    "working_days",
+                ] {
+                    table.remove(key);
+                }
+                table.insert("id".to_string(), toml::Value::String(path_id));
+                table.insert(
+                    "level".to_string(),
+                    toml::Value::Array(vec![toml::Value::Table(level)]),
+                );
+            }
         }
     }
     let mut pack = compile::compile(

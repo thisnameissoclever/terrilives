@@ -122,6 +122,9 @@ impl Placement {
             | SimCommand::SetChoreProfile { .. }
             | SimCommand::SetChoreBoard { .. }
             | SimCommand::BuyLand { .. }
+            | SimCommand::AssignCareer { .. }
+            | SimCommand::QuitCareer { .. }
+            | SimCommand::SetCareerAutonomy { .. }
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
@@ -406,6 +409,11 @@ pub(crate) fn drain_ordinary_commands(
             }
             SimCommand::BuyLand { .. } => {
                 unreachable!("a land purchase is a lot edit the drain applies itself")
+            }
+            SimCommand::AssignCareer { .. }
+            | SimCommand::QuitCareer { .. }
+            | SimCommand::SetCareerAutonomy { .. } => {
+                unreachable!("a career command is applied by the drain itself")
             }
             SimCommand::CleanDishes {
                 agent,

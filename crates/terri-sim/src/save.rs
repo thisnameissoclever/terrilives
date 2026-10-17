@@ -81,6 +81,7 @@ pub(crate) mod v10;
 pub(crate) mod v11;
 pub(crate) mod v12;
 pub(crate) mod v13;
+pub(crate) mod v14;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -312,6 +313,15 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         },
         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
         SimCommand::BuyLand { side } => SavedCommand::BuyLand { side: *side },
+        SimCommand::AssignCareer { agent, path } => SavedCommand::AssignCareer {
+            agent: *agent,
+            path: *path,
+        },
+        SimCommand::QuitCareer { agent } => SavedCommand::QuitCareer { agent: *agent },
+        SimCommand::SetCareerAutonomy { change, search } => SavedCommand::SetCareerAutonomy {
+            change: *change,
+            search: *search,
+        },
         SimCommand::Book(_) | SimCommand::Character(_) => {
             unreachable!("Versioned commands are captured separately")
         }
@@ -991,6 +1001,11 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         },
         SavedCommand::SetChoreBoard { enabled } => SimCommand::SetChoreBoard { enabled },
         SavedCommand::BuyLand { side } => SimCommand::BuyLand { side },
+        SavedCommand::AssignCareer { agent, path } => SimCommand::AssignCareer { agent, path },
+        SavedCommand::QuitCareer { agent } => SimCommand::QuitCareer { agent },
+        SavedCommand::SetCareerAutonomy { change, search } => {
+            SimCommand::SetCareerAutonomy { change, search }
+        }
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -1401,6 +1416,16 @@ fn validate_command(
                 Err(SaveError::InvalidValue)
             }
         }
+        // A person the drain cannot find restores as a refusal; a path
+        // the pack does not have is a corrupt save.
+        SavedCommand::AssignCareer { path, .. } => {
+            if (*path as usize) < pack.career_paths.len() {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidContentReference)
+            }
+        }
+        SavedCommand::QuitCareer { .. } | SavedCommand::SetCareerAutonomy { .. } => Ok(()),
         SavedCommand::SetChoreProfile {
             responsibility,
             preferences,

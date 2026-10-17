@@ -368,6 +368,60 @@ pub struct TuningFile {
     /// How much every square already bought adds to the price of the next,
     /// in cents. At most a thousand million.
     pub land_price_step_cents: u32,
+    // Careers (issue 249, `docs/specs/2026-10-17-careers.md` rule 17),
+    // appended after the land knobs in this order.
+    /// How far a weekly review's draw can move the week's performance either way, in points.
+    pub career_review_noise: f32,
+    /// A week performing below this is poor.
+    pub career_poor_threshold: f32,
+    /// A week performing at or above this is good.
+    pub career_good_threshold: f32,
+    /// The dismissal chance per consecutive poor week beyond the second.
+    pub career_fire_base: f32,
+    /// The demotion chance at performance 0, scaled down to 0 at the poor threshold.
+    pub career_demote_base: f32,
+    /// The promotion chance at performance 100, scaled down to 0 at 50.
+    pub career_promote_base: f32,
+    /// The raise chance at performance 100, scaled down to 0 at 50.
+    pub career_raise_base: f32,
+    /// The tick of the day an unemployed person looks for work.
+    pub career_search_tick: u32,
+    /// The chance an unemployed person applies on a working day.
+    pub career_search_chance: f32,
+    /// Below this fit a person may change path on their own.
+    pub career_change_fit: f32,
+    /// How much better another path's fit must be for a change.
+    pub career_change_gap: f32,
+    /// The chance such a change happens at a review with no outcome.
+    pub career_change_chance: f32,
+    /// How many points job satisfaction moves toward its target per shift.
+    pub career_satisfaction_rate: f32,
+    /// Below this job satisfaction a person hates the job.
+    pub career_job_misery: f32,
+    /// Above this job satisfaction a person enjoys the job.
+    pub career_job_joy: f32,
+    /// Life satisfaction points a hated job costs per completed shift.
+    pub career_misery_satisfaction: f32,
+    /// How much enjoying the job raises mood.
+    pub career_mood_joy: f32,
+    /// How much hating the job lowers mood.
+    pub career_mood_misery: f32,
+    /// How much a warning at work lowers mood.
+    pub career_mood_warned: f32,
+    /// How much a promotion raises mood while its moodlet lasts.
+    pub career_mood_promoted: f32,
+    /// How much a raise raises mood while its moodlet lasts.
+    pub career_mood_raise: f32,
+    /// How much a demotion lowers mood while its moodlet lasts.
+    pub career_mood_demoted: f32,
+    /// How much a dismissal lowers mood while its moodlet lasts.
+    pub career_mood_fired: f32,
+    /// How many ticks the Promoted and Got a raise moodlets last.
+    pub career_mood_promoted_ticks: u32,
+    /// How many ticks the Demoted moodlet lasts.
+    pub career_mood_demoted_ticks: u32,
+    /// How many ticks the Fired moodlet lasts.
+    pub career_mood_fired_ticks: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1114,20 +1168,50 @@ pub struct CareersFile {
     pub career: Vec<CareerDef>,
 }
 
+/// One career path: what the work is like and the levels it climbs
+/// (`docs/specs/2026-10-17-careers.md`, rule 1).
 #[derive(Debug, Deserialize)]
 pub struct CareerDef {
     pub id: String,
-    /// What the UI calls it. Required and non-blank, like a trait's.
+    /// What the UI calls the path. Required and non-blank, like a trait's.
     pub label: String,
+    /// How far the work faces other people, 0 to 1.
+    #[serde(default)]
+    pub social_demand: f32,
+    /// The skill tag the work reads, if any.
+    #[serde(default)]
+    pub skill: Option<String>,
+    /// Trait id to fit weight, -1 to 1: how much wearing the trait suits
+    /// the work.
+    #[serde(default)]
+    pub traits: std::collections::BTreeMap<String, f32>,
+    /// The titled levels, lowest first. At least one.
+    #[serde(default)]
+    pub level: Vec<CareerLevelDef>,
+}
+
+fn one_week() -> u32 {
+    1
+}
+
+/// One titled level of a path: a job. The shift fields are what a career
+/// was before paths existed.
+#[derive(Debug, Deserialize)]
+pub struct CareerLevelDef {
+    pub id: String,
+    /// The job title the UI shows. Required and non-blank.
+    pub title: String,
     /// The tick of day the shift begins, in `0..day_ticks`.
     pub shift_start: u32,
     /// How long the sim is gone, in ticks. At least 1.
     pub shift_ticks: u32,
-    /// What one shift pays into the household's Funds. Non-negative -
-    /// v1 has no fines - and an i64 downstream because money will
-    /// eventually be spent below zero of a PAYCHECK but never of the
-    /// representable range.
+    /// What one shift pays into the household's Funds when the job is
+    /// taken, in whole dollars. Non-negative - v1 has no fines - and an
+    /// i64 downstream because money will eventually be spent below zero
+    /// of a PAYCHECK but never of the representable range.
     pub pay: u32,
+    /// The most the job pays per shift after raises; at least `pay`.
+    pub pay_max: u32,
     /// Energy the shift costs on return, in `0..=100`. The commute and
     /// the work happen off-lot, so the cost lands as one debit.
     pub energy_cost: f32,
@@ -1141,6 +1225,10 @@ pub struct CareerDef {
     /// `docs/specs/2026-10-06-calendar.md`. Required, with no default, so
     /// a career cannot quietly work a week nobody chose.
     pub working_days: Vec<String>,
+    /// How many good weeks in a row a promotion out of this level needs;
+    /// 1 to 52, defaulting to 1.
+    #[serde(default = "one_week")]
+    pub advance_weeks: u32,
 }
 
 /// The weekday names `working_days` accepts, Monday first. A name's index
@@ -1292,7 +1380,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 101] = [
+    const TUNING_LINES: [(&str, &str); 127] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1340,6 +1428,32 @@ mod tests {
         ("land_strip_depth", "7"),
         ("land_price_cents", "12345"),
         ("land_price_step_cents", "21"),
+        ("career_review_noise", "9.5"),
+        ("career_poor_threshold", "37.5"),
+        ("career_good_threshold", "66.5"),
+        ("career_fire_base", "0.09375"),
+        ("career_demote_base", "0.140625"),
+        ("career_promote_base", "0.234375"),
+        ("career_raise_base", "0.171875"),
+        ("career_search_tick", "12"),
+        ("career_search_chance", "0.75"),
+        ("career_change_fit", "-0.375"),
+        ("career_change_gap", "0.5625"),
+        ("career_change_chance", "0.28125"),
+        ("career_satisfaction_rate", "4.5"),
+        ("career_job_misery", "33.5"),
+        ("career_job_joy", "67.5"),
+        ("career_misery_satisfaction", "0.625"),
+        ("career_mood_joy", "6.5"),
+        ("career_mood_misery", "8.5"),
+        ("career_mood_warned", "5.75"),
+        ("career_mood_promoted", "12.5"),
+        ("career_mood_raise", "7.25"),
+        ("career_mood_demoted", "11.75"),
+        ("career_mood_fired", "16.5"),
+        ("career_mood_promoted_ticks", "1400"),
+        ("career_mood_demoted_ticks", "2800"),
+        ("career_mood_fired_ticks", "5700"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1479,6 +1593,9 @@ mod tests {
         assert_eq!(parsed.land_strip_depth, 7);
         assert_eq!(parsed.land_price_cents, 12345);
         assert_eq!(parsed.land_price_step_cents, 21);
+        assert_eq!(parsed.career_review_noise, 9.5);
+        assert_eq!(parsed.career_search_tick, 12);
+        assert_eq!(parsed.career_mood_fired_ticks, 5700);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);
@@ -1589,11 +1706,15 @@ mod tests {
     fn a_career_without_working_days_does_not_parse() {
         let career = r#"
             [[career]]
+            id = "office"
+            label = "Office"
+            [[career.level]]
             id = "office_job"
-            label = "Office clerk"
+            title = "Office clerk"
             shift_start = 360
             shift_ticks = 480
             pay = 120
+            pay_max = 150
             energy_cost = 15.0
             satisfaction = 1.0
             "#;
@@ -1605,10 +1726,16 @@ mod tests {
             toml::from_str(&format!("{career}working_days = [\"sun\", \"mon\"]\n"))
                 .expect("the same career with working days parses");
         assert_eq!(
-            parsed.career[0].working_days,
+            parsed.career[0].level[0].working_days,
             vec!["sun".to_string(), "mon".to_string()],
             "the authored list reaches the schema in declared order"
         );
+        assert_eq!(
+            parsed.career[0].level[0].advance_weeks, 1,
+            "advance_weeks defaults to one"
+        );
+        assert_eq!(parsed.career[0].social_demand, 0.0);
+        assert!(parsed.career[0].traits.is_empty());
     }
 
     #[test]
