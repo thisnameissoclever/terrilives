@@ -865,18 +865,16 @@ mod tests {
     }
 
     /// [SEA-year] and [SEA-yard] in `docs/specs/2026-10-17-seasons.md`: a
-    /// new game starts in Spring, each season lasts seven days, Spring draws
-    /// the grass as authored, and the shipped values are the ones packs
-    /// published before the seasons reconstruct.
+    /// new game starts in Spring, each season lasts seven days, and Spring
+    /// draws the grass as authored. The live tuning is not compared with
+    /// the `Tuning::SHIPPED_*` values that packs published before the
+    /// seasons reconstruct: a later retune changes the live file alone.
     #[test]
     fn the_shipped_season_content_matches_the_spec() {
         let tuning = &pack().tuning;
         assert_eq!(tuning.days_per_season, 7);
         assert_eq!(tuning.first_season, 0);
         assert_eq!(tuning.season_yard_looks[0], [0.0, 1.0, 0.0]);
-        assert_eq!(tuning.days_per_season, Tuning::SHIPPED_DAYS_PER_SEASON);
-        assert_eq!(tuning.first_season, Tuning::SHIPPED_FIRST_SEASON);
-        assert_eq!(tuning.season_yard_looks, Tuning::SHIPPED_SEASON_YARD_LOOKS);
         // Autumn turns the grass toward yellow and Winter pales it: a turn
         // below zero, and a Winter strength below every other season's with
         // a lightness above every other season's.

@@ -262,21 +262,33 @@ fn season_index_applies_the_tuning_length_and_offset() {
 }
 
 /// [SEA-yard]: the yard's four seasonal looks cross the boundary as twelve
-/// numbers, Spring first, exactly as the compiled tuning holds them.
+/// numbers, Spring first, exactly as the loaded content holds them. The
+/// content is retuned away from the shipped looks, as the season test above
+/// retunes the length and offset, so a read that returned
+/// `Tuning::SHIPPED_SEASON_YARD_LOOKS`, or the rows in another order, would
+/// disagree here.
 #[test]
 fn season_yard_looks_reports_the_four_rows_in_season_order() {
-    let handle = SimHandle::from_lot();
-    let looks = handle
+    let mut handle = SimHandle::from_lot();
+    let shipped = handle.season_yard_looks();
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    retuned.tuning.season_yard_looks = [
+        [1.5, 0.75, 0.125],
+        [-2.5, 1.25, -0.0625],
+        [30.0, 0.5, 0.1875],
+        [-90.0, 1.75, -0.25],
+    ];
+    handle
         .sim
-        .world()
-        .resource::<Content>()
-        .0
-        .tuning
-        .season_yard_looks;
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    let read = handle.season_yard_looks();
     assert_eq!(
-        handle.season_yard_looks(),
-        looks.iter().flatten().copied().collect::<Vec<_>>()
+        read,
+        [1.5, 0.75, 0.125, -2.5, 1.25, -0.0625, 30.0, 0.5, 0.1875, -90.0, 1.75, -0.25]
     );
-    assert_eq!(handle.season_yard_looks()[..3], [0.0, 1.0, 0.0]);
-    assert_eq!(handle.season_yard_looks()[9..], looks[3]);
+    assert_ne!(
+        read, shipped,
+        "the retuned looks differ from the shipped ones"
+    );
 }

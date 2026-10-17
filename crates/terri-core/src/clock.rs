@@ -61,19 +61,6 @@ pub fn season(tick: u64, day_ticks: u32, days_per_season: u32, first_season: u8)
     ((day / days_per_season as u64 % year + first_season as u64) % year) as u8
 }
 
-/// Which day of its season the day `tick` falls in, counted from 1:
-/// `d % days_per_season + 1` for day index `d` - [SEA-year].
-///
-/// # Panics
-///
-/// As [`season`]: divides by `day_ticks` and `days_per_season`, which the
-/// content compiler keeps above 0.
-pub fn day_of_season(tick: u64, day_ticks: u32, days_per_season: u32) -> u32 {
-    // The remainder is below `days_per_season`, a u32, so it fits, and
-    // adding 1 reaches at most `u32::MAX`.
-    (tick / day_ticks as u64 % days_per_season as u64) as u32 + 1
-}
-
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SimClock {
     pub tick: u64,
@@ -191,12 +178,8 @@ mod tests {
                 season_index,
                 "the last tick of season {season_index}"
             );
-            assert_eq!(day_of_season(first_day * day, 1440, 7), 1);
-            assert_eq!(day_of_season((first_day + 7) * day - 1, 1440, 7), 7);
         }
         assert_eq!(season(28 * day, 1440, 7, 0), 0, "day 29 is Spring again");
-        assert_eq!(day_of_season(28 * day, 1440, 7), 1);
-        assert_eq!(day_of_season(3 * day + 5, 1440, 7), 4);
     }
 
     /// [SEA-year]: `first_season` 3 starts the year in Winter and wraps to
@@ -214,14 +197,11 @@ mod tests {
         for d in 0..9u64 {
             assert_eq!(season(d * day, 1440, 1, 0), (d % 4) as u8, "day index {d}");
             assert_eq!(season(d * day + 1439, 1440, 1, 3), ((d + 3) % 4) as u8);
-            assert_eq!(day_of_season(d * day + 1439, 1440, 1), 1);
         }
         // A 100-tick day: tick 699 is the last of day index 6, tick 700
         // the first of day index 7, the first day of Summer.
         assert_eq!(season(699, 100, 7, 0), 0);
         assert_eq!(season(700, 100, 7, 0), 1);
-        assert_eq!(day_of_season(699, 100, 7), 7);
-        assert_eq!(day_of_season(700, 100, 7), 1);
     }
 
     /// [SEA-year]: the largest tick neither overflows nor panics.
@@ -230,19 +210,12 @@ mod tests {
         // u64::MAX / 1440 is 12810238940076077; divided by 7 that is
         // 1830034134296582, which is 2 mod 4, and 2 plus 3 is 1 mod 4.
         assert_eq!(season(u64::MAX, 1440, 7, 3), 1);
-        // 12810238940076077 is 3 mod 7, so it is day 4 of its season.
-        assert_eq!(day_of_season(u64::MAX, 1440, 7), 4);
         // A one-tick day and a one-day season: u64::MAX is 3 mod 4, and 3
         // plus 3 is 2 mod 4. Adding the offset before the modulo would
         // overflow.
         assert_eq!(season(u64::MAX, 1, 1, 3), 2);
-        assert_eq!(day_of_season(u64::MAX, 1, 1), 1);
         // The longest season: u64::MAX / u32::MAX is 2^32 + 1, which is 1
-        // mod 4, and the last day of a u32::MAX-day season is day u32::MAX.
+        // mod 4.
         assert_eq!(season(u64::MAX, 1, u32::MAX, 0), 1);
-        assert_eq!(
-            day_of_season(u64::from(u32::MAX) - 1, 1, u32::MAX),
-            u32::MAX
-        );
     }
 }
