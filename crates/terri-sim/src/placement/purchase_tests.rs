@@ -19,6 +19,7 @@ fn house_with(funds: i64, edges: Vec<WallEdge>, edit: impl FnOnce(&mut ContentPa
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
@@ -31,8 +32,7 @@ fn house_with(funds: i64, edges: Vec<WallEdge>, edit: impl FnOnce(&mut ContentPa
     pack.objects[unpriced].price = None;
     edit(&mut pack);
     let pack: &'static ContentPack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let mut grid = TileGrid::new(7, 7);
     grid.set_blocked(0, 0, true);
@@ -43,6 +43,8 @@ fn house_with(funds: i64, edges: Vec<WallEdge>, edit: impl FnOnce(&mut ContentPa
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     sim.world_mut().insert_resource(Funds::from_dollars(funds));
     sim
 }

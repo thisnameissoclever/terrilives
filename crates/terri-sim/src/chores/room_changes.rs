@@ -75,7 +75,14 @@ pub fn reconcile_committed_rooms(
     before: &RoomChangeContext,
     resolved: &ResolvedRooms,
 ) -> Result<DutyChangeReport, RoomError> {
-    let world = candidate.world_mut();
+    reconcile_committed_world(candidate.world_mut(), before, resolved)
+}
+
+pub(crate) fn reconcile_committed_world(
+    world: &mut World,
+    before: &RoomChangeContext,
+    resolved: &ResolvedRooms,
+) -> Result<DutyChangeReport, RoomError> {
     crate::rooms::install(world, resolved.saved.clone())?;
     if world.resource::<RoomMap>() != &resolved.map {
         return Err(RoomError::InvalidRoomMap);

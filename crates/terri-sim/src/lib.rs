@@ -7,6 +7,7 @@ mod activity_tests;
 pub mod affinity;
 pub mod beds;
 pub mod books;
+pub mod build_transaction;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod careers;
@@ -1193,8 +1194,11 @@ impl SnapshotSource<'_> {
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v10` for complete persistence of a current world.
+    /// Use `save_snapshot_v15` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot();
+        }
         let mut snapshot = save::capture(self);
         rooms::migration::project_commands(self.world(), &mut snapshot.queued_commands)
             .expect("queued room command requires current schema fifteen");
@@ -1203,6 +1207,9 @@ impl Sim {
 
     /// Captures historical V2 architecture and world, without runtime directions.
     pub fn save_snapshot_v2(&self) -> terri_core::SaveSnapshotV2 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v2();
+        }
         terri_core::SaveSnapshotV2 {
             world: self.save_snapshot(),
             layout: self
@@ -1232,6 +1239,9 @@ impl Sim {
 
     /// Captures architecture and runtime directions without changing historical records.
     pub fn save_snapshot_v3(&self) -> terri_core::SaveSnapshotV3 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v3();
+        }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v3();
         rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
             .expect("queued room command requires current schema fifteen");
@@ -1240,15 +1250,21 @@ impl Sim {
 
     /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
     pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v4();
+        }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v4();
         rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
             .expect("queued room command requires current schema fifteen");
         snapshot
     }
 
-    /// Legacy V5 projection. It omits books, social episodes and appearance; use V10.
+    /// Legacy V5 projection. It omits books, social episodes and appearance; use V15.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v5();
+        }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v5();
         rooms::migration::project(self.world(), &mut snapshot)
             .expect("current rooms cannot be represented by this historical save format; use V15");
@@ -1269,6 +1285,9 @@ impl Sim {
 
     /// Frozen V8 envelope; owned copies and reading memory, without social episodes or appearance.
     pub fn save_snapshot_v6(&self) -> terri_core::SaveSnapshotV6 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v6();
+        }
         let mut snapshot = save::v6::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy)
             .expect("current rooms cannot be represented by this historical save format; use V15");
@@ -1277,6 +1296,9 @@ impl Sim {
 
     /// Historical schema-ten projection. Current persistence uses schema fifteen.
     pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v10();
+        }
         let mut snapshot = save::v10::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy)
             .expect("current rooms cannot be represented by this historical save format; use V15");
@@ -1300,6 +1322,9 @@ impl Sim {
 
     /// Schema eleven: everything schema ten holds, then the burnt meals.
     pub fn save_snapshot_v11(&self) -> terri_core::SaveSnapshotV11 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v11();
+        }
         let mut snapshot = save::v11::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy)
             .expect("current rooms cannot be represented by this historical save format; use V15");
@@ -1308,6 +1333,9 @@ impl Sim {
 
     /// Schema twelve: everything schema eleven holds, then the fights.
     pub fn save_snapshot_v12(&self) -> terri_core::SaveSnapshotV12 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v12();
+        }
         let mut snapshot = save::v12::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy.legacy)
             .expect("current rooms cannot be represented by this historical save format; use V15");
@@ -1328,6 +1356,9 @@ impl Sim {
     /// Schema thirteen: everything schema twelve holds, then the lot frame
     /// and the funds in cents (land expansion, issue 254).
     pub fn save_snapshot_v13(&self) -> terri_core::SaveSnapshotV13 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v13();
+        }
         let mut snapshot = save::v13::capture(self);
         rooms::migration::project(
             self.world(),
@@ -1357,6 +1388,9 @@ impl Sim {
 
     /// Refuses stable history or outdoor duties that schema fourteen cannot express.
     pub fn try_save_snapshot_v14(&self) -> Result<terri_core::SaveSnapshotV14, SaveError> {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.try_save_snapshot_v14();
+        }
         let mut snapshot = save::v14::capture(self);
         rooms::migration::project(
             self.world(),
@@ -1366,7 +1400,9 @@ impl Sim {
     }
 
     pub fn save_snapshot_v15(&self) -> terri_core::SaveSnapshotV15 {
-        save::v15::capture(self)
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v15::capture(self))
     }
 
     pub fn load_snapshot_v15(
@@ -1540,6 +1576,7 @@ impl Sim {
             .resource::<placement::LotEditState>()
             .revision
             .saturating_add(1);
+        build_transaction::carry_adoption(&self.world, &mut restored)?;
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
         self.portals
@@ -2201,6 +2238,15 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        if build_transaction::needs_atomic_drain(&self.world) {
+            self.flush_commands();
+            self.world
+                .insert_resource(build_transaction::SkipCommandDrain);
+        }
+        if self.build_active() {
+            self.flush_commands();
+            return;
+        }
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
@@ -2214,8 +2260,19 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        if build_transaction::needs_atomic_drain(&self.world) {
+            build_transaction::run_atomic_drain(self);
+            return;
+        }
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        if self.build_active()
+            || build_transaction::has_error(&self.world)
+            || build_transaction::native_batch(&self.world)
+        {
+            self.world.clear_trackers();
+            return;
+        }
         seating::maintain(&mut self.world);
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);

@@ -581,7 +581,7 @@ pub(super) fn restore_legacy(
 /// already checked against the saved entities. Every other gap in the saved
 /// numbering is freed for reuse, as it always was; a retired one is kept out
 /// of use, as the world that was saved kept it.
-fn restore_with_facings(
+pub(crate) fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
     active_portals: Carried,

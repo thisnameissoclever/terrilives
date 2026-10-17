@@ -20,6 +20,7 @@ fn house_with(funds: i64, edit: impl FnOnce(&mut ContentPack)) -> (Sim, Entity, 
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
@@ -30,8 +31,7 @@ fn house_with(funds: i64, edit: impl FnOnce(&mut ContentPack)) -> (Sim, Entity, 
     pack.objects[rack].price = None;
     edit(&mut pack);
     let pack: &'static ContentPack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     let fridge = sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let rack = sim.spawn_object(Position { x: 3.0, y: 3.0 }, pack.find("coat_rack").unwrap());
     sim.spawn_object(Position { x: 6.0, y: 6.0 }, pack.find("fridge").unwrap());
@@ -184,16 +184,25 @@ fn a_sale_is_refused_for_each_reason_in_the_order_the_design_lists() {
     refused(&mut sim, rack, PlacementRefusal::NotForSale);
 
     // An order naming another object, and a walk to another, stop nothing.
+    let other_fridge = sim
+        .world_mut()
+        .query::<(Entity, &SmartObject)>()
+        .iter(sim.world())
+        .find(|(entity, object)| {
+            *entity != fridge && sim.world().resource::<Content>().0.object(object.0).id == "fridge"
+        })
+        .unwrap()
+        .0;
     sim.world_mut()
         .entity_mut(sim_entity)
         .insert(IntentQueue::from_intents(vec![Intent {
             cleanup: None,
             chore: None,
-            object: rack,
+            object: other_fridge,
             interaction: 0,
         }]));
     sim.world_mut().entity_mut(sim_entity).insert(Target {
-        object: rack,
+        object: other_fridge,
         interaction: 0,
     });
     sell(&mut sim, fridge);

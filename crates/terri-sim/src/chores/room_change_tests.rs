@@ -1234,21 +1234,41 @@ fn new_outside_duty_with_saved_week(saved_week: Option<u64>) {
 #[test]
 fn review_new_duty_initializes_an_absent_saved_week_only_when_assigned() {
     new_outside_duty_with_saved_week(None);
-    let mut empty = Sim::new_with_lot(3, 3);
+    let mut empty = Sim::new_from_lot(&terri_data::pack().lot, &terri_data::pack().objects);
     ensure(empty.world_mut());
     empty
         .world_mut()
         .init_resource::<terri_core::layout::SavedFloors>();
+    let outside = ChoreKey {
+        kind: ChoreKind::Floors,
+        target: 0,
+    };
+    assert!(
+        !keys(empty.world()).contains(&outside),
+        "uncovered outdoor grass has no floor duty"
+    );
+    let initial = empty.save_snapshot_v15();
+    empty.load_snapshot_v15(initial.clone()).unwrap();
+    assert_eq!(empty.save_snapshot_v15(), initial);
+    let initial_rng = empty.world().resource::<SavedChores>().rng.clone();
     let before = RoomChangeContext::capture(empty.world()).unwrap();
     empty
         .world_mut()
         .resource_mut::<terri_core::layout::SavedFloors>()
-        .set(1, 1, 4);
+        .set(17, 13, 4);
+    assert!(
+        keys(empty.world()).contains(&outside),
+        "paving creates the previously absent outdoor duty"
+    );
     let resolved = resolve(&empty, &before, false);
     reconcile_committed_rooms(&mut empty, &before, &resolved).unwrap();
     let state = empty.world().resource::<SavedChores>();
     assert!(state.assignments.is_empty());
     assert_eq!(state.week, None);
+    assert_eq!(state.rng, initial_rng);
+    let final_save = empty.save_snapshot_v15();
+    empty.load_snapshot_v15(final_save.clone()).unwrap();
+    assert_eq!(empty.save_snapshot_v15(), final_save);
 }
 
 #[test]

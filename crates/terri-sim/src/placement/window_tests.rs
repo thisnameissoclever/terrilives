@@ -24,8 +24,7 @@ fn house() -> Sim {
     pack.portals[0].position = (5, 3);
     pack.portals[0].inward = (4, 3);
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let edges: Vec<_> = window(WindowModel::Picture)
         .lines()
@@ -41,6 +40,8 @@ fn house() -> Sim {
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     sim
 }
 fn fit(sim: &mut Sim, placed: WindowPlacement) {

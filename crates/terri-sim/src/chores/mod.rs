@@ -23,6 +23,8 @@ pub(crate) use work::{activate, cancel, issue, key_valid, soil};
 #[cfg(test)]
 mod board_tests;
 #[cfg(test)]
+pub(crate) mod build_transaction_fixture;
+#[cfg(test)]
 mod cleanliness_tests;
 #[cfg(test)]
 mod grime_tests;

@@ -4,6 +4,74 @@ use terri_core::command::BookCommand;
 mod priority;
 
 #[test]
+fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    block_furniture(&mut sim);
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, p, seat, &title, false);
+    sim.tick();
+    until(&mut sim, p, ReadingStage::Fetch);
+    sim.begin_build().unwrap();
+    issue(
+        &mut sim,
+        SimCommand::BuildRoom {
+            x0: 13,
+            y0: 13,
+            x1: 15,
+            y1: 15,
+            doorway: Some(terri_core::layout::WallLine {
+                axis: terri_core::layout::EdgeAxis::Vertical,
+                x: 16,
+                y: 14,
+            }),
+        },
+    );
+    sim.flush_commands();
+    assert!(sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_room_result
+        .unwrap()
+        .reason
+        .is_none());
+    assert_ne!(
+        crate::rooms::RoomTopology::from_world(sim.world()).unwrap(),
+        sim.world().resource::<crate::rooms::RoomMap>().topology
+    );
+    issue(
+        &mut sim,
+        SimCommand::PlaceObject {
+            object: shelf.index_u32(),
+            x: 6,
+            y: 8,
+            facing: Facing::SouthWest,
+        },
+    );
+    sim.flush_commands();
+    assert!(sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_result
+        .unwrap()
+        .reason
+        .is_none());
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    sim.commit_build(review.token).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<ReadingJourney>(p)
+            .unwrap()
+            .transfer_contact,
+        Some((6, 9))
+    );
+    let saved = sim.save_snapshot_v15();
+    sim.load_snapshot_v15(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v15(), saved);
+}
+
+#[test]
 fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
     let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
     let mut pack = sim.world().resource::<Content>().0.clone();

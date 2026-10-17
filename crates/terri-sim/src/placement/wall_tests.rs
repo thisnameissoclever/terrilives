@@ -16,6 +16,7 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
@@ -23,8 +24,7 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     pack.portals[0].position = door;
     pack.portals[0].inward = landing;
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     let fridge = sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let mut grid = TileGrid::new(7, 7);
     grid.set_blocked(0, 0, true);
@@ -35,6 +35,8 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     (sim, fridge)
 }
 
@@ -330,6 +332,13 @@ fn a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to
             },
         ))
         .id();
+    for person in [listener, talker] {
+        let identity = sim
+            .world_mut()
+            .resource_mut::<terri_core::SimIdAllocator>()
+            .issue();
+        sim.world_mut().entity_mut(person).insert(identity);
+    }
     refused(
         &mut sim,
         edit(Vertical, 4, 5, Wall),
@@ -875,7 +884,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             stop,
             "one tick per `Sim::tick`"
         );
-        let base = sim.save_snapshot_v6();
+        let base = sim.save_snapshot_v15();
         let rectangles = super::super::current_layout(sim.world())
             .expect("the shipped house is consistent")
             .rectangles;
@@ -907,12 +916,12 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             }
             // The public edit also reconciles media and physical leases. A new
             // wall can end an obstructed TV seat before the next game tick.
-            builder.load_snapshot_v6(base.clone()).unwrap();
+            builder.load_snapshot_v15(base.clone()).unwrap();
             stage(&mut builder, request);
             assert_eq!(last(&builder).unwrap().reason, None);
-            let after = builder.save_snapshot_v6();
+            let after = builder.save_snapshot_v15();
             assert_eq!(
-                reloaded.load_snapshot_v6(after).err(),
+                reloaded.load_snapshot_v15(after).err(),
                 None,
                 "an accepted {request:?} at tick {stop} left a save that will not load"
             );
@@ -1108,7 +1117,16 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
             doorway: None,
         };
         assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
-        super::super::rooms::commit(sim.world_mut(), room);
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::BuildRoom {
+                x0: room.x0,
+                y0: room.y0,
+                x1: room.x1,
+                y1: room.y1,
+                doorway: room.doorway,
+            });
+        sim.flush_commands();
         let boundary = line(axis, wall_x, wall_y, false);
         assert!(edges(&sim).contains(&boundary));
         for state in [Doorway, Window] {
@@ -1121,11 +1139,11 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
         applied(&mut sim, edit(axis, wall_x, wall_y, Open));
         assert!(!edges(&sim).contains(&boundary));
         let mut reader = Sim::new_from_shipped_lot();
-        reader.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        reader.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
         assert!(!edges(&reader).contains(&boundary));
         applied(&mut reader, edit(axis, wall_x, wall_y, Wall));
         assert!(edges(&reader).contains(&boundary));
-        sim.load_snapshot_v6(reader.save_snapshot_v6()).unwrap();
+        sim.load_snapshot_v15(reader.save_snapshot_v15()).unwrap();
         assert!(edges(&sim).contains(&boundary));
     }
 }

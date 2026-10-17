@@ -4,7 +4,7 @@ pub const MAX_COMPLETION_SOUNDS: usize = 64;
 pub const TOILET_FLUSH: u32 = 1;
 
 /// Unsaved presentation events, packed as action/source pairs.
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 pub struct CompletionSounds(pub(crate) Vec<u32>);
 
 impl Default for CompletionSounds {

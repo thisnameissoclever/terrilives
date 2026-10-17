@@ -3,6 +3,29 @@ use bevy_ecs::{prelude::*, system::RunSystemOnce};
 use terri_core::{CommandQueue, SimCommand};
 
 pub fn drain_commands(world: &mut World) {
+    if world
+        .remove_resource::<crate::build_transaction::SkipCommandDrain>()
+        .is_some()
+    {
+        return;
+    }
+    if world.contains_resource::<crate::build_transaction::BuildTransaction>() {
+        crate::build_transaction::drain(world);
+        return;
+    }
+    let before = if crate::rooms::stable(world) {
+        match crate::chores::RoomChangeContext::capture(world) {
+            Ok(context) => Some(context),
+            Err(error) => {
+                crate::build_transaction::record_error(world, error.into());
+                return;
+            }
+        }
+    } else {
+        None
+    };
+    let origin = crate::lot_frame::origin(world);
+    let revision = world.resource::<crate::placement::LotEditState>().revision;
     if !world.contains_resource::<terri_core::save::SavedTargetedCleanup>() {
         world.insert_resource(terri_core::save::SavedTargetedCleanup::default());
     }
@@ -19,6 +42,16 @@ pub fn drain_commands(world: &mut World) {
         crate::chores::ensure(world);
     }
     for command in issued {
+        if crate::build_transaction::native_batch(world)
+            && crate::build_transaction::native_construction(&command)
+        {
+            flush_ordinary(world);
+            crate::build_transaction::dispatch_native(world, &command);
+            if crate::build_transaction::has_error(world) {
+                return;
+            }
+            continue;
+        }
         match command {
             SimCommand::SetChoreProfile {
                 agent,
@@ -236,9 +269,31 @@ pub fn drain_commands(world: &mut World) {
         }
     }
     flush_ordinary(world);
+    if crate::build_transaction::native_batch(world) {
+        if crate::build_transaction::maintain_batch(world) {
+            crate::books::shelve_arrivals(world);
+        }
+        if crate::build_transaction::native_has_ordinary(world) {
+            crate::chores::prune(world);
+        }
+        return;
+    }
     crate::books::shelve_arrivals(world);
     crate::targeted_cleanup::prune(world);
-    crate::chores::prune(world);
+    if world.resource::<crate::placement::LotEditState>().revision != revision {
+        if let Err(error) = crate::build_transaction::advance_view(world) {
+            crate::build_transaction::record_error(world, error.into());
+            return;
+        }
+        if let Some(before) = before {
+            if let Err(error) = crate::build_transaction::reconcile_ordinary(world, &before, origin)
+            {
+                crate::build_transaction::record_error(world, error.into());
+            }
+        }
+    } else {
+        crate::chores::prune(world);
+    }
 }
 
 fn flush_ordinary(world: &mut World) {
