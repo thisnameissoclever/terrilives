@@ -210,10 +210,9 @@ impl BedState<'_, '_> {
     }
 }
 
-/// Legacy public softmax primitive with no production caller: only
-/// `sampler_tests` call it. Live autonomy uses
-/// `autonomy::grouped_probabilities` and its positive bucket sampler to
-/// retain tiny alternatives and normalize interactions per target.
+/// Legacy public softmax primitive, retained for existing callers and tests.
+/// Live autonomy uses `autonomy::grouped_probabilities` and its positive bucket
+/// sampler to retain tiny alternatives and normalize interactions per target.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -254,53 +253,33 @@ impl BedState<'_, '_> {
 /// not re-check it; a pack holding a zero or negative temperature cannot
 /// be built.
 ///
-/// # `exp` and the other platform math calls
+/// # `exp` is the one platform call in the simulation's causal chain
 ///
-/// The `exp` here runs only in tests. The live one is in
-/// `autonomy::probabilities`, which `autonomy::grouped_probabilities`
-/// calls for the target groups and again for the interactions within each
-/// group, so `f64::exp` results feed every autonomous choice. `hypot` in
-/// the proximity checks of `social_company` and `relationship_dynamics`
-/// is also a libm call, and `powi` feeds the domestic cleanup curve, seat
-/// ranking in `media` and skill costs; Rust promises none of these
-/// functions' last bit. Most of what the sim computes is IEEE-exact and
-/// therefore bit-identical on every target - `score_advertisement` cubes
-/// urgency by repeated multiplication rather than `powf` for exactly that
-/// reason, and `SimRng` is in-repo rather than taken from `rand` for it
-/// too. `exp` is not: it lowers to a platform libm call whose last bit is
+/// Everything else the sim computes is IEEE-exact and therefore
+/// bit-identical on every target - `score_advertisement` cubes urgency by
+/// repeated multiplication rather than `powf` for exactly that reason,
+/// and `SimRng` is in-repo rather than taken from `rand` for it too.
+/// `f32::exp` is not: it lowers to a platform libm call whose last bit is
 /// not guaranteed to agree between the MSVC CRT that `cargo test` uses,
 /// glibc on CI, and the wasm32 build that actually ships.
 ///
 /// **A last-bit difference changes the outcome only when the draw falls
-/// within rounding distance of a bucket boundary**, and only on targets
-/// that disagree at all. For this function's `f32` weights that is about
-/// one decision in 2^24; `autonomy::sample` divides its draw among 2^53
-/// buckets. So this is a small residual risk rather than a broken
-/// guarantee - but it is a real one for replay and for the planned
-/// multiplayer, and it is unavoidable while [D-2] specifies a softmax.
-/// Softmax needs an exponential.
+/// within one ulp of a bucket boundary**, which is about one decision in
+/// 2^24 and only on targets that disagree at all. So this is a small
+/// residual risk rather than a broken guarantee - but it is a real one
+/// for replay and for the planned multiplayer, and it is unavoidable
+/// while [D-2] specifies a softmax. Softmax needs an exponential.
 ///
 /// It is written down rather than fixed because the fix - an in-repo
 /// `exp` approximation, the same move the PRNG made - is a decision about
 /// how much determinism this project is buying, not an implementation
-/// detail to slip in. This function's own tests are the five in
-/// `sampler_tests`, and none of them turns on a last-bit difference:
-/// `a_much_better_option_wins_most_of_the_time_but_not_always` and
-/// `temperature_moves_the_distribution_between_argmax_and_uniform` are
-/// statistical over many draws, `a_large_score_does_not_overflow_to_nan`
-/// and `a_zero_weight_candidate_is_never_picked_even_on_a_draw_of_zero`
-/// use weights that come out at exactly 1.0 and 0.0 once the maximum is
-/// subtracted, and `a_single_candidate_is_always_chosen` has one
-/// candidate. The `select_action` tests further down, including the tie
-/// tests and every fixture that calls `assert_decisive`, exercise the
-/// live path instead: `f64` weights from `autonomy::probabilities`, a
-/// wander candidate in every draw, and `autonomy::sample`, which gives
-/// every positive probability at least one bucket. They make no such
-/// guarantee. The golden world hash is not robust either. Its eight-agent, one-fridge scenario
-/// selects through `grouped_probabilities`, which always weighs a wander
-/// candidate, so `exp` results are in its causal chain. It agrees across
-/// native and wasm32 by measurement, and it would catch a last-bit
-/// difference only if a draw landed near enough to a bucket boundary.
+/// detail to slip in. The tests that cover weighted selection are all
+/// robust to a last-bit difference by construction: the tie tests weigh
+/// candidates at `exp(0.0)`, which is exactly 1.0 everywhere, the
+/// decisive-temperature fixtures underflow the loser to exactly 0.0, and
+/// the distribution test is statistical over 500 seeds. Both golden world
+/// hashes are over one-candidate scenarios and so never depend on an
+/// `exp` result at all.
 pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
     assert!(
         !scores.is_empty(),
@@ -466,11 +445,9 @@ mod sampler_tests {
     /// A candidate whose weight underflows to exactly zero must be
     /// unreachable, including on a draw of exactly `0.0`.
     ///
-    /// `assert_decisive` in the system tests below was written against
-    /// this property while selection used this function; live selection
-    /// now samples through `autonomy::sample` instead. This is the one
-    /// place the `<` in this function's bucket walk is distinguishable
-    /// from `<=`. `next_f32` can return exactly 0.0 -
+    /// This is what `assert_decisive` in the system tests below relies
+    /// on, and it is the one place the `<` in the bucket walk is
+    /// distinguishable from `<=`. `next_f32` can return exactly 0.0 -
     /// one draw in 2^24 - and under `<=` that draw would pick a
     /// zero-probability candidate sitting in front, which is precisely
     /// the "impossible outcome happens once in a blue moon" bug that is
@@ -2407,8 +2384,7 @@ mod intent_tests {
     //! wherever it names an autonomous winner, for the reason that
     //! constant documents: selection is a weighted draw, so "autonomy
     //! would have picked the fridge" is a statement about one roll of the
-    //! dice unless the loser's share is negligible (`assert_decisive` says
-    //! how small it is on the live path). Each such test
+    //! dice unless the loser's weight underflows to zero. Each such test
     //! asserts that precondition with `assert_decisive` rather than
     //! assuming it, and most also RUN the control - the same world with
     //! no intent queued - so that "the intent won" is measured against
@@ -3420,19 +3396,16 @@ mod tests {
         test_content::pack_tuned(objects, decisive_tuning())
     }
 
-    /// Asserts the fixture makes the draw a near formality, so a golden
-    /// winner assertion below is a statement about scoring rather than
-    /// about one roll of the dice.
+    /// Asserts the fixture makes the draw a formality, so a golden winner
+    /// assertion below is a statement about scoring rather than about one
+    /// roll of the dice.
     ///
-    /// The check is that the loser's softmax weight UNDERFLOWS to zero in
-    /// `f32`, which happens once `(winner - loser) / T` exceeds about 104.
-    /// On the live path that is a wide margin, not a certainty:
-    /// `autonomy::probabilities` computes the weight in `f64`, where it is
-    /// tiny but not zero; `decisive_tuning` keeps `choice_exploration` at
-    /// 1e-8; and `autonomy::sample` gives every positive probability at
-    /// least one of its 2^53 buckets. The loser therefore keeps a chance of
-    /// at most about one in 10^8 per draw. The live draw also holds a
-    /// wander candidate, which this check does not cover.
+    /// The criterion is exact rather than probabilistic: the loser's
+    /// softmax weight has to UNDERFLOW to zero in `f32`, which happens
+    /// once `(winner - loser) / T` exceeds about 104. The winner's bucket
+    /// then covers the entire `[0, total)` interval, so every draw
+    /// `next_f32` can produce picks it - there is no tail to be unlucky
+    /// in. A merely small weight would leave one.
     ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
@@ -4820,11 +4793,9 @@ mod tests {
         // test below, and it exists because that test only covers one of
         // the two iteration orders a tie can arrive in.
         //
-        // Two bit-identical scores weigh the same, so
-        // `autonomy::grouped_probabilities` gives them equal shares of the
-        // draw, beside the wander candidate live selection always adds,
-        // and for a given draw the ORDER of the candidate list decides
-        // which of the two it lands on. There, the
+        // Two bit-identical scores weigh the same, so `sample_softmax`
+        // gives them one bucket each of exactly half the interval and the
+        // ORDER of the candidate list is the whole answer. There, the
         // lower-index object iterates LAST and the sort has to move it to
         // the front. Here there is no archetype churn, so the two orders
         // already agree - which is what makes this the case that pins the
@@ -5099,12 +5070,10 @@ mod tests {
         // The SHIPPED temperature, unlike the golden-winner tests above,
         // and that is a property of this fixture rather than an
         // oversight: the sealed object is unreachable, so it never
-        // becomes a candidate and cannot be drawn at any temperature. The
-        // draw is between the runner up and the wander candidate live
-        // selection always adds, and the assertion below checks that the
-        // seeded draw takes the runner up. Making it decisive would only
-        // obscure that the thing under test here is availability, not
-        // weighting.
+        // becomes a candidate and the runner up is the only thing in the
+        // draw. A one-candidate draw returns that candidate at every
+        // temperature. Making it decisive would only obscure that the
+        // thing under test here is availability, not weighting.
         let content = test_content::pack(vec![
             test_content::object("sealed", &[(NeedId::Hunger, SEALED_DELTA)], DURATION),
             test_content::object("runner_up", &[(NeedId::Hunger, RUNNER_UP_DELTA)], DURATION),
@@ -5398,10 +5367,9 @@ mod tests {
     /// the first fixture to want its own seed would have been silently
     /// ignored.
     ///
-    /// Two tied objects make the seed's effect maximal and readable: they
-    /// get equal shares of the draw, beside the wander candidate live
-    /// selection always adds, so the winner is simply which share the
-    /// first draw lands in.
+    /// Two tied objects make the seed's effect maximal and readable: the
+    /// buckets are exactly half each, so the winner is simply which half
+    /// the first draw lands in.
     #[test]
     fn the_seed_selection_draws_from_is_the_one_the_content_pack_carries() {
         /// Builds the tied two-object world on a pack seeded with `seed`,
@@ -5468,10 +5436,9 @@ mod tests {
         // **The test the object sort exists for.**
         //
         // One agent, two objects whose scores are exactly equal. Equal
-        // scores weigh equally, so `autonomy::grouped_probabilities` hands
-        // each of them an equal share of the draw, beside the wander
-        // candidate live selection always adds, and the ORDER of the
-        // candidate list decides which share a given draw lands in. There
+        // scores weigh equally, so `sample_softmax` hands each of them a
+        // bucket of exactly half the interval and the ORDER of the
+        // candidate list decides which half a given draw lands in. There
         // is no argmax left to be unique, and no tiebreak clause to make
         // it one: `placed_objects.sort_by_key` in `select_action` is the
         // entire mechanism, and this is the test that fails without it.
