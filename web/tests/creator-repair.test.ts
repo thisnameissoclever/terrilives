@@ -5,7 +5,7 @@ import type { CharacterCatalog } from '../src/character/catalog.js';
 import { characterNames, namesForPresentation } from '../src/character/names.js';
 import { activityCategories, categoryMembers, unsupportedActivityRoutes } from '../src/character/activity-categories.js';
 import { categoryInfluence } from '../src/character/choice-influences.js';
-import { skillStanding, reviewValue } from '../src/character/presentation.js';
+import { readableNumber, skillStanding, reviewValue } from '../src/character/presentation.js';
 import { CreatorClock } from '../src/ui/character-creator/clock.js';
 
 const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,
@@ -102,6 +102,21 @@ it('decodes in-progress skill practice and formats saved affinity precision read
   const source=neutralDraft('Test');source.skills=[{id:'reading',practice:floatBits(.2)}];
   const draft=CharacterDraft.edit(source,1,catalog,[]),field=draft.fields.find(field=>field.id===JSON.stringify(['skill','reading']))!;
   expect(reviewValue(field,source,catalog)).toContain('Level 1');expect(reviewValue(field,source,catalog)).toContain('50%');
+});
+
+it('reviews surroundings and trait influences at two decimals, never float noise',()=>{
+  // A 32-bit 0.71 reads as 0.7099999785423279 once widened; a spawned draw can
+  // carry any number of digits. Neither belongs in the review.
+  const affinity={id:'plants',label:'Plants',description:'Potted plants around the house.'};
+  const withAffinity:CharacterCatalog={...catalog,affinities:[affinity]};
+  const source=neutralDraft('Test');
+  for(const [value,expected] of [[.71,'Likes (0.71)'],[-.57,'Dislikes (-0.57)'],[.164,'Likes (0.16)'],[0,'Neutral (0)'],[.001,'Likes (0.001)']] as const){
+    source.affinities=[{id:affinity.id,value:floatBits(value)}];
+    const draft=CharacterDraft.edit(source,1,withAffinity,[]),field=draft.fields.find(field=>field.id===JSON.stringify(['affinity',affinity.id]))!;
+    expect(reviewValue(field,source,withAffinity)).toBe(expected);
+  }
+  expect(readableNumber(1.1714)).toBe('1.17');
+  expect(readableNumber(0.7099999785423279)).toBe('0.71');
 });
 
 it('explains the normalized height control and reviews physical height relative to average',()=>{
