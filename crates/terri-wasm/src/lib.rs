@@ -2541,8 +2541,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v10())
-            .expect("SaveSnapshotV10 serialises");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v11())
+            .expect("SaveSnapshotV11 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2566,6 +2566,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 11 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV11>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v11(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 10 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV10>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v10(snapshot).is_ok(),
@@ -4360,7 +4366,7 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            10,
+            11,
             "the public writer must emit the schema-10 envelope"
         );
 

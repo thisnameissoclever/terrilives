@@ -488,6 +488,10 @@ impl From<PublishedTuning> for Tuning {
             affinity_from_mild_trait: old.affinity_from_mild_trait,
             need_interactions: crate::NeedInteractionTuning::default(),
             hated_communal_chance: Tuning::SHIPPED_HATED_COMMUNAL_CHANCE,
+            burn_chance_novice: Tuning::SHIPPED_BURN_CHANCE_NOVICE,
+            burn_chance_master: Tuning::SHIPPED_BURN_CHANCE_MASTER,
+            burnt_meal_mood_penalty: Tuning::SHIPPED_BURNT_MEAL_MOOD_PENALTY,
+            burnt_meal_mood_ticks: Tuning::SHIPPED_BURNT_MEAL_MOOD_TICKS,
         }
     }
 }

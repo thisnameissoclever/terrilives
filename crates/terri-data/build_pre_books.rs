@@ -100,6 +100,12 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         // Communal affinity (issue 257): the shipped value, which the
         // published-pack conversions reconstruct too.
         ("hated_communal_chance", toml::Value::Float(0.35)),
+        // Burnt meals (issue 243): the shipped values, reconstructed by the
+        // published-pack conversions too.
+        ("burn_chance_novice", toml::Value::Float(0.12)),
+        ("burn_chance_master", toml::Value::Float(0.002)),
+        ("burnt_meal_mood_penalty", toml::Value::Float(10.0)),
+        ("burnt_meal_mood_ticks", toml::Value::Integer(240)),
     ] {
         tuning
             .as_table_mut()

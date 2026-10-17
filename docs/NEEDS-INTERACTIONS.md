@@ -168,7 +168,9 @@ scale positive Social delivery by the affinity and family formula above. Other
 positive chat benefits retain their existing affinity scaling.
 
 Skills improve through completed attempts and influence capability-linked
-fumble chances through mastery; practice itself refills no need. Repetition
+fumble chances and the chance that a meal burns at the hob through mastery;
+practice itself refills no need. A burnt meal feeds nobody and sends the cook
+back to the fridge. Repetition
 above the ordinary appeal range can create Overdoing and Feeling sick
 moodlets. Those affect mood and life satisfaction, without changing the
 need-delivery rates. Object likes and dislikes also affect mood, and annoyance

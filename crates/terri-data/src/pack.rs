@@ -1073,6 +1073,16 @@ pub struct Tuning {
     /// person toward a housemate they hate (communal affinity, issue 257).
     /// Appended after the balance values, per the rule above.
     pub hated_communal_chance: f32,
+    /// Chance that a hob step burns the food for a cook with no cooking
+    /// practice (burnt meals, issue 243). Appended after the communal
+    /// chance, per the rule above, with the three knobs after it.
+    pub burn_chance_novice: f32,
+    /// The same chance at full cooking mastery; at most the novice chance.
+    pub burn_chance_master: f32,
+    /// How much a burnt meal lowers mood while its moodlet lasts.
+    pub burnt_meal_mood_penalty: f32,
+    /// How many ticks the Burnt dinner moodlet lasts.
+    pub burnt_meal_mood_ticks: u32,
 }
 
 impl Tuning {
@@ -1080,6 +1090,12 @@ impl Tuning {
     /// reconstructs for it: the shipped `content/tuning.toml` value, which
     /// the authentic published-pack test pins against current content.
     pub const SHIPPED_HATED_COMMUNAL_CHANCE: f32 = 0.35;
+    /// The shipped burnt-meal knobs, reconstructed the same way for packs
+    /// published before they existed.
+    pub const SHIPPED_BURN_CHANCE_NOVICE: f32 = 0.12;
+    pub const SHIPPED_BURN_CHANCE_MASTER: f32 = 0.002;
+    pub const SHIPPED_BURNT_MEAL_MOOD_PENALTY: f32 = 10.0;
+    pub const SHIPPED_BURNT_MEAL_MOOD_TICKS: u32 = 240;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1861,6 +1877,10 @@ mod tests {
             affinity_from_mild_trait: 0.34375,
             need_interactions: crate::NeedInteractionTuning::default(),
             hated_communal_chance: 0.359375,
+            burn_chance_novice: 0.09375,
+            burn_chance_master: 0.00390625,
+            burnt_meal_mood_penalty: 9.5,
+            burnt_meal_mood_ticks: 300,
         }
     }
 
@@ -2588,8 +2608,9 @@ mod tests {
     /// which are the twenty-five before the two trait bands ([TL-affinity]),
     /// the eight before the word bands and the mild trait value
     /// ([OA-hud], [OA-values]), the twelve before the need-interaction
-    /// balance values, which precede the final four bytes of
-    /// `hated_communal_chance`; every established field stays put.
+    /// balance values, which precede the four bytes of
+    /// `hated_communal_chance` and the final fourteen of the burnt-meal
+    /// knobs; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2603,11 +2624,56 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // Burnt meals (issue 243): the four cooking knobs are the final
+        // fourteen bytes, three floats in declaration order and the moodlet
+        // duration as a two-byte varint (300 is 0xAC 0x02). Each changed
+        // float differs from the fixture's only in its third byte.
+        let burn = before.len() - 14;
+        assert_eq!(
+            before[burn..burn + 12],
+            [0.09375f32, 0.00390625, 9.5]
+                .into_iter()
+                .flat_map(f32::to_le_bytes)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(before[burn + 12..], [0xAC, 0x02]);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    burn_chance_novice: 0.1015625,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    burn_chance_master: 0.0048828125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                10,
+                Tuning {
+                    burnt_meal_mood_penalty: 9.75,
+                    ..a_tuning()
+                },
+            ),
+            (
+                12,
+                Tuning {
+                    burnt_meal_mood_ticks: 301,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![burn + offset], "burn {offset}");
+        }
         // Communal affinity (issue 257): the hated communal chance is the
-        // last four bytes, one float; a change differs from the fixture's
-        // only in its third byte.
-        let chance = before.len() - 4;
-        assert_eq!(before[chance..], 0.359375f32.to_le_bytes());
+        // four bytes before them, one float; a change differs from the
+        // fixture's only in its third byte.
+        let chance = burn - 4;
+        assert_eq!(before[chance..burn], 0.359375f32.to_le_bytes());
         assert_eq!(
             changed(Tuning {
                 hated_communal_chance: 0.390625,

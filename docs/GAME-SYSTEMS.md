@@ -166,7 +166,7 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 **What is missing.** Consequences. Higher skill should give better outcomes, such as tastier meals that fill more hunger and faster repairs. Some actions and chains should unlock at a level. Careers should read skills for performance and promotion, and the ghost design already assumes that ghosts teach skills. More skills, and a fuller skills panel beyond the Overview list if the owner wants one, are also open.
 
-**Design note.** The capability trait's competence number became the skill instead of remaining a second, parallel mechanism. The trait now decides who can fumble; the skill decides how often.
+**Design note.** The capability trait's competence number became the skill instead of remaining a second, parallel mechanism. The trait now decides who can fumble; the skill decides how often. Cooking mastery also sets how often a meal burns when it leaves the hob, from 0.12 with no practice to one in five hundred at the top of the ladder; a burnt meal is thrown away, the cook starts again from the fridge and carries a Burnt dinner moodlet for four game hours ([burnt meals](specs/2026-10-16-burnt-meals.md)).
 
 **Depends on.** Nothing. Outcomes and unlocks can build on the shipped slice now.
 

@@ -331,9 +331,20 @@ pub struct TuningFile {
     /// Chance per contact minute that a communal activity pays its communal
     /// rate to a person toward a housemate they hate, at or below
     /// `grief_hated_affinity`; a refused minute pays the ordinary proximity
-    /// rate with friction still suspended (communal affinity, issue 257). Finite, from 0 to 1. Required, like
-    /// every other root knob.
+    /// rate with friction still suspended (communal affinity, issue 257).
+    /// Finite, from 0 to 1. Required, like every other root knob.
     pub hated_communal_chance: f32,
+    /// Chance that a hob step burns the food for a cook with no cooking
+    /// practice (burnt meals, issue 243). Finite, from 0 to 1.
+    pub burn_chance_novice: f32,
+    /// The same chance at full cooking mastery. Finite, from 0 to
+    /// `burn_chance_novice`.
+    pub burn_chance_master: f32,
+    /// How much a burnt meal lowers mood while its moodlet lasts. Finite and
+    /// not negative.
+    pub burnt_meal_mood_penalty: f32,
+    /// How many ticks the Burnt dinner moodlet lasts. From 1 to a week.
+    pub burnt_meal_mood_ticks: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1258,7 +1269,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 89] = [
+    const TUNING_LINES: [(&str, &str); 93] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1294,6 +1305,10 @@ mod tests {
         ("relationship_decay_per_tick", "0.001953125"),
         ("relationship_delta_scale", "0.875"),
         ("hated_communal_chance", "0.359375"),
+        ("burn_chance_novice", "0.09375"),
+        ("burn_chance_master", "0.00390625"),
+        ("burnt_meal_mood_penalty", "9.5"),
+        ("burnt_meal_mood_ticks", "300"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1421,6 +1436,10 @@ mod tests {
         assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
         assert_eq!(parsed.relationship_delta_scale, 0.875);
         assert_eq!(parsed.hated_communal_chance, 0.359375);
+        assert_eq!(parsed.burn_chance_novice, 0.09375);
+        assert_eq!(parsed.burn_chance_master, 0.00390625);
+        assert_eq!(parsed.burnt_meal_mood_penalty, 9.5);
+        assert_eq!(parsed.burnt_meal_mood_ticks, 300);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);
