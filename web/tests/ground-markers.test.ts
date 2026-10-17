@@ -175,16 +175,82 @@ describe('the marker command', () => {
 });
 
 const look = MARKER_LOOK, float = wgslFloat;
-/** Scene samples are half a canvas pixel apart. */
-const STEP = 1 / SCENE_SAMPLE_SCALE;
+/** The canvas the replayed vertex shader maps to clip space; the replay maps clip space back to it. */
+const CANVAS: readonly [number, number] = [1000, 800];
+/** fwidth differences across one scene sample, half a canvas pixel in the game. */
+const GAME_STEP = 1 / SCENE_SAMPLE_SCALE;
+
+/** Removes whitespace next to punctuation and collapses the rest, so only spaces between two words remain. */
+function normalized(statement: string): string {
+  return statement.replace(/\s+/g, ' ').replace(/\s*([^\w\s])\s*/g, '$1').trim();
+}
+
+/** The statements of the WGSL function `name`, comments removed and whitespace normalized. */
+function functionStatements(source: string, name: string): string[] {
+  const declaration = new RegExp(String.raw`\bfn\s+${name}\s*[(]`).exec(source);
+  if (!declaration) throw new Error(`The shader has no function ${name}`);
+  const body = source.indexOf('{', declaration.index);
+  const statements: string[] = [];
+  let depth = 1, current = '';
+  for (let index = body + 1; index < source.length; index++) {
+    const character = source[index];
+    if (character === '/' && source[index + 1] === '/') { index = source.indexOf('\n', index); continue; }
+    if (character === '{') depth++;
+    if (character === '}' && --depth === 0) break;
+    current += character;
+    if ((character === ';' || character === '}') && depth === 1) {
+      statements.push(normalized(current));
+      current = '';
+    }
+  }
+  if (current.trim()) statements.push(normalized(current));
+  return statements;
+}
+
+/** One vertex invocation's values, named as the shader names them. */
+interface VertexValue {
+  i: number; q: [number, number]; offset: [number, number]; p: [number, number];
+  position: [number, number, number, number]; unit: [number, number]; marker: number;
+}
+/** One WGSL statement of `vs` and the TypeScript that does the same. */
+type VertexStatement = readonly [wgsl: string, run: (value: VertexValue, block: Float64Array) => void];
+const CORNERS: readonly (readonly [number, number])[] = [[-1, -1], [1, -1], [-1, 1], [-1, 1], [1, -1], [1, 1]];
+
+/** The vertex shader `vs`, statement by statement, each beside the TypeScript the replay runs for it. */
+const VERTEX: readonly VertexStatement[] = [
+  ['let q=array<vec2f,6>(vec2f(-1,-1),vec2f(1,-1),vec2f(-1,1),vec2f(-1,1),vec2f(1,-1),vec2f(1,1))[i];', value => {
+    const [x, y] = CORNERS[value.i];
+    value.q = [x, y];
+  }],
+  ['let m=u.items[marker];', () => {}],
+  [`let offset=q*(m.extent+vec2f(${float(look.boxMargin)}));`, (value, block) => {
+    value.offset = [value.q[0] * (block[L.extent] + look.boxMargin), value.q[1] * (block[L.extent + 1] + look.boxMargin)];
+  }],
+  ['var o:Vertex;', () => {}],
+  ['let p=m.center+offset;', (value, block) => {
+    value.p = [block[L.center] + value.offset[0], block[L.center + 1] + value.offset[1]];
+  }],
+  ['o.position=vec4f(p/u.canvas*vec2f(2,-2)+vec2f(-1,1),m.depth,1);', (value, block) => {
+    value.position = [value.p[0] / CANVAS[0] * 2 - 1, value.p[1] / CANVAS[1] * -2 + 1, block[L.depth], 1];
+  }],
+  ['o.unit=vec2f(dot(m.row0,offset),dot(m.row1,offset));', (value, block) => {
+    value.unit = [block[L.row0] * value.offset[0] + block[L.row0 + 1] * value.offset[1],
+      block[L.row1] * value.offset[0] + block[L.row1 + 1] * value.offset[1]];
+  }],
+  ['o.marker=marker;', value => { value.marker = 0; }],
+  ['return o;', () => {}],
+];
+
+/** The vertex output struct, whose default interpolation hands the fragment a linearly interpolated unit. */
+const VERTEX_STRUCT = 'struct Vertex{@builtin(position)position:vec4f,@location(0)unit:vec2f,@location(1)@interpolate(flat)marker:u32};';
 
 /** One fragment invocation's values, named as the shader names them. */
 interface Fragment {
-  block: Float64Array; unit: [number, number];
+  block: Float64Array; covered: boolean; unit: [number, number];
   r: number; f: number; n: [number, number]; slope: number; dist: number; aa: number;
   edge: number; fill: number; opacity: number; discarded: boolean; output: number[];
 }
-/** One WGSL statement and the TypeScript that does the same; `fwidth` differences a named value across the quad. */
+/** One WGSL statement of `fs` and the TypeScript that does the same; `fwidth` differences a named value across the quad. */
 type Statement = readonly [wgsl: string, run: (value: Fragment, fwidth: (name: 'f' | 'dist') => number) => void];
 
 const smoothstep = (low: number, high: number, x: number) => {
@@ -205,9 +271,8 @@ const LINEAR: readonly [string, (channel: number) => number] = [
 
 /**
  * The fragment shader `fs`, statement by statement, each beside the
- * TypeScript the replica runs for it. A test compares the WGSL column with
- * the shader, so an edit to the shader that this table does not share fails,
- * and the constants come from MARKER_LOOK on both sides.
+ * TypeScript the replay runs for it. The constants come from MARKER_LOOK on
+ * both sides; a test checks that their WGSL text keeps their values.
  */
 const FRAGMENT: readonly Statement[] = [
   ['let m=u.items[i.marker];', () => {}],
@@ -252,28 +317,69 @@ const EARLIER_SOFTENING: readonly Statement[] = FRAGMENT.map(statement => {
   return EARLIER[name] ?? statement;
 });
 
+/** One marker's quad as the replayed vertex shader leaves it, and the fragment statements to run over it. */
+interface Replay {
+  block: Float64Array; step: number; statements: readonly Statement[];
+  vertices: { screen: [number, number]; unit: [number, number] }[];
+}
+
+/** Runs the vertex statements for all six corners and maps each clip position back to canvas pixels. */
+function replay(block: Float64Array, step = GAME_STEP, statements: readonly Statement[] = FRAGMENT): Replay {
+  const vertices = CORNERS.map((_, i) => {
+    const value: VertexValue = { i, q: [0, 0], offset: [0, 0], p: [0, 0], position: [0, 0, 0, 0], unit: [0, 0], marker: -1 };
+    for (const [, run] of VERTEX) run(value, block);
+    const screen: [number, number] = [(value.position[0] + 1) / 2 * CANVAS[0], (1 - value.position[1]) / 2 * CANVAS[1]];
+    return { screen, unit: value.unit };
+  });
+  return { block, step, statements, vertices };
+}
+
+/** Barycentric weights of `point` in the triangle of vertices a, b and c; one is negative outside it. */
+function weights(a: [number, number], b: [number, number], c: [number, number], point: [number, number]): number[] {
+  const area = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
+  const wb = ((point[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (point[1] - a[1])) / area;
+  const wc = ((b[0] - a[0]) * (point[1] - a[1]) - (point[0] - a[0]) * (b[1] - a[1])) / area;
+  return [1 - wb - wc, wb, wc];
+}
+
 /**
- * Runs `statements` for one fragment at canvas-pixel offset (x, y) from the
- * marker center. fwidth differences a value across the two by two quad of
- * scene samples whose first sample is (quadX, quadY), as fine derivatives do.
+ * What the rasterizer hands a fragment at canvas point `point`: whether
+ * either triangle covers it, and the unit interpolated from the vertex
+ * outputs. The unit is linear across the quad, so the first triangle's
+ * plane gives it everywhere, as helper invocations extend it past an edge.
  */
-function fragment(block: Float64Array, x: number, y: number, statements: readonly Statement[] = FRAGMENT,
-  quadX = x, quadY = y, limit = statements.length): Fragment {
-  const value: Fragment = { block, unit: unit(block, x, y), r: 0, f: 0, n: [0, 0], slope: 0, dist: 0, aa: 0,
-    edge: 0, fill: 0, opacity: 0, discarded: false, output: [] };
+function rasterize(quad: Replay, point: [number, number]): { covered: boolean; unit: [number, number] } {
+  const v = quad.vertices;
+  const first = weights(v[0].screen, v[1].screen, v[2].screen, point);
+  const second = weights(v[3].screen, v[4].screen, v[5].screen, point);
+  const covered = first.every(weight => weight >= -1e-9) || second.every(weight => weight >= -1e-9);
+  const unit: [number, number] = [0, 1].map(axis =>
+    first[0] * v[0].unit[axis] + first[1] * v[1].unit[axis] + first[2] * v[2].unit[axis]) as [number, number];
+  return { covered, unit };
+}
+
+/**
+ * Runs the fragment statements at canvas-pixel offset (x, y) from the marker
+ * center. fwidth differences a value across the two by two quad of samples
+ * whose first sample is (quadX, quadY), as fine derivatives do.
+ */
+function fragment(quad: Replay, x: number, y: number, quadX = x, quadY = y, limit = quad.statements.length): Fragment {
+  const raster = rasterize(quad, [quad.block[L.center] + x, quad.block[L.center + 1] + y]);
+  const value: Fragment = { block: quad.block, covered: raster.covered, unit: raster.unit, r: 0, f: 0, n: [0, 0],
+    slope: 0, dist: 0, aa: 0, edge: 0, fill: 0, opacity: 0, discarded: false, output: [] };
   for (let index = 0; index < limit; index++) {
-    statements[index][1](value, name => {
-      const at = (sx: number, sy: number) => fragment(block, sx, sy, statements, sx, sy, index)[name];
-      return Math.abs(at(quadX + STEP, y) - at(quadX, y)) + Math.abs(at(x, quadY + STEP) - at(x, quadY));
+    quad.statements[index][1](value, name => {
+      const at = (sx: number, sy: number) => fragment(quad, sx, sy, sx, sy, index)[name];
+      return Math.abs(at(quadX + quad.step, y) - at(quadX, y)) + Math.abs(at(x, quadY + quad.step) - at(x, quadY));
     });
   }
   return value;
 }
 
-/** The fragment at scene sample (px, py); sample (0, 0) lies exactly on the marker center. */
-function sample(block: Float64Array, px: number, py: number, statements: readonly Statement[] = FRAGMENT): Fragment {
-  const quad = (p: number) => (p - (((p % 2) + 2) % 2)) * STEP;
-  return fragment(block, px * STEP, py * STEP, statements, quad(px), quad(py));
+/** The fragment at sample (px, py) of the quad's sample grid; sample (0, 0) lies exactly on the marker center. */
+function sample(quad: Replay, px: number, py: number): Fragment {
+  const corner = (p: number) => (p - (((p % 2) + 2) % 2)) * quad.step;
+  return fragment(quad, px * quad.step, py * quad.step, corner(px), corner(py));
 }
 
 /** The point at angle t on the marker's edge, and the unit screen direction straight out of the ellipse there. */
@@ -286,28 +392,31 @@ function edgePoint(block: Float64Array, t: number): { point: [number, number]; n
   return { point, normal: [nx / length, ny / length] };
 }
 
-/** The statements of the WGSL function that begins with `header`, comments removed and whitespace collapsed. */
-function functionStatements(source: string, header: string): string[] {
-  const start = source.indexOf(header);
-  if (start < 0) throw new Error(`The shader has no function ${header}`);
-  const statements: string[] = [];
-  let depth = 1, current = '';
-  for (let index = start + header.length; index < source.length; index++) {
-    const character = source[index];
-    if (character === '/' && source[index + 1] === '/') { index = source.indexOf('\n', index); continue; }
-    if (character === '{') depth++;
-    if (character === '}' && --depth === 0) break;
-    current += character;
-    if ((character === ';' || character === '}') && depth === 1) {
-      statements.push(current.trim().replace(/\s+/g, ' '));
-      current = '';
-    }
+/** Where smoothstep(0, 1, t) reaches `target`, by bisection. */
+function smoothstepAt(target: number): number {
+  let low = 0, high = 1;
+  for (let step = 0; step < 60; step++) {
+    const middle = (low + high) / 2;
+    if (smoothstep(0, 1, middle) < target) low = middle; else high = middle;
   }
-  if (current.trim()) statements.push(current.trim());
-  return statements;
+  return (low + high) / 2;
 }
 
-describe('the marker shader math, replayed on the CPU', () => {
+/** The distance along the outward normal over which the border fades from 0.9 to 0.1 of full strength. */
+function outerSoftening(quad: Replay, point: [number, number], normal: [number, number]): number {
+  let strong = Number.NaN, faint = Number.NaN;
+  for (let s = 0; s <= 3; s += 0.0005) {
+    const edge = fragment(quad, point[0] + s * normal[0], point[1] + s * normal[1]).edge;
+    if (Number.isNaN(strong) && edge <= 0.9) strong = s;
+    if (Number.isNaN(faint) && edge <= 0.1) { faint = s; break; }
+  }
+  return faint - strong;
+}
+
+/** WGSL's decimal floating-point literal without a suffix. */
+const WGSL_FLOAT = /^(?:\d*\.\d+(?:[eE][+-]?\d+)?|\d+\.\d*(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+)$/;
+
+describe('the marker shader, replayed on the CPU', () => {
   const blocks: [string, Float64Array][] = [
     ['housemate', uniform(housemateRow(), 1)],
     ['1 by 1 placement', uniform(placementRow(1, 1), 1)],
@@ -316,43 +425,78 @@ describe('the marker shader math, replayed on the CPU', () => {
     ['zoomed 1 by 2 placement', uniform(placementRow(1, 2), 2.5)],
   ];
 
-  it('ties every statement of the fragment shader and its color conversion to the replica', () => {
-    expect(functionStatements(groundSelectionShader, '@fragment fn fs(i:Vertex)->@location(0) vec4f {'))
-      .toEqual(FRAGMENT.map(([wgsl]) => wgsl));
-    expect(functionStatements(groundSelectionShader, 'fn linear(c:vec3f)->vec3f {')).toEqual([LINEAR[0]]);
-    expect(groundSelectionShader).toContain(`let offset=q*(m.extent+vec2f(${float(look.boxMargin)}));`);
+  it('ties every vertex, fragment and color-conversion statement and the vertex struct to the replay', () => {
+    expect(functionStatements(groundSelectionShader, 'vs')).toEqual(VERTEX.map(([wgsl]) => normalized(wgsl)));
+    expect(functionStatements(groundSelectionShader, 'fs')).toEqual(FRAGMENT.map(([wgsl]) => normalized(wgsl)));
+    expect(functionStatements(groundSelectionShader, 'linear')).toEqual([normalized(LINEAR[0])]);
+    const struct = /struct Vertex \{[^}]*\};/.exec(groundSelectionShader);
+    expect(struct && normalized(struct[0])).toBe(VERTEX_STRUCT);
   });
 
-  it.each(blocks)('keeps the %s marker center at the plain 0.105 fill, with no bright dot', (_, block) => {
+  it('keeps the tie through a formatting pass, but not through a real edit', () => {
+    const format = (source: string) => source.replaceAll('=', ' = ').replaceAll(',', ', ')
+      .replace('let slope=max(', 'let slope = max(\n    ');
+    const formatted = format(groundSelectionShader);
+    expect(formatted).not.toBe(groundSelectionShader);
+    expect(functionStatements(formatted, 'fs')).toEqual(FRAGMENT.map(([wgsl]) => normalized(wgsl)));
+    expect(functionStatements(formatted, 'vs')).toEqual(VERTEX.map(([wgsl]) => normalized(wgsl)));
+    const edited = format(groundSelectionShader.replace('let f=r-1.;', 'let f=r*r-1.;'));
+    expect(functionStatements(edited, 'fs')).not.toEqual(FRAGMENT.map(([wgsl]) => normalized(wgsl)));
+  });
+
+  it.each(Object.entries(look))('writes MARKER_LOOK.%s into the shader as a WGSL float with the same value', (_, value) => {
+    const text = float(value);
+    expect(text).toMatch(WGSL_FLOAT);
+    expect(Number(text)).toBe(value);
+  });
+
+  it('formats whole numbers, decimals and tiny numbers as WGSL floats', () => {
+    expect([float(4), float(0.975), float(1e-4), float(1e-7)]).toEqual(['4.0', '0.975', '0.0001', '1e-7']);
+  });
+
+  it.each(blocks)('keeps the %s marker center a visible plain 0.105 fill, with no bright dot', (_, block) => {
+    const quad = replay(block);
     for (let py = -4; py <= 4; py++) {
-      for (let px = -4; px <= 4; px++) expect(sample(block, px, py).opacity).toBeCloseTo(0.105, 6);
+      for (let px = -4; px <= 4; px++) {
+        const value = sample(quad, px, py);
+        expect(value.covered).toBe(true);
+        expect(value.discarded).toBe(false);
+        expect(value.opacity).toBeCloseTo(0.105, 6);
+        expect(value.output[3]).toBeCloseTo(0.105, 6);
+        for (let channel = 0; channel < 3; channel++) {
+          expect(value.output[channel]).toBeCloseTo(LINEAR[1](block[L.color + channel]) * 0.105, 6);
+        }
+      }
     }
   });
 
   it('rejects the earlier softening, which lit the samples around an exact center', () => {
     for (const [, block] of blocks.slice(1)) {
-      const brightest = Math.max(...[[0, 0], [1, 0], [0, 1], [1, 1]].map(([px, py]) =>
-        sample(block, px, py, EARLIER_SOFTENING).opacity));
+      const quad = replay(block, GAME_STEP, EARLIER_SOFTENING);
+      const brightest = Math.max(...[[0, 0], [1, 0], [0, 1], [1, 1]].map(([px, py]) => sample(quad, px, py).opacity));
       expect(brightest).toBeGreaterThan(0.3);
     }
   });
 
   it.each(blocks)('gives the %s marker a 1.95 pixel border all the way round', (_, block) => {
+    const quad = replay(block);
     for (let k = 0; k < 16; k++) {
       const { point, normal } = edgePoint(block, k * Math.PI / 8);
       // Walk across the edge along its screen normal and measure where the border is at least half strength.
       let width = 0;
       for (let s = -1.5; s <= 1.5; s += 0.001) {
-        if (fragment(block, point[0] + s * normal[0], point[1] + s * normal[1]).edge >= 0.5) width += 0.001;
+        if (fragment(quad, point[0] + s * normal[0], point[1] + s * normal[1]).edge >= 0.5) width += 0.001;
       }
       expect(width).toBeCloseTo(1.95, 1);
     }
   });
 
   it.each(blocks)('draws the %s marker edge at 0.94 opacity in the marker color, premultiplied', (_, block) => {
+    const quad = replay(block);
     for (let k = 0; k < 8; k++) {
       const { point } = edgePoint(block, k * Math.PI / 4);
-      const value = fragment(block, point[0], point[1]);
+      const value = fragment(quad, point[0], point[1]);
+      expect(value.covered).toBe(true);
       expect(value.discarded).toBe(false);
       expect(value.output[3]).toBeCloseTo(0.94, 6);
       for (let channel = 0; channel < 3; channel++) {
@@ -361,16 +505,46 @@ describe('the marker shader math, replayed on the CPU', () => {
     }
   });
 
-  it.each(blocks)('keeps every visible fragment of the %s marker inside the box margin', (_, block) => {
+  // The approved softening is the distance one scene sample's step covers
+  // across the edge, half a pixel per screen axis in the game, and never less
+  // than 0.42 pixels. Between 0.9 and 0.1 of full strength, smoothstep spans
+  // 2 * (t(0.9) - t(0.1)) of that softening. The 10% allowance covers the
+  // distance estimate's error at the tightly curved ends of a long marker.
+  const span = 2 * (smoothstepAt(0.9) - smoothstepAt(0.1));
+  const expectSoftening = (measured: number, softening: number) =>
+    expect(Math.abs(measured - span * softening)).toBeLessThan(0.1 * span * softening);
+
+  it.each(blocks)('fades the %s marker border out over the approved softening width', (_, block) => {
+    const quad = replay(block);
+    for (let k = 0; k < 16; k++) {
+      const { point, normal } = edgePoint(block, k * Math.PI / 8);
+      expectSoftening(outerSoftening(quad, point, normal),
+        Math.max(0.5 * (Math.abs(normal[0]) + Math.abs(normal[1])), 0.42));
+    }
+  });
+
+  it.each(blocks)('never softens the %s marker border below 0.42 pixels, even at four samples per pixel', (_, block) => {
+    const quad = replay(block, 0.25);
+    for (let k = 0; k < 16; k++) {
+      const { point, normal } = edgePoint(block, k * Math.PI / 8);
+      expectSoftening(outerSoftening(quad, point, normal), 0.42);
+    }
+  });
+
+  it.each(blocks)('keeps every visible fragment of the %s marker inside its quad', (_, block) => {
+    const quad = replay(block);
     for (let k = 0; k < 32; k++) {
       const { point, normal } = edgePoint(block, k * Math.PI / 16);
       let reach = 0;
       for (let s = 0; s <= look.boxMargin + 2; s += 0.01) {
-        if (!fragment(block, point[0] + s * normal[0], point[1] + s * normal[1]).discarded) reach = s;
+        const value = fragment(quad, point[0] + s * normal[0], point[1] + s * normal[1]);
+        // 0.001 is the approved discard threshold: anything stronger must lie on the drawn quad.
+        if (value.opacity >= 0.001) {
+          expect(value.covered).toBe(true);
+          reach = s;
+        }
       }
-      // Every point this close to the ellipse lies inside the widened screen box, so nothing visible is clipped.
       expect(reach).toBeGreaterThan(1);
-      expect(reach).toBeLessThan(look.boxMargin);
     }
   });
 });
