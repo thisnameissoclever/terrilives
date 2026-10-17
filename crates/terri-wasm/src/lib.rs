@@ -683,6 +683,35 @@ impl SimHandle {
         ))
     }
 
+    /// The season of the current tick, 0 (Spring) to 3 (Winter) - [SEA-year]
+    /// in `docs/specs/2026-10-17-seasons.md`. Derived from the tick and
+    /// content through `terri_core::clock::season`, like `weekday_index`, so
+    /// the shell never works out a season of its own. Nothing about it is
+    /// saved.
+    pub fn season_index(&self) -> u32 {
+        let tuning = &self.sim.world().resource::<Content>().0.tuning;
+        u32::from(terri_core::clock::season(
+            self.sim_tick(),
+            tuning.day_ticks,
+            tuning.days_per_season,
+            tuning.first_season,
+        ))
+    }
+
+    /// The yard grass's `[hue, strength, lightness]` change in each season,
+    /// flattened, Spring first: twelve numbers - [SEA-yard]. Content, so the
+    /// shell reads it once and composes the current season's row with
+    /// `yard_look`.
+    pub fn season_yard_looks(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .season_yard_looks
+            .concat()
+    }
+
     /// Saved legacy wall cells, interleaved `[x0, y0, x1, y1, ...]`.
     /// Furniture occupancy is not wall ownership. V1 custom worlds retain
     /// their frozen legacy presentation; V2/V3 explicit layouts use their own

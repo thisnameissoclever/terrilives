@@ -17,7 +17,7 @@ itself on having personality.
 
 | Surface | Current strings | Source |
 | --- | --- | --- |
-| Household status | Time; Funds; Day {n}, {Weekday} and {hh}:{mm}, on two lines; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday; Day and time unavailable | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Household status | Time; Funds; Day {n}, {Weekday} and {Season}, {hh}:{mm}, on two lines; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday; Spring; Summer; Autumn; Winter; Day and time unavailable | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Sim details; Overview; Queue; Queue mode; Clear orders; People; Traits; Collapse; Expand; Close; Edit; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Contextual Build actions | Confirm; Buy with price; Sell with payout; Cancel; Wall; Doorway; Window; Remove; Clear; Build room; Corners; covering names; Rotate clockwise; Rotate counterclockwise | `web/src/ui/placement-actions.ts` |
 | Options flyout | Version {n}, the first line, with the number from `web/package.json`; Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the world controls; compact Build places Options beside zoom; Allow sims to change careers autonomously; Allow autonomous job search for unemployed sims | `web/index.html`, `web/src/ui/options-menu.ts`, `web/src/ui/game-version.ts`, `web/src/ui/career-autonomy-controls.ts` |

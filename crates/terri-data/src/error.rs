@@ -1079,6 +1079,19 @@ pub enum ContentError {
     FirstWeekdayOutOfRange {
         value: u8,
     },
+    /// A zero-day season - [SEA-year]: `day / days_per_season` would divide
+    /// by zero the first time anything asks the season.
+    ZeroDaysPerSeason,
+    /// A `first_season` past 3 (Winter) - [SEA-year].
+    FirstSeasonOutOfRange {
+        value: u8,
+    },
+    /// A season's yard look outside a lot look's ranges, named by its keys
+    /// in `season_yard_looks`, for example `summer` and `hue` - [SEA-yard].
+    SeasonLookOutOfRange {
+        season: &'static str,
+        field: &'static str,
+    },
     /// A circadian curve with nothing to interpolate between.
     CircadianTooFewPoints {
         points: usize,
@@ -2352,6 +2365,21 @@ impl fmt::Display for ContentError {
             ContentError::FirstWeekdayOutOfRange { value } => write!(
                 f,
                 "first_weekday is {value}; it must be 0 (Monday) to 6 (Sunday)"
+            ),
+            ContentError::ZeroDaysPerSeason => write!(
+                f,
+                "days_per_season must be at least 1 - a season of no days \
+                 divides by zero the first time anything asks the season"
+            ),
+            ContentError::FirstSeasonOutOfRange { value } => write!(
+                f,
+                "first_season is {value}; it must be 0 (Spring) to 3 (Winter)"
+            ),
+            ContentError::SeasonLookOutOfRange { season, field } => write!(
+                f,
+                "season_yard_looks.{season}.{field} in tuning.toml is outside \
+                 its range: hue -180 to 180, strength 0 to 2, lightness -0.25 \
+                 to 0.25"
             ),
             ContentError::CircadianTooFewPoints { points } => write!(
                 f,

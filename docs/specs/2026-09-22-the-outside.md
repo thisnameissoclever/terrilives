@@ -59,7 +59,9 @@ The shell draws a yard tile with the floor's art under a colour shift, the
 same shift a colourway applies ([RC-shift]) and with a colourway's ranges, its
 values in `content/lot.toml` beside the house size: hue turned 65 degrees,
 strength 2 and lightness down 0.22, which turns the beige floor a muted green.
-Grass art waits on the owner ([T-yard-art]).
+Grass art waits on the owner ([T-yard-art]). Each season adds its own color
+change on top of this look; the house and the street keep theirs ([SEA-yard]
+in `2026-10-17-seasons.md`).
 
 ## [OS-walls] The house's outside walls are ordinary walls
 

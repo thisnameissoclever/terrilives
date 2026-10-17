@@ -77,6 +77,7 @@ import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
   setCutAwayWalls,
+  setSeason,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -1389,7 +1390,10 @@ async function main(): Promise<void> {
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
-    frontDoors: sim.frontDoorLines() };
+    frontDoors: sim.frontDoorLines(),
+    // [SEA-yard]: the yard's seasonal looks, content read once, and the
+    // last season the frame loop saw.
+    seasonYardLooks: sim.seasonYardLooks(), season: sim.seasonIndex() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -2242,6 +2246,10 @@ async function main(): Promise<void> {
     // is in use, so the player sees every line they can edit. The static
     // block is rebuilt only when that changes, not on every click.
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
+    // [SEA-yard]: the yard's grass changes color when the season turns, or
+    // when a Load lands in another season; the static block is rebuilt then
+    // and not on every frame.
+    if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (floorScene.visible&&!graphicsRecovering) {
