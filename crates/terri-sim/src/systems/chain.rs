@@ -455,6 +455,13 @@ pub fn advance_chains(
 pub fn tick_chain_steps(
     mut commands: Commands,
     content: Res<Content>,
+    // The burn roll's inputs (issue 243): the generator it draws from, the
+    // clock the moodlet's end is measured from, and the list it records in.
+    mut burning: (
+        ResMut<terri_core::SimRng>,
+        Res<terri_core::SimClock>,
+        ResMut<crate::burnt_meals::BurntMeals>,
+    ),
     mut origins: Query<&mut crate::recipe_actions::Origin>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
     dining: Option<Res<terri_core::save::SavedDining>>,
@@ -537,12 +544,32 @@ pub fn tick_chain_steps(
             })
             .and_then(|diner| diner.setting);
 
+        // Burnt meals (issue 243): the food leaves the hob when its last
+        // hob step ends, and that is when the cook finds out whether it is
+        // ruined. One roll per meal, from the world's generator in entity
+        // order, so consumption stays a function of world state; mastery
+        // of the cooking skill sets the chance. A burnt meal is thrown
+        // away and the recipe starts again at its first step. The step
+        // still teaches, as a fumbled one does.
+        let burnt =
+            !terminal && crate::burnt_meals::last_hob_step(content.0, chain, chain_state.step) && {
+                let mastery = crate::skills::mastery_for_tag(
+                    skills.as_deref(),
+                    content.0,
+                    crate::burnt_meals::COOKING_TAG,
+                )
+                .unwrap_or(0.0);
+                burning.0.next_f32() < crate::burnt_meals::burn_chance(&content.0.tuning, mastery)
+            };
+
         // The hands, first: the step's whole observable effect below
         // the terminal. Compile's hands rule proved the bookkeeping, so
         // the runtime applies it without re-deriving - a mismatch here
         // would mean the pack gate was removed, not that this needs a
         // guard.
-        if let Some(kind) = step.yields {
+        if burnt {
+            commands.entity(sim).remove::<Carrying>();
+        } else if let Some(kind) = step.yields {
             commands.entity(sim).insert(Carrying(kind));
         } else if let Some((_, to)) = step.transforms {
             commands.entity(sim).insert(Carrying(to));
@@ -572,6 +599,39 @@ pub fn tick_chain_steps(
             .remove::<Target>()
             .remove::<StepWork>()
             .remove::<terri_core::StepWorkTotal>();
+
+        if burnt {
+            chain_state.step = 0;
+            chain_state.fumble_scale = 1.0;
+            if let Some(id) = sim_id {
+                let until = burning.1.tick + u64::from(content.0.tuning.burnt_meal_mood_ticks);
+                burning.2.record(*id, until);
+            }
+            // The hob was used all the same, and a selected station already
+            // used must be pinned again for the restart; with none left the
+            // recipe is abandoned as a sold station abandons it.
+            commands.queue(move |world: &mut World| {
+                crate::domestic::completed(
+                    world,
+                    sim,
+                    completed_chain,
+                    completed_step,
+                    station,
+                    dining_setting,
+                );
+                if !crate::recipe_actions::repin_after_restart(world, sim) {
+                    world
+                        .entity_mut(sim)
+                        .remove::<crate::recipe_actions::ActiveRecipe>()
+                        .remove::<terri_core::Fumbled>()
+                        .remove::<Blocked>()
+                        .remove::<Restless>();
+                    settle_order(world, sim, completed_chain);
+                    crate::domestic::abandon(world, sim);
+                }
+            });
+            continue;
+        }
 
         if !terminal {
             if let Ok(mut origin) = origins.get_mut(sim) {
@@ -876,6 +936,334 @@ mod tests {
         sim.world_mut()
             .entity_mut(agent)
             .insert(ChainState::begin(0));
+    }
+
+    // ---- Burnt meals (issue 243) --------------------------------------
+
+    /// Fetch at the pantry, cook on the hob, eat at the table. The hob step
+    /// is the last hob step, so it is where the roll happens.
+    fn burn_chain() -> CompiledChain {
+        let mut chain = a_chain();
+        chain.steps.insert(
+            1,
+            CompiledChainStep {
+                role: 2,
+                label: "Cook".to_string(),
+                duration_ticks: 10,
+                tags: vec!["cooking".to_string()],
+                yields: None,
+                transforms: None,
+                consumes: None,
+                visual: None,
+                sound_action: None,
+                activity: None,
+            },
+        );
+        chain.steps[2].tags = vec![];
+        chain
+    }
+
+    /// `chain_pack` plus a stove wearing the hob role, the shipped cooking
+    /// skill, and the given burn chances.
+    fn burn_pack(novice: f32, master: f32, mood_ticks: u32) -> &'static ContentPack {
+        let mut pantry = test_content::object_offering("pantry", vec![]);
+        pantry.roles = vec![0];
+        let mut table = test_content::object_offering("table", vec![]);
+        table.roles = vec![1];
+        let mut stove = test_content::object_offering("stove", vec![]);
+        stove.roles = vec![2];
+        let fridge = test_content::object("fridge", &[(terri_core::NeedId::Hunger, 40.0)], 30);
+        let base = test_content::pack_tuned(
+            vec![fridge, pantry, table, stove],
+            terri_data::Tuning {
+                duration_variance: 0.0,
+                choice_temperature: 0.0001,
+                burn_chance_novice: novice,
+                burn_chance_master: master,
+                burnt_meal_mood_penalty: 7.0,
+                burnt_meal_mood_ticks: mood_ticks,
+                ..test_content::tuning()
+            },
+        );
+        Box::leak(Box::new(ContentPack {
+            roles: vec![
+                "pantry_shelf".to_string(),
+                "eating_surface".to_string(),
+                "hob".to_string(),
+            ],
+            item_kinds: vec!["dinner".to_string()],
+            chains: vec![burn_chain()],
+            skills: vec![terri_data::CompiledSkill {
+                id: "cooking".to_string(),
+                label: "Cooking".to_string(),
+                description: String::new(),
+                tag: "cooking".to_string(),
+                levels: 10,
+                practice_per_attempt: 0.015,
+            }],
+            ..base.clone()
+        }))
+    }
+
+    /// One hungry cook with a SimId, the four stations apart on an open
+    /// grid, the recipe already begun.
+    fn burn_world(pack: &'static ContentPack, practice: f32) -> (Sim, Entity) {
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let spawn_station = |sim: &mut Sim, id: &str, x: f32, y: f32| {
+            let def = pack.find(id).expect("fixture");
+            sim.world_mut()
+                .spawn((Position { x, y }, SmartObject(def)))
+                .id()
+        };
+        spawn_station(&mut sim, "fridge", 1.0, 1.0);
+        spawn_station(&mut sim, "pantry", 4.0, 1.0);
+        spawn_station(&mut sim, "stove", 6.0, 1.0);
+        spawn_station(&mut sim, "table", 8.0, 1.0);
+        let mut needs = Needs::all_at(80.0);
+        needs.set(NeedId::Hunger, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                terri_core::SimId(0),
+                Position { x: 2.0, y: 4.0 },
+                needs,
+                Satisfaction::from_value(0.0),
+                terri_core::Skills::from_entries(vec![(0, practice)]),
+            ))
+            .id();
+        start_chain(&mut sim, agent);
+        (sim, agent)
+    }
+
+    fn burnt(sim: &Sim) -> &crate::burnt_meals::BurntMeals {
+        sim.world().resource::<crate::burnt_meals::BurntMeals>()
+    }
+
+    fn burnt_dinner_score(sim: &Sim, agent: Entity) -> Option<f32> {
+        sim.mood_of(agent.index_u32())?
+            .moodlets
+            .into_iter()
+            .find(|m| m.label == crate::mood::BURNT_DINNER)
+            .map(|m| m.score)
+    }
+
+    /// With the chance pinned at one, every pass through the hob burns:
+    /// the food in hand is gone, the recipe restarts at the pantry, the
+    /// Burnt dinner moodlet appears at the tuned score, a second burn
+    /// restarts the moodlet rather than stacking it, and the recipe never
+    /// reaches the table.
+    #[test]
+    fn a_burnt_last_hob_step_restarts_the_recipe_and_sours_the_mood() {
+        let (mut sim, agent) = burn_world(burn_pack(1.0, 1.0, 50), 0.0);
+        let mut burns = Vec::new();
+        let mut carried_before_burn = false;
+        for _ in 0..600 {
+            let had_food = sim.world().get::<Carrying>(agent).is_some();
+            let step_before = sim.world().get::<ChainState>(agent).map(|s| s.step);
+            sim.tick();
+            let world = sim.world();
+            let state = world
+                .get::<ChainState>(agent)
+                .expect("the recipe never ends");
+            assert!(state.step < 2, "the table is never reached: {}", state.step);
+            if step_before == Some(1) && state.step == 0 {
+                let now = world.resource::<terri_core::SimClock>().tick;
+                assert!(had_food, "the cook carried the food onto the hob");
+                carried_before_burn = true;
+                assert!(
+                    world.get::<Carrying>(agent).is_none(),
+                    "the food is thrown away"
+                );
+                assert_eq!(state.fumble_scale, 1.0, "a fresh attempt");
+                assert_eq!(burnt(&sim).entries(), &[(terri_core::SimId(0), now + 50)]);
+                assert_eq!(burnt_dinner_score(&sim, agent), Some(-7.0));
+                burns.push(now);
+            }
+        }
+        assert!(carried_before_burn);
+        assert!(
+            burns.len() >= 2,
+            "the recipe restarts and burns again: {burns:?}"
+        );
+        let last = *burns.last().unwrap();
+        assert_eq!(
+            burnt(&sim).entries(),
+            &[(terri_core::SimId(0), last + 50)],
+            "the newest burn replaced the older moodlet"
+        );
+        let practice = sim
+            .world()
+            .get::<terri_core::Skills>(agent)
+            .unwrap()
+            .practice(0);
+        assert!(
+            (practice - 0.015 * burns.len() as f32).abs() < 1e-4,
+            "every burnt attempt still taught at the hob: {practice} after {} burns",
+            burns.len()
+        );
+    }
+
+    /// The moodlet ends on its tick and the list forgets it.
+    #[test]
+    fn a_burnt_dinner_moodlet_ends_on_its_tick() {
+        let (mut sim, agent) = burn_world(burn_pack(1.0, 1.0, 5), 0.0);
+        let mut seen = false;
+        for _ in 0..300 {
+            sim.tick();
+            if burnt_dinner_score(&sim, agent).is_some() {
+                seen = true;
+                let (_, until) = burnt(&sim).entries()[0];
+                // Pin the chance at zero so no later burn renews it.
+                let pack = burn_pack(0.0, 0.0, 5);
+                sim.world_mut().insert_resource(crate::Content(pack));
+                while sim.world().resource::<terri_core::SimClock>().tick < until {
+                    assert_eq!(burnt_dinner_score(&sim, agent), Some(-7.0));
+                    sim.tick();
+                }
+                assert_eq!(burnt_dinner_score(&sim, agent), None);
+                assert!(burnt(&sim).entries().is_empty());
+                break;
+            }
+        }
+        assert!(seen, "the cook never burnt anything in 300 ticks");
+    }
+
+    /// A cook at the top of the ladder faces the master chance; at zero
+    /// the recipe runs to the table and feeds them, with nothing recorded.
+    #[test]
+    fn a_master_cook_never_burns_when_the_master_chance_is_zero() {
+        let (mut sim, agent) = burn_world(burn_pack(1.0, 0.0, 50), 10.0);
+        let mastery = crate::skills::mastery_for_tag(
+            sim.world().get::<terri_core::Skills>(agent),
+            sim.world().resource::<crate::Content>().0,
+            "cooking",
+        )
+        .unwrap();
+        assert_eq!(mastery, 1.0);
+        for _ in 0..300 {
+            sim.tick();
+            if sim.world().get::<ChainState>(agent).is_none() {
+                assert!(burnt(&sim).entries().is_empty());
+                assert_eq!(burnt_dinner_score(&sim, agent), None);
+                let hunger = sim.world().get::<Needs>(agent).unwrap().get(NeedId::Hunger);
+                assert!(hunger > 40.0, "the dinner fed the cook: {hunger}");
+                return;
+            }
+        }
+        panic!("the recipe never completed");
+    }
+
+    /// With the shipped fridge order the selected station is the fridge,
+    /// and its use is complete by the time the food reaches the hob. A burn
+    /// pins the fridge again so the restart routes there, and the world
+    /// still saves and loads in the middle of the restart.
+    #[test]
+    fn a_burnt_restart_repins_the_selected_station_and_still_saves() {
+        use crate::recipe_actions::{Origin, SelectedUse};
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut pack = sim.world().resource::<crate::Content>().0.clone();
+        pack.tuning.burn_chance_novice = 1.0;
+        pack.tuning.burn_chance_master = 1.0;
+        pack.tuning.burnt_meal_mood_ticks = 30;
+        sim.world_mut()
+            .insert_resource(crate::Content(Box::leak(Box::new(pack))));
+        let pack = sim.world().resource::<crate::Content>().0;
+        let fridge_def = pack.find("fridge").unwrap();
+        let fridge = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .filter(|(_, object)| object.0 == fridge_def)
+            .map(|(entity, _)| entity)
+            .min_by_key(|entity| entity.index_u32())
+            .expect("the shipped lot has a fridge");
+        let cook = pack
+            .object(fridge_def)
+            .interactions
+            .iter()
+            .position(|action| action.id == "cook_dinner")
+            .expect("the fridge offers dinner") as u32;
+        let bill = sim
+            .world_mut()
+            .query::<(Entity, &terri_core::SimName)>()
+            .iter(sim.world())
+            .find(|(_, name)| name.0 == "Bill")
+            .expect("Bill is in the shipped household")
+            .0;
+        let mut needs = Needs::all_at(100.0);
+        needs.set(NeedId::Hunger, 30.0);
+        sim.world_mut()
+            .entity_mut(bill)
+            .remove::<terri_core::Career>()
+            .insert(needs);
+        sim.world_mut().resource_mut::<CommandQueue>().push(
+            terri_core::SimCommand::UseObjectFirst {
+                agent: bill.index_u32(),
+                object: fridge.index_u32(),
+                interaction: cook,
+            },
+        );
+        for _ in 0..3_000 {
+            let before = sim.world().get::<ChainState>(bill).map(|s| s.step);
+            sim.tick();
+            let after = sim.world().get::<ChainState>(bill).map(|s| s.step);
+            if before == Some(3) && after == Some(0) {
+                let origin = sim
+                    .world()
+                    .get::<Origin>(bill)
+                    .expect("the order's origin survives the restart");
+                assert_eq!(origin.1, SelectedUse::Station(fridge));
+                let saved = sim.save_snapshot_v11();
+                assert_eq!(saved.burnt_meals.len(), 1);
+                let mut fresh = Sim::new_from_shipped_lot();
+                assert_eq!(fresh.load_snapshot_v11(saved), Ok(()));
+                assert_eq!(
+                    fresh.world().resource::<crate::burnt_meals::BurntMeals>(),
+                    sim.world().resource::<crate::burnt_meals::BurntMeals>()
+                );
+                return;
+            }
+        }
+        panic!("Bill never took the dinner off the hob");
+    }
+
+    /// The roll is seeded: two worlds from one seed burn on the same ticks,
+    /// another seed burns on others, and at a half chance both outcomes
+    /// occur over many dinners.
+    #[test]
+    fn the_burn_roll_is_seeded_and_both_outcomes_occur() {
+        let run = |seed: u64| {
+            let (mut sim, agent) = burn_world(burn_pack(0.5, 0.5, 3), 0.0);
+            sim.world_mut()
+                .insert_resource(terri_core::SimRng::from_seed(seed));
+            let mut burns = 0;
+            let mut meals = 0;
+            for _ in 0..3_000 {
+                let step_before = sim.world().get::<ChainState>(agent).map(|s| s.step);
+                sim.tick();
+                let state = sim.world().get::<ChainState>(agent).map(|s| s.step);
+                if step_before == Some(1) && state == Some(0) {
+                    burns += 1;
+                }
+                if state.is_none() {
+                    meals += 1;
+                    start_chain(&mut sim, agent);
+                    sim.world_mut()
+                        .get_mut::<Needs>(agent)
+                        .unwrap()
+                        .set(NeedId::Hunger, 20.0);
+                }
+            }
+            (burns, meals, sim.world_hash())
+        };
+        let first = run(11);
+        assert_eq!(first, run(11), "one seed, one history");
+        assert_ne!(first, run(12), "another seed, another history");
+        assert!(
+            first.0 > 0 && first.1 > 0,
+            "both outcomes occur at a half chance: {first:?}"
+        );
     }
 
     #[test]

@@ -122,6 +122,9 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
         world
             .resource_mut::<crate::beds::BedAssignments>()
             .set(person, None);
+        if let Some(mut burnt) = world.get_resource_mut::<crate::burnt_meals::BurntMeals>() {
+            burnt.forget(person);
+        }
     }
     crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).copied();

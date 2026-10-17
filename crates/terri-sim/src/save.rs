@@ -47,6 +47,7 @@ pub(super) mod sleeping_places;
 pub(crate) mod social;
 mod table_retirement;
 pub(crate) mod v10;
+pub(crate) mod v11;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;

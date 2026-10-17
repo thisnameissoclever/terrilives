@@ -3017,6 +3017,26 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     {
         return Err(ContentError::InvalidInterpersonalTuning);
     }
+    let chance = |value: f32| value.is_finite() && (0.0..=1.0).contains(&value);
+    let cooking_rules = [
+        ("burn_chance_novice", chance(tuning.burn_chance_novice)),
+        (
+            "burn_chance_master",
+            chance(tuning.burn_chance_master)
+                && tuning.burn_chance_master <= tuning.burn_chance_novice,
+        ),
+        (
+            "burnt_meal_mood_penalty",
+            tuning.burnt_meal_mood_penalty.is_finite() && tuning.burnt_meal_mood_penalty >= 0.0,
+        ),
+        (
+            "burnt_meal_mood_ticks",
+            (1..=10_080).contains(&tuning.burnt_meal_mood_ticks),
+        ),
+    ];
+    if let Some((key, _)) = cooking_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::CookingTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -3583,6 +3603,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             relationships: tuning.relationships,
             need_interactions: tuning.need_interactions,
             hated_communal_chance: tuning.hated_communal_chance,
+            burn_chance_novice: tuning.burn_chance_novice,
+            burn_chance_master: tuning.burn_chance_master,
+            burnt_meal_mood_penalty: tuning.burnt_meal_mood_penalty,
+            burnt_meal_mood_ticks: tuning.burnt_meal_mood_ticks,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4759,6 +4783,11 @@ mod tests {
     /// (communal affinity, issue 257).** The frozen witnesses below predate
     /// it; their conversions reconstruct the shipped 0.35, which the live
     /// fixture also carries, so what they decode to is unchanged.
+    ///
+    /// **The burnt-meal knobs moved the live layout by fourteen more bytes,
+    /// appended after the communal chance (burnt meals, issue 243):** three
+    /// floats and a varint tick count. The witnesses reconstruct the shipped
+    /// 0.12, 0.002, 10.0 and 240, which the live fixture also carries.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Classification None and an empty physical-seat vector append two zero bytes
@@ -4990,6 +5019,10 @@ mod tests {
             // Equal to what the frozen witnesses reconstruct, so the golden
             // vector's conversion check still compares like with like.
             hated_communal_chance: crate::Tuning::SHIPPED_HATED_COMMUNAL_CHANCE,
+            burn_chance_novice: crate::Tuning::SHIPPED_BURN_CHANCE_NOVICE,
+            burn_chance_master: crate::Tuning::SHIPPED_BURN_CHANCE_MASTER,
+            burnt_meal_mood_penalty: crate::Tuning::SHIPPED_BURNT_MEAL_MOOD_PENALTY,
+            burnt_meal_mood_ticks: crate::Tuning::SHIPPED_BURNT_MEAL_MOOD_TICKS,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6560,6 +6593,10 @@ mod tests {
         assert_eq!(tuning.affinity_band_likes, 0.1875);
         assert_eq!(tuning.affinity_from_mild_trait, 0.34375);
         assert_eq!(tuning.hated_communal_chance, 0.35);
+        assert_eq!(tuning.burn_chance_novice, 0.12);
+        assert_eq!(tuning.burn_chance_master, 0.002);
+        assert_eq!(tuning.burnt_meal_mood_penalty, 10.0);
+        assert_eq!(tuning.burnt_meal_mood_ticks, 240);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -8999,6 +9036,43 @@ mod tests {
             ContentError::ZeroDayTicks
         );
         assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
+    }
+
+    /// Burnt meals (issue 243): both chances are probabilities, the master
+    /// chance cannot exceed the novice one, the penalty is a non-negative
+    /// mood score and the moodlet lasts from one tick to a week.
+    #[test]
+    fn rejects_burnt_meal_tuning_outside_its_ranges() {
+        // (refused key, novice, master, penalty, ticks)
+        for (expected, novice, master, penalty, ticks) in [
+            ("burn_chance_novice", 1.5, 0.002, 10.0, 240),
+            ("burn_chance_novice", f32::NAN, 0.002, 10.0, 240),
+            ("burn_chance_master", 0.12, -0.1, 10.0, 240),
+            ("burn_chance_master", 0.1, 0.2, 10.0, 240),
+            ("burnt_meal_mood_penalty", 0.12, 0.002, -1.0, 240),
+            ("burnt_meal_mood_ticks", 0.12, 0.002, 10.0, 0),
+            ("burnt_meal_mood_ticks", 0.12, 0.002, 10.0, 10_081),
+        ] {
+            let compiled = compile_tuned(tuning_where(|t| {
+                t.burn_chance_novice = novice;
+                t.burn_chance_master = master;
+                t.burnt_meal_mood_penalty = penalty;
+                t.burnt_meal_mood_ticks = ticks;
+            }));
+            match compiled {
+                Err(ContentError::CookingTuningOutOfRange { key }) => assert_eq!(key, expected),
+                other => panic!("{expected}: {other:?}"),
+            }
+        }
+        let compiled = compile_tuned(tuning_where(|t| {
+            t.burn_chance_novice = 0.5;
+            t.burn_chance_master = 0.5;
+            t.burnt_meal_mood_penalty = 0.0;
+            t.burnt_meal_mood_ticks = 10_080;
+        }))
+        .expect("the edges are legal");
+        assert_eq!(compiled.tuning.burn_chance_master, 0.5);
+        assert_eq!(compiled.tuning.burnt_meal_mood_ticks, 10_080);
     }
 
     /// Communal affinity (issue 257): the hated communal chance is a

@@ -716,10 +716,12 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV10>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV11>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &10u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &11u16.to_le_bytes());
+    assert!(decoded.burnt_meals.is_empty());
+    let decoded = decoded.legacy;
     assert_eq!(decoded.legacy.legacy.object_facings, vec![(0, 0)]);
     assert_eq!(
         decoded.legacy.legacy.world.queued_commands,
@@ -1873,9 +1875,66 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&current_bytes(&overdone)));
     assert_eq!(handle.sim.save_snapshot_v10(), overdone);
-    assert_eq!(
-        handle.save_bytes(),
-        current_bytes(&overdone),
-        "2.0 round-trips exactly"
+    // A schema-ten payload resaves as schema eleven with no burnt meals.
+    let mut eleven = SAVE_MAGIC.to_vec();
+    eleven.extend_from_slice(&11u16.to_le_bytes());
+    eleven.extend(
+        postcard::to_allocvec(&terri_core::SaveSnapshotV11 {
+            legacy: overdone.clone(),
+            burnt_meals: vec![],
+        })
+        .unwrap(),
     );
+    assert_eq!(handle.save_bytes(), eleven, "2.0 round-trips exactly");
+}
+
+/// Burnt meals (issue 243): schema eleven carries them through the public
+/// envelope and a schema-ten payload still loads, with none; a row naming
+/// nobody living refuses the whole load.
+#[test]
+fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
+    let mut source = SimHandle::from_lot();
+    source
+        .sim
+        .world_mut()
+        .resource_mut::<terri_sim::BurntMeals>()
+        .record(terri_core::SimId(0), 500);
+    let bytes = source.save_bytes();
+    assert_eq!(
+        bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
+        11u16.to_le_bytes()
+    );
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    assert_eq!(
+        loaded
+            .sim
+            .world()
+            .resource::<terri_sim::BurntMeals>()
+            .entries(),
+        &[(terri_core::SimId(0), 500)]
+    );
+    assert_eq!(loaded.world_hash(), source.world_hash());
+
+    let mut ten = SAVE_MAGIC.to_vec();
+    ten.extend_from_slice(&10u16.to_le_bytes());
+    ten.extend(postcard::to_allocvec(&source.sim.save_snapshot_v10()).unwrap());
+    let mut old = SimHandle::from_lot();
+    assert!(old.load_bytes(&ten));
+    assert!(old
+        .sim
+        .world()
+        .resource::<terri_sim::BurntMeals>()
+        .entries()
+        .is_empty());
+
+    let mut bad = source.sim.save_snapshot_v11();
+    bad.burnt_meals[0].sim = 42;
+    let mut refused = SAVE_MAGIC.to_vec();
+    refused.extend_from_slice(&11u16.to_le_bytes());
+    refused.extend(postcard::to_allocvec(&bad).unwrap());
+    let mut target = SimHandle::from_lot();
+    let before = target.world_hash();
+    assert!(!target.load_bytes(&refused));
+    assert_eq!(target.world_hash(), before);
 }

@@ -957,6 +957,10 @@ pub enum ContentError {
     AffinityTuningOutOfRange {
         key: &'static str,
     },
+    /// Burnt meals (issue 243): a cooking knob outside its range.
+    CookingTuningOutOfRange {
+        key: &'static str,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -2151,6 +2155,14 @@ impl fmt::Display for ContentError {
                 "affinity kind '{id}' names trait tag '{tag}', which no \
                  interaction or chain step in the pack carries, so no trait \
                  could set its starting value"
+            ),
+            ContentError::CookingTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: burn_chance_novice \
+                 and burn_chance_master must be finite, from 0 to 1, with the \
+                 master chance at most the novice chance; \
+                 burnt_meal_mood_penalty finite and not negative; \
+                 burnt_meal_mood_ticks from 1 to 10080"
             ),
             ContentError::AffinityTuningOutOfRange { key } => write!(
                 f,

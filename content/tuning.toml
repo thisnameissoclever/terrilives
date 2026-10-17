@@ -562,6 +562,24 @@ relationship_delta_scale = 0.5
 # reconstruct the shipped 0.35.
 hated_communal_chance = 0.35
 
+# BURNT MEALS - issue 243. When a meal leaves the hob, at the end of a
+# recipe's last hob step, the cook rolls once against a chance that the
+# food is burnt. A burnt meal throws
+# the food away, sends the cook back to the fridge to start the recipe
+# again, and leaves a Burnt dinner moodlet for a while. The chance falls
+# with cooking mastery: a cook with no practice burns at burn_chance_novice,
+# a cook at the top of the ladder at burn_chance_master, straight-line in
+# between. 0.002 is one burnt meal in five hundred at full mastery. Both
+# chances must be finite, from 0 to 1, with the master chance at most the
+# novice chance; the penalty must be finite and not negative; the moodlet
+# lasts burnt_meal_mood_ticks ticks, at least 1 and at most a week. All
+# four are appended to the compiled tuning after hated_communal_chance, so
+# packs published before them reconstruct these shipped values.
+burn_chance_novice = 0.12
+burn_chance_master = 0.002
+burnt_meal_mood_penalty = 10.0
+burnt_meal_mood_ticks = 240
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

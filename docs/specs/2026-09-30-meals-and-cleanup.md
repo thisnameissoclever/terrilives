@@ -34,6 +34,10 @@ interval offers 11 Social points; only eligible overlap receives the benefit.
 Standing, tableless, solitary meals and empty-table sitting offer none.
 Cooking competence can reduce the whole meal's food benefit,
 including friends' portions. Cooking practice occurs at the cooking step.
+A meal can also burn when it leaves the hob: the cook drops the food, starts
+the recipe again from the fridge and carries a Burnt dinner moodlet for a
+while, with the chance falling with cooking mastery; see
+[burnt meals](2026-10-16-burnt-meals.md).
 The cook's cooking hobby and condition still compose with activity satisfaction.
 See [the needs interaction reference](../NEEDS-INTERACTIONS.md) for rates,
 modifiers and the justification for each need effect.

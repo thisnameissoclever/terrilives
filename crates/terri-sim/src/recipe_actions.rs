@@ -97,6 +97,45 @@ impl Origin {
     }
 }
 
+/// After a burnt meal (issue 243) the recipe is back at its first step, so a
+/// selected station already used must be pinned again or the origin reads
+/// as complete at a step before the selected one, which no save would
+/// accept. A selected hob keeps its pin through the burn, because its use
+/// is marked complete only when the step ends without burning; what needs
+/// a pin is an earlier station such as the fridge of a Cook dinner order,
+/// and the lowest-indexed placed object of that model gets it. Returns
+/// false when no such object exists, and the caller abandons the recipe as
+/// a sold station abandons it.
+pub(crate) fn repin_after_restart(world: &mut World, person: Entity) -> bool {
+    let Some(origin) = world.get::<Origin>(person).cloned() else {
+        return true;
+    };
+    if origin.1 != SelectedUse::Complete {
+        return true;
+    }
+    let ChainOrigin::Action { model, .. } = &origin.0 else {
+        return true;
+    };
+    let pack = world.resource::<crate::Content>().0;
+    let pinned = world
+        .try_query::<(Entity, &terri_core::SmartObject)>()
+        .and_then(|mut q| {
+            q.iter(world)
+                .filter(|(_, object)| pack.object(object.0).id == *model)
+                .map(|(entity, _)| entity)
+                .min_by_key(|entity| entity.index_u32())
+        });
+    match pinned {
+        Some(station) => {
+            world
+                .entity_mut(person)
+                .insert(Origin(origin.0, SelectedUse::Station(station)));
+            true
+        }
+        None => false,
+    }
+}
+
 pub(crate) fn pins_sale(world: &World, station: Entity) -> bool {
     world
         .try_query::<&Origin>()

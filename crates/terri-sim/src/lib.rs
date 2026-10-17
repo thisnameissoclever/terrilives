@@ -7,6 +7,8 @@ mod activity_tests;
 pub mod affinity;
 pub mod beds;
 pub mod books;
+pub mod burnt_meals;
+pub use burnt_meals::BurntMeals;
 pub mod character_draft;
 pub mod chores;
 mod reading;
@@ -1269,6 +1271,22 @@ impl Sim {
         Ok(())
     }
 
+    /// Schema eleven: everything schema ten holds, then the burnt meals.
+    pub fn save_snapshot_v11(&self) -> terri_core::SaveSnapshotV11 {
+        save::v11::capture(self)
+    }
+
+    pub fn load_snapshot_v11(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV11,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v11::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
     /// The two historical V9 producers shared a header, but never a record layout.
     /// Validate both candidates without touching the live world; refuse ambiguity.
     pub fn load_historical_v9_candidates(
@@ -1448,6 +1466,7 @@ impl Sim {
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(social_company::SocialCompany::default());
         world.insert_resource(social_episode::SocialEpisodes::default());
+        world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1632,6 +1651,9 @@ impl Sim {
                 // working sim outright. After `advance_clock`, because
                 // the day clock it reads must be THIS tick's.
                 (
+                    // A moodlet whose tick has passed is gone before any
+                    // mood read this tick; the list is tiny.
+                    burnt_meals::expire,
                     reading::reconcile,
                     social_episode::maintain,
                     systems::career::start_shift,
@@ -4510,6 +4532,7 @@ impl Sim {
         }
         save::v6::hash(&self.world, &mut hasher);
         save::social::hash(&self.world, &mut hasher);
+        burnt_meals::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
