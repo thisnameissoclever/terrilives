@@ -20,6 +20,7 @@ import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
+import { BuildExit } from './ui/build-exit.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { WindowTool } from './ui/window-tool.js';
@@ -1743,11 +1744,8 @@ async function main(): Promise<void> {
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
     beforeEnter: () => buildSession.begin(),
-    beforeExit: () => {
-      const cancelled = buildSession.end();
-      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
-      return cancelled;
-    },
+    // Every way out asks first while changes are not confirmed; see build-exit.ts.
+    beforeExit: () => buildExit.gate(),
     changed: () => {
       builderControls?.render();
       placementActions?.invalidate();
@@ -1793,6 +1791,10 @@ async function main(): Promise<void> {
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
+    return buildControllersIdle();
+  }
+  /** No build or book command is on its way to the draft. */
+  function buildControllersIdle(): boolean {
     return !builder.pending && wallTool.pending === null && windowTool.pending === null
       && !roomTool.pending && !buyTool.pending && floorTool.pending === null && !landTool.pending
       && sim.pendingBookCommands() === 0;
@@ -1863,13 +1865,13 @@ async function main(): Promise<void> {
     refreshBuildArchitecture(); audio.reset('load'); clampCamera();
     toolSwitch?.render(); placementActions?.invalidate();
   }
+  /** The contextual Cancel beside a selection: discards the batch and stays in Build mode. */
   function cancelBuildBatch(): void {
     const cancelled = buildSession.cancel();
     buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled.'
       : 'Changes could not be cancelled. Build mode remains open.';
   }
-  document.querySelector('#build-batch-cancel')!.addEventListener('click', cancelBuildBatch);
-  document.querySelector('#build-batch-confirm')!.addEventListener('click', () => {
+  function confirmBuildBatch(): boolean {
     const confirmed = buildSession.confirm();
     buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : 'Finish or cancel the current placement before confirming.';
     if (confirmed) {
@@ -1877,7 +1879,25 @@ async function main(): Promise<void> {
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
     }
+    return confirmed;
+  }
+  // The footer's Confirm and Cancel finish the batch and leave Build mode.
+  const buildExit: BuildExit = new BuildExit(document, {
+    hasUnconfirmedChanges: () => buildSession.hasChanges() || builder.hasPlacementChange || !buildControllersIdle(),
+    confirm: confirmBuildBatch,
+    discard: () => {
+      const cancelled = buildSession.end();
+      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
+      return cancelled;
+    },
+    leave: () => { builder.exit(); return !builder.active; },
+    focusView: () => canvas.focus(),
+    beforeAsk: () => { optionsMenu.close(); menu.close(); },
   });
+  /** Escape clears the current tool's selection first; with none, it asks to leave Build mode. */
+  function escapeBuild(): void {
+    routeBuildKey('Escape', buildTools, builder);
+  }
   function syncBuildOptionsHost(): void {
     if (!optionsRoot) return;
     const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
@@ -1964,7 +1984,7 @@ async function main(): Promise<void> {
     if (event.defaultPrevented) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
-        cancelBuildBatch(); event.preventDefault(); return;
+        escapeBuild(); event.preventDefault(); return;
       }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
@@ -2140,7 +2160,7 @@ async function main(): Promise<void> {
     const target = event.target;
     if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
     if (!overlayPause.suspendedExcept('builder')) {
-      cancelBuildBatch(); event.preventDefault();
+      escapeBuild(); event.preventDefault();
     }
   });
 

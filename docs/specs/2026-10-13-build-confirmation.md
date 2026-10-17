@@ -2,7 +2,11 @@
 
 Build mode treats the paused simulation as a draft. Existing furniture, wall, window, room, floor, and store actions update that draft. Place accepts an individual furniture preview into the draft. Switching selections or tools never makes a draft permanent.
 
-The bottom of the build flyout contains Cancel followed by Confirm. Confirm settles queued edits and any pending furniture placement before recording a new baseline. Cancel restores the most recent baseline. Escape cancels pending changes; Exit build cancels them before resuming play. Confirming one batch and cancelling the next keeps the first batch.
+The bottom of the build flyout contains Cancel followed by Confirm. Confirm settles queued edits and any pending furniture placement, records a new baseline, and then leaves Build mode. Cancel restores the most recent baseline and then leaves Build mode. A refused Confirm or a failed rollback keeps Build mode open, and the status line says why. Confirming one batch and cancelling the next keeps the first batch.
+
+Every other way out reaches the furniture builder's exit, whose guard is `BuildExit.gate` in `web/src/ui/build-exit.ts`: Exit build, the Build button, and Escape with nothing selected. With nothing pending, Build mode closes at once. While changes are not confirmed, a modal dialog, Leave Build mode?, opens instead. Keep building has focus when it opens and is also what Escape chooses; Build mode stays open and focus returns to the control that asked to leave, or to the game view. Confirm changes confirms and leaves, staying open with the reason when Confirm is refused. Discard changes restores the baseline and leaves. Changes are pending when the draft's save bytes differ from the baseline, a furniture move is shown but not placed, or a build or book command is still on its way.
+
+Escape first clears the current tool's selection and only tries to leave when nothing is selected. The contextual Cancel beside a selection restores the baseline without leaving Build mode.
 
 `BuildSession` owns the baseline through the existing simulation save and validated-load APIs. All persistence paths use its committed snapshot, including manual Save, autosave, update, and graphics-device recovery. Successful Load replaces the baseline with the loaded household. Rejected Load preserves it. A failed rollback keeps Build open and paused, reports the failure, and retains the baseline.
 
@@ -12,4 +16,4 @@ Physical room outlines include the owned lot perimeter. Perimeter solids are sav
 
 The window action is Place Window, and contextual cancellation controls read Cancel. Functional labels describe the action without humor.
 
-Verification covers committed versus draft save bytes, cancellation before and after command draining, chained edits, confirmed-batch retention, rejected rollback, successful and rejected Load, perimeter geometry, and save round trips. Browser checks cover desktop and compact controls, including the button order and Exit behavior.
+Verification covers committed versus draft save bytes, cancellation before and after command draining, chained edits, confirmed-batch retention, rejected rollback, successful and rejected Load, perimeter geometry, and save round trips. Browser checks cover desktop and compact controls, including the button order and Exit behavior. Unit checks with a fake page cover the footer leaving after Confirm and Cancel, each dialog answer, Escape, focus, leaving with nothing pending, and a refused Confirm or failed rollback keeping Build mode.

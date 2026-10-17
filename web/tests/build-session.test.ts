@@ -167,6 +167,30 @@ it('confirms a perimeter room and later removes and restores its outer wall', ()
   } finally { handle.free(); }
 });
 
+// Leaving Build mode asks first only when the draft differs from the last
+// Confirm, so an applied edit counts and an undone or confirmed one does not.
+it('reports changes only while the draft differs from the last confirmed world', () => {
+  const { handle, sim, session } = fixture();
+  try {
+    expect(session.hasChanges()).toBe(false);
+    expect(session.begin()).toBe(true);
+    expect(session.hasChanges()).toBe(false);
+    expect(sim.placeObject(15, 7, 0, sim.objectFacing(15)!)).toBe(true);
+    sim.flushCommands();
+    expect(sim.lastPlacementResult()?.reason).toBeNull();
+    expect(session.hasChanges()).toBe(true);
+    expect(session.confirm()).toBe(true);
+    expect(session.hasChanges()).toBe(false);
+    expect(sim.setColourway(15, 1)).toBe(true);
+    sim.flushCommands();
+    expect(session.hasChanges()).toBe(true);
+    expect(session.cancel()).toBe(true);
+    expect(session.hasChanges()).toBe(false);
+    expect(session.end()).toBe(true);
+    expect(session.hasChanges()).toBe(false);
+  } finally { handle.free(); }
+});
+
 it('Exit cancels an in-flight furniture edit before resuming play', () => {
   const { handle, sim, session, hooks } = fixture();
   const speed = vi.fn();

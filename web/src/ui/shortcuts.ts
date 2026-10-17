@@ -2,7 +2,8 @@ export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors' | '
 interface ShortcutRow { readonly label: string; readonly keys: readonly string[]; readonly alternatives?: boolean }
 interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[] }
 const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←', '→'], alternatives: true };
-const CANCEL: ShortcutRow = { label: 'Cancel pending changes', keys: ['Esc'] };
+// With nothing selected, Escape leaves Build mode instead: Help lists that row.
+const CANCEL: ShortcutRow = { label: 'Clear selection', keys: ['Esc'] };
 const ROTATE: ShortcutRow = { label: 'Rotate clockwise', keys: ['R'] };
 
 export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[]): readonly ShortcutGroup[] {

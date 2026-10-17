@@ -481,11 +481,14 @@ describe('the Walls tool in the page', () => {
     expect(MAIN_TS).toContain('lot.frontDoors = sim.frontDoorLines();');
   });
 
-  it('cancels the batch from either Escape listener and routes other keys to the tools', () => {
+  it('routes Escape from either listener through the tools before Build mode, as other keys go', () => {
     // The canvas listener handles every key; the document listener catches
-    // Escape wherever focus is.
+    // Escape wherever focus is. A tool clears its selection first; with none,
+    // the furniture builder asks to leave Build mode.
     expect(MAIN_TS.split('routeBuildKey(event.key, buildTools, builder)')).toHaveLength(2);
-    expect(MAIN_TS.split('cancelBuildBatch(); event.preventDefault();')).toHaveLength(3);
+    expect(MAIN_TS.split('escapeBuild(); event.preventDefault();')).toHaveLength(3);
+    expect(MAIN_TS).toContain("routeBuildKey('Escape', buildTools, builder);");
+    expect(MAIN_TS).not.toContain('cancelBuildBatch(); event.preventDefault();');
     expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool, floorTool, landTool] as const;');
     expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
   });

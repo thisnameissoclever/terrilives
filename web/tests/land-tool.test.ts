@@ -230,7 +230,7 @@ describe('the Land tool', () => {
   it('lists its keys with the other tools', () => {
     const groups = shortcutGroups('land', []);
     expect(groups.flatMap(group => group.rows.map(row => row.label)))
-      .toEqual(['Behind the house', 'Left side', 'Right side', 'Buy land', 'Cancel pending changes']);
+      .toEqual(['Behind the house', 'Left side', 'Right side', 'Buy land', 'Clear selection']);
   });
 });
 

@@ -97,9 +97,10 @@ prices rounded up, funds rounded down.
    above. Buy opens a dialog that repeats the total and asks the player to
    confirm the land purchase; only Confirm in that dialog sends the command.
    With too little money the strip can still be picked and read, and the
-   dialog offers only Cancel. The purchase joins the build draft: Cancel or
-   Exit build before Confirm restores the old lot, funds and purchased total
-   through the build session's baseline, and Confirm keeps them.
+   dialog offers only Cancel. The purchase joins the build draft: Cancel, or
+   Discard changes when leaving Build mode, before Confirm restores the old
+   lot, funds and purchased total through the build session's baseline, and
+   Confirm keeps them.
 9. **Save.** Schema thirteen appends to the schema-twelve envelope: the lot
    frame origin, the purchased area, and funds in cents. The schema-one
    funds field keeps the whole dollars (rounded down) so every frozen reader
