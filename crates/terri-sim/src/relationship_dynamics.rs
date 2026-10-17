@@ -298,7 +298,6 @@ mod tests {
     use super::*;
     use crate::{Content, Sim};
     use terri_core::{Agent, Eating, NeedId, Needs, Position, Relationships, SimId, Target};
-    use RelationshipCause;
 
     fn pair() -> (Sim, Entity, Entity) {
         let mut sim = Sim::new_with_lot(8, 8);
