@@ -12,7 +12,7 @@ reported that origin/main was current.
 
 ## Played evidence
 
-![Four cleaning tasks in the game](cleaning-in-game.gif)
+[Four cleaning tasks in the game (archived)](https://github.com/thisnameissoclever/terrilives/blob/7c7cfa2274729716b35fda168653c2dfe687d079/docs/evidence/2026-10-05-cleaning-animations/cleaning-in-game.gif)
 
 The combined GIF shows independent game captures at ten simulation ticks per
 second. Completed jobs hold their last captured image. Each clip comes from
