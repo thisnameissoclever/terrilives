@@ -212,6 +212,21 @@ describe('the Land tool', () => {
     expect(land.status).toBe(CHOOSE_STRIP);
   });
 
+  // Discarding the draft drops a purchase still on its way, and its result
+  // never comes; main.ts resets the tool as a Load does, not just its size.
+  it('waits forever for a dropped purchase after only a size change, and not after a reset', () => {
+    const { land } = tool();
+    land.choose(0); land.requestBuy(); land.confirmBuy();
+    expect(land.pending).toBe(true);
+    land.setLotSize(20, 16);
+    land.afterCommands();
+    expect(land.pending).toBe(true);
+    land.resetAfterLoad(20, 16);
+    expect([land.pending, land.side, land.confirming]).toEqual([false, null, false]);
+    land.choose(1);
+    expect(land.side).toBe(1);
+  });
+
   it('is blocked while another pause holds and cleared by a Load', () => {
     const { land, source } = tool();
     land.choose(0); land.requestBuy();

@@ -191,7 +191,10 @@ it('reports changes only while the draft differs from the last confirmed world',
   } finally { handle.free(); }
 });
 
-it('Exit cancels an in-flight furniture edit before resuming play', () => {
+// The session half of discarding on the way out: a builder whose exit ends the
+// session, as the exit dialog's Discard changes does, drops an edit still on
+// its way. Asking first is BuildExit's job, in build-exit.test.ts.
+it('ending the session drops an in-flight furniture edit, so a builder leaving through it resumes play', () => {
   const { handle, sim, session, hooks } = fixture();
   const speed = vi.fn();
   const builder = new FurnitureBuilder(sim, new OverlayPauseController({ setSpeed: speed }, () => {}, 1), {

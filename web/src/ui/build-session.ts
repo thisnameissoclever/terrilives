@@ -20,8 +20,9 @@ export class BuildSession implements PersistableSim {
   saveBytes(): Uint8Array { return this.baseline?.slice() ?? this.source.saveBytes(); }
 
   /**
-   * Whether the draft differs from the last confirmed world. A command still
-   * queued is not counted until it is applied; the caller asks its tools.
+   * Whether the draft's save bytes differ from the last confirmed world's.
+   * The page also counts a command still on its way, by asking its tools,
+   * rather than relying on the bytes to show it.
    */
   hasChanges(): boolean {
     const baseline = this.baseline;

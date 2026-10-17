@@ -20,9 +20,49 @@ export interface BuildExitHooks {
   beforeAsk?(): void;
 }
 
+/** What the page reads to decide whether leaving would lose a change. */
+export interface BuildDraftSources {
+  readonly session: { hasChanges(): boolean };
+  readonly furniture: { readonly hasPlacementChange: boolean; readonly pending: boolean };
+  /** Every other Build mode controller; its `pending` is null or false while nothing is on its way. */
+  readonly tools: readonly { readonly pending: boolean | number | string | null }[];
+  pendingBookCommands(): number;
+}
+
+/** No build or book command is on its way to the draft. */
+export function buildCommandsIdle(sources: Omit<BuildDraftSources, 'session'>): boolean {
+  return !sources.furniture.pending
+    && sources.tools.every(tool => tool.pending === null || tool.pending === false)
+    && sources.pendingBookCommands() === 0;
+}
+
+/**
+ * Whether leaving now would lose a change: the draft differs from the last
+ * Confirm, a furniture move is shown but not placed, or a command is on its way.
+ */
+export function hasUnconfirmedChanges(sources: BuildDraftSources): boolean {
+  return sources.session.hasChanges() || sources.furniture.hasPlacementChange || !buildCommandsIdle(sources);
+}
+
+/** The footer's status when Confirm is refused. */
+export function confirmRefusal(furnitureMoveShown: boolean): string {
+  return furnitureMoveShown
+    ? 'Move the furniture somewhere it fits, or choose Cancel beside it, before confirming.'
+    : 'The changes could not be confirmed. Try Confirm again.';
+}
+
 /** The values of the dialog's buttons. Escape closes it with neither. */
 const CONFIRM = 'confirm';
 const DISCARD = 'discard';
+const KEEP = 'keep';
+/**
+ * How long a pointer click outside the dialog is ignored after the dialog
+ * closes or Build mode is left. A double-click on a dialog button, or on the
+ * footer's Confirm or Cancel, otherwise lands its second click on the game,
+ * which can order the selected housemate about. The usual double-click
+ * interval on Windows is 500 ms.
+ */
+export const STRAY_CLICK_MS = 500;
 
 export class BuildExit {
   private readonly dialog: HTMLDialogElement;
@@ -31,8 +71,11 @@ export class BuildExit {
   private chosen = false;
   /** What had focus when the dialog opened; it gets focus back if Build mode stays. */
   private opener: Element | null = null;
+  /** When the dialog last closed or Build mode was last left from here. */
+  private strayClicksFrom = -Infinity;
 
-  constructor(private readonly document: Document, private readonly hooks: BuildExitHooks) {
+  constructor(private readonly document: Document, private readonly hooks: BuildExitHooks,
+    private readonly now: () => number = () => performance.now()) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing build exit controls: ${id}`);
@@ -44,7 +87,32 @@ export class BuildExit {
     this.keep = required<HTMLButtonElement>('build-exit-keep');
     // The form's method is dialog, so each button closes it with its value
     // and Escape closes it with none; the close event reads the answer.
-    this.dialog.addEventListener('close', () => this.answer(this.dialog.returnValue));
+    this.dialog.addEventListener('close', () => {
+      this.strayClicksFrom = this.now();
+      this.answer(this.dialog.returnValue);
+    });
+    // Escape held from the game view opens the dialog, and its repeats then
+    // reach the dialog: cancelling them keeps it open until a fresh press.
+    this.dialog.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && event.repeat) event.preventDefault();
+    });
+    // Capturing on the document runs before the game view's own click
+    // listener, as input.ts does for a menu's stray click.
+    document.addEventListener('click', event => this.ignoreStrayClick(event), true);
+  }
+
+  /** Closes the dialog as Keep building, when something more urgent needs the screen. */
+  dismiss(): void {
+    if (this.dialog.open) this.dialog.close(KEEP);
+  }
+
+  private ignoreStrayClick(event: MouseEvent): void {
+    // A keyboard activation has no click count, and is never a stray.
+    if (event.detail === 0 || this.now() - this.strayClicksFrom > STRAY_CLICK_MS) return;
+    const target = event.target as Element | null;
+    if (typeof target?.closest === 'function' && target.closest('dialog[open]')) return;
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   /** The builder's beforeExit: true lets Build mode close now. */
@@ -70,7 +138,9 @@ export class BuildExit {
   private leaveAsChosen(): boolean {
     this.chosen = true;
     try {
-      return this.hooks.leave();
+      const left = this.hooks.leave();
+      if (left) this.strayClicksFrom = this.now();
+      return left;
     } finally {
       this.chosen = false;
     }
