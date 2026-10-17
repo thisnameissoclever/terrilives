@@ -1,0 +1,22 @@
+{
+  "before": {
+    "selection": "",
+    "active": true,
+    "focus": true,
+    "background": "rgb(55, 0, 110)",
+    "color": "rgb(255, 255, 255)",
+    "textFill": "rgb(255, 255, 255)",
+    "forcedAdjust": "auto",
+    "textShadow": "none"
+  },
+  "systemFace": {
+    "selection": "",
+    "active": true,
+    "focus": true,
+    "background": "rgb(255, 255, 255)",
+    "color": "rgb(0, 0, 0)",
+    "textFill": "rgb(0, 0, 0)",
+    "forcedAdjust": "auto",
+    "textShadow": "none"
+  }
+}
