@@ -329,9 +329,9 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         journey.transfer_contact = journey.transfer_contact.map(shift_tile);
     }
 
-    // Cells and room ids: a cell moves with its tile; a room is found again
-    // by its old seed tile, because new land can precede a room in row
-    // order and take over its lowest cell.
+    // Cells and room ids: a cell moves with its tile. A room id is read
+    // again at its seed tile once moved, and becomes the moved cell when
+    // that tile is in no room.
     let new_rooms = RoomRegions::from_world(world);
     let cell = |old: u32| (old / old_width + dy) * new_width + (old % old_width + dx);
     let room = |old: u32| {
@@ -1124,5 +1124,67 @@ mod tests {
                 }
             );
         }
+    }
+
+    /// A record naming a room still names that room after a purchase on a
+    /// lot narrower than its house is tall, a shape content allows. On this
+    /// 4 by 12 lot, whose house is the whole lot, two walls make room 1
+    /// start at (1, 0) and leave (1, 4) in room 0, so a room found by any
+    /// tile other than its id's own column and row would be the wrong one.
+    #[test]
+    fn a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall() {
+        use terri_core::save::SavedCleanupOpportunity;
+        let mut pack = terri_data::pack().clone();
+        pack.lot.width = 4;
+        pack.lot.height = 12;
+        pack.lot.house = (4, 12);
+        let mut sim =
+            Sim::new_with_lot_and_content(4, 12, crate::Content(Box::leak(Box::new(pack))));
+        let wall = |axis, x, y| WallEdge {
+            axis,
+            x,
+            y,
+            doorway: false,
+        };
+        let edges = vec![
+            wall(EdgeAxis::Vertical, 1, 0),
+            wall(EdgeAxis::Vertical, 1, 1),
+            wall(EdgeAxis::Horizontal, 1, 2),
+            wall(EdgeAxis::Horizontal, 2, 2),
+            wall(EdgeAxis::Horizontal, 3, 2),
+        ];
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        let rooms = RoomRegions::from_world(sim.world());
+        assert_eq!(rooms.at((1, 0)), Some(1), "room 1 starts at (1, 0)");
+        assert_eq!(rooms.at((1, 4)), Some(0), "(1, 4) lies in room 0");
+        let opportunity = |room| SavedCleanupOpportunity {
+            person: 0,
+            room,
+            known: vec![],
+            pending: false,
+        };
+        sim.world_mut().insert_resource(SavedDining {
+            opportunities: vec![opportunity(0), opportunity(1)],
+            ..Default::default()
+        });
+        sim.world_mut()
+            .insert_resource(Funds::from_dollars(1_000_000));
+        buy(sim.world_mut(), Side::Rear).unwrap();
+        let moved = RoomRegions::from_world(sim.world());
+        let (room_0, room_1) = (moved.at((10, 0)).unwrap(), moved.at((11, 0)).unwrap());
+        assert_eq!(
+            (room_0, room_1),
+            (10, 11),
+            "the rooms moved 10 columns east"
+        );
+        let rooms_named: Vec<u32> = sim
+            .world()
+            .resource::<SavedDining>()
+            .opportunities
+            .iter()
+            .map(|o| o.room)
+            .collect();
+        assert_eq!(rooms_named, vec![room_0, room_1]);
     }
 }

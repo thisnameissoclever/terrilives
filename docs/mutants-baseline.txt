@@ -34,4 +34,3 @@ crates/terri-sim/src/save/v11.rs:35:19: replace > with == in restore
 crates/terri-sim/src/save/v11.rs:35:19: replace > with >= in restore
 crates/terri-sim/src/systems/chain.rs:562:38: replace < with <= in tick_chain_steps
 crates/terri-sim/src/land.rs:338:26: replace % with + in grow
-crates/terri-sim/src/land.rs:338:52: replace / with * in grow
