@@ -826,7 +826,7 @@ describe('a double-click that closes the dialog or leaves', () => {
     } finally { f.handle.free(); }
   });
 
-  it('lets through clicks inside an open dialog, clicks before any close, and a late continuation', () => {
+  it('lets through clicks before any close, and a continuation after the time bound', () => {
     const f = fixture();
     try {
       expect(f.doc.click(f.stage, 2)).toBe(true);
@@ -834,11 +834,77 @@ describe('a double-click that closes the dialog or leaves', () => {
       expect(f.doc.click(f.confirmButton, 1)).toBe(true);
       f.clock.time += STRAY_CLICK_MS + 1;
       expect(f.doc.click(f.stage, 2)).toBe(true);
-      f.builder.enter(); f.builder.select(22); f.builder.moveTo(9, 3);
-      f.clickExit();
-      expect(f.dialog.open).toBe(true);
-      expect(f.doc.click(dialogButton(f), 2)).toBe(true);
       expect(f.gameClicks).toBe(2);
+    } finally { f.handle.free(); }
+  });
+});
+
+describe('a double-tap on Exit build with changes pending', () => {
+  /** A dialog button that closes the dialog with its value, as the form's buttons do. */
+  const choice = (f: ReturnType<typeof fixture>, value: string) => {
+    const button = new FakeElement(f.doc);
+    button.container = f.dialog;
+    button.addEventListener('click', () => f.dialog.close(value));
+    return button;
+  };
+
+  it('keeps the dialog open when the second tap lands on Discard changes, with Keep building focused', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      const moved = f.sim.saveBytes();
+      f.exitButton.focus();
+      expect(f.doc.click(f.exitButton, 1)).toBe(true);
+      expect([f.dialog.open, f.doc.activeElement]).toEqual([true, f.keep]);
+      // On a phone, Discard changes sits where Exit build was.
+      const discard = choice(f, 'discard');
+      f.clock.time += 150;
+      discard.focus();
+      expect(f.doc.click(discard, 2)).toBe(false);
+      expect([f.dialog.open, f.builder.active, f.doc.activeElement]).toEqual([true, true, f.keep]);
+      expect(f.session.hasChanges()).toBe(true);
+      expect(f.sim.saveBytes()).toEqual(moved);
+    } finally { f.handle.free(); }
+  });
+
+  it('still discards on a fresh single tap on Discard changes right after', () => {
+    const f = fixture();
+    try {
+      const before = f.sim.saveBytes();
+      f.enterWithMove();
+      expect(f.doc.click(f.exitButton, 1)).toBe(true);
+      expect(f.dialog.open).toBe(true);
+      f.clock.time += 150;
+      expect(f.doc.click(choice(f, 'discard'), 1)).toBe(true);
+      expect([f.dialog.open, f.builder.active]).toEqual([false, false]);
+      expect(f.sim.saveBytes()).toEqual(before);
+    } finally { f.handle.free(); }
+  });
+
+  it('arms nothing when Escape or Enter opens the dialog', () => {
+    const f = fixture();
+    try {
+      const before = f.sim.saveBytes();
+      f.enterWithMove();
+      // An earlier pointer click, too old to have opened the dialog.
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      f.clock.time += 600;
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(true);
+      f.clock.time += 50;
+      expect(f.doc.click(choice(f, 'discard'), 2)).toBe(true);
+      expect([f.dialog.open, f.builder.active]).toEqual([false, false]);
+      expect(f.sim.saveBytes()).toEqual(before);
+      // Enter on Exit build: a click with no count opens it.
+      f.enterWithMove();
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      f.clock.time += 600;
+      expect(f.doc.click(f.exitButton, 0)).toBe(true);
+      expect(f.dialog.open).toBe(true);
+      f.clock.time += 50;
+      expect(f.doc.click(choice(f, 'discard'), 2)).toBe(true);
+      expect([f.dialog.open, f.builder.active]).toEqual([false, false]);
+      expect(f.sim.saveBytes()).toEqual(before);
     } finally { f.handle.free(); }
   });
 });

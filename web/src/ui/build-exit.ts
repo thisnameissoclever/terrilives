@@ -67,9 +67,11 @@ const KEEP = 'keep';
 const CAUSE_MS = 250;
 /**
  * The longest the rest of a double-click is watched for after the click that
- * closed the dialog or left Build mode. Its second click would otherwise land
- * on the game and could order the selected housemate about. The browser's own
- * click count decides what belongs to the double-click; this only bounds it.
+ * opened or closed the dialog or left Build mode. Its second click would
+ * otherwise land on whatever took the first one's place: the game, which can
+ * order the selected housemate about, or a dialog button, such as Discard
+ * changes over Exit build in the phone dock. The browser's own click count
+ * decides what belongs to the double-click; this only bounds it.
  */
 export const STRAY_CLICK_MS = 1000;
 
@@ -87,8 +89,8 @@ export class BuildExit {
   private opener: Element | null = null;
   /** The latest pointer click anywhere on the page. */
   private lastPointerClick: PointerClick | null = null;
-  /** The pointer click that closed the dialog or left Build mode, while the rest of its run is dropped. */
-  private closingClick: PointerClick | null = null;
+  /** The pointer click that opened or closed the dialog or left Build mode, while the rest of its run is dropped. */
+  private guardClick: PointerClick | null = null;
 
   constructor(private readonly document: Document, private readonly hooks: BuildExitHooks,
     private readonly now: () => number = () => performance.now()) {
@@ -150,19 +152,20 @@ export class BuildExit {
   private onClick(event: MouseEvent): void {
     // A keyboard activation has no click count: neither a cause nor a stray.
     if (event.detail === 0) return;
-    const closing = this.closingClick;
-    if (closing) {
-      // A count that does not go past the closing click's starts a new run,
-      // which is deliberate: a fresh double-click soon after must go through.
-      if (event.detail <= closing.detail || this.now() - closing.at > STRAY_CLICK_MS) {
-        this.closingClick = null;
+    const guard = this.guardClick;
+    if (guard) {
+      // A count that does not go past the guarding click's starts a new run,
+      // which is deliberate: a fresh click or double-click soon after goes through.
+      if (event.detail <= guard.detail || this.now() - guard.at > STRAY_CLICK_MS) {
+        this.guardClick = null;
       } else {
-        const target = event.target as Element | null;
-        if (!(typeof target?.closest === 'function' && target.closest('dialog[open]'))) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
+        // The rest of the run, wherever it lands, dialog buttons included.
+        // Cancelling the click also stops a dialog button closing the form.
+        event.preventDefault();
+        event.stopPropagation();
+        // Its press already moved focus to what it landed on.
+        if (this.dialog.open) this.keep.focus();
+        return;
       }
     }
     this.lastPointerClick = { at: this.now(), detail: event.detail };
@@ -179,13 +182,13 @@ export class BuildExit {
   }
 
   /**
-   * After a pointer click closed the dialog or left Build mode, the clicks
-   * that continue its run (a double-click's second, as the browser counts
-   * them) are dropped. A keyboard close passes null and changes nothing, so
-   * it never clears a guard already armed.
+   * After a pointer click opened or closed the dialog or left Build mode, the
+   * clicks that continue its run (a double-click's second, as the browser
+   * counts them) are dropped. The keyboard passes null and changes nothing,
+   * so it never clears a guard already armed.
    */
   private armAgainstTheRestOf(cause: PointerClick | null): void {
-    if (cause) this.closingClick = cause;
+    if (cause) this.guardClick = cause;
   }
 
   /** The builder's beforeExit: true lets Build mode close now. */
@@ -194,6 +197,8 @@ export class BuildExit {
     const cause = this.chosen ? this.chosenCause : this.recentPointerClick();
     if (!this.chosen && this.hooks.hasUnconfirmedChanges()) {
       this.ask();
+      // A double-tap on Exit build must not land its second tap on a choice.
+      this.armAgainstTheRestOf(cause);
       return false;
     }
     const discarded = this.hooks.discard();
