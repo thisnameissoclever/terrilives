@@ -12172,6 +12172,13 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: submission reused preparation's input-settlement step. Preparation may settle edits to construct a review; submission must accept only the arrangement already reviewed.
 3. Prevention: check the full review token and raw draft, including queued commands, before any submit mutation. Do not drain new input as part of accepting an existing prepared candidate.
 4. Verification: prepare a review, queue another accepted edit, and submit the old review. Require identical raw draft, queue, view revision, and committed baseline after refusal. Return to editing, drain the retained input, and confirm a fresh review to prove the edits remain usable.
+
+## [L-room-matching-coordinate-frame] Pair room records and membership in the same coordinate frame
+
+1. What happened: mixed west and north land replay passed translated draft anchors to room matching with an untranslated baseline map. Preparing the final build failed despite a valid visible arrangement.
+2. Root cause: the registry came from the edited candidate while membership came from the captured baseline. Each was valid separately, but their anchors described different coordinates.
+3. Prevention: use baseline registry records with baseline membership, and pass the final land offset separately. When an integration boundary receives translated records, align its private copy to the captured map before matching. Apply final translation exactly once.
+4. Verification: mix construction, purchases, furniture, books, and west/north land growth in one journal. Require candidate agreement with the draft, retained room identities and names, coherent translated work targets, and a strict current save round trip.
 ## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
 
 1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
