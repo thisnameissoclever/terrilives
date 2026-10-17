@@ -451,7 +451,8 @@ pub const SEASON_LOOK_KEYS: [&str; 3] = ["hue", "strength", "lightness"];
 /// first - [SEA-yard].
 ///
 /// Read by hand rather than derived so that every malformed shape is
-/// refused with the season and the key named: a season missing, a key
+/// refused with the season and the key named wherever one is at fault: a
+/// season missing, a key
 /// that is not a season, a season or the whole table written as anything
 /// but a table, a look missing a key or carrying one it does not know, a
 /// value that is not a number, and a TOML date or time in place of the
@@ -2150,7 +2151,8 @@ mod tests {
 
     /// [SEA-yard]: a TOML date, time or date-time where a season's table or a
     /// look's number belongs, or in place of the whole table, is refused as a
-    /// date or time with the season and the key named. The `toml` crate hands
+    /// date or time, naming the season and the key wherever one is at fault
+    /// (a date in place of the whole table names neither). The `toml` crate hands
     /// a visitor each of them as a map under a private key, which must not
     /// reach the message.
     #[test]
