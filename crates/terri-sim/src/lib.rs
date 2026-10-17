@@ -11,6 +11,7 @@ pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod fights;
 pub use fights::Fights;
+pub mod land;
 pub mod lot_frame;
 pub use lot_frame::LotFrame;
 pub mod character_draft;
@@ -3066,8 +3067,8 @@ impl Sim {
             .map(|(_, ledger)| ledger.value())
     }
 
-    /// The household's money - [E4], read by both the debug overlay and
-    /// the normal HUD. One number for the lot, not per sim.
+    /// The household's money in cents - [E4], read by both the debug
+    /// overlay and the normal HUD. One number for the lot, not per sim.
     pub fn funds(&self) -> i64 {
         self.world.resource::<terri_core::Funds>().0
     }
@@ -4105,6 +4106,7 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     Character(command) => vec![30, terri_core::character_hash::command(command)],
+                    BuyLand { side } => vec![31, u64::from(*side)],
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26

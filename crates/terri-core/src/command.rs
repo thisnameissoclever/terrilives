@@ -298,6 +298,13 @@ pub enum SimCommand {
     /// Creator drafts are large; ordinary queue entries retain their compact layout.
     /// Box is serialization-transparent, preserving code 30 and its payload bytes.
     Character(Box<CharacterCommand>),
+    /// Buy the strip of land on one side of the lot (land expansion, issue
+    /// 254): 0 behind the house, 1 the left side, 2 the right side. A lot
+    /// edit, applied by the drain, which records the charge or the refusal.
+    /// Code 31.
+    BuyLand {
+        side: u32,
+    },
 }
 
 /// Resolved creator commands append after every published command discriminant.

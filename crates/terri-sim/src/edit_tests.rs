@@ -1813,7 +1813,7 @@ fn an_edit_at_work_keeps_one_wage_and_the_return() {
         edited.world().get::<terri_core::AtWork>(worker).is_none(),
         "the edited worker came back on schedule"
     );
-    assert_eq!(edited.funds(), 130, "one shift, one pay packet");
+    assert_eq!(edited.funds(), 130 * 100, "one shift, one pay packet");
     assert_eq!(
         satisfaction_of(&edited, worker),
         2.25 * terri_core::Satisfaction::REWARD_SCALE,

@@ -18,7 +18,7 @@ fn quotes_round_trip_pending_commands_and_old_headers_refuse_new_tags() {
     handle
         .sim
         .world_mut()
-        .insert_resource(terri_core::Funds(100));
+        .insert_resource(terri_core::Funds::from_dollars(100));
     let before = handle.save_bytes();
     let quote = handle.book_purchase_quote();
     let (_, result): (u8, Result<BookPurchaseQuote, String>) =

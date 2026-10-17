@@ -1528,6 +1528,57 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
+    /// Stages a land purchase on `side` (0 behind the house, 1 the left side,
+    /// 2 the right side; land expansion, issue 254). Queue acceptance only;
+    /// `last_land_result` reports what the drain did.
+    pub fn buy_land(&mut self, side: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::BuyLand { side })
+            .expect("a land purchase serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[length, depth, area, price_cents, remaining_cents, affordable]` for
+    /// the strip on `side`, from the same numbers a purchase uses; empty for
+    /// an unknown side. A quote changes nothing.
+    pub fn land_quote(&self, side: u32) -> Vec<f64> {
+        let Some(side) = terri_sim::land::Side::from_index(side) else {
+            return Vec::new();
+        };
+        let quote = terri_sim::land::quote(self.sim.world(), side);
+        vec![
+            f64::from(quote.length),
+            f64::from(quote.depth),
+            f64::from(quote.area),
+            quote.price_cents as f64,
+            quote.remaining_cents as f64,
+            if quote.affordable() { 1.0 } else { 0.0 },
+        ]
+    }
+
+    /// `[side, refusal, charged_cents]` of the last land purchase a drain
+    /// handled: refusal zero and the cents charged when it bought, or the
+    /// refusal code and zero. Empty before any purchase.
+    pub fn last_land_result(&self) -> Vec<f64> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_land_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    f64::from(result.side),
+                    f64::from(result.reason.map_or(0, |r| r as u32)),
+                    result.charged_cents.unwrap_or(0) as f64,
+                ]
+            })
+    }
+
+    /// `[x, y]` of the house's north-west tile: the grid's origin until land
+    /// is bought behind or beside the house (land expansion, issue 254).
+    pub fn house_origin(&self) -> Vec<u32> {
+        let (x, y) = terri_sim::lot_frame::origin(self.sim.world());
+        vec![x, y]
+    }
+
     /// `[object, refusal, payout]` of the last sale a drain handled: refusal
     /// zero and the amount paid when it sold, or the refusal code and zero.
     /// Empty before any sale.
@@ -2742,6 +2793,12 @@ impl SimHandle {
     /// every display caller would write the same `Number(...)`; a
     /// household that earns past 2^53 has beaten the game.
     pub fn funds(&self) -> f64 {
+        terri_core::Funds(self.sim.funds()).dollars() as f64
+    }
+
+    /// The household's money in cents (land expansion, issue 254), for the
+    /// quotes and totals the interface shows to the cent's rounding.
+    pub fn funds_cents(&self) -> f64 {
         self.sim.funds() as f64
     }
 
@@ -3968,7 +4025,7 @@ mod boundary_tests {
             (position.x, position.y),
             at_work.is_some(),
             commuting.is_some(),
-            world.resource::<terri_core::Funds>().0,
+            world.resource::<terri_core::Funds>().dollars(),
         )
     }
 
@@ -5715,7 +5772,7 @@ mod boundary_tests {
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds(10000));
+            .insert_resource(terri_core::Funds::from_dollars(10000));
         let pack = handle.sim.world().resource::<Content>().0;
         let object = handle
             .sim
@@ -7558,7 +7615,7 @@ mod boundary_tests {
         assert_eq!(handle.last_sale_result(), vec![object, 0, payout]);
         assert_eq!(
             handle.sim.world().resource::<terri_core::Funds>().0,
-            funds + i64::from(payout)
+            funds + i64::from(payout) * 100
         );
         // Gone, so the same index now names nothing: code 2 at every step.
         assert_eq!(handle.sale_preview(f64::from(object)), vec![2, 0]);
@@ -7948,7 +8005,7 @@ mod boundary_tests {
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds(100_000));
+            .insert_resource(terri_core::Funds::from_dollars(100_000));
         let catalogue = handle.catalogue();
         let (definition, facing) = (catalogue[0], catalogue[3]);
         let tile = (0..16u32)
@@ -8054,7 +8111,7 @@ mod boundary_tests {
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds(1_000));
+            .insert_resource(terri_core::Funds::from_dollars(1_000));
         let pack = handle.sim.world().resource::<Content>().0;
         let chair = pack.find("chair").unwrap().0;
         let price = pack.objects[chair as usize].price.unwrap();
@@ -8649,7 +8706,7 @@ mod boundary_tests {
         // stubbed to 0.0 satisfies the first alone - the sweep found
         // exactly that mutant surviving.
         assert_eq!(handle.funds(), 0.0, "move-in day, before any shift");
-        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260;
+        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260 * 100;
         assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
         assert_eq!(handle.career_of(tim), "Office clerk");

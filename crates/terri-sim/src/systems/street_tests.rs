@@ -60,7 +60,7 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
         "came in through the front door"
     );
     assert!(home.iter().any(|&(x, _)| x > 17.0), "walked the yard");
-    let pay = sim.world().resource::<crate::Content>().0.careers[0].pay as i64;
+    let pay = sim.world().resource::<crate::Content>().0.careers[0].pay as i64 * 100;
     assert_eq!(sim.world().resource::<terri_core::Funds>().0, funds + pay);
 }
 
@@ -78,7 +78,7 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     let tim = worker(&mut sim);
     let content = sim.world().resource::<crate::Content>().0;
     let shift_start = u64::from(content.careers[0].shift_start);
-    let pay = i64::from(content.careers[0].pay);
+    let pay = i64::from(content.careers[0].pay) * 100;
     for _ in 1..shift_start {
         sim.tick();
     }
@@ -239,7 +239,8 @@ fn furniture_saved_on_the_exit_sends_the_worker_by_the_door() {
     sim.world_mut()
         .resource_mut::<terri_core::TileGrid>()
         .set_blocked(19, 2, true);
-    sim.world_mut().insert_resource(terri_core::Funds(1_000));
+    sim.world_mut()
+        .insert_resource(terri_core::Funds::from_dollars(1_000));
     let facing = sim
         .world()
         .resource::<crate::Content>()

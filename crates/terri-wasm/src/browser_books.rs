@@ -322,7 +322,7 @@ mod tests {
         handle
             .sim
             .world_mut()
-            .insert_resource(terri_core::Funds(1000));
+            .insert_resource(terri_core::Funds::from_dollars(1000));
         let person = handle
             .sim
             .world_mut()
@@ -449,7 +449,7 @@ mod tests {
             handle
                 .sim
                 .world_mut()
-                .insert_resource(terri_core::Funds(1000));
+                .insert_resource(terri_core::Funds::from_dollars(1000));
             let shelf = if model == "bookshelf" {
                 0
             } else {

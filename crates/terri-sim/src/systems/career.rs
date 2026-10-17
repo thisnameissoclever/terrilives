@@ -359,7 +359,7 @@ pub fn commute_and_work(
                 returning.insert((Commuting::Inbound, Path { steps, cursor: 0 }));
             }
             needs.drain(NeedId::Energy, career.energy_cost);
-            funds.0 += career.pay as i64;
+            funds.0 += career.pay as i64 * Funds::CENTS_PER_DOLLAR;
             satisfaction.reward(career.satisfaction);
         }
     }
@@ -547,12 +547,12 @@ mod tests {
             Some((15, 3)),
             "the return crosses one authored tile into the lot"
         );
-        assert_eq!(sim.funds(), 130, "the completed shift pays once");
+        assert_eq!(sim.funds(), 130 * 100, "the completed shift pays once");
 
         let snapshot = sim.save_snapshot();
         let mut restored = test_content::sim_with_portals(16, 12, pack);
         assert_eq!(restored.load_snapshot(snapshot), Ok(()));
-        assert_eq!(restored.funds(), 130);
+        assert_eq!(restored.funds(), 130 * 100);
 
         for _ in 0..20 {
             restored.tick();
@@ -567,7 +567,7 @@ mod tests {
         assert_eq!((position.x, position.y), (15.0, 3.0));
         assert_eq!(
             restored.funds(),
-            130,
+            130 * 100,
             "finishing the doorway walk cannot pay again"
         );
     }
@@ -664,7 +664,7 @@ mod tests {
             );
             assert_eq!(
                 sim.funds(),
-                a_career().pay as i64,
+                a_career().pay as i64 * 100,
                 "the {axis}-axis worker's one shift pays once"
             );
         }
@@ -809,7 +809,7 @@ mod tests {
                 .expect("the shipped household has an employed Sim")
         };
         let career = &content.careers[sim.world().get::<Career>(worker).unwrap().0 as usize];
-        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64);
+        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64 * 100);
         assert_eq!(today(&sim), 0, "day 1 is a Monday");
 
         let mut left_at = None;
@@ -949,7 +949,7 @@ mod tests {
             sim.world().get::<AtWork>(worker).is_none(),
             "clocked in at {started}, so the return is well before tick 29"
         );
-        assert_eq!(sim.funds(), 130, "one shift, one pay packet");
+        assert_eq!(sim.funds(), 130 * 100, "one shift, one pay packet");
         assert_eq!(
             sim.world().get::<Satisfaction>(worker).unwrap().value(),
             2.25 * Satisfaction::REWARD_SCALE,
@@ -1450,11 +1450,11 @@ mod tests {
         for _ in 0..29 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 130, "day one pays once");
+        assert_eq!(sim.funds(), 130 * 100, "day one pays once");
         for _ in 0..30 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 260, "day two pays again");
+        assert_eq!(sim.funds(), 260 * 100, "day two pays again");
     }
 
     /// [CAL-careers], [CAL-evidence] 3: over one 30-tick week a Monday to
@@ -1486,7 +1486,7 @@ mod tests {
         assert_eq!(clock(&sim), 209);
         assert_eq!(
             sim.funds(),
-            5 * weekday_career().pay as i64,
+            5 * weekday_career().pay as i64 * 100,
             "five working days, five pay packets"
         );
     }
@@ -1499,7 +1499,7 @@ mod tests {
             working_days: 0b1000000,
             ..a_career()
         };
-        let pay = sunday.pay as i64;
+        let pay = sunday.pay as i64 * 100;
         let pack = pack_with_career(sunday, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1550,7 +1550,7 @@ mod tests {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64;
+        let pay = late.pay as i64 * 100;
         let pack = pack_with_career(late, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1595,7 +1595,7 @@ mod tests {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64;
+        let pay = late.pay as i64 * 100;
         let pack = with_front_portal(
             pack_with_career(late, vec![], thirty_tick_day()),
             (15, 2),
@@ -1711,7 +1711,7 @@ mod tests {
         let worker = a_worker(&mut sim, 15.0, 2.0);
 
         assert_eq!(departures(&mut sim, worker, 59), vec![33]);
-        assert_eq!(sim.funds(), weekday_career().pay as i64);
+        assert_eq!(sim.funds(), weekday_career().pay as i64 * 100);
     }
 
     /// Both new hash inputs, each from both sides: two worlds equal in

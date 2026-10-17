@@ -73,6 +73,9 @@ pub struct LotEditState {
     /// What the drain did with the most recent edit of a living person -
     /// [ES-atomic].
     pub last_edit_result: Option<crate::edit::EditResult>,
+    /// What the drain did with the most recent land purchase (land
+    /// expansion, issue 254).
+    pub last_land_result: Option<crate::land::LandResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 

@@ -132,6 +132,10 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::sale::commit(world, object);
             }
+            SimCommand::BuyLand { side } => {
+                flush_ordinary(world);
+                crate::land::commit(world, side);
+            }
             SimCommand::AddHousemate {
                 name,
                 personality,

@@ -208,7 +208,8 @@ fn a_lot_edit_is_held_only_to_the_grid_checks_its_own_loader_runs() {
                 interaction: 0,
             },
         ));
-        sim.world_mut().insert_resource(terri_core::Funds(1_000));
+        sim.world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(1_000));
     };
     let pack = terri_data::pack();
     let chair = pack.find("chair").unwrap().0;

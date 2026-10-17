@@ -857,6 +857,11 @@ pub enum SavedCommand {
     SetChoreBoard {
         enabled: bool,
     },
+    /// A land purchase staged just before a save (land expansion, issue
+    /// 254), the side as the live command names it.
+    BuyLand {
+        side: u32,
+    },
 }
 
 /// One permanent record, ordered by death tick then SimId.

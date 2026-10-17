@@ -335,7 +335,8 @@ mod tests {
             .find("counter")
             .unwrap()
             .0;
-        sim.world_mut().insert_resource(terri_core::Funds(10000));
+        sim.world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(10000));
         let destination = (1..5)
             .flat_map(|y| (9..15).map(move |x| (x, y)))
             .find(|(x, y)| {

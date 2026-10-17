@@ -27,7 +27,12 @@ fn world(now: u64) -> BookWorld<'static> {
 
 fn buy(library: &mut BookLibrary, title: &str) -> BookCopyId {
     library
-        .purchase(title, Some(BookShelfId(7)), &mut Funds(100), &world(0))
+        .purchase(
+            title,
+            Some(BookShelfId(7)),
+            &mut Funds::from_dollars(100),
+            &world(0),
+        )
         .unwrap()
 }
 
@@ -109,7 +114,7 @@ fn migration_fills_shelves_before_inventory_and_rejects_partial_grants_atomicall
 #[test]
 fn purchases_charge_once_fallback_to_inventory_and_refuse_atomically() {
     let mut library = BookLibrary::new(1);
-    let mut funds = Funds(20);
+    let mut funds = Funds::from_dollars(20);
     let first = library
         .purchase(standard(), Some(BookShelfId(8)), &mut funds, &world(0))
         .unwrap();
@@ -133,7 +138,7 @@ fn purchases_charge_once_fallback_to_inventory_and_refuse_atomically() {
     );
     assert_eq!(library.state(), &before);
     assert_eq!(funds.0, 0);
-    funds.0 = 100;
+    funds.0 = 100 * Funds::CENTS_PER_DOLLAR;
     assert!(library
         .purchase(standard(), Some(BookShelfId(99)), &mut funds, &world(0))
         .is_err());
@@ -141,7 +146,7 @@ fn purchases_charge_once_fallback_to_inventory_and_refuse_atomically() {
         .purchase("unknown", None, &mut funds, &world(0))
         .is_err());
     assert_eq!(library.state(), &before);
-    assert_eq!(funds.0, 100);
+    assert_eq!(funds.0, 100 * Funds::CENTS_PER_DOLLAR);
 }
 
 #[test]
@@ -457,7 +462,7 @@ fn allocator_exhaustion_refuses_purchase_and_grant_without_charging_or_partial_b
     let mut saved = BookLibrary::new(1).state().clone();
     saved.next_copy_id = u32::MAX;
     let mut library = BookLibrary::from_saved(saved.clone(), &world(0)).unwrap();
-    let mut funds = Funds(100);
+    let mut funds = Funds::from_dollars(100);
     assert_eq!(
         library.purchase(standard(), None, &mut funds, &world(0)),
         Err(BookError::CopyIdsExhausted)
@@ -466,7 +471,7 @@ fn allocator_exhaustion_refuses_purchase_and_grant_without_charging_or_partial_b
         library.grant_migration_starters(&world(0)),
         Err(BookError::CopyIdsExhausted)
     );
-    assert_eq!(funds.0, 100);
+    assert_eq!(funds.0, 100 * Funds::CENTS_PER_DOLLAR);
     assert_eq!(library.state(), &saved);
 }
 
@@ -511,7 +516,12 @@ fn a_full_shelf_sends_every_starter_copy_to_inventory() {
         slots: 1,
     }];
     let existing = library
-        .purchase(standard(), Some(BookShelfId(8)), &mut Funds(100), &context)
+        .purchase(
+            standard(),
+            Some(BookShelfId(8)),
+            &mut Funds::from_dollars(100),
+            &context,
+        )
         .unwrap();
     let granted = library.grant_migration_starters(&context).unwrap();
     assert_eq!(granted.len(), 5);

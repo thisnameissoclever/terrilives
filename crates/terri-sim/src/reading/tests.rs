@@ -303,7 +303,7 @@ fn fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
     pack.portals.clear();
     let content = Content(Box::leak(Box::new(pack)));
     let mut sim = Sim::new_with_lot_and_content(20, 20, content);
-    sim.world_mut().insert_resource(Funds(10000));
+    sim.world_mut().insert_resource(Funds::from_dollars(10000));
     let shelf = sim.spawn_object(
         Position { x: 3.0, y: 3.0 },
         content.0.find("bookshelf").unwrap(),
@@ -904,7 +904,7 @@ fn reading_journey_pending_career_restores_and_pays_full_shift() {
     }
     assert_eq!(
         sim.world().resource::<Funds>().0,
-        funds + i64::from(career.pay)
+        funds + i64::from(career.pay) * Funds::CENTS_PER_DOLLAR
     );
 }
 #[test]
@@ -1600,7 +1600,7 @@ fn reading_journey_urgent_need_returns_before_other_activity_and_recline_waits()
 #[test]
 fn reading_journey_preview_cost_and_neutrality_on_real_household() {
     let mut sim = Sim::new_from_shipped_lot();
-    sim.world_mut().insert_resource(Funds(1000));
+    sim.world_mut().insert_resource(Funds::from_dollars(1000));
     let pack = sim.world().resource::<Content>().0;
     let p = sim
         .world_mut()

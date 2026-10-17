@@ -121,7 +121,8 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
         content_fingerprint: terri_data::content_fingerprint(pack),
         tick: world.resource::<SimClock>().tick,
         rng: world.resource::<SimRng>().clone(),
-        funds: world.resource::<Funds>().0,
+        // Whole dollars, rounded down: the schema-one field predates cents.
+        funds: world.resource::<Funds>().dollars(),
         issued_sim_ids: world.resource::<SimIdAllocator>().issued(),
         grid_width: grid.width() as u32,
         grid_height: grid.height() as u32,
@@ -278,6 +279,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             preferences: *preferences,
         },
         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
+        SimCommand::BuyLand { side } => SavedCommand::BuyLand { side: *side },
         SimCommand::Book(_) | SimCommand::Character(_) => {
             unreachable!("Versioned commands are captured separately")
         }
@@ -543,7 +545,9 @@ fn restore_with_facings(
         tick: snapshot.tick,
     });
     sim.world.insert_resource(snapshot.rng);
-    sim.world.insert_resource(Funds(snapshot.funds));
+    // Dollars times a hundred until schema thirteen restores the cents.
+    sim.world
+        .insert_resource(Funds::from_dollars(snapshot.funds));
 
     // Resumed at the saved count rather than counted up to it: the loader's
     // bound on the count must not be the only thing keeping a Load quick.
@@ -951,6 +955,7 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             preferences,
         },
         SavedCommand::SetChoreBoard { enabled } => SimCommand::SetChoreBoard { enabled },
+        SavedCommand::BuyLand { side } => SimCommand::BuyLand { side },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -1344,6 +1349,15 @@ fn validate_command(
         SavedCommand::CleanChore { .. }
         | SavedCommand::CleanChoreFirst { .. }
         | SavedCommand::SetChoreBoard { .. } => Ok(()),
+        // A side the drain would refuse restores as one it refuses; only
+        // an unrepresentable number is a corrupt save.
+        SavedCommand::BuyLand { side } => {
+            if *side <= 2 {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::SetChoreProfile {
             responsibility,
             preferences,

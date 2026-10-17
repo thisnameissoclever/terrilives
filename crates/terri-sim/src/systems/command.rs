@@ -121,6 +121,7 @@ impl Placement {
             | SimCommand::CleanChore { .. }
             | SimCommand::SetChoreProfile { .. }
             | SimCommand::SetChoreBoard { .. }
+            | SimCommand::BuyLand { .. }
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
@@ -402,6 +403,9 @@ pub(crate) fn drain_ordinary_commands(
             }
             SimCommand::SetChoreProfile { .. } | SimCommand::SetChoreBoard { .. } => {
                 unreachable!("chore settings split ordinary command stretches")
+            }
+            SimCommand::BuyLand { .. } => {
+                unreachable!("a land purchase is a lot edit the drain applies itself")
             }
             SimCommand::CleanDishes {
                 agent,

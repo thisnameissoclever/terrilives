@@ -181,11 +181,11 @@ impl BookLibrary {
         if self.quote_purchase(*funds, world)? != *quote {
             return Err(BookError::StaleQuote);
         }
-        if funds.0 < i64::from(quote.price) {
+        if funds.0 < i64::from(quote.price) * Funds::CENTS_PER_DOLLAR {
             return Err(BookError::InsufficientFunds);
         }
         let id = self.add_copy(&quote.title, Some(quote.home));
-        funds.0 -= i64::from(quote.price);
+        funds.0 -= i64::from(quote.price) * Funds::CENTS_PER_DOLLAR;
         Ok(id)
     }
 
@@ -244,7 +244,7 @@ impl BookLibrary {
         }
         let balance = funds
             .0
-            .checked_add(i64::from(quote.price))
+            .checked_add(i64::from(quote.price) * Funds::CENTS_PER_DOLLAR)
             .ok_or(BookError::InvalidState("funds overflow"))?;
         self.remove_copy(quote.copy, world)?;
         funds.0 = balance;
