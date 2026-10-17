@@ -593,7 +593,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 10; the version 1 decoder and its historical optional sleep-pressure
+use version 15; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -613,6 +613,23 @@ also gated by that legacy match rather than by a name string alone. The next
 incompatible published wire shape must bump the version and make an explicit migration
 decision.
 
+V15 wraps the unchanged V14 envelope with room names, stable IDs, canonical
+anchors, and monotonic allocators. Architectural membership is rebuilt from the
+saved walls; it is not duplicated on every object. The envelope version selects
+whether room-bearing integers mean historical region seeds or stable identities.
+Historical loads validate their original meanings before conversion. Current loads
+install and validate the room registry before dependent visits, chores, and work;
+they do not repair an inconsistent registry. Historical writers refuse a current
+target whose complete membership cannot be represented by the old map.
+
+During Build, the native transaction owns a validated baseline, accepted-command
+journal, pending names, and at most one prepared candidate. Current-schema save
+capture returns the baseline while a draft or review is active. Final geometry and
+dependent work reconcile once during preparation, and an exact session/revision
+token gates adoption. The draft and journal are transient. Browser `BuildSession`
+settles previews and presents controls rather than maintaining another baseline.
+See [room identity and naming](specs/2026-10-17-room-identities.md).
+
 V2 and V3 saves store either explicit cell walls, explicit wall/door edges, or the
 frozen legacy authored-wall presentation. The latter preserves V1 custom
 worlds whose collision bitmap does not identify wall ownership. Loading V2/V3
@@ -630,11 +647,9 @@ An invalid candidate never replaces the running world. V1 and V2 cannot store
 runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
-bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
-`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
-`terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin`,
-`terri-save-1.v7-backup.bin`, `terri-save-1.v8-backup.bin`, or `terri-save-1.v9-backup.bin`, according to its
-source version. It never replaces an existing recovery file. A backup
+bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
+14. A V14 primary therefore receives `terri-save-1.v14-backup.bin` before the first
+V15 overwrite. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -647,7 +662,9 @@ a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
-V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header. The storage writer and load-status controller share the current
+V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
+Frozen V10 through V14 workers also refuse a newer primary; the V14 fixture refuses
+V15 instead of overwriting named rooms. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
