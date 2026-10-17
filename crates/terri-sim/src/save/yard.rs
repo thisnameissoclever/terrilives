@@ -60,8 +60,14 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         }
     }
     // [WN-rules]: a grown house keeps its windows, and each still blocks.
+    let house = crate::lot_frame::HouseRect {
+        x: 0,
+        y: 0,
+        width: house_width,
+        height: house_height,
+    };
     for window in windows.iter().flat_map(|w| w.lines()) {
-        if crate::placement::windows::is_rear(window) {
+        if crate::placement::windows::is_rear(window, house) {
             continue;
         }
         let [from, to] = WallEdge {

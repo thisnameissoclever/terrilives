@@ -79,6 +79,7 @@ pub fn start_shift(
     clock: Res<SimClock>,
     content: Res<Content>,
     grid: Res<TileGrid>,
+    frame: Option<Res<crate::lot_frame::LotFrame>>,
     workers: Query<
         (
             Entity,
@@ -94,7 +95,13 @@ pub fn start_shift(
 ) {
     // Post-validation: a pack with a worker carries a door, so this
     // guard is for hand-built test worlds rather than shipped content.
-    let Some(door) = content.0.lot.front_door else {
+    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
+    let Some(door) = content
+        .0
+        .lot
+        .front_door
+        .map(|(x, y)| (x + origin.0, y + origin.1))
+    else {
         return;
     };
     let day_ticks = content.0.tuning.day_ticks as u64;
@@ -177,7 +184,7 @@ pub fn start_shift(
         };
         // Furniture a house was saved with can stand on the exit; the
         // worker then leaves by the door, as it did before the street.
-        match crate::portals::street_exit(content.0, grid.width() as u32)
+        match crate::portals::street_exit_at(content.0, origin, grid.width() as u32)
             .and_then(route)
             .or_else(|| route(door))
         {
@@ -230,9 +237,11 @@ pub(crate) fn works_today(
 /// without one, and loads to clock in where it stands.
 pub(crate) fn saved_commute(
     content: &terri_data::ContentPack,
+    origin: (u32, u32),
     destination: Option<(i32, i32)>,
 ) -> Commuting {
     let landing = crate::portals::front_portal(content)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
         .map(|portal| (portal.inward.0 as i32, portal.inward.1 as i32));
     if destination.is_some() && destination == landing {
         Commuting::Inbound

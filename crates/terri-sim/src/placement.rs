@@ -212,7 +212,7 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 layout,
                 grid.width() as u32,
                 grid.height() as u32,
-                world.resource::<Content>().0.lot.house,
+                crate::lot_frame::house_or_grid(world),
             )
             .map_err(|_| UnsupportedLayout)?;
             let mut seen = std::collections::BTreeSet::new();
@@ -230,8 +230,9 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
             // [WN-rules]: a window stops a person exactly as a wall does. A
             // line that is somehow both keeps the wall's barrier, which the
             // repeated insert refuses anyway.
+            let house = crate::lot_frame::house_or_grid(world);
             for window in layout.window_lines() {
-                if windows::is_rear(window) {
+                if windows::is_rear(window, house) {
                     continue;
                 }
                 let edge = terri_core::layout::WallEdge {
@@ -339,23 +340,20 @@ fn prove_lot_usable(
     rectangles: &[Rectangle],
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
-    let content = world.resource::<Content>().0;
+    let portals = crate::lot_frame::portals(world);
     let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
-    if content
-        .lot
-        .front_door
+    if crate::lot_frame::front_door(world)
         .is_some_and(|(x, y)| !grid.is_walkable(x as i32, y as i32))
     {
         return Err(BlockedDoor);
     }
-    if content
-        .portals
+    if portals
         .iter()
         .any(|p| !grid.is_walkable(p.inward.0 as i32, p.inward.1 as i32))
     {
         return Err(BlockedLanding);
     }
-    let door = content.lot.front_door.map(|(x, y)| (x as i32, y as i32));
+    let door = crate::lot_frame::front_door(world).map(|(x, y)| (x as i32, y as i32));
     let reached = reachable(grid, door);
     // A vertical line (x, y) lies between (x - 1, y) and (x, y), so the tile
     // beyond the door's line shares the line's numbers. Furniture on it, or a
@@ -370,7 +368,7 @@ fn prove_lot_usable(
     // floor the door reaches. Only an edit that cuts off an exit the door
     // reaches now is refused, so a house saved with furniture on the exit
     // can still be changed, and mended.
-    if let Some((x, y)) = crate::portals::street_exit(content, grid.width() as u32) {
+    if let Some((x, y)) = crate::lot_frame::street_exit(world) {
         let exit = (x as i32, y as i32);
         if !reached.contains(&exit) && reachable(world.resource::<TileGrid>(), door).contains(&exit)
         {
@@ -421,8 +419,7 @@ fn prove_lot_usable(
     // only when another portal's landing is cut off, or when a loaded save
     // already holds a wall between the front door and its own landing: the
     // wall rules refuse building that wall, and furniture adds no walls.
-    if content
-        .portals
+    if portals
         .iter()
         .any(|p| !reached.contains(&(p.inward.0 as i32, p.inward.1 as i32)))
     {

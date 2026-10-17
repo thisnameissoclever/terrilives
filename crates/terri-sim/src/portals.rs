@@ -59,10 +59,12 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     buffer.states.clear();
     buffer.far_sides.clear();
 
-    let Some(portals) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
+    let Some(active) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
         buffer.previous_openness.clear();
         return;
     };
+    // The lot's portals where they now stand (land expansion, issue 254).
+    let portals = placed_portals(world, active);
     let content: &'static terri_data::ContentPack = world.resource::<Content>().0;
     let doors = interior_door_lines(world);
     let horizontal_doors = interior_horizontal_door_lines(world);
@@ -76,7 +78,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         Option<&Career>,
     ), With<Agent>>();
 
-    for portal in portals {
+    for portal in &portals {
         // [OS-door]: a door with a yard beyond it swings for a sim walking
         // through its line, as an interior door does, as well as for a
         // commuter; the more open of the two wins.
@@ -150,7 +152,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
 
     // [DR-derived]: doors on both axes follow the front door's row, keeping
     // its index stable. The renderer selects the model's matching orientation.
-    let Some(art) = door_art(portals) else {
+    let Some(art) = door_art(&portals) else {
         buffer.previous_openness.clone_from(&buffer.openness);
         return;
     };
@@ -225,6 +227,20 @@ fn through_amount(position: &Position, state: u32, (x, y): (u32, u32), horizonta
 }
 
 /// The width of the lot this world loaded, or 0 when it has no grid.
+/// `active`, each moved by the lot frame's origin, so a portal authored at
+/// the content lot's corner is drawn where the content lot now stands
+/// (land expansion, issue 254).
+fn placed_portals(
+    world: &World,
+    active: &[terri_data::CompiledPortal],
+) -> Vec<terri_data::CompiledPortal> {
+    let origin = crate::lot_frame::origin(world);
+    active
+        .iter()
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+        .collect()
+}
+
 fn lot_width(world: &World) -> u32 {
     world
         .get_resource::<TileGrid>()
@@ -251,7 +267,8 @@ pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
     let width = lot_width(world);
     world
         .get_resource::<Content>()
-        .and_then(|content| front_door_line(content.0, width))
+        .and_then(|_| crate::lot_frame::front_portal(world))
+        .and_then(|portal| door_line(&portal, width))
         .into_iter()
         .collect()
 }
@@ -290,7 +307,20 @@ pub fn on_tile(position: (f32, f32), tile: (u32, u32)) -> bool {
 /// the door's row. `None` when the door has no yard beyond it, where a
 /// commute ends on the door's own tile.
 pub fn street_exit(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    front_door_line(content, width).map(|(_, y)| (width - 1, y))
+    street_exit_at(content, (0, 0), width)
+}
+
+/// [`street_exit`] for a content lot standing at `origin` on the grid
+/// (land expansion, issue 254).
+pub fn street_exit_at(
+    content: &terri_data::ContentPack,
+    origin: (u32, u32),
+    width: u32,
+) -> Option<(u32, u32)> {
+    front_portal(content)
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+        .and_then(|portal| door_line(&portal, width))
+        .map(|(_, y)| (width - 1, y))
 }
 
 /// The authored +X front door supplies the interior door style. The renderer
@@ -529,7 +559,8 @@ pub fn crossing_position(world: &World, entity: Entity, position: Position) -> P
     // [OS-street]: through a door with a yard beyond it the sim really
     // walks, so only a door on the lot's edge takes the offset.
     let width = lot_width(world);
-    let Some(portal) = portals.0.iter().find(|portal| {
+    let placed = placed_portals(world, portals.0);
+    let Some(portal) = placed.iter().find(|portal| {
         door_line(portal, width).is_none()
             && (endpoint == (portal.position.0 as i32, portal.position.1 as i32)
                 || endpoint == (portal.inward.0 as i32, portal.inward.1 as i32))

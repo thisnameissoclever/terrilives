@@ -501,6 +501,7 @@ pub(super) fn restore(
         &capture(&candidate),
         candidate.world.resource::<TileGrid>(),
         content,
+        crate::lot_frame::origin(&candidate.world),
     )?;
     crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
@@ -657,6 +658,7 @@ fn restore_entity(
     saved_facing: Option<terri_core::Facing>,
 ) -> Result<(), SaveError> {
     let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
+    let origin = crate::lot_frame::origin(world);
     let mut target = world.entity_mut(entity);
 
     if let Some(position) = saved.position {
@@ -825,7 +827,11 @@ fn restore_entity(
             .path
             .as_ref()
             .and_then(|path| path.steps.last().copied());
-        target.insert(crate::systems::career::saved_commute(pack, destination));
+        target.insert(crate::systems::career::saved_commute(
+            pack,
+            origin,
+            destination,
+        ));
     }
     if let Some(remaining_ticks) = saved.at_work_ticks {
         target.insert(AtWork { remaining_ticks });
@@ -1254,7 +1260,8 @@ pub(crate) fn candidate_grid_loads(
     v6::validate_live_books(world).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::seating::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::reading::persistence::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
-    validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    validate_portal_returns(&snapshot, grid, content, (0, 0))
+        .map_err(|_| LoadProblem::PortalReturn)?;
     // Every edge layout, not one named version: a house with a window is
     // still an edge house, and naming the version here is what let review
     // finding [F1] on PR 126 skip this whole check for a glazed house.
@@ -1272,13 +1279,19 @@ fn validate_portal_returns(
     snapshot: &SaveSnapshotV1,
     grid: &TileGrid,
     content: &ContentPack,
+    origin: (u32, u32),
 ) -> Result<(), SaveError> {
-    let Some(portal) = content.lot.front_door.and_then(|door| {
-        content
-            .portals
-            .iter()
-            .find(|portal| portal.position == door)
-    }) else {
+    let Some(portal) = content
+        .lot
+        .front_door
+        .and_then(|door| {
+            content
+                .portals
+                .iter()
+                .find(|portal| portal.position == door)
+        })
+        .map(|portal| crate::lot_frame::shift_portal(portal, origin))
+    else {
         return Ok(());
     };
     if !snapshot

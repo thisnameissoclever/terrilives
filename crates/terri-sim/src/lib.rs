@@ -11,6 +11,8 @@ pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod fights;
 pub use fights::Fights;
+pub mod lot_frame;
+pub use lot_frame::LotFrame;
 pub mod character_draft;
 pub mod chores;
 pub mod moodlet_timers;
@@ -1900,6 +1902,9 @@ impl Sim {
             }
         }
         sim.world.insert_resource(grid);
+        // The content lot stands at the grid's origin until land is bought
+        // west or north of it (land expansion, issue 254).
+        sim.world.insert_resource(LotFrame::default());
 
         for placement in &lot.placements {
             let origin = terri_core::Position {

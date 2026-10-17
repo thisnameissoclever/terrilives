@@ -153,7 +153,11 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
                     .into_iter()
                     .filter(|held| *held != line)
                     .collect();
-                super::windows::restore_solid(&mut next, &remaining);
+                super::windows::restore_solid(
+                    &mut next,
+                    &remaining,
+                    crate::lot_frame::house_or_grid(world),
+                );
                 next.push(record(line, true));
                 grid.set_edge_blocked(a, b, false);
                 changed = true;
@@ -202,7 +206,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         &candidate,
         width,
         height,
-        world.resource::<crate::Content>().0.lot.house,
+        crate::lot_frame::house_or_grid(world),
     )?;
     // Only new walls can cut anything off; a doorway made from a wall only
     // removes a barrier, as for a single line.

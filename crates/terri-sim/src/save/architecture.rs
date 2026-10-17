@@ -333,8 +333,9 @@ fn finish_restore(
     content: &ContentPack,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
+    let house = crate::lot_frame::house_or_grid(&candidate.world);
     let grid = candidate.world.resource_mut::<TileGrid>();
-    apply_layout(grid.into_inner(), &layout, content.lot.house)?;
+    apply_layout(grid.into_inner(), &layout, house)?;
     crate::media::validate_ownership(&candidate.world)?;
     if let Some(seats) = seats {
         crate::seating::restore_claims(&mut candidate.world, seats)?;
@@ -345,6 +346,7 @@ fn finish_restore(
         &candidate.save_snapshot(),
         candidate.world.resource::<TileGrid>(),
         content,
+        crate::lot_frame::origin(&candidate.world),
     )?;
     if layout.has_edges() && seats.is_none() {
         validate_edge_world(
@@ -539,7 +541,7 @@ fn valid_contact(
 fn apply_layout(
     grid: &mut TileGrid,
     layout: &SavedLayout,
-    house: (u32, u32),
+    house: crate::lot_frame::HouseRect,
 ) -> Result<(), SaveError> {
     match layout {
         SavedLayout::LegacyAuthoredV1 => {}
@@ -580,7 +582,7 @@ fn apply_layout(
             // [WN-rules]: a saved window blocks movement like a wall, and a
             // line that is already spoken for is a corrupt save.
             for window in layout.window_lines() {
-                if crate::placement::windows::is_rear(window) {
+                if crate::placement::windows::is_rear(window, house) {
                     continue;
                 }
                 let edge = terri_core::layout::WallEdge {

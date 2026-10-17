@@ -10,7 +10,6 @@ use super::{
     crosses_wall, current_layout, prove_lot_usable, CurrentLayout, LotEditState, PlacementRefusal,
     Rectangle,
 };
-use crate::Content;
 use bevy_ecs::prelude::*;
 use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallState};
 use terri_core::{Agent, Position, SmartObject, Target, TileGrid};
@@ -79,17 +78,12 @@ pub(super) fn check_new_walls(
     // The front door's one step in, whoever lives here now: a wall there
     // would meet the first person to take a job. Matched to its portal the
     // way the loader matches it.
-    let content = world.resource::<Content>().0;
-    let door = content
-        .lot
-        .front_door
-        .and_then(|door| content.portals.iter().find(|p| p.position == door))
-        .map(|portal| {
-            (
-                (portal.position.0 as i32, portal.position.1 as i32),
-                (portal.inward.0 as i32, portal.inward.1 as i32),
-            )
-        });
+    let door = crate::lot_frame::front_portal(world).map(|portal| {
+        (
+            (portal.position.0 as i32, portal.position.1 as i32),
+            (portal.inward.0 as i32, portal.inward.1 as i32),
+        )
+    });
     if walls.iter().any(|&[a, b]| {
         door.is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
     }) {
@@ -185,12 +179,13 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     };
     let owner = layout.window_at(requested_line);
     // A rear window can be restored to shell, but never opened as a wall edit.
-    let rear_restore =
-        owner.is_some() && super::windows::is_rear(requested_line) && edit.state == WallState::Wall;
     let (width, height) = (live.width() as u32, live.height() as u32);
-    let house = world.resource::<Content>().0.lot.house;
+    let house = crate::lot_frame::house_or_grid(world);
+    let rear_restore = owner.is_some()
+        && super::windows::is_rear(requested_line, house)
+        && edit.state == WallState::Wall;
     let rear_shell = |segment| {
-        super::windows::is_rear(segment)
+        super::windows::is_rear(segment, house)
             && super::windows::window_line_in_bounds(segment, width, height, house)
     };
     let perimeter_edit = matches!(edit.state, WallState::Open | WallState::Wall)
@@ -229,7 +224,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
                 .copied()
                 .filter(|l| *l != requested_line)
                 .collect();
-            super::windows::restore_solid(&mut next, &remaining);
+            super::windows::restore_solid(&mut next, &remaining, house);
         }
     }
     let edited = if edit.state == WallState::Doorway {
@@ -265,7 +260,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         &candidate,
         live.width() as u32,
         live.height() as u32,
-        world.resource::<Content>().0.lot.house,
+        crate::lot_frame::house_or_grid(world),
     )?;
     let mut grid = live.clone();
     let mut barriers = Vec::new();
