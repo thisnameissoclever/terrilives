@@ -3332,6 +3332,11 @@ impl Sim {
     /// Cook" with the carried kind appended when hands are full - or
     /// `None` when it is not on one. Composed here rather than in the
     /// shell because every word of it is pack content.
+    ///
+    /// A shift keeps an unfinished errand so it resumes at home, but while
+    /// the sim is on the way to work, at work or on the way home it is not
+    /// doing that errand, so this is `None` and the activity line shows the
+    /// shift instead, as the chore status already does.
     pub fn chain_status_of(&self, index: u32) -> Option<String> {
         if let Some(status) = chores::status(&self.world, index) {
             return Some(status);
@@ -3345,6 +3350,10 @@ impl Sim {
         state
             .iter(&self.world)
             .find(|(entity, _, _)| entity.index_u32() == index)
+            .filter(|(entity, _, _)| {
+                self.world.get::<terri_core::AtWork>(*entity).is_none()
+                    && self.world.get::<terri_core::Commuting>(*entity).is_none()
+            })
             .and_then(|(_, chain_state, carrying)| {
                 // Checked lookups, unlike the systems' own indexing: a
                 // system reads state it wrote against this pack, while
