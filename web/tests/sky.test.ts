@@ -60,7 +60,7 @@ describe('the sky wired into the page', () => {
   });
 
   it('passes expanded window lines to exposure and refreshes them after Load and lot edits', () => {
-    expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows)');
+    expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows, lot.houseOrigin)');
     expect(MAIN_TS.match(/lot.windows = sim.windowLines\(\);/g)).toHaveLength(2);
     expect(MAIN_TS).toMatch(/if \(loaded\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
     expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{\s*refreshBuildArchitecture\(\);/);
@@ -68,6 +68,6 @@ describe('the sky wired into the page', () => {
   });
 
   it('rebuilds the sky with the lamp field whenever the lot changes', () => {
-    expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lot\.edges, lot\.windows\);\s*sky = buildSky\(\);/);
+    expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lightingEdges\(\), lot\.windows\);\s*sky = buildSky\(\);/);
   });
 });

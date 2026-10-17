@@ -318,7 +318,8 @@ describe('lotExtent against cameraOrigin', () => {
 describe('openingExtent', () => {
   it('is what the game opens its view on, with the house the bridge reports', () => {
     const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-    expect(main).toContain('house: sim.houseSize(), yardLook: sim.yardLook()');
+    expect(main).toContain('house: sim.houseSize(),');
+    expect(main).toContain('houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook()');
     expect(main).toContain('street: sim.streetColumn(), streetLook: sim.streetLook()');
     expect(main).toContain('lot.street = sim.streetColumn();');
     expect(main).toContain('openingExtent(lotWidth, lotHeight, lot.house)');

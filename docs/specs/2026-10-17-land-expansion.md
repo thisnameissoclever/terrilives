@@ -141,4 +141,7 @@ with the derived frame and dollars times 100, refuse a bad frame, and keep
 the digest across a round trip. A book test buys with cents against whole
 dollars. Browser tests cover the tool's outlines, the quote text,
 the two-step confirmation, the Cancel-only state, display rounding of prices
-and funds, and the build draft's Cancel restoring the old lot.
+and funds, and the shell lines the light field and the sky stop at once land
+lies beyond them; the played pass recorded in
+`docs/evidence/2026-10-17-land-tool/` shows the build draft's Cancel
+restoring the old lot.

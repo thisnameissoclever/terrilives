@@ -190,6 +190,24 @@ export function lotExtent(
 }
 
 /**
+ * The lot's drawn bounding box with the three strips the Land tool
+ * outlines beside it, `depth` tiles beyond the west, north and south sides
+ * (land expansion, issue 254); the plain extent when `depth` is 0.
+ */
+export function landExtent(
+  lotWidth: number,
+  lotHeight: number,
+  depth: number,
+  tallestSprite: number,
+  tallestBoundarySprite: number,
+  scale: number,
+): { left: number; right: number; top: number; bottom: number } {
+  const reach = Math.max(0, depth);
+  const extent = lotExtent(lotWidth + reach, lotHeight + reach, tallestSprite, tallestBoundarySprite, scale);
+  return { ...extent, top: extent.top - reach * TILE_HALF_HEIGHT * scale };
+}
+
+/**
  * How much of the lot must stay on screen, in buffer pixels: a pan can
  * park the house mostly off screen, but never ALL the way off, because
  * a player who flings the lot away has no landmark to drag back

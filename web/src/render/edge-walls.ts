@@ -67,8 +67,12 @@ export function buildEdgeWallGeometry(
   windows: ArrayLike<number> = [],
   shortWalls = false,
   horizontalHinged: ArrayLike<number> = [],
+  /** The house's north-west tile; the origin unless land lies behind or beside it. */
+  houseOrigin: readonly [number, number] = [0, 0],
 ): EdgeWallPanel[] {
-  const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
+  const [houseX, houseY] = houseOrigin;
+  const inHouse = (x: number, y: number): boolean => x >= houseX && x < houseX + house[0]
+    && y >= houseY && y < houseY + house[1];
   const cutAway = (axis: number, x: number, y: number): boolean => (axis === 0
     ? inHouse(x - 1, y) : inHouse(x, y - 1)) && !inHouse(x, y);
   const hingedAt = new Set<string>();
@@ -108,11 +112,11 @@ export function buildEdgeWallGeometry(
     addArm(x, y, vertical ? 4 : 2, cells, low);
     addArm(x + (vertical ? 0 : 1), y + (vertical ? 1 : 0), vertical ? 1 : 8, cells, low);
   };
-  for (let y = 0; y < Math.min(height, house[1]); y++) addSegment(0, 0, y, false);
-  for (let x = 0; x < Math.min(width, house[0]); x++) addSegment(1, x, 0, false);
+  for (let y = houseY; y < Math.min(height, houseY + house[1]); y++) addSegment(0, houseX, y, false);
+  for (let x = houseX; x < Math.min(width, houseX + house[0]); x++) addSegment(1, x, houseY, false);
   for (let i = 0; i + 3 < edges.length; i += 4) {
     if (!shortWalls && !showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
-    const rearPerimeter = edges[i] === 0 ? edges[i + 1] === 0 : edges[i + 2] === 0;
+    const rearPerimeter = edges[i] === 0 ? edges[i + 1] === houseX : edges[i + 2] === houseY;
     addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1, shortWalls && !rearPerimeter);
   }
   for (let i = 0; i + 2 < windows.length; i += 3) {
@@ -150,6 +154,7 @@ export function buildShortEdgeWallGeometry(
   house: readonly [number, number] = [width, height],
   windows: ArrayLike<number> = [],
   horizontalHinged: ArrayLike<number> = [],
+  houseOrigin: readonly [number, number] = [0, 0],
 ): EdgeWallPanel[] {
-  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true, horizontalHinged);
+  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true, horizontalHinged, houseOrigin);
 }

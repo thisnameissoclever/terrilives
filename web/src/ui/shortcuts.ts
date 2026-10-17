@@ -1,4 +1,4 @@
-export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors';
+export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors' | 'land';
 interface ShortcutRow { readonly label: string; readonly keys: readonly string[]; readonly alternatives?: boolean }
 interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[] }
 const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←', '→'], alternatives: true };
@@ -15,6 +15,11 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
     { label: 'Set first corner', keys: ['Enter'] },
     { label: 'Build completed outline', keys: ['Enter'] },
     { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }];
+  if (tool === 'land') return [
+    { label: 'Choose a strip', rows: [{ label: 'Behind the house', keys: ['1'] },
+      { label: 'Left side', keys: ['2'] }, { label: 'Right side', keys: ['3'] }] },
+    { label: 'Finish', rows: [{ label: 'Buy land', keys: ['Enter'] }, CANCEL] },
+  ];
   if (tool === 'floors') return [{ label: 'Apply to the selected tile', rows: [
     ...coverings.slice(0, 9).map((label, index) => ({ label, keys: [String(index + 1)] })),
     { label: 'Restore original floor', keys: ['0'] }, CANCEL,
@@ -45,8 +50,8 @@ function appendGroups(doc: Document, root: HTMLElement, groups: readonly Shortcu
 
 /** Build panels and Help use the same definitions, including content-authored floors. */
 export function installShortcuts(doc: Document, coverings: readonly string[]): void {
-  const tools: readonly ShortcutTool[] = ['furniture', 'walls', 'room', 'buy', 'floors'];
-  const ids = ['builder', 'wall', 'room', 'buy', 'floor'];
+  const tools: readonly ShortcutTool[] = ['furniture', 'walls', 'room', 'buy', 'floors', 'land'];
+  const ids = ['builder', 'wall', 'room', 'buy', 'floor', 'land'];
   tools.forEach((tool, index) => {
     const root = doc.getElementById(`${ids[index]}-shortcut-content`);
     if (!root) throw new Error(`Missing shortcuts for ${tool}`);

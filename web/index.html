@@ -669,6 +669,7 @@
       }
       #new-game-dialog,
       #load-game-dialog,
+      #land-dialog,
       #housemate-dialog {
         max-width: min(360px, calc(100vw - 32px));
         border: 1px solid var(--hud-edge);
@@ -679,11 +680,13 @@
       }
       #new-game-dialog::backdrop,
       #load-game-dialog::backdrop,
+      #land-dialog::backdrop,
       #housemate-dialog::backdrop {
         background: rgba(0, 0, 0, 0.72);
       }
       #new-game-dialog h2,
       #load-game-dialog h2,
+      #land-dialog h2,
       #housemate-dialog h2 {
         margin-top: 0;
       }
@@ -731,6 +734,7 @@
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
       #load-game-dialog menu,
+      #land-dialog menu,
       #housemate-dialog menu {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -775,6 +779,9 @@
       .builder-actions { display: grid; gap: 8px; }
       /* Tool navigation uses equal columns in the side panel. */
       #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #land-sides { display: grid; gap: 8px; }
+      #land-dialog-confirm[hidden] { display: none; }
+      #land-status[data-valid='false'] { color: var(--hud-danger); }
       #build-tools > * { min-width: 0; }
       .builder-row > * { flex: 1; min-width: 0; }
       #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
@@ -1255,6 +1262,7 @@
           <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Room</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false" aria-controls="buy-tool">Buy</button>
           <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false" aria-controls="floor-tool">Floors</button>
+          <button id="build-tool-land" class="hud-button" type="button" aria-pressed="false" aria-controls="land-tool">Land</button>
         </div>
         </div>
         <div id="furniture-tool" class="builder-tool">
@@ -1313,6 +1321,21 @@
           </div>
           <div class="builder-actions">
             <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
+          </div>
+        </div>
+        <div id="land-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <details id="land-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="land-shortcut-content"></div></details>
+            <div id="land-sides" role="group" aria-label="Strip of land">
+              <button id="land-side-0" class="hud-button" type="button" aria-pressed="false">Behind the house</button>
+              <button id="land-side-1" class="hud-button" type="button" aria-pressed="false">Left side</button>
+              <button id="land-side-2" class="hud-button" type="button" aria-pressed="false">Right side</button>
+            </div>
+            <p id="land-touch-help" class="builder-note builder-help" hidden>Choose a strip beside the lot, read its price, then use Buy land.</p>
+          </div>
+          <div class="builder-actions">
+            <p id="land-status" role="status" aria-live="polite">Choose a strip of land.</p>
+            <button id="land-buy" class="hud-button" type="button" disabled>Buy land</button>
           </div>
         </div>
         <div id="room-tool" class="builder-tool" hidden>
@@ -1394,6 +1417,16 @@
         <menu>
           <button class="hud-button" value="cancel">Keep playing</button>
           <button id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
+        </menu>
+      </form>
+    </dialog>
+    <dialog id="land-dialog" aria-labelledby="land-dialog-title">
+      <h2 id="land-dialog-title">Buy this land?</h2>
+      <p id="land-dialog-text"></p>
+      <form method="dialog">
+        <menu>
+          <button id="land-dialog-cancel" class="hud-button" value="cancel">Cancel</button>
+          <button id="land-dialog-confirm" class="hud-button" value="confirm">Buy</button>
         </menu>
       </form>
     </dialog>
