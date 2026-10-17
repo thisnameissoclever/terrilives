@@ -139,13 +139,7 @@ struct PreparedOrdinary {
 }
 fn prepare(sim: &Sim, commands: Vec<SimCommand>) -> Result<PreparedOrdinary, BuildCommitError> {
     next_epoch(&sim.world).map_err(|_| BuildCommitError::CounterExhausted)?;
-    // Native input is validated by command handlers, independently of persisted
-    // household state. Clear only the three serialized command-stream columns.
-    let mut baseline = save::v15::capture(sim);
-    let ten = &mut baseline.legacy.legacy.legacy.legacy.legacy;
-    ten.command_order.clear();
-    ten.legacy.command_order.clear();
-    ten.legacy.legacy.world.queued_commands.clear();
+    let baseline = save::v15::capture_without_commands(sim);
     let mut candidate = save::v15::restore(
         baseline.clone(),
         sim.world.resource::<Content>().0,

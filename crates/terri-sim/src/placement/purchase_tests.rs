@@ -158,6 +158,7 @@ fn bought(sim: &mut Sim, purchase: Purchase) -> Entity {
         "preview of {purchase:?}"
     );
     stage(sim, purchase);
+    assert_eq!(sim.take_build_error(), None, "accepted purchase settlement");
     let result = last(sim).unwrap();
     assert_eq!((result.purchase, result.reason), (purchase, None));
     let index = result.object.expect("a bought object is reported");

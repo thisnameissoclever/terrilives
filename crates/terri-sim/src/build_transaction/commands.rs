@@ -298,14 +298,24 @@ pub(super) fn apply(world: &mut World, command: &SimCommand) -> Option<BuildRece
 }
 
 pub(crate) fn drain(world: &mut World) {
+    drain_reserving(world, |journal| {
+        journal
+            .try_reserve(1)
+            .map_err(|_| BuildCommitError::AllocationFailed)
+    });
+}
+
+pub(super) fn drain_reserving(
+    world: &mut World,
+    mut reserve: impl FnMut(&mut Vec<BuildJournalEntry>) -> Result<(), BuildCommitError>,
+) {
     let issued: Vec<_> = world.resource_mut::<CommandQueue>().drain().collect();
     let mut last_accepted = None;
     for command in issued {
         let next = match next_epoch(world) {
             Ok(next) => next,
             Err(_) => {
-                world.resource_mut::<BuildTransaction>().last_error =
-                    Some(BuildCommitError::CounterExhausted);
+                settlement_failed(world, BuildCommitError::CounterExhausted);
                 continue;
             }
         };
@@ -314,14 +324,11 @@ pub(crate) fn drain(world: &mut World) {
             if build.revision == u64::MAX {
                 Err(BuildCommitError::CounterExhausted)
             } else {
-                build
-                    .journal
-                    .try_reserve(1)
-                    .map_err(|_| BuildCommitError::AllocationFailed)
+                reserve(&mut build.journal)
             }
         };
         if let Err(error) = reservation {
-            world.resource_mut::<BuildTransaction>().last_error = Some(error);
+            settlement_failed(world, error);
             continue;
         }
         match apply(world, &command) {
@@ -340,8 +347,10 @@ pub(crate) fn drain(world: &mut World) {
             }
             Some(_) => {}
             None => {
-                world.resource_mut::<BuildTransaction>().last_error =
-                    Some(BuildCommitError::CommandNotAllowed)
+                let mut build = world.resource_mut::<BuildTransaction>();
+                if build.last_error.is_none() {
+                    build.last_error = Some(BuildCommitError::CommandNotAllowed);
+                }
             }
         }
     }
@@ -349,4 +358,10 @@ pub(crate) fn drain(world: &mut World) {
         crate::books::shelve_arrivals(world);
         world.resource_mut::<BuildTransaction>().journal[index].settle_inventory = true;
     }
+}
+
+fn settlement_failed(world: &mut World, error: BuildCommitError) {
+    let mut build = world.resource_mut::<BuildTransaction>();
+    build.prepared = None;
+    build.last_error = Some(error);
 }

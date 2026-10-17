@@ -156,14 +156,15 @@ pub(crate) fn advance_view(world: &mut World) -> Result<(), SaveError> {
 }
 pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), SaveError> {
     let epoch = next_epoch(old)?;
-    restored.world.insert_resource(BuildEpoch(epoch));
     if old.contains_resource::<BuildTransaction>() {
-        let baseline = save::v15::capture(restored);
-        let session = new_session().map_err(|_| SaveError::InvalidValue)?;
-        restored
-            .world
-            .insert_resource(BuildTransaction::new(baseline, session));
+        // Loaded input belongs to the loaded household. Settle it privately by
+        // the same entry boundary before making a new transaction baseline.
+        restored.begin_build().map_err(|error| match error {
+            BuildCommitError::Validation(error) => error,
+            _ => SaveError::InvalidValue,
+        })?;
     }
+    restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
 pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV15> {
@@ -294,6 +295,12 @@ impl Sim {
         }
         self.flush_commands();
         let b = self.world.resource::<BuildTransaction>();
+        if let Some(
+            error @ (BuildCommitError::CounterExhausted | BuildCommitError::AllocationFailed),
+        ) = &b.last_error
+        {
+            return Err(error.clone());
+        }
         let preparation = b
             .preparation
             .checked_add(1)

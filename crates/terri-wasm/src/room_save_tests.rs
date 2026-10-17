@@ -1,6 +1,55 @@
 use super::*;
 
 #[test]
+fn immutable_v14_pending_order_settles_before_active_build_load_baseline() {
+    let bytes = include_bytes!("../tests/fixtures/room-identities-v14/floor-order-queued.sav");
+    let mut expected = SimHandle::from_lot();
+    assert!(expected.load_bytes(bytes));
+    assert!(expected
+        .sim
+        .world()
+        .resource::<terri_core::CommandQueue>()
+        .as_slice()
+        .iter()
+        .any(|command| matches!(command, terri_core::SimCommand::CleanChoreFirst { .. })));
+    let tick = expected.sim.world().resource::<terri_core::SimClock>().tick;
+    expected.sim.flush_commands();
+    assert_eq!(expected.sim.take_build_error(), None);
+    let settled = expected.sim.save_snapshot_v15();
+    let mut live = SimHandle::from_lot();
+    live.sim.begin_build().unwrap();
+    live.sim
+        .stage_room_name(terri_core::rooms::RoomSelection::Outside, "Old yard".into())
+        .unwrap();
+    let old = live
+        .sim
+        .prepare_build_commit(terri_sim::rooms::RoomChoices::default())
+        .unwrap()
+        .token;
+    assert!(live.load_bytes(bytes));
+    assert!(live.sim.build_active());
+    assert!(live
+        .sim
+        .world()
+        .resource::<terri_core::CommandQueue>()
+        .is_empty());
+    assert_eq!(
+        live.sim.world().resource::<terri_core::SimClock>().tick,
+        tick
+    );
+    assert_eq!(live.sim.save_snapshot_v15(), settled);
+    assert_eq!(live.sim.build_revision(), Some(0));
+    let review = live
+        .sim
+        .prepare_build_commit(terri_sim::rooms::RoomChoices::default())
+        .unwrap();
+    assert_ne!(review.token.session, old.session);
+    assert!(live.sim.validate_build_token(old).is_err());
+    live.sim.commit_build(review.token).unwrap();
+    assert_eq!(live.sim.save_snapshot_v15(), settled);
+}
+
+#[test]
 fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
     for (name, bytes) in [
         (

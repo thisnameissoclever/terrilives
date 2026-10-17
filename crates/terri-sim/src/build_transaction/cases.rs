@@ -32,6 +32,174 @@ fn confirm(sim: &mut Sim) -> BuildReview {
 }
 
 #[test]
+fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
+    let mut source = Sim::new_from_shipped_lot();
+    for command in [
+        SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 4,
+        },
+        SimCommand::SetDeathEnabled(false),
+        SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 2,
+        },
+    ] {
+        source.world.resource_mut::<CommandQueue>().push(command);
+    }
+    let incoming = source.save_snapshot_v15();
+    source.flush_commands();
+    assert_eq!(source.take_build_error(), None);
+    let expected = source.save_snapshot_v15();
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    pave(&mut sim, 1);
+    let old = sim
+        .prepare_build_commit(RoomChoices::default())
+        .unwrap()
+        .token;
+    sim.load_snapshot_v15(incoming).unwrap();
+    assert!(sim.build_active());
+    assert!(
+        sim.world.resource::<CommandQueue>().is_empty(),
+        "loaded stream must settle before baseline"
+    );
+    assert_eq!(sim.save_snapshot_v15(), expected);
+    assert!(sim.world.resource::<BuildTransaction>().journal.is_empty());
+    assert_eq!(sim.build_revision(), Some(0));
+    let review = confirm(&mut sim);
+    assert_ne!(review.token.session, old.session);
+    assert_eq!(
+        sim.validate_build_token(old),
+        Err(BuildCommitError::StaleToken)
+    );
+    assert_eq!(sim.save_snapshot_v15(), expected);
+}
+
+#[test]
+fn preparation_reports_counter_settlement_failure_without_a_candidate() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    sim.world.resource_mut::<BuildTransaction>().revision = u64::MAX;
+    let baseline = sim.save_snapshot_v15();
+    let draft = save::v15::capture(&sim);
+    let view = sim.rooms_revision();
+    sim.world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 4,
+        });
+    assert_eq!(
+        sim.prepare_build_commit(RoomChoices::default()),
+        Err(BuildCommitError::CounterExhausted)
+    );
+    assert_eq!(sim.save_snapshot_v15(), baseline);
+    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.rooms_revision(), view);
+    assert!(sim.world.resource::<BuildTransaction>().prepared.is_none());
+    assert_eq!(
+        sim.take_build_error(),
+        Some(BuildCommitError::CounterExhausted)
+    );
+}
+
+#[test]
+fn preparation_reports_reservation_failure_and_invalidates_an_existing_review() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let old = sim
+        .prepare_build_commit(RoomChoices::default())
+        .unwrap()
+        .token;
+    let baseline = sim.save_snapshot_v15();
+    let draft = save::v15::capture(&sim);
+    let revision = sim.rooms_revision();
+    sim.world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 4,
+        });
+    sim.world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetDeathEnabled(false));
+    commands::drain_reserving(&mut sim.world, |journal| {
+        journal
+            .try_reserve(usize::MAX)
+            .map_err(|_| BuildCommitError::AllocationFailed)
+    });
+    assert_eq!(
+        sim.prepare_build_commit(RoomChoices::default()),
+        Err(BuildCommitError::AllocationFailed)
+    );
+    assert_eq!(sim.commit_build(old), Err(BuildCommitError::StaleToken));
+    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v15(), baseline);
+    assert_eq!(sim.rooms_revision(), revision);
+    assert_eq!(
+        sim.take_build_error(),
+        Some(BuildCommitError::AllocationFailed)
+    );
+}
+
+#[test]
+fn failed_loaded_command_settlement_keeps_the_existing_build_and_queue() {
+    let mut incoming = Sim::new_with_lot(10, 8);
+    incoming.world.resource_mut::<SavedRooms>().next_id = u32::MAX;
+    incoming
+        .world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::BuildRoom {
+            x0: 1,
+            y0: 1,
+            x1: 3,
+            y1: 3,
+            doorway: Some(WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 4,
+                y: 2,
+            }),
+        });
+    let payload = incoming.save_snapshot_v15();
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    pave(&mut sim, 4);
+    let token = sim
+        .prepare_build_commit(RoomChoices::default())
+        .unwrap()
+        .token;
+    sim.world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 2,
+        });
+    let draft = save::v15::capture(&sim);
+    let baseline = sim.save_snapshot_v15();
+    let revision = sim.rooms_revision();
+    assert_eq!(sim.load_snapshot_v15(payload), Err(SaveError::InvalidValue));
+    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v15(), baseline);
+    assert_eq!(sim.rooms_revision(), revision);
+    assert_eq!(
+        sim.world
+            .resource::<BuildTransaction>()
+            .prepared
+            .as_ref()
+            .unwrap()
+            .review
+            .token,
+        token
+    );
+}
+
+#[test]
 fn cancel_exit_back_and_consecutive_batches_keep_the_correct_baseline() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();

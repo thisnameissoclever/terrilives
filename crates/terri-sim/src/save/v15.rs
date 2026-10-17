@@ -13,6 +13,27 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV15 {
     }
 }
 
+/// Project persistent household state without pending input. Command references
+/// participate in the action manifest, so derive it again from the projection.
+pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV15 {
+    let mut snapshot = capture(sim);
+    let ten = &mut snapshot.legacy.legacy.legacy.legacy.legacy;
+    ten.command_order.clear();
+    let six = &mut ten.legacy;
+    six.command_order.clear();
+    six.legacy.world.queued_commands.clear();
+    six.actions = super::action_refs::capture_origins(
+        &six.legacy,
+        sim.world().resource::<crate::Content>().0,
+        &six.chain_origins,
+    );
+    snapshot
+}
+
+#[cfg(test)]
+#[path = "command_projection_tests.rs"]
+mod command_projection_tests;
+
 pub(crate) fn restore(
     snapshot: SaveSnapshotV15,
     content: &'static terri_data::ContentPack,
