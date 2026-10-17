@@ -103,7 +103,10 @@ body[data-building='true'] #build-camera { display: flex; }
      keeps the height of its cards or the dock would squeeze it shut. In the
      dock a card lays its picture beside its lines, so the whole card fits
      the dock's short view. */
-  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; padding: 5px; margin: -5px; }
+  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; }
+  /* The strip keeps the panel's 3 pixel padding, so the panel never scrolls
+     sideways; the focus ring sits inside it. */
+  #builder-dock .catalogue-card:focus-visible { outline-offset: -1px; }
   /* The Buy tool scrolls inside the dock; its rows keep their content's
      height rather than sharing the dock's, so nothing overlaps. */
   #builder-dock #buy-tool { grid-auto-rows: max-content; }

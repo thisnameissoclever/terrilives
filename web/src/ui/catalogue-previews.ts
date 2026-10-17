@@ -130,8 +130,9 @@ export async function drawCataloguePreviews(cards: readonly PreviewCard[],
       continue;
     }
     try {
-      // Within one page, every base before every foreground.
-      for (const { card, item, shift, box, foreground } of [...draws].sort((a, b) => Number(a.foreground) - Number(b.foreground))) {
+      // Each card lists its base before its foreground, so within one page
+      // the base is drawn first.
+      for (const { card, item, shift, box, foreground } of draws) {
         const context = card.canvas.getContext('2d');
         if (!context) continue;
         context.imageSmoothingEnabled = true;

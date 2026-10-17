@@ -820,7 +820,10 @@
       .catalogue-card:not([aria-disabled='true']):not(:disabled):hover { background: #29313a; }
       .catalogue-card:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .catalogue-card[aria-pressed='true'] { border-color: var(--need-fill); box-shadow: 0 0 0 1px var(--need-fill); }
-      .catalogue-card:disabled, .catalogue-card[aria-disabled='true'] { opacity: 0.45; cursor: default; }
+      /* A grayed card dims its contents, not its border or focus ring, so the ring keeps its contrast. */
+      .catalogue-card[aria-disabled='true'] { cursor: default; }
+      .catalogue-card[aria-disabled='true'] > * { opacity: 0.45; }
+      .catalogue-card:disabled { opacity: 0.45; cursor: default; }
       .catalogue-card[hidden] { display: none; }
       .catalogue-picture { width: 72px; height: 72px; }
       .catalogue-type { font-weight: 600; text-align: center; overflow-wrap: anywhere; }

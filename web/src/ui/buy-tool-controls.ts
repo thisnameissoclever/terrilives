@@ -113,7 +113,7 @@ export class BuyToolControls {
   private readonly identity: HTMLElement;
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
-  /** The card the arrow keys last moved to, kept in the Tab order while nothing is chosen. */
+  /** The card that last had focus, by key, click, Tab or Choose item. */
   private lastFocused: CatalogueCard | null = null;
   /** Draws the pictures the first time the tool is shown, then is dropped. */
   private drawPictures: (() => void) | null = null;
@@ -195,9 +195,11 @@ export class BuyToolControls {
       button.setAttribute('aria-label', cardName(item));
       button.setAttribute('aria-pressed', 'false');
       button.tabIndex = -1;
+      // Twice the displayed size, so the double-density art stays sharp on
+      // high-density screens.
       const canvas = document.createElement('canvas');
-      canvas.width = 72;
-      canvas.height = 72;
+      canvas.width = 144;
+      canvas.height = 144;
       canvas.className = 'catalogue-picture';
       canvas.setAttribute('aria-hidden', 'true');
       const type = document.createElement('span');
@@ -223,7 +225,8 @@ export class BuyToolControls {
         tool.choose(item.definition);
         this.render();
       });
-      button.addEventListener('focus', () => { this.lastFocused = card; });
+      // Whatever focuses a card, a key, a click or Tab, makes it the one Tab stop.
+      button.addEventListener('focus', () => this.makeTabStop(card));
       this.grid.append(button);
       this.cards.push(card);
     }
@@ -245,11 +248,21 @@ export class BuyToolControls {
     return this.cards.filter(card => !card.button.hidden && !card.button.disabled);
   }
 
-  /** The one card in the Tab order: the chosen, else the last focused, else the first shown. */
+  /**
+   * The one card in the Tab order: the card focus is on, else the chosen
+   * card, else the card last focused, else the first shown.
+   */
   private tabStop(): CatalogueCard | undefined {
     const cards = this.reachable();
-    return cards.find(card => card.item === this.tool.chosen)
+    const active = this.grid.ownerDocument.activeElement;
+    return cards.find(card => card.button === active)
+      ?? cards.find(card => card.item === this.tool.chosen)
       ?? cards.find(card => card === this.lastFocused) ?? cards[0];
+  }
+
+  private makeTabStop(card: CatalogueCard): void {
+    this.lastFocused = card;
+    for (const other of this.cards) other.button.tabIndex = other === card ? 0 : -1;
   }
 
   /** Choose item: the chosen card, grayed or not, else the first card the grid shows. */
@@ -276,8 +289,7 @@ export class BuyToolControls {
       default: next = at < 0 || at >= cards.length - 1 ? 0 : at + 1;
     }
     event.preventDefault();
-    for (const card of this.cards) card.button.tabIndex = card === cards[next] ? 0 : -1;
-    this.lastFocused = cards[next];
+    this.makeTabStop(cards[next]);
     cards[next].button.focus();
   }
 

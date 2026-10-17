@@ -550,7 +550,7 @@ describe('BuyToolControls', () => {
     expect(first.tagName).toBe('button');
     expect(first.children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-model', 'catalogue-price']);
     expect(first.children.map(child => child.textContent)).toEqual(['', 'Armchair', 'Lounge', '40']);
-    expect([first.children[0].width, first.children[0].height, first.children[0].getAttribute('aria-hidden')]).toEqual([72, 72, 'true']);
+    expect([first.children[0].width, first.children[0].height, first.children[0].getAttribute('aria-hidden')]).toEqual([144, 144, 'true']);
     expect(cards(element)[1].children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-price']);
     // The pictures come from the ghost's query at the lot's corner, at the base facing.
     expect(pictures, 'nothing is drawn before the tool is shown').toEqual([]);
@@ -583,9 +583,9 @@ describe('BuyToolControls', () => {
     source.money = 180;
     buy.enter();
     view.render();
-    const greyed = () => cards(element).map(card => card.getAttribute('aria-disabled') === 'true');
-    expect(greyed()).toEqual([true, false, false]);
-    // A greyed card stays in reach but a press on it chooses nothing.
+    const grayed = () => cards(element).map(card => card.getAttribute('aria-disabled') === 'true');
+    expect(grayed()).toEqual([true, false, false]);
+    // A grayed card stays in reach but a press on it chooses nothing.
     cards(element)[0].fire('click');
     expect(buy.chosen).toBeNull();
     cards(element)[1].fire('click');
@@ -600,7 +600,7 @@ describe('BuyToolControls', () => {
     expect(buy.preview?.facing).toBe(facing);
     source.money = 250;
     view.render();
-    expect(greyed()).toEqual([false, false, false]);
+    expect(grayed()).toEqual([false, false, false]);
   });
 
   it('offers the rooms any item belongs to and the needs any item serves, one pressed per row', () => {
@@ -703,12 +703,14 @@ describe('BuyToolControls', () => {
     expect(elements.get('buy-colour')!.disabled).toBe(true);
   });
 
-  it('draws the pictures once, the first time the tool is shown', () => {
-    const { buy, view, pictures } = controls();
+  it('draws the pictures once, the first time the tool is shown, from the ghost query at the base facing', () => {
+    const { buy, view, pictures, source } = controls();
     expect(pictures).toEqual([]);
     buy.enter();
     view.render();
-    expect(pictures).toHaveLength(3);
+    // FakeShop answers a preview with the definition as the sprite.
+    expect(pictures).toEqual([BED, CHAIR, DESK].map(item => ({ sprite: item.definition, foreground: null })));
+    for (const item of [BED, CHAIR, DESK]) expect(source.previews).toContainEqual([item.definition, 0, 0, item.baseFacing]);
     view.render();
     expect(pictures).toHaveLength(3);
   });
@@ -731,10 +733,12 @@ describe('BuyToolControls', () => {
     expect(cards(element).map(card => card.tabIndex)).toEqual([0, -1, -1]);
     source.money = 100;
     view.render();
-    expect(cards(element).map(card => card.tabIndex), 'a greyed card is still the first shown').toEqual([0, -1, -1]);
+    expect(cards(element).map(card => card.tabIndex), 'a grayed card is still the first shown').toEqual([0, -1, -1]);
     view.focusCatalogue();
     expect(doc.activeElement).toBe(cards(element)[0]);
     source.money = 1_000;
+    // A browser focuses a card it clicks.
+    cards(element)[2].focus();
     cards(element)[2].fire('click');
     expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
     // The chosen card keeps Choose item's focus after the household can no longer afford it.
@@ -768,6 +772,14 @@ describe('BuyToolControls', () => {
     expect(cards(element).map(card => card.tabIndex)).toEqual([-1, 0, -1]);
     view.render();
     expect(cards(element).map(card => card.tabIndex), 'kept across a redraw').toEqual([-1, 0, -1]);
+    // A click or Tab focusing a card makes it the Tab stop too, and the
+    // focused card keeps it across a redraw even when another is chosen.
+    cards(element)[0].fire('click');
+    cards(element)[2].fire('focus');
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
+    cards(element)[2].focus();
+    view.render();
+    expect(cards(element).map(card => card.tabIndex), 'the focused card over the chosen one').toEqual([-1, -1, 0]);
     key('Home');
     expect(doc.activeElement).toBe(cards(element)[0]);
     key('ArrowUp');
