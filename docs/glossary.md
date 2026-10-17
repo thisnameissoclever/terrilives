@@ -31,8 +31,9 @@ Names in `code font` are what you will see in the debug overlay
 | --- | --- |
 | **tick** | The simulation's heartbeat. Everything happens on ticks; nothing happens between them. One tick is one **sim-minute**. |
 | **1x speed** | 10 ticks per second of real time. So one real second is ten sim-minutes, and one real minute is about ten sim-hours. `2x` and `3x` run 20 and 30 ticks a second - they change how many ticks run per frame, never how long a tick means. |
-| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. The HUD numbers days from 1 and names each one's weekday, with the time on a second line: `Day 1, Monday` above `06:00`. |
+| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. The HUD numbers days from 1 and names each one's weekday, with the season and the time on a second line: `Day 1, Monday` above `Spring, 06:00`. |
 | **weekday** | Which of the seven days of the week a day is, Monday to Sunday, numbered 0 to 6. It is worked out from the tick: day index `tick / day_ticks`, plus `first_weekday` from tuning (0, so day 1 is a Monday), modulo 7. Nothing about it is saved ([CAL-week] in `docs/specs/2026-10-06-calendar.md`). |
+| **season** | Which quarter of the year a day falls in: Spring, Summer, Autumn or Winter, numbered 0 to 3. It is worked out from the tick: day index `tick / day_ticks`, divided by `days_per_season` from tuning (7, so a year is 28 days), plus `first_season` (0, so day 1 is in Spring), modulo 4. It tints the yard's grass and changes nothing else. Nothing about it is saved ([SEA-year] in `docs/specs/2026-10-17-seasons.md`). |
 | **weekend** | Saturday and Sunday. Nothing in the simulation reads the word; a job rests on a weekend only because its **working days** leave those days out. With the shipped tuning, days 6 and 7 are the first weekend. |
 
 ## Needs - the first axis

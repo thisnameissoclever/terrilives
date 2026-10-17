@@ -18,7 +18,7 @@ use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, Fa
 use crate::schema::{
     AffinityKindDef, AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
     InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile,
-    TraitsFile, TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
+    TraitsFile, TuningFile, VisualDef, VoiceFile, SEASON_KEYS, WEEKDAY_NAMES,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::{EdgeAxis, WallEdge};
@@ -758,6 +758,30 @@ fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'stati
     .into_iter()
     .find(|&(_, value, low, high)| !(low..=high).contains(&value))
     .map(|(field, ..)| field)
+}
+
+/// [SEA-year] and [SEA-yard] in `docs/specs/2026-10-17-seasons.md`: a
+/// season lasts at least one day, the first season is one of the four, and
+/// each season's yard look is a color shift in a lot look's ranges. A
+/// zero-day season would divide by zero the first time anything asked the
+/// season, and a first season past Winter would name none.
+fn check_season_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
+    if tuning.days_per_season == 0 {
+        return Err(ContentError::ZeroDaysPerSeason);
+    }
+    if tuning.first_season >= terri_core::clock::SEASON_COUNT {
+        return Err(ContentError::FirstSeasonOutOfRange {
+            value: tuning.first_season,
+        });
+    }
+    for (season, &[hue, strength, lightness]) in
+        SEASON_KEYS.into_iter().zip(&tuning.season_yard_looks)
+    {
+        if let Some(field) = shift_out_of_range(hue, strength, lightness) {
+            return Err(ContentError::SeasonLookOutOfRange { season, field });
+        }
+    }
+    Ok(())
 }
 
 /// A lot tile's look - [OS-yard], [OS-street]: the art as drawn when
@@ -3675,6 +3699,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.first_weekday,
         });
     }
+    check_season_tuning(&tuning)?;
     check_affinity_tuning(&tuning)?;
 
     // The circadian curve, if authored. Every rule here converts a shape
@@ -3905,6 +3930,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             career_mood_promoted_ticks: tuning.career_mood_promoted_ticks,
             career_mood_demoted_ticks: tuning.career_mood_demoted_ticks,
             career_mood_fired_ticks: tuning.career_mood_fired_ticks,
+            days_per_season: tuning.days_per_season,
+            first_season: tuning.first_season,
+            season_yard_looks: tuning.season_yard_looks,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -5095,6 +5123,13 @@ mod tests {
     /// **The land knobs moved it by four more, appended after the fight
     /// knobs (land expansion, issue 254):** three varints, 10, 15000 and 15,
     /// which the witnesses reconstruct and the live fixture also carries.
+    ///
+    /// **The season knobs moved it by fifty more, appended after the career
+    /// knobs (seasons, issue 251; [SEA-year] and [SEA-yard] in
+    /// `docs/specs/2026-10-17-seasons.md`):** the varint 7, the byte 0 and
+    /// twelve floats for the four yard looks, which the witnesses
+    /// reconstruct and the live fixture also carries. The frozen bytes
+    /// below do not change.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Classification None and an empty physical-seat vector append two zero bytes
@@ -5364,6 +5399,9 @@ mod tests {
             career_mood_promoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
+            days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
+            first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
+            season_yard_looks: crate::Tuning::SHIPPED_SEASON_YARD_LOOKS,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6951,6 +6989,17 @@ mod tests {
         assert_eq!(tuning.career_good_threshold, 65.0);
         assert_eq!(tuning.career_search_tick, 540);
         assert_eq!(tuning.career_mood_fired_ticks, 5760);
+        assert_eq!(tuning.days_per_season, 7);
+        assert_eq!(tuning.first_season, 0);
+        assert_eq!(
+            tuning.season_yard_looks,
+            [
+                [0.0, 1.0, 0.0],
+                [-20.0, 0.85, 0.04],
+                [-45.0, 0.9, -0.05],
+                [12.0, 0.3, 0.14]
+            ]
+        );
     }
 
     /// Careers (issue 249): each knob's range, and the two orderings.
@@ -9729,6 +9778,67 @@ mod tests {
             ContentError::FirstWeekdayOutOfRange { value: 7 }
         );
         assert!(compile_tuned(tuning_where(|t| t.first_weekday = 6)).is_ok());
+    }
+
+    /// [SEA-year]: a season lasts at least one day. 0 is refused and 1
+    /// accepted, separating `== 0` from `<= 1`.
+    #[test]
+    fn rejects_a_season_of_no_days() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.days_per_season = 0)).unwrap_err(),
+            ContentError::ZeroDaysPerSeason
+        );
+        let compiled = compile_tuned(tuning_where(|t| t.days_per_season = 1)).expect("one day");
+        assert_eq!(compiled.tuning.days_per_season, 1);
+        let compiled =
+            compile_tuned(tuning_where(|t| t.days_per_season = u32::MAX)).expect("any length");
+        assert_eq!(compiled.tuning.days_per_season, u32::MAX);
+    }
+
+    /// [SEA-year]: `first_season` names a season, 0 (Spring) to 3 (Winter).
+    /// 4 is refused and 3 accepted, separating `> 3` from `>= 3`.
+    #[test]
+    fn rejects_a_first_season_past_winter() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.first_season = 4)).unwrap_err(),
+            ContentError::FirstSeasonOutOfRange { value: 4 }
+        );
+        let compiled = compile_tuned(tuning_where(|t| t.first_season = 3)).expect("Winter");
+        assert_eq!(compiled.tuning.first_season, 3);
+    }
+
+    /// [SEA-yard]: each season's yard look is held to a lot look's ranges,
+    /// row by row, and the error names the season and the field by their
+    /// keys in `tuning.toml`. The edges of each range are legal, and a value
+    /// just past one is refused.
+    #[test]
+    fn rejects_a_season_yard_look_outside_a_look_range() {
+        for (row, column, value, season, field) in [
+            (0, 0, 180.5, "spring", "hue"),
+            (1, 0, -180.5, "summer", "hue"),
+            (2, 1, -0.01, "autumn", "strength"),
+            (3, 1, 2.01, "winter", "strength"),
+            (3, 2, 0.26, "winter", "lightness"),
+            (1, 2, -0.26, "summer", "lightness"),
+            (2, 0, f32::NAN, "autumn", "hue"),
+        ] {
+            let compiled =
+                compile_tuned(tuning_where(|t| t.season_yard_looks[row][column] = value));
+            assert_eq!(
+                compiled.unwrap_err(),
+                ContentError::SeasonLookOutOfRange { season, field },
+                "row {row}, column {column}"
+            );
+        }
+        let edges = [
+            [180.0, 0.0, 0.25],
+            [-180.0, 2.0, -0.25],
+            [0.0, 1.0, 0.0],
+            [12.0, 0.3, 0.14],
+        ];
+        let compiled =
+            compile_tuned(tuning_where(|t| t.season_yard_looks = edges)).expect("edges are legal");
+        assert_eq!(compiled.tuning.season_yard_looks, edges);
     }
 
     // ---- The circadian curve -------------------------------------------

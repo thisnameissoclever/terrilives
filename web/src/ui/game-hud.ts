@@ -27,6 +27,7 @@ export interface GameHudSource {
   clockTick(): number;
   dayTicks(): number;
   weekdayIndex(): number;
+  seasonIndex(): number;
 }
 
 export interface TextTarget {
@@ -106,6 +107,17 @@ function weekdayName(weekday: number): string | null {
 }
 
 /**
+ * Season names indexed the way the simulation counts them: 0 is Spring and
+ * 3 is Winter ([SEA-year] in `docs/specs/2026-10-17-seasons.md`).
+ */
+export const SEASON_NAMES = ['Spring', 'Summer', 'Autumn', 'Winter'] as const;
+
+/** The season name for an index from the simulation, or null for anything else. */
+function seasonName(season: number): string | null {
+  return Number.isInteger(season) ? SEASON_NAMES[season] ?? null : null;
+}
+
+/**
  * Maps a tick of the authored day onto a 24-hour `hh:mm`, so a content day
  * of any length reads as a familiar clock. `dayTicks` must be positive.
  */
@@ -120,23 +132,27 @@ function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
 
 /**
  * Formats the simulation clock without borrowing the player's wall clock,
- * as two lines: `Day {n}, {Weekday}`, a newline, then `{hh}:{mm}`. The
- * clock element keeps the newline (`white-space: pre-line`), so the HUD
- * panel is two lines tall on every day rather than growing on days with
- * longer names. `weekday` is the simulation's own answer for the current
- * tick; the shell never works one out from the day number, because only
- * the simulation knows which weekday day 1 is.
+ * as two lines: `Day {n}, {Weekday}`, a newline, then `{Season}, {hh}:{mm}`
+ * ([CAL-hud], [SEA-hud]). The clock element keeps the newline
+ * (`white-space: pre-line`), so the HUD panel is two lines tall on every
+ * day rather than growing on days with longer names; every season name has
+ * six letters, so the second line keeps one character count all year. `weekday`
+ * and `season` are the simulation's own answers for the current tick; the
+ * shell never works either out from the day number, because only the
+ * simulation knows which weekday and season day 1 is.
  */
-export function formatSimTime(tick: number, dayTicks: number, weekday: number): string {
+export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number): string {
   const name = weekdayName(weekday);
-  if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null) {
+  const seasonLabel = seasonName(season);
+  if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null
+    || seasonLabel === null) {
     return 'Day and time unavailable';
   }
   const safeTick = Math.max(0, Math.floor(tick));
   const safeDayTicks = Math.max(1, Math.floor(dayTicks));
   const day = Math.floor(safeTick / safeDayTicks) + 1;
   const time = formatTimeOfDay(safeTick % safeDayTicks, safeDayTicks);
-  return `Day ${day}, ${name}\n${time}`;
+  return `Day ${day}, ${name}\n${seasonLabel}, ${time}`;
 }
 
 const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
@@ -219,6 +235,7 @@ export class GameHud {
       source.clockTick(),
       dayTicks,
       source.weekdayIndex(),
+      source.seasonIndex(),
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 

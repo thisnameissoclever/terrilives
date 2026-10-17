@@ -779,7 +779,7 @@ dependencies = [
 
 [[package]]
 name = "terri-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bevy_ecs",
  "postcard",
@@ -788,7 +788,7 @@ dependencies = [
 
 [[package]]
 name = "terri-data"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "postcard",
  "serde",
@@ -798,7 +798,7 @@ dependencies = [
 
 [[package]]
 name = "terri-sim"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bevy_ecs",
  "terri-core",
@@ -807,7 +807,7 @@ dependencies = [
 
 [[package]]
 name = "terri-wasm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "postcard",
  "terri-core",

@@ -963,6 +963,15 @@
       #options-panel[hidden] {
         display: none;
       }
+      /* The game version, first in Options: small plain text that takes
+         no focus, so Close Options stays the first stop for a keyboard. */
+      .options-version {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--hud-muted);
+        overflow-wrap: anywhere;
+      }
       /* [PA-place]: above the Build dock (2) so it can sit just over it,
          below the gear (8) and every menu. */
       #placement-actions {
@@ -1148,7 +1157,7 @@
       <section id="household-summary" aria-label="Household status">
         <div id="clock-row" class="summary-row">
           <span class="summary-label">Time</span>
-          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;00:00</strong>
+          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;Spring, 00:00</strong>
         </div>
         <div class="summary-row">
           <span class="summary-label">Funds</span>
@@ -1177,6 +1186,8 @@
         aria-expanded="false"
       >Options</button>
       <div id="options-panel" role="group" aria-label="Options" hidden>
+        <!-- Filled from web/package.json at startup (src/ui/game-version.ts). -->
+        <p id="game-version" class="options-version"></p>
         <button id="options-close" class="hud-button" type="button">Close Options</button>
         <button
           id="lighting-mode"
