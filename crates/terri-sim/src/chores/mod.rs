@@ -31,6 +31,8 @@ mod integration_tests;
 #[cfg(test)]
 mod lifecycle_tests;
 #[cfg(test)]
+mod room_change_tests;
+#[cfg(test)]
 mod tests;
 
 pub(crate) fn tick(world: &mut World) {
@@ -279,6 +281,13 @@ pub(crate) fn prune(world: &mut World) {
             episode.unavailable = true;
         }
     }
+    prune_references(world, &mut state);
+    board::reconcile(world, &mut state);
+    world.insert_resource(state);
+    patches::reconcile(world);
+}
+
+fn prune_references(world: &mut World, state: &mut SavedChores) {
     state.dish_started.retain(|(person, _)| {
         crate::dining::entity(world, *person)
             .is_some_and(|e| world.get::<terri_core::Agent>(e).is_some())
@@ -333,9 +342,6 @@ pub(crate) fn prune(world: &mut World) {
             episode.settled = true;
         }
     }
-    board::reconcile(world, &mut state);
-    world.insert_resource(state);
-    patches::reconcile(world);
 }
 
 pub(crate) fn completed(
@@ -481,7 +487,11 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
 }
 
 pub fn floor_at(world: &World, x: i32, y: i32) -> Option<ChoreKey> {
-    let target = crate::room_regions::RoomRegions::cleanable(world).at((x, y))?;
+    let target = if crate::rooms::stable(world) {
+        crate::rooms::cleaning_area_at(world, (x, y))?.key()
+    } else {
+        crate::room_regions::RoomRegions::legacy(world).at((x, y))?
+    };
     let key = ChoreKey {
         kind: ChoreKind::Floors,
         target,
@@ -563,8 +573,15 @@ pub fn location_label(world: &World, key: ChoreKey) -> String {
     let Some(pos) = world.get::<terri_core::Position>(object) else {
         return "Removed object".into();
     };
-    let room = crate::room_regions::RoomRegions::architectural(world)
-        .at((pos.x.round() as i32, pos.y.round() as i32));
+    let room = if crate::rooms::stable(world) {
+        world
+            .resource::<crate::rooms::RoomMap>()
+            .selection_at((pos.x.round() as u32, pos.y.round() as u32))
+            .map(|room| room.key())
+    } else {
+        crate::room_regions::RoomRegions::legacy(world)
+            .at((pos.x.round() as i32, pos.y.round() as i32))
+    };
     room.map_or_else(|| "Outside".into(), |id| groups::room_label(world, id))
 }
 

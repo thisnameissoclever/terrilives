@@ -52,11 +52,14 @@ pub(crate) fn footstep(world: &mut World, person: Entity, from: (i32, i32), to: 
         return;
     }
     let grid = world.resource::<TileGrid>();
-    if !grid.is_walkable(to.0, to.1)
-        || crate::room_regions::RoomRegions::cleanable(world)
+    let eligible = if crate::rooms::stable(world) {
+        crate::rooms::cleaning_area_at(world, to).is_some()
+    } else {
+        crate::room_regions::RoomRegions::legacy(world)
             .at(to)
-            .is_none()
-    {
+            .is_some()
+    };
+    if !grid.is_walkable(to.0, to.1) || !eligible {
         return;
     }
     let cell = to.1 as u32 * grid.width() as u32 + to.0 as u32;
@@ -75,9 +78,20 @@ pub(crate) fn adjacent_counters(world: &World, station: Entity) -> Vec<u32> {
     let pack = world.resource::<crate::Content>().0;
     let footprint =
         crate::placed_footprint(pack, def.0, world.get::<terri_core::ObjectFacing>(station));
-    let rooms = crate::room_regions::RoomRegions::architectural(world);
+    let legacy =
+        (!crate::rooms::stable(world)).then(|| crate::room_regions::RoomRegions::legacy(world));
+    let at = |tile: (i32, i32)| {
+        if let Some(rooms) = &legacy {
+            rooms.at(tile)
+        } else {
+            world
+                .resource::<crate::rooms::RoomMap>()
+                .selection_at((tile.0 as u32, tile.1 as u32))
+                .map(|room| room.key())
+        }
+    };
     let origin = (pos.x.round() as i32, pos.y.round() as i32);
-    let room = rooms.at(origin);
+    let room = at(origin);
     let Some(mut query) = world.try_query::<(Entity, &Position, &SmartObject)>() else {
         return vec![];
     };
@@ -88,7 +102,7 @@ pub(crate) fn adjacent_counters(world: &World, station: Entity) -> Vec<u32> {
             continue;
         }
         let xy = (p.x.round() as i32, p.y.round() as i32);
-        if room.is_none() || rooms.at(xy) != room {
+        if room.is_none() || at(xy) != room {
             continue;
         }
         let counter = world.get::<SmartObject>(entity).unwrap();

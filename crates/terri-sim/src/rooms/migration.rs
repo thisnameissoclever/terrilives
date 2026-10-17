@@ -173,34 +173,12 @@ pub(crate) fn project(
     let map = world.resource::<RoomMap>();
     let old = crate::room_regions::RoomRegions::legacy(world);
     let (width, domestic) = crate::domestic::legacy_rooms(world);
-    let translate = |id: u32, domestic_map: bool| -> Result<u32, crate::SaveError> {
-        let component = map
-            .component_ids
-            .iter()
-            .position(|room| room.get() == id)
-            .ok_or(crate::SaveError::InvalidValue)?;
-        let cells = &map.topology.components[component].cells;
-        let values: std::collections::BTreeSet<_> = cells
-            .iter()
-            .filter_map(|&cell| {
-                if domestic_map {
-                    domestic.get(cell as usize).copied()
-                } else {
-                    old.at((
-                        (cell as usize % width) as i32,
-                        (cell as usize / width) as i32,
-                    ))
-                }
-            })
-            .collect();
-        if values.len() != 1 {
-            return Err(crate::SaveError::InvalidValue);
-        }
-        Ok(*values.first().unwrap())
-    };
+    let targets = representable_chore_targets(world, &old);
     let key = |key: &mut ChoreKey| -> Result<(), crate::SaveError> {
         if room_key(key) {
-            key.target = translate(key.target, false)?;
+            key.target = *targets
+                .get(&key.target)
+                .ok_or(crate::SaveError::InvalidValue)?;
         }
         Ok(())
     };
@@ -265,6 +243,41 @@ pub(crate) fn project(
     Ok(())
 }
 
+fn representable_chore_targets(
+    world: &bevy_ecs::world::World,
+    old: &crate::room_regions::RoomRegions,
+) -> BTreeMap<u32, u32> {
+    let map = world.resource::<RoomMap>();
+    let tile = |cell: u32| {
+        (
+            (cell % map.topology.width) as i32,
+            (cell / map.topology.width) as i32,
+        )
+    };
+    let mut counts = BTreeMap::<u32, usize>::new();
+    for cell in 0..map.topology.cells.len() {
+        if let Some(seed) = old.at(tile(cell as u32)) {
+            *counts.entry(seed).or_default() += 1;
+        }
+    }
+    map.topology
+        .components
+        .iter()
+        .zip(&map.component_ids)
+        .filter_map(|(component, id)| {
+            let seed = old.at((component.anchor.0 as i32, component.anchor.1 as i32))?;
+            // Equal cardinality plus complete membership proves both directions:
+            // no extension cell is dropped and no other legacy area is added.
+            (counts.get(&seed) == Some(&component.cells.len())
+                && component
+                    .cells
+                    .iter()
+                    .all(|&cell| old.at(tile(cell)) == Some(seed)))
+            .then_some((id.get(), seed))
+        })
+        .collect()
+}
+
 pub(crate) fn project_commands(
     world: &bevy_ecs::world::World,
     commands: &mut [terri_core::SavedCommand],
@@ -272,34 +285,17 @@ pub(crate) fn project_commands(
     if !stable(world) {
         return Ok(());
     }
-    let map = world.resource::<RoomMap>();
     let old = crate::room_regions::RoomRegions::legacy(world);
+    let targets = representable_chore_targets(world, &old);
     for command in commands {
         if let terri_core::SavedCommand::CleanChore { key, .. }
         | terri_core::SavedCommand::CleanChoreFirst { key, .. } = command
         {
-            if !room_key(key) {
-                continue;
+            if room_key(key) {
+                key.target = *targets
+                    .get(&key.target)
+                    .ok_or(crate::SaveError::InvalidValue)?;
             }
-            let component = map
-                .component_ids
-                .iter()
-                .position(|id| id.get() == key.target)
-                .ok_or(crate::SaveError::InvalidValue)?;
-            let seeds: std::collections::BTreeSet<_> = map.topology.components[component]
-                .cells
-                .iter()
-                .filter_map(|cell| {
-                    old.at((
-                        (cell % map.topology.width) as i32,
-                        (cell / map.topology.width) as i32,
-                    ))
-                })
-                .collect();
-            if seeds.len() != 1 {
-                return Err(crate::SaveError::InvalidValue);
-            }
-            key.target = *seeds.first().unwrap();
         }
     }
     Ok(())

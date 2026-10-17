@@ -342,14 +342,14 @@ fn finish_restore(
         crate::seating::migrate(&mut candidate.world)?;
     }
     super::validate_portal_returns(
-        &candidate.save_snapshot(),
+        &super::capture(&candidate),
         candidate.world.resource::<TileGrid>(),
         content,
         crate::lot_frame::origin(&candidate.world),
     )?;
     if layout.has_edges() && seats.is_none() {
         validate_edge_world(
-            &candidate.save_snapshot(),
+            &super::capture(&candidate),
             candidate.world.resource::<TileGrid>(),
             content,
             &candidate.world,

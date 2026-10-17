@@ -150,7 +150,10 @@ pub(crate) fn hash(world: &World, hash: &mut terri_core::FnvHasher) {
 }
 
 /// Construction changes membership without constituting a new physical visit.
-pub(crate) fn refresh_visits(world: &mut World) {
+pub(crate) fn refresh_visits(
+    world: &mut World,
+    baseline: &std::collections::BTreeMap<u32, Option<u32>>,
+) {
     let map = world.resource::<RoomMap>();
     let positions: std::collections::BTreeMap<_, _> = world
         .try_query::<(Entity, &terri_core::Position)>()
@@ -165,15 +168,19 @@ pub(crate) fn refresh_visits(world: &mut World) {
         });
     if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDomestic>() {
         for visit in &mut state.visits {
-            if let Some(room) = positions.get(&visit.person) {
-                visit.room = *room;
+            if baseline.get(&visit.person) == Some(&Some(visit.room)) {
+                if let Some(room) = positions.get(&visit.person) {
+                    visit.room = *room;
+                }
             }
         }
     }
     if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDining>() {
         for opportunity in &mut state.opportunities {
-            if let Some(room) = positions.get(&opportunity.person) {
-                opportunity.room = *room;
+            if baseline.get(&opportunity.person) == Some(&Some(opportunity.room)) {
+                if let Some(room) = positions.get(&opportunity.person) {
+                    opportunity.room = *room;
+                }
             }
         }
     }

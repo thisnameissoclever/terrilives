@@ -25,6 +25,26 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
             include_bytes!("../tests/fixtures/room-identities-v14/floor-work-active.sav")
                 .as_slice(),
         ),
+        (
+            "surface",
+            include_bytes!("../tests/fixtures/room-identities-v14/surface-work-active.sav")
+                .as_slice(),
+        ),
+        (
+            "suspended",
+            include_bytes!("../tests/fixtures/room-identities-v14/floor-work-preempted.sav")
+                .as_slice(),
+        ),
+        (
+            "west-south-career",
+            include_bytes!("../tests/fixtures/room-identities-v14/purchased-land-career.sav")
+                .as_slice(),
+        ),
+        (
+            "north-west-career",
+            include_bytes!("../tests/fixtures/room-identities-v14/north-west-land-career.sav")
+                .as_slice(),
+        ),
     ] {
         assert_eq!(&bytes[8..10], &14u16.to_le_bytes());
         let (original, tail) =
@@ -170,4 +190,260 @@ fn renaming_an_authentic_active_floor_task_preserves_its_exact_physical_state() 
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);
+}
+
+#[test]
+fn review_queued_outside_commands_load_and_unknown_room_commands_refuse_atomically() {
+    for first in [false, true] {
+        let mut source = SimHandle::from_lot();
+        let mut floors = terri_core::layout::SavedFloors::default();
+        floors.set(17, 13, 4);
+        source.sim.world_mut().insert_resource(floors);
+        let agent = source
+            .sim
+            .save_snapshot()
+            .entities
+            .iter()
+            .find(|person| person.agent)
+            .unwrap()
+            .index;
+        let key = terri_core::chores::ChoreKey {
+            kind: terri_core::chores::ChoreKind::Floors,
+            target: 0,
+        };
+        let command = if first {
+            terri_core::SimCommand::CleanChoreFirst { agent, key }
+        } else {
+            terri_core::SimCommand::CleanChore { agent, key }
+        };
+        source
+            .sim
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(command);
+        let bytes = source.save_bytes();
+        let mut live = SimHandle::from_lot();
+        assert!(live.load_bytes(&bytes));
+        assert_eq!(live.save_bytes(), bytes);
+        let mut bad = source.sim.save_snapshot_v15();
+        let commands = &mut bad
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .world
+            .queued_commands;
+        match &mut commands[0] {
+            terri_core::SavedCommand::CleanChore { key, .. }
+            | terri_core::SavedCommand::CleanChoreFirst { key, .. } => key.target = u32::MAX,
+            _ => unreachable!(),
+        }
+        let mut bad_bytes = Vec::from(SAVE_MAGIC);
+        bad_bytes.extend(15u16.to_le_bytes());
+        bad_bytes.extend(postcard::to_allocvec(&bad).unwrap());
+        assert!(!live.load_bytes(&bad_bytes));
+        assert_eq!(live.save_bytes(), bytes);
+    }
+}
+
+#[test]
+fn review_frozen_source_work_preconditions() {
+    for (name, bytes) in [
+        (
+            "surface-work-active",
+            include_bytes!("../tests/fixtures/room-identities-v14/surface-work-active.sav")
+                .as_slice(),
+        ),
+        (
+            "floor-work-preempted",
+            include_bytes!("../tests/fixtures/room-identities-v14/floor-work-preempted.sav")
+                .as_slice(),
+        ),
+    ] {
+        assert_eq!(&bytes[8..10], &14u16.to_le_bytes());
+        let (saved, tail) =
+            postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[10..]).unwrap();
+        assert!(tail.is_empty());
+        let chores = &saved.legacy.legacy.legacy.legacy.legacy.legacy.chores;
+        let task = &chores.as_ref().unwrap().tasks[0];
+        assert!(task.remaining > 0 && task.completed_units > 0);
+        if name == "surface-work-active" {
+            assert_eq!(task.key.kind, terri_core::chores::ChoreKind::Surfaces);
+            assert!(!task.suspended);
+        } else {
+            assert_eq!(task.key.kind, terri_core::chores::ChoreKind::Floors);
+            assert!(task.suspended);
+            let world = &saved.legacy.legacy.legacy.legacy.legacy.legacy.world;
+            let person = world
+                .entities
+                .iter()
+                .find(|person| person.index == task.person)
+                .unwrap();
+            assert!(!person.path.as_ref().unwrap().steps.is_empty());
+            let target = person.target.unwrap();
+            assert_eq!(
+                world
+                    .entities
+                    .iter()
+                    .find(|object| object.index == target.object)
+                    .unwrap()
+                    .smart_object
+                    .as_deref(),
+                Some("moving_box")
+            );
+        }
+    }
+}
+
+#[test]
+fn review_authentic_explicit_surface_migration_preserves_work() {
+    let bytes = include_bytes!("../tests/fixtures/room-identities-v14/surface-work-active.sav");
+    let (source, tail) =
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[10..]).unwrap();
+    assert!(tail.is_empty());
+    let chores = source
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .chores
+        .as_ref()
+        .unwrap();
+    assert!(chores.tasks.iter().any(|task| task.key.kind
+        == terri_core::chores::ChoreKind::Surfaces
+        && task.completed_units > 0
+        && task.remaining > 0));
+    let mut game = SimHandle::from_lot();
+    assert!(game.load_bytes(bytes));
+    let projected = game.sim.try_save_snapshot_v14().unwrap();
+    assert_eq!(
+        projected
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .chores
+            .as_ref()
+            .unwrap()
+            .tasks,
+        chores.tasks
+    );
+    assert_eq!(projected, source);
+}
+
+#[test]
+fn review_authentic_land_careers_and_money_keep_their_actual_source_values() {
+    let (fresh, _) = postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(
+        &include_bytes!("../tests/fixtures/room-identities-v14/fresh.sav")[10..],
+    )
+    .unwrap();
+    let original_job = &fresh
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .world
+        .entities
+        .iter()
+        .find(|person| person.sim_id == Some(0))
+        .unwrap()
+        .career;
+    for (bytes, origin) in [
+        (
+            include_bytes!("../tests/fixtures/room-identities-v14/purchased-land-career.sav")
+                .as_slice(),
+            (10, 0),
+        ),
+        (
+            include_bytes!("../tests/fixtures/room-identities-v14/north-west-land-career.sav")
+                .as_slice(),
+            (10, 10),
+        ),
+    ] {
+        let (source, tail) =
+            postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[10..]).unwrap();
+        assert!(tail.is_empty());
+        let frame = source.legacy.lot_frame.unwrap();
+        assert_eq!((frame.origin_x, frame.origin_y), origin);
+        assert_eq!(frame.purchased_area, 460);
+        assert_eq!(source.legacy.funds_cents, 2_380_000);
+        let world = &source.legacy.legacy.legacy.legacy.legacy.legacy.world;
+        assert_eq!((world.grid_width, world.grid_height), (30, 26));
+        let current_job = &world
+            .entities
+            .iter()
+            .find(|person| person.sim_id == Some(0))
+            .unwrap()
+            .career;
+        assert!(current_job.is_some());
+        assert_ne!(current_job, original_job);
+        assert_eq!(
+            source
+                .careers
+                .records
+                .iter()
+                .find(|person| person.sim == 0)
+                .unwrap()
+                .pay,
+            80
+        );
+        let mut game = SimHandle::from_lot();
+        assert!(game.load_bytes(bytes));
+        let projected = game.sim.try_save_snapshot_v14().unwrap();
+        assert_eq!(projected, source);
+        let current = game.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(loaded.load_bytes(&current));
+        assert_eq!(loaded.save_bytes(), current);
+    }
+}
+
+#[test]
+fn review_rename_before_first_tick_preserves_migrated_unassigned_duties_and_rng() {
+    let mut game = SimHandle::from_lot();
+    assert!(game.load_bytes(include_bytes!(
+        "../tests/fixtures/room-identities-v14/outdoor-boards.sav"
+    )));
+    let original = game
+        .sim
+        .world()
+        .resource::<terri_core::chores::SavedChores>()
+        .clone();
+    let outside = terri_core::chores::ChoreKey {
+        kind: terri_core::chores::ChoreKind::Floors,
+        target: 0,
+    };
+    assert!(original.board_enabled);
+    assert!(terri_sim::chores::keys(game.sim.world()).contains(&outside));
+    assert!(!original.assignments.iter().any(|row| row.key == outside));
+    let before = terri_sim::chores::RoomChangeContext::capture(game.sim.world()).unwrap();
+    let proposal = terri_sim::rooms::match_rooms(&before.map, &before.map.topology, (0, 0));
+    let mut choices = terri_sim::rooms::RoomChoices::default();
+    choices.names.insert(
+        before.map.topology.components[0].anchor,
+        "Renamed while paused".into(),
+    );
+    let resolved = terri_sim::rooms::resolve_rooms(
+        &proposal,
+        &choices,
+        game.sim.world().resource::<terri_core::rooms::SavedRooms>(),
+    )
+    .unwrap();
+    terri_sim::chores::reconcile_committed_rooms(&mut game.sim, &before, &resolved).unwrap();
+    assert_eq!(
+        game.sim
+            .world()
+            .resource::<terri_core::chores::SavedChores>(),
+        &original,
+        "rename must not run deferred ordinary assignment policy"
+    );
 }

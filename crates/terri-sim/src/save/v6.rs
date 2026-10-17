@@ -391,7 +391,7 @@ fn restore_inner_social(
         .has_edges()
     {
         architecture::validate_edge_world(
-            &candidate.save_snapshot(),
+            &super::capture(&candidate),
             candidate.world.resource::<terri_core::TileGrid>(),
             content,
             &candidate.world,

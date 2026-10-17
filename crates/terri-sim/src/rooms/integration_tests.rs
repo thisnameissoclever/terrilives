@@ -347,7 +347,7 @@ fn moving_all_surface_objects_preserves_group_owner_and_daily_decision() {
 }
 
 #[test]
-fn stale_legacy_visit_and_duty_seeds_remain_separate_retired_history() {
+fn review_stale_legacy_visit_and_duty_seeds_remain_separate_retired_history() {
     use terri_core::save::{SavedCleanupOpportunity, SavedDishes, SavedRoomVisit};
     let mut source = Sim::new_from_shipped_lot();
     source.tick();
@@ -454,4 +454,113 @@ fn stale_legacy_visit_and_duty_seeds_remain_separate_retired_history() {
     let mut resumed = Sim::new_from_shipped_lot();
     resumed.load_snapshot_v15(current.clone()).unwrap();
     assert_eq!(resumed.save_snapshot_v15(), current);
+    let before = crate::chores::RoomChangeContext::capture(resumed.world()).unwrap();
+    let mut choices = RoomChoices::default();
+    choices.names.insert(
+        before.map.topology.components[0].anchor,
+        "Renamed before next visit".into(),
+    );
+    let proposal = match_rooms(&before.map, &before.map.topology, (0, 0));
+    let resolved = resolve_rooms(
+        &proposal,
+        &choices,
+        resumed.world().resource::<terri_core::rooms::SavedRooms>(),
+    )
+    .unwrap();
+    crate::chores::reconcile_committed_rooms(&mut resumed, &before, &resolved).unwrap();
+    let visit = resumed
+        .world()
+        .resource::<terri_core::save::SavedDomestic>()
+        .visits
+        .iter()
+        .find(|row| row.person == person)
+        .unwrap();
+    assert_eq!(
+        visit.room,
+        visit_id.get(),
+        "a rename must not revive stale history"
+    );
+    assert_eq!(visit.seen, vec![500]);
+    crate::domestic::tick(resumed.world_mut());
+    let visit = resumed
+        .world()
+        .resource::<terri_core::save::SavedDomestic>()
+        .visits
+        .iter()
+        .find(|row| row.person == person)
+        .unwrap();
+    assert_ne!(visit.room, visit_id.get());
+    assert!(visit.seen.is_empty());
+    let opportunity = resumed
+        .world()
+        .resource::<terri_core::save::SavedDining>()
+        .opportunities
+        .iter()
+        .find(|row| row.person == person)
+        .unwrap();
+    assert!(opportunity.known.is_empty());
+    assert!(!opportunity.pending);
+}
+
+#[test]
+fn review_historical_projection_refuses_a_clean_extension_in_a_queued_room_target() {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let mut sim = Sim::new_with_lot(20, 16);
+    sim.world_mut().insert_resource(crate::LotFrame::default());
+    let mut edges: Vec<_> = (0..18)
+        .flat_map(|x| {
+            [0, 12].map(move |y| WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x,
+                y,
+                doorway: false,
+            })
+        })
+        .chain((0..12).flat_map(|y| {
+            [0, 18].map(move |x| WallEdge {
+                axis: EdgeAxis::Vertical,
+                x,
+                y,
+                doorway: false,
+            })
+        }))
+        .collect();
+    edges.sort_by_key(|edge| (edge.axis as u8, edge.x, edge.y));
+    let mut grid = terri_core::TileGrid::new(20, 16);
+    for edge in &edges {
+        let [from, to] = edge.cells();
+        if from.0 >= 0 && from.1 >= 0 {
+            grid.set_edge_blocked(from, to, true);
+        }
+    }
+    sim.world_mut().insert_resource(grid);
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    let pack = sim.world().resource::<crate::Content>().0;
+    sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+    initialize(sim.world_mut()).unwrap();
+    let map = sim.world().resource::<RoomMap>();
+    assert_eq!(map.topology.components.len(), 1);
+    assert_eq!(map.selection_at((1, 1)), map.selection_at((17, 1)));
+    let target = map.component_ids[0].get();
+    let person = sim
+        .world_mut()
+        .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+        .iter(sim.world())
+        .next()
+        .unwrap()
+        .index_u32();
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::CleanChoreFirst {
+            agent: person,
+            key: ChoreKey {
+                kind: ChoreKind::Floors,
+                target,
+            },
+        });
+    assert!(
+        sim.try_save_snapshot_v14().is_err(),
+        "the clean extension must not disappear from the command target"
+    );
 }

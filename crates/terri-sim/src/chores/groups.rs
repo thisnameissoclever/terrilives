@@ -23,8 +23,15 @@ pub(super) fn kind(world: &World, object: Entity) -> Option<ChoreKind> {
 pub(super) fn key_for(world: &World, object: Entity) -> Option<ChoreKey> {
     let kind = kind(world, object)?;
     let pos = world.get::<Position>(object)?;
-    let target = crate::room_regions::RoomRegions::architectural(world)
-        .at((pos.x.round() as i32, pos.y.round() as i32))?;
+    let target = if crate::rooms::stable(world) {
+        world
+            .resource::<crate::rooms::RoomMap>()
+            .selection_at((pos.x.round() as u32, pos.y.round() as u32))?
+            .key()
+    } else {
+        crate::room_regions::RoomRegions::legacy(world)
+            .at((pos.x.round() as i32, pos.y.round() as i32))?
+    };
     Some(ChoreKey { kind, target })
 }
 
@@ -35,14 +42,25 @@ pub(super) fn members(world: &World, key: ChoreKey) -> Vec<u32> {
     let Some(mut objects) = world.try_query::<(Entity, &SmartObject)>() else {
         return vec![];
     };
-    let rooms = crate::room_regions::RoomRegions::architectural(world);
+    let legacy =
+        (!crate::rooms::stable(world)).then(|| crate::room_regions::RoomRegions::legacy(world));
+    let at = |p: &Position| {
+        if let Some(rooms) = &legacy {
+            rooms.at((p.x.round() as i32, p.y.round() as i32))
+        } else {
+            world
+                .resource::<crate::rooms::RoomMap>()
+                .selection_at((p.x.round() as u32, p.y.round() as u32))
+                .map(|room| room.key())
+        }
+    };
     let mut members: Vec<_> = objects
         .iter(world)
         .filter(|(e, _)| {
             kind(world, *e) == Some(key.kind)
-                && world.get::<Position>(*e).is_some_and(|p| {
-                    rooms.at((p.x.round() as i32, p.y.round() as i32)) == Some(key.target)
-                })
+                && world
+                    .get::<Position>(*e)
+                    .is_some_and(|p| at(p) == Some(key.target))
         })
         .map(|(e, _)| e.index_u32())
         .collect();

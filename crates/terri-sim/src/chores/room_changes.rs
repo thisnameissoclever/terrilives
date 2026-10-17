@@ -8,6 +8,8 @@ pub struct RoomChangeContext {
     pub map: RoomMap,
     pub groups: BTreeMap<ChoreKey, Vec<u32>>,
     pub duties: Vec<ChoreKey>,
+    /// Baseline membership survives coordinate translation without serialized visit metadata.
+    pub person_rooms: BTreeMap<u32, Option<u32>>,
 }
 impl RoomChangeContext {
     pub fn capture(world: &World) -> Result<Self, RoomError> {
@@ -20,10 +22,28 @@ impl RoomChangeContext {
             .filter(|key| key.kind.grouped())
             .map(|key| (key, super::groups::members(world, key)))
             .collect();
+        let person_rooms = world
+            .try_query::<(Entity, &terri_core::Agent, &terri_core::Position)>()
+            .map_or_else(BTreeMap::new, |mut query| {
+                query
+                    .iter(world)
+                    .map(|(entity, _, position)| {
+                        (
+                            entity.index_u32(),
+                            map.selection_at((
+                                position.x.round() as u32,
+                                position.y.round() as u32,
+                            ))
+                            .map(|room| room.key()),
+                        )
+                    })
+                    .collect()
+            });
         Ok(Self {
             map,
             groups,
             duties: keys(world),
+            person_rooms,
         })
     }
 }
@@ -86,7 +106,7 @@ pub fn reconcile_committed_rooms(
                 });
             }
         }
-        crate::rooms::refresh_visits(world);
+        crate::rooms::refresh_visits(world, &before.person_rooms);
         crate::rooms::retain_referenced_history(world);
         return Ok(report);
     };
@@ -107,9 +127,17 @@ pub fn reconcile_committed_rooms(
             }
         }
     }
+    let assigned: BTreeSet<_> = original.iter().map(|assignment| assignment.key).collect();
+    let owner_priority = |old: &ChoreKey, new: &ChoreKey| {
+        (
+            assigned.contains(old) && old == new,
+            assigned.contains(old),
+            old == new,
+        )
+    };
     pairs.sort_by(|(a, an, ac), (b, bn, bc)| {
-        (b == bn)
-            .cmp(&(a == an))
+        owner_priority(b, bn)
+            .cmp(&owner_priority(a, an))
             .then_with(|| bc.cmp(ac))
             .then_with(|| a.cmp(b))
             .then_with(|| an.cmp(bn))
@@ -174,7 +202,17 @@ pub fn reconcile_committed_rooms(
 
     // This policy preserves existing owners and daily decisions and draws only
     // for genuinely new duties when automatic assignment is enabled.
-    board::reconcile(world, &mut state);
+    super::prune_references(world, &mut state);
+    let new_duties: Vec<_> = available
+        .iter()
+        .copied()
+        .filter(|key| {
+            !mapping
+                .iter()
+                .any(|(old, new)| new == key && before.duties.contains(old))
+        })
+        .collect();
+    board::assign_new_duties(world, &mut state, &new_duties);
     for key in &available {
         let previous = mapping
             .iter()
@@ -211,9 +249,8 @@ pub fn reconcile_committed_rooms(
         }
     }
     world.insert_resource(state);
-    super::prune(world);
     super::patches::reconcile(world);
-    crate::rooms::refresh_visits(world);
+    crate::rooms::refresh_visits(world, &before.person_rooms);
     crate::rooms::retain_referenced_history(world);
     Ok(report)
 }
@@ -224,9 +261,27 @@ fn reconcile_work(
     mapping: &BTreeMap<ChoreKey, ChoreKey>,
     report: &mut DutyChangeReport,
 ) {
-    let mut keep = Vec::new();
-    for mut task in std::mem::take(&mut state.tasks) {
-        let new_key = mapping.get(&task.key).copied();
+    let mut keep = Vec::<ChoreTask>::new();
+    let mut unavailable = Vec::new();
+    let mut tasks = std::mem::take(&mut state.tasks);
+    // A merged duty admits one group worker. Prefer the inherited group's
+    // worker, then retain still-valid work by person order.
+    tasks.sort_by_key(|task| {
+        (
+            task.key.kind.grouped() && !mapping.contains_key(&task.key),
+            task.person,
+        )
+    });
+    for mut task in tasks {
+        let new_key = if matches!(task.key.kind, ChoreKind::Surfaces | ChoreKind::Bins) {
+            work::key_valid(world, task.key).then_some(task.key)
+        } else {
+            mapping.get(&task.key).copied().or_else(|| {
+                (task.key.kind.grouped() && work::key_valid(world, task.key)).then_some(task.key)
+            })
+        };
+        let new_key = new_key
+            .filter(|key| !key.kind.grouped() || !keep.iter().any(|retained| retained.key == *key));
         if let Some(key) = new_key {
             task.key = key;
         }
@@ -256,6 +311,7 @@ fn reconcile_work(
             }
         }
         grime::forget(world, task.person);
+        let prior_remaining = task.remaining;
         task.endpoint = None;
         task.remaining = 0;
         let remaining = if new_key.is_none() {
@@ -282,6 +338,14 @@ fn reconcile_work(
                 .into_iter()
                 .filter(|id| value(&state.surfaces, *id) > 0)
                 .collect()
+        } else if matches!(task.key.kind, ChoreKind::Surfaces | ChoreKind::Bins) {
+            if let Some(endpoint) = work::contact(world, &task) {
+                task.endpoint = Some(endpoint);
+                task.remaining = prior_remaining;
+                vec![task.key.target]
+            } else {
+                vec![]
+            }
         } else {
             vec![]
         };
@@ -289,13 +353,7 @@ fn reconcile_work(
             if let Some(person) = crate::dining::entity(world, task.person) {
                 world.entity_mut(person).remove::<ChoreWork>();
             }
-            for episode in &mut state.episodes {
-                if episode.key == task.key && episode.day == task.started_day && !episode.settled {
-                    episode.settled = true;
-                    episode.unavailable = true;
-                    episode.outcome = DutyOutcome::Unavailable;
-                }
-            }
+            unavailable.push((task.key, task.started_day));
             report.unavailable_people.push(task.person);
         } else {
             task.cells = remaining;
@@ -304,6 +362,22 @@ fn reconcile_work(
             keep.push(task);
         }
     }
+    for (key, day) in unavailable {
+        if keep
+            .iter()
+            .any(|task| task.key == key && task.started_day == day)
+        {
+            continue;
+        }
+        for episode in &mut state.episodes {
+            if episode.key == key && episode.day == day && !episode.settled {
+                episode.settled = true;
+                episode.unavailable = true;
+                episode.outcome = DutyOutcome::Unavailable;
+            }
+        }
+    }
+    keep.sort_by_key(|task| task.person);
     state.tasks = keep;
 }
 
