@@ -22,6 +22,9 @@ function workspaceMembers(): string[] {
 }
 const MEMBERS = workspaceMembers();
 
+/** A member manifest line that inherits the workspace version, in either form Cargo accepts. */
+const INHERITS_WORKSPACE_VERSION = /^version(?:\s*\.\s*workspace\s*=\s*true|\s*=\s*\{\s*workspace\s*=\s*true\s*\})\s*$/m;
+
 /** The `[package] name` in one member's Cargo.toml. */
 function packageName(manifest: string): string | undefined {
   return /^\[package\]\s*$[\s\S]*?^name\s*=\s*"([^"]+)"/m.exec(manifest)?.[1];
@@ -69,7 +72,8 @@ describe('the game version', () => {
 
   it.each(MEMBERS)('is inherited by %s from the workspace and recorded in Cargo.lock', (member) => {
     const manifest = read(`../../${member}/Cargo.toml`);
-    expect(manifest).toMatch(/^version\.workspace = true$/m);
+    // Cargo accepts both `version.workspace = true` and `version = { workspace = true }`.
+    expect(manifest).toMatch(INHERITS_WORKSPACE_VERSION);
     const name = packageName(manifest);
     expect(name).toBeDefined();
     expect(lockedCrateVersion(name!)).toBe(version);

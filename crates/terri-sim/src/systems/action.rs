@@ -253,12 +253,16 @@ impl BedState<'_, '_> {
 /// not re-check it; a pack holding a zero or negative temperature cannot
 /// be built.
 ///
-/// # `exp` is the one platform call in the simulation's causal chain
+/// # `exp` is a platform call in the simulation's causal chain
 ///
-/// Everything else the sim computes is IEEE-exact and therefore
-/// bit-identical on every target - `score_advertisement` cubes urgency by
-/// repeated multiplication rather than `powf` for exactly that reason,
-/// and `SimRng` is in-repo rather than taken from `rand` for it too.
+/// It is not the only one. `hypot` in the proximity checks of
+/// `social_company` and `relationship_dynamics` is also a libm call, and
+/// `powi` feeds the domestic cleanup curve, seat ranking in `media` and
+/// skill costs; Rust promises neither function's last bit. Most of what
+/// the sim computes is IEEE-exact and therefore bit-identical on every
+/// target - `score_advertisement` cubes urgency by repeated
+/// multiplication rather than `powf` for exactly that reason, and
+/// `SimRng` is in-repo rather than taken from `rand` for it too.
 /// `f32::exp` is not: it lowers to a platform libm call whose last bit is
 /// not guaranteed to agree between the MSVC CRT that `cargo test` uses,
 /// glibc on CI, and the wasm32 build that actually ships.
