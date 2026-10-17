@@ -12026,6 +12026,13 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: rasterize the filtering support and weight samples by the true stroke coverage. Do not substitute a minimum apparent width or draw through solid geometry to force visibility.
 4. Verification: move a stroke across a complete sample interval and measure nonzero, stable integrated color. Inspect normal-size motion separately. The retired reference and its limited measurements are linked from [effect verification](rendering/effect-verification.md); no water effect is installed in the game.
 
+## [L-bound-large-git-inventories] Bound the first inventory of a large asset change
+
+1. What happened: an upstream review-capture cleanup generated thousands of entries in a full Git statistics listing while a small unrelated branch was integrating it.
+2. Root cause: the first inspection requested every path and binary size before checking the change's scale. The merge also generated the same large summary.
+3. Prevention: aggregate a `--name-only` or `--name-status` inventory first. Inspect targeted paths next. Use `git merge --no-stat` for a known large capture cleanup; preserve normal merge checks and hooks.
+4. Verification: confirm the intended parents, inspect the bounded branch-only diff, and verify removed upstream files are not restored. Do not treat a large informational summary as implementation evidence.
+
 ## [L-activity-surface-support] Verify finite support and floor indicators during actual activities
 
 1. What happened: a seated pose matched its authored source yet perched at a cushion's edge. Selection markers followed raised ankle height and used object depth, so they painted over people, shower trays, and bed covers. Kitchen artwork also crossed the wall's physical room face.

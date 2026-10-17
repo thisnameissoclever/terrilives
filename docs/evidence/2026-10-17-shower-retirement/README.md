@@ -121,6 +121,9 @@ work queue, not a claim of fresh public-game or phone verification.
 3. Type checking and the production site build passed after that integration.
    The build retained the existing large-chunk, ineffective dynamic-import and
    asset-plugin timing warnings; no warning threshold changed.
+   The subsequent documentation-only capture cleanup at `1070a97e9` was merged
+   normally. Its removed captures remain removed; production inputs to these
+   checks did not change. Documentation identifiers passed again after the merge.
 4. The current WebAssembly package rebuilt successfully with the locked native
    dependencies. Native source was unchanged; a separate native test rerun was
    not required for this internal-only cleanup.
