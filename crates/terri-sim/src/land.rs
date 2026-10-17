@@ -329,9 +329,9 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         journey.transfer_contact = journey.transfer_contact.map(shift_tile);
     }
 
-    // Cells and room ids: a cell moves with its tile; a room is found again
-    // by its old seed tile, because new land can precede a room in row
-    // order and take over its lowest cell.
+    // Cells and room ids: a cell moves with its tile. A room id is read
+    // again at its seed tile once moved, and becomes the moved cell when
+    // that tile is in no room.
     let new_rooms = RoomRegions::from_world(world);
     let cell = |old: u32| (old / old_width + dy) * new_width + (old % old_width + dx);
     let room = |old: u32| {
@@ -443,8 +443,23 @@ mod tests {
         (grid.width() as u32, grid.height() as u32)
     }
 
-    /// Every position, path step, wall, window and floor, read as sorted
-    /// lists keyed by entity index where there is one.
+    /// Sells `sim` its land in strips `depth` tiles deep.
+    fn with_strip_depth(sim: &mut Sim, depth: u32) {
+        let content = sim.world().resource::<crate::Content>().0;
+        let mut tuning = content.tuning;
+        tuning.land_strip_depth = depth;
+        let pack = Box::leak(Box::new(terri_data::ContentPack {
+            tuning,
+            ..content.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+    }
+
+    /// Every position, path step and wall, read as sorted lists keyed by
+    /// entity index where there is one. Windows and painted floors are not
+    /// read here: the shipped lot has none, so comparing them would compare
+    /// empty lists. `painted_floors_and_windows_move_with_the_world` lays
+    /// some first and checks them on every side.
     #[allow(clippy::type_complexity)]
     fn geometry(
         sim: &mut Sim,
@@ -452,8 +467,6 @@ mod tests {
         Vec<(u32, (f32, f32))>,
         Vec<(u32, Vec<(i32, i32)>)>,
         Vec<WallEdge>,
-        Vec<WallLine>,
-        Vec<(u32, u32, u8)>,
     ) {
         let mut positions: Vec<_> = sim
             .world_mut()
@@ -469,16 +482,9 @@ mod tests {
             .map(|(e, p)| (e.index_u32(), p.steps.clone()))
             .collect();
         paths.sort_by_key(|p| p.0);
-        let world = sim.world();
-        let layout = world.resource::<SavedLayout>();
-        let mut edges = layout.edges().to_vec();
+        let mut edges = sim.world().resource::<SavedLayout>().edges().to_vec();
         edges.sort_by_key(|e| (e.axis as u8, e.x, e.y));
-        let mut windows = layout.window_lines();
-        windows.sort();
-        let floors = world
-            .get_resource::<SavedFloors>()
-            .map_or_else(Vec::new, |f| f.tiles().to_vec());
-        (positions, paths, edges, windows, floors)
+        (positions, paths, edges)
     }
 
     /// The issue's first example: a 10 by 20 side strip at $150 a square
@@ -534,13 +540,7 @@ mod tests {
         sim.world_mut().insert_resource(Funds::from_dollars(30_000));
         assert!(quote(sim.world(), Side::Left).affordable());
         // Too large: a strip that would pass the loader's side limit.
-        let mut tuning = sim.world().resource::<crate::Content>().0.tuning;
-        tuning.land_strip_depth = MAX_SIDE;
-        let pack = Box::leak(Box::new(terri_data::ContentPack {
-            tuning,
-            ..sim.world().resource::<crate::Content>().0.clone()
-        }));
-        sim.world_mut().insert_resource(crate::Content(pack));
+        with_strip_depth(&mut sim, MAX_SIDE);
         sim.world_mut().insert_resource(Funds(i64::MAX / 4));
         assert_eq!(buy(sim.world_mut(), Side::Left), Err(LandRefusal::TooLarge));
         // A frozen legacy layout cannot grow.
@@ -596,13 +596,13 @@ mod tests {
             let mut sim = rich();
             sim.tick();
             sim.tick();
-            let (positions, paths, edges, windows, floors) = geometry(&mut sim);
+            let (positions, paths, edges) = geometry(&mut sim);
             let rooms = RoomRegions::from_world(sim.world());
             let chores = sim.world().resource::<SavedChores>().clone();
             let door = lot_frame::front_door(sim.world()).unwrap();
             buy(sim.world_mut(), side).unwrap();
             assert_eq!(dims(&sim), expected);
-            let (new_positions, new_paths, new_edges, new_windows, new_floors) = geometry(&mut sim);
+            let (new_positions, new_paths, new_edges) = geometry(&mut sim);
             let shift = |(x, y): (i32, i32)| (x + dx as i32, y + dy as i32);
             assert_eq!(
                 new_positions,
@@ -628,24 +628,6 @@ mod tests {
                         y: e.y + dy,
                         doorway: e.doorway
                     })
-                    .collect::<Vec<_>>()
-            );
-            assert_eq!(
-                new_windows,
-                windows
-                    .iter()
-                    .map(|w| WallLine {
-                        axis: w.axis,
-                        x: w.x + dx,
-                        y: w.y + dy
-                    })
-                    .collect::<Vec<_>>()
-            );
-            assert_eq!(
-                new_floors,
-                floors
-                    .iter()
-                    .map(|&(x, y, c)| (x + dx, y + dy, c))
                     .collect::<Vec<_>>()
             );
             assert_eq!(lot_frame::frame(sim.world()).unwrap().origin, (dx, dy));
@@ -770,108 +752,133 @@ mod tests {
 
     /// Records keyed by a person or an object keep their ids through a
     /// move; only the tiles among them move: traffic cells, floor-task
-    /// cells, task endpoints, diners' places and the rooms of cleanup
-    /// opportunities.
+    /// cells, task endpoints, grime patches, diners' places and the rooms
+    /// of cleanup opportunities. The move is checked in the rear strip's
+    /// shape, which moves columns and widens rows, and the right strip's,
+    /// which moves rows. Every cell is at row and column 10 or more, so a
+    /// wrong move shows as a wrong cell rather than an overflow.
     #[test]
     fn a_move_keeps_ids_and_moves_only_tiles() {
         use terri_core::chores::{ChoreKey, ChoreTask};
+        use terri_core::grime::FloorPatch;
         use terri_core::save::{SavedCleanupOpportunity, SavedDiner};
-        let mut sim = rich();
-        let people: Vec<u32> = sim
-            .world_mut()
-            .query::<(Entity, &terri_core::Agent)>()
-            .iter(sim.world())
-            .map(|(e, _)| e.index_u32())
-            .collect();
-        assert!(people.len() >= 2, "the shipped lot has two people");
-        let (first, second) = (people[0], people[1]);
-        let object = sim
-            .world_mut()
-            .query::<(Entity, &terri_core::SmartObject)>()
-            .iter(sim.world())
-            .map(|(e, _)| e.index_u32())
-            .next()
-            .expect("an object");
-        let rooms = RoomRegions::from_world(sim.world());
-        let (seed, room_id) = (0..16i32)
-            .flat_map(|y| (0..20i32).map(move |x| (x, y)))
-            .find_map(|tile| rooms.at(tile).map(|room| (tile, room)))
-            .expect("a room");
-        let task = |person, key, cells, endpoint| ChoreTask {
-            person,
-            key,
-            cells,
-            cursor: 0,
-            endpoint,
-            remaining: 1,
-            directed: false,
-            suspended: false,
-            started_day: 0,
-            completed_units: 0,
-        };
-        {
-            let mut chores = sim.world_mut().resource_mut::<SavedChores>();
-            chores.traffic = vec![(first, 5 * 20 + 3)];
-            chores.tasks = vec![
-                task(
-                    first,
-                    ChoreKey {
-                        kind: ChoreKind::Floors,
-                        target: room_id,
-                    },
-                    vec![3 * 20 + 2],
-                    None,
-                ),
-                task(
-                    second,
-                    ChoreKey {
-                        kind: ChoreKind::Surfaces,
-                        target: object,
-                    },
-                    vec![object],
-                    Some(4 * 20 + 4),
-                ),
-            ];
+        for (dx, dy) in [(10, 0), (0, 10)] {
+            let mut sim = rich();
+            let people: Vec<u32> = sim
+                .world_mut()
+                .query::<(Entity, &terri_core::Agent)>()
+                .iter(sim.world())
+                .map(|(e, _)| e.index_u32())
+                .collect();
+            assert!(people.len() >= 2, "the shipped lot has two people");
+            let (first, second) = (people[0], people[1]);
+            let object = sim
+                .world_mut()
+                .query::<(Entity, &terri_core::SmartObject)>()
+                .iter(sim.world())
+                .map(|(e, _)| e.index_u32())
+                .next()
+                .expect("an object");
+            let rooms = RoomRegions::from_world(sim.world());
+            let (seed, room_id) = (0..16i32)
+                .flat_map(|y| (0..20i32).map(move |x| (x, y)))
+                .find_map(|tile| rooms.at(tile).map(|room| (tile, room)))
+                .expect("a room");
+            // A tile's cell on the 20-wide lot, and the cell it moves to.
+            let old = |x: u32, y: u32| y * 20 + x;
+            let new = |x: u32, y: u32| (y + dy) * (20 + dx) + x + dx;
+            let task = |person, key, cells, endpoint| ChoreTask {
+                person,
+                key,
+                cells,
+                cursor: 0,
+                endpoint,
+                remaining: 1,
+                directed: false,
+                suspended: false,
+                started_day: 0,
+                completed_units: 0,
+            };
+            {
+                let mut chores = sim.world_mut().resource_mut::<SavedChores>();
+                chores.traffic = vec![(first, old(17, 13))];
+                chores.tasks = vec![
+                    task(
+                        first,
+                        ChoreKey {
+                            kind: ChoreKind::Floors,
+                            target: room_id,
+                        },
+                        vec![old(12, 11)],
+                        None,
+                    ),
+                    task(
+                        second,
+                        ChoreKey {
+                            kind: ChoreKind::Surfaces,
+                            target: object,
+                        },
+                        vec![object],
+                        Some(old(14, 14)),
+                    ),
+                ];
+            }
+            sim.world_mut().insert_resource(SavedGrime {
+                rng: terri_core::SimRng::from_seed(1),
+                patches: vec![FloorPatch {
+                    person: second,
+                    center: old(16, 12),
+                    cells: vec![old(15, 12), old(16, 12)],
+                }],
+                legacy_floors: vec![first],
+            });
+            sim.world_mut().insert_resource(SavedDining {
+                diners: vec![SavedDiner {
+                    person: first,
+                    station: object,
+                    chair: None,
+                    setting: None,
+                    endpoint: (13, 11),
+                    obstructing: vec![],
+                }],
+                opportunities: vec![SavedCleanupOpportunity {
+                    person: first,
+                    room: room_id,
+                    known: vec![],
+                    pending: false,
+                }],
+                ..Default::default()
+            });
+            grow(sim.world_mut(), (dx, dy), (dx, dy));
+            let shape = format!("moved by ({dx}, {dy})");
+            let chores = sim.world().resource::<SavedChores>();
+            assert_eq!(chores.traffic, vec![(first, new(17, 13))], "{shape}");
+            assert_eq!(chores.tasks[0].cells, vec![new(12, 11)], "{shape}");
+            assert_eq!(chores.tasks[1].cells, vec![object], "{shape}");
+            assert_eq!(chores.tasks[1].endpoint, Some(new(14, 14)), "{shape}");
+            let grime = sim.world().resource::<SavedGrime>();
+            assert_eq!(
+                grime.patches,
+                vec![FloorPatch {
+                    person: second,
+                    center: new(16, 12),
+                    cells: vec![new(15, 12), new(16, 12)],
+                }],
+                "{shape}"
+            );
+            assert_eq!(grime.legacy_floors, vec![first], "{shape}");
+            let moved_room = RoomRegions::from_world(sim.world())
+                .at((seed.0 + dx as i32, seed.1 + dy as i32))
+                .expect("the room moved");
+            assert_eq!(chores.tasks[0].key.target, moved_room, "{shape}");
+            let dining = sim.world().resource::<SavedDining>();
+            assert_eq!(
+                dining.diners[0].endpoint,
+                (13 + dx as i32, 11 + dy as i32),
+                "{shape}"
+            );
+            assert_eq!(dining.opportunities[0].room, moved_room, "{shape}");
         }
-        sim.world_mut().insert_resource(SavedGrime {
-            rng: terri_core::SimRng::from_seed(1),
-            patches: vec![],
-            legacy_floors: vec![first],
-        });
-        sim.world_mut().insert_resource(SavedDining {
-            diners: vec![SavedDiner {
-                person: first,
-                station: object,
-                chair: None,
-                setting: None,
-                endpoint: (3, 6),
-                obstructing: vec![],
-            }],
-            opportunities: vec![SavedCleanupOpportunity {
-                person: first,
-                room: room_id,
-                known: vec![],
-                pending: false,
-            }],
-            ..Default::default()
-        });
-        grow(sim.world_mut(), (10, 0), (10, 0));
-        let chores = sim.world().resource::<SavedChores>();
-        assert_eq!(chores.traffic, vec![(first, 5 * 30 + 13)]);
-        assert_eq!(chores.tasks[0].cells, vec![3 * 30 + 12]);
-        assert_eq!(chores.tasks[1].cells, vec![object]);
-        assert_eq!(chores.tasks[1].endpoint, Some(4 * 30 + 14));
-        assert_eq!(
-            sim.world().resource::<SavedGrime>().legacy_floors,
-            vec![first]
-        );
-        let moved_room = RoomRegions::from_world(sim.world())
-            .at((seed.0 + 10, seed.1))
-            .expect("the room moved");
-        assert_eq!(chores.tasks[0].key.target, moved_room);
-        let dining = sim.world().resource::<SavedDining>();
-        assert_eq!(dining.diners[0].endpoint, (13, 6));
-        assert_eq!(dining.opportunities[0].room, moved_room);
     }
 
     /// The walk home from work ends on the landing where it now stands:
@@ -970,5 +977,214 @@ mod tests {
                 "{side:?}: lot edits find the layout"
             );
         }
+    }
+
+    /// A strip that brings a side to exactly `MAX_SIDE` tiles is bought,
+    /// and one tile deeper is refused. The rear strip grows the width and
+    /// the left strip the height, so each side's limit is met on its own.
+    #[test]
+    fn a_strip_that_reaches_the_side_limit_is_bought_and_one_tile_deeper_is_refused() {
+        for side in [Side::Rear, Side::Left] {
+            let mut sim = rich();
+            sim.world_mut().insert_resource(Funds(i64::MAX / 4));
+            let (width, height) = dims(&sim);
+            let (growing, grown) = match side {
+                Side::Rear => (width, (MAX_SIDE, height)),
+                Side::Left | Side::Right => (height, (width, MAX_SIDE)),
+            };
+            with_strip_depth(&mut sim, MAX_SIDE - growing + 1);
+            assert_eq!(
+                validate(sim.world(), side),
+                Err(LandRefusal::TooLarge),
+                "{side:?}: one tile past the limit"
+            );
+            with_strip_depth(&mut sim, MAX_SIDE - growing);
+            assert_eq!(
+                buy(sim.world_mut(), side).map(|quoted| quoted.depth),
+                Ok(MAX_SIDE - growing),
+                "{side:?}: exactly the limit"
+            );
+            assert_eq!(dims(&sim), grown, "{side:?}");
+        }
+    }
+
+    /// Each purchase moves the lot-edit revision by one, which is how the
+    /// shell's lot tools learn that the lot changed; a refusal leaves it
+    /// alone.
+    #[test]
+    fn each_purchase_moves_the_lot_edit_revision_once_and_a_refusal_does_not() {
+        let revision = |sim: &Sim| {
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .revision
+        };
+        let mut sim = rich();
+        let start = revision(&sim);
+        buy(sim.world_mut(), Side::Left).unwrap();
+        assert_eq!(revision(&sim), start + 1);
+        buy(sim.world_mut(), Side::Rear).unwrap();
+        assert_eq!(revision(&sim), start + 2);
+        sim.world_mut().insert_resource(Funds(0));
+        assert_eq!(
+            buy(sim.world_mut(), Side::Right),
+            Err(LandRefusal::CannotAfford)
+        );
+        assert_eq!(revision(&sim), start + 2);
+    }
+
+    /// Every blocked tile moves with the world, and the new land has none.
+    #[test]
+    fn every_blocked_tile_moves_with_the_world_and_new_land_is_open() {
+        let blocked = |sim: &Sim| -> Vec<(i32, i32)> {
+            let grid = sim.world().resource::<TileGrid>();
+            (0..grid.height() as i32)
+                .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
+                .filter(|&(x, y)| !grid.is_walkable(x, y))
+                .collect()
+        };
+        for (side, dx, dy) in [
+            (Side::Rear, 10, 0),
+            (Side::Right, 0, 10),
+            (Side::Left, 0, 0),
+        ] {
+            let mut sim = rich();
+            let before = blocked(&sim);
+            assert!(!before.is_empty(), "the shipped lot has blocked tiles");
+            buy(sim.world_mut(), side).unwrap();
+            let mut moved: Vec<_> = before.iter().map(|&(x, y)| (x + dx, y + dy)).collect();
+            moved.sort_by_key(|&(x, y)| (y, x));
+            assert_eq!(blocked(&sim), moved, "{side:?}");
+        }
+    }
+
+    /// Painted floors and windows move with everything else. The shipped
+    /// lot has neither, so the test lays two coverings and fits a window on
+    /// the house's east wall first. Every coordinate is 10 or more, which
+    /// makes a wrong move show as a wrong place rather than an overflow.
+    #[test]
+    fn painted_floors_and_windows_move_with_the_world() {
+        use crate::placement::floors::FloorEdit;
+        use crate::placement::windows::{apply_window_edit, WindowEdit};
+        use terri_core::windows::{WindowModel, WindowPlacement};
+        let window = |dx: u32, dy: u32| WindowPlacement {
+            line: WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 16 + dx,
+                y: 10 + dy,
+            },
+            model: WindowModel::Sash,
+        };
+        for (side, dx, dy) in [
+            (Side::Rear, 10, 0),
+            (Side::Right, 0, 10),
+            (Side::Left, 0, 0),
+        ] {
+            let mut sim = rich();
+            for (x, y, covering) in [(13, 11, 1), (17, 14, 3)] {
+                crate::placement::floors::commit(sim.world_mut(), FloorEdit { x, y, covering });
+            }
+            assert_eq!(
+                apply_window_edit(sim.world_mut(), WindowEdit::Fit(window(0, 0))).reason,
+                None
+            );
+            buy(sim.world_mut(), side).unwrap();
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().window_placements(),
+                vec![window(dx, dy)],
+                "{side:?}"
+            );
+            assert_eq!(
+                sim.world().resource::<SavedFloors>().tiles(),
+                [(13 + dx, 11 + dy, 1), (17 + dx, 14 + dy, 3)],
+                "{side:?}"
+            );
+        }
+    }
+
+    /// No purchase meets a legacy wall list: `validate` refuses the layout,
+    /// and `buy` is the only caller of `grow`. `grow` still moves the
+    /// list's cells with everything else, so that move is checked here
+    /// directly, in the rear strip's shape and the right strip's.
+    #[test]
+    fn growing_moves_a_legacy_wall_list_with_the_world() {
+        for (dx, dy) in [(10, 0), (0, 10)] {
+            let mut sim = rich();
+            sim.world_mut().insert_resource(SavedLayout::LegacyCells {
+                walls: vec![(13, 11), (17, 14)],
+            });
+            assert_eq!(
+                validate(sim.world(), Side::Rear),
+                Err(LandRefusal::UnsupportedLayout)
+            );
+            grow(sim.world_mut(), (dx, dy), (dx, dy));
+            assert_eq!(
+                *sim.world().resource::<SavedLayout>(),
+                SavedLayout::LegacyCells {
+                    walls: vec![(13 + dx, 11 + dy), (17 + dx, 14 + dy)],
+                }
+            );
+        }
+    }
+
+    /// A record naming a room still names that room after a purchase on a
+    /// lot narrower than its house is tall, a shape content allows. On this
+    /// 4 by 12 lot, whose house is the whole lot, two walls make room 1
+    /// start at (1, 0) and leave (1, 4), the tile that reading row 1 * 4
+    /// instead of 1 / 4 would pick, in room 0.
+    #[test]
+    fn a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall() {
+        use terri_core::save::SavedCleanupOpportunity;
+        let mut pack = terri_data::pack().clone();
+        pack.lot.width = 4;
+        pack.lot.height = 12;
+        pack.lot.house = (4, 12);
+        let mut sim =
+            Sim::new_with_lot_and_content(4, 12, crate::Content(Box::leak(Box::new(pack))));
+        let wall = |axis, x, y| WallEdge {
+            axis,
+            x,
+            y,
+            doorway: false,
+        };
+        let edges = vec![
+            wall(EdgeAxis::Vertical, 1, 0),
+            wall(EdgeAxis::Vertical, 1, 1),
+            wall(EdgeAxis::Horizontal, 1, 2),
+            wall(EdgeAxis::Horizontal, 2, 2),
+            wall(EdgeAxis::Horizontal, 3, 2),
+        ];
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        let rooms = RoomRegions::from_world(sim.world());
+        assert_eq!(rooms.at((1, 0)), Some(1), "room 1 starts at (1, 0)");
+        assert_eq!(rooms.at((1, 4)), Some(0), "(1, 4) lies in room 0");
+        let opportunity = |room| SavedCleanupOpportunity {
+            person: 0,
+            room,
+            known: vec![],
+            pending: false,
+        };
+        sim.world_mut().insert_resource(SavedDining {
+            opportunities: vec![opportunity(0), opportunity(1)],
+            ..Default::default()
+        });
+        sim.world_mut()
+            .insert_resource(Funds::from_dollars(1_000_000));
+        buy(sim.world_mut(), Side::Rear).unwrap();
+        let moved = RoomRegions::from_world(sim.world());
+        let (room_0, room_1) = (moved.at((10, 0)).unwrap(), moved.at((11, 0)).unwrap());
+        assert_eq!(
+            (room_0, room_1),
+            (10, 11),
+            "the rooms moved 10 columns east"
+        );
+        let rooms_named: Vec<u32> = sim
+            .world()
+            .resource::<SavedDining>()
+            .opportunities
+            .iter()
+            .map(|o| o.room)
+            .collect();
+        assert_eq!(rooms_named, vec![room_0, room_1]);
     }
 }
