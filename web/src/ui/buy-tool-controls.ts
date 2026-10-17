@@ -162,9 +162,13 @@ export class BuyToolControls {
       this.showButtons.push({ value: index, button: filterButton(this.showRow, needWord(name), () => tool.setFilter(index)) });
     });
     this.clearFilters.addEventListener('click', () => {
+      const focused = this.clearFilters.ownerDocument.activeElement === this.clearFilters;
       tool.setRoomFilter(null);
       tool.setFilter(null);
       this.render();
+      // The button disables itself once nothing is filtered, so its focus
+      // moves to Every room rather than falling to the page.
+      if (focused) this.roomButtons[0]?.button.focus();
     });
     this.colour = required('buy-colour');
     this.colourLabel = required('buy-colour-label');

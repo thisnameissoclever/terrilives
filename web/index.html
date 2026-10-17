@@ -803,8 +803,9 @@
       #buy-clear-filters { justify-self: start; min-height: 36px; font-size: 13px; }
       .catalogue-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px;
-        /* Only the panel scrolls; rows take their cards' height. */
-        grid-auto-rows: max-content; align-items: start; padding: 3px; margin: -3px;
+        /* Only the panel scrolls; each row takes its tallest card's height
+           and the other cards in it stretch to match. */
+        grid-auto-rows: max-content; align-items: stretch; padding: 3px; margin: -3px;
       }
       .catalogue-card {
         display: grid; justify-items: center; align-content: start; gap: 2px;
@@ -820,9 +821,12 @@
       .catalogue-card:not([aria-disabled='true']):not(:disabled):hover { background: #29313a; }
       .catalogue-card:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .catalogue-card[aria-pressed='true'] { border-color: var(--need-fill); box-shadow: 0 0 0 1px var(--need-fill); }
-      /* A grayed card dims its contents, not its border or focus ring, so the ring keeps its contrast. */
+      /* A grayed card dims its picture most and its lines a little, so the
+         muted lines keep about 5 to 1 contrast on the panel; its border and
+         focus ring are not dimmed. */
       .catalogue-card[aria-disabled='true'] { cursor: default; }
-      .catalogue-card[aria-disabled='true'] > * { opacity: 0.45; }
+      .catalogue-card[aria-disabled='true'] > * { opacity: 0.8; }
+      .catalogue-card[aria-disabled='true'] > .catalogue-picture { opacity: 0.45; }
       .catalogue-card:disabled { opacity: 0.45; cursor: default; }
       .catalogue-card[hidden] { display: none; }
       .catalogue-picture { width: 72px; height: 72px; }

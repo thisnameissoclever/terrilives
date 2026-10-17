@@ -96,9 +96,9 @@ async function loadPage(page: number): Promise<ImageBitmap> {
 /**
  * Draws every card's picture, smoothed as the game filters its sprites.
  * Cards whose layers sit on two pages are drawn in two passes, the base
- * always behind the foreground; a page that fails to load is skipped and
- * its cards keep whatever they held, and the error is reported once the
- * rest are drawn.
+ * always behind the foreground. A page that fails to load, or a layer that
+ * fails to draw, leaves each card it touches blank, never half drawn; the
+ * other pages are still drawn and the first error is reported last.
  */
 export async function drawCataloguePreviews(cards: readonly PreviewCard[],
   load: (page: number) => Promise<ImageBitmap> = loadPage): Promise<void> {
@@ -120,6 +120,12 @@ export async function drawCataloguePreviews(cards: readonly PreviewCard[],
     }
   }
   const foregroundDrawn = new Set<PreviewCard>();
+  // A card that lost a layer is left blank rather than half drawn.
+  const broken = new Set<PreviewCard>();
+  const breakCard = (card: PreviewCard) => {
+    broken.add(card);
+    card.canvas.getContext('2d')?.clearRect(0, 0, card.canvas.width, card.canvas.height);
+  };
   let failure: unknown = null;
   for (const [page, draws] of [...passes.entries()].sort((a, b) => a[0] - b[0])) {
     let bitmap: ImageBitmap;
@@ -127,18 +133,25 @@ export async function drawCataloguePreviews(cards: readonly PreviewCard[],
       bitmap = await load(page);
     } catch (error) {
       failure ??= error;
+      for (const { card } of draws) breakCard(card);
       continue;
     }
     try {
       // Each card lists its base before its foreground, so within one page
       // the base is drawn first.
       for (const { card, item, shift, box, foreground } of draws) {
+        if (broken.has(card)) continue;
         const context = card.canvas.getContext('2d');
         if (!context) continue;
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = 'high';
-        drawLayer(context, bitmap, item, shift, box, card.canvas, !foreground && foregroundDrawn.has(card));
-        if (foreground) foregroundDrawn.add(card);
+        try {
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = 'high';
+          drawLayer(context, bitmap, item, shift, box, card.canvas, !foreground && foregroundDrawn.has(card));
+          if (foreground) foregroundDrawn.add(card);
+        } catch (error) {
+          failure ??= error;
+          breakCard(card);
+        }
       }
     } finally {
       bitmap.close();

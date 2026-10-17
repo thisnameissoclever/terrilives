@@ -605,7 +605,7 @@ describe('BuyToolControls', () => {
 
   it('offers the rooms any item belongs to and the needs any item serves, one pressed per row', () => {
     const kitchenChair = inRooms(CHAIR, ['kitchen', 'dining_room']);
-    const { buy, view, element } = controls([kitchenChair, inRooms(BED, ['bedroom']), DESK]);
+    const { buy, view, doc, element } = controls([kitchenChair, inRooms(BED, ['bedroom']), DESK]);
     expect(row(element, 'buy-room-filter').map(button => button.textContent)).toEqual(['Every room', 'Bedroom', 'Dining Room', 'Kitchen']);
     expect(row(element, 'buy-filter').map(button => button.textContent)).toEqual(['Everything', 'Energy', 'Fun', 'Comfort']);
     expect(pressed(row(element, 'buy-room-filter'))).toEqual([true, false, false, false]);
@@ -619,8 +619,10 @@ describe('BuyToolControls', () => {
     row(element, 'buy-filter')[2].fire('click');
     expect(buy.filter).toBe(FUN);
     expect(cards(element).map(card => card.hidden), 'no kitchen item serves Fun').toEqual([true, true, true]);
+    element('buy-clear-filters').focus();
     element('buy-clear-filters').fire('click');
     expect([buy.filter, buy.roomFilter]).toEqual([null, null]);
+    expect(doc.activeElement, 'focus leaves the button it disables for Every room').toBe(row(element, 'buy-room-filter')[0]);
     expect(cards(element).map(card => card.hidden)).toEqual([false, false, false]);
     expect(pressed(row(element, 'buy-filter'))).toEqual([true, false, false, false]);
     expect(element('buy-clear-filters').disabled).toBe(true);
@@ -785,9 +787,23 @@ describe('BuyToolControls', () => {
     key('ArrowUp');
     expect(doc.activeElement, 'wraps around').toBe(cards(element)[2]);
     expect(key('Enter')).toBe(false);
-    let prevented = false;
-    element('buy-object').fire('keydown', { key: 'ArrowLeft', altKey: true, preventDefault: () => { prevented = true; } });
-    expect(prevented, 'a browser shortcut passes through').toBe(false);
+    for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey']) {
+      let prevented = false;
+      element('buy-object').fire('keydown', { key: 'ArrowLeft', [modifier]: true, preventDefault: () => { prevented = true; } });
+      expect(prevented, `a browser shortcut with ${modifier} passes through`).toBe(false);
+    }
+  });
+
+  it('keeps the last focused card as the Tab stop once focus leaves the grid', () => {
+    const { buy, view, doc, element } = controls();
+    buy.enter();
+    view.render();
+    cards(element)[2].focus();
+    cards(element)[2].fire('focus');
+    row(element, 'buy-room-filter')[0].focus();
+    view.render();
+    expect([buy.chosen, doc.activeElement === cards(element)[2]]).toEqual([null, false]);
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
   });
 
   it('words what an item is good for from the need names', () => {
@@ -846,6 +862,7 @@ describe('the catalogue pictures', () => {
         set imageSmoothingEnabled(_: boolean) {}, set imageSmoothingQuality(_: string) {},
         set globalCompositeOperation(value: string) { mode = value; }, get globalCompositeOperation() { return mode; },
         drawImage: (bitmap: { page: number }) => { order.push(`${bitmap.page}:${mode}`); },
+        clearRect: () => {},
       };
     } } as unknown as HTMLCanvasElement;
     // Two real sprites on different pages, one standing for the base and
@@ -868,6 +885,32 @@ describe('the catalogue pictures', () => {
     await expect(drawCataloguePreviews([{ canvas, sprite: low, foreground: null }],
       async page => { failures.push(page); throw new Error('offline'); })).rejects.toThrow('offline');
     expect(failures).toEqual([2]);
+  });
+
+  it('draws every page that loads, blanks a card that lost a layer, and reports the failure last', async () => {
+    const drawn: number[] = [];
+    const cleared: string[] = [];
+    const canvasNamed = (name: string) => ({ width: 72, height: 72, getContext: () => ({
+      imageSmoothingEnabled: true, imageSmoothingQuality: 'high', globalCompositeOperation: 'source-over',
+      drawImage: (bitmap: { page: number }) => { drawn.push(bitmap.page); },
+      clearRect: () => { cleared.push(name); },
+    }) }) as unknown as HTMLCanvasElement;
+    const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
+    const [first, second, third] = [indexOn(1), indexOn(2), indexOn(3)];
+    expect(Math.min(first, second, third)).toBeGreaterThanOrEqual(0);
+    const loaded: number[] = [];
+    const load = async (page: number) => {
+      if (page === 2) throw new Error('offline');
+      loaded.push(page);
+      return { page, close: () => { loaded.push(-page); } } as unknown as ImageBitmap;
+    };
+    await expect(drawCataloguePreviews([
+      { canvas: canvasNamed('split'), sprite: first, foreground: second },
+      { canvas: canvasNamed('whole'), sprite: third, foreground: null },
+    ], load)).rejects.toThrow('offline');
+    expect(loaded, 'the page after the failure is still drawn and released').toEqual([1, -1, 3, -3]);
+    expect(drawn).toEqual([1, 3]);
+    expect(cleared, 'the card whose foreground failed is blanked').toEqual(['split']);
   });
 });
 
@@ -962,7 +1005,7 @@ describe('the Buy tool on real wasm', () => {
 describe('the Buy tool in the page', () => {
   const IDS = ['build-tool-buy', 'buy-tool', 'buy-room-filter', 'buy-filter', 'buy-clear-filters', 'buy-object',
     'buy-facing', 'buy-price', 'buy-serves', 'buy-status', 'buy-keyboard-help',
-    'buy-touch-help', 'buy-colour'];
+    'buy-touch-help', 'buy-colour', 'buy-colour-label'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
     expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);

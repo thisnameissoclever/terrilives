@@ -31,8 +31,8 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
      await page.locator('#builder-object').selectOption(id);
    }
    if(tool==='buy') {
-    // A greyed card cannot be pressed; press the first affordable card if one exists.
-    const cards=page.locator('#buy-object .catalogue-card:not([disabled]):not([hidden])');
+    // A grayed card chooses nothing; press the first affordable card if one exists.
+    const cards=page.locator('#buy-object .catalogue-card:not([disabled]):not([aria-disabled="true"]):not([hidden])');
     if(await cards.count()) await cards.first().click();
    }
    if(tool==='room') { await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter'); await page.keyboard.press('ArrowDown'); }

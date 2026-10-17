@@ -110,6 +110,13 @@ body[data-building='true'] #build-camera { display: flex; }
   /* The Buy tool scrolls inside the dock; its rows keep their content's
      height rather than sharing the dock's, so nothing overlaps. */
   #builder-dock #buy-tool { grid-auto-rows: max-content; }
+  /* The dock does not scroll its footer, so it keeps the plain footer. */
+  #builder-dock #build-batch-actions { bottom: 0; padding-bottom: 8px; }
+  /* Each filter row is one sideways strip, as the cards are, so the cards
+     sit close below the filters in the dock's short view. */
+  #builder-dock .catalogue-filters { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: 3px; }
+  #builder-dock .catalogue-filters .hud-button { flex: none; }
+  #builder-dock .catalogue-filters .hud-button:focus-visible { outline-offset: -2px; }
   #builder-dock .catalogue-card { flex: 0 0 172px; grid-template-columns: 52px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 6px; row-gap: 0; padding: 4px 6px; text-align: left; }
   #builder-dock .catalogue-picture { grid-row: 1 / span 3; width: 52px; height: 52px; }
   #builder-dock .catalogue-type, #builder-dock .catalogue-model, #builder-dock .catalogue-price { grid-column: 2; text-align: left; }
@@ -147,3 +154,6 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 #buy-facts { white-space: pre-line; }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
+/* The side panel's footer sticks inside the panel's 12 pixel padding, so it
+   reaches down over that padding and nothing scrolls into view beneath it. */
+body[data-building='true'] #build-batch-actions { bottom: -12px; padding-bottom: 20px; }
