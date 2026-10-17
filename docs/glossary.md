@@ -224,9 +224,15 @@ table. Authored in `content/chains.toml`.
 
 | Term | Means |
 | --- | --- |
-| **lot** | The house, its yard and everything on them (`content/lot.toml`). Currently 20x16 tiles: a 16x12 house of five rooms in its north-west corner. |
-| **house** | The lot's rectangle of indoor floor, from its north-west corner. Every tile outside it is **yard**. |
-| **yard** | A lot tile outside the house: walkable floor to the simulation, drawn green until there is grass art. The house's walls facing the yard are cut away in the view, as its front sides always were. |
+| **lot** | The owned household ground and everything on it (`content/lot.toml`). The starting lot is 20x16 tiles with a 16x12 house. Land purchases expand the owned ground; detected rooms can extend beyond the original house. |
+| **house frame** | The authored house's rectangular footprint and origin. It supplies default floor materials and historical layout coordinates; it does not define every current room. |
+| **house** | The household building, including confirmed additions. Architectural walls and doorway boundaries determine its rooms. |
+| **yard** | Ground outside the authored house frame. Its default grass is walkable but receives no floor-cleaning duty. A covering can make it cleanable, and walls can enclose it as a room. |
+| **room** | One enclosed component of floor tiles connected through absent wall edges. Walls, windows, and doorway boundaries separate rooms; furniture does not. An open-plan space is one room. Each room has a saved identity and an editable name. |
+| **room identity** / `RoomId` | A saved nonzero number that stays with a surviving room when its name or boundaries change. Retired identities are not reused. It differs from a room's name, map marker, and tile indexes. |
+| **Outside** | The single shared room for all unenclosed owned ground, with selection ID zero and an editable name. Eligible flooring and surfaces receive chores. Grass and the street receive no floor cleaning. Outside does not create lot-wide indoor privacy, noise, or affinity effects. |
+| **confirmed room map** | The last accepted assignment of floor tiles to rooms or Outside. Build selection uses it until Confirm, translated when draft land purchases move coordinates. Furniture and surfaces follow their physical locations without manual room overrides. |
+| **room-change review** | The proposed identities, names, and chore responsibility changes for splits, merges, and lost enclosures in the final build. Back to build retains the draft; Confirm changes accepts the complete reviewed batch. |
 | **street** | The lot's last column across the yard from the front door, drawn grey until there is street art. Its **exit**, the tile in the door's row, is where a worker leaves for work and comes back; nothing may be built there. |
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
@@ -239,8 +245,9 @@ table. Authored in `content/chains.toml`.
 | **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. The authored front-door style supplies solid models for both doorway axes, as used by the shipped lot. A door blocks nobody and is not saved: it follows from the walls. |
 | **retired index** | An entity index a sale took out of use. The sold object is despawned without freeing its index, so no later spawn can take it; the V4 save lists every retired index so a Load keeps them out of use too. |
 | **colourway** | A colour shift the game can draw a placed object in: its hues turned, its colours made stronger or weaker, its lightness shifted, with the colour of ink, metal and white left alone. Chosen in the Furniture tool's Colour list and saved with the game; the first colourway is the art as drawn. [RC-shift] in `docs/specs/2026-09-22-colourways.md`. |
-| **Room tool** | Build mode's fourth tool. The player chooses two opposite corner tiles and, if they like, a line of the outline as the doorway, and Build room walls the whole outline in one edit. The whole room is refused or built together. |
-| **outline** | In the Room tool, all four sides of the chosen rectangle, including solid walls on the owned plot perimeter. Only interior outline lines can become doorways. |
+| **Rooms tool** | The Build destination for selecting and naming rooms, including Outside, or choosing Build room for rectangular construction. Name edits remain pending until Confirm. A new enclosure receives Room N at Confirm and can then be renamed without leaving Build. |
+| **Build room** | The construction mode within Rooms. Two opposite corner tiles choose a rectangle, with an optional doorway on its outline. The complete outline is refused or built together. Detected rooms elsewhere can have irregular shapes. |
+| **outline** | In Build room, all four sides of the chosen rectangle, including solid walls on the owned plot perimeter. Only interior outline lines can become doorways. |
 | **price** | What an object costs in the Buy tool, in Funds (`price` in `content/objects.toml`). An object with no price is not for sale. A save stores Funds, never prices. |
 | **catalogue** | Everything with a price, listed by name in the Buy tool. Items the household cannot afford are greyed out. |
 | **Buy tool** | Build mode's third tool. The player chooses from the catalogue, points at the floor, turns the ghost and presses Buy. A purchase is refused where a move would be, and when Funds are short of the price; the status line says which. |
