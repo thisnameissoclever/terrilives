@@ -29,16 +29,17 @@ button[data-action-intent]:disabled {
 }
 button[data-action-intent] :is(.action-price, .menu-secondary) { color: inherit; }
 @media (forced-colors: active) {
+  /* Keep native text backplates readable; reserve Highlight for the focus outline. */
   button[data-action-intent] {
     --action-background: ButtonFace;
     --action-text: ButtonText;
     --action-border: ButtonBorder;
-    --action-hover-background: Highlight;
+    --action-hover-background: ButtonFace;
     outline: 1px solid ButtonBorder;
     outline-offset: -1px;
   }
   button[data-action-intent]:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
-  button[data-action-intent]:is(:hover, :focus-visible, :active):not(:disabled) { --action-text: HighlightText; }
+  button[data-action-intent]:is(:hover, :focus-visible, :active):not(:disabled) { --action-text: ButtonText; }
   button[data-action-intent]:disabled {
     --action-background: ButtonFace;
     --action-hover-background: ButtonFace;
