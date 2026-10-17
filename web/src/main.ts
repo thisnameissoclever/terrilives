@@ -33,6 +33,7 @@ import { LandToolControls } from './ui/land-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
+import { drawCataloguePreviews } from './ui/catalogue-previews.js';
 import { BookCommerce } from './ui/book-commerce.js';
 import { BookResults, bookRefusal } from './books/results.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
@@ -1890,7 +1891,7 @@ async function main(): Promise<void> {
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
       cancelBuild: cancelBuildBatch,
       suspended: () => optionsMenu.isOpen(),
-      focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
+      focusCatalogue: () => buyControls?.focusCatalogue() },
     createContextSurface(document, placementRoot, stage,
       () => {
         const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
@@ -1920,7 +1921,9 @@ async function main(): Promise<void> {
   wallControls.setCompact(compactBuildQuery.matches);
   windowControls = new WindowToolControls(document, windowTool, wallTool);
   windowControls.setCompact(compactBuildQuery.matches);
-  buyControls = new BuyToolControls(document, buyTool, sim.needNames());
+  buyControls = new BuyToolControls(document, buyTool, sim.needNames(), cards => {
+    drawCataloguePreviews(cards).catch(error => console.warn('The catalogue pictures were not drawn.', error));
+  });
   buyControls.setCompact(compactBuildQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactBuildQuery.matches);

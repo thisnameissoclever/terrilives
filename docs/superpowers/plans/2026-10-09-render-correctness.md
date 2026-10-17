@@ -79,12 +79,13 @@ Sim at the fridge's depth (known limit from PR 235).
   a second fridge model needs a content property like the stove's
   `cooking_front`.
 
-## Remaining animation scope from the 2026-10-06 handoff
+## Interaction animation contracts
 
-The long sofa's Lie down needs a fitted lying pose, never an upright seated
+The long sofa's Lie down uses a fitted lying pose, never an upright seated
 substitute. Showering uses the bath's skin appearance, visible washing
 movements, and localized translucent steam around the chest and pelvis.
-The owner's updated shower request requires a longer activity and moving
-vapor; render code 20 identifies showering. Both activities must use physical
-depth and pass actual gameplay review. Recovery material for the earlier shower attempts is at commit
-ba38c907 under `docs/handoffs/animation-resume/`.
+Render code 20 identifies showering. Both activities use physical depth and
+require actual gameplay review. See the [merged seating and shower evidence](../../evidence/2026-10-15-seating-selection-shower/report.md).
+The owner retained the merged steam design and retired the separate falling-water
+experiment. Its useful rendering references and recovery material are described
+in the [retirement record](../../evidence/2026-10-17-shower-retirement/README.md).

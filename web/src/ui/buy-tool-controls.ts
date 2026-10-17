@@ -1,19 +1,15 @@
-// The Buy tool's controls - [BM-shell]: the catalogue list, the price, Rotate,
-// Buy and Cancel, with the Show filter and the Good for line ([CB-filter]).
+// The Buy tool's controls - [BM-shell] and docs/specs/2026-10-17-store-catalogue.md:
+// the catalogue grid of cards with pictures, the Room and Show filter rows
+// with Clear filters, the chosen item's price, facing, Good for line and
+// buying facts ([CB-filter]). Buy, the rotations and Cancel sit beside the
+// ghost.
 
 import { formatFunds } from './game-hud.js';
 import { FACING_NAMES } from './builder.js';
 import type { BuyTool } from './buy-tool.js';
+import type { CatalogueItem } from '../bridge.js';
 import { createObjectIdentity } from './object-identity.js';
 import type { ModelFacts } from '../books/codec.js';
-
-/**
- * How the list names an item: its name and its price. The price goes in
- * brackets because some names already hold a comma.
- */
-export function itemLabel(name: string, price: number): string {
-  return `${name} (${formatFunds(price)})`;
-}
 
 /** A need name as a sentence shows it: "hunger" reads "Hunger". */
 function needWord(name: string): string {
@@ -74,14 +70,40 @@ export function modelFactsLabel(model: ModelFacts, needNames: readonly string[])
   return lines.join('\n');
 }
 
+/** One card of the catalogue grid - rule 1 of the store catalogue spec. */
+export interface CatalogueCard {
+  readonly item: CatalogueItem;
+  readonly button: HTMLButtonElement;
+  readonly canvas: HTMLCanvasElement;
+}
+
+/**
+ * How a card names its item to assistive technology: type, model and price.
+ * The price goes in brackets because some model names hold a comma.
+ */
+export function cardName(item: CatalogueItem): string {
+  const type = item.details ? `${item.name}: ${item.details.modelName}` : item.name;
+  return `${type} (${formatFunds(item.price)})`;
+}
+
+/** A room id as its row shows it: `living_room` reads "Living Room". */
+export function roomWord(room: string): string {
+  return room.split('_').map(needWord).join(' ');
+}
+
+const CARD_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']);
+
 export class BuyToolControls {
-  private readonly selector: HTMLSelectElement;
-  private readonly filter: HTMLSelectElement;
-  private readonly room: HTMLSelectElement;
+  private readonly grid: HTMLElement;
+  private readonly roomRow: HTMLElement;
+  private readonly showRow: HTMLElement;
+  private readonly clearFilters: HTMLButtonElement;
+  private readonly cards: CatalogueCard[] = [];
+  private readonly roomButtons: { value: string | null; button: HTMLButtonElement }[] = [];
+  private readonly showButtons: { value: number | null; button: HTMLButtonElement }[] = [];
   private readonly facts: HTMLElement;
   private readonly colour: HTMLSelectElement;
-  private readonly placeholder: HTMLOptionElement;
-  private readonly options: HTMLOptionElement[] = [];
+  private readonly colourLabel: HTMLElement;
   private readonly serves: HTMLElement;
   private readonly facing: HTMLElement;
   private readonly price: HTMLElement;
@@ -91,27 +113,65 @@ export class BuyToolControls {
   private readonly identity: HTMLElement;
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
+  /** The card that last had focus, by key, click, Tab or Choose item. */
+  private lastFocused: CatalogueCard | null = null;
+  /** Draws the pictures the first time the tool is shown, then is dropped. */
+  private drawPictures: (() => void) | null = null;
 
+  /**
+   * `previews` receives every card the first time the tool is shown, to
+   * draw the pictures; the page gives it `drawCataloguePreviews`, a test
+   * gives a recorder or nothing.
+   */
   constructor(document: Document, private readonly tool: BuyTool,
-    private readonly needNames: readonly string[]) {
+    private readonly needNames: readonly string[],
+    previews?: (cards: readonly { canvas: HTMLCanvasElement; sprite: number; foreground: number | null }[]) => void) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing buy controls: ${id}`);
       return element;
     };
-    this.selector = required('buy-object');
+    this.grid = required('buy-object');
     this.identity = required('buy-identity');
-    this.filter = required('buy-filter');
-    this.room = required('buy-room-filter');
+    this.showRow = required('buy-filter');
+    this.roomRow = required('buy-room-filter');
+    this.clearFilters = required('buy-clear-filters');
     this.facts = required('buy-facts');
-    const allRooms = document.createElement('option'); allRooms.value = ''; allRooms.textContent = 'Every room';
-    this.room.replaceChildren(allRooms);
+    const filterButton = (row: HTMLElement, label: string, press: () => void): HTMLButtonElement => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'hud-button catalogue-filter';
+      button.textContent = label;
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => { press(); this.render(); });
+      row.append(button);
+      return button;
+    };
+    // Every room is first, then the rooms any item belongs to, in order.
+    this.roomRow.replaceChildren();
+    this.roomButtons.push({ value: null, button: filterButton(this.roomRow, 'Every room', () => tool.setRoomFilter(null)) });
     for (const room of [...new Set(tool.items.flatMap(item => item.model?.rooms ?? []))].sort()) {
-      const option = document.createElement('option'); option.value = room;
-      option.textContent = room.split('_').map(needWord).join(' '); this.room.append(option);
+      this.roomButtons.push({ value: room, button: filterButton(this.roomRow, roomWord(room), () => tool.setRoomFilter(room)) });
     }
-    this.room.addEventListener('change', () => { tool.setRoomFilter(this.room.value || null); this.render(); });
+    // Only the needs something in the catalogue serves, in need order.
+    this.showRow.replaceChildren();
+    this.showButtons.push({ value: null, button: filterButton(this.showRow, 'Everything', () => tool.setFilter(null)) });
+    const served = tool.items.reduce((mask, item) => mask | item.needs, 0);
+    needNames.forEach((name, index) => {
+      if ((served & (1 << index)) === 0) return;
+      this.showButtons.push({ value: index, button: filterButton(this.showRow, needWord(name), () => tool.setFilter(index)) });
+    });
+    this.clearFilters.addEventListener('click', () => {
+      const focused = this.clearFilters.ownerDocument.activeElement === this.clearFilters;
+      tool.setRoomFilter(null);
+      tool.setFilter(null);
+      this.render();
+      // The button disables itself once nothing is filtered, so its focus
+      // moves to Every room rather than falling to the page.
+      if (focused) this.roomButtons[0]?.button.focus();
+    });
     this.colour = required('buy-colour');
+    this.colourLabel = required('buy-colour-label');
     // [RC-slice-buy]: the colourways are content, so the list is built once.
     for (const [index, name] of tool.colourways.entries()) {
       const option = document.createElement('option');
@@ -129,40 +189,55 @@ export class BuyToolControls {
     this.status = required('buy-status');
     this.keyboardHelp = required('buy-keyboard-help');
     this.touchHelp = required('buy-touch-help');
-    this.placeholder = document.createElement('option');
-    this.placeholder.value = '';
-    this.placeholder.textContent = 'Choose something to buy';
+    // One card per item, in the list's order; the grid is built once and
+    // the cards are shown, pressed and grayed on each redraw.
+    this.grid.replaceChildren();
     for (const item of tool.items) {
-      const option = document.createElement('option');
-      option.value = String(item.definition);
-      option.textContent = itemLabel(item.details ? `${item.name}: ${item.details.modelName}` : item.name, item.price);
-      this.options.push(option);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'catalogue-card';
+      button.setAttribute('aria-label', cardName(item));
+      button.setAttribute('aria-pressed', 'false');
+      button.tabIndex = -1;
+      // Twice the displayed size, so the double-density art stays sharp on
+      // high-density screens.
+      const canvas = document.createElement('canvas');
+      canvas.width = 144;
+      canvas.height = 144;
+      canvas.className = 'catalogue-picture';
+      canvas.setAttribute('aria-hidden', 'true');
+      const type = document.createElement('span');
+      type.className = 'catalogue-type';
+      type.textContent = item.name;
+      const price = document.createElement('span');
+      price.className = 'catalogue-price';
+      price.textContent = formatFunds(item.price);
+      button.append(canvas, type);
+      if (item.details) {
+        const model = document.createElement('span');
+        model.className = 'catalogue-model';
+        model.textContent = item.details.modelName;
+        button.append(model);
+      }
+      button.append(price);
+      const card = { item, button, canvas };
+      // A grayed card stays focusable so the player can find what to save
+      // for, and a press on it does nothing; pressing the chosen card again
+      // keeps its ghost and facing.
+      button.addEventListener('click', () => {
+        if (!tool.affordable(item) || tool.chosen === item) return;
+        tool.choose(item.definition);
+        this.render();
+      });
+      // Whatever focuses a card, a key, a click or Tab, makes it the one Tab stop.
+      button.addEventListener('focus', () => this.makeTabStop(card));
+      this.grid.append(button);
+      this.cards.push(card);
     }
-    // Only the needs something in the catalogue serves, in need order.
-    const everything = document.createElement('option');
-    everything.value = '';
-    everything.textContent = 'Everything';
-    this.filter.replaceChildren(everything);
-    const served = tool.items.reduce((mask, item) => mask | item.needs, 0);
-    needNames.forEach((name, index) => {
-      if ((served & (1 << index)) === 0) return;
-      const option = document.createElement('option');
-      option.value = String(index);
-      option.textContent = needWord(name);
-      this.filter.append(option);
-    });
-    this.filter.addEventListener('change', () => {
-      tool.setFilter(this.filter.value === '' ? null : Number(this.filter.value));
-      this.render();
-    });
-    // The placeholder drops the choice, so the list never shows nothing
-    // chosen while a ghost stays buyable. The redraw puts the list back in
-    // step when the tool could not act, such as with a purchase on its way.
-    this.selector.addEventListener('change', () => {
-      if (this.selector.value === '') tool.cancel();
-      else tool.choose(Number(this.selector.value));
-      this.render();
-    });
+    this.grid.addEventListener('keydown', event => this.handleGridKey(event));
+    if (previews) {
+      this.drawPictures = () => previews(this.cards.map(card => ({ canvas: card.canvas, ...tool.art(card.item) })));
+    }
     this.render();
   }
 
@@ -170,6 +245,56 @@ export class BuyToolControls {
   setCompact(_compact: boolean): void {
     this.keyboardHelp.hidden = false;
     this.touchHelp.hidden = false;
+  }
+
+  /** The cards a key or Choose item can reach: every shown card, grayed or not. */
+  private reachable(): CatalogueCard[] {
+    return this.cards.filter(card => !card.button.hidden && !card.button.disabled);
+  }
+
+  /**
+   * The one card in the Tab order: the card focus is on, else the chosen
+   * card, else the card last focused, else the first shown.
+   */
+  private tabStop(): CatalogueCard | undefined {
+    const cards = this.reachable();
+    const active = this.grid.ownerDocument.activeElement;
+    return cards.find(card => card.button === active)
+      ?? cards.find(card => card.item === this.tool.chosen)
+      ?? cards.find(card => card === this.lastFocused) ?? cards[0];
+  }
+
+  private makeTabStop(card: CatalogueCard): void {
+    this.lastFocused = card;
+    for (const other of this.cards) other.button.tabIndex = other === card ? 0 : -1;
+  }
+
+  /** Choose item: the chosen card, grayed or not, else the first card the grid shows. */
+  focusCatalogue(): void {
+    const cards = this.reachable();
+    (cards.find(card => card.item === this.tool.chosen) ?? cards[0])?.button.focus();
+  }
+
+  /**
+   * The arrow keys move between the shown cards, Home and End to the ends;
+   * the card moved to becomes the one Tab stop, so Tab leaves the grid.
+   */
+  private handleGridKey(event: KeyboardEvent): void {
+    if (!CARD_KEYS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const cards = this.reachable();
+    if (cards.length === 0) return;
+    const active = this.grid.ownerDocument.activeElement;
+    const at = cards.findIndex(card => card.button === active);
+    let next: number;
+    switch (event.key) {
+      case 'Home': next = 0; break;
+      case 'End': next = cards.length - 1; break;
+      case 'ArrowLeft': case 'ArrowUp': next = at <= 0 ? cards.length - 1 : at - 1; break;
+      default: next = at < 0 || at >= cards.length - 1 ? 0 : at + 1;
+    }
+    event.preventDefault();
+    this.makeTabStop(cards[next]);
+    cards[next].button.focus();
   }
 
   render(): void {
@@ -187,17 +312,35 @@ export class BuyToolControls {
       }
     }
     this.identity.hidden = !tool.chosen?.details;
-    // Rebuilt rather than hidden: some phone browsers still list a hidden option.
-    this.selector.replaceChildren(this.placeholder,
-      ...this.options.filter((_, index) => tool.shows(tool.items[index])));
-    tool.items.forEach((item, index) => { this.options[index].disabled = !tool.affordable(item); });
-    this.selector.value = tool.chosen === null ? '' : String(tool.chosen.definition);
-    this.selector.disabled = tool.pending || tool.blocked;
+    if (tool.active && this.drawPictures) {
+      // The pictures cost a few atlas pages; they are drawn when first needed.
+      const draw = this.drawPictures;
+      this.drawPictures = null;
+      draw();
+    }
+    const held = tool.pending || tool.blocked;
+    for (const card of this.cards) {
+      card.button.hidden = !tool.shows(card.item);
+      card.button.disabled = held;
+      card.button.setAttribute('aria-disabled', String(!tool.affordable(card.item)));
+      card.button.setAttribute('aria-pressed', String(tool.chosen === card.item));
+    }
+    const tabbable = this.tabStop();
+    for (const card of this.cards) card.button.tabIndex = card === tabbable ? 0 : -1;
+    for (const { value, button } of this.roomButtons) {
+      button.setAttribute('aria-pressed', String(tool.roomFilter === value));
+      button.disabled = held;
+    }
+    for (const { value, button } of this.showButtons) {
+      button.setAttribute('aria-pressed', String(tool.filter === value));
+      button.disabled = held;
+    }
+    this.clearFilters.disabled = held || (tool.filter === null && tool.roomFilter === null);
     this.colour.value = String(tool.colourway);
-    this.colour.disabled = tool.pending || tool.blocked || tool.colourways.length < 2;
-    this.filter.value = tool.filter === null ? '' : String(tool.filter);
-    this.filter.disabled = tool.pending || tool.blocked;
-    this.room.value = tool.roomFilter ?? ''; this.room.disabled = tool.pending || tool.blocked;
+    this.colour.disabled = held || tool.colourways.length < 2;
+    // Rule 4: nothing about an item shows beneath the grid until one is chosen.
+    this.colour.hidden = tool.chosen === null;
+    this.colourLabel.hidden = tool.chosen === null;
     const model = tool.chosen?.model;
     this.facts.textContent = model ? modelFactsLabel(model, this.needNames) : '';
     this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';
