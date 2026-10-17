@@ -6,7 +6,7 @@ import { emissiveForSprite } from '../src/render/lighting.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { BuyTool, CHOOSE_ITEM, listed } from '../src/ui/buy-tool.js';
 import { BuyToolControls, cardName, roomWord, servesLabel } from '../src/ui/buy-tool-controls.js';
-import { drawCataloguePreviews, previewBox } from '../src/ui/catalogue-previews.js';
+import { drawCataloguePreviews, visibleBounds } from '../src/ui/catalogue-previews.js';
 import { SPRITES } from '../src/render/atlas.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -619,6 +619,12 @@ describe('BuyToolControls', () => {
     row(element, 'buy-filter')[2].fire('click');
     expect(buy.filter).toBe(FUN);
     expect(cards(element).map(card => card.hidden), 'no kitchen item serves Fun').toEqual([true, true, true]);
+    // A press that did not focus the button, as a click does in some
+    // browsers, leaves focus where it was.
+    row(element, 'buy-filter')[2].focus();
+    element('buy-clear-filters').fire('click');
+    expect(doc.activeElement).toBe(row(element, 'buy-filter')[2]);
+    row(element, 'buy-filter')[2].fire('click');
     element('buy-clear-filters').focus();
     element('buy-clear-filters').fire('click');
     expect([buy.filter, buy.roomFilter]).toEqual([null, null]);
@@ -836,7 +842,7 @@ describe('BuyToolControls', () => {
 });
 
 describe('the catalogue pictures', () => {
-  it('names a sprite the atlas has for every shipped item, with a box to draw', () => {
+  it('names a sprite the atlas has for every shipped item', () => {
     const handle = SimHandle.from_lot();
     try {
       const bridge = new SimBridge(handle, wasmMemory);
@@ -844,73 +850,90 @@ describe('the catalogue pictures', () => {
       expect(buy.items.length).toBeGreaterThan(0);
       for (const item of buy.items) {
         const art = buy.art(item);
-        expect(SPRITES[art.sprite], item.name).toBeDefined();
-        if (art.foreground !== null) expect(SPRITES[art.foreground], item.name).toBeDefined();
-        const box = previewBox(art);
-        expect(box, item.name).not.toBeNull();
-        expect(box![2] - box![0], item.name).toBeGreaterThan(0);
-        expect(box![3] - box![1], item.name).toBeGreaterThan(0);
+        expect(SPRITES[art.sprite]?.w, item.name).toBeGreaterThan(0);
+        if (art.foreground !== null) expect(SPRITES[art.foreground]?.w, item.name).toBeGreaterThan(0);
       }
     } finally { handle.free(); }
   });
 
-  it('draws the base behind the foreground whichever page each lives on, and reports a failed page last', async () => {
-    const order: string[] = [];
-    const canvas = { width: 72, height: 72, getContext: () => {
-      let mode = 'source-over';
-      return {
-        set imageSmoothingEnabled(_: boolean) {}, set imageSmoothingQuality(_: string) {},
-        set globalCompositeOperation(value: string) { mode = value; }, get globalCompositeOperation() { return mode; },
-        drawImage: (bitmap: { page: number }) => { order.push(`${bitmap.page}:${mode}`); },
-        clearRect: () => {},
-      };
-    } } as unknown as HTMLCanvasElement;
-    // Two real sprites on different pages, one standing for the base and
-    // one for its foreground, tried both ways round.
-    const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
-    const low = indexOn(2);
-    const high = indexOn(3);
-    expect(low).toBeGreaterThanOrEqual(0);
-    expect(high).toBeGreaterThanOrEqual(0);
-    const loaded: number[] = [];
-    const load = async (page: number) => { loaded.push(page); return { page, close: () => { loaded.push(-page); } } as unknown as ImageBitmap; };
-    await drawCataloguePreviews([{ canvas, sprite: low, foreground: high }], load);
-    expect(order).toEqual(['2:source-over', '3:source-over']);
-    expect(loaded).toEqual([2, -2, 3, -3]);
-    order.length = 0;
-    // The foreground's page comes first: the base is drawn behind it.
-    await drawCataloguePreviews([{ canvas, sprite: high, foreground: low }], load);
-    expect(order).toEqual(['2:source-over', '3:destination-over']);
-    const failures: number[] = [];
-    await expect(drawCataloguePreviews([{ canvas, sprite: low, foreground: null }],
-      async page => { failures.push(page); throw new Error('offline'); })).rejects.toThrow('offline');
-    expect(failures).toEqual([2]);
+  it('finds the visible pixels of a sprite, ignoring fully transparent ones', () => {
+    const width = 4;
+    const rgba = new Uint8ClampedArray(width * 3 * 4);
+    expect(visibleBounds(rgba, width, 3)).toBeNull();
+    rgba[(1 * width + 1) * 4 + 3] = 1;
+    rgba[(2 * width + 2) * 4 + 3] = 255;
+    expect(visibleBounds(rgba, width, 3)).toEqual([1, 1, 3, 3]);
   });
 
-  it('draws every page that loads, blanks a card that lost a layer, and reports the failure last', async () => {
-    const drawn: number[] = [];
-    const cleared: string[] = [];
-    const canvasNamed = (name: string) => ({ width: 72, height: 72, getContext: () => ({
-      imageSmoothingEnabled: true, imageSmoothingQuality: 'high', globalCompositeOperation: 'source-over',
-      drawImage: (bitmap: { page: number }) => { drawn.push(bitmap.page); },
-      clearRect: () => { cleared.push(name); },
-    }) }) as unknown as HTMLCanvasElement;
-    const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
-    const [first, second, third] = [indexOn(1), indexOn(2), indexOn(3)];
-    expect(Math.min(first, second, third)).toBeGreaterThanOrEqual(0);
-    const loaded: number[] = [];
-    const load = async (page: number) => {
-      if (page === 2) throw new Error('offline');
-      loaded.push(page);
-      return { page, close: () => { loaded.push(-page); } } as unknown as ImageBitmap;
-    };
+  /** A canvas that records what is drawn on it and when it is cleared. */
+  const recorder = (name: string, log: string[], fail = false) => ({ width: 144, height: 144, getContext: () => ({
+    imageSmoothingEnabled: false, imageSmoothingQuality: 'low',
+    drawImage: (image: { label: string }, ...box: number[]) => {
+      if (fail) throw new Error('draw failed');
+      log.push(`${name}:${image.label}:${box.map(value => Math.round(value)).join(',')}`);
+    },
+    clearRect: () => { log.push(`${name}:cleared`); },
+  }) }) as unknown as HTMLCanvasElement;
+  const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
+  /** Pages that load, logging each load and release. */
+  const pages = (log: string[], failing: number[] = []) => async (page: number) => {
+    if (failing.includes(page)) throw new Error(`page ${page} offline`);
+    log.push(`load ${page}`);
+    return { page, close: () => { log.push(`close ${page}`); } } as unknown as ImageBitmap;
+  };
+  /** Cut-outs 20 by 40 logical pixels at (10, 20), labeled by page. */
+  const crops = (log: string[], failing: number[] = []) => async (page: ImageBitmap) => {
+    const at = (page as unknown as { page: number }).page;
+    if (failing.includes(at)) throw new Error(`crop on ${at} failed`);
+    return { image: { label: `p${at}` } as unknown as CanvasImageSource, bounds: [10, 20, 30, 60] as const,
+      close: () => { log.push(`release p${at}`); } };
+  };
+
+  it('reads each page once, then draws the base before the foreground, scaled to fit the visible pixels', async () => {
+    const log: string[] = [];
+    const [two, three] = [indexOn(2), indexOn(3)];
+    expect(Math.min(two, three)).toBeGreaterThanOrEqual(0);
+    // The base's page comes after the foreground's: the base is still drawn first.
+    await drawCataloguePreviews([{ canvas: recorder('lone', log), sprite: three, foreground: null },
+      { canvas: recorder('pair', log), sprite: three, foreground: two }], pages(log), crops(log));
+    expect(log.slice(0, 4)).toEqual(['load 2', 'close 2', 'load 3', 'close 3']);
+    // A 20 by 40 cut-out in a 144 canvas scales by 3.6 and is centered across.
+    expect(log[4]).toBe('lone:p3:36,0,72,144');
+    expect(log[5].startsWith('pair:p3:')).toBe(true);
+    expect(log[6].startsWith('pair:p2:')).toBe(true);
+    expect(log.slice(7).sort()).toEqual(['release p2', 'release p3']);
+  });
+
+  it('leaves a card blank when one of its layers cannot be read, draws the rest, and reports the failure last', async () => {
+    const log: string[] = [];
+    const [one, two, three] = [indexOn(1), indexOn(2), indexOn(3)];
+    expect(Math.min(one, two, three)).toBeGreaterThanOrEqual(0);
     await expect(drawCataloguePreviews([
-      { canvas: canvasNamed('split'), sprite: first, foreground: second },
-      { canvas: canvasNamed('whole'), sprite: third, foreground: null },
-    ], load)).rejects.toThrow('offline');
-    expect(loaded, 'the page after the failure is still drawn and released').toEqual([1, -1, 3, -3]);
-    expect(drawn).toEqual([1, 3]);
-    expect(cleared, 'the card whose foreground failed is blanked').toEqual(['split']);
+      { canvas: recorder('lost-base', log), sprite: one, foreground: three },
+      { canvas: recorder('lost-front', log), sprite: three, foreground: one },
+      { canvas: recorder('whole', log), sprite: two, foreground: null },
+    ], pages(log, [1]), crops(log))).rejects.toThrow('page 1 offline');
+    expect(log.filter(line => line.startsWith('lost-')), 'neither half-read card is drawn').toEqual([]);
+    expect(log.some(line => line.startsWith('whole:p2:'))).toBe(true);
+    expect(log).toContain('load 3');
+  });
+
+  it('leaves a card blank when its cut-out or its drawing fails, and still draws the others', async () => {
+    const log: string[] = [];
+    const [two, three] = [indexOn(2), indexOn(3)];
+    await expect(drawCataloguePreviews([
+      { canvas: recorder('uncut', log), sprite: two, foreground: null },
+      { canvas: recorder('broken', log, true), sprite: three, foreground: null },
+      { canvas: recorder('fine', log), sprite: three, foreground: null },
+    ], pages(log), crops(log, [2]))).rejects.toThrow('crop on 2 failed');
+    expect(log.filter(line => line.startsWith('uncut'))).toEqual([]);
+    expect(log).toContain('broken:cleared');
+    expect(log.some(line => line.startsWith('fine:p3:'))).toBe(true);
+    expect(log).toContain('close 2');
+    expect(log).toContain('release p3');
+    const failures: string[] = [];
+    await expect(drawCataloguePreviews([{ canvas: recorder('broken', failures, true), sprite: three, foreground: null }],
+      pages(failures), crops(failures))).rejects.toThrow('draw failed');
   });
 });
 

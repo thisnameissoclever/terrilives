@@ -1,12 +1,16 @@
-import { ATLAS_PAGE_FILES, SPRITES, SPRITE_ANCHORS, SPRITE_CONTENT_BOUNDS } from '../render/atlas.js';
+import { ATLAS_PAGE_FILES, SPRITES, SPRITE_ANCHORS, type AtlasSprite } from '../render/atlas.js';
 import { spriteHeight, spriteWidth } from '../render/sprite-size.js';
 
 // The store catalogue's pictures - rule 2 of
 // docs/specs/2026-10-17-store-catalogue.md. Each card's canvas gets the
-// item's base-facing sprite as the game draws it, cropped to its content
-// bounds, with the foreground layer aligned by the sprites' anchors. The
-// atlas pages are large, so they are fetched one at a time, decoded once
-// and released after every card on them is drawn.
+// item's base-facing sprite as the game draws it, cropped to its visible
+// pixels, with the foreground layer aligned by the sprites' anchors. The
+// recorded content bounds are not used for the crop: some seat sprites
+// record the whole canvas so a seated person fits, which would shrink
+// their pictures. The atlas pages are large, so they are fetched one at a
+// time; while a page is held, each layer on it is cut down to its visible
+// pixels, and the page is released before the next is fetched. The cards
+// are drawn from those small cut-outs once every page has been read.
 
 export interface PreviewCard {
   readonly canvas: HTMLCanvasElement;
@@ -16,19 +20,37 @@ export interface PreviewCard {
   readonly foreground: number | null;
 }
 
-interface Layer {
-  readonly index: number;
-  /** The logical content box inside the sprite. */
+/** A layer cut out of its atlas page down to its visible pixels. */
+export interface LayerCrop {
+  readonly image: CanvasImageSource;
+  /** Where the visible pixels sit inside the sprite, `[left, top, right, bottom]` in logical pixels. */
   readonly bounds: readonly [number, number, number, number];
-  readonly density: number;
+  close(): void;
 }
 
-function layer(index: number): Layer | null {
-  const sprite = SPRITES[index];
-  if (!sprite) return null;
-  const density = sprite.pixel_density ?? 1;
-  const bounds = SPRITE_CONTENT_BOUNDS[index] ?? [0, 0, sprite.w / density, sprite.h / density];
-  return { index, bounds, density };
+/** Cuts a sprite's visible pixels out of its atlas page; null when it has none. */
+export type CropLayer = (page: ImageBitmap, sprite: AtlasSprite) => Promise<LayerCrop | null>;
+
+/**
+ * The box `[left, top, right, bottom]` of the pixels with any alpha in an
+ * RGBA buffer `width` pixels wide, right and bottom exclusive, or null when
+ * every pixel is transparent.
+ */
+export function visibleBounds(rgba: ArrayLike<number>, width: number, height: number): [number, number, number, number] | null {
+  let left = width;
+  let top = height;
+  let right = 0;
+  let bottom = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (rgba[(y * width + x) * 4 + 3] === 0) continue;
+      if (x < left) left = x;
+      if (x + 1 > right) right = x + 1;
+      if (y < top) top = y;
+      if (y + 1 > bottom) bottom = y + 1;
+    }
+  }
+  return right > left ? [left, top, right, bottom] : null;
 }
 
 /** A sprite's anchor in logical pixels; the renderer's default is its bottom center. */
@@ -43,45 +65,24 @@ function offset(base: number, other: number): [number, number] {
   return [anchorBase[0] - anchorOther[0], anchorBase[1] - anchorOther[1]];
 }
 
-/**
- * The union box of the card's layers in the base sprite's logical space:
- * `[left, top, right, bottom]`.
- */
-export function previewBox(card: Pick<PreviewCard, 'sprite' | 'foreground'>): [number, number, number, number] | null {
-  const base = layer(card.sprite);
-  if (!base) return null;
-  let [left, top, right, bottom] = base.bounds;
-  if (card.foreground !== null) {
-    const front = layer(card.foreground);
-    if (front) {
-      const [dx, dy] = offset(card.sprite, card.foreground);
-      left = Math.min(left, front.bounds[0] + dx);
-      top = Math.min(top, front.bounds[1] + dy);
-      right = Math.max(right, front.bounds[2] + dx);
-      bottom = Math.max(bottom, front.bounds[3] + dy);
-    }
-  }
-  return [left, top, right, bottom];
-}
-
-function drawLayer(context: CanvasRenderingContext2D, bitmap: ImageBitmap, item: Layer,
-  shift: readonly [number, number], box: readonly [number, number, number, number], canvas: HTMLCanvasElement,
-  behind: boolean): void {
-  const sprite = SPRITES[item.index];
-  const [x0, y0, x1, y1] = item.bounds;
-  const boxWidth = box[2] - box[0];
-  const boxHeight = box[3] - box[1];
-  const scale = Math.min(canvas.width / boxWidth, canvas.height / boxHeight);
-  const originX = (canvas.width - boxWidth * scale) / 2;
-  const originY = (canvas.height - boxHeight * scale) / 2;
-  // A base whose foreground was drawn from an earlier page goes behind it.
-  context.globalCompositeOperation = behind ? 'destination-over' : 'source-over';
-  context.drawImage(bitmap,
-    sprite.x + x0 * item.density, sprite.y + y0 * item.density,
-    (x1 - x0) * item.density, (y1 - y0) * item.density,
-    originX + (x0 + shift[0] - box[0]) * scale, originY + (y0 + shift[1] - box[1]) * scale,
-    (x1 - x0) * scale, (y1 - y0) * scale);
-  context.globalCompositeOperation = 'source-over';
+/** Cuts the sprite's visible pixels out of the page through a scratch canvas. */
+async function cropLayer(page: ImageBitmap, sprite: AtlasSprite): Promise<LayerCrop | null> {
+  const density = sprite.pixel_density ?? 1;
+  const scratch = document.createElement('canvas');
+  scratch.width = sprite.w;
+  scratch.height = sprite.h;
+  const context = scratch.getContext('2d', { willReadFrequently: true });
+  if (!context) throw new Error('No 2D canvas for a catalogue picture');
+  context.drawImage(page, sprite.x, sprite.y, sprite.w, sprite.h, 0, 0, sprite.w, sprite.h);
+  const box = visibleBounds(context.getImageData(0, 0, sprite.w, sprite.h).data, sprite.w, sprite.h);
+  if (!box) return null;
+  const [left, top, right, bottom] = box;
+  const image = await createImageBitmap(scratch, left, top, right - left, bottom - top);
+  return {
+    image,
+    bounds: [left / density, top / density, right / density, bottom / density],
+    close: () => image.close(),
+  };
 }
 
 /** Fetches and decodes one atlas page; the caller closes the bitmap. */
@@ -94,68 +95,90 @@ async function loadPage(page: number): Promise<ImageBitmap> {
 }
 
 /**
+ * Draws one card from its layers' cut-outs, base first, scaled to fit the
+ * canvas around the visible pixels of both layers.
+ */
+function drawCard(card: PreviewCard, crops: ReadonlyMap<number, LayerCrop | null>): void {
+  const layers: { crop: LayerCrop; shift: readonly [number, number] }[] = [];
+  const base = crops.get(card.sprite);
+  if (base) layers.push({ crop: base, shift: [0, 0] });
+  const front = card.foreground === null ? null : crops.get(card.foreground);
+  if (front && card.foreground !== null) layers.push({ crop: front, shift: offset(card.sprite, card.foreground) });
+  if (layers.length === 0) return;
+  const box = layers.reduce((union, { crop, shift }) => [
+    Math.min(union[0], crop.bounds[0] + shift[0]), Math.min(union[1], crop.bounds[1] + shift[1]),
+    Math.max(union[2], crop.bounds[2] + shift[0]), Math.max(union[3], crop.bounds[3] + shift[1]),
+  ], [Infinity, Infinity, -Infinity, -Infinity]);
+  const context = card.canvas.getContext('2d');
+  if (!context) return;
+  const { width, height } = card.canvas;
+  const scale = Math.min(width / (box[2] - box[0]), height / (box[3] - box[1]));
+  const originX = (width - (box[2] - box[0]) * scale) / 2;
+  const originY = (height - (box[3] - box[1]) * scale) / 2;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  for (const { crop, shift } of layers) {
+    const [left, top, right, bottom] = crop.bounds;
+    context.drawImage(crop.image,
+      originX + (left + shift[0] - box[0]) * scale, originY + (top + shift[1] - box[1]) * scale,
+      (right - left) * scale, (bottom - top) * scale);
+  }
+}
+
+/**
  * Draws every card's picture, smoothed as the game filters its sprites.
- * Cards whose layers sit on two pages are drawn in two passes, the base
- * always behind the foreground. A page that fails to load, or a layer that
- * fails to draw, leaves each card it touches blank, never half drawn; the
- * other pages are still drawn and the first error is reported last.
+ * A page that fails to load, a layer that fails to be cut out, or a card
+ * that fails to draw leaves each card it touches blank, never half drawn;
+ * the other cards are still drawn and the first error is reported last.
  */
 export async function drawCataloguePreviews(cards: readonly PreviewCard[],
-  load: (page: number) => Promise<ImageBitmap> = loadPage): Promise<void> {
-  const passes = new Map<number, { card: PreviewCard; item: Layer; shift: [number, number]; box: [number, number, number, number]; foreground: boolean }[]>();
+  load: (page: number) => Promise<ImageBitmap> = loadPage, crop: CropLayer = cropLayer): Promise<void> {
+  const byPage = new Map<number, Set<number>>();
   for (const card of cards) {
-    const box = previewBox(card);
-    const base = layer(card.sprite);
-    if (!box || !base) continue;
-    const layers: { item: Layer; shift: [number, number]; foreground: boolean }[] = [{ item: base, shift: [0, 0], foreground: false }];
-    if (card.foreground !== null) {
-      const front = layer(card.foreground);
-      if (front) layers.push({ item: front, shift: offset(card.sprite, card.foreground), foreground: true });
-    }
-    for (const { item, shift, foreground } of layers) {
-      const page = SPRITES[item.index].page ?? 0;
-      const list = passes.get(page) ?? [];
-      list.push({ card, item, shift, box, foreground });
-      passes.set(page, list);
+    for (const index of [card.sprite, card.foreground]) {
+      if (index === null || !SPRITES[index]) continue;
+      const page = SPRITES[index].page ?? 0;
+      byPage.set(page, (byPage.get(page) ?? new Set()).add(index));
     }
   }
-  const foregroundDrawn = new Set<PreviewCard>();
-  // A card that lost a layer is left blank rather than half drawn.
-  const broken = new Set<PreviewCard>();
-  const breakCard = (card: PreviewCard) => {
-    broken.add(card);
-    card.canvas.getContext('2d')?.clearRect(0, 0, card.canvas.width, card.canvas.height);
-  };
+  const crops = new Map<number, LayerCrop | null>();
+  const unread = new Set<number>();
   let failure: unknown = null;
-  for (const [page, draws] of [...passes.entries()].sort((a, b) => a[0] - b[0])) {
-    let bitmap: ImageBitmap;
-    try {
-      bitmap = await load(page);
-    } catch (error) {
-      failure ??= error;
-      for (const { card } of draws) breakCard(card);
-      continue;
-    }
-    try {
-      // Each card lists its base before its foreground, so within one page
-      // the base is drawn first.
-      for (const { card, item, shift, box, foreground } of draws) {
-        if (broken.has(card)) continue;
-        const context = card.canvas.getContext('2d');
-        if (!context) continue;
-        try {
-          context.imageSmoothingEnabled = true;
-          context.imageSmoothingQuality = 'high';
-          drawLayer(context, bitmap, item, shift, box, card.canvas, !foreground && foregroundDrawn.has(card));
-          if (foreground) foregroundDrawn.add(card);
-        } catch (error) {
-          failure ??= error;
-          breakCard(card);
-        }
+  try {
+    for (const [page, indexes] of [...byPage.entries()].sort((a, b) => a[0] - b[0])) {
+      let bitmap: ImageBitmap;
+      try {
+        bitmap = await load(page);
+      } catch (error) {
+        failure ??= error;
+        for (const index of indexes) unread.add(index);
+        continue;
       }
-    } finally {
-      bitmap.close();
+      try {
+        for (const index of indexes) {
+          try {
+            crops.set(index, await crop(bitmap, SPRITES[index]));
+          } catch (error) {
+            failure ??= error;
+            unread.add(index);
+          }
+        }
+      } finally {
+        bitmap.close();
+      }
     }
+    for (const card of cards) {
+      if (!SPRITES[card.sprite] || unread.has(card.sprite)
+        || (card.foreground !== null && unread.has(card.foreground))) continue;
+      try {
+        drawCard(card, crops);
+      } catch (error) {
+        failure ??= error;
+        card.canvas.getContext('2d')?.clearRect(0, 0, card.canvas.width, card.canvas.height);
+      }
+    }
+  } finally {
+    for (const layer of crops.values()) layer?.close();
   }
   if (failure !== null) throw failure;
 }

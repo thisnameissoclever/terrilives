@@ -111,7 +111,7 @@ body[data-building='true'] #build-camera { display: flex; }
      height rather than sharing the dock's, so nothing overlaps. */
   #builder-dock #buy-tool { grid-auto-rows: max-content; }
   /* The dock does not scroll its footer, so it keeps the plain footer. */
-  #builder-dock #build-batch-actions { bottom: 0; padding-bottom: 8px; }
+  #builder-dock #build-batch-actions { padding: 8px 0; margin-inline: 0; }
   /* Each filter row is one sideways strip, as the cards are, so the cards
      sit close below the filters in the dock's short view. */
   #builder-dock .catalogue-filters { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: 3px; }
@@ -154,6 +154,11 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 #buy-facts { white-space: pre-line; }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
-/* The side panel's footer sticks inside the panel's 12 pixel padding, so it
-   reaches down over that padding and nothing scrolls into view beneath it. */
-body[data-building='true'] #build-batch-actions { bottom: -12px; padding-bottom: 20px; }
+/* The side panel keeps no bottom padding of its own; its footer, always its
+   last child, carries that space instead. So the stuck footer meets the
+   panel's bottom edge and nothing scrolls into view beneath it, and the
+   buttons sit where they always did. The footer also covers the side
+   padding, so a focus ring cannot show past it, and a control scrolled into
+   view stops above it. */
+body[data-building='true'] #builder-controls { padding-bottom: 0; scroll-padding-bottom: 72px; }
+body[data-building='true'] #build-batch-actions { padding-bottom: 20px; margin-inline: -12px; padding-inline: 12px; }
