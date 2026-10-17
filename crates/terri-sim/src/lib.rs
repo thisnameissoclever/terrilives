@@ -6474,6 +6474,17 @@ mod determinism_tests {
         // and by the two tie tests, all of which are robust to a
         // last-bit difference.
         //
+        // **That safety ended with varied autonomy (#143, commit
+        // `413412814`); the two paragraphs above describe history, not the
+        // current code.** Live selection now calls
+        // `autonomy::grouped_probabilities`, which always weighs a wander
+        // candidate beside any object candidates and computes `f64::exp` in
+        // `autonomy::probabilities`, so `exp` results are inside this
+        // digest's causal chain. `sample_softmax` has no production caller.
+        // The vector still agrees across native and wasm32 by measurement,
+        // but it would catch a last-bit `exp` difference only if a draw
+        // landed within rounding distance of a bucket boundary.
+        //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every
         // interaction's length a sampled value and put a 25-tick floor

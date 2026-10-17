@@ -210,9 +210,10 @@ impl BedState<'_, '_> {
     }
 }
 
-/// Legacy public softmax primitive, retained for existing callers and tests.
-/// Live autonomy uses `autonomy::grouped_probabilities` and its positive bucket
-/// sampler to retain tiny alternatives and normalize interactions per target.
+/// Legacy public softmax primitive with no production caller: only
+/// `sampler_tests` call it. Live autonomy uses
+/// `autonomy::grouped_probabilities` and its positive bucket sampler to
+/// retain tiny alternatives and normalize interactions per target.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -253,37 +254,45 @@ impl BedState<'_, '_> {
 /// not re-check it; a pack holding a zero or negative temperature cannot
 /// be built.
 ///
-/// # `exp` is a platform call in the simulation's causal chain
+/// # `exp` and the other platform math calls
 ///
-/// It is not the only one. `hypot` in the proximity checks of
-/// `social_company` and `relationship_dynamics` is also a libm call, and
-/// `powi` feeds the domestic cleanup curve, seat ranking in `media` and
-/// skill costs; Rust promises neither function's last bit. Most of what
-/// the sim computes is IEEE-exact and therefore bit-identical on every
-/// target - `score_advertisement` cubes urgency by repeated
-/// multiplication rather than `powf` for exactly that reason, and
-/// `SimRng` is in-repo rather than taken from `rand` for it too.
-/// `f32::exp` is not: it lowers to a platform libm call whose last bit is
+/// The `exp` here runs only in tests. The live one is in
+/// `autonomy::probabilities`, which `autonomy::grouped_probabilities`
+/// calls for the target groups and again for the interactions within each
+/// group, so `f64::exp` results feed every autonomous choice. `hypot` in
+/// the proximity checks of `social_company` and `relationship_dynamics`
+/// is also a libm call, and `powi` feeds the domestic cleanup curve, seat
+/// ranking in `media` and skill costs; Rust promises none of these
+/// functions' last bit. Most of what the sim computes is IEEE-exact and
+/// therefore bit-identical on every target - `score_advertisement` cubes
+/// urgency by repeated multiplication rather than `powf` for exactly that
+/// reason, and `SimRng` is in-repo rather than taken from `rand` for it
+/// too. `exp` is not: it lowers to a platform libm call whose last bit is
 /// not guaranteed to agree between the MSVC CRT that `cargo test` uses,
 /// glibc on CI, and the wasm32 build that actually ships.
 ///
 /// **A last-bit difference changes the outcome only when the draw falls
-/// within one ulp of a bucket boundary**, which is about one decision in
-/// 2^24 and only on targets that disagree at all. So this is a small
-/// residual risk rather than a broken guarantee - but it is a real one
-/// for replay and for the planned multiplayer, and it is unavoidable
-/// while [D-2] specifies a softmax. Softmax needs an exponential.
+/// within rounding distance of a bucket boundary**, and only on targets
+/// that disagree at all. For this function's `f32` weights that is about
+/// one decision in 2^24; `autonomy::sample` divides its draw among 2^53
+/// buckets. So this is a small residual risk rather than a broken
+/// guarantee - but it is a real one for replay and for the planned
+/// multiplayer, and it is unavoidable while [D-2] specifies a softmax.
+/// Softmax needs an exponential.
 ///
 /// It is written down rather than fixed because the fix - an in-repo
 /// `exp` approximation, the same move the PRNG made - is a decision about
 /// how much determinism this project is buying, not an implementation
-/// detail to slip in. The tests that cover weighted selection are all
-/// robust to a last-bit difference by construction: the tie tests weigh
+/// detail to slip in. The tests that cover this function are all robust
+/// to a last-bit difference by construction: the tie tests weigh
 /// candidates at `exp(0.0)`, which is exactly 1.0 everywhere, the
 /// decisive-temperature fixtures underflow the loser to exactly 0.0, and
-/// the distribution test is statistical over 500 seeds. Both golden world
-/// hashes are over one-candidate scenarios and so never depend on an
-/// `exp` result at all.
+/// the distribution test is statistical over 500 seeds. The golden world
+/// hash is not robust in that way. Its eight-agent, one-fridge scenario
+/// selects through `grouped_probabilities`, which always weighs a wander
+/// candidate, so `exp` results are in its causal chain. It agrees across
+/// native and wasm32 by measurement, and it would catch a last-bit
+/// difference only if a draw landed near enough to a bucket boundary.
 pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
     assert!(
         !scores.is_empty(),
