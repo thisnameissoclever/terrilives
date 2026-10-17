@@ -3551,6 +3551,14 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// How many career commands the drain has handled, applied or
+    /// refused: the shell reads it to tell a fresh result from the last.
+    pub fn career_command_count(&self) -> u64 {
+        self.world
+            .get_resource::<Careers>()
+            .map_or(0, |careers| careers.commands)
+    }
+
     /// What the drain did with the last career command.
     pub fn last_career_result(&self) -> Option<careers::CareerResult> {
         self.world

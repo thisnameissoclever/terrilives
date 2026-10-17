@@ -3044,6 +3044,13 @@ impl SimHandle {
             })
     }
 
+    /// How many career commands a drain has handled, applied or refused;
+    /// rises by one with each, so the shell can tell a fresh
+    /// `last_career_result` from the one it already read.
+    pub fn career_result_sequence(&self) -> u64 {
+        self.sim.career_command_count()
+    }
+
     /// `[change, search]`: whether people change path and look for work
     /// on their own.
     pub fn career_autonomy(&self) -> Vec<u8> {
@@ -4194,6 +4201,11 @@ mod boundary_tests {
         ] {
             let mut handle = SimHandle::from_lot();
             assert!(handle.load_bytes(&fixture_bytes(hex)), "{name}");
+            // The test watches the one saved worker: the careers' search
+            // (issue 249) would otherwise hire a housemate on the first
+            // weekday morning and `worker_state` could find them first.
+            assert!(handle.set_career_autonomy(false, false));
+            handle.flush_commands();
             let pay = i64::from(handle.sim.world().resource::<Content>().0.careers[0].pay);
             let (_, at_work, _, funds) = worker_state(&mut handle);
             let owed = if at_work || clocks_in_at_the_door {
@@ -4537,8 +4549,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            13,
-            "the public writer must emit the schema-13 envelope"
+            14,
+            "the public writer must emit the schema-14 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();

@@ -1190,10 +1190,6 @@ pub struct CareerDef {
     pub level: Vec<CareerLevelDef>,
 }
 
-fn one_week() -> u32 {
-    1
-}
-
 /// One titled level of a path: a job. The shift fields are what a career
 /// was before paths existed.
 #[derive(Debug, Deserialize)]
@@ -1226,8 +1222,8 @@ pub struct CareerLevelDef {
     /// a career cannot quietly work a week nobody chose.
     pub working_days: Vec<String>,
     /// How many good weeks in a row a promotion out of this level needs;
-    /// 1 to 52, defaulting to 1.
-    #[serde(default = "one_week")]
+    /// 1 to 52. Required, so a level cannot quietly promote after one
+    /// good week nobody chose.
     pub advance_weeks: u32,
 }
 
@@ -1722,18 +1718,21 @@ mod tests {
             .expect_err("a career without working_days must not parse");
         assert!(err.to_string().contains("working_days"), "{err}");
 
-        let parsed: CareersFile =
-            toml::from_str(&format!("{career}working_days = [\"sun\", \"mon\"]\n"))
-                .expect("the same career with working days parses");
+        let err =
+            toml::from_str::<CareersFile>(&format!("{career}working_days = [\"sun\", \"mon\"]\n"))
+                .expect_err("a level without advance_weeks must not parse");
+        assert!(err.to_string().contains("advance_weeks"), "{err}");
+
+        let parsed: CareersFile = toml::from_str(&format!(
+            "{career}working_days = [\"sun\", \"mon\"]\nadvance_weeks = 3\n"
+        ))
+        .expect("the same career with working days and advance weeks parses");
         assert_eq!(
             parsed.career[0].level[0].working_days,
             vec!["sun".to_string(), "mon".to_string()],
             "the authored list reaches the schema in declared order"
         );
-        assert_eq!(
-            parsed.career[0].level[0].advance_weeks, 1,
-            "advance_weeks defaults to one"
-        );
+        assert_eq!(parsed.career[0].level[0].advance_weeks, 3);
         assert_eq!(parsed.career[0].social_demand, 0.0);
         assert!(parsed.career[0].traits.is_empty());
     }

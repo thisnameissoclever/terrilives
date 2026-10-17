@@ -2124,13 +2124,16 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     assert!(source.career_history(worker).is_empty());
     assert!(source.career_report(9999).is_empty());
 
+    assert_eq!(source.career_result_sequence(), 0);
     assert!(source.assign_career(worker, 1));
     source.flush_commands();
+    assert_eq!(source.career_result_sequence(), 1);
     assert_eq!(source.last_career_result(), vec![f64::from(worker), 0.0]);
     assert_eq!(source.career_report(worker)[0], 1.0);
     assert_eq!(source.career_of(worker), "Lowly barista");
     assert!(source.assign_career(worker, 9));
     source.flush_commands();
+    assert_eq!(source.career_result_sequence(), 2, "a refusal counts too");
     assert_eq!(source.last_career_result(), vec![f64::from(worker), 3.0]);
     assert_eq!(
         source.career_report(worker)[0],

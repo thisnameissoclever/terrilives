@@ -27,6 +27,9 @@ pub struct SavedCareerRecord {
     pub shifts: Vec<f32>,
     /// Reviewed weeks in week order.
     pub history: Vec<SavedCareerWeek>,
+    /// The week whose review waits for the person to come home from the
+    /// shift they were on when it ended, if any.
+    pub review_due: Option<u64>,
 }
 
 /// A career event moodlet: who, which kind (1 promoted, 2 got a raise, 3
@@ -39,8 +42,8 @@ pub struct SavedCareerMoodlet {
 }
 
 /// Everything the careers keep between ticks: the two autonomy settings,
-/// the careers stream and how often it was drawn, the records and the
-/// event moodlets.
+/// the careers stream and how often it was drawn, the records, the event
+/// moodlets and how many career commands the drain has handled.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SavedCareers {
     pub autonomous_change: bool,
@@ -49,6 +52,7 @@ pub struct SavedCareers {
     pub draws: u64,
     pub records: Vec<SavedCareerRecord>,
     pub moodlets: Vec<SavedCareerMoodlet>,
+    pub commands: u64,
 }
 
 /// Schema fourteen: the schema-thirteen envelope, then the careers. A

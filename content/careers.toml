@@ -173,7 +173,8 @@ advance_weeks = 4
 [[career]]
 id = "night_watch"
 label = "Night watch"
-# Nobody to talk to and a lot of walking.
+# Nobody to talk to and a lot of walking. Badly paid, and the raises are
+# small: the quiet is the point.
 social_demand = 0.1
 skill = "exercise"
 traits = { private_person = 0.3, keen_cyclist = 0.3, exercise_averse = -0.3, out_of_shape = -0.3, chatterbox = -0.2 }
@@ -185,8 +186,8 @@ title = "Night watch"
 # on the next day, Sunday night to Thursday night.
 shift_start = 1320
 shift_ticks = 480
-pay = 90
-pay_max = 110
+pay = 70
+pay_max = 85
 energy_cost = 20.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
@@ -197,8 +198,8 @@ id = "night_watch_senior"
 title = "Senior night watch"
 shift_start = 1320
 shift_ticks = 480
-pay = 115
-pay_max = 140
+pay = 85
+pay_max = 105
 energy_cost = 20.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
@@ -209,8 +210,8 @@ id = "night_watch_supervisor"
 title = "Night supervisor"
 shift_start = 1320
 shift_ticks = 480
-pay = 150
-pay_max = 190
+pay = 105
+pay_max = 130
 energy_cost = 22.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
@@ -221,8 +222,8 @@ id = "night_watch_keeper"
 title = "Keeper of the keys"
 shift_start = 1320
 shift_ticks = 480
-pay = 210
-pay_max = 260
+pay = 130
+pay_max = 160
 energy_cost = 24.0
 satisfaction = 1.0
 working_days = ["sun", "mon", "tue", "wed", "thu"]

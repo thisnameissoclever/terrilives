@@ -8739,6 +8739,146 @@ mod tests {
         );
     }
 
+    /// Every path and level refusal of rule 1 in
+    /// `docs/specs/2026-10-17-careers.md`, each named after what it
+    /// refuses; the shared id set also refuses a level id used twice
+    /// across two paths.
+    #[test]
+    fn rejects_each_bad_career_path_and_level() {
+        let refused = |career: CareerDef| {
+            compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
+        };
+        let mut empty = a_career("office_job");
+        empty.level.clear();
+        assert_eq!(
+            refused(empty),
+            ContentError::CareerPathWithoutLevels {
+                id: "office_job_path".into()
+            }
+        );
+
+        let mut inverted = a_career("office_job");
+        inverted.level[0].pay_max = inverted.level[0].pay - 1;
+        assert_eq!(
+            refused(inverted),
+            ContentError::CareerPayRangeInverted {
+                id: "office_job".into()
+            }
+        );
+
+        let mut flat_top = a_career("office_job");
+        flat_top.level.push(CareerLevelDef {
+            pay: 140,
+            pay_max: 150,
+            ..a_level("office_senior")
+        });
+        assert_eq!(
+            refused(flat_top),
+            ContentError::CareerPayBelowThePrevious {
+                id: "office_senior".into()
+            },
+            "a pay_max that does not climb"
+        );
+        let mut lower_pay = a_career("office_job");
+        lower_pay.level.push(CareerLevelDef {
+            pay: 129,
+            pay_max: 200,
+            ..a_level("office_senior")
+        });
+        assert_eq!(
+            refused(lower_pay),
+            ContentError::CareerPayBelowThePrevious {
+                id: "office_senior".into()
+            },
+            "a pay below the level below"
+        );
+        let mut climbs = a_career("office_job");
+        climbs.level.push(CareerLevelDef {
+            pay: 130,
+            pay_max: 151,
+            ..a_level("office_senior")
+        });
+        let pack = compile_people_full(vec![], vec![], vec![], vec![climbs])
+            .expect("equal pay with a higher pay_max climbs");
+        assert_eq!(pack.career_paths[0].levels, vec![0, 1]);
+        assert_eq!(pack.careers[1].level, 1);
+
+        let mut unknown_trait = a_career("office_job");
+        unknown_trait.traits.insert("bogus".to_string(), 0.5);
+        assert_eq!(
+            refused(unknown_trait),
+            ContentError::UnknownCareerTrait {
+                id: "office_job_path".into(),
+                trait_id: "bogus".into()
+            }
+        );
+
+        let mut unknown_skill = a_career("office_job");
+        unknown_skill.skill = Some("juggling".to_string());
+        assert_eq!(
+            refused(unknown_skill),
+            ContentError::UnknownCareerSkill {
+                id: "office_job_path".into(),
+                skill: "juggling".into()
+            }
+        );
+
+        for demand in [-0.1, 1.1] {
+            let mut out = a_career("office_job");
+            out.social_demand = demand;
+            assert_eq!(
+                refused(out),
+                ContentError::CareerSocialDemandOutOfRange {
+                    id: "office_job_path".into()
+                },
+                "{demand}"
+            );
+        }
+
+        for weeks in [0, 53] {
+            let mut out = a_career("office_job");
+            out.level[0].advance_weeks = weeks;
+            assert_eq!(
+                refused(out),
+                ContentError::CareerAdvanceWeeksOutOfRange {
+                    id: "office_job".into()
+                },
+                "{weeks}"
+            );
+        }
+
+        let mut twice = a_career("cafe");
+        twice.level[0].id = "office_job".to_string();
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![], vec![a_career("office_job"), twice])
+                .unwrap_err(),
+            ContentError::DuplicateCareer {
+                id: "office_job".into()
+            },
+            "a level id used in two paths"
+        );
+    }
+
+    /// A fit weight outside -1 to 1 is refused against a declared trait,
+    /// and one inside it compiles to the trait's index.
+    #[test]
+    fn rejects_a_career_fit_weight_outside_its_range() {
+        let mut too_keen = a_career("office_job");
+        too_keen.traits.insert("tidy".to_string(), 1.5);
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![a_trait("tidy")], vec![too_keen]).unwrap_err(),
+            ContentError::CareerFitOutOfRange {
+                id: "office_job_path".into(),
+                trait_id: "tidy".into()
+            }
+        );
+        let mut keen = a_career("office_job");
+        keen.traits.insert("tidy".to_string(), 0.75);
+        let pack = compile_people_full(vec![], vec![], vec![a_trait("tidy")], vec![keen])
+            .expect("a fit inside the range");
+        assert_eq!(pack.careers[0].trait_fit, vec![(0, 0.75)]);
+    }
+
     #[test]
     fn rejects_a_blank_career_label() {
         let mut blank = a_career("office_job");

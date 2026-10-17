@@ -75,6 +75,9 @@ pub struct Record {
     /// The current week's shift scores.
     pub shifts: Vec<f32>,
     pub history: Vec<Week>,
+    /// The week whose review waits for the person to come home: a person
+    /// at work or commuting when a week ends is reviewed on their return.
+    pub review_due: Option<u64>,
 }
 
 impl Record {
@@ -88,6 +91,7 @@ impl Record {
             consecutive_good: 0,
             shifts: Vec::new(),
             history: Vec::new(),
+            review_due: None,
         }
     }
 
@@ -112,6 +116,9 @@ pub struct Careers {
     pub raised: MoodletTimers,
     pub demoted: MoodletTimers,
     pub fired: MoodletTimers,
+    /// How many career commands the drain has handled, applied or
+    /// refused: a quit that leaves no other trace still changes the world.
+    pub commands: u64,
     /// What the drain did with the last career command. Not saved.
     pub last_result: Option<CareerResult>,
 }
@@ -128,6 +135,7 @@ impl Default for Careers {
             raised: MoodletTimers::default(),
             demoted: MoodletTimers::default(),
             fired: MoodletTimers::default(),
+            commands: 0,
             last_result: None,
         }
     }
@@ -140,6 +148,7 @@ impl Careers {
         self.autonomous_change
             && self.autonomous_search
             && self.draws == 0
+            && self.commands == 0
             && self.records.is_empty()
             && self.promoted.entries().is_empty()
             && self.raised.entries().is_empty()
@@ -154,6 +163,16 @@ impl Careers {
 
     pub fn record(&self, sim: SimId) -> Option<&Record> {
         self.records.get(&sim)
+    }
+
+    /// Drops the person's record and timers, as death drops every other
+    /// per-person record.
+    pub fn forget(&mut self, sim: SimId) {
+        self.records.remove(&sim);
+        self.promoted.forget(sim);
+        self.raised.forget(sim);
+        self.demoted.forget(sim);
+        self.fired.forget(sim);
     }
 
     /// The timers of one moodlet kind.
@@ -224,9 +243,11 @@ impl Careers {
                             event: week.event,
                         })
                         .collect(),
+                    review_due: record.review_due,
                 })
                 .collect(),
             moodlets,
+            commands: self.commands,
         }
     }
 
@@ -237,6 +258,7 @@ impl Careers {
             autonomous_search: saved.autonomous_search,
             rng: saved.rng,
             draws: saved.draws,
+            commands: saved.commands,
             ..Self::default()
         };
         for record in saved.records {
@@ -257,6 +279,7 @@ impl Careers {
                             event: week.event,
                         })
                         .collect(),
+                    review_due: record.review_due,
                 },
             );
         }
@@ -273,6 +296,7 @@ impl Careers {
         hash.write_u64(u64::from(self.autonomous_search));
         self.rng.hash_into(hash);
         hash.write_u64(self.draws);
+        hash.write_u64(self.commands);
         hash.write_u64(self.records.len() as u64);
         for (sim, record) in &self.records {
             hash.write_u64(u64::from(sim.0));
@@ -290,6 +314,7 @@ impl Careers {
                 hash.write_u64(u64::from(week.performance.to_bits()));
                 hash.write_u64(u64::from(week.event));
             }
+            hash.write_u64(record.review_due.map_or(0, |week| week + 1));
         }
         for kind in [
             MOODLET_PROMOTED,
@@ -392,11 +417,12 @@ pub fn factors(world: &World, pack: &ContentPack, entity: Entity) -> Option<[f32
     ])
 }
 
-/// The shift's return (rule 5 and rule 10): pays the person's current pay
-/// into the household, credits the level's satisfaction, scores the shift
-/// into the week, and moves job satisfaction toward what the fit deserves,
-/// with a hated job costing life satisfaction on top. Called by
-/// `commute_and_work` on the tick the worker reappears.
+/// The shift's return (rule 5 and rule 10): pays the pay the person held
+/// while working the shift into the household, credits the level's
+/// satisfaction, applies a review that waited for this return (rule 6),
+/// scores the shift into the week, and moves job satisfaction toward what
+/// the fit deserves, with a hated job costing life satisfaction on top.
+/// Called by `commute_and_work` on the tick the worker reappears.
 pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     let pack = world.resource::<Content>().0;
     let Some(job) = job_of(world, pack, worker) else {
@@ -418,12 +444,33 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         mood_term(world, worker),
     );
     let tuning = &pack.tuning;
-    let (pay, miserable) = {
+    let (pay, due) = {
         let mut careers = world.resource_mut::<Careers>();
         let record = careers
             .records
             .entry(sim)
             .or_insert_with(|| Record::new(job));
+        (record.pay, record.review_due.take())
+    };
+    world.resource_mut::<Funds>().0 += i64::from(pay) * Funds::CENTS_PER_DOLLAR;
+    if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
+        satisfaction.reward(job.satisfaction);
+    }
+    if let Some(ended_week) = due {
+        // The week ended while this person was at work: its review runs
+        // now, before this shift's score joins the week that followed.
+        let tick = world.resource::<SimClock>().tick;
+        let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
+        review_person(world, &mut careers, pack, sim, worker, ended_week, tick);
+        world.insert_resource(careers);
+    }
+    // A dismissal just applied leaves no record to score into.
+    let fit = job_of(world, pack, worker).map_or(fit, |job| self::fit(world, pack, job, worker));
+    let miserable = {
+        let mut careers = world.resource_mut::<Careers>();
+        let Some(record) = careers.records.get_mut(&sim) else {
+            return;
+        };
         record.shifts.push(score);
         let target = 50.0 + 40.0 * fit;
         let step = tuning.career_satisfaction_rate;
@@ -432,15 +479,10 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         } else {
             (record.job_satisfaction - step).max(target)
         };
-        (
-            record.pay,
-            record.job_satisfaction < tuning.career_job_misery,
-        )
+        record.job_satisfaction < tuning.career_job_misery
     };
-    world.resource_mut::<Funds>().0 += i64::from(pay) * Funds::CENTS_PER_DOLLAR;
-    if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
-        satisfaction.reward(job.satisfaction);
-        if miserable {
+    if miserable {
+        if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
             satisfaction.reward(-tuning.career_misery_satisfaction);
         }
     }
@@ -515,141 +557,169 @@ fn raised_pay(job: &CompiledCareer, pay: u32) -> u32 {
 
 /// Rule 6, rule 7, rule 8, rule 9 and rule 14 for the week that ended at
 /// `tick`: every employed person who completed a shift in it is reviewed,
-/// in id order.
+/// in id order. A person at work or commuting when the week ends is
+/// reviewed on their return instead (`complete_shift`), so no outcome
+/// changes a job while its shift is being worked.
 fn review(world: &mut World, ended_week: u64, tick: u64) {
     let pack = world.resource::<Content>().0;
-    let tuning = &pack.tuning;
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
     for (sim, entity) in people(world) {
-        let Some(job) = job_of(world, pack, entity) else {
+        if world.get::<Career>(entity).is_none() {
             continue;
-        };
-        let Some(record) = careers.records.get(&sim) else {
+        }
+        let Some(record) = careers.records.get_mut(&sim) else {
             continue;
         };
         if record.shifts.is_empty() {
             continue;
         }
-        let mean = record.shifts.iter().sum::<f32>() / record.shifts.len() as f32;
-        let noise = (careers.draw() * 2.0 - 1.0) * tuning.career_review_noise;
-        let performance = (mean + noise).clamp(0.0, 100.0);
-        // A hand-built pack may carry a job with no path list; such a job
-        // is reviewed as the only level of its path.
-        let lone = terri_data::CompiledCareerPath {
-            id: String::new(),
-            label: String::new(),
-            levels: vec![world.get::<Career>(entity).map_or(0, |c| c.0)],
-        };
-        let path = pack.career_paths.get(job.path as usize).unwrap_or(&lone);
-        let path_top = job.level as usize + 1 >= path.levels.len();
-        let path_bottom = job.level == 0;
-        let record = careers.records.get_mut(&sim).expect("present above");
-        if performance < tuning.career_poor_threshold {
-            record.consecutive_poor += 1;
-            record.consecutive_good = 0;
-        } else if performance >= tuning.career_good_threshold {
-            record.consecutive_good += 1;
-            record.consecutive_poor = 0;
-        } else {
-            record.consecutive_poor = 0;
-            record.consecutive_good = 0;
+        if world.get::<AtWork>(entity).is_some() || world.get::<Commuting>(entity).is_some() {
+            record.review_due = Some(ended_week);
+            continue;
         }
-        let draw = careers.draw();
-        let record = careers.records.get_mut(&sim).expect("present above");
-        let mut event = outcome(
-            tuning,
-            job,
-            path_top,
-            path_bottom,
-            record,
-            performance,
-            draw,
-        );
-        record.shifts.clear();
-        match event {
-            EVENT_PROMOTION => {
-                let next = &pack.careers[path.levels[(job.level + 1) as usize] as usize];
-                record.pay = next.pay.max(record.pay.saturating_add(1)).min(next.pay_max);
-                record.consecutive_good = 0;
-                record.consecutive_poor = 0;
-                let row = path.levels[(job.level + 1) as usize];
-                world.entity_mut(entity).insert(Career(row));
-                careers.promoted.record(
-                    sim,
-                    tick.saturating_add(u64::from(tuning.career_mood_promoted_ticks)),
-                );
-            }
-            EVENT_RAISE => {
-                record.pay = raised_pay(job, record.pay);
-                careers.raised.record(
-                    sim,
-                    tick.saturating_add(u64::from(tuning.career_mood_promoted_ticks)),
-                );
-            }
-            EVENT_DEMOTION => {
-                let row = path.levels[(job.level - 1) as usize];
-                let below = &pack.careers[row as usize];
-                record.pay = record.pay.clamp(below.pay, below.pay_max);
-                record.consecutive_good = 0;
-                record.consecutive_poor = 0;
-                world.entity_mut(entity).insert(Career(row));
-                careers.demoted.record(
-                    sim,
-                    tick.saturating_add(u64::from(tuning.career_mood_demoted_ticks)),
-                );
-            }
-            EVENT_FIRED => {
-                careers.fired.record(
-                    sim,
-                    tick.saturating_add(u64::from(tuning.career_mood_fired_ticks)),
-                );
-            }
-            _ => {
-                // Rule 14: a review with no outcome may change path.
-                if careers.autonomous_change {
-                    let here = fit(world, pack, job, entity);
-                    if here < tuning.career_change_fit {
-                        let better = best_path(
-                            world,
-                            pack,
-                            entity,
-                            Some(job.path),
-                            here + tuning.career_change_gap,
-                        );
-                        if let Some(path_index) = better {
-                            if careers.draw() < tuning.career_change_chance {
-                                event = EVENT_CHANGED_PATH;
-                                let row = pack.career_paths[path_index as usize].levels[0];
-                                let first = &pack.careers[row as usize];
-                                let record = careers.records.get_mut(&sim).expect("present above");
-                                record.pay = first.pay;
-                                record.consecutive_good = 0;
-                                record.consecutive_poor = 0;
-                                record.job_satisfaction = 50.0;
-                                world.entity_mut(entity).insert(Career(row));
-                            }
+        review_person(world, &mut careers, pack, sim, entity, ended_week, tick);
+    }
+    world.insert_resource(careers);
+}
+
+/// One person's review of `ended_week`, applied at `tick`: the caller has
+/// taken the careers out of the world and checked that the person holds
+/// a job with at least one shift scored.
+fn review_person(
+    world: &mut World,
+    careers: &mut Careers,
+    pack: &'static ContentPack,
+    sim: SimId,
+    entity: Entity,
+    ended_week: u64,
+    tick: u64,
+) {
+    let tuning = &pack.tuning;
+    let Some(job) = job_of(world, pack, entity) else {
+        return;
+    };
+    let Some(record) = careers.records.get(&sim) else {
+        return;
+    };
+    if record.shifts.is_empty() {
+        return;
+    }
+    let mean = record.shifts.iter().sum::<f32>() / record.shifts.len() as f32;
+    let noise = (careers.draw() * 2.0 - 1.0) * tuning.career_review_noise;
+    let performance = (mean + noise).clamp(0.0, 100.0);
+    // A hand-built pack may carry a job with no path list; such a job is
+    // reviewed as the only level of its path: nowhere to rise or fall to.
+    let levels: &[u32] = pack
+        .career_paths
+        .get(job.path as usize)
+        .map_or(&[], |path| path.levels.as_slice());
+    let path_top = job.level as usize + 1 >= levels.len();
+    let path_bottom = job.level == 0 || levels.is_empty();
+    let record = careers.records.get_mut(&sim).expect("present above");
+    if performance < tuning.career_poor_threshold {
+        record.consecutive_poor += 1;
+        record.consecutive_good = 0;
+    } else if performance >= tuning.career_good_threshold {
+        record.consecutive_good += 1;
+        record.consecutive_poor = 0;
+    } else {
+        record.consecutive_poor = 0;
+        record.consecutive_good = 0;
+    }
+    let draw = careers.draw();
+    let record = careers.records.get_mut(&sim).expect("present above");
+    let mut event = outcome(
+        tuning,
+        job,
+        path_top,
+        path_bottom,
+        record,
+        performance,
+        draw,
+    );
+    record.shifts.clear();
+    match event {
+        EVENT_PROMOTION => {
+            let row = levels[(job.level + 1) as usize];
+            let next = &pack.careers[row as usize];
+            record.pay = next.pay.max(record.pay.saturating_add(1)).min(next.pay_max);
+            record.consecutive_good = 0;
+            record.consecutive_poor = 0;
+            world.entity_mut(entity).insert(Career(row));
+            careers.promoted.record(
+                sim,
+                tick.saturating_add(u64::from(tuning.career_mood_promoted_ticks)),
+            );
+        }
+        EVENT_RAISE => {
+            record.pay = raised_pay(job, record.pay);
+            careers.raised.record(
+                sim,
+                tick.saturating_add(u64::from(tuning.career_mood_promoted_ticks)),
+            );
+        }
+        EVENT_DEMOTION => {
+            let row = levels[(job.level - 1) as usize];
+            let below = &pack.careers[row as usize];
+            record.pay = record.pay.clamp(below.pay, below.pay_max);
+            record.consecutive_good = 0;
+            record.consecutive_poor = 0;
+            world.entity_mut(entity).insert(Career(row));
+            careers.demoted.record(
+                sim,
+                tick.saturating_add(u64::from(tuning.career_mood_demoted_ticks)),
+            );
+        }
+        EVENT_FIRED => {
+            careers.fired.record(
+                sim,
+                tick.saturating_add(u64::from(tuning.career_mood_fired_ticks)),
+            );
+        }
+        _ => {
+            // Rule 14: a review with no outcome may change path.
+            if careers.autonomous_change {
+                let here = fit(world, pack, job, entity);
+                if here < tuning.career_change_fit {
+                    let better = best_path(
+                        world,
+                        pack,
+                        entity,
+                        Some(job.path),
+                        here + tuning.career_change_gap,
+                    );
+                    if let Some(path_index) = better {
+                        if careers.draw() < tuning.career_change_chance {
+                            event = EVENT_CHANGED_PATH;
+                            let row = pack.career_paths[path_index as usize].levels[0];
+                            let first = &pack.careers[row as usize];
+                            let record = careers.records.get_mut(&sim).expect("present above");
+                            record.pay = first.pay;
+                            record.consecutive_good = 0;
+                            record.consecutive_poor = 0;
+                            record.job_satisfaction = 50.0;
+                            world.entity_mut(entity).insert(Career(row));
                         }
                     }
                 }
             }
         }
-        let record = careers.records.get_mut(&sim).expect("present above");
-        record.history.push(Week {
-            week: ended_week,
-            performance,
-            event,
-        });
-        if event == EVENT_FIRED {
-            // Unemployed: the job and its record go together, as rule 16
-            // keeps a record only for an employed person.
-            careers.records.remove(&sim);
-            world
-                .entity_mut(entity)
-                .remove::<Career>()
-                .remove::<crate::reading::PendingShift>();
-        }
     }
-    world.insert_resource(careers);
+    let record = careers.records.get_mut(&sim).expect("present above");
+    record.history.push(Week {
+        week: ended_week,
+        performance,
+        event,
+    });
+    if event == EVENT_FIRED {
+        // Unemployed: the job and its record go together, as rule 16
+        // keeps a record only for an employed person.
+        careers.records.remove(&sim);
+        world
+            .entity_mut(entity)
+            .remove::<Career>()
+            .remove::<crate::reading::PendingShift>();
+    }
 }
 
 /// The path whose first level fits the person best among those with fit
@@ -687,7 +757,10 @@ fn search(world: &mut World) {
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
     if careers.autonomous_search {
         for (sim, entity) in people(world) {
-            if world.get::<Career>(entity).is_some() {
+            if world.get::<Career>(entity).is_some()
+                || world.get::<AtWork>(entity).is_some()
+                || world.get::<Commuting>(entity).is_some()
+            {
                 continue;
             }
             if careers.draw() >= tuning.career_search_chance {
@@ -740,13 +813,17 @@ pub(crate) fn tick(world: &mut World) {
 /// Rule 12: the player puts `agent` on `path`.
 pub(crate) fn assign(world: &mut World, agent: u32, path: u32) {
     let reason = assign_or_refuse(world, agent, Some(path));
-    world.resource_mut::<Careers>().last_result = Some(CareerResult { agent, reason });
+    let mut careers = world.resource_mut::<Careers>();
+    careers.commands += 1;
+    careers.last_result = Some(CareerResult { agent, reason });
 }
 
 /// Rule 12: the player makes `agent` unemployed.
 pub(crate) fn quit(world: &mut World, agent: u32) {
     let reason = assign_or_refuse(world, agent, None);
-    world.resource_mut::<Careers>().last_result = Some(CareerResult { agent, reason });
+    let mut careers = world.resource_mut::<Careers>();
+    careers.commands += 1;
+    careers.last_result = Some(CareerResult { agent, reason });
 }
 
 fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<CareerRefusal> {
@@ -870,6 +947,7 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
                 .any(|pair| pair[0].week >= pair[1].week)
             || record.consecutive_poor > 100_000
             || record.consecutive_good > 100_000
+            || record.review_due.is_some_and(|due| due >= week)
         {
             return Err(InvalidValue);
         }
@@ -877,10 +955,12 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
     if saved.moodlets.len() > 100_000 {
         return Err(InvalidValue);
     }
+    let mut seen = std::collections::BTreeSet::new();
     for moodlet in &saved.moodlets {
         if !(MOODLET_PROMOTED..=MOODLET_FIRED).contains(&moodlet.kind)
             || moodlet.until_tick > now.saturating_add(10_080)
             || crate::edit::living_entity(world, moodlet.sim).is_none()
+            || !seen.insert((moodlet.kind, moodlet.sim))
         {
             return Err(InvalidValue);
         }
@@ -1129,7 +1209,7 @@ mod tests {
             career_demote_base: 0.5,
             career_promote_base: 0.5,
             career_raise_base: 0.5,
-            ..terri_data::pack().tuning.clone()
+            ..terri_data::pack().tuning
         };
         let job = CompiledCareer {
             advance_weeks: 2,
@@ -1218,7 +1298,7 @@ mod tests {
         let tuning = Tuning {
             career_poor_threshold: 40.0,
             career_fire_base: 0.1,
-            ..terri_data::pack().tuning.clone()
+            ..terri_data::pack().tuning
         };
         let job = terri_data::pack().careers[0].clone();
         let mut record = Record::new(&job);
@@ -1408,9 +1488,10 @@ mod tests {
                 sim.world_mut().entity_mut(entity).insert(Career(first));
                 let fresh = Record::new(&pack.careers[first as usize]);
                 let mut careers = sim.world_mut().resource_mut::<Careers>();
+                // The streaks are the game's own: a promotion already reset
+                // them and a raise leaves them running.
                 let record = careers.records.get_mut(&id).expect("employed");
                 record.pay = fresh.pay;
-                record.consecutive_good = 0;
             }
         }
         let total: u32 = events[1..].iter().sum();
@@ -1685,75 +1766,93 @@ mod tests {
         assert!(draws(&sim) > 0, "the search draws on a weekday");
     }
 
+    /// A chatterbox with no shyness fits the cafe (0.6) far better than
+    /// the office (-0.1), so a review with no outcome moves them there;
+    /// the same person stays when fit is never below the change line or
+    /// while the setting is off.
     #[test]
     fn a_poorly_fitted_person_changes_path_and_a_well_fitted_one_stays() {
-        let mut sim = pinned(|t| {
+        let chatty = |sim: &mut Sim| {
+            let (id, entity) = worker(sim);
+            let pack = pack(sim);
+            let chatterbox = pack
+                .traits
+                .iter()
+                .position(|t| t.id == CHATTERBOX)
+                .expect("shipped") as u32;
+            sim.world_mut().entity_mut(entity).insert((
+                Traits::from_entries(vec![(chatterbox, 1.0)]),
+                terri_core::Shyness::new(1).expect("in range"),
+            ));
+            (id, entity)
+        };
+        let moving = |t: &mut Tuning| {
             t.career_change_fit = 2.0;
             t.career_change_gap = 0.0;
             t.career_change_chance = 1.0;
-        });
-        let (id, entity) = worker(&mut sim);
+        };
+        let mut sim = pinned(moving);
+        let (id, entity) = chatty(&mut sim);
         let pack = pack(&sim);
-        let here = pack.careers[0].path;
+        let cafe = pack
+            .career_paths
+            .iter()
+            .position(|p| p.id == "cafe")
+            .expect("shipped") as u32;
+        let barista = &pack.careers[pack.career_paths[cafe as usize].levels[0] as usize];
+        let office = pack.careers[0].path;
         sim.world_mut().resource_mut::<Careers>().records.insert(
             id,
             Record {
                 pay: 150,
                 consecutive_good: 1,
+                job_satisfaction: 70.0,
                 ..Record::new(&pack.careers[0])
             },
         );
-        let fit_here = fit(sim.world(), pack, &pack.careers[0], entity);
-        let better = best_path(sim.world(), pack, entity, Some(here), fit_here);
+        let here = fit(sim.world(), pack, &pack.careers[0], entity);
+        let there = fit(sim.world(), pack, barista, entity);
+        assert!(there > here, "{there} > {here}");
         review_week(&mut sim, id, 0, 50.0);
-        match better {
-            Some(path) => {
-                assert_eq!(
-                    level_of(&sim, entity),
-                    (path, 0),
-                    "moved to the better path's first level"
-                );
-                let record = record_of(&sim, id);
-                assert_eq!(
-                    record.history.last().map(|w| w.event),
-                    Some(EVENT_CHANGED_PATH)
-                );
-                assert_eq!(
-                    record.pay,
-                    pack.careers[pack.career_paths[path as usize].levels[0] as usize].pay
-                );
-                assert_eq!(
-                    (record.consecutive_good, record.job_satisfaction),
-                    (0, 50.0)
-                );
-            }
-            None => assert_eq!(level_of(&sim, entity).0, here),
-        }
+        assert_eq!(
+            level_of(&sim, entity),
+            (cafe, 0),
+            "moved to the cafe's first level"
+        );
+        let record = record_of(&sim, id);
+        assert_eq!(
+            record.history.last().map(|w| w.event),
+            Some(EVENT_CHANGED_PATH)
+        );
+        assert_eq!(record.pay, barista.pay);
+        assert_eq!(
+            (record.consecutive_good, record.job_satisfaction),
+            (0, 50.0)
+        );
 
         let mut sim = pinned(|t| {
+            moving(t);
             t.career_change_fit = -1.0;
-            t.career_change_gap = 0.0;
-            t.career_change_chance = 1.0;
         });
-        let (id, entity) = worker(&mut sim);
+        let (id, entity) = chatty(&mut sim);
         review_week(&mut sim, id, 0, 50.0);
-        assert_eq!(level_of(&sim, entity).0, here, "a well fitted person stays");
+        assert_eq!(
+            level_of(&sim, entity).0,
+            office,
+            "a well fitted person stays"
+        );
         assert_eq!(
             record_of(&sim, id).history.last().map(|w| w.event),
             Some(EVENT_NONE)
         );
 
-        let mut sim = pinned(|t| {
-            t.career_change_fit = 2.0;
-            t.career_change_gap = 0.0;
-            t.career_change_chance = 1.0;
-        });
-        let (id, entity) = worker(&mut sim);
+        let mut sim = pinned(moving);
+        let (id, entity) = chatty(&mut sim);
         set_autonomy(sim.world_mut(), false, true);
         review_week(&mut sim, id, 0, 50.0);
         assert_eq!(
             level_of(&sim, entity).0,
-            here,
+            office,
             "no change while the setting is off"
         );
     }
@@ -1886,6 +1985,17 @@ mod tests {
                     s.careers.records.push(other);
                 }),
             ),
+            (
+                "the same moodlet twice",
+                Box::new(|s| {
+                    let moodlet = s.careers.moodlets[0];
+                    s.careers.moodlets.push(moodlet);
+                }),
+            ),
+            (
+                "a review due for a week still running",
+                Box::new(|s| s.careers.records[0].review_due = Some(9)),
+            ),
         ];
         for (case, change) in cases {
             let mut invalid = clean.clone();
@@ -1918,6 +2028,18 @@ mod tests {
         assert_ne!(assigned, settings);
         changed.world_mut().resource_mut::<Careers>().rng = SimRng::from_seed(7);
         assert_ne!(changed.world_hash(), assigned);
+        // A quit before any shift leaves no record and no draw; the
+        // command count is what tells that world from a new game.
+        let mut quit_only = Sim::new_from_shipped_lot();
+        let employed = quit_only
+            .world_mut()
+            .query_filtered::<Entity, (With<Agent>, With<Career>)>()
+            .iter(quit_only.world())
+            .next()
+            .expect("the shipped worker");
+        quit(quit_only.world_mut(), employed.index_u32());
+        assert!(quit_only.world().get::<Career>(employed).is_none());
+        assert_ne!(quit_only.world_hash(), base, "a quit is in the hash");
     }
 
     #[test]
@@ -2004,6 +2126,121 @@ mod tests {
         sim.world_mut().resource_mut::<Careers>().expire(now);
     }
 
+    /// A week that ends while a person is at work is reviewed when they
+    /// come home: the shift they were on is paid at the pay they held, the
+    /// review's outcome lands, and the shift's score opens the new week.
+    /// A dismissal that fell due the same way leaves them home and
+    /// unemployed, paid for the last shift.
+    #[test]
+    fn a_review_due_while_at_work_is_applied_on_the_return() {
+        let week_ticks = 1440 * 7;
+        let mut sim = pinned(|t| t.career_raise_base = 1.0);
+        let (id, entity) = worker(&mut sim);
+        let job = pack(&sim).careers[0].clone();
+        {
+            let mut careers = sim.world_mut().resource_mut::<Careers>();
+            let record = careers.records.get_mut(&id).unwrap();
+            record.shifts.extend([100.0; 5]);
+        }
+        sim.world_mut()
+            .entity_mut(entity)
+            .insert(AtWork { remaining_ticks: 3 });
+        sim.world_mut().resource_mut::<SimClock>().tick = week_ticks;
+        review(sim.world_mut(), 0, week_ticks);
+        let waiting = record_of(&sim, id);
+        assert!(waiting.history.is_empty(), "nothing applied at work");
+        assert_eq!(waiting.review_due, Some(0));
+        assert_eq!(waiting.shifts.len(), 5);
+        assert_eq!(waiting.pay, job.pay);
+        sim.world_mut().entity_mut(entity).remove::<AtWork>();
+        let funds = sim.world().resource::<Funds>().0;
+        complete_shift(sim.world_mut(), entity);
+        let reviewed = record_of(&sim, id);
+        assert_eq!(
+            reviewed.history,
+            vec![Week {
+                week: 0,
+                performance: 100.0,
+                event: EVENT_RAISE
+            }]
+        );
+        assert_eq!(reviewed.review_due, None);
+        assert_eq!(reviewed.pay, raised_pay(&job, job.pay));
+        assert_eq!(
+            reviewed.shifts.len(),
+            1,
+            "the returning shift opens the new week"
+        );
+        assert_eq!(
+            sim.world().resource::<Funds>().0 - funds,
+            i64::from(job.pay) * Funds::CENTS_PER_DOLLAR,
+            "paid at the pay held while working"
+        );
+
+        let mut sim = pinned(|t| t.career_fire_base = 1.0);
+        let (id, entity) = worker(&mut sim);
+        {
+            let mut careers = sim.world_mut().resource_mut::<Careers>();
+            let record = careers.records.get_mut(&id).unwrap();
+            record.consecutive_poor = 2;
+            record.shifts.extend([0.0; 5]);
+        }
+        sim.world_mut()
+            .entity_mut(entity)
+            .insert(AtWork { remaining_ticks: 3 });
+        sim.world_mut().resource_mut::<SimClock>().tick = week_ticks;
+        review(sim.world_mut(), 0, week_ticks);
+        assert!(
+            sim.world().get::<Career>(entity).is_some(),
+            "still employed at work"
+        );
+        sim.world_mut().entity_mut(entity).remove::<AtWork>();
+        let funds = sim.world().resource::<Funds>().0;
+        complete_shift(sim.world_mut(), entity);
+        assert!(
+            sim.world().get::<Career>(entity).is_none(),
+            "dismissed on the return"
+        );
+        assert!(sim.world().resource::<Careers>().record(id).is_none());
+        assert!(sim
+            .world()
+            .resource::<Careers>()
+            .fired
+            .active(id, week_ticks));
+        assert_eq!(
+            sim.world().resource::<Funds>().0 - funds,
+            i64::from(job.pay) * Funds::CENTS_PER_DOLLAR,
+            "the last shift is paid"
+        );
+    }
+
+    /// Death drops the person's record and timers with their other
+    /// records, so the next save names only the living.
+    #[test]
+    fn a_death_drops_the_record_and_the_next_save_still_loads() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let (id, entity) = worker(&mut sim);
+        complete_shift(sim.world_mut(), entity);
+        let tick = sim.world().resource::<SimClock>().tick;
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .fired
+            .record(id, tick + 100);
+        assert!(sim.world().resource::<Careers>().record(id).is_some());
+        crate::mortality::remove_person(sim.world_mut(), entity);
+        sim.world_mut().despawn(entity);
+        let careers = sim.world().resource::<Careers>();
+        assert!(careers.record(id).is_none());
+        assert!(!careers.fired.active(id, tick));
+        let saved = sim.save_snapshot_v14();
+        assert!(saved.careers.records.is_empty() && saved.careers.moodlets.is_empty());
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot_v14(saved)
+            .expect("loads without the dead");
+        assert_eq!(restored.world_hash(), sim.world_hash());
+    }
+
     /// One week of the shipped household with every working day covered:
     /// Tim keeps the office job and Casey takes the night watch, with the
     /// autonomy off so the week is the same every run. The household is
@@ -2037,7 +2274,11 @@ mod tests {
         let start = sim.world().resource::<Funds>().0;
         let week_ticks = u64::from(pack.tuning.day_ticks) * 7;
         let mut sums = vec![[0.0_f64; 7]; people.len()];
-        for _ in 0..week_ticks {
+        // Through Monday noon, so Casey's Sunday night shift has ended,
+        // however late a book delayed its start, and the review that fell
+        // due while they were at work is applied on the return; Tim has
+        // left for Monday's shift and not yet come home.
+        for _ in 0..(week_ticks + 720) {
             sim.tick();
             for (slot, person) in people.iter().enumerate() {
                 let needs = sim.world().get::<Needs>(*person).expect("alive");
@@ -2046,10 +2287,10 @@ mod tests {
                 }
             }
         }
-        // Five office shifts and the four night shifts that end inside the
-        // week (the Sunday night shift ends on Monday).
+        // Five office shifts and five night shifts, the last ending on the
+        // Monday morning.
         let office = &pack.careers[sim.world().get::<Career>(tim).unwrap().0 as usize];
-        let expected = 5 * i64::from(office.pay) + 4 * i64::from(pack.careers[night as usize].pay);
+        let expected = 5 * i64::from(office.pay) + 5 * i64::from(pack.careers[night as usize].pay);
         assert_eq!(
             sim.world().resource::<Funds>().0 - start,
             expected * Funds::CENTS_PER_DOLLAR,
@@ -2057,13 +2298,20 @@ mod tests {
         );
         for id in [tim_id, casey_id] {
             let record = record_of(&sim, id);
-            assert_eq!(record.history.len(), 1, "reviewed at the week's end");
-            assert!(record.shifts.is_empty());
+            assert_eq!(
+                record.history.len(),
+                1,
+                "reviewed at the week's end or on the return"
+            );
+            assert_eq!(record.review_due, None);
+            // Casey's Monday return opened the new week with one score;
+            // Tim is still out on Monday's shift.
+            assert!(record.shifts.len() <= 1, "{:?}", record.shifts);
         }
         for (slot, person) in people.iter().enumerate() {
             assert!(sim.world().get::<Agent>(*person).is_some(), "alive");
             for (need_slot, need) in NeedId::ALL.into_iter().enumerate() {
-                let mean = sums[slot][need_slot] / week_ticks as f64;
+                let mean = sums[slot][need_slot] / (week_ticks + 720) as f64;
                 assert!(mean > 10.0, "{need:?} of person {slot} averaged {mean:.1}");
             }
             let life = sim.world().get::<Satisfaction>(*person).unwrap().value();

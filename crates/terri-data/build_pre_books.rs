@@ -175,6 +175,7 @@ pub fn compile(root: &Path) -> pack::ContentPack {
                 let mut level = table.clone();
                 level.insert("title".to_string(), table["label"].clone());
                 level.insert("pay_max".to_string(), table["pay"].clone());
+                level.insert("advance_weeks".to_string(), toml::Value::Integer(1));
                 let path_id = format!("{}_path", table["id"].as_str().expect("career id"));
                 for key in [
                     "shift_start",
