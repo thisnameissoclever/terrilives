@@ -284,31 +284,47 @@ pub(crate) fn maintain(world: &mut World) {
         .retain(|e, _| active.contains(e));
 }
 
+/// Every topic tag with a bubble code of its own; any other tag draws the
+/// generic code 7. One list, so the activity log's label table names every
+/// tag a chat can show by its code.
+pub(crate) const TOPIC_CODES: [(&str, u32); 29] = [
+    ("reading", 8),
+    ("exercise", 9),
+    ("aquarium", 10),
+    ("fish", 10),
+    ("television", 14),
+    ("tv", 14),
+    ("music", 18),
+    ("radio", 18),
+    ("socialising", 4),
+    ("lounging", 15),
+    ("correspondence", 19),
+    ("cooking", 23),
+    ("eating", 3),
+    ("food", 3),
+    ("sleeping", 5),
+    ("sleep", 5),
+    ("sitting", 11),
+    ("comfort", 11),
+    ("showering", 12),
+    ("shower", 12),
+    ("toilet", 13),
+    ("bathing", 20),
+    ("bath", 20),
+    ("washing", 16),
+    ("hygiene", 16),
+    ("cleaning", 17),
+    // Fights (issue 248): what the fight is about, drawn in red.
+    ("fight-dishes", 24),
+    ("fight-chore", 25),
+    ("fight", 26),
+];
+
 pub(crate) fn tag_code(tag: &str) -> u32 {
-    match tag {
-        "reading" => 8,
-        "exercise" => 9,
-        "aquarium" | "fish" => 10,
-        "television" | "tv" => 14,
-        "music" | "radio" => 18,
-        "socialising" => 4,
-        "lounging" => 15,
-        "correspondence" => 19,
-        "cooking" => 23,
-        "eating" | "food" => 3,
-        "sleeping" | "sleep" => 5,
-        "sitting" | "comfort" => 11,
-        "showering" | "shower" => 12,
-        "toilet" => 13,
-        "bathing" | "bath" => 20,
-        "washing" | "hygiene" => 16,
-        "cleaning" => 17,
-        // Fights (issue 248): what the fight is about, drawn in red.
-        "fight-dishes" => 24,
-        "fight-chore" => 25,
-        "fight" => 26,
-        _ => 7,
-    }
+    TOPIC_CODES
+        .iter()
+        .find(|(known, _)| *known == tag)
+        .map_or(7, |&(_, code)| code)
 }
 pub(crate) fn topic_weight(mine: f32, theirs: f32, inclination: f32) -> f32 {
     mine.max(0.) * (1. + 4. * inclination.clamp(0., 1.) * theirs.max(0.))

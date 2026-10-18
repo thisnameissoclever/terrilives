@@ -1,0 +1,482 @@
+//! The session activity log - [AL-boundary] in the activity log
+//! specification. Fixed-size numeric records of finished household events,
+//! staged here for the shell to drain once a frame.
+//!
+//! Nothing in this module feeds back into the simulation. Emission copies
+//! values the simulation has already computed; it draws nothing from
+//! `SimRng`, inserts or removes no component, and keeps every piece of state
+//! in the one resource below, keyed by `SimId`. `Sim::world_hash` and every
+//! save leave that resource out, and `activity_log_never_changes_the_world`
+//! is what fails if an emitter starts to matter.
+
+use bevy_ecs::prelude::*;
+use std::collections::BTreeMap;
+use std::sync::Mutex;
+use terri_data::ContentPack;
+
+/// Little-endian `u32` words in one record ([AL-record]).
+pub const RECORD_WORDS: usize = 12;
+/// Records the simulation holds before the oldest is overwritten. The shell
+/// drains every frame and a frame runs at most five ticks, so the ring only
+/// fills when nothing drains it.
+pub const STAGING_CAPACITY: usize = 256;
+/// The "nobody" and "no label" value of the `other`, `label` and `label2`
+/// words.
+pub const NONE: u32 = u32::MAX;
+
+/// Trigger mask bits. A line shows when an enabled filter's bit is set in
+/// its record or in one of its children. Details and Time never trigger.
+pub const ACTIONS: u32 = 1;
+pub const CHORES: u32 = 2;
+pub const SOCIAL: u32 = 4;
+pub const SKILLS: u32 = 8;
+pub const CAREER: u32 = 16;
+
+/// Chore outcome codes, the `v0` of a [`LogKind::ChoreOutcome`] record.
+pub const OUTCOME_DONE: i32 = 0;
+pub const OUTCOME_COVERED: i32 = 1;
+pub const OUTCOME_SKIPPED: i32 = 2;
+pub const OUTCOME_MISSED: i32 = 3;
+
+const SEQ: usize = 0;
+const TICK: usize = 1;
+const KIND: usize = 2;
+const ACTOR: usize = 3;
+const OTHER: usize = 4;
+const LABEL: usize = 5;
+const LABEL2: usize = 6;
+const PARENT: usize = 7;
+const VALUES: usize = 8;
+
+/// What a record describes. The numbers are the record's `kind` byte and
+/// part of the boundary contract with the shell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
+pub enum LogKind {
+    ActionDone = 1,
+    ChatDone = 2,
+    FightDone = 3,
+    Annoyed = 4,
+    ChoresThisWeek = 5,
+    Duty = 6,
+    ChoreOutcome = 7,
+    Feeling = 8,
+    SkillLevel = 9,
+    WeeklyReview = 10,
+    CareerChange = 11,
+    Death = 12,
+}
+
+impl LogKind {
+    pub const ALL: [Self; 12] = [
+        Self::ActionDone,
+        Self::ChatDone,
+        Self::FightDone,
+        Self::Annoyed,
+        Self::ChoresThisWeek,
+        Self::Duty,
+        Self::ChoreOutcome,
+        Self::Feeling,
+        Self::SkillLevel,
+        Self::WeeklyReview,
+        Self::CareerChange,
+        Self::Death,
+    ];
+
+    pub fn from_code(code: u8) -> Option<Self> {
+        Self::ALL.into_iter().find(|kind| *kind as u8 == code)
+    }
+}
+
+/// One event as twelve words: `seq`, `tick`, kind and triggers, `actor`,
+/// `other`, `label`, `label2`, `parent`, then four signed values whose
+/// meaning depends on the kind ([AL-record]). Built with the `with_` methods
+/// and given its `seq` when staged.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LogRecord(pub [u32; RECORD_WORDS]);
+
+impl LogRecord {
+    const EMPTY: Self = Self([0; RECORD_WORDS]);
+
+    pub fn new(kind: LogKind, triggers: u32, tick: u64, actor: u32) -> Self {
+        let mut words = [0; RECORD_WORDS];
+        words[TICK] = u32::try_from(tick).unwrap_or(u32::MAX);
+        words[KIND] = u32::from(kind as u8) | (triggers & 0xff) << 8;
+        words[ACTOR] = actor;
+        words[OTHER] = NONE;
+        words[LABEL] = NONE;
+        words[LABEL2] = NONE;
+        Self(words)
+    }
+
+    pub fn with_other(mut self, other: u32) -> Self {
+        self.0[OTHER] = other;
+        self
+    }
+
+    pub fn with_label(mut self, label: u32) -> Self {
+        self.0[LABEL] = label;
+        self
+    }
+
+    pub fn with_label2(mut self, label: u32) -> Self {
+        self.0[LABEL2] = label;
+        self
+    }
+
+    pub fn with_value(mut self, slot: usize, value: i32) -> Self {
+        self.0[VALUES + slot] = value as u32;
+        self
+    }
+
+    pub fn with_triggers(mut self, triggers: u32) -> Self {
+        self.0[KIND] |= (triggers & 0xff) << 8;
+        self
+    }
+
+    pub fn seq(&self) -> u32 {
+        self.0[SEQ]
+    }
+
+    pub fn tick(&self) -> u32 {
+        self.0[TICK]
+    }
+
+    pub fn kind(&self) -> Option<LogKind> {
+        LogKind::from_code((self.0[KIND] & 0xff) as u8)
+    }
+
+    pub fn triggers(&self) -> u32 {
+        (self.0[KIND] >> 8) & 0xff
+    }
+
+    pub fn actor(&self) -> u32 {
+        self.0[ACTOR]
+    }
+
+    pub fn other(&self) -> u32 {
+        self.0[OTHER]
+    }
+
+    pub fn label(&self) -> u32 {
+        self.0[LABEL]
+    }
+
+    pub fn label2(&self) -> u32 {
+        self.0[LABEL2]
+    }
+
+    pub fn parent(&self) -> u32 {
+        self.0[PARENT]
+    }
+
+    pub fn value(&self, slot: usize) -> i32 {
+        self.0[VALUES + slot] as i32
+    }
+
+    fn involves(&self, person: u32) -> bool {
+        self.actor() == person || self.other() == person
+    }
+}
+
+/// Two signed sixteen-bit halves in one value word, `low` first: a chat's
+/// two preferences, or its two Social gains.
+pub fn pack_pair(low: i32, high: i32) -> i32 {
+    let half = |value: i32| value.clamp(i32::from(i16::MIN), i32::from(i16::MAX)) as i16 as u16;
+    (u32::from(half(low)) | u32::from(half(high)) << 16) as i32
+}
+
+/// The two halves [`pack_pair`] packed, `low` first.
+pub fn unpack_pair(value: i32) -> (i32, i32) {
+    let bits = value as u32;
+    (
+        i32::from(bits as u16 as i16),
+        i32::from((bits >> 16) as u16 as i16),
+    )
+}
+
+/// The label table: every string a record's `label` or `label2` can name,
+/// in a fixed order built from the content pack, each once. The shell reads
+/// it once and composes words from it ([AL-strings]); the simulation never
+/// builds a string per event.
+pub struct Labels {
+    names: Vec<String>,
+    index: BTreeMap<String, u32>,
+}
+
+impl Labels {
+    fn build(pack: &ContentPack) -> Self {
+        let mut labels = Self {
+            names: Vec::new(),
+            index: BTreeMap::new(),
+        };
+        for object in &pack.objects {
+            for action in &object.interactions {
+                labels.add(&action.label);
+            }
+        }
+        for chain in &pack.chains {
+            labels.add(&chain.label);
+        }
+        let day = pack.tuning.day_ticks.max(1);
+        for hour in [0, 12, 18] {
+            labels.add(crate::domestic::meal_label(u64::from(hour * day / 24), day));
+        }
+        for interaction in &pack.social {
+            labels.add(&interaction.label);
+        }
+        labels.add("smalltalk");
+        for (tag, _) in crate::social_episode::TOPIC_CODES {
+            labels.add(tag);
+        }
+        for reason in [
+            None,
+            Some(crate::fights::Reason::Dishes),
+            Some(crate::fights::Reason::OtherChore),
+        ] {
+            labels.add(crate::fights::Reason::tag(reason));
+        }
+        // Any other tag a preference can name is still a possible topic.
+        for object in &pack.objects {
+            for action in &object.interactions {
+                action.tags.iter().for_each(|tag| labels.add(tag));
+            }
+        }
+        for chain in &pack.chains {
+            for step in &chain.steps {
+                step.tags.iter().for_each(|tag| labels.add(tag));
+            }
+        }
+        for definition in &pack.traits {
+            labels.add(&definition.tag);
+        }
+        for member in &pack.household {
+            member.hobbies.iter().for_each(|tag| labels.add(tag));
+        }
+        for skill in &pack.skills {
+            labels.add(&skill.label);
+        }
+        for career in &pack.careers {
+            labels.add(&career.label);
+        }
+        for kind in terri_core::chores::ChoreKind::ALL {
+            labels.add(kind.label());
+        }
+        for object in &pack.objects {
+            labels.add(&object.name);
+        }
+        for kind in &pack.affinities {
+            labels.add(&kind.label);
+        }
+        for cause in crate::relationship_effects::RelationshipCause::ALL {
+            labels.add(cause.log_label());
+        }
+        labels
+    }
+
+    fn add(&mut self, text: &str) {
+        if !self.index.contains_key(text) {
+            self.index.insert(text.to_owned(), self.names.len() as u32);
+            self.names.push(text.to_owned());
+        }
+    }
+
+    pub fn names(&self) -> &[String] {
+        &self.names
+    }
+
+    /// The label's index, or [`NONE`] for a string the content never
+    /// names, which the shell shows as a generic word.
+    pub fn index(&self, text: &str) -> u32 {
+        self.index.get(text).copied().unwrap_or(NONE)
+    }
+}
+
+/// The label table for `pack`, built on first use and kept for the life of
+/// the process. Packs are `'static` and few, one per test fixture at most,
+/// so each table is built once rather than once per world: a Build
+/// transaction restores a fresh world for every command.
+pub fn labels(pack: &'static ContentPack) -> &'static Labels {
+    static TABLES: Mutex<Vec<(usize, &'static Labels)>> = Mutex::new(Vec::new());
+    let key = pack as *const ContentPack as usize;
+    let mut tables = TABLES.lock().unwrap_or_else(|poison| poison.into_inner());
+    if let Some(&(_, table)) = tables.iter().find(|(owner, _)| *owner == key) {
+        return table;
+    }
+    let table: &'static Labels = Box::leak(Box::new(Labels::build(pack)));
+    tables.push((key, table));
+    table
+}
+
+/// The staging ring and the scratch state emitters accumulate across ticks.
+/// Never saved, never hashed, never read by a simulation system. A Load
+/// builds a fresh world and with it an empty log; a Build transaction
+/// carries this resource across its world swaps in `copy_feedback`.
+#[derive(Resource, Clone)]
+pub struct ActivityLog {
+    ring: Box<[LogRecord]>,
+    head: usize,
+    len: usize,
+    next_seq: u32,
+    dropped: u32,
+    enabled: bool,
+    /// The first `seq` the end-of-tick link pass has not yet seen.
+    unlinked: u32,
+}
+
+impl Default for ActivityLog {
+    fn default() -> Self {
+        Self {
+            ring: vec![LogRecord::EMPTY; STAGING_CAPACITY].into_boxed_slice(),
+            head: 0,
+            len: 0,
+            next_seq: 1,
+            dropped: 0,
+            enabled: true,
+            unlinked: 1,
+        }
+    }
+}
+
+impl ActivityLog {
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    /// Turns emission on or off for the disabled performance baseline.
+    pub(crate) fn set_enabled(&mut self, on: bool) {
+        self.enabled = on;
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    /// Records overwritten in the ring before anything drained them.
+    pub fn dropped(&self) -> u32 {
+        self.dropped
+    }
+
+    /// The `seq` the next staged record receives.
+    pub fn next_seq(&self) -> u32 {
+        self.next_seq
+    }
+
+    /// Staged records, oldest first.
+    pub fn records(&self) -> impl Iterator<Item = &LogRecord> + '_ {
+        (0..self.len).map(move |offset| self.at(offset))
+    }
+
+    /// Stages `record` with the next `seq` and returns that `seq`, or 0 when
+    /// the log is disabled. A full ring overwrites its oldest record and
+    /// counts it as dropped.
+    pub fn push(&mut self, mut record: LogRecord) -> u32 {
+        if !self.enabled {
+            return 0;
+        }
+        let seq = self.next_seq;
+        record.0[SEQ] = seq;
+        record.0[PARENT] = 0;
+        if self.len == STAGING_CAPACITY {
+            self.ring[self.head] = record;
+            self.head = (self.head + 1) % STAGING_CAPACITY;
+            self.dropped = self.dropped.saturating_add(1);
+        } else {
+            self.ring[(self.head + self.len) % STAGING_CAPACITY] = record;
+            self.len += 1;
+        }
+        self.next_seq = self.next_seq.wrapping_add(1).max(1);
+        seq
+    }
+
+    /// Appends every staged record to `out`, oldest first, and empties the
+    /// ring. Returns how many records it moved.
+    pub fn take_into(&mut self, out: &mut Vec<u32>) -> u32 {
+        let count = self.len;
+        out.reserve(count * RECORD_WORDS);
+        for record in self.records() {
+            out.extend_from_slice(&record.0);
+        }
+        self.head = 0;
+        self.len = 0;
+        count as u32
+    }
+
+    /// The label's index in `pack`'s table, or [`NONE`].
+    pub fn label(&self, pack: &'static ContentPack, text: &str) -> u32 {
+        labels(pack).index(text)
+    }
+
+    /// The end-of-tick pass ([AL-boundary] rule 4): links every record staged
+    /// since the last pass to its parent from the same pass.
+    pub(crate) fn finish(&mut self) {
+        self.link();
+        self.unlinked = self.next_seq;
+    }
+
+    /// Children name their parent's `seq`; a child with no parent in its
+    /// pass stays a parent itself. Kept to the records staged since the last
+    /// pass, so a child never attaches to an earlier tick's event.
+    fn link(&mut self) {
+        // Sequence numbers rise through the ring, so this pass's records
+        // are its tail.
+        let first = (0..self.len)
+            .find(|&offset| self.at(offset).seq() >= self.unlinked)
+            .unwrap_or(self.len);
+        for child in first..self.len {
+            let record = *self.at(child);
+            let Some(kind) = record.kind() else {
+                continue;
+            };
+            let parent = (first..self.len)
+                .rev()
+                .filter(|&offset| offset != child)
+                .map(|offset| *self.at(offset))
+                .find(|candidate| adopts(candidate, kind, &record));
+            if let Some(parent) = parent {
+                let slot = (self.head + child) % STAGING_CAPACITY;
+                self.ring[slot].0[PARENT] = parent.seq();
+                if kind == LogKind::Feeling && parent.kind() == Some(LogKind::ChoreOutcome) {
+                    self.ring[slot].0[KIND] |= SOCIAL << 8;
+                }
+            }
+        }
+    }
+
+    fn at(&self, offset: usize) -> &LogRecord {
+        &self.ring[(self.head + offset) % STAGING_CAPACITY]
+    }
+}
+
+/// Whether `parent` takes a `kind` record as its child: a duty to its week,
+/// a performed chore to the action that did it, a feeling to the chore
+/// outcome it answers, and a skill level to the action or chat that crossed
+/// it ([AL-record]).
+fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord) -> bool {
+    match (kind, parent.kind()) {
+        (LogKind::Duty, Some(LogKind::ChoresThisWeek)) => parent.actor() == child.actor(),
+        (LogKind::ChoreOutcome, Some(LogKind::ActionDone)) => {
+            matches!(child.value(0), OUTCOME_DONE | OUTCOME_COVERED)
+                && parent.actor() == child.actor()
+        }
+        (LogKind::Feeling, Some(LogKind::ChoreOutcome)) => parent.involves(child.other()),
+        (LogKind::SkillLevel, Some(LogKind::ActionDone)) => parent.actor() == child.actor(),
+        (LogKind::SkillLevel, Some(LogKind::ChatDone)) => parent.involves(child.actor()),
+        _ => false,
+    }
+}
+
+/// Runs the end-of-tick pass. Called by `Sim::tick` and
+/// `Sim::flush_commands` after their schedules, never as a scheduled system,
+/// so it cannot change the order any system runs in.
+pub(crate) fn finish_tick(world: &mut World) {
+    if let Some(mut log) = world.get_resource_mut::<ActivityLog>() {
+        if log.enabled {
+            log.finish();
+        }
+    }
+}

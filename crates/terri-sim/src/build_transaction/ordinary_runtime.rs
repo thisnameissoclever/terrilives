@@ -17,6 +17,7 @@ pub(crate) fn copy_feedback(from: &World, to: &mut World) {
     let requests = crate::social_episode::requests::runtime::capture(from);
     crate::social_episode::requests::runtime::restore(&requests, to);
     copy_optional::<crate::completion_sounds::CompletionSounds>(from, to);
+    copy_optional::<crate::activity_log::ActivityLog>(from, to);
     copy_optional::<crate::systems::command::CommandFeedback>(from, to);
     copy_optional::<crate::books::BookFeedback>(from, to);
     copy_optional::<crate::beds::AssignmentFeedback>(from, to);
@@ -33,6 +34,12 @@ pub(crate) fn copy_feedback(from: &World, to: &mut World) {
     to.insert_resource(lot);
     to.resource_mut::<crate::careers::Careers>().last_result =
         from.resource::<crate::careers::Careers>().last_result;
+}
+
+/// The live world's staged activity log records, which are newer than any
+/// copy a prepared candidate holds.
+pub(crate) fn carry_activity_log(from: &World, to: &mut World) {
+    copy_optional::<crate::activity_log::ActivityLog>(from, to);
 }
 
 pub(crate) fn refresh_derived(world: &mut World) {

@@ -558,11 +558,14 @@ impl Sim {
         next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
         let session = new_session()?;
         let mut b = self.world.remove_resource::<BuildTransaction>().unwrap();
-        let prepared = b.prepared.take().unwrap();
-        let baseline = save::v16::capture(&prepared.candidate);
-        let request_runtime =
-            crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
-        match ordinary::runtime::install(self, *prepared.candidate) {
+        let mut candidate = b.prepared.take().unwrap().candidate;
+        // The review copied the activity log when it was prepared, and the
+        // shell may have drained records since; installing that copy would
+        // hand them over a second time.
+        ordinary::runtime::carry_activity_log(&self.world, &mut candidate.world);
+        let baseline = save::v16::capture(&candidate);
+        let request_runtime = crate::social_episode::requests::runtime::capture(&candidate.world);
+        match ordinary::runtime::install(self, *candidate) {
             Ok(()) => {
                 self.world.insert_resource(BuildTransaction::new(
                     baseline,

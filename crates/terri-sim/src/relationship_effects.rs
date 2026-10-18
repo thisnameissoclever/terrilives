@@ -22,6 +22,46 @@ pub enum RelationshipCause {
     Fight,
 }
 
+impl RelationshipCause {
+    pub const ALL: [Self; 14] = [
+        Self::Conversation,
+        Self::LowNeedInterruption,
+        Self::CriticalNeedInterruption,
+        Self::PrivacyEntry,
+        Self::PrivacyStart,
+        Self::Proximity,
+        Self::SharedActivity,
+        Self::Incompatibility,
+        Self::Decay,
+        Self::HouseholdMess,
+        Self::ChoreFulfilled,
+        Self::ChoreNeglected,
+        Self::Nuisance,
+        Self::Fight,
+    ];
+
+    /// The cause's entry in the activity log's label table, which the shell
+    /// turns into words. An identifier, never shown to the player.
+    pub fn log_label(self) -> &'static str {
+        match self {
+            Self::Conversation => "cause:conversation",
+            Self::LowNeedInterruption => "cause:low-need-interruption",
+            Self::CriticalNeedInterruption => "cause:critical-need-interruption",
+            Self::PrivacyEntry => "cause:privacy-entry",
+            Self::PrivacyStart => "cause:privacy-start",
+            Self::Proximity => "cause:proximity",
+            Self::SharedActivity => "cause:shared-activity",
+            Self::Incompatibility => "cause:incompatibility",
+            Self::Decay => "cause:decay",
+            Self::HouseholdMess => "cause:household-mess",
+            Self::ChoreFulfilled => "cause:chore-fulfilled",
+            Self::ChoreNeglected => "cause:chore-neglected",
+            Self::Nuisance => "cause:nuisance",
+            Self::Fight => "cause:fight",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct RelationshipEffect {
     pub tick: u64,
