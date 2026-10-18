@@ -3641,10 +3641,11 @@ weighs it against wandering.
 At `c2ef49b59` the vector was still independent of `exp` results, for a
 different reason. A temporary probe that logged `DecisionTelemetry` over
 `build_scenario`'s 100 ticks found 33 decisions, each holding the wander
-candidate alone at probability 1.0, which no `exp` result can change. The
-fridge never became a candidate, because both of its actions are chains with a
-preparation step and the scenario has no counter, and the agents had no
-`SimId`, so none became another's social or waiting candidate.
+candidate alone at probability 1.0, which no `exp` result can change. Two
+conditions kept it alone: the fridge never became a candidate, because both of
+its actions are chains with a preparation step and the scenario has no counter;
+and the agents had no `SimId`, so none became another's social or waiting
+candidate.
 
 That second condition no longer holds. Commit `5107826ba` spawns the
 scenario's agents through `Sim::spawn_agent`, which gives each one a `SimId`,

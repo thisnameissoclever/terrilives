@@ -2628,8 +2628,8 @@ mod intent_tests {
     //! so that "the intent won" is measured against what actually happens
     //! without one rather than against a prediction. `assert_decisive`
     //! does not see the critical-need cap its doc describes, so a fixture
-    //! whose housemate has a critical need must also make its scoring
-    //! winner one that relieves that need.
+    //! whose housemate has a critical need that some candidate relieves
+    //! must make its scoring winner one of those candidates.
 
     use super::tests::{
         action_threshold, assert_decisive, decisive_pack, def, object_of_width, planned_route,
@@ -3663,8 +3663,8 @@ mod tests {
     /// and a need is critical, `critical_choices::critical_choice_probabilities`
     /// caps the share of candidates that do not relieve it at the
     /// `[autonomy]` limits, so with the shipped caps a loser that relieves
-    /// the critical need takes most of the draw whatever the scores, and
-    /// this check cannot see that case.
+    /// the critical need, while the winner does not, takes most of the
+    /// draw whatever the scores, and this check cannot see that case.
     ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
