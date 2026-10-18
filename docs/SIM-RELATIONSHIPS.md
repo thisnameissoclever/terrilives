@@ -47,6 +47,8 @@ The shared device or table defines communal participation. General room and
 four-tile proximity rules affect affinity; they do not cancel otherwise valid
 communal Social benefits.
 
+Eating another housemate's cooked meal also raises the eater's opinion of the cook once per portion, independently of shared Social. See [meal-sharing appreciation](specs/2026-10-18-meal-appreciation.md) for the trigger, balance choices and save behavior.
+
 Meals provide Social only while both Sims actually eat seated in separate chairs
 facing the same table. They can eat food from different cooking batches.
 Standing, tableless meals, preparation, gathering and empty-table sitting provide
@@ -84,8 +86,7 @@ Friends collect real portions and eat together, sitting at usable chairs or stan
 affects food quality for everyone; each eater leaves their own used dish.
 Committed diners gather before their shared eating countdown begins. A busy
 friend's player orders keep priority, and critical needs release the waiting
-group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. A late arrival can extend an existing participant's activity at most twice per uninterrupted activity. Cooking for friends
-currently provides food and company; it does not invent a gratitude bonus.
+group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. A late arrival can extend an existing participant's activity at most twice per uninterrupted activity. Cooking for friends provides food and company; finishing another housemate's portion also grants appreciation toward its cook.
 
 Preparation also leaves dishes on the counter. Visible dishes lower mood,
 including the observer's own old mess. Someone else's dishes also cause a small

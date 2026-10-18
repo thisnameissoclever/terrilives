@@ -24,7 +24,9 @@ function publishPaperReview() {
     title: 'Paper sound review',
     introduction: 'Four unedited, unreviewed recordings, not approved game sounds. This page changes no game audio. Nothing plays until you press Play.',
     instructions: 'Does each rustle fit a page turn, or does it sound like a tear, crumple, or unwanted noise? Compare Play original and Repeat for 15 seconds. Keep for editing is not shipping approval. Notes are not saved automatically. Closing or reloading loses notes unless you download them.',
-  } });
+  } }).replace('</title>', '</title>\n' +
+    '<link rel="icon" href="./favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256">\n' +
+    '<link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180">');
   if (fs.existsSync(destination)) {
     if (!fs.lstatSync(destination).isFile() || fs.realpathSync(destination) !== destination) {
       throw new Error('Existing paper review must be a regular file at its fixed destination');

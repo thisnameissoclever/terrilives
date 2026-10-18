@@ -1,0 +1,36 @@
+{
+  "baseRevision": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "mergedRevision": "10ced796be86ede188e1fd104cf916d5db58fd6b",
+  "objects": [
+    {
+      "path": "web/public",
+      "baseObject": "cf6285e1939b9d40e822ba93debaaa5d4293e42d",
+      "mergedObject": "cf6285e1939b9d40e822ba93debaaa5d4293e42d",
+      "byteIdentical": true
+    },
+    {
+      "path": "assets/sprites/atlas.toml",
+      "baseObject": "d50225f47e65c2fc2241f7685eee8d680a10541a",
+      "mergedObject": "d50225f47e65c2fc2241f7685eee8d680a10541a",
+      "byteIdentical": true
+    },
+    {
+      "path": "web/src/render/atlas.ts",
+      "baseObject": "c530bbee60ea05e42821f71278ef094fd53fa96b",
+      "mergedObject": "c530bbee60ea05e42821f71278ef094fd53fa96b",
+      "byteIdentical": true
+    },
+    {
+      "path": "web/src/render/coverage-file.ts",
+      "baseObject": "3f6f5863d848fe6dd71f5807be68357cf44e4d1b",
+      "mergedObject": "3f6f5863d848fe6dd71f5807be68357cf44e4d1b",
+      "byteIdentical": true
+    },
+    {
+      "path": "assets/models/architecture/export/depth-reviewed-01",
+      "baseObject": "058d8999ff88f59fe78113659d3f68ef20e82e4a",
+      "mergedObject": "058d8999ff88f59fe78113659d3f68ef20e82e4a",
+      "byteIdentical": true
+    }
+  ]
+}

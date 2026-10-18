@@ -385,9 +385,11 @@ fn every_relationship_cause_is_logged_or_excluded() {
             Cause::Nuisance => Expect::Episode,
             Cause::Conversation | Cause::Fight => Expect::Held,
             Cause::ChoreFulfilled | Cause::ChoreNeglected => Expect::Feeling,
-            Cause::Proximity | Cause::SharedActivity | Cause::Incompatibility | Cause::Decay => {
-                Expect::Excluded
-            }
+            Cause::Proximity
+            | Cause::SharedActivity
+            | Cause::Incompatibility
+            | Cause::Decay
+            | Cause::MealShared => Expect::Excluded,
         };
         let mut sim = Sim::new_with_lot(4, 4);
         let pack = sim.world().resource::<Content>().0;

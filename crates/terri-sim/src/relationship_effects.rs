@@ -1,7 +1,8 @@
-//! Observations of the last simulation tick, excluded from behavioral state.
+//! Directional opinion changes and observations of the last simulation tick.
+//! Diagnostics are excluded from behavioral state.
 use crate::activity_log::ActivityLog;
 use bevy_ecs::prelude::*;
-use terri_core::SimId;
+use terri_core::{Relationships, SimClock, SimId};
 use terri_data::ContentPack;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -24,10 +25,12 @@ pub enum RelationshipCause {
     Fight,
     /// Someone else's dirty dishes left at the place a diner sat down to.
     DirtySetting,
+    /// A completed portion of another person's cooked meal.
+    MealShared,
 }
 
 impl RelationshipCause {
-    pub const ALL: [Self; 15] = [
+    pub const ALL: [Self; 16] = [
         Self::Conversation,
         Self::LowNeedInterruption,
         Self::CriticalNeedInterruption,
@@ -43,6 +46,7 @@ impl RelationshipCause {
         Self::Nuisance,
         Self::Fight,
         Self::DirtySetting,
+        Self::MealShared,
     ];
 
     /// The cause's entry in the activity log's label table, which the shell
@@ -64,6 +68,7 @@ impl RelationshipCause {
             Self::Nuisance => "cause:nuisance",
             Self::Fight => "cause:fight",
             Self::DirtySetting => "cause:dirty-setting",
+            Self::MealShared => "cause:meal-shared",
         }
     }
 }
@@ -184,6 +189,8 @@ fn forward(
         RelationshipCause::Proximity
         | RelationshipCause::Incompatibility
         | RelationshipCause::Decay => {}
+        // Logged by the meal appreciation source in the next commit.
+        RelationshipCause::MealShared => {}
     }
 }
 
@@ -192,4 +199,50 @@ pub(crate) fn reset(world: &mut World) {
     diagnostics.effects.clear();
     diagnostics.contacts.clear();
     diagnostics.waits.clear();
+}
+
+/// Apply one directional opinion change and record its clamped result.
+pub(crate) fn record_opinion_change(
+    world: &mut World,
+    responsible: u32,
+    affected: Entity,
+    delta: f32,
+    cause: RelationshipCause,
+) {
+    let Some(subject) = world.get::<SimId>(affected).copied() else {
+        return;
+    };
+    if subject.0 == responsible {
+        return;
+    }
+    if world.get::<Relationships>(affected).is_none() {
+        world.entity_mut(affected).insert(Relationships::default());
+    }
+    let before = world
+        .get::<Relationships>(affected)
+        .unwrap()
+        .feeling(SimId(responsible));
+    world
+        .get_mut::<Relationships>(affected)
+        .unwrap()
+        .bump(SimId(responsible), delta);
+    let after = world
+        .get::<Relationships>(affected)
+        .unwrap()
+        .feeling(SimId(responsible));
+    let tick = world.resource::<SimClock>().tick;
+    record(
+        world,
+        RelationshipEffect {
+            tick,
+            event: 0,
+            cause,
+            responsible: SimId(responsible),
+            affected: subject,
+            requested: delta,
+            actual: after - before,
+            emergency: false,
+            directed: false,
+        },
+    );
 }

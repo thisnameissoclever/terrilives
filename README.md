@@ -1,6 +1,13 @@
 # Natural Causes
 
 <p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="web/public/branding/logo-dark.png">
+    <img src="web/public/branding/logo-light.png" alt="Natural Causes wilted-flower logo" width="420">
+  </picture>
+</p>
+
+<p align="center">
   <a href="https://thisnameissoclever.github.io/terrilives/">
     <img src="docs/assets/play-natural-causes.svg" alt="Play Natural Causes in your browser" width="360" height="80">
   </a>

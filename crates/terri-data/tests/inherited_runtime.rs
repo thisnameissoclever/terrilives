@@ -102,20 +102,32 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            let (old, tail) =
-                postcard::take_from_bytes::<terri_data::ContentPack>(&old_bytes).unwrap();
-            assert!(tail.is_empty());
-            assert_eq!(old.coverings.len(), 3);
-            assert_eq!(&pack.coverings[..3], old.coverings.as_slice());
-            assert_eq!(pack.coverings.len(), 4);
-            let mut previous = pack.clone();
-            assert_eq!(previous.coverings.pop().unwrap().name, "Outdoor patio");
+            // Issue 275: encoding-only movement, 23008 -> 23012 bytes.
+            // SHA-256 before: d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5
+            // SHA-256 after: 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5
+            // Removing the new tuning float
+            // must recover every byte of the previous runtime fixture.
+            let prefix = postcard::to_allocvec(&(
+                &pack.decay_per_tick,
+                &pack.objects,
+                pack.sim_sprite,
+                &pack.lot,
+                &pack.tuning,
+            ))
+            .unwrap();
+            assert!(encoded.starts_with(&prefix));
+            let end = prefix.len();
             assert_eq!(
-                postcard::to_allocvec(&previous).unwrap(),
-                old_bytes,
-                "only the appended patio covering may change the current fixture"
+                &encoded[end - 4..end],
+                &pack.tuning.meal_appreciation_gain.to_le_bytes()
             );
-            eprintln!("Patio-only fixture proof: all previous fields encode byte-exactly");
+            let mut previous = encoded.clone();
+            previous.drain(end - 4..end);
+            assert_eq!(
+                previous, old_bytes,
+                "only meal appreciation tuning may change the current fixture"
+            );
+            eprintln!("Meal appreciation fixture proof: four appended tuning bytes, all other bytes unchanged");
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;
