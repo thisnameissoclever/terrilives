@@ -4,8 +4,11 @@
 //! tick of the next week and decide a promotion, a raise, a demotion or,
 //! after three poor weeks in a row, a dismissal; an unemployed person looks
 //! for work and an employed one may change path, each behind a setting.
-//! The rabbit-hole shift itself stays in `systems::career`.
-use std::collections::BTreeMap;
+//! Job search is each person's own setting (issue 297,
+//! `docs/specs/2026-10-18-job-search-per-person.md`); changing path is one
+//! household setting. The rabbit-hole shift itself stays in
+//! `systems::career`.
+use std::collections::{BTreeMap, BTreeSet};
 
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -101,12 +104,15 @@ impl Record {
     }
 }
 
-/// Everything careers keep between ticks. Saved in schema fourteen; in the
-/// world hash whenever it differs from a new game's.
+/// Everything careers keep between ticks. Saved in schema fourteen, with
+/// the people whose job search is off in schema eighteen; in the world hash
+/// whenever it differs from a new game's.
 #[derive(Resource, Clone, Debug, PartialEq)]
 pub struct Careers {
     pub autonomous_change: bool,
-    pub autonomous_search: bool,
+    /// The living people who do not look for work on their own. Everyone
+    /// else does, so a new game and every newcomer start with the search on.
+    pub search_off: BTreeSet<SimId>,
     pub rng: SimRng,
     /// How often the stream was drawn, so a world whose draws left no other
     /// trace still hashes differently from one with none.
@@ -127,7 +133,7 @@ impl Default for Careers {
     fn default() -> Self {
         Self {
             autonomous_change: true,
-            autonomous_search: true,
+            search_off: BTreeSet::new(),
             rng: SimRng::from_seed(CAREERS_SEED),
             draws: 0,
             records: BTreeMap::new(),
@@ -146,7 +152,7 @@ impl Careers {
     /// hashing and the reason an untouched world hashes as it always did.
     pub fn is_pristine(&self) -> bool {
         self.autonomous_change
-            && self.autonomous_search
+            && self.search_off.is_empty()
             && self.draws == 0
             && self.commands == 0
             && self.records.is_empty()
@@ -165,10 +171,25 @@ impl Careers {
         self.records.get(&sim)
     }
 
+    /// Whether `sim` looks for work on their own while unemployed.
+    pub fn searches(&self, sim: SimId) -> bool {
+        !self.search_off.contains(&sim)
+    }
+
+    /// Turns one person's job search on or off.
+    pub fn set_search(&mut self, sim: SimId, search: bool) {
+        if search {
+            self.search_off.remove(&sim);
+        } else {
+            self.search_off.insert(sim);
+        }
+    }
+
     /// Drops the person's record and timers, as death drops every other
     /// per-person record.
     pub fn forget(&mut self, sim: SimId) {
         self.records.remove(&sim);
+        self.search_off.remove(&sim);
         self.promoted.forget(sim);
         self.raised.forget(sim);
         self.demoted.forget(sim);
@@ -202,7 +223,9 @@ impl Careers {
         self.fired.expire(now);
     }
 
-    /// The saved form: records in person order, moodlets by kind then person.
+    /// The saved form: records in person order, moodlets by kind then
+    /// person. The older household search field is written on; a writer
+    /// with the world sets it from `household_search`.
     pub fn to_saved(&self) -> SavedCareers {
         let mut moodlets = Vec::new();
         for kind in [
@@ -221,7 +244,7 @@ impl Careers {
         }
         SavedCareers {
             autonomous_change: self.autonomous_change,
-            autonomous_search: self.autonomous_search,
+            autonomous_search: true,
             rng: self.rng.clone(),
             draws: self.draws,
             records: self
@@ -251,11 +274,12 @@ impl Careers {
         }
     }
 
-    /// The live form of a saved one; the caller has validated it.
+    /// The live form of a saved one; the caller has validated it. The older
+    /// household search field is not read here: `install_saved` gives it
+    /// to every living person.
     pub fn from_saved(saved: SavedCareers) -> Self {
         let mut careers = Self {
             autonomous_change: saved.autonomous_change,
-            autonomous_search: saved.autonomous_search,
             rng: saved.rng,
             draws: saved.draws,
             commands: saved.commands,
@@ -293,7 +317,11 @@ impl Careers {
 
     pub fn hash_into(&self, hash: &mut FnvHasher) {
         hash.write_u64(u64::from(self.autonomous_change));
-        hash.write_u64(u64::from(self.autonomous_search));
+        // Where the household search setting was written: true while
+        // everyone looks for work, so such a world hashes as it did before
+        // the setting moved to each person. The people who are off are
+        // written after the moodlet timers.
+        hash.write_u64(u64::from(self.search_off.is_empty()));
         self.rng.hash_into(hash);
         hash.write_u64(self.draws);
         hash.write_u64(self.commands);
@@ -326,7 +354,71 @@ impl Careers {
                 .expect("a listed kind")
                 .hash_into(hash, &[b'c', b'a', b'r', b'e', b'e', b'r', kind]);
         }
+        if !self.search_off.is_empty() {
+            hash.write_bytes(b"job-search-off");
+            hash.write_u64(self.search_off.len() as u64);
+            for sim in &self.search_off {
+                hash.write_u64(u64::from(sim.0));
+            }
+        }
     }
+}
+
+/// Installs a validated saved careers block. A save from before job search
+/// was each person's setting carries one household value; every living
+/// person takes it, so a household that had the search off keeps it off.
+pub(crate) fn install_saved(world: &mut World, saved: SavedCareers) {
+    let search = saved.autonomous_search;
+    let mut careers = Careers::from_saved(saved);
+    if !search {
+        careers.search_off = people(world).into_iter().map(|(sim, _)| sim).collect();
+    }
+    world.insert_resource(careers);
+}
+
+/// The older household search setting, as schemas fourteen to seventeen
+/// carry it: off only while every living person's search is off, the one
+/// state that field and `install_saved` reproduce exactly. A household
+/// with some people on writes it on.
+pub(crate) fn household_search(world: &World) -> bool {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return true;
+    };
+    let Some(mut query) = world.try_query_filtered::<&SimId, With<Agent>>() else {
+        return true;
+    };
+    let mut living = query.iter(world).peekable();
+    living.peek().is_none() || living.any(|sim| careers.searches(*sim))
+}
+
+/// The living people whose job search is off, in id order, for schema
+/// eighteen.
+pub(crate) fn saved_search_off(world: &World) -> Vec<u32> {
+    world
+        .get_resource::<Careers>()
+        .map_or_else(Vec::new, |careers| {
+            careers
+                .search_off
+                .iter()
+                .filter(|sim| crate::edit::living_entity(world, sim.0).is_some())
+                .map(|sim| sim.0)
+                .collect()
+        })
+}
+
+/// Validates and installs schema eighteen's list over a world whose
+/// careers the older envelope has already restored: each id a living
+/// person, ascending, once.
+pub(crate) fn restore_search_off(world: &mut World, off: Vec<u32>) -> Result<(), crate::SaveError> {
+    if off.windows(2).any(|pair| pair[0] >= pair[1])
+        || off
+            .iter()
+            .any(|sim| crate::edit::living_entity(world, *sim).is_none())
+    {
+        return Err(crate::SaveError::InvalidValue);
+    }
+    world.resource_mut::<Careers>().search_off = off.into_iter().map(SimId).collect();
+    Ok(())
 }
 
 /// The week a tick falls in, as the chore board counts it.
@@ -832,33 +924,34 @@ fn best_path(
     best.map(|(index, _)| index)
 }
 
-/// Rule 13: an unemployed person looks for work on a working day.
+/// Rule 13: an unemployed person whose search is on looks for work on a
+/// working day. A person whose search is off is passed over before any
+/// draw, so the stream sees exactly the people who look.
 fn search(world: &mut World) {
     let pack = world.resource::<Content>().0;
     let tuning = &pack.tuning;
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
-    if careers.autonomous_search {
-        for (sim, entity) in people(world) {
-            if world.get::<Career>(entity).is_some()
-                || world.get::<AtWork>(entity).is_some()
-                || world.get::<Commuting>(entity).is_some()
-            {
-                continue;
-            }
-            if careers.draw() >= tuning.career_search_chance {
-                continue;
-            }
-            let Some(path) = best_path(world, pack, entity, None, f32::NEG_INFINITY) else {
-                continue;
-            };
-            let row = pack.career_paths[path as usize].levels[0];
-            let fit = fit(world, pack, &pack.careers[row as usize], entity);
-            let hired = (0.5 + 0.5 * fit).clamp(0.1, 0.95);
-            if careers.draw() < hired {
-                let job = &pack.careers[row as usize];
-                careers.records.insert(sim, Record::new(job));
-                world.entity_mut(entity).insert(Career(row));
-            }
+    for (sim, entity) in people(world) {
+        if !careers.searches(sim)
+            || world.get::<Career>(entity).is_some()
+            || world.get::<AtWork>(entity).is_some()
+            || world.get::<Commuting>(entity).is_some()
+        {
+            continue;
+        }
+        if careers.draw() >= tuning.career_search_chance {
+            continue;
+        }
+        let Some(path) = best_path(world, pack, entity, None, f32::NEG_INFINITY) else {
+            continue;
+        };
+        let row = pack.career_paths[path as usize].levels[0];
+        let fit = fit(world, pack, &pack.careers[row as usize], entity);
+        let hired = (0.5 + 0.5 * fit).clamp(0.1, 0.95);
+        if careers.draw() < hired {
+            let job = &pack.careers[row as usize];
+            careers.records.insert(sim, Record::new(job));
+            world.entity_mut(entity).insert(Career(row));
         }
     }
     world.insert_resource(careers);
@@ -955,11 +1048,33 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
     None
 }
 
-/// Rule 15.
+/// The older household command (rule 15 before issue 297), which a save
+/// can still hold queued: the change setting, and every living person's
+/// job search.
 pub(crate) fn set_autonomy(world: &mut World, change: bool, search: bool) {
+    let living = people(world);
     let mut careers = world.resource_mut::<Careers>();
     careers.autonomous_change = change;
-    careers.autonomous_search = search;
+    for (sim, _) in living {
+        careers.set_search(sim, search);
+    }
+}
+
+/// Whether people change path on their own: one household setting.
+pub(crate) fn set_change(world: &mut World, change: bool) {
+    world.resource_mut::<Careers>().autonomous_change = change;
+}
+
+/// Turns the job search of the person carrying entity index `agent` on or
+/// off. An index that names no living person changes nothing; like the
+/// other settings, the command is not counted with the career commands.
+pub(crate) fn set_search(world: &mut World, agent: u32, search: bool) {
+    let Some(sim) = crate::family::sim_id_at(world, agent) else {
+        return;
+    };
+    world
+        .resource_mut::<Careers>()
+        .set_search(SimId(sim), search);
 }
 
 /// The careers' part of the world hash: written only once the resource
@@ -1139,6 +1254,10 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
         })
         .unwrap_or_default()
 }
+
+#[cfg(test)]
+#[path = "job_search_tests.rs"]
+mod job_search_tests;
 
 #[cfg(test)]
 mod tests {
@@ -1962,7 +2081,7 @@ mod tests {
             set_autonomy(sim.world_mut(), change, search_on);
             let settings = sim.world().resource::<Careers>();
             assert_eq!(
-                (settings.autonomous_change, settings.autonomous_search),
+                (settings.autonomous_change, settings.search_off.is_empty()),
                 (change, search_on)
             );
             let (id, _) = worker(&mut sim);
@@ -2011,7 +2130,7 @@ mod tests {
         old.load_snapshot_v13(sim.save_snapshot_v13())
             .expect("loads");
         let careers = old.world().resource::<Careers>();
-        assert!(careers.autonomous_change && careers.autonomous_search);
+        assert!(careers.autonomous_change && careers.search_off.is_empty());
         assert!(careers.records.is_empty());
         let (_, entity) = worker(&mut old);
         let report = report(old.world(), entity).expect("employed");

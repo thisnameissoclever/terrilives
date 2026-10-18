@@ -156,7 +156,11 @@ fn can_suspend_autonomous_recipe(world: &World, actor: Entity, candidate: u64) -
 fn occupied(world: &mut World, actor: Entity) -> bool {
     world.get::<Target>(actor).is_some()
         || world.get::<Path>(actor).is_some()
-        || world.get::<terri_core::Eating>(actor).is_some()
+        || engaged(world, actor)
+}
+/// Activity that holds a person apart from their current target and path.
+fn engaged(world: &mut World, actor: Entity) -> bool {
+    world.get::<terri_core::Eating>(actor).is_some()
         || world.get::<Socialising>(actor).is_some()
         || crate::recipe_actions::foreground(world, actor)
         || world.get::<crate::reading::ReadingJourney>(actor).is_some()
@@ -824,7 +828,16 @@ fn prepare_request(
         }
     }
     let winner = plan.incoming.get(&recipient) == Some(&actor);
-    let busy = occupied(world, recipient);
+    let mut busy = occupied(world, recipient);
+    // A recipient who only waits for their own chat would otherwise wait on
+    // this order while it waits on them (issue 301). Their chat yields.
+    if winner
+        && busy
+        && !engaged(world, recipient)
+        && super::requests::yield_waiting(world, recipient)
+    {
+        busy = occupied(world, recipient);
+    }
     let admitted = world
         .resource::<SocialEpisodes>()
         .executions
