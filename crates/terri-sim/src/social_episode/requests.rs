@@ -856,6 +856,16 @@ fn plan_route(
     r: &ConversationRequest,
     ready: bool,
 ) -> Result<RoutePlan, WaitReason> {
+    let navigation = crate::systems::interpersonal::PrivacyNavigation::capture(world, r.initiator);
+    plan_route_with_navigation(world, r, ready, &navigation)
+}
+
+fn plan_route_with_navigation(
+    world: &World,
+    r: &ConversationRequest,
+    ready: bool,
+    navigation: &crate::systems::interpersonal::PrivacyNavigation,
+) -> Result<RoutePlan, WaitReason> {
     let pos = world
         .get::<Position>(r.initiator)
         .copied()
@@ -865,15 +875,13 @@ fn plan_route(
         .copied()
         .ok_or(WaitReason::NoRoute)?;
     let grid = world.resource::<TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = navigation.rooms();
     let private = if ready {
         None
     } else {
-        private_room(world, r.recipient, &rooms)
+        private_room(world, r.recipient, rooms)
     };
-    let mut safe = world
-        .get_resource::<crate::systems::interpersonal::InterpersonalPhase>()
-        .map_or_else(|| grid.clone(), |phase| phase.safe_grid(r.initiator, grid));
+    let mut safe = navigation.safe_grid(grid);
     let from = tile(pos);
     if let Some(room) = private {
         if rooms.at(from) != Some(room) {

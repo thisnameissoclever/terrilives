@@ -1,6 +1,6 @@
 # Urgent needs and pending conversations: verification record
 
-This record covers the urgent-needs and conversation changes developed on `twcx/urgent-needs-conversations` on October 17, 2026. The implementation checkpoint is `5107826ba`; `7c5f759a5` integrates main through `94a0e6618`. Final automated results and deployment evidence belong with the final inspected revision below.
+This record covers the urgent-needs and conversation changes developed on `twcx/urgent-needs-conversations` on October 17, 2026. The implementation checkpoints are `5107826ba` and `4d61060a9`. The integration revision `a46d9197d` includes the seasons release from main at `d09ec6b63`. Final automated results and rebuilt visual evidence identify that integrated source separately below.
 
 ## Reproduction and repaired behavior
 

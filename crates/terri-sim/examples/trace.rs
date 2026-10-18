@@ -227,7 +227,6 @@ fn main() {
     let mut critical_idle_max = vec![0u32; sims.len()];
     let mut critical_need_ticks = [0u64; NEED_COUNT];
     let mut critical_idle_samples = 0u32;
-    let idle_debug = std::env::var_os("TERRI_TRACE_IDLE_DEBUG").is_some();
     let mut critical_meter_rises = [0u64; NEED_COUNT];
     let mut previous_levels: Vec<[f32; NEED_COUNT]> = sims
         .iter()
@@ -415,33 +414,6 @@ fn main() {
                 continue;
             };
             let living = world.get::<terri_core::Agent>(agent).is_some();
-            if idle_debug
-                && index == 2
-                && (3808..=3820).contains(&world.resource::<terri_core::SimClock>().tick)
-            {
-                let decision = world
-                    .get_resource::<terri_sim::systems::autonomy::DecisionTelemetry>()
-                    .and_then(|telemetry| {
-                        telemetry
-                            .0
-                            .iter()
-                            .find(|row| row.agent == agent.index_u32())
-                    })
-                    .map(|row| {
-                        (
-                            row.choices.get(row.chosen),
-                            row.relief_masks.get(row.chosen),
-                        )
-                    });
-                let saved = sim.save_snapshot_v15();
-                let frozen = &saved.legacy.legacy.legacy.legacy.legacy.legacy;
-                println!("IDLE_INTERVAL tick {} position {:?}, decision {decision:?}, queue {:?}, pending shifts {:?}, requests {:?}, status {:?}, target {:?}, path {:?}, wander {:?}",
-                    world.resource::<terri_core::SimClock>().tick, world.get::<terri_core::Position>(agent),
-                    world.get::<terri_core::IntentQueue>(agent).map(|queue| queue.entries()),
-                    frozen.pending_shifts, saved.conversation_requests.requests,
-                    sim.activity_status_of(agent.index_u32()), world.get::<terri_core::Target>(agent),
-                    world.get::<Path>(agent), world.get::<Wander>(agent));
-            }
             let mut idle_now = false;
             if let Some(status) = sim.activity_status_of(agent.index_u32()) {
                 activity_context_ticks[status.code as usize] += 1;
@@ -471,11 +443,6 @@ fn main() {
                         world.get::<terri_core::chores::ChoreWork>(agent).is_some(),
                         world.get::<terri_core::Target>(agent), world.get::<Path>(agent).is_some(),
                         sim.chain_status_of(agent.index_u32()));
-                    let components: Vec<_> = world
-                        .inspect_entity(agent)
-                        .unwrap()
-                        .map(|info| info.name().to_string())
-                        .collect();
                     let orders: Vec<_> = world
                         .get::<terri_core::IntentQueue>(agent)
                         .into_iter()
@@ -489,15 +456,31 @@ fn main() {
                             )
                         })
                         .collect();
-                    let identity = world.get::<SimId>(agent).map(|id| id.0);
-                    let requests: Vec<_> = sim
-                        .save_snapshot_v15()
-                        .conversation_requests
-                        .requests
-                        .into_iter()
-                        .filter(|request| Some(request.initiator) == identity)
-                        .collect();
-                    println!("CRITICAL_IDLE_OWNERS components {components:?}; orders {orders:?}; requests {requests:?}; wander {:?}", world.get::<Wander>(agent));
+                    let decision = world
+                        .get_resource::<terri_sim::systems::autonomy::DecisionTelemetry>()
+                        .and_then(|telemetry| {
+                            telemetry
+                                .0
+                                .iter()
+                                .find(|row| row.agent == agent.index_u32())
+                        })
+                        .map(|row| {
+                            (
+                                row.choices.get(row.chosen),
+                                row.relief_masks.get(row.chosen),
+                            )
+                        });
+                    let saved = sim.save_snapshot_v15();
+                    let shifts = &saved
+                        .legacy
+                        .legacy
+                        .legacy
+                        .legacy
+                        .legacy
+                        .legacy
+                        .pending_shifts;
+                    println!("CRITICAL_IDLE_OWNERS decision {decision:?}; orders {orders:?}; pending shifts {shifts:?}; requests {:?}; wander {:?}",
+                        saved.conversation_requests.requests, world.get::<Wander>(agent));
                 }
             }
             if let Some(position) = world.get::<terri_core::Position>(agent).copied() {

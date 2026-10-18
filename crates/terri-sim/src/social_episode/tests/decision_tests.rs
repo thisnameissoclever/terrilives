@@ -1008,7 +1008,10 @@ fn unchanged_blocked_chat_retries_only_after_navigation_inputs_change() {
     crate::systems::interpersonal::prepare(sim.world_mut());
     requests::before_movement(sim.world_mut());
     let phase_attempts = requests::route_cache::attempts(sim.world());
-    assert_eq!(phase_attempts, first + 1);
+    assert_eq!(
+        phase_attempts, first,
+        "phase presence does not change live privacy navigation or require another search"
+    );
     for _ in 0..20 {
         crate::systems::interpersonal::prepare(sim.world_mut());
         requests::before_movement(sim.world_mut());
@@ -1164,7 +1167,8 @@ fn privacy_changes_invalidate_a_blocked_chat_without_geometry_edits() {
         },
     ));
     sim.world_mut().entity_mut(toilet).insert(Reserved);
-    crate::systems::interpersonal::prepare(sim.world_mut());
+    // The older incident phase remains present. Navigation must read the new
+    // live private occupancy rather than treating that phase as authoritative.
     requests::before_movement(sim.world_mut());
     assert_eq!(
         requests::route_cache::attempts(sim.world()),
@@ -1174,6 +1178,138 @@ fn privacy_changes_invalidate_a_blocked_chat_without_geometry_edits() {
     crate::systems::interpersonal::prepare(sim.world_mut());
     requests::before_movement(sim.world_mut());
     assert_eq!(requests::route_cache::attempts(sim.world()), 2);
+}
+
+#[test]
+fn third_person_privacy_cannot_take_a_free_recipients_choice_window() {
+    let mut sim = Sim::new_from_shipped_lot_with_seed(17);
+    let people: Vec<_> = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .map(|(entity, id)| (id.0, entity))
+        .collect();
+    let a = people.iter().find(|(id, _)| *id == 0).unwrap().1;
+    let b = people.iter().find(|(id, _)| *id == 2).unwrap().1;
+    let c = people.iter().find(|(id, _)| *id == 1).unwrap().1;
+    let pack = sim.world().resource::<Content>().0;
+    let toilet = sim
+        .world_mut()
+        .query::<(Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, object)| pack.object(object.0).id == "toilet")
+        .unwrap()
+        .0;
+    sim.world_mut()
+        .entity_mut(a)
+        .insert((Position { x: 13., y: 5. }, Reserved));
+    sim.world_mut()
+        .entity_mut(b)
+        .insert((Position { x: 14., y: 8. }, Reserved));
+    sim.world_mut()
+        .entity_mut(c)
+        .insert(Position { x: 12., y: 7. });
+    sim.world_mut()
+        .get_mut::<Needs>(c)
+        .unwrap()
+        .set(NeedId::Bladder, 0.);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObjectFirst {
+            agent: c.index_u32(),
+            object: toilet.index_u32(),
+            interaction: 0,
+        });
+    for _ in 0..20 {
+        sim.tick();
+        if sim.world().get::<Eating>(c).is_some() {
+            break;
+        }
+    }
+    assert!(
+        sim.world().get::<Eating>(c).is_some(),
+        "private use starts through normal execution"
+    );
+    sim.world_mut().entity_mut(a).remove::<Reserved>();
+    sim.world_mut().entity_mut(b).remove::<Reserved>();
+    sim.world_mut()
+        .entity_mut(b)
+        .insert((Needs::all_at(80.), terri_core::SelfPreservation(100)));
+    sim.world_mut()
+        .get_mut::<Needs>(b)
+        .unwrap()
+        .set(NeedId::Hunger, 10.);
+    let rooms = crate::room_regions::RoomRegions::from_world(sim.world());
+    let private = rooms.at((12, 6));
+    assert!(private.is_some());
+    assert_eq!(rooms.at((14, 8)), private);
+    assert_ne!(rooms.at((13, 5)), private);
+    let request = requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
+    sim.tick();
+    assert!(
+        sim.world()
+            .resource::<crate::systems::autonomy::DecisionTelemetry>()
+            .0
+            .iter()
+            .any(|decision| decision.agent == b.index_u32()),
+        "a privacy-blocked incoming request must leave the recipient's choice window intact"
+    );
+    assert!(sim.world().get::<Reserved>(b).is_none());
+    assert!(sim
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .requests
+        .contains_key(&request));
+    let mut saw_relief = false;
+    let mut saw_talk = false;
+    let mut saw_care = false;
+    let mut care_completed = false;
+    for _ in 0..700 {
+        saw_relief |= sim.world().get::<Needs>(b).unwrap().get(NeedId::Hunger) > 20.;
+        let care_active = sim.world().get::<Eating>(b).is_some()
+            || sim.world().get::<terri_core::ChainState>(b).is_some()
+            || sim.world().get::<terri_core::StepWork>(b).is_some()
+            || sim.world().get::<Path>(b).is_some();
+        saw_care |= care_active;
+        care_completed |= saw_care && saw_relief && !care_active;
+        if sim
+            .world()
+            .get::<Socialising>(a)
+            .is_some_and(|talk| talk.partner == b)
+        {
+            saw_talk = true;
+            assert!(
+                care_completed && !care_active,
+                "the recipient completes their protected food before the retained chat"
+            );
+            let state = sim.world().resource::<requests::ConversationRequests>();
+            let original = state
+                .requests
+                .get(&request)
+                .expect("the original request starts talking");
+            assert_eq!(
+                (original.initiator, original.recipient, original.phase),
+                (a, b, requests::RequestPhase::Talking)
+            );
+            break;
+        }
+        assert!(
+            sim.world()
+                .resource::<requests::ConversationRequests>()
+                .requests
+                .contains_key(&request),
+            "the same chosen request survives the wait"
+        );
+        sim.tick();
+    }
+    assert!(saw_relief && saw_talk);
 }
 
 #[test]

@@ -19,7 +19,7 @@ struct Signature {
     ready: bool,
     waiting_tile: Option<(i32, i32)>,
     target: Option<RecipientTarget>,
-    privacy: Option<crate::systems::interpersonal::NavigationConstraints>,
+    privacy: crate::systems::interpersonal::NavigationConstraints,
 }
 
 #[derive(Clone)]
@@ -30,7 +30,7 @@ struct FailedRoute {
 
 #[derive(Resource, Default)]
 struct Failures {
-    requests: BTreeMap<u64, [Option<FailedRoute>; 2]>,
+    requests: BTreeMap<u64, FailedRoute>,
     #[cfg(test)]
     attempts: usize,
 }
@@ -50,7 +50,12 @@ fn changed<T: Resource>(world: &World) -> u32 {
 }
 
 impl Signature {
-    fn read(world: &World, request: &ConversationRequest, ready: bool) -> Self {
+    fn read(
+        world: &World,
+        request: &ConversationRequest,
+        ready: bool,
+        navigation: &crate::systems::interpersonal::PrivacyNavigation,
+    ) -> Self {
         let target = world
             .get::<Target>(request.recipient)
             .map(|t| RecipientTarget {
@@ -77,9 +82,7 @@ impl Signature {
             ready,
             waiting_tile: request.waiting_tile,
             target,
-            privacy: world
-                .get_resource::<crate::systems::interpersonal::InterpersonalPhase>()
-                .map(|phase| phase.navigation_constraints(request.initiator)),
+            privacy: navigation.constraints().clone(),
         }
     }
 }
@@ -104,23 +107,19 @@ pub(super) fn plan(
     ready: bool,
 ) -> Result<RoutePlan, WaitReason> {
     world.init_resource::<Failures>();
-    let signature = Signature::read(world, request, ready);
-    let slot = usize::from(signature.privacy.is_some());
+    let navigation =
+        crate::systems::interpersonal::PrivacyNavigation::capture(world, request.initiator);
+    let signature = Signature::read(world, request, ready, &navigation);
     let hit = world
         .resource::<Failures>()
         .requests
         .get(&request.id)
-        .and_then(|slots| slots[slot].as_ref())
         .is_some_and(|failed| {
             // An external edit can share a Bevy change tick with the observation.
             // Never reuse such an observation, even after a later tick begins.
             failed.signature == signature
                 && !failed.signature.geometry.contains(&failed.observed)
-                && failed
-                    .signature
-                    .privacy
-                    .as_ref()
-                    .is_none_or(|p| p.cacheable())
+                && failed.signature.privacy.cacheable()
         });
     if hit {
         return Err(WaitReason::NoRoute);
@@ -129,16 +128,19 @@ pub(super) fn plan(
     {
         world.resource_mut::<Failures>().attempts += 1;
     }
-    let result = super::plan_route(world, request, ready);
+    let result = super::plan_route_with_navigation(world, request, ready, &navigation);
     let observed = world.read_change_tick().get();
     let mut failures = world.resource_mut::<Failures>();
     if result.is_err() {
-        failures.requests.entry(request.id).or_default()[slot] = Some(FailedRoute {
-            signature,
-            observed,
-        });
-    } else if let Some(slots) = failures.requests.get_mut(&request.id) {
-        slots[slot] = None;
+        failures.requests.insert(
+            request.id,
+            FailedRoute {
+                signature,
+                observed,
+            },
+        );
+    } else {
+        failures.requests.remove(&request.id);
     }
     result
 }
