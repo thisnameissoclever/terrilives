@@ -3430,15 +3430,15 @@ mod tests {
     /// It does not empty the loser's bucket, so a tail remains. Live
     /// selection weighs in `f64` in `autonomy::probabilities`, where the
     /// same weight stays positive until `(winner - loser) / T` exceeds
-    /// about 745, and
-    /// every candidate keeps part of the exploration share regardless:
-    /// `decisive_tuning` sets that share to 1e-8, and `autonomy::sample`
-    /// reserves at least one bucket for every positive probability. The
-    /// candidates other than the winner, the wander candidate included,
-    /// therefore hold under about 1e-8 of the interval between them, and a
-    /// fixture's draw would have to land in that sliver to change the
-    /// winner. This check keeps the loser's utility weight so far below
-    /// that share that the exploration share alone sets the tail.
+    /// about 745, and every candidate keeps part of the exploration share
+    /// regardless: `decisive_tuning` sets that share to 1e-8, and
+    /// `autonomy::sample` reserves at least one bucket for every positive
+    /// probability. The candidates other than the winner, the wander
+    /// candidate included, therefore hold under about 1e-8 of the interval
+    /// between them, and a fixture's draw would have to land in that
+    /// sliver to change the winner. This check keeps the loser's utility
+    /// weight so far below that share that the exploration share alone
+    /// sets the tail.
     ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
