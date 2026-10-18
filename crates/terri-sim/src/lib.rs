@@ -6480,13 +6480,17 @@ mod determinism_tests {
         // pushes a wander candidate after every other candidate and weighs
         // them through `autonomy::grouped_probabilities`, which calls
         // `f64::exp`, so one object no longer means one candidate. The
-        // conclusion still holds for a different reason: the fridge never
-        // becomes a candidate in this scenario, so every decision over its
-        // 100 ticks holds the wander candidate alone, and a lone
-        // candidate's probability is 1.0 whatever `exp` returns. A change
-        // that lets any agent here choose the fridge, or adds an object one
-        // can choose, puts `f64::exp` results into the digest's causal
-        // chain. [L36] records the measurement.
+        // conclusion still holds for a different reason: every decision
+        // over this scenario's 100 ticks holds the wander candidate alone,
+        // and a lone candidate's probability is 1.0 whatever `exp`
+        // returns. Two conditions keep it alone: both of the fridge's
+        // actions are chains with a preparation step and there is no
+        // counter here, so the fridge never becomes a candidate; and the
+        // agents carry no `SimId`, so none becomes another's social or
+        // waiting candidate. Any change that gives a decision here more
+        // than one candidate, such as giving the agents identities, puts
+        // `f64::exp` results into the digest's causal chain. [L36] records
+        // the measurement.
         //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every

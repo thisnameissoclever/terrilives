@@ -3635,21 +3635,27 @@ above that begin "Second, its blindness became load-bearing" no longer
 describe live selection. Commit `413412814` (#143) moved `select_action` from
 `sample_softmax` to `autonomy::grouped_probabilities`, which calls `f64::exp`,
 and added a wander candidate that `select_action` pushes after every other
-candidate, so one object no longer means one candidate: an agent that can use
-the fridge weighs it against wandering. The vector is still independent of
-`exp` results, for a different reason. A temporary probe that logged
-`DecisionTelemetry` over `build_scenario`'s 100 ticks found 33 decisions, and
-each held the wander candidate alone at probability 1.0; the fridge never
-became a candidate. A lone candidate's probability is 1.0 whatever `exp`
-returns. The exposure therefore changes when any agent in the scenario can
-choose the fridge, or when an added object is one an agent can choose, rather
-than whenever a second object appears. `hypot` and `powi` also carry no
-cross-target guarantee and feed decisions elsewhere, for example the company
-distance checks in `social_company`; whether either reaches this scenario was
-not measured. [L55]'s second reason rests on the same one-candidate premise.
-The comments on `sample_softmax` and in `world_hash_matches_its_golden_vector`
-now say this, and [L-confirm-live-callers] records how the stale premise
-survived.
+candidate. One object therefore no longer means one candidate: an agent that
+can use the fridge weighs it against wandering.
+
+The vector is still independent of `exp` results, for a different reason. A
+temporary probe that logged `DecisionTelemetry` over `build_scenario`'s 100
+ticks found 33 decisions, each holding the wander candidate alone at
+probability 1.0, and a lone candidate's probability is 1.0 whatever `exp`
+returns. Two conditions keep it alone: both of the fridge's actions are chains
+with a preparation step and the scenario has no counter, so the fridge never
+becomes a candidate; and the agents carry no `SimId`, so none becomes another's
+social or waiting candidate. A second probe that gave the eight agents
+identities found all 17 decisions over the same 100 ticks held several
+candidates, so the exposure changes with any decision that has more than one
+candidate, rather than whenever a second object appears.
+
+`hypot` and `powi` also carry no cross-target guarantee and feed decisions
+elsewhere, for example the company distance checks in `social_company`;
+whether either reaches this scenario was not measured. [L55]'s second reason
+rests on the same one-candidate premise. The comments on `sample_softmax` and
+in `world_hash_matches_its_golden_vector` now say this, and
+[L-confirm-live-callers] records how the stale premise survived.
 
 ---
 
@@ -4657,6 +4663,11 @@ scenario holds a single object, so a wrongly scaled score has nothing to
 out-rank, the sim's choice is identical at any multiplier, and the digest does
 not move. [L36] already recorded that this scenario cannot see how candidates
 are ORDERED; it cannot see how they are WEIGHTED either.
+
+**Correction, 2026-10-17:** a single object no longer means a single
+candidate, because live selection adds a wander candidate. The scenario stays
+blind to weighting because no decision in it holds more than one candidate,
+for the two reasons [L36]'s correction gives.
 
 **3. A behavioural test would not have been enough.** The obvious repair -
 "habituate the sim on A, assert it picks B" - passes for three of the four

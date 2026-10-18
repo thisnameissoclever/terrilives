@@ -293,10 +293,14 @@ impl BedState<'_, '_> {
 /// weights; they are robust because the seeded draw sits far below that
 /// boundary, and `assert_first_draw_takes_the_first_of_two_tied_buckets`
 /// checks that it is below it. The golden world hash in `lib.rs` is
-/// independent of `exp` results only because the fridge never becomes a
-/// candidate in `build_scenario`: every decision there holds the wander
-/// candidate alone, and a lone candidate's probability is 1.0 whatever
-/// `exp` returns. A scenario in which any agent can choose an object puts
+/// independent of `exp` results only because every decision in
+/// `build_scenario` holds the wander candidate alone, and a lone
+/// candidate's probability is 1.0 whatever `exp` returns. Two conditions
+/// keep it alone: both of the fridge's actions are chains with a
+/// preparation step and the scenario has no counter, so the fridge never
+/// becomes a candidate; and the agents carry no `SimId`, so none becomes
+/// another's social or waiting candidate. Any decision with more than one
+/// candidate, for example after giving the agents identities, puts
 /// `f64::exp` results into the digest's causal chain.
 pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
     assert!(
@@ -463,8 +467,7 @@ mod sampler_tests {
     /// A candidate whose weight underflows to exactly zero must be
     /// unreachable, including on a draw of exactly `0.0`.
     ///
-    /// This is what `assert_decisive` in the system tests below relies
-    /// on, and it is the one place the `<` in the bucket walk is
+    /// This is the one place the `<` in the bucket walk is
     /// distinguishable from `<=`. `next_f32` can return exactly 0.0 -
     /// one draw in 2^24 - and under `<=` that draw would pick a
     /// zero-probability candidate sitting in front, which is precisely
@@ -5343,10 +5346,11 @@ mod tests {
     /// therefore the first probability bucket. That kills the two
     /// degenerate samplers a middling assertion would otherwise admit:
     /// "always take the first bucket" hands every run to the worse object
-    /// and fails the dominance assertion; "always take the last" hands
-    /// every run to the wander candidate that `select_action` pushes after
-    /// both objects, and fails the assertion that urgent recovery
-    /// dominates.
+    /// and fails the assertion that the higher-scoring object must win
+    /// most of the runs; "always take the last" hands every run to the
+    /// wander candidate that `select_action` pushes after both objects,
+    /// and fails the assertion that urgent recovery must dominate the
+    /// broader pool.
     #[test]
     fn a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes() {
         // 500 runs, and the arithmetic behind the assertion windows.
