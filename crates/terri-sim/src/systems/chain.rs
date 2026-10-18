@@ -786,7 +786,7 @@ pub fn tick_chain_steps(
         }
 
         // One line per recipe, at its terminal payout, never per step.
-        if let (Some(log), Some(id)) = (log.as_deref_mut(), sim_id) {
+        if let (Some(log), Some(id)) = (log.as_deref_mut().filter(|log| log.enabled()), sim_id) {
             let row = match resolved {
                 Some((model, row, _)) => crate::action_rows::resolve(content.0, model, row),
                 None => crate::action_rows::rows(content.0, chain.advertised_by)
@@ -800,7 +800,7 @@ pub fn tick_chain_steps(
                 row.label(burning.1.tick, content.0.tuning.day_ticks)
             });
             let skill =
-                crate::activity_log::practised(skills.as_deref(), content.0, &chain_tags(chain));
+                crate::activity_log::practiced(skills.as_deref(), content.0, &chain_tags(chain));
             log.action_done(content.0, burning.1.tick, id.0, label, skill);
         }
 

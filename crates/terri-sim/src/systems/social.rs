@@ -174,7 +174,10 @@ pub fn tick_social(
                 let id = NeedId::ALL[*need_index as usize];
                 my_needs.fill(id, delta);
             }
-            if let (Some(log), Ok(id)) = (log.as_deref_mut(), sim_ids.get(me)) {
+            if let (Some(log), Ok(id)) = (
+                log.as_deref_mut().filter(|log| log.enabled()),
+                sim_ids.get(me),
+            ) {
                 let delivered = my_needs.get(NeedId::Social) - social_before;
                 log.social(id.0, delivered, other_sim_id(&sim_ids, other).map(|o| o.0));
             }

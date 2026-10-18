@@ -283,6 +283,13 @@ pub(crate) fn commit_plan(
         world.entity_mut(seat).insert(Reserved);
         crate::seating::install(world, person, seat, ordinal, false);
     }
+    // A reading session starts its own Social total ([AL-capture] item 4).
+    if let (Some(id), Some(mut log)) = (
+        world.get::<SimId>(person).copied(),
+        world.get_resource_mut::<crate::activity_log::ActivityLog>(),
+    ) {
+        log.begin_activity(id.0);
+    }
     true
 }
 fn finish(world: &mut World, person: Entity) {
@@ -826,12 +833,14 @@ fn finish_session(
     let mut skills = world.get::<Skills>(person).cloned().unwrap_or_default();
     crate::skills::practise(&mut skills, pack, &act.tags);
     let content = world.resource::<Content>().0;
-    let skill = crate::activity_log::practised(Some(&skills), content, &act.tags);
     let tick = world.resource::<terri_core::SimClock>().tick;
     if let (Some(id), Some(mut log)) = (
         world.get::<SimId>(person).copied(),
-        world.get_resource_mut::<crate::activity_log::ActivityLog>(),
+        world
+            .get_resource_mut::<crate::activity_log::ActivityLog>()
+            .filter(|log| log.enabled()),
     ) {
+        let skill = crate::activity_log::practiced(Some(&skills), content, &act.tags);
         log.action_done(content, tick, id.0, &act.label, skill);
     }
     let model = world.get::<SmartObject>(target.object).unwrap().0;

@@ -76,7 +76,7 @@ A record is twelve little-endian `u32` words, 48 bytes. The simulation never bui
 | --- | --- | --- |
 | 0 | `seq` | Sequence number, from 1, increasing by one per record within one world. |
 | 1 | `tick` | Simulation tick of the event, saturated to `u32`. |
-| 2 | `kind`, `triggers` | Bits 0 to 7: the kind below. Bits 8 to 15: the trigger mask. |
+| 2 | `kind`, `triggers`, flags | Bits 0 to 7: the kind below. Bits 8 to 15: the trigger mask. Bits 16 to 23: flags. Bit 16 marks the actor's Social total as partial and bit 17 the other person's ([AL-capture] item 4); Details omits a partial total. |
 | 3 | `actor` | The `SimId` the line is about. |
 | 4 | `other` | A second `SimId`, or `u32::MAX` for none. |
 | 5 | `label` | Index into the label table: an action, chain, social interaction, topic tag, skill, career level or chore duty label. |
@@ -90,7 +90,7 @@ Values use fixed units so the shell rounds once: needs in tenths of a point; opi
 
 | Kind | Parent or child | Triggers | Fields |
 | --- | --- | --- | --- |
-| 1 Action done | Parent | Actions; also Social when company refilled Social during it | `label` action or chain; `label2` skill practiced; `v0` Social gained; `v1` skill level after; `v2` progress percent after; `other` first companion |
+| 1 Action done | Parent | Actions; also Social when company refilled Social during it | `label` action or chain; `label2` skill practiced; `v0` Social gained; `v1` skill level after; `v2` progress percent after; `v3` the actor's opinion change from sharing the activity; `other` first companion |
 | 2 Chat done | Parent | Actions, Social | `other` listener; `label` social interaction; `label2` topic; `v0` initiator and listener preference packed as two `i16`; `v1` both Social gains packed as two `i16`; `v2` initiator's opinion change; `v3` listener's opinion change |
 | 3 Fight done | Parent | Actions, Social | `other` target; `label2` fight topic; `v2` and `v3` the two opinion changes |
 | 4 Annoyed | Parent | Social | `actor` affected person; `other` responsible person; `label` cause; `label2` object type when known; `v2` opinion change |
@@ -150,7 +150,7 @@ Each item below is captured by copying a value at the moment the simulation comp
 1. **Relationship effects.** Every effect today is pushed straight into `RelationshipDiagnostics.effects`, a per-tick observation that `relationship_effects::reset` clears early in each tick. Phase 1 routes every push through one function, `relationship_effects::record`, which also forwards discrete causes to the log. Its match over `RelationshipCause` has no wildcard arm, so a new cause fails to compile until someone classifies it as logged or excluded. Logged: Conversation, LowNeedInterruption, CriticalNeedInterruption, PrivacyEntry, PrivacyStart, HouseholdMess, ChoreFulfilled, ChoreNeglected, MealShared, Nuisance (as episodes), Fight and the new DirtySetting. `record_opinion_change`, which chores and meal appreciation share, records through `record` too. Excluded: Proximity, SharedActivity, Incompatibility and Decay, which are continuous.
 2. **Dirty place setting.** `blocked_setting_annoyance` changes opinion without recording an effect. It gains a `DirtySetting` cause and records through `record`. The diagnostic is not saved or hashed, so only tests that count diagnostics can notice.
 3. **Topic and reactions.** `SocialEpisodes.topics` holds the topic and both preferences only while the chat runs. The chat record copies them at completion, before `social_episode::maintain` removes the entry.
-4. **Social gained.** Chats, table meals and shared media deliver Social per tick, and no total is kept. The scratch area accumulates delivered Social per `SimId`, reset where the activity starts (`Eating` and `Socialising` inserts in `systems::movement::follow_path`, and the meal countdown in `domestic::gather_diners`), and is read at completion. An activity that was already running when the world loaded has no reset point, so its record marks the total partial and Details omits it.
+4. **Social gained.** Chats, table meals and shared media deliver Social per tick, and no total is kept. The scratch area accumulates delivered Social per `SimId`, reset where the activity starts (`Eating` and `Socialising` inserts in `systems::movement::follow_path`, a recipe's arrival at its first step in the same function, a reading session's start in `reading::commit_plan`, and the meal countdown in `domestic::gather_diners`), and is read at completion. An activity that was already running when the world loaded has no reset point, so its record marks the total partial and Details omits it.
 5. **Skill level-ups.** `skills::practise` returns the skills whose `standing` level rose. Its callers forward them to the log. The stored practice values and the order of updates do not change.
 6. **Career events.** A hire by search records nothing today, and a dismissal removes the career record with its history. The review and change records copy outcome, performance, factors and title at the moment they are decided. Career history itself is not extended; that would be saved state.
 7. **Deaths.** `DeathRecord` already exists natively without a wasm export. The death record copies the person at the moment it is pushed.

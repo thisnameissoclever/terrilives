@@ -394,20 +394,20 @@ impl Company {
     }
 }
 
-/// The skill an action practised and where it stands afterwards.
-pub(crate) struct Practised {
+/// The skill an action practiced and where it stands afterwards.
+pub(crate) struct Practiced {
     label: &'static str,
     level: i32,
     percent: i32,
 }
 
-/// The first of the pack's skills that `tags` practise, read from `skills`
+/// The first of the pack's skills that `tags` train, read from `skills`
 /// after practice has been added. Reads only.
-pub(crate) fn practised(
+pub(crate) fn practiced(
     skills: Option<&terri_core::Skills>,
     pack: &'static ContentPack,
     tags: &[String],
-) -> Option<Practised> {
+) -> Option<Practiced> {
     let skills = skills?;
     let ladder = crate::skills::Ladder::from_tuning(&pack.tuning);
     let (index, skill) = pack
@@ -416,7 +416,7 @@ pub(crate) fn practised(
         .enumerate()
         .find(|(_, skill)| tags.contains(&skill.tag))?;
     let standing = crate::skills::standing(&ladder, skill.levels, skills.practice(index as u32));
-    Some(Practised {
+    Some(Practiced {
         label: &skill.label,
         level: i32::from(standing.level),
         percent: (standing.progress * 100.0).floor() as i32,
@@ -599,8 +599,9 @@ impl ActivityLog {
         });
     }
 
-    /// Starts a fresh Social total where an activity begins: a meal, a chat
-    /// or an object interaction ([AL-capture] item 4).
+    /// Starts a fresh Social total where an activity begins: a meal
+    /// gathering, a chat, an object interaction, a recipe's first step or a
+    /// reading session ([AL-capture] item 4).
     pub(crate) fn begin_activity(&mut self, person: u32) {
         if self.enabled {
             self.scratch.company.insert(person, Company::default());
@@ -665,14 +666,14 @@ impl ActivityLog {
 
     /// Kind 1: an object interaction, a recipe or a book finished. Carries
     /// the Social and shared opinion its company delivered and the skill it
-    /// practised ([AL-record]).
+    /// practiced ([AL-record]).
     pub(crate) fn action_done(
         &mut self,
         pack: &'static ContentPack,
         tick: u64,
         actor: u32,
         label: &str,
-        skill: Option<Practised>,
+        skill: Option<Practiced>,
     ) {
         if !self.enabled {
             return;
@@ -764,6 +765,11 @@ impl ActivityLog {
     /// episodes, links every record staged since the last pass to its
     /// parent from the same pass, and forgets feelings nothing claimed.
     pub(crate) fn finish(&mut self, pack: &'static ContentPack, tick: u64, day_ticks: u32) {
+        if self.next_seq == self.unlinked && self.scratch.nuisances.is_empty() {
+            // Nothing staged and no episode open: nothing to close or link.
+            self.scratch.feelings.clear();
+            return;
+        }
         self.close_nuisances(pack, tick, day_ticks);
         self.link(labels(pack).index(RelationshipCause::MealShared.log_label()));
         self.unlinked = self.next_seq;
@@ -853,7 +859,10 @@ fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord, meal: u32) -> bo
 /// Adds Social delivered to `person` by company this tick, naming the
 /// lowest-numbered companion the company resource sees.
 pub(crate) fn add_social(world: &mut World, person: Entity, delivered: f32) {
-    if delivered == 0.0 {
+    let enabled = world
+        .get_resource::<ActivityLog>()
+        .is_some_and(ActivityLog::enabled);
+    if delivered == 0.0 || !enabled {
         return;
     }
     let Some(id) = world.get::<terri_core::SimId>(person).copied() else {

@@ -2,7 +2,7 @@
 //! never changes the simulation ([AL-tests]).
 use crate::activity_log::{
     ActivityLog, LogKind, LogRecord, ACTIONS, CHORES, NONE, OUTCOME_COVERED, OUTCOME_MISSED,
-    SOCIAL, STAGING_CAPACITY,
+    RECORD_WORDS, SOCIAL, STAGING_CAPACITY,
 };
 use crate::rooms::RoomChoices;
 use crate::{Content, Sim};
@@ -265,12 +265,13 @@ fn label_table_covers_every_action_and_chain_label() {
     assert_eq!(sim.activity_log().label(pack, "not a label anywhere"), NONE);
 }
 
-/// One world's run of the shipped household: its hash after every tick and
-/// its generator at the end. `churn` builds a different archetype history
-/// the way `hash_ignores_archetype_layout_and_entity_history` does, and
-/// every 97th tick is followed by a paused-frame command drain, so the
-/// end-of-tick pass also runs outside the schedule.
-fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec<LogKind>) {
+/// One world's run of the shipped household: its hash after every tick,
+/// its generator at the end and every record it staged. `churn` builds a
+/// different archetype history the way
+/// `hash_ignores_archetype_layout_and_entity_history` does, and every 97th
+/// tick is followed by a paused-frame command drain, so the end-of-tick
+/// pass also runs outside the schedule.
+fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec<LogRecord>) {
     let mut sim = Sim::new_from_shipped_lot();
     sim.set_activity_log_enabled(log);
     let bystander = churn.then(|| sim.world_mut().spawn(Position { x: 2.0, y: 2.0 }).id());
@@ -307,8 +308,8 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec
         }
         sim.take_activity_log(&mut out);
         staged.extend(
-            out.chunks_exact(12)
-                .filter_map(|words| LogKind::from_code(words[2] as u8)),
+            out.chunks_exact(RECORD_WORDS)
+                .map(|words| LogRecord(words.try_into().unwrap())),
         );
         out.clear();
         hashes.push(sim.world_hash());
@@ -316,11 +317,20 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec
     (hashes, sim.world().resource::<SimRng>().clone(), staged)
 }
 
+/// FNV-1a over the per-tick world hashes, so one number stands for a whole
+/// run.
+fn fold(hashes: &[u64]) -> u64 {
+    hashes.iter().fold(0xcbf2_9ce4_8422_2325, |fold, hash| {
+        (fold ^ hash).wrapping_mul(0x0000_0100_0000_01b3)
+    })
+}
+
 /// Runs the shipped household for `days` game days twice, once with the
 /// log on and a different archetype history, once with it off, and requires
 /// identical world hashes after every tick and the same generator at the
-/// end. Every emitter added to the simulation must keep both runs equal.
-fn assert_log_never_changes_the_world(days: usize) -> Vec<LogKind> {
+/// end. Returns the log-off run's hashes and the records the log-on run
+/// staged. Every emitter added to the simulation must keep both runs equal.
+fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>) {
     let ticks = days
         * Sim::new_from_shipped_lot()
             .world()
@@ -338,23 +348,71 @@ fn assert_log_never_changes_the_world(days: usize) -> Vec<LogKind> {
         );
     }
     assert_eq!(on_rng, off_rng);
-    records
+    (off, records)
 }
 
-/// Two game days, which a debug build runs in under a minute. The
+/// The shipped household's two-day hash fold on main without the log, at
+/// merge 2b15dcfea (pull request 295). Measured on 2026-10-18 by running
+/// the loop of `run_household(false, false, 2880)` (a tick, a command drain
+/// after every 97th tick, then `world_hash`) through `fold` in a detached
+/// checkout of that commit, in a release build. Comparing the log on with
+/// the log off cannot see code that runs in both modes; this pin can. A
+/// deliberate change to simulated behavior on main moves it: re-measure
+/// on the new main the same way and record the commit here.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xc1d9_089d_be8b_13eb;
+
+/// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.
 #[test]
 fn activity_log_never_changes_the_world() {
-    let records = assert_log_never_changes_the_world(2);
+    let (hashes, records) = assert_log_never_changes_the_world(2);
+    assert_eq!(
+        fold(&hashes),
+        TWO_DAY_FOLD_WITHOUT_THE_LOG,
+        "the world differs from main without the log"
+    );
+    let pack = terri_data::pack();
+    let labels = crate::activity_log::labels(pack);
+    let recipes: Vec<u32> = pack
+        .chains
+        .iter()
+        .map(|chain| labels.index(&chain.label))
+        .chain([0, 12, 18].map(|hour| {
+            let day = pack.tuning.day_ticks;
+            labels.index(crate::domestic::meal_label(hour * u64::from(day) / 24, day))
+        }))
+        .collect();
+    let cause =
+        |cause: crate::relationship_effects::RelationshipCause| labels.index(cause.log_label());
+    let seen = |name: &str, found: bool| assert!(found, "no {name} in two days");
     // The emitters must have run for the comparison to prove anything.
     for kind in [LogKind::ActionDone, LogKind::ChatDone, LogKind::Annoyed] {
-        assert!(records.contains(&kind), "no {kind:?} in two days");
+        seen(
+            &format!("{kind:?}"),
+            records.iter().any(|r| r.kind() == Some(kind)),
+        );
     }
+    let action_labelled = |labels: &[u32]| {
+        records
+            .iter()
+            .any(|r| r.kind() == Some(LogKind::ActionDone) && labels.contains(&r.label()))
+    };
+    let annoyed_by = |cause: u32| {
+        records
+            .iter()
+            .any(|r| r.kind() == Some(LogKind::Annoyed) && r.label() == cause)
+    };
+    use crate::relationship_effects::RelationshipCause as Cause;
+    seen("recipe", action_labelled(&recipes));
+    seen("mess annoyance", annoyed_by(cause(Cause::HouseholdMess)));
+    seen("nuisance episode", annoyed_by(cause(Cause::Nuisance)));
+    // Fights, dirty place settings and shared meals do not happen in the
+    // shipped household's first two days; their own tests drive them.
 }
 
 /// The full twenty game days of [AL-perf]. A debug build takes about
-/// fifteen minutes, so it is opt-in:
-/// `cargo test -p terri-sim activity_log -- --ignored --test-threads=1`.
+/// fifteen minutes, and no workflow runs ignored tests, so this is a manual
+/// check: `cargo test -p terri-sim activity_log -- --ignored --test-threads=1`.
 #[test]
 #[ignore = "twenty game days take about fifteen minutes in a debug build"]
 fn activity_log_never_changes_the_world_over_twenty_days() {
@@ -510,4 +568,140 @@ fn a_nuisance_episode_closes_at_the_end_of_the_day() {
         "the last pass of the day closes the episode"
     );
     assert_eq!((records[0].tick(), records[0].value(2)), (last as u32, -10));
+}
+
+/// The first object interaction in the shipped pack that trains a skill,
+/// with the skill's index.
+pub(crate) fn skill_interaction(
+    pack: &terri_data::ContentPack,
+) -> (terri_core::ObjectDefId, u32, usize) {
+    for (model, object) in pack.objects.iter().enumerate() {
+        for (row, action) in object.interactions.iter().enumerate() {
+            if action.book_reading || action.tags.is_empty() {
+                continue;
+            }
+            if let Some(skill) = pack
+                .skills
+                .iter()
+                .position(|s| action.tags.contains(&s.tag))
+            {
+                return (terri_core::ObjectDefId(model as u32), row as u32, skill);
+            }
+        }
+    }
+    panic!("the shipped pack trains a skill through an object");
+}
+
+/// A person standing at a skill-training object with nowhere left to walk,
+/// so the next tick starts the interaction, with `practice` in its skill.
+/// Returns the sim, the person, their id, the object model, the row and the
+/// skill index.
+pub(crate) fn about_to_train(
+    practice: f32,
+) -> (Sim, Entity, u32, terri_core::ObjectDefId, u32, usize) {
+    let mut sim = Sim::new_with_lot(8, 8);
+    let pack = sim.world().resource::<Content>().0;
+    let (model, row, skill) = skill_interaction(pack);
+    let object = sim.spawn_object(Position { x: 2.0, y: 2.0 }, model);
+    let id = sim
+        .world_mut()
+        .resource_mut::<terri_core::SimIdAllocator>()
+        .issue();
+    let mut skills = terri_core::Skills::default();
+    skills.set_practice(skill as u32, practice);
+    let person = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 2.0, y: 3.0 },
+            terri_core::Needs::all_at(50.0),
+            skills,
+            terri_core::Target {
+                object,
+                interaction: row,
+            },
+            terri_core::Path {
+                steps: vec![],
+                cursor: 0,
+            },
+        ))
+        .id();
+    (sim, person, id.0, model, row, skill)
+}
+
+/// Every record staged since the last call, oldest first.
+pub(crate) fn drain(sim: &mut Sim) -> Vec<LogRecord> {
+    let mut out = Vec::new();
+    sim.take_activity_log(&mut out);
+    out.chunks_exact(RECORD_WORDS)
+        .map(|words| LogRecord(words.try_into().unwrap()))
+        .collect()
+}
+
+/// Ticks until `person` has started and finished an interaction, collecting
+/// every record.
+pub(crate) fn train_to_completion(sim: &mut Sim, person: Entity) -> Vec<LogRecord> {
+    let mut records = Vec::new();
+    let mut started = false;
+    for _ in 0..2_000 {
+        sim.tick();
+        records.extend(drain(sim));
+        let busy = sim.world().get::<Eating>(person).is_some();
+        if started && !busy {
+            return records;
+        }
+        started |= busy;
+    }
+    panic!("the interaction never finished");
+}
+
+/// [AL-sources] and [AL-capture] item 4: an object interaction starts a
+/// fresh Social total where it begins, so company left over from an
+/// interrupted activity never reaches its line, and its completion records
+/// the label the action menu shows at that tick and the skill it trained
+/// with the level and progress after practice.
+#[test]
+fn interaction_start_resets_company_and_completion_logs_label_and_skill() {
+    let (mut sim, person, id, model, row, skill) = about_to_train(0.0);
+    let pack = sim.world().resource::<Content>().0;
+    let day = pack.tuning.day_ticks;
+    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day) * 10 / 24;
+    // An interrupted shared activity: Social and a companion, never closed.
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(id, 5.0, Some(99));
+    let records = train_to_completion(&mut sim, person);
+    let actions: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == id)
+        .collect();
+    assert_eq!(actions.len(), 1, "{records:?}");
+    let record = actions[0];
+    let labels = crate::activity_log::labels(pack);
+    let shown = crate::action_rows::resolve(pack, model, row)
+        .unwrap()
+        .label(u64::from(record.tick()), day);
+    assert_eq!(record.label(), labels.index(shown));
+    assert_eq!(
+        (record.other(), record.value(0), record.flags()),
+        (NONE, 0, 0),
+        "no leftover company and a total that started with the interaction"
+    );
+    assert_eq!(record.triggers(), ACTIONS);
+    let definition = &pack.skills[skill];
+    assert_eq!(record.label2(), labels.index(&definition.label));
+    let practice = sim
+        .world()
+        .get::<terri_core::Skills>(person)
+        .unwrap()
+        .practice(skill as u32);
+    assert!(practice > 0.0, "the interaction trained the skill");
+    let standing = crate::skills::standing(
+        &crate::skills::Ladder::from_tuning(&pack.tuning),
+        definition.levels,
+        practice,
+    );
+    assert_eq!(record.value(1), i32::from(standing.level));
+    assert_eq!(record.value(2), (standing.progress * 100.0).floor() as i32);
 }

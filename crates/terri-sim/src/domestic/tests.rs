@@ -3761,3 +3761,98 @@ fn meal_appreciation_is_logged_on_the_eaters_meal() {
         assert_eq!((parent.actor(), parent.tick()), (eater, feeling.tick()));
     }
 }
+
+/// [AL-capture] item 4: a recipe starts its own Social total at its first
+/// step, so a solo snack after an interrupted shared activity carries none
+/// of that activity's Social or company.
+#[test]
+fn solo_recipe_after_interrupted_company_logs_no_company() {
+    use crate::activity_log::{ActivityLog, LogKind, ACTIONS, NONE};
+    let (mut sim, people, fridge, _, _) = household();
+    let person = people[0];
+    for other in &people[1..] {
+        *sim.world_mut().get_mut::<Needs>(*other).unwrap() = Needs::all_at(100.0);
+    }
+    let id = sim.world().get::<SimId>(person).unwrap().0;
+    let pack = sim.world().resource::<Content>().0;
+    let fridge_def = sim.world().get::<SmartObject>(fridge).unwrap().0;
+    let row = pack
+        .object(fridge_def)
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .unwrap() as u32;
+    let snack = chain_index(sim.world(), SNACK).unwrap();
+    // An interrupted shared activity: Social and a companion, never closed.
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(id, 5.0, Some(99));
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObject {
+            agent: person.index_u32(),
+            object: fridge.index_u32(),
+            interaction: row,
+        });
+    let (mut records, mut running) = (vec![], false);
+    for _ in 0..3000 {
+        sim.tick();
+        records.extend(crate::activity_log_tests::drain(&mut sim));
+        let now = sim
+            .world()
+            .get::<ChainState>(person)
+            .is_some_and(|state| state.chain == snack);
+        if running && !now {
+            break;
+        }
+        running = now;
+    }
+    let snacks: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == id)
+        .collect();
+    assert_eq!(snacks.len(), 1, "{records:?}");
+    assert_eq!(
+        (snacks[0].other(), snacks[0].value(0), snacks[0].flags()),
+        (NONE, 0, 0),
+        "the snack started its own total"
+    );
+    assert_eq!(snacks[0].triggers(), ACTIONS);
+}
+
+/// [AL-capture] item 4: the meal gathering starts each diner's Social
+/// total, so whatever a guest's total held before the table filled never
+/// reaches the meal's line.
+#[test]
+fn meal_gathering_resets_company() {
+    use crate::activity_log::{ActivityLog, LogKind, PARTIAL};
+    let (mut sim, ..) = shared_meal_scenario();
+    let (mut records, mut gathered) = (vec![], false);
+    for _ in 0..1000 {
+        sim.tick();
+        records.extend(crate::activity_log_tests::drain(&mut sim));
+        let state = sim.world().resource::<SavedDomestic>();
+        let Some(meal) = state.meals.first() else {
+            break;
+        };
+        gathered |= meal.dining_started;
+        if !gathered {
+            let guests = meal.guests.clone();
+            let mut log = sim.world_mut().resource_mut::<ActivityLog>();
+            for guest in guests {
+                log.social(guest, 5.0, Some(99));
+            }
+        }
+    }
+    assert!(gathered, "the meal gathered");
+    let meals: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && (1..=3).contains(&r.actor()))
+        .collect();
+    assert_eq!(meals.len(), 3, "{records:?}");
+    for record in meals {
+        assert_ne!(record.other(), 99, "{record:?}");
+        assert_eq!(record.flags() & PARTIAL, 0, "{record:?}");
+        assert!(record.value(0) < 50, "{record:?}");
+    }
+}

@@ -211,6 +211,13 @@ pub fn follow_path(
                         .remove::<terri_core::SleepPlace>();
                     continue;
                 };
+                // A recipe starts its own Social total at its first step
+                // ([AL-capture] item 4).
+                if let (0, Some(log), Ok(id)) =
+                    (chain_state.step, log.as_deref_mut(), identities.get(entity))
+                {
+                    log.begin_activity(id.0);
+                }
                 let chain = &content.0.chains[chain_state.chain as usize];
                 let step = &chain.steps[chain_state.step as usize];
                 let base_work = crate::recipe_actions::duration(content.0, chain_state, origin);

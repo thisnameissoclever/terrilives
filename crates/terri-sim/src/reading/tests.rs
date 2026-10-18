@@ -2990,3 +2990,43 @@ fn actual_extended_unfinished_reading_retains_its_return_history() {
         "actual simultaneous readers must produce extension history"
     );
 }
+
+/// [AL-sources] and [AL-capture] item 4: a finished reading session is one
+/// action line under the book action's label with the Reading skill, and
+/// the session starts its own Social total, so company left over from an
+/// interrupted activity never reaches it.
+#[test]
+fn book_completion_logs_label_and_skill_without_stale_company() {
+    use crate::activity_log::{ActivityLog, LogKind, ACTIONS, NONE};
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    purchase(&mut sim, Some(shelf), &title);
+    let id = sim.world().get::<SimId>(p).unwrap().0;
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(id, 5.0, Some(99));
+    read(&mut sim, p, seat, &title, false);
+    until(&mut sim, p, ReadingStage::Return);
+    let records = crate::activity_log_tests::drain(&mut sim);
+    let books: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == id)
+        .collect();
+    assert_eq!(books.len(), 1, "{records:?}");
+    let pack = sim.world().resource::<Content>().0;
+    let labels = crate::activity_log::labels(pack);
+    let action = pack
+        .object(sim.world().get::<SmartObject>(seat).unwrap().0)
+        .interactions
+        .iter()
+        .find(|a| a.book_reading)
+        .unwrap();
+    let reading = pack.skills.iter().find(|s| s.tag == "reading").unwrap();
+    let record = books[0];
+    assert_eq!(record.label(), labels.index(&action.label));
+    assert_eq!(record.label2(), labels.index(&reading.label));
+    assert_eq!(
+        (record.other(), record.value(0), record.flags()),
+        (NONE, 0, 0)
+    );
+    assert_eq!(record.triggers(), ACTIONS);
+}

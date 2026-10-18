@@ -288,7 +288,12 @@ pub fn tick_interactions(
                 crate::need_interactions::cap_delta(content.0, act, &needs, *need_index, delta);
             let before = needs.get(NeedId::Social);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
-            if let (Some(log), Ok(id)) = (log.as_deref_mut(), ids.get(entity)) {
+            let social = *need_index as usize == NeedId::Social.index();
+            if let (Some(log), Ok(id), true) = (
+                log.as_deref_mut().filter(|log| log.enabled()),
+                ids.get(entity),
+                social,
+            ) {
                 let companion = company.companion(entity).map(|other| other.0);
                 log.social(id.0, needs.get(NeedId::Social) - before, companion);
             }
@@ -439,7 +444,7 @@ pub fn tick_interactions(
                 crate::skills::practise(skills, content.0, &act.tags);
             }
             if let (Some(log), Ok(id), true) = (
-                log.as_deref_mut(),
+                log.as_deref_mut().filter(|log| log.enabled()),
                 ids.get(entity),
                 target.interaction != super::chain::CHAIN_STEP,
             ) {
@@ -448,7 +453,7 @@ pub fn tick_interactions(
                         .map_or(act.label.as_str(), |row| {
                             row.label(clock.tick, content.0.tuning.day_ticks)
                         });
-                let skill = crate::activity_log::practised(skills.as_deref(), content.0, &act.tags);
+                let skill = crate::activity_log::practiced(skills.as_deref(), content.0, &act.tags);
                 log.action_done(content.0, clock.tick, id.0, label, skill);
             }
             commands.entity(entity).try_remove::<terri_core::Fumbled>();
