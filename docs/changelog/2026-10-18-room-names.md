@@ -1,9 +1,10 @@
-# Room names and outdoor cleaning
+# Shared meals, room names and outdoor cleaning
 
-Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
+Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
 
 ## New
 
+- Housemates appreciate a living cook after eating a portion of a shared meal.
 - Build > Rooms lets you select and name enclosed rooms or the shared Outside area. Room boundaries update when you Confirm.
 - Splitting, merging or opening an existing room shows a review of the resulting names and cleaning duties. Back to build keeps your edits.
 - Housemates can clean covered floors outside and wipe outdoor counters and tables. Grass and the street receive no floor cleaning.

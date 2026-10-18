@@ -12519,3 +12519,36 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: the report mixed completed fixes, unresolved findings and design tradeoffs without stating the actual player impact or verification status of each.
 3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
 4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
+
+
+## [L-cross-system-negative-claims] Search old exclusions when adding a social effect
+
+**What happened.** Meal appreciation gained a new relationship paragraph while the domestic summary still denied any cooking gratitude. Independent review caught the contradiction before delivery.
+
+**Root cause.** The documentation scan followed the new effect's name without finding the old prose that excluded it under another name.
+
+**Prevention.** When adding behavior, search its existing summary for negative claims and synonyms as well as identifiers. Replace obsolete exclusions alongside the new rule.
+
+**Verify.** Read both the cross-system summary and feature specification together. Confirm each describes completed shared eating as appreciation and preserves the separate food and company effects.
+
+
+## [L-required-tuning-historical-expansion] Expand historical source when adding required tuning
+
+**What happened.** A new required appreciation knob made the frozen pre-books content fail to compile because its source predates the field. A temporary schema default would also have let a misspelled live knob silently disable the effect.
+
+**Root cause.** The current tuning parser also reads historical source after an explicit expansion step. Updating only the live source missed that shared parser boundary.
+
+**Prevention.** Add each live knob to the required-key tests and historical source expansion together. Reconstruct the historical behavior explicitly instead of weakening the live schema. Preserve frozen source and byte witnesses.
+
+**Verify.** Require omission of the live knob to fail. Compile historical content with the explicit reconstructed value, then run frozen-wire, save-load and inherited runtime fixture tests.
+
+
+## [L-persistent-provenance-is-not-a-living-actor] Check living identity before granting new gratitude
+
+**What happened.** A prepared meal kept its cook's permanent identity after death, and a later eater gained a new opinion of the dead cook. Opinions of dead Sims do not decay, so that new gratitude was permanent.
+
+**Root cause.** The completion handler treated saved responsibility as proof that the responsible person still existed. Historical provenance and living participation have different lifetimes.
+
+**Prevention.** Keep provenance for unfinished objects and historical responsibility. Check the living actor separately before granting a new social effect; preserve existing opinions and let consumption finish normally.
+
+**Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.

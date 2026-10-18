@@ -100,6 +100,8 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         // Communal affinity (issue 257): the shipped value, which the
         // published-pack conversions reconstruct too.
         ("hated_communal_chance", toml::Value::Float(0.35)),
+        // Historical content predates meal appreciation; preserve its behavior.
+        ("meal_appreciation_gain", toml::Value::Float(0.0)),
         // Burnt meals (issue 243): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("burn_chance_novice", toml::Value::Float(0.12)),
