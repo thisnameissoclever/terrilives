@@ -225,14 +225,14 @@ mod tests {
             tc::tuning(),
         );
         let mut sim = tc::sim_with(8, 8, pack);
+        // Hunger and Energy stay above critical: a starving or exhausted
+        // person does not choose a chat (owner's decision of 2026-10-18).
+        let mut needs = Needs::all_at(0.0);
+        needs.set(NeedId::Hunger, 25.0);
+        needs.set(NeedId::Energy, 25.0);
         let person = sim
             .world_mut()
-            .spawn((
-                Agent,
-                Position { x: 1.0, y: 1.0 },
-                Needs::all_at(0.0),
-                friendship,
-            ))
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs, friendship))
             .id();
         sim.world_mut().spawn((
             Position { x: 2.0, y: 1.0 },
