@@ -12,7 +12,7 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 17;
+pub const SAVE_SCHEMA_VERSION: u16 = 18;
 
 /// Frozen V5 envelope - [RC-save] in `docs/specs/2026-09-22-colourways.md`: the
 /// V4 envelope with each placed object's colourway appended, for the objects
@@ -873,6 +873,15 @@ pub enum SavedCommand {
     SetCareerAutonomy {
         change: bool,
         search: bool,
+    },
+    /// Job search per person (issue 297), staged just before a save, by
+    /// the entity index the person had, as `QuitCareer` names them.
+    SetJobSearch {
+        agent: u32,
+        search: bool,
+    },
+    SetCareerChange {
+        change: bool,
     },
 }
 

@@ -4,13 +4,15 @@ use crate::{careers::Careers, Sim};
 use terri_core::SaveSnapshotV14;
 
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV14 {
+    let mut careers = sim
+        .world()
+        .get_resource::<Careers>()
+        .map(Careers::to_saved)
+        .unwrap_or_else(|| Careers::default().to_saved());
+    careers.autonomous_search = crate::careers::household_search(sim.world());
     SaveSnapshotV14 {
         legacy: super::v13::capture(sim),
-        careers: sim
-            .world()
-            .get_resource::<Careers>()
-            .map(Careers::to_saved)
-            .unwrap_or_else(|| Careers::default().to_saved()),
+        careers,
     }
 }
 
@@ -24,8 +26,6 @@ pub(crate) fn restore(
 ) -> Result<Sim, SaveError> {
     let mut candidate = super::v13::restore(snapshot.legacy, content, portals)?;
     crate::careers::validate_saved(candidate.world(), &snapshot.careers)?;
-    candidate
-        .world_mut()
-        .insert_resource(Careers::from_saved(snapshot.careers));
+    crate::careers::install_saved(candidate.world_mut(), snapshot.careers);
     Ok(candidate)
 }

@@ -1456,10 +1456,29 @@ impl Sim {
         self.adopt_current(candidate)
     }
 
+    /// The published schema-seventeen projection. It has no place for each
+    /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v17::capture(self))
+    }
+
+    /// The current save: schema eighteen.
+    pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v18::capture(self))
+    }
+
+    pub fn load_snapshot_v18(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV18,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let carried = save::Carried::for_load(&self.world);
+        let candidate = save::v18::restore(snapshot, content, carried)?;
+        self.adopt_current_with_saved_state(candidate)
     }
 
     pub fn career_attendance_of(&self, index: u32) -> Vec<f32> {
@@ -3878,13 +3897,22 @@ impl Sim {
             .and_then(|careers| careers.last_result)
     }
 
-    /// `(change, search)`: the two career autonomy settings.
-    pub fn career_autonomy(&self) -> (bool, bool) {
+    /// Whether people change path on their own: the household setting.
+    pub fn career_change_autonomy(&self) -> bool {
         self.world
             .get_resource::<Careers>()
-            .map_or((true, true), |careers| {
-                (careers.autonomous_change, careers.autonomous_search)
-            })
+            .is_none_or(|careers| careers.autonomous_change)
+    }
+
+    /// Whether the person carrying entity index `index` looks for work on
+    /// their own while unemployed; `None` for anything but a living person.
+    pub fn job_search_of(&self, index: u32) -> Option<bool> {
+        let sim = family::sim_id_at(&self.world, index)?;
+        Some(
+            self.world
+                .get_resource::<Careers>()
+                .is_none_or(|careers| careers.searches(terri_core::SimId(sim))),
+        )
     }
 
     /// The primary type, or legacy name, of a smart object. Includes decorative
@@ -4553,6 +4581,10 @@ impl Sim {
                     SetCareerAutonomy { change, search } => {
                         vec![34, u64::from(*change), u64::from(*search)]
                     }
+                    SetJobSearch { agent, search } => {
+                        vec![36, u64::from(*agent), u64::from(*search)]
+                    }
+                    SetCareerChange { change } => vec![37, u64::from(*change)],
                     ConfirmedOrder {
                         fingerprint,
                         command,

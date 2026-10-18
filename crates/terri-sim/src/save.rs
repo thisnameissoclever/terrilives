@@ -118,6 +118,7 @@ pub(crate) mod v14;
 pub(crate) mod v15;
 pub(crate) mod v16;
 pub(crate) mod v17;
+pub(crate) mod v18;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -365,6 +366,11 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             change: *change,
             search: *search,
         },
+        SimCommand::SetJobSearch { agent, search } => SavedCommand::SetJobSearch {
+            agent: *agent,
+            search: *search,
+        },
+        SimCommand::SetCareerChange { change } => SavedCommand::SetCareerChange { change: *change },
         SimCommand::Book(_) | SimCommand::Character(_) | SimCommand::ConfirmedOrder { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
@@ -1065,6 +1071,8 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         SavedCommand::SetCareerAutonomy { change, search } => {
             SimCommand::SetCareerAutonomy { change, search }
         }
+        SavedCommand::SetJobSearch { agent, search } => SimCommand::SetJobSearch { agent, search },
+        SavedCommand::SetCareerChange { change } => SimCommand::SetCareerChange { change },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -1520,7 +1528,12 @@ fn validate_command_with_actor_refs(
                 Err(SaveError::InvalidContentReference)
             }
         }
-        SavedCommand::QuitCareer { .. } | SavedCommand::SetCareerAutonomy { .. } => Ok(()),
+        // A person the drain cannot find is ignored there, as a resignation
+        // is refused there.
+        SavedCommand::QuitCareer { .. }
+        | SavedCommand::SetCareerAutonomy { .. }
+        | SavedCommand::SetJobSearch { .. }
+        | SavedCommand::SetCareerChange { .. } => Ok(()),
         SavedCommand::SetChoreProfile {
             responsibility,
             preferences,

@@ -1,7 +1,7 @@
 # Shared meals, room names and outdoor cleaning
 
 Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
-Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work.
+Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work. Each housemate now has their own setting for looking for work.
 
 ## New
 
@@ -16,6 +16,7 @@ Sims keep your orders through urgent needs, explain failures, and confirm new or
 - Sims keep your orders when their needs become urgent. Busy housemates finish their current activity before taking incoming conversations, which appear in their queue. Needs continue to fall.
 - Your orders take priority over work. New orders that delay or interrupt a shift ask for confirmation. Pay and energy use reflect time worked; missing more than two hours lowers performance, and missing the whole shift scores zero.
 - A failed order gives a reason and briefly shows a frustrated squiggle above the Sim.
+- Job search is now set for each housemate: the Career tab in Sim details has a Look for work automatically when unemployed box, on for every new housemate. Options no longer has a job search box for the whole household; a saved game that had it off keeps job search off for everyone.
 - Older saved games keep their unfinished orders when updated. New saves require this version or newer; recovery copies preserve the original older saves.
 - Confirm and Cancel at the bottom of Build keep Build open. Confirm keeps the batch; Cancel restores your latest confirmed changes. Exit build handles returning to play.
 - Affirmative actions use green controls; Back, Cancel and discard actions use red controls. Focus remains visible in compact room controls.
