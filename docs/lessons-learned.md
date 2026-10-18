@@ -12353,3 +12353,19 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: action feedback was published before a later generic placement query. The test also treated queue acceptance as proof that its requested interaction existed.
 3. Prevention: verify real action availability and current-save admission in fixtures. Process receipt ownership before refreshing an object list, then publish the specific action result after generic queries.
 4. Verification: queue a real interaction and sale in one drain, without adding gameplay ticks or splitting the race. Require a refused-sale receipt before and after the UI refresh, no native validation error, a strict current-save roundtrip, retained selection, disabled Sell and the visible refusal explanation. Preserve placement and recoloring feedback checks as well.
+
+
+## [L-build-review-shell-boundaries] Review completion and visible focus have separate boundaries
+
+1. What happened: room integration exposed old footer-exit assumptions, stale source-string tests, a retained review bypass after wall reversal, and a focused room field clipped by the compact dock.
+2. Root cause: browser controls treated preparation as completion, tests pinned old composition spelling, and the dock reserved space without considering its scroll viewport and focus outline. A browser probe also copied an obsolete isometric half-height instead of using the production projection.
+3. Prevention: use native adoption as the completion boundary and retain review intent even when a fresh native group list becomes empty. Execute complete page bindings for composition tests. Measure the focused input plus its outline inside the scroll viewport after reparenting and viewport changes. Reuse production projection and client-coordinate conversion in browser probes, with a negative control for the wrong calculation.
+4. Verification: the actual-module wall-reversal case must reopen retained choices without adoption. Isolated page-binding faults must fail behavioral assertions. At 740x390, the complete input and focus ring must fit within the tool body while both footer actions remain reachable. The wall-click harness must reject half-height16, accept the production inverse, and observe each matching native receipt before the next edit.
+
+
+## [L-final-receipt-before-restoration-claim] Read the final state before claiming a fault control was restored
+
+1. What happened: the R7 author reported that a browser focus fault was restored because an earlier wait succeeded. The retained final measurement actually had fits=false; the zero-margin fault had changed scrollTop from97 to91, leaving the outline below the scrollport.
+2. Root cause: a transient predicate was treated as the final result, and the actual returned restoration record was not checked. The evidence did not record viewport events, so resize coalescing remained a hypothesis rather than a demonstrated cause.
+3. Prevention: inspect every retained final measurement before claiming restoration. Keep failed receipts unchanged. Bind each screenshot to its own measured state and source hash; filenames such as final are not proof. After a deliberate style fault, restore the normal focus and observed viewport transition, then record stable final frames without adding a production retry or timing patch.
+4. Verification: the fresh replay records12 real window/visual resize events. Three clean frames fit at scrollTop97; three zero-margin fault frames fail at91; three restored6px-margin frames fit at97. The restored screenshot has identical before/after geometry. Preserve the earlier failed restoration separately in the R7 evidence.

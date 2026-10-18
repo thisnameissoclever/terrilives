@@ -1,0 +1,6 @@
+{"fault":"M1 preventDefault","rejected":true,"message":"expected true to be false // Object.is equality"}
+{"fault":"M2 review Back","rejected":true,"message":"expected true to be false // Object.is equality"}
+{"fault":"M3 Rooms wrapper","rejected":true,"message":"expected \"handleKey\" to not be called at all, but actually been called 1 times\n\nReceived:\n\n  1st handleKey call:\n\n    Array [\n      \"Enter\",\n    ]\n\n\nNumber of calls: 1\n"}
+{"fault":"M4 review blocker","rejected":true,"message":"expected true to be false // Object.is equality"}
+{"fault":"M5 overlay blocker","rejected":true,"message":"expected true to be false // Object.is equality"}
+{"fault":"M6 always blocked","rejected":true,"message":"expected false to be true // Object.is equality"}

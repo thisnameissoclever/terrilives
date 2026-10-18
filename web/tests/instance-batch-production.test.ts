@@ -5,7 +5,7 @@ import * as frame from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, OFFSET_SPRITE } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 
-it('uploads the floor-tool highlight through the actual main packing and draw statements without recounting', () => {
+it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight through actual main packing and draw statements without recounting', mode => {
   const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   const start = main.indexOf('    const selected = builder.active');
   const end = main.indexOf('    // Inside the sample below', start);
@@ -28,7 +28,9 @@ it('uploads the floor-tool highlight through the actual main packing and draw st
     reducedMotion: { matches: true }, lightingMode: { isFlat: () => true },
     lighting: null, builder: { active: false, preview: null },
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null },
-    roomTool: { highlight: () => null }, floorTool: { highlight: () => highlight },
+    roomTool: { highlight: () => null }, floorTool: { highlight: () => mode === 'floor' ? highlight : { tiles: [[9, 9]], valid: false } },
+    roomReview: { highlight: () => mode === 'review' ? highlight : null }, roomsTool: { selecting: mode !== 'floor' },
+    roomSelection: { highlight: () => mode === 'selection' ? highlight : { tiles: [[8, 8]], valid: true } },
     sky: { width: 0, height: 0, values: floats }, AMBIENT_NEUTRAL: 1,
     wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0 },
     interiorDaylightShade: 0 };

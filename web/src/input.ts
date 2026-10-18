@@ -248,9 +248,9 @@ export function reportCommandOutcome(
  *
  * Two conversions, in this order:
  *
- *  1. **Client pixels to drawing-buffer pixels.** The canvas has a fixed
- *     1280x720 drawing buffer and the browser may lay it out at any CSS
- *     size, so the ratio is applied rather than assumed to be 1. This also
+ *  1. **Client pixels to drawing-buffer pixels.** The drawing buffer follows
+ *     the current viewport, device-pixel ratio and GPU size limit. The browser
+ *     may lay it out at a different CSS size, so use the live ratio. This also
  *     makes it correct at any device pixel ratio for free, because
  *     `originX`/`originY` are in drawing-buffer pixels and the rect is in
  *     CSS pixels - the ratio between them is exactly the correction needed.
@@ -1335,6 +1335,8 @@ export class LongPressGesture {
 
 export interface CanvasEditInput {
   active(): boolean;
+  /** Invalidates a deferred pick when tools change inside active Build. */
+  mode?(): string | number;
   /** `world` is the unrounded point, for tools that pick a line between tiles. */
   click(pick: Pick | null, tile: readonly [number, number] | null,
     world: readonly [number, number] | null): void;
@@ -1360,9 +1362,9 @@ export function attachPointerInput(
   const withPick=(point:CanvasPoint|null,apply:(pick:Pick|null|undefined)=>void)=>{
     const generation=++pickGeneration;
     if(!displayedPick||!point){apply(undefined);return;}
-    const originX=camera.originX,originY=camera.originY,scale=camera.scale,width=canvas.width,height=canvas.height,mode=editing?.active(),selected=target.selectedIndex();
+    const originX=camera.originX,originY=camera.originY,scale=camera.scale,width=canvas.width,height=canvas.height,mode=editing?.active(),tool=editing?.mode?.(),selected=target.selectedIndex();
     void displayedPick(point).then(pick=>{
-      if(pick!==undefined&&generation===pickGeneration&&camera.originX===originX&&camera.originY===originY&&camera.scale===scale&&canvas.width===width&&canvas.height===height&&editing?.active()===mode&&target.selectedIndex()===selected)apply(pick);
+      if(pick!==undefined&&generation===pickGeneration&&camera.originX===originX&&camera.originY===originY&&camera.scale===scale&&canvas.width===width&&canvas.height===height&&editing?.active()===mode&&editing?.mode?.()===tool&&target.selectedIndex()===selected)apply(pick);
     }).catch(error=>{
       console.error('Displayed scene selection failed',error);if(generation===pickGeneration)onCommandRejected('selection');
     });

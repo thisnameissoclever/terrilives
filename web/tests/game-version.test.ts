@@ -100,7 +100,7 @@ describe('the version line in Options', () => {
     expect(start).toBeGreaterThan(-1);
     // Skip the comment that names the source, then expect the line before Close Options.
     const body = INDEX_HTML.slice(start + panel.length).replace(/^\s*<!--[\s\S]*?-->/, '');
-    expect(body).toMatch(/^\s*<p id="game-version" class="options-version"><\/p>\s*<button id="options-close"/);
+    expect(body).toMatch(/^\s*<p id="game-version" class="options-version"><\/p>\s*<button\b[^>]*\bid="options-close"/);
     expect(INDEX_HTML.split('id="game-version"')).toHaveLength(2);
   });
 

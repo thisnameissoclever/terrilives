@@ -1,0 +1,23 @@
+{
+  "full_before": "85653bd5d78e1554067327d71a2e3118fdfbb9fdbab8171cb04fa46d868d657d",
+  "full_after": "85653bd5d78e1554067327d71a2e3118fdfbb9fdbab8171cb04fa46d868d657d",
+  "checkpoint": "b2403f54660a19a51252f86a3516d49aaf5ea372401c508ce0adc2c4a6b1cbe4",
+  "changed_files": [
+    {
+      "path": "web/src/ui/build-controls.css",
+      "sha256": "897f6c872f289145f2addad3d857dfae55b4568b4d9a72381518313b308c6038"
+    },
+    {
+      "path": "web/src/ui/room-review.ts",
+      "sha256": "c2a30d9ee4fcef8fffd088fdaf4b245542ab8297b69e854f516e108f64cce2a1"
+    },
+    {
+      "path": "web/tests/options-menu.test.ts",
+      "sha256": "e9b714052a1a9c7cd96acc9074f968af62895e876b64618a122cd96b4c54a195"
+    },
+    {
+      "path": "web/tests/room-review.test.ts",
+      "sha256": "023ba327ec224056083abafeafb370ad0e355ecd9dfb12c252b10e2df65b3aa9"
+    }
+  ]
+}

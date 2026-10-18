@@ -446,10 +446,10 @@ describe('the Room tool in the page', () => {
 
   it('is wired into the frame, the click, Load and leaving Build', () => {
     for (const wiring of ['roomTool.afterCommands()', 'roomTool.choosePoint(world[0], world[1])',
-      'roomTool.resetAfterLoad(lotWidth, lotHeight)', 'roomTool.exit()',
-      "roomTool.setBlocked(overlayPause.suspendedExcept('builder'))",
+      'roomTool.resetAfterLoad(lotWidth, lotHeight)', 'roomsTool.exit()',
+      "roomTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active)",
       'roomControls?.setCompact(event.matches)',
-      "{ tool: roomTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
+      "{ tool: roomsTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
     expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);

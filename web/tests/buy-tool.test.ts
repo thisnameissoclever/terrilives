@@ -1087,7 +1087,7 @@ describe('the Buy tool in the page', () => {
   it('is wired into the frame, the click, Load and leaving Build', () => {
     for (const wiring of ['buyTool.afterCommands()', 'buyTool.moveTo(tile[0], tile[1])',
       'buyTool.resetAfterLoad(lotWidth, lotHeight)', 'buyTool.exit()',
-      "buyTool.setBlocked(overlayPause.suspendedExcept('builder'))",
+      "buyTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active)",
       'buyControls?.setCompact(event.matches)',
       'new BuyToolControls(document, buyTool, sim.needNames(), cards => {',
       'drawCataloguePreviews(cards)',

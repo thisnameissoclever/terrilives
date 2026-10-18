@@ -67,6 +67,7 @@ function fixture() {
     sim: { selectedIndex: () => 0, clockTick: () => 0, floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null }, roomTool: { highlight: () => null },
+    roomReview: { highlight: () => null }, roomsTool: { selecting: false }, roomSelection: { highlight: () => null },
     landTool: { highlight: () => null },
     floorTool: { highlight: () => null, resourceStatus: null as string | null, resourceFailed: false,
       setResourceStatus(value: string | null, failed = false) { this.resourceStatus = value; this.resourceFailed = failed; } },

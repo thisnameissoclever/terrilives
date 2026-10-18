@@ -153,6 +153,45 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 
 #buy-facts { white-space: pre-line; }
 
+#room-select-controls, #room-build-controls { display: grid; gap: 8px; min-width: 0; }
+#room-tool, #room-review { --room-focus-clearance: 6px; }
+#builder-controls input[type='text'] { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; font: inherit; color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 4px; padding: 6px; }
+#builder-controls input:focus-visible, #builder-controls select:focus-visible, #room-review-heading:focus { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#room-name, #room-review input, #room-review select { scroll-margin-block: var(--room-focus-clearance); }
+#room-name-status:empty, #room-review-status:empty { display: none; }
+#room-name-status, #room-review-status { overflow-wrap: anywhere; }
+#room-review { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+#room-review[hidden] { display: none; }
+#room-review-heading { flex: none; margin: 0; font-size: 16px; }
+#room-review-scroll { min-height: 0; overflow-y: auto; padding: var(--room-focus-clearance); }
+#room-review-body fieldset { display: grid; gap: 8px; min-width: 0; margin: 10px 0; }
+#room-review-body label { display: grid; gap: 4px; min-width: 0; }
+#room-review-body p, #room-review-body legend { overflow-wrap: anywhere; }
+#room-review-actions { display: flex; flex: none; gap: 8px; padding: 8px 0; background: var(--hud-bg); }
+#room-review-actions button { flex: 1; }
+#builder-controls[data-reviewing='true'] > :not(#room-review) { display: none !important; }
+#builder-controls[data-reviewing='true'] { display: flex; flex-direction: column; overflow: hidden; }
+#room-map-marker { position: fixed; z-index: 2; transform: translate(-50%, -100%); pointer-events: none; max-width: min(260px, 60vw); padding: 4px 8px; border: 1px solid var(--need-fill); border-radius: 4px; background: var(--hud-bg); color: var(--hud-text); overflow-wrap: anywhere; }
+@media (max-width: 700px), (max-height: 480px) {
+  body:not([data-build-rows='true']) #builder-dock:has(#room-tool:not([hidden])),
+  body:not([data-build-rows='true']) #builder-dock:has(#room-review:not([hidden])) {
+    left: calc(var(--build-visible-left, 0px) + 8px); right: auto;
+    width: calc(var(--build-visible-width, 100vw) - 16px);
+    bottom: calc(var(--build-visible-bottom, 0px) + max(8px, env(safe-area-inset-bottom)));
+  }
+  #builder-dock #builder-controls:has(#room-tool:not([hidden])),
+  #builder-dock #builder-controls[data-reviewing='true'] {
+    max-height: min(calc(var(--build-visible-height, 100dvh) * .7), calc(var(--build-visible-height, 100dvh) - 100px));
+  }
+  #builder-dock #room-tool { min-height: 64px; padding: var(--room-focus-clearance); margin: calc(-1 * var(--room-focus-clearance)); }
+  #builder-dock #build-batch-status { margin-block: 6px; flex: none; }
+  #builder-dock #room-review { min-height: 0; flex: 1; }
+}
+@media (forced-colors: active) {
+  #builder-controls input[type='text'] { background: Field; color: FieldText; border-color: ButtonText; }
+  #builder-controls input:focus-visible, #builder-controls select:focus-visible, #room-review-heading:focus { outline-color: Highlight; }
+}
+
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
 /* The side panel keeps no bottom padding of its own; its footer, always its
    last child, carries that space instead. So the stuck footer meets the

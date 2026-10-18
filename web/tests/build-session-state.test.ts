@@ -1,75 +1,50 @@
-import { expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { beforeAll, expect, it, vi } from 'vitest';
+import init, { SimHandle } from '../src/wasm/terri_wasm.js';
+import { SimBridge } from '../src/bridge.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { PersistenceController } from '../src/ui/persistence-controller.js';
-
+let memory: WebAssembly.Memory;
+beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 function fixture() {
-  let state = 1;
-  let queued: number | null = null;
-  const source = {
-    saveBytes: () => Uint8Array.of(state),
-    loadBytes: (bytes: Uint8Array) => { state = bytes[0]; queued = null; return true; },
-    flushCommands: () => { if (queued !== null) { state = queued; queued = null; } },
-    clockTick: () => 0, dayTicks: () => 1440,
-  };
-  const hooks = { prepare: () => true, settled: () => true, restored: vi.fn() };
-  return { source, hooks, session: new BuildSession(source, hooks), edit: (value: number) => { queued = value; } };
+  const handle = SimHandle.from_lot(), source = new SimBridge(handle, memory);
+  const hooks = { prepare: () => true, settled: () => true, restored: vi.fn(), replaced: vi.fn() };
+  return { handle, source, hooks, session: new BuildSession(source, hooks) };
 }
-
-it('keeps draft saves isolated, rolls back queued edits, and preserves confirmed batches', () => {
+it('uses native semantic dirty state while every public save remains committed', () => {
   const f = fixture();
-  expect(f.session.begin()).toBe(true);
-  f.edit(2); f.source.flushCommands();
-  expect(f.source.saveBytes()).toEqual(Uint8Array.of(2));
-  expect(f.session.saveBytes()).toEqual(Uint8Array.of(1));
-  expect(f.session.confirm()).toBe(true);
-  f.edit(3);
-  expect(f.session.end()).toBe(true);
-  f.source.flushCommands();
-  expect(f.source.saveBytes()).toEqual(Uint8Array.of(2));
+  try {
+    const before = f.source.saveBytes(); expect(f.session.begin()).toBe(true);
+    expect(f.source.buildActive()).toBe(true); expect(f.session.hasChanges()).toBe(false);
+    f.source.stageRoomName(0, 'Garden'); expect(f.session.hasChanges()).toBe(true);
+    expect(f.source.saveBytes()).toEqual(before); expect(f.session.saveBytes()).toEqual(before);
+    f.source.stageRoomName(0, 'Outside'); expect(f.session.hasChanges()).toBe(false);
+    f.source.stageRoomName(0, 'Garden'); expect(f.session.confirm()).toBe(true);
+    const confirmed = f.source.saveBytes(); expect(confirmed).not.toEqual(before);
+    f.source.stageRoomName(0, 'Later'); expect(f.session.cancel()).toBe(true);
+    expect(f.source.saveBytes()).toEqual(confirmed); expect(f.session.active).toBe(true);
+    expect(f.session.end()).toBe(true); expect(f.session.active).toBe(false);
+  } finally { f.handle.free(); }
 });
-
-it('reports a change while the draft differs from the baseline, and none outside Build', () => {
+it('preserves local state on refused Load and replaces it only after accepted native adoption', () => {
   const f = fixture();
-  expect(f.session.hasChanges()).toBe(false);
-  f.session.begin();
-  expect(f.session.hasChanges()).toBe(false);
-  f.edit(2); f.source.flushCommands();
-  expect(f.session.hasChanges()).toBe(true);
-  f.edit(1); f.source.flushCommands();
-  expect(f.session.hasChanges()).toBe(false);
+  try {
+    f.session.begin(); const saved = f.source.saveBytes(); f.source.stageRoomName(0, 'Garden');
+    expect(f.session.loadBytes(new Uint8Array())).toBe(false); expect(f.hooks.replaced).not.toHaveBeenCalled();
+    expect(f.session.hasChanges()).toBe(true);
+    expect(f.session.loadBytes(saved)).toBe(true); expect(f.hooks.replaced).toHaveBeenCalledOnce();
+    expect(f.session.active).toBe(true); expect(f.session.hasChanges()).toBe(false);
+  } finally { f.handle.free(); }
 });
-
-it('does not expose mutable baseline bytes or lose the checkpoint on failed cancellation', () => {
-  const f = fixture(); f.session.begin();
-  f.session.saveBytes()[0] = 99;
-  expect(f.session.saveBytes()[0]).toBe(1);
-  vi.spyOn(f.source, 'loadBytes').mockReturnValue(false);
-  expect(f.session.end()).toBe(false);
-  expect(f.session.active).toBe(true);
-  expect(f.hooks.restored).not.toHaveBeenCalled();
-});
-
-it('will not confirm unfinished or invalid edits', () => {
-  const f = fixture(); f.session.begin(); f.edit(2);
-  f.hooks.prepare = () => false;
-  expect(f.session.confirm()).toBe(false);
-  expect(f.session.saveBytes()[0]).toBe(1);
-  f.hooks.prepare = () => true;
-  f.hooks.settled = () => false;
-  expect(f.session.confirm()).toBe(false);
-  expect(f.session.saveBytes()[0]).toBe(1);
-});
-
-it('manual persistence writes the confirmed world while draft commands are applied', async () => {
+it('manual persistence writes the native confirmed bytes during editing and preparation', async () => {
   const f = fixture();
-  const store = { save: vi.fn(async (_bytes: Uint8Array) => {}),
-    load: async () => null, clear: async () => {}, close() {} };
+  const store = { save: vi.fn(async (_bytes: Uint8Array) => {}), load: async () => null, clear: async () => {}, close() {} };
   const status = { textContent: '', setAttribute() {}, removeAttribute() {} };
   const persistence = new PersistenceController(store, f.session, status, error => { throw error; });
-  f.session.begin(); f.edit(2); f.source.flushCommands();
-  expect(await persistence.save()).toBe(true);
-  expect(store.save).toHaveBeenLastCalledWith(Uint8Array.of(1));
-  f.session.confirm();
-  expect(await persistence.save()).toBe(true);
-  expect(store.save).toHaveBeenLastCalledWith(Uint8Array.of(2));
+  try {
+    f.session.begin(); const before = f.source.saveBytes(); f.source.stageRoomName(0, 'Garden');
+    f.source.prepareBuildCommit(); expect(await persistence.save()).toBe(true); expect(store.save).toHaveBeenLastCalledWith(before);
+    expect(f.session.confirm()).toBe(true); expect(await persistence.save()).toBe(true);
+    expect(store.save).toHaveBeenLastCalledWith(f.source.saveBytes()); expect(f.source.saveBytes()).not.toEqual(before);
+  } finally { f.handle.free(); }
 });
