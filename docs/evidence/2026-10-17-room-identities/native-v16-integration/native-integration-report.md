@@ -1,10 +1,10 @@
 # Native V16 integration receipt
 
-Status: native integration, authentic V15 compatibility, source-faithful historical controls and all bounded current-tool repairs pass their focused gates. The existing merge is ready for local checkpointing. Do not interpret this report as release, browser, full-workspace or final-review approval.
+Status: native integration, authentic V15 compatibility, source-faithful historical controls and all bounded current-tool repairs pass their focused gates. The a481 merge is committed; latest main b7 is integrated and its eight affected native tests pass. Do not interpret this report as release, browser, full-workspace or final-review approval.
 
 ## Source and wire ownership
 
-1. Started from `084643c1fdbe950bca5f5ce7ef1dd27726ee4870`, including native checkpoint `17aaac23fa0c520283659ce8d77c9b795ef60f24`. The existing normal merge targets published main `a481d7c7be0708c4523d9a156513b6696aaff6f6`. Parent subsequently identified `b7ee082afe27ba88d8261788e15dc812057f71c1`; it will be integrated through normal history after this coherent checkpoint, before fresh review/full gates.
+1. Started from `084643c1fdbe950bca5f5ce7ef1dd27726ee4870`, including native checkpoint `17aaac23fa0c520283659ce8d77c9b795ef60f24`. Normal merge checkpoint `00d4fc2038bacc8a875ed3552c931eaf727f62ae` has parents `084643c1f` and published main `a481d7c7be0708c4523d9a156513b6696aaff6f6`. The subsequent normal merge integrates `b7ee082afe27ba88d8261788e15dc812057f71c1` without conflicts. Its selection comment corrections, actual bucket-boundary test prerequisites and sampling helper visibility are retained. Neither merge changed dependencies or generated current Wasm.
 2. `SaveSnapshotV15` and `save/v15.rs` retain the exact published conversation schema, variant order, waiting-target stripping, strict restore and request hash. `SaveSnapshotV16 { legacy: SaveSnapshotV15, rooms: SavedRooms }` is the sole current envelope. Header 15 dispatches only to published V15; the unpublished room-only prototype has no fallback decoder. An explicit negative control rejects it.
 3. V16 installs the incoming registry and Stable reference mode before nested room-dependent validation. Historical V15 uses Legacy semantics and the existing migration path. Public V15 signatures remain; `try_save_snapshot_v15` projects representable room fields and refuses unsupported historical output while retaining requests and exact admitted order IDs.
 4. Build baselines, prepared candidates, private replay, command-free projection, ordinary construction and current test views retain the full V16 envelope. Named inner views remain field accessors; current equality and restoration retain requests and rooms. Pending command columns and their action manifest are projected together, without dropping admitted queues or recipe origins.
@@ -47,7 +47,7 @@ The approved footer contract remains: ordinary Confirm/review Confirm commit and
 
 Receipts and original failed logs remain under `.local-build/`. Build receipts retain exact commands, explicit process exits, source-input manifests and executable SHA256 values. Tests started only after their successful build receipt, except the explicitly excluded partial run described below.
 
-The retained `v16-*.log` files beside this report are whitespace-normalized viewing copies. `native-gate-archive.json` records both their original raw SHA256 and stored SHA256. The raw local logs, original producer/corpus files and parent-owned rejected/advisory evidence remain unchanged.
+The retained `v16-*.log` files beside this report are whitespace-normalized viewing copies. `native-gate-archive.json` and `b7-gate-archive.json` record original raw SHA256 and stored SHA256 when normalization occurs. Stored hashes are checked against the actual Git index, including JSON line-ending normalization. The raw local logs, original producer/corpus files and parent-owned rejected/advisory evidence remain unchanged. The advisory and producer retention manifests separately record their raw and Git-stored representations. Binary saved games remain exact.
 
 | Receipt | Result and scope |
 | --- | --- |
@@ -72,12 +72,14 @@ The retained `v16-*.log` files beside this report are whitespace-normalized view
 | `v16-immutable-inputs` | 23 published-source, V14-byte, original-V15-corpus and frozen-worker inputs match their authoritative references. Dependency files and generated Wasm have no integration delta from published main. |
 | `v16-changelog` | Existing notes pass 12 generator tests and the changelog build. No new release note is added for this internal integration checkpoint; the parent owns the complete player-facing room release note before final delivery. |
 | `v16-checkpoint-gates` | Both historical conversation controls pass with exact empty-LegacyCells source semantics. Workspace formatting and diff checks pass. This is not the full workspace test or clippy gate. |
+| `v16-b7-build/focus/format` | Latest main's merged native test target compiles successfully before execution. The unchurned tie, churned tie and authored-seed controls each pass; sampler tests pass 5/5. Workspace formatting passes. The affected browser-test edit is comment-only; actual-module checks remain R6. |
+| `v16-final-index-check` | Before the first merge commit, all 58 native archive, eight advisory, 15 producer-retention and nine corpus records match their indexed bytes. No unmerged, unstaged or untracked files; staged whitespace check passes. |
 
 ## Remaining gates and explicit limits
 
-1. Checkpoint the existing a481 merge and integrate b7 through normal history after the last targeted controls. Parent owns fresh immutable review and the subsequent full workspace, strict clippy, played stretch and fault/restoration gates.
+1. Parent owns fresh immutable review of the completed local merge checkpoints and the subsequent full workspace, strict clippy, played stretch and fault/restoration gates. The bounded native integration gates do not replace those checks.
 2. R6 generated current Wasm, actual-module storage tests, independent release-Wasm checksum measurement and real OPFS/browser evidence are pending. Mock filesystem tests do not prove browser storage.
 3. R7 room controls, deferred exit handling, footer keep-open behavior, responsive played verification and fresh visual review are pending. No current Wasm was generated and no remote action occurred in this unit.
 4. The first merge's original process exit is unknown because its large wrapper output lost the control record; do not infer an exit code from the conflict log. Parent independently verified the expected merge state. A duplicate owned merge process was stopped, the stale owned lock was reconciled, and the existing conflicted merge was retained. The accepted orchestration review and updated lesson require explicit single-operation/session/exit receipts. All subsequent failed/partial receipts remain visible.
 
-**Next steps**: Complete local merge history and hand the immutable native checkpoint to the parent for fresh review and full gates. No user action is needed for these authorized steps.
+**Next steps**: Parent takes the immutable native checkpoint through fresh review and full gates, then R6 and R7. No user action is needed for these authorized steps.

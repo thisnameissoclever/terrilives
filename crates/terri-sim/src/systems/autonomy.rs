@@ -165,7 +165,8 @@ const DRAW_BUCKETS: u64 = 1u64 << 53;
 
 /// Reserve at least one RNG bucket for every positive probability. This keeps
 /// rare alternatives selectable even below floating-point cumulative precision.
-fn sampling_buckets(probabilities: &[f64]) -> Vec<u64> {
+/// Selection's tie tests call it to find the buckets a recorded draw used.
+pub(super) fn sampling_buckets(probabilities: &[f64]) -> Vec<u64> {
     assert!(!probabilities.is_empty() && (probabilities.len() as u64) < DRAW_BUCKETS);
     let mut buckets: Vec<u64> = probabilities
         .iter()

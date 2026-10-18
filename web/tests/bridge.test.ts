@@ -1291,6 +1291,23 @@ describe('SimBridge', () => {
     // exactly 1.0 everywhere. Adding a second object to this scenario
     // changes what it is exposed to.
     //
+    // Correction, 2026-10-17: the paragraph above predates the wander
+    // candidate. Selection now weighs every candidate, including a wander
+    // candidate it always adds, through
+    // `critical_choices::critical_choice_probabilities`, whose paths call
+    // `f64::exp` in `autonomy`, so one object no longer means one candidate.
+    // The comparison is not free of `exp` results either: `spawn_agent`
+    // gives each agent a `SimId`, so each decision holds the other agents'
+    // social candidates beside the wander candidate, and `f64::exp` sets
+    // the weights between them. Agreement between native and wasm32 is a
+    // measurement each time this test runs, not a guarantee. The fridge
+    // never becomes a candidate, because both of its actions need a
+    // preparation counter the scenario lacks. The later paragraphs that
+    // describe agents claiming the fridge or being outbid for it predate
+    // the staged snack change, and the one that says the scenario spawns
+    // plain agents predates `5107826ba`; both are historical. [L36]
+    // records the measurements.
+    //
     // M1c Task 4 varied every interaction's length around its content
     // duration and put a 25-tick floor under it, and this vector did not
     // move on either target for a different reason again: **no agent

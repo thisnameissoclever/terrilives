@@ -6718,6 +6718,27 @@ mod determinism_tests {
         // and by the two tie tests, all of which are robust to a
         // last-bit difference.
         //
+        // **Correction, 2026-10-17:** the two paragraphs above predate the
+        // wander candidate, and their reason no longer holds. Selection
+        // does not call `sample_softmax` or `f32::exp`: `select_action`
+        // pushes a wander candidate after every other candidate and weighs
+        // them through `critical_choices::critical_choice_probabilities`,
+        // whose paths call `f64::exp` in `autonomy`, so one object no
+        // longer means one candidate. The conclusion no longer holds
+        // either. `build_scenario` spawns its agents through
+        // `Sim::spawn_agent`, which gives each one a `SimId`, and a probe
+        // found each of the 12 decisions over its 100 ticks held seven
+        // social candidates beside the wander candidate, so `f64::exp`
+        // results are in the digest's causal chain. Agreement between
+        // native and wasm32 on this vector is a measurement each time it is
+        // checked, not a guarantee. The fridge still never becomes a
+        // candidate, because both of its actions are chains with a
+        // preparation step and there is no counter here. The later
+        // paragraphs that describe agents claiming the fridge or being
+        // outbid for it predate the staged snack change, and those that
+        // say the agents have no identity predate `5107826ba`; both are
+        // historical. [L36] records the measurements.
+        //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every
         // interaction's length a sampled value and put a 25-tick floor
