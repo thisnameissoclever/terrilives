@@ -2436,6 +2436,22 @@ impl Sim {
             .take_into(out)
     }
 
+    /// Moves every staged record into the log's export buffer and returns
+    /// how many it moved; [`Sim::activity_log_export`] then reads them. The
+    /// wasm bridge's consuming take ([AL-bridge]).
+    pub fn take_activity_log_export(&mut self) -> u32 {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .take_export()
+    }
+
+    /// The records the last [`Sim::take_activity_log_export`] moved.
+    pub fn activity_log_export(&self) -> &[u32] {
+        self.world
+            .resource::<activity_log::ActivityLog>()
+            .exported()
+    }
+
     /// The strings a record's `label` and `label2` words index.
     pub fn activity_log_labels(&self) -> &[String] {
         activity_log::labels(self.world.resource::<Content>().0).names()

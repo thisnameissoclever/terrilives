@@ -356,6 +356,10 @@ pub struct ActivityLog {
     /// The first `seq` the end-of-tick link pass has not yet seen.
     unlinked: u32,
     scratch: Scratch,
+    /// The records the last [`ActivityLog::take_export`] moved, which the
+    /// wasm bridge points the shell at ([AL-bridge]). Preallocated for a full
+    /// ring, so a take never allocates.
+    export: Vec<u32>,
 }
 
 /// Values emitters accumulate across ticks, keyed by `SimId` so no ECS
@@ -452,6 +456,7 @@ impl Default for ActivityLog {
             enabled: true,
             unlinked: 1,
             scratch: Scratch::default(),
+            export: Vec::with_capacity(STAGING_CAPACITY * RECORD_WORDS),
         }
     }
 }
@@ -525,6 +530,23 @@ impl ActivityLog {
         self.head = 0;
         self.len = 0;
         count as u32
+    }
+
+    /// Moves every staged record into the export buffer, replacing what the
+    /// previous take left there, and returns how many it moved. The shell
+    /// copies the buffer out before its next boundary call ([AL-bridge]).
+    pub fn take_export(&mut self) -> u32 {
+        let mut export = std::mem::take(&mut self.export);
+        export.clear();
+        let count = self.take_into(&mut export);
+        self.export = export;
+        count
+    }
+
+    /// The records the last [`ActivityLog::take_export`] moved, twelve words
+    /// each, oldest first.
+    pub fn exported(&self) -> &[u32] {
+        &self.export
     }
 
     /// The label's index in `pack`'s table, or [`NONE`].
