@@ -874,15 +874,6 @@ pub enum SavedCommand {
         change: bool,
         search: bool,
     },
-    /// Job search per person (issue 297), staged just before a save, by
-    /// the entity index the person had, as `QuitCareer` names them.
-    SetJobSearch {
-        agent: u32,
-        search: bool,
-    },
-    SetCareerChange {
-        change: bool,
-    },
 }
 
 /// One permanent record, ordered by death tick then SimId.

@@ -18,6 +18,8 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV17 {
             .resource::<terri_core::CommandQueue>()
             .as_slice()
             .iter()
+            // Schema eighteen places its settings among these positions.
+            .filter(|command| !super::v18::is_queued_setting(command))
             .enumerate()
             .filter_map(|(position, command)| match command {
                 terri_core::SimCommand::ConfirmedOrder {

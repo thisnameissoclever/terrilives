@@ -1460,7 +1460,7 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(save::v18::project_v17)
             .unwrap_or_else(|| save::v17::capture(self))
     }
 

@@ -649,7 +649,9 @@ target whose complete membership cannot be represented by the old map.
 V17 wraps the complete V16 payload with player-order ownership, activity
 continuations, incoming acceptance order, work attendance and confirmed input.
 V18 wraps the complete V17 payload with the living people whose job search is
-off ([job search for each housemate](specs/2026-10-18-job-search-per-person.md)).
+off and the queued job search settings with their queue positions, leaving the
+frozen command records unchanged ([job search for each
+housemate](specs/2026-10-18-job-search-per-person.md)).
 The published V15, V16 and V17 readers retain their original wire shapes.
 
 During Build, the native transaction owns a validated baseline, accepted-command

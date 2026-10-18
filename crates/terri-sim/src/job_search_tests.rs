@@ -502,3 +502,198 @@ fn older_writers_carry_the_setting_only_when_it_is_the_whole_household() {
     restored.load_snapshot_v17(whole).expect("loads");
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
+
+fn queue(sim: &Sim) -> Vec<SimCommand> {
+    sim.world().resource::<CommandQueue>().as_slice().to_vec()
+}
+
+/// [JS-save]: the settings commands staged just before a save ride schema
+/// eighteen beside their queue positions, leaving the frozen schema-
+/// seventeen command records as they were, and apply after the load.
+#[test]
+fn queued_settings_ride_schema_eighteen_and_apply_after_the_load() {
+    use terri_core::save_v18::SavedQueuedSetting;
+    let mut sim = Sim::new_from_shipped_lot();
+    let people = household(&mut sim);
+    let agent = people[1].1.index_u32();
+    for command in [
+        SimCommand::SetSpeed(2),
+        SimCommand::SetJobSearch {
+            agent,
+            search: false,
+        },
+        SimCommand::SetSpeed(1),
+        SimCommand::SetCareerChange { change: false },
+    ] {
+        sim.world_mut().resource_mut::<CommandQueue>().push(command);
+    }
+    let staged = queue(&sim);
+    let saved = sim.save_snapshot_v18();
+    assert_eq!(
+        saved.queued_settings,
+        vec![
+            (
+                1,
+                SavedQueuedSetting::JobSearch {
+                    agent,
+                    search: false
+                }
+            ),
+            (3, SavedQueuedSetting::CareerChange { change: false }),
+        ]
+    );
+    let frozen = &saved
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .world
+        .queued_commands;
+    assert_eq!(
+        frozen,
+        &vec![
+            terri_core::SavedCommand::SetSpeed(2),
+            terri_core::SavedCommand::SetSpeed(1)
+        ],
+        "the published command records hold only the ordinary commands"
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v18(saved.clone()).expect("loads");
+    assert_eq!(queue(&loaded), staged, "the queue keeps its order");
+    assert_eq!(loaded.save_snapshot_v18(), saved);
+    assert_eq!(loaded.world_hash(), sim.world_hash());
+    loaded.flush_commands();
+    sim.flush_commands();
+    assert_eq!(search_of(&loaded, people[1].1), Some(false));
+    assert!(!loaded.career_change_autonomy());
+    assert_eq!(loaded.world_hash(), sim.world_hash());
+}
+
+/// The older household command, staged just before a schema-seventeen
+/// save, loads and turns every living person's search off when applied.
+#[test]
+fn a_queued_household_command_in_schema_seventeen_applies_after_the_load() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let people = household(&mut sim);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetCareerAutonomy {
+            change: true,
+            search: false,
+        });
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded
+        .load_snapshot_v17(sim.save_snapshot_v17())
+        .expect("loads");
+    assert_eq!(queue(&loaded), queue(&sim));
+    for (_, entity) in &people {
+        assert_eq!(search_of(&loaded, *entity), Some(true), "not yet applied");
+    }
+    loaded.flush_commands();
+    for (_, entity) in &people {
+        assert_eq!(search_of(&loaded, *entity), Some(false));
+    }
+}
+
+/// Schema eighteen round-trips a household with everyone off and one with
+/// an empty list.
+#[test]
+fn schema_eighteen_round_trips_everyone_off_and_an_empty_list() {
+    let mut empty = Sim::new_from_shipped_lot();
+    let saved = empty.save_snapshot_v18();
+    assert!(saved.job_search_off.is_empty() && saved.queued_settings.is_empty());
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v18(saved.clone()).expect("loads");
+    assert_eq!(loaded.save_snapshot_v18(), saved);
+    assert_eq!(loaded.world_hash(), empty.world_hash());
+
+    issue(
+        &mut empty,
+        SimCommand::SetCareerAutonomy {
+            change: true,
+            search: false,
+        },
+    );
+    let people = household(&mut empty);
+    let saved = empty.save_snapshot_v18();
+    assert_eq!(
+        saved.job_search_off,
+        people.iter().map(|(id, _)| id.0).collect::<Vec<_>>()
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v18(saved.clone()).expect("loads");
+    assert_eq!(loaded.save_snapshot_v18(), saved);
+    assert_eq!(loaded.world_hash(), empty.world_hash());
+}
+
+/// A queued setting the schema-eighteen queue cannot place refuses the
+/// load and leaves the running game alone.
+#[test]
+fn schema_eighteen_refuses_misplaced_queued_settings() {
+    use terri_core::save_v18::SavedQueuedSetting;
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetSpeed(2));
+    let clean = sim.save_snapshot_v18();
+    let change = SavedQueuedSetting::CareerChange { change: false };
+    for (case, rows) in [
+        ("past the queue", vec![(2, change)]),
+        ("out of order", vec![(1, change), (0, change)]),
+        ("one position twice", vec![(0, change), (0, change)]),
+    ] {
+        let mut invalid = clean.clone();
+        invalid.queued_settings = rows;
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.world_hash();
+        assert!(
+            live.load_snapshot_v18(invalid).is_err(),
+            "{case} must refuse"
+        );
+        assert_eq!(live.world_hash(), before, "{case} changes nothing");
+    }
+    let mut valid = clean;
+    valid.queued_settings = vec![(0, change), (2, change)];
+    Sim::new_from_shipped_lot()
+        .load_snapshot_v18(valid)
+        .expect("before and after the ordinary command");
+}
+
+/// During a Build session the schema-seventeen projection comes from the
+/// committed baseline and still carries the household field off when
+/// everyone is off.
+#[test]
+fn the_build_baseline_projects_the_household_field() {
+    let mut sim = Sim::new_from_shipped_lot();
+    issue(
+        &mut sim,
+        SimCommand::SetCareerAutonomy {
+            change: true,
+            search: false,
+        },
+    );
+    assert!(
+        !sim.save_snapshot_v17()
+            .legacy
+            .legacy
+            .legacy
+            .careers
+            .autonomous_search
+    );
+    sim.begin_build().expect("build starts");
+    assert!(
+        !sim.save_snapshot_v17()
+            .legacy
+            .legacy
+            .legacy
+            .careers
+            .autonomous_search,
+        "the baseline's projection matches the live one"
+    );
+}

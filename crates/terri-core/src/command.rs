@@ -1354,14 +1354,6 @@ mod window_wire_tests {
                 },
                 vec![32, 1, 0],
             ),
-            (
-                SavedCommand::SetJobSearch {
-                    agent: 300,
-                    search: true,
-                },
-                vec![33, 172, 2, 1],
-            ),
-            (SavedCommand::SetCareerChange { change: false }, vec![34, 0]),
         ];
         for (command, bytes) in saved {
             assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
@@ -1370,6 +1362,11 @@ mod window_wire_tests {
                 command
             );
         }
+        // The published saved command records stay frozen: the two job
+        // search settings ride schema eighteen beside their queue
+        // positions instead (`docs/specs/2026-10-18-job-search-per-person.md`).
+        assert!(postcard::from_bytes::<SavedCommand>(&[33, 172, 2, 1]).is_err());
+        assert!(postcard::from_bytes::<SavedCommand>(&[34, 0]).is_err());
     }
 }
 

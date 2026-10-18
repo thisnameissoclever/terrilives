@@ -208,7 +208,7 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
                     SimCommand::Book(_)
                         | SimCommand::Character(_)
                         | SimCommand::ConfirmedOrder { .. }
-                )
+                ) && !v18::is_queued_setting(command)
             })
             .map(|command| capture_command(command, pack))
             .collect(),
@@ -366,12 +366,11 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             change: *change,
             search: *search,
         },
-        SimCommand::SetJobSearch { agent, search } => SavedCommand::SetJobSearch {
-            agent: *agent,
-            search: *search,
-        },
-        SimCommand::SetCareerChange { change } => SavedCommand::SetCareerChange { change: *change },
-        SimCommand::Book(_) | SimCommand::Character(_) | SimCommand::ConfirmedOrder { .. } => {
+        SimCommand::Book(_)
+        | SimCommand::Character(_)
+        | SimCommand::ConfirmedOrder { .. }
+        | SimCommand::SetJobSearch { .. }
+        | SimCommand::SetCareerChange { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
@@ -1071,8 +1070,6 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         SavedCommand::SetCareerAutonomy { change, search } => {
             SimCommand::SetCareerAutonomy { change, search }
         }
-        SavedCommand::SetJobSearch { agent, search } => SimCommand::SetJobSearch { agent, search },
-        SavedCommand::SetCareerChange { change } => SimCommand::SetCareerChange { change },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -1528,12 +1525,7 @@ fn validate_command_with_actor_refs(
                 Err(SaveError::InvalidContentReference)
             }
         }
-        // A person the drain cannot find is ignored there, as a resignation
-        // is refused there.
-        SavedCommand::QuitCareer { .. }
-        | SavedCommand::SetCareerAutonomy { .. }
-        | SavedCommand::SetJobSearch { .. }
-        | SavedCommand::SetCareerChange { .. } => Ok(()),
+        SavedCommand::QuitCareer { .. } | SavedCommand::SetCareerAutonomy { .. } => Ok(()),
         SavedCommand::SetChoreProfile {
             responsibility,
             preferences,
