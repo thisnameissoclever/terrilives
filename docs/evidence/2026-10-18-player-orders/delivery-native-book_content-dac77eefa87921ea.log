@@ -1,0 +1,10 @@
+
+running 5 tests
+test reading_tuning_rejects_nonfinite_out_of_range_and_zero_inputs ... ok
+test reusable_actions_accept_explicit_book_and_seat_contracts ... ok
+test legacy_objects_default_to_exclusive_actions_and_no_owned_book_requirement ... ok
+test shipped_catalogue_has_six_genres_and_eight_books_at_each_length_and_price ... ok
+test malformed_catalogue_rejects_duplicates_blank_copy_unknown_genres_and_zero_values ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

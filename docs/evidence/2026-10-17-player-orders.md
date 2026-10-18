@@ -1,5 +1,9 @@
 # Player-order verification, October 17, 2026
 
+This is a historical record of the isolated implementation. See the
+[October 18 integration verification](2026-10-18-player-orders.md) for the
+delivered V17 save format and current evidence.
+
 Issue #273 is implemented locally on `twcx/issue-273-player-orders`, based on
 `7c7cfa2274729716b35fda168653c2dfe687d079`. The original defect was reservation
 cleanup deleting an accepted conversation order without an outcome. The

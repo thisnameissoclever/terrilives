@@ -1,0 +1,14 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 1.68s
+     Running `target\debug\examples\order_diagnostics.exe`
+enqueue_32_orders_ms=3.219
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=5.047
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=14.181
+enqueue_1024_gameplay_hash=10651411615500818358
+capture_and_cancel_2048_orders_ms=302.954
+empty_history_tail_read_us=0.194
+full_history_tail_read_us=8.913
+copy_full_2048_history_us=422.037
+identical_gameplay_ticks=300

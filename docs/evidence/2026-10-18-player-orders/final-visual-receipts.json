@@ -1,0 +1,238 @@
+{
+  "browser": "155.0.8059.85",
+  "phoneIsEmulated": true,
+  "receipts": [
+    {
+      "name": "desktop",
+      "incoming": [
+        {
+          "name": "Tim",
+          "rows": [
+            {
+              "orderId": null,
+              "label": "Take a bath: Bathtub",
+              "phase": "running",
+              "role": "initiator",
+              "counterpart": null,
+              "reason": null
+            }
+          ]
+        },
+        {
+          "name": "Bill",
+          "rows": [
+            {
+              "orderId": "0",
+              "label": "Use the exercise bike: Exercise bike",
+              "phase": "running",
+              "role": "initiator",
+              "counterpart": 22,
+              "reason": null
+            },
+            {
+              "orderId": "0",
+              "label": "Chat: Casey",
+              "phase": "queued",
+              "role": "incoming",
+              "counterpart": 36,
+              "reason": null
+            }
+          ]
+        },
+        {
+          "name": "Casey",
+          "rows": [
+            {
+              "orderId": null,
+              "label": "Chat: Bill",
+              "phase": "running",
+              "role": "initiator",
+              "counterpart": null,
+              "reason": null
+            },
+            {
+              "orderId": "0",
+              "label": "Chat: Bill",
+              "phase": "queued",
+              "role": "initiator",
+              "counterpart": 35,
+              "reason": null
+            }
+          ]
+        }
+      ],
+      "failure": {
+        "actor": 36,
+        "cursor": "4",
+        "started": 9350.795000001788,
+        "tick": 17,
+        "bounds": {
+          "left": 624.34375,
+          "top": 321.171875,
+          "right": 686.34375,
+          "bottom": 363.171875
+        }
+      },
+      "expired": {
+        "elapsed": 3014.339999988675,
+        "timeline": {
+          "appeared": 9368.690000012517,
+          "removed": 12383.030000001192
+        },
+        "tick": 17,
+        "status": "Casey: Unavailable action failed. Unknown object action",
+        "events": {
+          "nextCursor": "6",
+          "expired": false,
+          "events": [
+            {
+              "sequence": "5",
+              "tick": "17",
+              "actor": 36,
+              "counterpart": 22,
+              "orderId": "1",
+              "action": "Unavailable action",
+              "phase": "accepted",
+              "reason": null,
+              "blockingState": null
+            },
+            {
+              "sequence": "6",
+              "tick": "17",
+              "actor": 36,
+              "counterpart": 22,
+              "orderId": "1",
+              "action": "Unavailable action",
+              "phase": "failed",
+              "reason": "Unknown object action",
+              "blockingState": null
+            }
+          ]
+        }
+      },
+      "warnings": [
+        "Casey: Unavailable action failed. Unknown object action {sequence: 6, tick: 17, actor: 36, counterpart: 22, orderId: 1}",
+        "Casey: Unavailable action failed. Unknown object action {sequence: 8, tick: 17, actor: 36, counterpart: 22, orderId: 2}"
+      ],
+      "restoration": {
+        "equalPixels": true,
+        "clip": {
+          "x": 569,
+          "y": 301,
+          "width": 160,
+          "height": 220
+        },
+        "elapsed": 3203.6150000095367
+      },
+      "clipboard": "Browser-local sink; operating-system clipboard unchanged",
+      "copy": {
+        "copied": "4 tick 17 | actor 36 -> 35 | #0 Chat: Bill: accepted\n5 tick 17 | actor 36 -> 22 | #1 Unavailable action: accepted\n6 tick 17 | actor 36 -> 22 | #1 Unavailable action: failed | Unknown object action\n7 tick 17 | actor 36 -> 22 | #2 Unavailable action: accepted\n8 tick 17 | actor 36 -> 22 | #2 Unavailable action: failed | Unknown object action",
+        "displayed": "4 tick 17 | actor 36 -> 35 | #0 Chat: Bill: accepted\n5 tick 17 | actor 36 -> 22 | #1 Unavailable action: accepted\n6 tick 17 | actor 36 -> 22 | #1 Unavailable action: failed | Unknown object action\n7 tick 17 | actor 36 -> 22 | #2 Unavailable action: accepted\n8 tick 17 | actor 36 -> 22 | #2 Unavailable action: failed | Unknown object action"
+      }
+    },
+    {
+      "name": "phone",
+      "incoming": [
+        {
+          "name": "Tim",
+          "rows": [
+            {
+              "orderId": null,
+              "label": "Sit: Dining table",
+              "phase": "running",
+              "role": "initiator",
+              "counterpart": null,
+              "reason": null
+            }
+          ]
+        },
+        {
+          "name": "Bill",
+          "rows": [
+            {
+              "orderId": "0",
+              "label": "Use the exercise bike: Exercise bike",
+              "phase": "running",
+              "role": "initiator",
+              "counterpart": 22,
+              "reason": null
+            },
+            {
+              "orderId": "0",
+              "label": "Chat: Casey",
+              "phase": "approaching",
+              "role": "incoming",
+              "counterpart": 36,
+              "reason": null
+            }
+          ]
+        },
+        {
+          "name": "Casey",
+          "rows": [
+            {
+              "orderId": "0",
+              "label": "Chat: Bill",
+              "phase": "approaching",
+              "role": "initiator",
+              "counterpart": 35,
+              "reason": null
+            }
+          ]
+        }
+      ],
+      "failure": {
+        "actor": 36,
+        "cursor": "5",
+        "started": 10422.234999999404,
+        "tick": 17,
+        "bounds": {
+          "left": 198,
+          "top": 207,
+          "right": 260,
+          "bottom": 249
+        }
+      },
+      "expired": {
+        "elapsed": 2997.9899999946356,
+        "timeline": {
+          "appeared": 10440.245000004768,
+          "removed": 13438.234999999404
+        },
+        "tick": 17,
+        "status": "Casey: Unavailable action failed. Unknown object action",
+        "events": {
+          "nextCursor": "7",
+          "expired": false,
+          "events": [
+            {
+              "sequence": "6",
+              "tick": "17",
+              "actor": 36,
+              "counterpart": 22,
+              "orderId": "1",
+              "action": "Unavailable action",
+              "phase": "accepted",
+              "reason": null,
+              "blockingState": null
+            },
+            {
+              "sequence": "7",
+              "tick": "17",
+              "actor": 36,
+              "counterpart": 22,
+              "orderId": "1",
+              "action": "Unavailable action",
+              "phase": "failed",
+              "reason": "Unknown object action",
+              "blockingState": null
+            }
+          ]
+        }
+      },
+      "warnings": [
+        "Casey: Unavailable action failed. Unknown object action {sequence: 7, tick: 17, actor: 36, counterpart: 22, orderId: 1}"
+      ]
+    }
+  ]
+}

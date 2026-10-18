@@ -1,0 +1,17 @@
+{
+  "source": "135c97017",
+  "reviewer": "Fresh independent reviewer",
+  "verdict": "Pass for inspected captures",
+  "initialFindings": [
+    "Phone bubble partly behind Build controls",
+    "Full history below viewport and household dock"
+  ],
+  "resolution": [
+    "Actual touch pan reproduced head anchor 163,259; bubble body 198,207 to 260,249 clears controls",
+    "Panel bottom 895, dock top 903, final event 2050 visible"
+  ],
+  "acceptedControl": "review-pair-26.png",
+  "rejectedMissingFeedbackControl": "review-pair-81.png",
+  "attendance": "197/480 minutes worked; 283 missed; deduction 27.17; final score 3.23; pay $49.25",
+  "limits": "Still images establish appearance only; timing, calculations, scrolling interaction and source correspondence rely on separate runtime receipts and source/artifact hashes."
+}

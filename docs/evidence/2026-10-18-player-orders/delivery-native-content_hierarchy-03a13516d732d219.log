@@ -1,0 +1,32 @@
+
+running 27 tests
+test a_type_names_the_action_a_left_click_starts ... ok
+test bookcase_reading_refuses_an_authored_count ... ok
+test a_seat_action_may_remove_a_count_inherited_from_its_template ... ok
+test every_resolved_sitting_or_reclining_action_has_no_passive_fun ... ok
+test every_shipped_model_has_classification_and_seat_actions_take_capacity_from_seats ... ok
+test canonical_type_is_the_only_hierarchical_presentation_authority ... ok
+test hierarchy_sources_accept_models_without_legacy_objects ... ok
+test inherited_action_removal_and_model_only_action_keep_survivor_order ... ok
+test invalid_unused_definitions_cannot_hide_until_a_model_uses_them ... ok
+test hygiene_shower_model_resolves_values_order_and_final_duration_rounding ... ok
+test model_metadata_and_seats_survive_pack_serialization ... ok
+test pool_lounger_seat_and_approaches_turn_with_the_lounger ... ok
+test review_legacy_objects_cannot_author_resolved_classification_metadata ... ok
+test review_optional_satisfaction_can_remove_an_inherited_reward ... ok
+test malformed_layers_are_rejected_with_author_context ... ok
+test hierarchy_results_still_pass_existing_action_validation ... ok
+test seat_actions_take_capacity_from_seats_and_refuse_an_authored_count ... ok
+test seat_comfort_inherits_category_type_and_model_operations ... ok
+test review_partial_templates_keep_model_dependent_socket_validation_at_final_resolution ... ok
+test shipped_migration_scopes_retirement_balance_and_seating_changes ... ok
+test template_durations_are_not_rounded_or_range_checked_before_inheritance ... ok
+test unknown_operations_and_multiple_parent_fields_are_parse_errors ... ok
+test unrelated_types_share_templates_without_sharing_categories ... ok
+test yard_furniture_declares_its_types_footprints_and_the_lounger_sit ... ok
+test shelf_access_is_inherited_validated_and_rotates_from_base_facing ... ok
+test malformed_physical_seats_fail_content_compilation ... ok
+test review_unused_action_layers_reject_unknown_semantic_references ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.00s
+

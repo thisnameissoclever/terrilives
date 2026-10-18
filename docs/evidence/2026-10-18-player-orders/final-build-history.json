@@ -1,0 +1,222 @@
+{
+  "beforeBuild": {
+    "tick": 17,
+    "queues": [
+      {
+        "name": "Tim",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Take a bath: Bathtub",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Bill",
+        "rows": [
+          {
+            "orderId": "0",
+            "label": "Use the exercise bike: Exercise bike",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": 22,
+            "reason": null
+          },
+          {
+            "orderId": "0",
+            "label": "Chat: Casey",
+            "phase": "queued",
+            "role": "incoming",
+            "counterpart": 36,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Casey",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Chat: Bill",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          },
+          {
+            "orderId": "0",
+            "label": "Chat: Bill",
+            "phase": "queued",
+            "role": "initiator",
+            "counterpart": 35,
+            "reason": null
+          }
+        ]
+      }
+    ],
+    "history": {
+      "nextCursor": "4",
+      "expired": false,
+      "events": [
+        {
+          "sequence": "1",
+          "tick": "0",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "2",
+          "tick": "1",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "approaching",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "3",
+          "tick": "17",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "started",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "4",
+          "tick": "17",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        }
+      ]
+    }
+  },
+  "afterBuild": {
+    "tick": 17,
+    "queues": [
+      {
+        "name": "Tim",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Take a bath: Bathtub",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Bill",
+        "rows": [
+          {
+            "orderId": "0",
+            "label": "Use the exercise bike: Exercise bike",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": 22,
+            "reason": null
+          },
+          {
+            "orderId": "0",
+            "label": "Chat: Casey",
+            "phase": "queued",
+            "role": "incoming",
+            "counterpart": 36,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Casey",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Chat: Bill",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          },
+          {
+            "orderId": "0",
+            "label": "Chat: Bill",
+            "phase": "queued",
+            "role": "initiator",
+            "counterpart": 35,
+            "reason": null
+          }
+        ]
+      }
+    ],
+    "history": {
+      "nextCursor": "4",
+      "expired": false,
+      "events": [
+        {
+          "sequence": "1",
+          "tick": "0",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "2",
+          "tick": "1",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "approaching",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "3",
+          "tick": "17",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "started",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "4",
+          "tick": "17",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        }
+      ]
+    }
+  }
+}

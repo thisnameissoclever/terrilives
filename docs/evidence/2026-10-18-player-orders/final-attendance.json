@@ -1,0 +1,468 @@
+{
+  "schedule": {
+    "workingDays": 31,
+    "shiftStart": 360,
+    "shiftTicks": 480
+  },
+  "delayed": {
+    "tick": 550,
+    "attendance": [
+      480,
+      0,
+      190,
+      -1,
+      0,
+      -1,
+      0,
+      0
+    ],
+    "queue": [
+      {
+        "orderId": "6",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "running",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "7",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "8",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "9",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "10",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "11",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "12",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "13",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "14",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "15",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "16",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "17",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "18",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "19",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "20",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "21",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "22",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "23",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "24",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "25",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "26",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "27",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "28",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "29",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "30",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "31",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "32",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "33",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "34",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "35",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "36",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "37",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "38",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "39",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "40",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "41",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "42",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "43",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "44",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "45",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "46",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "47",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "48",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "49",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "50",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "51",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "52",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "53",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "54",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "55",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "56",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "57",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "58",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      },
+      {
+        "orderId": "59",
+        "label": "Use the exercise bike: Exercise bike",
+        "phase": "queued",
+        "role": "initiator",
+        "counterpart": 22,
+        "reason": null
+      }
+    ]
+  },
+  "settled": {
+    "tick": 900,
+    "attendance": [
+      480,
+      197,
+      283,
+      30.400001525878906,
+      27.166667938232422,
+      3.2333335876464844,
+      4925,
+      1
+    ]
+  },
+  "text": "Last shift: 197 of 480 scheduled minutes worked; 283 missed. Base performance 30.4, missed-work deduction 27.17, final score 3.23. Earned $49.25."
+}
