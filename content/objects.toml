@@ -982,7 +982,7 @@ id = "pool"
 object_type = "pool"
 [model.properties]
 name = { set = "Backyard Square" }
-description = { set = "A square above-ground pool with a stone rim, wooden sides and a pair of chrome rails. For now it is for looking at; nobody can swim in it yet." }
+description = { set = "A square above-ground pool with a stone rim, wooden sides, blue water and a pair of chrome rails." }
 price = { set = 1200 }
 sprite = { set = "offlinePool" }
 footprint = { set = { width = 2, depth = 2 } }
@@ -992,7 +992,7 @@ id = "pool_lounger"
 object_type = "pool_lounger"
 [model.properties]
 name = { set = "Sunstrip" }
-description = { set = "A wooden sun lounger with a padded teal cushion and a raised back. Housemates can sit on its edge; lying back on it is not available yet." }
+description = { set = "A wooden sun lounger with a padded teal cushion and a raised back." }
 price = { set = 120 }
 sprite = { set = "offlinePoolLoungerSW" }
 base_facing = { set = "SW" }

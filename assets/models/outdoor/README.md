@@ -1,6 +1,6 @@
 # Outdoor store models
 
-This folder holds three procedurally modeled outdoor items: a backyard pool, a pool lounger and a patio umbrella. Each one renders to four facings through the larger registered static prop exporter in `../bathroom/render_wide_static.py`, the same exporter the bathtub uses. The renders are unreviewed offline candidates; none has been imported into the sprite atlas.
+This folder holds three procedurally modeled outdoor items: a backyard pool, a pool lounger and a patio umbrella. Each one renders to four facings through the larger registered static prop exporter in `../bathroom/render_wide_static.py`, the same exporter the bathtub uses. One candidate per object passed an independent visual review and its four renders are in the sprite atlas; the other candidates are kept as rejection evidence.
 
 ## Contents
 
@@ -50,7 +50,7 @@ The atlas importer, `assets/sprites/gen/offline_props.py`, rejects a facing whos
 | Pool lounger | `owner-review-pending/lounger/candidate-01` | none |
 | Patio umbrella | `owner-review-pending/umbrella/candidate-02` | 01 had a slate base collar that blended into the base and a slightly flatter canopy |
 
-The current candidates still need an independent visual review and an entry in a static prop catalog before the importer will accept them.
+An independent visual review accepted the three current candidates; the review is in `docs/assets/review-evidence/outdoor/2026-10-17/art-review.md`. The static prop catalog `../static-props-07.json` binds each accepted proof with the status `accepted-independent-review`, and `assets/sprites/gen/build.py` imports their twelve sprites into the atlas after every earlier sprite.
 
 ## Tests
 
