@@ -221,6 +221,8 @@ mod tests {
         sim.world_mut()
             .resource_mut::<TileGrid>()
             .set_blocked(0, 0, true);
+        sim.world_mut()
+            .insert_resource(crate::lot_frame::LotFrame::default());
         let rooms = RoomRegions::legacy(sim.world());
         assert!(rooms.at((0, 0)).is_some());
         assert_eq!(rooms.at((1, 0)), None);

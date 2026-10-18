@@ -53,6 +53,37 @@ fn enclosed(topology: &RoomTopology, tile: (u32, u32)) -> u32 {
 }
 
 #[test]
+fn implicit_legacy_geometry_is_clipped_but_explicit_bad_coordinates_refuse() {
+    for (width, height) in [(3, 4), (8, 8), (9, 7)] {
+        let mut world = world(width, height);
+        world.insert_resource(SavedLayout::LegacyAuthoredV1);
+        let topology = RoomTopology::from_world(&world).unwrap();
+        for y in 0..height as u32 {
+            for x in 0..width as u32 {
+                assert_eq!(
+                    topology.at((x, y)) == Some(TopologyCell::NotFloor),
+                    LEGACY_WALL_TILES.contains(&(x, y))
+                );
+            }
+        }
+        if width == 9 {
+            assert_ne!(
+                enclosed(&topology, (3, 5)),
+                enclosed(&topology, (3, 6)),
+                "the in-bounds frozen doorway still separates rooms"
+            );
+        }
+        world.insert_resource(SavedLayout::LegacyCells {
+            walls: vec![(width as u32, 0)],
+        });
+        assert_eq!(
+            RoomTopology::from_world(&world),
+            Err(RoomError::InvalidArchitecture)
+        );
+    }
+}
+
+#[test]
 fn irregular_rooms_and_three_sided_yard() {
     let mut world = world(20, 16);
     let mut shapes = vec![

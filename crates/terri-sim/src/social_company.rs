@@ -813,6 +813,18 @@ mod tests {
                     })
                     .collect(),
             });
+            crate::test_content::enclose(&mut sim);
+            let rooms = crate::room_regions::RoomRegions::from_world(sim.world());
+            assert!(rooms.at((2, 2)).is_some());
+            assert_ne!(rooms.at((2, 2)), rooms.at((2, 6)));
+            assert_eq!(
+                sim.world()
+                    .resource::<crate::rooms::RoomMap>()
+                    .topology
+                    .components
+                    .len(),
+                2
+            );
             let television =
                 sim.spawn_object(Position { x: 2., y: 2. }, pack.find("television").unwrap());
             let toilet = sim.spawn_object(Position { x: 5., y: 2. }, pack.find("toilet").unwrap());

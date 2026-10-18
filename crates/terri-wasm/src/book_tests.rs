@@ -397,17 +397,17 @@ fn book_fix1_inflated_positive_midread_earnings_reject_with_bytes_hash_rng_uncha
     handle.tick();
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
-    let rng = handle.sim.save_snapshot_v6().legacy.world.rng;
-    let mut bad = handle.sim.save_snapshot_v6();
+    let rng = handle.sim.current_v6_view().legacy.world.rng.clone();
+    let mut bad = handle.sim.current_v6_view();
     assert!(bad.reading[0].work > 0.0 && bad.reading[0].earned_satisfaction > 0.0);
     bad.reading[0].earned_satisfaction *= 100.0;
     let mut corrupted = SAVE_MAGIC.to_vec();
-    corrupted.extend_from_slice(&6u16.to_le_bytes());
-    corrupted.extend(postcard::to_allocvec(&bad).unwrap());
+    corrupted.extend_from_slice(&15u16.to_le_bytes());
+    corrupted.extend(postcard::to_allocvec(&bad.0).unwrap());
     assert!(!handle.load_bytes(&corrupted));
     assert_eq!(handle.save_bytes(), bytes);
     assert_eq!(handle.world_hash(), hash);
-    assert_eq!(handle.sim.save_snapshot_v6().legacy.world.rng, rng);
+    assert_eq!(handle.sim.current_v6_view().legacy.world.rng, rng);
     assert!(handle.load_bytes(&bytes));
     assert_eq!(handle.save_bytes(), bytes);
 }

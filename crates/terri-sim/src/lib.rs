@@ -6561,8 +6561,8 @@ mod determinism_tests {
     /// `reproduces the native golden world hash across the wasm boundary`
     /// in web/tests/bridge.test.ts, which rebuilds this exact scenario
     /// through the JavaScript API and compares against the same constant.
-    /// Measured: the two agree. **If you change `GOLDEN` here, change it
-    /// there too, or the boundary check silently stops being one.**
+    /// Keep the boundary vector synchronized and verify a fresh release-Wasm
+    /// build before claiming agreement. Native execution alone is insufficient.
     #[test]
     fn world_hash_matches_its_golden_vector() {
         const TICKS: usize = 100;
@@ -6921,7 +6921,10 @@ mod determinism_tests {
         // Continuing FNV-1a from the prior 8890656731713008279 with the empty
         // library and taste seed 20260728 yields this value exactly; rebuilt
         // release WASM independently measured the same result.
-        const GOLDEN: u64 = 7871509166762830360;
+        // Current blank lots add the room prefix and use explicit empty edge architecture.
+        // Counterfactual encoding below retains the prior golden after the same ticks.
+        // Release-Wasm agreement must be verified independently.
+        const GOLDEN: u64 = 12900855134133458837;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
@@ -6929,6 +6932,26 @@ mod determinism_tests {
         }
 
         assert_hash_sees_entities(&sim, TICKS);
+        let current_hash = sim.world_hash();
+        let registry = sim
+            .world
+            .remove_resource::<terri_core::rooms::SavedRooms>()
+            .unwrap();
+        let without_registry = sim.world_hash();
+        let layout = sim
+            .world
+            .resource::<terri_core::layout::SavedLayout>()
+            .clone();
+        sim.world
+            .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
+        let prior_encoding = sim.world_hash();
+        sim.world.insert_resource(layout);
+        sim.world.insert_resource(registry);
+        assert_ne!(current_hash, without_registry);
+        assert_eq!(
+            prior_encoding, 7871509166762830360,
+            "the prior encoding preserves the previous scenario result"
+        );
         assert_eq!(
             sim.world_hash(),
             GOLDEN,
@@ -7046,3 +7069,6 @@ mod determinism_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod current_test_snapshot;

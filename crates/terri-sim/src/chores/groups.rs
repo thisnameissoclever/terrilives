@@ -432,7 +432,7 @@ mod tests {
         };
         let ids = members(sim.world(), old);
         assert_eq!(ids.len(), 3);
-        let before = super::super::RoomChangeContext::capture(sim.world()).unwrap();
+        sim.begin_build().unwrap();
         for y in 0..6 {
             sim.world_mut()
                 .resource_mut::<terri_core::CommandQueue>()
@@ -448,7 +448,10 @@ mod tests {
                 });
         }
         sim.flush_commands();
-        super::super::commit_test_rooms(&mut sim, &before);
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build(review.token).unwrap();
         let groups: Vec<_> = super::super::keys(sim.world())
             .into_iter()
             .filter(|k| k.kind == ChoreKind::CounterSurfaces)
@@ -484,17 +487,45 @@ mod tests {
         episode.needed = true;
         episode.decision = Some(false);
         episode.outcome = DutyOutcome::Skipped;
+        let prior = state.clone();
+        let rng = sim.world().resource::<terri_core::SimRng>().clone();
         sim.world_mut().insert_resource(state);
+        let baseline = sim.save_snapshot_v15();
+        sim.load_snapshot_v15(baseline.clone())
+            .expect("constructed dirty group is valid current state");
+        assert_eq!(sim.save_snapshot_v15(), baseline);
         sim.world_mut()
             .resource_mut::<terri_core::CommandQueue>()
             .push(terri_core::SimCommand::SellObject { object });
         sim.flush_commands();
+        assert_eq!(sim.take_build_error(), None, "sale settlement must succeed");
+        assert!(sim
+            .world()
+            .resource::<crate::placement::LotEditState>()
+            .last_sale_result
+            .unwrap()
+            .reason
+            .is_none());
         let state = sim.world().resource::<SavedChores>();
         let episode = state.episodes.iter().find(|e| e.key == key).unwrap();
         assert!(!episode.needed);
         assert_eq!(episode.outcome, DutyOutcome::NoWork);
         assert_eq!(episode.decision, Some(false));
         assert_eq!(members(sim.world(), key).len(), 2);
+        assert_eq!(state.assignments, prior.assignments);
+        assert_eq!(state.week, prior.week);
+        assert_eq!(state.rng, prior.rng);
+        assert_eq!(state.tasks, prior.tasks);
+        assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
+        assert_eq!(
+            episode.settled,
+            prior
+                .episodes
+                .iter()
+                .find(|e| e.key == key)
+                .unwrap()
+                .settled
+        );
     }
 
     #[test]

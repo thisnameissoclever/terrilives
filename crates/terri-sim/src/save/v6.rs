@@ -253,9 +253,14 @@ fn restore_inner_social(
     crate::recipe_actions::restore(&mut candidate.world, snapshot.chain_origins)?;
     crate::books::validate_borrower_positions(&candidate.world, &snapshot.books)
         .map_err(|_| SaveError::InvalidValue)?;
-    let books = with_book_world(&candidate.world, |world| {
-        BookLibrary::from_saved(snapshot.books, world)
-    })?;
+    let books = if content.reading.is_none() {
+        BookLibrary::from_saved_without_reading(snapshot.books, &content.books)
+            .map_err(|_| SaveError::InvalidValue)?
+    } else {
+        with_book_world(&candidate.world, |world| {
+            BookLibrary::from_saved(snapshot.books, world)
+        })?
+    };
     candidate.world.insert_resource(books);
     for saved in snapshot.queues {
         let entity = live_entity(&candidate.world, saved.owner).ok_or(SaveError::InvalidValue)?;
@@ -412,17 +417,18 @@ pub(crate) fn validate_live_books(world: &World) -> Result<(), SaveError> {
     let Some(library) = world.get_resource::<BookLibrary>() else {
         return Ok(());
     };
-    // Historical/synthetic content has no catalogue, and cannot own books.
+    // Current bookless content preserves its library metadata without owned data.
     if world.resource::<Content>().0.reading.is_none() {
-        return if library.state().copies.is_empty() && library.state().memories.is_empty() {
-            Ok(())
-        } else {
-            Err(SaveError::InvalidValue)
-        };
+        crate::books::validate_without_reading(
+            library.state(),
+            &world.resource::<Content>().0.books,
+        )
+        .map_err(|_| SaveError::InvalidValue)?;
+    } else {
+        with_book_world(world, |context| {
+            crate::books::validate_saved(library.state(), context)
+        })?;
     }
-    with_book_world(world, |context| {
-        crate::books::validate_saved(library.state(), context)
-    })?;
     crate::books::validate_borrower_positions(world, library.state())
         .map_err(|_| SaveError::InvalidValue)?;
     crate::reading::persistence::validate(world, world.resource::<terri_core::TileGrid>())?;

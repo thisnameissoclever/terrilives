@@ -78,6 +78,9 @@ impl RoomTopology {
         };
         for &(x, y) in walls {
             if x >= width || y >= height {
+                if matches!(layout, SavedLayout::LegacyAuthoredV1) {
+                    continue;
+                }
                 return Err(RoomError::InvalidArchitecture);
             }
             cells[y as usize * width as usize + x as usize] = TopologyCell::NotFloor;
@@ -307,7 +310,7 @@ fn architecture(
             (EdgeAxis::Vertical, 6, 9),
             (EdgeAxis::Vertical, 12, 8),
         ] {
-            block(WallLine {
+            let line = WallLine {
                 axis,
                 x: origin
                     .0
@@ -317,7 +320,21 @@ fn architecture(
                     .1
                     .checked_add(y)
                     .ok_or(RoomError::InvalidArchitecture)?,
-            })?;
+            };
+            // These coordinates belong to the frozen implicit presentation,
+            // not an explicit architecture record supplied by a saved payload.
+            if matches!(layout, SavedLayout::LegacyAuthoredV1)
+                && !(WallEdge {
+                    axis: line.axis,
+                    x: line.x,
+                    y: line.y,
+                    doorway: true,
+                })
+                .physical_in_bounds(width, height)
+            {
+                continue;
+            }
+            block(line)?;
         }
     }
     Ok(boundaries)

@@ -210,6 +210,7 @@ pub(crate) fn reconcile_committed_world(
     // This policy preserves existing owners and daily decisions and draws only
     // for genuinely new duties when automatic assignment is enabled.
     super::prune_references(world, &mut state);
+    board::refresh_grouped_need(world, &mut state);
     let new_duties: Vec<_> = available
         .iter()
         .copied()

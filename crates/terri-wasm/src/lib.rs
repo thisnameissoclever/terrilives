@@ -3960,6 +3960,9 @@ mod boundary_tests {
     #[test]
     fn legacy_spawn_keeps_finite_off_lot_coordinates_and_does_not_gain_edge_restrictions() {
         let mut legacy = SimHandle::new(4, 4);
+        let source = published_empty(4, 4);
+        let bytes = encode_save(&source.sim.save_snapshot());
+        assert!(legacy.load_bytes(&bytes));
         assert_eq!(legacy.wall_layout_kind(), 0);
         legacy.spawn_agent(30.0, 30.0, 50.0);
         assert!(legacy.spawn_object(7.0, 5.0, "bathtub"));
@@ -4555,18 +4558,22 @@ mod boundary_tests {
         }
 
         let bytes = uninterrupted.save_bytes();
+        assert_eq!(
+            decode_current(&bytes),
+            uninterrupted.sim.save_snapshot_v15()
+        );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            14,
-            "the public writer must emit the schema-14 envelope"
+            15,
+            "the public writer must emit the schema-15 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v10(),
-            uninterrupted.sim.save_snapshot_v10()
+            resumed.sim.save_snapshot_v15(),
+            uninterrupted.sim.save_snapshot_v15()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4578,8 +4585,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v10(),
-            uninterrupted.sim.save_snapshot_v10()
+            resumed.sim.save_snapshot_v15(),
+            uninterrupted.sim.save_snapshot_v15()
         );
     }
 
@@ -6032,9 +6039,9 @@ mod boundary_tests {
         Position,
     ) {
         let mut handle = SimHandle::new(32, 32);
-        let bike_position = Position { x: 18.5, y: 19.25 };
+        let bike_position = Position { x: 18.0, y: 19.0 };
         let aquarium_position = Position { x: 12.0, y: 13.0 };
-        let exerciser_position = Position { x: 15.0, y: 19.25 };
+        let exerciser_position = Position { x: 15.0, y: 19.0 };
         let watcher_position = Position { x: 9.0, y: 13.0 };
         assert!(handle.spawn_object(bike_position.x, bike_position.y, "moving_box"));
         assert!(handle.spawn_object(aquarium_position.x, aquarium_position.y, "reference_shelf"));
@@ -6092,8 +6099,22 @@ mod boundary_tests {
             )
         };
 
-        handle.spawn_agent(exerciser_position.x, exerciser_position.y, 50.0);
-        handle.spawn_agent(watcher_position.x, watcher_position.y, 50.0);
+        let mut household = vec![content.household[0].clone(); 2];
+        for (member, (name, position)) in household.iter_mut().zip([
+            ("Cyclist", exerciser_position),
+            ("Watcher", watcher_position),
+        ]) {
+            member.name = name.into();
+            member.x = position.x;
+            member.y = position.y;
+            member.needs = [50.; 7];
+            member.career = None;
+            member.hobbies.clear();
+            member.traits.clear();
+        }
+        handle
+            .sim
+            .spawn_household(&content.personalities, &household, &content.traits);
         let (exerciser, watcher) = {
             let world = handle.sim.world_mut();
             let mut query = world.query::<(terri_core::Entity, &Agent, &Position)>();
@@ -6112,29 +6133,56 @@ mod boundary_tests {
                 watcher.expect("the bridge spawned the watcher"),
             )
         };
-        handle.sim.world_mut().entity_mut(exerciser).insert((
-            terri_core::Eating {
-                object: bike,
-                interaction: exercise,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: bike_target,
-                interaction: exercise,
-            },
-        ));
-        handle.sim.world_mut().entity_mut(watcher).insert((
-            terri_core::Eating {
-                object: aquarium,
-                interaction: watch,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: aquarium_target,
-                interaction: watch,
-            },
-        ));
+        let idle = handle.save_bytes();
+        let mut idle_control = SimHandle::new(32, 32);
+        assert!(idle_control.load_bytes(&idle));
+        assert_eq!(idle_control.save_bytes(), idle);
+        for (person, object, interaction) in [
+            (exerciser, bike_target, exercise),
+            (watcher, aquarium_target, watch),
+        ] {
+            assert!(handle.enqueue_command(
+                &postcard::to_allocvec(&SimCommand::UseObject {
+                    agent: person.index_u32(),
+                    object: object.index_u32(),
+                    interaction
+                })
+                .unwrap()
+            ));
+        }
+        let mut arrived = false;
+        for _ in 0..100 {
+            handle.sim.tick();
+            arrived = [
+                (exerciser, bike_target, bike, exercise),
+                (watcher, aquarium_target, aquarium, watch),
+            ]
+            .iter()
+            .all(|&(person, object, definition, interaction)| {
+                handle
+                    .sim
+                    .world()
+                    .get::<terri_core::Eating>(person)
+                    .is_some_and(|e| e.object == definition && e.interaction == interaction)
+                    && handle
+                        .sim
+                        .world()
+                        .get::<terri_core::Target>(person)
+                        .is_some_and(|t| t.object == object && t.interaction == interaction)
+                    && handle.sim.world().get::<terri_core::Path>(person).is_none()
+            });
+            if arrived {
+                break;
+            }
+        }
+        assert!(arrived, "both authored actions must reach actual use");
+        let watcher_position = *handle.sim.world().get::<Position>(watcher).unwrap();
+        assert_eq!((watcher_position.x, watcher_position.y), (11., 13.));
+        let active = handle.save_bytes();
+        let hash = handle.world_hash();
         handle.sim.sync_render_buffer();
+        assert_eq!(handle.save_bytes(), active);
+        assert_eq!(handle.world_hash(), hash);
         (
             handle,
             exerciser,
@@ -6228,9 +6276,11 @@ mod boundary_tests {
 
         // Grow every render vector after Load, then reacquire each pointer.
         // The shell follows the same lifetime rule after WASM memory growth.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
         let row = ids
@@ -6576,9 +6626,11 @@ mod boundary_tests {
         // Force the reused render vectors past their small capacities after
         // Load. Every accessor below is intentionally read only after the last
         // allocation and sync, matching the real bridge lifetime rule.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
 
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
@@ -6628,9 +6680,11 @@ mod boundary_tests {
         // Reallocate every render column after Load, then reacquire every
         // pointer. The release-WASM bridge test performs the corresponding
         // real linear-memory growth and detached-view check.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
 
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
@@ -10584,7 +10638,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v10();
+        let saved = source.sim.save_snapshot_v15();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -10594,8 +10648,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v10(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v10(), saved);
+        assert_eq!(restored.load_snapshot_v15(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v15(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();
@@ -10628,3 +10682,8 @@ mod social_boundary_regressions {
 
 #[cfg(test)]
 mod room_save_tests;
+
+#[cfg(test)]
+mod current_test_snapshot;
+#[cfg(test)]
+use current_test_snapshot::{decode_current, CurrentSnapshotViews};

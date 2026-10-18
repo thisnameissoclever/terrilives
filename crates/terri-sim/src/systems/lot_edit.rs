@@ -13,7 +13,7 @@ pub fn drain_commands(world: &mut World) {
         crate::build_transaction::drain(world);
         return;
     }
-    let before = if crate::rooms::stable(world) {
+    let before = if !world.resource::<CommandQueue>().is_empty() && crate::rooms::stable(world) {
         match crate::chores::RoomChangeContext::capture(world) {
             Ok(context) => Some(context),
             Err(error) => {

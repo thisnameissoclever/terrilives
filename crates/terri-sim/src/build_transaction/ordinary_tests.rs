@@ -160,3 +160,37 @@ fn ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_res
     assert_eq!(ticked.save_snapshot_v15(), flushed.save_snapshot_v15());
     assert_eq!(bed_feedback(&ticked), bed_feedback(&flushed));
 }
+
+#[test]
+fn empty_input_still_clears_sounds_and_refreshes_grouped_work() {
+    let mut sim = Sim::new_from_shipped_lot();
+    crate::chores::ensure(sim.world_mut());
+    sim.flush_commands();
+    let key = {
+        let mut state = sim
+            .world_mut()
+            .resource_mut::<terri_core::chores::SavedChores>();
+        let episode = state
+            .episodes
+            .iter_mut()
+            .find(|e| e.key.kind.grouped())
+            .unwrap();
+        episode.needed = true;
+        episode.decision = Some(false);
+        episode.outcome = terri_core::chores::DutyOutcome::Skipped;
+        episode.key
+    };
+    sim.world_mut()
+        .resource_mut::<crate::completion_sounds::CompletionSounds>()
+        .push(crate::completion_sounds::TOILET_FLUSH, 0);
+    let time = sim.world().resource::<SimClock>().tick;
+    assert!(sim.world().resource::<CommandQueue>().is_empty());
+    sim.flush_commands();
+    let state = sim.world().resource::<terri_core::chores::SavedChores>();
+    let episode = state.episodes.iter().find(|e| e.key == key).unwrap();
+    assert!(!episode.needed);
+    assert_eq!(episode.outcome, terri_core::chores::DutyOutcome::NoWork);
+    assert_eq!(episode.decision, Some(false));
+    assert!(sim.completion_sounds().is_empty());
+    assert_eq!(sim.world().resource::<SimClock>().tick, time);
+}

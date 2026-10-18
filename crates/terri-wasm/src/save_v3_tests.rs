@@ -1106,9 +1106,14 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     let mut painter = published_household();
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
-    let painted = painter.save_bytes();
+    let painted_snapshot = painter.sim.save_snapshot_v5();
+    let painted = v5_bytes(&painted_snapshot);
+    assert!(decode_v5(&painted[SAVE_HEADER_BYTES..]).is_some());
+    assert!(restored.load_bytes(&painted));
+    let before_cut = restored.save_bytes();
+    let hash_before_cut = restored.world_hash();
     // Drop both family lists and the tile's covering byte.
-    let tail = v5_appended_lengths(&painter.sim.save_snapshot_v5())[1..]
+    let tail = v5_appended_lengths(&painted_snapshot)[1..]
         .iter()
         .sum::<usize>();
     let cut = &painted[..painted.len() - tail - 1];
@@ -1116,6 +1121,9 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
         decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none(),
         "a covering nobody laid"
     );
+    assert!(!restored.load_bytes(cut));
+    assert_eq!(restored.save_bytes(), before_cut);
+    assert_eq!(restored.world_hash(), hash_before_cut);
 }
 
 /// Review finding [F1] on PR 134: postcard reads a length written in two
@@ -1910,7 +1918,24 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         })
         .unwrap(),
     );
-    assert_eq!(handle.save_bytes(), fourteen, "2.0 round-trips exactly");
+    let current = decode_current(&handle.save_bytes());
+    let expected: terri_core::SaveSnapshotV14 =
+        postcard::from_bytes(&fourteen[SAVE_HEADER_BYTES..]).unwrap();
+    assert_eq!(
+        current.legacy, expected,
+        "the legacy fields migrate unchanged"
+    );
+    assert_eq!(
+        current.rooms,
+        SimHandle::from_lot().sim.save_snapshot_v15().rooms
+    );
+    let current_bytes = handle.save_bytes();
+    assert!(handle.load_bytes(&current_bytes));
+    assert_eq!(
+        handle.save_bytes(),
+        current_bytes,
+        "2.0 round-trips exactly"
+    );
 }
 
 /// Burnt meals (issue 243): schema eleven carries them through the public

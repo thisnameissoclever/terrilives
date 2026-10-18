@@ -378,7 +378,7 @@ fn suspended_floor_plan_replans_remaining_cells_without_settling_its_episode() {
     work::advance(sim.world_mut(), &mut state);
     assert!(state.tasks[0].suspended);
     sim.world_mut().insert_resource(state);
-    let before = RoomChangeContext::capture(sim.world()).unwrap();
+    sim.begin_build().unwrap();
     for y in 0..6 {
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -394,7 +394,11 @@ fn suspended_floor_plan_replans_remaining_cells_without_settling_its_episode() {
             });
     }
     sim.flush_commands();
-    let report = commit_test_rooms(&mut sim, &before);
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    let report = review.duties.clone();
+    sim.commit_build(review.token).unwrap();
     assert!(report.replanned_people.contains(&person.index_u32()));
     assert_ne!(
         crate::room_regions::RoomRegions::from_world(sim.world()).at((1, 2)),

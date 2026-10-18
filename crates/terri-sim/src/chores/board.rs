@@ -102,23 +102,13 @@ fn cost(world: &World, key: ChoreKey) -> u32 {
         .div_ceil(9) as u32
         * super::patches::WORK_TICKS
 }
-pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+/// Refresh completed group eligibility without assigning owners or drawing randomness.
+pub(crate) fn refresh_grouped_need(world: &World, state: &mut SavedChores) {
     if !state.board_enabled {
         return;
     }
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
-    let week = day / 7;
-    let live = people(world);
-    let roster: Vec<_> = live.iter().map(|p| p.0).collect();
-    let available = keys(world);
-    for episode in &mut state.episodes {
-        if !episode.settled && !available.contains(&episode.key) {
-            episode.outcome = DutyOutcome::Unavailable;
-            episode.unavailable = true;
-            episode.settled = true;
-        }
-    }
     let cleared: Vec<_> = state
         .episodes
         .iter()
@@ -138,6 +128,26 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
             episode.outcome = DutyOutcome::NoWork;
         }
     }
+}
+
+pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+    if !state.board_enabled {
+        return;
+    }
+    let day = world.resource::<SimClock>().tick
+        / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
+    let week = day / 7;
+    let live = people(world);
+    let roster: Vec<_> = live.iter().map(|p| p.0).collect();
+    let available = keys(world);
+    for episode in &mut state.episodes {
+        if !episode.settled && !available.contains(&episode.key) {
+            episode.outcome = DutyOutcome::Unavailable;
+            episode.unavailable = true;
+            episode.settled = true;
+        }
+    }
+    refresh_grouped_need(world, state);
     if state.week != Some(week)
         || state.roster != roster
         || state.assignments.iter().map(|a| a.key).collect::<Vec<_>>() != available

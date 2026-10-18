@@ -613,16 +613,3 @@ pub fn history_rows(world: &World) -> Vec<u32> {
         .flatten()
         .collect()
 }
-
-#[cfg(test)]
-fn commit_test_rooms(sim: &mut crate::Sim, before: &RoomChangeContext) -> DutyChangeReport {
-    let topology = crate::rooms::RoomTopology::from_world(sim.world()).unwrap();
-    let proposal = crate::rooms::match_rooms(&before.map, &topology, (0, 0));
-    let resolved = crate::rooms::resolve_rooms(
-        &proposal,
-        &crate::rooms::RoomChoices::default(),
-        sim.world().resource::<terri_core::rooms::SavedRooms>(),
-    )
-    .unwrap();
-    reconcile_committed_rooms(sim, before, &resolved).unwrap()
-}

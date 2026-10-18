@@ -89,9 +89,8 @@ pub fn block_shell(grid: &mut TileGrid, house: HouseRect) {
     }
 }
 
-/// The saved frame, or the frame a world has by its shape: a grid exactly
-/// the content lot's size stands at the origin, as every lot did before
-/// land could be bought; any other grid has no frame.
+/// The explicit current frame. Historical worlds without current rooms may
+/// infer the content origin from matching dimensions.
 pub fn frame(world: &World) -> Option<LotFrame> {
     if let Some(frame) = world.get_resource::<LotFrame>() {
         return Some(*frame);
@@ -309,10 +308,16 @@ mod tests {
             purchased_area: 0,
         });
         assert_eq!(street_exit(sim.world()), None);
-        // Without a saved frame the grid's shape decides: the content lot's
-        // size means the origin, any other size means no house at all.
+        // Current blankness is explicit; only historical interpretation infers shape.
         sim.world_mut().remove_resource::<LotFrame>();
-        assert_eq!(house(sim.world()).map(|h| (h.x, h.y)), Some((0, 0)));
+        assert_eq!(house(sim.world()), None);
+        let mut historical = bevy_ecs::world::World::new();
+        historical.insert_resource(Content(content));
+        historical.insert_resource(TileGrid::new(
+            content.lot.width as usize,
+            content.lot.height as usize,
+        ));
+        assert_eq!(house(&historical).map(|h| (h.x, h.y)), Some((0, 0)));
         let mut custom = crate::Sim::new_with_lot(8, 8);
         assert_eq!(house(custom.world()), None);
         assert_eq!(house_or_grid(custom.world()).width, 8);

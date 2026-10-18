@@ -274,6 +274,30 @@ pub(crate) fn request_return(world: &mut World, person: Entity) -> bool {
         return true;
     }
     settle_reward(world, person);
+    // An early return ends this communal episode synchronously, including while
+    // paused. Extended, completed and full-session history remains authoritative.
+    let before_cap = world
+        .resource::<Content>()
+        .0
+        .reading
+        .as_ref()
+        .is_some_and(|tuning| j.elapsed < tuning.session_ticks);
+    let obsolete_company = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+        .is_some_and(|episode| {
+            episode.target == j.origin
+                && episode.extensions == 0
+                && episode.completed_novelty.is_none()
+                && before_cap
+        });
+    if obsolete_company {
+        world
+            .resource_mut::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .remove(&person);
+    }
     let id = *world.get::<SimId>(person).unwrap();
     let mut library = world.resource::<BookLibrary>().clone();
     if matches!(j.stage, ReadingStage::Fetch | ReadingStage::Pickup) {

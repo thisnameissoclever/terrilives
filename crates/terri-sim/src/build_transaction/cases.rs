@@ -1053,3 +1053,51 @@ fn paving_grass_reconciles_new_outside_duty_without_new_room_ids() {
     assert!(crate::chores::keys(sim.world()).contains(&key));
     assert!(review.duties.duties.iter().any(|d| d.key == key));
 }
+
+#[test]
+fn no_net_and_rename_confirm_preserve_admitted_stale_group_need() {
+    for rename in [false, true] {
+        let mut sim = Sim::new_from_shipped_lot();
+        crate::chores::ensure(sim.world_mut());
+        sim.flush_commands();
+        {
+            let mut state = sim
+                .world_mut()
+                .resource_mut::<terri_core::chores::SavedChores>();
+            assert!(state.surfaces.is_empty());
+            assert!(state.tasks.is_empty());
+            let episode = state
+                .episodes
+                .iter_mut()
+                .find(|e| e.key.kind.grouped())
+                .unwrap();
+            assert!(!episode.settled);
+            episode.needed = true;
+            episode.decision = Some(false);
+            episode.outcome = terri_core::chores::DutyOutcome::Skipped;
+        }
+        let baseline = sim.save_snapshot_v15();
+        sim.load_snapshot_v15(baseline.clone())
+            .expect("stale daily need is admitted current state");
+        assert_eq!(sim.save_snapshot_v15(), baseline);
+        let chores = sim
+            .world()
+            .resource::<terri_core::chores::SavedChores>()
+            .clone();
+        let rng = sim.world().resource::<terri_core::SimRng>().clone();
+        sim.begin_build().unwrap();
+        if rename {
+            sim.stage_room_name(RoomSelection::Outside, "Garden".into())
+                .unwrap();
+        }
+        confirm(&mut sim);
+        assert_eq!(
+            sim.world().resource::<terri_core::chores::SavedChores>(),
+            &chores
+        );
+        assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
+        if !rename {
+            assert_eq!(sim.save_snapshot_v15(), baseline);
+        }
+    }
+}

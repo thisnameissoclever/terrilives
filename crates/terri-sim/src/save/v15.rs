@@ -70,3 +70,7 @@ pub(crate) fn restore(
     crate::chores::validate_current_work(candidate.world())?;
     Ok(candidate)
 }
+
+#[cfg(test)]
+#[path = "bookless_tests.rs"]
+mod bookless_tests;

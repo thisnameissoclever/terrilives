@@ -149,7 +149,9 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
     assert!(sim.world().get::<Path>(a).is_some());
     let hash = sim.world_hash();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), hash);
     sim.tick();
     restored.tick();
@@ -167,9 +169,9 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
         .rendezvous
         .is_empty());
     assert!(restored.world().get::<Reserved>(b).is_none());
-    let cancelled = restored.save_snapshot_v10();
+    let cancelled = restored.current_v10_view();
     let mut paused = test_content::sim_with(12, 8, restored.world().resource::<Content>().0);
-    paused.load_snapshot_v10(cancelled).unwrap();
+    paused.load_current_v10_view(cancelled).unwrap();
     assert!(paused
         .world()
         .resource::<SocialEpisodes>()
@@ -345,10 +347,10 @@ fn death_tick_prunes_topic_owners_and_communal_peer_references_before_save() {
         sim.tick();
         assert!(sim.world().get::<Agent>(dead).is_none());
         assert!(sim.world().resource::<SocialEpisodes>().topics.is_empty());
-        let saved = sim.save_snapshot_v10();
+        let saved = sim.current_v10_view();
         let mut loaded = test_content::sim_with(12, 8, pack);
-        loaded.load_snapshot_v10(saved.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v10(), saved);
+        loaded.load_current_v10_view(saved.clone()).unwrap();
+        assert_eq!(loaded.current_v10_view(), saved);
     }
     let (mut sim, p, def) = shared_fixture();
     let mut pack = sim.world().resource::<Content>().0.clone();
@@ -372,10 +374,10 @@ fn death_tick_prunes_topic_owners_and_communal_peer_references_before_save() {
         .communal
         .values()
         .all(|e| !e.participants.contains(&p[1])));
-    let saved = sim.save_snapshot_v10();
+    let saved = sim.current_v10_view();
     let mut loaded = Sim::new_with_lot_and_content(12, 8, Content(pack));
-    loaded.load_snapshot_v10(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v10(), saved);
+    loaded.load_current_v10_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v10_view(), saved);
 }
 
 #[test]
@@ -782,10 +784,10 @@ fn waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe() {
                 stations.insert(target.object);
             }
             if !saved_busy && stations.len() >= 2 && sim.world().get::<Path>(b).is_some() {
-                let saved = sim.save_snapshot_v10();
+                let saved = sim.current_v10_view();
                 let mut loaded = Sim::new_with_lot_and_content(24, 16, Content(pack));
-                loaded.load_snapshot_v10(saved.clone()).unwrap();
-                assert_eq!(loaded.save_snapshot_v10(), saved);
+                loaded.load_current_v10_view(saved.clone()).unwrap();
+                assert_eq!(loaded.current_v10_view(), saved);
                 saved_busy = true;
             }
         }
@@ -843,6 +845,7 @@ fn shared_fixture() -> (Sim, Vec<Entity>, terri_core::ObjectDefId) {
             .id();
         people.push(e);
     }
+    crate::test_content::enclose(&mut sim);
     (sim, people, def)
 }
 fn arrive(sim: &mut Sim, person: Entity, def: terri_core::ObjectDefId, ticks: u32) {

@@ -402,6 +402,15 @@ fn privacy_detours_replace_historical_endpoints_with_the_held_places_current_app
                     })
                     .collect(),
             });
+        crate::test_content::enclose(&mut sim);
+        assert_eq!(
+            sim.world()
+                .resource::<crate::rooms::RoomMap>()
+                .topology
+                .components
+                .len(),
+            2
+        );
         let pack = sim.world().resource::<Content>().0;
         let offset = pack.objects[0].sleep_approaches_at(0, facing).unwrap()[0];
         let old_end = (7 + offset.0, 7 + offset.1);
