@@ -146,6 +146,7 @@ fn fixture() -> (Sim, u32) {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls = (0..7).filter(|&y| y != 3).map(|y| (3, y)).collect();
     pack.lot.placements.clear();
@@ -153,8 +154,7 @@ fn fixture() -> (Sim, u32) {
     pack.portals[0].position = (6, 3);
     pack.portals[0].inward = (5, 3);
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     let id = pack.find("fridge").unwrap();
     let entity = sim.spawn_object(Position { x: 0.0, y: 0.0 }, id);
     sim.world_mut()
@@ -174,6 +174,8 @@ fn edge_fixture(edges: Vec<terri_core::layout::WallEdge>) -> (Sim, u32) {
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(terri_core::layout::SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     (sim, object)
 }
 

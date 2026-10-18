@@ -16,6 +16,7 @@ pub mod ids;
 pub mod layout;
 pub mod needs;
 pub mod rng;
+pub mod rooms;
 pub mod save;
 pub mod save_v6;
 pub use save_v6::SaveSnapshotV6;
@@ -36,6 +37,8 @@ pub mod save_v14;
 pub use save_v14::SaveSnapshotV14;
 pub mod save_v15;
 pub use save_v15::SaveSnapshotV15;
+pub mod save_v16;
+pub use save_v16::SaveSnapshotV16;
 mod save_before_voice;
 pub mod windows;
 

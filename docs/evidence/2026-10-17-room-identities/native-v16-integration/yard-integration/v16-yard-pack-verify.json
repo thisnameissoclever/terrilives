@@ -1,0 +1,27 @@
+{
+  "main": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "mode": "verify",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "terri-data",
+    "--test",
+    "inherited_runtime",
+    "--locked",
+    "--jobs",
+    "1",
+    "inherited_runtime_fixture_compiles_real_model_actions_and_rounding",
+    "--",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "before_sha256": "d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5",
+  "after_sha256": "d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5",
+  "before_bytes": 23008,
+  "after_bytes": 23008,
+  "log": ".local-build\\v16-yard-pack-verify.log",
+  "finished_utc": "2026-10-18T04:10:33.132725+00:00"
+}

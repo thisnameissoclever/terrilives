@@ -1,0 +1,35 @@
+{
+  "main": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "historical_sprite_count": 30939,
+  "base_descriptor_sha256": "022dc5b8cb3a42b52683c539fbf8fafe4c2f022ccebc66f18640415771160a8f",
+  "combined_descriptor_sha256": "f7c75343f9b1eb55aebd08439a88ac24c0789d08f84e96e649d8feab131cffc3",
+  "before_sha256": "f7c75343f9b1eb55aebd08439a88ac24c0789d08f84e96e649d8feab131cffc3",
+  "changed_files": [],
+  "validated_generated_outputs": 13,
+  "other_architecture_outputs_identical": true,
+  "incoming_art_paths_unchanged": [
+    "assets/sprites/atlas.toml",
+    "web/src/render/atlas.ts",
+    "web/public",
+    "assets/models/outdoor",
+    "assets/models/static-props-07.json",
+    "assets/models/sims/character-repair/outdoor-depth",
+    "web/src/render/fixture-depth.ts",
+    "assets/sprites/gen/build.py"
+  ],
+  "resources": {
+    "web\\src\\render\\architecture-data.ts": "f7c75343f9b1eb55aebd08439a88ac24c0789d08f84e96e649d8feab131cffc3",
+    "web\\src\\render\\architecture-baked-floors.ts": "03833e5449f2709c95fe37477c10b0dcbaf46efa5faf1dd663c380180e8b1deb",
+    "web\\public\\architecture-2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c.png": "2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c",
+    "web\\public\\architecture-c3652fb09fa8789244b03c088705e1cfa623d50fe4035a21965d6a04710a6966.png": "c3652fb09fa8789244b03c088705e1cfa623d50fe4035a21965d6a04710a6966",
+    "web\\public\\architecture-19b7bdacf59abb549d92546679f67755418a9ecb9c43eb7e56fd39753ea6616d.r16f.gz": "67db00e607df722f9f4178ab41b937aa79109bc78a504ecc4ba6fd5cd16a6468",
+    "web\\public\\architecture-f0491b56478b6dacaa14d3c70e016e77b9372fdefac4cec817e661cd89cd45e6.r8.gz": "935b78e638006c51ef8eeff85c1c6045f96e0b9e26838001b06b452dae12d3d0",
+    "web\\public\\architecture-pattern-d3229cce9019a19d0bbce69e8a622b8af6d233bc9636f7aa9c5e40a7277e43f2.png": "d3229cce9019a19d0bbce69e8a622b8af6d233bc9636f7aa9c5e40a7277e43f2",
+    "web\\public\\architecture-pattern-11a61dad9366748c721eff1031dc8d96bf499891db0948f2f01dcc98da75a29d.png": "11a61dad9366748c721eff1031dc8d96bf499891db0948f2f01dcc98da75a29d",
+    "web\\public\\architecture-pattern-9c44a1f3e7fc1958c71126dfffd4f28e3370ae5c3608a5db46d02d683cbf87fa.png": "9c44a1f3e7fc1958c71126dfffd4f28e3370ae5c3608a5db46d02d683cbf87fa",
+    "web\\public\\architecture-pattern-18682064dae496475de549a311ea97176f7024a3e9b3efd728e59aa88cc3af85.png": "18682064dae496475de549a311ea97176f7024a3e9b3efd728e59aa88cc3af85",
+    "web\\public\\architecture-pattern-6f683b6fb0c12e0479a91d9f6aeb48b5430874c3bb58d2cfb32d7ef3a39bf11b.png": "6f683b6fb0c12e0479a91d9f6aeb48b5430874c3bb58d2cfb32d7ef3a39bf11b",
+    "web\\public\\architecture-pattern-2ff795c1a06a018c4321b90fea40f0e0d1009a9d03963da1569afc2ebf09fc69.png": "2ff795c1a06a018c4321b90fea40f0e0d1009a9d03963da1569afc2ebf09fc69",
+    "web\\public\\architecture-pattern-c67651c672365caa575e5b66f4201d8400dca94f6a8da83a1051cfb666fa9e1d.png": "c67651c672365caa575e5b66f4201d8400dca94f6a8da83a1051cfb666fa9e1d"
+  }
+}

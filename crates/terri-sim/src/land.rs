@@ -6,7 +6,7 @@
 //! lengthens the grid. A west or north strip grows the grid at its origin,
 //! and every coordinate the world holds moves by the strip's depth: the
 //! grid, every position and path, the walls, windows and floors, the chore
-//! cells and room ids, the grime patches, the diners' places, and the
+//! cells and legacy room seeds, the grime patches, the diners' places, and the
 //! frame that places the content lot. Money is in cents.
 use bevy_ecs::prelude::*;
 use terri_core::chores::{ChoreKind, SavedChores};
@@ -329,12 +329,34 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
         journey.transfer_contact = journey.transfer_contact.map(shift_tile);
     }
 
-    // Cells and room ids: a cell moves with its tile. A room id is read
-    // again at its seed tile once moved, and becomes the moved cell when
-    // that tile is in no room.
+    crate::social_episode::requests::runtime::translate(world, (dx, dy));
+
+    // Stable room references do not move. The opt-in registry guard preserves
+    // frozen source semantics for historical saves without a registry.
+    let stable_rooms = world.contains_resource::<terri_core::rooms::SavedRooms>();
+    if stable_rooms {
+        if let Some(map) = world.get_resource::<crate::rooms::RoomMap>() {
+            let translated = map
+                .translated(new_width, new_height, (dx, dy))
+                .expect("a valid room map fits a validated land expansion");
+            world.insert_resource(translated);
+        }
+        let mut rooms = world.resource_mut::<terri_core::rooms::SavedRooms>();
+        for record in &mut rooms.records {
+            if let Some((x, y)) = &mut record.anchor {
+                *x += dx;
+                *y += dy;
+            }
+        }
+    }
+    // A legacy room is found again by its old seed tile: new land can
+    // precede a room in row order and take over its lowest cell.
     let new_rooms = RoomRegions::from_world(world);
     let cell = |old: u32| (old / old_width + dy) * new_width + (old % old_width + dx);
     let room = |old: u32| {
+        if stable_rooms {
+            return old;
+        }
         let seed = ((old % old_width) as i32, (old / old_width) as i32);
         new_rooms.at(shift_tile(seed)).unwrap_or_else(|| cell(old))
     };
@@ -1140,6 +1162,13 @@ mod tests {
         pack.lot.house = (4, 12);
         let mut sim =
             Sim::new_with_lot_and_content(4, 12, crate::Content(Box::leak(Box::new(pack))));
+        // This regression checks historical seed arithmetic, whose values move.
+        // Stable room identities have separate conservation controls.
+        sim.world_mut()
+            .remove_resource::<terri_core::rooms::SavedRooms>();
+        sim.world_mut().remove_resource::<crate::rooms::RoomMap>();
+        sim.world_mut()
+            .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
         let wall = |axis, x, y| WallEdge {
             axis,
             x,

@@ -1,0 +1,2117 @@
+{
+  "url": "http://127.0.0.1:5189/?stress=0&audio=0",
+  "capturedAt": "2026-10-17T18:00:56.704Z",
+  "sourceSha256": {
+    "web/index.html": "8d9ce0c1acec6190d2b6d705406e69e7a4bf7336226ccd846b256bd917773c9c",
+    "web/src/ui/action-intent.css": "cf9e83d32d67edaa25159eee4b15aed1c2e3a16677c1d63141c09f9772612b6a",
+    "web/src/ui/character-creator/creator.css": "5bff8d4f231b1ad139a03bd1543cd715a598b8c7f4ef17fcc306f9df99dd0122",
+    "web/src/ui/object-menu.ts": "622d46aee381336e90f669e3fd8306f3e169ce5d619f193754febcc066a03d6f",
+    "web/src/ui/placement-actions.ts": "838e68093b2ed2c1ead42f80844d75d21d6c94d5fee57d530b04e20257c6fbd6",
+    "scripts/verify-action-colors.cjs": "905933adb4e6e020051d317450c49bc8139b2585def8ee88b5aced1b6edaac66"
+  },
+  "checks": [
+    {
+      "name": "Build Confirm",
+      "role": "affirmative",
+      "normal": {
+        "label": "Confirm",
+        "id": "build-batch-confirm",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 212.5,
+          "y": 718.5,
+          "width": 71.5,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Confirm",
+        "id": "build-batch-confirm",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 212.5,
+          "y": 718.5,
+          "width": 71.5,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Confirm",
+        "id": "build-batch-confirm",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 212.5,
+          "y": 718.5,
+          "width": 71.5,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Confirm",
+        "id": "build-batch-confirm",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 212.5,
+          "y": 718.5,
+          "width": 71.5,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Build Cancel",
+      "role": "negative",
+      "normal": {
+        "label": "Cancel",
+        "id": "build-batch-cancel",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 141.59375,
+          "y": 718.5,
+          "width": 62.90625,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Cancel",
+        "id": "build-batch-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 141.59375,
+          "y": 718.5,
+          "width": 62.90625,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Cancel",
+        "id": "build-batch-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 141.59375,
+          "y": 718.5,
+          "width": 62.90625,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Cancel",
+        "id": "build-batch-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 141.59375,
+          "y": 718.5,
+          "width": 62.90625,
+          "height": 44
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Exit build",
+      "role": "negative",
+      "normal": {
+        "label": "Exit build",
+        "id": "builder-exit",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 213.4375,
+          "y": 108.1875,
+          "width": 70.5625,
+          "height": 36
+        },
+        "fontSize": "12px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Exit build",
+        "id": "builder-exit",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 213.4375,
+          "y": 108.1875,
+          "width": 70.5625,
+          "height": 36
+        },
+        "fontSize": "12px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Exit build",
+        "id": "builder-exit",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 213.4375,
+          "y": 108.1875,
+          "width": 70.5625,
+          "height": 36
+        },
+        "fontSize": "12px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Exit build",
+        "id": "builder-exit",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 213.4375,
+          "y": 108.1875,
+          "width": 70.5625,
+          "height": 36
+        },
+        "fontSize": "12px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "build-phone",
+      "footer": [
+        {
+          "label": "Cancel",
+          "x": 228.59375,
+          "y": 773,
+          "right": 291.5,
+          "bottom": 817
+        },
+        {
+          "label": "Confirm",
+          "x": 299.5,
+          "y": 773,
+          "right": 371,
+          "bottom": 817
+        }
+      ]
+    },
+    {
+      "name": "build-landscape",
+      "footer": [
+        {
+          "label": "Cancel",
+          "x": 682.59375,
+          "y": 319,
+          "right": 745.5,
+          "bottom": 363
+        },
+        {
+          "label": "Confirm",
+          "x": 753.5,
+          "y": 319,
+          "right": 825,
+          "bottom": 363
+        }
+      ]
+    },
+    {
+      "name": "Build enlarged text",
+      "confirm": {
+        "label": "Confirm",
+        "id": "build-batch-confirm",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 163.015625,
+          "y": 761,
+          "width": 120.984375,
+          "height": 53.1875
+        },
+        "fontSize": "28px"
+      },
+      "method": "Double computed font size for text and form controls in Build; test-only presentation override."
+    },
+    {
+      "name": "Build forced colors",
+      "label": "Confirm",
+      "id": "build-batch-confirm",
+      "intent": "affirmative",
+      "background": "rgb(255, 255, 255)",
+      "text": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)",
+      "outline": "solid",
+      "outlineWidth": "2px",
+      "outlineColor": "rgb(55, 0, 110)",
+      "disabled": false,
+      "focusVisible": true,
+      "active": false,
+      "rect": {
+        "x": 212.5,
+        "y": 718.5,
+        "width": 71.5,
+        "height": 44
+      },
+      "fontSize": "14px"
+    },
+    {
+      "name": "Land without selected side",
+      "normal": {
+        "label": "Buy land",
+        "id": "land-buy",
+        "intent": "affirmative",
+        "background": "rgb(32, 32, 40)",
+        "text": "rgb(154, 163, 173)",
+        "border": "rgb(44, 44, 54)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(154, 163, 173)",
+        "disabled": true,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 21,
+          "y": 651.9375,
+          "width": 263,
+          "height": 44
+        },
+        "fontSize": "14px"
+      },
+      "hover": {
+        "label": "Buy land",
+        "id": "land-buy",
+        "intent": "affirmative",
+        "background": "rgb(32, 32, 40)",
+        "text": "rgb(154, 163, 173)",
+        "border": "rgb(44, 44, 54)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(154, 163, 173)",
+        "disabled": true,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 21,
+          "y": 651.9375,
+          "width": 263,
+          "height": 44
+        },
+        "fontSize": "14px"
+      }
+    },
+    {
+      "name": "Cancel-only Land dialog",
+      "role": "negative",
+      "normal": {
+        "label": "Cancel",
+        "id": "land-dialog-cancel",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Cancel",
+        "id": "land-dialog-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Cancel",
+        "id": "land-dialog-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Cancel",
+        "id": "land-dialog-cancel",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Unaffordable Land",
+      "text": "160 squares behind the house for $24,000. You have $0, so this land cannot be bought yet."
+    },
+    {
+      "name": "Furniture Sell",
+      "role": "destructive",
+      "normal": {
+        "label": "Sell$140",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 532,
+          "y": 269.984375,
+          "width": 120,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Sell$140",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 532,
+          "y": 269.984375,
+          "width": 120,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Sell$140",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 532,
+          "y": 269.984375,
+          "width": 120,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Sell$140",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 532,
+          "y": 269.984375,
+          "width": 120,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Affordable furniture quote",
+      "controls": [
+        "Buy$140",
+        "Rotate counterclockwise",
+        "Rotate clockwise",
+        "Choose item",
+        "Cancel"
+      ]
+    },
+    {
+      "name": "Furniture Buy",
+      "role": "affirmative",
+      "normal": {
+        "label": "Buy$140",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 666,
+          "y": 474.484375,
+          "width": 108,
+          "height": 76.578125
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Buy$140",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 666,
+          "y": 474.484375,
+          "width": 108,
+          "height": 76.578125
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Buy$140",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 666,
+          "y": 474.484375,
+          "width": 108,
+          "height": 76.578125
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Buy$140",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 666,
+          "y": 474.484375,
+          "width": 108,
+          "height": 76.578125
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Creator Continue",
+      "role": "affirmative",
+      "normal": {
+        "label": "Continue",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 1240.28125,
+          "y": 807.90625,
+          "width": 77.71875,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Continue",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 1240.28125,
+          "y": 807.90625,
+          "width": 77.71875,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Continue",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 1240.28125,
+          "y": 807.90625,
+          "width": 77.71875,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Continue",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(115, 210, 255)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 1240.28125,
+          "y": 807.90625,
+          "width": 77.71875,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Creator Cancel",
+      "role": "negative",
+      "normal": {
+        "label": "Cancel",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 122,
+          "y": 807.90625,
+          "width": 58.90625,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Cancel",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 122,
+          "y": 807.90625,
+          "width": 58.90625,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Cancel",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 122,
+          "y": 807.90625,
+          "width": 58.90625,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Cancel",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(115, 210, 255)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 122,
+          "y": 807.90625,
+          "width": 58.90625,
+          "height": 37
+        },
+        "fontSize": "14px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Creator neutral Randomize",
+      "intent": null
+    },
+    {
+      "name": "Destructive Start over confirmation",
+      "role": "affirmative",
+      "normal": {
+        "label": "Start over",
+        "id": "confirm-new-game",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 724,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Start over",
+        "id": "confirm-new-game",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 724,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Start over",
+        "id": "confirm-new-game",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 724,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Start over",
+        "id": "confirm-new-game",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 724,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Keep playing",
+      "role": "negative",
+      "normal": {
+        "label": "Keep playing",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Keep playing",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Keep playing",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Keep playing",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 559,
+          "y": 475.921875,
+          "width": 157,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Real radial Close",
+      "role": "negative",
+      "normal": {
+        "label": "×",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 268,
+          "y": 228.78125,
+          "width": 44,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "×",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 268,
+          "y": 228.78125,
+          "width": 44,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "×",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 268,
+          "y": 228.78125,
+          "width": 44,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "×",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "auto",
+        "outlineWidth": "1px",
+        "outlineColor": "rgb(238, 238, 238)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 268,
+          "y": 228.78125,
+          "width": 44,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Real radial More actions",
+      "role": "affirmative",
+      "normal": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 46,
+          "y": 324.78125,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 46,
+          "y": 305.78125,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 46,
+          "y": 305.78125,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(111, 178, 210)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 46,
+          "y": 305.78125,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Real radial Back",
+      "role": "negative",
+      "normal": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 162,
+          "y": 276.78125,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 162,
+          "y": 276.78125,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 162,
+          "y": 276.78125,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(111, 178, 210)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 162,
+          "y": 276.78125,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Real radial search",
+      "targets": [
+        "Target: Fridge: Basic Two-Door at (0, 0)."
+      ],
+      "paginationFound": true
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "Component radial More actions",
+      "role": "affirmative",
+      "normal": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 546.515625,
+          "y": 483,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 546.515625,
+          "y": 483,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 546.515625,
+          "y": 483,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "More actions",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(111, 178, 210)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 546.515625,
+          "y": 483,
+          "width": 100.84375,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Component radial Back",
+      "role": "negative",
+      "normal": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 812.96875,
+          "y": 483,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 812.96875,
+          "y": 483,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 812.96875,
+          "y": 483,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Back",
+        "id": "",
+        "intent": "negative",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(111, 178, 210)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 812.96875,
+          "y": 483,
+          "width": 60,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Component Buy book",
+      "role": "affirmative",
+      "normal": {
+        "label": "Buy book$12",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 447,
+          "y": 207.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Buy book$12",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 447,
+          "y": 207.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Buy book$12",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 447,
+          "y": 207.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Buy book$12",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 447,
+          "y": 94.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Component Sell book",
+      "role": "destructive",
+      "normal": {
+        "label": "Sell book$3",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(91, 45, 53)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 715.5,
+          "y": 94.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 10.14441702039508
+      },
+      "hover": {
+        "label": "Sell book$3",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 715.5,
+          "y": 94.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "pressed": {
+        "label": "Sell book$3",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(255, 240, 241)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 715.5,
+          "y": 94.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      },
+      "focus": {
+        "label": "Sell book$3",
+        "id": "",
+        "intent": "destructive",
+        "background": "rgb(113, 59, 69)",
+        "text": "rgb(255, 240, 241)",
+        "border": "rgb(202, 137, 147)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 715.5,
+          "y": 94.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 7.866142242995589
+      }
+    },
+    {
+      "name": "Dynamic book price",
+      "before": 12,
+      "after": 19,
+      "intent": "affirmative"
+    },
+    {
+      "name": "Component chore Do now",
+      "role": "affirmative",
+      "normal": {
+        "label": "Do now",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 902.328125,
+          "y": 257.203125,
+          "width": 66.671875,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Do now",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 902.328125,
+          "y": 257.203125,
+          "width": 66.671875,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Do now",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 902.328125,
+          "y": 257.203125,
+          "width": 66.671875,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Do now",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "solid",
+        "outlineWidth": "2px",
+        "outlineColor": "rgb(216, 216, 224)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 902.328125,
+          "y": 144.203125,
+          "width": 66.671875,
+          "height": 44
+        },
+        "fontSize": "13px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Component bed Assign",
+      "role": "affirmative",
+      "normal": {
+        "label": "Assign",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(38, 79, 61)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 456,
+          "y": 744.671875,
+          "width": 56.015625,
+          "height": 44
+        },
+        "fontSize": "13.3333px",
+        "contrast": 8.412433546951599
+      },
+      "hover": {
+        "label": "Assign",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 456,
+          "y": 744.671875,
+          "width": 56.015625,
+          "height": 44
+        },
+        "fontSize": "13.3333px",
+        "contrast": 6.351892482204863
+      },
+      "pressed": {
+        "label": "Assign",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(232, 248, 237)",
+        "disabled": false,
+        "focusVisible": false,
+        "active": true,
+        "rect": {
+          "x": 456,
+          "y": 744.671875,
+          "width": 56.015625,
+          "height": 44
+        },
+        "fontSize": "13.3333px",
+        "contrast": 6.351892482204863
+      },
+      "focus": {
+        "label": "Assign",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(48, 99, 72)",
+        "text": "rgb(232, 248, 237)",
+        "border": "rgb(116, 174, 136)",
+        "outline": "auto",
+        "outlineWidth": "1px",
+        "outlineColor": "rgb(238, 238, 238)",
+        "disabled": false,
+        "focusVisible": true,
+        "active": false,
+        "rect": {
+          "x": 456,
+          "y": 729.671875,
+          "width": 56.015625,
+          "height": 44
+        },
+        "fontSize": "13.3333px",
+        "contrast": 6.351892482204863
+      }
+    },
+    {
+      "name": "Component pending Buy book",
+      "normal": {
+        "label": "Buy book$19",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(32, 32, 40)",
+        "text": "rgb(154, 163, 173)",
+        "border": "rgb(44, 44, 54)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(154, 163, 173)",
+        "disabled": true,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 447,
+          "y": 207.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px"
+      },
+      "hover": {
+        "label": "Buy book$19",
+        "id": "",
+        "intent": "affirmative",
+        "background": "rgb(32, 32, 40)",
+        "text": "rgb(154, 163, 173)",
+        "border": "rgb(44, 44, 54)",
+        "outline": "none",
+        "outlineWidth": "3px",
+        "outlineColor": "rgb(154, 163, 173)",
+        "disabled": true,
+        "focusVisible": false,
+        "active": false,
+        "rect": {
+          "x": 447,
+          "y": 207.828125,
+          "width": 262.5,
+          "height": 44
+        },
+        "fontSize": "13px"
+      }
+    }
+  ],
+  "limits": [
+    "Creator uses neutral section navigation rather than a dedicated Back control; Continue and Cancel were exercised.",
+    "No affordable Land purchase or transient live book pending state was fabricated. Book prices/pending, chore Do now, and bed Assign have controlled component evidence. Careers, recovery notices, and every catalogue item still rely on the dedicated component tests."
+  ],
+  "errors": [],
+  "screenshots": [
+    {
+      "name": "pressed-confirm.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "pressed-cancel.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "build-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "build-phone.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "name": "build-landscape.png",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "name": "build-enlarged-text.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "build-forced-colors.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "land-dialog.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "buy-affordable.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "creator-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "creator-next.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "new-game-dialog.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "radial-menu.png",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      }
+    },
+    {
+      "name": "radial-more.png",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      }
+    },
+    {
+      "name": "radial-back.png",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      }
+    },
+    {
+      "name": "component-radial-back.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "component-book-prices.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "component-chores.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "component-bed.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "name": "component-pending-books.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    }
+  ]
+}

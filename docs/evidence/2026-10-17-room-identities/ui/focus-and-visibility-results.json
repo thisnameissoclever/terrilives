@@ -1,0 +1,1151 @@
+{
+  "r7-current-reduced-all-edges": {
+    "focus": "room-name",
+    "input": {
+      "x": 19,
+      "y": 307.375,
+      "width": 337,
+      "height": 44,
+      "top": 307.375,
+      "right": 356,
+      "bottom": 351.375,
+      "left": 19
+    },
+    "painted": {
+      "left": 15,
+      "right": 360,
+      "top": 303.375,
+      "bottom": 355.375
+    },
+    "clip": {
+      "left": 16,
+      "right": 359,
+      "top": 248,
+      "bottom": 358
+    },
+    "scrollTop": 100,
+    "scrollLeft": 0,
+    "outline": "rgb(111, 178, 210) solid 2px",
+    "width": 343,
+    "height": 110
+  },
+  "r7-review-first-select-bounds": {
+    "focus": "room-review-group",
+    "input": {
+      "x": 65.84375,
+      "y": 180.390625,
+      "width": 148,
+      "height": 44,
+      "top": 180.390625,
+      "right": 213.84375,
+      "bottom": 224.390625,
+      "left": 65.84375
+    },
+    "painted": {
+      "left": 61.84375,
+      "right": 217.84375,
+      "top": 176.390625,
+      "bottom": 228.390625
+    },
+    "clip": {
+      "left": 19,
+      "right": 356,
+      "top": 177.390625,
+      "bottom": 393.390625
+    },
+    "scrollTop": 0,
+    "scrollLeft": 0,
+    "outline": "rgb(111, 178, 210) solid 2px"
+  },
+  "r7-selection-clearance-v3": {
+    "file": "r7-selection-clearance-v3.png",
+    "before": {
+      "fieldSelector": "#room-name",
+      "scrollSelector": "#room-tool",
+      "focused": true,
+      "viewport": {
+        "width": 390,
+        "height": 480,
+        "visualWidth": 390,
+        "visualHeight": 480
+      },
+      "input": {
+        "x": 19,
+        "y": 310.375,
+        "width": 337,
+        "height": 44,
+        "top": 310.375,
+        "right": 356,
+        "bottom": 354.375,
+        "left": 19
+      },
+      "painted": {
+        "left": 15,
+        "right": 360,
+        "top": 306.375,
+        "bottom": 358.375
+      },
+      "clip": {
+        "left": 13,
+        "right": 362,
+        "top": 245,
+        "bottom": 361
+      },
+      "scrollTop": 97,
+      "scrollLeft": 0,
+      "outline": "rgb(111, 178, 210) solid 2px",
+      "outlineOffset": "2px",
+      "fits": true
+    },
+    "after": {
+      "fieldSelector": "#room-name",
+      "scrollSelector": "#room-tool",
+      "focused": true,
+      "viewport": {
+        "width": 390,
+        "height": 480,
+        "visualWidth": 390,
+        "visualHeight": 480
+      },
+      "input": {
+        "x": 19,
+        "y": 310.375,
+        "width": 337,
+        "height": 44,
+        "top": 310.375,
+        "right": 356,
+        "bottom": 354.375,
+        "left": 19
+      },
+      "painted": {
+        "left": 15,
+        "right": 360,
+        "top": 306.375,
+        "bottom": 358.375
+      },
+      "clip": {
+        "left": 13,
+        "right": 362,
+        "top": 245,
+        "bottom": 361
+      },
+      "scrollTop": 97,
+      "scrollLeft": 0,
+      "outline": "rgb(111, 178, 210) solid 2px",
+      "outlineOffset": "2px",
+      "fits": true
+    },
+    "restored": {
+      "fieldSelector": "#room-name",
+      "scrollSelector": "#room-tool",
+      "focused": true,
+      "viewport": {
+        "width": 390,
+        "height": 480,
+        "visualWidth": 390,
+        "visualHeight": 480
+      },
+      "input": {
+        "x": 19,
+        "y": 316.375,
+        "width": 337,
+        "height": 44,
+        "top": 316.375,
+        "right": 356,
+        "bottom": 360.375,
+        "left": 19
+      },
+      "painted": {
+        "left": 15,
+        "right": 360,
+        "top": 312.375,
+        "bottom": 364.375
+      },
+      "clip": {
+        "left": 13,
+        "right": 362,
+        "top": 245,
+        "bottom": 361
+      },
+      "scrollTop": 91,
+      "scrollLeft": 0,
+      "outline": "rgb(111, 178, 210) solid 2px",
+      "outlineOffset": "2px",
+      "fits": false
+    },
+    "faults": [
+      {
+        "name": "gutter3",
+        "result": {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 16,
+            "right": 359,
+            "top": 248,
+            "bottom": 358
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": false
+        }
+      },
+      {
+        "name": "margin0",
+        "result": {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 316.375,
+            "width": 337,
+            "height": 44,
+            "top": 316.375,
+            "right": 356,
+            "bottom": 360.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 312.375,
+            "bottom": 364.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 91,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": false
+        }
+      }
+    ]
+  },
+  "r7-review-clearance-v3": {
+    "first": {
+      "file": "r7-review-first-clearance-v3.png",
+      "before": {
+        "fieldSelector": "#room-review-group",
+        "scrollSelector": "#room-review-scroll",
+        "focused": true,
+        "viewport": {
+          "width": 390,
+          "height": 480,
+          "visualWidth": 390,
+          "visualHeight": 480
+        },
+        "input": {
+          "x": 68.84375,
+          "y": 183.390625,
+          "width": 148,
+          "height": 44,
+          "top": 183.390625,
+          "right": 216.84375,
+          "bottom": 227.390625,
+          "left": 68.84375
+        },
+        "painted": {
+          "left": 64.84375,
+          "right": 220.84375,
+          "top": 179.390625,
+          "bottom": 231.390625
+        },
+        "clip": {
+          "left": 19,
+          "right": 356,
+          "top": 177.390625,
+          "bottom": 393.390625
+        },
+        "scrollTop": 0,
+        "scrollLeft": 0,
+        "outline": "rgb(111, 178, 210) solid 2px",
+        "outlineOffset": "2px",
+        "fits": true
+      },
+      "after": {
+        "fieldSelector": "#room-review-group",
+        "scrollSelector": "#room-review-scroll",
+        "focused": true,
+        "viewport": {
+          "width": 390,
+          "height": 480,
+          "visualWidth": 390,
+          "visualHeight": 480
+        },
+        "input": {
+          "x": 68.84375,
+          "y": 183.390625,
+          "width": 148,
+          "height": 44,
+          "top": 183.390625,
+          "right": 216.84375,
+          "bottom": 227.390625,
+          "left": 68.84375
+        },
+        "painted": {
+          "left": 64.84375,
+          "right": 220.84375,
+          "top": 179.390625,
+          "bottom": 231.390625
+        },
+        "clip": {
+          "left": 19,
+          "right": 356,
+          "top": 177.390625,
+          "bottom": 393.390625
+        },
+        "scrollTop": 0,
+        "scrollLeft": 0,
+        "outline": "rgb(111, 178, 210) solid 2px",
+        "outlineOffset": "2px",
+        "fits": true
+      }
+    },
+    "last": {
+      "file": "r7-review-last-clearance-v3.png",
+      "before": {
+        "fieldSelector": "#room-review-body fieldset:last-of-type input",
+        "scrollSelector": "#room-review-scroll",
+        "focused": true,
+        "viewport": {
+          "width": 390,
+          "height": 480,
+          "visualWidth": 390,
+          "visualHeight": 480
+        },
+        "input": {
+          "x": 36.75,
+          "y": 336.921875,
+          "width": 301.5,
+          "height": 44,
+          "top": 336.921875,
+          "right": 338.25,
+          "bottom": 380.921875,
+          "left": 36.75
+        },
+        "painted": {
+          "left": 32.75,
+          "right": 342.25,
+          "top": 332.921875,
+          "bottom": 384.921875
+        },
+        "clip": {
+          "left": 19,
+          "right": 356,
+          "top": 177.390625,
+          "bottom": 393.390625
+        },
+        "scrollTop": 221,
+        "scrollLeft": 0,
+        "outline": "rgb(111, 178, 210) solid 2px",
+        "outlineOffset": "2px",
+        "fits": true
+      },
+      "after": {
+        "fieldSelector": "#room-review-body fieldset:last-of-type input",
+        "scrollSelector": "#room-review-scroll",
+        "focused": true,
+        "viewport": {
+          "width": 390,
+          "height": 480,
+          "visualWidth": 390,
+          "visualHeight": 480
+        },
+        "input": {
+          "x": 36.75,
+          "y": 336.921875,
+          "width": 301.5,
+          "height": 44,
+          "top": 336.921875,
+          "right": 338.25,
+          "bottom": 380.921875,
+          "left": 36.75
+        },
+        "painted": {
+          "left": 32.75,
+          "right": 342.25,
+          "top": 332.921875,
+          "bottom": 384.921875
+        },
+        "clip": {
+          "left": 19,
+          "right": 356,
+          "top": 177.390625,
+          "bottom": 393.390625
+        },
+        "scrollTop": 221,
+        "scrollLeft": 0,
+        "outline": "rgb(111, 178, 210) solid 2px",
+        "outlineOffset": "2px",
+        "fits": true
+      }
+    }
+  },
+  "r7-selection-restoration-v4": {
+    "sourceCssSha256": "897f6c872f289145f2addad3d857dfae55b4568b4d9a72381518313b308c6038",
+    "steps": [],
+    "clean": {
+      "samples": [
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        }
+      ],
+      "style": {
+        "margin": "6px",
+        "padding": "6px"
+      },
+      "text": "Long duplicate name for this selected room"
+    },
+    "fault": {
+      "samples": [
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 316.375,
+            "width": 337,
+            "height": 44,
+            "top": 316.375,
+            "right": 356,
+            "bottom": 360.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 312.375,
+            "bottom": 364.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 91,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": false
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 316.375,
+            "width": 337,
+            "height": 44,
+            "top": 316.375,
+            "right": 356,
+            "bottom": 360.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 312.375,
+            "bottom": 364.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 91,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": false
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 316.375,
+            "width": 337,
+            "height": 44,
+            "top": 316.375,
+            "right": 356,
+            "bottom": 360.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 312.375,
+            "bottom": 364.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 91,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": false
+        }
+      ],
+      "style": {
+        "margin": "0px",
+        "padding": "6px"
+      },
+      "text": "Long duplicate name for this selected room"
+    },
+    "restored": {
+      "samples": [
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        },
+        {
+          "fieldSelector": "#room-name",
+          "scrollSelector": "#room-tool",
+          "focused": true,
+          "viewport": {
+            "width": 390,
+            "height": 480,
+            "visualWidth": 390,
+            "visualHeight": 480
+          },
+          "input": {
+            "x": 19,
+            "y": 310.375,
+            "width": 337,
+            "height": 44,
+            "top": 310.375,
+            "right": 356,
+            "bottom": 354.375,
+            "left": 19
+          },
+          "painted": {
+            "left": 15,
+            "right": 360,
+            "top": 306.375,
+            "bottom": 358.375
+          },
+          "clip": {
+            "left": 13,
+            "right": 362,
+            "top": 245,
+            "bottom": 361
+          },
+          "scrollTop": 97,
+          "scrollLeft": 0,
+          "outline": "rgb(111, 178, 210) solid 2px",
+          "outlineOffset": "2px",
+          "fits": true
+        }
+      ],
+      "style": {
+        "margin": "6px",
+        "padding": "6px"
+      },
+      "text": "Long duplicate name for this selected room"
+    },
+    "beforeScreenshot": {
+      "fieldSelector": "#room-name",
+      "scrollSelector": "#room-tool",
+      "focused": true,
+      "viewport": {
+        "width": 390,
+        "height": 480,
+        "visualWidth": 390,
+        "visualHeight": 480
+      },
+      "input": {
+        "x": 19,
+        "y": 310.375,
+        "width": 337,
+        "height": 44,
+        "top": 310.375,
+        "right": 356,
+        "bottom": 354.375,
+        "left": 19
+      },
+      "painted": {
+        "left": 15,
+        "right": 360,
+        "top": 306.375,
+        "bottom": 358.375
+      },
+      "clip": {
+        "left": 13,
+        "right": 362,
+        "top": 245,
+        "bottom": 361
+      },
+      "scrollTop": 97,
+      "scrollLeft": 0,
+      "outline": "rgb(111, 178, 210) solid 2px",
+      "outlineOffset": "2px",
+      "fits": true
+    },
+    "afterScreenshot": {
+      "fieldSelector": "#room-name",
+      "scrollSelector": "#room-tool",
+      "focused": true,
+      "viewport": {
+        "width": 390,
+        "height": 480,
+        "visualWidth": 390,
+        "visualHeight": 480
+      },
+      "input": {
+        "x": 19,
+        "y": 310.375,
+        "width": 337,
+        "height": 44,
+        "top": 310.375,
+        "right": 356,
+        "bottom": 354.375,
+        "left": 19
+      },
+      "painted": {
+        "left": 15,
+        "right": 360,
+        "top": 306.375,
+        "bottom": 358.375
+      },
+      "clip": {
+        "left": 13,
+        "right": 362,
+        "top": 245,
+        "bottom": 361
+      },
+      "scrollTop": 97,
+      "scrollLeft": 0,
+      "outline": "rgb(111, 178, 210) solid 2px",
+      "outlineOffset": "2px",
+      "fits": true
+    },
+    "ok": true,
+    "events": [
+      {
+        "seq": 1,
+        "kind": "window",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59412.414999999106
+      },
+      {
+        "seq": 2,
+        "kind": "visual",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59412.435000002384
+      },
+      {
+        "seq": 3,
+        "kind": "window",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59444.340000003576
+      },
+      {
+        "seq": 4,
+        "kind": "visual",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59444.365000002086
+      },
+      {
+        "seq": 5,
+        "kind": "window",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59510.24500000477
+      },
+      {
+        "seq": 6,
+        "kind": "visual",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59510.29500000179
+      },
+      {
+        "seq": 7,
+        "kind": "window",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59530.615000002086
+      },
+      {
+        "seq": 8,
+        "kind": "visual",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59530.635000005364
+      },
+      {
+        "seq": 9,
+        "kind": "window",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59593.45500000566
+      },
+      {
+        "seq": 10,
+        "kind": "visual",
+        "width": 390,
+        "height": 844,
+        "visualHeight": 844,
+        "time": 59593.465000003576
+      },
+      {
+        "seq": 11,
+        "kind": "window",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59610.22000000626
+      },
+      {
+        "seq": 12,
+        "kind": "visual",
+        "width": 390,
+        "height": 480,
+        "visualHeight": 480,
+        "time": 59610.234999999404
+      }
+    ]
+  },
+  "r7-outside-destination-played": {
+    "text": "Former rooms: Quiet cornerThis room is open to Outside. Its enclosed identity and room duties will retire.Outside destination: Outside · 500 → 548 tilesShow openingFloors in Outside: Retained · CaseyFloors in Quiet corner: Retired · BillRetiring name: Quiet corner",
+    "active": true,
+    "dirty": true,
+    "origin": {
+      "x": 272,
+      "y": -10.5
+    }
+  },
+  "r7-natural-visibility-result": {
+    "phase": "restore",
+    "errors": [
+      "TimeoutError: page.waitForFunction: Timeout 10000ms exceeded."
+    ],
+    "window": {
+      "windowId": 742959663,
+      "bounds": {
+        "left": 10,
+        "top": 10,
+        "width": 945,
+        "height": 1012,
+        "windowState": "normal"
+      }
+    },
+    "inventory": [
+      {
+        "url": "http://127.0.0.1:5193/?stress=0&audio=0",
+        "target": {
+          "targetInfo": {
+            "targetId": "3E426B10B78BBA3639C9A46A0ED8A5BF",
+            "type": "page",
+            "title": "Natural Causes",
+            "url": "http://127.0.0.1:5193/?stress=0&audio=0",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "8A480153BEBBC41B446E44F3FDCA61F6"
+          }
+        },
+        "window": {
+          "windowId": 742959663,
+          "bounds": {
+            "left": 10,
+            "top": 10,
+            "width": 945,
+            "height": 1012,
+            "windowState": "normal"
+          }
+        },
+        "state": {
+          "visibility": "visible",
+          "hidden": false,
+          "focused": true
+        }
+      },
+      {
+        "url": "about:blank",
+        "target": {
+          "targetInfo": {
+            "targetId": "99D4777AE231FA614D9F083FA3BBCF36",
+            "type": "page",
+            "title": "about:blank",
+            "url": "about:blank",
+            "attached": true,
+            "canAccessOpener": false,
+            "browserContextId": "8A480153BEBBC41B446E44F3FDCA61F6"
+          }
+        },
+        "window": {
+          "windowId": 742959663,
+          "bounds": {
+            "left": 10,
+            "top": 10,
+            "width": 945,
+            "height": 1012,
+            "windowState": "normal"
+          }
+        },
+        "state": {
+          "visibility": "visible",
+          "hidden": false,
+          "focused": true
+        }
+      }
+    ],
+    "initial": {
+      "visibility": "visible",
+      "hidden": false,
+      "status": "Saved game loaded",
+      "active": true,
+      "dirty": true,
+      "review": true
+    },
+    "focusEmulationRestored": true,
+    "observed": {
+      "events": [],
+      "statuses": []
+    }
+  },
+  "r7-current-reduced-viewport-bounds": {
+    "restoredWindow": {
+      "windowId": 742959663,
+      "bounds": {
+        "left": 10,
+        "top": 10,
+        "width": 945,
+        "height": 1012,
+        "windowState": "normal"
+      }
+    },
+    "viewport": {
+      "width": 390,
+      "height": 480,
+      "visualWidth": 390,
+      "visualHeight": 480
+    },
+    "focus": "room-name",
+    "input": {
+      "x": 19,
+      "y": 307.375,
+      "width": 337,
+      "height": 44,
+      "top": 307.375,
+      "right": 356,
+      "bottom": 351.375,
+      "left": 19
+    },
+    "body": {
+      "x": 16,
+      "y": 248,
+      "width": 358,
+      "height": 109.8125,
+      "top": 248,
+      "right": 374,
+      "bottom": 357.8125,
+      "left": 16
+    },
+    "footer": {
+      "x": 19,
+      "y": 401,
+      "width": 352,
+      "height": 60,
+      "top": 401,
+      "right": 371,
+      "bottom": 461,
+      "left": 19
+    },
+    "outline": {
+      "width": "2px",
+      "offset": "2px"
+    },
+    "forcedColors": false
+  },
+  "r7-browser-runtime.json": {
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.85",
+      "revision": "@0e66b94549a8bd85f03fbdf189b752d6e7b63c32",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.25"
+    },
+    "target": {
+      "targetInfo": {
+        "targetId": "3E426B10B78BBA3639C9A46A0ED8A5BF",
+        "type": "page",
+        "title": "Natural Causes",
+        "url": "http://127.0.0.1:5193/?stress=0&audio=0",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "8A480153BEBBC41B446E44F3FDCA61F6"
+      }
+    },
+    "windowInfo": {
+      "windowId": 742959663,
+      "bounds": {
+        "left": 10,
+        "top": 10,
+        "width": 945,
+        "height": 1012,
+        "windowState": "normal"
+      }
+    }
+  }
+}

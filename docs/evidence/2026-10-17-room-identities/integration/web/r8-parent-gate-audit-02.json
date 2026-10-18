@@ -1,0 +1,49 @@
+{
+  "observed_utc": "2026-10-18T08:28:14.618934+00:00",
+  "scope": "Parent read complete final02 receipt and suite/build summaries; recomputed all six raw log hashes, compared all before/after manifest rows, and recomputed listed current critical source/test/note hashes. No tests rerun; not a current rehash of every asset.",
+  "manifest_rows_equal": true,
+  "manifest_count": 52748,
+  "source_sha256": "2385c68250bb874c96a25f31a82497edd05c6e7df30a7fe0b5ce9ddcedf18a09",
+  "logs": {
+    ".local-build/r8-web-final-02-typecheck.log": {
+      "sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+      "exit_code": 0
+    },
+    ".local-build/r8-web-final-02-suite.log": {
+      "sha256": "6f15181c26b160e135208969f708ea3e17ad152ffc12f15089f9a5db8c18b645",
+      "exit_code": 0
+    },
+    ".local-build/r8-web-final-02-build.log": {
+      "sha256": "7acd4cfc44af86be87321e0e89d0ac0c3284cbab523ecc802616ebb9f7e75163",
+      "exit_code": 0
+    },
+    ".local-build/r8-web-final-02-doc-ids.log": {
+      "sha256": "932d842df5916269a3980cd5ec2503159c754a7b45d7828a22429491e498bf66",
+      "exit_code": 0
+    },
+    ".local-build/r8-web-final-02-changelog-test.log": {
+      "sha256": "5eb6a96aec407201978d05030e5b0f98093f253ebbb736f85a6405a6ce16c743",
+      "exit_code": 0
+    },
+    ".local-build/r8-web-final-02-changelog-build.log": {
+      "sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+      "exit_code": 0
+    }
+  },
+  "critical_current_files": {
+    "web/index.html": "fd26f38d2833b3d78e072b30999985775a81ca3f822cdb077d34c700b3eb3403",
+    "web/src/main.ts": "d0fc63d7b855b52e5d4b84b270c754de71f33070b955365cc0b338f33d104f93",
+    "web/src/ui/build-controls.css": "897f6c872f289145f2addad3d857dfae55b4568b4d9a72381518313b308c6038",
+    "web/src/ui/room-selection.ts": "8d4587ee550a5f7224b4415603bdc3d26b7ebc32cd7001b4a53b0ce75d331d1b",
+    "web/src/ui/room-review.ts": "c2a30d9ee4fcef8fffd088fdaf4b245542ab8297b69e854f516e108f64cce2a1",
+    "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+    "docs/changelog/2026-10-18-room-names.md": "999c61a5a6e5648705a0a8e11e2a641ae62cb7a23a281274a29a740415b28465",
+    "web/tests/action-intent.test.ts": "9c5acce072e22503b1671859762ff6ff67433dffd5788c2f2559fac668207c8e"
+  },
+  "suite": {
+    "files_passed": 270,
+    "tests_passed": 3732,
+    "vitest_seconds": 566.45
+  },
+  "build_notices": "Existing ineffective dynamic import, large chunk and asset-plugin timing notices remain."
+}

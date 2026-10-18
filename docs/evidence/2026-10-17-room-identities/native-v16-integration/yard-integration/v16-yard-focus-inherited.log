@@ -1,0 +1,7 @@
+
+running 3 tests
+test inherited_runtime_fixture_compiles_real_model_actions_and_rounding ... ok
+test inherited_runtime_rejects_external_admission_stages_even_in_unused_templates ... ok
+test inherited_runtime_rejects_unknown_unused_bindings_and_incompatible_models ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.14s

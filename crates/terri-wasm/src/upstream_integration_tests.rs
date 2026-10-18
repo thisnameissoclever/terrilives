@@ -27,7 +27,7 @@ fn upstream_constructed_source_admissible_tv_continuation_survives_migration() {
     assert_eq!(viewers[0].target, viewers[1].target);
     let mut handle = SimHandle::from_lot();
     assert!(handle.load_bytes(bytes));
-    let migrated = handle.sim.save_snapshot_v6();
+    let migrated = handle.sim.current_v6_view();
     assert_eq!(migrated.legacy.world.funds, source.world.funds);
     assert_eq!(
         migrated.legacy.world.rng,
@@ -53,7 +53,7 @@ fn upstream_constructed_source_admissible_tv_continuation_survives_migration() {
     let current = handle.save_bytes();
     let hash = handle.world_hash();
     assert!(handle.load_bytes(&current));
-    assert_eq!(handle.sim.save_snapshot_v6(), migrated);
+    assert_eq!(handle.sim.current_v6_view(), migrated);
     assert_eq!(handle.save_bytes(), current);
     assert_eq!(handle.world_hash(), hash);
 }
@@ -68,9 +68,10 @@ fn upstream_published_empty_skill_state_is_authoritative() {
     assert!(handle.load_bytes(&super::save_v3_tests::v5_bytes(&source)));
     assert!(handle
         .sim
-        .save_snapshot_v6()
+        .current_v6_view()
         .legacy
         .skills
+        .as_ref()
         .unwrap()
         .rows
         .is_empty());
@@ -106,7 +107,7 @@ fn upstream_published_skills_households_migrate_without_losing_practice_or_ident
             "published tick {}",
             original.world.tick
         );
-        let saved = handle.sim.save_snapshot_v6();
+        let saved = handle.sim.current_v6_view();
         assert_eq!(saved.legacy.skills, original.skills);
         assert_eq!(saved.legacy.world.funds, original.world.funds);
         assert_eq!(
@@ -145,7 +146,7 @@ fn upstream_published_skills_households_migrate_without_losing_practice_or_ident
                 .flatten()
                 .filter(|h| h.object == "fridge" && h.interaction == 0 && h.value > 1.0)
             {
-                let after = handle.sim.save_snapshot_v6();
+                let after = handle.sim.current_v6_view();
                 let row = after
                     .legacy
                     .world
@@ -174,7 +175,7 @@ fn upstream_published_skills_households_migrate_without_losing_practice_or_ident
             handle.flush_commands();
             assert!(handle
                 .sim
-                .save_snapshot_v6()
+                .current_v6_view()
                 .legacy
                 .world
                 .entities
@@ -192,7 +193,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
         .world_mut()
         .insert_resource(terri_core::Funds::from_dollars(100));
     let title = handle.sim.book_titles()[0].id.clone();
-    let next = handle.sim.save_snapshot_v6().books.next_copy_id;
+    let next = handle.sim.current_v6_view().books.next_copy_id;
     assert!(handle.buy_book(title, None));
     let edit = SimCommand::EditHousemate {
         sim: 0,
@@ -208,7 +209,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
     );
     assert!(handle.enqueue_command(&bytes));
     assert!(handle.transfer_book(f64::from(next), None));
-    let snapshot = handle.sim.save_snapshot_v6();
+    let snapshot = handle.sim.current_v6_view();
     assert!(snapshot.command_order[0].is_some());
     assert!(snapshot.command_order[1].is_none());
     assert!(snapshot.command_order[2].is_some());
@@ -216,7 +217,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
     assert!(handle.load_bytes(&bytes));
     assert_eq!(handle.save_bytes(), bytes);
     handle.flush_commands();
-    let saved = handle.sim.save_snapshot_v6();
+    let saved = handle.sim.current_v6_view();
     assert_eq!(saved.books.copies.len(), 4);
     assert_eq!(
         saved
@@ -242,9 +243,9 @@ fn upstream_skill_era_rejects_unknown_practice_and_current_missing_skill_tail() 
     old.skills.as_mut().unwrap().rows[0].1 = "unknown-skill".into();
     assert!(!handle.load_bytes(&super::save_v3_tests::v5_bytes(&old)));
     assert_eq!(handle.save_bytes(), before);
-    let mut current = handle.sim.save_snapshot_v6();
+    let mut current = handle.sim.current_v6_view();
     current.legacy.skills = None;
-    assert!(handle.sim.load_snapshot_v6(current).is_err());
+    assert!(handle.sim.load_current_v6_view(current).is_err());
     assert_eq!(handle.save_bytes(), before);
 }
 
@@ -262,7 +263,15 @@ fn upstream_migration_clamps_practice_only_against_the_destination_ladder() {
         .insert_resource(Content(Box::leak(Box::new(destination))));
     assert!(handle.load_bytes(&super::save_v3_tests::v5_bytes(&saved)));
     assert_eq!(
-        handle.sim.save_snapshot_v6().legacy.skills.unwrap().rows[0].2,
+        handle
+            .sim
+            .current_v6_view()
+            .legacy
+            .skills
+            .as_ref()
+            .unwrap()
+            .rows[0]
+            .2,
         1.5
     );
 }
@@ -284,7 +293,7 @@ fn upstream_pre_skills_published_edits_migrate_and_seed_once() {
         );
         let mut handle = SimHandle::from_lot();
         assert!(handle.load_bytes(bytes));
-        let saved = handle.sim.save_snapshot_v6();
+        let saved = handle.sim.current_v6_view();
         assert_eq!(saved.legacy.world.rng, current_v5(old.clone()).world.rng);
         assert_eq!(saved.legacy.world.funds, old.world.funds);
         assert_eq!(saved.books.copies.len(), 5);
@@ -302,7 +311,7 @@ fn upstream_pre_skills_published_edits_migrate_and_seed_once() {
         handle.flush_commands();
         assert!(handle
             .sim
-            .save_snapshot_v6()
+            .current_v6_view()
             .legacy
             .world
             .entities
@@ -355,7 +364,7 @@ fn upstream_actual_pre_skills_media_and_dining_leases_migrate_strictly() {
             "real published active lease at tick {}",
             old.world.tick
         );
-        let saved = handle.sim.save_snapshot_v6();
+        let saved = handle.sim.current_v6_view();
         assert_eq!(saved.legacy.world.rng, current_v5(old.clone()).world.rng);
         assert_eq!(saved.legacy.world.funds, old.world.funds);
         for person in old.world.entities.iter().filter(|e| e.agent) {
@@ -453,7 +462,7 @@ fn genuine_published_2f_saves_load_and_continue_transactionally() {
         assert!(handle.load_bytes(bytes), "authentic {name} public load");
         assert_eq!(handle.sim_tick(), before.world.tick, "{name} tick");
         assert_eq!(
-            handle.sim.save_snapshot_v6().legacy.world.rng,
+            handle.sim.current_v6_view().legacy.world.rng,
             before.world.rng,
             "{name} RNG"
         );
@@ -466,7 +475,7 @@ fn genuine_published_2f_saves_load_and_continue_transactionally() {
             assert_eq!(
                 handle
                     .sim
-                    .save_snapshot_v6()
+                    .current_v6_view()
                     .legacy
                     .world
                     .entities

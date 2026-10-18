@@ -1,5 +1,67 @@
 # Lessons Learned
 
+## [L-surface-inventory-and-capability-identity] Check composed controls and opaque identities
+
+**What happened.** Final played review found the existing Exit dialog's three
+buttons missing the shared action roles, despite other Build controls using them.
+A separate query-purity proof failed three times on helper assumptions: fractional
+display coordinates passed as tile commands, eager BigInt serialization in an
+error label, and expected token equality across independent native handles.
+
+**Root cause.** The control inventory omitted a composed dialog. The proof
+conflated identical outcomes with identical capabilities; native session tokens
+are deliberately unique across handles.
+
+**Prevention.** Audit actual markup and composed dialogs, including incoming
+controls. Check tile admission and drained receipts, format errors lazily, and
+compare semantic review content separately from each handle's typed token.
+After three failures, obtain a fresh approach review before another run.
+
+**Verification.** Actual-markup role tests reject each missing Exit attribute.
+Matched game captures must reject the gray control and accept restored shared
+roles. A query comparison uses each original token only with its owning handle,
+checks exact terminal outcomes and first-tick advancement, and states which
+private fields are covered by source inspection rather than public getters.
+
+## [L-test-progress-before-stall] Inspect test lifecycle progress before declaring a stall
+
+**What happened.** The first whole-web run during room integration was interrupted
+after sparse output and low coordinator CPU were treated as a stopped suite.
+A later run's per-file reporter showed steady character-contact test progress.
+The original interrupted run's exact cause remains unproven.
+
+**Root cause.** Coordinator activity and quiet output were used as substitutes
+for evidence from the worker actually running the cases.
+
+**Prevention.** Record module and case lifecycle progress or inspect worker
+activity before classifying a stall. Preserve interrupted runs as incomplete.
+Do not inflate deadlines or suppress cases to obtain a passing result.
+
+**Verification.** Retain the command, normal runner configuration, per-file
+events, exit status and unchanged input manifest for the completed suite.
+
+## [L-review-release-and-capture-provenance] Bind reviews to released source and matched captures
+
+**What happened.** A reduced-viewport image captured at 06:40:44 UTC was submitted
+after a 06:48 UTC correction because its filename contained final. The reviewer
+correctly rejected the older pixels, but the parent initially called it a current
+defect. Later, fix-1 review began from an intermediate clean commit before the
+worker released source and index. Evidence-only EOF/hash cleanup then changed
+HEAD; a bounded addendum linked the original review package to the final head.
+No code or data damage occurred.
+
+**Root cause.** Filename wording and a clean working tree were mistaken for
+source identity and an explicit ownership handoff.
+
+**Prevention.** Freeze review after the worker explicitly releases source and
+index, then verify HEAD and status. Bind every selected image to source, hash and
+capture time. Require a current matched capture before claiming a repair failed;
+preserve valid historical findings and original review packages.
+
+**Verification.** Compare actual source/capture receipts and final released
+HEAD. When evidence-only commits follow a frozen package, retain that package
+and provide a separately scoped addendum with the final identities.
+
 ## [L-register-atlas-extensions] Register new sprites before rebuilding architecture
 
 **What happened.** Appending conversation sprites to the generator failed the
@@ -245,6 +307,8 @@ self-comparison must fail those assertions.
 was still running, despite the requirement to run heavy checks serially. A later
 test-file rename also remained pending when dependent tests started, producing
 file-not-found and obsolete-file discovery failures.
+A later native test executable also started while its build poll still reported
+running; that interrupted run could not verify the intended compiled source.
 
 **Root cause.** A yielded command was treated as ready for the next check before
 its session returned an exit code. An existing atlas test also timed out earlier
@@ -254,10 +318,21 @@ in that run; its timing does not establish that the later overlap caused it.
 an exit code. Apply the same rule to mutations that subsequent checks depend on.
 Use one command per execution call and one validation owner after edits freeze.
 Start the next command only after the current session's completion is observed.
+Require a successful build exit before launching its executable. A returned poll
+response without a final exit code is still running, not a successful build.
+Retain session and exit metadata before displaying large log output. Capture the
+native exit code immediately, before a trailing log reader such as `Get-Content`
+can hide it. An unknown or truncated outcome requires read-only state
+reconciliation, never an automatic retry of the mutation.
+For grouped checks, inspect every result and the aggregate exit. A completed
+receipt or a successful log tail can still contain an earlier failed group.
 
 **How to verify.** Record the full run's actual failed result and the unchanged
 isolated test's result separately. Confirm that the final serial suite passes;
 an isolated pass is not a passing full-suite run.
+Bind executable results to the source and completed build. Exclude an interrupted
+or prematurely launched run from passing verification receipts.
+Report passed and failed totals across all groups before accepting the batch.
 
 ## [L-window-height-follows-owning-wall] Match aperture art to its wall
 
@@ -12030,6 +12105,8 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: scope `-text` attributes to hash-bound authoring assets, immutable golden fixtures, and dated receipts. Preserve those source bytes rather than changing recorded hashes to match a conversion that never ran the exporter.
 4. Verification: compare working files with staged blobs and export the candidate Git tree into an isolated directory. Run the asset verifier there before pushing. Keep normal text normalization for unrelated source files and leave generated caches ignored.
 
+For diagnostic viewing copies, distinguish original working bytes from Git-stored bytes instead of silently changing a raw-byte hash. A staging audit caught three JSON evidence rows whose values were unchanged but whose CRLF line endings became LF in the index. Record both hashes and lengths, prove the declared text-only normalization, and verify the actual indexed blobs before committing. Binary saved games and frozen inputs must remain exact; source and produced-artifact hashes inside receipts keep their original meanings.
+
 ## [L-numeric-control-precision] Size numeric controls for loaded values and adjacent controls
 
 1. What happened: a condition's saved percentage remained exact but its trailing digits were clipped in the creator's number input. Widening the input alone then crowded a tablet-width slider.
@@ -12114,6 +12191,110 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: before editing a file under `assets/models`, search the export receipts (`grep -rn <file name> assets/models/*/actions/export assets/models/*/export`) for its path. If a shipped receipt pins it, either run that export again and review the art, or put the new work in a separate module the receipt does not pin. Never push a change to pinned inputs with `[skip ci]`.
 4. Verification: run `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'` and `python assets/sprites/gen/build.py --check` locally before pushing; both fail on a changed pinned input. After merging, confirm the CI run on main passed and the Pages deployment ran.
 
+## [L-browser-readiness-lifecycle] Match readiness checks to the component lifecycle
+
+1. What happened: a browser verifier reported that startup never finished after the house and Help appeared.
+2. Root cause: the verifier negated an optional hidden property. The loading cover is removed after its fade, so the absent element produced a false loading result. Closing an unfinished page could also create a preparation-cancelled error during cleanup.
+3. Prevention: inspect the actual readiness owner's lifecycle. Require cover removal, absence of a failure card, and a successful game control interaction. Record errors before cleanup and keep waits bounded; do not blame the browser before validating the predicate.
+4. Verification: exercise successful startup and an actual Build transition. A removed cover must count as finished, while a failure card must refuse readiness even after the cover is gone.
+
+## [L-action-color-owning-selectors] Verify semantic colors through the owning component rules
+
+1. What happened: semantic action attributes and focused interface tests passed while the radial menu retained neutral colors.
+2. Root cause: an ID-specific radial entry rule overrode the shared normal and interaction styles. Attribute assertions did not exercise the browser's cascade.
+3. Prevention: make each component's normal, hover, focus, active, and disabled rules consume shared role variables. Audit inline colors and specific selectors before accepting a shared palette.
+4. Verification: inspect computed colors on actual radial navigation and cancellation controls, alongside contextual controls, creator controls, disabled states, and forced colors. Preserve a visible keyboard focus indicator and verify that ordinary actions remain neutral.
+
+## [L-forced-color-button-pixels] Inspect native button text after system color substitution
+
+1. What happened: a focused Confirm button passed computed text contrast checks in Windows forced colors, but Chrome painted a white backplate behind its white label. The action could not be read.
+2. Root cause: using Highlight and HighlightText for the button face and text did not predict the native text backplate produced by automatic forced-color adjustment.
+3. Prevention: use ButtonFace and ButtonText for native decision controls in forced colors. Retain automatic adjustment and a separate Highlight focus outline. Inspect actual pixels as well as computed styles.
+4. Verification: capture the real focused control in a fresh browser context without selected text. Require an independent reviewer to reject the defective capture before accepting the repaired capture. See the dated action-color evidence for the blind comparison and final source capture.
+
+## [L-room-identity-coordinate-translation] Keep room identities separate from tile coordinates
+
+1. What happened: a land-expansion regression for the new room registry transformed a stable room ID as though it were a tile index.
+2. Root cause: the older translation code correctly remapped geometry-derived region seeds, but its integer representation did not distinguish those seeds from permanent identities.
+3. Prevention: branch translation on the explicit room representation. Translate anchors, membership, paths, dirt, and work cells; preserve stable room, object, person, and episode IDs. Keep the historical seed conversion in its historical path.
+4. Verification: buy land on north and west sides with a stable ID larger than the tile count. Require unchanged IDs, names, assignments, and object-key targets alongside the correctly translated geometry and tile-indexed state.
+
+## [L-fixture-command-identities] Prove a captured command changed its intended state
+
+1. What happened: a historical cleaning fixture had the same bytes as its preceding household snapshot despite an accepted command call.
+2. Root cause: the capture script passed the chore owner's stable person ID to an API expecting the person's live entity index. Queue acceptance did not prove that the drain found a person or started work.
+3. Prevention: resolve stable person IDs through the live render identity columns before calling entity-based APIs. Inspect the resulting order, task, or physical progress before naming a fixture for that state.
+4. Verification: retain the original historical bytes unchanged. Capture separate queued-order and active-work fixtures with the original producer, pin their hashes, and require distinct bytes plus a nonzero physical work measure. See `crates/terri-wasm/tests/fixtures/room-identities-v14/cleaning-work-manifest.json`.
+
+## [L-legacy-shape-inference] Keep historical shape inference out of current constructors
+
+1. What happened: current blank lots could be mistaken for the authored house when their dimensions matched it. Loading a blank lot into an existing household also risked retaining that household's portals.
+2. Root cause: absence of an explicit lot frame triggered a historical shape fallback. The fallback did not distinguish a current intentional absence from missing historical data.
+3. Prevention: initialize current blank architecture and room state explicitly. Restrict historical inference to historical restoration, then make its result explicit before conversion. Replace carried world resources deliberately during adoption.
+4. Verification: round-trip current blank lots at 1x1, 6x4, and the starter lot's 20x16 dimensions into an existing authored household. Require no inherited portals, valid room records, and unchanged historical fixture bytes.
+
+## [L-fixture-factory-occupancy] Separate object factories from validated build edits
+
+1. What happened: a historical-fixture harness spawned disposable furniture and tried to sell it for land-purchase funds. The sale was refused.
+2. Root cause: the low-level spawner deliberately leaves grid occupancy unchanged. Selling reconstructs the layout and requires occupancy to match the objects. The two operations have different preconditions.
+3. Prevention: use validated build operations for a playable layout. For historical test preconditions, edit only the required frozen saved-data fields, prove all other fields identical, and require the original game to accept and round-trip the seed before performing its commands. Keep cents and whole-dollar mirrors consistent.
+4. Verification: record each scenario's receipt immediately. Require the original producer's successful land/career results and exact save round trip. Decode stored task flags and paths before claiming suspended work; action labels alone cannot prove it.
+
+## [L-current-capture-versus-historical-output] Keep current restoration independent of historical exports
+
+1. What happened: a nested current restore called a public historical capture helper after stable room identities were installed. A valid queued outdoor-cleaning command reached a refusing historical projection and could panic. A separate projection check also ignored room cells absent from the old map.
+2. Root cause: an older raw capture call acquired export semantics without an impact scan of internal restoration callers. Filtering missing legacy membership weakened the representability check.
+3. Prevention: give internal current capture an explicit path. Restrict fallible historical projection to requested historical output. Require complete target membership under the old interpretation before exporting it. Audit examples and diagnostic subreports as well as the application writer: current field inspection must retain the complete current envelope. Bind each encoded payload type to its actual schema number so a marker bump cannot relabel an older payload.
+4. Verification: load current saves with both queued outdoor-cleaning command variants. Require malformed references to fail without a panic or live-state change. Refuse a historical projection of a room extending beyond its old target, even when the extension is clean. Preserve exact projection of genuine old inputs. Run current diagnostic tools against the new schema and strictly reload each generated scene before writing it; preserve explicit historical converters and their fixed-version positive controls.
+
+## [L-board-duties-versus-cleaning-work] Preserve valid work outside the automatic chore board
+
+1. What happened: final-room reconciliation used the automatic board's keys as its complete work list. A valid explicit surface wipe disappeared on rename or migration, and object-specific bin work could not find a replacement contact.
+2. Root cause: automatically assigned duties and explicitly requested physical work are different sets. Missing board membership does not make a task invalid.
+3. Prevention: validate existing work through its own target rules. Preserve valid object keys and replan eligible object work when its contact changes. Keep ownership, dirt, completed units, and unrelated paths separate from board membership.
+4. Verification: rename during an actual partial explicit wipe and migrate the corresponding historical save. Block a bin's current contact while leaving another reachable. Require retained work and unchanged unrelated paths, with no invented completion credit or neglect.
+
+## [L-construction-versus-stale-visits] Preserve ordinary resets when refreshing room memory
+
+1. What happened: a rename refreshed a deliberately stale saved visit to the person's current room. The next ordinary entry/reset could then be suppressed.
+2. Root cause: the refresh treated every mismatch as a construction effect, even when it existed in the confirmed baseline.
+3. Prevention: compare stored history with baseline physical membership before updating a continuing visit. Refresh construction-induced changes only; leave preexisting stale history for the ordinary movement/reset rules.
+4. Verification: rename before the next tick of a migrated stale visit. Require the normal next transition to reset its old remembered state. Separately preserve the known and noticed sets of a genuinely continuing visit.
+
+## [L-relative-land-directions] Verify world movement behind relative side labels
+
+1. What happened: fixture instructions called land sides 0 and 1 north and west, but the saved origin showed west and south purchases.
+2. Root cause: the interface names sides from the street facing the house. The numeric order is not a compass order: Rear is west, Left is south, and Right is north.
+3. Prevention: read the side mapping and record the actual house origin after each purchase. Keep relative interface labels and world coordinates distinct in tests and evidence.
+4. Verification: sides 0 then 2 move the starter origin to (10,10); sides 0 then 1 move it to (10,0). Assert those measured origins before naming a fixture for north/west translation. Correct provenance text without rewriting the original captured bytes.
+
+## [L-construction-versus-daily-assignment] Distinguish an existing unassigned duty from a new target
+
+1. What happened: naming Outside ran ordinary board reconciliation, which assigned an owner to an existing unassigned duty and consumed a random draw. The name edit changed household decisions despite unchanged physical work.
+2. Root cause: daily assignment policy and construction reconciliation shared a path that treated absence of an assignment as a new duty. A rename-only shortcut would leave the same defect in other edits.
+3. Prevention: retain the baseline target set independently of its assignments. Map existing targets through the final geometry, preserve their assigned or unassigned state, and apply construction assignment policy only to genuinely new duties. Leave ordinary daily maintenance to its normal phase.
+4. Verification: rename an existing unassigned Outside duty and require identical assignment state and randomness. Split a different room and require the old unassigned duty to remain unchanged, with only the genuinely new target consuming an owner draw. Exercise both automatic-assignment settings.
+
+## [L-floor-probe-footprints] Verify a render probe stays inside its intended material
+
+1. What happened: a floor-translation probe sampled neighboring unpainted flooring and initially reported color differences as possible Patio movement. Restricting the samples to the actual paved footprint produced identical pixels.
+2. Root cause: floor coordinates name tile centers. Three painted tiles centered at 4, 5, and 6 cover 3.5 through 6.5, not 4 through 7. The nominal texture period also hid a smaller exact repeat, so coordinate arithmetic alone overstated the visual risk.
+3. Prevention: derive probe bounds from physical tile footprints and independently verify the sampled material. Inspect actual rendered captures before changing shader coordinates or material transport. Check texture repetition when a nominal period suggests a phase change.
+4. Verification: compare only interior Patio samples at the same screen positions before and after land translation. Require material controls and identical pixel values. Keep controlled-renderer evidence separate from actual game commands, cancellation, and save/reload verification.
+
+## [L-submit-before-side-effects] Validate a prepared submission before draining new input
+
+1. What happened: the native Build submission path drained queued edits before checking whether its review still matched the draft. A refused old review could therefore apply pending edits during the failed submit.
+2. Root cause: submission reused preparation's input-settlement step. Preparation may settle edits to construct a review; submission must accept only the arrangement already reviewed.
+3. Prevention: check the full review token and raw draft, including queued commands, before any submit mutation. Do not drain new input as part of accepting an existing prepared candidate.
+4. Verification: prepare a review, queue another accepted edit, and submit the old review. Require identical raw draft, queue, view revision, and committed baseline after refusal. Return to editing, drain the retained input, and confirm a fresh review to prove the edits remain usable.
+
+## [L-room-matching-coordinate-frame] Pair room records and membership in the same coordinate frame
+
+1. What happened: mixed west and north land replay passed translated draft anchors to room matching with an untranslated baseline map. Preparing the final build failed despite a valid visible arrangement.
+2. Root cause: the registry came from the edited candidate while membership came from the captured baseline. Each was valid separately, but their anchors described different coordinates.
+3. Prevention: use baseline registry records with baseline membership, and pass the final land offset separately. When an integration boundary receives translated records, align its private copy to the captured map before matching. Apply final translation exactly once.
+4. Verification: mix construction, purchases, furniture, books, and west/north land growth in one journal. Require candidate agreement with the draft, retained room identities and names, coherent translated work targets, and a strict current save round trip.
 ## [L-conversation-commitment-admission] Admit a chosen request before reserving its recipient
 
 1. What happened: a hungry Sim repeatedly chose a conversation, moved part of a tile, lost the conversation to a later critical-need check, and appeared idle while sliding back and forth. A first repair also let an unreachable request hold its recipient and displace another valid approach.
@@ -12135,6 +12316,49 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: inspect file readers, expand their supported naming patterns, and follow report fields used as input paths. Preserve the inputs required by useful retained tools. Distinguish generated review output from test fixtures and asset production inputs before deciding which checks apply.
 4. Verification: run the affected postprocessors with isolated outputs, verify preserved input bytes against Git, and confirm the deletion set contains no code, functional assets, or required test inputs. Update current documentation when a capture sequence moves into Git history.
 
+## [L-native-transaction-runtime-state] Separate transaction installation from external loading
+
+1. What happened: ordinary construction used a strictly validated private save as its candidate, then installed it through external-load adoption. An existing interpolation test caught reset presentation history; source review also found omitted feedback resources and reset door history.
+2. Root cause: a complete persistent household is not a complete runtime image. Feedback sequences, interpolation, diagnostics and derived caches have separate lifetimes, and external Load deliberately resets some of them.
+3. Prevention: define one native transaction fork/install contract. Account for every nonserialized Sim field and resource as preserved, candidate-mutated, rebuilt, or intentionally reset. Remap entity references where needed. Preserve strict save validation and the external Load reset policy.
+4. Verification: issue an ordinary construction edit after feedback and between interpolation samples. Require unchanged feedback and unaffected entity/door history. Check refused commands mixed with unchanged construction, typed preparation failures, command ordering, and tick versus explicit drain behavior. Rebuild derived caches instead of copying stale entity handles.
+
+The full native suite later caught a separate interpolation failure: candidate adoption consumed edited-object discontinuity markers while syncing a render buffer that ordinary installation then discarded. Restoring only the old buffers left moved furniture interpolating from its old location. Preserve the candidate's pending markers across adoption and remap them into the installed world for the next live sync. Verify the edited object snaps, the untouched person's fractional sample remains exact, and the markers are consumed after that sync. External Load must still reset interpolation history.
+
+## [L-snapshot-projection-metadata] Project commands and their validation metadata together
+
+1. What happened: immutable construction preparation captured pending purchases, then cleared the saved command columns. Purchases of newly referenced models failed strict restoration before execution, leaving old receipts, funds and objects unchanged.
+2. Root cause: the projected snapshot retained an action manifest entry whose only reference was the removed purchase. Command columns and their derived validation metadata are one save invariant.
+3. Prevention: let the persistence layer own semantic snapshot projections. Derive dependent metadata through its canonical producer from the projected state, retaining references required by recipe origins and saved intents. Keep the live input queue untouched during preparation and keep strict reference validation.
+4. Verification: require a command-free projection of a household with a queued new-model purchase to restore strictly while the original queued snapshot stays unchanged. Exercise mixed command columns and retained recipe origins. Assert the typed preparation result before checking purchase receipts, then require correct funds, object identity and command order.
+
+## [L-queued-fixture-domain-validity] Admit synthetic command streams before testing their projection
+
+1. What happened: a snapshot-projection test failed repeatedly before reaching its target assertions. Its queued recovery named a nonexistent book copy, and its character edit used a guessed person identity.
+2. Root cause: command structure, domain validity and successful execution have different requirements. A structurally valid request can reference no current object or person; an admissible purchase can still lack funds.
+3. Prevention: obtain identities from runtime-created state and definitions from authored content. Fund a purchase explicitly when affordability is a fixture requirement. Strictly restore the original mixed command stream before testing its derived projection. Preserve separate model references for placed objects, pending purchases and completed recipe origins.
+4. Verification: admit the base, origin-bearing and queued snapshots in stages. Require the original queue to remain unchanged, the projected input queue to be empty, and the projected save to restore. Keep a malformed-projection control that fails because of its intended metadata mismatch.
+
+## [L-implicit-legacy-geometry] Distinguish frozen fallback geometry from explicit saved architecture
+
+1. What happened: room migration rejected valid small V1 saves because built-in historical wall and doorway coordinates extended beyond their grids. Historical retuning, collision and voice positive controls exposed the rejection.
+2. Root cause: the topology builder applied explicit saved-architecture validation to an implicit presentation fallback. Small historical worlds never serialized those out-of-grid constants as architecture.
+3. Prevention: interpret only the in-bounds portion of implicit frozen geometry. Preserve the saved collision bitmap and opaque layout tag. Continue rejecting invalid coordinates in explicit wall, edge and window records. Do not manufacture wall ownership from arbitrary collision or replace historical positive controls with current saves.
+4. Verification: admit small historical worlds, preserve their collision and opaque layout across old and current resaves, and include a grid containing some frozen wall and doorway coordinates. Require explicit out-of-grid architecture and inconsistent current room registries to reject without changing the live world. A correction that drops all legacy geometry must fail the partial-geometry control.
+
+## [L-current-continuation-envelope] Test current continuation with the complete current save
+
+1. What happened: complete current-save comparisons exposed two persistence contradictions that older partial snapshots omitted. Supported bookless content could not restore its empty library, and early reading returns retained a communal record that the social-state validator rejected.
+2. Root cause: current gameplay tests saved older envelopes for convenient field access. Those envelopes excluded later library or social state, so their successful reloads did not prove that the current writer produced a loadable save.
+3. Prevention: use the complete current envelope for gameplay continuation. Expose explicitly named inner field views when needed, but retain the full envelope for equality and loading. Keep historical reader tests on explicit historical producers. Admit the baseline before progression, and keep runtime transitions consistent with strict saved-state ownership.
+4. Verification: require exact current reload before activity, during activity, and immediately after paused interruption. Preserve empty-library metadata, legitimate extended or completed reading history, clock and randomness. Reject malformed copies, journeys and communal owners without changing the live state; do not hide invalid state by filtering it only during serialization.
+
+## [L-render-fixture-persistence-contract] Separate arbitrary projection inputs from valid save state
+
+1. What happened: a socket-rendering fixture used deliberately distant and diagonal actor positions, then attempted to make that same world saveable by rewriting contact tiles. The conversion also queried a dining lease for an ordinary armchair claim and replaced a valid approach with an invalid one.
+2. Root cause: rendering consumes a smaller state contract than current persistence. A plausible position does not establish identity, contact, physical ownership, work and reservation invariants. Dining leases and physical seat claims are separate authorities.
+3. Prevention: preserve arbitrary-pose rendering tests. Build persistence companions through canonical person creation and real action admission and arrival. Keep strict loaders and explicit contact checks; do not repair each newly exposed validation error with another handwritten endpoint rule.
+4. Verification: admit the idle current baseline, require the exact active target and ownership, and capture before rendering. Require unchanged save and hash after projection, exact reload without normalizing the source first, and both loaded interpolation samples. Move a valid seated actor to an unauthored contact and require atomic refusal.
 ## [L-confirm-live-callers] Check a function's production callers before citing its comments
 
 1. What happened: comments in `crates/terri-sim/src/systems/action.rs` and lesson [L36] kept describing housemates' choices through `sample_softmax` for more than two weeks after commit `413412814` (#143) moved live selection to `autonomy::grouped_probabilities` and added a wander candidate to every decision. They called `exp` the simulation's one platform call, said the golden world hash was safe from `exp` because one object meant one candidate, which stopped being the reason once every decision included the wander candidate, and justified the tie tests' first-draw precondition with an even split of the draw. The wander candidate's share had moved the boundary between the tied objects to 0.499167 on `c2ef49b59`, so that precondition still compared against one half: seed 3619, whose first draw is 0.499286, passes it and then picks the higher-index object, which would fail the winner assertion with a message blaming the object sort.
@@ -12154,3 +12378,64 @@ Current-save validation must also check ownership across both conversation parti
 2. Root cause: the new context classifier omitted chores, and its generic Idle label took precedence over the existing chore status and rendered activity. The older motion observer also treated chore ownership as unexplained inactivity.
 3. Prevention: recognize valid physical chores through the same read-only projection used by rendering. Preserve suspension and contact checks rather than assuming every ownership marker means active work. State whether a diagnostic bucket counts physical work or ownership of an entire goal.
 4. Verification: require stationary floor, surface and bin work to report active context while needs are critical. Require suspended work without a physical projection to remain inactive. Verify the HUD preserves the chore label, rerun matched traces, and compare world hashes to prove classification changes do not alter simulation behavior.
+
+## [L-golden-producer-initial-state] Derive checksum controls from the published state
+
+1. What happened: a checksum counterfactual selected the frozen authored house because its name contained Legacy. The published blank constructor actually used an empty legacy wall list. The incorrect control introduced rooms, extra duties and different grime random draws.
+2. Root cause: an inferred enum meaning replaced inspection of the exact published constructor and its original saved payload. Changing the layout only after simulation also concealed state accumulated under the original topology.
+3. Prevention: derive initial layout, reference mode and creation calls from the exact producer or its immutable snapshot before spawning or ticking. Compare saved field domains and random streams before changing a golden checksum. Preserve the original producer's expected value as a separate control.
+4. Verification: require the historical control to reproduce the original full snapshot and checksum. Isolate each approved current-format difference, retain source and artifact hashes, and obtain an independent current release-Wasm measurement before claiming cross-target agreement.
+
+Adding unplaced catalogue models can change the saved global content fingerprint while leaving a scenario's state and world hash unchanged. Exact historical comparisons caught this after the Yard catalogue grew from 30 models to 33. Measure original and current fingerprints through the canonical Data function on source-bound production packs, independently of the save writer under test. Guard both measured values before translating that single metadata field, then keep whole-payload equality and literal world-hash controls. Exercise actual old-format inputs as well; a metadata explanation is not proof that every historical reader still admits its files.
+
+## [L-prepared-person-index-frame] Prove the person frame behind review reports
+
+1. What happened: a room-review witness read a saved person's old full Entity handle after ordinary construction had replaced the world. A separate fixture changed a blank-lot covering but expected lost cleaning eligibility even though the default floor remained cleanable.
+2. Root cause: the fixtures assumed that stable SimIds, raw entity indices, full Entity generations and floor eligibility followed the same rules. They do not.
+3. Prevention: inspect the actual report producers. Duty owners use SimIds; replanned and unavailable people use raw entity indices. Resolve raw indices against the current world and bind review lookups to the prepared token. Create reused entity slots after initial reconstruction, and prove a material or topology edit actually changes the task's eligible targets before expecting replanning.
+4. Verification: use a real active task with SimId 0 at raw index 1, a reused slot and a differing candidate Entity generation. Require preserved name/identity across native preparation and the actual release-Wasm report. Keep current generated fixtures separate from published historical inputs, and exercise a real daily autosave trigger without advancing time during Build.
+
+## [L-review-wire-projection-atomicity] Encode a review before replacing its token
+
+1. What happened: source review found that the first room transport implementation installed a new prepared review before reserving its outgoing byte buffer. A serialization allocation failure could report refusal after replacing the old token without delivering the new review. No runtime out-of-memory event was observed.
+2. Root cause: native preparation and fallible transport projection ended on opposite sides of the token replacement.
+3. Prevention: pass a protocol-free fallible projector into the existing native preparation path. Validate the candidate and project the borrowed review before changing the preparation counter or installing Prepared. Keep wire types in the Wasm crate and avoid an arbitrary outbound cap.
+4. Verification: inject projection failure with a nonempty draft, pending names, a valid old review and nonempty runtime observations. Require exact baseline, raw draft, pending names, counter, view revision and runtime preservation, then commit the old token successfully. State the boundary: preparation can settle newly queued input before this point; this control has no new queued commands.
+
+## [L-room-wire-aggregate-capacity] Validate totals as well as individual rows
+
+1. What happened: the room-review decoder accepted two occupied cells in a one-cell lot because each room's area fit individually.
+2. Root cause: the decoder checked row bounds and relationships but omitted the aggregate capacity check already used by room summaries.
+3. Prevention: validate aggregate invariants at each transport boundary, even when the current native producer is trusted. Keep spare capacity valid when walls or excluded cells need not belong to a room.
+4. Verification: require the independent over-capacity packet to fail. Preserve zero-area Outside, a total equal to capacity and a total below capacity. Check that the sum remains within exact integer arithmetic before relying on a comparison.
+
+## [L-action-feedback-after-requery] Keep action results after generic refreshes
+
+1. What happened: a refused furniture sale produced the correct native result, but the lot-revision refresh replaced its explanation with Ready to place. The original test concealed this separate problem by queuing an action on a lamp with no interactions.
+2. Root cause: action feedback was published before a later generic placement query. The test also treated queue acceptance as proof that its requested interaction existed.
+3. Prevention: verify real action availability and current-save admission in fixtures. Process receipt ownership before refreshing an object list, then publish the specific action result after generic queries.
+4. Verification: queue a real interaction and sale in one drain, without adding gameplay ticks or splitting the race. Require a refused-sale receipt before and after the UI refresh, no native validation error, a strict current-save roundtrip, retained selection, disabled Sell and the visible refusal explanation. Preserve placement and recoloring feedback checks as well.
+
+
+## [L-build-review-shell-boundaries] Review completion and visible focus have separate boundaries
+
+1. What happened: room integration exposed old footer-exit assumptions, stale source-string tests, a retained review bypass after wall reversal, and a focused room field clipped by the compact dock.
+2. Root cause: browser controls treated preparation as completion, tests pinned old composition spelling, and the dock reserved space without considering its scroll viewport and focus outline. A browser probe also copied an obsolete isometric half-height instead of using the production projection.
+3. Prevention: use native adoption as the completion boundary and retain review intent even when a fresh native group list becomes empty. Execute complete page bindings for composition tests. Measure the focused input plus its outline inside the scroll viewport after reparenting and viewport changes. Reuse production projection and client-coordinate conversion in browser probes, with a negative control for the wrong calculation.
+4. Verification: the actual-module wall-reversal case must reopen retained choices without adoption. Isolated page-binding faults must fail behavioral assertions. At 740x390, the complete input and focus ring must fit within the tool body while both footer actions remain reachable. The wall-click harness must reject half-height16, accept the production inverse, and observe each matching native receipt before the next edit.
+
+
+## [L-final-receipt-before-restoration-claim] Read the final state before claiming a fault control was restored
+
+1. What happened: the R7 author reported that a browser focus fault was restored because an earlier wait succeeded. The retained final measurement actually had fits=false; the zero-margin fault had changed scrollTop from97 to91, leaving the outline below the scrollport.
+2. Root cause: a transient predicate was treated as the final result, and the actual returned restoration record was not checked. The evidence did not record viewport events, so resize coalescing remained a hypothesis rather than a demonstrated cause.
+3. Prevention: inspect every retained final measurement before claiming restoration. Keep failed receipts unchanged. Bind each screenshot to its own measured state and source hash; filenames such as final are not proof. After a deliberate style fault, restore the normal focus and observed viewport transition, then record stable final frames without adding a production retry or timing patch.
+4. Verification: the fresh replay records12 real window/visual resize events. Three clean frames fit at scrollTop97; three zero-margin fault frames fail at91; three restored6px-margin frames fit at97. The restored screenshot has identical before/after geometry. Preserve the earlier failed restoration separately in the R7 evidence.
+
+
+## [L-dirty-state-includes-local-input-owners] Include every local input owner in the exit decision
+
+1. What happened: after entering a final-room name in review, choosing Back and exactly reversing the walls, Exit closed Build and cleared the retained name without asking.
+2. Root cause: native semantic dirtiness correctly became clean, but the exit predicate omitted review-local choices. The preparation path counted that input owner while the exit path did not.
+3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
+4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.

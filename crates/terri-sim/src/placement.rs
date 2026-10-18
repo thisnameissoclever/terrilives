@@ -47,7 +47,7 @@ pub struct PlacementResult {
 }
 
 /// Presentation/cache state, deliberately excluded from saves and world hashes.
-#[derive(Resource, Debug, Default)]
+#[derive(Resource, Debug, Default, Clone)]
 pub struct LotEditState {
     pub revision: u64,
     pub last_result: Option<PlacementResult>,

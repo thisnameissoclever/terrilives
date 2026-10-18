@@ -27,7 +27,7 @@ use crate::Content;
 /// can authoritatively report that an otherwise valid order did not fit.
 /// Counts accumulate across drains until the shell consumes them, which keeps
 /// a fast running frame from erasing feedback before JavaScript can read it.
-#[derive(Resource, Debug, Default)]
+#[derive(Resource, Debug, Default, Clone)]
 pub struct CommandFeedback {
     intent_capacity_rejections: u32,
     intent_displacements: u32,

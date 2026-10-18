@@ -12,7 +12,7 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
     { label: 'Edit the edge', rows: [{ label: 'Wall', keys: ['W'] }, { label: 'Doorway', keys: ['D'] },
       { label: 'Windows', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
   ];
-  if (tool === 'room') return [{ label: 'Outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
+  if (tool === 'room') return [{ label: 'Select rooms', rows: [CANCEL] }, { label: 'Build room outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
     { label: 'Set first corner', keys: ['Enter'] },
     { label: 'Build completed outline', keys: ['Enter'] },
     { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }];
@@ -72,7 +72,7 @@ export function installShortcuts(doc: Document, coverings: readonly string[]): v
   ] }]);
   for (const tool of tools) {
     const title = doc.createElement('h3'); title.className = 'shortcut-tool-name';
-    title.textContent = tool.charAt(0).toUpperCase() + tool.slice(1); help.append(title);
+    title.textContent = tool === 'room' ? 'Rooms' : tool.charAt(0).toUpperCase() + tool.slice(1); help.append(title);
     appendGroups(doc, help, shortcutGroups(tool, coverings));
   }
 }

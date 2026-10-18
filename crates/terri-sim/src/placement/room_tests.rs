@@ -13,6 +13,7 @@ fn house(edges: Vec<WallEdge>) -> (Sim, Entity) {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
@@ -20,8 +21,7 @@ fn house(edges: Vec<WallEdge>) -> (Sim, Entity) {
     pack.portals[0].position = (6, 3);
     pack.portals[0].inward = (5, 3);
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     let fridge = sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let mut grid = TileGrid::new(7, 7);
     grid.set_blocked(0, 0, true);
@@ -32,6 +32,8 @@ fn house(edges: Vec<WallEdge>) -> (Sim, Entity) {
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     (sim, fridge)
 }
 
@@ -517,8 +519,16 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(command(room(1, 4, 2, 5, Some(line(Horizontal, 1, 4)))));
-    let saved = sim.save_snapshot_v3();
+    let saved = sim.save_snapshot_v16();
     assert!(saved
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
         .world
         .queued_commands
         .contains(&terri_core::SavedCommand::BuildRoom {
@@ -530,13 +540,13 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
         }));
     let (mut restored, _) = house(vec![]);
     restored
-        .load_snapshot_v3(saved.clone())
+        .load_snapshot_v16(saved.clone())
         .expect("a built room loads");
-    assert_eq!(restored.save_snapshot_v3(), saved);
+    assert_eq!(restored.save_snapshot_v16(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     sim.flush_commands();
-    assert_eq!(restored.save_snapshot_v3(), sim.save_snapshot_v3());
+    assert_eq!(restored.save_snapshot_v16(), sim.save_snapshot_v16());
     assert_eq!(restored.world_hash(), sim.world_hash());
     assert!(edges(&restored).contains(&wall(Horizontal, 1, 4, true)));
 }
@@ -766,7 +776,7 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
         ticks,
         "one tick per `Sim::tick`"
     );
-    let base = sim.save_snapshot_v6();
+    let base = sim.save_snapshot_v16();
     // One world to build each sampled room in and one to read its save back,
     // each reset by a Load.
     let mut builder = Sim::new_from_shipped_lot();
@@ -811,11 +821,11 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     if accepted % 3 != 0 {
                         continue;
                     }
-                    builder.load_snapshot_v6(base.clone()).unwrap();
+                    builder.load_snapshot_v16(base.clone()).unwrap();
                     stage(&mut builder, edit);
                     assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
                     reader
-                        .load_snapshot_v6(builder.save_snapshot_v6())
+                        .load_snapshot_v16(builder.save_snapshot_v16())
                         .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
                 }
             }
@@ -1006,9 +1016,9 @@ fn rooms_on_each_plot_perimeter_keep_solid_walls_and_reload() {
                 .unwrap()
                 .changed
         );
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.save_snapshot_v16();
         let (mut reader, _) = house(vec![]);
-        reader.load_snapshot_v6(saved).unwrap();
+        reader.load_snapshot_v16(saved).unwrap();
         assert_eq!(edges(&reader), expected);
         refused(
             &mut sim,

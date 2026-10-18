@@ -139,6 +139,14 @@ export const ARCHITECTURE = {
           4
         ],
         "resource": "street"
+      },
+      "floor.outdoor-patio": {
+        "role": "floor",
+        "period": [
+          4,
+          2
+        ],
+        "resource": "tiles"
       }
     },
     "palettes": {
@@ -147,6 +155,13 @@ export const ARCHITECTURE = {
           1,
           1,
           1
+        ]
+      },
+      "stone-gray": {
+        "multiply": [
+          0.55,
+          0.58,
+          0.6
         ]
       }
     },
@@ -213,13 +228,23 @@ export const ARCHITECTURE = {
           0.15,
           -0.22
         ]
+      },
+      "floor.outdoor-patio": {
+        "patternKey": "floor.outdoor-patio",
+        "paletteKey": "stone-gray",
+        "authoredContentLook": [
+          0,
+          1,
+          0
+        ]
       }
     },
     "coverings": {
       "0": "floor.neutral",
       "1": "floor.boards",
       "2": "floor.tiles",
-      "3": "floor.carpet"
+      "3": "floor.carpet",
+      "4": "floor.outdoor-patio"
     }
   },
   "budgets": {

@@ -1,5 +1,6 @@
 //! A chosen chat keeps its identity while its recipient finishes another action.
 pub(crate) mod route_cache;
+pub(crate) mod runtime;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{

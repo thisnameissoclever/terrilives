@@ -1,0 +1,480 @@
+{
+  "source_receipt": "v16-checkpoint-source.json",
+  "tool_versions": {
+    "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
+    "cargo": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "node": "v24.14.1"
+  },
+  "current_test_artifacts": {
+    "target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe": "499493735bb486104550ea6c8e99b920ad8fc3748ff1a147f396eb44bed34ed6",
+    "target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe": "fbb34c2056e15da3a3ca4d758fc62a544d0bcfffad6b7651bb6dfe0d9b802589"
+  },
+  "files": [
+    {
+      "file": "v16-focus-03.json",
+      "sha256": "ca60e38d5d37e221b422d9d6a2d8b1f29f942d8a1d3eed30427ea955f1153e6f",
+      "bytes": 7243,
+      "raw_source_sha256": "88673776e47235cbab2b37e68c6da086bdd403be403b7c86d8d6128016aaeed2",
+      "raw_bytes": 7432,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-04.json",
+      "sha256": "684717e0050a01c4173e7d39c4dfa79edc6f008962b40dacb49d51f6e7e9e339",
+      "bytes": 3488,
+      "raw_source_sha256": "d55f8167c713dfd15f32db7cddd9ef94fd6af7f7c69566e11a123c67c3158f5c",
+      "raw_bytes": 3575,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-cause-06.json",
+      "sha256": "50f3102dbdb9236cc37d36e7a377431da532040c016027a178df7b5a73ea8d5c",
+      "bytes": 545,
+      "raw_source_sha256": "be6f758781e1a8118e3309064bf9ad8d5d569c5d733c51b51af67522848e3193",
+      "raw_bytes": 559,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-cause-06.log",
+      "sha256": "2ba66f2bd76de4c816869622425a9ebb8b84f20bfc4192e326926cd7bad7246b",
+      "bytes": 300,
+      "raw_source_sha256": "b40a0afb09e3d91edc49a81e48f3563d32a22ef369d22b12d567bb4290aa013c",
+      "raw_bytes": 301,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07.json",
+      "sha256": "301e2edda3594ffb5da6faf4f2bf4606e6ac12234f631ef38dbf6c5fb6c1ee77",
+      "bytes": 3496,
+      "raw_source_sha256": "9d6d0b1224dceeb239d82021034b2c96e75f84ad6f8aeb824db1491bf5f3d9c4",
+      "raw_bytes": 3612,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-trace-08.json",
+      "sha256": "16b90927df5d16c2ed5fc7cec80b3c4a6f08b561ee6f197feebe8530c19440e2",
+      "bytes": 996,
+      "raw_source_sha256": "6b0e6c0155055953d0c89c4c51c5c84c4a9064a8db774b2655285f3e954b7c00",
+      "raw_bytes": 1041,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-trace-08-source.json",
+      "sha256": "2581b283fb6359bfef051af0a24b6378b51fc26c6e0adec96f267e859092b7cd",
+      "bytes": 54923,
+      "raw_source_sha256": "c595720bd710af2be1a61fd0c9ebb3797a0df70aae6dd87dd5ac7201334fca0d",
+      "raw_bytes": 55375,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-trace-08-run.log",
+      "sha256": "38c1b30dc613be17853995ce2daee48445ad492643217cc5686e45a49eb244bc",
+      "bytes": 23396,
+      "raw_source_sha256": "0e2e550ff94dc65e108b5d9d040ff0d460139e37d5e4d7909b72df56d6347555",
+      "raw_bytes": 23512,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-checkpoint-gates.json",
+      "sha256": "d837d56fff458123baa185b9c049374aae2d5201632ce92d093a13df195b540c",
+      "bytes": 2148,
+      "raw_source_sha256": "5261fa86cb0b90713a80f3b4948e368259dad808ae902c722d543e4507fd2ad4",
+      "raw_bytes": 2237,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-checkpoint-source.json",
+      "sha256": "f93d2a228204d7a97af01ec680b74a9806751d2d101be4a0621a6f6d8f596652",
+      "bytes": 55040,
+      "raw_source_sha256": "01e7c2c42b26ad231333295a0f9faaa77b2d0732a2cad1040faa2bd75c3724d3",
+      "raw_bytes": 55493,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-checkpoint-historical-approach.log",
+      "sha256": "748904101f6306c3b9bc93d7a29d682edbde211cefe416a7779b33aca82a2360",
+      "bytes": 480,
+      "raw_source_sha256": "2542382df1408c2ba0e90b3ad108866d7392a1b0abf50f041b252399a1f68eef",
+      "raw_bytes": 481,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-checkpoint-historical-order.log",
+      "sha256": "8ad413d6046615829065c30715580e8ff7165339d7feb1c08d2f9c48aa6d7598",
+      "bytes": 394,
+      "raw_source_sha256": "8f7f85560315c18211c5629115717804b8ab3e819eea2a11045329cf69987813",
+      "raw_bytes": 395,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-patio-receipt.json",
+      "sha256": "6a9c54750566634b4442fb0c8b0b3a1017987b701121de846162d6f4fef8e786",
+      "bytes": 1385,
+      "raw_source_sha256": "c987eee955e40673c52f9098df540187e1027b48206330847b672243b401bdf4",
+      "raw_bytes": 1435,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-patio-prove.log",
+      "sha256": "9652d91ccb1beec95a3b49f70866d440d8edd0ddcb18f5506de5a48e56d71090",
+      "bytes": 603,
+      "raw_source_sha256": "09aee90934c9ae6787fe2683d75576d9d6806cbe8bba41ee6ba97fe901fec2c3",
+      "raw_bytes": 604,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-patio-write.log",
+      "sha256": "14cfb9c5d9574d61029c80641925616de8e5d4da25651d27e452ad6b7cd2923c",
+      "bytes": 428,
+      "raw_source_sha256": "9f7959541cad616c4ebcc510774522a4a29e9d1d49edfe54f68fbaaaf95a9d67",
+      "raw_bytes": 429,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-immutable-inputs.json",
+      "sha256": "dde28244759c17fe262aad7e89b258ab2c657f743bc1ffc893bb8157f34c8887",
+      "bytes": 5462,
+      "raw_source_sha256": "67f22bdc1de2aea2ad09769b22054fc5f7963e90339c2628159c370715045406",
+      "raw_bytes": 5584,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-changelog.json",
+      "sha256": "8c9bcfae1dfd9eb9d667c6a393bf5f16e4099daf33b67afc7be7b609a8929aea",
+      "bytes": 486,
+      "raw_source_sha256": "d90b2bb81f5e077d3f0f69994fa68a9cb22e5cdd05e048e0d64bcecffa7898ad",
+      "raw_bytes": 509,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-changelog-tests.log",
+      "sha256": "a1f94c74a3ae34b69fe920e6af8d8af8595fc1d868965f20c50fc4421afd4295",
+      "bytes": 1186,
+      "raw_source_sha256": "a1f94c74a3ae34b69fe920e6af8d8af8595fc1d868965f20c50fc4421afd4295",
+      "raw_bytes": 1186,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-changelog-build.log",
+      "sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+      "bytes": 83,
+      "raw_source_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+      "raw_bytes": 83,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-receipt.json",
+      "sha256": "ae399a82b67896a49234ac3a890a29c39d42db2cc4268db10a59b93f28cc9936",
+      "bytes": 4464,
+      "raw_source_sha256": "3cd6c4568c46276e835e5ecf46f142f87d5cee4fd118c959c88dc8d2a7059b0c",
+      "raw_bytes": 4594,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-artifacts.json",
+      "sha256": "1b27fb6ddf552c01b257044d0f3d03717268b4985f91435941cec2624da19eb5",
+      "bytes": 1971,
+      "raw_source_sha256": "50840469c6167696d48c31f75242e093b8eaa4e2e544225b481aab4717593697",
+      "raw_bytes": 2009,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-source.json",
+      "sha256": "3957cee1772bb2b285a1acc8655d6531d62a04e861da1fe0fcfa743d03469a24",
+      "bytes": 55040,
+      "raw_source_sha256": "fc5f507ac935b56c5b0fb2889a2ecd74a76e7994da4dc653f3fb54affed67b5b",
+      "raw_bytes": 55493,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-domestic_review.log",
+      "sha256": "a0a66ab84fe80b38dc4a17ac5835bd5428665482fb19dfad9524d495dacfa07e",
+      "bytes": 236,
+      "raw_source_sha256": "a0a66ab84fe80b38dc4a17ac5835bd5428665482fb19dfad9524d495dacfa07e",
+      "raw_bytes": 236,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-relationship_qa.log",
+      "sha256": "014e89c83810f25f0e59ef3681e72b19116c1b00fce32ca734f17e5a2ef88bfa",
+      "bytes": 275,
+      "raw_source_sha256": "014e89c83810f25f0e59ef3681e72b19116c1b00fce32ca734f17e5a2ef88bfa",
+      "raw_bytes": 275,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-02-receipt.json",
+      "sha256": "d77431d8122ff4c4e7d82f5715a0b52aeac9c3ac21e88fdb1a05c061e6acab73",
+      "bytes": 1860,
+      "raw_source_sha256": "08c1a0bc542c07d7f72f147b8080572c67591eb995a113bc767acc5dda203a32",
+      "raw_bytes": 1926,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-02-artifacts.json",
+      "sha256": "c0ccf8d4f2220862c728c6aa5e642b1d11fe32a92f23a0d2b2104a09e1133904",
+      "bytes": 423,
+      "raw_source_sha256": "c6f77c5e0596eae8502bc239e5aadadb6101444a04615ba8e2914a3c5b91ec28",
+      "raw_bytes": 433,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-02-source.json",
+      "sha256": "8092dc8b522c260d49978ab254f88d078ba74083b28eea7708d7fc551f01263d",
+      "bytes": 55040,
+      "raw_source_sha256": "108bdd0c53879202b6da2417c47cc1ec85116f71c2de3e654e752a5670367b4a",
+      "raw_bytes": 55493,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-review-tools-02-domestic.log",
+      "sha256": "2e3172f983fb57f952e2c3084058741baa8703558744f856e4235b2de8aa99c8",
+      "bytes": 123,
+      "raw_source_sha256": "2e3172f983fb57f952e2c3084058741baa8703558744f856e4235b2de8aa99c8",
+      "raw_bytes": 123,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-02.json",
+      "sha256": "3353d5d7fa2cd87025f46a314a8cdb59f2e4c0237241ddd89eb2252225527646",
+      "bytes": 1131,
+      "raw_source_sha256": "9c1b731f8b71ac27a3bbe1e0f80969b7813f8702c3926f2331f6d9b7d4980424",
+      "raw_bytes": 1178,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-02-source.json",
+      "sha256": "ed9d177cb3ea855358323a06b4d719aa0e8563c84d0162da5ba505d3c24a9758",
+      "bytes": 54586,
+      "raw_source_sha256": "f061638ccbb792e3d8720e20c11311c194db68c46fee3ea93182b8c36a8920ad",
+      "raw_bytes": 55036,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-02-artifacts.json",
+      "sha256": "6d922e6b5308bdfaa291bfbdcb7a63aeeaf16b984ea52819f551060ba7c4cfc0",
+      "bytes": 584,
+      "raw_source_sha256": "f57d3b06b30eb7e9f09182822e5ac763809518abd9c973a878037601ce6199cf",
+      "raw_bytes": 600,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-04.json",
+      "sha256": "c51fde3f8bed81203b0c86ce369639e84ab4a1828ee9d0e4bd5a1f32163c6da1",
+      "bytes": 1131,
+      "raw_source_sha256": "087d822f354eaf3f2e81d87cd9979022e86daac3c6a41c685e4eba3ab39ca979",
+      "raw_bytes": 1178,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-04-source.json",
+      "sha256": "93dc8378a9316583c43b57525e9dbd1b70c9b0881d1eef081f80d35c89696ef7",
+      "bytes": 54923,
+      "raw_source_sha256": "4229f57dfebd5cc24754cdce044762251e560cee86e40518a0fbc773c249efb2",
+      "raw_bytes": 55375,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-04-artifacts.json",
+      "sha256": "d316807422f3c02d907b50b801a00c908badb0bdacf891b354486b262f438d96",
+      "bytes": 584,
+      "raw_source_sha256": "68ab81b677e2cf2d3e81ba13c289c3dcfa10c88a70c8068a716185866d35a6fd",
+      "raw_bytes": 600,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-06.json",
+      "sha256": "5cfbf2d57df349d91e3e3253fb30c882184bd94dcb083cebeca20a44269d3909",
+      "bytes": 1131,
+      "raw_source_sha256": "3edd34ca97c47c19b2aff4f356ca891a8b17f08dcc32c7245c6a1aeeda85cc0b",
+      "raw_bytes": 1178,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-06-source.json",
+      "sha256": "78e306023a0a229c5fd5dd15e51387bd67aeeef57ca5d2dd80fffc38375de957",
+      "bytes": 54923,
+      "raw_source_sha256": "39c103f5a0d2ab55c53d91a1595134a797dc7c5dc1e69165692da831df16d5bd",
+      "raw_bytes": 55375,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-06-artifacts.json",
+      "sha256": "93a4bdfcc1012022bc01dc412c70a129810a01ed64b1bfadb8959cb240b20699",
+      "bytes": 584,
+      "raw_source_sha256": "e85bf2fdd7a4870ca7bb23fd7ee1b95a3086fc71e108b2f7f7dddb11b460d59b",
+      "raw_bytes": 600,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-07.json",
+      "sha256": "85d78c81fec41a795382095c590c4db05b0140d9c29f78af656234c3897037cc",
+      "bytes": 1234,
+      "raw_source_sha256": "c438275d5094bae2485e241c6913936ace407205798da441b13c895c820427d0",
+      "raw_bytes": 1283,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-07-source.json",
+      "sha256": "f2c5bb57e171de73859b2aba6dbd43dafbef8dc106ef7aa1271151e7d1268a5b",
+      "bytes": 54923,
+      "raw_source_sha256": "b3b4db24b495e39ff66d21eba87c6b3ba2262914642b28dd944cb537926172b0",
+      "raw_bytes": 55375,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-native-build-07-artifacts.json",
+      "sha256": "cfba8f9d0b8b111168f6c4542a2017ef6a8933e124ceb96753ec4ec2467b0a55",
+      "bytes": 584,
+      "raw_source_sha256": "284b763757e0fe70f3577187b892826086a1bfa9bc1562177cd840ab3ce9927c",
+      "raw_bytes": 600,
+      "normalization": "Viewing copy: CRLF to LF only. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-social.log",
+      "sha256": "7de14b29be6bda0698b2253b358fa59915f3f401b4b29f64e781257e73a5f089",
+      "bytes": 7077,
+      "raw_source_sha256": "fab0e0528e0364db0349c2c60284f71901c866a3f2bb3a8d4347c343605e51a2",
+      "raw_bytes": 7080,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-build.log",
+      "sha256": "7892a979d59b21e200a3087a6415b37977d8b706e2ab33fd863d717d33366b54",
+      "bytes": 3236,
+      "raw_source_sha256": "7cf54a64efb8658755299df9101626b031ed3c14514deaf80f13ab8b7af23009",
+      "raw_bytes": 3237,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-current-projection.log",
+      "sha256": "2f2a2f6f6fb971dbc8c8fa45c69f05e024df417190b6170b45ec039db0c33902",
+      "bytes": 463,
+      "raw_source_sha256": "71e7190ac942be9371d4dc3d68fdadd5246d764c0145bfc79276f986b667a59a",
+      "raw_bytes": 464,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-land.log",
+      "sha256": "318e90c6d7116dca50f535fd83b5c4646b1cac0da236c8b43883c98119970fce",
+      "bytes": 1582,
+      "raw_source_sha256": "8ba9bcdf51c6d247902c36aa3b2c48960268ca1d07156437e663e365b88c9645",
+      "raw_bytes": 1584,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-rooms.log",
+      "sha256": "8f1a48082c0186ccf2099dbbe4d66d8010722e762504f7c137ec57bb4e583b43",
+      "bytes": 5662,
+      "raw_source_sha256": "33a595d8f25c9660a29cfb7d4c59f9c6497d505122a6cef86f62057998ce1079",
+      "raw_bytes": 5663,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-urgent.log",
+      "sha256": "b2d0af67c4d39891bd66ec6484b174f7edf97184fb6425bda03a3c116ee8a3c0",
+      "bytes": 417,
+      "raw_source_sha256": "55bccabe22967dcb6c2dfec8622148aa76c07701bef894ef9a72dce057112c70",
+      "raw_bytes": 418,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-authentic15.log",
+      "sha256": "d8aa142b46f1ce76414069a227df16f61ae4c6eb347d68591e852d5ffbb7fecb",
+      "bytes": 332,
+      "raw_source_sha256": "9badb88324efef6cb4758523a8df83ca3a4f4fc2038cdf7ded799ca8b26d4bd1",
+      "raw_bytes": 333,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-room-boundary.log",
+      "sha256": "561fde0dc6caecb55076748967f8326800179bd3f3e372a82cc2193966e7a041",
+      "bytes": 1286,
+      "raw_source_sha256": "a4307a8852cebf58402e94fa143cf1dde978b0539cae1a3da6b8cab2804c26e0",
+      "raw_bytes": 1287,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-03-save-boundary.log",
+      "sha256": "0f069daaec07c5c5cdf17bf58592a646b63db17283f833f3553389b2e3521cf8",
+      "bytes": 1127,
+      "raw_source_sha256": "b8cb3fd0b87b3c22ce41a7d389e4d825cbd432483e078739df28cfa0b40a9e42",
+      "raw_bytes": 1128,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-04-historical-approach.log",
+      "sha256": "4d1a53bcbb6ff154b0faeb66b3a5e12c91a80cc6f6fcd5892eb047477aa81a72",
+      "bytes": 236,
+      "raw_source_sha256": "2631047a47e2c06344b32794aad30b54b5dbf35a83bfd1398b5b8ea72f9f1ac9",
+      "raw_bytes": 237,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-04-historical-order.log",
+      "sha256": "76556507d1718a5800c255638295ca96d2349442320e3c3869a8a1f42f55235a",
+      "bytes": 236,
+      "raw_source_sha256": "b144d6d98af10bcda31c64cacd47766e9ebc8b7c9ba6d0391a82c459230fc7be",
+      "raw_bytes": 237,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-04-historical-land.log",
+      "sha256": "079f7f4c5dccefaa7bd8aac7e22d3f0eae552af183db62782bf4cbc2187a43eb",
+      "bytes": 215,
+      "raw_source_sha256": "8be8e48b6a02c7b811da1da3b7801ece8477dfd3d2638f4cc3a8a46f64b7ab81",
+      "raw_bytes": 216,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-04-interpersonal.log",
+      "sha256": "f1cfe8d22927205b7bc7a830f41782a98741c51db80b2e9510947b341704877e",
+      "bytes": 4830,
+      "raw_source_sha256": "32e782171cbb176bd0e234fa05ca6118b668a11cf60f3f6338a2d3d426ba78d4",
+      "raw_bytes": 4831,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07-golden.log",
+      "sha256": "ea50dd127b1de43cd5c382e73e907107d7e122d7f8a77e4444a5c050142012f1",
+      "bytes": 182,
+      "raw_source_sha256": "c19cb6d216f3fc190797c7ad12fd192d11543c6641caeafadc75468d0578ea42",
+      "raw_bytes": 183,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07-dining-origin.log",
+      "sha256": "fc31ba4018fc836279d0a1ab369fc5b086499253ca4eb7292c7d1c208802fe6d",
+      "bytes": 207,
+      "raw_source_sha256": "c1e16b281a152873d5bdf7f2dd8a141fbfe96ade1b38dd64410f942721c2d56a",
+      "raw_bytes": 208,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07-reading-forecast.log",
+      "sha256": "41e3f0895472fdb73697985a858b8137c8b2329703516f21112637eaac6dd21d",
+      "bytes": 222,
+      "raw_source_sha256": "52b64495c21048f56e166a1e2eea4d296e29e6aef29179635d1736648909187f",
+      "raw_bytes": 223,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07-review-example.log",
+      "sha256": "ffedd63e2a295828ee42f0f533fba2f4970e1df1d502d7ff021b22b49eac09d0",
+      "bytes": 370,
+      "raw_source_sha256": "ffedd63e2a295828ee42f0f533fba2f4970e1df1d502d7ff021b22b49eac09d0",
+      "raw_bytes": 370,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    },
+    {
+      "file": "v16-focus-07-storage-mocks.log",
+      "sha256": "83c9443f85dee0082d8df8f6553ca97b39f480a10a76e11e05ccc80967be0278",
+      "bytes": 240,
+      "raw_source_sha256": "e5ba9b24bad675e92887b6de8ee2fbcd77da7a1e7731d96cb30c18b57eff0d00",
+      "raw_bytes": 241,
+      "normalization": "Viewing copy: LF line endings, trailing horizontal whitespace removed, one final newline. Original raw source retained in .local-build."
+    }
+  ],
+  "archived_utc": "2026-10-18T02:58:20.768897+00:00",
+  "hash_representation": "sha256 and bytes describe canonical Git-stored viewing copies; raw_source_sha256 and raw_bytes retain original receipt/log bytes when normalized. Source/artifact hashes inside receipts retain their original meanings."
+}

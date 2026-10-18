@@ -1,0 +1,11 @@
+### Result
+{"status":"Game saved","storedSha256":"775c278e15cca36cdc12720f91aee5643ccd65a42a938b47fb6dcbb1a389a8ab","publicSaveEqualsStored":true}
+### Ran Playwright code
+```js
+await (async page => {const status=await page.locator("#save-status").textContent();if(status!=="Game saved")throw Error(status);await page.locator("#options-close").click();return await page.evaluate(async()=>{const f=await (await navigator.storage.getDirectory()).getFileHandle("terri-save-1.bin");const bytes=new Uint8Array(await (await f.getFile()).arrayBuffer());const publicBytes=__terriStress.sim.saveBytes();return {status:document.querySelector("#save-status").textContent,storedSha256:Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),b=>b.toString(16).padStart(2,"0")).join(""),publicSaveEqualsStored:bytes.length===publicBytes.length&&bytes.every((v,i)=>v===publicBytes[i])};});})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L219-L224

@@ -1,0 +1,9 @@
+### Result
+{
+  "hash": "f860aee75cced3ad23bdb3a955abaff54181e806f02ff66b8bb112b61710c545",
+  "bytes": 5654
+}
+### Ran Playwright code
+```js
+await page.evaluate('async () => {const bytes=new Uint8Array(await (await fetch("/.scratch/r8-historical-v15.sav")).arrayBuffer());const hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),b=>b.toString(16).padStart(2,"0")).join("");if(hash!=="f860aee75cced3ad23bdb3a955abaff54181e806f02ff66b8bb112b61710c545")throw Error("Historical hash mismatch");const file=await (await navigator.storage.getDirectory()).getFileHandle("terri-save-1.bin",{create:true});const w=await file.createWritable();await w.write(bytes);await w.close();return {hash,bytes:bytes.length};}');
+```

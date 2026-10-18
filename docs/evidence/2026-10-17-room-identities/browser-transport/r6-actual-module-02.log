@@ -1,0 +1,56 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts tests/room-bridge.test.ts tests/save-worker.test.ts tests/save-store.test.ts tests/legacy-save.test.ts tests/persistence-controller.test.ts tests/bridge.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/bridge.test.ts (56 tests | 2 failed) 4493ms
+     × keeps edge-layout spawn validation and accepted saves intact in release WASM 40ms
+     × restores the explicit empty edge layout without falling back to current or legacy walls 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > keeps edge-layout spawn validation and accepted saves intact in release WASM
+AssertionError: expected Uint32Array[] to be undefined
+
+- Expected:
+undefined
+
++ Received:
+Uint32Array []
+
+ ❯ tests/bridge.test.ts:445:32
+    443|
+    444|     const legacy = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    445|     expect(legacy.wallEdges()).toBeUndefined();
+       |                                ^
+    446|     legacy.spawnAgent(30, 30, 50);
+    447|     expect(legacy.spawnObject(7, 5, 'bathtub')).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > restores the explicit empty edge layout without falling back to current or legacy walls
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/bridge.test.ts:985:21
+    983|     const offsets = Array.from(legacyCells.keys()).filter(index =>
+    984|       tail.every((value, offset) => legacyCells[index + offset] === va…
+    985|     expect(offsets).toHaveLength(1);
+       |                     ^
+    986|     const edgeBytes = legacyCells.slice();
+    987|     // The frozen V8 manifest and books follow this world prefix insid…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  2 failed | 217 passed (219)
+   Start at  21:56:25
+   Duration  10.82s (transform 2.97s, setup 61ms, import 3.54s, tests 6.63s, environment 0ms)

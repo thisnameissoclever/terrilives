@@ -1,0 +1,11 @@
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.09s
+     Running `target\debug\examples\relationship_qa.exe .local-build/current-reading-v16-native-goal`
+wait: A=0 B=1
+ordered: A=0 B=1
+proximity: A=0 B=1
+reading availability: person=1 target=3 tick=0 carrying=None target_state=None available=["the_locked_laundry"]; journeys=[]; copies=[BookCopy { id: BookCopyId(0), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), borrower: None }, BookCopy { id: BookCopyId(1), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), borrower: None }]; queue=None; claims=[]
+reading A already admitted at 26: Pickup, copy BookCopyId(1), native order None
+reading admitted B at 26, A at 34; observed overlap 60 ticks including 120 replay updates
+reading: A=0 B=1
+friction: A=0 B=1

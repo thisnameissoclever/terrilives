@@ -86,7 +86,7 @@ pub(super) fn restore(
     let compatibility = compatibility_pack(content)?;
     // Restore checks entity ownership, indices, queue identities, books and
     // seat claims before the retired records can erase evidence of corruption.
-    let verified = v6::restore_inner(snapshot, compatibility, portals, migration)?;
+    let verified = v6::restore_inner(snapshot, compatibility, portals.clone(), migration)?;
     let mut retired = verified.save_snapshot_v6();
     retire(&mut retired);
     retired.actions =

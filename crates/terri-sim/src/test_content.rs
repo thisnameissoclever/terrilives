@@ -469,7 +469,17 @@ pub fn sim_with(width: usize, height: usize, content: &'static ContentPack) -> S
 /// portal presentation opt in through this constructor. Simulation routing
 /// continues to read the fingerprinted content in every constructor.
 pub fn sim_with_portals(width: usize, height: usize, content: &'static ContentPack) -> Sim {
-    let mut sim = sim_with(width, height, content);
+    let mut authored = content.clone();
+    authored.lot.width = width as u32;
+    authored.lot.height = height as u32;
+    authored.lot.house = (width as u32, height as u32);
+    authored.lot.walls.clear();
+    authored.lot.wall_edges.clear();
+    authored.lot.placements.clear();
+    let content = Box::leak(Box::new(authored));
+    let mut sim = Sim::new_from_lot_and_content(&content.lot, Content(content));
+    sim.world_mut()
+        .insert_resource(SimRng::from_seed(content.tuning.rng_seed));
     sim.world_mut()
         .insert_resource(ActivePortals::from_content(content));
     sim
@@ -538,4 +548,56 @@ pub(crate) fn after_affinity_migration(snapshot: &terri_core::SaveSnapshotV5) ->
         }
     }
     rng
+}
+
+/// Author an explicit indoor perimeter for tests whose rule requires a room.
+pub(crate) fn enclose(sim: &mut Sim) {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let grid = sim.world().resource::<terri_core::TileGrid>();
+    let (width, height) = (grid.width() as u32, grid.height() as u32);
+    let mut edges = sim.world().resource::<SavedLayout>().edges().to_vec();
+    for x in 0..width {
+        for y in [0, height] {
+            edges.push(WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x,
+                y,
+                doorway: false,
+            });
+        }
+    }
+    for y in 0..height {
+        for x in [0, width] {
+            edges.push(WallEdge {
+                axis: EdgeAxis::Vertical,
+                x,
+                y,
+                doorway: false,
+            });
+        }
+    }
+    edges.sort_by_key(|e| (e.axis as u8, e.y, e.x));
+    edges.dedup_by_key(|e| (e.axis as u8, e.y, e.x));
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut()).unwrap();
+    assert!(!sim
+        .world()
+        .resource::<crate::rooms::RoomMap>()
+        .topology
+        .components
+        .is_empty());
+}
+
+/// Assert complete current admission without changing the live fixture.
+pub(crate) fn assert_current_admission(sim: &Sim) {
+    let before = sim.save_snapshot_v16();
+    let restored = crate::save::v16::restore(
+        before.clone(),
+        sim.world().resource::<Content>().0,
+        crate::save::Carried::for_load(sim.world()),
+    )
+    .expect("fixture must admit its complete current snapshot");
+    assert_eq!(restored.save_snapshot_v16(), before);
+    assert_eq!(restored.world_hash(), sim.world_hash());
 }

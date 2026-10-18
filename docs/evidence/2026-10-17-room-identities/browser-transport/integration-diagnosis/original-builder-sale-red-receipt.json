@@ -1,0 +1,26 @@
+{
+  "command": [
+    "npm.cmd",
+    "--prefix",
+    "web",
+    "test",
+    "--",
+    "--maxWorkers=1",
+    "--reporter=verbose",
+    "tests/builder.test.ts",
+    "-t",
+    "keeps the choice and turns Sell off when the drain refuses a sale"
+  ],
+  "exit": 1,
+  "elapsed_seconds": 4.646,
+  "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+  "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+  "source_unchanged": true,
+  "log_sha256": "67130457c434ed4e3f47d33d3e6ee2f71ac91bb3032fc21a27a511d8504e96b6",
+  "generated_artifacts": {
+    "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+    "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+    "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+    "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+  }
+}

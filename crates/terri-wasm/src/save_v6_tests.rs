@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn current_bytes_are_strict_v15() {
+fn current_bytes_are_strict_v16() {
     let source = SimHandle::from_lot();
     let bytes = source.save_bytes();
-    assert_eq!(&bytes[8..10], &[15, 0]);
+    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v16());
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);
@@ -197,7 +197,7 @@ fn current_v6_rejects_two_readers_on_one_physical_chair() {
     let title = source.sim.book_copies()[0].title_id.clone();
     assert!(source.buy_book(title, Some(f64::from(shelf))));
     source.sim.flush_commands();
-    let saved = source.sim.save_snapshot_v6();
+    let saved = source.sim.current_v6_view();
     let mut loaded = SimHandle::new(10, 10);
     let bytes = source.save_bytes();
     assert!(loaded.load_bytes(&bytes));
@@ -239,8 +239,8 @@ fn current_v6_rejects_two_readers_on_one_physical_chair() {
     second.eating = None;
     second.position = first.position;
     let mut corrupted = SAVE_MAGIC.to_vec();
-    corrupted.extend_from_slice(&8u16.to_le_bytes());
-    corrupted.extend(postcard::to_allocvec(&bad).unwrap());
+    corrupted.extend_from_slice(&16u16.to_le_bytes());
+    corrupted.extend(postcard::to_allocvec(&bad.0).unwrap());
     assert!(!loaded.load_bytes(&corrupted));
     assert_eq!(loaded.save_bytes(), before);
     assert_eq!(loaded.world_hash(), hash);

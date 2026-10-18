@@ -1,0 +1,15 @@
+
+running 11 tests
+test save_v6_tests::authentic_v5_households_migrate_once_without_charges_or_rng_draws ... ok
+test save_v6_tests::commands_twenty_three_through_twenty_nine_roundtrip_in_one_pending_stream ... ok
+test save_v6_tests::current_bytes_are_strict_v16 ... ok
+test save_v6_tests::current_v6_rejects_two_readers_on_one_physical_chair ... ok
+test save_v6_tests::historical_constructors_match_the_retained_initial_household ... ok
+test save_v6_tests::invalid_v6_books_and_mapping_leave_the_complete_live_world_untouched ... ok
+test save_v6_tests::pinned_affinity_chore_calendar_v5_saves_preserve_authoritative_state ... ok
+test save_v6_tests::pinned_affinity_prefix_preserves_values_and_retires_only_old_false_table_sit ... ok
+test save_v6_tests::published_active_recline_retains_its_exact_perimeter_position_and_countdown ... ok
+test save_v6_tests::published_v5_rejects_duplicate_exclusive_readers_before_reading_cleanup ... ok
+test save_v6_tests::v6_rejects_legacy_markers_without_clearing_existing_bed_assignments ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 287 filtered out; finished in 4.17s

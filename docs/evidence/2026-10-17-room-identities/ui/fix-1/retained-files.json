@@ -1,0 +1,27 @@
+[
+  {
+    "file": "green.log",
+    "sha256": "b8eff669ecfbcdc946fb10ec44556cd0cc5a6696cdad347d4cd0f4d1a82cc490",
+    "bytes": 458
+  },
+  {
+    "file": "README.md",
+    "sha256": "7512e57e404ab0f9ff0640742611201e20a17dd900810c4dccc947db4dd93815",
+    "bytes": 4191
+  },
+  {
+    "file": "receipts.json",
+    "sha256": "5b3da8f363fbcc898bebc96872af3ebfeb0389572bcce87d491ef70ed33abf8e",
+    "bytes": 2698
+  },
+  {
+    "file": "red.log",
+    "sha256": "054ec88f5f356a7d91aead13bafa9a678b5a5530fa1faff1432e46830828a301",
+    "bytes": 2395
+  },
+  {
+    "file": "typecheck.log",
+    "sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+    "bytes": 49
+  }
+]

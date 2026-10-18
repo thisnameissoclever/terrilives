@@ -1804,7 +1804,7 @@ mod tests {
         }
         neutral_instincts(&mut sim);
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot_v5();
+        let before_save = sim.save_snapshot_v16();
 
         sim.sync_render_buffer();
 
@@ -1865,68 +1865,262 @@ mod tests {
                 "watching fish must face the aquarium without entering it"
             );
         }
-        assert_eq!(sim.save_snapshot_v5(), before_save);
+        assert_eq!(sim.save_snapshot_v16(), before_save);
         assert_eq!(sim.world_hash(), before_hash);
 
-        let mut restored = Sim::new_with_lot(1, 1);
-        restored
-            .load_snapshot_v5(before_save.clone())
-            .expect("the active aquarium and bike state must load");
-        assert_eq!(restored.save_snapshot_v5(), before_save);
-        assert_eq!(restored.world_hash(), before_hash);
-        assert_eq!(
-            projection_of(restored.render_buffer(), exerciser),
+        let runtime_cases = [
             (
-                visual_action::EXERCISE,
-                facing::POSITIVE_X,
-                activity::EXERCISING,
-            )
-        );
-        assert_eq!(
-            displayed_position_of(restored.render_buffer(), exerciser),
-            ((saddle.x, saddle.y), (saddle.x, saddle.y)),
-            "Load reconstructs the socket pose from tick state and current authored content"
-        );
-        assert_eq!(
-            projection_of(restored.render_buffer(), sitter),
-            (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING,)
-        );
-        assert_eq!(
-            displayed_position_of(restored.render_buffer(), sitter),
-            ((seat.x, seat.y), (seat.x, seat.y))
-        );
-        assert_eq!(
-            projection_of(restored.render_buffer(), sleeper),
-            (visual_action::SLEEP, facing::POSITIVE_X, activity::SLEEPING,)
-        );
-        assert_eq!(
-            displayed_position_of(restored.render_buffer(), sleeper),
-            ((lower_bunk.x, lower_bunk.y), (lower_bunk.x, lower_bunk.y))
-        );
-        let restored_bed_row = restored
-            .render_buffer()
-            .ids
-            .iter()
-            .position(|&id| id == bed_target.index_u32())
-            .expect("the loaded bunk bed has a render row");
-        assert_eq!(
-            restored.render_buffer().foreground_sprites[restored_bed_row],
-            NO_FOREGROUND_SPRITE,
-            "Load must use the current composite art without restoring an obsolete foreground"
-        );
-        for &(watcher, position, expected_facing) in &watchers {
-            assert_eq!(
-                projection_of(restored.render_buffer(), watcher),
+                "moving_box",
+                "use_exercise_bike",
+                (
+                    visual_action::EXERCISE,
+                    facing::POSITIVE_X,
+                    activity::EXERCISING,
+                ),
+                (7., 7.),
+                (3., 7.),
+            ),
+            (
+                "armchair",
+                "take_the_chair",
+                (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING),
+                (7., 7.),
+                (3., 7.),
+            ),
+            (
+                "bed",
+                "sleep",
+                (visual_action::SLEEP, facing::POSITIVE_X, activity::SLEEPING),
+                (7.5, 7.),
+                (3., 7.),
+            ),
+            (
+                "reference_shelf",
+                "watch_fish",
                 (
                     visual_action::WATCH,
-                    expected_facing,
+                    facing::POSITIVE_X,
                     activity::WATCHING_FISH,
-                )
+                ),
+                (6., 7.),
+                (3., 7.),
+            ),
+            (
+                "reference_shelf",
+                "watch_fish",
+                (
+                    visual_action::WATCH,
+                    facing::NEGATIVE_X,
+                    activity::WATCHING_FISH,
+                ),
+                (8., 7.),
+                (11., 7.),
+            ),
+            (
+                "reference_shelf",
+                "watch_fish",
+                (
+                    visual_action::WATCH,
+                    facing::POSITIVE_Y,
+                    activity::WATCHING_FISH,
+                ),
+                (7., 6.),
+                (7., 3.),
+            ),
+            (
+                "reference_shelf",
+                "watch_fish",
+                (
+                    visual_action::WATCH,
+                    facing::NEGATIVE_Y,
+                    activity::WATCHING_FISH,
+                ),
+                (7., 8.),
+                (7., 11.),
+            ),
+        ];
+        let pack = terri_data::pack();
+        for (model, action, _, _, _) in &runtime_cases {
+            let definition = pack
+                .find(model)
+                .unwrap_or_else(|| panic!("missing runtime model {model}"));
+            let available: Vec<_> = pack
+                .object(definition)
+                .interactions
+                .iter()
+                .map(|row| row.id.as_str())
+                .collect();
+            assert!(
+                available.contains(action),
+                "{model} requested action {action}; available actions: {available:?}"
             );
+        }
+        for (model, action, expected, pose, start) in runtime_cases {
+            runtime_projection_roundtrip(model, action, expected, pose, start);
+        }
+    }
+
+    fn runtime_projection_roundtrip(
+        model: &str,
+        action: &str,
+        expected: (u32, u32, u32),
+        pose: (f32, f32),
+        start: (f32, f32),
+    ) {
+        let mut sim = Sim::new_with_lot(16, 16);
+        let pack = sim.world().resource::<crate::Content>().0;
+        let definition = pack.find(model).unwrap();
+        let row = pack
+            .object(definition)
+            .interactions
+            .iter()
+            .position(|a| a.id == action)
+            .unwrap() as u32;
+        let object = sim.spawn_object(Position { x: 7., y: 7. }, definition);
+        let footprint = pack
+            .object(definition)
+            .footprint_at(pack.object(definition).base_facing);
+        for y in 7..7 + footprint.depth {
+            for x in 7..7 + footprint.width {
+                sim.world_mut()
+                    .resource_mut::<terri_core::TileGrid>()
+                    .set_blocked(x as usize, y as usize, true);
+            }
+        }
+        let person = crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: "Participant".into(),
+                personality: 0,
+                position: Position {
+                    x: start.0,
+                    y: start.1,
+                },
+                needs: [50.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        );
+        crate::test_content::assert_current_admission(&sim);
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: person.index_u32(),
+                object: object.index_u32(),
+                interaction: row,
+            });
+        let mut arrived = false;
+        for _ in 0..100 {
+            sim.tick();
+            arrived = sim
+                .world()
+                .get::<Eating>(person)
+                .is_some_and(|e| e.object == definition && e.interaction == row)
+                && sim
+                    .world()
+                    .get::<terri_core::Target>(person)
+                    .is_some_and(|t| t.object == object && t.interaction == row)
+                && sim.world().get::<terri_core::Path>(person).is_none();
+            if arrived {
+                break;
+            }
+        }
+        assert!(
+            arrived,
+            "{model}/{action} must enter actual use within its tick bound"
+        );
+        if model == "armchair" {
+            let claim = sim
+                .world()
+                .get::<crate::seating::PhysicalClaim>(person)
+                .unwrap();
+            assert_eq!(claim.furniture, object);
             assert_eq!(
-                displayed_position_of(restored.render_buffer(), watcher),
-                ((position.x, position.y), (position.x, position.y))
+                claim.target,
+                terri_core::Target {
+                    object,
+                    interaction: row
+                }
             );
+            assert_eq!(claim.seat, "seat");
+        }
+        if model == "bed" {
+            assert_eq!(
+                sim.world().get::<terri_core::SleepPlace>(person),
+                Some(&terri_core::SleepPlace(0))
+            );
+            assert!(sim.world().get::<terri_core::Reserved>(object).is_some());
+        }
+        // The first active snapshot precedes projection; the source is never normalized by load.
+        let snapshot = sim.current_v5_view();
+        let hash = sim.world_hash();
+        sim.sync_render_buffer();
+        assert_eq!(
+            projection_of(sim.render_buffer(), person),
+            expected,
+            "{model}"
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), person),
+            (pose, pose),
+            "{model}"
+        );
+        assert_eq!(sim.current_v5_view(), snapshot);
+        assert_eq!(sim.world_hash(), hash);
+        let mut restored = Sim::new_with_lot(1, 1);
+        restored
+            .load_current_v5_view(snapshot.clone())
+            .expect("runtime-created active use admits its first current save");
+        assert_eq!(restored.current_v5_view(), snapshot);
+        assert_eq!(restored.world_hash(), hash);
+        assert_eq!(
+            projection_of(restored.render_buffer(), person),
+            expected,
+            "{model}"
+        );
+        assert_eq!(
+            displayed_position_of(restored.render_buffer(), person),
+            (pose, pose),
+            "{model}"
+        );
+        if model == "bed" {
+            let index = restored
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == object.index_u32())
+                .unwrap();
+            assert_eq!(
+                restored.render_buffer().foreground_sprites[index],
+                NO_FOREGROUND_SPRITE
+            );
+        }
+        let mut invalid_positions = vec![(0., 0.)];
+        if model == "armchair" {
+            invalid_positions.push((6., 7.));
+        }
+        for (x, y) in invalid_positions {
+            let mut bad = snapshot.clone();
+            let position = bad
+                .world
+                .entities
+                .iter_mut()
+                .find(|e| e.index == person.index_u32())
+                .unwrap()
+                .position
+                .as_mut()
+                .unwrap();
+            (position.x, position.y) = (x, y);
+            assert!(
+                restored.load_current_v5_view(bad).is_err(),
+                "{model} contact ({x},{y}) must refuse"
+            );
+            assert_eq!(restored.current_v5_view(), snapshot);
+            assert_eq!(restored.world_hash(), hash);
         }
     }
 
@@ -2750,7 +2944,7 @@ mod tests {
             ))
             .id();
         neutral_instincts(&mut sim);
-        let snapshot = sim.save_snapshot_v5();
+        let snapshot = sim.save_snapshot_v16();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer();
@@ -2767,28 +2961,106 @@ mod tests {
             displayed_position_of(sim.render_buffer(), agent).0,
             (18.0, 12.0)
         );
-        assert_eq!(sim.save_snapshot_v5(), snapshot);
+        assert_eq!(sim.save_snapshot_v16(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
+        // The preceding render-only sample has no owned book. Start real reading for persistence.
+        sim.world_mut()
+            .entity_mut(agent)
+            .remove::<Eating>()
+            .remove::<terri_core::Target>();
+        let id = sim
+            .world_mut()
+            .resource_mut::<terri_core::SimIdAllocator>()
+            .issue();
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert((id, Needs::all_at(80.)));
+        sim.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+        sim.world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(10000));
+        let pack = sim.world().resource::<crate::Content>().0;
+        let title = pack.books[0].id.clone();
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::Book(
+                terri_core::command::BookCommand::Purchase {
+                    title: title.clone(),
+                    shelf: Some(exact.index_u32()),
+                },
+            ));
+        sim.flush_commands();
+        assert_eq!(sim.take_build_error(), None);
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::Book(
+                terri_core::command::BookCommand::Read {
+                    agent: agent.index_u32(),
+                    object: exact.index_u32(),
+                    action: pack.object(bookshelf).interactions[read as usize]
+                        .id
+                        .clone(),
+                    title,
+                    front: false,
+                },
+            ));
+        for _ in 0..500 {
+            sim.tick();
+            if sim.reading_journeys().iter().any(|j| {
+                j.owner == agent.index_u32() && j.stage == terri_core::save_v6::ReadingStage::Read
+            }) {
+                break;
+            }
+        }
+        assert!(sim
+            .reading_journeys()
+            .iter()
+            .any(|j| j.owner == agent.index_u32()
+                && j.stage == terri_core::save_v6::ReadingStage::Read));
+        assert_eq!(
+            sim.world().get::<terri_core::Target>(agent).unwrap().object,
+            exact
+        );
+        let standing = *sim.world().get::<Position>(agent).unwrap();
+        let target_position = *sim.world().get::<Position>(exact).unwrap();
+        let dx = target_position.x - standing.x;
+        let dy = target_position.y - standing.y;
+        let expected_facing = if dx.abs() >= dy.abs() {
+            if dx > 0. {
+                facing::POSITIVE_X
+            } else {
+                facing::NEGATIVE_X
+            }
+        } else if dy > 0. {
+            facing::POSITIVE_Y
+        } else {
+            facing::NEGATIVE_Y
+        };
+        assert_ne!(
+            (standing.x, standing.y),
+            (target_position.x, target_position.y)
+        );
+        let snapshot = sim.save_snapshot_v16();
+        let hash = sim.world_hash();
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot_v5(snapshot.clone())
+            .load_snapshot_v16(snapshot.clone())
             .expect("the active bookshelf interaction is valid current save state");
         restored.sync_render_buffer();
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
             (
                 visual_action::STANDING_READ,
-                facing::POSITIVE_X,
+                expected_facing,
                 activity::READING,
             )
         );
         assert_eq!(
             displayed_position_of(restored.render_buffer(), agent),
-            ((18.0, 12.0), (18.0, 12.0)),
+            ((standing.x, standing.y), (standing.x, standing.y)),
             "Load reconstructs standing reading from saved simulation state at the ordinary tile"
         );
-        assert_eq!(restored.save_snapshot_v5(), snapshot);
+        assert_eq!(restored.save_snapshot_v16(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 

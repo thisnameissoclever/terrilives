@@ -1,10 +1,10 @@
 .creator-shell{color-scheme:dark;background:#171b23;color:#e7edf6;font:14px system-ui,sans-serif;display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:min(1240px,96vw);height:min(900px,92vh);overflow:hidden}
 .creator-shell *{box-sizing:border-box}
-.creator-shell button,.creator-shell select,.creator-shell input{font:inherit;color:inherit;border:1px solid #414b5c;border-radius:5px;background:#202630;padding:8px;min-width:0}
-.creator-shell button{cursor:pointer}.creator-shell button:disabled{opacity:.45;cursor:default}
+.creator-shell button,.creator-shell select,.creator-shell input{font:inherit;color:inherit;border:1px solid var(--action-border,#414b5c);border-radius:5px;background:var(--action-background,#202630);padding:8px;min-width:0}
+.creator-shell button{cursor:pointer;color:var(--action-text,inherit)}.creator-shell button:disabled{opacity:.45;cursor:default}
 .creator-shell :focus-visible{outline:2px solid #73d2ff;outline-offset:2px}
 .creator-shell input{accent-color:#65c9f4}.creator-shell input[type=range]{padding:0}
-.creator-shell .primary{background:#65bff3;color:#102330;font-weight:650;border-color:#65bff3}
+.creator-shell .primary{font-weight:650}
 .creator-shell h1{font-size:25px;margin:0}.creator-shell h2{font-size:22px;margin:0}.creator-shell h3{font-size:17px;margin:0}
 .creator-header,.creator-footer{padding:18px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #343c49}
 .creator-header>div{flex:1}.creator-subtitle{color:#a7b5c8;margin:5px 0 0}

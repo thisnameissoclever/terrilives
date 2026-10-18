@@ -30,10 +30,12 @@ pub(super) const MAX_ENTITIES: usize = 100_000;
 /// The frame goes into the candidate world before the grid, the walls, the
 /// people and the front door are rebuilt, because every one of them reads
 /// it (land expansion, issue 254).
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(crate) struct Carried {
     pub portals: Option<ActivePortals>,
     pub lot_frame: Option<crate::lot_frame::LotFrame>,
+    pub rooms: Option<terri_core::rooms::SavedRooms>,
+    pub room_mode: crate::rooms::RoomReferenceMode,
 }
 
 impl Carried {
@@ -43,6 +45,8 @@ impl Carried {
         Self {
             portals: world.get_resource::<ActivePortals>().copied(),
             lot_frame: None,
+            rooms: None,
+            room_mode: crate::rooms::RoomReferenceMode::Legacy,
         }
     }
 
@@ -52,6 +56,13 @@ impl Carried {
         Self {
             portals: world.get_resource::<ActivePortals>().copied(),
             lot_frame: world.get_resource::<crate::lot_frame::LotFrame>().copied(),
+            rooms: world
+                .get_resource::<terri_core::rooms::SavedRooms>()
+                .cloned(),
+            room_mode: world
+                .get_resource::<crate::rooms::RoomReferenceMode>()
+                .copied()
+                .unwrap_or_default(),
         }
     }
 }
@@ -83,6 +94,7 @@ pub(crate) mod v12;
 pub(crate) mod v13;
 pub(crate) mod v14;
 pub(crate) mod v15;
+pub(crate) mod v16;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -570,7 +582,7 @@ pub(super) fn restore_legacy(
 /// already checked against the saved entities. Every other gap in the saved
 /// numbering is freed for reuse, as it always was; a retired one is kept out
 /// of use, as the world that was saved kept it.
-fn restore_with_facings(
+pub(crate) fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
     active_portals: Carried,
@@ -581,6 +593,18 @@ fn restore_with_facings(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
+    sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
+    sim.world.remove_resource::<crate::rooms::RoomMap>();
+    sim.world
+        .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
+    if (active_portals.room_mode == crate::rooms::RoomReferenceMode::Stable)
+        != active_portals.rooms.is_some()
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    if let Some(rooms) = active_portals.rooms {
+        sim.world.insert_resource(rooms);
+    }
     if let Some(active_portals) = active_portals.portals {
         sim.world.insert_resource(active_portals);
     }
@@ -2306,12 +2330,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v15();
+        let state = uninterrupted.save_snapshot_v16();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v15(state.clone())
+            .load_snapshot_v16(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v15(), state);
+        assert_eq!(resumed.save_snapshot_v16(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -2510,7 +2534,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot_v6(sim.save_snapshot_v6()),
+                fresh.load_current_v6_view(sim.current_v6_view()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );

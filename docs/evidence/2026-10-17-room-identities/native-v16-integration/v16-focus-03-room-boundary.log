@@ -1,0 +1,16 @@
+
+running 12 tests
+test room_save_tests::blank_current_lots_do_not_inherit_authored_architecture_or_portals ... ok
+test room_save_tests::current_room_corruption_and_bad_envelopes_do_not_replace_the_household ... ok
+test room_save_tests::immutable_v14_pending_order_settles_before_active_build_load_baseline ... ok
+test room_save_tests::immutable_v14_rooms_preserve_source_state_and_current_continuation ... ok
+test room_save_tests::invalid_current_request_room_and_byte_inputs_preserve_active_build_token ... ok
+test room_save_tests::published_fifteen_dispatch_and_unpublished_room_prototype_are_distinct ... ok
+test room_save_tests::renaming_an_authentic_active_floor_task_preserves_its_exact_physical_state ... ok
+test room_save_tests::review_authentic_explicit_surface_migration_preserves_work ... ok
+test room_save_tests::review_authentic_land_careers_and_money_keep_their_actual_source_values ... ok
+test room_save_tests::review_frozen_source_work_preconditions ... ok
+test room_save_tests::review_queued_outside_commands_load_and_unknown_room_commands_refuse_atomically ... ok
+test room_save_tests::review_rename_before_first_tick_preserves_migrated_unassigned_duties_and_rng ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 286 filtered out; finished in 3.05s

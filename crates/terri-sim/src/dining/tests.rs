@@ -48,7 +48,9 @@ fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
         );
     }
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    restored
+        .load_current_v6_view(sim.current_v6_view())
+        .unwrap();
     for _ in 0..3 {
         sim.tick();
         restored.tick();
@@ -470,9 +472,9 @@ fn simultaneous_diners_claim_two_real_chairs_and_the_third_stands() {
             assert!(setting_for(sim.world(), table, entity(sim.world(), chair).unwrap()).is_some());
         }
     }
-    let snapshot = sim.save_snapshot_v6();
+    let snapshot = sim.current_v6_view();
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v6(snapshot).unwrap();
+    restored.load_current_v6_view(snapshot).unwrap();
     assert_eq!(sim.world_hash(), restored.world_hash());
     assert!(people
         .iter()
@@ -723,7 +725,9 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
             saw_group |= !d.tableless.is_empty();
         }
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+        restored
+            .load_current_v10_view(sim.current_v10_view())
+            .unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         if people.iter().all(|p| {
             sim.world()
@@ -806,7 +810,7 @@ fn paused_cancel_clears_complaints_and_round_trips_before_another_tick() {
         .iter()
         .any(|(p, _)| *p == people[0].index_u32()));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -956,14 +960,14 @@ fn privacy_routes_preserve_exact_seated_and_standing_claims_and_reload() {
             .entity_mut(person)
             .insert(Path { steps, cursor: 0 });
         let mut replay = Sim::new_from_shipped_lot();
-        replay.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        replay.load_current_v6_view(sim.current_v6_view()).unwrap();
         assert_eq!(replay.world_hash(), sim.world_hash());
     }
 }
 
 #[test]
 fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
-    let (mut sim, people, table) = ready();
+    let (mut sim, people, table) = ready_with_content(Content::pre_books());
     advance(sim.world_mut());
     for person in &people[1..] {
         sim.world_mut()
@@ -998,8 +1002,14 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     }
     let mut historical = sim.save_snapshot_v5();
     historical.dining = None;
+    let mut source_control = Sim::new_with_lot_and_content(16, 12, Content::pre_books());
+    source_control
+        .load_snapshot_v5(historical.clone())
+        .expect("the same-era V5 reader admits the source");
     let mut migrated = Sim::new_from_shipped_lot();
-    migrated.load_snapshot_v5(historical).unwrap();
+    migrated
+        .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(historical)))
+        .unwrap();
     let origins = migrated.save_snapshot_v6().chain_origins;
     assert_eq!(origins.len(), 1);
     assert!(matches!(
@@ -1021,7 +1031,7 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     for _ in 0..40 {
         let mut replay = Sim::new_from_shipped_lot();
         replay
-            .load_snapshot_v15(migrated.save_snapshot_v15())
+            .load_snapshot_v16(migrated.save_snapshot_v16())
             .unwrap();
         assert_eq!(replay.world_hash(), migrated.world_hash());
         migrated.tick();
@@ -1061,7 +1071,7 @@ fn washing_a_blocking_pile_while_someone_dines_clears_annoyance_and_remains_load
         .iter()
         .all(|d| d.obstructing.is_empty()));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
 }
 
@@ -1113,7 +1123,7 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         .tableless
         .push((cook, 0));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     sim.world_mut()
         .resource_mut::<terri_core::CommandQueue>()
         .push(terri_core::SimCommand::CancelIntents {
@@ -1121,7 +1131,7 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         });
     sim.flush_commands();
     assert!(sim.world().resource::<SavedDining>().tableless.is_empty());
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
 }
 
@@ -1242,7 +1252,7 @@ fn one_dirty_chair_setting_leaves_the_other_physical_seat_available() {
     assert_eq!(diners.iter().filter(|d| d.chair.is_some()).count(), 1);
     assert!(diners.iter().all(|d| d.setting != Some(dirty)));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
 }
 
@@ -1378,11 +1388,11 @@ fn physical_frozen_meal_leases_migrate_into_current_claims() {
     current
         .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(old.save_snapshot_v5())))
         .unwrap();
-    assert_eq!(current.save_snapshot_v6().seats.len(), seated);
+    assert_eq!(current.current_v6_view().seats.len(), seated);
     for _ in 0..100 {
-        let saved = current.save_snapshot_v6();
-        assert!(current.load_snapshot_v6(saved.clone()).is_ok());
-        assert_eq!(current.save_snapshot_v6(), saved);
+        let saved = current.current_v6_view();
+        assert!(current.load_current_v6_view(saved.clone()).is_ok());
+        assert_eq!(current.current_v6_view(), saved);
         current.tick();
     }
 }
@@ -1475,9 +1485,9 @@ fn regression_dining_wall_contact_live_and_current_rollback() {
                 "unblocked same-tile contact is valid"
             );
         }
-        let travel = sim.save_snapshot_v6();
-        sim.load_snapshot_v6(travel.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), travel);
+        let travel = sim.current_v6_view();
+        sim.load_current_v6_view(travel.clone()).unwrap();
+        assert_eq!(sim.current_v6_view(), travel);
         for _ in 0..150 {
             if sim.world().get::<StepWork>(person).is_some() {
                 break;
@@ -1485,9 +1495,9 @@ fn regression_dining_wall_contact_live_and_current_rollback() {
             sim.tick();
         }
         assert!(sim.world().get::<StepWork>(person).is_some());
-        let active = sim.save_snapshot_v6();
-        sim.load_snapshot_v6(active.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), active);
+        let active = sim.current_v6_view();
+        sim.load_current_v6_view(active.clone()).unwrap();
+        assert_eq!(sim.current_v6_view(), active);
         if wall {
             let mut invalid = active.clone();
             invalid.legacy.dining.as_mut().unwrap().diners[0].endpoint = (3, 4);
@@ -1500,8 +1510,8 @@ fn regression_dining_wall_contact_live_and_current_rollback() {
                 .unwrap()
                 .position = Some(terri_core::SavedPosition { x: 3., y: 4. });
             let hash = sim.world_hash();
-            assert!(sim.load_snapshot_v6(invalid).is_err());
-            assert_eq!(sim.save_snapshot_v6(), active);
+            assert!(sim.load_current_v6_view(invalid).is_err());
+            assert_eq!(sim.current_v6_view(), active);
             assert_eq!(sim.world_hash(), hash);
         }
     }
@@ -1538,7 +1548,7 @@ fn regression_dining_wall_contact_published_meal_migration() {
         current
             .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(saved.clone())))
             .unwrap();
-        let migrated = current.save_snapshot_v6();
+        let migrated = current.current_v6_view();
         let actual = migrated
             .legacy
             .world
@@ -1600,8 +1610,8 @@ fn regression_dining_wall_contact_published_meal_migration() {
             source_fields, expected_save,
             "every unrelated published field remains exact"
         );
-        current.load_snapshot_v6(migrated.clone()).unwrap();
-        assert_eq!(current.save_snapshot_v6(), migrated);
+        current.load_current_v6_view(migrated.clone()).unwrap();
+        assert_eq!(current.current_v6_view(), migrated);
         if active {
             let remaining = current
                 .world()
@@ -1610,7 +1620,7 @@ fn regression_dining_wall_contact_published_meal_migration() {
                 .remaining_ticks;
             assert!(remaining > 1);
             let mut replay = Sim::new_with_lot(10, 10);
-            replay.load_snapshot_v6(migrated).unwrap();
+            replay.load_current_v6_view(migrated).unwrap();
             current.tick();
             replay.tick();
             assert_eq!(
@@ -1621,7 +1631,7 @@ fn regression_dining_wall_contact_published_meal_migration() {
                     .remaining_ticks,
                 remaining - 1
             );
-            assert_eq!(current.save_snapshot_v6(), replay.save_snapshot_v6());
+            assert_eq!(current.current_v6_view(), replay.current_v6_view());
         }
     }
 }
@@ -1770,7 +1780,7 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
         current
             .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(saved.clone())))
             .unwrap();
-        let migrated = current.save_snapshot_v6();
+        let migrated = current.current_v6_view();
         let mut expected = saved.clone();
         expected.world.rng = crate::test_content::after_affinity_migration(&saved);
         expected.skills = Some(terri_core::save::SavedSkills::default());
@@ -1794,8 +1804,8 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
         assert_eq!(source_fields,expected,"only A's unusable travel/seat commitment and new affinity state differ; food, progress, queue and B remain exact");
         assert_eq!(migrated.seats.len(), 1);
         assert_eq!(migrated.seats[0].person, b.index_u32());
-        current.load_snapshot_v6(migrated.clone()).unwrap();
-        assert_eq!(current.save_snapshot_v6(), migrated);
+        current.load_current_v6_view(migrated.clone()).unwrap();
+        assert_eq!(current.current_v6_view(), migrated);
         current.tick();
         assert_eq!(
             current.world().get::<StepWork>(b).unwrap().remaining_ticks,
@@ -1812,7 +1822,7 @@ fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact()
             );
         }
         current
-            .load_snapshot_v6(current.save_snapshot_v6())
+            .load_current_v6_view(current.current_v6_view())
             .unwrap();
     }
 }
@@ -1879,9 +1889,9 @@ fn endpoint_meal_and_media_admission_and_restore_are_symmetric() {
                 assert_eq!(meal.station, table.index_u32());
                 assert!(media.chair.is_some());
                 assert_ne!(meal.endpoint,media.endpoint,"meal/media contact must differ: viewer_first={viewer_first}, standing={standing}, meal_first={meal_first}");
-                let saved = sim.save_snapshot_v6();
-                sim.load_snapshot_v6(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v6(), saved);
+                let saved = sim.current_v6_view();
+                sim.load_current_v6_view(saved.clone()).unwrap();
+                assert_eq!(sim.current_v6_view(), saved);
                 if meal_first && !standing {
                     let mut invalid = saved.clone();
                     let at = (5, 4);
@@ -1910,10 +1920,10 @@ fn endpoint_meal_and_media_admission_and_restore_are_symmetric() {
                     actor.eating = None;
                     let hash = sim.world_hash();
                     assert!(
-                        sim.load_snapshot_v6(invalid).is_err(),
+                        sim.load_current_v6_view(invalid).is_err(),
                         "equal meal/media endpoints are refused in both person orders"
                     );
-                    assert_eq!(sim.save_snapshot_v6(), saved);
+                    assert_eq!(sim.current_v6_view(), saved);
                     assert_eq!(sim.world_hash(), hash);
                 }
             }

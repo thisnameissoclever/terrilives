@@ -868,8 +868,7 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
     for o in &state.opportunities {
         if entity(world, o.person).is_none_or(|e| world.get::<Agent>(e).is_none())
             || o.known.windows(2).any(|p| p[0] >= p[1])
-            || o.room as usize
-                >= world.resource::<TileGrid>().width() * world.resource::<TileGrid>().height()
+            || !crate::rooms::reference_valid(world, o.room)
             || o.known.iter().any(|id| {
                 world
                     .get_resource::<SavedDomestic>()

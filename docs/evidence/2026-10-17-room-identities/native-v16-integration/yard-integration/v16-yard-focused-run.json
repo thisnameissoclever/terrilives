@@ -1,0 +1,10 @@
+{
+  "command": [
+    "python",
+    ".local-build/v16-yard-focused.py"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 1,
+  "log": ".local-build\\v16-yard-focused-run.log",
+  "finished_utc": "2026-10-18T04:22:14.131480+00:00"
+}

@@ -66,10 +66,11 @@ describe('the desktop mode notice', () => {
     const stored: Record<string, string> = {};
     const { document, appended } = fakeDocument();
     expect(showDesktopSiteNotice(fakeWindow(980, stored), document as never)).toBe(true);
-    const [panel] = appended as unknown as { id: string; removed: boolean; children: { textContent: string; listeners: Record<string, () => void> }[] }[];
+    const [panel] = appended as unknown as { id: string; removed: boolean; children: { textContent: string; listeners: Record<string, () => void>; attributes: Record<string,string> }[] }[];
     expect(panel.id).toBe('desktop-site-notice');
     expect(panel.children[0].textContent).toBe(DESKTOP_SITE_TEXT);
     expect(panel.children[1].textContent).toBe('Close');
+    expect(panel.children[1].attributes['data-action-intent']).toBe('negative');
     panel.children[1].listeners.click();
     expect(panel.removed).toBe(true);
     expect(stored[DESKTOP_SITE_DISMISSED_KEY]).toBe('1');

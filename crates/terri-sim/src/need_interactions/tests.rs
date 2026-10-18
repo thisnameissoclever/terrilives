@@ -54,6 +54,7 @@ fn shared_fixture(first_kind: &str, second_kind: &str) -> (crate::Sim, Entity, E
     dislikes.bump(first_id, -0.5);
     sim.world_mut().entity_mut(people[0]).insert(likes);
     sim.world_mut().entity_mut(people[1]).insert(dislikes);
+    crate::test_content::enclose(&mut sim);
     (sim, people[0], people[1])
 }
 
@@ -253,6 +254,15 @@ fn shared_social_obeys_room_radius_distinct_object_and_both_preferences() {
             })
             .collect(),
     });
+    crate::test_content::enclose(&mut sim);
+    assert_eq!(
+        sim.world()
+            .resource::<crate::rooms::RoomMap>()
+            .topology
+            .components
+            .len(),
+        2
+    );
     contextual_minute(&mut sim);
     assert_eq!(
         sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
@@ -260,6 +270,15 @@ fn shared_social_obeys_room_radius_distinct_object_and_both_preferences() {
     );
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+    crate::test_content::enclose(&mut sim);
+    assert_eq!(
+        sim.world()
+            .resource::<crate::rooms::RoomMap>()
+            .topology
+            .components
+            .len(),
+        1
+    );
     for subject in [first, second] {
         sim.world_mut()
             .entity_mut(subject)
@@ -323,7 +342,9 @@ fn shared_activity_reload_rebuilds_context_before_first_payment() {
     // Exercise is an ordinary action; reading requires a physical owned copy.
     let (mut sim, first, _) = shared_fixture("moving_box", "moving_box");
     let mut restored = crate::Sim::new_from_shipped_lot();
-    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    restored
+        .load_current_v6_view(sim.current_v6_view())
+        .unwrap();
     let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
     for _ in 0..4 {
         sim.tick();

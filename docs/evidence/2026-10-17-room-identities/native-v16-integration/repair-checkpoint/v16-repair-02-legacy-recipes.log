@@ -1,0 +1,7 @@
+
+running 3 tests
+test recipe_actions::legacy_migration_tests::current_recipe_save_without_its_origin_is_still_rejected_transactionally ... ok
+test recipe_actions::legacy_migration_tests::direct_legacy_recipe_loads_gain_origins_before_current_resave ... ok
+test recipe_actions::legacy_migration_tests::mixed_legacy_recipe_and_projection_actor_keep_their_distinct_contracts ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1605 filtered out; finished in 0.39s

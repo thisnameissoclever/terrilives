@@ -1,0 +1,9 @@
+Auto-merging assets/models/architecture/architecture.json
+warning: Cannot merge binary files: crates/terri-data/tests/fixtures/inherited-runtime.pack (HEAD vs. 513c86be2aa44fb4d5576279d0e1ae69991e870e)
+Auto-merging crates/terri-data/tests/fixtures/inherited-runtime.pack
+CONFLICT (content): Merge conflict in crates/terri-data/tests/fixtures/inherited-runtime.pack
+Auto-merging crates/terri-sim/src/render_buffer.rs
+Auto-merging docs/FEATURES.md
+Auto-merging docs/GAME-SYSTEMS.md
+Auto-merging web/src/render/architecture-data.ts
+Automatic merge failed; fix conflicts and then commit the result.

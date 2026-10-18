@@ -1,0 +1,28 @@
+
+running 13 tests
+test land::tests::a_left_strip_adds_rows_to_the_south_and_moves_nothing ... ok
+test land::tests::a_move_keeps_ids_and_moves_only_tiles ... ok
+test land::tests::a_record_on_the_old_edge_blocks_once_the_lot_grows_past_it ... ok
+test land::tests::a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall ...
+thread 'land::tests::a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall' (10008) panicked at crates\terri-sim\src\land.rs:1181:9:
+assertion `left == right` failed: room 1 starts at (1, 0)
+  left: None
+ right: Some(1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test land::tests::a_strip_that_reaches_the_side_limit_is_bought_and_one_tile_deeper_is_refused ... ok
+test land::tests::each_purchase_moves_the_lot_edit_revision_once_and_a_refusal_does_not ... ok
+test land::tests::every_blocked_tile_moves_with_the_world_and_new_land_is_open ... ok
+test land::tests::growing_moves_a_legacy_wall_list_with_the_world ... ok
+test land::tests::painted_floors_and_windows_move_with_the_world ... ok
+test land::tests::quotes_and_refusals_write_nothing ... ok
+test land::tests::rear_and_right_strips_move_the_whole_world ... ok
+test land::tests::the_pricing_examples_of_the_issue_hold ... ok
+test land::tests::the_walk_home_from_work_ends_on_the_moved_landing ... ok
+
+failures:
+
+failures:
+    land::tests::a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 1595 filtered out; finished in 10.72s

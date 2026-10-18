@@ -1,0 +1,51 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "producer": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\p15-a481",
+  "command": [
+    "wasm-pack",
+    "build",
+    "crates/terri-wasm",
+    "--target",
+    "web",
+    "--out-dir",
+    "../../web/src/wasm",
+    "--mode",
+    "no-install",
+    "--",
+    "--locked"
+  ],
+  "versions": {
+    "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
+    "cargo": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "wasm-pack": "wasm-pack 0.15.0"
+  },
+  "input_manifest": ".superpowers\\sdd\\2026-10-17-room-identities\\published-v15-inputs.json",
+  "input_count": 481,
+  "target": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\p15-target",
+  "build_jobs": 1,
+  "started_utc": "2026-10-18T01:14:17.387098+00:00",
+  "complete": true,
+  "source_unchanged": true,
+  "pid": 74492,
+  "exit": 0,
+  "elapsed_seconds": 306.31,
+  "changed_inputs": [],
+  "ended_utc": "2026-10-18T01:19:23.697495+00:00",
+  "artifacts": [
+    {
+      "path": ".local-build\\p15-a481\\web\\src\\wasm\\terri_wasm.js",
+      "bytes": 125451,
+      "sha256": "772d9ecc02d768b0fdeb311c0520f18f344f3690b1851ab841d9d46f7aec441c"
+    },
+    {
+      "path": ".local-build\\p15-a481\\web\\src\\wasm\\terri_wasm_bg.wasm",
+      "bytes": 5869751,
+      "sha256": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648"
+    },
+    {
+      "path": ".local-build\\p15-a481\\web\\src\\wasm\\terri_wasm.d.ts",
+      "bytes": 79937,
+      "sha256": "a0bfafa15f3d0cfb6338f8cbe4068b63959b361815478e53da0c93a99d779ba6"
+    }
+  ]
+}

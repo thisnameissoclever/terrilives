@@ -1,5 +1,5 @@
 // Leaving Build mode - docs/specs/2026-10-13-build-confirmation.md. The
-// footer's Confirm and Cancel finish the batch and then leave. Every other way
+// footer's Confirm and Cancel finish the batch and keep paused Build open. Every way
 // out (Exit build, the Build button, Escape with nothing selected) reaches the
 // furniture builder's exit, whose beforeExit is `gate`: while a change is not
 // confirmed, it opens a dialog instead of leaving. Escape anywhere on the page
@@ -10,7 +10,9 @@ export interface BuildExitHooks {
   /** Whether leaving now would lose a change made since the last Confirm. */
   hasUnconfirmedChanges(): boolean;
   /** Applies the batch; false when it was refused, after the page says why. */
-  confirm(): boolean;
+  confirm(): boolean | Promise<boolean>;
+  /** Restores the latest confirmed batch while keeping Build open. */
+  cancel(): boolean;
   /** Discards what is not confirmed and ends the batch; false when it could not, after saying so. */
   discard(): boolean;
   /** Leaves Build mode through the builder, which calls `gate`; true once Build mode is closed. */
@@ -91,6 +93,8 @@ export class BuildExit {
   private lastPointerClick: PointerClick | null = null;
   /** The pointer click that opened or closed the dialog or left Build mode, while the rest of its run is dropped. */
   private guardClick: PointerClick | null = null;
+  private continuation = 0;
+  private confirming = false;
 
   constructor(private readonly document: Document, private readonly hooks: BuildExitHooks,
     private readonly now: () => number = () => performance.now()) {
@@ -99,8 +103,11 @@ export class BuildExit {
       if (!element) throw new Error(`Missing build exit controls: ${id}`);
       return element;
     };
-    required('build-batch-confirm').addEventListener('click', () => { this.confirmAndLeave(); });
-    required('build-batch-cancel').addEventListener('click', () => { this.discardAndLeave(); });
+    required('build-batch-confirm').addEventListener('click', () => { void this.confirmBatch(false, this.recentPointerClick()); });
+    required('build-batch-cancel').addEventListener('click', () => {
+      if (this.confirming) return;
+      this.clearExitIntent(); this.hooks.cancel(); this.armAgainstTheRestOf(this.recentPointerClick());
+    });
     this.dialog = required<HTMLDialogElement>('build-exit-dialog');
     this.keep = required<HTMLButtonElement>('build-exit-keep');
     // The form's method is dialog, so each button closes it with its value;
@@ -121,8 +128,10 @@ export class BuildExit {
 
   /** Closes the dialog as Keep building, when something more urgent needs the screen. */
   dismiss(): void {
+    this.clearExitIntent();
     if (this.dialog.open) this.dialog.close(KEEP);
   }
+  clearExitIntent(): void { this.continuation++; }
 
   /**
    * Escape in Build mode, from the game view or anywhere else on the page.
@@ -193,7 +202,7 @@ export class BuildExit {
 
   /** The builder's beforeExit: true lets Build mode close now. */
   gate(): boolean {
-    if (this.dialog.open) return false;
+    if (this.dialog.open || (this.confirming && !this.chosen)) return false;
     const cause = this.chosen ? this.chosenCause : this.recentPointerClick();
     if (!this.chosen && this.hooks.hasUnconfirmedChanges()) {
       this.ask();
@@ -206,18 +215,33 @@ export class BuildExit {
     return discarded;
   }
 
-  /** The footer's Confirm; the dialog's Confirm changes passes the click it read on closing. */
-  confirmAndLeave(): boolean {
+  /** Explicit exit confirmation may wait for native room adoption. */
+  confirmAndLeave(): boolean | Promise<boolean> {
     return this.confirmAndLeaveFor(this.recentPointerClick());
   }
 
-  /** The footer's Cancel; the dialog's Discard changes passes the click it read on closing. */
+  /** Explicit Discard restores the baseline while leaving. */
   discardAndLeave(): boolean {
     return this.leaveAsChosen(this.recentPointerClick());
   }
 
-  private confirmAndLeaveFor(cause: PointerClick | null): boolean {
-    return this.hooks.confirm() && this.leaveAsChosen(cause);
+  private confirmAndLeaveFor(cause: PointerClick | null): boolean | Promise<boolean> {
+    return this.confirmBatch(true, cause);
+  }
+  private confirmBatch(leave: boolean, cause: PointerClick | null): boolean | Promise<boolean> {
+    if (this.confirming) return false;
+    this.confirming = true;
+    const generation = ++this.continuation;
+    const finish = (adopted: boolean) => {
+      this.confirming = false;
+      if (!adopted || generation !== this.continuation) return false;
+      this.armAgainstTheRestOf(cause);
+      return leave ? this.leaveAsChosen(cause) : true;
+    };
+    try {
+      const result = this.hooks.confirm();
+      return typeof result === 'boolean' ? finish(result) : result.then(finish, () => finish(false));
+    } catch { return finish(false); }
   }
 
   private leaveAsChosen(cause: PointerClick | null): boolean {
@@ -243,10 +267,11 @@ export class BuildExit {
   private answer(value: string, cause: PointerClick | null): void {
     const opener = this.opener;
     this.opener = null;
+    if (value !== CONFIRM) this.clearExitIntent();
     const left = value === CONFIRM ? this.confirmAndLeaveFor(cause)
       : value === DISCARD ? this.leaveAsChosen(cause) : false;
     // Leaving moves focus to the Build button; staying returns it.
-    if (!left) this.restoreFocus(opener);
+    if (typeof left === 'boolean' && !left) this.restoreFocus(opener);
   }
 
   private restoreFocus(opener: Element | null): void {

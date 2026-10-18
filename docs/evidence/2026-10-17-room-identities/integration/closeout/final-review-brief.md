@@ -1,0 +1,40 @@
+# Final whole-branch review brief
+
+The parent supplies the final fixed base/head and generated review packages at dispatch. This is the broad final review after accepted task reviews, not another R7 or R8 scoped review. Read the installed requesting-code-review/code-reviewer.md contract, including its required Declined to judge list. Review the actual net branch change against current remote main. Use the most capable review model, fresh context, and no nested agents.
+
+## Binding result
+
+The approved feature detects wall-enclosed rooms, treats open-plan space as one room, assigns default Room N names, and lets players select and rename rooms in Build. All unenclosed areas share Outside, even if disconnected. Room identity, names, object membership and chore responsibilities reconcile only on Confirm. Temporary wall changes and exact reversals preserve confirmed state. Footer Confirm and Cancel keep Build open; explicit Exit owns leaving. Splits, merges and lost enclosures receive a review with retained player choices, native inheritance eligibility, useful highlights and Outside duty context.
+
+Eligible outdoor flooring and surfaces are cleaned; grass is excluded. Add Outdoor patio without renumbering old materials. Apply the approved affirmative green and negative red action roles across the game while preserving neutral tools, functional labels, focus, contrast and system forced colors. Save compatibility preserves published conversation state and older households.
+
+Canonical authority: docs/specs/2026-10-17-room-identities.md plus the published-V15/current-V16 requirements in docs/superpowers/plans/2026-10-17-room-v16-integration.md. The action-color plan is docs/superpowers/plans/2026-10-17-action-button-colors.md. The initial implementation plan's historical sketches do not redefine already published V15. Read the final R8 report and dated acceptance evidence for actual verification, limitations and final source identities.
+
+## Review method
+
+Read the supplied source/maintained-document diff once in sequential passes. The full generated patch remains available for concrete dated-evidence questions; evidence exclusion from the primary reading view is not exclusion from delivery. Do not repeatedly derive Git diffs or crawl changed files separately. Inspect unchanged callers for a named integration risk, and record what you checked. Task-review acceptance is useful context, not permission to skip the final runtime changes.
+
+This checkout is read-only: no source, index, HEAD, refs, dependency changes, browser operation or servers. Never spawn reviewers or helpers. Do not repeat passing suites. If a specific code doubt is not answered by existing evidence, name a focused check and coordinate the heavy slot with the parent before running it.
+
+## Cross-system risks to judge
+
+1. Native geometry and stable identity are the single authority. Door/window structural boundaries must not follow transient door openness. Review matching, one-use inheritance, fresh tokens, translation and ID allocation must remain deterministic. Browser membership/highlights use native metadata and exact bigint revisions; Outside 0 and owner 0 are valid.
+2. Confirm owns the committed room map and responsibilities. Check object/surface/floor membership, new and retired duties, owner/history preservation, dormant dirt and active-work replanning. Construction must not grant cleaning credit or neglect. Shared Outside must not create lot-wide indoor privacy or companionship effects.
+3. One native Build transaction owns the baseline and preparation. Cancel restores the latest confirmed batch. Save returns committed bytes during edits and review. Failed preparation/adoption and stale tokens retain valid state. Successful Load replaces old journal/local state; rejected Load preserves it. Graphics Retry keeps the same native handle. Outbound serialization refusal must not invalidate a prior usable token; newly queued commands flushed at prepare entry are outside that atomicity proof.
+4. Published V15 conversation data remains intact inside V16. Check strict current-mode validation, genuine historical producers/fixtures and byte preservation, cached-old-worker refusal, backup/write failure paths and concurrent workers. Test-only catalogue fingerprint adaptation must not weaken production readers or normalize unrelated snapshot fields.
+5. Review and selection preserve literal raw text, invalid local input, Unicode scalar rules and explicit versus proposed names. Back retains choices across fresh preparation and geometry changes. Exact wall reversal plus retained review-only input must still prompt on Exit; the accepted fix adds the existing hasChoices owner to shared dirtiness. Confirm must display refreshed choices before adoption and leave only once when explicitly exiting.
+6. Preserve all six Build tools, construction/window/floor/land/furniture/book behavior, stale asynchronous-pick guards and camera input. Native valid sale refusal must remain visible after generic requery. Chore labels update immediately after confirmed rename while owners remain stable.
+7. Patio is appended as covering 4, old coverings and incoming catalogue/atlas/depth remain intact, and seasonal grass tint does not recolor authored floors. Judge action colors and accessibility against the approved policy; do not substitute computed colors for accepted actual-pixel evidence.
+8. Evaluate new test quality and evidence scope. Earlier full web runs were red or interrupted, not passes. Final gates must cover the resulting source with CSS and other actual inputs included. Six native faults shared one instrumented build with isolated selectors; do not call them separately rebuilt mutants or a full remote mutation sweep. Earlier source reconstruction and later contemporaneous manifests are distinguished.
+
+## Known verification limits
+
+Desktop phone-size and reduced-viewport captures are simulations, not physical mobile keyboard tests. Natural hide/save/return was not exercised by the automation harness despite reviewed controls; no trusted hidden event occurred, so there is no demonstrated product save failure. Manual product Save, autosave, native committed-byte and OPFS evidence are separate. The owner availability question has not yet been answered. Judge any actual changed-code risk or remaining load-bearing acceptance gap specifically; do not manufacture a synthetic natural event or silently call the gap passed.
+
+Existing web-build chunk-size, dynamic-import and asset-plugin timing notices are acknowledged. Identify new regressions, not unrelated cleanup. Read the ledger's parked/deferred entries and readable decisions record; list anything you consider but decline to judge, with a reason, so the parent can rule explicitly.
+
+Write final-whole-branch-review.md in this task directory. Return concrete strengths, severity-calibrated file:line findings and remedies, Declined to judge, and Ready to merge Yes/No/With fixes with reasoning. The parent will handle any one coherent final fix wave, scoped re-review and authorized delivery.
+
+## R8 diagnostic-row decision to assess
+
+R8 observed that moving dirty table7 into Outside during unconfirmed Build changes raw choreRows to an unassigned Outside row. The focused r8-draft-chore-projection-audit.md traces this read-only draft-position projection and the disabled player consumer. Saved assignments remain baseline; no production gameplay/save/exit path consumes rows. Actual ordinary Cancel -> contemporaneous baseline -> replayed Place keeps public bytes exact, and Confirm transfers the same table to Outside with Bill retained. Parent ruled against adding a duplicate row cache/baseline, with explicit future-consumer risk. The final R8 report must retain the raw observation, actual controls and query-heavy/query-free API comparison or its exact limit. Judge that decision against the code/spec; do not conflate the diagnostic fallback with a persisted unassigned record or silently waive an actual consumer leak.

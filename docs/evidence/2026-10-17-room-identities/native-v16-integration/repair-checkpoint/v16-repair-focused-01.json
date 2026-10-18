@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python",
+    ".local-build/v16-repair-focused.py",
+    "01"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 1,
+  "log": ".local-build\\v16-repair-focused-01.log",
+  "finished_utc": "2026-10-18T03:36:52.075905+00:00"
+}

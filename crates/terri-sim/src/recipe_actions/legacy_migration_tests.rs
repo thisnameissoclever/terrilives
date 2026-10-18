@@ -3,7 +3,23 @@ use crate::{Content, Sim};
 use terri_core::{CommandQueue, Position, SimCommand};
 
 fn active_recipe() -> Sim {
+    start_recipe(Sim::new_with_lot(12, 8))
+}
+
+fn legacy_active_recipe() -> Sim {
     let mut sim = Sim::new_with_lot(12, 8);
+    // Reproduce the published blank constructor before any recipe or duty ticks.
+    sim.world_mut()
+        .remove_resource::<terri_core::rooms::SavedRooms>();
+    sim.world_mut().remove_resource::<crate::rooms::RoomMap>();
+    sim.world_mut()
+        .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
+    sim.world_mut()
+        .insert_resource(terri_core::layout::SavedLayout::LegacyCells { walls: vec![] });
+    start_recipe(sim)
+}
+
+fn start_recipe(mut sim: Sim) -> Sim {
     let actor = sim.spawn_agent(Position { x: 1., y: 1. }, 10.);
     let pack = sim.world().resource::<Content>().0;
     let fridge = sim.spawn_object(Position { x: 5., y: 1. }, pack.find("fridge").unwrap());
@@ -23,7 +39,7 @@ fn active_recipe() -> Sim {
 #[test]
 fn direct_legacy_recipe_loads_gain_origins_before_current_resave() {
     for version in 1..=5 {
-        let source = active_recipe();
+        let source = legacy_active_recipe();
         let mut loaded = Sim::new_with_lot(12, 8);
         match version {
             1 => loaded.load_snapshot(source.save_snapshot()),
@@ -34,7 +50,8 @@ fn direct_legacy_recipe_loads_gain_origins_before_current_resave() {
             _ => unreachable!(),
         }
         .unwrap_or_else(|error| panic!("legacy version {version}: {error:?}"));
-        let origins = loaded.save_snapshot_v6().chain_origins;
+        let current = loaded.current_v6_view();
+        let origins = &current.chain_origins;
         assert_eq!(origins.len(), 1, "legacy version {version}");
         assert!(
             matches!(&origins[0].origin, ChainOrigin::Action { model, action, .. }
@@ -42,7 +59,7 @@ fn direct_legacy_recipe_loads_gain_origins_before_current_resave() {
         );
         let mut replay = Sim::new_with_lot(12, 8);
         replay
-            .load_snapshot_v15(loaded.save_snapshot_v15())
+            .load_snapshot_v16(loaded.save_snapshot_v16())
             .unwrap();
         assert_eq!(replay.world_hash(), loaded.world_hash());
         for _ in 0..12 {
@@ -56,8 +73,9 @@ fn direct_legacy_recipe_loads_gain_origins_before_current_resave() {
 #[test]
 fn current_recipe_save_without_its_origin_is_still_rejected_transactionally() {
     let source = active_recipe();
-    let mut saved = source.save_snapshot_v15();
+    let mut saved = source.save_snapshot_v16();
     let origins = &mut saved
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -69,13 +87,13 @@ fn current_recipe_save_without_its_origin_is_still_rejected_transactionally() {
     origins.clear();
     let mut live = Sim::new_with_lot(12, 8);
     let before = live.world_hash();
-    assert!(live.load_snapshot_v15(saved).is_err());
+    assert!(live.load_snapshot_v16(saved).is_err());
     assert_eq!(live.world_hash(), before);
 }
 
 #[test]
 fn mixed_legacy_recipe_and_projection_actor_keep_their_distinct_contracts() {
-    let mut source = active_recipe();
+    let mut source = legacy_active_recipe();
     let skeleton = source
         .world_mut()
         .spawn((
@@ -88,17 +106,29 @@ fn mixed_legacy_recipe_and_projection_actor_keep_their_distinct_contracts() {
     let before = source.save_snapshot_v5();
     let mut loaded = Sim::new_with_lot(12, 8);
     loaded.load_snapshot_v5(before.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v5(), before);
+    assert_eq!(*loaded.current_v5_view(), before);
     assert!(loaded.world().get::<terri_core::Needs>(skeleton).is_none());
     assert!(
         loaded.world().get::<Origin>(skeleton).is_none(),
         "a projection-only legacy actor must not gain causal recipe metadata"
     );
-    let origins = loaded.save_snapshot_v6().chain_origins;
+    let current = loaded.current_v6_view();
+    let origins = &current.chain_origins;
     assert_eq!(
         origins.len(),
         1,
         "the executable recipe still gains its origin"
     );
     assert_ne!(origins[0].person, skeleton.index_u32());
+    let saved = loaded.save_snapshot_v16();
+    let mut replay = Sim::new_with_lot(12, 8);
+    let untouched = replay.save_snapshot_v16();
+    let hash = replay.world_hash();
+    assert_eq!(
+        replay.load_snapshot_v16(saved),
+        Err(crate::SaveError::InvalidValue),
+        "current recipes require origins for every chain; the historical projection actor deliberately has none"
+    );
+    assert_eq!(replay.save_snapshot_v16(), untouched);
+    assert_eq!(replay.world_hash(), hash);
 }

@@ -1,0 +1,603 @@
+{
+  "before_merge": "477ca9ced027aad14d8c134435cb96d5bf5a3d76",
+  "incoming_main": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "source_sha256": "20974cfa2372879bd1fe2429a73f69fd8529196bc312384a7a70bf724e76ddba",
+  "original_golden_sha256": "e4d329c36b81dbe109d639bbfbca14760fb29b7dc567ddc7c1b4a647109d7325",
+  "hash_representation": "Stored hashes describe Git-canonical viewing copies. Hashes inside original receipts retain their original raw-source/artifact meaning.",
+  "files": [
+    {
+      "file": "native-v16-full-02.json",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02.json",
+      "raw_sha256": "76625f92f6d942477b1275704194f723ed532193e1ba071bb7a2cc2caa1de3ef",
+      "raw_bytes": 2077,
+      "stored_sha256": "53b9cc983698b3ed4928911fbdc76a455d1cafaf58dce7c6655e54b5542b2b2b",
+      "stored_bytes": 2003,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "native-v16-full-02-format.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-format.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "native-v16-full-02-workspace.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-workspace.log",
+      "raw_sha256": "40072e40f8f5e6c4b3fdda2075f8a5d9c6f578bc56fd4e34634c363ddfc7818e",
+      "raw_bytes": 228056,
+      "stored_sha256": "7d1d6d0fc18340f754915ac2cc2684dff11c8dc93c39782d49dc176d964c895b",
+      "stored_bytes": 228055,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "native-v16-full-02-clippy.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-clippy.log",
+      "raw_sha256": "c5dc5800e3aaafff9f203afb645f5c89616c9d474288dab1adf481ba0ebf0a54",
+      "raw_bytes": 647,
+      "stored_sha256": "c5dc5800e3aaafff9f203afb645f5c89616c9d474288dab1adf481ba0ebf0a54",
+      "stored_bytes": 647,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "native-v16-fix-review.md",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-fix-review.md",
+      "raw_sha256": "fa1b9bb9c9e97a5eaca7e9f249a276b92d54425a2871e70dd538aadfddbdd749",
+      "raw_bytes": 12163,
+      "stored_sha256": "fa1b9bb9c9e97a5eaca7e9f249a276b92d54425a2871e70dd538aadfddbdd749",
+      "stored_bytes": 12163,
+      "normalization": "none"
+    },
+    {
+      "file": "task-5-accepted-faults.py",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-faults.py",
+      "raw_sha256": "ca63db0ee29bc76061fb170441722e19824124d12f9daba8f7967ff8854e0ea1",
+      "raw_bytes": 5262,
+      "stored_sha256": "a40f77b59ba992ca4944a7fd1a33defa0e3f11fea73d7fcf06061dd0e75b0492",
+      "stored_bytes": 5188,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "task-5-accepted-fault-instrumentation.diff",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-instrumentation.diff",
+      "raw_sha256": "e817d4dec0a87f3dc8b0467ea50a221b3fafdbf7cc96502cd94faf1ce8c65148",
+      "raw_bytes": 1485,
+      "stored_sha256": "e817d4dec0a87f3dc8b0467ea50a221b3fafdbf7cc96502cd94faf1ce8c65148",
+      "stored_bytes": 1485,
+      "normalization": "none"
+    },
+    {
+      "file": "task-5-accepted-fault-proof.json",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-proof.json",
+      "raw_sha256": "cae364f58354238798a02adfe577135eabb31f49d5ffca7f2f931ddc6ed99419",
+      "raw_bytes": 2880,
+      "stored_sha256": "17f31b2899cf2bd4d2e50b43d5456aacb60d01a4991538eb38665e994b27118e",
+      "stored_bytes": 2798,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "task-5-accepted-fault-build.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-build.log",
+      "raw_sha256": "f1b3805c9bd7cb08d88de64cec376d5c6735e9b02bb0313ea1804cadf4c7ae0a",
+      "raw_bytes": 159,
+      "stored_sha256": "f1b3805c9bd7cb08d88de64cec376d5c6735e9b02bb0313ea1804cadf4c7ae0a",
+      "stored_bytes": 159,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "task-5-accepted-fault-deferral-control.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-deferral-control.log",
+      "raw_sha256": "8c021861db3e37430dea27efc68dc7d9b977eead1f9ae3a7417905b4411ebd31",
+      "raw_bytes": 203,
+      "stored_sha256": "74eb08b8ae803c8cb3574afd3cc15ab8dbc6fdfa6ed0633b0188725c96e66f80",
+      "stored_bytes": 202,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "task-5-accepted-fault-stale-control.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-stale-control.log",
+      "raw_sha256": "6baac1105720fbfe5055da04fb61943d127a78e02c11697ac344afeb13204b37",
+      "raw_bytes": 218,
+      "stored_sha256": "e7766ca60554ed04d671255aab06e677ea1502b4948a1c8868d83288a6a4f7a6",
+      "stored_bytes": 217,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "task-5-accepted-fault-deferral.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-deferral.log",
+      "raw_sha256": "da17411219bf658818b0cfde8a7f59006f0703cb3934b3fb40bb810da0ecc595",
+      "raw_bytes": 956,
+      "stored_sha256": "d8088dff16edd1a125efd81e33ef9104b15396dcb65d9bd0a03c26740f9220c7",
+      "stored_bytes": 955,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "task-5-accepted-fault-stale.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\task-5-accepted-fault-stale.log",
+      "raw_sha256": "1aff35f790b4e7b62f80b03eae61a0580ecd99bfa4d1db8ee8d118dd54f5765a",
+      "raw_bytes": 779,
+      "stored_sha256": "2a796d607719c49ad54cc4bf5b8b547e85be0ae94c00c264ab51f5d88b120f56",
+      "stored_bytes": 778,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "native-v16-next-integration-preflight.md",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-next-integration-preflight.md",
+      "raw_sha256": "cf5262c7bdec0f1454baa716488c398d0a8bb8445a24e8a3db37958fce677b8c",
+      "raw_bytes": 9637,
+      "stored_sha256": "cf5262c7bdec0f1454baa716488c398d0a8bb8445a24e8a3db37958fce677b8c",
+      "stored_bytes": 9637,
+      "normalization": "none"
+    },
+    {
+      "file": "native-v16-yard-integration-report.md",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-yard-integration-report.md",
+      "raw_sha256": "fba2013183749cc5ef1f2dc826d568555378bc8d0005f3c8a5b2c2c3c1972ce8",
+      "raw_bytes": 8902,
+      "stored_sha256": "fba2013183749cc5ef1f2dc826d568555378bc8d0005f3c8a5b2c2c3c1972ce8",
+      "stored_bytes": 8902,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fetch.json",
+      "source_path": ".local-build\\v16-yard-fetch.json",
+      "raw_sha256": "40a803066c9a4d1319b60c7f46bdf3f4238a2b70cd3aad9c18b6e5f4e7823872",
+      "raw_bytes": 241,
+      "stored_sha256": "40a803066c9a4d1319b60c7f46bdf3f4238a2b70cd3aad9c18b6e5f4e7823872",
+      "stored_bytes": 241,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fetch.log",
+      "source_path": ".local-build\\v16-yard-fetch.log",
+      "raw_sha256": "9b36c9fca0a1f075d6702572f7c92d1797efe2e5f2b7e806942d3b5898f92e81",
+      "raw_bytes": 104,
+      "stored_sha256": "9b36c9fca0a1f075d6702572f7c92d1797efe2e5f2b7e806942d3b5898f92e81",
+      "stored_bytes": 104,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-merge.json",
+      "source_path": ".local-build\\v16-yard-merge.json",
+      "raw_sha256": "106f7fbaa9fd1157cfc8a5d3e6e94a8c28d53a75fc406667cdce845e89eef6e2",
+      "raw_bytes": 297,
+      "stored_sha256": "106f7fbaa9fd1157cfc8a5d3e6e94a8c28d53a75fc406667cdce845e89eef6e2",
+      "stored_bytes": 297,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-merge.log",
+      "source_path": ".local-build\\v16-yard-merge.log",
+      "raw_sha256": "93accb376cf73455bf78df52e0fd035b3b2cf4ee6e3de90e4b713207141f1dcd",
+      "raw_bytes": 595,
+      "stored_sha256": "93accb376cf73455bf78df52e0fd035b3b2cf4ee6e3de90e4b713207141f1dcd",
+      "stored_bytes": 595,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-pack-baseline.json",
+      "source_path": ".local-build\\v16-yard-pack-baseline.json",
+      "raw_sha256": "ed8ba6a42bfc2d5eb5a5a6d328095ed2de1b1cf40cc177441b48d91e10411af6",
+      "raw_bytes": 392,
+      "stored_sha256": "ed8ba6a42bfc2d5eb5a5a6d328095ed2de1b1cf40cc177441b48d91e10411af6",
+      "stored_bytes": 392,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-pack-prove.json",
+      "source_path": ".local-build\\v16-yard-pack-prove.json",
+      "raw_sha256": "7d4e8c44639d21ed43ff2cf4b6253da44dc29ae4eff62c151b2ba664e0b2c734",
+      "raw_bytes": 712,
+      "stored_sha256": "7d4e8c44639d21ed43ff2cf4b6253da44dc29ae4eff62c151b2ba664e0b2c734",
+      "stored_bytes": 712,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-pack-prove.log",
+      "source_path": ".local-build\\v16-yard-pack-prove.log",
+      "raw_sha256": "ac89e8e41a74c73f771f0a659e8258e5aba67718b0166e0b9a09ab2c649c3e62",
+      "raw_bytes": 517,
+      "stored_sha256": "2e245d6b2860839fb77b8703b164e86df0af5e409a6279b9ac8fa6aff04a3879",
+      "stored_bytes": 516,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-pack-write.json",
+      "source_path": ".local-build\\v16-yard-pack-write.json",
+      "raw_sha256": "b299606804e2bcb911c853ec45c47aaed6af207f63c1aa49dba87b55c919edbf",
+      "raw_bytes": 712,
+      "stored_sha256": "b299606804e2bcb911c853ec45c47aaed6af207f63c1aa49dba87b55c919edbf",
+      "stored_bytes": 712,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-pack-write.log",
+      "source_path": ".local-build\\v16-yard-pack-write.log",
+      "raw_sha256": "1808332cbcd0804da1cc1b0ae55dae56daba5512b77cc959e8937c93cb9bea98",
+      "raw_bytes": 429,
+      "stored_sha256": "81a8b15c69bb7147a6637f8f4a21caeeece5918f1eda9bd52739556edfcf0537",
+      "stored_bytes": 428,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-pack-verify.json",
+      "source_path": ".local-build\\v16-yard-pack-verify.json",
+      "raw_sha256": "eaa1006c11c27e66d81b033e37786b1ad83b97f349c32d7174d5fdf96da5ba17",
+      "raw_bytes": 714,
+      "stored_sha256": "eaa1006c11c27e66d81b033e37786b1ad83b97f349c32d7174d5fdf96da5ba17",
+      "stored_bytes": 714,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-pack-verify.log",
+      "source_path": ".local-build\\v16-yard-pack-verify.log",
+      "raw_sha256": "4bba6a79b09f0f98345e6923bc570452b90ec04a1fe3817580a25137b7bd925b",
+      "raw_bytes": 363,
+      "stored_sha256": "1b59a987ede72f8768123951848f0c960e11731cad491cf646b495af1f92d355",
+      "stored_bytes": 362,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-architecture.py",
+      "source_path": ".local-build\\v16-yard-architecture.py",
+      "raw_sha256": "8fbb6766b486f52f2888ecdb1b4ca286d5982992b8c9532660d5c5ff0df49723",
+      "raw_bytes": 2967,
+      "stored_sha256": "8fbb6766b486f52f2888ecdb1b4ca286d5982992b8c9532660d5c5ff0df49723",
+      "stored_bytes": 2967,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-architecture.json",
+      "source_path": ".local-build\\v16-yard-architecture.json",
+      "raw_sha256": "f5e0fa0ffdc024b34e974e641bc0c3a846c5acf3b0d9f6ebcd01b15d4329ed9f",
+      "raw_bytes": 2997,
+      "stored_sha256": "f5e0fa0ffdc024b34e974e641bc0c3a846c5acf3b0d9f6ebcd01b15d4329ed9f",
+      "stored_bytes": 2997,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-architecture-run.json",
+      "source_path": ".local-build\\v16-yard-architecture-run.json",
+      "raw_sha256": "9917f73164801b34bceee54243095912ac4fd244ac27777959e3f1b17cce0dfb",
+      "raw_bytes": 271,
+      "stored_sha256": "9917f73164801b34bceee54243095912ac4fd244ac27777959e3f1b17cce0dfb",
+      "stored_bytes": 271,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-architecture-run.log",
+      "source_path": ".local-build\\v16-yard-architecture-run.log",
+      "raw_sha256": "ed4d634015bba4e29156bbfa1c3b8228dfa75450da90d058e6750d54200c8887",
+      "raw_bytes": 753,
+      "stored_sha256": "97acb12ead3ab48315d27d5ece261b6bdd7e38619fcf5c52b6388a46488d3965",
+      "stored_bytes": 752,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-source.json",
+      "source_path": ".local-build\\v16-yard-source.json",
+      "raw_sha256": "f99541197463288b3acabe41b606731968aa654df94fda486f0ee597c61abd03",
+      "raw_bytes": 56584,
+      "stored_sha256": "f99541197463288b3acabe41b606731968aa654df94fda486f0ee597c61abd03",
+      "stored_bytes": 56584,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-source-02.json",
+      "source_path": ".local-build\\v16-yard-source-02.json",
+      "raw_sha256": "c70d0212baa446647f0e71dce88ff0a838e92a4e379448d046772f5cdd5b9d4f",
+      "raw_bytes": 56584,
+      "stored_sha256": "c70d0212baa446647f0e71dce88ff0a838e92a4e379448d046772f5cdd5b9d4f",
+      "stored_bytes": 56584,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-source.py",
+      "source_path": ".local-build\\v16-yard-source.py",
+      "raw_sha256": "25aadb188d17d50fa5125ebe0338fb5e6d914356c7de3dbbbad86bc0c0ff46ab",
+      "raw_bytes": 1453,
+      "stored_sha256": "25aadb188d17d50fa5125ebe0338fb5e6d914356c7de3dbbbad86bc0c0ff46ab",
+      "stored_bytes": 1453,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-build.json",
+      "source_path": ".local-build\\v16-yard-build.json",
+      "raw_sha256": "60ef2d63517dead789708a7e02c1db8173e39e1ab5a03fa8e64fbaf6243a720a",
+      "raw_bytes": 398,
+      "stored_sha256": "60ef2d63517dead789708a7e02c1db8173e39e1ab5a03fa8e64fbaf6243a720a",
+      "stored_bytes": 398,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-build-02.json",
+      "source_path": ".local-build\\v16-yard-build-02.json",
+      "raw_sha256": "edb65fd3e4494bf35b506ec2121f193389be9c111fed013fa3fe8df305938da5",
+      "raw_bytes": 344,
+      "stored_sha256": "edb65fd3e4494bf35b506ec2121f193389be9c111fed013fa3fe8df305938da5",
+      "stored_bytes": 344,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-focus.json",
+      "source_path": ".local-build\\v16-yard-focus.json",
+      "raw_sha256": "686abc699a308f957c02dbe0500193c7becedb59928cd6dd5bb5ed745083c878",
+      "raw_bytes": 6148,
+      "stored_sha256": "686abc699a308f957c02dbe0500193c7becedb59928cd6dd5bb5ed745083c878",
+      "stored_bytes": 6148,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-focused-run.json",
+      "source_path": ".local-build\\v16-yard-focused-run.json",
+      "raw_sha256": "a760c501062e32cde50b12d95c0270356b17a855578ae54d1280877b3b6ce763",
+      "raw_bytes": 251,
+      "stored_sha256": "a760c501062e32cde50b12d95c0270356b17a855578ae54d1280877b3b6ce763",
+      "stored_bytes": 251,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-focused.py",
+      "source_path": ".local-build\\v16-yard-focused.py",
+      "raw_sha256": "470d5af2c749eb0affb03e4d3f88e67f693e7dad473869f587855f05b336873c",
+      "raw_bytes": 4007,
+      "stored_sha256": "470d5af2c749eb0affb03e4d3f88e67f693e7dad473869f587855f05b336873c",
+      "stored_bytes": 4007,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fingerprint.rs",
+      "source_path": ".local-build\\v16-yard-fingerprint.rs",
+      "raw_sha256": "6ab85726fc6856b819a8a106d1201d6183d4c81931eb966d7e161c9e57172c16",
+      "raw_bytes": 2996,
+      "stored_sha256": "6ab85726fc6856b819a8a106d1201d6183d4c81931eb966d7e161c9e57172c16",
+      "stored_bytes": 2996,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fingerprint-tool.py",
+      "source_path": ".local-build\\v16-yard-fingerprint-tool.py",
+      "raw_sha256": "4ba5308f0c08972d9561d1d08637111c6f6f49ea3ea9bbd12e53e587601c8ca7",
+      "raw_bytes": 4141,
+      "stored_sha256": "4ba5308f0c08972d9561d1d08637111c6f6f49ea3ea9bbd12e53e587601c8ca7",
+      "stored_bytes": 4141,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fingerprint-compile.json",
+      "source_path": ".local-build\\v16-yard-fingerprint-compile.json",
+      "raw_sha256": "635a4a871d7b5060a3be75de464c645a71e82dc6c9f208d76aa9ccc35ea83ef5",
+      "raw_bytes": 2297,
+      "stored_sha256": "635a4a871d7b5060a3be75de464c645a71e82dc6c9f208d76aa9ccc35ea83ef5",
+      "stored_bytes": 2297,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fingerprint-compile.log",
+      "source_path": ".local-build\\v16-yard-fingerprint-compile.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-fingerprint-run.json",
+      "source_path": ".local-build\\v16-yard-fingerprint-run.json",
+      "raw_sha256": "820d8f076ccfa1b46f1b14537c10677d95e51388188ed315684b2ea60170b551",
+      "raw_bytes": 2555,
+      "stored_sha256": "820d8f076ccfa1b46f1b14537c10677d95e51388188ed315684b2ea60170b551",
+      "stored_bytes": 2555,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-fingerprint-run.log",
+      "source_path": ".local-build\\v16-yard-fingerprint-run.log",
+      "raw_sha256": "62d555567d297a85731d30d4326d799104b51f161adfcf9cc747566bf12e483e",
+      "raw_bytes": 244,
+      "stored_sha256": "62d555567d297a85731d30d4326d799104b51f161adfcf9cc747566bf12e483e",
+      "stored_bytes": 244,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-wasm.py",
+      "source_path": ".local-build\\v16-yard-wasm.py",
+      "raw_sha256": "19496d58b03428191279a4dfa72e72296072fe3122b1836b379bc2faebacf561",
+      "raw_bytes": 1808,
+      "stored_sha256": "19496d58b03428191279a4dfa72e72296072fe3122b1836b379bc2faebacf561",
+      "stored_bytes": 1808,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-wasm.json",
+      "source_path": ".local-build\\v16-yard-wasm.json",
+      "raw_sha256": "749dd04ff083499190c76d4492633b0293d3561e1c28fc08b8a0ddd3f017f7c7",
+      "raw_bytes": 657,
+      "stored_sha256": "749dd04ff083499190c76d4492633b0293d3561e1c28fc08b8a0ddd3f017f7c7",
+      "stored_bytes": 657,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-wasm.log",
+      "source_path": ".local-build\\v16-yard-wasm.log",
+      "raw_sha256": "39961f39cbb4db7fb3ebb7a643f10842bef54f5f5db0b73f7b4da6fe6a75eac3",
+      "raw_bytes": 28119,
+      "stored_sha256": "5a8ae9a120ce65d3225df67d6d3961fcf196ece213a6dd19d0021c42c637ccfc",
+      "stored_bytes": 28118,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-wasm-run.json",
+      "source_path": ".local-build\\v16-yard-wasm-run.json",
+      "raw_sha256": "e56b0d3e75904fe54f355000e24b71a7dd273a0a263cd5b10a039e2e944e9ee2",
+      "raw_bytes": 245,
+      "stored_sha256": "e56b0d3e75904fe54f355000e24b71a7dd273a0a263cd5b10a039e2e944e9ee2",
+      "stored_bytes": 245,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-format-check.json",
+      "source_path": ".local-build\\v16-yard-format-check.json",
+      "raw_sha256": "e8399c6beb905f0a705ea2fb087d4874d2db80d542db4d8b8107c7f5ea56a7a1",
+      "raw_bytes": 260,
+      "stored_sha256": "e8399c6beb905f0a705ea2fb087d4874d2db80d542db4d8b8107c7f5ea56a7a1",
+      "stored_bytes": 260,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-clippy.json",
+      "source_path": ".local-build\\v16-yard-clippy.json",
+      "raw_sha256": "a39c2989109f85de701e8936dc316537c1dcd72c65cfbb4b3903731bfc716ce0",
+      "raw_bytes": 334,
+      "stored_sha256": "a39c2989109f85de701e8936dc316537c1dcd72c65cfbb4b3903731bfc716ce0",
+      "stored_bytes": 334,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-clippy.log",
+      "source_path": ".local-build\\v16-yard-clippy.log",
+      "raw_sha256": "5d8b83123cc0c018801779b53cfdf068e686c3a21f74c1be3b458566e6a31ba5",
+      "raw_bytes": 332,
+      "stored_sha256": "5d8b83123cc0c018801779b53cfdf068e686c3a21f74c1be3b458566e6a31ba5",
+      "stored_bytes": 332,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-changelog-tests.json",
+      "source_path": ".local-build\\v16-yard-changelog-tests.json",
+      "raw_sha256": "20adcfcb284884b1e4104951c57b35d0a4b648a1779762db9e2f150ed480f4cf",
+      "raw_bytes": 267,
+      "stored_sha256": "20adcfcb284884b1e4104951c57b35d0a4b648a1779762db9e2f150ed480f4cf",
+      "stored_bytes": 267,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-changelog-tests.log",
+      "source_path": ".local-build\\v16-yard-changelog-tests.log",
+      "raw_sha256": "ef7e986fc38930bea0052c80761295199452e26fe8a0d38d992ff3c2a0c6ff59",
+      "raw_bytes": 1185,
+      "stored_sha256": "ef7e986fc38930bea0052c80761295199452e26fe8a0d38d992ff3c2a0c6ff59",
+      "stored_bytes": 1185,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-changelog-build.json",
+      "source_path": ".local-build\\v16-yard-changelog-build.json",
+      "raw_sha256": "2658f70269029ac91c77c8f3097efdfbdf1bcb18dd56c56e210f06e0d1ef0037",
+      "raw_bytes": 248,
+      "stored_sha256": "2658f70269029ac91c77c8f3097efdfbdf1bcb18dd56c56e210f06e0d1ef0037",
+      "stored_bytes": 248,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-changelog-build.log",
+      "source_path": ".local-build\\v16-yard-changelog-build.log",
+      "raw_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+      "raw_bytes": 83,
+      "stored_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+      "stored_bytes": 83,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-retained-fault-artifact.json",
+      "source_path": ".local-build\\v16-yard-retained-fault-artifact.json",
+      "raw_sha256": "62bf83e1c328046774a12bb7c3428efff8e0ce2acf81cd8c47502882407f0b75",
+      "raw_bytes": 1679,
+      "stored_sha256": "62bf83e1c328046774a12bb7c3428efff8e0ce2acf81cd8c47502882407f0b75",
+      "stored_bytes": 1679,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-yard-focus-data.log",
+      "source_path": ".local-build\\v16-yard-focus-data.log",
+      "raw_sha256": "d02f74086f270409b5c9f6ba0dea9845eba28abca077f289d596bf8ef7ed1048",
+      "raw_bytes": 26470,
+      "stored_sha256": "8a6cf151861749e05936d802eedef91e8d88470f731c93c1ae36b5f52f59ff1c",
+      "stored_bytes": 26469,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-inherited.log",
+      "source_path": ".local-build\\v16-yard-focus-inherited.log",
+      "raw_sha256": "10f1653b7625f921e2960856059676b170a6840bd33186916ef79a8659c40400",
+      "raw_bytes": 367,
+      "stored_sha256": "4968e202ec2c6918180a72de69617bf8593e7215214e800d157256b8fcb3e151",
+      "stored_bytes": 366,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-hierarchy.log",
+      "source_path": ".local-build\\v16-yard-focus-hierarchy.log",
+      "raw_sha256": "41b8c0ed970736b5336239a430df0ab36d35e15976be9cef5c446c23df423c41",
+      "raw_bytes": 2100,
+      "stored_sha256": "3e2d405b765c5f2ba97264c8a7979382268f53b1a53211a2ab0f69948c4472f0",
+      "stored_bytes": 2099,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-lifecycle.log",
+      "source_path": ".local-build\\v16-yard-focus-lifecycle.log",
+      "raw_sha256": "3c35861682d117c66a4f5426631486fe1a7c4606d9b447906c47daffe99dc62c",
+      "raw_bytes": 211,
+      "stored_sha256": "860a6dec05c832f4a8442aeb0f59913ea513e5dc4f2f84c2a82e5193b5577aea",
+      "stored_bytes": 210,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-lounger.log",
+      "source_path": ".local-build\\v16-yard-focus-lounger.log",
+      "raw_sha256": "46b7fde7cb29c0e316ea477c0d4ef03fe9b67321ab4b990036b10de3770872ce",
+      "raw_bytes": 227,
+      "stored_sha256": "9ad95345c5bf3fa395b44f0133a555d0dc612b3cdd7930ed7bcbab62a3cf992b",
+      "stored_bytes": 226,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-golden.log",
+      "source_path": ".local-build\\v16-yard-focus-golden.log",
+      "raw_sha256": "b33b37c8c18dc03419c722a0039391f917679fa1cb96def1be3b66f973ea13ad",
+      "raw_bytes": 183,
+      "stored_sha256": "5817394fdcec390fea4d2417295b0d73fa9af8371328991ccf43b45e21813f4d",
+      "stored_bytes": 182,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-published-v15.log",
+      "source_path": ".local-build\\v16-yard-focus-published-v15.log",
+      "raw_sha256": "49b3f80d5d61c8cdb2fda54d77ce1a9879c6b577604a3c63a24f155828c8593f",
+      "raw_bytes": 51854,
+      "stored_sha256": "123e84fce345153c73c2a09b10a432ddb9a55e1dbdf0f5da61246fcd7d92508a",
+      "stored_bytes": 51853,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-room-boundary.log",
+      "source_path": ".local-build\\v16-yard-focus-room-boundary.log",
+      "raw_sha256": "03b6cc07eb5456d2768f84be709179bc862769e89d9d0fe47e7db91f5ec6202d",
+      "raw_bytes": 276772,
+      "stored_sha256": "6f3de11448e81988e0d961ef922ff6c34a4385bdda5b98b96c14fefe85ac6296",
+      "stored_bytes": 276771,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-architecture.log",
+      "source_path": ".local-build\\v16-yard-focus-architecture.log",
+      "raw_sha256": "aa312ade42b69d265dd14957d432cc0dc75773d1b1ee5de36150a97a8b72ef02",
+      "raw_bytes": 4339,
+      "stored_sha256": "68e8c2342fd9833abac8650358a7f62598384584c57cd759c4c0e3660d8f1f25",
+      "stored_bytes": 4306,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    },
+    {
+      "file": "v16-yard-focus-web-depth.log",
+      "source_path": ".local-build\\v16-yard-focus-web-depth.log",
+      "raw_sha256": "00ee77bde4621039a9759954917ce5cbad58fa6affea352f3adbf46bb335cf73",
+      "raw_bytes": 231,
+      "stored_sha256": "a986f5fe797e441e5b5f868d94dbbdd5d8b2a227833b6e0ad19f43fec59a815e",
+      "stored_bytes": 230,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline when nonempty"
+    }
+  ]
+}

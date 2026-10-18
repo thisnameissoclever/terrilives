@@ -149,11 +149,17 @@ describe('typed windows through release WASM', () => {
     try {
       expect(bridge.setWallEdge(0,8,4,3)).toBe(true); bridge.flushCommands();
       expect([...bridge.windowPlacements()]).toEqual([0,8,4,1]);
-      expect(bridge.coveringNames()).toEqual(['Boards','Tiles','Carpet']);
+      expect(bridge.coveringNames()).toEqual(['Boards','Tiles','Carpet','Outdoor patio']);
+      for (const [x, covering] of [[2, 1], [3, 2], [4, 3], [5, 4]]) {
+        expect(handle.set_floor(x, 2, covering)).toBe(true);
+      }
+      bridge.flushCommands();
+      expect([...bridge.floorTiles()]).toEqual([2,2,1,3,2,2,4,2,3,5,2,4]);
       const old = bridge.saveBytes();
       expect(restored.bridge.loadBytes(old)).toBe(true);
       expect(restored.bridge.saveBytes()).toEqual(old);
       expect(restored.bridge.windowPlacements()).toEqual(bridge.windowPlacements());
+      expect(restored.bridge.floorTiles()).toEqual(bridge.floorTiles());
       expect(bridge.fitWindow(0,8,4,1)).toBe(true); bridge.flushCommands();
       const sash = bridge.worldHash();
       expect(bridge.fitWindow(0,8,4,2)).toBe(true); bridge.flushCommands();

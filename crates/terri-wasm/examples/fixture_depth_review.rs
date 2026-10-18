@@ -2,6 +2,8 @@
 use terri_core::{Facing, Position, SAVE_MAGIC, SAVE_SCHEMA_VERSION};
 use terri_sim::{apply_object_placement, Sim};
 
+const _: () = assert!(SAVE_SCHEMA_VERSION == 16);
+
 fn main() {
     let directory = std::path::PathBuf::from(std::env::args().nth(1).expect("output directory"));
     std::fs::create_dir_all(&directory).unwrap();
@@ -27,10 +29,10 @@ fn main() {
                 position,
                 facing,
             );
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v16();
             let mut loaded = Sim::new_with_lot(1, 1);
-            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
-            assert_eq!(snapshot, loaded.save_snapshot_v10());
+            loaded.load_snapshot_v16(snapshot.clone()).unwrap();
+            assert_eq!(snapshot, loaded.save_snapshot_v16());
             let mut bytes = SAVE_MAGIC.to_vec();
             bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
             bytes.extend(postcard::to_allocvec(&snapshot).unwrap());

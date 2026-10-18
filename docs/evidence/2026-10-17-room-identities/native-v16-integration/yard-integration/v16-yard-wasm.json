@@ -1,0 +1,18 @@
+{
+  "command": [
+    "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "artifact": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+    "sha256": "08b684ce8c650d5a6a8b5797b870c83bd665454f4249aa02cf79953a37774dca"
+  },
+  "source_sha256": "20974cfa2372879bd1fe2429a73f69fd8529196bc312384a7a70bf724e76ddba",
+  "source_manifest": "v16-yard-source-02.json",
+  "passed": 299,
+  "failed": 0,
+  "ignored": 0,
+  "log": ".local-build\\v16-yard-wasm.log",
+  "finished_utc": "2026-10-18T04:31:27.984226+00:00"
+}

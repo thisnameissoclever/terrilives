@@ -327,6 +327,7 @@ mod tests {
                 Needs::all_at(100.0),
             ))
             .id();
+        crate::test_content::enclose(&mut sim);
         (sim, a, b)
     }
     fn feeling(sim: &Sim, entity: Entity, other: SimId) -> f32 {
@@ -766,6 +767,15 @@ mod tests {
                             })
                             .collect(),
                     });
+                    crate::test_content::enclose(&mut sim);
+                    assert_eq!(
+                        sim.world()
+                            .resource::<crate::rooms::RoomMap>()
+                            .topology
+                            .components
+                            .len(),
+                        2
+                    );
                 }
                 "distance" => {
                     sim.world_mut().get_mut::<Position>(b).unwrap().x = 7.0;

@@ -1,0 +1,15 @@
+
+running 1 test
+test rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty ... FAILED
+
+failures:
+
+failures:
+    rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1511 filtered out; finished in 0.01s
+
+
+thread 'rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty' (65968) panicked at crates\terri-sim\src\rooms\integration_tests.rs:20:5:
+outdoor boards are cleanable
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

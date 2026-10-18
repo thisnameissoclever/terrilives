@@ -246,6 +246,9 @@ fn placed_portals(
     world: &World,
     active: &[terri_data::CompiledPortal],
 ) -> Vec<terri_data::CompiledPortal> {
+    if crate::rooms::stable(world) && crate::lot_frame::frame(world).is_none() {
+        return vec![];
+    }
     let origin = crate::lot_frame::origin(world);
     active
         .iter()
@@ -610,7 +613,7 @@ mod tests {
             assert_eq!(sim.portal_buffer().previous_openness, before);
             if before != sim.portal_buffer().openness {
                 transitions += 1;
-                restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+                restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
                 assert_eq!(
                     restored.portal_buffer().openness,
                     sim.portal_buffer().openness
@@ -1302,8 +1305,9 @@ mod tests {
         assert_eq!(sim.portal_buffer().states.len(), 0);
         assert_eq!(sim.portal_buffer().positions.len(), 0);
 
-        let snapshot = sim.save_snapshot();
-        sim.load_snapshot(snapshot).expect("blank lot save reloads");
+        let snapshot = sim.save_snapshot_v16();
+        sim.load_snapshot_v16(snapshot)
+            .expect("blank lot save reloads");
         assert_eq!(sim.portal_buffer().states.len(), 0);
         assert_eq!(sim.portal_buffer().positions.len(), 0);
     }

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    ".local-build/builder-sale-diagnostic.mjs"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 1.11,
+  "source_before": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+  "source_after": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+  "source_unchanged": true,
+  "log_sha256": "8f6fc04cee82f5caf9eaef01b51ddcd78595dd9e11bb26b2a7fb2da3cc244c0d",
+  "generated_artifacts": {
+    "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+    "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+    "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+    "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+  }
+}

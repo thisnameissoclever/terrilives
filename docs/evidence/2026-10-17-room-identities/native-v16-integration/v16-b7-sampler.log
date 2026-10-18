@@ -1,0 +1,9 @@
+
+running 5 tests
+test systems::action::sampler_tests::a_large_score_does_not_overflow_to_nan ... ok
+test systems::action::sampler_tests::a_much_better_option_wins_most_of_the_time_but_not_always ... ok
+test systems::action::sampler_tests::a_single_candidate_is_always_chosen ... ok
+test systems::action::sampler_tests::a_zero_weight_candidate_is_never_picked_even_on_a_draw_of_zero ... ok
+test systems::action::sampler_tests::temperature_moves_the_distribution_between_argmax_and_uniform ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1603 filtered out; finished in 0.00s

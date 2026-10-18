@@ -49,12 +49,16 @@ pub(crate) fn prepare(
 ) -> Result<(Sim, MovePlan), PlacementRefusal> {
     let bad = || PlacementRefusal::BlockedRoute;
     let pack = world.resource::<Content>().0;
-    let mut candidate = crate::save::v6::restore(
-        crate::save::v6::capture_world(world),
-        pack,
-        crate::save::Carried::for_rebuild(world),
-    )
-    .map_err(|_| bad())?;
+    let mut candidate = if crate::build_transaction::deferred(world) {
+        trusted_draft_projection(world).map_err(|_| bad())?
+    } else {
+        crate::save::v6::restore(
+            crate::save::v6::capture_world(world),
+            pack,
+            crate::save::Carried::for_rebuild(world),
+        )
+        .map_err(|_| bad())?
+    };
     let moved = crate::dining::entity(&candidate.world, shelf.index_u32()).ok_or_else(bad)?;
     let definition = pack.object(candidate.world.get::<SmartObject>(moved).ok_or_else(bad)?.0);
     candidate.world.insert_resource(grid.clone());
@@ -221,4 +225,103 @@ impl MovePlan {
         }
         world.insert_resource(self.library);
     }
+}
+
+/// A physical reading preview, never a save or an adoptable household.
+/// The draft already owns validated entities and accepted placements. Copy its
+/// physical claims and reading state directly while room work is suspended.
+/// Untrusted readers still run the complete V15 validation path.
+fn trusted_draft_projection(world: &World) -> Result<Sim, crate::SaveError> {
+    let snapshot = crate::SnapshotSource { world }.save_snapshot_v5();
+    let facings = snapshot
+        .object_facings
+        .iter()
+        .map(|(id, code)| (*id, Facing::from_code(*code).expect("live facing")))
+        .collect();
+    let mut candidate = crate::save::restore_with_facings(
+        snapshot.world,
+        world.resource::<Content>().0,
+        crate::save::Carried::for_rebuild(world),
+        &facings,
+        &snapshot.retired_indices,
+    )?;
+    macro_rules! resource {
+        ($ty:ty) => {
+            if let Some(value) = world.get_resource::<$ty>() {
+                candidate.world.insert_resource(value.clone());
+            }
+        };
+    }
+    resource!(TileGrid);
+    resource!(terri_core::layout::SavedLayout);
+    resource!(crate::rooms::RoomMap);
+    resource!(crate::rooms::RoomReferenceMode);
+    resource!(terri_core::layout::SavedFloors);
+    resource!(BookLibrary);
+    resource!(terri_core::save::SavedDomestic);
+    resource!(terri_core::save::SavedDining);
+    resource!(terri_core::save::SavedMortality);
+    resource!(terri_core::chores::SavedChores);
+    resource!(terri_core::grime::SavedGrime);
+    resource!(terri_core::Funds);
+    for raw in 0..world.entities().len() {
+        let Some(source) = crate::dining::entity(world, raw) else {
+            continue;
+        };
+        let target = crate::dining::entity(&candidate.world, raw)
+            .ok_or(crate::SaveError::InvalidEntityReference)?;
+        macro_rules! component {
+            ($ty:ty) => {
+                if let Some(value) = world.get::<$ty>(source) {
+                    candidate.world.entity_mut(target).insert(value.clone());
+                }
+            };
+        }
+        component!(terri_core::ObjectFacing);
+        component!(terri_core::SleepPlace);
+        let resolve = |entity: Entity| {
+            crate::dining::entity(&candidate.world, entity.index_u32())
+                .ok_or(crate::SaveError::InvalidEntityReference)
+        };
+        let map_target = |t: Target| {
+            Ok::<_, crate::SaveError>(Target {
+                object: resolve(t.object)?,
+                interaction: t.interaction,
+            })
+        };
+        let mut journey = world.get::<ReadingJourney>(source).cloned();
+        if let Some(j) = journey.as_mut() {
+            j.origin = map_target(j.origin)?;
+            j.shelf = resolve(j.shelf)?;
+            if let Some((seat, _)) = j.seat.as_mut() {
+                *seat = resolve(*seat)?;
+            }
+        }
+        let mut claim = world.get::<crate::seating::PhysicalClaim>(source).cloned();
+        if let Some(c) = claim.as_mut() {
+            c.furniture = resolve(c.furniture)?;
+            c.target = map_target(c.target)?;
+        }
+        let queue = world
+            .get::<IntentQueue>(source)
+            .map(|q| {
+                let mut entries = q.entries().to_vec();
+                for entry in &mut entries {
+                    entry.intent.object = resolve(entry.intent.object)?;
+                }
+                IntentQueue::from_entries(entries, q.next_id())
+                    .ok_or(crate::SaveError::InvalidValue)
+            })
+            .transpose()?;
+        if let Some(j) = journey {
+            candidate.world.entity_mut(target).insert(j);
+        }
+        if let Some(c) = claim {
+            candidate.world.entity_mut(target).insert(c);
+        }
+        if let Some(q) = queue {
+            candidate.world.entity_mut(target).insert(q);
+        }
+    }
+    Ok(candidate)
 }

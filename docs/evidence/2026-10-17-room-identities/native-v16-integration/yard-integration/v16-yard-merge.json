@@ -1,0 +1,13 @@
+{
+  "command": [
+    "git",
+    "merge",
+    "--no-commit",
+    "--no-ff",
+    "513c86be2aa44fb4d5576279d0e1ae69991e870e"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 1,
+  "log": ".local-build\\v16-yard-merge.log",
+  "finished_utc": "2026-10-18T04:08:09.571899+00:00"
+}

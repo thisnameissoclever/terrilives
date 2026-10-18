@@ -13,7 +13,7 @@ pub(super) enum Progress {
 
 pub(super) fn cells(world: &World, room: u32, center: u32) -> Vec<u32> {
     let grid = world.resource::<TileGrid>();
-    let regions = crate::room_regions::RoomRegions::from_world(world);
+    let regions = crate::room_regions::RoomRegions::cleanable(world);
     let at = (
         (center as usize % grid.width()) as i32,
         (center as usize / grid.width()) as i32,
@@ -57,7 +57,7 @@ pub(super) fn fade(rows: &mut Vec<(u32, u16)>, cell: u32, remaining: u32) -> u32
 
 fn dirty(world: &World, floors: &[(u32, u16)], room: u32) -> Vec<u32> {
     let grid = world.resource::<TileGrid>();
-    let regions = crate::room_regions::RoomRegions::from_world(world);
+    let regions = crate::room_regions::RoomRegions::cleanable(world);
     floors
         .iter()
         .filter(|(cell, amount)| {

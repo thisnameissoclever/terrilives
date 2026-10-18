@@ -35,6 +35,10 @@ struct Failures {
     attempts: usize,
 }
 
+pub(crate) fn invalidate(world: &mut World) {
+    world.remove_resource::<Failures>();
+}
+
 fn position(world: &World, person: Entity) -> Option<[u32; 2]> {
     world
         .get::<Position>(person)

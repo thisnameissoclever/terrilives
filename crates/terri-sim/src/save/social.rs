@@ -66,7 +66,7 @@ impl Sim {
         let portals = super::Carried::for_load(&self.world);
         let candidate =
             super::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 }
@@ -631,18 +631,18 @@ mod tests {
         assert!(!saved.social.topics.is_empty());
         assert!(!saved.social.communal.is_empty());
         assert!(!saved.social.rendezvous.is_empty());
-        let saved = source.save_snapshot_v15();
+        let saved = source.save_snapshot_v16();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v15(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v15(), saved);
+        restored.load_snapshot_v16(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), saved);
         source.flush_commands();
         restored.flush_commands();
-        assert_eq!(restored.save_snapshot_v15(), source.save_snapshot_v15());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
         for _ in 0..40 {
             source.tick();
             restored.tick();
         }
-        assert_eq!(restored.save_snapshot_v15(), source.save_snapshot_v15());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
     }
 
     #[test]

@@ -1,0 +1,33 @@
+### Result
+{"receipts":[{"axis":0,"x":18,"y":2,"state":0,"reason":null},{"axis":0,"x":18,"y":3,"state":0,"reason":null},{"axis":0,"x":18,"y":4,"state":0,"reason":null},{"axis":0,"x":18,"y":5,"state":0,"reason":null},{"axis":0,"x":18,"y":6,"state":0,"reason":null},{"axis":0,"x":18,"y":7,"state":0,"reason":null}],"clean":{"nativeDirty":false,"baselineExact":true},"names":["Retained final name","Kitchen","Living room","Room 2","Bedroom 1","Bedroom 2","Bathroom"],"clicks":["Update review","Confirm changes"],"final":{"phase":"retained-name-adopted-and-left","utc":"2026-10-18T08:06:08.185Z","tick":838,"buildActive":false,"buildDirty":false,"rooms":{"ok":true,"value":{"width":30,"height":26,"rooms":[{"id":0,"anchor":null,"name":"Outside","area":500,"outside":true},{"id":1,"anchor":[14,2],"name":"Retained final name","area":48,"outside":false},{"id":2,"anchor":[10,10],"name":"Kitchen","area":48,"outside":false},{"id":3,"anchor":[18,10],"name":"Living room","area":48,"outside":false},{"id":4,"anchor":[2,12],"name":"Room 2","area":40,"outside":false},{"id":5,"anchor":[10,16],"name":"Bedroom 1","area":36,"outside":false},{"id":6,"anchor":[16,16],"name":"Bedroom 2","area":36,"outside":false},{"id":7,"anchor":[22,16],"name":"Bathroom","area":24,"outside":false}]}},"duties":[{"kind":0,"target":0,"owner":2,"dirt":0,"outcome":5,"location":"Household"},{"kind":1,"target":0,"owner":2,"dirt":0,"outcome":4,"location":"Outside"},{"kind":1,"target":1,"owner":1,"dirt":0,"outcome":1,"location":"Retained final name"},{"kind":1,"target":2,"owner":1,"dirt":0,"outcome":4,"location":"Kitchen"},{"kind":1,"target":3,"owner":0,"dirt":100,"outcome":0,"location":"Living room"},{"kind":1,"target":4,"owner":0,"dirt":0,"outcome":1,"location":"Room 2"},{"kind":1,"target":5,"owner":1,"dirt":100,"outcome":1,"location":"Bedroom 1"},{"kind":1,"target":6,"owner":2,"dirt":100,"outcome":1,"location":"Bedroom 2"},{"kind":1,"target":7,"owner":0,"dirt":100,"outcome":3,"location":"Bathroom"},{"kind":3,"target":6,"owner":1,"dirt":50,"outcome":1,"location":"Kitchen"},{"kind":4,"target":2,"owner":0,"dirt":0,"outcome":1,"location":"Kitchen"},{"kind":5,"target":0,"owner":1,"dirt":0,"outcome":4,"location":"Outside"}],"actors":[{"id":34,"name":"Tim","position":[10,5],"activity":2,"status":{"code":4,"partner":35,"needs":0},"needs":[50.04534149169922,67.17886352539062,39.66517639160156,14.524659156799316,80.5772705078125,65.45122528076172,91.91363525390625],"progress":0},{"id":35,"name":"Bill","position":[11.25,11],"activity":1,"status":{"code":0,"partner":null,"needs":0},"needs":[48.045982360839844,41.98332214355469,35.39857482910156,14.524659156799316,82.52734375,72.92996215820312,47.599937438964844],"progress":0},{"id":36,"name":"Casey","position":[24,19.5],"activity":20,"status":{"code":0,"partner":null,"needs":0},"needs":[48.045982360839844,55.72201919555664,46.441410064697266,73.8997573852539,75.539306640625,94.24041748046875,100],"progress":0}],"table":{"id":7,"position":[7.5,5],"dirt":0},"floor":[414,100,472,100,473,100,494,100,532,100,586,100]}}
+### Ran Playwright code
+```js
+await (async page=>{
+  await page.locator('#stage').focus();await page.waitForTimeout(150);
+  for(let n=0;n<5;n++)await page.keyboard.press('ArrowUp');
+  const receipts=[];
+  for(let y=2;y<=7;y++){
+    if(y>2)await page.keyboard.press('ArrowDown');await page.keyboard.press('Delete');
+    await page.waitForFunction(y=>{const r=__terriStress.sim.lastWallEditResult();return r?.axis===0&&r.x===18&&r.y===y&&r.state===0&&r.reason===null;},y);
+    receipts.push(await page.evaluate(()=>__terriStress.sim.lastWallEditResult()));
+  }
+  const clean=await page.evaluate(()=>{const b=__terriStress.sim.saveBytes();return {nativeDirty:__terriStress.sim.buildDirty(),baselineExact:b.length===__r8RoomBaseline.length&&b.every((v,i)=>v===__r8RoomBaseline[i])};});
+  if(clean.nativeDirty||!clean.baselineExact)throw Error('Reversal not exact');
+  await page.locator('#builder-exit').click();await page.locator('#build-exit-dialog').waitFor({state:'visible'});await page.screenshot({path:'.local-build/r8-retained-name-exit-prompt.png'});
+  await page.locator('#build-exit-keep').click();await page.waitForTimeout(100);
+  if(!await page.evaluate(()=>__terriStress.sim.buildActive()))throw Error('Keep building left');
+  await page.locator('#builder-exit').click();await page.locator('#build-exit-confirm').click();await page.waitForFunction(()=>!document.querySelector('#room-review').hidden);
+  const names=await page.locator('#room-review-body input').evaluateAll(nodes=>nodes.map(n=>n.value));if(!names.includes('Retained final name'))throw Error('Name missing');
+  await page.screenshot({path:'.local-build/r8-retained-name-refreshed-review.png'});
+  const clicks=[];for(let n=0;n<2&&await page.evaluate(()=>__terriStress.sim.buildActive());n++){clicks.push(await page.locator('#room-review-confirm').textContent());await page.locator('#room-review-confirm').click();await page.waitForTimeout(150);}
+  if(await page.evaluate(()=>__terriStress.sim.buildActive()))throw Error('Exit not complete');
+  const final=await page.evaluate(async()=>(await import('/.scratch/r8-play-observe.js')).observe('retained-name-adopted-and-left'));
+  if(!final.rooms.value.rooms.some(r=>r.name==='Retained final name'))throw Error('Name not adopted');return {receipts,clean,names,clicks,final};
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L567-L587

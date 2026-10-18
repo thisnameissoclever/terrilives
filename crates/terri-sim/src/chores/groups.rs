@@ -23,8 +23,15 @@ pub(super) fn kind(world: &World, object: Entity) -> Option<ChoreKind> {
 pub(super) fn key_for(world: &World, object: Entity) -> Option<ChoreKey> {
     let kind = kind(world, object)?;
     let pos = world.get::<Position>(object)?;
-    let target = crate::room_regions::RoomRegions::from_world(world)
-        .at((pos.x.round() as i32, pos.y.round() as i32))?;
+    let target = if crate::rooms::stable(world) {
+        world
+            .resource::<crate::rooms::RoomMap>()
+            .selection_at((pos.x.round() as u32, pos.y.round() as u32))?
+            .key()
+    } else {
+        crate::room_regions::RoomRegions::legacy(world)
+            .at((pos.x.round() as i32, pos.y.round() as i32))?
+    };
     Some(ChoreKey { kind, target })
 }
 
@@ -35,14 +42,25 @@ pub(super) fn members(world: &World, key: ChoreKey) -> Vec<u32> {
     let Some(mut objects) = world.try_query::<(Entity, &SmartObject)>() else {
         return vec![];
     };
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let legacy =
+        (!crate::rooms::stable(world)).then(|| crate::room_regions::RoomRegions::legacy(world));
+    let at = |p: &Position| {
+        if let Some(rooms) = &legacy {
+            rooms.at((p.x.round() as i32, p.y.round() as i32))
+        } else {
+            world
+                .resource::<crate::rooms::RoomMap>()
+                .selection_at((p.x.round() as u32, p.y.round() as u32))
+                .map(|room| room.key())
+        }
+    };
     let mut members: Vec<_> = objects
         .iter(world)
         .filter(|(e, _)| {
             kind(world, *e) == Some(key.kind)
-                && world.get::<Position>(*e).is_some_and(|p| {
-                    rooms.at((p.x.round() as i32, p.y.round() as i32)) == Some(key.target)
-                })
+                && world
+                    .get::<Position>(*e)
+                    .is_some_and(|p| at(p) == Some(key.target))
         })
         .map(|(e, _)| e.index_u32())
         .collect();
@@ -77,7 +95,28 @@ pub(super) fn claims(task: &ChoreTask, object: u32) -> bool {
 }
 
 pub(super) fn room_label(world: &World, room: u32) -> String {
-    let regions = crate::room_regions::RoomRegions::from_world(world);
+    if let Some(saved) = world.get_resource::<terri_core::rooms::SavedRooms>() {
+        return if room == 0 {
+            saved.outside_name.clone()
+        } else {
+            terri_core::rooms::RoomId::new(room)
+                .and_then(|id| saved.record(id))
+                .map_or_else(|| "Removed room".into(), |record| record.name.clone())
+        };
+    }
+    legacy_room_label(world, room)
+}
+pub(crate) fn legacy_room_label(world: &World, room: u32) -> String {
+    let regions = crate::room_regions::RoomRegions::legacy(world);
+    legacy_room_labels(world, &regions)
+        .remove(&room)
+        .unwrap_or_else(|| "Removed room".into())
+}
+
+pub(crate) fn legacy_room_labels(
+    world: &World,
+    regions: &crate::room_regions::RoomRegions,
+) -> std::collections::BTreeMap<u32, String> {
     let grid = world.resource::<terri_core::TileGrid>();
     let mut names = std::collections::BTreeMap::<u32, (&str, u8)>::new();
     for y in 0..grid.height() {
@@ -106,23 +145,24 @@ pub(super) fn room_label(world: &World, room: u32) -> String {
             }
         }
     }
-    let Some((name, _)) = names.get(&room) else {
-        return "Removed room".into();
-    };
-    let same: Vec<_> = names
-        .iter()
-        .filter(|(_, v)| v.0 == *name)
-        .map(|(id, _)| *id)
-        .collect();
-    if same.len() == 1 && *name != "Room" {
-        (*name).into()
-    } else {
-        format!(
-            "{} {}",
-            name,
-            same.iter().position(|r| *r == room).unwrap() + 1
-        )
+    let mut counts = std::collections::BTreeMap::new();
+    for &(name, _) in names.values() {
+        *counts.entry(name).or_insert(0u32) += 1;
     }
+    let mut ordinals = std::collections::BTreeMap::new();
+    names
+        .into_iter()
+        .map(|(id, (name, _))| {
+            let number = ordinals.entry(name).or_insert(0u32);
+            *number += 1;
+            let label = if counts[name] == 1 && name != "Room" {
+                name.into()
+            } else {
+                format!("{name} {number}")
+            };
+            (id, label)
+        })
+        .collect()
 }
 
 pub(super) fn reconcile(world: &mut World, state: &mut SavedChores) {
@@ -169,7 +209,7 @@ mod tests {
         super::super::ensure(sim.world_mut());
         let key = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         };
         let object = members(sim.world(), key)[0];
         let entity = crate::dining::entity(sim.world(), object).unwrap();
@@ -240,7 +280,7 @@ mod tests {
         let mut sim = crate::Sim::new_from_shipped_lot();
         let key = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         };
         let object = members(sim.world(), key)[0];
         let entity = crate::dining::entity(sim.world(), object).unwrap();
@@ -296,7 +336,7 @@ mod tests {
         super::super::ensure(sim.world_mut());
         let key = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         };
         let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
         super::super::board::reconcile(sim.world(), &mut state);
@@ -361,7 +401,7 @@ mod tests {
                 facing: terri_core::Facing::SouthWest,
             });
         sim.flush_commands();
-        let new_key = ChoreKey { target: 8, ..key };
+        let new_key = ChoreKey { target: 2, ..key };
         assert_eq!(members(sim.world(), new_key).len(), 1);
         assert!(sim
             .world()
@@ -378,7 +418,7 @@ mod tests {
         }
         let mut loaded =
             crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-        loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
 
@@ -388,10 +428,11 @@ mod tests {
         super::super::ensure(sim.world_mut());
         let old = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         };
         let ids = members(sim.world(), old);
         assert_eq!(ids.len(), 3);
+        sim.begin_build().unwrap();
         for y in 0..6 {
             sim.world_mut()
                 .resource_mut::<terri_core::CommandQueue>()
@@ -407,6 +448,10 @@ mod tests {
                 });
         }
         sim.flush_commands();
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build(review.token).unwrap();
         let groups: Vec<_> = super::super::keys(sim.world())
             .into_iter()
             .filter(|k| k.kind == ChoreKind::CounterSurfaces)
@@ -422,7 +467,7 @@ mod tests {
         );
         let mut loaded =
             crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-        loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
 
@@ -432,7 +477,7 @@ mod tests {
         super::super::ensure(sim.world_mut());
         let key = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         };
         let object = members(sim.world(), key)[0];
         let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
@@ -442,17 +487,45 @@ mod tests {
         episode.needed = true;
         episode.decision = Some(false);
         episode.outcome = DutyOutcome::Skipped;
+        let prior = state.clone();
+        let rng = sim.world().resource::<terri_core::SimRng>().clone();
         sim.world_mut().insert_resource(state);
+        let baseline = sim.save_snapshot_v16();
+        sim.load_snapshot_v16(baseline.clone())
+            .expect("constructed dirty group is valid current state");
+        assert_eq!(sim.save_snapshot_v16(), baseline);
         sim.world_mut()
             .resource_mut::<terri_core::CommandQueue>()
             .push(terri_core::SimCommand::SellObject { object });
         sim.flush_commands();
+        assert_eq!(sim.take_build_error(), None, "sale settlement must succeed");
+        assert!(sim
+            .world()
+            .resource::<crate::placement::LotEditState>()
+            .last_sale_result
+            .unwrap()
+            .reason
+            .is_none());
         let state = sim.world().resource::<SavedChores>();
         let episode = state.episodes.iter().find(|e| e.key == key).unwrap();
         assert!(!episode.needed);
         assert_eq!(episode.outcome, DutyOutcome::NoWork);
         assert_eq!(episode.decision, Some(false));
         assert_eq!(members(sim.world(), key).len(), 2);
+        assert_eq!(state.assignments, prior.assignments);
+        assert_eq!(state.week, prior.week);
+        assert_eq!(state.rng, prior.rng);
+        assert_eq!(state.tasks, prior.tasks);
+        assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
+        assert_eq!(
+            episode.settled,
+            prior
+                .episodes
+                .iter()
+                .find(|e| e.key == key)
+                .unwrap()
+                .settled
+        );
     }
 
     #[test]
@@ -494,11 +567,11 @@ mod tests {
         let mut complete = false;
         for _ in 0..1600 {
             sim.tick();
-            let saved = sim.save_snapshot_v5();
+            let saved = sim.save_snapshot_v16();
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
             loaded
-                .load_snapshot_v5(saved)
+                .load_snapshot_v16(saved)
                 .expect("group work saves between surfaces");
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if sim.world().resource::<SavedChores>().tasks.is_empty() {
@@ -571,11 +644,11 @@ mod tests {
             sim.flush_commands();
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-            loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+            loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         assert!(!super::super::keys(sim.world()).contains(&key));
-        assert_eq!(members(sim.world(), ChoreKey { target: 8, ..key }).len(), 3);
+        assert_eq!(members(sim.world(), ChoreKey { target: 2, ..key }).len(), 3);
         assert!(sim.world().resource::<SavedChores>().tasks.is_empty());
         assert!(sim.world().get::<ChoreWork>(person).is_none());
     }

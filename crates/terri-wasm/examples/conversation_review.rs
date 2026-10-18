@@ -1,10 +1,12 @@
-//! Deterministic browser-review inputs. Historical output is only for comparing the defect.
+//! Current browser-review inputs. The V14 projection is a comparison, not an original-producer fixture.
 use std::{fs, path::Path};
 use terri_core::{
     Blocked, CommandQueue, Entity, NeedId, Needs, Path as Route, Position, SelfPreservation,
     SimCommand, SimId, SimRng,
 };
 use terri_sim::{Content, Sim};
+
+const _: () = assert!(terri_core::save::SAVE_SCHEMA_VERSION == 16);
 
 fn write(path: &Path, version: u16, payload: Vec<u8>) {
     let mut bytes = terri_core::save::SAVE_MAGIC.to_vec();
@@ -46,12 +48,16 @@ fn main() {
     write(
         &output.join("critical-before-tick-v14.sav"),
         14,
-        postcard::to_allocvec(&sim.save_snapshot_v14()).unwrap(),
+        postcard::to_allocvec(
+            &sim.try_save_snapshot_v14()
+                .expect("the historical review control must be representable in V14"),
+        )
+        .unwrap(),
     );
     write(
-        &output.join("critical-before-tick-v15.sav"),
-        15,
-        postcard::to_allocvec(&sim.save_snapshot_v15()).unwrap(),
+        &output.join("critical-before-tick-v16.sav"),
+        terri_core::save::SAVE_SCHEMA_VERSION,
+        postcard::to_allocvec(&sim.save_snapshot_v16()).unwrap(),
     );
     let pack = sim.world().resource::<Content>().0;
     let toilet = sim
@@ -94,9 +100,9 @@ fn main() {
         ));
     }
     write(
-        &output.join("waiting-for-care-v15.sav"),
-        15,
-        postcard::to_allocvec(&sim.save_snapshot_v15()).unwrap(),
+        &output.join("waiting-for-care-v16.sav"),
+        terri_core::save::SAVE_SCHEMA_VERSION,
+        postcard::to_allocvec(&sim.save_snapshot_v16()).unwrap(),
     );
     println!(
         "Wrote historical/current critical scenarios and an arrived care waiter to {}",

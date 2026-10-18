@@ -1,0 +1,23 @@
+[
+  {
+    "name": "tests",
+    "command": [
+      "node",
+      "--test",
+      "scripts/build-changelog.test.mjs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-changelog-tests.log",
+    "finished_utc": "2026-10-18T02:43:06.282381+00:00"
+  },
+  {
+    "name": "build",
+    "command": [
+      "node",
+      "scripts/build-changelog.mjs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-changelog-build.log",
+    "finished_utc": "2026-10-18T02:43:06.334169+00:00"
+  }
+]

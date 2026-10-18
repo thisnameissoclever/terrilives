@@ -1,0 +1,7 @@
+wait: A=0 B=1
+ordered: A=0 B=1
+proximity: A=0 B=1
+
+thread 'main' (24708) panicked at crates\terri-wasm\examples\relationship_qa.rs:198:54:
+called `Result::unwrap()` on an `Err` value: InvalidValue
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

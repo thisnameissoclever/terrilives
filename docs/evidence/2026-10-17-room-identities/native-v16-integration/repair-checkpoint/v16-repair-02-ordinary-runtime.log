@@ -1,0 +1,10 @@
+
+running 6 tests
+test build_transaction::ordinary_tests::empty_input_still_clears_sounds_and_refreshes_grouped_work ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_keeps_prior_bed_receipt_after_accepted_construction ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_keeps_unchanged_door_interpolation ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_results ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 1602 filtered out; finished in 0.33s

@@ -1,0 +1,7 @@
+
+running 3 tests
+test save::v16::bookless_tests::bookless_current_library_refuses_owned_data_operations_and_inconsistent_catalogue ... ok
+test save::v16::bookless_tests::bookless_current_library_restores_empty_state_and_exact_metadata ... ok
+test save::v16::command_projection_tests::command_free_projection_rederives_metadata_and_retains_orders_and_origins ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1605 filtered out; finished in 0.03s

@@ -1,0 +1,41 @@
+{
+  "sourceRevision": "391a4d426",
+  "capturedAt": "2026-10-17T20:49:04.686Z",
+  "sourceSha256": {
+    "web/src/render/sprites.ts": "f3d1de5cd2a5ef4b04a39bfc104389e84cd27c4d009c4693768c959d2419a7f8",
+    "web/src/render/sprites.wgsl": "8aed88c6ae155bdddc8c2dfc49d8942929e601741874b98935af20f99a8b95e7",
+    "web/src/render/tiles.ts": "2a32073911e8087480bab4aec76b4fbdc85396ce0cb8085ec2c4bde787522ec5",
+    "web/src/render/floor-materials.ts": "9ca4e6df00828e6aaa7da2cfc69d5f09999af00f64c6b4fc51bd9b2305eac9b2",
+    "web/src/render/architecture-data.ts": "75f1d09fab578ada69dc94cea251b8c5dcea938dd62b18439b39a4e2c79dcf9c",
+    "assets/models/architecture/outdoor-patio.json": "8a5b8ae48181d50e92f1f3f49a4aec21fc7b767d5db166dc1a15b0fd46c506cf",
+    "web/.scratch/patio-phase.html": "be396d56589c40c1740a5c1557747197c672469491230b50721d2c908ef788e7",
+    "web/.scratch/patio-phase.mjs": "2d9a258bc706b82d434a4b7876d917d716b766d2fdfea455f580bb64781a281f",
+    ".local-build/check-patio-phase.cjs": "314b1b030f73917e1fd26f758095ce981ff8460be85124f6380fe80681b516ae"
+  },
+  "browser": "Displayed Chrome with D3D11 and WebGPU enabled; exact browser version was not retained",
+  "viewport": [
+    850,
+    700
+  ],
+  "canvas": [
+    640,
+    560
+  ],
+  "texture": "architecture-pattern-9c44a1f3e7fc1958c71126dfffd4f28e3370ae5c3608a5db46d02d683cbf87fa.png",
+  "textureSize": [
+    256,
+    256
+  ],
+  "exactHorizontalRepeatPixels": 32,
+  "nominalPatioPeriod": [
+    4,
+    2
+  ],
+  "westTranslationTiles": 10,
+  "inspected": [
+    "before-west.png",
+    "after-west.png"
+  ],
+  "finding": "Rectangular gray paving and grout remain in the same physical positions. All 784 interior paving samples are identical. The additional unpainted ground changes the outside crop.",
+  "limits": "Controlled production renderer only. No native land purchase, transaction, cancellation, reload or cleaning was tested here. In-game acceptance remains required."
+}

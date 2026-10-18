@@ -1,0 +1,12 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  23:03:35
+   Duration  153ms (transform 40ms, setup 28ms, import 24ms, tests 8ms, environment 0ms)

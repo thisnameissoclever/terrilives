@@ -1,0 +1,49 @@
+[
+  {
+    "phase": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-core/src/lib.rs",
+      "crates/terri-sim/src/lib.rs",
+      "crates/terri-wasm/src/lib.rs",
+      "crates/terri-sim/examples/trace.rs",
+      "crates/terri-wasm/examples/conversation_review.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-native-build-07-format.log",
+    "finished_utc": "2026-10-18T02:05:45.640722+00:00"
+  },
+  {
+    "phase": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-native-build-07-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-native-build-07-fingerprint.log",
+    "finished_utc": "2026-10-18T02:05:46.322978+00:00"
+  },
+  {
+    "phase": "compile",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "-p",
+      "terri-wasm",
+      "--lib",
+      "--no-run",
+      "--locked",
+      "--jobs",
+      "1",
+      "--message-format=json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-native-build-07-compile.log",
+    "finished_utc": "2026-10-18T02:06:04.640453+00:00"
+  }
+]

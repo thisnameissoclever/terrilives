@@ -5,6 +5,8 @@ import type { BookResult } from '../src/books/codec.js';
 
 class Element {
   ownerDocument!: Document; className = ''; hidden = false; disabled = false; textContent = ''; type = '';
+  attributes: Record<string,string> = {};
+  setAttribute(name: string, value: string) { this.attributes[name] = value; }
   children: Element[] = []; listeners = new Map<string, () => void>();
   append(...nodes: Element[]) { this.children.push(...nodes); }
   replaceChildren(...nodes: Element[]) { this.children = nodes; }
@@ -31,11 +33,17 @@ it('renders count and priced Buy/Sell controls, preserves displayed quotes and b
   expect(panel.children[0].textContent).toBe('Books: 1');
   expect(buy.children.map(node => node.textContent)).toEqual(['Buy book', '$20']);
   expect(sell.disabled).toBe(true);
+  expect(buy.attributes['data-action-intent']).toBe('affirmative');
+  expect(sell.attributes['data-action-intent']).toBe('destructive');
   buy.click(); expect(submitted).toBe(wire);
-  controls.render(4); expect(buy.disabled).toBe(true); expect(controls.purchaseBook(quote)).toBe(false);
+  controls.render(4); expect(buy.disabled).toBe(true);
+  expect(buy.attributes['data-action-intent']).toBe('affirmative');
+  expect(controls.purchaseBook(quote)).toBe(false);
   pending = 0; results = [{ sequence: 1n, copy: 3, order: null, refusal: 'stale_quote' }]; coordinator.drain();
   expect(messages.at(-1)).toContain('selection changed');
-  controls.render(4); expect(buy.disabled).toBe(false);
+  quote.price=35;controls.render(4); expect(buy.disabled).toBe(false);
+  expect(buy.children.map(node => node.textContent)).toEqual(['Buy book', '$35']);
+  expect(buy.attributes['data-action-intent']).toBe('affirmative');
   controls.resetAfterLoad(); expect(panel.hidden).toBe(true);
   controls.render(null); expect(panel.hidden).toBe(true);
   controls.render(4, true); expect(buy.disabled).toBe(true);

@@ -1,0 +1,182 @@
+{
+  "source_sha256": "5ca042a7c8e5ebeda1e9fa41bb4ebc2e6fa4ef91d40e5d5a35d2b7fbf7ff8235",
+  "artifacts": {
+    "terri_data": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_data-3b0b851957237790.exe",
+      "sha256": "37aa93695e640204a622ef2b56b54c3c76b0dff08fc6ba238b8caa7d057b3019"
+    },
+    "terri_sim": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-c182127647cc7133.exe",
+      "sha256": "432fa6867164359741cbbacf7de14c9b34143098b74d181553b0be3472652eda"
+    },
+    "terri_wasm": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-923b4d28e09e9100.exe",
+      "sha256": "6e8f7f37977441ce10b9db946abd2fca6b7190e07d729c0ae4f94dfe98bc3f70"
+    },
+    "inherited_runtime": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\inherited_runtime-c21658feae710534.exe",
+      "sha256": "c19580d2924f1843b2e65e8d55c027c014e9d9f8eb64478079d824187e562e6f"
+    },
+    "content_hierarchy": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\content_hierarchy-ad27b61a56412859.exe",
+      "sha256": "fd63dbabd938c2c5a884dd7699aa350cd1431b0f73f7ef8e90ae3851caa9cd78"
+    }
+  },
+  "tests": [
+    {
+      "name": "data",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_data-3b0b851957237790.exe",
+        "--test-threads=1"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-data.log",
+      "passed": 341,
+      "failed": 0
+    },
+    {
+      "name": "inherited",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\inherited_runtime-c21658feae710534.exe",
+        "--test-threads=1"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-inherited.log",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "name": "hierarchy",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\content_hierarchy-ad27b61a56412859.exe",
+        "--test-threads=1"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-hierarchy.log",
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "name": "lifecycle",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-c182127647cc7133.exe",
+        "build_transaction::cases::every_public_snapshot_writer_reads_the_committed_baseline",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-lifecycle.log",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "lounger",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-c182127647cc7133.exe",
+        "render_buffer::tests::every_shipped_interaction_projects_its_exact_activity_and_supported_body_pose",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-lounger.log",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "golden",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-c182127647cc7133.exe",
+        "determinism_tests::world_hash_matches_its_golden_vector",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-golden.log",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "published-v15",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-923b4d28e09e9100.exe",
+        "published_v15_tests::",
+        "--test-threads=1"
+      ],
+      "cwd": ".",
+      "exit_code": 101,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-published-v15.log",
+      "passed": 2,
+      "failed": 1
+    },
+    {
+      "name": "room-boundary",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-923b4d28e09e9100.exe",
+        "room_save_tests::",
+        "--test-threads=1"
+      ],
+      "cwd": ".",
+      "exit_code": 101,
+      "kind": "rust",
+      "log": ".local-build\\v16-yard-focus-room-boundary.log",
+      "passed": 9,
+      "failed": 3
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "-v",
+        "test_offline_architecture.ArchitectureImport.test_patio_extension_preserves_accepted_catalogue_and_baked_pixels",
+        "test_offline_architecture.ArchitectureImport.test_catalogue_extensions_refuse_overwrites_gaps_and_invalid_resources",
+        "test_offline_architecture.ArchitectureImport.test_generated_ids_follow_the_complete_historical_prefix",
+        "test_offline_architecture.ArchitectureImport.test_depth_and_roles_ship_compressed_under_their_unpacked_hash"
+      ],
+      "cwd": "assets/sprites/gen",
+      "exit_code": 0,
+      "kind": "python",
+      "log": ".local-build\\v16-yard-focus-architecture.log"
+    },
+    {
+      "name": "web-depth",
+      "command": [
+        "node",
+        "--max-old-space-size=4096",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/architecture.test.ts",
+        "tests/architecture-sprite-boundary.test.ts",
+        "tests/architecture-resources.test.ts",
+        "tests/architecture-depth.test.ts",
+        "tests/floor-default-catalogue.test.ts",
+        "tests/floor-materials.test.ts",
+        "tests/fixture-depth.test.ts",
+        "tests/preview-fixture.test.ts",
+        "--maxWorkers=1"
+      ],
+      "cwd": "web",
+      "exit_code": 0,
+      "kind": "vitest",
+      "log": ".local-build\\v16-yard-focus-web-depth.log"
+    }
+  ],
+  "complete": true,
+  "all_passed": false,
+  "finished_utc": "2026-10-18T04:22:14.102687+00:00"
+}

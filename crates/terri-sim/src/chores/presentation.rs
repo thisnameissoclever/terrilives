@@ -265,7 +265,7 @@ mod tests {
             person,
             ChoreKey {
                 kind: ChoreKind::Floors,
-                target: 0
+                target: 1
             },
             true
         ));
@@ -294,7 +294,7 @@ mod tests {
         let hash = sim.world_hash();
         let mut loaded =
             crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-        loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         assert_eq!(loaded.world_hash(), hash);
         assert_eq!(projection(loaded.world(), person).unwrap().1, progress);
         sim.world_mut().resource_mut::<SavedChores>().tasks[0].suspended = true;

@@ -1,0 +1,17 @@
+
+running 1 test
+test chores::room_change_tests::review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_path ... FAILED
+
+failures:
+
+failures:
+    chores::room_change_tests::review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_path
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1511 filtered out; finished in 0.06s
+
+
+thread 'chores::room_change_tests::review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_path' (40180) panicked at crates\terri-sim\src\chores\room_change_tests.rs:688:5:
+assertion `left == right` failed
+  left: 0
+ right: 125
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -3,6 +3,12 @@
   "batch": "export/depth-reviewed-01",
   "historicalCount": 2445,
   "historicalPrefixSha256": "ce3bed17e9b8cd67e1df53311a9e0fe6209dfdeeeeca3a460f253dc94e55de28",
+  "catalogueExtensions": [
+    {
+      "catalog": "assets/models/architecture/outdoor-patio.json",
+      "canonicalSha256": "5c9b34c9fafd3d00364c71aea19fc8872132af6a1b41871dfa37c800c8194641"
+    }
+  ],
   "historicalExtensions": [
     {
       "catalog": "assets/models/static-props-05.json",

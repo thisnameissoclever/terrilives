@@ -89,12 +89,16 @@ pub fn block_shell(grid: &mut TileGrid, house: HouseRect) {
     }
 }
 
-/// The saved frame, or the frame a world has by its shape: a grid exactly
-/// the content lot's size stands at the origin, as every lot did before
-/// land could be bought; any other grid has no frame.
+/// The explicit current frame. Historical worlds without current rooms may
+/// infer the content origin from matching dimensions.
 pub fn frame(world: &World) -> Option<LotFrame> {
     if let Some(frame) = world.get_resource::<LotFrame>() {
         return Some(*frame);
+    }
+    // Current saves distinguish a blank lot from an authored lot explicitly.
+    // Shape inference belongs only to frozen historical restoration.
+    if crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>() {
+        return None;
     }
     let grid = world.get_resource::<TileGrid>()?;
     let lot = &world.get_resource::<Content>()?.0.lot;
@@ -136,6 +140,11 @@ pub fn house_or_grid(world: &World) -> HouseRect {
 
 /// The content's front door tile where it now stands.
 pub fn front_door(world: &World) -> Option<(u32, u32)> {
+    if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
+        && frame(world).is_none()
+    {
+        return None;
+    }
     let (ox, oy) = origin(world);
     world
         .resource::<Content>()
@@ -147,6 +156,11 @@ pub fn front_door(world: &World) -> Option<(u32, u32)> {
 
 /// The content's portals where they now stand.
 pub fn portals(world: &World) -> Vec<terri_data::CompiledPortal> {
+    if (crate::rooms::stable(world) || world.contains_resource::<terri_core::rooms::SavedRooms>())
+        && frame(world).is_none()
+    {
+        return vec![];
+    }
     let (ox, oy) = origin(world);
     world
         .resource::<Content>()
@@ -294,10 +308,16 @@ mod tests {
             purchased_area: 0,
         });
         assert_eq!(street_exit(sim.world()), None);
-        // Without a saved frame the grid's shape decides: the content lot's
-        // size means the origin, any other size means no house at all.
+        // Current blankness is explicit; only historical interpretation infers shape.
         sim.world_mut().remove_resource::<LotFrame>();
-        assert_eq!(house(sim.world()).map(|h| (h.x, h.y)), Some((0, 0)));
+        assert_eq!(house(sim.world()), None);
+        let mut historical = bevy_ecs::world::World::new();
+        historical.insert_resource(Content(content));
+        historical.insert_resource(TileGrid::new(
+            content.lot.width as usize,
+            content.lot.height as usize,
+        ));
+        assert_eq!(house(&historical).map(|h| (h.x, h.y)), Some((0, 0)));
         let mut custom = crate::Sim::new_with_lot(8, 8);
         assert_eq!(house(custom.world()), None);
         assert_eq!(house_or_grid(custom.world()).width, 8);

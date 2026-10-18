@@ -313,8 +313,8 @@ mod tests {
         for _ in 0..400 {
             sim.tick();
             let mut loaded = crate::Sim::new_from_shipped_lot();
-            loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
-            assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
+            loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
+            assert_eq!(loaded.current_v6_view(), sim.current_v6_view());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if let Some(p) = projection(sim.world(), person) {
                 assert!(chairs(sim.world(), table)
@@ -384,14 +384,18 @@ mod tests {
             });
         sim.flush_commands();
         let mut loaded = crate::Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+        loaded
+            .load_current_v10_view(sim.current_v10_view())
+            .unwrap();
         let mut carrying = false;
         let mut ate = false;
         for _ in 0..600 {
             sim.tick();
             carrying |= sim.world().get::<terri_core::Carrying>(person).is_some();
-            loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
-            assert_eq!(loaded.save_snapshot_v10(), sim.save_snapshot_v10());
+            loaded
+                .load_current_v10_view(sim.current_v10_view())
+                .unwrap();
+            assert_eq!(loaded.current_v10_view(), sim.current_v10_view());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if carrying
                 && sim

@@ -1,5 +1,7 @@
 //! Reproducible saved household for reviewing a four-person shared meal.
-use terri_core::{CommandQueue, NeedId, Needs, SimCommand, SAVE_MAGIC, SAVE_SCHEMA_VERSION};
+#[path = "support/mod.rs"]
+mod support;
+use terri_core::{CommandQueue, NeedId, SimCommand};
 use terri_sim::Sim;
 
 fn main() {
@@ -15,41 +17,74 @@ fn main() {
             traits: vec![],
         });
     sim.flush_commands();
-    let mut saved = sim.save_snapshot_v5();
+    let mut household = support::capture(&sim);
+    let saved = support::v5_mut(&mut household);
     let people: Vec<_> = saved
         .world
         .entities
         .iter()
         .filter_map(|person| person.sim_id.map(|id| (person.index, id)))
         .collect();
+    assert_eq!(people.len(), 4);
     let cook = people[0].0;
-    for person in &mut saved.world.entities {
-        if person.agent {
-            person.career = None;
-            person.needs = Some([100.0; 7]);
-            person.personality.as_mut().unwrap().drain = [0.0; 7];
-            person.relationships = Some(
-                people
-                    .iter()
-                    .filter(|(_, id)| Some(*id) != person.sim_id)
-                    .map(|(_, id)| (*id, 0.8))
-                    .collect(),
-            );
+    let cook_id = people[0].1;
+    for person in saved
+        .world
+        .entities
+        .iter_mut()
+        .filter(|person| person.agent)
+    {
+        person.career = None;
+        person.needs = Some([100.; 7]);
+        person.personality.as_mut().unwrap().drain = [0.; 7];
+        person.relationships = Some(
+            people
+                .iter()
+                .filter(|(_, id)| Some(*id) != person.sim_id)
+                .map(|(_, id)| (*id, 0.8))
+                .collect(),
+        );
+        if person.index != cook {
+            person.wander_pause_ticks = Some(10_000);
         }
     }
-    sim.load_snapshot_v5(saved).unwrap();
+    sim.load_snapshot_v16(household).unwrap();
+    let pack = sim.world().resource::<terri_sim::Content>().0;
+    let fridge_model = pack.find("fridge").unwrap();
+    let fridge = sim
+        .world_mut()
+        .query::<(terri_core::Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, object)| object.0 == fridge_model)
+        .unwrap()
+        .0;
+    let action = pack
+        .object(fridge_model)
+        .interactions
+        .iter()
+        .position(|action| action.id == "cook_dinner")
+        .unwrap() as u32;
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::UseObjectFirst {
             agent: cook,
-            object: 0,
-            interaction: 1,
+            object: fridge.index_u32(),
+            interaction: action,
         });
     let mut reached = false;
     for _ in 0..1500 {
         sim.tick();
-        let state = sim.save_snapshot_v5();
-        if state.world.entities.iter().any(|person| {
+        let state = sim.save_snapshot_v16();
+        let five = &state
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy;
+        if five.world.entities.iter().any(|person| {
             person.index == cook
                 && person.chain.as_ref().is_some_and(|chain| chain.step == 4)
                 && person.step_work_ticks == Some(1)
@@ -59,101 +94,78 @@ fn main() {
         }
     }
     assert!(reached, "cook never reached plating");
-    for (guest, _) in people.iter().filter(|(index, _)| *index != cook) {
-        sim.world_mut()
-            .resource_mut::<CommandQueue>()
-            .push(SimCommand::CancelIntents { agent: *guest });
-    }
-    sim.flush_commands();
-    let mut saved = sim.save_snapshot_v5();
-    let mut hungry = Needs::all_at(100.0);
-    hungry.set(NeedId::Hunger, 30.0);
-    let stations: Vec<_> = ["reading_chair", "television", "long_sofa"]
-        .iter()
-        .map(|id| {
-            let object = saved
-                .world
-                .entities
-                .iter()
-                .find(|entity| entity.smart_object.as_deref() == Some(*id))
-                .unwrap();
-            let position = object.position.unwrap();
-            let pack = sim.world().resource::<terri_sim::Content>().0;
-            let facing = saved
-                .object_facings
-                .iter()
-                .find(|(index, _)| *index == object.index)
-                .map_or(terri_core::Facing::SouthEast, |(_, facing)| {
-                    terri_core::Facing::from_code(*facing).unwrap()
-                });
-            let footprint = pack.object(pack.find(id).unwrap()).footprint_at(facing);
-            let grid = sim.world().resource::<terri_core::TileGrid>();
-            let contact = (0..grid.height())
-                .flat_map(|y| (0..grid.width()).map(move |x| (x as i32, y as i32)))
-                .find(|from| {
-                    grid.can_interact_with_rect(
-                        *from,
-                        (position.x.round() as i32, position.y.round() as i32),
-                        footprint,
-                    )
-                })
-                .unwrap();
-            (object.index, (*id).to_owned(), contact)
-        })
-        .collect();
-    // Guests finish non-food activities on the actual plating completion tick.
-    // This leaves the scheduler, invitation, collection and payout paths intact.
-    let mut guest = 0;
-    for person in &mut saved.world.entities {
-        if person.agent {
-            person.needs = Some(*hungry.as_slice());
-            if person.index != cook {
-                let (station, object, contact) = &stations[guest];
-                person.position = Some(terri_core::save::SavedPosition {
-                    x: contact.0 as f32,
-                    y: contact.1 as f32,
-                });
-                person.path = None;
-                person.target = Some(terri_core::save::SavedTarget {
-                    object: *station,
-                    interaction: 0,
-                });
-                person.eating = Some(terri_core::save::SavedEating {
-                    object: object.clone(),
-                    interaction: 0,
-                    remaining_ticks: 1,
-                });
-                person.socialising = None;
-                person.conversation_voice = None;
-                person.chain = None;
-                person.step_work_ticks = None;
-                person.carrying = None;
-                person.intents = None;
-                person.wander_pause_ticks = None;
-                person.restless = false;
-                person.blocked = false;
-                person.reserved = false;
-                person.fumbled_delta_scale = None;
-                guest += 1;
-            }
-        }
-    }
-    let occupied: Vec<_> = saved
+    let mut household = support::capture(&sim);
+    for person in support::v5_mut(&mut household)
         .world
         .entities
+        .iter_mut()
+        .filter(|person| person.agent)
+    {
+        person.needs.as_mut().unwrap()[NeedId::Hunger.index()] = 30.;
+    }
+    sim.load_snapshot_v16(household).unwrap();
+    sim.tick();
+    let snapshot = support::capture(&sim);
+    let mut expected_guests: Vec<_> = people.iter().skip(1).map(|(_, id)| *id).collect();
+    expected_guests.sort_unstable();
+    let five = &snapshot
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy;
+    let meal = five
+        .domestic
+        .as_ref()
+        .unwrap()
+        .meals
         .iter()
-        .filter_map(|entity| entity.target.map(|target| target.object))
-        .collect();
-    for entity in &mut saved.world.entities {
-        if entity.smart_object.is_some() {
-            entity.reserved = occupied.contains(&entity.index);
+        .find(|meal| meal.cook == cook_id)
+        .expect("real plating must invite the hungry friends");
+    assert_eq!(meal.guests, expected_guests);
+    let meal_tick = meal.tick;
+    // Retain the just-plated scene; independently prove its invited friends collect food.
+    let mut continuation = Sim::new_from_shipped_lot();
+    continuation.load_snapshot_v16(snapshot).unwrap();
+    let mut collected = std::collections::BTreeSet::new();
+    for _ in 0..300 {
+        continuation.tick();
+        let state = continuation.save_snapshot_v16();
+        let five = &state
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy;
+        if let Some(meal) = five
+            .domestic
+            .as_ref()
+            .unwrap()
+            .meals
+            .iter()
+            .find(|meal| meal.cook == cook_id && meal.tick == meal_tick)
+        {
+            collected.extend(meal.collected.iter().copied());
+        }
+        if expected_guests
+            .iter()
+            .all(|guest| collected.contains(guest))
+        {
+            break;
         }
     }
-    sim.load_snapshot_v5(saved).unwrap();
-    sim.tick();
-    let mut bytes = Vec::from(SAVE_MAGIC);
-    bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
-    bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v10()).unwrap());
-    std::fs::write(&path, bytes).unwrap();
+    assert!(
+        expected_guests
+            .iter()
+            .all(|guest| collected.contains(guest)),
+        "all invited friends must collect through normal dining"
+    );
+    std::fs::write(&path, support::encode(&sim)).unwrap();
     println!("Saved a plated meal with three hungry friends ready to collect it to {path}");
 }

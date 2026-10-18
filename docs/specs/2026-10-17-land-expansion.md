@@ -41,10 +41,13 @@ prices rounded up, funds rounded down.
    origin, and every coordinate in the world moves by the strip's depth: the
    grid's blocked tiles and edge barriers, every entity's position, every
    path step, every wall edge, window and painted floor, every chore cell,
-   patch and traffic count, every room id (a room's id is its lowest cell in
-   row order, and a translation keeps that order), every diner's endpoint,
+   patch and traffic count, room membership tiles and anchors, every diner's endpoint,
    and the content-derived house and front door, including the landing the
-   walk home from work ends on.
+   walk home from work ends on. Stable room IDs, names and duty owners do not
+   change because the coordinate frame moves. Outside remains one shared room.
+   Historical room seeds are translated only under their frozen save semantics;
+   current IDs are not tile indexes. The [room identity spec](2026-10-17-room-identities.md)
+   owns matching and the final Confirm reconciliation.
    The world keeps a `LotFrame` resource, `{ origin: (x, y) }`, the tile where
    the content lot's north-west corner now stands; the house rectangle is
    `origin + content house size`, the front door and its landing are
@@ -97,10 +100,13 @@ prices rounded up, funds rounded down.
    above. Buy opens a dialog that repeats the total and asks the player to
    confirm the land purchase; only Confirm in that dialog sends the command.
    With too little money the strip can still be picked and read, and the
-   dialog offers only Cancel. The purchase joins the build draft: Cancel at
-   the bottom of Build mode, or Discard changes when leaving it, before
-   Confirm restores the old lot, funds and purchased total through the build
-   session's baseline, and Confirm keeps them.
+   dialog offers only Cancel. The purchase joins the build draft: Cancel or
+   Discard changes in the exit dialog before Confirm restores the old lot, funds and purchased total
+   through the native transaction's confirmed baseline, and Confirm keeps them.
+   A west or north purchase translates the confirmed room selection into the
+   draft frame. Room membership and chore consequences are reconciled only
+   when the whole Build batch is confirmed. Saving during the draft writes
+   the confirmed baseline.
 9. **Save.** Schema thirteen appends to the schema-twelve envelope: the lot
    frame origin, the purchased area, and funds in cents. The schema-one
    funds field keeps the whole dollars (rounded down) so every frozen reader
@@ -128,9 +134,10 @@ dollars. The price of furniture is unchanged; only its display rounds.
 
 Simulation tests grow the shipped lot on each side and check the grid, the
 frame, the house, the front door, the street exit, every entity's position,
-every path, wall, window, floor, chore cell, room id, patch and diner
+every path, wall, window, floor, chore cell, room membership tile, anchor, patch and diner
 endpoint against the same world translated by hand, that records keyed by a
-person or an object keep their ids, that the shell blocks between house and
+person or an object keep their ids, that stable room IDs, names and duty owners
+survive translation, that the shell blocks between house and
 new land, that lot edits still find the layout they expect and that the
 Walls tool and the Room tool refuse a doorway on the shell, that the walk
 home from work ends on the moved landing, and that the moved world ticks

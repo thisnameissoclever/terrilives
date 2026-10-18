@@ -1,0 +1,38 @@
+{
+  "cleaning_animation_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\cleaning_animation_review.exe",
+    "sha256": "3c43eaab055f16adbe7e751cc0bf40c5c5ceb005bd6e028b644727d6afe2a1f4"
+  },
+  "fixture_depth_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\fixture_depth_review.exe",
+    "sha256": "87b0a95c512ef5556125618a23522c2fc68c5faf1c133838da8c18995f3c71a5"
+  },
+  "creator_contact_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\creator_contact_review.exe",
+    "sha256": "f65c6e992b257a4078d69c0f160712d67b023f10041688b84175a4116af3b0c2"
+  },
+  "domestic_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\domestic_review.exe",
+    "sha256": "c3bc18b412d12a1711f264705db54e25fa68a5d11b03379e4be2b479626c5367"
+  },
+  "relationship_qa": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\relationship_qa.exe",
+    "sha256": "6237022dd102b53f40b4a89e513f674ea14bf62f40a2904e4b653a31cc037b21"
+  },
+  "targeted_cleanup_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\targeted_cleanup_review.exe",
+    "sha256": "c02bf9e0006f0c45c2daf2b85e3664ad33e70960d431b3d0f4e1e527c0535948"
+  },
+  "chores_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\chores_review.exe",
+    "sha256": "91ba8a43ab0dd73279e9153aabeedc1d2da4414cef2224a367612ce5696ac439"
+  },
+  "conversation_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\conversation_review.exe",
+    "sha256": "a59dc599ae06dc56bb75fb43d0e7c1e97f9a7d22d2e5a51821a37f6ba9a3e26a"
+  },
+  "migrate_chores_preview": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\migrate_chores_preview.exe",
+    "sha256": "affd1d87c35f414c9307e8db70923ee42f4a5c2227965be1d6247b6624d714b6"
+  }
+}

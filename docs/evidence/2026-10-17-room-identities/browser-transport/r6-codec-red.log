@@ -1,0 +1,27 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/room-codec.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/room-codec.test.ts [ tests/room-codec.test.ts ]
+Error: Cannot find module '../src/rooms/codec.js' imported from D:/VIBES/.worktrees/f19a/terrilives/web/tests/room-codec.test.ts
+ ❯ tests/room-codec.test.ts:2:1
+      1| import { expect, it } from 'vitest';
+      2| import { decodeBuildReview, decodeRoomSummary, encodeRoomChoices, enco…
+       | ^
+      3|
+      4| const wide = { session: 9007199254740993n, revision: 9007199254740995n…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  21:51:28
+   Duration  152ms (transform 42ms, setup 29ms, import 0ms, tests 0ms, environment 0ms)

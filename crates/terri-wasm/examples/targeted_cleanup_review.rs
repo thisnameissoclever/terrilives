@@ -1,8 +1,7 @@
 //! Saved household for playing and inspecting targeted dish cleanup.
-use terri_core::{
-    save::{SavedDining, SavedDishes, SavedDomestic},
-    SAVE_MAGIC, SAVE_SCHEMA_VERSION,
-};
+#[path = "support/mod.rs"]
+mod support;
+use terri_core::save::{SavedDining, SavedDishes, SavedDomestic};
 use terri_sim::Sim;
 
 fn main() {
@@ -10,7 +9,8 @@ fn main() {
         .nth(1)
         .expect("provide the output save path");
     let mut sim = Sim::new_from_shipped_lot();
-    let mut saved = sim.save_snapshot_v5();
+    let mut household = sim.save_snapshot_v16();
+    let saved = support::v5_mut(&mut household);
     let table = saved
         .world
         .entities
@@ -83,10 +83,8 @@ fn main() {
         settings: vec![(0, 0), (1, 1), (2, 0)],
         ..Default::default()
     });
-    sim.load_snapshot_v5(saved)
+    sim.load_snapshot_v16(household)
         .expect("the played fixture must be a valid save");
-    let mut bytes = SAVE_MAGIC.to_vec();
-    bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
-    bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v10()).unwrap());
+    let bytes = support::encode(&sim);
     std::fs::write(path, bytes).expect("write the review fixture");
 }

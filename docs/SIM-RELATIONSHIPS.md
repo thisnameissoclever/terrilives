@@ -167,7 +167,11 @@ can override immediately. Player orders bypass avoidance, exits are permitted,
 and necessary commute routes remain usable. Consequences still apply.
 Domestic station claims and distinct dining seats also constrain privacy detours.
 
-Awake housemates in the same room within four tiles can develop relationships.
+Awake housemates in the same enclosed room within four tiles can develop relationships.
+This membership comes from the shared confirmed room map; the single Outside
+room does not join distant outdoor housemates for passive room effects. Explicit
+shared-device and shared-table participation retains its existing scope across rooms.
+See the [room identity contract](specs/2026-10-17-room-identities.md).
 Positive contact requires acceptable hygiene in the other Sim and no critical
 need in the subject left unhelped by the current activity. Existing dislike or
 relationship mood cannot prevent recovery. Simultaneous reading, exercise and

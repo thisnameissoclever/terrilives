@@ -593,7 +593,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 10; the version 1 decoder and its historical optional sleep-pressure
+use version 15; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -613,6 +613,33 @@ also gated by that legacy match rather than by a name string alone. The next
 incompatible published wire shape must bump the version and make an explicit migration
 decision.
 
+Published V15 wraps V14 with exact conversation ownership. V16 wraps that
+complete V15 payload with room names, stable IDs, canonical
+anchors, and monotonic allocators. Architectural membership is rebuilt from the
+saved walls; it is not duplicated on every object. The envelope version selects
+whether room-bearing integers mean historical region seeds or stable identities.
+Historical loads validate their original meanings before conversion. Current loads
+install and validate the room registry before dependent visits, chores, and work;
+they do not repair an inconsistent registry. Historical writers refuse a current
+target whose complete membership cannot be represented by the old map.
+
+During Build, the native transaction owns a validated baseline, accepted-command
+journal, pending names, and at most one prepared candidate. Current-schema save
+capture returns the baseline while a draft or review is active. Final geometry and
+dependent work reconcile once during preparation, and an exact session/revision
+token gates adoption. The draft and journal are transient. Browser `BuildSession`
+settles previews and presents controls rather than maintaining another baseline.
+See [room identity and naming](specs/2026-10-17-room-identities.md).
+
+Native reconstruction retains complete conversation requests and exact player-order
+ownership. A request-owned runtime snapshot remaps wait reasons and delays through
+stable person IDs without replacing validated persistent requests. Build Cancel
+uses the latest committed runtime baseline; successful external Load establishes
+a new one. Derived markers are rebuilt and world-specific route caches are cleared.
+West and north land growth translates waiting tiles once. The native `build_dirty`
+query compares authored state, normalized pending names and queued build input
+without flushing, preparing a review, allocating identities or advancing time.
+
 V2 and V3 saves store either explicit cell walls, explicit wall/door edges, or the
 frozen legacy authored-wall presentation. The latter preserves V1 custom
 worlds whose collision bitmap does not identify wall ownership. Loading V2/V3
@@ -630,11 +657,9 @@ An invalid candidate never replaces the running world. V1 and V2 cannot store
 runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
-bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
-`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
-`terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin`,
-`terri-save-1.v7-backup.bin`, `terri-save-1.v8-backup.bin`, or `terri-save-1.v9-backup.bin`, according to its
-source version. It never replaces an existing recovery file. A backup
+bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
+15. A V15 primary therefore receives `terri-save-1.v15-backup.bin` before the first
+V16 overwrite. The earlier V14 recovery file remains intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -647,7 +672,9 @@ a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
-V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header. The storage writer and load-status controller share the current
+V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
+Frozen V10 through V15 workers also refuse a newer primary; the published V15 fixture refuses
+V16 before writing the room format. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -927,7 +954,7 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles and carpet; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
+Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles, carpet and Outdoor patio; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Outdoor patio appends covering ID 4 without changing IDs 1-3. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
 
 Whole windows store a model and canonical start in appended layout variants. The nine models span one, two or three lines on either axis. Historical window lines decode as Sash placements. Shared validation handles fit, replacement, removal, Room edits and load; it rejects partial spans, junctions, overlap and coordinate overflow before committing layout/grid changes. Historical command and layout encodings remain unchanged. The bridge exposes whole-window preview/result APIs while preserving the old expanded-line getter.
 
@@ -1723,19 +1750,22 @@ work. Serving, resumption and queue display use the same ownership distinction.
 The published V5 skill and affinity fields follow dining. Targeted cleanup, `SavedChores`
 and `SavedGrime` append after that published tail in this order.
 `SavedChores` follows targeted cleanup.
-It owns indoor grime, surface grime, bin contents and pending unbinned waste,
+It owns indoor and outdoor tile grime, surface grime, bin contents and pending unbinned waste,
 permanent-SimId profiles, scoped order records, timed work, weekly assignments,
 daily decisions and settled outcomes. Its separate seeded random stream,
 allocators and all future-affecting state enter deterministic hashing. Historical
 nested save records and ordinary intent encodings remain unchanged.
 
 The chores scheduler runs through normal ticks. Floor work captures reachable
-dirty cells in one architectural room; surface and bin work claim one real
+dirty eligible cells in one confirmed room or shared Outside; surface and bin work claim one real
 object and approach its footprint through the existing path mover. ChoreWork
 suppresses ordinary autonomous selection while work is active. Other orders
 and urgent needs can suspend work; cancellation releases its owned path and
-marker. Room edits cancel invalid floor plans. Object movement refreshes
-contacts, and selling a bin moves its contents to unbinned waste. Load validation
+marker. Final Build confirmation reconciles remaining work against accepted geometry,
+retaining valid progress and replanning changed targets without construction credit
+or neglect. Removing a covering preserves dormant dirt. Outdoor counters and tables
+remain cleanable even on grass; grass and the street receive no floor-cleaning duty.
+Object movement refreshes contacts after adoption, and selling a bin moves its contents to unbinned waste. Load validation
 rejects unsupported work variants and contacts before world adoption.
 
 Weekly assignments balance estimated work and sample chore preferences. Saved

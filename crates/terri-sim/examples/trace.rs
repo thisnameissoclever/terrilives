@@ -52,6 +52,18 @@ mod catalogue_meals;
 #[path = "trace/relationships.rs"]
 mod relationships;
 
+/// Read catalogue fields from current capture, without historical room projection.
+fn current_catalogue_state(sim: &Sim) -> terri_core::SaveSnapshotV6 {
+    sim.save_snapshot_v16()
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+}
+
 struct Interaction {
     /// Index into the `sims` vec, so per-sim and aggregate views come off
     /// one list rather than two that could disagree.
@@ -255,7 +267,7 @@ fn main() {
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
 
-        let saved_requests = sim.save_snapshot_v15().conversation_requests;
+        let saved_requests = sim.save_snapshot_v16().legacy.conversation_requests;
         let now = sim.world().resource::<terri_core::SimClock>().tick;
         let mut current_requests = BTreeMap::new();
         for request in saved_requests.requests {
@@ -470,7 +482,7 @@ fn main() {
                                 row.relief_masks.get(row.chosen),
                             )
                         });
-                    let saved = sim.save_snapshot_v15();
+                    let saved = sim.save_snapshot_v16().legacy;
                     let shifts = &saved
                         .legacy
                         .legacy

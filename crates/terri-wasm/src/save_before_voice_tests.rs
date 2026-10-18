@@ -18,25 +18,22 @@ fn actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved() {
         handle.load_bytes(&bytes),
         "the screenshot's old save must load"
     );
-    let restored = handle.sim.save_snapshot_v5();
+    let restored = handle.sim.current_v5_view();
     assert_eq!(restored.world.tick, 157);
     assert_eq!(restored.world.entities.len(), 37);
     let people: Vec<_> = restored.world.entities.iter().filter(|e| e.agent).collect();
     assert_eq!(people.len(), 3);
     assert!(people.iter().all(|e| e.conversation_voice.is_none()));
     let current = handle.save_bytes();
-    assert_eq!(&current[8..10], &[15, 0]);
+    let _ = decode_current(&current);
     let mut resumed = SimHandle::from_lot();
     assert!(resumed.load_bytes(&current));
-    assert_eq!(resumed.sim.save_snapshot_v5(), restored);
+    assert_eq!(resumed.sim.current_v5_view(), restored);
     for _ in 0..300 {
         handle.tick();
         resumed.tick();
     }
-    assert_eq!(
-        handle.sim.save_snapshot_v5(),
-        resumed.sim.save_snapshot_v5()
-    );
+    assert_eq!(handle.sim.current_v5_view(), resumed.sim.current_v5_view());
 }
 
 #[test]
@@ -121,7 +118,7 @@ fn pre_voice_decoder_accepts_complete_rows_with_a_present_empty_tail() {
     assert_eq!(decoded.entities.len(), 37);
     let mut handle = SimHandle::from_lot();
     assert!(handle.load_bytes(&bytes));
-    assert_eq!(handle.sim.save_snapshot_v5().world.tick, 157);
+    assert_eq!(handle.sim.current_v5_view().world.tick, 157);
 }
 
 #[test]

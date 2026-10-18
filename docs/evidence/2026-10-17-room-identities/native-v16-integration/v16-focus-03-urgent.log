@@ -1,0 +1,7 @@
+
+running 3 tests
+test mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis ... ok
+test reading::tests::crisis_reading_samples_the_concrete_plan_it_classifies ... ok
+test social_episode::tests::decision_tests::crisis_probability_limits_hold_at_every_instinct_anchor_with_death_on_or_off ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1605 filtered out; finished in 1.50s

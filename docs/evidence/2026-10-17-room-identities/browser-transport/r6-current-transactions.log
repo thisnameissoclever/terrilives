@@ -1,0 +1,41 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-3eba8eb593be4501.exe)
+
+running 35 tests
+test books::command_tests::build_transaction_book_transfers_preserve_drain_boundaries ... ok
+test build_transaction::cases::a_token_from_another_sim_or_new_household_cannot_adopt_a_candidate ... ok
+test build_transaction::cases::cancel_exit_back_and_consecutive_batches_keep_the_correct_baseline ... ok
+test build_transaction::cases::dirty_query_is_semantic_pure_and_preserves_prepared_tokens ... ok
+test build_transaction::cases::every_public_snapshot_writer_reads_the_committed_baseline ... ok
+test build_transaction::cases::failed_loaded_command_settlement_keeps_the_existing_build_and_queue ... ok
+test build_transaction::cases::failed_review_projection_preserves_existing_preparation_and_runtime ... ok
+test build_transaction::cases::failed_submit_does_not_drain_a_queued_accepted_edit ... ok
+test build_transaction::cases::loaded_pending_commands_settle_before_the_fresh_build_baseline ... ok
+test build_transaction::cases::mixed_journal_replays_books_furniture_floor_money_and_land_exactly ... ok
+test build_transaction::cases::no_net_and_rename_confirm_preserve_admitted_stale_group_need ... ok
+test build_transaction::cases::no_net_change_keeps_admitted_retired_registry_and_allocators_exact ... ok
+test build_transaction::cases::ordinary_construction_allocator_failure_is_atomic_and_reported ... ok
+test build_transaction::cases::paving_grass_reconciles_new_outside_duty_without_new_room_ids ... ok
+test build_transaction::cases::preparation_reports_counter_settlement_failure_without_a_candidate ... ok
+test build_transaction::cases::preparation_reports_reservation_failure_and_invalidates_an_existing_review ... ok
+test build_transaction::cases::preparations_invalidate_prior_choices_and_names_keep_one_outside_identity ... ok
+test build_transaction::cases::prepared_predecessors_preserve_sparse_overlap_and_refusal_atomicity ... ok
+test build_transaction::cases::prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots ... ok
+test build_transaction::cases::rejected_load_replay_and_final_validation_keep_baseline_and_draft ... ok
+test build_transaction::cases::split_remerge_and_lost_review_use_final_token_bound_geometry ... ok
+test build_transaction::cases::temporary_paving_removal_preserves_suspended_work ... ok
+test build_transaction::cases::temporary_wall_removal_preserves_suspended_work ... ok
+test build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit ... ok
+test build_transaction::cases::unchanged_drains_and_blocked_gameplay_do_not_mutate_draft ... ok
+test build_transaction::cases::unchanged_walls_with_moved_counter_reconcile_surface_membership ... ok
+test build_transaction::cases::view_revision_tracks_names_edits_and_adoption_without_failed_operation_churn ... ok
+test build_transaction::ordinary_tests::empty_input_still_clears_sounds_and_refreshes_grouped_work ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_keeps_prior_bed_receipt_after_accepted_construction ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_keeps_unchanged_door_interpolation ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction ... ok
+test build_transaction::ordinary_tests::ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_results ... ok
+test build_transaction::tests::build_transaction_freezes_native_ticks_and_committed_saves ... ok
+test reading::tests::build_transaction_active_shelf_move_uses_trusted_draft_projection ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 1576 filtered out; finished in 1.99s

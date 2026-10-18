@@ -2,7 +2,7 @@
 
 ## Household chores
 
-The local chores implementation adds targeted dish cleanup, indoor floor and
+The local chores implementation adds targeted dish cleanup, eligible indoor and outdoor floor and
 surface grime, bin waste, timed cleaning, separate responsibility and chore
 preferences, and an automatic weekly board with saved daily outcomes. The main
 bottom bar opens Chores, which exposes assignments, recent outcomes, actual performers and profile
@@ -864,9 +864,9 @@ activities such as swimming remain.
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles and Carpet. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
-Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
+Room-wide painting remains separate work. Floor cleaning follows eligible material and lot ownership, as defined in `docs/specs/2026-10-17-room-identities.md`. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for the original material evidence and acceptance limits.
 
 ### [B-windows] Windows admit daylight
 
@@ -900,7 +900,7 @@ Asked for by the owner on 2026-09-22. During play the house's east and south wal
 
 **Status: Complete.**
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision shares contextual actions across all five tools, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision has six Build destinations: Furniture, Walls, Rooms, Buy, Floors and Land. It shares contextual actions where applicable, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
@@ -1141,6 +1141,16 @@ Sims.
 
 **Status: Complete for the room and furniture builder slice; wider build scope remains under [S-build].**
 
+Rooms detects enclosures across the owned lot and lets the player name them in
+Build mode. Select rooms uses the confirmed map; Build room retains rectangular
+construction. Open-plan spaces count as one room, and Outside is one shared room.
+Confirm resolves final boundaries, names, and cleaning duties together, with a
+review for splits, merges, and lost enclosures. Native transactions preserve the
+last confirmed save and unfinished work until adoption. Outdoor flooring and
+surfaces are cleanable, while grass and the street are excluded. Outdoor patio is
+an additional covering. See [room identity and naming](specs/2026-10-17-room-identities.md)
+and [build confirmation](specs/2026-10-13-build-confirmation.md).
+
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
 that commit. The Walls tool shipped in PR 95 at merge `1a90a75`; main's CI
@@ -1179,8 +1189,8 @@ as requested on 2026-09-20. Build pauses the household, selects any
 placed furniture, and previews its destination and supported direction.
 Confirm applies a validated command; Cancel leaves the world unchanged.
 Collision, walls, interaction approaches, active reservations, remaining
-walking routes and the front-door landing are protected. The current Save V5 preserves
-positions, directions and room architecture, retaining older-save support. Keyboard controls and compact
+walking routes and the front-door landing are protected. Current saves preserve
+positions, directions, room architecture and named identities, retaining older-save support. Keyboard controls and compact
 touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in

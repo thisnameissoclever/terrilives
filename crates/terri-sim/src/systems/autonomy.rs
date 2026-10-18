@@ -270,8 +270,9 @@ pub fn grouped_probabilities<K: Eq + Copy>(
 }
 
 /// Per-tick diagnostics only; no simulation choice reads this resource.
-#[derive(bevy_ecs::prelude::Resource, Default)]
+#[derive(bevy_ecs::prelude::Resource, Default, Clone)]
 pub struct DecisionTelemetry(pub Vec<Decision>);
+#[derive(Clone)]
 pub struct Decision {
     pub agent: u32,
     pub instinct: u8,

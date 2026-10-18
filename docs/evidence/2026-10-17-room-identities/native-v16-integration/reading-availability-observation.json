@@ -1,0 +1,44 @@
+[
+  {
+    "phase": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-wasm/examples/relationship_qa.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-reading-alt1-observation-format.log",
+    "finished_utc": "2026-10-18T02:46:48.619377+00:00"
+  },
+  {
+    "phase": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-reading-alt1-observation-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-reading-alt1-observation-fingerprint.log",
+    "finished_utc": "2026-10-18T02:46:49.274410+00:00"
+  },
+  {
+    "phase": "run",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "terri-wasm",
+      "--example",
+      "relationship_qa",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      ".local-build/current-reading-v16-alt1-observation"
+    ],
+    "exit_code": 101,
+    "log": ".local-build\\v16-reading-alt1-observation-run.log",
+    "finished_utc": "2026-10-18T02:46:52.052061+00:00"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "sourceRevision": "684707b3917b73d8e2fa5d65a58adf6691f0ca63",
+  "producerWasmSha256": "cc346229433593864f06caf1056379f4324c321d4cbbbd681abad6a25bdb92d8",
+  "producer": "Unmodified original schema14 release WebAssembly; additional fixtures captured before rebuilding it",
+  "originalFixtureLimit": "The earlier cleaning-ordered.sav used a SimId as an entity index, so its accepted staging did not create work. Its bytes remain unchanged; these additional fixtures use the live entity mapping.",
+  "records": [
+    {
+      "name": "floor-order-queued.sav",
+      "schema": 14,
+      "length": 5784,
+      "sha256": "d3870b5424e20e2174abd0517dbbe299b840006caa7686193e26b4e587d30f08",
+      "tick": "240",
+      "worldHash": "15237025187642536142",
+      "actions": [
+        "Load original lived.sav at tick240",
+        "Resolve owner SimId 1 to live entity 35",
+        "Stage CleanChoreFirst for entity 35, floor seed 0",
+        "Save before command drain"
+      ],
+      "person": 1,
+      "entity": 35,
+      "target": 0
+    },
+    {
+      "name": "floor-work-active.sav",
+      "schema": 14,
+      "length": 5768,
+      "sha256": "b66e50d7afe6b3f29d822d4037677eaefc0f32e9cbdc706e84858811ee6f5e2d",
+      "tick": "266",
+      "worldHash": "11945667173251220981",
+      "actions": [
+        "Load original lived.sav at tick240",
+        "Resolve owner SimId 1 to live entity 35",
+        "Stage CleanChoreFirst for entity 35, floor seed 0",
+        "Drain commands",
+        "Advance ordinary ticks until real floor-cleaning progress is nonzero"
+      ],
+      "person": 1,
+      "entity": 35,
+      "target": 0,
+      "progress": 41,
+      "actionQueue": [
+        "Clean floor"
+      ]
+    }
+  ]
+}

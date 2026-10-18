@@ -1,0 +1,52 @@
+{
+  "head": "e08c663da8ea4ff4a743b807bb937df5b04377e6",
+  "build_jobs": 1,
+  "test_threads": 1,
+  "complete": true,
+  "checks": [
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-01-format.log",
+      "started_utc": "2026-10-18T03:08:31.623571+00:00",
+      "state": "complete",
+      "pid": 54820,
+      "exit_code": 0,
+      "seconds": 2.06,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "finished_utc": "2026-10-18T03:08:33.685258+00:00"
+    },
+    {
+      "name": "workspace",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--no-fail-fast",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "--test-threads=1"
+      ],
+      "log": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-01-workspace.log",
+      "started_utc": "2026-10-18T03:08:33.685476+00:00",
+      "state": "complete",
+      "pid": 64492,
+      "exit_code": 101,
+      "seconds": 1473.43,
+      "log_sha256": "67b0d550fef750c03586888a52ecbefd0a7451d89fb971c23ab7ddb848b245dc",
+      "finished_utc": "2026-10-18T03:33:07.116045+00:00"
+    }
+  ],
+  "stopped_after_failure": "workspace",
+  "head_unchanged": true,
+  "tree_clean": true,
+  "passed": false
+}

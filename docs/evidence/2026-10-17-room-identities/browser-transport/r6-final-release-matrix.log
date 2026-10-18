@@ -1,0 +1,23 @@
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `release` profile [optimized] target(s) in 49.57s
+     Running unittests src\lib.rs (target\release\deps\terri_wasm-c658c46990d9af98.exe)
+
+running 10 tests
+test browser_rooms::tests::room_transport_chore_tags_are_not_preference_indices ... ok
+test browser_rooms::tests::room_transport_group_and_duty_tags_are_explicit ... ok
+test room_transport_tests::room_transport_current_person_fixture_has_real_work_and_distinct_identity ... ok
+test room_transport_tests::room_transport_duplicate_choices_and_stale_wide_tokens_leave_review_usable ... ok
+test room_transport_tests::room_transport_hostile_lengths_utf8_and_options_preserve_preparation ... ok
+test room_transport_tests::room_transport_keeps_native_baseline_and_rejects_raw_controls_atomically ... ok
+test room_transport_tests::room_transport_leading_bom_is_literal_name_text ... ok
+test room_transport_tests::room_transport_selection_and_predecessors_follow_both_land_offsets ... ok
+test room_transport_tests::room_transport_summary_literal_is_pure_and_outside_zero_is_valid ... ok
+test room_transport_tests::room_transport_wide_token_literal_is_not_rounded ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 299 filtered out; finished in 0.02s
+
+     Running unittests examples\migrate_chores_preview.rs (target\release\examples\migrate_chores_preview-99c8831c04172450.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s

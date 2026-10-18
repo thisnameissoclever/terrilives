@@ -98,7 +98,7 @@ fn book_command_paused_transactions_charge_once_and_refuse_without_mutation() {
 }
 #[test]
 fn book_command_reserved_home_full_fallback_transfer_and_death_recovery() {
-    let (mut sim, person, shelf, _, title) = fixture();
+    let (mut sim, person, shelf, action, title) = fixture();
     issue(
         &mut sim,
         BookCommand::Purchase {
@@ -108,13 +108,16 @@ fn book_command_reserved_home_full_fallback_transfer_and_death_recovery() {
     );
     sim.flush_commands();
     let id = *sim.world().get::<SimId>(person).unwrap();
-    let mut library = sim.world().resource::<BookLibrary>().clone();
-    with_book_world(sim.world(), |context| {
-        library.reserve(BookCopyId(0), id, context)?;
-        library.pick_up(BookCopyId(0), id, context)
-    })
-    .unwrap();
-    sim.world_mut().insert_resource(library);
+    issue(&mut sim, read(person, shelf, &action, &title, true));
+    for _ in 0..1000 {
+        sim.tick();
+        if sim.book_copies()[0].location == BookLocation::Carried(id) {
+            break;
+        }
+    }
+    assert_eq!(sim.book_copies()[0].location, BookLocation::Carried(id));
+    let admitted = sim.save_snapshot_v16();
+    sim.load_snapshot_v16(admitted).unwrap();
     issue(
         &mut sim,
         BookCommand::Purchase {
@@ -146,7 +149,18 @@ fn book_command_reserved_home_full_fallback_transfer_and_death_recovery() {
         sim.take_book_results().last().unwrap().refusal,
         Some("borrowed")
     );
-    super::recover_before_death(sim.world_mut(), person);
+    let threshold = sim.world().resource::<Content>().0.tuning.death_after_ticks;
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Energy, 0.0);
+    sim.world_mut()
+        .resource_mut::<terri_core::save::SavedMortality>()
+        .counts = vec![(person.index_u32(), threshold - 1)];
+    crate::mortality::tick(sim.world_mut());
+    crate::mortality::cleanup(sim.world_mut());
+    crate::chores::prune(sim.world_mut());
+    assert!(sim.world().get_entity(person).is_err());
     assert!(matches!(
         sim.book_copies()[0].location,
         BookLocation::Lot { .. }
@@ -404,6 +418,13 @@ fn book_command_requires_owned_action_and_exhaustion_is_atomic() {
 
 #[test]
 fn book_command_full_transfer_keeps_source_and_later_transfer_preserves_copy_id() {
+    full_transfer(false);
+}
+#[test]
+fn build_transaction_book_transfers_preserve_drain_boundaries() {
+    full_transfer(true);
+}
+fn full_transfer(in_build: bool) {
     let (mut sim, _, shelf, _, title) = fixture();
     let definition = sim.world().get::<SmartObject>(shelf).unwrap().0;
     let grid = sim.world().resource::<terri_core::TileGrid>();
@@ -428,6 +449,9 @@ fn book_command_full_transfer_keeps_source_and_later_transfer_preserves_copy_id(
         );
     }
     sim.flush_commands();
+    if in_build {
+        sim.begin_build().unwrap();
+    }
     let before = sim.save_snapshot_v6();
     issue(
         &mut sim,
@@ -478,6 +502,12 @@ fn book_command_full_transfer_keeps_source_and_later_transfer_preserves_copy_id(
         BookShelfId(shelf.index_u32().into())
     );
     assert!(matches!(copy.location, BookLocation::Shelf(_)));
+    if in_build {
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build(review.token).unwrap();
+    }
 }
 #[test]
 fn book_command_empty_allocator_is_saved_hashed_and_not_reused() {

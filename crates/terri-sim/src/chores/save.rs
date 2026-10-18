@@ -11,7 +11,7 @@ pub(crate) fn restore(
         let grid = world.resource::<terri_core::TileGrid>();
         (grid.width(), grid.height())
     };
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     let issued = world.resource::<terri_core::SimIdAllocator>().issued();
     let now = world.resource::<terri_core::SimClock>().tick;
     let day = now / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
@@ -28,7 +28,10 @@ pub(crate) fn restore(
         || state.episodes.len() > 100_000
         || state.episodes.windows(2).any(|p| p[0].id >= p[1].id)
         || state.episodes.iter().any(|e| {
-            e.id >= state.next_episode
+            (crate::rooms::stable(world)
+                && (e.key.kind == ChoreKind::Floors || e.key.kind.grouped())
+                && !crate::rooms::reference_valid(world, e.key.target))
+                || e.id >= state.next_episode
                 || e.owner >= issued
                 || e.day > day
                 || e.performer.is_some_and(|p| p >= issued)
@@ -96,12 +99,13 @@ pub(crate) fn restore(
         || !valid(&state.bins)
         || state.floors.iter().any(|(cell, _)| {
             *cell as usize >= width * height
-                || rooms
-                    .at((
-                        (*cell as usize % width) as i32,
-                        (*cell as usize / width) as i32,
-                    ))
-                    .is_none()
+                || (!crate::rooms::stable(world)
+                    && rooms
+                        .at((
+                            (*cell as usize % width) as i32,
+                            (*cell as usize / width) as i32,
+                        ))
+                        .is_none())
         })
         || state.profiles.len() > 100_000
         || state

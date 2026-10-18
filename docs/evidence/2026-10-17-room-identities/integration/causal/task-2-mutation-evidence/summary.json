@@ -1,0 +1,42 @@
+{
+  "original_sha256": "943a05e1649a20f9eac1277c64b4f66c3e550765c82fd25e8437989998cb2f98",
+  "restored_sha256": "943a05e1649a20f9eac1277c64b4f66c3e550765c82fd25e8437989998cb2f98",
+  "results": [
+    {
+      "name": "shared-count-reversed",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "caad461fa9ac1f91a481e2dc3b9a259d4047e4e9bfa7379307b12846dbdbc138"
+    },
+    {
+      "name": "retained-fraction-reversed",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "d81efb97545101c6b50c8c0f62660b06db8630f478e1a6e65387151213e266f4"
+    },
+    {
+      "name": "old-id-order-reversed",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "384af155774831c90b7c75d1b1867651f4fb4489c1ee5508b04301e69d31e4ec"
+    },
+    {
+      "name": "anchor-column-before-row",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "096097f7d0590e21501331cdea2fe0371402b1379becb98d5e47b7d425c5f1d1"
+    },
+    {
+      "name": "west-translation-lost",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "f29bd203377894dadc48b1a51165afa6e9f9ef63f808dcb427c909b40ed57249"
+    },
+    {
+      "name": "duplicate-inheritance-allowed",
+      "exit": 101,
+      "killed": true,
+      "mutated_sha256": "2e8e05d7b13933871d9d53be9fbba7c831cb9d26610c4aac2a111ab74b90414f"
+    }
+  ]
+}

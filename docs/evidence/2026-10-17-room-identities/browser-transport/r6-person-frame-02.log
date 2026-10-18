@@ -1,0 +1,24 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.77s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-3eba8eb593be4501.exe)
+
+running 1 test
+test build_transaction::cases::prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots ... FAILED
+
+failures:
+
+---- build_transaction::cases::prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots stdout ----
+
+thread 'build_transaction::cases::prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots' (72084) panicked at crates\terri-sim\src\build_transaction\cases.rs:895:5:
+assertion `left == right` failed
+  left: Some(SimName("Index witness"))
+ right: None
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    build_transaction::cases::prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1609 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

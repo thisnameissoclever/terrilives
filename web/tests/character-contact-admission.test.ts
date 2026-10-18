@@ -14,15 +14,22 @@ it('adopts a prepared load through the build session so cancellation keeps the l
   const main=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
   expect(main).toMatch(/loadPreparedCharacterState\(bytes,\s*buildSession,/);
   const service=new AdmissionTestService(),roster=new CharacterContactRoster(service),appearance=defaultAppearance();
-  let bytes=new Uint8Array([1]),restored=0;
-  const source={saveBytes:()=>bytes.slice(),loadBytes(next:Uint8Array){bytes=next.slice();return true;},clockTick:()=>0,dayTicks:()=>1,flushCommands(){}};
-  const build=new BuildSession(source,{prepare:()=>true,settled:()=>true,restored(){restored++;}});
-  expect(build.begin()).toBe(true);
-  const pending=loadPreparedCharacterState(new Uint8Array([2]),build,()=>({loadBytes:()=>true,
-    characterAppearances:()=>[{entity:1,appearance}],flushCommands(){},free(){}}),roster);
-  expect(source.saveBytes()).toEqual(new Uint8Array([1]));service.finishAll();expect(await pending).toBe(true);
-  expect(build.saveBytes()).toEqual(new Uint8Array([2]));bytes=new Uint8Array([3]);
-  expect(build.cancel()).toBe(true);expect(source.saveBytes()).toEqual(new Uint8Array([2]));expect(restored).toBe(1);roster.dispose();
+  const memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;
+  const handle=SimHandle.from_lot(),incomingHandle=SimHandle.from_lot();
+  try {
+    const source=new SimBridge(handle,memory),incomingSource=new SimBridge(incomingHandle,memory);
+    incomingSource.beginBuild();incomingSource.stageRoomName(0,'Incoming garden');
+    const prepared=incomingSource.prepareBuildCommit();if(!prepared.ok)throw Error('prepare failed');
+    incomingSource.commitBuild(prepared.value.token);const incoming=incomingSource.saveBytes(),before=source.saveBytes();
+    let restored=0;
+    const build=new BuildSession(source,{prepare:()=>true,settled:()=>true,restored(){restored++;}});
+    expect(build.begin()).toBe(true);
+    const pending=loadPreparedCharacterState(incoming,build,()=>({loadBytes:()=>true,
+      characterAppearances:()=>[{entity:1,appearance}],flushCommands(){},free(){}}),roster);
+    expect(source.saveBytes()).toEqual(before);service.finishAll();expect(await pending).toBe(true);
+    expect(build.saveBytes()).toEqual(incoming);source.stageRoomName(0,'Later');
+    expect(build.cancel()).toBe(true);expect(source.saveBytes()).toEqual(incoming);expect(restored).toBe(1);
+  } finally {handle.free();incomingHandle.free();roster.dispose();}
 });
 
 it('keeps the live bytes untouched until candidate contacts are prepared and frees a cancelled candidate',async()=>{

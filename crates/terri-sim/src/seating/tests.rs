@@ -233,6 +233,7 @@ fn secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy() {
 fn nuisance_crossing_zero_keeps_scaled_company_relief_and_chair_comfort() {
     use terri_core::{Affinities, NeedId, Needs, Personality, Relationships, SimId};
     let (mut sim, first, device, _) = fixture_at("television", 5., 3., Facing::SouthWest);
+    crate::test_content::enclose(&mut sim);
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.tuning.relationships.proximity_per_hour = 0.;
     pack.tuning.relationships.friction_per_hour = 0.;
@@ -433,13 +434,13 @@ fn standing_shared_media_saves_preserve_capacity_and_distinct_endpoints() {
             sim.world().get::<Path>(second).unwrap().steps.last(),
             "Standing viewers must claim distinct destinations"
         );
-        let saved = sim.save_snapshot_v5();
+        let saved = sim.current_v5_view();
         assert!(
             saved.dining.as_ref().unwrap().diners.is_empty(),
             "Standing destinations are reconstructed without adding save fields"
         );
         let mut restored = Sim::new_with_lot(16, 16);
-        restored.load_snapshot_v5(saved).unwrap();
+        restored.load_current_v5_view(saved).unwrap();
         for _ in 0..3 {
             sim.tick();
             restored.tick();
@@ -463,7 +464,7 @@ fn standing_shared_media_saves_preserve_capacity_and_distinct_endpoints() {
             ));
         let before = restored.world_hash();
         assert_eq!(
-            restored.load_snapshot_v5(sim.save_snapshot_v5()),
+            restored.load_current_v5_view(sim.current_v5_view()),
             Err(crate::SaveError::InvalidValue)
         );
         assert_eq!(restored.world_hash(), before);
@@ -705,10 +706,10 @@ fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
             "Disliked company still refills Social"
         );
         assert!(social(&sim, first) - before.0 > social(&sim, second) - before.1);
-        let legacy_saved = sim.save_snapshot_v5();
-        let saved = sim.save_snapshot_v10();
+        let legacy_saved = sim.current_v5_view();
+        let saved = sim.current_v10_view();
         let mut replay = Sim::new_with_lot(16, 16);
-        replay.load_snapshot_v10(saved.clone()).unwrap();
+        replay.load_current_v10_view(saved.clone()).unwrap();
         for _ in 0..3 {
             sim.tick();
             replay.tick();
@@ -787,7 +788,7 @@ fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
             .unwrap()
             .endpoint = endpoint;
         let hash = replay.world_hash();
-        assert!(replay.load_snapshot_v5(invalid).is_err());
+        assert!(replay.load_current_v5_view(invalid).is_err());
         assert_eq!(
             replay.world_hash(),
             hash,
@@ -1079,7 +1080,7 @@ fn every_fitted_seat_type_can_supply_a_media_place() {
         );
         assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
         assert!(
-            sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok(),
+            sim.load_current_v5_view(sim.current_v5_view()).is_ok(),
             "{kind} lease must load"
         );
     }
@@ -1182,10 +1183,10 @@ fn television_viewers_fill_every_sofa_seat_and_never_recline() {
         assert_eq!(render.seated_furniture[row], sofa.index_u32());
         assert_eq!(render.seated_whole[row], 0);
     }
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone())
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone())
         .expect("seated viewers beyond the standing count load");
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert_eq!(sim.current_v6_view(), saved);
 }
 
 /// Seats admit viewers beyond the television's standing count, so when those
@@ -1263,8 +1264,8 @@ fn viewers_who_lose_their_seats_stand_only_within_the_television_count() {
         slots.min(seats),
         "viewers keep watching standing up to the television's count, and no further"
     );
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved)
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved)
         .expect("the remaining standing viewers load");
 }
 
@@ -1352,7 +1353,7 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
                 0.,
                 "seated desk work is presentation only and pays no chair Comfort"
             );
-            assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+            assert!(sim.load_current_v5_view(sim.current_v5_view()).is_ok());
             return;
         }
     }
@@ -1551,7 +1552,7 @@ fn cancellation_releases_media_seat_without_advancing_the_clock() {
         chair.index_u32()
     ));
     assert!(sim.world().get::<Target>(person).is_none());
-    assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+    assert!(sim.load_current_v5_view(sim.current_v5_view()).is_ok());
 }
 
 #[test]
@@ -1588,7 +1589,7 @@ fn an_invalidated_viewing_seat_replans_to_another_available_seat() {
         sim.world().get::<Path>(person).unwrap().steps.last(),
         Some(&(5, 4))
     );
-    assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+    assert!(sim.load_current_v5_view(sim.current_v5_view()).is_ok());
 }
 
 #[test]
@@ -1598,13 +1599,13 @@ fn media_seat_restores_during_travel_and_active_use() {
     for tick in 0..120 {
         sim.tick();
         if tick == 0 || sim.world().get::<Eating>(person).is_some() {
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.current_v10_view();
             let hash = sim.world_hash();
             assert!(
-                sim.load_snapshot_v10(snapshot.clone()).is_ok(),
+                sim.load_current_v10_view(snapshot.clone()).is_ok(),
                 "Exact media claims must restore at tick {tick}"
             );
-            assert_eq!(sim.save_snapshot_v10(), snapshot);
+            assert_eq!(sim.current_v10_view(), snapshot);
             assert_eq!(sim.world_hash(), hash);
             if tick > 0 {
                 active = true;
@@ -1781,12 +1782,12 @@ fn standing_media_routes_restore_away_from_the_device_perimeter() {
                 device.index_u32(),
                 endpoint
             ));
-            let saved = sim.save_snapshot_v5();
+            let saved = sim.current_v5_view();
             assert!(
-                sim.load_snapshot_v5(saved.clone()).is_ok(),
+                sim.load_current_v5_view(saved.clone()).is_ok(),
                 "standing tick {tick}"
             );
-            assert_eq!(sim.save_snapshot_v5(), saved);
+            assert_eq!(sim.current_v5_view(), saved);
             if tick > 0 {
                 return;
             }
@@ -1845,10 +1846,10 @@ fn media_lease_cannot_share_a_chair_with_an_ordinary_sitter() {
     });
     let lease = crate::seating::claim(sim.world(), person.index_u32()).unwrap();
     assert!(!crate::media::valid_lease(sim.world(), lease));
-    let snapshot = sim.save_snapshot_v5();
+    let snapshot = sim.current_v5_view();
     let hash = sim.world_hash();
-    assert!(sim.load_snapshot_v5(snapshot.clone()).is_err());
-    assert_eq!(sim.save_snapshot_v5(), snapshot);
+    assert!(sim.load_current_v5_view(snapshot.clone()).is_err());
+    assert_eq!(sim.current_v5_view(), snapshot);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -2139,7 +2140,7 @@ fn ordinary_ottoman_sitting_uses_the_fitted_body_without_a_media_lease() {
                 crate::render_buffer::activity::SITTING
             );
             assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
-            assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+            assert!(sim.load_current_v5_view(sim.current_v5_view()).is_ok());
             return;
         }
     }
@@ -2255,9 +2256,9 @@ fn physical_sofa_admits_three_travelling_sitters_and_refuses_fourth() {
     assert!(people[..3]
         .iter()
         .all(|p| sim.world().get::<Path>(*p).is_some()));
-    let saved = sim.save_snapshot_v6();
-    assert!(sim.load_snapshot_v6(saved.clone()).is_ok());
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    assert!(sim.load_current_v6_view(saved.clone()).is_ok());
+    assert_eq!(sim.current_v6_view(), saved);
 }
 
 /// The autonomy pass must record each seat as it is claimed, so Sims choosing
@@ -2412,10 +2413,10 @@ fn physical_sitting_round_trips_and_a_missing_claim_rolls_back() {
     let chair = sim.spawn_object(Position { x: 5., y: 5. }, pack.find("armchair").unwrap());
     let person = sitter(&mut sim, chair, 0);
     sim.tick();
-    let good = sim.save_snapshot_v6();
-    assert!(sim.load_snapshot_v6(good.clone()).is_ok());
+    let good = sim.current_v6_view();
+    assert!(sim.load_current_v6_view(good.clone()).is_ok());
     assert!(sim.world().get::<Path>(person).is_some());
-    assert_eq!(sim.save_snapshot_v6(), good);
+    assert_eq!(sim.current_v6_view(), good);
     assert_eq!(good.seats.len(), 1);
     let hash = sim.world_hash();
     let mut missing = good.clone();
@@ -2436,8 +2437,8 @@ fn physical_sitting_round_trips_and_a_missing_claim_rolls_back() {
         .unwrap()
         .reserved = false;
     for corrupt in [missing, unknown, duplicate, wrong_target, unreserved] {
-        assert!(sim.load_snapshot_v6(corrupt).is_err());
-        assert_eq!(sim.save_snapshot_v6(), good);
+        assert!(sim.load_current_v6_view(corrupt).is_err());
+        assert_eq!(sim.current_v6_view(), good);
         assert_eq!(sim.world_hash(), hash);
     }
 }
@@ -2627,13 +2628,13 @@ fn physical_published_media_lease_migrates_to_stable_current_seat() {
     current
         .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(saved)))
         .unwrap();
-    let claims = current.save_snapshot_v6().seats;
+    let claims = current.current_v6_view().seats.clone();
     assert_eq!(claims.len(), 1);
     assert_eq!(claims[0].seat, "seat");
     assert_eq!(claims[0].furniture, chair.index_u32());
-    let saved = current.save_snapshot_v6();
-    assert!(current.load_snapshot_v6(saved.clone()).is_ok());
-    assert_eq!(current.save_snapshot_v6(), saved);
+    let saved = current.current_v6_view();
+    assert!(current.load_current_v6_view(saved.clone()).is_ok());
+    assert_eq!(current.current_v6_view(), saved);
 }
 
 #[test]
@@ -2663,15 +2664,15 @@ fn physical_media_and_ordinary_users_share_distinct_sofa_places() {
             .count(),
         2
     );
-    let good = sim.save_snapshot_v6();
+    let good = sim.current_v6_view();
     assert_eq!(good.seats.len(), 3);
     let mut duplicate = good.clone();
     duplicate.seats[1].seat = duplicate.seats[0].seat.clone();
-    assert!(sim.load_snapshot_v6(duplicate).is_err());
-    assert_eq!(sim.save_snapshot_v6(), good);
+    assert!(sim.load_current_v6_view(duplicate).is_err());
+    assert_eq!(sim.current_v6_view(), good);
     let hash = sim.world_hash();
-    sim.load_snapshot_v6(good.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), good);
+    sim.load_current_v6_view(good.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), good);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -2693,14 +2694,14 @@ fn physical_claims_survive_entity_generation_reuse_and_seat_definition_reorderin
         .unwrap() as u32;
     let people: Vec<_> = (0..3).map(|_| sitter(&mut sim, sofa, sit)).collect();
     sim.tick();
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let hash = sim.world_hash();
     let mut changed = pack.clone();
     changed.objects[def.0 as usize].seats.reverse();
     let changed = Box::leak(Box::new(changed));
     sim.world_mut().insert_resource(Content(changed));
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.world_hash(), hash);
     for _ in 0..180 {
         if people
@@ -2728,9 +2729,9 @@ fn physical_claims_survive_entity_generation_reuse_and_seat_definition_reorderin
                 })
                 .collect();
             assert_eq!(positions.len(), 3);
-            let active = sim.save_snapshot_v6();
-            sim.load_snapshot_v6(active.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v6(), active);
+            let active = sim.current_v6_view();
+            sim.load_current_v6_view(active.clone()).unwrap();
+            assert_eq!(sim.current_v6_view(), active);
             return;
         }
         sim.tick();
@@ -2756,10 +2757,10 @@ fn regression_stale_seat_release_preserves_a_reused_person_generation() {
             .furniture,
         chair
     );
-    let before = sim.save_snapshot_v6();
+    let before = sim.current_v6_view();
     let hash = sim.world_hash();
     crate::reservations::release_now(sim.world_mut(), person, old_target);
-    assert_eq!(sim.save_snapshot_v6(), before);
+    assert_eq!(sim.current_v6_view(), before);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -2819,9 +2820,9 @@ fn media_users_on_distinct_sofa_seats_share_one_approach() {
     seats.sort();
     seats.dedup();
     assert_eq!(seats.len(), 3, "sharing an approach never shares a seat");
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
 }
 
 #[test]

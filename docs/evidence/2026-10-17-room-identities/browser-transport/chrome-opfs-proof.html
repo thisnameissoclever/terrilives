@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8"><title>R6 isolated room proof</title><p>Room transport and OPFS proof. No game loop or audio.</p>
+<script type="module">
+import init,{SimHandle} from '/src/wasm/terri_wasm.js';
+import {SimBridge} from '/src/bridge.ts';
+const {memory}=await init();
+const equal=(a,b)=>a.length===b.length&&a.every((n,i)=>n===b[i]);
+const must=(condition,label)=>{if(!condition)throw Error(label);};
+const val=r=>{must(r.ok,'native result '+JSON.stringify(r,(_,v)=>typeof v==='bigint'?String(v):v));return r.value;};
+const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+const original=await navigator.storage.getDirectory();
+const owned=[];
+async function file(dir,name){try{return new Uint8Array(await (await dir.getFileHandle(name)).getFile().then(f=>f.arrayBuffer()));}catch(e){if(e.name==='NotFoundError')return null;throw e;}}
+async function seed(dir,name,bytes){const stream=await (await dir.getFileHandle(name,{create:true})).createWritable();await stream.write(bytes);await stream.close();}
+const workers=[];
+async function connect(directory,version='current',fault=null){
+ const source=version==='current'?'/src/storage/save-worker.ts':`/tests/fixtures/v${version}-worker/save-worker.ts`;
+ const code=`const root=await navigator.storage.getDirectory();const dir=await root.getDirectoryHandle(${JSON.stringify(directory)},{create:true});Object.defineProperty(navigator.storage,'getDirectory',{value:async()=>dir});
+ const fault=${JSON.stringify(fault)},trace=[];const create=FileSystemFileHandle.prototype.createWritable;
+ FileSystemFileHandle.prototype.createWritable=async function(options){const name=this.name;trace.push('open '+name);if(fault?.file===name&&fault.phase==='open')throw Error('R6 injected open failure');const stream=await create.call(this,options);const write=stream.write.bind(stream),close=stream.close.bind(stream);
+ stream.write=async function(bytes){if(fault?.file===name&&fault.phase==='write')throw Error('R6 injected write failure');await write(bytes);trace.push('write '+name);};
+ stream.close=async function(){if(fault?.file===name&&fault.phase==='close')throw Error('R6 injected close failure');await close();trace.push('close '+name);};return stream;};
+ const post=self.postMessage.bind(self);self.postMessage=(m,t)=>post({...m,trace:[...trace]},t);await import(${JSON.stringify(location.origin+source)});post({ready:true});`;
+ const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));const worker=new Worker(url,{type:'module'});workers.push(worker);
+ await new Promise((resolve,reject)=>{worker.onmessage=e=>e.data.ready&&resolve();worker.onerror=e=>reject(Error(e.message));});URL.revokeObjectURL(url);
+ let id=0;return (kind,bytes)=>new Promise((resolve,reject)=>{const n=++id;const timeout=setTimeout(()=>reject(Error('worker timeout')),15000);worker.onmessage=e=>{if(e.data.id===n){clearTimeout(timeout);resolve(e.data);}};worker.postMessage({id:n,kind,...(bytes?{bytes:bytes.slice().buffer}:{})});});
+}
+window.runRoomProof=async()=>{
+ const report={browser:navigator.userAgent,secure:isSecureContext,opfs:!!navigator.storage.getDirectory,locks:!!navigator.locks,cases:[]};
+ report.module_sha256=await digest(new Uint8Array(await (await fetch('/src/wasm/terri_wasm_bg.wasm')).arrayBuffer()));
+ const h=SimHandle.from_lot(),sim=new SimBridge(h,memory),gold=new SimHandle(24,24);
+ try {
+   gold.spawn_object(18,14,'fridge');for(let i=0;i<8;i++)gold.spawn_agent(1+i,1,30+5*i);for(let i=0;i<100;i++)gold.tick();report.golden=String(gold.world_hash());must(report.golden==='4661132544113609906','Chrome golden');
+   const before=sim.saveBytes();val(sim.beginBuild());val(sim.stageRoomName(0,'\uFEFFLiteral'));const bom=val(sim.prepareBuildCommit());must(bom.rooms[0].name==='\uFEFFLiteral'&&val(sim.roomSummaries()).rooms[0].name==='\uFEFFLiteral','Chrome literal BOM');val(sim.cancelBuild());must(!sim.commitBuild(bom.token).ok,'old BOM token after Cancel');report.bom_literal_preserved=true;
+   val(sim.stageRoomName(0,'Garden'));const review=val(sim.prepareBuildCommit());must(equal(sim.saveBytes(),before),'Chrome native committed capture');val(sim.commitBuild(review.token));const next=sim.saveBytes();must(sim.buildActive()&&!sim.buildDirty(),'Chrome session after commit');
+   const previous=new Uint8Array(await (await fetch('/.scratch/r6-v15.sav')).arrayBuffer()),v14=new Uint8Array(await (await fetch('/.scratch/r6-v14.sav')).arrayBuffer());
+   must(previous[8]===15&&v14[8]===14&&next[8]===16,'real source schemas');
+   report.artifacts={v15:await digest(previous),v14:await digest(v14),current:await digest(next)};
+   async function directory(label){const name='r6-'+label+'-'+crypto.randomUUID();owned.push(name);return {name,dir:await original.getDirectoryHandle(name,{create:true})};}
+   for(const historical of [14,15]) {
+     const {name,dir}=await directory('backup'+historical),bytes=historical===14?v14:previous;
+     await seed(dir,'terri-save-1.bin',bytes);if(historical===15)await seed(dir,'terri-save-1.v14-backup.bin',v14);
+     const request=await connect(name),result=await request('save',next);must(result.ok,'first write');must(equal(await file(dir,`terri-save-1.v${historical}-backup.bin`),bytes),'exact backup');
+     must(result.trace.indexOf(`close terri-save-1.v${historical}-backup.bin`)<result.trace.indexOf('open terri-save-1.bin'),'backup closes first');
+     const cached=await connect(name,historical);must(!(await cached('save',bytes)).ok,'old writer refusal');must(equal(await file(dir,'terri-save-1.bin'),next),'old writer kept current');
+     must((await request('save',next)).ok,'repeat write');must((await request('clear')).ok,'New game');must(await file(dir,'terri-save-1.bin')===null,'primary cleared');must(equal(await file(dir,`terri-save-1.v${historical}-backup.bin`),bytes),'backup after New game');if(historical===15)must(equal(await file(dir,'terri-save-1.v14-backup.bin'),v14),'older backup retained');
+     report.cases.push({kind:'first-repeat-oldworker-Newgame',historical,passed:true});
+   }
+   for(const target of ['backup','primary'])for(const phase of ['open','write','close']) {
+     const {name,dir}=await directory(target+phase);await seed(dir,'terri-save-1.bin',previous);
+     const filename=target==='backup'?'terri-save-1.v15-backup.bin':'terri-save-1.bin';const request=await connect(name,'current',{file:filename,phase});must(!(await request('save',next)).ok,'injected refusal');must(equal(await file(dir,'terri-save-1.bin'),previous),'failure retained primary');
+     const backup=await file(dir,'terri-save-1.v15-backup.bin');must(target==='backup'?backup===null:equal(backup,previous),'failure backup state');
+     const retry=await connect(name);must((await retry('save',next)).ok,'retry');must(equal(await file(dir,'terri-save-1.v15-backup.bin'),previous),'retry backup exact');must(equal(await file(dir,'terri-save-1.bin'),next),'retry primary');report.cases.push({kind:'fault',target,phase,passed:true});
+   }
+   {const {name,dir}=await directory('malformed');await seed(dir,'terri-save-1.bin',previous);await seed(dir,'terri-save-1.v15-backup.bin',new Uint8Array());const request=await connect(name);must(!(await request('save',next)).ok,'malformed backup refusal');must(equal(await file(dir,'terri-save-1.bin'),previous),'malformed kept primary');must((await file(dir,'terri-save-1.v15-backup.bin')).length===0,'malformed unchanged');report.cases.push({kind:'malformed-backup',passed:true});}
+   {const {name,dir}=await directory('concurrent');await seed(dir,'terri-save-1.bin',previous);const a=await connect(name),b=await connect(name);val(sim.stageRoomName(0,'Second'));const r=val(sim.prepareBuildCommit());val(sim.commitBuild(r.token));const second=sim.saveBytes();must(!equal(next,second),'different real saves');const results=await Promise.all([a('save',next),b('save',second)]);must(results.every(r=>r.ok),'concurrent writes');must(equal(await file(dir,'terri-save-1.v15-backup.bin'),previous),'concurrent exact backup');const primary=await file(dir,'terri-save-1.bin');must(equal(primary,next)||equal(primary,second),'concurrent whole save');report.cases.push({kind:'concurrent-workers',passed:true});}
+   report.passed=true;return report;
+ } finally {h.free();gold.free();for(const worker of workers)worker.terminate();for(const name of owned)await original.removeEntry(name,{recursive:true});}
+};
+window.ready=true;
+</script>

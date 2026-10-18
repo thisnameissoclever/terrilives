@@ -8,6 +8,7 @@ mod activity_tests;
 pub mod affinity;
 pub mod beds;
 pub mod books;
+pub mod build_transaction;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
 pub mod careers;
@@ -55,6 +56,7 @@ mod reservations;
 #[cfg(test)]
 mod reservations_tests;
 mod room_regions;
+pub mod rooms;
 mod save;
 mod seating;
 mod shyness;
@@ -1197,15 +1199,24 @@ impl SnapshotSource<'_> {
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v15` for complete persistence of a current world.
+    /// Use `save_snapshot_v16` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
-        save::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot();
+        }
+        let mut snapshot = save::capture(self);
+        rooms::migration::project_commands(self.world(), &mut snapshot.queued_commands)
+            .expect("queued room command requires current schema sixteen");
+        snapshot
     }
 
     /// Captures historical V2 architecture and world, without runtime directions.
     pub fn save_snapshot_v2(&self) -> terri_core::SaveSnapshotV2 {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v2();
+        }
         terri_core::SaveSnapshotV2 {
-            world: save::capture(self),
+            world: self.save_snapshot(),
             layout: self
                 .world
                 .resource::<terri_core::layout::SavedLayout>()
@@ -1233,18 +1244,36 @@ impl Sim {
 
     /// Captures architecture and runtime directions without changing historical records.
     pub fn save_snapshot_v3(&self) -> terri_core::SaveSnapshotV3 {
-        SnapshotSource { world: &self.world }.save_snapshot_v3()
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v3();
+        }
+        let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v3();
+        rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
+            .expect("queued room command requires current schema sixteen");
+        snapshot
     }
 
     /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
     pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
-        SnapshotSource { world: &self.world }.save_snapshot_v4()
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v4();
+        }
+        let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v4();
+        rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
+            .expect("queued room command requires current schema sixteen");
+        snapshot
     }
 
-    /// Legacy V5 projection. Use V15 to retain the complete current state.
+    /// Legacy V5 projection. It omits books, social episodes and appearance; use V16.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
-        SnapshotSource { world: &self.world }.save_snapshot_v5()
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v5();
+        }
+        let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v5();
+        rooms::migration::project(self.world(), &mut snapshot)
+            .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
     /// Validates the complete candidate before replacing the running simulation.
@@ -1261,12 +1290,24 @@ impl Sim {
 
     /// Frozen V8 envelope; owned copies and reading memory, without social episodes or appearance.
     pub fn save_snapshot_v6(&self) -> terri_core::SaveSnapshotV6 {
-        save::v6::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v6();
+        }
+        let mut snapshot = save::v6::capture(self);
+        rooms::migration::project(self.world(), &mut snapshot.legacy)
+            .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
-    /// Historical V10 projection with social episodes, appearance and creator command ordering.
+    /// Historical schema-ten projection. Current persistence uses schema sixteen.
     pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
-        save::v10::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v10();
+        }
+        let mut snapshot = save::v10::capture(self);
+        rooms::migration::project(self.world(), &mut snapshot.legacy.legacy)
+            .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
     pub fn appearance_hash(&self) -> u64 {
@@ -1280,18 +1321,30 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v10::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
     /// Schema eleven: everything schema ten holds, then the burnt meals.
     pub fn save_snapshot_v11(&self) -> terri_core::SaveSnapshotV11 {
-        save::v11::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v11();
+        }
+        let mut snapshot = save::v11::capture(self);
+        rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy)
+            .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
     /// Schema twelve: everything schema eleven holds, then the fights.
     pub fn save_snapshot_v12(&self) -> terri_core::SaveSnapshotV12 {
-        save::v12::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v12();
+        }
+        let mut snapshot = save::v12::capture(self);
+        rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy.legacy)
+            .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
     pub fn load_snapshot_v12(
@@ -1301,14 +1354,23 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v12::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
     /// Schema thirteen: everything schema twelve holds, then the lot frame
     /// and the funds in cents (land expansion, issue 254).
     pub fn save_snapshot_v13(&self) -> terri_core::SaveSnapshotV13 {
-        save::v13::capture(self)
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v13();
+        }
+        let mut snapshot = save::v13::capture(self);
+        rooms::migration::project(
+            self.world(),
+            &mut snapshot.legacy.legacy.legacy.legacy.legacy,
+        )
+        .expect("current rooms cannot be represented by this historical save format; use V16");
+        snapshot
     }
 
     pub fn load_snapshot_v13(
@@ -1318,29 +1380,77 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v13::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
-    /// Schema fourteen: everything schema thirteen holds, then the
-    /// careers (issue 249).
+    /// Historical schema-fourteen projection. Unrepresentable room state panics;
+    /// use `try_save_snapshot_v14` for refusal or V16 for current persistence.
     pub fn save_snapshot_v14(&self) -> terri_core::SaveSnapshotV14 {
-        save::v14::capture(self)
+        self.try_save_snapshot_v14()
+            .expect("current rooms cannot be represented by this historical save format; use V16")
     }
 
+    /// Refuses stable history or outdoor duties that schema fourteen cannot express.
+    pub fn try_save_snapshot_v14(&self) -> Result<terri_core::SaveSnapshotV14, SaveError> {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.try_save_snapshot_v14();
+        }
+        let mut snapshot = save::v14::capture(self);
+        rooms::migration::project(
+            self.world(),
+            &mut snapshot.legacy.legacy.legacy.legacy.legacy.legacy,
+        )?;
+        Ok(snapshot)
+    }
+
+    pub fn save_snapshot_v16(&self) -> terri_core::SaveSnapshotV16 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v16::capture(self))
+    }
+
+    pub fn load_snapshot_v16(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV16,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v16::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(self.world()),
+        )?;
+        self.adopt_current(candidate)
+    }
+
+    /// Historical V15 projection retaining complete conversation ownership.
+    /// Use the fallible form when current room references may be unrepresentable.
     pub fn save_snapshot_v15(&self) -> terri_core::SaveSnapshotV15 {
-        save::v15::capture(self)
+        self.try_save_snapshot_v15()
+            .expect("current rooms cannot be represented by this historical save format; use V16")
+    }
+
+    pub fn try_save_snapshot_v15(&self) -> Result<terri_core::SaveSnapshotV15, SaveError> {
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.try_save_snapshot_v15();
+        }
+        let mut snapshot = save::v15::capture(self);
+        rooms::migration::project(
+            self.world(),
+            &mut snapshot.legacy.legacy.legacy.legacy.legacy.legacy.legacy,
+        )?;
+        Ok(snapshot)
     }
 
     pub fn load_snapshot_v15(
         &mut self,
         snapshot: terri_core::SaveSnapshotV15,
     ) -> Result<(), SaveError> {
-        let content = self.world.resource::<Content>().0;
-        let portals = save::Carried::for_load(&self.world);
-        let candidate = save::v15::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
-        Ok(())
+        let candidate = save::v15::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(self.world()),
+        )?;
+        self.adopt_current(candidate)
     }
 
     pub fn load_snapshot_v14(
@@ -1350,7 +1460,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v14::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1361,7 +1471,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v11::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1375,7 +1485,13 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let social = social.and_then(|snapshot| {
-            save::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals).ok()
+            save::v6::restore_with_social(
+                snapshot.legacy,
+                snapshot.social,
+                content,
+                portals.clone(),
+            )
+            .ok()
         });
         let character = character.and_then(|snapshot| {
             save::v10::restore_legacy_character_v9(snapshot, content, portals).ok()
@@ -1384,7 +1500,7 @@ impl Sim {
             (Some(candidate), None) | (None, Some(candidate)) => candidate,
             _ => return Err(SaveError::InvalidValue),
         };
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1395,7 +1511,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1406,7 +1522,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_historical_v7(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1418,7 +1534,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_frozen_owned(snapshot, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 
@@ -1483,11 +1599,11 @@ impl Sim {
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
         recipe_actions::migrate_legacy(&mut restored)?;
-        self.adopt_current(restored);
-        Ok(())
+        self.adopt_current(restored)
     }
 
-    fn adopt_current(&mut self, mut restored: Sim) {
+    fn adopt_current(&mut self, mut restored: Sim) -> Result<(), SaveError> {
+        rooms::migration::migrate(&mut restored)?;
         character_draft::ensure_appearance_components(&mut restored.world);
         social_episode::requests::migrate_legacy(&mut restored.world);
         restored.sync_render_buffer_after_commands();
@@ -1499,11 +1615,13 @@ impl Sim {
             .resource::<placement::LotEditState>()
             .revision
             .saturating_add(1);
+        build_transaction::carry_adoption(&self.world, &mut restored)?;
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
         self.portals
             .previous_openness
             .clone_from(&self.portals.openness);
+        Ok(())
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -1561,7 +1679,11 @@ impl Sim {
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
-        world.insert_resource(terri_core::layout::SavedLayout::default());
+        world.insert_resource(if terri_data::is_pre_books_pack(pack) {
+            terri_core::layout::SavedLayout::default()
+        } else {
+            terri_core::layout::SavedLayout::EdgeWallsV1 { edges: vec![] }
+        });
         world.insert_resource(content);
         world.insert_resource(books::BookLibrary::new(pack.tuning.rng_seed));
         // The simulation PRNG, as a world resource per [D-3]. Randomness
@@ -1863,6 +1985,9 @@ impl Sim {
         command_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
         command_schedule.add_systems(systems::command::drain_commands);
 
+        if !terri_data::is_pre_books_pack(pack) {
+            rooms::initialize(&mut world).expect("empty current lot has valid rooms");
+        }
         Self {
             world,
             schedule,
@@ -1883,6 +2008,9 @@ impl Sim {
         let mut sim = Self::new_with_content(content);
         sim.world
             .insert_resource(terri_core::TileGrid::new(width, height));
+        if !terri_data::is_pre_books_pack(content.0) {
+            rooms::initialize(sim.world_mut()).expect("empty current lot has valid rooms");
+        }
         sim
     }
 
@@ -1974,7 +2102,14 @@ impl Sim {
         sim.world.insert_resource(grid);
         // The content lot stands at the grid's origin until land is bought
         // west or north of it (land expansion, issue 254).
-        sim.world.insert_resource(LotFrame::default());
+        if (lot.width, lot.height)
+            == (
+                sim.world.resource::<Content>().0.lot.width,
+                sim.world.resource::<Content>().0.lot.height,
+            )
+        {
+            sim.world.insert_resource(LotFrame::default());
+        }
 
         for placement in &lot.placements {
             let origin = terri_core::Position {
@@ -1994,6 +2129,9 @@ impl Sim {
             );
         }
 
+        if !terri_data::is_pre_books_pack(sim.world.resource::<Content>().0) {
+            rooms::initialize(sim.world_mut()).expect("authored current lot has valid rooms");
+        }
         sim
     }
 
@@ -2083,6 +2221,9 @@ impl Sim {
             .expect("fresh current household has a valid starter catalogue");
             sim.world.insert_resource(library);
         }
+        if !terri_data::is_pre_books_pack(pack) {
+            rooms::initialize(sim.world_mut()).expect("authored household has valid rooms");
+        }
         sim
     }
 
@@ -2160,6 +2301,15 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        if build_transaction::needs_atomic_drain(&self.world) {
+            self.flush_commands();
+            self.world
+                .insert_resource(build_transaction::SkipCommandDrain);
+        }
+        if self.build_active() {
+            self.flush_commands();
+            return;
+        }
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
@@ -2173,8 +2323,19 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        if build_transaction::needs_atomic_drain(&self.world) {
+            build_transaction::run_atomic_drain(self);
+            return;
+        }
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        if self.build_active()
+            || build_transaction::has_error(&self.world)
+            || build_transaction::native_batch(&self.world)
+        {
+            self.world.clear_trackers();
+            return;
+        }
         seating::maintain(&mut self.world);
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
@@ -3917,6 +4078,7 @@ impl Sim {
         use terri_core::{Habituation, Needs, Position, Relationships, SimId, NEED_COUNT};
 
         let mut hasher = terri_core::FnvHasher::default();
+        rooms::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
         // (entity index, x, y, all seven need levels). Every level is
@@ -6010,7 +6172,19 @@ mod determinism_tests {
     use terri_core::{Agent, Eating, NeedId, Needs, Position};
 
     fn build_scenario() -> Sim {
+        build_scenario_with_historical_layout(None)
+    }
+
+    fn build_scenario_with_historical_layout(
+        layout: Option<terri_core::layout::SavedLayout>,
+    ) -> Sim {
         let mut sim = Sim::new_with_lot(24, 24);
+        if let Some(layout) = layout {
+            sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
+            sim.world.remove_resource::<rooms::RoomMap>();
+            sim.world.insert_resource(rooms::RoomReferenceMode::Legacy);
+            sim.world.insert_resource(layout);
+        }
         // The shipped fridge, deliberately: the golden vector below is
         // only a statement about the game if the scenario is built out of
         // the content the game ships.
@@ -6484,8 +6658,8 @@ mod determinism_tests {
     /// `reproduces the native golden world hash across the wasm boundary`
     /// in web/tests/bridge.test.ts, which rebuilds this exact scenario
     /// through the JavaScript API and compares against the same constant.
-    /// Measured: the two agree. **If you change `GOLDEN` here, change it
-    /// there too, or the boundary check silently stops being one.**
+    /// Keep the boundary vector synchronized and verify a fresh release-Wasm
+    /// build before claiming agreement. Native execution alone is insufficient.
     #[test]
     fn world_hash_matches_its_golden_vector() {
         const TICKS: usize = 100;
@@ -6744,10 +6918,11 @@ mod determinism_tests {
         // has already hidden once.
         //
         // **M2d moved it by ENCODING, not behaviour: the digest gained two
-        // columns.** Every row now carries a SimId (the in-band
-        // `u64::MAX` sentinel here, since `build_scenario` spawns plain
-        // agents with no identity) and a length-prefixed relationships
-        // list (empty here - nobody has met anybody). Both are written
+        // columns.** Every row gained a SimId (the in-band `u64::MAX`
+        // sentinel in that earlier scenario, which spawned plain agents)
+        // and a length-prefixed relationships list (then empty). The current
+        // scenario uses public creation and retains real IDs and relationships.
+        // Both columns are written
         // for every entity whether populated or not, which is exactly why
         // the vector moved with zero sims and zero feelings in the
         // fixture: the SHAPE is the published format, per the same
@@ -6865,17 +7040,37 @@ mod determinism_tests {
         // Continuing FNV-1a from the prior 8890656731713008279 with the empty
         // library and taste seed 20260728 yields this value exactly; rebuilt
         // release WASM independently measured the same result.
-        // Current public creation now assigns identities and draws weighted
-        // instinct bands. Native and rebuilt WASM independently measured this
-        // intentional scenario change; historical save vectors stay frozen.
-        const GOLDEN: u64 = 4676206450852028819;
+        // Current blank lots add the room prefix and explicit empty edge architecture.
+        // Outside no longer grants indoor proximity friendship across the whole lot.
+        // The immutable published-V15 boundary control proves that only those
+        // relationship rows and layout representation differ after the same ticks;
+        // requests, orders, needs, positions and every random stream remain equal.
+        // Release-Wasm agreement must still be measured independently.
+        const GOLDEN: u64 = 4661132544113609906;
 
         let mut sim = build_scenario();
+        let mut published = build_scenario_with_historical_layout(Some(
+            terri_core::layout::SavedLayout::LegacyCells { walls: vec![] },
+        ));
         for _ in 0..TICKS {
             sim.tick();
+            published.tick();
         }
 
         assert_hash_sees_entities(&sim, TICKS);
+        let current_hash = sim.world_hash();
+        let registry = sim
+            .world
+            .remove_resource::<terri_core::rooms::SavedRooms>()
+            .unwrap();
+        let without_registry = sim.world_hash();
+        sim.world.insert_resource(registry);
+        assert_eq!(
+            published.world_hash(),
+            4676206450852028819,
+            "the pre-spawn legacy control must reproduce exact published main"
+        );
+        assert_ne!(current_hash, without_registry);
         assert_eq!(
             sim.world_hash(),
             GOLDEN,
@@ -6993,3 +7188,6 @@ mod determinism_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod current_test_snapshot;

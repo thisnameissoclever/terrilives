@@ -12,8 +12,11 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 mod book_commerce_tests;
+mod browser_rooms;
 #[cfg(test)]
 mod character_tests;
+#[cfg(test)]
+mod room_transport_tests;
 mod save_before_voice;
 
 #[cfg(test)]
@@ -2605,13 +2608,18 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v15())
-            .expect("SaveSnapshotV15 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v16())
+            .expect("SaveSnapshotV16 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
         bytes.extend(payload);
         bytes
+    }
+
+    /// Native authored draft state; this query does not flush or prepare input.
+    pub fn build_dirty(&self) -> bool {
+        self.sim.build_dirty()
     }
 
     /// Transactionally restores browser-provided save bytes.
@@ -2630,6 +2638,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 16 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v16(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 15 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV15>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v15(snapshot).is_ok(),
@@ -3980,6 +3994,9 @@ mod boundary_tests {
     #[test]
     fn legacy_spawn_keeps_finite_off_lot_coordinates_and_does_not_gain_edge_restrictions() {
         let mut legacy = SimHandle::new(4, 4);
+        let source = published_empty(4, 4);
+        let bytes = encode_save(&source.sim.save_snapshot());
+        assert!(legacy.load_bytes(&bytes));
         assert_eq!(legacy.wall_layout_kind(), 0);
         legacy.spawn_agent(30.0, 30.0, 50.0);
         assert!(legacy.spawn_object(7.0, 5.0, "bathtub"));
@@ -4575,18 +4592,22 @@ mod boundary_tests {
         }
 
         let bytes = uninterrupted.save_bytes();
+        assert_eq!(
+            decode_current(&bytes),
+            uninterrupted.sim.save_snapshot_v16()
+        );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            15,
-            "the public writer must emit the schema-15 envelope"
+            16,
+            "the public writer must emit the schema-16 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v10(),
-            uninterrupted.sim.save_snapshot_v10()
+            resumed.sim.save_snapshot_v16(),
+            uninterrupted.sim.save_snapshot_v16()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4598,8 +4619,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v10(),
-            uninterrupted.sim.save_snapshot_v10()
+            resumed.sim.save_snapshot_v16(),
+            uninterrupted.sim.save_snapshot_v16()
         );
     }
 
@@ -6066,9 +6087,9 @@ mod boundary_tests {
         Position,
     ) {
         let mut handle = SimHandle::new(32, 32);
-        let bike_position = Position { x: 18.5, y: 19.25 };
+        let bike_position = Position { x: 18.0, y: 19.0 };
         let aquarium_position = Position { x: 12.0, y: 13.0 };
-        let exerciser_position = Position { x: 15.0, y: 19.25 };
+        let exerciser_position = Position { x: 15.0, y: 19.0 };
         let watcher_position = Position { x: 9.0, y: 13.0 };
         assert!(handle.spawn_object(bike_position.x, bike_position.y, "moving_box"));
         assert!(handle.spawn_object(aquarium_position.x, aquarium_position.y, "reference_shelf"));
@@ -6126,8 +6147,22 @@ mod boundary_tests {
             )
         };
 
-        handle.spawn_agent(exerciser_position.x, exerciser_position.y, 50.0);
-        handle.spawn_agent(watcher_position.x, watcher_position.y, 50.0);
+        let mut household = vec![content.household[0].clone(); 2];
+        for (member, (name, position)) in household.iter_mut().zip([
+            ("Cyclist", exerciser_position),
+            ("Watcher", watcher_position),
+        ]) {
+            member.name = name.into();
+            member.x = position.x;
+            member.y = position.y;
+            member.needs = [50.; 7];
+            member.career = None;
+            member.hobbies.clear();
+            member.traits.clear();
+        }
+        handle
+            .sim
+            .spawn_household(&content.personalities, &household, &content.traits);
         let (exerciser, watcher) = {
             let world = handle.sim.world_mut();
             let mut query = world.query::<(terri_core::Entity, &Agent, &Position)>();
@@ -6146,29 +6181,56 @@ mod boundary_tests {
                 watcher.expect("the bridge spawned the watcher"),
             )
         };
-        handle.sim.world_mut().entity_mut(exerciser).insert((
-            terri_core::Eating {
-                object: bike,
-                interaction: exercise,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: bike_target,
-                interaction: exercise,
-            },
-        ));
-        handle.sim.world_mut().entity_mut(watcher).insert((
-            terri_core::Eating {
-                object: aquarium,
-                interaction: watch,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: aquarium_target,
-                interaction: watch,
-            },
-        ));
+        let idle = handle.save_bytes();
+        let mut idle_control = SimHandle::new(32, 32);
+        assert!(idle_control.load_bytes(&idle));
+        assert_eq!(idle_control.save_bytes(), idle);
+        for (person, object, interaction) in [
+            (exerciser, bike_target, exercise),
+            (watcher, aquarium_target, watch),
+        ] {
+            assert!(handle.enqueue_command(
+                &postcard::to_allocvec(&SimCommand::UseObject {
+                    agent: person.index_u32(),
+                    object: object.index_u32(),
+                    interaction
+                })
+                .unwrap()
+            ));
+        }
+        let mut arrived = false;
+        for _ in 0..100 {
+            handle.sim.tick();
+            arrived = [
+                (exerciser, bike_target, bike, exercise),
+                (watcher, aquarium_target, aquarium, watch),
+            ]
+            .iter()
+            .all(|&(person, object, definition, interaction)| {
+                handle
+                    .sim
+                    .world()
+                    .get::<terri_core::Eating>(person)
+                    .is_some_and(|e| e.object == definition && e.interaction == interaction)
+                    && handle
+                        .sim
+                        .world()
+                        .get::<terri_core::Target>(person)
+                        .is_some_and(|t| t.object == object && t.interaction == interaction)
+                    && handle.sim.world().get::<terri_core::Path>(person).is_none()
+            });
+            if arrived {
+                break;
+            }
+        }
+        assert!(arrived, "both authored actions must reach actual use");
+        let watcher_position = *handle.sim.world().get::<Position>(watcher).unwrap();
+        assert_eq!((watcher_position.x, watcher_position.y), (11., 13.));
+        let active = handle.save_bytes();
+        let hash = handle.world_hash();
         handle.sim.sync_render_buffer();
+        assert_eq!(handle.save_bytes(), active);
+        assert_eq!(handle.world_hash(), hash);
         (
             handle,
             exerciser,
@@ -6262,9 +6324,11 @@ mod boundary_tests {
 
         // Grow every render vector after Load, then reacquire each pointer.
         // The shell follows the same lifetime rule after WASM memory growth.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
         let row = ids
@@ -6610,9 +6674,11 @@ mod boundary_tests {
         // Force the reused render vectors past their small capacities after
         // Load. Every accessor below is intentionally read only after the last
         // allocation and sync, matching the real bridge lifetime rule.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
 
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
@@ -6662,9 +6728,11 @@ mod boundary_tests {
         // Reallocate every render column after Load, then reacquire every
         // pointer. The release-WASM bridge test performs the corresponding
         // real linear-memory growth and detached-view check.
+        let before_growth = handle.entity_count();
         for index in 0..48 {
-            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+            handle.spawn_agent(1.0 + (index % 12) as f32, 1.0 + (index / 12) as f32, 50.0);
         }
+        assert_eq!(handle.entity_count(), before_growth + 48);
 
         let rows = handle.entity_count();
         let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
@@ -7948,7 +8016,7 @@ mod boundary_tests {
         use terri_sim::placement::PlacementRefusal;
         let mut handle = SimHandle::from_lot();
         let coverings = handle.covering_names();
-        assert_eq!(coverings, ["Boards", "Tiles", "Carpet"]);
+        assert_eq!(coverings, ["Boards", "Tiles", "Carpet", "Outdoor patio"]);
         assert!(handle.floor_tiles().is_empty(), "nobody has painted yet");
 
         assert!(handle.set_floor(3.0, 2.0, 2.0));
@@ -7996,6 +8064,15 @@ mod boundary_tests {
             vec![1, 0, 1],
             "a refusal writes nothing"
         );
+
+        assert!(handle.set_floor(18.0, 2.0, 4.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 18, 2, 4]);
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.floor_tiles(), handle.floor_tiles());
+        assert_eq!(restored.save_bytes(), bytes);
     }
 
     /// [FL-save], and review findings [F1] to [F3] on PR 128: a painted
@@ -10432,7 +10509,10 @@ mod window_boundary_tests {
         assert!(restored.load_bytes(&saved));
         assert_eq!(restored.window_placements(), [0, 8, 4, 1]);
         assert_eq!(restored.window_lines(), [0, 8, 4]);
-        assert_eq!(restored.covering_names(), ["Boards", "Tiles", "Carpet"]);
+        assert_eq!(
+            restored.covering_names(),
+            ["Boards", "Tiles", "Carpet", "Outdoor patio"]
+        );
         for id in 0..=3 {
             assert!(restored.set_floor(3., 2., id as f64));
             restored.flush_commands();
@@ -10616,7 +10696,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v10();
+        let saved = source.sim.save_snapshot_v16();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -10626,8 +10706,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v10(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v10(), saved);
+        assert_eq!(restored.load_snapshot_v16(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v16(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();
@@ -10657,3 +10737,13 @@ mod social_boundary_regressions {
         assert_eq!(source.queued_orders_of(3), 1);
     }
 }
+
+#[cfg(test)]
+mod published_v15_tests;
+#[cfg(test)]
+mod room_save_tests;
+
+#[cfg(test)]
+mod current_test_snapshot;
+#[cfg(test)]
+use current_test_snapshot::{decode_current, CurrentSnapshotViews};

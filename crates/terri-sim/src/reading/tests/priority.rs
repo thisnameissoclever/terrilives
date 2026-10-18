@@ -3,6 +3,7 @@ use terri_core::books::TitleMemory;
 
 fn bookmarked_elsewhere() -> (Sim, Entity, Entity, String) {
     let (mut sim, person, source, other, title) = fixture("bookshelf");
+    crate::test_content::enclose(&mut sim);
     purchase(&mut sim, Some(other), &title);
     purchase(&mut sim, Some(source), "the_locked_laundry");
     sim.world_mut().resource_mut::<SimClock>().tick = 20;

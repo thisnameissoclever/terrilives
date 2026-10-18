@@ -1,3 +1,4 @@
+import { setActionIntent } from './action-intent.js';
 import type { SimBridge } from '../bridge.js';
 import type { PurchaseQuote, SaleQuote } from '../books/commerce-codec.js';
 import { BookResults, bookRefusal } from '../books/results.js';
@@ -22,6 +23,7 @@ export class BookCommerce {
     const actions = doc.createElement('div'); actions.className = 'book-commerce-actions'; this.root.append(actions);
     this.buy = doc.createElement('button'); this.sell = doc.createElement('button');
     for (const button of [this.buy, this.sell]) { button.type = 'button'; button.className = 'hud-button'; actions.append(button); }
+    setActionIntent(this.buy, 'affirmative'); setActionIntent(this.sell, 'destructive');
     this.buy.addEventListener('click', () => this.purchase && this.purchaseBook(this.purchase));
     this.sell.addEventListener('click', () => this.sale && this.sellBook(this.sale));
     const furniture = doc.querySelector('#furniture-tool');

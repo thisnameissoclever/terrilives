@@ -1,0 +1,14 @@
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.78s
+     Running `target\debug\examples\relationship_qa.exe .local-build/current-reading-v16-03`
+wait: A=0 B=1
+ordered: A=0 B=1
+proximity: A=0 B=1
+reading admission results: [BookCommandResult { sequence: 1, copy: Some(0), order: None, refusal: None }, BookCommandResult { sequence: 2, copy: Some(1), order: None, refusal: None }, BookCommandResult { sequence: 3, copy: None, order: Some(0), refusal: None }, BookCommandResult { sequence: 4, copy: None, order: Some(0), refusal: None }]
+reading copies: [BookCopy { id: BookCopyId(0), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), borrower: None }, BookCopy { id: BookCopyId(1), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), borrower: None }]
+reading journeys: []
+
+thread 'main' (67716) panicked at crates\terri-wasm\examples\relationship_qa.rs:78:5:
+both real readers must arrive at their own targets: []
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: process didn't exit successfully: `target\debug\examples\relationship_qa.exe .local-build/current-reading-v16-03` (exit code: 101)
