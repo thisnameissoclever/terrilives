@@ -6550,20 +6550,19 @@ mod determinism_tests {
         // pushes a wander candidate after every other candidate and weighs
         // them through `critical_choices::critical_choice_probabilities`,
         // whose paths call `f64::exp` in `autonomy`, so one object no
-        // longer means one candidate. The conclusion still holds for a
-        // different reason: every decision
-        // over this scenario's 100 ticks holds the wander candidate alone,
-        // and a lone candidate's probability is 1.0 whatever `exp`
-        // returns. Two conditions keep it alone: both of the fridge's
-        // actions are chains with a preparation step and there is no
-        // counter here, so the fridge never becomes a candidate; and the
-        // agents carry no `SimId`, so none becomes another's social or
-        // waiting candidate. Any change that gives a decision here more
-        // than one candidate, such as giving the agents identities, puts
-        // `f64::exp` results into the digest's causal chain. The later
+        // longer means one candidate. The conclusion no longer holds
+        // either. `build_scenario` spawns its agents through
+        // `Sim::spawn_agent`, which gives each one a `SimId`, and a probe
+        // found each of the 12 decisions over its 100 ticks held seven
+        // social candidates beside the wander candidate, so `f64::exp`
+        // results are in the digest's causal chain. Agreement between
+        // native and wasm32 on this vector is a measurement each time it is
+        // checked, not a guarantee. The fridge still never becomes a
+        // candidate, because both of its actions are chains with a
+        // preparation step and there is no counter here; the later
         // paragraphs that describe agents claiming the fridge or being
         // outbid for it predate the staged snack change and are historical
-        // too. [L36] records the measurement.
+        // too. [L36] records the measurements.
         //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every

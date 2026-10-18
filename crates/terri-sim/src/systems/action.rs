@@ -219,11 +219,13 @@ impl BedState<'_, '_> {
 /// `autonomy::sample`. That function hands the candidates to
 /// `autonomy::grouped_probabilities`, which normalizes interactions per
 /// target and reserves at least one bucket for every positive
-/// probability; when a need is critical and only some candidates relieve
-/// it, it first splits the share between those candidates and the rest
-/// with `autonomy::probabilities`. The rest of this comment describes
-/// this function, not how housemates choose, except where it names live
-/// selection.
+/// probability. When `tuning.autonomy` is set, a need is critical and
+/// only some candidates relieve it, the function instead weighs the
+/// relieving candidates against the rest with `autonomy::probabilities`,
+/// caps the rest's share at the `[autonomy]` limits, and then weighs each
+/// group with `autonomy::grouped_probabilities`. The rest of this comment
+/// describes this function, not how housemates choose, except where it
+/// names live selection.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -298,16 +300,15 @@ impl BedState<'_, '_> {
 /// between the tied objects depends on the wander candidate's `exp`
 /// weights; they are robust because the seeded draw sits far below that
 /// boundary, and `assert_first_draw_takes_the_first_of_two_tied_buckets`
-/// checks that it is below it. The golden world hash in `lib.rs` is
-/// independent of `exp` results only because every decision in
-/// `build_scenario` holds the wander candidate alone, and a lone
-/// candidate's probability is 1.0 whatever `exp` returns. Two conditions
-/// keep it alone: both of the fridge's actions are chains with a
-/// preparation step and the scenario has no counter, so the fridge never
-/// becomes a candidate; and the agents carry no `SimId`, so none becomes
-/// another's social or waiting candidate. Any decision with more than one
-/// candidate, for example after giving the agents identities, puts
-/// `f64::exp` results into the digest's causal chain.
+/// checks that it is below it. The golden world hash in `lib.rs` does
+/// depend on `exp` results. `build_scenario` spawns its agents through
+/// `Sim::spawn_agent`, which gives each one a `SimId`, so its decisions
+/// hold the other agents' social candidates beside the wander candidate,
+/// and `f64::exp` sets the weights between them. The fridge never becomes
+/// a candidate there: both of its actions are chains with a preparation
+/// step and the scenario has no counter. Agreement between native and
+/// wasm32 on that vector is a measurement each time it is checked, not a
+/// guarantee.
 pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
     assert!(
         !scores.is_empty(),
@@ -2620,8 +2621,9 @@ mod intent_tests {
     //! constant documents: selection is a weighted draw, so "autonomy
     //! would have picked the fridge" is a statement about one roll of the
     //! dice unless the loser's utility weight is negligible beside the
-    //! exploration share it always keeps. Each such test
-    //! asserts that precondition with `assert_decisive` rather than
+    //! exploration share it always keeps and no critical need overrides
+    //! the scores, the exception `assert_decisive` describes. Each such
+    //! test asserts that precondition with `assert_decisive` rather than
     //! assuming it, and most also RUN the control - the same world with
     //! no intent queued - so that "the intent won" is measured against
     //! what actually happens without one rather than against a prediction.
@@ -3654,6 +3656,13 @@ mod tests {
     /// weight so far below that share that the exploration share alone
     /// sets the tail.
     ///
+    /// That holds on the ordinary path only. When `tuning.autonomy` is set
+    /// and a need is critical, `critical_choices::critical_choice_probabilities`
+    /// caps the share of candidates that do not relieve it at the
+    /// `[autonomy]` limits, so a loser that relieves the critical need
+    /// takes most of the draw whatever the scores, and this check cannot
+    /// see that case.
+    ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
     /// closer together: that fixture fails here, naming the numbers,
@@ -3885,10 +3894,10 @@ mod tests {
         /// the top 27 bits of one output above the top 26 bits of the next.
         ///
         /// The recorded probabilities are not always whole numbers of
-        /// buckets: when a need is critical,
-        /// `critical_choices::critical_choice_probabilities` scales each
-        /// group's share, and the products fall between buckets until the
-        /// sampler rounds them.
+        /// buckets: when a need is critical and only some candidates
+        /// relieve it, `critical_choices::critical_choice_probabilities`
+        /// scales each group's share, and the products fall between
+        /// buckets until the sampler rounds them.
         fn measure(sim: &Sim, agent: Entity, low: Entity, high: Entity, seed: u64) -> Self {
             let decisions = &sim
                 .world()
@@ -5191,10 +5200,9 @@ mod tests {
         // Two bit-identical scores weigh the same, so live selection gives
         // them equal buckets of (1 - w) / 2 each, ahead of the wander
         // candidate's share w that `select_action` pushes last, and the
-        // ORDER of the candidate list
-        // decides which object holds the bucket the draw lands in. There,
-        // the lower-index object iterates LAST and the sort has to move it to
-        // the front. Here there is no archetype churn, so the two orders
+        // ORDER of the candidate list decides which object holds the
+        // bucket the draw lands in. There, the lower-index object iterates
+        // LAST and the sort has to move it to the front. Here there is no archetype churn, so the two orders
         // already agree - which is what makes this the case that pins the
         // sort's DIRECTION rather than its presence:
         //
@@ -5857,11 +5865,10 @@ mod tests {
         // One agent, two objects whose scores are exactly equal. Equal
         // scores weigh equally, so live selection hands each of them a
         // bucket of (1 - w) / 2, ahead of the wander candidate's share w
-        // that `select_action` pushes last, and the
-        // ORDER of the candidate list decides which object holds the
-        // bucket a given draw lands in. There
-        // is no argmax left to be unique, and no tiebreak clause to make
-        // it one: `placed_objects.sort_by_key` in `select_action` is the
+        // that `select_action` pushes last, and the ORDER of the candidate
+        // list decides which object holds the bucket a given draw lands
+        // in. There is no argmax left to be unique, and no tiebreak clause
+        // to make it one: `placed_objects.sort_by_key` in `select_action` is the
         // entire mechanism, and this is the test that fails without it.
         //
         // Until M1c the `objects` query iterated UNSORTED, and that was
@@ -5916,10 +5923,10 @@ mod tests {
         // The precondition this whole test rests on: the two scores must
         // be BIT-identical, not merely close, so the two objects weigh the
         // same and the order of the candidate list is the only thing that
-        // tells them apart. `decay_needs` runs before `select_action` within a tick and
-        // nothing else touches hunger on a tick where the agent only
-        // starts walking, so the post-tick level is exactly the one
-        // scoring saw.
+        // tells them apart. `decay_needs` runs before `select_action`
+        // within a tick and nothing else touches hunger on a tick where
+        // the agent only starts walking, so the post-tick level is exactly
+        // the one scoring saw.
         let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let score_left = score_of(
             deficit,

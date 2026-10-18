@@ -3657,6 +3657,15 @@ rests on the same one-candidate premise. The comments on `sample_softmax` and
 in `world_hash_matches_its_golden_vector` now say this, and
 [L-confirm-live-callers] records how the stale premise survived.
 
+**Follow-up, measured 2026-10-17 on a merge of `main` at `a481d7c7b`:** commit
+`5107826ba` spawns the scenario's agents through `Sim::spawn_agent`, which
+gives each one a `SimId`. A probe found each of the 12 decisions over the 100
+ticks held seven social candidates beside the wander candidate, so the vector
+now depends on `f64::exp` results, the case the correction above describes.
+The fridge still never becomes a candidate. Agreement between native and
+wasm32 on this vector is therefore a measurement each time it is checked, not
+a guarantee, and the comments now say so.
+
 ---
 
 ## [L37] A WebGPU canvas read outside a rAF callback is black, and the screenshot is what proves it
@@ -4665,9 +4674,11 @@ not move. [L36] already recorded that this scenario cannot see how candidates
 are ORDERED; it cannot see how they are WEIGHTED either.
 
 **Correction, 2026-10-17:** a single object no longer means a single
-candidate, because live selection adds a wander candidate. The scenario stays
-blind to weighting because no decision in it holds more than one candidate,
-for the two reasons [L36]'s correction gives.
+candidate. Live selection adds a wander candidate, and since commit
+`5107826ba` the scenario's agents have identities, so each decision also holds
+the other agents' social candidates. A change to how those candidates are
+weighted can now move the digest, though the fridge itself still never becomes
+a candidate; [L36]'s follow-up records the measurement.
 
 **3. A behavioural test would not have been enough.** The obvious repair -
 "habituate the sim on A, assert it picks B" - passes for three of the four
@@ -12130,7 +12141,7 @@ Load the production atlas during test collection and prepare mocked module depen
 
 ## [L-confirm-live-callers] Check a function's production callers before citing its comments
 
-1. What happened: comments in `crates/terri-sim/src/systems/action.rs` and lesson [L36] kept describing housemates' choices through `sample_softmax` for more than two weeks after commit `413412814` (#143) moved live selection to `autonomy::grouped_probabilities` and added a wander candidate to every decision. They called `exp` the simulation's one platform call, said the golden world hash was safe from `exp` because one object meant one candidate, which stopped being the reason once every decision included the wander candidate, and justified the tie tests' first-draw precondition with an even split of the draw. The wander candidate's share had moved the boundary between the tied objects to 0.499167, so that precondition still compared against one half: seed 3619, whose first draw is 0.499286, passes it and then picks the higher-index object, which would fail the winner assertion with a message blaming the object sort.
+1. What happened: comments in `crates/terri-sim/src/systems/action.rs` and lesson [L36] kept describing housemates' choices through `sample_softmax` for more than two weeks after commit `413412814` (#143) moved live selection to `autonomy::grouped_probabilities` and added a wander candidate to every decision. They called `exp` the simulation's one platform call, said the golden world hash was safe from `exp` because one object meant one candidate, which stopped being the reason once every decision included the wander candidate, and justified the tie tests' first-draw precondition with an even split of the draw. The wander candidate's share had moved the boundary between the tied objects to 0.499167 on `c2ef49b59`, so that precondition still compared against one half: seed 3619, whose first draw is 0.499286, passes it and then picks the higher-index object, which would fail the winner assertion with a message blaming the object sort.
 2. Root cause: the function kept its doc comment and its standalone tests after its only production caller was replaced, and the note added at that time said it was retained for existing callers without confirming that any remained. Readers took the comment as a description of running behavior because the function still compiled, was public, and had passing tests.
 3. Prevention: before citing a function's comments, or a lesson built on them, as a statement about how the game behaves, search for its callers (for example `rg -n "sample_softmax\(" crates`) and confirm that at least one sits outside a `#[cfg(test)]` module; this crate keeps most tests inline, so a file name does not settle it. If none does, describe the live path and say in the function's comment that nothing outside tests calls it. When a test precondition reasons about a probability boundary, read the boundary from what the live path recorded, such as `DecisionTelemetry`, rather than from the arithmetic of a function the live path no longer calls.
 4. Verification: list the callers with their enclosing modules. For a draw precondition, log the real draw and boundary once, then construct a seed whose draw falls between the assumed and real boundaries and confirm the precondition rejects it, as `assert_first_draw_takes_the_first_of_two_tied_buckets` rejects seed 3619.
