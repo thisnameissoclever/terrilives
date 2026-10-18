@@ -3,6 +3,7 @@ import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   GameHud,
+  SEASON_NAMES,
   WEEKDAY_NAMES,
   formatActivity,
   formatCareerSchedule,
@@ -45,11 +46,34 @@ function source(overrides: Partial<GameHudSource> = {}): GameHudSource {
     clockTick: () => 1530,
     dayTicks: () => 1440,
     weekdayIndex: () => 1,
+    seasonIndex: () => 0,
     ...overrides,
   };
 }
 
 describe('game HUD formatting', () => {
+  it('calls the residual state idle instead of implying ongoing deliberation', () => {
+    expect(formatActivity(0, null, null)).toBe('Idle');
+  });
+
+  it('identifies the person a committed initiator is waiting to talk to', () => {
+    const r = roots();
+    const s = source({ activityOf: () => 2,
+      activityStatusOf: () => ({ code: 2, partner: 35, needs: 0 }),
+      simName: () => 'Bill' });
+    const hud = new GameHud(r, 100);
+    hud.update(1000, s);
+    expect(r.activity.textContent).toBe('Waiting to talk to Bill');
+  });
+  it.each(['Clean floor', 'Wipe surface - 1/1', 'Empty bin - 1/1'])(
+    'preserves the active chore label %s when native context reports active work', (label) => {
+      const r = roots();
+      const s = source({ activityOf: () => 24, chainStatusOf: () => label,
+        activityStatusOf: () => ({ code: 0, partner: null, needs: 0 }) });
+      new GameHud(r, 100).update(1000, s);
+      expect(r.activity.textContent).toBe(label);
+    },
+  );
   it.each([
     [12, 'Showering'], [13, 'Using the toilet'], [14, 'Watching TV'],
     [15, 'Lying down'], [16, 'Washing hands'], [17, 'Washing dishes'],
@@ -59,23 +83,23 @@ describe('game HUD formatting', () => {
     expect(formatActivity(code, null, null)).toBe(label);
   });
   it('formats day boundaries and the authored day length', () => {
-    expect(formatSimTime(0, 1440, 0)).toBe('Day 1, Monday\n00:00');
-    expect(formatSimTime(359, 1440, 0)).toBe('Day 1, Monday\n05:59');
-    expect(formatSimTime(1440, 1440, 1)).toBe('Day 2, Tuesday\n00:00');
-    expect(formatSimTime(1440 * 6, 1440, 6)).toBe('Day 7, Sunday\n00:00');
+    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 00:00');
+    expect(formatSimTime(359, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 05:59');
+    expect(formatSimTime(1440, 1440, 1, 0)).toBe('Day 2, Tuesday\nSpring, 00:00');
+    expect(formatSimTime(1440 * 6, 1440, 6, 0)).toBe('Day 7, Sunday\nSpring, 00:00');
     // A nonstandard content day still maps across a 24-hour display.
-    expect(formatSimTime(50, 100, 0)).toBe('Day 1, Monday\n12:00');
+    expect(formatSimTime(50, 100, 0, 0)).toBe('Day 1, Monday\nSpring, 12:00');
   });
 
   it('keeps the day and the time on two lines whatever the weekday is called', () => {
     // Two fixed lines, so the HUD panel does not change height at midnight.
     for (const [weekday] of WEEKDAY_NAMES.entries()) {
-      expect(formatSimTime(1440 * 99 + 1439, 1440, weekday).split('\n')).toEqual([
+      expect(formatSimTime(1440 * 99 + 1439, 1440, weekday, 2).split('\n')).toEqual([
         `Day 100, ${WEEKDAY_NAMES[weekday]}`,
-        '23:59',
+        'Autumn, 23:59',
       ]);
     }
-    expect(formatSimTime(Number.NaN, 1440, 0)).not.toContain('\n');
+    expect(formatSimTime(Number.NaN, 1440, 0, 0)).not.toContain('\n');
   });
 
   it('names every weekday in full, Monday first', () => {
@@ -83,20 +107,46 @@ describe('game HUD formatting', () => {
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ]);
     WEEKDAY_NAMES.forEach((name, weekday) => {
-      expect(formatSimTime(0, 1440, weekday)).toBe(`Day 1, ${name}\n00:00`);
+      expect(formatSimTime(0, 1440, weekday, 0)).toBe(`Day 1, ${name}\nSpring, 00:00`);
     });
   });
 
   it('names the weekday the simulation reports instead of counting from the day number', () => {
     // A pack whose first day is a Sunday puts day 7 on a Saturday; only the
     // simulation knows first_weekday, so the clock prints what it is given.
-    expect(formatSimTime(1440 * 6, 1440, 5)).toBe('Day 7, Saturday\n00:00');
-    expect(formatSimTime(1440 * 6, 1440, 0)).toBe('Day 7, Monday\n00:00');
+    expect(formatSimTime(1440 * 6, 1440, 5, 0)).toBe('Day 7, Saturday\nSpring, 00:00');
+    expect(formatSimTime(1440 * 6, 1440, 0, 0)).toBe('Day 7, Monday\nSpring, 00:00');
   });
 
   it('shows no clock rather than a wrong or missing weekday', () => {
     for (const weekday of [-1, 7, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
-      expect(formatSimTime(0, 1440, weekday)).toBe('Day and time unavailable');
+      expect(formatSimTime(0, 1440, weekday, 0)).toBe('Day and time unavailable');
+    }
+  });
+
+  // [SEA-hud] in docs/specs/2026-10-17-seasons.md: the season leads the
+  // second line, before the time, and the clock stays two lines.
+  it('names every season in full, Spring first, before the time', () => {
+    expect(SEASON_NAMES).toEqual(['Spring', 'Summer', 'Autumn', 'Winter']);
+    // The shipped year: days 1, 8, 15 and 22 begin the four seasons.
+    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 00:00');
+    expect(formatSimTime(1440 * 7 + 360, 1440, 0, 1)).toBe('Day 8, Monday\nSummer, 06:00');
+    expect(formatSimTime(1440 * 14 + 720, 1440, 0, 2)).toBe('Day 15, Monday\nAutumn, 12:00');
+    expect(formatSimTime(1440 * 21 + 1439, 1440, 0, 3)).toBe('Day 22, Monday\nWinter, 23:59');
+    // Every season name has six letters, so the second line keeps one length.
+    for (const name of SEASON_NAMES) expect(name).toHaveLength(6);
+  });
+
+  it('names the season the simulation reports instead of counting from the day number', () => {
+    // A pack that starts in Winter puts day 1 in Winter; only the simulation
+    // knows first_season and days_per_season, so the clock prints its answer.
+    expect(formatSimTime(0, 1440, 0, 3)).toBe('Day 1, Monday\nWinter, 00:00');
+    expect(formatSimTime(1440 * 7, 1440, 0, 0)).toBe('Day 8, Monday\nSpring, 00:00');
+  });
+
+  it('shows no clock rather than a wrong or missing season', () => {
+    for (const season of [-1, 4, 0.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(formatSimTime(0, 1440, 0, season)).toBe('Day and time unavailable');
     }
   });
 
@@ -147,7 +197,7 @@ describe('game HUD formatting', () => {
   });
 
   it('does not print NaN or Infinity into the player HUD', () => {
-    expect(formatSimTime(Number.NaN, 1440, 0)).toBe('Day and time unavailable');
+    expect(formatSimTime(Number.NaN, 1440, 0, 0)).toBe('Day and time unavailable');
     expect(formatFunds(Number.POSITIVE_INFINITY)).toBe('unavailable');
     expect(formatSatisfaction(Number.NaN)).toBe('unavailable');
     expect(formatSatisfaction(null)).toBe('unavailable');
@@ -190,18 +240,22 @@ describe('GameHud', () => {
     hud.update(100, source());
     expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
     hud.update(200, source({ weekdayIndex: () => 2 }));
-    expect(view.clock.textContent).toBe('Day 2, Wednesday\n01:30');
+    expect(view.clock.textContent).toBe('Day 2, Wednesday\nSpring, 01:30');
     expect(probes[0].writes).toBe(1);
     hud.update(300, source({ funds: () => 4321 }));
     expect(view.funds.textContent).toBe('4,321');
     expect(probes[1].writes).toBe(1);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
     expect(probes[0].writes).toBe(2);
+    // A new season rewrites the clock once, like a new weekday.
+    hud.update(400, source({ seasonIndex: () => 1 }));
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSummer, 01:30');
+    expect(probes[0].writes).toBe(3);
     // The external edit is one write and the repair another.
     view.clock.textContent = 'External change';
-    hud.update(400, source());
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
-    expect(probes[0].writes).toBe(4);
+    hud.update(500, source());
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
+    expect(probes[0].writes).toBe(5);
   });
 
   it('shows the clock, funds and selected sim state together', () => {
@@ -209,7 +263,7 @@ describe('GameHud', () => {
     const hud = new GameHud(view, 100);
 
     expect(hud.update(0, source())).toBe(true);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
     expect(view.funds.textContent).toBe('1,234');
     expect(view.satisfaction.textContent).toBe('12.3');
     expect(view.careerRow.hidden).toBe(false);
@@ -290,12 +344,16 @@ describe('GameHud', () => {
         reads++;
         return 0;
       },
+      seasonIndex: () => {
+        reads++;
+        return 0;
+      },
     });
 
     expect(hud.update(0, counted)).toBe(true);
     expect(hud.update(99, counted)).toBe(false);
     expect(hud.update(100, counted)).toBe(true);
-    // The tick and the weekday, once each per refresh.
-    expect(reads).toBe(4);
+    // The tick, the weekday and the season, once each per refresh.
+    expect(reads).toBe(6);
   });
 });

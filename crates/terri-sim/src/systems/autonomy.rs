@@ -276,9 +276,11 @@ pub struct Decision {
     pub agent: u32,
     pub instinct: u8,
     pub lowest_need: f32,
+    pub critical_need_count: u8,
     pub chosen: usize,
     /// Target index, interaction row, utility, risk penalty, probability.
     pub choices: Vec<(u32, u32, f32, f32, f64)>,
+    pub relief_masks: Vec<u8>,
 }
 
 #[cfg(test)]

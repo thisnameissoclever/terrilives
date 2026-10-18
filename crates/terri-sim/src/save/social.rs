@@ -631,17 +631,18 @@ mod tests {
         assert!(!saved.social.topics.is_empty());
         assert!(!saved.social.communal.is_empty());
         assert!(!saved.social.rendezvous.is_empty());
+        let saved = source.save_snapshot_v16();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v10(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v10(), saved);
+        restored.load_snapshot_v16(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), saved);
         source.flush_commands();
         restored.flush_commands();
-        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
         for _ in 0..40 {
             source.tick();
             restored.tick();
         }
-        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
     }
 
     #[test]

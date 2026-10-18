@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 import { CharacterDraft } from '../src/character/draft.js';
 import { floatBits, floatValue, neutralDraft } from '../src/character/schema.js';
 import type { CharacterCatalog } from '../src/character/catalog.js';
@@ -8,7 +9,7 @@ import { categoryInfluence } from '../src/character/choice-influences.js';
 import { readableNumber, skillStanding, reviewValue } from '../src/character/presentation.js';
 import { CreatorClock } from '../src/ui/character-creator/clock.js';
 
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,
+const catalog:CharacterCatalog={version:2,self_preservation_bands:creationInstinctBands,name_limit:24,max_traits:4,max_household:6,
   traits:Array.from({length:6},(_,i)=>({id:`trait${i}`,label:`Trait ${i}`,description:'',kind:'disposition' as const,initial_state:floatBits(0),weights:[]})),
   affinities:[],skills:[{id:'reading',label:'Reading',description:'',thresholds:[floatBits(0),floatBits(.1),floatBits(.3)]}],hobbies:[],personalities:[],
   activities:[{object:'bookshelf',action:'read',label:'Read',tags:['reading']},{object:'reading_chair',action:'settle_in',label:'Read seated',tags:['reading','lounging']},

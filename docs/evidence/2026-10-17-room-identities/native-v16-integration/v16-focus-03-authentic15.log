@@ -1,0 +1,6 @@
+
+running 2 tests
+test published_v15_tests::authentic_published_fifteen_conserves_requests_orders_and_current_continuation ... ok
+test published_v15_tests::authentic_published_fifteen_survives_build_baselines_and_rejected_loads ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 296 filtered out; finished in 31.07s

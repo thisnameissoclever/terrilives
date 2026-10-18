@@ -21,6 +21,7 @@ import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
+import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { WindowTool } from './ui/window-tool.js';
@@ -36,7 +37,7 @@ import { BuyToolControls } from './ui/buy-tool-controls.js';
 import { drawCataloguePreviews } from './ui/catalogue-previews.js';
 import { BookCommerce } from './ui/book-commerce.js';
 import { BookResults, bookRefusal } from './books/results.js';
-import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
+import { BuildToolSwitch, clearBuildSelection, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
@@ -78,6 +79,7 @@ import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
   setCutAwayWalls,
+  setSeason,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -107,6 +109,7 @@ import { ActionQueue } from './ui/action-queue.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
+import { showGameVersion } from './ui/game-version.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -837,6 +840,11 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  // The version line at the top of the panel; its markup is empty so the
+  // number comes only from web/package.json (issue 276).
+  const gameVersion = document.getElementById('game-version');
+  if (!gameVersion) throw new Error('missing the game version line');
+  showGameVersion(gameVersion);
   optionsToggle.addEventListener('click', () => compactHud.close());
   const optionsClose = document.getElementById('options-close');
   if (!optionsClose) throw new Error('missing Options close button');
@@ -1384,7 +1392,10 @@ async function main(): Promise<void> {
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
-    frontDoors: sim.frontDoorLines() };
+    frontDoors: sim.frontDoorLines(),
+    // [SEA-yard]: the yard's seasonal looks, content read once, and the
+    // last season the frame loop saw.
+    seasonYardLooks: sim.seasonYardLooks(), season: sim.seasonIndex() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -1744,11 +1755,8 @@ async function main(): Promise<void> {
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
     beforeEnter: () => buildSession.begin(),
-    beforeExit: () => {
-      const cancelled = buildSession.end();
-      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
-      return cancelled;
-    },
+    // Every way out asks first while changes are not confirmed; see build-exit.ts.
+    beforeExit: () => buildExit.gate(),
     changed: () => {
       builderControls?.render();
       placementActions?.invalidate();
@@ -1781,6 +1789,12 @@ async function main(): Promise<void> {
     },
   });
   const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
+  // What decides whether leaving Build mode would lose a change; see build-exit.ts.
+  const buildDraft: BuildDraftSources = {
+    session: buildSession, furniture: builder,
+    tools: [wallTool, windowTool, roomTool, buyTool, floorTool, landTool],
+    pendingBookCommands: () => sim.pendingBookCommands(),
+  };
   function syncBuildIsolation(): void {
     syncNewHousemateButton(); syncEditHousemateButton();
     document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
@@ -1794,9 +1808,7 @@ async function main(): Promise<void> {
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
-    return !builder.pending && wallTool.pending === null && windowTool.pending === null
-      && !roomTool.pending && !buyTool.pending && floorTool.pending === null && !landTool.pending
-      && sim.pendingBookCommands() === 0;
+    return buildCommandsIdle(buildDraft);
   }
   function prepareBuildConfirmation(): boolean {
     // Tool actions apply to the draft. Include an outstanding furniture move
@@ -1859,25 +1871,37 @@ async function main(): Promise<void> {
     builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
     windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
     buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
-    landTool.setLotSize(lotWidth, lotHeight);
+    // As after a Load: a land purchase still on its way was dropped with the draft.
+    landTool.resetAfterLoad(lotWidth, lotHeight);
     if (reshaped) { characterWorld.reset(); characterWorld.prepareFixtures(sim); }
     refreshBuildArchitecture(); audio.reset('load'); clampCamera();
     toolSwitch?.render(); placementActions?.invalidate();
   }
-  function cancelBuildBatch(): void {
-    const cancelled = buildSession.cancel();
-    buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled.'
-      : 'Changes could not be cancelled. Build mode remains open.';
-  }
-  document.querySelector('#build-batch-cancel')!.addEventListener('click', cancelBuildBatch);
-  document.querySelector('#build-batch-confirm')!.addEventListener('click', () => {
+  function confirmBuildBatch(): boolean {
     const confirmed = buildSession.confirm();
-    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : 'Finish or cancel the current placement before confirming.';
+    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : confirmRefusal(builder.hasPlacementChange);
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
     }
+    return confirmed;
+  }
+  // The footer's Confirm and Cancel finish the batch and leave Build mode.
+  const buildExit: BuildExit = new BuildExit(document, {
+    hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft),
+    confirm: confirmBuildBatch,
+    discard: () => {
+      const cancelled = buildSession.end();
+      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
+      return cancelled;
+    },
+    leave: () => { builder.exit(); return !builder.active; },
+    focusView: () => canvas.focus(),
+    // Escape clears the current tool's selection first; with none, it asks to leave.
+    escapeBuild: () => { routeBuildKey('Escape', buildTools, builder); },
+    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
+    beforeAsk: () => { optionsMenu.close(); menu.close(); },
   });
   function syncBuildOptionsHost(): void {
     if (!optionsRoot) return;
@@ -1889,7 +1913,7 @@ async function main(): Promise<void> {
   }
   const placementButtons = new BuildContextActions(
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
-      cancelBuild: cancelBuildBatch,
+      clearSelection: () => clearBuildSelection(buildTools, builder),
       suspended: () => optionsMenu.isOpen(),
       focusCatalogue: () => buyControls?.focusCatalogue() },
     createContextSurface(document, placementRoot, stage,
@@ -1965,7 +1989,8 @@ async function main(): Promise<void> {
     if (event.defaultPrevented) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
-        cancelBuildBatch(); event.preventDefault(); return;
+        // BuildExit also reads Escape from the rest of the page.
+        buildExit.pressEscape(event.repeat); event.preventDefault(); return;
       }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
@@ -2136,15 +2161,6 @@ async function main(): Promise<void> {
     menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
       rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
-  document.addEventListener('keydown', (event) => {
-    if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
-    const target = event.target;
-    if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (!overlayPause.suspendedExcept('builder')) {
-      cancelBuildBatch(); event.preventDefault();
-    }
-  });
-
   const timer = new FrameTimer(FRAME_WINDOW);
   const characterMeasurement=stressParam===null?null:new CharacterFrameMeasurement(()=>gpu.device.queue);
   let previousFrameMs = performance.now();
@@ -2158,7 +2174,7 @@ async function main(): Promise<void> {
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();housemateView?.destroy();characterWorld.destroy();
+    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
@@ -2237,6 +2253,10 @@ async function main(): Promise<void> {
     // is in use, so the player sees every line they can edit. The static
     // block is rebuilt only when that changes, not on every click.
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
+    // [SEA-yard]: the yard's grass changes color when the season turns, or
+    // when a Load lands in another season; the static block is rebuilt then
+    // and not on every frame.
+    if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (floorScene.visible&&!graphicsRecovering) {

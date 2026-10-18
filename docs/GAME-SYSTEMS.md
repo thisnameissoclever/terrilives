@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends and working days |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends, working days and seasons |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -312,7 +312,7 @@ Tiles, Carpet, and Outdoor patio are cleanable indoors and outdoors. Outdoor
 counters and tables also receive duties; grass and the street do not receive floor
 cleaning. Outside does not create lot-wide indoor privacy or affinity effects.
 
-**What exists.** Build mode pauses the game. Edits remain a draft until Confirm at the bottom of the build flyout; Cancel, Escape, and unconfirmed Exit build restore the last confirmed state, including purchases and refunds. Saves contain only confirmed changes. Rooms include solid walls on the owned plot perimeter. See [build confirmation](specs/2026-10-13-build-confirmation.md). The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
+**What exists.** Build mode pauses the game. Edits remain a draft until Confirm at the bottom of the build flyout; footer Confirm keeps paused Build open, and footer Cancel restores the last confirmed state, including purchases and refunds, while keeping Build open. Exit build asks to confirm, discard, or keep building when changes remain. Contextual Escape and Cancel clear the active selection. Saves contain only confirmed changes. Rooms include solid walls on the owned plot perimeter. See [build confirmation](specs/2026-10-13-build-confirmation.md). The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
 **Completed slices.** Buy mode (PR 96), walls (95), whole rooms (97), vertical hinged doors (98), front-door reachability (99), catalogue need filtering (100), sales (101), compact build controls (102), rotated lighting (103), placed and purchased colourways (104, 105), the larger yard lot (106), street (107), visible build walls (112), floating placement controls (113), daylight (116), windows (126) and floor painting (128). These are merged features, not branch-only work. FEATURES.md records the individual merge and play evidence.
 
@@ -529,7 +529,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; dates, seasons and scheduled events open.** The clock shows the day number, the weekday and the time, and a new game starts on a Monday. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. There are no dates, months or seasons. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
@@ -710,7 +710,8 @@ infrastructure. FEATURES.md owns the same current priority.
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.
 4. **[S-calendar] and [F-notifications].** Weekdays and working days shipped on
-   2026-10-06. Dates, pay days and a history with channels and mutes remain.
+   2026-10-06, and seasons shipped on 2026-10-17. Dates, pay days and a
+   history with channels and mutes remain.
    Buying, selling and their Funds changes are already done.
 5. **[S-acclimation] part two.** Part one, negative mood from overdoing
    activities and feeling sick from overeating, shipped on 2026-10-06. A fading

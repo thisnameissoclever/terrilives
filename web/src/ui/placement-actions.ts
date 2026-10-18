@@ -98,7 +98,8 @@ export interface ContextTools {
   readonly room: RoomTool;
   readonly floors: FloorTool;
   readonly focusCatalogue: () => void;
-  readonly cancelBuild: () => void;
+  /** The Cancel beside a selection: clears it and keeps the rest of the batch. */
+  readonly clearSelection: () => void;
   readonly suspended?: () => boolean;
 }
 
@@ -118,7 +119,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('affirmative', 'fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
       ...(windows.owner ? [action('destructive', 'remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
       action('negative', 'wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
-      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
     return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
       action('neutral', 'wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
@@ -128,7 +129,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('neutral', 'left', 'Rotate counterclockwise', 'left', ready, () => walls.rotate(), 'left'),
       action('neutral', 'right', 'Rotate clockwise', 'right', ready, () => walls.rotate(), 'right'),
       action('destructive', 'remove', 'Remove', 'bottom', walls.canApply(OPEN), () => walls.apply(OPEN), 'remove'),
-      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
   }
   if (room.active) {
@@ -139,7 +140,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('neutral', 'doorway', 'Doorway', 'top', ready && room.second !== null, () => room.chooseDoorway(), 'doorway'),
       action('affirmative', 'build', 'Build room', 'top', room.canBuild, () => room.build(), 'confirm'),
       action('neutral', 'corners', 'Corners', 'top', ready, () => room.restartCorners(), 'corners'),
-      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
   }
   if (floors.active) {
@@ -148,7 +149,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       ...floors.coverings().map((name, index) => action('neutral', `floor-${index + 1}`, name, 'top',
         floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
       action('destructive', 'remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
-      action('negative', 'clear', 'Cancel', 'bottom', floors.pending === null, tools.cancelBuild, 'clear'),
+      action('negative', 'clear', 'Cancel', 'bottom', floors.pending === null, tools.clearSelection, 'clear'),
     ] };
   }
   const buying = buy.active;
@@ -165,7 +166,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('neutral', 'right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
       action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
         'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
-      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
 }
 

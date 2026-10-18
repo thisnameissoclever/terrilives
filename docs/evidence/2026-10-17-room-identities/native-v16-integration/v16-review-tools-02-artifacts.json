@@ -1,0 +1,10 @@
+{
+  "domestic_review": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\domestic_review.exe",
+    "sha256": "95e82a48e353a5389c6374a2e89ba4f153f28e668e5bf3b37969c1450e073d16"
+  },
+  "relationship_qa": {
+    "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\relationship_qa.exe",
+    "sha256": "4b8beec4ae3349c1ef8fc7b8238fb4622a27e85068926c97d3df09fa9d531540"
+  }
+}

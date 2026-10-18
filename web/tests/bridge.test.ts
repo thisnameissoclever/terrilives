@@ -237,7 +237,7 @@ describe('SimBridge', () => {
     });
   });
 
-  it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {
+  it('exposes aligned stable Sim ids for public people with a sentinel for objects', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = Array.from(bridge.simIds());
     expect(before.filter((id) => id !== 0xffff_ffff)).toEqual([0, 1, 2]);
@@ -245,7 +245,7 @@ describe('SimBridge', () => {
 
     bridge.spawnAgent(1, 1, 50);
     const after = bridge.simIds();
-    expect(after.at(-1)).toBe(0xffff_ffff);
+    expect(after.at(-1)).toBe(3);
     expect(Array.from(after)).not.toEqual(Array.from(bridge.ids()));
     expect(Array.from(after)).not.toEqual(Array.from(bridge.kinds()));
   });
@@ -380,6 +380,30 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(bridge.houseSize()).toEqual([16, 12]);
     expect(bridge.yardLook().map((value) => Math.round(value * 100) / 100)).toEqual([65, 2, -0.22]);
+  });
+
+  // [SEA-year] and [SEA-yard] in docs/specs/2026-10-17-seasons.md: a new game
+  // starts in Spring, the season turns after seven days, and the yard's four
+  // seasonal looks cross the boundary as twelve numbers, Spring first.
+  it('reports the season and the yard look of each season', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.seasonIndex()).toBe(0);
+    const looks = bridge.seasonYardLooks();
+    expect(looks).toBeInstanceOf(Float32Array);
+    expect(Array.from(looks, (value) => Math.round(value * 100) / 100)).toEqual([
+      0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14,
+    ]);
+    // An empty room runs the same clock and content quickly: the last minute
+    // of day 7 is still Spring, and the next tick begins Summer.
+    const room = new SimHandle(5, 4);
+    const empty = new SimBridge(room, wasmMemory);
+    const week = empty.dayTicks() * 7;
+    for (let tick = 0; tick < week - 1; tick++) room.tick();
+    expect(empty.clockTick()).toBe(week - 1);
+    expect(empty.seasonIndex()).toBe(0);
+    room.tick();
+    expect(empty.seasonIndex()).toBe(1);
   });
 
   // [OS-street]: the street's column and look, and no street without a yard.
@@ -907,7 +931,7 @@ describe('SimBridge', () => {
     expect(sim.shynessOf(Number.NaN)).toBeNull();
     const debug = new SimBridge(new SimHandle(4, 4), wasmMemory);
     debug.spawnAgent(1, 1, 100);
-    expect(debug.shynessOf(0)).toBe(50);
+    expect(debug.shynessOf(0)).toBe(89); // Stable person 0 receives its seeded shyness.
   });
 
   it('saves, restores and continues through the release wasm bridge', () => {
@@ -1387,7 +1411,9 @@ describe('SimBridge', () => {
     // Independently measured on native and rebuilt release WASM: identical.
     // The canonical empty books-v1 suffix extends the native pre-books
     // digest 8890656731713008279 to this independently measured WASM value.
-    expect(bridge.worldHash()).toBe(0x6d3d37e1d3212a18n);
+    // Current creation assigns stable identities and uses weighted instinct.
+    // Independently measured in native and release WASM before updating either.
+    expect(bridge.worldHash()).toBe(0x40e538fdcf6ce193n);
   });
 
   // ---- Player commands -------------------------------------------------

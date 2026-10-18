@@ -11,6 +11,7 @@ import { WallTool, WALL, DOORWAY, WINDOW, OPEN } from '../src/ui/wall-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { BuildContextActions, contextModel, contextPosition, type ContextTools } from '../src/ui/placement-actions.js';
 import { shortcutGroups } from '../src/ui/shortcuts.js';
+import { clearBuildSelection } from '../src/ui/build-tools.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -31,10 +32,8 @@ function fixture(singleFacing = false) {
   const tools: ContextTools = { furniture, buy: new BuyTool(source, 16, 12, hooks),
     walls: new WallTool(source, 16, 12, hooks), room: new RoomTool(source, 16, 12, hooks),
     floors: new FloorTool(source, 16, 12, hooks), focusCatalogue: vi.fn(),
-    cancelBuild: vi.fn(() => {
-      furniture.cancel(); tools.buy.cancel(); tools.walls.clearSelection();
-      tools.walls.windows?.handleKey('Escape'); tools.room.cancel(); tools.floors.clearSelection();
-    }) };
+    // The page's contextual Cancel: clears the tool in use and keeps the batch.
+    clearSelection: vi.fn(() => clearBuildSelection([tools.walls, tools.room, tools.buy, tools.floors], furniture)) };
   furniture.enter();
   return { handle, source, ...tools, tools };
 }

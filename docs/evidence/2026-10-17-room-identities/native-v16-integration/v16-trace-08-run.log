@@ -1,0 +1,351 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.17s
+     Running `target\debug\examples\trace.exe 10 42`
+CATALOGUE scenario new; initial Funds 0; owned copies 3; titles 3
+seed 42, instinct override None
+
+10 ticks (0.0 min at 1x), household of 3
+
+INTERACTIONS  0 total, all sims
+object               count  share   min   max   mean  content
+fridge                   0   0.0%     -     -      -  85,330       <-- NEVER USED
+bed                      0   0.0%     -     -      -  180          <-- NEVER USED
+shower                   0   0.0%     -     -      -  90           <-- NEVER USED
+toilet                   0   0.0%     -     -      -  24           <-- NEVER USED
+television               0   0.0%     -     -      -  55           <-- NEVER USED
+sofa                     0   0.0%     -     -      -  40,60        <-- NEVER USED
+sink                     0   0.0%     -     -      -  21           <-- NEVER USED
+bookshelf                0   0.0%     -     -      -  60           <-- NEVER USED
+stove                    -      -     -     -      -               (scenery)
+counter                  -      -     -     -      -               (scenery)
+kitchen_sink             0   0.0%     -     -      -  23,50        <-- NEVER USED
+dining_table             0   0.0%     -     -      -  62,20        <-- NEVER USED
+chair                    0   0.0%     -     -      -  30,60        <-- NEVER USED
+trashcan                 -      -     -     -      -               (scenery)
+long_sofa                0   0.0%     -     -      -  72,44,60     <-- NEVER USED
+armchair                 0   0.0%     -     -      -  41,60        <-- NEVER USED
+radio                    0   0.0%     -     -      -  38           <-- NEVER USED
+potted_plant             -      -     -     -      -               (scenery)
+floor_lamp               -      -     -     -      -               (scenery)
+coat_rack                -      -     -     -      -               (scenery)
+double_bed               0   0.0%     -     -      -  210          <-- NEVER USED
+nightstand               -      -     -     -      -               (scenery)
+dresser                  -      -     -     -      -               (scenery)
+moving_box               0   0.0%     -     -      -  75           <-- NEVER USED
+desk                     0   0.0%     -     -      -  58           <-- NEVER USED
+desk_chair               0   0.0%     -     -      -  40,60        <-- NEVER USED
+reading_chair            0   0.0%     -     -      -  60,41        <-- NEVER USED
+reference_shelf          0   0.0%     -     -      -  67           <-- NEVER USED
+bathtub                  0   0.0%     -     -      -  78           <-- NEVER USED
+laundry                  -      -     -     -      -               (scenery)
+
+CONVERSATIONS  0 total
+
+WHO DOES WHAT
+Tim        0 interactions, 0 back to back  |
+Bill       0 interactions, 0 back to back  |
+Casey      0 interactions, 0 back to back  |
+
+RAW ADVERTISEMENT AUDIT (before instinct, risk and leisure) at tick 10: Tim at (7, 2)
+object          dist    hab   disp  trait  scale     score  contributions
+fridge             8   0.00   1.00   1.00   1.00    0.0195  Hunger 0.0195 (lvl 61)
+fridge             8   0.00   1.00   1.00   1.00    0.0111  Hunger 0.0111 (lvl 61) Social 0.0000 (lvl 100)
+kitchen_sink       4   0.00   1.00   1.00   1.00    0.0000  Hygiene 0.0000 (lvl 99)
+kitchen_sink       4   0.00   1.00   1.00   1.00    0.0000
+chair              6   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+chair              6   0.00   1.00   1.35   1.35    0.0047  Fun 0.0047 (lvl 77) Comfort 0.0000 (lvl 100)
+chair              3   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+chair              3   0.00   1.00   1.35   1.35    0.0055  Fun 0.0055 (lvl 77) Comfort 0.0000 (lvl 100)
+desk_chair        15   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+desk_chair        15   0.00   1.00   1.35   1.35    0.0033  Fun 0.0033 (lvl 77) Comfort 0.0000 (lvl 100)
+armchair           7   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+armchair           7   0.00   1.00   1.35   1.35    0.0045  Fun 0.0045 (lvl 77) Comfort 0.0000 (lvl 100)
+moving_box        13   0.00   1.00   1.00   1.00    0.0025  Energy -0.0000 (lvl 99) Hygiene -0.0000 (lvl 99) Fun 0.0025 (lvl 77)
+bed               16   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+reading_chair     16   0.00   1.28   1.35   1.73    0.0051  Fun 0.0051 (lvl 77) Comfort 0.0000 (lvl 100)
+reading_chair     16   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+toilet            10   0.00   1.00   1.00   1.00    0.0000  Bladder 0.0000 (lvl 99)
+bathtub           13   0.00   1.00   1.00   1.00    0.0000  Energy -0.0000 (lvl 99) Hygiene 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+reference_shelf    14   0.00   1.00   1.00   1.00    0.0020  Fun 0.0020 (lvl 77) Comfort 0.0000 (lvl 100)
+dining_table       4   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+dining_table       4   0.00   1.00   1.00   1.00    0.0000
+bookshelf          2   0.00   1.45   1.35   1.96    0.0084  Fun 0.0084 (lvl 77)
+long_sofa          4   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+long_sofa          4   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+long_sofa          4   0.00   1.00   1.35   1.35    0.0052  Fun 0.0052 (lvl 77) Comfort 0.0000 (lvl 100)
+radio              1   0.00   1.00   1.00   1.00    0.0050  Social 0.0000 (lvl 100) Fun 0.0050 (lvl 77)
+television         3   0.00   0.55   1.00   0.55    0.0024  Social 0.0000 (lvl 100) Fun 0.0024 (lvl 77)
+sofa               5   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+sofa               5   0.00   1.00   1.35   1.35    0.0049  Fun 0.0049 (lvl 77) Comfort 0.0000 (lvl 100)
+double_bed        11   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+desk              17   0.00   1.70   1.00   1.70    0.0047  Energy -0.0000 (lvl 99) Fun 0.0047 (lvl 77)
+shower            10   0.00   1.00   1.00   1.00    0.0000  Energy -0.0000 (lvl 99) Hygiene 0.0000 (lvl 99)
+sink              14   0.00   1.00   1.00   1.00    0.0000  Hygiene 0.0000 (lvl 99)
+Bill              10   0.00   1.00   1.00   1.00    0.0009  Social 0.0000 (lvl 100) Fun 0.0009 (lvl 77)  (chat) (busy)
+Bill              10   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+Casey              3   0.00   1.00   1.00   1.00    0.0012  Social 0.0000 (lvl 100) Fun 0.0012 (lvl 77)  (chat) (busy)
+Casey              3   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+
+RAW ADVERTISEMENT AUDIT (before instinct, risk and leisure) at tick 10: Bill at (2, 8)
+object          dist    hab   disp  trait  scale     score  contributions
+fridge            11   0.00   1.00   1.00   1.00    0.0000  Hunger 0.0000 (lvl 99)
+fridge            11   0.00   1.00   1.00   1.00    0.0000  Hunger 0.0000 (lvl 99) Social 0.0000 (lvl 100)
+kitchen_sink      11   0.00   1.00   1.00   1.00    0.0000  Hygiene 0.0000 (lvl 99)
+kitchen_sink      11   0.00   1.00   1.00   1.00    0.0000
+chair              7   0.00   1.00   1.00   1.00    0.0179  Comfort 0.0179 (lvl 55)
+chair              7   0.00   1.00   1.00   1.00    0.0079  Fun 0.0000 (lvl 100) Comfort 0.0079 (lvl 55)
+chair              6   0.00   1.00   1.00   1.00    0.0192  Comfort 0.0192 (lvl 55)
+chair              6   0.00   1.00   1.00   1.00    0.0083  Fun 0.0000 (lvl 100) Comfort 0.0083 (lvl 55)
+desk_chair         6   0.00   1.00   1.00   1.00    0.0308  Comfort 0.0308 (lvl 55)
+desk_chair         6   0.00   1.00   1.00   1.00    0.0149  Fun 0.0000 (lvl 100) Comfort 0.0149 (lvl 55)
+armchair          18   0.00   1.85   1.00   1.85    0.0553  Comfort 0.0553 (lvl 55)
+armchair          18   0.00   1.00   1.00   1.00    0.0133  Fun 0.0000 (lvl 100) Comfort 0.0133 (lvl 55)
+moving_box         4   0.00   1.00   0.55   0.55   -0.0005  Energy -0.0005 (lvl 83) Hygiene -0.0000 (lvl 99) Fun 0.0000 (lvl 100)
+bed               10   0.00   1.00   1.00   1.00    0.0050  Energy 0.0024 (lvl 83) Comfort 0.0027 (lvl 55)
+reading_chair      7   0.00   1.00   1.00   1.00    0.0248  Fun 0.0000 (lvl 100) Comfort 0.0248 (lvl 55)
+reading_chair      7   0.00   1.00   1.00   1.00    0.0487  Comfort 0.0487 (lvl 55)
+toilet            13   0.00   1.00   1.00   1.00    0.0000  Bladder 0.0000 (lvl 99)
+bathtub           14   0.00   1.00   1.00   1.00    0.0269  Energy -0.0001 (lvl 83) Hygiene 0.0000 (lvl 99) Comfort 0.0270 (lvl 55)
+reference_shelf     5   0.00   1.00   1.45   1.45    0.0407  Fun 0.0000 (lvl 100) Comfort 0.0407 (lvl 55)
+dining_table       5   0.00   1.00   1.00   1.00    0.0524  Comfort 0.0524 (lvl 55)
+dining_table       5   0.00   1.00   1.00   1.00    0.0000
+bookshelf         13   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100)
+long_sofa         15   0.00   1.35   1.00   1.35    0.0518  Energy 0.0005 (lvl 83) Comfort 0.0513 (lvl 55)
+long_sofa         15   0.00   1.00   1.00   1.00    0.0280  Comfort 0.0280 (lvl 55)
+long_sofa         15   0.00   1.00   1.00   1.00    0.0128  Fun 0.0000 (lvl 100) Comfort 0.0128 (lvl 55)
+radio             12   0.00   1.00   1.00   1.00    0.0000  Social 0.0000 (lvl 100) Fun 0.0000 (lvl 100)
+television        14   0.00   1.00   1.50   1.50    0.0000  Social 0.0000 (lvl 100) Fun 0.0000 (lvl 100)
+sofa              16   0.00   1.00   1.00   1.00    0.0224  Comfort 0.0224 (lvl 55)
+sofa              16   0.00   1.00   1.00   1.00    0.0085  Fun 0.0000 (lvl 100) Comfort 0.0085 (lvl 55)
+double_bed         0   0.00   1.00   1.00   1.00    0.0083  Energy 0.0027 (lvl 83) Comfort 0.0056 (lvl 55)
+desk               8   0.00   0.45   1.00   0.45   -0.0004  Energy -0.0004 (lvl 83) Fun 0.0000 (lvl 100)
+shower            15   0.00   1.00   1.00   1.00   -0.0004  Energy -0.0004 (lvl 83) Hygiene 0.0000 (lvl 99)
+sink              13   0.00   1.00   1.00   1.00    0.0000  Hygiene 0.0000 (lvl 99)
+Tim               10   0.00   1.00   0.65   0.65    0.0000  Social 0.0000 (lvl 100) Fun 0.0000 (lvl 100)  (chat) (busy)
+Tim               10   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+Casey              6   0.00   1.00   0.65   0.65    0.0000  Social 0.0000 (lvl 100) Fun 0.0000 (lvl 100)  (chat) (busy)
+Casey              6   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+
+RAW ADVERTISEMENT AUDIT (before instinct, risk and leisure) at tick 10: Casey at (5, 4)
+object          dist    hab   disp  trait  scale     score  contributions
+fridge             8   0.00   1.00   1.00   1.00    0.0000  Hunger 0.0000 (lvl 99)
+fridge             8   0.00   1.00   1.00   1.00    0.0017  Hunger 0.0000 (lvl 99) Social 0.0017 (lvl 58)
+kitchen_sink       4   0.00   1.00   1.00   1.00    0.0130  Hygiene 0.0130 (lvl 70)
+kitchen_sink       4   0.00   1.00   1.00   1.00    0.0000
+chair              4   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+chair              4   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+chair              1   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+chair              1   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+desk_chair        11   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+desk_chair        11   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+armchair          11   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+armchair          11   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+moving_box         9   0.00   1.00   1.60   1.60   -0.0012  Energy -0.0000 (lvl 99) Hygiene -0.0012 (lvl 70) Fun 0.0000 (lvl 100)
+bed               15   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+reading_chair     12   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+reading_chair     12   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+toilet            14   0.00   1.00   1.00   1.00    0.0000  Bladder 0.0000 (lvl 99)
+bathtub           17   0.00   1.00   1.00   1.00    0.0103  Energy -0.0000 (lvl 99) Hygiene 0.0103 (lvl 70) Comfort 0.0000 (lvl 100)
+reference_shelf    10   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+dining_table       2   0.00   1.05   1.00   1.05    0.0000  Comfort 0.0000 (lvl 100)
+dining_table       2   0.00   1.00   1.00   1.00    0.0000
+bookshelf          6   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100)
+long_sofa          8   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+long_sofa          8   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+long_sofa          8   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+radio              5   0.00   1.60   1.00   1.60    0.0077  Social 0.0077 (lvl 58) Fun 0.0000 (lvl 100)
+television         7   0.00   1.20   1.00   1.20    0.0196  Social 0.0196 (lvl 58) Fun 0.0000 (lvl 100)
+sofa               9   0.00   1.00   1.00   1.00    0.0000  Comfort 0.0000 (lvl 100)
+sofa               9   0.00   1.00   1.00   1.00    0.0000  Fun 0.0000 (lvl 100) Comfort 0.0000 (lvl 100)
+double_bed         7   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) Comfort 0.0000 (lvl 100)
+desk              13   0.00   1.00   1.00   1.00    0.0000  Energy -0.0000 (lvl 99) Fun 0.0000 (lvl 100)
+shower            14   0.00   1.00   1.00   1.00    0.0124  Energy -0.0000 (lvl 99) Hygiene 0.0124 (lvl 70)
+sink              18   0.00   1.00   1.00   1.00    0.0061  Hygiene 0.0061 (lvl 70)
+Tim                3   0.00   1.00   1.30   1.30    0.0467  Social 0.0467 (lvl 58) Fun 0.0000 (lvl 100)  (chat) (busy)
+Tim                3   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+Bill               6   0.00   1.00   1.30   1.30    0.0405  Social 0.0405 (lvl 58) Fun 0.0000 (lvl 100)  (chat) (busy)
+Bill               6   0.00   1.00   1.00   1.00    0.0000   (fight) (busy)
+(action_threshold 0.050, idle_threshold 0.040, temperature 0.060; person rows: `hab` is the feeling and `disp` the relationship scale)
+
+RELATIONSHIPS at tick 10 (row feels about column)
+             Tim    Bill   Casey
+Tim            -   0.000   0.004
+Bill       0.000       -   0.000
+Casey      0.004   0.000       -
+
+LEGACY SUPPLY vs DRAIN estimate over 10 ticks, all sims
+This estimate uses ordinary interactions and first-action profiles; it omits recipes, owned reading, clamping and work/sleep decay scales. Use observed need bands and FOOD/CRITICAL totals below for catalogue assessment.
+need        supplied   drained    ratio   floors:     Tim    Bill   Casey
+hunger             0         2     0.00              61.4    99.4    99.4
+energy             0         1     0.00              99.5    82.6    99.5  <-- FLOOR TOO HIGH: an object advertising only this scores ~0 for everyone
+hygiene            0         2     0.00              99.3    99.3    70.4
+bladder            0         3     0.00              99.0    99.0    99.0  <-- FLOOR TOO HIGH: an object advertising only this scores ~0 for everyone
+social             0         1     0.00              99.7    99.7    57.6
+fun                0         2     0.00              77.4    99.5    99.5  <-- FLOOR TOO HIGH: an object advertising only this scores ~0 for everyone
+comfort            0         1     0.00              99.8    54.5    99.7
+
+NEED BANDS, per sim
+Tim:
+  hunger       61.4 to   61.9
+  energy       99.5 to   99.9
+  hygiene      99.3 to   99.9
+  bladder      99.0 to   99.9
+  social       99.7 to  100.0
+  fun          77.4 to   77.9
+  comfort      99.8 to  100.0
+Bill:
+  hunger       99.4 to   99.9
+  energy       82.6 to   83.0
+  hygiene      99.3 to   99.9
+  bladder      99.0 to   99.9
+  social       99.7 to  100.0
+  fun          99.5 to  100.0
+  comfort      54.5 to   55.0
+Casey:
+  hunger       99.4 to   99.9
+  energy       99.5 to   99.9
+  hygiene      70.4 to   70.9
+  bladder      99.0 to   99.9
+  social       57.6 to   58.0
+  fun          99.5 to  100.0
+  comfort      99.7 to  100.0
+
+MOTION, all sims
+walking         20   66.7%
+interacting      0    0.0%
+talking          0    0.0%
+waiting         10   33.3%   <-- reserved for a talk, initiator inbound
+wander pause     0    0.0%
+blocked          0    0.0%   <-- waiting for an occupied target
+unclassified     0    0.0%   <-- includes completion and decision transitions
+longest unclassified interval per Sim: [0, 0, 0] ticks
+at work          0    0.0%   <-- the rabbit hole, commute included
+chaining         0    0.0%   <-- mid-errand: walks, stations, waits
+  Tim      walk 100.0%  interact  0.0%  talk  0.0%  work  0.0%  idle  0.0%
+  Bill     walk  0.0%  interact  0.0%  talk 100.0%  work  0.0%  idle  0.0%
+  Casey    walk 100.0%  interact  0.0%  talk  0.0%  work  0.0%  idle  0.0%
+
+WANDER PATHS, newly observed natural strolls
+count 0  min -  mean -  p95 -  max -
+
+LIFE SATISFACTION (accrued over the whole run)
+  Tim          46.0   loves: correspondence, reading   works: Office clerk
+           traits: Low spirits (condition, severity 0.60)
+           traits: Bookworm (disposition x1.35)
+           traits: Out of shape (capability, level 0.42)
+  Bill         50.0   loves: television, cooking
+           traits: Television devotee (disposition x1.5)
+           traits: Avoids exercise (disposition x0.55)
+           traits: Fish watcher (disposition x1.45)
+           traits: Private person (disposition x0.65)
+  Casey        52.0   loves: socialising
+           traits: Can't cook (capability, level 0.25)
+           traits: Keen cyclist (disposition x1.6)
+           traits: Chatterbox (disposition x1.3)
+           traits: Slow reader (capability, level 0.58)
+
+CHAINS (started / completed / abandoned)
+  Tim        0 /   0 /   0
+  Bill       0 /   0 /   0
+  Casey      0 /   0 /   0
+
+AUTONOMOUS CHOICES 2; survival-risk choices 0; deaths 0
+  Tim instinct Some(51)
+  Bill instinct Some(77)
+  Casey instinct Some(76)
+decision need bands critical 0 low 0 recovering 2 comfortable 0
+ACTUAL CHOICE PROBABILITIES (mean while candidate available)
+maximum unrelated mass [one critical, multiple critical]: [0.0, 0.0]; policy violations 0
+pending request ticks by context: {"approaching": 10}; maximum age since creation by context: {"approaching": 9}
+request cancellations involving a recorded death 0; unexplained disappearances 0
+consecutive unrelated handwash choices while critical: 0; consecutive idle-context movement reversals per Sim: [0, 0, 0]
+critical decisions with viable relief 0; unrelated choices 0; maximum unrelated mass 0.000000000
+activity context ticks [active,approach,wait,work,privacy,no-route,no-relief,pause,idle]: [20, 10, 0, 0, 0, 0, 0, 0, 0]
+longest critical Idle interval per Sim: [0, 0, 0] ticks
+living critical ticks by need: [0, 0, 0, 0, 0, 0, 0]; meter rises starting critical, including exits: [0, 0, 0, 0, 0, 0, 0]
+conversation request starts 0; completions 0; other disappearances 0; maximum pending age 9 ticks; unrelated hand-washing choices while critical 0
+  Sim 34 target 0 row 0: 0.019763 (1 decisions)
+  Sim 34 target 0 row 1: 0.018810 (1 decisions)
+  Sim 34 target 4 row 0: 0.034452 (1 decisions)
+  Sim 34 target 7 row 0: 0.017226 (1 decisions)
+  Sim 34 target 7 row 1: 0.017226 (1 decisions)
+  Sim 34 target 8 row 0: 0.018589 (1 decisions)
+  Sim 34 target 8 row 1: 0.021875 (1 decisions)
+  Sim 34 target 9 row 0: 0.018843 (1 decisions)
+  Sim 34 target 9 row 1: 0.022834 (1 decisions)
+  Sim 34 target 10 row 0: 0.045323 (1 decisions)
+  Sim 34 target 11 row 0: 0.013657 (1 decisions)
+  Sim 34 target 11 row 1: 0.013657 (1 decisions)
+  Sim 34 target 11 row 2: 0.018009 (1 decisions)
+  Sim 34 target 12 row 0: 0.019073 (1 decisions)
+  Sim 34 target 12 row 1: 0.023726 (1 decisions)
+  Sim 34 target 16 row 0: 0.043943 (1 decisions)
+  Sim 34 target 17 row 0: 0.039454 (1 decisions)
+  Sim 34 target 18 row 0: 0.019073 (1 decisions)
+  Sim 34 target 18 row 1: 0.023726 (1 decisions)
+  Sim 34 target 19 row 0: 0.034452 (1 decisions)
+  Sim 34 target 22 row 0: 0.039290 (1 decisions)
+  Sim 34 target 23 row 0: 0.045244 (1 decisions)
+  Sim 34 target 24 row 4294967294: 0.034452 (1 decisions)
+  Sim 34 target 25 row 0: 0.034452 (1 decisions)
+  Sim 34 target 26 row 0: 0.023079 (1 decisions)
+  Sim 34 target 26 row 1: 0.018907 (1 decisions)
+  Sim 34 target 27 row 0: 0.038286 (1 decisions)
+  Sim 34 target 29 row 0: 0.034452 (1 decisions)
+  Sim 34 target 30 row 0: 0.034452 (1 decisions)
+  Sim 34 target 31 row 0: 0.034452 (1 decisions)
+  Sim 34 target 32 row 0: 0.034452 (1 decisions)
+  Sim 34 target 34 row 4294967295: 0.045137 (1 decisions)
+  Sim 34 target 35 row 0: 0.046814 (1 decisions)
+  Sim 34 target 36 row 0: 0.052823 (1 decisions)
+  Sim 36 target 0 row 0: 0.016833 (1 decisions)
+  Sim 36 target 0 row 1: 0.016833 (1 decisions)
+  Sim 36 target 4 row 0: 0.033665 (1 decisions)
+  Sim 36 target 7 row 0: 0.016833 (1 decisions)
+  Sim 36 target 7 row 1: 0.016833 (1 decisions)
+  Sim 36 target 8 row 0: 0.017759 (1 decisions)
+  Sim 36 target 8 row 1: 0.019909 (1 decisions)
+  Sim 36 target 9 row 0: 0.017907 (1 decisions)
+  Sim 36 target 9 row 1: 0.020438 (1 decisions)
+  Sim 36 target 10 row 0: 0.040178 (1 decisions)
+  Sim 36 target 11 row 0: 0.012568 (1 decisions)
+  Sim 36 target 11 row 1: 0.012568 (1 decisions)
+  Sim 36 target 11 row 2: 0.015042 (1 decisions)
+  Sim 36 target 12 row 0: 0.018035 (1 decisions)
+  Sim 36 target 12 row 1: 0.020904 (1 decisions)
+  Sim 36 target 16 row 0: 0.044240 (1 decisions)
+  Sim 36 target 17 row 0: 0.042144 (1 decisions)
+  Sim 36 target 18 row 0: 0.018035 (1 decisions)
+  Sim 36 target 18 row 1: 0.020904 (1 decisions)
+  Sim 36 target 19 row 0: 0.033665 (1 decisions)
+  Sim 36 target 22 row 0: 0.041911 (1 decisions)
+  Sim 36 target 23 row 0: 0.039953 (1 decisions)
+  Sim 36 target 24 row 4294967294: 0.033665 (1 decisions)
+  Sim 36 target 25 row 0: 0.033665 (1 decisions)
+  Sim 36 target 26 row 0: 0.019854 (1 decisions)
+  Sim 36 target 26 row 1: 0.017744 (1 decisions)
+  Sim 36 target 27 row 0: 0.037710 (1 decisions)
+  Sim 36 target 29 row 0: 0.033665 (1 decisions)
+  Sim 36 target 30 row 0: 0.036870 (1 decisions)
+  Sim 36 target 31 row 0: 0.036296 (1 decisions)
+  Sim 36 target 32 row 0: 0.033665 (1 decisions)
+  Sim 36 target 34 row 0: 0.072006 (1 decisions)
+  Sim 36 target 35 row 0: 0.061920 (1 decisions)
+  Sim 36 target 36 row 4294967295: 0.045782 (1 decisions)
+
+FUNDS 0
+
+world hash 0x32b8a6bdeaae89b4
+
+RELATIONSHIP EFFECTS (records / requested / actual after clamping)
+  Proximity: 8 / 0.008267 / 0.008267
+  Decay: 8 / -0.000040 / -0.000040
+  privacy actions: 0 ordinary / 0 emergency / 0 player-directed
+  directional contact hours: 0.13; privacy waiting minutes: 0; longest wait: 0
+  recoveries: 0 finished / 0 unfinished (subsequent incidents remain in each recovery)
+  privacy victim records already within 0.01 tolerance: 0
+FOOD recipe starts: {}
+CRITICAL need person-ticks [Hunger,Energy,Hygiene,Bladder,Social,Fun,Comfort]: [0, 0, 0, 0, 0, 0, 0]
+FOOD positive terminal Hunger deliveries (count, actual clamped gain): {}
+CATALOGUE reading journey person-ticks 0; all walking person-ticks 20; queued order-ticks 0
+CATALOGUE final copies 3 memories 0

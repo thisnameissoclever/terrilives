@@ -1438,6 +1438,9 @@ mod tests {
         }));
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
+        sim.world_mut()
+            .entity_mut(worker)
+            .insert(terri_core::SimId(0));
         sim.world_mut().entity_mut(worker).insert(AtWork {
             remaining_ticks: 500,
         });
@@ -1445,6 +1448,7 @@ mod tests {
             .world_mut()
             .spawn((
                 Agent,
+                terri_core::SimId(1),
                 Position { x: 12.0, y: 2.0 },
                 Needs::all_at(80.0),
                 terri_core::IntentQueue::default(),
@@ -1464,10 +1468,12 @@ mod tests {
                 sim.world().get::<Socialising>(admirer).is_none(),
                 "no conversation may start with a sim who is not there"
             );
-            assert!(
-                sim.world().get::<Target>(admirer).is_none(),
-                "waiting happens standing, not walking"
+            assert_eq!(
+                sim.world().get::<Target>(admirer).map(|t| t.object),
+                Some(worker),
+                "The committed request survives the work wait"
             );
+            assert!(sim.world().get::<Path>(admirer).is_none());
         }
         assert!(
             sim.world().get::<terri_core::Blocked>(admirer).is_some(),

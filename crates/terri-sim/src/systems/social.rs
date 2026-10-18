@@ -11,7 +11,6 @@ use terri_core::{
     IntentQueue, NeedId, Needs, Personality, Relationships, Reserved, SimId, Socialising, Target,
 };
 
-use super::advertise::scaled_delta;
 use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
 use crate::Content;
 
@@ -48,10 +47,11 @@ use crate::Content;
 #[allow(clippy::too_many_arguments)]
 pub fn tick_social(
     mut commands: Commands,
-    (content, episodes, family): (
+    (content, episodes, family, mut requests): (
         Res<Content>,
         Res<crate::social_episode::SocialEpisodes>,
         Option<Res<terri_core::layout::FamilyTies>>,
+        ResMut<crate::social_episode::requests::ConversationRequests>,
     ),
     clock: Res<terri_core::SimClock>,
     mut diagnostics: ResMut<RelationshipDiagnostics>,
@@ -121,7 +121,6 @@ pub fn tick_social(
         }
 
         let act = &content.0.social[socialising.interaction as usize];
-        let duration = act.duration_ticks as f32;
 
         // Delivery, both directions. `delta / duration` per tick against
         // the CONTENT duration, exactly as `tick_interactions` does and
@@ -160,10 +159,14 @@ pub fn tick_social(
                 } else {
                     super::advertise::relationship_scale(feeling, tuning.relationship_delta_scale)
                 };
-                let delta =
-                    scaled_delta(*delta, need_scale * satisfaction_of(*need_index as usize));
+                let delta = crate::need_interactions::physical::conversation_rate(
+                    *delta,
+                    satisfaction_of(*need_index as usize),
+                    need_scale,
+                    act.duration_ticks,
+                );
                 let id = NeedId::ALL[*need_index as usize];
-                my_needs.fill(id, delta / duration);
+                my_needs.fill(id, delta);
             }
         }
 
@@ -346,13 +349,20 @@ pub fn tick_social(
         // the order standing, the same way an intent for a reserved
         // object waits at serve, so the sim tries again once the partner
         // is free.
+        let origin = requests.finish(initiator, partner, socialising.interaction);
         if let Ok(mut queue) = queues.get_mut(initiator) {
-            queue.remove_first(terri_core::Intent {
-                cleanup: None,
-                chore: None,
-                object: partner,
-                interaction: socialising.interaction,
-            });
+            if let Some(crate::social_episode::requests::ConversationOrigin::Player { order_id }) =
+                origin
+            {
+                queue.remove_order(order_id);
+            } else if crate::fights::is_fight(act) {
+                queue.remove_first(terri_core::Intent {
+                    object: partner,
+                    interaction: socialising.interaction,
+                    cleanup: None,
+                    chore: None,
+                });
+            }
         }
         let mut initiator_commands = commands.entity(initiator);
         initiator_commands
@@ -1430,29 +1440,22 @@ mod tests {
              decisively, or the third sim's options are not what this \
              test says they are"
         );
-        assert!(
-            sim.world().get::<Target>(odd_one_out).is_none(),
-            "both possible partners were claimed this very tick - one as \
-             a target, one as an initiator - so the third sim must have \
-             nobody to talk to"
+        assert_eq!(
+            sim.world().get::<Target>(odd_one_out).map(|t| t.object),
+            Some(partner),
+            "A busy person can be the subject of a committed pending request"
         );
         assert!(
             sim.world().get::<Restless>(odd_one_out).is_none(),
             "the third sim SAW people worth talking to; being outbid must \
              read as waiting, not as a boring house - [C3] for persons"
         );
-        // And it is BLOCKED: its best option belongs to somebody else,
-        // which is that marker's exact meaning. The load-bearing half is
-        // that a contested person must NOT feed best_available - delete
-        // the negation on that guard and the two maxima tie, Blocked
-        // never fires, and this goes red. The initiator is the control:
-        // its best option was a person it could actually have.
-        assert!(
-            sim.world()
-                .get::<terri_core::Blocked>(odd_one_out)
-                .is_some(),
-            "a sim whose best option is somebody else's must be Blocked"
-        );
+        assert!(sim.world().get::<Socialising>(odd_one_out).is_none());
+        assert!(sim
+            .world()
+            .resource::<crate::social_episode::requests::ConversationRequests>()
+            .outgoing(odd_one_out)
+            .is_some());
         assert!(
             sim.world().get::<terri_core::Blocked>(first).is_none(),
             "a sim that just claimed an available partner is not blocked"
@@ -1790,7 +1793,7 @@ mod tests {
     /// partner - is the only thing between this and a mutual
     /// reservation. Kills the `claimed.push(agent)` deletion.
     #[test]
-    fn mutual_talk_commands_form_exactly_one_conversation() {
+    fn mutual_talk_commands_keep_both_orders_with_only_one_active_approach() {
         let (mut sim, a, b, _fridge) = command_fixture();
 
         talk(&mut sim, a, b);
@@ -1806,10 +1809,15 @@ mod tests {
             sim.world().get::<Target>(b).is_none(),
             "the other order must WAIT, not form a second conversation"
         );
-        assert!(
-            sim.world().get::<terri_core::Blocked>(b).is_some(),
-            "and the waiting sim says why it is standing still"
-        );
+        assert!(sim.world().get::<Reserved>(b).is_some());
+        assert_eq!(sim.world().get::<IntentQueue>(b).unwrap().len(), 1);
+        assert!(sim
+            .world()
+            .resource::<crate::social_episode::requests::ConversationRequests>()
+            .requests
+            .values()
+            .any(|r| r.initiator == b
+                && r.phase == crate::social_episode::requests::RequestPhase::Suspended));
     }
 
     /// A talk ordered at a partner who is mid-meal WAITS at the front of
@@ -2286,18 +2294,30 @@ mod tests {
 
         talk(&mut sim, a, b);
         sim.tick();
+        assert_eq!(sim.world().get::<Target>(a).map(|t| t.object), Some(b));
+        assert!(sim.world().get::<Socialising>(a).is_none());
         assert!(
-            sim.world().get::<Target>(a).is_none(),
-            "the order must not serve while the partner strolls"
+            sim.world().get::<Reserved>(b).is_none(),
+            "The real stroll keeps priority"
         );
+        assert!(sim.world().get::<terri_core::Path>(b).is_some());
+
         assert!(
-            sim.world().get::<terri_core::Blocked>(a).is_some(),
-            "waiting says so out loud"
+            sim.world()
+                .resource::<super::super::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .all(|decision| decision.agent != b.index_u32()),
+            "A healthy walker keeps the existing path without a fresh choice"
         );
 
         for _ in 0..60 {
             sim.tick();
-            if sim.world().get::<Target>(a).map(|t| t.object) == Some(b) {
+            if sim
+                .world()
+                .get::<Socialising>(a)
+                .is_some_and(|s| s.partner == b)
+            {
                 return;
             }
         }

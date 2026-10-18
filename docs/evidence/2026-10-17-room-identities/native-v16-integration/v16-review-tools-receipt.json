@@ -1,0 +1,130 @@
+[
+  {
+    "name": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-wasm/examples/fixture_depth_review.rs",
+      "crates/terri-wasm/examples/creator_contact_review.rs",
+      "crates/terri-wasm/examples/targeted_cleanup_review.rs",
+      "crates/terri-wasm/examples/cleaning_animation_review.rs",
+      "crates/terri-wasm/examples/chores_review.rs",
+      "crates/terri-wasm/examples/domestic_review.rs",
+      "crates/terri-wasm/examples/relationship_qa.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-format.log",
+    "finished_utc": "2026-10-18T02:16:27.877093+00:00"
+  },
+  {
+    "name": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-review-tools-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-fingerprint.log",
+    "finished_utc": "2026-10-18T02:16:28.697830+00:00"
+  },
+  {
+    "name": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "terri-wasm",
+      "--examples",
+      "--locked",
+      "--jobs",
+      "1",
+      "--message-format=json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-build.log",
+    "finished_utc": "2026-10-18T02:17:17.146160+00:00"
+  },
+  {
+    "name": "fixture_depth_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\fixture_depth_review.exe",
+      ".local-build\\current-review-tools-v16-01\\fixture_depth_review"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-fixture_depth_review.log",
+    "finished_utc": "2026-10-18T02:17:17.349657+00:00"
+  },
+  {
+    "name": "creator_contact_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\creator_contact_review.exe",
+      ".local-build\\current-review-tools-v16-01\\creator_contact_review.sav"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-creator_contact_review.log",
+    "finished_utc": "2026-10-18T02:17:17.381572+00:00"
+  },
+  {
+    "name": "targeted_cleanup_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\targeted_cleanup_review.exe",
+      ".local-build\\current-review-tools-v16-01\\targeted_cleanup_review.sav"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-targeted_cleanup_review.log",
+    "finished_utc": "2026-10-18T02:17:17.415417+00:00"
+  },
+  {
+    "name": "cleaning_animation_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\cleaning_animation_review.exe",
+      ".local-build\\current-review-tools-v16-01\\cleaning_animation_review"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-cleaning_animation_review.log",
+    "finished_utc": "2026-10-18T02:17:17.780159+00:00"
+  },
+  {
+    "name": "chores_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\chores_review.exe",
+      ".local-build\\current-review-tools-v16-01\\chores_review.sav"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-chores_review.log",
+    "finished_utc": "2026-10-18T02:17:17.875110+00:00"
+  },
+  {
+    "name": "domestic_review",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\domestic_review.exe",
+      ".local-build\\current-review-tools-v16-01\\domestic_review.sav"
+    ],
+    "exit_code": 101,
+    "log": ".local-build\\v16-review-tools-domestic_review.log",
+    "finished_utc": "2026-10-18T02:17:20.137643+00:00"
+  },
+  {
+    "name": "relationship_qa",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\relationship_qa.exe",
+      ".local-build\\current-review-tools-v16-01\\relationship_qa"
+    ],
+    "exit_code": 101,
+    "log": ".local-build\\v16-review-tools-relationship_qa.log",
+    "finished_utc": "2026-10-18T02:17:20.184864+00:00"
+  },
+  {
+    "name": "chores_review-person",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\chores_review.exe",
+      ".local-build\\current-review-tools-v16-01\\chores-person.sav",
+      "1000",
+      "2"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-chores_review-person.log",
+    "finished_utc": "2026-10-18T02:17:20.292122+00:00"
+  }
+]

@@ -1,0 +1,212 @@
+[
+  {
+    "x": 9,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.25,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.875,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.75,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.916749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.3334999999999855,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.833499999999985,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.833000000000029,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.4165000000000143,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.9165000000000143,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 9,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.5,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.75,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.5834999999999857,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.0834999999999857,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.916749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.6665000000000143,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.875,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.75,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.916500000000015,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.3330000000000295,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.833250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.8334999999999857,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.4165000000000152,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.9165000000000152,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.08349999999998481,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.5834999999999848,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.833500000000022,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.16700000000004422,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.916499999999978,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.6670000000000442,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.875,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.25,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.875,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.75,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.916749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.3334999999999848,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.833250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.8334999999999848,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.4165000000000152,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791749999999993,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.9165000000000152,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.958250000000007,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.4165000000000152,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.75,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 9,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.5,
+    "label": "Deciding what to do"
+  },
+  {
+    "x": 8.791500000000015,
+    "y": 2,
+    "clip": "idle",
+    "sample": 0.08300000000003038,
+    "label": "Deciding what to do"
+  }
+]

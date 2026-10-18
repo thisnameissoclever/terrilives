@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 import { CharacterDraft } from '../src/character/draft.js';
 import { floatBits, neutralDraft } from '../src/character/schema.js';
 import type { CharacterCatalog } from '../src/character/catalog.js';
@@ -14,7 +15,7 @@ class Element {
   fire(event:string):void {this.listeners.get(event)?.();}
 }
 const document={createElement:(tag:string)=>new Element(tag)} as unknown as Document;
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:1,max_household:6,
+const catalog:CharacterCatalog={version:2,self_preservation_bands:creationInstinctBands,name_limit:24,max_traits:1,max_household:6,
   traits:['one','two'].map(id=>({id,label:id,description:'A useful description.',kind:'disposition',initial_state:floatBits(0),weights:[]})),
   affinities:[],hobbies:[],skills:[],activities:[{object:'bookshelf',action:'read',label:'Read',tags:['reading']}],personalities:[]};
 function control(draft:CharacterDraft,id:string):Element {

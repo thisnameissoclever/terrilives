@@ -101,7 +101,7 @@ prices rounded up, funds rounded down.
    confirm the land purchase; only Confirm in that dialog sends the command.
    With too little money the strip can still be picked and read, and the
    dialog offers only Cancel. The purchase joins the build draft: Cancel or
-   Exit build before Confirm restores the old lot, funds and purchased total
+   Discard changes in the exit dialog before Confirm restores the old lot, funds and purchased total
    through the native transaction's confirmed baseline, and Confirm keeps them.
    A west or north purchase translates the confirmed room selection into the
    draft frame. Room membership and chore consequences are reconciled only

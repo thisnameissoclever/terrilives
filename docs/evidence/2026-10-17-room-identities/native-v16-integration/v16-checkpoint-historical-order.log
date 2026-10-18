@@ -1,0 +1,7 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-3eba8eb593be4501.exe)
+
+running 1 test
+test social_episode::tests::decision_tests::legacy_chat_migration_keeps_an_ambiguous_player_order_after_completion ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.01s

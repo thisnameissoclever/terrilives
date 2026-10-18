@@ -1305,8 +1305,8 @@ mod tests {
         assert_eq!(sim.portal_buffer().states.len(), 0);
         assert_eq!(sim.portal_buffer().positions.len(), 0);
 
-        let snapshot = sim.save_snapshot_v15();
-        sim.load_snapshot_v15(snapshot)
+        let snapshot = sim.save_snapshot_v16();
+        sim.load_snapshot_v16(snapshot)
             .expect("blank lot save reloads");
         assert_eq!(sim.portal_buffer().states.len(), 0);
         assert_eq!(sim.portal_buffer().positions.len(), 0);

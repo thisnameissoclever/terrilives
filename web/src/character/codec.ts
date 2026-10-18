@@ -100,7 +100,8 @@ export function decodeCharacterCatalog(bytes: Uint8Array): CharacterCatalog {
   const bits = (): F32Bits => { const value = r.number() as F32Bits; floatValue(value); return value; };
   const signed = () => { const value = r.number(); return (value >>> 1) ^ -(value & 1); };
   const result: CharacterCatalog = {
-    version: r.byte() as 1, name_limit: r.number(), max_traits: r.number(), max_household: r.number(),
+    version: r.byte() as 1|2, name_limit: r.number(), max_traits: r.number(), max_household: r.number(),
+    self_preservation_bands: [],
     traits: r.list(() => {
       const id = r.text(), label = r.text(), description = r.text(), kind = r.text();
       if (kind !== 'disposition' && kind !== 'capability' && kind !== 'condition') throw new Error('Unknown trait mechanism.');
@@ -115,8 +116,12 @@ export function decodeCharacterCatalog(bytes: Uint8Array): CharacterCatalog {
       dispositions: r.list(() => ({ object: r.text(), action: r.text(), weight: bits() }), 3),
     } }), 7),
   };
+  if(result.version===2)result.self_preservation_bands=r.list(()=>({min:r.byte(),max:r.byte(),weight:r.byte()}),3);
   r.done();
-  if (result.version !== 1 || result.name_limit < 1 || result.max_traits > 100 || result.max_household < 1) throw new Error('Invalid character catalog limits.');
+  if ((result.version !== 1 && result.version !== 2) || result.name_limit < 1 || result.max_traits > 100 || result.max_household < 1) throw new Error('Invalid character catalog limits.');
+  if(result.version===2 && (result.self_preservation_bands.length!==7
+    ||result.self_preservation_bands.reduce((sum,b)=>sum+b.weight,0)!==100
+    ||result.self_preservation_bands.some((b,i)=>b.min<11||b.max>95||b.min>b.max||b.weight<1||(i>0&&b.min<=result.self_preservation_bands[i-1].max))))throw new Error('Invalid creation instinct probabilities.');
   for (const rows of [result.traits, result.affinities, result.skills, result.hobbies, result.personalities]) {
     if (rows.some(row => !row.id.trim()) || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Invalid catalog identifiers.');
   }

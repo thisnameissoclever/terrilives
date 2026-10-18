@@ -87,11 +87,11 @@ pub(crate) fn suspended_floor(outside: bool) -> crate::Sim {
             }],
             ..Default::default()
         });
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v16();
     let mut admitted = crate::Sim::new_from_shipped_lot();
     admitted
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v16(saved.clone())
         .expect("suspended task is admitted before Build");
-    assert_eq!(admitted.save_snapshot_v15(), saved);
+    assert_eq!(admitted.save_snapshot_v16(), saved);
     admitted
 }

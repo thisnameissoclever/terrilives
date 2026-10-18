@@ -1804,7 +1804,7 @@ mod tests {
         }
         neutral_instincts(&mut sim);
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot_v15();
+        let before_save = sim.save_snapshot_v16();
 
         sim.sync_render_buffer();
 
@@ -1865,7 +1865,7 @@ mod tests {
                 "watching fish must face the aquarium without entering it"
             );
         }
-        assert_eq!(sim.save_snapshot_v15(), before_save);
+        assert_eq!(sim.save_snapshot_v16(), before_save);
         assert_eq!(sim.world_hash(), before_hash);
 
         let runtime_cases = [
@@ -2944,7 +2944,7 @@ mod tests {
             ))
             .id();
         neutral_instincts(&mut sim);
-        let snapshot = sim.save_snapshot_v15();
+        let snapshot = sim.save_snapshot_v16();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer();
@@ -2961,7 +2961,7 @@ mod tests {
             displayed_position_of(sim.render_buffer(), agent).0,
             (18.0, 12.0)
         );
-        assert_eq!(sim.save_snapshot_v15(), snapshot);
+        assert_eq!(sim.save_snapshot_v16(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         // The preceding render-only sample has no owned book. Start real reading for persistence.
@@ -2976,7 +2976,7 @@ mod tests {
         sim.world_mut()
             .entity_mut(agent)
             .insert((id, Needs::all_at(80.)));
-        sim.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+        sim.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         sim.world_mut()
             .insert_resource(terri_core::Funds::from_dollars(10000));
         let pack = sim.world().resource::<crate::Content>().0;
@@ -3040,11 +3040,11 @@ mod tests {
             (standing.x, standing.y),
             (target_position.x, target_position.y)
         );
-        let snapshot = sim.save_snapshot_v15();
+        let snapshot = sim.save_snapshot_v16();
         let hash = sim.world_hash();
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot_v15(snapshot.clone())
+            .load_snapshot_v16(snapshot.clone())
             .expect("the active bookshelf interaction is valid current save state");
         restored.sync_render_buffer();
         assert_eq!(
@@ -3060,7 +3060,7 @@ mod tests {
             ((standing.x, standing.y), (standing.x, standing.y)),
             "Load reconstructs standing reading from saved simulation state at the ordinary tile"
         );
-        assert_eq!(restored.save_snapshot_v15(), snapshot);
+        assert_eq!(restored.save_snapshot_v16(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 

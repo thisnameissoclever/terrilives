@@ -2,9 +2,61 @@ use super::*;
 use crate::{test_content, Content, Sim};
 use bevy_ecs::system::RunSystemOnce;
 use terri_core::{
-    CommandQueue, Hobbies, IntentQueue, Personality, Relationships, Reserved, SimCommand, SimId,
-    SimIdAllocator,
+    CommandQueue, Hobbies, IntentQueue, Personality, Position, Relationships, Reserved, SimCommand,
+    SimId, SimIdAllocator,
 };
+
+mod decision_tests;
+mod native_build_tests;
+
+#[test]
+fn current_save_rejects_shared_physical_conversation_participants() {
+    for approaching in [false, true] {
+        let (mut sim, a, b) = chat_fixture();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.reading = terri_data::pack().reading;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        sim.world_mut().get_mut::<Position>(a).unwrap().x = 6.;
+        let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                id,
+                Position { x: 8., y: 1. },
+                Needs::all_at(90.),
+                Relationships::default(),
+            ))
+            .id();
+        start(&mut sim, a, b, 30);
+        if approaching {
+            sim.world_mut().entity_mut(c).insert(Target {
+                object: b,
+                interaction: 0,
+            });
+            sim.world_mut()
+                .resource_mut::<SocialEpisodes>()
+                .rendezvous
+                .insert(b, c);
+        } else {
+            start(&mut sim, c, b, 30);
+        }
+        let bad = sim.save_snapshot_v16();
+        assert_eq!(bad.legacy.conversation_requests.requests.len(), 2);
+        let mut live = Sim::new_with_lot_and_content(12, 8, *sim.world().resource::<Content>());
+        let before = live.world_hash();
+        assert!(
+            live.load_snapshot_v16(bad).is_err(),
+            "approaching={approaching}"
+        );
+        assert_eq!(
+            live.world_hash(),
+            before,
+            "rejection preserves the live world"
+        );
+    }
+}
 
 fn chat_fixture() -> (Sim, Entity, Entity) {
     let pack = test_content::pack_with_social(
@@ -216,7 +268,7 @@ fn newcomer_waits_for_running_conversation_without_stealing_the_partner() {
 }
 
 #[test]
-fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders() {
+fn recipient_player_talk_defers_inbound_waiter_and_preserves_all_orders() {
     let (mut sim, a, b) = chat_fixture();
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
     let c = sim
@@ -224,6 +276,7 @@ fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders(
         .spawn((
             Agent,
             id,
+            Reserved,
             terri_core::Position { x: 8., y: 1. },
             Needs::all_at(90.),
         ))
@@ -244,10 +297,11 @@ fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders(
             cleanup: None,
             chore: None,
         });
+    sim.world_mut().entity_mut(c).remove::<Reserved>();
     talk(&mut sim, b, c);
     sim.tick();
     assert_eq!(sim.world().get::<Target>(b).unwrap().object, c);
-    assert!(sim.world().get::<Target>(a).is_none_or(|t| t.object != b));
+    assert_eq!(sim.world().get::<Target>(a).map(|t| t.object), Some(b));
     let orders: Vec<_> = sim
         .world()
         .get::<IntentQueue>(a)
@@ -255,7 +309,7 @@ fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders(
         .intents()
         .map(|i| i.object)
         .collect();
-    assert_eq!(orders, vec![fridge]);
+    assert_eq!(orders, vec![b, fridge]);
     assert!(!sim
         .world()
         .resource::<SocialEpisodes>()
@@ -294,6 +348,8 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
     sim.world_mut()
         .entity_mut(c)
         .insert(Hobbies(vec!["reading".into()]));
+    // This test isolates listener identity; C must stay uncommitted during setup.
+    sim.world_mut().entity_mut(c).insert(Reserved);
     talk(&mut sim, a, b);
     for _ in 0..100 {
         sim.tick();
@@ -306,10 +362,18 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
         -1.
     );
     let position = *sim.world().get::<terri_core::Position>(a).unwrap();
-    sim.world_mut().entity_mut(c).insert(terri_core::Position {
-        x: position.x + 1.,
-        y: position.y,
-    });
+    sim.world_mut()
+        .entity_mut(c)
+        .remove::<Reserved>()
+        .insert(terri_core::Position {
+            x: position.x + 1.,
+            y: position.y,
+        });
+    assert!(sim
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .outgoing(c)
+        .is_none());
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::TalkToFirst {
@@ -318,6 +382,11 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
             interaction: 0,
         });
     sim.tick();
+    assert!(sim.world().get::<Socialising>(a).is_some(),
+        "Redirect: target={:?}, path={:?}, receiver target={:?}, receiver path={:?}, receiver reserved={}, requests={:?}",
+        sim.world().get::<Target>(a),sim.world().get::<Path>(a),sim.world().get::<Target>(c),sim.world().get::<Path>(c),
+        sim.world().get::<Reserved>(c).is_some(),
+        sim.world().resource::<requests::ConversationRequests>().requests.values().collect::<Vec<_>>());
     assert_eq!(sim.world().get::<Socialising>(a).unwrap().partner, c);
     assert_eq!(
         sim.world().resource::<SocialEpisodes>().topics[&a].listener_preference,
@@ -618,7 +687,7 @@ fn shared_activity_selection_values_company_at_the_future_endpoint() {
 }
 
 #[test]
-fn urgent_waiting_recipient_releases_only_the_served_talk_order() {
+fn critical_need_values_preserve_the_chosen_chat_and_unrelated_orders() {
     let (mut sim, a, b) = chat_fixture();
     talk(&mut sim, a, b);
     sim.tick();
@@ -641,12 +710,12 @@ fn urgent_waiting_recipient_releases_only_the_served_talk_order() {
         .unwrap()
         .set(NeedId::Bladder, 0.);
     maintain(sim.world_mut());
-    assert!(sim
+    assert!(!sim
         .world()
         .resource::<SocialEpisodes>()
         .rendezvous
         .is_empty());
-    assert!(sim.world().get::<Target>(a).is_none());
+    assert_eq!(sim.world().get::<Target>(a).map(|t| t.object), Some(b));
     assert_eq!(
         sim.world()
             .get::<IntentQueue>(a)
@@ -654,9 +723,9 @@ fn urgent_waiting_recipient_releases_only_the_served_talk_order() {
             .front()
             .unwrap()
             .object,
-        fridge
+        b
     );
-    assert!(sim.world().get::<Reserved>(b).is_none());
+    assert!(sim.world().get::<Reserved>(b).is_some());
 }
 
 #[test]

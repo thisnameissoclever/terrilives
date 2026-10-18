@@ -1,0 +1,14 @@
+{
+  "command": [
+    "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+    "published_v15_tests::checksum_control_compares_the_exact_original_published_state",
+    "--exact",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "exit_code": 0,
+  "log": ".local-build\\v16-cause-06.log",
+  "executable_sha256": "94a541691a798dca01242941f96b5592ce2048cf70c676d4427321aa24752d3a",
+  "source_manifest": ".local-build/v16-native-build-06-source.json",
+  "finished_utc": "2026-10-18T02:02:07.111418+00:00"
+}

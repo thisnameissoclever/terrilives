@@ -63,10 +63,10 @@ fn materials_outside_and_dormant_dirt_round_trip_without_cleaning() {
             .push((13 * 20 + 17, 700));
         sim.world_mut().resource_mut::<SavedFloors>().set(17, 13, 0);
         assert_eq!(crate::chores::floor_at(sim.world(), 17, 13), None);
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.save_snapshot_v16();
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v15(saved.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v15(), saved);
+        loaded.load_snapshot_v16(saved.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v16(), saved);
         assert_eq!(
             loaded
                 .world()
@@ -148,18 +148,26 @@ fn rename_preserves_owners_daily_decisions_tasks_and_random_streams() {
         &old
     );
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
-    let snapshot = sim.save_snapshot_v15();
+    let snapshot = sim.save_snapshot_v16();
     let mut resumed = Sim::new_from_shipped_lot();
-    resumed.load_snapshot_v15(snapshot.clone()).unwrap();
-    assert_eq!(resumed.save_snapshot_v15(), snapshot);
+    resumed.load_snapshot_v16(snapshot.clone()).unwrap();
+    assert_eq!(resumed.save_snapshot_v16(), snapshot);
 }
 
 #[test]
 fn stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.tick();
-    let mut snapshot = sim.save_snapshot_v15();
-    let state = &mut snapshot.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
+    let mut snapshot = sim.save_snapshot_v16();
+    let state = &mut snapshot
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy;
     let person = state.world.entities.iter().find(|e| e.agent).unwrap().index;
     let record = snapshot.rooms.records[0].clone();
     snapshot.rooms.records.push(terri_core::rooms::RoomRecord {
@@ -190,11 +198,11 @@ fn stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomica
         .unwrap()
         .visits
         .sort_by_key(|v| v.person);
-    sim.load_snapshot_v15(snapshot.clone()).unwrap();
-    let before = sim.save_snapshot_v15();
+    sim.load_snapshot_v16(snapshot.clone()).unwrap();
+    let before = sim.save_snapshot_v16();
     snapshot.rooms.records.retain(|r| r.id.get() != 9001);
-    assert!(sim.load_snapshot_v15(snapshot).is_err());
-    assert_eq!(sim.save_snapshot_v15(), before);
+    assert!(sim.load_snapshot_v16(snapshot).is_err());
+    assert_eq!(sim.save_snapshot_v16(), before);
     assert!(before.rooms.records.contains(&record));
 }
 
@@ -450,10 +458,10 @@ fn review_stale_legacy_visit_and_duty_seeds_remain_separate_retired_history() {
     assert_eq!(migrated.world().resource::<terri_core::SimRng>(), &rng);
     assert_eq!(chores.rng, chore_rng);
     assert!(migrated.try_save_snapshot_v14().is_err());
-    let current = migrated.save_snapshot_v15();
+    let current = migrated.save_snapshot_v16();
     let mut resumed = Sim::new_from_shipped_lot();
-    resumed.load_snapshot_v15(current.clone()).unwrap();
-    assert_eq!(resumed.save_snapshot_v15(), current);
+    resumed.load_snapshot_v16(current.clone()).unwrap();
+    assert_eq!(resumed.save_snapshot_v16(), current);
     let before = crate::chores::RoomChangeContext::capture(resumed.world()).unwrap();
     let mut choices = RoomChoices::default();
     choices.names.insert(

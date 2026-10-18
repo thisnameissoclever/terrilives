@@ -113,7 +113,7 @@ fn command_free_projection_rederives_metadata_and_retains_orders_and_origins() {
         "queued source is valid"
     );
     let mut raw = original.clone();
-    let ten = &mut raw.legacy.legacy.legacy.legacy.legacy;
+    let ten = &mut raw.legacy.legacy.legacy.legacy.legacy.legacy;
     ten.command_order.clear();
     ten.legacy.command_order.clear();
     ten.legacy.legacy.world.queued_commands.clear();
@@ -123,8 +123,8 @@ fn command_free_projection_rederives_metadata_and_retains_orders_and_origins() {
     );
 
     let projected = capture_without_commands(&sim);
-    let six = &projected.legacy.legacy.legacy.legacy.legacy.legacy;
-    let old_six = &original.legacy.legacy.legacy.legacy.legacy.legacy;
+    let six = &projected.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
+    let old_six = &original.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
     assert!(six
         .actions
         .objects

@@ -1,0 +1,11 @@
+{
+  "set-A.png": "final-private-wait-mobile.png",
+  "set-B.png": "capture-a-10.png",
+  "set-C.png": "mobile-condition-c.png",
+  "set-D-approach.png": "final-autonomy-walking.png",
+  "set-D-arrival.png": "final-autonomy-settled.png",
+  "set-E.png": "final-private-wait-desktop.png",
+  "set-F.png": "final-care-talk-mobile.png",
+  "set-B-samples.json": "baseline-browser-samples.json",
+  "set-D-samples.json": "final-autonomy-proof.json"
+}

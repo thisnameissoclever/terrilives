@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests\inherited_runtime.rs (target\debug\deps\inherited_runtime-159cfdd5921a4cb1.exe)
+
+running 1 test
+Patio-only fixture proof: all previous fields encode byte-exactly
+test inherited_runtime_fixture_compiles_real_model_actions_and_rounding ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.48s

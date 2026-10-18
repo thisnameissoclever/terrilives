@@ -1,0 +1,16 @@
+{
+  "tick": 1,
+  "actor": {
+    "entity": 34,
+    "sim": 0,
+    "x": 8.9165625,
+    "y": 2,
+    "clip": "walk"
+  },
+  "label": "Walking to talk to Casey",
+  "status": {
+    "code": 1,
+    "partner": 36,
+    "needs": 0
+  }
+}

@@ -43,6 +43,18 @@ export function routeBuildKey(key: string, tools: readonly Pick<BuildTool, 'acti
   return tool.handleKey(key) || (key === 'Escape' && furniture.handleKey(key));
 }
 
+/**
+ * The Cancel beside a selection: clears the tool's selection as Escape does,
+ * but never leaves Build mode and keeps every other pending change. Only the
+ * footer's Cancel and the exit dialog's Discard changes discard the batch.
+ */
+export function clearBuildSelection(tools: readonly Pick<BuildTool, 'active' | 'handleKey'>[],
+  furniture: { cancel(): void }): void {
+  const tool = tools.find(candidate => candidate.active);
+  if (tool) tool.handleKey('Escape');
+  else furniture.cancel();
+}
+
 export class BuildToolSwitch {
   private readonly buttons: readonly HTMLElement[];
   private readonly panels: readonly HTMLElement[];

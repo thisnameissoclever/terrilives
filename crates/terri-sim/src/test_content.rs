@@ -591,13 +591,13 @@ pub(crate) fn enclose(sim: &mut Sim) {
 
 /// Assert complete current admission without changing the live fixture.
 pub(crate) fn assert_current_admission(sim: &Sim) {
-    let before = sim.save_snapshot_v15();
-    let restored = crate::save::v15::restore(
+    let before = sim.save_snapshot_v16();
+    let restored = crate::save::v16::restore(
         before.clone(),
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
     )
     .expect("fixture must admit its complete current snapshot");
-    assert_eq!(restored.save_snapshot_v15(), before);
+    assert_eq!(restored.save_snapshot_v16(), before);
     assert_eq!(restored.world_hash(), sim.world_hash());
 }

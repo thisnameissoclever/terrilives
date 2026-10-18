@@ -1,0 +1,18 @@
+{
+  "program": "rustc",
+  "arguments": [
+    "--edition=2021",
+    ".local-build/published-v15-codec.rs",
+    "--extern",
+    "terri_core=target/debug/deps/libterri_core-3e880aa51685cceb.rlib",
+    "--extern",
+    "postcard=target/debug/deps/libpostcard-a609f463a3287cd3.rlib",
+    "--extern",
+    "serde=target/debug/deps/libserde-6c2dd5b818e02aa4.rlib",
+    "-L",
+    "dependency=target/debug/deps",
+    "-o",
+    ".local-build/published-v15-codec.exe"
+  ],
+  "exit_code": 0
+}

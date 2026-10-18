@@ -1,7 +1,8 @@
 # Varied autonomy and self-preservation instinct
 
-Status: implemented locally; validation evidence is recorded below. No release
-approval or deployment is implied.
+This specification defines autonomous choices and saved self-preservation values.
+The [pending conversation design](../superpowers/specs/2026-10-17-urgent-needs-and-pending-conversations-design.md)
+defines commitment and critical-need relief in more detail.
 
 ## [VA-choice] Every physically eligible alternative has a probability
 
@@ -10,7 +11,8 @@ remain eligibility rules. Score thresholds no longer exclude actions. Needs,
 personality, traits, relationships, habituation, travel and duration determine
 utility. Each target receives one normalized probability based on its best
 interaction utility; its eligible interactions are separately normalized. Adding
-an equal interaction does not increase that target's total probability.
+an equal interaction does not increase that target's total probability within
+the helpful or unrelated group.
 
 Selection combines stable softmax utility weights with explicitly positive
 exploration. Survival risk also biases exploration. Each flattened candidate
@@ -27,9 +29,12 @@ Wandering and waiting for an occupied object participate in the weighted choices
 ## [VA-instinct] Saved numeric instinct, independent of trait slots
 
 Each living person stores integer Self-preservation instinct in 0 through 100.
-Starter households and accepted random move-ins draw uniformly across that range.
-Explicit move-ins accept zero as an ordinary valid value. Refusals consume no
-instinct draw. The Traits panel shows the value without using a trait slot.
+Starter households, random move-ins and the creator draw a weighted band, then
+draw uniformly within its inclusive endpoints. The bands are 11-30 (5%), 31-50
+(10%), 51-60 (10%), 61-70 (25%), 71-80 (30%), 81-90 (15%) and 91-95 (5%). Values
+0-10 and 96-100 require an explicit player choice. Refusals consume no instinct
+draw. The Traits panel shows the value without using a trait slot. Loading
+preserves saved values and the existing missing-value migration below.
 
 Low-need urgency uses piecewise interpolation through these tunable anchors:
 
@@ -51,6 +56,28 @@ penalty scales with the square of the urgency multiplier. This allows meaningful
 neglect at 0 through 5 while making prolonged dangerous delays very unlikely at
 ordinary values. Turning death off disables that risk penalty. Need decay,
 restoration amounts and death timing remain unchanged.
+
+## [VA-critical-relief] Favor useful relief while retaining randomness
+
+When a need is at or below the critical level, choices are divided by whether
+their attainable physical result improves a critical meter after travel, work,
+waiting and decay. Restoration caps and actual company requirements apply.
+The forecast uses the same physical scaling functions as delivery. Ordinary
+activity preferences influence appeal; reading's established taste and
+disposition multipliers also affect delivered Fun. Forecast phases separate
+travel and waiting, active per-minute rewards, terminal food payment, and book
+pickup, return and shelving. Decay clamps at zero before a terminal reward.
+With viable relief available, unrelated choices receive at most 5% combined
+probability for one critical need, or 1% for two or more. Positive exploration
+remains within both groups. A Sim can still make a poor choice; repeated useless
+choices cease to dominate a crisis. Without viable relief, the ordinary policy
+remains available and the activity display reports the unavailable relief.
+
+`content/tuning.toml` owns these limits and the creation bands in its optional
+`autonomy` table. Frozen content packs without that extension retain their prior
+choice policy and constructor draws. Current shipped content includes the
+extension. Public person spawning and household creation use the same native
+sampler; the creator receives those authored bands through its catalogue.
 
 ## [VA-wandering] Finish the sampled stroll and pause
 

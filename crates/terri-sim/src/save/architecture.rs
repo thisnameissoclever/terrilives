@@ -858,9 +858,9 @@ mod tests {
         let mut resumed = Sim::new();
         resumed.load_snapshot_v2(v2.clone()).unwrap();
         assert_eq!(resumed.save_snapshot_v2(), v2);
-        let current = resumed.save_snapshot_v15();
-        resumed.load_snapshot_v15(current.clone()).unwrap();
-        assert_eq!(resumed.save_snapshot_v15(), current);
+        let current = resumed.save_snapshot_v16();
+        resumed.load_snapshot_v16(current.clone()).unwrap();
+        assert_eq!(resumed.save_snapshot_v16(), current);
         assert_eq!(
             resumed.world.resource::<SavedLayout>(),
             &SavedLayout::LegacyAuthoredV1

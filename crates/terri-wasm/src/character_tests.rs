@@ -86,7 +86,15 @@ fn creator_catalog_and_name_patch_wire_contract_are_explicit() {
     let handle = SimHandle::from_lot();
     let catalog: terri_core::character_catalog::CharacterCatalog =
         postcard::from_bytes(&handle.character_catalog()).unwrap();
-    assert_eq!(catalog.version, 1);
+    assert_eq!(catalog.version, 2);
+    assert_eq!(
+        catalog
+            .self_preservation_bands
+            .iter()
+            .map(|b| b.weight as u32)
+            .sum::<u32>(),
+        100
+    );
     assert!(!catalog.activities.is_empty());
     assert!(!catalog.skills.is_empty());
     let command = SimCommand::Character(Box::new(CharacterCommand::Edit {

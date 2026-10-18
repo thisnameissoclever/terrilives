@@ -116,8 +116,8 @@ fn book_command_reserved_home_full_fallback_transfer_and_death_recovery() {
         }
     }
     assert_eq!(sim.book_copies()[0].location, BookLocation::Carried(id));
-    let admitted = sim.save_snapshot_v15();
-    sim.load_snapshot_v15(admitted).unwrap();
+    let admitted = sim.save_snapshot_v16();
+    sim.load_snapshot_v16(admitted).unwrap();
     issue(
         &mut sim,
         BookCommand::Purchase {

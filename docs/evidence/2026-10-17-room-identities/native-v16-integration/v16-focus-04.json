@@ -1,0 +1,87 @@
+[
+  {
+    "name": "historical-approach",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "a_legacy_approach_without_episode_metadata",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-04-historical-approach.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.39s"
+    ],
+    "executable_sha256": "52c94edc485cea241e87889be4faee942ca0bf44dee5d8cc19c580e5a8d1b07c",
+    "source_manifest": ".local-build/v16-native-build-04-source.json",
+    "finished_utc": "2026-10-18T01:55:57.190388+00:00"
+  },
+  {
+    "name": "historical-order",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "legacy_chat_migration_keeps_an_ambiguous",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-04-historical-order.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.01s"
+    ],
+    "executable_sha256": "52c94edc485cea241e87889be4faee942ca0bf44dee5d8cc19c580e5a8d1b07c",
+    "source_manifest": ".local-build/v16-native-build-04-source.json",
+    "finished_utc": "2026-10-18T01:55:57.209086+00:00"
+  },
+  {
+    "name": "historical-land",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "a_room_record_names_the_moved_room",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-04-historical-land.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.00s"
+    ],
+    "executable_sha256": "52c94edc485cea241e87889be4faee942ca0bf44dee5d8cc19c580e5a8d1b07c",
+    "source_manifest": ".local-build/v16-native-build-04-source.json",
+    "finished_utc": "2026-10-18T01:55:57.222463+00:00"
+  },
+  {
+    "name": "interpersonal",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "systems::interpersonal::integration_tests::",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-04-interpersonal.log",
+    "summary": [
+      "test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1571 filtered out; finished in 0.69s"
+    ],
+    "executable_sha256": "52c94edc485cea241e87889be4faee942ca0bf44dee5d8cc19c580e5a8d1b07c",
+    "source_manifest": ".local-build/v16-native-build-04-source.json",
+    "finished_utc": "2026-10-18T01:55:57.920923+00:00"
+  },
+  {
+    "name": "original-state",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+      "checksum_control_compares_the_exact_original_published_state",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "log": ".local-build\\v16-focus-04-original-state.log",
+    "summary": [
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 298 filtered out; finished in 0.44s"
+    ],
+    "executable_sha256": "867c58d516f5b07d667edc2457b32b731b9be79b8f9801450fb4af15ef909fe1",
+    "source_manifest": ".local-build/v16-native-build-04-source.json",
+    "finished_utc": "2026-10-18T01:55:58.505250+00:00"
+  }
+]

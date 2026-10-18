@@ -519,8 +519,9 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(command(room(1, 4, 2, 5, Some(line(Horizontal, 1, 4)))));
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v16();
     assert!(saved
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -539,13 +540,13 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
         }));
     let (mut restored, _) = house(vec![]);
     restored
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v16(saved.clone())
         .expect("a built room loads");
-    assert_eq!(restored.save_snapshot_v15(), saved);
+    assert_eq!(restored.save_snapshot_v16(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     sim.flush_commands();
-    assert_eq!(restored.save_snapshot_v15(), sim.save_snapshot_v15());
+    assert_eq!(restored.save_snapshot_v16(), sim.save_snapshot_v16());
     assert_eq!(restored.world_hash(), sim.world_hash());
     assert!(edges(&restored).contains(&wall(Horizontal, 1, 4, true)));
 }
@@ -775,7 +776,7 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
         ticks,
         "one tick per `Sim::tick`"
     );
-    let base = sim.save_snapshot_v15();
+    let base = sim.save_snapshot_v16();
     // One world to build each sampled room in and one to read its save back,
     // each reset by a Load.
     let mut builder = Sim::new_from_shipped_lot();
@@ -820,11 +821,11 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     if accepted % 3 != 0 {
                         continue;
                     }
-                    builder.load_snapshot_v15(base.clone()).unwrap();
+                    builder.load_snapshot_v16(base.clone()).unwrap();
                     stage(&mut builder, edit);
                     assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
                     reader
-                        .load_snapshot_v15(builder.save_snapshot_v15())
+                        .load_snapshot_v16(builder.save_snapshot_v16())
                         .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
                 }
             }
@@ -1015,9 +1016,9 @@ fn rooms_on_each_plot_perimeter_keep_solid_walls_and_reload() {
                 .unwrap()
                 .changed
         );
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.save_snapshot_v16();
         let (mut reader, _) = house(vec![]);
-        reader.load_snapshot_v15(saved).unwrap();
+        reader.load_snapshot_v16(saved).unwrap();
         assert_eq!(edges(&reader), expected);
         refused(
             &mut sim,

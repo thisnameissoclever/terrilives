@@ -71,7 +71,7 @@ pub fn prepare(sim: &mut Sim, seed: u64, scenario: &str) {
             sim.funds()
         );
     }
-    let saved = sim.save_snapshot_v6();
+    let saved = super::current_catalogue_state(sim);
     println!(
         "CATALOGUE scenario {scenario}; initial Funds {}; owned copies {}; titles {}",
         sim.funds(),
@@ -123,12 +123,12 @@ pub struct Summary {
 impl Summary {
     pub fn new(sim: &Sim) -> Self {
         Self {
-            previous: Some(sim.save_snapshot_v6()),
+            previous: Some(super::current_catalogue_state(sim)),
             ..Default::default()
         }
     }
     pub fn observe(&mut self, sim: &mut Sim) -> std::collections::BTreeSet<u32> {
-        let snapshot = sim.save_snapshot_v6();
+        let snapshot = super::current_catalogue_state(sim);
         let readers: std::collections::BTreeSet<_> =
             snapshot.reading.iter().map(|r| r.owner).collect();
         if let Some(before) = &self.previous {
@@ -217,7 +217,7 @@ impl Summary {
         readers
     }
     pub fn print(&self, sim: &Sim) {
-        let saved = sim.save_snapshot_v6();
+        let saved = super::current_catalogue_state(sim);
         println!("FOOD recipe starts: {:?}", self.food_started);
         println!(
             "CRITICAL need person-ticks [Hunger,Energy,Hygiene,Bladder,Social,Fun,Comfort]: {:?}",

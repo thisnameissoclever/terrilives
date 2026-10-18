@@ -1,4 +1,5 @@
 import { expect, it, vi } from 'vitest';
+import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 vi.mock('../src/ui/character-creator/preview.js',()=>({CreatorPreview:class {}}));
 import { CreatorView, creatorPages } from '../src/ui/character-creator/view.js';
 import { CharacterDraft } from '../src/character/draft.js';
@@ -23,7 +24,7 @@ class Element {
     return this.all().slice(1).filter(node=>key?key in node.dataset:selector.includes('details')?node.tag==='details'&&(!selector.includes('[open]')||node.open):false);
   }
 }
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],hobbies:[],skills:[],activities:[],personalities:[]};
+const catalog:CharacterCatalog={version:2,self_preservation_bands:creationInstinctBands,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],hobbies:[],skills:[],activities:[],personalities:[]};
 
 it.each([false,true])('opens with Walking selected and respects reduced motion (%s)',reducedMotion=>{
   const nodes=new Map<string,Element>();

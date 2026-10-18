@@ -1,0 +1,89 @@
+[
+  {
+    "name": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-sim/src/lib.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-format.log",
+    "finished_utc": "2026-10-18T02:52:22.723452+00:00"
+  },
+  {
+    "name": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-checkpoint-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-fingerprint.log",
+    "finished_utc": "2026-10-18T02:52:23.399550+00:00"
+  },
+  {
+    "name": "historical-approach",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "--lib",
+      "social_episode::tests::decision_tests::a_legacy_approach_without_episode_metadata_resaves_before_another_tick",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      "--exact",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-historical-approach.log",
+    "finished_utc": "2026-10-18T02:53:26.305022+00:00"
+  },
+  {
+    "name": "historical-order",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "--lib",
+      "social_episode::tests::decision_tests::legacy_chat_migration_keeps_an_ambiguous_player_order_after_completion",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      "--exact",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-historical-order.log",
+    "finished_utc": "2026-10-18T02:53:26.477953+00:00"
+  },
+  {
+    "name": "format-check",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-format-check.log",
+    "finished_utc": "2026-10-18T02:53:28.502719+00:00"
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-checkpoint-diff-check.log",
+    "finished_utc": "2026-10-18T02:53:28.803071+00:00"
+  }
+]

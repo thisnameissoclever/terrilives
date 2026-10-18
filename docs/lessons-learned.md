@@ -258,6 +258,10 @@ Use one command per execution call and one validation owner after edits freeze.
 Start the next command only after the current session's completion is observed.
 Require a successful build exit before launching its executable. A returned poll
 response without a final exit code is still running, not a successful build.
+Retain session and exit metadata before displaying large log output. Capture the
+native exit code immediately, before a trailing log reader such as `Get-Content`
+can hide it. An unknown or truncated outcome requires read-only state
+reconciliation, never an automatic retry of the mutation.
 
 **How to verify.** Record the full run's actual failed result and the unchanged
 isolated test's result separately. Confirm that the final serial suite passes;
@@ -11997,6 +12001,8 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: scope `-text` attributes to hash-bound authoring assets, immutable golden fixtures, and dated receipts. Preserve those source bytes rather than changing recorded hashes to match a conversion that never ran the exporter.
 4. Verification: compare working files with staged blobs and export the candidate Git tree into an isolated directory. Run the asset verifier there before pushing. Keep normal text normalization for unrelated source files and leave generated caches ignored.
 
+For diagnostic viewing copies, distinguish original working bytes from Git-stored bytes instead of silently changing a raw-byte hash. A staging audit caught three JSON evidence rows whose values were unchanged but whose CRLF line endings became LF in the index. Record both hashes and lengths, prove the declared text-only normalization, and verify the actual indexed blobs before committing. Binary saved games and frozen inputs must remain exact; source and produced-artifact hashes inside receipts keep their original meanings.
+
 ## [L-numeric-control-precision] Size numeric controls for loaded values and adjacent controls
 
 1. What happened: a condition's saved percentage remained exact but its trailing digits were clipped in the creator's number input. Widening the input alone then crowded a tablet-width slider.
@@ -12134,8 +12140,8 @@ Load the production atlas during test collection and prepare mocked module depen
 
 1. What happened: a nested current restore called a public historical capture helper after stable room identities were installed. A valid queued outdoor-cleaning command reached a refusing historical projection and could panic. A separate projection check also ignored room cells absent from the old map.
 2. Root cause: an older raw capture call acquired export semantics without an impact scan of internal restoration callers. Filtering missing legacy membership weakened the representability check.
-3. Prevention: give internal current capture an explicit path. Restrict fallible historical projection to requested historical output. Require complete target membership under the old interpretation before exporting it.
-4. Verification: load current saves with both queued outdoor-cleaning command variants. Require malformed references to fail without a panic or live-state change. Refuse a historical projection of a room extending beyond its old target, even when the extension is clean. Preserve exact projection of genuine old inputs.
+3. Prevention: give internal current capture an explicit path. Restrict fallible historical projection to requested historical output. Require complete target membership under the old interpretation before exporting it. Audit examples and diagnostic subreports as well as the application writer: current field inspection must retain the complete current envelope. Bind each encoded payload type to its actual schema number so a marker bump cannot relabel an older payload.
+4. Verification: load current saves with both queued outdoor-cleaning command variants. Require malformed references to fail without a panic or live-state change. Refuse a historical projection of a room extending beyond its old target, even when the extension is clean. Preserve exact projection of genuine old inputs. Run current diagnostic tools against the new schema and strictly reload each generated scene before writing it; preserve explicit historical converters and their fixed-version positive controls.
 
 ## [L-board-duties-versus-cleaning-work] Preserve valid work outside the automatic chore board
 
@@ -12185,6 +12191,20 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the registry came from the edited candidate while membership came from the captured baseline. Each was valid separately, but their anchors described different coordinates.
 3. Prevention: use baseline registry records with baseline membership, and pass the final land offset separately. When an integration boundary receives translated records, align its private copy to the captured map before matching. Apply final translation exactly once.
 4. Verification: mix construction, purchases, furniture, books, and west/north land growth in one journal. Require candidate agreement with the draft, retained room identities and names, coherent translated work targets, and a strict current save round trip.
+## [L-conversation-commitment-admission] Admit a chosen request before reserving its recipient
+
+1. What happened: a hungry Sim repeatedly chose a conversation, moved part of a tile, lost the conversation to a later critical-need check, and appeared idle while sliding back and forth. A first repair also let an unreachable request hold its recipient and displace another valid approach.
+2. Root cause: selection, admission, movement and continuation disagreed about eligibility. Pair equality also could not identify which of several identical player orders owned a conversation. Deferring admission past fresh autonomy let a free recipient start an unrelated activity first. Separate legacy-adoption and read-only capture logic also derived different phases from the same active chat.
+3. Prevention: retain exact request and player order identities through waiting and completion, and share legacy derivation between capture and live adoption. Let existing care finish; establish reachability and admit free recipients before fresh discretionary choices, without revoking another admission. Share physical reward arithmetic between forecasts and delivery, including payment timing and caps; keep preference-only weighting separate. Derive early admission, movement and route-cache identity from the same pure live privacy-navigation snapshot. An incident-collection phase being absent must not remove route restrictions. Reconstruct wait explanations without advancing the simulation, and retry a failed route only when its navigation inputs change, including the privacy snapshot.
+4. Verification: reproduce critical-need cancellation with actual movement and pose samples. Exercise multi-update competing approaches with a blocked route and retained staging tile. Check cycles, work, private care, exact repeated orders, malformed saves, paused reload status and replay through completion. Compare forecasts with executed rewards across meter floors, caps, reading taste and directional company effects. Verify failed-route reuse and invalidation, including edits in one simulation step. Use public creation paths so missing identities and obsolete random draws cannot hide behind household-only fixtures. Run a three-person private-room blockage through the production schedule and require the free recipient to choose care, complete it, and then talk under the original request ID. Verify identical live inputs reuse failed routes regardless of incident-phase presence, and new occupancy invalidates a stale phase.
+
+## [L-legacy-runtime-metadata] Complete legacy metadata before writing a current save
+
+1. What happened: a direct native loader accepted an old save with an active meal recipe, but the next current-format save failed validation.
+2. Root cause: production and direct native import paths differed. One reconstructed the recipe's origin; the other omitted metadata required by the current envelope. Applying current completeness rules to every historical chain then rejected projection-only actors without need meters, which older loaders intentionally accepted.
+3. Prevention: normalize missing metadata at the legacy adoption boundary using the established historical mapping. Scope legacy recipe completeness to executable actors with Agent, Needs and ChainState, and preserve partial historical projections unchanged. Share per-record validation with current restoration; keep the current completeness domain strict. Preserve existing records and known order identities rather than treating a missing current field as historical input.
+4. Verification: load active recipes through each supported legacy entry point, resave in the current format, and compare subsequent behavior. Verify legacy projection bytes, hashes and poses remain unchanged, including a mixed world with an executable recipe. Delete the origin from a current save and require transactional rejection. Preserve frozen historical layouts and constructor behavior separately from current-content migration.
+
 ## [L-capture-cleanup-dynamic-readers] Trace generated capture paths before deleting review files
 
 1. What happened: repository cleanup removed screenshots consumed by retained comparison and contact-sheet scripts. A review found the missing inputs before publication.
@@ -12233,3 +12253,23 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: rendering consumes a smaller state contract than current persistence. A plausible position does not establish identity, contact, physical ownership, work and reservation invariants. Dining leases and physical seat claims are separate authorities.
 3. Prevention: preserve arbitrary-pose rendering tests. Build persistence companions through canonical person creation and real action admission and arrival. Keep strict loaders and explicit contact checks; do not repair each newly exposed validation error with another handwritten endpoint rule.
 4. Verification: admit the idle current baseline, require the exact active target and ownership, and capture before rendering. Require unchanged save and hash after projection, exact reload without normalizing the source first, and both loaded interpolation samples. Move a valid seated actor to an unauthored contact and require atomic refusal.
+## [L-concrete-autonomy-outcomes] Execute the outcome that the selector classified
+
+A reading row was scored using its best book and seat, then execution drew another plan. The second draw could replace critical relief with an unrelated outcome after the crisis probability limit had already been applied. During critical-need selection, enumerate each available reading plan in the same grouped draw as other actions and execute the selected plan directly. Keep object grouping so extra titles do not multiply an object's lottery entry. Verify mixed helpful and unrelated title outcomes retain positive probabilities, their aggregate unrelated probability stays within the configured limit, and the committed copy matches the selected outcome.
+
+Current-save validation must also check ownership across both conversation participants. Unique initiators alone permit two physical conversations to share a recipient. Reject overlapping Approaching or Talking pairs transactionally, while allowing Waiting and Suspended requests to retain their dependencies. Verify both Talking/Talking and Talking/Approaching conflicts leave the live world unchanged.
+
+
+## [L-activity-context-precedence] Preserve active work when adding status context
+
+1. What happened: a trace reported long critical Idle intervals while Sims were cleaning. The HUD could also replace the correct chore label with Idle.
+2. Root cause: the new context classifier omitted chores, and its generic Idle label took precedence over the existing chore status and rendered activity. The older motion observer also treated chore ownership as unexplained inactivity.
+3. Prevention: recognize valid physical chores through the same read-only projection used by rendering. Preserve suspension and contact checks rather than assuming every ownership marker means active work. State whether a diagnostic bucket counts physical work or ownership of an entire goal.
+4. Verification: require stationary floor, surface and bin work to report active context while needs are critical. Require suspended work without a physical projection to remain inactive. Verify the HUD preserves the chore label, rerun matched traces, and compare world hashes to prove classification changes do not alter simulation behavior.
+
+## [L-golden-producer-initial-state] Derive checksum controls from the published state
+
+1. What happened: a checksum counterfactual selected the frozen authored house because its name contained Legacy. The published blank constructor actually used an empty legacy wall list. The incorrect control introduced rooms, extra duties and different grime random draws.
+2. Root cause: an inferred enum meaning replaced inspection of the exact published constructor and its original saved payload. Changing the layout only after simulation also concealed state accumulated under the original topology.
+3. Prevention: derive initial layout, reference mode and creation calls from the exact producer or its immutable snapshot before spawning or ticking. Compare saved field domains and random streams before changing a golden checksum. Preserve the original producer's expected value as a separate control.
+4. Verification: require the historical control to reproduce the original full snapshot and checksum. Isolate each approved current-format difference, retain source and artifact hashes, and obtain an independent current release-Wasm measurement before claiming cross-target agreement.

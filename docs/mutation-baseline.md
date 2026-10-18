@@ -1710,3 +1710,46 @@ diff> --package terri-core --package terri-sim --package terri-data
 --package terri-wasm --test-workspace true --timeout-multiplier 4
 --minimum-test-timeout 120 --build-timeout 600`, run locally on the merged
 head of pull request 263.
+
+## 2026-10-17: land purchase, one accepted survivor
+
+The local in-diff sweep of the fights and land changes (issues 248 and 254),
+run on c27036032, ran in two passes. The first found 543 mutants. The
+second, with `--iterate`, left out the 132 the first had caught or found
+unviable and planned 411, 74 of them in `land.rs`; the first pass had
+already caught or found unviable 32 more there, so the plan for `land.rs`
+held 106. Each of the 74 was also applied by hand, with the land tests run
+against it. Tests in that file now kill every one of them that compiles
+except one, which is added to `mutants-baseline.txt`:
+
+`crates/terri-sim/src/land.rs:338:26: replace % with + in grow`. After a
+purchase, `grow` reads each room id again at its seed tile (the tile whose
+cell number is the id: column id % width, row id / width), moved with the
+world, and falls back to the moved cell of that id when the tile is in no
+room. The mutation makes the seed's column the id plus the old width, which
+is always past the grid's east edge, so the lookup always falls back. For
+every room id the code creates, the fallback is the right answer: a room id
+is the lowest cell of its room, rooms exist only inside the house
+rectangle, and the house rectangle moves whole with a purchase, so the
+room's lowest cell moves to the moved cell of its old id.
+`a_move_keeps_ids_and_moves_only_tiles` and
+`rear_and_right_strips_move_the_whole_world` check that remapped room ids
+name the moved rooms. The two answers could differ only for an id that
+names no room. No test shows whether such an id can reach `grow`.
+
+The gate strips line and column before comparing, so this entry has the
+same text as `replace % with + in grow` at 336:69, the same operator in the
+cell remap two lines above, which `a_move_keeps_ids_and_moves_only_tiles`
+kills today. The gate sorts both lists and compares them with `comm -23`,
+which pairs equal lines one to one, so if both survived in one shard the
+second copy would still be reported as new. CI runs eight shards with
+cargo-mutants' default slice sharding, which gives each shard a run of
+consecutive mutants, so two mutants a few positions apart usually share a
+shard. The entry hides a surviving 336:69 only when a shard boundary falls
+between the two, or when 338:26 stops surviving while its entry stays in
+the baseline.
+
+The sweep that recorded this ran `cargo mutants --in-place --iterate
+--in-diff` locally on the fights and land diff, with `cargo test
+--workspace` judging each mutant; the second pass used a 600 second build
+timeout and an automatic 848 second test timeout.

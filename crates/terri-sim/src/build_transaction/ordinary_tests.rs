@@ -53,7 +53,7 @@ fn ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction() 
     ] {
         let mut sim = Sim::new_from_shipped_lot();
         sim.flush_commands();
-        let before = sim.save_snapshot_v15();
+        let before = sim.save_snapshot_v16();
         let sequence = bed_feedback(&sim).0;
         issue(
             &mut sim,
@@ -64,7 +64,7 @@ fn ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction() 
         );
         issue(&mut sim, construction);
         sim.flush_commands();
-        assert_eq!(sim.save_snapshot_v15(), before);
+        assert_eq!(sim.save_snapshot_v16(), before);
         assert_eq!(
             bed_feedback(&sim),
             (
@@ -106,7 +106,7 @@ fn ordinary_runtime_keeps_unchanged_door_interpolation() {
 fn ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.world_mut().resource_mut::<SavedRooms>().next_id = u32::MAX;
-    let before = sim.save_snapshot_v15();
+    let before = sim.save_snapshot_v16();
     let revision = sim.rooms_revision();
     sim.world_mut()
         .resource_mut::<crate::completion_sounds::CompletionSounds>()
@@ -130,16 +130,16 @@ fn ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds() {
     );
     assert!(sim.world().resource::<CommandQueue>().is_empty());
     assert!(sim.completion_sounds().is_empty());
-    assert_eq!(sim.save_snapshot_v15(), before);
+    assert_eq!(sim.save_snapshot_v16(), before);
     assert_eq!(sim.rooms_revision(), revision);
 }
 
 #[test]
 fn ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_results() {
     let mut ticked = Sim::new_from_shipped_lot();
-    let initial = ticked.save_snapshot_v15();
+    let initial = ticked.save_snapshot_v16();
     let mut flushed = Sim::new_from_shipped_lot();
-    flushed.load_snapshot_v15(initial).unwrap();
+    flushed.load_snapshot_v16(initial).unwrap();
     let time = ticked.world().resource::<SimClock>().tick;
     for sim in [&mut ticked, &mut flushed] {
         issue(sim, SimCommand::SetChoreBoard { enabled: true });
@@ -157,7 +157,7 @@ fn ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_res
     flushed.flush_commands();
     flushed.tick();
     assert_eq!(ticked.world().resource::<SimClock>().tick, time + 1);
-    assert_eq!(ticked.save_snapshot_v15(), flushed.save_snapshot_v15());
+    assert_eq!(ticked.save_snapshot_v16(), flushed.save_snapshot_v16());
     assert_eq!(bed_feedback(&ticked), bed_feedback(&flushed));
 }
 

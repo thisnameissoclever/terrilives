@@ -1,4 +1,5 @@
 import {expect,it} from 'vitest';
+import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 import {CreatorSession,type CreatorSource} from '../src/ui/character-creator/session.js';
 import {neutralDraft} from '../src/character/schema.js';
 import type {CharacterResult} from '../src/character/codec.js';
@@ -6,7 +7,7 @@ import {CharacterContactOwner} from '../src/render/character/contact-admission.j
 import {AdmissionTestService} from './fixtures/contact-admission-service.js';
 function fixture(){
   const saved=neutralDraft('Original'),results:CharacterResult[]=[],requests:number[]=[],selected:number[]=[];
-  const source:CreatorSource={characterCatalog:()=>({version:1,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],skills:[],hobbies:[],activities:[],personalities:[]}),
+  const source:CreatorSource={characterCatalog:()=>({version:2,self_preservation_bands:creationInstinctBands,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],skills:[],hobbies:[],activities:[],personalities:[]}),
     characterSnapshot:()=>structuredClone(saved),characterResults:()=>results.splice(0),characterAppearances:()=>[{entity:99,sim:7,appearance:saved.appearance}],householdSize:()=>[1,6],
     createCharacter:request=>{requests.push(request);return true;},editCharacter:request=>{requests.push(request);return true;}};
   return {source,saved,results,requests,selected,session:new CreatorSession(source,123,[],7,entity=>selected.push(entity))};

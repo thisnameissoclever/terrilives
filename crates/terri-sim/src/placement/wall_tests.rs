@@ -884,7 +884,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             stop,
             "one tick per `Sim::tick`"
         );
-        let base = sim.save_snapshot_v15();
+        let base = sim.save_snapshot_v16();
         let rectangles = super::super::current_layout(sim.world())
             .expect("the shipped house is consistent")
             .rectangles;
@@ -916,12 +916,12 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             }
             // The public edit also reconciles media and physical leases. A new
             // wall can end an obstructed TV seat before the next game tick.
-            builder.load_snapshot_v15(base.clone()).unwrap();
+            builder.load_snapshot_v16(base.clone()).unwrap();
             stage(&mut builder, request);
             assert_eq!(last(&builder).unwrap().reason, None);
-            let after = builder.save_snapshot_v15();
+            let after = builder.save_snapshot_v16();
             assert_eq!(
-                reloaded.load_snapshot_v15(after).err(),
+                reloaded.load_snapshot_v16(after).err(),
                 None,
                 "an accepted {request:?} at tick {stop} left a save that will not load"
             );
@@ -1139,11 +1139,11 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
         applied(&mut sim, edit(axis, wall_x, wall_y, Open));
         assert!(!edges(&sim).contains(&boundary));
         let mut reader = Sim::new_from_shipped_lot();
-        reader.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+        reader.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         assert!(!edges(&reader).contains(&boundary));
         applied(&mut reader, edit(axis, wall_x, wall_y, Wall));
         assert!(edges(&reader).contains(&boundary));
-        sim.load_snapshot_v15(reader.save_snapshot_v15()).unwrap();
+        sim.load_snapshot_v16(reader.save_snapshot_v16()).unwrap();
         assert!(edges(&sim).contains(&boundary));
     }
 }

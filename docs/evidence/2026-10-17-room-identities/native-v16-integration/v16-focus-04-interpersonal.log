@@ -1,0 +1,41 @@
+
+running 37 tests
+test systems::interpersonal::integration_tests::inherited_privacy_bound_relief_requires_recipe_stations ... ok
+test systems::interpersonal::integration_tests::inherited_privacy_emergency_entry_uses_action_benefits_and_selected_alternatives ... ok
+test systems::interpersonal::integration_tests::inherited_privacy_selected_station_survives_autonomous_detour_and_v6 ... ok
+test systems::interpersonal::integration_tests::inherited_privacy_urgent_bound_action_replaces_recipe_instead_of_eating ... ok
+test systems::interpersonal::integration_tests::inherited_privacy_urgent_substitution_uses_action_benefits ... ok
+test systems::interpersonal::integration_tests::interpersonal_affinity_flows_through_mood_to_satisfaction_only_once ... ok
+test systems::interpersonal::integration_tests::interpersonal_completion_and_cancellation_preserve_the_start_impression ... ok
+test systems::interpersonal::integration_tests::interpersonal_content_classification_and_tuning_preserve_save_fingerprint ... ok
+test systems::interpersonal::integration_tests::interpersonal_conversation_penalizes_only_the_recipient_and_helped_needs_are_exempt ... ok
+test systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event ... ok
+test systems::interpersonal::integration_tests::interpersonal_failed_approaches_and_absent_workers_receive_no_penalty ... ok
+test systems::interpersonal::integration_tests::interpersonal_open_plan_toilet_offends_all_occupants_and_accumulates_missing_components ... ok
+test systems::interpersonal::integration_tests::interpersonal_paused_layout_edits_spawns_and_reservations_do_not_count_as_entries_or_use ... ok
+test systems::interpersonal::integration_tests::interpersonal_private_start_offends_existing_occupants_for_all_three_objects ... ok
+test systems::interpersonal::integration_tests::interpersonal_same_tick_events_observe_actual_entity_order ... ok
+test systems::interpersonal::integration_tests::interpersonal_saved_starts_and_entries_replay_without_recharging_on_load ... ok
+test systems::interpersonal::integration_tests::interpersonal_zero_penalty_and_clamping_use_the_authored_values ... ok
+test systems::interpersonal::integration_tests::privacy_commutes_can_take_a_required_route_and_exiting_is_always_allowed ... ok
+test systems::interpersonal::integration_tests::privacy_diagnostics_group_victims_and_report_clamped_loss_without_changing_hash ... ok
+test systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears ... ok
+test systems::interpersonal::integration_tests::privacy_guard_rechecks_room_occupancy_changed_earlier_in_the_same_tick ... ok
+test systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override ... ok
+test systems::interpersonal::integration_tests::privacy_mid_wait_replay_crosses_cache_expiry_and_action_completion ... ok
+test systems::interpersonal::integration_tests::privacy_player_chain_origin_survives_save_load_with_its_order_queued ... ok
+test systems::interpersonal::integration_tests::privacy_route_switches_to_available_toilet_and_preserves_reservations ... ok
+test systems::interpersonal::integration_tests::privacy_route_uses_the_house_loop_without_changing_walkability ... ok
+test systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override ... ok
+test systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires ... ok
+test systems::interpersonal::integration_tests::privacy_wait_can_attend_to_a_different_critical_need_without_losing_chain_progress ... ok
+test systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared ... ok
+test systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget ... ok
+test systems::interpersonal::integration_tests::shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win ... ok
+test systems::interpersonal::integration_tests::shyness_autonomous_conversation_choice_prefers_a_partner_without_urgent_needs ... ok
+test systems::interpersonal::integration_tests::shyness_makes_boundary_avoidance_modest_and_directional ... ok
+test systems::interpersonal::integration_tests::shyness_overrides_survive_save_hash_and_invalid_values_are_rejected_atomically ... ok
+test systems::interpersonal::integration_tests::shyness_scales_the_offended_person_in_both_bathroom_cases_and_conversations ... ok
+test systems::interpersonal::integration_tests::shyness_wander_reconsiders_once_and_keeps_a_valid_original_on_failure ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1571 filtered out; finished in 0.69s

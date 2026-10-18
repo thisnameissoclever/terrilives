@@ -3,7 +3,7 @@ use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, Re
 use crate::{room_regions::RoomRegions, Content};
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, AtWork, Eating, NeedId, Needs, Position, Relationships, SimId, SmartObject, Target,
+    Agent, AtWork, NeedId, Needs, Position, Relationships, SimId, SmartObject, Target,
 };
 
 pub(crate) const PRIVATE_USE_TAG: &str = "bathroom_privacy";
@@ -41,9 +41,16 @@ struct AffinityEffect {
     directed: bool,
 }
 
+mod navigation;
+use navigation::navigation_geometry;
+pub(crate) use navigation::{NavigationConstraints, PrivacyNavigation};
+
 /// Exists only between movement preparation and effect application.
 #[derive(Resource)]
 pub struct InterpersonalPhase {
+    geometry: [u32; 3],
+    house: crate::lot_frame::HouseRect,
+    geometry_fresh: bool,
     rooms: RoomRegions,
     domestic: Option<terri_core::save::SavedDomestic>,
     domestic_occupants: Vec<crate::domestic::BoundaryOccupant>,
@@ -75,21 +82,7 @@ pub(crate) fn prepare(world: &mut World) {
         .query_filtered::<(Entity, &SimId, &Position, &Needs), (With<Agent>, Without<AtWork>)>()
         .iter(world)
         .map(|(entity, &id, &position, needs)| {
-            let private_room = world.get::<Eating>(entity).and_then(|eating| {
-                let target = world.get::<Target>(entity)?;
-                let object = world.get::<SmartObject>(target.object)?;
-                if object.0 != eating.object {
-                    return None;
-                }
-                let act = pack
-                    .object(object.0)
-                    .interactions
-                    .get(eating.interaction as usize)?;
-                if !act.tags.iter().any(|tag| tag == PRIVATE_USE_TAG) {
-                    return None;
-                }
-                rooms.at(tile(*world.get::<Position>(target.object)?))
-            });
+            let private_room = navigation::active_private_room(world, entity, &rooms);
             Participant {
                 feelings: world
                     .get::<Relationships>(entity)
@@ -121,7 +114,13 @@ pub(crate) fn prepare(world: &mut World) {
     let social = world
         .resource::<crate::social_company::SocialCompany>()
         .clone();
+    let geometry = navigation_geometry(world);
+    let house = crate::lot_frame::house_or_grid(world);
+    let geometry_fresh = geometry.contains(&world.read_change_tick().get());
     world.insert_resource(InterpersonalPhase {
+        geometry,
+        house,
+        geometry_fresh,
         domestic,
         domestic_occupants,
         rooms,
@@ -137,6 +136,24 @@ pub(crate) fn prepare(world: &mut World) {
 }
 
 impl InterpersonalPhase {
+    pub(crate) fn navigation_constraints(&self, agent: Entity) -> NavigationConstraints {
+        let current = self
+            .participants
+            .iter()
+            .find(|p| p.entity == agent)
+            .and_then(|p| p.room);
+        NavigationConstraints::new(
+            current,
+            self.participants
+                .iter()
+                .filter(|person| person.entity != agent)
+                .filter_map(|person| person.private_room),
+            self.geometry,
+            self.house,
+            self.geometry_fresh,
+        )
+    }
+
     pub(crate) fn entry_blocked(&self, agent: Entity, position: Position) -> bool {
         let room = self.rooms.at(tile(position));
         room.is_some()
@@ -167,27 +184,8 @@ impl InterpersonalPhase {
         agent: Entity,
         grid: &terri_core::TileGrid,
     ) -> terri_core::TileGrid {
-        let mut safe = grid.clone();
-        let current = self
-            .participants
-            .iter()
-            .find(|p| p.entity == agent)
-            .and_then(|p| p.room);
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                let room = self.rooms.at((x as i32, y as i32));
-                if room.is_some()
-                    && room != current
-                    && self
-                        .participants
-                        .iter()
-                        .any(|p| p.entity != agent && p.private_room == room)
-                {
-                    safe.set_blocked(x, y, true);
-                }
-            }
-        }
-        safe
+        self.navigation_constraints(agent)
+            .safe_grid(&self.rooms, grid)
     }
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn permit(

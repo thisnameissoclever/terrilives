@@ -1,0 +1,8 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 02s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-3eba8eb593be4501.exe)
+
+running 1 test
+test social_episode::tests::decision_tests::a_legacy_approach_without_episode_metadata_resaves_before_another_tick ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.37s

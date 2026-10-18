@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
 import type { CharacterDraftV1, CharacterPatchV1 } from './character/schema.js';
@@ -816,6 +817,23 @@ export class SimBridge {
    */
   weekdayIndex(): number {
     return this.handle.weekday_index();
+  }
+
+  /**
+   * The season of the current tick, 0 (Spring) to 3 (Winter), as the
+   * simulation works it out ([SEA-year] in `docs/specs/2026-10-17-seasons.md`).
+   * Like the weekday, the shell never derives one from the day number.
+   */
+  seasonIndex(): number {
+    return this.handle.season_index();
+  }
+
+  /**
+   * The yard grass's `[hue, strength, lightness]` change in each season,
+   * flattened, Spring first ([SEA-yard]). Content, so read once and kept.
+   */
+  seasonYardLooks(): Float32Array {
+    return Float32Array.from(this.handle.season_yard_looks());
   }
 
   /** Versioned simulation bytes for browser-owned storage. */
@@ -1868,6 +1886,11 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const reason = this.handle.stall_reason_of(entityIndex);
     return reason === '' ? null : reason;
+  }
+
+  activityStatusOf(entityIndex: number): ActivityStatus | null {
+    if (!isU32(entityIndex)) return null;
+    return decodeActivityStatus(this.handle.activity_status_of(entityIndex));
   }
 
   /** Current action (or an empty first entry), then unserved orders in order. */

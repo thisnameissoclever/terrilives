@@ -1,0 +1,122 @@
+{
+  "main": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "checks": [
+    {
+      "path": "crates/terri-core/src/save_v15.rs",
+      "scope": "published V15 source unchanged apart from line endings",
+      "sha256": "5e0e97811151eed0f7e0a32933e0e0a919d8491a6b6cf173acb66f182365cb11"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v15.rs",
+      "scope": "published V15 source unchanged apart from line endings",
+      "sha256": "70eeb85f87ca1b17600e325e6750e297ea47884dd86159ed3b4ce67ff90ebd81"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/cleaning-ordered.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "5d0a097387c59995d9690879ced3277cd59d4533673290de9cbadf8a0a1396f1"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/floor-order-queued.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "d3870b5424e20e2174abd0517dbbe299b840006caa7686193e26b4e587d30f08"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/floor-work-active.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "b66e50d7afe6b3f29d822d4037677eaefc0f32e9cbdc706e84858811ee6f5e2d"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/floor-work-preempted.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "ee988d485bc43b076d015cf710ce99c4accd944092047a9eef746aeb24f8e463"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/fresh.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "05c24b97e85f297fa1e233cf5c16db47356a21ded9f682c0574157576d70fe23"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/lived.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "5d0a097387c59995d9690879ced3277cd59d4533673290de9cbadf8a0a1396f1"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/north-west-land-career.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "2921206d8277ad249efd571281d5fe8c9c67d8b6b088b1ecc35ba92746adbbae"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/outdoor-boards.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "b442fc6c6acb47da5923a7d816a4b9c690d82ce1a539ef3537a89700c2710da7"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/purchased-land-career.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "f1ff23f56a4154421e68cce42ac52ae25186f6b39f80ec0600f0f9474244673c"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-identities-v14/surface-work-active.sav",
+      "scope": "immutable V14 bytes",
+      "sha256": "59f62cc98b1295e378d4bd8bea245faecd9662dc5d0fa74b3c592a7b0661c5ca"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-approaching.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "f860aee75cced3ad23bdb3a955abaff54181e806f02ff66b8bb112b61710c545"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-queued.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "92c2401f31ba9f78bc1507a10ae819abd24d72da550532063b556e127b864fe9"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-suspended.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "ce310cfd3b1821cc43e3f0b19a0bec4033b387732b7edd37a816d304928aa390"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-talking-later-identical.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "27eefee04c3b267d57a2f58893b98db4c374bd0962e77783caa19db3636c6302"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-talking.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "49f6ecaa277d8ca6168ad2b540082cf4c76eb59f76fae2538e7de5364d6026dc"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-waiting-arrived.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "bd596755d3870781ab80714b4be045aa7ef6901891644587d95f0ce9c27c5db8"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-waiting-owned.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "f1a5d9d4bd86c69517c401a0b21881bd0841251367f049a19b523876fc9b3e27"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\chat-waiting-private.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "d30d3f0f689dfcb0918e213a8505bcfd2476536f808ed7e17a694c26271217d3"
+    },
+    {
+      "path": "crates\\terri-wasm\\tests\\fixtures\\room-identities-v15\\fresh.sav",
+      "scope": "authentic original V15 corpus",
+      "sha256": "934423ac3cd47f21028dbb52e08e84e9afac74c856bcdd5d2423c82cfb6b4ca4"
+    },
+    {
+      "path": "web\\tests\\fixtures\\v15-worker\\save-worker.ts",
+      "scope": "exact published V15 worker source",
+      "sha256": "5e4894bdb24fd6c8b31895ae8d66e88012c06cbcac7d96f47935ecfe64de5f1f"
+    },
+    {
+      "path": "web\\tests\\fixtures\\v15-worker\\save-header.ts",
+      "scope": "exact published V15 worker source",
+      "sha256": "8a2e1a607a8f27029326276cd92f95e7e35a5bff0e9a99ee77a62db6ece17a9d"
+    }
+  ],
+  "no_dependency_or_current_generated_wasm_changes": true,
+  "finished_utc": "2026-10-18T02:35:16.340985+00:00"
+}

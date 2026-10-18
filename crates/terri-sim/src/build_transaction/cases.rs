@@ -32,6 +32,58 @@ fn confirm(sim: &mut Sim) -> BuildReview {
 }
 
 #[test]
+fn dirty_query_is_semantic_pure_and_preserves_prepared_tokens() {
+    let mut sim = Sim::new_from_shipped_lot();
+    assert!(!sim.build_dirty());
+    sim.begin_build().unwrap();
+    let baseline = sim.save_snapshot_v16();
+    let outside = baseline.rooms.outside_name.clone();
+    let token = sim
+        .prepare_build_commit(RoomChoices::default())
+        .unwrap()
+        .token;
+    let revision = sim.rooms_revision();
+    let hash = sim.world_hash();
+    for _ in 0..3 {
+        assert!(!sim.build_dirty());
+        assert_eq!(sim.rooms_revision(), revision);
+        assert_eq!(sim.world_hash(), hash);
+        assert_eq!(sim.validate_build_token(token), Ok(()));
+    }
+    sim.stage_room_name(RoomSelection::Outside, " Garden ".into())
+        .unwrap();
+    assert!(sim.build_dirty());
+    sim.stage_room_name(RoomSelection::Outside, outside)
+        .unwrap();
+    assert!(!sim.build_dirty(), "A-B-A normalized names are clean");
+    pave(&mut sim, 4);
+    assert!(sim.build_dirty());
+    pave(&mut sim, 0);
+    assert!(
+        !sim.build_dirty(),
+        "an accepted journal can return to its baseline"
+    );
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    sim.world
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetFloor {
+            x: 17,
+            y: 13,
+            covering: 4,
+        });
+    let pending = save::v16::capture(&sim);
+    assert!(sim.build_dirty());
+    assert_eq!(
+        save::v16::capture(&sim),
+        pending,
+        "query cannot settle queued input"
+    );
+    sim.cancel_build().unwrap();
+    assert!(!sim.build_dirty());
+    assert!(sim.build_active());
+}
+
+#[test]
 fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
     let mut source = Sim::new_from_shipped_lot();
     for command in [
@@ -49,10 +101,10 @@ fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
     ] {
         source.world.resource_mut::<CommandQueue>().push(command);
     }
-    let incoming = source.save_snapshot_v15();
+    let incoming = source.save_snapshot_v16();
     source.flush_commands();
     assert_eq!(source.take_build_error(), None);
-    let expected = source.save_snapshot_v15();
+    let expected = source.save_snapshot_v16();
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     pave(&mut sim, 1);
@@ -60,13 +112,13 @@ fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
         .prepare_build_commit(RoomChoices::default())
         .unwrap()
         .token;
-    sim.load_snapshot_v15(incoming).unwrap();
+    sim.load_snapshot_v16(incoming).unwrap();
     assert!(sim.build_active());
     assert!(
         sim.world.resource::<CommandQueue>().is_empty(),
         "loaded stream must settle before baseline"
     );
-    assert_eq!(sim.save_snapshot_v15(), expected);
+    assert_eq!(sim.save_snapshot_v16(), expected);
     assert!(sim.world.resource::<BuildTransaction>().journal.is_empty());
     assert_eq!(sim.build_revision(), Some(0));
     let review = confirm(&mut sim);
@@ -75,7 +127,7 @@ fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
         sim.validate_build_token(old),
         Err(BuildCommitError::StaleToken)
     );
-    assert_eq!(sim.save_snapshot_v15(), expected);
+    assert_eq!(sim.save_snapshot_v16(), expected);
 }
 
 #[test]
@@ -83,8 +135,8 @@ fn preparation_reports_counter_settlement_failure_without_a_candidate() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     sim.world.resource_mut::<BuildTransaction>().revision = u64::MAX;
-    let baseline = sim.save_snapshot_v15();
-    let draft = save::v15::capture(&sim);
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
     let view = sim.rooms_revision();
     sim.world
         .resource_mut::<CommandQueue>()
@@ -97,8 +149,8 @@ fn preparation_reports_counter_settlement_failure_without_a_candidate() {
         sim.prepare_build_commit(RoomChoices::default()),
         Err(BuildCommitError::CounterExhausted)
     );
-    assert_eq!(sim.save_snapshot_v15(), baseline);
-    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
     assert_eq!(sim.rooms_revision(), view);
     assert!(sim.world.resource::<BuildTransaction>().prepared.is_none());
     assert_eq!(
@@ -115,8 +167,8 @@ fn preparation_reports_reservation_failure_and_invalidates_an_existing_review() 
         .prepare_build_commit(RoomChoices::default())
         .unwrap()
         .token;
-    let baseline = sim.save_snapshot_v15();
-    let draft = save::v15::capture(&sim);
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
     let revision = sim.rooms_revision();
     sim.world
         .resource_mut::<CommandQueue>()
@@ -138,8 +190,8 @@ fn preparation_reports_reservation_failure_and_invalidates_an_existing_review() 
         Err(BuildCommitError::AllocationFailed)
     );
     assert_eq!(sim.commit_build(old), Err(BuildCommitError::StaleToken));
-    assert_eq!(save::v15::capture(&sim), draft);
-    assert_eq!(sim.save_snapshot_v15(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
     assert_eq!(sim.rooms_revision(), revision);
     assert_eq!(
         sim.take_build_error(),
@@ -165,7 +217,7 @@ fn failed_loaded_command_settlement_keeps_the_existing_build_and_queue() {
                 y: 2,
             }),
         });
-    let payload = incoming.save_snapshot_v15();
+    let payload = incoming.save_snapshot_v16();
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     pave(&mut sim, 4);
@@ -180,12 +232,12 @@ fn failed_loaded_command_settlement_keeps_the_existing_build_and_queue() {
             y: 13,
             covering: 2,
         });
-    let draft = save::v15::capture(&sim);
-    let baseline = sim.save_snapshot_v15();
+    let draft = save::v16::capture(&sim);
+    let baseline = sim.save_snapshot_v16();
     let revision = sim.rooms_revision();
-    assert_eq!(sim.load_snapshot_v15(payload), Err(SaveError::InvalidValue));
-    assert_eq!(save::v15::capture(&sim), draft);
-    assert_eq!(sim.save_snapshot_v15(), baseline);
+    assert_eq!(sim.load_snapshot_v16(payload), Err(SaveError::InvalidValue));
+    assert_eq!(save::v16::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
     assert_eq!(sim.rooms_revision(), revision);
     assert_eq!(
         sim.world
@@ -203,7 +255,7 @@ fn failed_loaded_command_settlement_keeps_the_existing_build_and_queue() {
 fn cancel_exit_back_and_consecutive_batches_keep_the_correct_baseline() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
-    let first = sim.save_snapshot_v15();
+    let first = sim.save_snapshot_v16();
     pave(&mut sim, 4);
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.discard_build_review().unwrap();
@@ -214,18 +266,18 @@ fn cancel_exit_back_and_consecutive_batches_keep_the_correct_baseline() {
     assert_eq!(sim.world().resource::<SavedFloors>().covering(17, 13), 4);
     sim.cancel_build().unwrap();
     assert!(sim.build_active());
-    assert_eq!(sim.save_snapshot_v15(), first);
+    assert_eq!(sim.save_snapshot_v16(), first);
     pave(&mut sim, 4);
     confirm(&mut sim);
-    let second = sim.save_snapshot_v15();
+    let second = sim.save_snapshot_v16();
     assert_ne!(first, second);
     pave(&mut sim, 1);
     sim.cancel_build().unwrap();
-    assert_eq!(sim.save_snapshot_v15(), second);
+    assert_eq!(sim.save_snapshot_v16(), second);
     pave(&mut sim, 2);
     sim.end_build().unwrap();
     assert!(!sim.build_active());
-    assert_eq!(sim.save_snapshot_v15(), second);
+    assert_eq!(sim.save_snapshot_v16(), second);
 }
 
 #[test]
@@ -240,8 +292,8 @@ fn tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit() {
         match action {
             0 => sim.cancel_build().unwrap(),
             1 => {
-                let s = sim.save_snapshot_v15();
-                sim.load_snapshot_v15(s).unwrap();
+                let s = sim.save_snapshot_v16();
+                sim.load_snapshot_v16(s).unwrap();
             }
             2 => {
                 sim.end_build().unwrap();
@@ -287,16 +339,16 @@ fn failed_submit_does_not_drain_a_queued_accepted_edit() {
             y: 13,
             covering: 4,
         });
-    let baseline = sim.save_snapshot_v15();
-    let draft = save::v15::capture(&sim);
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
     let revision = sim.rooms_revision();
     let queue = sim.world().resource::<CommandQueue>().as_slice().to_vec();
     assert_eq!(
         sim.commit_build(review.token),
         Err(BuildCommitError::DraftMismatch)
     );
-    assert_eq!(sim.save_snapshot_v15(), baseline);
-    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
     assert_eq!(sim.rooms_revision(), revision);
     assert_eq!(
         sim.world().resource::<CommandQueue>().as_slice(),
@@ -313,13 +365,13 @@ fn rejected_load_replay_and_final_validation_keep_baseline_and_draft() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
     pave(&mut sim, 4);
-    let baseline = sim.save_snapshot_v15();
-    let draft = save::v15::capture(&sim);
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
     let mut invalid = baseline.clone();
     invalid.rooms.next_id = 0;
-    assert!(sim.load_snapshot_v15(invalid).is_err());
-    assert_eq!(sim.save_snapshot_v15(), baseline);
-    assert_eq!(save::v15::capture(&sim), draft);
+    assert!(sim.load_snapshot_v16(invalid).is_err());
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
     let journal = sim.world.resource::<BuildTransaction>().journal.clone();
     sim.world.resource_mut::<BuildTransaction>().journal[0].command = SimCommand::SetFloor {
         x: u32::MAX,
@@ -330,8 +382,8 @@ fn rejected_load_replay_and_final_validation_keep_baseline_and_draft() {
         sim.prepare_build_commit(RoomChoices::default()),
         Err(BuildCommitError::ReplayMismatch { entry: 0 })
     ));
-    assert_eq!(sim.save_snapshot_v15(), baseline);
-    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
     sim.world.resource_mut::<BuildTransaction>().journal = journal;
     let revision = sim.rooms_revision();
     let refused = sim.prepare_build_commit_validated(RoomChoices::default(), |candidate| {
@@ -345,8 +397,8 @@ fn rejected_load_replay_and_final_validation_keep_baseline_and_draft() {
         refused,
         Err(BuildCommitError::Validation(SaveError::InvalidValue))
     );
-    assert_eq!(sim.save_snapshot_v15(), baseline);
-    assert_eq!(save::v15::capture(&sim), draft);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
     assert_eq!(sim.rooms_revision(), revision);
     confirm(&mut sim);
 }
@@ -355,9 +407,9 @@ fn rejected_load_replay_and_final_validation_keep_baseline_and_draft() {
 fn ordinary_construction_allocator_failure_is_atomic_and_reported() {
     let mut sim = Sim::new_with_lot(10, 8);
     sim.world_mut().resource_mut::<SavedRooms>().next_id = u32::MAX;
-    let before = sim.save_snapshot_v15();
+    let before = sim.save_snapshot_v16();
     let revision = sim.rooms_revision();
-    sim.load_snapshot_v15(before.clone()).unwrap();
+    sim.load_snapshot_v16(before.clone()).unwrap();
     let revision = sim.rooms_revision().max(revision);
     issue(
         &mut sim,
@@ -377,7 +429,7 @@ fn ordinary_construction_allocator_failure_is_atomic_and_reported() {
         sim.take_build_error(),
         Some(BuildCommitError::Room(RoomError::IdExhausted))
     );
-    assert_eq!(sim.save_snapshot_v15(), before);
+    assert_eq!(sim.save_snapshot_v16(), before);
     assert_eq!(sim.rooms_revision(), revision);
 }
 
@@ -395,7 +447,7 @@ fn every_public_snapshot_writer_reads_the_committed_baseline() {
     let v12 = sim.save_snapshot_v12();
     let v13 = sim.save_snapshot_v13();
     let v14 = sim.try_save_snapshot_v14();
-    let v15 = sim.save_snapshot_v15();
+    let v15 = sim.save_snapshot_v16();
     sim.begin_build().unwrap();
     pave(&mut sim, 4);
     assert_eq!(sim.save_snapshot(), v1);
@@ -409,7 +461,7 @@ fn every_public_snapshot_writer_reads_the_committed_baseline() {
     assert_eq!(sim.save_snapshot_v12(), v12);
     assert_eq!(sim.save_snapshot_v13(), v13);
     assert_eq!(sim.try_save_snapshot_v14(), v14);
-    assert_eq!(sim.save_snapshot_v15(), v15);
+    assert_eq!(sim.save_snapshot_v16(), v15);
 }
 
 #[test]
@@ -440,7 +492,7 @@ fn preparations_invalidate_prior_choices_and_names_keep_one_outside_identity() {
     );
     assert!(sim.validate_build_token(second.token).is_ok());
     sim.commit_build(second.token).unwrap();
-    assert_eq!(sim.save_snapshot_v15().rooms.outside_name, "Patio");
+    assert_eq!(sim.save_snapshot_v16().rooms.outside_name, "Patio");
 }
 
 #[test]
@@ -455,24 +507,25 @@ fn no_net_change_keeps_admitted_retired_registry_and_allocators_exact() {
         });
         rooms.next_id = 9002;
     }
-    let original = sim.save_snapshot_v15();
-    sim.load_snapshot_v15(original.clone()).unwrap();
+    let original = sim.save_snapshot_v16();
+    sim.load_snapshot_v16(original.clone()).unwrap();
     sim.begin_build().unwrap();
     confirm(&mut sim);
-    assert_eq!(sim.save_snapshot_v15(), original);
+    assert_eq!(sim.save_snapshot_v16(), original);
 }
 
 #[test]
 fn temporary_paving_removal_preserves_suspended_work() {
     let mut sim = crate::chores::build_transaction_fixture::suspended_floor(true);
     sim.begin_build().unwrap();
-    let before = save::v15::capture(&sim);
+    let before = save::v16::capture(&sim);
     pave(&mut sim, 0);
     assert_eq!(
         sim.world()
             .resource::<terri_core::chores::SavedChores>()
             .tasks,
         before
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -489,7 +542,7 @@ fn temporary_paving_removal_preserves_suspended_work() {
     pave(&mut sim, 4);
     confirm(&mut sim);
     assert_eq!(
-        save::v15::capture(&sim),
+        save::v16::capture(&sim),
         before,
         "remove and restore must preserve all work and random streams"
     );
@@ -499,7 +552,7 @@ fn temporary_paving_removal_preserves_suspended_work() {
 fn temporary_wall_removal_preserves_suspended_work() {
     let mut sim = crate::chores::build_transaction_fixture::suspended_floor(false);
     sim.begin_build().unwrap();
-    let before = save::v15::capture(&sim);
+    let before = save::v16::capture(&sim);
     let edge = sim
         .world()
         .resource::<terri_core::layout::SavedLayout>()
@@ -541,7 +594,7 @@ fn temporary_wall_removal_preserves_suspended_work() {
         .reason
         .is_none());
     confirm(&mut sim);
-    let after = save::v15::capture(&sim);
+    let after = save::v16::capture(&sim);
     assert_eq!(after.rooms, before.rooms);
     assert_eq!(
         after
@@ -552,8 +605,10 @@ fn temporary_wall_removal_preserves_suspended_work() {
             .legacy
             .legacy
             .legacy
+            .legacy
             .chores,
         before
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -572,8 +627,10 @@ fn temporary_wall_removal_preserves_suspended_work() {
             .legacy
             .legacy
             .legacy
+            .legacy
             .domestic,
         before
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -592,7 +649,9 @@ fn temporary_wall_removal_preserves_suspended_work() {
         .legacy
         .legacy
         .legacy
+        .legacy
         .layout = before
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -620,10 +679,10 @@ fn unchanged_drains_and_blocked_gameplay_do_not_mutate_draft() {
         chores.episodes.clear();
         chores.week = None;
     }
-    let before = save::v15::capture(&sim);
+    let before = save::v16::capture(&sim);
     sim.begin_build().unwrap();
     assert_eq!(
-        save::v15::capture(&sim),
+        save::v16::capture(&sim),
         before,
         "entering Build with an empty queue must not assign existing unowned duties"
     );
@@ -636,9 +695,9 @@ fn unchanged_drains_and_blocked_gameplay_do_not_mutate_draft() {
         sim.take_build_error(),
         Some(BuildCommitError::CommandNotAllowed)
     );
-    assert_eq!(save::v15::capture(&sim), before);
+    assert_eq!(save::v16::capture(&sim), before);
     confirm(&mut sim);
-    assert_eq!(save::v15::capture(&sim), before);
+    assert_eq!(save::v16::capture(&sim), before);
 }
 
 #[test]
@@ -676,8 +735,8 @@ fn view_revision_tracks_names_edits_and_adoption_without_failed_operation_churn(
     sim.cancel_build().unwrap();
     assert!(sim.rooms_revision() > previous);
     previous = sim.rooms_revision();
-    let saved = sim.save_snapshot_v15();
-    sim.load_snapshot_v15(saved).unwrap();
+    let saved = sim.save_snapshot_v16();
+    sim.load_snapshot_v16(saved).unwrap();
     assert!(sim.rooms_revision() > previous);
     previous = sim.rooms_revision();
     sim.end_build().unwrap();
@@ -707,8 +766,8 @@ fn enclosed_blank() -> Sim {
         .unwrap()
         .reason
         .is_none());
-    let saved = sim.save_snapshot_v15();
-    sim.load_snapshot_v15(saved).unwrap();
+    let saved = sim.save_snapshot_v16();
+    sim.load_snapshot_v16(saved).unwrap();
     sim
 }
 
@@ -716,7 +775,7 @@ fn enclosed_blank() -> Sim {
 fn split_remerge_and_lost_review_use_final_token_bound_geometry() {
     let mut sim = enclosed_blank();
     sim.begin_build().unwrap();
-    let original = sim.save_snapshot_v15();
+    let original = sim.save_snapshot_v16();
     for y in 1..=5 {
         issue(
             &mut sim,
@@ -764,7 +823,7 @@ fn split_remerge_and_lost_review_use_final_token_bound_geometry() {
         Err(BuildCommitError::StaleToken)
     );
     confirm(&mut sim);
-    assert_eq!(sim.save_snapshot_v15().rooms, original.rooms);
+    assert_eq!(sim.save_snapshot_v16().rooms, original.rooms);
     issue(
         &mut sim,
         SimCommand::SetWallEdge {
@@ -826,7 +885,7 @@ fn unchanged_walls_with_moved_counter_reconcile_surface_membership() {
         })
         .unwrap();
     sim.begin_build().unwrap();
-    let rooms = sim.save_snapshot_v15().rooms;
+    let rooms = sim.save_snapshot_v16().rooms;
     issue(
         &mut sim,
         SimCommand::PlaceObject {
@@ -844,7 +903,7 @@ fn unchanged_walls_with_moved_counter_reconcile_surface_membership() {
         .reason
         .is_none());
     let review = confirm(&mut sim);
-    assert_eq!(sim.save_snapshot_v15().rooms, rooms);
+    assert_eq!(sim.save_snapshot_v16().rooms, rooms);
     let new = sim
         .world()
         .resource::<RoomMap>()
@@ -863,7 +922,7 @@ fn mixed_journal_replays_books_furniture_floor_money_and_land_exactly() {
     sim.world_mut()
         .insert_resource(terri_core::Funds::from_dollars(100000));
     sim.begin_build().unwrap();
-    let baseline = sim.save_snapshot_v15();
+    let baseline = sim.save_snapshot_v16();
     pave(&mut sim, 4);
     let pack = sim.world().resource::<Content>().0;
     let definition = pack.find("armchair").unwrap();
@@ -929,14 +988,14 @@ fn mixed_journal_replays_books_furniture_floor_money_and_land_exactly() {
             quote: quote.clone(),
         }),
     );
-    let before_reject = save::v15::capture(&sim);
+    let before_reject = save::v16::capture(&sim);
     let journal_count = sim.world.resource::<BuildTransaction>().journal.len();
     let receipt_sequence = sim.world.resource::<crate::books::BookFeedback>().sequence;
     issue(
         &mut sim,
         SimCommand::Book(BookCommand::AutoPurchase { quote }),
     );
-    assert_eq!(save::v15::capture(&sim), before_reject);
+    assert_eq!(save::v16::capture(&sim), before_reject);
     assert_eq!(
         sim.world.resource::<BuildTransaction>().journal.len(),
         journal_count
@@ -989,18 +1048,21 @@ fn mixed_journal_replays_books_furniture_floor_money_and_land_exactly() {
         .unwrap()
         .reason
         .is_none());
-    let draft = save::v15::capture(&sim);
-    assert_eq!(sim.save_snapshot_v15(), baseline);
+    let draft = save::v16::capture(&sim);
+    assert_eq!(sim.save_snapshot_v16(), baseline);
     confirm(&mut sim);
-    let after = sim.save_snapshot_v15();
+    let after = sim.save_snapshot_v16();
     assert_eq!(
-        after.legacy.legacy.funds_cents,
-        draft.legacy.legacy.funds_cents
+        after.legacy.legacy.legacy.funds_cents,
+        draft.legacy.legacy.legacy.funds_cents
     );
-    assert_eq!(after.legacy.legacy.lot_frame, draft.legacy.legacy.lot_frame);
     assert_eq!(
-        after.legacy.legacy.legacy.legacy.legacy.legacy.books,
-        draft.legacy.legacy.legacy.legacy.legacy.legacy.books
+        after.legacy.legacy.legacy.lot_frame,
+        draft.legacy.legacy.legacy.lot_frame
+    );
+    assert_eq!(
+        after.legacy.legacy.legacy.legacy.legacy.legacy.legacy.books,
+        draft.legacy.legacy.legacy.legacy.legacy.legacy.legacy.books
     );
     assert_eq!(
         after
@@ -1011,9 +1073,11 @@ fn mixed_journal_replays_books_furniture_floor_money_and_land_exactly() {
             .legacy
             .legacy
             .legacy
+            .legacy
             .world
             .entities,
         draft
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -1033,15 +1097,15 @@ fn mixed_journal_replays_books_furniture_floor_money_and_land_exactly() {
             .map(|r| r.id)
             .collect::<Vec<_>>()
     );
-    sim.load_snapshot_v15(after.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v15(), after);
+    sim.load_snapshot_v16(after.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v16(), after);
 }
 
 #[test]
 fn paving_grass_reconciles_new_outside_duty_without_new_room_ids() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.begin_build().unwrap();
-    let rooms = sim.save_snapshot_v15().rooms;
+    let rooms = sim.save_snapshot_v16().rooms;
     let key = terri_core::chores::ChoreKey {
         kind: terri_core::chores::ChoreKind::Floors,
         target: 0,
@@ -1049,7 +1113,7 @@ fn paving_grass_reconciles_new_outside_duty_without_new_room_ids() {
     assert!(!crate::chores::keys(sim.world()).contains(&key));
     pave(&mut sim, 4);
     let review = confirm(&mut sim);
-    assert_eq!(sim.save_snapshot_v15().rooms, rooms);
+    assert_eq!(sim.save_snapshot_v16().rooms, rooms);
     assert!(crate::chores::keys(sim.world()).contains(&key));
     assert!(review.duties.duties.iter().any(|d| d.key == key));
 }
@@ -1076,10 +1140,10 @@ fn no_net_and_rename_confirm_preserve_admitted_stale_group_need() {
             episode.decision = Some(false);
             episode.outcome = terri_core::chores::DutyOutcome::Skipped;
         }
-        let baseline = sim.save_snapshot_v15();
-        sim.load_snapshot_v15(baseline.clone())
+        let baseline = sim.save_snapshot_v16();
+        sim.load_snapshot_v16(baseline.clone())
             .expect("stale daily need is admitted current state");
-        assert_eq!(sim.save_snapshot_v15(), baseline);
+        assert_eq!(sim.save_snapshot_v16(), baseline);
         let chores = sim
             .world()
             .resource::<terri_core::chores::SavedChores>()
@@ -1097,7 +1161,7 @@ fn no_net_and_rename_confirm_preserve_admitted_stale_group_need() {
         );
         assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
         if !rename {
-            assert_eq!(sim.save_snapshot_v15(), baseline);
+            assert_eq!(sim.save_snapshot_v16(), baseline);
         }
     }
 }

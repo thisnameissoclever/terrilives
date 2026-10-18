@@ -94,7 +94,9 @@ for the current name styling and responsive checks.
 
 Time, Funds and live status remain in the upper-left group, followed by speed,
 Build and Options. The default group is 144px wide on desktop and 182px on
-compact screens. Options contains Light, Death, Sound, Effects, Save, Load,
+compact screens. Options opens with the game's version as plain text that takes
+no focus, Version {n}, with the number from `web/package.json`. It contains
+Light, Death, Sound, Effects, Save, Load,
 New game, New housemate and Help. Close Options, Escape and an outside press close it.
 Opening Options closes the Sim sheet. Cancelling Load or New game returns
 stranded keyboard focus to the visible Options button and releases that

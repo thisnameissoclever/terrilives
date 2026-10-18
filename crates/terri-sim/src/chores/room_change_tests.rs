@@ -817,10 +817,10 @@ fn review_outdoor_work_finishes_reachable_patches_and_marks_inaccessible_remaind
             .map(|row| u32::from(row.1))
             .sum();
         generated += total_after - total_before;
-        let snapshot = sim.save_snapshot_v15();
+        let snapshot = sim.save_snapshot_v16();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v15(snapshot.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v15(), snapshot);
+        restored.load_snapshot_v16(snapshot.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), snapshot);
     }
     assert!(finished, "unreachable paving must not cause a retry loop");
     let state = sim.world().resource::<SavedChores>();
@@ -1046,10 +1046,10 @@ fn review_continuing_visit_memory_survives_split_and_reload_until_actual_crossin
         .unwrap();
     assert_eq!(visit.room, current_room);
     assert_eq!(visit.seen, vec![500]);
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v16();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v15(), saved);
+    loaded.load_snapshot_v16(saved.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v16(), saved);
     crate::domestic::tick(loaded.world_mut());
     let visit = loaded
         .world()
@@ -1174,12 +1174,12 @@ fn new_outside_duty_with_saved_week(saved_week: Option<u64>) {
     sim.world_mut().insert_resource(state);
     let day_ticks = sim.world().resource::<crate::Content>().0.tuning.day_ticks;
     sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day_ticks) * 7;
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v16();
     let mut admitted = Sim::new_from_shipped_lot();
     admitted
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v16(saved.clone())
         .expect("the initial saved week is valid");
-    assert_eq!(admitted.save_snapshot_v15(), saved);
+    assert_eq!(admitted.save_snapshot_v16(), saved);
     let original = admitted.world().resource::<SavedChores>().clone();
     let outside = ChoreKey {
         kind: ChoreKind::Floors,
@@ -1193,12 +1193,12 @@ fn new_outside_duty_with_saved_week(saved_week: Option<u64>) {
         .set(17, 13, 4);
     let resolved = resolve(&admitted, &before, false);
     reconcile_committed_rooms(&mut admitted, &before, &resolved).unwrap();
-    let current = admitted.save_snapshot_v15();
+    let current = admitted.save_snapshot_v16();
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
-        .load_snapshot_v15(current.clone())
+        .load_snapshot_v16(current.clone())
         .expect("new duty must keep a coherent saved assignment week");
-    assert_eq!(loaded.save_snapshot_v15(), current);
+    assert_eq!(loaded.save_snapshot_v16(), current);
     let after = admitted.world().resource::<SavedChores>();
     assert_eq!(after.week, Some(saved_week.unwrap_or(1)));
     assert!(after
@@ -1247,9 +1247,9 @@ fn review_new_duty_initializes_an_absent_saved_week_only_when_assigned() {
         !keys(empty.world()).contains(&outside),
         "uncovered outdoor grass has no floor duty"
     );
-    let initial = empty.save_snapshot_v15();
-    empty.load_snapshot_v15(initial.clone()).unwrap();
-    assert_eq!(empty.save_snapshot_v15(), initial);
+    let initial = empty.save_snapshot_v16();
+    empty.load_snapshot_v16(initial.clone()).unwrap();
+    assert_eq!(empty.save_snapshot_v16(), initial);
     let initial_rng = empty.world().resource::<SavedChores>().rng.clone();
     let before = RoomChangeContext::capture(empty.world()).unwrap();
     empty
@@ -1266,9 +1266,9 @@ fn review_new_duty_initializes_an_absent_saved_week_only_when_assigned() {
     assert!(state.assignments.is_empty());
     assert_eq!(state.week, None);
     assert_eq!(state.rng, initial_rng);
-    let final_save = empty.save_snapshot_v15();
-    empty.load_snapshot_v15(final_save.clone()).unwrap();
-    assert_eq!(empty.save_snapshot_v15(), final_save);
+    let final_save = empty.save_snapshot_v16();
+    empty.load_snapshot_v16(final_save.clone()).unwrap();
+    assert_eq!(empty.save_snapshot_v16(), final_save);
 }
 
 #[test]

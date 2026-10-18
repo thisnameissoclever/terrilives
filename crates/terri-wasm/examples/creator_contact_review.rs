@@ -5,6 +5,8 @@ use terri_core::{
 };
 use terri_sim::Sim;
 
+const _: () = assert!(SAVE_SCHEMA_VERSION == 16);
+
 fn main() {
     let output = std::env::args().nth(1).expect("output save path");
     let mut sim = Sim::new_from_shipped_lot();
@@ -26,12 +28,12 @@ fn main() {
         chores.surfaces = vec![(counter, 1000)];
         chores.board_enabled = false;
     }
-    let snapshot = sim.save_snapshot_v10();
+    let snapshot = sim.save_snapshot_v16();
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
-        .load_snapshot_v10(snapshot.clone())
+        .load_snapshot_v16(snapshot.clone())
         .expect("valid review fixture");
-    assert_eq!(snapshot, loaded.save_snapshot_v10());
+    assert_eq!(snapshot, loaded.save_snapshot_v16());
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
     bytes.extend(postcard::to_allocvec(&snapshot).unwrap());

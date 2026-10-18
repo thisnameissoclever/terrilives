@@ -22,7 +22,7 @@ fn bookless_current_library_restores_empty_state_and_exact_metadata() {
 fn bookless_current_library_refuses_owned_data_operations_and_inconsistent_catalogue() {
     let mut live = bookless();
     crate::test_content::assert_current_admission(&live);
-    let before = live.save_snapshot_v15();
+    let before = live.save_snapshot_v16();
     let hash = live.world_hash();
     let normal = Sim::new_from_shipped_lot().current_v6_view();
     let mut copy = live.current_v6_view();
@@ -41,7 +41,7 @@ fn bookless_current_library_refuses_owned_data_operations_and_inconsistent_catal
     });
     for invalid in [copy, memory] {
         assert!(live.load_current_v6_view(invalid).is_err());
-        assert_eq!(live.save_snapshot_v15(), before);
+        assert_eq!(live.save_snapshot_v16(), before);
         assert_eq!(live.world_hash(), hash);
     }
     let mut source = bookless();
@@ -52,13 +52,13 @@ fn bookless_current_library_refuses_owned_data_operations_and_inconsistent_catal
             title: "missing".into(),
             shelf: None,
         }));
-    assert!(live.load_snapshot_v15(source.save_snapshot_v15()).is_err());
-    assert_eq!(live.save_snapshot_v15(), before);
+    assert!(live.load_snapshot_v16(source.save_snapshot_v16()).is_err());
+    assert_eq!(live.save_snapshot_v16(), before);
     assert_eq!(live.world_hash(), hash);
     let mut pack = live.world().resource::<Content>().0.clone();
     pack.books.push(terri_data::pack().books[0].clone());
     let mut inconsistent = Sim::new_with_lot_and_content(4, 4, Content(Box::leak(Box::new(pack))));
     assert!(inconsistent
-        .load_snapshot_v15(inconsistent.save_snapshot_v15())
+        .load_snapshot_v16(inconsistent.save_snapshot_v16())
         .is_err());
 }

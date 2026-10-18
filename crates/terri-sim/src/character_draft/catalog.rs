@@ -14,10 +14,22 @@ pub fn catalog(pack: &ContentPack) -> CharacterCatalog {
         hobby_tags.extend(action.tags.iter().cloned());
     }
     CharacterCatalog {
-        version: 1,
+        version: 2,
         name_limit: pack.tuning.housemate_name_max_chars,
         max_traits: pack.tuning.housemate_max_traits,
         max_household: crate::household::MAX_HOUSEHOLD_SIZE as u32,
+        self_preservation_bands: pack
+            .tuning
+            .autonomy
+            .unwrap_or_default()
+            .creation_instinct_bands
+            .iter()
+            .map(|b| CreatorInstinctBand {
+                min: b.min,
+                max: b.max,
+                weight: b.weight,
+            })
+            .collect(),
         traits: pack
             .traits
             .iter()
