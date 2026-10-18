@@ -750,8 +750,26 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
             if key.kind == ChoreKind::Bins {
                 state.disposed = state.disposed.saturating_add(u64::from(units));
             }
+            log_finished(world, person, key);
             super::completed(world, state, person, key, day, units);
         }
+    }
+}
+
+/// A finished chore is an action line of its own, under the duty's
+/// label; the credit that follows attaches its outcome to it
+/// ([AL-sources]).
+fn log_finished(world: &mut World, person: u32, key: ChoreKey) {
+    let Some(id) = crate::dining::entity(world, person)
+        .and_then(|entity| world.get::<terri_core::SimId>(entity))
+        .copied()
+    else {
+        return;
+    };
+    let pack = world.resource::<crate::Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.action_done(pack, tick, id.0, key.kind.label(), None);
     }
 }
 

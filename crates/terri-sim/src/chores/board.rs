@@ -131,10 +131,13 @@ pub(crate) fn refresh_grouped_need(world: &World, state: &mut SavedChores) {
     }
 }
 
-pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+/// Settles the week's assignments and today's episodes. Returns whether it
+/// wrote new assignments, which the caller logs with [`log_week`].
+pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> bool {
     if !state.board_enabled {
-        return;
+        return false;
     }
+    let mut changed = false;
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
     let week = day / 7;
@@ -174,11 +177,32 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
         };
         state.week = Some(week);
         state.roster = roster;
+        changed = true;
     }
     start_episodes(state, day, state.assignments.clone());
     state.episodes.retain(|e| e.day.saturating_add(8) >= day);
     let episodes: std::collections::BTreeSet<_> = state.episodes.iter().map(|e| e.id).collect();
     state.dish_contributions.retain(|r| episodes.contains(&r.0));
+    changed
+}
+
+/// Logs the week's assignments as one Chores line per owner ([AL-sources]).
+pub(crate) fn log_week(world: &mut World, state: &SavedChores) {
+    let pack = world.resource::<crate::Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    let week = state.week.unwrap_or_default();
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.chore_week(pack, tick, week, &state.assignments);
+    }
+}
+
+/// Logs one chore outcome, performed by `actor` for `owner` ([AL-sources]).
+fn log_outcome(world: &mut World, (actor, owner): (u32, u32), kind: ChoreKind, outcome: i32) {
+    let pack = world.resource::<crate::Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.chore_outcome(pack, tick, (actor, owner), kind, outcome);
+    }
 }
 /// Construction assigns only new duties; ordinary tick policy owns deferred
 /// assignment, week changes, and daily episode maintenance.
@@ -325,6 +349,12 @@ pub(crate) fn credit(
     } else if state.episodes[index].decision == Some(false) {
         history(state, owner, 50);
     }
+    let outcome = if covered {
+        crate::activity_log::OUTCOME_COVERED
+    } else {
+        crate::activity_log::OUTCOME_DONE
+    };
+    log_outcome(world, (actor.0, owner), key.kind, outcome);
     for (_, observer) in people(world) {
         let cleanliness = crate::domestic::cleanliness(world, observer);
         effect(
@@ -348,7 +378,9 @@ pub(crate) fn credit(
     }
 }
 pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
-    reconcile(world, state);
+    if reconcile(world, state) {
+        log_week(world, state);
+    }
     if !state.board_enabled {
         return;
     }
@@ -389,6 +421,12 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             state.episodes[i].settled = true;
             if missed {
                 history(state, owner, 0);
+                log_outcome(
+                    world,
+                    (owner, owner),
+                    key.kind,
+                    crate::activity_log::OUTCOME_MISSED,
+                );
                 for (_, observer) in &live {
                     let cleanliness = crate::domestic::cleanliness(world, *observer);
                     effect(
@@ -447,6 +485,14 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             } else {
                 DutyOutcome::Skipped
             };
+            if !decision {
+                log_outcome(
+                    world,
+                    (owner, owner),
+                    key.kind,
+                    crate::activity_log::OUTCOME_SKIPPED,
+                );
+            }
         }
         if state.episodes[i].decision == Some(true) {
             state.episodes[i].unavailable = !work::start(world, state, person, key, false);

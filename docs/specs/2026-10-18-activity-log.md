@@ -81,7 +81,7 @@ A record is twelve little-endian `u32` words, 48 bytes. The simulation never bui
 | 4 | `other` | A second `SimId`, or `u32::MAX` for none. |
 | 5 | `label` | Index into the label table: an action, chain, social interaction, topic tag, skill, career level or chore duty label. |
 | 6 | `label2` | A second label index, or `u32::MAX`. |
-| 7 | `parent` | `seq` of the parent record, or 0. Set by the end-of-tick link pass. |
+| 7 | `parent` | `seq` of the parent record, or 0. Set by the end-of-tick link pass, which only links records of the same tick and prefers the nearest earlier candidate, then the nearest later one. |
 | 8 to 11 | `v0` to `v3` | Signed values whose meaning depends on the kind. |
 
 Trigger mask bits: Actions 1, Chores 2, Social 4, Skills 8, Career 16. Details and Time have no bit because they never make a line visible.
@@ -95,7 +95,7 @@ Values use fixed units so the shell rounds once: needs in tenths of a point; opi
 | 3 Fight done | Parent | Actions, Social | `other` target; `label2` fight topic; `v2` and `v3` the two opinion changes |
 | 4 Annoyed | Parent | Social | `actor` affected person; `other` responsible person; `label` cause; `label2` object type when known; `v2` opinion change |
 | 5 Chores this week | Parent | Chores | `actor` duty owner; `v0` week |
-| 6 Duty | Child of 5 | none | `label` duty kind; `label2` room |
+| 6 Duty | Child of 5 | none | `label` duty kind; `v0` the kind's position in `ChoreKind::ALL` and `v1` its target, which the shell passes to `chore_location` for the current room name |
 | 7 Chore outcome | Child of 1 when done by an action this tick, otherwise parent | Chores | `actor` performer or owner; `other` owner when someone covered; `label` duty; `v0` outcome code (Done, Covered, Skipped, Missed) |
 | 8 Feeling | Child of 2, 3 or 7, or of the eater's 1 for meal appreciation | Social, when attached to 7, and always for meal appreciation | `actor` the person whose opinion changed; `other` the person it is about; `label` cause; `v2` change |
 | 9 Skill level | Child of 1 or 2 in the same tick, otherwise parent | Skills | `label` skill; `v1` new level |
@@ -123,7 +123,8 @@ Every source is a point where the simulation already settles the event. The sche
 | Privacy incident | 4 | `systems::interpersonal::moved` and `private_start`, applied in `apply` | Affected, intruder, PrivacyEntry or PrivacyStart, fixture model, opinion change |
 | Chat started while the listener had an unhelped need | 4 | `systems::interpersonal::conversation_start` | Listener, initiator, low or critical, opinion change |
 | Disliked object in use | 4 | `affinity::bother`, every tick per pair | One record per episode, not per tick [AL-group] |
-| New weekly duties | 5, 6 | `chores::board::reconcile` after `policy::assign` writes new assignments | Assignments grouped by owner: duty kind and room |
+| New weekly duties | 5, 6 | Callers of `chores::board::reconcile` when it reports that `policy::assign` wrote new assignments | Assignments grouped by owner: duty kind and target |
+| Chore work completes | 1 | `chores::work::advance` where a task finishes with credit | Performer, the duty kind's label; the chore outcome that follows attaches to it |
 | Chore done or covered | 7, 8 | `chores::board::credit` | Owner, performer, duty, outcome; the ChoreFulfilled feelings from each other housemate; the ChoreNeglected feeling when a helper covers a declined duty |
 | Meal appreciated | 8 | `domestic::appreciate_meal` through `relationship_effects::record_opinion_change`, cause MealShared | Eater, cook, opinion change; a child of the eater's kind 1 record for the shared meal, which completes in the same tick |
 | Chore missed | 7, 8 | `chores::board::tick` at the day rollover | Owner, duty, Missed; the ChoreNeglected feelings |

@@ -700,6 +700,63 @@ impl ActivityLog {
         self.push(record);
     }
 
+    /// Kind 5 with kind 6 children: each owner's duties for the week, one
+    /// header per owner in id order. A duty carries its kind's code in
+    /// `ChoreKind::ALL` and its target, which the shell turns into the
+    /// current room name through `chore_location` ([AL-compose]).
+    pub(crate) fn chore_week(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        week: u64,
+        assignments: &[terri_core::chores::ChoreAssignment],
+    ) {
+        if !self.enabled {
+            return;
+        }
+        let labels = labels(pack);
+        let owners: std::collections::BTreeSet<u32> =
+            assignments.iter().map(|duty| duty.owner).collect();
+        for owner in owners {
+            self.push(
+                LogRecord::new(LogKind::ChoresThisWeek, CHORES, tick, owner)
+                    .with_value(0, i32::try_from(week).unwrap_or(i32::MAX)),
+            );
+            for duty in assignments.iter().filter(|duty| duty.owner == owner) {
+                self.push(
+                    LogRecord::new(LogKind::Duty, 0, tick, owner)
+                        .with_label(labels.index(duty.key.kind.label()))
+                        .with_value(0, chore_kind_code(duty.key.kind))
+                        .with_value(1, duty.key.target as i32),
+                );
+            }
+        }
+    }
+
+    /// Kind 7: a chore's outcome. `actor` performed it, or owns it when
+    /// nobody did; `owner` becomes the other person when someone covered.
+    /// The link pass attaches Done and Covered to the performer's action
+    /// in the same tick, and the outcome's feelings to the outcome.
+    pub(crate) fn chore_outcome(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        (actor, owner): (u32, u32),
+        kind: terri_core::chores::ChoreKind,
+        outcome: i32,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        let mut record = LogRecord::new(LogKind::ChoreOutcome, CHORES, tick, actor)
+            .with_label(labels(pack).index(kind.label()))
+            .with_value(0, outcome);
+        if owner != actor {
+            record = record.with_other(owner);
+        }
+        self.push(record);
+    }
+
     /// Kind 9: each skill `actor` took to a new level. The link pass makes
     /// it a child of the action or chat in the same tick that crossed it; a
     /// recipe step's level-up before its recipe finishes stays its own line.
@@ -827,7 +884,9 @@ impl ActivityLog {
 
     /// Children name their parent's `seq`; a child with no parent in its
     /// pass stays a parent itself. Kept to the records staged since the last
-    /// pass, so a child never attaches to an earlier tick's event.
+    /// pass, so a child never attaches to an earlier tick's event. The
+    /// nearest earlier candidate wins, then the nearest later one, so two
+    /// chore outcomes in one tick each keep the feelings staged after them.
     fn link(&mut self, meal: u32) {
         // Sequence numbers rise through the ring, so this pass's records
         // are its tail.
@@ -839,9 +898,9 @@ impl ActivityLog {
             let Some(kind) = record.kind() else {
                 continue;
             };
-            let parent = (first..self.len)
+            let parent = (first..child)
                 .rev()
-                .filter(|&offset| offset != child)
+                .chain(child + 1..self.len)
                 .map(|offset| *self.at(offset))
                 .find(|candidate| adopts(candidate, kind, &record, meal));
             if let Some(parent) = parent {
@@ -881,6 +940,15 @@ fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord, meal: u32) -> bo
         (LogKind::SkillLevel, Some(LogKind::ChatDone)) => parent.involves(child.actor()),
         _ => false,
     }
+}
+
+/// A chore kind's position in `ChoreKind::ALL`, the number the shell's
+/// `chore_location` takes.
+fn chore_kind_code(kind: terri_core::chores::ChoreKind) -> i32 {
+    terri_core::chores::ChoreKind::ALL
+        .iter()
+        .position(|candidate| *candidate == kind)
+        .map_or(-1, |code| code as i32)
 }
 
 /// Adds Social delivered to `person` by company this tick, naming the

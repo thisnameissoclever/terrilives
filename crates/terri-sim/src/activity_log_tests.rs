@@ -750,3 +750,31 @@ fn skill_level_up_is_logged_once_per_level() {
     assert_eq!((parent.actor(), parent.tick()), (id, level.tick()));
     assert_eq!(parent.value(1), 1, "the action line shows the new level");
 }
+
+/// Two chores missed by one owner at the same rollover: each outcome keeps
+/// the feelings staged after it rather than the newest outcome taking all
+/// of them.
+#[test]
+fn two_outcomes_in_one_tick_keep_their_own_feelings() {
+    let mut sim = Sim::new_with_lot(4, 4);
+    let missed = |sim: &mut Sim| {
+        stage(
+            sim,
+            record(LogKind::ChoreOutcome, 1, 4).with_value(0, OUTCOME_MISSED),
+        )
+    };
+    let first = missed(&mut sim);
+    let first_feeling = stage(&mut sim, record(LogKind::Feeling, 1, 5).with_other(4));
+    let second = missed(&mut sim);
+    let second_feeling = stage(&mut sim, record(LogKind::Feeling, 1, 5).with_other(4));
+    sim.flush_commands();
+    let parent_of = |seq: u32| {
+        staged(&sim)
+            .iter()
+            .find(|r| r.seq() == seq)
+            .unwrap()
+            .parent()
+    };
+    assert_eq!(parent_of(first_feeling), first);
+    assert_eq!(parent_of(second_feeling), second);
+}
