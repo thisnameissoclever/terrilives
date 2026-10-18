@@ -1,0 +1,159 @@
+{
+  "base_commit": "23bf404873b2e450658b8858d8a4395f2656686d",
+  "fixed_source_sha256": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+  "source_delta": [
+    {
+      "path": "web/src/rooms/codec.ts",
+      "base_sha256": "d95fea2f115e46ef243277cdfdd593143550084a68b031f1d40d5ad27f8ffb39",
+      "fixed_sha256": "5f1e15a8c8b143fcb629b4f3fd2ab775a01f2053487316e6d68d2002a4ae2308"
+    },
+    {
+      "path": "web/tests/room-codec.test.ts",
+      "base_sha256": "bc5309302efd9ce1484a54b3bb25c3aa41c62a09992096a803ed0c8667faa647",
+      "fixed_sha256": "17edc4dcf0feddaa35a74981d0059f0ef85f11361e5c2df26170757841fbc82b"
+    }
+  ],
+  "gates": [
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "tests/room-codec.test.ts"
+      ],
+      "exit": 1,
+      "elapsed_seconds": 1.221,
+      "source_before": "8783cd7a8792ad8b66fa38920ae7886fadfe8584498b949bd2971693cc14a4ff",
+      "source_after": "8783cd7a8792ad8b66fa38920ae7886fadfe8584498b949bd2971693cc14a4ff",
+      "source_unchanged": true,
+      "log_sha256": "60a3379727a32c0dae2fd520ee3e2703380c483efc266c518f59b0083d850900",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "tests/room-codec.test.ts"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.254,
+      "source_before": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_after": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_unchanged": true,
+      "log_sha256": "447e982df40c98f585c3badba8da7800bd5bfe8f5c76455691c84df6476af18f",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "tests/room-codec.test.ts",
+        "tests/room-bridge.test.ts",
+        "tests/bridge.test.ts",
+        "tests/build-session.test.ts",
+        "tests/save-worker.test.ts",
+        "tests/save-store.test.ts",
+        "tests/legacy-save.test.ts",
+        "tests/persistence-controller.test.ts"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 13.875,
+      "source_before": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_after": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_unchanged": true,
+      "log_sha256": "7bb8e58e79d0dfb685779345b057badf1c673ca798fb73b1e26f113f82e40dd9",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "typecheck"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 8.404,
+      "source_before": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_after": "8bea4105c0240ef1886dd2625d05eb920699ad83687458504cf994c58ff1cf25",
+      "source_unchanged": true,
+      "log_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    }
+  ],
+  "retained_files": [
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/task-6-v16-review.md",
+      "file": "initial-review.md",
+      "raw_sha256": "925eaae2970e1a6109fa153d1620ea8f23be942856abaadb8bb774afe04ec312",
+      "stored_sha256": "925eaae2970e1a6109fa153d1620ea8f23be942856abaadb8bb774afe04ec312",
+      "raw_bytes": 9466,
+      "stored_bytes": 9466
+    },
+    {
+      "source": ".local-build/r6-fix1-red.log",
+      "file": "r6-fix1-red.log",
+      "raw_sha256": "60a3379727a32c0dae2fd520ee3e2703380c483efc266c518f59b0083d850900",
+      "stored_sha256": "ef15da1c6ae071d8f27d066b228113049c3e3e2b7fb805ff5308ad4f5541866d",
+      "raw_bytes": 1089,
+      "stored_bytes": 1088
+    },
+    {
+      "source": ".local-build/r6-fix1-green.log",
+      "file": "r6-fix1-green.log",
+      "raw_sha256": "447e982df40c98f585c3badba8da7800bd5bfe8f5c76455691c84df6476af18f",
+      "stored_sha256": "b9f7936b85b6ce8edb76dd44532ebfe81ce659c15988a66528c4ee4685658f9e",
+      "raw_bytes": 306,
+      "stored_bytes": 305
+    },
+    {
+      "source": ".local-build/r6-fix1-actual.log",
+      "file": "r6-fix1-actual.log",
+      "raw_sha256": "7bb8e58e79d0dfb685779345b057badf1c673ca798fb73b1e26f113f82e40dd9",
+      "stored_sha256": "42330a1c53d565e366f402ce908c1e7daa315e75670ac7375122a928ebe5cb41",
+      "raw_bytes": 502,
+      "stored_bytes": 501
+    },
+    {
+      "source": ".local-build/r6-fix1-typecheck.log",
+      "file": "r6-fix1-typecheck.log",
+      "raw_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+      "stored_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+      "raw_bytes": 50,
+      "stored_bytes": 49
+    }
+  ],
+  "native_and_generated_module_unchanged": true,
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1"
+}

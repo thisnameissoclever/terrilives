@@ -19,6 +19,31 @@ it('rejects every truncated witness and trailing bytes', () => {
         expect(() => decodeBuildReview(witness.slice(0, n), { width: 1, height: 1 })).toThrow(RoomWireError);
     expect(() => decodeBuildReview(new Uint8Array([...witness, 0]), { width: 1, height: 1 })).toThrow(RoomWireError);
 });
+it('rejects final review areas that exceed the lot capacity', () => {
+    const overCapacity = new Uint8Array([
+        1, 0, 1, 2, 3, 0, 2,
+        0, 0, 1, 79, 0, 0, 1,
+        1, 1, 0, 0, 1, 65, 0, 0, 1,
+        0, 0, 0, 0,
+    ]);
+    expect(() => decodeBuildReview(overCapacity, { width: 1, height: 1 })).toThrow(RoomWireError);
+});
+it('accepts zero-area Outside and permits cells absent from room membership', () => {
+    const enclosedCell = new Uint8Array([
+        1, 0, 1, 2, 3, 0, 2,
+        0, 0, 1, 79, 1, 1, 79, 1, 0,
+        1, 1, 0, 0, 1, 65, 0, 0, 1,
+        0, 0, 0, 0,
+    ]);
+    for (const context of [{ width: 1, height: 1 }, { width: 2, height: 1 }]) {
+        const decoded = decodeBuildReview(enclosedCell, context);
+        expect(decoded.ok).toBe(true);
+        if (decoded.ok) expect(decoded.value.rooms.map(room => ({ id: room.id, area: room.area, outside: room.outside }))).toEqual([
+            { id: 0, area: 0, outside: true },
+            { id: 1, area: 1, outside: false },
+        ]);
+    }
+});
 it('encodes exact token fields and explicit fresh inheritance with native postcard order', () => {
     expect(Array.from(encodeRoomChoices({ inheritance: [{ anchor: [2, 3], id: null }], names: [], outsideName: null }, wide))).toEqual([
         1, 1, 129, 128, 128, 128, 128, 128, 128, 16, 131, 128, 128, 128, 128, 128, 128, 16,

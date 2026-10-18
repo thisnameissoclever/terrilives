@@ -155,6 +155,7 @@ export function decodeBuildReview(bytes: Uint8Array, context: RoomContext): Room
         });
         const rooms = list(r, cells + 1, 7, () => { const id = r.number(), anchor = r.option(() => point(r, context)), label = name(r.text()), previousName = r.option(() => name(r.text())), previousArea = r.number(), area = r.number(); check((id === 0) === (anchor === null)); check(previousArea <= MAX_TILES && area <= cells && (id === 0 || area > 0)); return { id, anchor, name: label, previousName, previousArea, area, outside: id === 0 }; });
         roomRelations(rooms);
+        check(rooms.reduce((n, room) => n + room.area, 0) <= cells);
         const retiredNames = list(r, MAX_TILES, 2, () => { const id = r.number(); check(id > 0); return { id, name: name(r.text()) }; });
         unique(retiredNames, row => row.id);
         check(retiredNames.every(old => !rooms.some(room => room.id === old.id)));
