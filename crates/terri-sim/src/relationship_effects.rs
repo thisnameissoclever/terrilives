@@ -1,6 +1,8 @@
 //! Observations of the last simulation tick, excluded from behavioral state.
+use crate::activity_log::ActivityLog;
 use bevy_ecs::prelude::*;
 use terri_core::SimId;
+use terri_data::ContentPack;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RelationshipCause {
@@ -20,10 +22,12 @@ pub enum RelationshipCause {
     Nuisance,
     /// A finished fight, felt by both sides (fights, issue 248).
     Fight,
+    /// Someone else's dirty dishes left at the place a diner sat down to.
+    DirtySetting,
 }
 
 impl RelationshipCause {
-    pub const ALL: [Self; 14] = [
+    pub const ALL: [Self; 15] = [
         Self::Conversation,
         Self::LowNeedInterruption,
         Self::CriticalNeedInterruption,
@@ -38,6 +42,7 @@ impl RelationshipCause {
         Self::ChoreNeglected,
         Self::Nuisance,
         Self::Fight,
+        Self::DirtySetting,
     ];
 
     /// The cause's entry in the activity log's label table, which the shell
@@ -58,6 +63,7 @@ impl RelationshipCause {
             Self::ChoreNeglected => "cause:chore-neglected",
             Self::Nuisance => "cause:nuisance",
             Self::Fight => "cause:fight",
+            Self::DirtySetting => "cause:dirty-setting",
         }
     }
 }
@@ -111,6 +117,72 @@ impl crate::Sim {
 
     pub fn relationship_contacts(&self) -> &[(SimId, SimId)] {
         &self.world().resource::<RelationshipDiagnostics>().contacts
+    }
+}
+
+/// Records one relationship effect: the per-tick diagnostic and, for a
+/// discrete cause, the activity log ([AL-capture] item 1). Every effect
+/// passes through here or through [`record_in`].
+pub(crate) fn record(world: &mut World, effect: RelationshipEffect) {
+    record_about(world, effect, None);
+}
+
+/// [`record`] for an effect about an object: the fixture of a privacy
+/// incident, or the kind of a disliked object in use.
+pub(crate) fn record_about(world: &mut World, effect: RelationshipEffect, object: Option<&str>) {
+    world
+        .resource_mut::<RelationshipDiagnostics>()
+        .effects
+        .push(effect);
+    let pack = world.resource::<crate::Content>().0;
+    if let Some(mut log) = world.get_resource_mut::<ActivityLog>() {
+        forward(&mut log, pack, &effect, object);
+    }
+}
+
+/// [`record`] for a system that holds both resources as parameters.
+pub(crate) fn record_in(
+    diagnostics: &mut RelationshipDiagnostics,
+    log: Option<&mut ActivityLog>,
+    pack: &'static ContentPack,
+    effect: RelationshipEffect,
+) {
+    diagnostics.effects.push(effect);
+    if let Some(log) = log {
+        forward(log, pack, &effect, None);
+    }
+}
+
+/// Where each cause goes in the activity log. The match has no wildcard arm
+/// on purpose: a new cause does not compile until someone decides whether
+/// the log shows it.
+fn forward(
+    log: &mut ActivityLog,
+    pack: &'static ContentPack,
+    effect: &RelationshipEffect,
+    object: Option<&str>,
+) {
+    if !log.enabled() {
+        return;
+    }
+    match effect.cause {
+        RelationshipCause::HouseholdMess
+        | RelationshipCause::DirtySetting
+        | RelationshipCause::PrivacyEntry
+        | RelationshipCause::PrivacyStart
+        | RelationshipCause::LowNeedInterruption
+        | RelationshipCause::CriticalNeedInterruption => log.annoyed(pack, effect, object),
+        RelationshipCause::Nuisance => log.nuisance(pack, effect, object),
+        // The chat or fight record carries both changes.
+        RelationshipCause::Conversation | RelationshipCause::Fight => log.hold_feeling(effect),
+        RelationshipCause::ChoreFulfilled | RelationshipCause::ChoreNeglected => {
+            log.feeling(pack, effect)
+        }
+        // Continuous: they move many pairs every tick ([AL-sources]).
+        RelationshipCause::Proximity
+        | RelationshipCause::SharedActivity
+        | RelationshipCause::Incompatibility
+        | RelationshipCause::Decay => {}
     }
 }
 

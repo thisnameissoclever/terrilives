@@ -342,11 +342,26 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
     if !owners.is_empty() && world.get::<Relationships>(person).is_none() {
         world.entity_mut(person).insert(Relationships::default());
     }
+    let tick = world.resource::<SimClock>().tick;
     for owner in owners {
-        world
-            .get_mut::<Relationships>(person)
-            .unwrap()
-            .bump(SimId(owner), -penalty);
+        let mut feelings = world.get_mut::<Relationships>(person).unwrap();
+        let before = feelings.feeling(SimId(owner));
+        feelings.bump(SimId(owner), -penalty);
+        let actual = feelings.feeling(SimId(owner)) - before;
+        crate::relationship_effects::record(
+            world,
+            crate::relationship_effects::RelationshipEffect {
+                tick,
+                event: 0,
+                cause: crate::relationship_effects::RelationshipCause::DirtySetting,
+                responsible: SimId(owner),
+                affected: own,
+                requested: -penalty,
+                actual,
+                emergency: false,
+                directed: false,
+            },
+        );
     }
 }
 
@@ -585,10 +600,9 @@ pub(crate) fn tick(world: &mut World) {
                 - before;
             let tick = world.resource::<SimClock>().tick;
             let affected = *world.get::<SimId>(person).unwrap();
-            world
-                .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-                .effects
-                .push(crate::relationship_effects::RelationshipEffect {
+            crate::relationship_effects::record(
+                world,
+                crate::relationship_effects::RelationshipEffect {
                     tick,
                     event: 0,
                     cause: crate::relationship_effects::RelationshipCause::HouseholdMess,
@@ -598,7 +612,8 @@ pub(crate) fn tick(world: &mut World) {
                     actual,
                     emergency: false,
                     directed: false,
-                });
+                },
+            );
         }
         let mut state = world.resource_mut::<SavedDomestic>();
         state

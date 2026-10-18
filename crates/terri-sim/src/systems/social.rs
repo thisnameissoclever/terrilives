@@ -11,7 +11,9 @@ use terri_core::{
     IntentQueue, NeedId, Needs, Personality, Relationships, Reserved, SimId, Socialising, Target,
 };
 
-use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
+use crate::relationship_effects::{
+    record_in, RelationshipCause, RelationshipDiagnostics, RelationshipEffect,
+};
 use crate::Content;
 
 /// Advances every conversation by one tick, delivering to BOTH
@@ -54,7 +56,10 @@ pub fn tick_social(
         ResMut<crate::social_episode::requests::ConversationRequests>,
     ),
     clock: Res<terri_core::SimClock>,
-    mut diagnostics: ResMut<RelationshipDiagnostics>,
+    (mut diagnostics, mut log): (
+        ResMut<RelationshipDiagnostics>,
+        Option<ResMut<crate::activity_log::ActivityLog>>,
+    ),
     context: Res<crate::relationship_dynamics::RelationshipContext>,
     mut talking: Query<(Entity, &mut Socialising)>,
     mut needs: Query<&mut Needs>,
@@ -196,17 +201,22 @@ pub fn tick_social(
                         commands.entity(me).try_insert(fresh);
                     }
                 }
-                diagnostics.effects.push(RelationshipEffect {
-                    tick: clock.tick,
-                    event: 0,
-                    cause: RelationshipCause::Fight,
-                    responsible: other_id,
-                    affected: my_id,
-                    requested: loss,
-                    actual: (before + loss).clamp(-1.0, 1.0) - before,
-                    emergency: false,
-                    directed: false,
-                });
+                record_in(
+                    &mut diagnostics,
+                    log.as_deref_mut(),
+                    content.0,
+                    RelationshipEffect {
+                        tick: clock.tick,
+                        event: 0,
+                        cause: RelationshipCause::Fight,
+                        responsible: other_id,
+                        affected: my_id,
+                        requested: loss,
+                        actual: (before + loss).clamp(-1.0, 1.0) - before,
+                        emergency: false,
+                        directed: false,
+                    },
+                );
                 fights.record(my_id, clock.tick + u64::from(tuning.fight_mood_ticks));
             }
             if let Ok(mut queue) = queues.get_mut(initiator) {
@@ -301,17 +311,22 @@ pub fn tick_social(
             };
             let before = relationships.get(me).map_or(0.0, |r| r.feeling(other_id));
             if let Ok(&affected) = sim_ids.get(me) {
-                diagnostics.effects.push(RelationshipEffect {
-                    tick: clock.tick,
-                    event: 0,
-                    cause: RelationshipCause::Conversation,
-                    responsible: other_id,
-                    affected,
-                    requested: gain,
-                    actual: (before + gain).clamp(-1.0, 1.0) - before,
-                    emergency: false,
-                    directed: false,
-                });
+                record_in(
+                    &mut diagnostics,
+                    log.as_deref_mut(),
+                    content.0,
+                    RelationshipEffect {
+                        tick: clock.tick,
+                        event: 0,
+                        cause: RelationshipCause::Conversation,
+                        responsible: other_id,
+                        affected,
+                        requested: gain,
+                        actual: (before + gain).clamp(-1.0, 1.0) - before,
+                        emergency: false,
+                        directed: false,
+                    },
+                );
             }
             match relationships.get_mut(me) {
                 Ok(mut mine) => mine.bump(other_id, gain),
@@ -393,6 +408,7 @@ pub fn decay_relationships(
     mortality: Res<terri_core::save::SavedMortality>,
     clock: Res<terri_core::SimClock>,
     mut diagnostics: ResMut<RelationshipDiagnostics>,
+    mut log: Option<ResMut<crate::activity_log::ActivityLog>>,
     mut relationships: Query<(Entity, Option<&SimId>, &mut Relationships)>,
 ) {
     let preserved: Vec<_> = mortality.deaths.iter().map(|d| SimId(d.sim_id)).collect();
@@ -406,17 +422,22 @@ pub fn decay_relationships(
         if let Some(&affected) = id {
             for (responsible, before) in before_entries {
                 if !preserved.contains(&responsible) && rate > 0.0 {
-                    diagnostics.effects.push(RelationshipEffect {
-                        tick: clock.tick,
-                        event: 0,
-                        cause: RelationshipCause::Decay,
-                        responsible,
-                        affected,
-                        requested: -before.signum() * rate,
-                        actual: feelings.feeling(responsible) - before,
-                        emergency: false,
-                        directed: false,
-                    });
+                    record_in(
+                        &mut diagnostics,
+                        log.as_deref_mut(),
+                        content.0,
+                        RelationshipEffect {
+                            tick: clock.tick,
+                            event: 0,
+                            cause: RelationshipCause::Decay,
+                            responsible,
+                            affected,
+                            requested: -before.signum() * rate,
+                            actual: feelings.feeling(responsible) - before,
+                            emergency: false,
+                            directed: false,
+                        },
+                    );
                 }
             }
         }

@@ -305,10 +305,9 @@ fn effect(
         .unwrap()
         .feeling(SimId(responsible));
     let tick = world.resource::<SimClock>().tick;
-    world
-        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
-        .push(crate::relationship_effects::RelationshipEffect {
+    crate::relationship_effects::record(
+        world,
+        crate::relationship_effects::RelationshipEffect {
             tick,
             event: 0,
             cause,
@@ -318,7 +317,8 @@ fn effect(
             actual: after - before,
             emergency: false,
             directed: false,
-        });
+        },
+    );
 }
 pub(crate) fn credit(
     world: &mut World,

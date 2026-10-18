@@ -877,3 +877,71 @@ fn band_words() {
         assert_eq!(band(value, &retuned), word, "retuned {value}");
     }
 }
+
+/// [AL-group] rule 2: Bill's bother at Casey's television is one log line
+/// for the whole episode, staged once she has gone, carrying the summed
+/// change and the kind of object.
+#[test]
+fn nuisance_logs_one_record_per_episode() {
+    let (mut sim, bill, casey) = bill_and_casey();
+    let pack = sim.world().resource::<Content>().0;
+    let bill_id = *sim.world().get::<SimId>(bill).unwrap();
+    let casey_id = *sim.world().get::<SimId>(casey).unwrap();
+    let nuisance = sim
+        .activity_log()
+        .label(pack, RelationshipCause::Nuisance.log_label());
+    let episodes = |sim: &Sim| {
+        sim.activity_log()
+            .records()
+            .filter(|r| r.label() == nuisance)
+            .copied()
+            .collect::<Vec<_>>()
+    };
+    let lost_this_tick = |sim: &Sim| {
+        nuisances_this_tick(sim)
+            .iter()
+            .filter(|e| e.affected == bill_id && e.responsible == casey_id)
+            .map(|e| e.actual)
+            .sum::<f32>()
+    };
+    set_values(&mut sim, bill, &[("television", -1.0)]);
+    order(&mut sim, bill, "sofa", "lounge");
+    order(&mut sim, casey, "television", "watch_tv");
+    let mut lost = 0.0;
+    tick_until_using(
+        &mut sim,
+        &[(bill, "sofa"), (casey, "television")],
+        400,
+        |sim| lost += lost_this_tick(sim),
+    );
+    for _ in 0..10 {
+        sim.tick();
+        lost += lost_this_tick(&sim);
+    }
+    assert!(lost < 0.0);
+    assert!(episodes(&sim).is_empty(), "an open episode stages nothing");
+
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents {
+            agent: casey.index_u32(),
+        });
+    order(&mut sim, casey, "bathtub", "soak");
+    for _ in 0..3 {
+        sim.tick();
+        lost += lost_this_tick(&sim);
+    }
+    let staged = episodes(&sim);
+    assert_eq!(staged.len(), 1, "{staged:?}");
+    let record = staged[0];
+    assert_eq!((record.actor(), record.other()), (bill_id.0, casey_id.0));
+    assert_eq!(
+        record.label2(),
+        sim.activity_log().label(pack, "television")
+    );
+    assert_eq!(
+        record.value(2),
+        crate::activity_log::opinion_units(lost),
+        "the episode's summed change"
+    );
+}

@@ -12,7 +12,7 @@ use terri_core::{
 };
 use terri_data::{AffinityReach, CompiledTrait, CompiledTraitKind, ContentPack, Tuning};
 
-use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
+use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use crate::room_regions::RoomRegions;
 use crate::{Content, Moodlet};
 
@@ -323,10 +323,9 @@ pub(crate) fn bother(world: &mut World) {
         feelings.bump(responsible, requested);
         let actual = feelings.feeling(responsible) - before;
         world.entity_mut(person).insert(feelings);
-        world
-            .resource_mut::<RelationshipDiagnostics>()
-            .effects
-            .push(RelationshipEffect {
+        crate::relationship_effects::record_about(
+            world,
+            RelationshipEffect {
                 tick,
                 event: 0,
                 cause: RelationshipCause::Nuisance,
@@ -336,7 +335,9 @@ pub(crate) fn bother(world: &mut World) {
                 actual,
                 emergency: false,
                 directed: false,
-            });
+            },
+            Some(&pack.affinities[nuisance.kind as usize].label),
+        );
     }
 }
 

@@ -279,10 +279,9 @@ pub(crate) fn tick(world: &mut World) {
             feelings.bump(other.id, requested);
             let actual = feelings.feeling(other.id) - before;
             world.entity_mut(subject.entity).insert(feelings);
-            world
-                .resource_mut::<RelationshipDiagnostics>()
-                .effects
-                .push(RelationshipEffect {
+            crate::relationship_effects::record(
+                world,
+                RelationshipEffect {
                     tick,
                     event: 0,
                     cause,
@@ -292,7 +291,8 @@ pub(crate) fn tick(world: &mut World) {
                     actual,
                     emergency: false,
                     directed: false,
-                });
+                },
+            );
         }
     }
 }

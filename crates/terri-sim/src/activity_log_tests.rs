@@ -338,7 +338,11 @@ fn assert_log_never_changes_the_world(days: usize) -> usize {
 /// specification's twenty days are the ignored test below.
 #[test]
 fn activity_log_never_changes_the_world() {
-    assert_log_never_changes_the_world(2);
+    let records = assert_log_never_changes_the_world(2);
+    assert!(
+        records > 0,
+        "the emitters must have run for this to prove anything"
+    );
 }
 
 /// The full twenty game days of [AL-perf]. A debug build takes about
@@ -348,4 +352,139 @@ fn activity_log_never_changes_the_world() {
 #[ignore = "twenty game days take about fifteen minutes in a debug build"]
 fn activity_log_never_changes_the_world_over_twenty_days() {
     assert_log_never_changes_the_world(20);
+}
+
+/// Every cause reaches the activity log as the specification classifies it
+/// ([AL-capture] item 1). The match below has no wildcard arm either, so a
+/// new cause fails to compile here as it does in `relationship_effects`.
+#[test]
+fn every_relationship_cause_is_logged_or_excluded() {
+    use crate::relationship_effects::{RelationshipCause as Cause, RelationshipEffect};
+    enum Expect {
+        Annoyed,
+        Episode,
+        Held,
+        Feeling,
+        Excluded,
+    }
+    for cause in Cause::ALL {
+        let expect = match cause {
+            Cause::HouseholdMess
+            | Cause::DirtySetting
+            | Cause::PrivacyEntry
+            | Cause::PrivacyStart
+            | Cause::LowNeedInterruption
+            | Cause::CriticalNeedInterruption => Expect::Annoyed,
+            Cause::Nuisance => Expect::Episode,
+            Cause::Conversation | Cause::Fight => Expect::Held,
+            Cause::ChoreFulfilled | Cause::ChoreNeglected => Expect::Feeling,
+            Cause::Proximity | Cause::SharedActivity | Cause::Incompatibility | Cause::Decay => {
+                Expect::Excluded
+            }
+        };
+        let mut sim = Sim::new_with_lot(4, 4);
+        let pack = sim.world().resource::<Content>().0;
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick = 100;
+        let effect = RelationshipEffect {
+            tick: 100,
+            event: 0,
+            cause,
+            responsible: terri_core::SimId(2),
+            affected: terri_core::SimId(1),
+            requested: -0.01,
+            actual: -0.0123,
+            emergency: false,
+            directed: false,
+        };
+        crate::relationship_effects::record_about(sim.world_mut(), effect, Some("Fridge"));
+        assert_eq!(
+            sim.relationship_effects().last().map(|e| e.cause),
+            Some(cause),
+            "{cause:?} is still a diagnostic"
+        );
+        let label = sim.activity_log().label(pack, cause.log_label());
+        let held = sim.activity_log().held_feelings().to_vec();
+        match expect {
+            Expect::Annoyed => {
+                let records = staged(&sim);
+                assert_eq!(records.len(), 1, "{cause:?}");
+                let r = records[0];
+                assert_eq!(r.kind(), Some(LogKind::Annoyed));
+                assert_eq!((r.actor(), r.other(), r.label()), (1, 2, label));
+                assert_eq!(r.label2(), sim.activity_log().label(pack, "Fridge"));
+                assert_eq!((r.value(2), r.triggers(), r.tick()), (-123, SOCIAL, 100));
+            }
+            Expect::Episode => {
+                assert!(staged(&sim).is_empty(), "an open episode stages nothing");
+                sim.world_mut().resource_mut::<terri_core::SimClock>().tick = 101;
+                sim.flush_commands();
+                let records = staged(&sim);
+                assert_eq!(records.len(), 1, "a whole tick without it closes it");
+                assert_eq!(records[0].kind(), Some(LogKind::Annoyed));
+                assert_eq!(
+                    (records[0].label(), records[0].value(2), records[0].tick()),
+                    (label, -123, 100)
+                );
+            }
+            Expect::Held => {
+                assert!(staged(&sim).is_empty(), "{cause:?}");
+                assert_eq!(held.len(), 1);
+                assert_eq!(
+                    (held[0].affected, held[0].responsible, held[0].change),
+                    (1, 2, -0.0123)
+                );
+                sim.flush_commands();
+                assert!(sim.activity_log().held_feelings().is_empty());
+            }
+            Expect::Feeling => {
+                let records = staged(&sim);
+                assert_eq!(records.len(), 1, "{cause:?}");
+                assert_eq!(records[0].kind(), Some(LogKind::Feeling));
+                assert_eq!(
+                    (records[0].actor(), records[0].other(), records[0].label()),
+                    (1, 2, label)
+                );
+                assert_eq!((records[0].value(2), records[0].triggers()), (-123, 0));
+            }
+            Expect::Excluded => {
+                assert!(staged(&sim).is_empty(), "{cause:?}");
+                assert!(held.is_empty());
+                sim.flush_commands();
+                assert!(staged(&sim).is_empty());
+            }
+        }
+    }
+}
+
+#[test]
+fn a_nuisance_episode_closes_at_the_end_of_the_day() {
+    use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
+    let mut sim = Sim::new_with_lot(4, 4);
+    let day = sim.world().resource::<Content>().0.tuning.day_ticks;
+    let last = u64::from(day) - 1;
+    for tick in [last - 1, last] {
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick = tick;
+        crate::relationship_effects::record(
+            sim.world_mut(),
+            RelationshipEffect {
+                tick,
+                event: 0,
+                cause: RelationshipCause::Nuisance,
+                responsible: terri_core::SimId(2),
+                affected: terri_core::SimId(1),
+                requested: -0.0005,
+                actual: -0.0005,
+                emergency: false,
+                directed: false,
+            },
+        );
+        sim.flush_commands();
+    }
+    let records = staged(&sim);
+    assert_eq!(
+        records.len(),
+        1,
+        "the last pass of the day closes the episode"
+    );
+    assert_eq!((records[0].tick(), records[0].value(2)), (last as u32, -10));
 }

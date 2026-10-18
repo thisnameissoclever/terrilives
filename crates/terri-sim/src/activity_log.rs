@@ -9,9 +9,11 @@
 //! save leave that resource out, and `activity_log_never_changes_the_world`
 //! is what fails if an emitter starts to matter.
 
+use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use bevy_ecs::prelude::*;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
+use terri_core::SimClock;
 use terri_data::ContentPack;
 
 /// Little-endian `u32` words in one record ([AL-record]).
@@ -186,6 +188,12 @@ pub fn pack_pair(low: i32, high: i32) -> i32 {
     (u32::from(half(low)) | u32::from(half(high)) << 16) as i32
 }
 
+/// An opinion change in the record's unit: ten-thousandths of the -1 to 1
+/// feeling, so 100 units is one point as Details shows it ([AL-record]).
+pub fn opinion_units(change: f32) -> i32 {
+    (change * 10_000.0).round() as i32
+}
+
 /// The two halves [`pack_pair`] packed, `low` first.
 pub fn unpack_pair(value: i32) -> (i32, i32) {
     let bits = value as u32;
@@ -322,6 +330,34 @@ pub struct ActivityLog {
     enabled: bool,
     /// The first `seq` the end-of-tick link pass has not yet seen.
     unlinked: u32,
+    scratch: Scratch,
+}
+
+/// Values emitters accumulate across ticks, keyed by `SimId` so no ECS
+/// layout ever reaches them ([AL-boundary] rule 2).
+#[derive(Clone, Default)]
+struct Scratch {
+    /// Open disliked-object episodes by affected and responsible person.
+    nuisances: BTreeMap<(u32, u32), Nuisance>,
+    /// This pass's chat and fight feelings, waiting for the record of the
+    /// conversation that caused them.
+    feelings: Vec<HeldFeeling>,
+}
+
+#[derive(Clone, Copy)]
+struct Nuisance {
+    last_tick: u64,
+    change: f32,
+    object: u32,
+}
+
+/// One opinion change held for the record that explains it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HeldFeeling {
+    pub cause: RelationshipCause,
+    pub affected: u32,
+    pub responsible: u32,
+    pub change: f32,
 }
 
 impl Default for ActivityLog {
@@ -334,6 +370,7 @@ impl Default for ActivityLog {
             dropped: 0,
             enabled: true,
             unlinked: 1,
+            scratch: Scratch::default(),
         }
     }
 }
@@ -346,6 +383,9 @@ impl ActivityLog {
     /// Turns emission on or off for the disabled performance baseline.
     pub(crate) fn set_enabled(&mut self, on: bool) {
         self.enabled = on;
+        if !on {
+            self.scratch = Scratch::default();
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -411,11 +451,106 @@ impl ActivityLog {
         labels(pack).index(text)
     }
 
-    /// The end-of-tick pass ([AL-boundary] rule 4): links every record staged
-    /// since the last pass to its parent from the same pass.
-    pub(crate) fn finish(&mut self) {
+    /// One annoyance as its own line: the affected person, who caused it,
+    /// the cause, the object when one is known, and the opinion change
+    /// ([AL-sources]).
+    pub(crate) fn annoyed(
+        &mut self,
+        pack: &'static ContentPack,
+        effect: &RelationshipEffect,
+        object: Option<&str>,
+    ) {
+        let labels = labels(pack);
+        self.push(
+            LogRecord::new(LogKind::Annoyed, SOCIAL, effect.tick, effect.affected.0)
+                .with_other(effect.responsible.0)
+                .with_label(labels.index(effect.cause.log_label()))
+                .with_label2(object.map_or(NONE, |name| labels.index(name)))
+                .with_value(2, opinion_units(effect.actual)),
+        );
+    }
+
+    /// One tick of a disliked object in use. The pass that finds the pair
+    /// absent for a whole tick, or the last pass of the day, closes the
+    /// episode as one line ([AL-group] rule 2).
+    pub(crate) fn nuisance(
+        &mut self,
+        pack: &'static ContentPack,
+        effect: &RelationshipEffect,
+        object: Option<&str>,
+    ) {
+        let object = object.map_or(NONE, |name| labels(pack).index(name));
+        let episode = self
+            .scratch
+            .nuisances
+            .entry((effect.affected.0, effect.responsible.0))
+            .or_insert(Nuisance {
+                last_tick: effect.tick,
+                change: 0.0,
+                object,
+            });
+        episode.last_tick = effect.tick;
+        episode.change += effect.actual;
+        episode.object = object;
+    }
+
+    /// A chore feeling, staged as a child the link pass attaches to the
+    /// chore outcome it answers.
+    pub(crate) fn feeling(&mut self, pack: &'static ContentPack, effect: &RelationshipEffect) {
+        self.push(
+            LogRecord::new(LogKind::Feeling, 0, effect.tick, effect.affected.0)
+                .with_other(effect.responsible.0)
+                .with_label(labels(pack).index(effect.cause.log_label()))
+                .with_value(2, opinion_units(effect.actual)),
+        );
+    }
+
+    /// Holds a chat or fight feeling until that conversation's record is
+    /// staged in the same tick.
+    pub(crate) fn hold_feeling(&mut self, effect: &RelationshipEffect) {
+        self.scratch.feelings.push(HeldFeeling {
+            cause: effect.cause,
+            affected: effect.affected.0,
+            responsible: effect.responsible.0,
+            change: effect.actual,
+        });
+    }
+
+    /// The feelings held this pass, oldest first.
+    pub fn held_feelings(&self) -> &[HeldFeeling] {
+        &self.scratch.feelings
+    }
+
+    /// The end-of-tick pass ([AL-boundary] rule 4): closes finished
+    /// episodes, links every record staged since the last pass to its
+    /// parent from the same pass, and forgets feelings nothing claimed.
+    pub(crate) fn finish(&mut self, pack: &'static ContentPack, tick: u64, day_ticks: u32) {
+        self.close_nuisances(pack, tick, day_ticks);
         self.link();
         self.unlinked = self.next_seq;
+        self.scratch.feelings.clear();
+    }
+
+    fn close_nuisances(&mut self, pack: &'static ContentPack, tick: u64, day_ticks: u32) {
+        let day_ends = (tick + 1).is_multiple_of(u64::from(day_ticks.max(1)));
+        let closed: Vec<_> = self
+            .scratch
+            .nuisances
+            .iter()
+            .filter(|(_, episode)| day_ends || episode.last_tick < tick)
+            .map(|(&pair, &episode)| (pair, episode))
+            .collect();
+        let cause = labels(pack).index(RelationshipCause::Nuisance.log_label());
+        for ((affected, responsible), episode) in closed {
+            self.scratch.nuisances.remove(&(affected, responsible));
+            self.push(
+                LogRecord::new(LogKind::Annoyed, SOCIAL, episode.last_tick, affected)
+                    .with_other(responsible)
+                    .with_label(cause)
+                    .with_label2(episode.object)
+                    .with_value(2, opinion_units(episode.change)),
+            );
+        }
     }
 
     /// Children name their parent's `seq`; a child with no parent in its
@@ -474,9 +609,18 @@ fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord) -> bool {
 /// `Sim::flush_commands` after their schedules, never as a scheduled system,
 /// so it cannot change the order any system runs in.
 pub(crate) fn finish_tick(world: &mut World) {
+    let tick = world
+        .get_resource::<SimClock>()
+        .map_or(0, |clock| clock.tick);
+    let Some(pack) = world
+        .get_resource::<crate::Content>()
+        .map(|content| content.0)
+    else {
+        return;
+    };
     if let Some(mut log) = world.get_resource_mut::<ActivityLog>() {
         if log.enabled {
-            log.finish();
+            log.finish(pack, tick, pack.tuning.day_ticks);
         }
     }
 }

@@ -3183,3 +3183,115 @@ fn targeted_generic_order_waits_for_a_first_floor_chore() {
     }
     assert!(chore_finished && all_finished);
 }
+
+/// The activity log records each mess the observer notices, once per pile,
+/// with the same change the diagnostic reports ([AL-sources]).
+#[test]
+fn mess_annoyance_logs_each_notice() {
+    let (mut sim, people, _, counter, _) = household();
+    let pack = sim.world().resource::<Content>().0;
+    let mess = sim.activity_log().label(
+        pack,
+        crate::relationship_effects::RelationshipCause::HouseholdMess.log_label(),
+    );
+    let observer = people[1];
+    let position = *sim.world().get::<Position>(counter).unwrap();
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() = position;
+    sim.world_mut()
+        .entity_mut(observer)
+        .insert(ChainState::begin(0));
+    sim.world_mut().insert_resource(SavedDomestic {
+        cleanliness: vec![(observer.index_u32(), 1.0)],
+        ..Default::default()
+    });
+    let notices = |sim: &mut Sim| {
+        let mut out = Vec::new();
+        sim.take_activity_log(&mut out);
+        out.chunks_exact(12)
+            .map(|words| crate::activity_log::LogRecord(words.try_into().unwrap()))
+            .filter(|r| r.label() == mess && r.actor() == 1 && r.other() == 0)
+            .collect::<Vec<_>>()
+    };
+    let noticed = |sim: &Sim| {
+        sim.relationship_effects()
+            .iter()
+            .find(|e| {
+                e.cause == crate::relationship_effects::RelationshipCause::HouseholdMess
+                    && e.affected == SimId(1)
+                    && e.responsible == SimId(0)
+            })
+            .copied()
+    };
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    sim.tick();
+    let effect = noticed(&sim).expect("the pile is noticed");
+    let first = notices(&mut sim);
+    assert_eq!(first.len(), 1);
+    assert_eq!(
+        first[0].value(2),
+        crate::activity_log::opinion_units(effect.actual)
+    );
+    assert_eq!(first[0].triggers(), crate::activity_log::SOCIAL);
+
+    sim.tick();
+    assert!(noticed(&sim).is_none(), "a pile already seen");
+    assert!(notices(&mut sim).is_empty());
+
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    sim.tick();
+    assert!(noticed(&sim).is_some(), "a new pile");
+    assert_eq!(notices(&mut sim).len(), 1, "each notice is its own record");
+}
+
+/// A dirty place setting changed opinion without a trace before the activity
+/// log; it now records a `DirtySetting` effect and the log line that goes
+/// with it ([AL-capture] item 2).
+#[test]
+fn dirty_setting_annoyance_is_recorded() {
+    let (mut sim, people, _, counter, _) = household();
+    let pack = sim.world().resource::<Content>().0;
+    let diner = people[1];
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 1);
+    add_dishes(sim.world_mut(), counter.index_u32(), 1, 1);
+    let ids: Vec<u32> = sim
+        .world()
+        .resource::<SavedDomestic>()
+        .dishes
+        .iter()
+        .map(|dish| dish.id)
+        .collect();
+    crate::relationship_effects::reset(sim.world_mut());
+    let before = sim
+        .world()
+        .get::<Relationships>(diner)
+        .map_or(0.0, |r| r.feeling(SimId(0)));
+    blocked_setting_annoyance(sim.world_mut(), diner, &ids);
+    let after = sim
+        .world()
+        .get::<Relationships>(diner)
+        .unwrap()
+        .feeling(SimId(0));
+    let effects: Vec<_> = sim.relationship_effects().to_vec();
+    assert_eq!(effects.len(), 1, "the diner's own dish annoys nobody");
+    let effect = effects[0];
+    assert_eq!(
+        effect.cause,
+        crate::relationship_effects::RelationshipCause::DirtySetting
+    );
+    assert_eq!((effect.affected, effect.responsible), (SimId(1), SimId(0)));
+    assert!(effect.requested < 0.0);
+    assert_eq!(effect.actual, after - before);
+    let records: Vec<_> = sim.activity_log().records().copied().collect();
+    assert_eq!(records.len(), 1);
+    assert_eq!(
+        records[0].label(),
+        sim.activity_log().label(
+            pack,
+            crate::relationship_effects::RelationshipCause::DirtySetting.log_label()
+        )
+    );
+    assert_eq!(
+        records[0].value(2),
+        crate::activity_log::opinion_units(after - before)
+    );
+}
