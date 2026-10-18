@@ -88,6 +88,13 @@ fn staggered_and_simultaneous_completions_release_only_active_use() {
 #[test]
 fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments() {
     let (mut sim, bed, [worker, partner]) = sleeping_pair();
+    // This fixture tests departure from autonomous sleep. A player-owned
+    // sleep now delays departure until its order finishes.
+    sim.world_mut().entity_mut(worker).remove::<IntentQueue>();
+    sim.world_mut()
+        .resource_mut::<crate::player_actions::PlayerActions>()
+        .orders
+        .retain(|(actor, _), _| *actor != worker);
     let partner_action = *sim.world().get::<Eating>(partner).unwrap();
     let partner_target = *sim.world().get::<Target>(partner).unwrap();
     let mut pack = sim.world().resource::<crate::Content>().0.clone();
@@ -123,7 +130,7 @@ fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments(
     assert_eq!(sim.world().get::<SleepPlace>(partner), Some(&SleepPlace(1)));
     assert!(sim.world().get::<Reserved>(bed).is_some());
     assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
-    // An outstanding bed order cannot reclaim the worker during the commute.
+    // Autonomous sleep cannot reclaim the worker during the commute.
     sim.world_mut()
         .run_system_once(crate::systems::action::serve_intents)
         .unwrap();

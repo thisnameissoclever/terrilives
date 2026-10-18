@@ -1,0 +1,353 @@
+{
+  "hashing": "Raw file checksums plus LF-normalized checksums for UTF-8 text; binary bytes are unchanged.",
+  "files": [
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/browser-full-history-performance.json",
+      "bytes": 332894,
+      "rawSha256": "3bebcf618a0c112cab4c9dba54384448f3ad59d11b0ae1507db841434404b40a",
+      "lfTextSha256": "3bebcf618a0c112cab4c9dba54384448f3ad59d11b0ae1507db841434404b40a"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/browser-staging.js",
+      "bytes": 8862,
+      "rawSha256": "60c35708ec1a0cbf6e0bc3ae1c0ac7685cfc9bae3af532c9af04ff75142fb681",
+      "lfTextSha256": "7aef1dbd2778b3600f1af797a84555337c528b6ef178be5b17272fff3cc1fabd"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/capture-off.log",
+      "bytes": 1355,
+      "rawSha256": "0aab425b8827d72991754c9e2e6da4cf17d40ae2cd00c7dbce797ca5127115b6",
+      "lfTextSha256": "97abc2f1de4de47db607d07d120d464bd7505fd3f50ff6c9ab46cbcd1b6d1b8c"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/capture-on.log",
+      "bytes": 1356,
+      "rawSha256": "968e8d778827c3c1749f0c41cabdfe1c0f83b957d2b690111b545969aa79fb86",
+      "lfTextSha256": "110ae15853038ecda19a91c4e5cee703ef022ffb1be5e343a5f9a6f90a4a86a2"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/clippy-verified-final.log",
+      "bytes": 248,
+      "rawSha256": "3d9be297455257365e7c86a150f6136872a740ea827190c089155019157a9ec8",
+      "lfTextSha256": "7a4faa086080291627b542a166f9d848e5a98de6e61b059042beff3f7765a712"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/comparison-28.png",
+      "bytes": 439562,
+      "rawSha256": "568888b6a76c5b7aae8e6154ee3c2bf94fad44d44be66c85c7ebb1046ca83688",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/comparison-47.png",
+      "bytes": 441173,
+      "rawSha256": "c5a07961f4774b98bd59139def3bafe3bd49659c2b2d4838f997c24be0e270d8",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/failure-region-after.png",
+      "bytes": 2876,
+      "rawSha256": "e3344afe105f4a85f41c8291cf97e0eae00aa2e04fcd886558b21a6655f2bf79",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/failure-region-before.png",
+      "bytes": 2876,
+      "rawSha256": "e3344afe105f4a85f41c8291cf97e0eae00aa2e04fcd886558b21a6655f2bf79",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/failure-visibility-restoration.json",
+      "bytes": 8785,
+      "rawSha256": "ed167b0bc2443d70e19bae9b81d2c12de2857f13297429e030af35a73a3c6ccc",
+      "lfTextSha256": "ed167b0bc2443d70e19bae9b81d2c12de2857f13297429e030af35a73a3c6ccc"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-browser-baseline.bin",
+      "bytes": 5306,
+      "rawSha256": "b5fd60367abfae385b86a266c8971ffa762865e2533a7d54cf4487e35d6fb3dc",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-desktop-attendance.png",
+      "bytes": 436374,
+      "rawSha256": "01472fe8da0f5ecdb76a82e2f271a79f4b8f3c3f513a87bc1ceb87cc3a98da01",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-desktop-exercising-failure.png",
+      "bytes": 405674,
+      "rawSha256": "73a98c4be36ec9e5d25d5676b271db7e6c0053866b40b148e621ddd1e46b4222",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-desktop-incoming.png",
+      "bytes": 363085,
+      "rawSha256": "649e358d5d13e636f06b38cdc02686048f45e4d0ab7443435956ab434949296f",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-desktop-sleeping-failure.png",
+      "bytes": 423780,
+      "rawSha256": "dd3d9e59cc40709e1f5d453d1747929060d23fb1715fe78194a9221a466d4baa",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-desktop-work-warning.png",
+      "bytes": 331190,
+      "rawSha256": "deddfb4e8977164afbf2eb6021b9d6d7d95aceefba8616ac9d976dfce566f36d",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-1-large.png",
+      "bytes": 708352,
+      "rawSha256": "1114b8630b1473d9cc4caeebb2b504a6e9aba9345184243c440e31434468c1a6",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-1-normal.png",
+      "bytes": 435479,
+      "rawSha256": "5046aa5c9c3627b4cd56cb98e6e7147eefe67d884ea8acca34d32ec34cdc5544",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-2-large.png",
+      "bytes": 661286,
+      "rawSha256": "c84497927043bfdd4f2a1a065a97b2c31a21909cc905916d901508747d9cbb2a",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-2-normal.png",
+      "bytes": 403803,
+      "rawSha256": "2f3b795b9b871c75262cf559a7ee4d209d425efb83f571eab827f5c678d5dcf1",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-3-large.png",
+      "bytes": 655725,
+      "rawSha256": "ad1ffd032d1c0a0a91ebc9f6112d6c2f4fd4c56e6687acf2c40408a6a6da2d1c",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-3-normal.png",
+      "bytes": 399151,
+      "rawSha256": "d98adfec8eae115185455015d271919a8c65c127cd809e7eecd89638254e3270",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-4-large.png",
+      "bytes": 646761,
+      "rawSha256": "0b9426bc22dbb0e7a34285528756d17d4737e5bade6f4d7f0de317fe93648c77",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-4-normal.png",
+      "bytes": 400016,
+      "rawSha256": "885858cbae85220ebbcf572686dd19cbb4599130f48b069f364ed1aa3b2ac8d0",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-facing-settings.json",
+      "bytes": 10606,
+      "rawSha256": "754260d4de6c33ba748b0285ad2a6e718d264f94c2f52423ad155278ff7a0656",
+      "lfTextSha256": "754260d4de6c33ba748b0285ad2a6e718d264f94c2f52423ad155278ff7a0656"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-phone-controls-layer.png",
+      "bytes": 192491,
+      "rawSha256": "948bc026cecfdc1939281ea94abf765e50eb3a1ffa98a786c78e38fd9f2fe29e",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-phone-failure.png",
+      "bytes": 155049,
+      "rawSha256": "7f35b05e11c06a8307e322d45b1bdc73835b996ea28a7844642102b60542a5cc",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-phone-incoming.png",
+      "bytes": 68644,
+      "rawSha256": "a9b8c205bc15415d884f1af14e799437bdf0d2929cb0db28e38b9aad1a91d801",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-phone-receipts.json",
+      "bytes": 276,
+      "rawSha256": "39e0a98bc27caaec3884631e4e3139a438525b451cdc9569bd5d8f0402fd1426",
+      "lfTextSha256": "39e0a98bc27caaec3884631e4e3139a438525b451cdc9569bd5d8f0402fd1426"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-phone-work-warning.png",
+      "bytes": 94631,
+      "rawSha256": "ea28f2c4f7776435b74e5663de1addb224df71673846aad6a4326f9adeeedc14",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-production-incoming.png",
+      "bytes": 361102,
+      "rawSha256": "2e12fa817e5dc5dee8de6d7f48851bc915bd044949592401cc3c72bc1739fe69",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-runtime-settings.json",
+      "bytes": 12303,
+      "rawSha256": "174982bfa7b27e65df2779f381243ba2ba2b222a5e76d1836553df87586b803e",
+      "lfTextSha256": "174982bfa7b27e65df2779f381243ba2ba2b222a5e76d1836553df87586b803e"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-save-load-proof.json",
+      "bytes": 1986,
+      "rawSha256": "8c70dfc1809c5cf1ecf8fe31ea6896c36cf47b927ca723664887ad5b29c1785c",
+      "lfTextSha256": "8c70dfc1809c5cf1ecf8fe31ea6896c36cf47b927ca723664887ad5b29c1785c"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/final-work-receipts.json",
+      "bytes": 3896,
+      "rawSha256": "043e64153b5f297f78efeba15488c442818423f826db1ec07808da0c3822cbe6",
+      "lfTextSha256": "043e64153b5f297f78efeba15488c442818423f826db1ec07808da0c3822cbe6"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/invalid-submission-green2.log",
+      "bytes": 6118,
+      "rawSha256": "b7c58d8a0c7373f1b811c85eeeaf573774baf11ec03d7f1e1724771883f5c083",
+      "lfTextSha256": "341f745ec8ae8c6b8ae19913df6b14fed7b2bb86742eb5e5f457f05ef706b812"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/invalid-submission-red2.log",
+      "bytes": 3187,
+      "rawSha256": "9acbacdadf99b9e3b6a155c681db4d3108206231637eafb2cf7d118ad6c991e4",
+      "lfTextSha256": "dade7f7f79a903ccba16620962b643004e3d4498db75f8dfd11fe02cda4e95d3"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutant-cycle-bound.log",
+      "bytes": 1100,
+      "rawSha256": "b61d602b4c28d5c70ece05cc09928fa557c214931fc5ade3bbc4f29248c853e3",
+      "lfTextSha256": "7b886c2074b8459c8e1cdf42d919645390a6b3e749a1481774817c352b6ea2df"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutant-diagnostic-capture.log",
+      "bytes": 1154,
+      "rawSha256": "985323defa65fa07d21fe460a14381f5cb148f73bd2dd6ef5cb576a927f5bdd7",
+      "lfTextSha256": "4b98ce8b0b3783a8ddf52c420dced6c7ff4d600e99e3897316a96f77f3fd9465"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutant-invalid-admission.log",
+      "bytes": 1538,
+      "rawSha256": "3344313753de30fb74f9109603805e3fb3a2df0055463a0a504c1c590a21cc67",
+      "lfTextSha256": "08c5367897d3c9c32ce302e51d89956cde71319ec7f201c254df4783da97cce1"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutant-movement-background.log",
+      "bytes": 1137,
+      "rawSha256": "c6724aec7d8d584ebd372814fbf2ac71b4f541ca041d731e8a3bd27bec14839e",
+      "lfTextSha256": "794117f35e087249a9f81fe0423cf8b8fc252d24d047652810816f169df17235"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutant-recipe-front.log",
+      "bytes": 2347,
+      "rawSha256": "d5bcaf78a8a6896ea725b7dd2be058358574d1bba3a48d3e398730e04b4a06bc",
+      "lfTextSha256": "649c916f6847e50651a1600d017054469f4adeee6a8882d1a8e1ea2b32536065"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/mutation-restoration.json",
+      "bytes": 1817,
+      "rawSha256": "db822eb202c524f4c94e94fd66db7c947296e1167c76a1e70e8d52b73a73aeac",
+      "lfTextSha256": "aaa7838febe3013c73153b97b03e51fe589f5e18c103893772abc1035d685ee3"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/native-capture-performance.json",
+      "bytes": 1154,
+      "rawSha256": "89339e6582eb73bf39de28b30e6ddb30cb39e0287d50d3c81cf78b641fd1f853",
+      "lfTextSha256": "5f30e4b32f79d0cc6fa447746cad3e148a3256c04677a7bfd3443eaf0e4b3095"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/native-diagnostics-final.log",
+      "bytes": 612,
+      "rawSha256": "c335f05381b6928c82496a27f32944ae407912b481315dd0792c7702b7915868",
+      "lfTextSha256": "9956645969162b85a0208636f524de3b01c5876fdd3abd2b7c375b97b48ecf17"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/production-play-proof.json",
+      "bytes": 2490,
+      "rawSha256": "2c9d004497c1600a241ee811008219e9b86a83e51511c298ac0abc9182db1c4b",
+      "lfTextSha256": "2c9d004497c1600a241ee811008219e9b86a83e51511c298ac0abc9182db1c4b"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/production-verified-final.log",
+      "bytes": 19851,
+      "rawSha256": "236efb6d540cfb1b1303f33d2d4b6c7f6e10b7646aafc2b102219f6f048ad4a5",
+      "lfTextSha256": "ad060a2487bdb39fb7725f46f11b34bae76367040d77b9727e0f9dc0e01d39d3"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/real-capture-green.log",
+      "bytes": 481,
+      "rawSha256": "0c94e6a07425152e675c8d438e7a534319c1ba8dde8f21abfe2e2dbd0e05f94f",
+      "lfTextSha256": "8f41884a795c405d98df731f11384e123da0c6e457dfd5578c92e36e9a953ee4"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/review-card-p.png",
+      "bytes": 434179,
+      "rawSha256": "991eafc3e7d02ddedb70494f02c1f771a71ea307291327f76f338fdcfebb0963",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/review-card-q.png",
+      "bytes": 432787,
+      "rawSha256": "41325364ed9cdca3e2aa3c7f64031dad7a8b78a70287d4cdbedbf520e75d203e",
+      "lfTextSha256": null
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/typecheck-verified-final.log",
+      "bytes": 33,
+      "rawSha256": "e5046545a3a9fcc0cf6950c9402c78a2b227f07a6a658d2a0c1fbc5f4a194da0",
+      "lfTextSha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/visual-review.json",
+      "bytes": 1942,
+      "rawSha256": "edc39a5099f0f97decdb580c925253ac8de6afebdeec6062c665de1996bfa3f9",
+      "lfTextSha256": "23901e4ec65955926fdc8a113d828f63d44075558ca3d573b70efc5e47bc3c45"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/wasm-admission-final.log",
+      "bytes": 625,
+      "rawSha256": "7177a4a28dc2b765a35376b5d6d546a3704071201d1ce81329d85fb845a88111",
+      "lfTextSha256": "ac52b26285990af74f973f7b69e5ffb5e4419a96585b2108f8c665f592c3f6c8"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/web-affected-verified.log",
+      "bytes": 112863,
+      "rawSha256": "0586eb826547d65271374c03447dc4de4720d1bf4283433f7590cb8819c56d33",
+      "lfTextSha256": "90d565e67f1c98e4e0c5f737449b50e0180780bab70f4925e62556f998459917"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/web-builder-retake.log",
+      "bytes": 3019,
+      "rawSha256": "58355c18f7adc1e95a2d64a947c15f9819ddc5ac96d152981e97533f25569a9c",
+      "lfTextSha256": "ec685adc0a31e7a4af7a4fe7b32cfcf9b9fd06c261194189c620aa8b1743a676"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/web-green-final.log",
+      "bytes": 1305,
+      "rawSha256": "c6492c008701528585c9fad17a6cbae97aec91d9796ce81b54be4a88434cf7e6",
+      "lfTextSha256": "d1a2eaaccc0d54069a2b883b6b88fed69548f688b05d8085a588e29789db1342"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/web-head-retake.log",
+      "bytes": 2178,
+      "rawSha256": "4276ca756bec88118c534f6ab2369d2709a5b66552712651829938daab331b2b",
+      "lfTextSha256": "c8902c8b2a62553389dadf038a8f62817cac2f19ce4cb280101808b7aa5b9504"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/web-invalid-submission-red.log",
+      "bytes": 2036,
+      "rawSha256": "0fdd93d44b60eb297553d6c809af8b5214772e631fec18a0ed0d6c4dc68ef0ce",
+      "lfTextSha256": "b18f758fcd50c7bdda7bff47954dba4f6a36f6c6ac2c8a351cbc4cdd59af538a"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders/workspace-verified-final.log",
+      "bytes": 222823,
+      "rawSha256": "e92a7b8a0446a720839f0c6fd004be60e54113185a2800c81be49ae27512a2a8",
+      "lfTextSha256": "34142c98f876d148486ffe956527f054e17038dc115108835236ee8caafb8abd"
+    }
+  ]
+}

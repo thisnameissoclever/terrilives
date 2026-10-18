@@ -1,0 +1,43 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 1m 15s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 4 tests
+test systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads ... FAILED
+test systems::command::submission_tests::invalid_submission_front_at_full_capacity_preserves_running_owner_and_queue ... FAILED
+test systems::command::submission_tests::invalid_submission_keeps_capacity_and_exhausted_allocator_refusals ... ok
+test systems::command::submission_tests::invalid_submission_social_rows_fail_without_recalling_either_worker ... FAILED
+
+failures:
+
+---- systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads stdout ----
+
+thread 'systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads' (57304) panicked at crates\terri-sim\src\systems\command_submission_tests.rs:97:5:
+assertion `left == right` failed
+  left: [QueuedOrder { id: 0, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 0 }, title_id: None }, QueuedOrder { id: 1, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 4294967295 }, title_id: None }]
+ right: [QueuedOrder { id: 0, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 0 }, title_id: None }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- systems::command::submission_tests::invalid_submission_front_at_full_capacity_preserves_running_owner_and_queue stdout ----
+
+thread 'systems::command::submission_tests::invalid_submission_front_at_full_capacity_preserves_running_owner_and_queue' (78536) panicked at crates\terri-sim\src\systems\command_submission_tests.rs:135:5:
+assertion `left == right` failed
+  left: [QueuedOrder { id: 1, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 4294967295 }, title_id: None }]
+ right: [QueuedOrder { id: 0, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 0 }, title_id: None }]
+
+---- systems::command::submission_tests::invalid_submission_social_rows_fail_without_recalling_either_worker stdout ----
+
+thread 'systems::command::submission_tests::invalid_submission_social_rows_fail_without_recalling_either_worker' (31536) panicked at crates\terri-sim\src\systems\command_submission_tests.rs:188:13:
+assertion `left == right` failed
+  left: None
+ right: Some(AtWork { remaining_ticks: 1000 })
+
+
+failures:
+    systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads
+    systems::command::submission_tests::invalid_submission_front_at_full_capacity_preserves_running_owner_and_queue
+    systems::command::submission_tests::invalid_submission_social_rows_fail_without_recalling_either_worker
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 1549 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -1,5 +1,11 @@
 # Urgent Needs and Pending Conversations Implementation Plan
 
+Current contract: [player orders and attendance](../../specs/2026-10-17-player-orders.md)
+supersedes this dated plan's work priority and request cleanup for player-owned
+orders. Player orders delay work and survive critical needs; redirection does
+not delete another person's request. Current persistence is V17. Preserve the
+published V15 requirements below as historical compatibility guidance.
+
 > **For agentic workers:** Use `superpowers:executing-plans` for the tightly coupled simulation changes. Obtain a fresh independent review before delivery. If the owner chooses delegated implementation, use `superpowers:subagent-driven-development` with explicit file ownership. The checkboxes describe future implementation work.
 
 **Goal:** Make critical-need choices coherent, preserve a chosen conversation while its recipient finishes their activity, eliminate repeated canceled movement, and report what each Sim is actually doing.

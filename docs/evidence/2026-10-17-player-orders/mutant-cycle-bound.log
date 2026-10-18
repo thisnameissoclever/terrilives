@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 6.88s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 1 test
+test social_episode::tests::a_front_request_branching_into_another_cycle_yields_without_losing_orders ... FAILED
+
+failures:
+
+---- social_episode::tests::a_front_request_branching_into_another_cycle_yields_without_losing_orders stdout ----
+
+thread 'social_episode::tests::a_front_request_branching_into_another_cycle_yields_without_losing_orders' (79052) panicked at crates\terri-sim\src\social_episode\execution.rs:540:17:
+front-order cycle traversal exceeded its participant bound
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    social_episode::tests::a_front_request_branching_into_another_cycle_yields_without_losing_orders
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1553 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

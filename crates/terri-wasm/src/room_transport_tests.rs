@@ -1,5 +1,30 @@
 use super::*;
 
+fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) {
+    assert_eq!(&published[..8], SAVE_MAGIC);
+    assert_eq!(&published[8..10], &16u16.to_le_bytes());
+    let (historical, tail) =
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
+    assert!(tail.is_empty());
+    assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
+    let snapshot = decode_current(current);
+    assert_eq!(snapshot.legacy, historical);
+    let mut projected = SAVE_MAGIC.to_vec();
+    projected.extend(16u16.to_le_bytes());
+    projected.extend(postcard::to_allocvec(&snapshot.legacy).unwrap());
+    assert_eq!(
+        projected, published,
+        "the complete frozen payload remains unchanged"
+    );
+    let mut migrated = SimHandle::from_lot();
+    assert!(migrated.load_bytes(published));
+    let migrated_bytes = migrated.save_bytes();
+    let _ = decode_current(&migrated_bytes);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&migrated_bytes));
+    assert_eq!(resumed.save_bytes(), migrated_bytes);
+}
+
 #[test]
 fn room_transport_leading_bom_is_literal_name_text() {
     let mut handle = SimHandle::from_lot();
@@ -238,9 +263,9 @@ fn room_transport_current_person_fixture_has_real_work_and_distinct_identity() {
     assert_eq!(person.index_u32(), 1);
     assert_eq!(handle.sim.world().get::<SimId>(person).unwrap().0, 0);
     let baseline = handle.save_bytes();
-    assert_eq!(
-        baseline,
-        include_bytes!("../tests/fixtures/room-transport-v16/sparse-person-active.sav")
+    assert_current_retains_exact_published_v16(
+        &baseline,
+        include_bytes!("../tests/fixtures/room-transport-v16/sparse-person-active.sav"),
     );
     assert_eq!(handle.begin_build(), [1, 0]);
     assert_eq!(handle.save_bytes(), baseline);
@@ -257,9 +282,9 @@ fn room_transport_selection_and_predecessors_follow_both_land_offsets() {
         .world_mut()
         .insert_resource(terri_core::Funds::from_dollars(100000));
     let baseline = handle.save_bytes();
-    assert_eq!(
-        baseline,
-        include_bytes!("../tests/fixtures/room-transport-v16/funded-fresh.sav")
+    assert_current_retains_exact_published_v16(
+        &baseline,
+        include_bytes!("../tests/fixtures/room-transport-v16/funded-fresh.sav"),
     );
     let original = handle
         .sim

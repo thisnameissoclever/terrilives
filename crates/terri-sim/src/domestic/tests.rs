@@ -345,6 +345,7 @@ fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
         .find(|(e, _)| *e != person)
         .unwrap()
         .0;
+    sim.world_mut().entity_mut(other).remove::<AtWork>();
     add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
     assert!(start_cleanup(sim.world_mut(), other, vec![0], true));
     sim.world_mut()
@@ -714,8 +715,8 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         assert!(restored.is_some(), "interrupted action must save and load");
         assert_eq!(completions, 1, "one real toilet completion");
         assert_eq!(
-            housemate_completions, 0,
-            "only a housemate's own visit may complete the toilet besides the actor"
+            housemate_completions, 1,
+            "the recalled housemate's explicit visit must complete exactly once"
         );
         assert!(resumed, "the suspended work must resume");
         assert!(
@@ -1499,25 +1500,93 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
         carried_dishes(sim.world()).get(&people[0].index_u32()),
         Some(&2)
     );
-    let bed = sim
+    let pack = sim.world().resource::<Content>().0;
+    let occupancy = crate::seating::occupancy(sim.world_mut());
+    let from = sim.world().get::<Position>(people[0]).unwrap();
+    let start = (from.x.round() as i32, from.y.round() as i32);
+    let field = sim
+        .world()
+        .resource::<terri_core::TileGrid>()
+        .distance_field(start)
+        .unwrap();
+    let objects: Vec<_> = sim
         .world_mut()
         .query::<(Entity, &SmartObject)>()
         .iter(sim.world())
-        .find(|(_, object)| sim.world().resource::<Content>().0.object(object.0).id == "bed")
+        .map(|(entity, object)| (entity, object.0))
+        .collect();
+    // The bunk may already be occupied; use a free physical place with a real route.
+    let (bed, ordinal, interaction) = sim.bed_places_of(people[0].index_u32()).unwrap()
+        .into_iter()
+        .filter(|place| place.occupant.is_none()
+            && place.assignee.is_none_or(|person| person == people[0].index_u32()))
+        .find_map(|place| {
+            let &(bed, definition) = objects.iter().find(|(entity, _)| entity.index_u32() == place.bed)?;
+            let definition = pack.object(definition);
+            let interaction = definition.interactions.iter().position(|action| action.tags.contains(&pack.sleep_tag))? as u32;
+            let access = crate::beds::navigation::Access::new(
+                definition,
+                &pack.sleep_tag,
+                sim.world().get::<terri_core::ObjectFacing>(bed).map_or(definition.base_facing, |f| f.0),
+                (place.x.round() as i32, place.y.round() as i32),
+                &field,
+            );
+            let admitted = occupancy.admissions(
+                pack, definition, people[0], sim.world().get::<SimId>(people[0]).copied(),
+                Target { object: bed, interaction },
+                sim.world().resource::<crate::beds::BedAssignments>(),
+            ).into_iter().any(|admission| {
+                matches!(admission, crate::beds::Admission::Sleep { ordinal, .. } if ordinal == place.ordinal)
+                    && access.for_admission(admission)
+                        .and_then(|reachable| reachable.route.path(sim.world().resource::<terri_core::TileGrid>(), start)).is_some()
+            });
+            admitted.then_some((bed, place.ordinal, interaction))
+        }).expect("cleanup interruption needs an available reachable sleeping place");
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetBedAssignment {
+            agent: people[0].index_u32(),
+            place: Some((bed.index_u32(), ordinal)),
+        });
+    sim.flush_commands();
+    assert!(sim
+        .bed_places_of(people[0].index_u32())
         .unwrap()
-        .0;
+        .iter()
+        .any(|place| place.bed == bed.index_u32()
+            && place.ordinal == ordinal
+            && place.assignee == Some(people[0].index_u32())
+            && place.occupant.is_none()));
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::UseObjectFirst {
             agent: people[0].index_u32(),
             object: bed.index_u32(),
-            interaction: 0,
+            interaction,
         });
     sim.tick();
     sim.sync_render_buffer();
     assert_eq!(
+        sim.world().get::<terri_core::SleepPlace>(people[0]),
+        Some(&terri_core::SleepPlace(ordinal))
+    );
+    assert_eq!(
+        sim.world().get::<Target>(people[0]).map(|target| target.object),
+        Some(bed),
+        "the sleep redirect must be admitted: blocked={} path={:?} queue={:?} events={:?} cleanup={:?}",
+        sim.world().get::<terri_core::Blocked>(people[0]).is_some(),
+        sim.world().get::<terri_core::Path>(people[0]),
+        sim.world().get::<terri_core::IntentQueue>(people[0]),
+        sim.action_events_since(0).events,
+        sim.world().resource::<SavedDomestic>().cleanup,
+    );
+    assert_eq!(
         carried_dishes(sim.world()).get(&people[0].index_u32()),
-        Some(&0)
+        Some(&0),
+        "admitted redirect must free the hands: chain={:?} cleanup={:?} events={:?}",
+        sim.world().get::<ChainState>(people[0]),
+        sim.world().resource::<SavedDomestic>().cleanup,
+        sim.action_events_since(0).events,
     );
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);

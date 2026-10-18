@@ -34,9 +34,7 @@ fn a_legacy_approach_without_episode_metadata_resaves_before_another_tick() {
     let request = migrated
         .world()
         .resource::<requests::ConversationRequests>()
-        .requests
-        .values()
-        .next()
+        .outgoing(a)
         .unwrap();
     assert_eq!(
         request.origin,
@@ -53,7 +51,7 @@ fn a_legacy_approach_without_episode_metadata_resaves_before_another_tick() {
     );
     let mut replay = crate::test_content::sim_with(12, 8, pack);
     replay
-        .load_snapshot_v16(migrated.save_snapshot_v16())
+        .load_snapshot_v17(migrated.save_snapshot_v17())
         .unwrap();
     assert_eq!(replay.world_hash(), migrated.world_hash());
     for _ in 0..100 {
@@ -104,6 +102,7 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
             object: toilet.index_u32(),
             interaction: 0,
         });
+    sim.tick();
     talk(&mut sim, a, b);
     sim.tick();
     sim.world_mut().entity_mut(c).remove::<Reserved>();
@@ -128,7 +127,7 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
         terri_core::Blocked,
     ));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     assert_eq!(loaded.activity_status_of(a.index_u32()).unwrap().code, 4);
 }
 
@@ -195,8 +194,9 @@ fn current_save_replays_a_suspended_request_cycle_through_talking_and_completion
     let mut saw_talking = false;
     for _ in 0..100 {
         sim.tick();
-        let snapshot = sim.save_snapshot_v16();
+        let snapshot = sim.save_snapshot_v17();
         saw_suspended |= snapshot
+            .legacy
             .legacy
             .conversation_requests
             .requests
@@ -204,12 +204,13 @@ fn current_save_replays_a_suspended_request_cycle_through_talking_and_completion
             .any(|r| r.phase == terri_core::save_v15::SavedConversationPhase::Suspended);
         saw_talking |= snapshot
             .legacy
+            .legacy
             .conversation_requests
             .requests
             .iter()
             .any(|r| r.phase == terri_core::save_v15::SavedConversationPhase::Talking);
         let mut loaded = test_content::sim_with(12, 8, pack);
-        loaded.load_snapshot_v16(snapshot).unwrap();
+        loaded.load_snapshot_v17(snapshot).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         loaded.tick();
         sim.tick();
@@ -293,11 +294,18 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
             y: door.1 as f32,
         },
     ));
-    talk(&mut sim, a, b);
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
     sim.tick();
     assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 3);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     let hash = loaded.world_hash();
     assert_eq!(loaded.activity_status_of(a.index_u32()).unwrap().code, 3);
     assert_eq!(
@@ -330,14 +338,28 @@ fn unreachable_oldest_request_does_not_hold_the_recipient_or_block_reachable_cha
             terri_core::Wander { pause_ticks: 100 },
         ))
         .id();
-    talk(&mut sim, a, b);
+    requests::enqueue(
+        sim.world_mut(),
+        a,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
     sim.tick();
     assert!(
         sim.world().get::<Reserved>(b).is_none(),
         "An unreachable initiator cannot reserve the listener"
     );
     assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 5);
-    talk(&mut sim, c, b);
+    requests::enqueue(
+        sim.world_mut(),
+        c,
+        b,
+        0,
+        requests::ConversationOrigin::Autonomous,
+    )
+    .unwrap();
     sim.tick();
     let blocked_id = sim
         .world()
@@ -711,7 +733,7 @@ fn current_save_preserves_the_exact_order_completed_by_a_chat() {
     talk(&mut sim, a, b);
     sim.tick();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for _ in 0..100 {
         sim.tick();
         restored.tick();
@@ -866,9 +888,9 @@ fn current_save_keeps_an_arrived_waiter_without_reserving_the_busy_recipient() {
     }
     assert!(sim.world().get::<Path>(a).is_none());
     let hash = sim.world_hash();
-    let saved = sim.save_snapshot_v16();
+    let saved = sim.save_snapshot_v17();
     let mut restored = test_content::sim_with(12, 8, pack);
-    restored.load_snapshot_v16(saved).unwrap();
+    restored.load_snapshot_v17(saved).unwrap();
     assert_eq!(restored.world_hash(), hash);
     assert!(restored.world().get::<Reserved>(b).is_none());
     assert_eq!(restored.activity_status_of(a.index_u32()).unwrap().code, 2);
@@ -888,11 +910,11 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
         .insert_resource(Content(Box::leak(Box::new(pack))));
     talk(&mut sim, a, b);
     sim.tick();
-    let saved = sim.save_snapshot_v16();
-    assert_eq!(saved.legacy.conversation_requests.requests.len(), 1);
+    let saved = sim.save_snapshot_v17();
+    assert_eq!(saved.legacy.legacy.conversation_requests.requests.len(), 1);
     for case in 0..10 {
         let mut bad = saved.clone();
-        let row = &mut bad.legacy.conversation_requests.requests[0];
+        let row = &mut bad.legacy.legacy.conversation_requests.requests[0];
         let duplicate = row.clone();
         match case {
             0 => row.recipient = u32::MAX,
@@ -903,10 +925,16 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
             }
             4 => row.created = sim.world().resource::<terri_core::SimClock>().tick + 1,
             5 => row.waiting_tile = Some((99, 99)),
-            6 => bad.legacy.conversation_requests.next_id = 0,
-            7 => bad.legacy.conversation_requests.requests.push(duplicate),
+            6 => bad.legacy.legacy.conversation_requests.next_id = 0,
+            7 => bad
+                .legacy
+                .legacy
+                .conversation_requests
+                .requests
+                .push(duplicate),
             8 => {
                 bad.legacy
+                    .legacy
                     .legacy
                     .legacy
                     .legacy
@@ -925,14 +953,15 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
                     .legacy
                     .legacy
                     .legacy
+                    .legacy
                     .social
                     .rendezvous
                     .clear();
-                bad.legacy.conversation_requests.requests.clear();
+                bad.legacy.legacy.conversation_requests.requests.clear();
             }
         }
         let hash = sim.world_hash();
-        assert!(sim.load_snapshot_v16(bad).is_err(), "case {case}");
+        assert!(sim.load_snapshot_v17(bad).is_err(), "case {case}");
         assert_eq!(
             sim.world_hash(),
             hash,

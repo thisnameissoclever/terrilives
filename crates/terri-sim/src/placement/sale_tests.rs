@@ -4,7 +4,7 @@
 use super::*;
 use crate::Sim;
 use terri_core::layout::SavedLayout;
-use terri_core::{Agent, CommandQueue, Intent, Position, SimCommand, SmartObject};
+use terri_core::{CommandQueue, Intent, Position, SimCommand, SmartObject};
 use terri_data::ContentPack;
 
 /// A 7 by 7 open house with a fridge at (0, 0), a coat rack with no price at
@@ -142,10 +142,7 @@ fn a_sale_pays_the_price_times_the_fraction_rounded_down() {
 fn a_sale_is_refused_for_each_reason_in_the_order_the_design_lists() {
     let (mut sim, fridge, rack) = house(0);
     // Nothing placed carries the index of a sim.
-    let sim_entity = sim
-        .world_mut()
-        .spawn((Agent, Position { x: 5.0, y: 5.0 }))
-        .id();
+    let sim_entity = sim.spawn_agent(Position { x: 5.0, y: 5.0 }, 80.0);
     refused(&mut sim, sim_entity, PlacementRefusal::UnknownObject);
 
     // A grid nobody can explain comes before whether the object is in use.
@@ -184,29 +181,64 @@ fn a_sale_is_refused_for_each_reason_in_the_order_the_design_lists() {
     refused(&mut sim, rack, PlacementRefusal::NotForSale);
 
     // An order naming another object, and a walk to another, stop nothing.
-    let other_fridge = sim
-        .world_mut()
-        .query::<(Entity, &SmartObject)>()
-        .iter(sim.world())
-        .find(|(entity, object)| {
-            *entity != fridge && sim.world().resource::<Content>().0.object(object.0).id == "fridge"
-        })
-        .unwrap()
-        .0;
+    // The refusal cases above deliberately inject partial state. Clear it
+    // before requiring the successful sale's full transaction to validate.
+    sim.world_mut().entity_mut(sim_entity).remove::<Target>();
     sim.world_mut()
-        .entity_mut(sim_entity)
-        .insert(IntentQueue::from_intents(vec![Intent {
-            cleanup: None,
-            chore: None,
-            object: other_fridge,
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents {
+            agent: sim_entity.index_u32(),
+        });
+    sim.flush_commands();
+    let radio = sim.spawn_object(
+        Position { x: 3.0, y: 1.0 },
+        sim.world().resource::<Content>().0.find("radio").unwrap(),
+    );
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(3, 1, true);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObjectFirst {
+            agent: sim_entity.index_u32(),
+            object: radio.index_u32(),
             interaction: 0,
-        }]));
-    sim.world_mut().entity_mut(sim_entity).insert(Target {
-        object: other_fridge,
-        interaction: 0,
-    });
+        });
+    sim.tick();
+    assert_eq!(sim.take_build_error(), None);
+    let order = sim
+        .world()
+        .get::<IntentQueue>(sim_entity)
+        .unwrap()
+        .entries()[0]
+        .clone();
+    assert_eq!(order.intent.object, radio);
+    assert_eq!(sim.world().get::<Target>(sim_entity).unwrap().object, radio);
+    assert!(sim.world().get::<terri_core::Path>(sim_entity).is_some());
+    crate::test_content::assert_current_admission(&sim);
+
     sell(&mut sim, fridge);
+    assert_eq!(
+        sim.take_build_error(),
+        None,
+        "the sale transaction must commit"
+    );
+    assert_eq!(last(&sim).unwrap().object, fridge.index_u32());
     assert_eq!(last(&sim).unwrap().reason, None);
+    assert!(last(&sim).unwrap().payout.is_some());
+    let person = crate::dining::entity(sim.world(), sim_entity.index_u32()).unwrap();
+    let retained = sim.world().get::<IntentQueue>(person).unwrap().entries()[0].clone();
+    assert_eq!(retained.id, order.id);
+    assert_eq!(retained.intent.object.index_u32(), radio.index_u32());
+    assert_eq!(
+        sim.world()
+            .get::<Target>(person)
+            .unwrap()
+            .object
+            .index_u32(),
+        radio.index_u32()
+    );
+    crate::test_content::assert_current_admission(&sim);
 }
 
 /// [SL-despawn]: a sold index is retired, never handed to a later spawn,

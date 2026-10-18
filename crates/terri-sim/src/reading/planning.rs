@@ -52,6 +52,41 @@ pub(crate) fn plans(
     origin: Target,
     title: Option<&str>,
 ) -> Vec<Plan> {
+    enumerate_plans(world, person, origin, title, false)
+}
+
+/// A purchase or recovery can supply a missing shelf-backed copy without changing routes.
+pub(crate) fn waiting_for_owned_copy(world: &World, title: Option<&str>) -> bool {
+    !world.resource::<Content>().0.books.is_empty()
+        && world.get_resource::<BookLibrary>().is_none_or(|library| {
+            !library.state().copies.iter().any(|copy| {
+                title.is_none_or(|title| copy.title_id == title)
+                    && copy.home.is_some()
+                    && matches!(
+                        copy.location,
+                        BookLocation::Shelf(_) | BookLocation::Carried(_)
+                    )
+            })
+        })
+}
+
+/// A borrowed copy or occupied seat can become free; a disconnected route cannot.
+pub(crate) fn has_reachable_plan(
+    world: &mut World,
+    person: Entity,
+    origin: Target,
+    title: Option<&str>,
+) -> bool {
+    !enumerate_plans(world, person, origin, title, true).is_empty()
+}
+
+fn enumerate_plans(
+    world: &mut World,
+    person: Entity,
+    origin: Target,
+    title: Option<&str>,
+    ignore_contention: bool,
+) -> Vec<Plan> {
     if !is_read(world, origin) || world.get::<Carrying>(person).is_some() {
         return vec![];
     }
@@ -65,7 +100,11 @@ pub(crate) fn plans(
     let Some(tuning) = pack.reading.as_ref() else {
         return vec![];
     };
-    let occupancy = crate::seating::occupancy(world);
+    let occupancy = if ignore_contention {
+        crate::beds::Occupancy::new(std::iter::empty(), std::iter::empty())
+    } else {
+        crate::seating::occupancy(world)
+    };
     let pinned = !pack
         .object(world.get::<SmartObject>(origin.object).unwrap().0)
         .seats
@@ -136,10 +175,18 @@ pub(crate) fn plans(
     let instinct = world.get::<SelfPreservation>(person).map_or(50, |s| s.0);
     let mut result: Vec<Plan> = vec![];
     for copy in copies {
-        let BookLocation::Shelf(_) = copy.location else {
+        // Borrowed copies retain their home throughout fetching, reading and return.
+        // Inventory and loose lot copies still require an explicit recovery first.
+        let available = matches!(copy.location, BookLocation::Shelf(_))
+            || (ignore_contention
+                && copy.borrower.is_some()
+                && matches!(copy.location, BookLocation::Carried(_)));
+        if !available {
             continue;
-        };
-        if copy.borrower.is_some() || title.is_some_and(|t| t != copy.title_id) {
+        }
+        if (!ignore_contention && copy.borrower.is_some())
+            || title.is_some_and(|t| t != copy.title_id)
+        {
             continue;
         }
         let Some(shelf) = shelf(world, copy.id) else {

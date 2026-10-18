@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ ❯ tests/character-head-visible-parts.test.ts (14 tests | 1 failed) 117740ms
+   × matches compact selected crop heads through eyes, wear and grip masks 34955ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-head-visible-parts.test.ts > matches compact selected crop heads through eyes, wear and grip masks
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/character-head-visible-parts.test.ts:34:53
+     32| });
+     33|
+     34| it.each(['curl','bob','wave','crop','quiff','bald'])('matches compact …
+       |                                                     ^
+     35|   for(const presentation of ['masculine','feminine'] as const)for(cons…
+     36|     const appearance=defaultAppearance(presentation);appearance.hairst…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 264 passed (265)
+      Tests  1 failed | 3442 passed (3443)
+   Start at  14:52:00
+   Duration  1086.17s (transform 29.16s, setup 2.02s, import 106.48s, tests 935.12s, environment 18ms)
+

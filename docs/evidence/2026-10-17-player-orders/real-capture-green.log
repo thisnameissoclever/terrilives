@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 16.56s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 1 test
+test player_actions::tests::accepted_and_canceled_capture_uses_bounded_session_history_without_affecting_continuation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1554 filtered out; finished in 0.61s
+

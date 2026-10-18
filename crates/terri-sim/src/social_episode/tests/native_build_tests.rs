@@ -3,7 +3,7 @@ use crate::rooms::RoomChoices;
 use terri_core::rooms::RoomSelection;
 
 fn exercise(sim: &mut Sim) {
-    let baseline = sim.save_snapshot_v16();
+    let baseline = sim.save_snapshot_v17();
     let runtime = requests::runtime::capture(sim.world());
     sim.begin_build().unwrap();
     assert!(!sim.build_dirty());
@@ -13,19 +13,22 @@ fn exercise(sim: &mut Sim) {
     sim.stage_room_name(RoomSelection::Outside, "Pending garden".into())
         .unwrap();
     assert!(sim.build_dirty());
-    sim.stage_room_name(RoomSelection::Outside, baseline.rooms.outside_name.clone())
-        .unwrap();
+    sim.stage_room_name(
+        RoomSelection::Outside,
+        baseline.legacy.rooms.outside_name.clone(),
+    )
+    .unwrap();
     assert!(!sim.build_dirty());
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.commit_build(review.token).unwrap();
-    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(sim.save_snapshot_v17(), baseline);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.stage_room_name(RoomSelection::Outside, "Confirmed garden".into())
         .unwrap();
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.commit_build(review.token).unwrap();
-    let confirmed = sim.save_snapshot_v16();
-    assert_eq!(confirmed.legacy, baseline.legacy);
+    let confirmed = sim.save_snapshot_v17();
+    assert_eq!(confirmed.legacy.legacy, baseline.legacy.legacy);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.stage_room_name(RoomSelection::Outside, "Cancelled garden".into())
         .unwrap();
@@ -33,28 +36,37 @@ fn exercise(sim: &mut Sim) {
         .prepare_build_commit(RoomChoices::default())
         .unwrap()
         .token;
-    let draft = crate::save::v16::capture(sim);
+    let draft = crate::save::v17::capture(sim);
     let mut bad = confirmed.clone();
-    bad.legacy.conversation_requests.next_id = 0;
-    assert!(!bad.legacy.conversation_requests.requests.is_empty());
-    assert!(sim.load_snapshot_v16(bad).is_err());
-    assert_eq!(crate::save::v16::capture(sim), draft);
-    assert_eq!(sim.save_snapshot_v16(), confirmed);
+    bad.legacy.legacy.conversation_requests.next_id = 0;
+    assert!(!bad.legacy.legacy.conversation_requests.requests.is_empty());
+    assert!(sim.load_snapshot_v17(bad).is_err());
+    assert_eq!(crate::save::v17::capture(sim), draft);
+    assert_eq!(sim.save_snapshot_v17(), confirmed);
     assert_eq!(sim.validate_build_token(token), Ok(()));
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
     sim.cancel_build().unwrap();
-    assert_eq!(sim.save_snapshot_v16(), confirmed);
+    assert_eq!(sim.save_snapshot_v17(), confirmed);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
-    sim.load_snapshot_v16(baseline.clone()).unwrap();
+    sim.load_snapshot_v17(baseline.clone()).unwrap();
     let loaded_runtime = requests::runtime::capture(sim.world());
-    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(sim.save_snapshot_v17(), baseline);
     sim.stage_room_name(RoomSelection::Outside, "Discard after load".into())
         .unwrap();
     sim.cancel_build().unwrap();
     assert_eq!(requests::runtime::capture(sim.world()), loaded_runtime);
     sim.end_build().unwrap();
     assert!(!sim.build_active());
-    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(sim.save_snapshot_v17(), baseline);
+    let published = sim.save_snapshot_v16();
+    let grid = sim.world().resource::<terri_core::TileGrid>();
+    let mut legacy = test_content::sim_with(
+        grid.width(),
+        grid.height(),
+        sim.world().resource::<Content>().0,
+    );
+    legacy.load_snapshot_v16(published.clone()).unwrap();
+    assert_eq!(legacy.save_snapshot_v16(), published);
 }
 
 #[test]
@@ -85,14 +97,16 @@ fn native_waiting_request_mixed_growth_translates_once_and_cancel_restores() {
             object: toilet.index_u32(),
             interaction: 0,
         });
+    sim.tick();
     talk(&mut sim, a, b);
     sim.tick();
     sim.world_mut().entity_mut(c).remove::<Reserved>();
     sim.world_mut()
         .insert_resource(terri_core::Funds::from_dollars(1_000_000));
-    let baseline = sim.save_snapshot_v16();
+    let baseline = sim.save_snapshot_v17();
     let runtime = requests::runtime::capture(sim.world());
     assert!(baseline
+        .legacy
         .legacy
         .conversation_requests
         .requests
@@ -118,7 +132,7 @@ fn native_waiting_request_mixed_growth_translates_once_and_cancel_restores() {
     }
     let end = crate::lot_frame::origin(sim.world());
     assert!(end.0 > start.0 && end.1 > start.1);
-    let mut expected = baseline.legacy.conversation_requests.clone();
+    let mut expected = baseline.legacy.legacy.conversation_requests.clone();
     for request in &mut expected.requests {
         if let Some((x, y)) = &mut request.waiting_tile {
             *x += (end.0 - start.0) as i32;
@@ -126,17 +140,20 @@ fn native_waiting_request_mixed_growth_translates_once_and_cancel_restores() {
         }
     }
     assert_eq!(
-        crate::save::v16::capture(&sim).legacy.conversation_requests,
+        crate::save::v17::capture(&sim)
+            .legacy
+            .legacy
+            .conversation_requests,
         expected
     );
     let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
     sim.commit_build(review.token).unwrap();
-    let grown = sim.save_snapshot_v16();
-    assert_eq!(grown.legacy.conversation_requests, expected);
+    let grown = sim.save_snapshot_v17();
+    assert_eq!(grown.legacy.legacy.conversation_requests, expected);
     assert_eq!(requests::runtime::capture(sim.world()), runtime);
-    sim.load_snapshot_v16(grown.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v16(), grown);
-    sim.load_snapshot_v16(baseline.clone()).unwrap();
+    sim.load_snapshot_v17(grown.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v17(), grown);
+    sim.load_snapshot_v17(baseline.clone()).unwrap();
     for side in [0, 2] {
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -145,7 +162,7 @@ fn native_waiting_request_mixed_growth_translates_once_and_cancel_restores() {
         assert_eq!(sim.take_build_error(), None);
     }
     sim.cancel_build().unwrap();
-    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(sim.save_snapshot_v17(), baseline);
 }
 
 #[test]
@@ -230,7 +247,7 @@ fn native_build_conserves_an_arrived_waiter_and_queue_free_projection() {
         .requests
         .values()
         .any(|r| r.phase == requests::RequestPhase::Waiting && r.waiting_tile.is_some()));
-    let saved = sim.save_snapshot_v16();
+    let saved = sim.save_snapshot_v17();
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::SetFloor {
@@ -238,15 +255,15 @@ fn native_build_conserves_an_arrived_waiter_and_queue_free_projection() {
             y: 7,
             covering: 1,
         });
-    let projected = crate::save::v16::capture_without_commands(&sim);
+    let projected = crate::save::v17::capture_without_commands(&sim);
     assert_eq!(
-        projected.legacy.conversation_requests,
-        saved.legacy.conversation_requests
+        projected.legacy.legacy.conversation_requests,
+        saved.legacy.legacy.conversation_requests
     );
     let admitted =
-        crate::save::v16::restore(projected, pack, crate::save::Carried::for_load(sim.world()))
+        crate::save::v17::restore(projected, pack, crate::save::Carried::for_load(sim.world()))
             .unwrap();
-    assert_eq!(admitted.save_snapshot_v16(), saved);
+    assert_eq!(admitted.save_snapshot_v17(), saved);
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .drain()

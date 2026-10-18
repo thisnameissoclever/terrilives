@@ -436,9 +436,10 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
     assert_eq!(sim.world().get::<Position>(a).unwrap().x, 1.25);
     assert_eq!(feeling(&sim, b, a), 0.0);
     let hash = sim.world_hash();
-    let saved = sim.save_snapshot_v16();
+    let saved = sim.save_snapshot_v17();
     assert_eq!(
         saved
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -453,7 +454,7 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
     );
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v16(saved.clone()).unwrap();
+    resumed.load_snapshot_v17(saved.clone()).unwrap();
     assert_eq!(resumed.world_hash(), hash);
     for _ in 0..4 {
         movement(&mut sim);
@@ -465,6 +466,7 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
         match corrupt {
             0 => {
                 bad.legacy
+                    .legacy
                     .legacy
                     .legacy
                     .legacy
@@ -484,6 +486,7 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
                     .legacy
                     .legacy
                     .legacy
+                    .legacy
                     .boundaries[0]
                     .expires = 9999
             }
@@ -496,11 +499,12 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
                     .legacy
                     .legacy
                     .legacy
+                    .legacy
                     .boundaries[0]
                     .waiting_since = Some(9999)
             }
         }
-        assert!(resumed.load_snapshot_v16(bad).is_err());
+        assert!(resumed.load_snapshot_v17(bad).is_err());
         assert_eq!(resumed.world_hash(), hash);
     }
     sim.world_mut().entity_mut(b).remove::<Eating>();
@@ -520,7 +524,7 @@ fn privacy_mid_wait_replay_crosses_cache_expiry_and_action_completion() {
     movement(&mut sim);
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+    resumed.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for minute in 0..120 {
         sim.tick();
         resumed.tick();
@@ -601,10 +605,10 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
         "the chain order outlives the chain's start"
     );
     assert!(crate::privacy::directed(sim.world(), a));
-    let saved = sim.save_snapshot_v16();
+    let saved = sim.save_snapshot_v17();
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v16(saved).unwrap();
+    resumed.load_snapshot_v17(saved).unwrap();
     assert!(crate::privacy::directed(resumed.world(), a));
     assert_eq!(sim.world_hash(), resumed.world_hash());
     enter(&mut resumed, a);
@@ -1378,15 +1382,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v16();
+        let before = sim.save_snapshot_v17();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v16();
-        sim.load_snapshot_v16(before)
+        let after = sim.save_snapshot_v17();
+        sim.load_snapshot_v17(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v16(after)
+        sim.load_snapshot_v17(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),

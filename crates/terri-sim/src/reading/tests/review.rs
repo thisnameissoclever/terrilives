@@ -100,7 +100,7 @@ fn fix1_fast_work_exceeds_short_cap_and_slow_fractional_work_survives() {
 #[test]
 fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_inflation() {
     for familiar in [false, true] {
-        let (mut sim, p, shelf, seat, title) = fixture("armchair");
+        let (mut sim, p, shelf, seat, title) = indoor_fixture("armchair");
         let mut pack = sim.world().resource::<Content>().0.clone();
         pack.tuning.hobby_multiplier = 2.3;
         let bookworm = pack.traits.iter().position(|t| t.id == "bookworm").unwrap() as u32;
@@ -158,16 +158,31 @@ fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_infl
         let rng = sim.world().resource::<SimRng>().clone();
         sim.load_current_v10_view(saved.clone()).unwrap();
         assert_eq!(sim.current_v10_view(), saved);
+        assert_eq!(sim.world_hash(), hash);
+        let frozen = sim.save_snapshot_v10();
+        let pack = sim.world().resource::<Content>().0;
+        let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
+        historical.load_snapshot_v10(frozen.clone()).unwrap();
+        let historical_hash = historical.world_hash();
         for inflated in [earned * 1.05, 1_000_000.0] {
+            let mut bad = frozen.clone();
+            bad.legacy.reading[0].earned_satisfaction = inflated;
+            assert!(
+                historical.load_snapshot_v10(bad).is_err(),
+                "accepted fabricated {inflated} after actual {earned}"
+            );
+            assert_eq!(historical.save_snapshot_v10(), frozen);
+            assert_eq!(historical.world_hash(), historical_hash);
+            assert_eq!(*historical.world().resource::<SimRng>(), rng);
             let mut bad = saved.clone();
             bad.legacy.reading[0].earned_satisfaction = inflated;
             assert!(
                 sim.load_current_v10_view(bad).is_err(),
-                "accepted fabricated {inflated} after genuine {earned}"
+                "accepted fabricated {inflated} after actual {earned}"
             );
             assert_eq!(sim.current_v10_view(), saved);
-            assert_eq!(sim.world_hash(), hash);
             assert_eq!(*sim.world().resource::<SimRng>(), rng);
+            assert_eq!(sim.world_hash(), hash);
         }
         sim.tick();
         let added = sim

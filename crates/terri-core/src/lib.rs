@@ -15,6 +15,7 @@ pub mod hash;
 pub mod ids;
 pub mod layout;
 pub mod needs;
+pub mod player_order_hash;
 pub mod rng;
 pub mod rooms;
 pub mod save;
@@ -39,6 +40,8 @@ pub mod save_v15;
 pub use save_v15::SaveSnapshotV15;
 pub mod save_v16;
 pub use save_v16::SaveSnapshotV16;
+pub mod save_v17;
+pub use save_v17::SaveSnapshotV17;
 mod save_before_voice;
 pub mod windows;
 

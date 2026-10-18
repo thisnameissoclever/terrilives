@@ -17,6 +17,70 @@ fn bed_feedback(sim: &Sim) -> (u64, Option<crate::beds::AssignmentResult>) {
 }
 
 #[test]
+fn construction_preserves_exact_player_ownership_and_session_history() {
+    use terri_core::SmartObject;
+    let mut sim = Sim::new_from_shipped_lot();
+    let actor = sim
+        .world_mut()
+        .query_filtered::<Entity, With<Agent>>()
+        .iter(sim.world())
+        .next()
+        .unwrap();
+    let pack = sim.world().resource::<crate::Content>().0;
+    let object = sim
+        .world_mut()
+        .query::<(Entity, &SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, object)| pack.object(object.0).id == "fridge")
+        .map(|(entity, _)| entity)
+        .unwrap();
+    issue(
+        &mut sim,
+        SimCommand::UseObject {
+            agent: actor.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        },
+    );
+    issue(&mut sim, floor(4));
+    sim.flush_commands();
+    let accepted = sim.action_events_since(0);
+    assert_eq!(accepted.events.len(), 1);
+    assert_eq!(accepted.events[0].phase, "accepted");
+    assert_eq!(accepted.events[0].actor, actor.index_u32());
+    let order_id = accepted.events[0].order_id;
+    let current_actor = crate::dining::entity(sim.world(), actor.index_u32()).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<terri_core::IntentQueue>(current_actor)
+            .unwrap()
+            .entries()[0]
+            .id,
+        order_id
+    );
+    for construction in [floor(4), floor(5)] {
+        issue(&mut sim, construction);
+        sim.flush_commands();
+        let history = sim.action_events_since(0);
+        assert_eq!(history.next_cursor, accepted.next_cursor);
+        assert_eq!(history.events.len(), 1);
+        assert_eq!(history.events[0].order_id, order_id);
+    }
+    issue(
+        &mut sim,
+        SimCommand::CancelIntents {
+            agent: actor.index_u32(),
+        },
+    );
+    sim.flush_commands();
+    let history = sim.action_events_since(0);
+    assert_eq!(history.events.len(), 2);
+    assert_eq!(history.events[1].phase, "canceled");
+    assert_eq!(history.events[1].order_id, order_id);
+    assert!(history.events[1].sequence > accepted.next_cursor);
+}
+
+#[test]
 fn ordinary_runtime_keeps_prior_bed_receipt_after_accepted_construction() {
     let mut sim = Sim::new_from_shipped_lot();
     let person = sim
@@ -53,7 +117,7 @@ fn ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction() 
     ] {
         let mut sim = Sim::new_from_shipped_lot();
         sim.flush_commands();
-        let before = sim.save_snapshot_v16();
+        let before = sim.save_snapshot_v17();
         let sequence = bed_feedback(&sim).0;
         issue(
             &mut sim,
@@ -64,7 +128,7 @@ fn ordinary_runtime_returns_new_bed_refusal_with_noop_or_refused_construction() 
         );
         issue(&mut sim, construction);
         sim.flush_commands();
-        assert_eq!(sim.save_snapshot_v16(), before);
+        assert_eq!(sim.save_snapshot_v17(), before);
         assert_eq!(
             bed_feedback(&sim),
             (
@@ -106,7 +170,7 @@ fn ordinary_runtime_keeps_unchanged_door_interpolation() {
 fn ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds() {
     let mut sim = Sim::new_from_shipped_lot();
     sim.world_mut().resource_mut::<SavedRooms>().next_id = u32::MAX;
-    let before = sim.save_snapshot_v16();
+    let before = sim.save_snapshot_v17();
     let revision = sim.rooms_revision();
     sim.world_mut()
         .resource_mut::<crate::completion_sounds::CompletionSounds>()
@@ -130,16 +194,16 @@ fn ordinary_runtime_failed_drain_consumes_requests_and_clears_old_sounds() {
     );
     assert!(sim.world().resource::<CommandQueue>().is_empty());
     assert!(sim.completion_sounds().is_empty());
-    assert_eq!(sim.save_snapshot_v16(), before);
+    assert_eq!(sim.save_snapshot_v17(), before);
     assert_eq!(sim.rooms_revision(), revision);
 }
 
 #[test]
 fn ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_results() {
     let mut ticked = Sim::new_from_shipped_lot();
-    let initial = ticked.save_snapshot_v16();
+    let initial = ticked.save_snapshot_v17();
     let mut flushed = Sim::new_from_shipped_lot();
-    flushed.load_snapshot_v16(initial).unwrap();
+    flushed.load_snapshot_v17(initial).unwrap();
     let time = ticked.world().resource::<SimClock>().tick;
     for sim in [&mut ticked, &mut flushed] {
         issue(sim, SimCommand::SetChoreBoard { enabled: true });
@@ -157,7 +221,7 @@ fn ordinary_runtime_tick_and_explicit_flush_then_tick_have_identical_durable_res
     flushed.flush_commands();
     flushed.tick();
     assert_eq!(ticked.world().resource::<SimClock>().tick, time + 1);
-    assert_eq!(ticked.save_snapshot_v16(), flushed.save_snapshot_v16());
+    assert_eq!(ticked.save_snapshot_v17(), flushed.save_snapshot_v17());
     assert_eq!(bed_feedback(&ticked), bed_feedback(&flushed));
 }
 

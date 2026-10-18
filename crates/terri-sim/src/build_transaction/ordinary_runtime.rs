@@ -1,5 +1,5 @@
 //! Runtime state has a different lifetime from an external save/load.
-//! Durable state comes from V16. Receipts and last-tick observations survive
+//! Durable state comes from V17. Receipts and last-tick observations survive
 //! native transactions; geometry-dependent caches are rebuilt without ticking.
 use crate::{SaveError, Sim};
 use bevy_ecs::prelude::*;
@@ -16,6 +16,7 @@ fn copy_optional<T: Resource + Clone>(from: &World, to: &mut World) {
 pub(crate) fn copy_feedback(from: &World, to: &mut World) {
     let requests = crate::social_episode::requests::runtime::capture(from);
     crate::social_episode::requests::runtime::restore(&requests, to);
+    copy_optional::<crate::player_actions::ActionDiagnostics>(from, to);
     copy_optional::<crate::completion_sounds::CompletionSounds>(from, to);
     copy_optional::<crate::systems::command::CommandFeedback>(from, to);
     copy_optional::<crate::books::BookFeedback>(from, to);
@@ -46,7 +47,7 @@ pub(crate) fn refresh_derived(world: &mut World) {
 }
 
 /// Use existing discontinuity rules while retaining ordinary interpolation.
-/// External Load continues to use Sim::adopt_current directly and resets history.
+/// External Load starts a new action history; native installation retains it.
 pub(crate) fn install(sim: &mut Sim, candidate: Sim) -> Result<(), SaveError> {
     // Adoption syncs the candidate's render buffer and consumes these markers.
     // The live interpolation history below still needs them on its next sync.
@@ -59,10 +60,17 @@ pub(crate) fn install(sim: &mut Sim, candidate: Sim) -> Result<(), SaveError> {
     let rows = std::mem::take(&mut sim.render_rows);
     let sockets = std::mem::take(&mut sim.socket_projected_entities);
     let portals = std::mem::take(&mut sim.portals);
-    let result = sim.adopt_current(candidate);
+    let diagnostics = candidate
+        .world
+        .get_resource::<crate::player_actions::ActionDiagnostics>()
+        .cloned();
+    let result = sim.adopt_current_with_saved_state(candidate);
     sim.render = render;
     sim.portals = portals;
     if result.is_ok() {
+        if let Some(diagnostics) = diagnostics {
+            sim.world.insert_resource(diagnostics);
+        }
         let discontinuities = discontinuities
             .into_iter()
             .filter_map(|entity| crate::dining::entity(&sim.world, entity.index_u32()))

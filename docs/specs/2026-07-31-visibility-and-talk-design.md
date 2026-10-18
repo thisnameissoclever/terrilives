@@ -52,10 +52,11 @@ and TalkTo's `interaction` indexes the pack's SOCIAL vocabulary rather
 than an object's own list, so one variant carrying both index spaces
 would need a discriminant anyway.
 
-The drain drops self-talk (an intent for oneself waits forever on
-"partner busy: me") and stale or object-shaped targets; the
-out-of-range social index is data at the drain and `serve_intents`'
-problem, the exact division UseObject uses.
+The drain rejects self-talk, stale targets and object-shaped targets before
+queue placement. An out-of-range object or social action receives its own
+order identity and an immediate failure reason without displacing valid work
+or recalling workers. See the [player-order lifecycle](2026-10-17-player-orders.md)
+for execution ownership and outcome records.
 
 ## [V4] One busy rule for ordered talks: wait, never steal, never drop
 

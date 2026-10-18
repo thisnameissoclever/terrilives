@@ -96,11 +96,24 @@ pub struct BedState<'w, 's> {
     >,
     reservations: Query<'w, 's, Entity, With<Reserved>>,
     identities: Query<'w, 's, &'static SimId>,
+    served_orders: Query<'w, 's, &'static crate::player_actions::ServedOrder>,
+    front_orders: Query<'w, 's, &'static crate::player_actions::FrontOrder>,
+    talks: Query<'w, 's, &'static Socialising>,
+    meal_orders: Query<'w, 's, &'static crate::player_actions::DirectedMealOrder>,
 }
 
 impl BedState<'_, '_> {
     pub(super) fn owns_incoming(&self, owner: Entity, recipient: Entity) -> bool {
         self.episodes.rendezvous.get(&recipient) == Some(&owner)
+    }
+    pub(super) fn social_admission(&self, owner: Entity) -> Option<bool> {
+        self.episodes.executions.get(&owner).map(|e| e.admitted)
+    }
+    fn protected_incoming(&self, recipient: Entity) -> bool {
+        self.episodes
+            .incoming
+            .get(&recipient)
+            .is_some_and(|owner| self.episodes.executions.contains_key(owner))
     }
     pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
         let mut result = crate::beds::Occupancy::new(
@@ -599,10 +612,9 @@ fn record_directed_chain(
 ///   check is the only thing keeping the sim on task, and the one its
 ///   test is built on.
 ///
-/// A dropped intent is dropped SILENTLY, which is a real limitation
-/// rather than a decision: there is no channel back to the shell yet, so
-/// a player who clicks a sealed-off object sees the sim ignore them. The
-/// feedback belongs with the selection UI in Task 7.
+/// Invalid or unreachable orders record an explicit failure with their
+/// original identity and a reason. The browser reads that lifecycle record
+/// to explain the failure; contention continues waiting without a timeout.
 ///
 /// **Exactly one intent is considered per agent per tick.** Dropping an
 /// unservable front intent therefore costs a tick before the next one is
@@ -647,10 +659,8 @@ pub fn serve_intents(
     carrying: Query<(), With<terri_core::Carrying>>,
     reading: Option<Res<crate::reading::Options>>,
     mut rng: ResMut<SimRng>,
-    // Work outranks the queue - [E4]. serve_intents deliberately sees
-    // mid-walk and mid-meal sims because a player intent preempts, but
-    // the clock's preemption is not preemptable back: a commuting or
-    // working sim's queued intents wait and are served on the return.
+    // Accepted orders recall workers through attendance. Off-lot workers
+    // and inbound commuters cannot serve them until their return completes.
     mut agents: Query<
         (
             Entity,
@@ -756,6 +766,20 @@ pub fn serve_intents(
         if journeys.contains(agent) {
             continue;
         }
+        // Incoming requests run after this activity, before ordinary queued
+        // work. A fresh explicit front order is permitted to redirect first.
+        if (beds.episodes.incoming.contains_key(&agent)
+            || beds.episodes.rendezvous.contains_key(&agent)
+            || beds.talks.iter().any(|talk| talk.partner == agent))
+            && !beds.front_orders.get(agent).is_ok_and(|front| {
+                queue
+                    .entries()
+                    .first()
+                    .is_some_and(|entry| entry.id == front.0)
+            })
+        {
+            continue;
+        }
         if let Some(entry) = queue.entries().first() {
             let owned = objects
                 .get(entry.intent.object)
@@ -802,7 +826,28 @@ pub fn serve_intents(
                             crate::reading::commit_plan(world, agent, origin, Some(id), plan);
                         });
                     } else {
-                        commands.entity(agent).insert(Blocked);
+                        let title = entry.title_id.clone();
+                        commands.queue(move |world: &mut World| {
+                            if crate::reading::waiting_for_owned_copy(world, title.as_deref())
+                                || crate::reading::has_reachable_plan(
+                                    world,
+                                    agent,
+                                    origin,
+                                    title.as_deref(),
+                                )
+                            {
+                                world.entity_mut(agent).insert(Blocked);
+                            } else {
+                                crate::player_actions::terminal(
+                                    world,
+                                    agent,
+                                    id,
+                                    "failed",
+                                    Some("No reachable reading destination"),
+                                );
+                                world.entity_mut(agent).remove::<Blocked>();
+                            }
+                        });
                     }
                 }
                 continue;
@@ -811,6 +856,13 @@ pub fn serve_intents(
         let Some(intent) = queue.front() else {
             continue;
         };
+        if people.get(intent.object).is_ok()
+            && (intent.interaction as usize) < content.0.social.len()
+            && intent.cleanup.is_none()
+            && intent.chore.is_none()
+        {
+            continue;
+        }
 
         let owns_scope = scoped.as_deref().is_some_and(|state| {
             state
@@ -868,12 +920,22 @@ pub fn serve_intents(
         }
 
         if let Some(id) = intent.chore {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::transition(world, agent, entry.id, 1, true)
+                });
+            }
             commands.queue(move |world: &mut World| crate::chores::activate(world, agent, id));
             queue.pop();
             claimed.push(agent);
             continue;
         }
         if let Some(id) = intent.cleanup {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::transition(world, agent, entry.id, 1, true)
+                });
+            }
             commands.queue(move |world: &mut World| {
                 crate::targeted_cleanup::activate(world, agent, id)
             });
@@ -888,6 +950,22 @@ pub fn serve_intents(
         // it, every tick, for ever. The sim would shuffle on the spot
         // instead of arriving.
         if target.is_some_and(|t| t.object == intent.object && t.interaction == intent.interaction)
+            && !beds.front_orders.get(agent).is_ok_and(|front| {
+                queue
+                    .entries()
+                    .first()
+                    .is_some_and(|entry| entry.id == front.0)
+            })
+        {
+            continue;
+        }
+        if target.is_some_and(|t| t.object == intent.object && t.interaction == intent.interaction)
+            && beds.served_orders.get(agent).is_ok_and(|owner| {
+                queue
+                    .entries()
+                    .first()
+                    .is_some_and(|entry| entry.id == owner.0)
+            })
         {
             continue;
         }
@@ -896,7 +974,6 @@ pub fn serve_intents(
         // one, is this agent's own. Re-targeting the same object with a
         // different interaction is a legitimate move and must not be
         // mistaken for contention with somebody else.
-        let held_here = target.is_some_and(|t| t.object == intent.object);
         if crate::chores::object_claimed(
             chore_state.as_deref(),
             intent.object.index_u32(),
@@ -924,6 +1001,17 @@ pub fn serve_intents(
                 commuting,
             )) = people.get(intent.object)
             else {
+                if let Some(entry) = queue.entries().first().cloned() {
+                    commands.queue(move |world: &mut World| {
+                        crate::player_actions::terminal(
+                            world,
+                            agent,
+                            entry.id,
+                            "failed",
+                            Some("Target removed"),
+                        )
+                    });
+                }
                 queue.pop();
                 continue;
             };
@@ -931,111 +1019,67 @@ pub fn serve_intents(
             // object arm below - follow_path indexes pack.social with
             // this number and TalkTo is its second producer.
             if intent.interaction as usize >= content.0.social.len() {
+                if let Some(entry) = queue.entries().first().cloned() {
+                    commands.queue(move |world: &mut World| {
+                        crate::player_actions::terminal(
+                            world,
+                            agent,
+                            entry.id,
+                            "failed",
+                            Some("Unknown conversation action"),
+                        )
+                    });
+                }
                 queue.pop();
                 continue;
             }
-            if !crate::fights::is_fight(&content.0.social[intent.interaction as usize]) {
-                let order_id = queue.entries().first().unwrap().id;
-                if let Some(previous) = target {
-                    crate::reservations::release(&mut commands, agent, *previous);
-                }
-                claimed.push(agent);
-                commands.queue(move |world: &mut World| {
-                    crate::social_episode::requests::enqueue(
-                        world,
-                        agent,
-                        intent.object,
-                        intent.interaction,
-                        crate::social_episode::requests::ConversationOrigin::Player { order_id },
-                    );
-                });
-                continue;
-            }
-            // Spoken for, claimed this tick, or busy in any [H10] sense:
-            // WAIT, exactly as a sim waits for a reserved fridge - the
-            // intent stays at the front and retries, select_action skips
-            // the non-empty queue, and the sim stands rather than
-            // strolls. `Blocked` says why out loud.
-            let unavailable = (has_path && !(reading || chain)) || at_work || commuting;
-            let _ = (reserved_p, has_target, has_eating, has_talking);
-            if (beds.episodes.rendezvous.contains_key(&intent.object) && !held_here)
-                || claimed.contains(&intent.object)
-                || unavailable
-            {
-                commands.entity(agent).insert(Blocked);
-                continue;
-            }
-            let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
-            let to = (target_pos.x.round() as i32, target_pos.y.round() as i32);
-            // Beside the person, 1x1, per the people loop in
-            // select_action. Unreachable drops rather than waits: the
-            // partner is idle, so its tile is stable, and a wall between
-            // the two is not a transient.
-            let Some(steps) = grid
-                .find_path_adjacent_to_tile(from, to)
-                .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
-            else {
-                queue.pop();
-                continue;
-            };
-            if let Some(target) = target {
-                if target.object != intent.object {
-                    crate::reservations::release(&mut commands, agent, *target);
-                }
-            }
-            // BOTH parties into the claimed list. The partner so no
-            // later-directed agent grabs it this tick; the AGENT so two
-            // sims each told to talk to the other form exactly one
-            // conversation - deferred commands make the second agent's
-            // Target invisible to this same run, and the list is the
-            // only within-tick truth, the same trap select_action's
-            // people loop documents.
-            claimed.push(intent.object);
-            claimed.push(agent);
-            occupancy.claim(
-                agent,
-                Target {
-                    object: intent.object,
-                    interaction: intent.interaction,
-                },
-                crate::beds::Admission::Exclusive,
+            let _ = (
+                target_pos,
+                reserved_p,
+                has_target,
+                has_path,
+                has_eating,
+                has_talking,
+                at_work,
+                reading,
+                chain,
+                commuting,
             );
-            commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
-            commands.queue(move |world: &mut World| {
-                crate::social_episode::cancel_incoming(world, agent);
-                world
-                    .resource_mut::<crate::social_episode::SocialEpisodes>()
-                    .rendezvous
-                    .insert(intent.object, agent);
-            });
-            commands
-                .entity(intent.object)
-                .remove::<terri_core::Wander>()
-                .remove::<Restless>()
-                .insert(Reserved);
-            commands
-                .entity(agent)
-                .remove::<Eating>()
-                .remove::<terri_core::SleepPlace>()
-                .remove::<Socialising>()
-                .remove::<terri_core::ConversationVoice>()
-                .remove::<terri_core::StepWork>()
-                .remove::<terri_core::Fumbled>()
-                .insert((
-                    Target {
-                        object: intent.object,
-                        interaction: intent.interaction,
-                    },
-                    Path { steps, cursor: 0 },
-                ));
             continue;
         };
         if content.0.object(placed.0).id == "dining_table" && intent.interaction == 1 {
+            if chain_state.is_some()
+                && beds.meal_orders.get(agent).is_ok_and(|order| {
+                    queue
+                        .entries()
+                        .first()
+                        .is_some_and(|entry| entry.id == order.0)
+                })
+            {
+                continue;
+            }
             let table = intent.object;
+            let id = queue
+                .entries()
+                .first()
+                .expect("served prepared-food order")
+                .id;
             commands.queue(move |world: &mut World| {
-                crate::dining::take_prepared_food(world, agent, table);
+                if crate::dining::take_prepared_food(world, agent, table) {
+                    world
+                        .entity_mut(agent)
+                        .insert(crate::player_actions::DirectedMealOrder(id));
+                    crate::player_actions::transition(world, agent, id, 1, true);
+                } else {
+                    crate::player_actions::terminal(
+                        world,
+                        agent,
+                        id,
+                        "failed",
+                        Some("Prepared food unavailable"),
+                    );
+                }
             });
-            queue.pop();
             claimed.push(agent);
             continue;
         }
@@ -1052,6 +1096,17 @@ pub fn serve_intents(
                     .is_some()
             })
         {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::terminal(
+                        world,
+                        agent,
+                        entry.id,
+                        "failed",
+                        Some("No usable dining chair"),
+                    )
+                });
+            }
             queue.pop();
             continue;
         }
@@ -1146,6 +1201,17 @@ pub fn serve_intents(
                 // Dropping it is what keeps the indexing in
                 // `follow_path` and `tick_interactions` safe by
                 // construction rather than by hope.
+                if let Some(entry) = queue.entries().first().cloned() {
+                    commands.queue(move |world: &mut World| {
+                        crate::player_actions::terminal(
+                            world,
+                            agent,
+                            entry.id,
+                            "failed",
+                            Some("Unknown object action"),
+                        )
+                    });
+                }
                 queue.pop();
                 continue;
             }
@@ -1157,6 +1223,17 @@ pub fn serve_intents(
         let advert = &definition.interactions[intent.interaction as usize];
         let sleep = !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
         let Some(field) = grid.distance_field(from) else {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::terminal(
+                        world,
+                        agent,
+                        entry.id,
+                        "failed",
+                        Some("Initiator cannot reach the floor"),
+                    )
+                });
+            }
             queue.pop();
             continue;
         };
@@ -1188,6 +1265,17 @@ pub fn serve_intents(
                 device,
             );
             if plan.is_none() && media_requested {
+                if let Some(entry) = queue.entries().first().cloned() {
+                    commands.queue(move |world: &mut World| {
+                        crate::player_actions::terminal(
+                            world,
+                            agent,
+                            entry.id,
+                            "failed",
+                            Some("No reachable media position"),
+                        )
+                    });
+                }
                 queue.pop();
                 continue;
             }
@@ -1196,6 +1284,17 @@ pub fn serve_intents(
             None
         };
         if media_plan.is_none() && access.nearest(sleep).is_none() {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::terminal(
+                        world,
+                        agent,
+                        entry.id,
+                        "failed",
+                        Some("Object unreachable"),
+                    )
+                });
+            }
             queue.pop();
             continue;
         }
@@ -1266,6 +1365,17 @@ pub fn serve_intents(
             .path(&grid, from)
             .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
         else {
+            if let Some(entry) = queue.entries().first().cloned() {
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::terminal(
+                        world,
+                        agent,
+                        entry.id,
+                        "failed",
+                        Some("Object unreachable"),
+                    )
+                });
+            }
             queue.pop();
             continue;
         };
@@ -1293,9 +1403,18 @@ pub fn serve_intents(
         // reserve a sim already walking away - the deferred-Target
         // blindness again.
         claimed.push(agent);
+        let order_id = queue.entries().first().expect("served front").id;
         commands
-            .queue(move |world: &mut World| crate::social_episode::cancel_incoming(world, agent));
-        commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
+            .entity(agent)
+            .insert(crate::player_actions::ServedOrder(order_id));
+        commands.queue(move |world: &mut World| {
+            crate::player_actions::transition(world, agent, order_id, 1, true);
+            crate::social_episode::cancel_incoming(world, agent);
+        });
+        commands.queue(move |world: &mut World| {
+            crate::recipe_actions::suspend(world, agent);
+            crate::domestic::suspend_cleanup(world, agent);
+        });
         commands
             .entity(intent.object)
             .remove::<terri_core::Wander>()
@@ -1353,6 +1472,7 @@ pub fn serve_intents(
                 .queue(move |world: &mut World| crate::seating::replace_media(world, agent, plan));
         }
     }
+    commands.queue(|world: &mut World| crate::social_episode::maintain(world));
 }
 
 /// What an agent thinks of something it can see but cannot have yet.
@@ -1431,7 +1551,19 @@ pub fn select_action(
         ),
     >,
     people: Query<
-        (Entity, &Position, &SimId, Has<Reserved>, &Needs),
+        (
+            Entity,
+            &Position,
+            &SimId,
+            Has<Reserved>,
+            &Needs,
+            Has<Eating>,
+            Has<Socialising>,
+            Has<terri_core::ChainState>,
+            Has<crate::reading::ReadingJourney>,
+            Has<terri_core::chores::ChoreWork>,
+            Has<terri_core::Commuting>,
+        ),
         (
             With<Agent>,
             Without<terri_core::AtWork>,
@@ -1561,9 +1693,20 @@ pub fn select_action(
         .map(|(e, ..)| *e)
         .collect();
 
-    let mut company: Vec<(Entity, Position, SimId, bool, Needs)> = people
+    let mut company: Vec<(Entity, Position, SimId, bool, Needs, bool)> = people
         .iter()
-        .map(|(e, pos, id, reserved, needs)| (e, *pos, *id, reserved, *needs))
+        .map(
+            |(e, pos, id, reserved, needs, eating, talking, chain, reading, chore, commuting)| {
+                (
+                    e,
+                    *pos,
+                    *id,
+                    reserved,
+                    *needs,
+                    eating || talking || chain || reading || chore || commuting,
+                )
+            },
+        )
         .collect();
     company.sort_by_key(|(e, ..)| e.index());
 
@@ -1611,11 +1754,13 @@ pub fn select_action(
         instinct,
     ) in idle
     {
-        if beds
-            .requests
-            .requests
-            .values()
-            .any(|r| r.initiator == agent)
+        if beds.protected_incoming(agent)
+            || beds.episodes.rendezvous.contains_key(&agent)
+            || beds
+                .requests
+                .requests
+                .values()
+                .any(|r| r.initiator == agent)
         {
             continue;
         }
@@ -2076,13 +2221,17 @@ pub fn select_action(
             }
         }
 
-        for (other, other_pos, other_id, reserved, _other_needs) in &company {
+        for (other, other_pos, other_id, reserved, _other_needs, busy) in &company {
             let other = *other;
             if other == agent {
                 continue;
             }
-            let contested = false;
-            let _ = reserved;
+            // Autonomous requests can wait for current care, but a player
+            // commitment already elected for either participant keeps priority.
+            let contested = beds.protected_incoming(other)
+                || beds.episodes.executions.contains_key(&other)
+                || beds.protected_incoming(agent);
+            let _ = (reserved, busy);
             let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
             let Some(distance) = distances
                 .and_then(|field| field.distance_to_adjacent(to, terri_core::Footprint::SINGLE))
@@ -2459,7 +2608,7 @@ pub fn select_action(
                     (position.x.round() as i32, position.y.round() as i32),
                     crate::placed_footprint(content.0, placed.0, facing),
                 )
-            } else if let Ok((_, position, _, _, _)) = people.get(object) {
+            } else if let Ok((_, position, ..)) = people.get(object) {
                 (
                     (position.x.round() as i32, position.y.round() as i32),
                     terri_core::Footprint::SINGLE,
@@ -2496,11 +2645,9 @@ pub fn select_action(
         );
         if people.get(object).is_ok() {
             commands.queue(move |world: &mut World| {
-                world
-                    .resource_mut::<crate::social_episode::SocialEpisodes>()
-                    .rendezvous
-                    .insert(object, agent);
+                crate::social_episode::commit_autonomous(world, agent, object, interaction, steps);
             });
+            continue;
         }
         commands
             .entity(object)

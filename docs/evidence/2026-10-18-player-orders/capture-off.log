@@ -1,0 +1,42 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+warning: function `capture_without_commands` is never used
+  --> crates\terri-sim\src\save\v16.rs:18:15
+   |
+18 | pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV16 {
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib) generated 1 warning
+    Finished `test` profile [unoptimized] target(s) in 4.98s
+     Running `target\debug\examples\order_diagnostics.exe --admission-only`
+enqueue_32_orders_ms=4.961
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=4.552
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=15.524
+enqueue_1024_gameplay_hash=10651411615500818358
+enqueue_32_orders_ms=3.452
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=5.273
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=15.816
+enqueue_1024_gameplay_hash=10651411615500818358
+enqueue_32_orders_ms=4.671
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=6.292
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=20.607
+enqueue_1024_gameplay_hash=10651411615500818358
+enqueue_32_orders_ms=4.784
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=7.639
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=17.565
+enqueue_1024_gameplay_hash=10651411615500818358
+enqueue_32_orders_ms=4.847
+enqueue_32_gameplay_hash=15201387859719861122
+enqueue_256_orders_ms=7.483
+enqueue_256_gameplay_hash=9019349123118591901
+enqueue_1024_orders_ms=15.464
+enqueue_1024_gameplay_hash=10651411615500818358

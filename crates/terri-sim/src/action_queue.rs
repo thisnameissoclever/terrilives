@@ -122,7 +122,13 @@ impl Sim {
             if carrying_out_chain && !crate::targeted_cleanup::has_active(&self.world, index) {
                 self.world
                     .get::<crate::recipe_actions::RecipeOrder>(person)
-                    .and_then(|active| self.world.get::<IntentQueue>(person)?.order(active.0))
+                    .map(|owner| owner.0)
+                    .or_else(|| {
+                        self.world
+                            .get::<crate::player_actions::DirectedMealOrder>(person)
+                            .map(|owner| owner.0)
+                    })
+                    .and_then(|id| self.world.get::<IntentQueue>(person)?.order(id))
                     .map(|entry| entry.intent)
             } else {
                 served
