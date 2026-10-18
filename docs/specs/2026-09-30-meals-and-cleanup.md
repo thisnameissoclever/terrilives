@@ -32,6 +32,7 @@ Comfort or companionship. Social is separate: it arrives during simultaneous eat
 liked Sims seated in chairs facing the same table. A nominal 90-minute eating
 interval offers 11 Social points; only eligible overlap receives the benefit.
 Standing, tableless, solitary meals and empty-table sitting offer none.
+Finishing a shared portion grants [appreciation toward its cook](2026-10-18-meal-appreciation.md), independently of seating and company.
 Cooking competence can reduce the whole meal's food benefit,
 including friends' portions. Cooking practice occurs at the cooking step.
 A meal can also burn when it leaves the hob: the cook drops the food, starts
