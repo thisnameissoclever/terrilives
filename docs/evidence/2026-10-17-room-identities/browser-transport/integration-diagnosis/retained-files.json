@@ -1,0 +1,89 @@
+{
+  "text_rule": "UTF-8 viewing copies use LF, no trailing horizontal whitespace and one final newline. Raw logs remain in ignored task scratch.",
+  "files": [
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/task-6-fix-1-rereview.md",
+      "stored": "accepted-area-rereview.md",
+      "raw_sha256": "90fb8074789ad68fa5bca6411a878c9fdc8a4087f4d7af5cc92df7437a68fc32",
+      "stored_sha256": "90fb8074789ad68fa5bca6411a878c9fdc8a4087f4d7af5cc92df7437a68fc32"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/builder-sale-readonly-diagnosis.md",
+      "stored": "native-sale-diagnosis.md",
+      "raw_sha256": "788fb142b329c8ca97338c3e8cd375170ede37ed8736448fb4ed9bbc57ea3656",
+      "stored_sha256": "788fb142b329c8ca97338c3e8cd375170ede37ed8736448fb4ed9bbc57ea3656"
+    },
+    {
+      "source": ".local-build/parent-r6-whole-web.log",
+      "stored": "incomplete-whole-web.log",
+      "raw_sha256": "f92dc4493e61cb375636d9c4630d66db08480656bcdb866c54c1772466a6d7cd",
+      "stored_sha256": "f92dc4493e61cb375636d9c4630d66db08480656bcdb866c54c1772466a6d7cd"
+    },
+    {
+      "source": ".local-build/parent-r6-whole-web-receipt.json",
+      "stored": "incomplete-whole-web-receipt.json",
+      "raw_sha256": "d63bb867bcdc16d79199234fdbb50f5b7c4e546bc58ecd4a2672f2745ee72299",
+      "stored_sha256": "80e883028c3f08fe442ddc9b524ea3f7785d5db45ed7ffa278ad1984bda28ecd"
+    },
+    {
+      "source": ".local-build/parent-r6-whole-web-interruption.json",
+      "stored": "whole-web-interruption.json",
+      "raw_sha256": "ff1306f20fcccc48983f3de97f8bdd88e288eaf6c8baebcaf10faf99569ac08e",
+      "stored_sha256": "166ead4697cd0f8f17df8f155a125fc71d201ac07d23dcfff48b751b887a7be0"
+    },
+    {
+      "source": ".local-build/parent-r6-builder-sale.log",
+      "stored": "original-builder-sale-red.log",
+      "raw_sha256": "67130457c434ed4e3f47d33d3e6ee2f71ac91bb3032fc21a27a511d8504e96b6",
+      "stored_sha256": "960aa592128ed93e1eeaba2e09550d3cfa329838e25c30de91be22b162427785"
+    },
+    {
+      "source": ".local-build/parent-r6-builder-sale-receipt.json",
+      "stored": "original-builder-sale-red-receipt.json",
+      "raw_sha256": "dc3b7c8ec46931e2e3659393eee1760c480fe26de65130d68f443197ddcd90a6",
+      "stored_sha256": "38aa7b9a900b68a55c2c87e02a65fbf543d7673fcaac04ba4fdfdb0c0916bdbc"
+    },
+    {
+      "source": ".local-build/builder-sale-diagnostic-status-red.mjs",
+      "stored": "sale-status-red-probe.mjs",
+      "raw_sha256": "8d4d4785cad42962dec6bf5b26b0546cb04f8d84776606acf3074fdcbcf5d935",
+      "stored_sha256": "c4cbb5e0720ea34cdfe9e1fcfd088eb86b3fbd6b83b4637561e2ddadee4126f5"
+    },
+    {
+      "source": ".local-build/parent-builder-sale-diagnostic.log",
+      "stored": "sale-status-red.log",
+      "raw_sha256": "ef8ccc60d74c88ac00b636d2c1ffd735df670c153cca236c312e7a7887cd5509",
+      "stored_sha256": "340580a884e591e33aa30cc33e4a84fd9c8b12e76f1b3e6e44a01d0447f9d468"
+    },
+    {
+      "source": ".local-build/parent-builder-sale-diagnostic-receipt.json",
+      "stored": "sale-status-red-receipt.json",
+      "raw_sha256": "24ab1cebbd743f628cfc8fa2dae0607833c3be024c14d0875453ddb0017beeae",
+      "stored_sha256": "9f223b0a38e97cf851ff2b8f5f17da0fb237a1c9255dccbb6dd19aa2b8b80b1f"
+    },
+    {
+      "source": ".local-build/builder-sale-diagnostic.mjs",
+      "stored": "native-sale-control-probe.mjs",
+      "raw_sha256": "25ac9d045757321aa6eeeef724fd3746f15d6d702afcbefc9c74588e6267fb92",
+      "stored_sha256": "6a4439bc05fb6a79be649a5aec3f75d3dcc528095e67f6df5e8b33f4743bd4cd"
+    },
+    {
+      "source": ".local-build/builder-sale-diagnostic.json",
+      "stored": "native-sale-control.json",
+      "raw_sha256": "f9285d43c5dc2714fac228f97e0bf5a74a4aec9f290b9b07e45dab97c79eeb59",
+      "stored_sha256": "f9285d43c5dc2714fac228f97e0bf5a74a4aec9f290b9b07e45dab97c79eeb59"
+    },
+    {
+      "source": ".local-build/parent-builder-sale-native-control.log",
+      "stored": "native-sale-control.log",
+      "raw_sha256": "8f6fc04cee82f5caf9eaef01b51ddcd78595dd9e11bb26b2a7fb2da3cc244c0d",
+      "stored_sha256": "8f6fc04cee82f5caf9eaef01b51ddcd78595dd9e11bb26b2a7fb2da3cc244c0d"
+    },
+    {
+      "source": ".local-build/parent-builder-sale-native-control-receipt.json",
+      "stored": "native-sale-control-receipt.json",
+      "raw_sha256": "9dae6c1dd338da58cac8195374c5b289bac3ff5ee9f273d34ff941034b037fea",
+      "stored_sha256": "391664eacd577db7d7736210c16158cb6c72e2941192afa13fd070c6adbdc3f6"
+    }
+  ]
+}

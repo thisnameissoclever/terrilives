@@ -12339,3 +12339,17 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: native preparation and fallible transport projection ended on opposite sides of the token replacement.
 3. Prevention: pass a protocol-free fallible projector into the existing native preparation path. Validate the candidate and project the borrowed review before changing the preparation counter or installing Prepared. Keep wire types in the Wasm crate and avoid an arbitrary outbound cap.
 4. Verification: inject projection failure with a nonempty draft, pending names, a valid old review and nonempty runtime observations. Require exact baseline, raw draft, pending names, counter, view revision and runtime preservation, then commit the old token successfully. State the boundary: preparation can settle newly queued input before this point; this control has no new queued commands.
+
+## [L-room-wire-aggregate-capacity] Validate totals as well as individual rows
+
+1. What happened: the room-review decoder accepted two occupied cells in a one-cell lot because each room's area fit individually.
+2. Root cause: the decoder checked row bounds and relationships but omitted the aggregate capacity check already used by room summaries.
+3. Prevention: validate aggregate invariants at each transport boundary, even when the current native producer is trusted. Keep spare capacity valid when walls or excluded cells need not belong to a room.
+4. Verification: require the independent over-capacity packet to fail. Preserve zero-area Outside, a total equal to capacity and a total below capacity. Check that the sum remains within exact integer arithmetic before relying on a comparison.
+
+## [L-action-feedback-after-requery] Keep action results after generic refreshes
+
+1. What happened: a refused furniture sale produced the correct native result, but the lot-revision refresh replaced its explanation with Ready to place. The original test concealed this separate problem by queuing an action on a lamp with no interactions.
+2. Root cause: action feedback was published before a later generic placement query. The test also treated queue acceptance as proof that its requested interaction existed.
+3. Prevention: verify real action availability and current-save admission in fixtures. Process receipt ownership before refreshing an object list, then publish the specific action result after generic queries.
+4. Verification: queue a real interaction and sale in one drain, without adding gameplay ticks or splitting the race. Require a refused-sale receipt before and after the UI refresh, no native validation error, a strict current-save roundtrip, retained selection, disabled Sell and the visible refusal explanation. Preserve placement and recoloring feedback checks as well.

@@ -1,0 +1,20 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'Ready to place.'
+- 'Wait until nobody is using or approaching this object.'
+
+    at file:///D:/VIBES/.worktrees/f19a/terrilives/.local-build/builder-sale-diagnostic.mjs:63:16 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'Ready to place.',
+  expected: 'Wait until nobody is using or approaching this object.',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.14.1
