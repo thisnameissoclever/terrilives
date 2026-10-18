@@ -757,8 +757,8 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
 }
 
 /// A finished chore is an action line of its own, under the duty's
-/// label; the credit that follows attaches its outcome to it
-/// ([AL-sources]).
+/// label, without company; the credit that follows attaches its outcome
+/// to it ([AL-sources]).
 fn log_finished(world: &mut World, person: u32, key: ChoreKey) {
     let Some(id) = crate::dining::entity(world, person)
         .and_then(|entity| world.get::<terri_core::SimId>(entity))
@@ -769,7 +769,7 @@ fn log_finished(world: &mut World, person: u32, key: ChoreKey) {
     let pack = world.resource::<crate::Content>().0;
     let tick = world.resource::<SimClock>().tick;
     if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
-        log.action_done(pack, tick, id.0, key.kind.label(), None);
+        log.chore_done(pack, tick, id.0, key.kind.label());
     }
 }
 

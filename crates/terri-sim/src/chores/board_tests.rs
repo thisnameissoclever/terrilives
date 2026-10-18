@@ -465,6 +465,40 @@ fn chore_done_links_to_the_performing_action() {
     }
 }
 
+/// [AL-capture] item 4: chore work is never company, so a finished chore's
+/// action line carries no Social total, shared opinion or companion, even
+/// when an activity interrupted before it left company behind.
+#[test]
+fn chore_line_carries_no_stale_company() {
+    use crate::activity_log::{ActivityLog, ACTIONS};
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let owner = state.episodes.iter().find(|e| e.key == key).unwrap().owner;
+    let worker = person(&mut sim, owner);
+    assert!(work::start(sim.world_mut(), &mut state, worker, key, true));
+    sim.world_mut().insert_resource(state);
+    crate::activity_log_tests::drain(&mut sim);
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(owner, 5.0, Some(99));
+    let records = work_until_settled(&mut sim, key);
+    let action = records
+        .iter()
+        .find(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == owner)
+        .expect("the chore's action line");
+    assert_eq!(action.label(), label(&sim, key.kind.label()));
+    assert_eq!(
+        (
+            action.other(),
+            action.value(0),
+            action.value(3),
+            action.triggers()
+        ),
+        (NONE, 0, 0, ACTIONS),
+        "{action:?}"
+    );
+}
+
 /// [AL-group] rule 3: a helper covering a declined chore is one line: the
 /// helper's action, the Covered outcome naming the owner, every other
 /// housemate's appreciation of the helper and the helper's resentment of

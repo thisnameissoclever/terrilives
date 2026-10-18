@@ -7,8 +7,8 @@ import { QueueSource, pack, record } from './activity-log-records.js';
 
 // Every example line of [AL-compose] under each filter combination the
 // specification lists, the selected-housemate rule of [AL-selected], the
-// grouping of [AL-group] and the rounding of [AL-numbers]. Labels are the
-// specification's invented ones, so the lines match it word for word.
+// grouping of [AL-group] and the rounding of [AL-numbers]. Chore labels are
+// the game's own duty labels; the others are the specification's examples.
 
 const { actions: A, chores: C, social: S, skills: K, career: R, details: D, time: T } = FILTER;
 const TIM = 1;
@@ -19,7 +19,7 @@ const NAMES = new Map([[TIM, 'Tim'], [BILL, 'Bill'], [CASEY, 'Casey']]);
 const LABELS = [
   'Chat', 'cooking', 'Read a book', 'Reading', 'Do dishes', 'cause:chore-fulfilled', 'cause:household-mess',
   'cause:privacy-entry', 'cause:nuisance', 'television', 'Cooking', 'Senior clerk', 'Office clerk', 'Fight',
-  'fight-dishes', 'Dishes', 'Floor', 'Join meal', 'cause:meal-shared', 'cause:chore-neglected', 'smalltalk',
+  'fight-dishes', 'Clean floor', 'radio', 'Join meal', 'cause:meal-shared', 'cause:chore-neglected', 'smalltalk',
   'Watch TV', 'cause:privacy-start', 'Shower',
 ] as const;
 const L = Object.fromEntries(LABELS.map((label, index) => [label, index])) as Record<(typeof LABELS)[number], number>;
@@ -149,9 +149,9 @@ describe('activity log lines', () => {
   it('reads the other parents when their trigger is on', () => {
     const store = storeOf(
       record({ seq: 1, tick: 10, kind: KIND.choresThisWeek, triggers: C, actor: TIM, values: [3] }),
-      record({ seq: 2, tick: 10, kind: KIND.duty, actor: TIM, label: L.Dishes, parent: 1, values: [0, 0] }),
-      record({ seq: 3, tick: 10, kind: KIND.duty, actor: TIM, label: L.Floor, parent: 1, values: [1, 7] }),
-      record({ seq: 4, tick: 20, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L.Dishes, values: [3] }),
+      record({ seq: 2, tick: 10, kind: KIND.duty, actor: TIM, label: L['Do dishes'], parent: 1, values: [0, 0] }),
+      record({ seq: 3, tick: 10, kind: KIND.duty, actor: TIM, label: L['Clean floor'], parent: 1, values: [1, 7] }),
+      record({ seq: 4, tick: 20, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L['Do dishes'], values: [3] }),
       record({ seq: 5, tick: 30, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:household-mess'] }),
       record({ seq: 6, tick: 40, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:privacy-entry'] }),
       record({ seq: 7, tick: 50, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:nuisance'], label2: L.television }),
@@ -161,7 +161,7 @@ describe('activity log lines', () => {
       record({ seq: 11, tick: 90, kind: KIND.death, triggers: S, actor: TIM }),
       record({ seq: 12, tick: 95, kind: KIND.fightDone, triggers: A | S, actor: TIM, other: BILL, label: L.Fight, label2: L['fight-dishes'], values: [0, 0, -1_000, -1_000] }),
     );
-    expect(lines(store, C)).toEqual(['Tim: Chores this week: Dishes, Floor (Kitchen)', 'Tim: Missed Dishes']);
+    expect(lines(store, C)).toEqual(['Tim: Chores this week: Do dishes, Clean floor (Kitchen)', 'Tim: Missed chore: Do dishes']);
     expect(lines(store, S)).toEqual([
       "Bill: Annoyed by Casey's dishes",
       'Bill: Annoyed that Casey walked in',
@@ -187,19 +187,33 @@ describe('activity log lines', () => {
     expect(lines(storeOf(review(2, L['Office clerk'])), R)).toEqual(['Tim: Weekly review: Got a raise']);
     expect(lines(storeOf(review(3 | 1 << 8, L['Office clerk'])), R)).toEqual(['Tim: Weekly review: Demoted to Office clerk; Warned at work']);
     expect(lines(storeOf(review(4)), R)).toEqual(['Tim: Weekly review: Fired']);
+    // A dismissal comes after the warning; the line says Fired, not Warned too.
+    expect(lines(storeOf(review(4 | 1 << 8)), R)).toEqual(['Tim: Weekly review: Fired']);
     expect(lines(storeOf(review(5, L['Office clerk'])), R)).toEqual(['Tim: Weekly review: Changed path to Office clerk']);
     const change = (code: number) => record({ seq: 1, kind: KIND.careerChange, triggers: R, actor: TIM, label: L['Office clerk'], values: [code] });
     expect(lines(storeOf(change(1)), R)).toEqual(['Tim: Career assigned: Office clerk']);
-    expect(lines(storeOf(change(2)), R)).toEqual(['Tim: Job left']);
-    const skipped = record({ seq: 1, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L.Dishes, values: [2] });
-    expect(lines(storeOf(skipped), C)).toEqual(['Tim: Skipped Dishes']);
+    expect(lines(storeOf(change(2)), R)).toEqual(['Tim: Quit as Office clerk']);
+    const skipped = record({ seq: 1, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L['Do dishes'], values: [2] });
+    expect(lines(storeOf(skipped), C)).toEqual(['Tim: Skipped chore: Do dishes']);
     const missed = storeOf(
-      record({ seq: 1, tick: 5, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L.Dishes, values: [3] }),
+      record({ seq: 1, tick: 5, kind: KIND.choreOutcome, triggers: C, actor: TIM, label: L['Do dishes'], values: [3] }),
       record({ seq: 2, tick: 5, kind: KIND.feeling, triggers: S, actor: CASEY, other: TIM, label: L['cause:chore-neglected'], parent: 1, values: [0, 0, -200] }),
     );
-    expect(lines(missed, S | D)).toEqual(['Tim: Missed Dishes; Casey resents Tim (-2 opinion of Tim)']);
+    expect(lines(missed, S | D)).toEqual(['Tim: Missed chore: Do dishes; Casey resents Tim (-2 opinion of Tim)']);
     const start = record({ seq: 1, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:privacy-start'], label2: L.Shower });
     expect(lines(storeOf(start), S)).toEqual(['Bill: Annoyed that Casey used the Shower nearby']);
+  });
+
+  it('rounds halves away from zero for both signs', () => {
+    const fight = (mine: number, theirs: number) => record({
+      seq: 1, kind: KIND.fightDone, triggers: A | S, actor: TIM, other: BILL, label: L.Fight, label2: L['fight-dishes'], values: [0, 0, mine, theirs],
+    });
+    expect(lines(storeOf(fight(-150, 150)), S | D)).toEqual([
+      'Tim: Fight with Bill about the dishes; Tim and Bill like each other less (-2 opinion of Bill, +2 opinion of Tim)']);
+    expect(lines(storeOf(fight(-50, 50)), S | D)).toEqual([
+      'Tim: Fight with Bill about the dishes; Tim and Bill like each other less (-1 opinion of Bill, +1 opinion of Tim)']);
+    expect(lines(storeOf(fight(-49, 49)), S | D)).toEqual([
+      'Tim: Fight with Bill about the dishes; Tim and Bill like each other less']);
   });
 
   it('keeps Details and Time from making any line appear', () => {
@@ -274,6 +288,17 @@ describe('grouping and numbers', () => {
       'D1, T08:20 Tim: Read a book',
       "D1, T16:40 Bill: Annoyed by Casey's dishes (3 times, -3 opinion of Casey)",
       "D2, T01:00 Bill: Annoyed by Casey's dishes (-1 opinion of Casey)",
+    ]);
+  });
+
+  it('keeps disliked-object annoyances about different objects apart', () => {
+    const bother = (seq: number, tick: number, object: number) => record({
+      seq, tick, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:nuisance'], label2: object, values: [0, 0, -100],
+    });
+    const store = storeOf(bother(1, 100, L.television), bother(2, 200, L.radio), bother(3, 300, L.television));
+    expect(lines(store, S)).toEqual([
+      'Bill: Bothered by Casey using the radio',
+      'Bill: Bothered by Casey using the television (2 times)',
     ]);
   });
 

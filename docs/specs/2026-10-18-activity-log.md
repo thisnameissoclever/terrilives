@@ -124,7 +124,7 @@ Every source is a point where the simulation already settles the event. The sche
 | Chat started while the listener had an unhelped need | 4 | `systems::interpersonal::conversation_start` | Listener, initiator, low or critical, opinion change |
 | Disliked object in use | 4 | `affinity::bother`, every tick per pair | One record per episode, not per tick [AL-group] |
 | New weekly duties | 5, 6 | Callers of `chores::board::reconcile` when it reports that `policy::assign` wrote new assignments | Assignments grouped by owner: duty kind and target |
-| Chore work completes | 1 | `chores::work::advance` where a task finishes with credit | Performer, the duty kind's label; the chore outcome that follows attaches to it |
+| Chore work completes | 1 | `chores::work::advance` where a task finishes with credit | Performer, the duty kind's label; never a Social total or companion, because chore work is not company; the chore outcome that follows attaches to it |
 | Chore done or covered | 7, 8 | `chores::board::credit` | Owner, performer, duty, outcome; the ChoreFulfilled feelings from each other housemate; the ChoreNeglected feeling when a helper covers a declined duty |
 | Meal appreciated | 8 | `domestic::appreciate_meal` through `relationship_effects::record_opinion_change`, cause MealShared | Eater, cook, opinion change; a child of the eater's kind 1 record for the shared meal, which completes in the same tick |
 | Chore missed | 7, 8 | `chores::board::tick` at the day rollover | Owner, duty, Missed; the ChoreNeglected feelings |
@@ -193,7 +193,7 @@ Bill does Tim's dishes, covering Tim's chore, and Casey appreciates it. A meal a
 | Social | Bill: Do dishes; Casey appreciates Bill |
 | Actions, Chores, Social, Details | Bill: Do dishes; covered Tim's chore; Casey appreciates Bill (+1 opinion of Bill) |
 
-Other parents read as follows when their trigger is on: `Tim: Chores this week: Dishes, Floor (Kitchen)`, `Tim: Missed Dishes`, `Bill: Annoyed by Casey's dishes`, `Bill: Annoyed that Casey walked in`, `Bill: Bothered by Casey using the television`, `Tim: Cooking reached level 4`, `Tim: Weekly review: Promoted to Senior clerk`, `Tim: Hired as Office clerk`, `Tim: Died`. A fight reads `Tim: Fight with Bill about the dishes; Tim and Bill like each other less`.
+Other parents read as follows when their trigger is on: `Tim: Chores this week: Do dishes, Clean floor (Kitchen)`, `Tim: Missed chore: Do dishes`, `Tim: Skipped chore: Do dishes`, `Bill: Annoyed by Casey's dishes`, `Bill: Annoyed that Casey walked in`, `Bill: Bothered by Casey using the television`, `Tim: Cooking reached level 4`, `Tim: Weekly review: Promoted to Senior clerk`, `Tim: Hired as Office clerk`, `Tim: Quit as Office clerk`, `Tim: Died`. Chore lines use the game's own duty labels, such as Do dishes and Clean floor. A dismissal reads `Tim: Weekly review: Fired` without the warning clause, although its record carries the warning bit. A fight reads `Tim: Fight with Bill about the dishes; Tim and Bill like each other less`.
 
 Names are the current names from the household roster. The shell keeps the last name it saw for each `SimId`, so a line about someone who has died or left still names them. Room names in chore clauses are the current names, read through `chore_location`.
 
@@ -207,13 +207,13 @@ The panel says whom it is showing in one plain line under the filters, `Only ent
 
 Repeated irritation is the main source of volume. Three rules bound it.
 
-1. **Same-day annoyance.** Kind 4 lines with the same cause, affected person, responsible person and day become one line. The shell merges them: the count and the summed opinion change update, the line moves to the newest position and its timestamp shows the latest occurrence, and the clause reads `(3 times)` from the second occurrence. The simulation still emits each occurrence, because the household's mess annoyance happens about fourteen times a game day by the research's measurement, which the staging ring handles easily.
+1. **Same-day annoyance.** Kind 4 lines with the same cause, affected person, responsible person, object and day become one line, so annoyances about two different objects, such as a disliked television and a disliked radio, stay apart. The shell merges them: the count and the summed opinion change update, the line moves to the newest position and its timestamp shows the latest occurrence, and the clause reads `(3 times)` from the second occurrence. The simulation still emits each occurrence, because the household's mess annoyance happens about fourteen times a game day by the research's measurement, which the staging ring handles easily.
 2. **Disliked object in use.** `affinity::bother` changes opinion every tick while the pair stays in the same situation, so the simulation groups it before emitting: the scratch area opens an episode when a pair appears, adds each tick's change, and emits one record when the pair has been absent for a whole tick or the day ends.
 3. **Appreciation and resentment.** Feelings caused by one chore outcome are children of that outcome, so a household of five yields one line with up to four appreciations, not five lines.
 
 ## [AL-numbers] Which numbers Details shows
 
-Details shows a number only where the player can compare it with another quantity on the same scale. Each number is rounded to the nearest integer, and a number that rounds to zero is omitted rather than shown as `+0`.
+Details shows a number only where the player can compare it with another quantity on the same scale. Each number is rounded to the nearest integer, with halves rounded away from zero for both signs, so -1.5 shows as -2 and +1.5 as +2, and a number that rounds to zero is omitted rather than shown as `+0`.
 
 | Quantity | Shown as | Why it qualifies |
 | --- | --- | --- |
@@ -373,9 +373,9 @@ These are proposals, not approved copy. They live in one shell module, `web/src/
 | Topic words, phase 1 | eating; small talk; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging about; washing; cleaning; music; letters; baths; cooking; something; the dishes; chores; nothing in particular |
 | Reactions | {name} loves it; {name} likes it; {name} does not mind it; {name} dislikes it; {name} hates it |
 | Feelings | {name} appreciates {name}; {name} and {name} like each other less; Annoyed by {name}'s dishes; Annoyed by {name}'s dirty place setting; Annoyed that {name} walked in; Annoyed that {name} used the {object} nearby; Annoyed that {name} interrupted; Bothered by {name} using the {kind}, reused from the mood panel; ({n} times), which shares its parentheses with a Details number as ({n} times, {+n} opinion of {name}); {name} resents {name}, for a chore neglected; Annoyed that {name} used something nearby, when the fixture is unknown; Annoyed by {name}, for a cause the shell does not know |
-| Chores | Chores this week: {duties}; {duty} ({room}); covered {name}'s chore; Missed {duty}; Skipped {duty} |
+| Chores | Chores this week: {duties}; {duty} ({room}); covered {name}'s chore; Missed chore: {chore} and Skipped chore: {chore}, chosen by the owner |
 | Skills | {skill} level {n}; {skill} reached level {n}; ({p}%); a chat partner's level-up reads {name}: {skill} reached level {n} |
-| Career | Weekly review: {outcome}; Promoted to {title}; Got a raise; Demoted to {title}; Fired; Changed path to {title}; No change; Warned at work; Hired as {title}; Career assigned: {title}; Job left |
+| Career | Weekly review: {outcome}; Promoted to {title}; Got a raise; Demoted to {title}; Fired; Changed path to {title}; No change; Warned at work; Hired as {title}; Career assigned: {title}; Quit as {title}, chosen by the owner, with the title of the job left |
 | Details | +{n} Social; {+n} opinion of {name}; performance {n} of 100; fit {n}; skill {n}%; mood {n} |
 | Household | Died |
 | Subjects, phase 2 | Trains; Bicycling; Gardening; Weather; Work |

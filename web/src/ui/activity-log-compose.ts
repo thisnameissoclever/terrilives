@@ -42,6 +42,8 @@ const OUTCOME = { done: 0, covered: 1, skipped: 2, missed: 3 } as const;
 const CHANGE = { hired: 0, assigned: 1, left: 2 } as const;
 /** Bit 8 of a weekly review's `v0`: the person carries a warning. */
 const REVIEW_WARNED = 1 << 8;
+/** The weekly review outcome code for a dismissal. */
+const REVIEW_FIRED = 4;
 
 export interface ComposeContext {
   /** The simulation's label table, read once per page. */
@@ -129,9 +131,13 @@ export class LogLines {
   }
 }
 
+/**
+ * Same cause, same two people, same day and same object: annoyances about two
+ * different objects, such as a disliked television and radio, stay apart.
+ */
 function groupKey(store: ActivityLogStore, index: number, dayTicks: number): string {
   const day = Math.floor(store.tick(index) / Math.max(1, dayTicks));
-  return `${store.label(index)}:${store.actor(index)}:${store.other(index)}:${day}`;
+  return `${store.label(index)}:${store.actor(index)}:${store.other(index)}:${store.label2(index)}:${day}`;
 }
 
 /** Every visible line's text, oldest first. */
@@ -208,9 +214,13 @@ export function stamp(tick: number, dayTicks: number): string {
   return words.timestamp(Math.floor(tick / day) + 1, Math.floor(minute / 60), minute % 60);
 }
 
-/** A rounded Details number, or null when it rounds to zero ([AL-numbers]). */
+/**
+ * A rounded Details number, or null when it rounds to zero ([AL-numbers]).
+ * Halves round away from zero for both signs; `Math.round` alone would turn
+ * -1.5 into -1 but +1.5 into +2.
+ */
 function rounded(value: number, unit: number): number | null {
-  const result = Math.round(value / unit);
+  const result = Math.sign(value) * Math.round(Math.abs(value) / unit);
   return result === 0 ? null : result;
 }
 
@@ -458,7 +468,9 @@ class LineText {
       factor(mastery, words.skillFactor),
       factor(mood, words.moodFactor),
     ]);
-    return this.join(head, [(code & REVIEW_WARNED) !== 0 ? words.WARNED_AT_WORK : null]);
+    // A dismissal also carries the warning bit; the line says Fired alone.
+    const warned = (code & REVIEW_WARNED) !== 0 && (code & 0xff) !== REVIEW_FIRED;
+    return this.join(head, [warned ? words.WARNED_AT_WORK : null]);
   }
 
   private change(actor: string): string {
@@ -467,7 +479,7 @@ class LineText {
     switch (store.value(index, 0)) {
       case CHANGE.hired: return words.head(actor, words.hiredAs(title));
       case CHANGE.assigned: return words.head(actor, words.careerAssigned(title));
-      case CHANGE.left: return words.head(actor, words.JOB_LEFT);
+      case CHANGE.left: return words.head(actor, words.quitAs(title));
       default: return words.head(actor, words.SOMETHING);
     }
   }

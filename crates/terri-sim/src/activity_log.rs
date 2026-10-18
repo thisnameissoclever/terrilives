@@ -710,6 +710,34 @@ impl ActivityLog {
             return;
         }
         let company = self.take_company(actor);
+        self.push_action(pack, tick, actor, label, skill, company);
+    }
+
+    /// Kind 1 for finished chore work, which is never company: the line
+    /// carries no Social total, shared opinion or companion, whatever an
+    /// activity interrupted before it left in the scratch area.
+    pub(crate) fn chore_done(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        label: &str,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        self.push_action(pack, tick, actor, label, None, Company::default());
+    }
+
+    fn push_action(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        label: &str,
+        skill: Option<Practiced>,
+        company: Company,
+    ) {
         let labels = labels(pack);
         let mut record = LogRecord::new(LogKind::ActionDone, ACTIONS, tick, actor)
             .with_other(company.companion.unwrap_or(NONE))

@@ -410,11 +410,15 @@ fn activity_log_never_changes_the_world() {
     // shipped household's first two days; their own tests drive them.
 }
 
-/// The full twenty game days of [AL-perf]. A debug build takes about
-/// fifteen minutes, and no workflow runs ignored tests, so this is a manual
-/// check: `cargo test -p terri-sim activity_log -- --ignored --test-threads=1`.
+/// The full twenty game days of [AL-perf]. This is a manual check, not a CI
+/// one: `.github/workflows/ci.yml` runs only the debug `cargo test
+/// --workspace`, where it takes about fifteen minutes, and has no release
+/// test step to add it to. Run it in a release build, where it takes about
+/// a minute, before merging a change to an emitter: `cargo test --release
+/// -p terri-sim activity_log_never_changes_the_world_over_twenty_days --
+/// --ignored --test-threads=1`.
 #[test]
-#[ignore = "twenty game days take about fifteen minutes in a debug build"]
+#[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn activity_log_never_changes_the_world_over_twenty_days() {
     assert_log_never_changes_the_world(20);
 }

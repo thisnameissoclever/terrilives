@@ -109,8 +109,8 @@ export function times(count: number): string { return `${count} times`; }
 export function choresThisWeek(duties: readonly string[]): string { return `Chores this week: ${duties.join(LIST_SEPARATOR)}`; }
 export function dutyInRoom(duty: string, room: string): string { return `${duty} (${room})`; }
 export function coveredChore(owner: string): string { return `covered ${owner}'s chore`; }
-export function missedChore(duty: string): string { return `Missed ${duty}`; }
-export function skippedChore(duty: string): string { return `Skipped ${duty}`; }
+export function missedChore(duty: string): string { return `Missed chore: ${duty}`; }
+export function skippedChore(duty: string): string { return `Skipped chore: ${duty}`; }
 
 /** Skills. */
 export function skillLevel(skill: string, level: number): string { return `${skill} level ${level}`; }
@@ -132,7 +132,8 @@ export function reviewOutcome(code: number, title: string): string {
 export const WARNED_AT_WORK = 'Warned at work';
 export function hiredAs(title: string): string { return `Hired as ${title}`; }
 export function careerAssigned(title: string): string { return `Career assigned: ${title}`; }
-export const JOB_LEFT = 'Job left';
+/** The title of the job the housemate left. */
+export function quitAs(title: string): string { return `Quit as ${title}`; }
 
 /** Household. */
 export const DIED = 'Died';
