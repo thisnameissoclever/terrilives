@@ -82,6 +82,7 @@ pub(crate) mod v11;
 pub(crate) mod v12;
 pub(crate) mod v13;
 pub(crate) mod v14;
+pub(crate) mod v15;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -2305,12 +2306,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v6();
+        let state = uninterrupted.save_snapshot_v15();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v6(state.clone())
+            .load_snapshot_v15(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v6(), state);
+        assert_eq!(resumed.save_snapshot_v15(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();

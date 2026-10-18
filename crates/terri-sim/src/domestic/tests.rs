@@ -893,10 +893,10 @@ fn snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips() {
                     }
                 }
             }
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut restored = Sim::new_from_shipped_lot();
             restored
-                .load_snapshot_v10(snapshot)
+                .load_snapshot_v15(snapshot)
                 .expect("every in-flight domestic save loads");
             assert_eq!(
                 sim.world_hash(),
@@ -1551,7 +1551,7 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(state.dishes[0].units, 3);
     assert!(sim.world().get::<ChainState>(people[0]).is_none());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1669,7 +1669,7 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
         loaded
             .world_mut()
             .insert_resource(*sim.world().resource::<Content>());
-        loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+        loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if sim.world().resource::<SavedDomestic>().meals.is_empty() {
             break;

@@ -76,6 +76,7 @@ pub struct BedState<'w, 's> {
     pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
     content: Res<'w, Content>,
     episodes: Res<'w, crate::social_episode::SocialEpisodes>,
+    pub(super) requests: Res<'w, crate::social_episode::requests::ConversationRequests>,
     family: Option<Res<'w, terri_core::layout::FamilyTies>>,
     seat_claims: Query<'w, 's, (Entity, &'static crate::seating::PhysicalClaim)>,
     definitions: Query<'w, 's, &'static SmartObject>,
@@ -926,6 +927,23 @@ pub fn serve_intents(
                 queue.pop();
                 continue;
             }
+            if !crate::fights::is_fight(&content.0.social[intent.interaction as usize]) {
+                let order_id = queue.entries().first().unwrap().id;
+                if let Some(previous) = target {
+                    crate::reservations::release(&mut commands, agent, *previous);
+                }
+                claimed.push(agent);
+                commands.queue(move |world: &mut World| {
+                    crate::social_episode::requests::enqueue(
+                        world,
+                        agent,
+                        intent.object,
+                        intent.interaction,
+                        crate::social_episode::requests::ConversationOrigin::Player { order_id },
+                    );
+                });
+                continue;
+            }
             // Spoken for, claimed this tick, or busy in any [H10] sense:
             // WAIT, exactly as a sim waits for a reserved fridge - the
             // intent stays at the front and retries, select_action skips
@@ -1402,11 +1420,16 @@ pub fn select_action(
             Without<terri_core::chores::ChoreWork>,
             Without<crate::reading::ReadingJourney>,
             Without<crate::reading::PendingShift>,
+            Without<crate::social_episode::requests::CommittedConversation>,
         ),
     >,
     people: Query<
         (Entity, &Position, &SimId, Has<Reserved>, &Needs),
-        (With<Agent>, Without<Path>, Without<terri_core::AtWork>),
+        (
+            With<Agent>,
+            Without<terri_core::AtWork>,
+            Without<terri_core::Commuting>,
+        ),
     >,
     objects: Query<(
         Entity,
@@ -1449,7 +1472,7 @@ pub fn select_action(
         .iter()
         .filter(|(_, _, needs, queue, _, _, _, _, _, _, wander, path)| {
             queue.is_none_or(|queue| queue.is_empty())
-                && (wander.is_none_or(|w| path.is_none() && w.pause_ticks == 0)
+                && ((path.is_none() && wander.is_none_or(|w| w.pause_ticks == 0))
                     || NeedId::ALL
                         .iter()
                         .any(|id| needs.get(*id) <= content.0.tuning.mood_critical_need_level))
@@ -1581,7 +1604,12 @@ pub fn select_action(
         instinct,
     ) in idle
     {
-        if beds.episodes.rendezvous.contains_key(&agent) {
+        if beds
+            .requests
+            .requests
+            .values()
+            .any(|r| r.initiator == agent)
+        {
             continue;
         }
         if claimed.contains(&agent) {
@@ -1593,6 +1621,7 @@ pub fn select_action(
             continue;
         }
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
+        let mut outcomes = std::collections::HashMap::new();
         let mut admissions = std::collections::HashMap::new();
         let mut routes = std::collections::HashMap::new();
         let mut media_plans = std::collections::HashMap::new();
@@ -1668,6 +1697,7 @@ pub fn select_action(
                         if let Some(best) =
                             crate::reading::best_plan(choices, agent, &occupancy, &reading_copies)
                         {
+                            outcomes.insert((object, index as u32), best.need_outcome.clone());
                             candidates.push((object, index as u32, best.score));
                             risks.push(best.risk);
                         }
@@ -1864,6 +1894,64 @@ pub fn select_action(
                             .then_with(|| preference(a.0).1.cmp(&preference(b.0).1))
                     });
                 if let Some((admission, route, score, risk)) = chosen {
+                    let distance = route.distance as f32
+                        + snack.map_or(0., |chain| chain_travel(chain, &role_positions));
+                    let outcome = if snack.is_some() {
+                        super::critical_choices::recipe_outcome(
+                            content.0,
+                            &needs,
+                            &personality,
+                            benefits,
+                            duration,
+                            distance,
+                        )
+                    } else {
+                        let endpoint = media_plan
+                            .as_ref()
+                            .map(|p| p.physical_place(agent, object).endpoint)
+                            .or_else(|| {
+                                route
+                                    .route
+                                    .path(&grid, from)
+                                    .and_then(|steps| steps.last().copied())
+                            })
+                            .unwrap_or(from);
+                        let company_scale = social_company.proposed_scale(
+                            agent,
+                            object,
+                            index as u32,
+                            &relationships,
+                            endpoint,
+                        );
+                        let effects = crate::need_interactions::physical::object_effects(
+                            content.0,
+                            advert,
+                            &personality,
+                            crate::need_interactions::physical::ObjectContext {
+                                social_available: social_available || shared_available,
+                                shared: shared_available,
+                                seat_rate,
+                                company: company_scale,
+                            },
+                        );
+                        super::critical_choices::predict_phases(
+                            content.0,
+                            &needs,
+                            &personality,
+                            &[
+                                super::critical_choices::Phase::Decay(
+                                    super::critical_choices::travel_ticks(distance),
+                                ),
+                                super::critical_choices::Phase::Active {
+                                    ticks: duration,
+                                    effects,
+                                    action: Some(advert),
+                                    asleep: sleep,
+                                },
+                            ],
+                        )
+                    };
+                    outcomes.insert((object, index as u32), outcome);
                     candidates.push((object, index as u32, score));
                     risks.push(risk);
                     admissions.insert((object, index as u32), admission);
@@ -1964,6 +2052,17 @@ pub fn select_action(
                     ));
                 }
                 if !contested {
+                    outcomes.insert(
+                        (object, row),
+                        super::critical_choices::recipe_outcome(
+                            content.0,
+                            &needs,
+                            &personality,
+                            &chain.advertises,
+                            total_duration,
+                            distance + legs,
+                        ),
+                    );
                     candidates.push((object, row, score));
                     risks.push(risk);
                 }
@@ -1975,8 +2074,7 @@ pub fn select_action(
             if other == agent {
                 continue;
             }
-            let contested =
-                beds.episodes.rendezvous.contains_key(&other) || claimed.contains(&other);
+            let contested = false;
             let _ = reserved;
             let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
             let Some(distance) = distances
@@ -1984,7 +2082,12 @@ pub fn select_action(
             else {
                 continue;
             };
-            let distance = distance as f32;
+            let wait = beds.requests.delays.get(&other).copied().flatten();
+            if wait.is_none() {
+                continue;
+            }
+            let wait = wait.unwrap_or(0);
+            let distance = distance as f32 + wait as f32 * super::advertise::TILES_PER_TICK;
 
             let family = beds.identities.get(agent).ok().is_some_and(|id| {
                 beds.family
@@ -2057,6 +2160,35 @@ pub fn select_action(
                     waiting_rows.push((other, contested_score(score, contested_multiplier), None));
                 }
                 if !contested {
+                    let physical = crate::need_interactions::physical::conversation_effects(
+                        &advert.advertises,
+                        &personality,
+                        relationship,
+                        super::advertise::relationship_scale(
+                            relationships.feeling(*other_id),
+                            content.0.tuning.relationship_delta_scale,
+                        ),
+                        advert.duration_ticks,
+                    );
+                    outcomes.insert(
+                        (other, index as u32),
+                        super::critical_choices::predict_phases(
+                            content.0,
+                            &needs,
+                            &personality,
+                            &[
+                                super::critical_choices::Phase::Decay(
+                                    super::critical_choices::travel_ticks(distance),
+                                ),
+                                super::critical_choices::Phase::Active {
+                                    ticks: advert.duration_ticks,
+                                    effects: physical,
+                                    action: None,
+                                    asleep: false,
+                                },
+                            ],
+                        ),
+                    );
                     candidates.push((other, index as u32, score));
                     risks.push(risk);
                 }
@@ -2064,6 +2196,42 @@ pub fn select_action(
         }
 
         crate::beds::prefer_assignments(&mut candidates, &mut risks, &admissions);
+
+        // Concrete reading plans share the same crisis draw as other actions.
+        // A second book draw could otherwise replace useful relief with an
+        // unrelated title or seat after its probability had already been capped.
+        let concrete_reading_enabled = content.0.tuning.autonomy.is_some()
+            && NeedId::ALL
+                .iter()
+                .any(|id| needs.get(*id) <= content.0.tuning.mood_critical_need_level);
+        let mut concrete_reading = std::collections::HashMap::new();
+        let mut choice_outcomes = Vec::new();
+        for ((object, interaction, score), risk) in std::mem::take(&mut candidates)
+            .into_iter()
+            .zip(std::mem::take(&mut risks))
+        {
+            let plans = concrete_reading_enabled
+                .then(|| {
+                    reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, object, interaction)))
+                })
+                .flatten();
+            if let Some(plans) = plans {
+                for plan in
+                    crate::reading::representatives(plans, agent, None, &occupancy, &reading_copies)
+                {
+                    concrete_reading.insert(candidates.len(), plan.clone());
+                    candidates.push((object, interaction, plan.score));
+                    risks.push(plan.risk);
+                    choice_outcomes.push(plan.need_outcome.clone());
+                }
+            } else {
+                candidates.push((object, interaction, score));
+                risks.push(risk);
+                choice_outcomes.push(outcomes.remove(&(object, interaction)).unwrap_or_default());
+            }
+        }
 
         // Waiting targets and their interactions are sampled like available targets.
         let mut waiting_choices = Vec::new();
@@ -2100,9 +2268,14 @@ pub fn select_action(
         );
         candidates.push((agent, u32::MAX, idle_threshold - wander_risk));
         risks.push(wander_risk);
-        let probabilities = super::autonomy::grouped_probabilities(
+        choice_outcomes.resize_with(candidates.len(), Default::default);
+        let probabilities = super::critical_choices::critical_choice_probabilities(
             &candidates,
             &risks,
+            &choice_outcomes,
+            &needs,
+            content.0.tuning.mood_critical_need_level,
+            content.0.tuning.autonomy,
             temperature,
             exploration,
             content.0.tuning.choice_probability_floor,
@@ -2115,7 +2288,21 @@ pub fn select_action(
                 .iter()
                 .map(|id| needs.get(*id))
                 .fold(100.0, f32::min),
+            critical_need_count: NeedId::ALL
+                .iter()
+                .filter(|id| needs.get(**id) <= content.0.tuning.mood_critical_need_level)
+                .count() as u8,
             chosen: picked,
+            relief_masks: choice_outcomes
+                .iter()
+                .map(|outcome| {
+                    super::critical_choices::critical_relief_mask(
+                        &needs,
+                        outcome,
+                        content.0.tuning.mood_critical_need_level,
+                    )
+                })
+                .collect(),
             choices: candidates
                 .iter()
                 .zip(&risks)
@@ -2156,6 +2343,24 @@ pub fn select_action(
             .remove::<Restless>()
             .remove::<terri_core::Wander>();
 
+        if people.get(object).is_ok() {
+            claimed.push(agent);
+            // Deferred component writes must not let a free recipient choose a
+            // new errand later in this same pass. Existing care keeps priority.
+            if beds.requests.delays.get(&object) == Some(&Some(0)) {
+                claimed.push(object);
+            }
+            commands.queue(move |world: &mut World| {
+                crate::social_episode::requests::enqueue(
+                    world,
+                    agent,
+                    object,
+                    interaction,
+                    crate::social_episode::requests::ConversationOrigin::Autonomous,
+                );
+            });
+            continue;
+        }
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
             if content
                 .0
@@ -2164,21 +2369,25 @@ pub fn select_action(
                 .get(interaction as usize)
                 .is_some_and(|a| a.book_reading)
             {
-                if let Some(plan) = reading
-                    .as_ref()
-                    .and_then(|r| r.0.get(&(agent, object, interaction)))
-                    .and_then(|choices| {
-                        crate::reading::choose_plan(
-                            choices,
-                            agent,
-                            None,
-                            &occupancy,
-                            &reading_copies,
-                            &mut rng,
-                            content.0,
-                        )
-                    })
-                {
+                let plan = if concrete_reading_enabled {
+                    concrete_reading.remove(&picked)
+                } else {
+                    reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, object, interaction)))
+                        .and_then(|choices| {
+                            crate::reading::choose_plan(
+                                choices,
+                                agent,
+                                None,
+                                &occupancy,
+                                &reading_copies,
+                                &mut rng,
+                                content.0,
+                            )
+                        })
+                };
+                if let Some(plan) = plan {
                     reading_copies.insert(plan.copy);
                     crate::reading::publish_plan(&mut occupancy, agent, &plan);
                     commands.queue(move |world: &mut World| {

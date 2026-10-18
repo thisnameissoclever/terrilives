@@ -1,0 +1,25 @@
+{
+  "source_commit": "0bd5dd8c7e259c2d4a74eae23310c3595c4526cc",
+  "observed_utc": "2026-10-18T00:50:58.879836+00:00",
+  "browser_closed": true,
+  "displayed": true,
+  "isolated_storage": true,
+  "reduced_motion": true,
+  "speeds": [
+    1,
+    3
+  ],
+  "files": {
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-approach-proof.json": "d4bce7d8d7d168cfa368fb88fed422ad2399c866f2396f0791c08c230350ad63",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-approach.png": "8ae09c901354ee77cb70cfbe272aa70fb4804192d5225c536b4086510d5f4a7c",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-phone-talk.png": "05c19bb909b8055c721bea62b5052bbcaac2a8279df9d72b1ad304495689cc97",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-phone-wait.png": "6dcbbb826cc7a85f9ebee1ed2a00fdd5999b25e901af22a895cc44cc56774283",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-play-proof.json": "921fa07f3958eb410e03960a8464374d9768cb2fcb8624b3bf77c973b50547ff",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-private-wait.png": "dde502a49f7d1c27877b989efbf51da8fa95074fa5fc538f80f049612b9e8616",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-browser/integration-talking.png": "bb758e3e4c33067e4fd744267a0019aca493f286fdf3d5e6078848619d429705",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-gates.json": "ea36ecd4e3a01ab7575d551990dd0b81e6fa4d0e68acd3ef3dc3517b0351cfe0",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/integration-source-hashes.json": "0e386c3219d1aa7d74d3c424aeb2d59dffeeabb7ffff501e4e6e85d7019b1e41",
+    "web/src/wasm/terri_wasm_bg.wasm": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648",
+    "web/src/wasm/terri_wasm.js": "772d9ecc02d768b0fdeb311c0520f18f344f3690b1851ab841d9d46f7aec441c"
+  }
+}

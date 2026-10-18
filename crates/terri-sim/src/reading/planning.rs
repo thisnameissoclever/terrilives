@@ -16,6 +16,7 @@ pub struct Plan {
     pub score: f32,
     pub risk: f32,
     pub route_steps: usize,
+    pub need_outcome: crate::systems::critical_choices::NeedOutcome,
 }
 
 #[derive(Resource, Default)]
@@ -269,6 +270,61 @@ pub(crate) fn plans(
                 })
                 .sum::<f32>()
                 - risk;
+            let mut effects = crate::need_interactions::physical::reading_effects(
+                benefits.fun,
+                benefits.comfort_for_ticks(1),
+                expected_work / duration as f32 / terri_data::books::READING_REFERENCE_TICKS,
+                interest * disposition(world, person, target),
+                1.,
+                &personality,
+            );
+            let feelings = world
+                .get::<terri_core::Relationships>(person)
+                .cloned()
+                .unwrap_or_default();
+            let company = world.resource::<crate::social_company::SocialCompany>();
+            if company.shared_allowed(
+                person,
+                target.object,
+                target.interaction,
+                &feelings,
+                destination,
+            ) {
+                effects[NeedId::Social.index()] = crate::need_interactions::physical::shared_rate(
+                    pack.tuning.need_interactions.shared_social_per_tick,
+                    personality.satisfaction[NeedId::Social.index()],
+                    company.proposed_scale(
+                        person,
+                        target.object,
+                        target.interaction,
+                        &feelings,
+                        destination,
+                    ),
+                );
+            }
+            let outcome = crate::systems::critical_choices::predict_phases(
+                pack,
+                &needs,
+                &personality,
+                &[
+                    crate::systems::critical_choices::Phase::Decay(
+                        crate::systems::critical_choices::travel_ticks(
+                            (fetch.len() + travel.len()) as f32,
+                        )
+                        .saturating_add(tuning.pickup_ticks),
+                    ),
+                    crate::systems::critical_choices::Phase::Active {
+                        ticks: duration,
+                        effects,
+                        action: Some(act),
+                        asleep: false,
+                    },
+                    crate::systems::critical_choices::Phase::Decay(
+                        crate::systems::critical_choices::travel_ticks(travel.len() as f32)
+                            .saturating_add(tuning.shelve_ticks),
+                    ),
+                ],
+            );
             let plan = Plan {
                 priority: with_book_world(world, |context| {
                     world
@@ -287,6 +343,7 @@ pub(crate) fn plans(
                 score,
                 risk,
                 route_steps,
+                need_outcome: outcome,
             };
             result.push(plan);
         }
@@ -400,7 +457,7 @@ fn preference(a: &Plan, b: &Plan) -> std::cmp::Ordering {
 }
 
 /// One available route per title/seat ticket, shared by advertising and execution.
-fn representatives<'a>(
+pub(crate) fn representatives<'a>(
     choices: &'a [Plan],
     person: Entity,
     title: Option<&str>,

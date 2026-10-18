@@ -19,6 +19,18 @@ export class BuildSession implements PersistableSim {
   dayTicks(): number { return this.source.dayTicks(); }
   saveBytes(): Uint8Array { return this.baseline?.slice() ?? this.source.saveBytes(); }
 
+  /**
+   * Whether the draft's save bytes differ from the last confirmed world's.
+   * The page also counts a command still on its way, by asking its tools,
+   * rather than relying on the bytes to show it.
+   */
+  hasChanges(): boolean {
+    const baseline = this.baseline;
+    if (!baseline) return false;
+    const draft = this.source.saveBytes();
+    return draft.length !== baseline.length || draft.some((byte, index) => byte !== baseline[index]);
+  }
+
   loadBytes(bytes: Uint8Array): boolean {
     if (!this.source.loadBytes(bytes)) return false;
     // A successful Load replaces the household, including the cancellation target.

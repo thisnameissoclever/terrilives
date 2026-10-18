@@ -1,7 +1,8 @@
 import type { CharacterBehaviorDraft, F32Bits } from './schema.js';
 
 export interface CharacterCatalog {
-  version:1;
+  version:1|2;
+  self_preservation_bands:{min:number;max:number;weight:number}[];
   name_limit:number;
   max_traits:number;
   max_household:number;

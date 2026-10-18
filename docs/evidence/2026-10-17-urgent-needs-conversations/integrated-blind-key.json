@@ -1,0 +1,12 @@
+{
+  "image-K.png": "integration-phone-talk.png",
+  "image-L.png": "mobile-condition-c.png",
+  "image-M.png": "integration-approach.png",
+  "image-N.png": "capture-a-10.png",
+  "image-P.png": "integration-private-wait.png",
+  "image-Q.png": "integration-phone-wait.png",
+  "image-R.png": "integration-talking.png",
+  "samples-MR.json": "integration-play-proof.json",
+  "sample-M.json": "integration-approach-proof.json",
+  "samples-N.json": "baseline-browser-samples.json"
+}

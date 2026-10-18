@@ -734,7 +734,14 @@ fn shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win() {
     sim.world_mut()
         .insert_resource(terri_core::SimRng::from_seed(seed));
     let mut schedule = Schedule::default();
-    schedule.add_systems((super::prepare, super::super::action::select_action).chain());
+    schedule.add_systems(
+        (
+            crate::social_episode::requests::before_choices,
+            super::prepare,
+            super::super::action::select_action,
+        )
+            .chain(),
+    );
     schedule.run(sim.world_mut());
     assert_eq!(sim.world().get::<Target>(a).unwrap().object, safe);
     sim.world_mut()
@@ -1589,7 +1596,14 @@ fn shyness_autonomous_conversation_choice_prefers_a_partner_without_urgent_needs
     sim.world_mut()
         .insert_resource(terri_core::SimRng::from_seed(seed));
     let mut schedule = Schedule::default();
-    schedule.add_systems((super::prepare, super::super::action::select_action).chain());
+    schedule.add_systems(
+        (
+            crate::social_episode::requests::before_choices,
+            super::prepare,
+            super::super::action::select_action,
+        )
+            .chain(),
+    );
     schedule.run(sim.world_mut());
     assert_eq!(sim.world().get::<Target>(a).unwrap().object, available);
 }

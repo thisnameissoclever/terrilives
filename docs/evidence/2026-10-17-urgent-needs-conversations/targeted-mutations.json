@@ -1,0 +1,51 @@
+[
+  {
+    "name": "crisis-cap",
+    "caught": true,
+    "exit": 101,
+    "seconds": 11.1,
+    "source_sha256": "bfe14c9f66997ace55ba7a0f25d50d138872ff4afeec73bcc007e4b2bb680803"
+  },
+  {
+    "name": "creation-boundary",
+    "caught": true,
+    "exit": 101,
+    "seconds": 10.45,
+    "source_sha256": "1f98893efae0bb24a598cf1c568d0cc5e29371d03641b8229bccce76a8962720"
+  },
+  {
+    "name": "wait-status",
+    "caught": true,
+    "exit": 101,
+    "seconds": 13.44,
+    "source_sha256": "125c2fbb7cb1cad07ec99f9c90b641a4e96830eb57e9745de780e684441a76d4"
+  },
+  {
+    "name": "recipient-admission",
+    "caught": true,
+    "exit": 101,
+    "seconds": 6.65,
+    "source_sha256": "e8949def6a89acf50ff6333c503106c7738247a09bd265a3f832b37a73b771df"
+  },
+  {
+    "name": "request-identity",
+    "caught": true,
+    "exit": 101,
+    "seconds": 6.61,
+    "source_sha256": "e8949def6a89acf50ff6333c503106c7738247a09bd265a3f832b37a73b771df"
+  },
+  {
+    "name": "exact-player-order",
+    "caught": true,
+    "exit": 101,
+    "seconds": 12.16,
+    "source_sha256": "e2fe57f58e23f38e0b9afaaee43f6606a832d348659a461a16eae45c9665f0b9"
+  },
+  {
+    "name": "final-walking-step",
+    "caught": true,
+    "exit": 101,
+    "seconds": 13.94,
+    "source_sha256": "39b9dd37955a1092142ac9414751eed09d6ad7fa1551d22c7640c00781d74163"
+  }
+]

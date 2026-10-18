@@ -27,9 +27,10 @@ it('registers foreground independently in actual frames and placement previews',
   const frame = buildInstances(source, 1, 0, 0, 16);
   expect(frame[OFFSET_PROJECTION_ANCHOR_X]).toBe(16);
   expect(frame[FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X]).toBe(-10);
-  const preview = new Float32Array(4 * FLOATS_PER_INSTANCE);
+  // Row 0 is the footprint's single floor marker; the art and foreground follow.
+  const preview = new Float32Array(3 * FLOATS_PER_INSTANCE);
   writePlacementPreview(preview, 0, { valid: true, reason: null, x: 6, y: 6, width: 2,
     depth: 1, sprite, foreground, facing: 1 }, 0, 0, 16, 1, null);
-  expect(preview[2 * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X]).toBe(16);
-  expect(preview[3 * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X]).toBe(-10);
+  expect(preview[FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X]).toBe(16);
+  expect(preview[2 * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X]).toBe(-10);
 });

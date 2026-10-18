@@ -1,0 +1,694 @@
+{
+  "url": "http://127.0.0.1:5197/?stress=0",
+  "observed": "2026-10-18T00:49:59.257Z",
+  "desktop": [
+    1280,
+    900
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "samples": [
+    {
+      "tick": 1,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 8.9583125,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Idle",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 3,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 8.375012499999999,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 4,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 8.1662375,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 5,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7.916699999999999,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 6,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7.6667000000000005,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 7,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7.458274999999999,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 8,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7.208362499999998,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 9,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7,
+        "y": 2,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 10,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7,
+        "y": 1.7499874999999974,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 10,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7,
+        "y": 1.5415875000000006,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 11,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7,
+        "y": 1.291687499999998,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 12,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 7,
+        "y": 1.0833374999999978,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 13,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6.8332999999999995,
+        "y": 1,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 14,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6.583362499999998,
+        "y": 1,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 15,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6.375025000000001,
+        "y": 1,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 16,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6.124962499999997,
+        "y": 1,
+        "clip": "walk"
+      },
+      "label": "Walking to talk to Casey",
+      "status": {
+        "code": 1,
+        "partner": 36,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 17,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 28,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 30,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 33,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 36,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 39,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 42,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 44,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 47,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 50,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 53,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 55,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 58,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 61,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 64,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 66,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 69,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 72,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 75,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "talk"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 0,
+        "partner": null,
+        "needs": 0
+      }
+    },
+    {
+      "tick": 77,
+      "actor": {
+        "entity": 34,
+        "sim": 0,
+        "x": 6,
+        "y": 1,
+        "clip": "idle"
+      },
+      "label": "Talking",
+      "status": {
+        "code": 8,
+        "partner": null,
+        "needs": 0
+      }
+    }
+  ],
+  "errors": [],
+  "conversation": {
+    "walking": true,
+    "talking": true,
+    "ended": true
+  },
+  "wait": {
+    "tick": 53,
+    "actors": [
+      {
+        "entity": 34,
+        "sim": 0,
+        "x": 13,
+        "y": 5,
+        "clip": "idle"
+      },
+      {
+        "entity": 35,
+        "sim": 1,
+        "x": 12,
+        "y": 6,
+        "clip": "toilet"
+      },
+      {
+        "entity": 36,
+        "sim": 2,
+        "x": 10.5,
+        "y": 0,
+        "clip": "seat_sofa_read"
+      }
+    ],
+    "label": "Waiting outside to talk to Bill",
+    "status": {
+      "code": 4,
+      "partner": 35,
+      "needs": 0
+    },
+    "queue": [
+      "Waiting outside to talk to Bill"
+    ]
+  },
+  "phone": {
+    "width": 390,
+    "scrollWidth": 390,
+    "label": "Waiting outside to talk to Bill"
+  },
+  "careTalk": {
+    "tick": 80,
+    "label": "Talking",
+    "actors": [
+      {
+        "entity": 34,
+        "sim": 0,
+        "x": 13,
+        "y": 7,
+        "clip": "talk"
+      },
+      {
+        "entity": 35,
+        "sim": 1,
+        "x": 12,
+        "y": 7,
+        "clip": "talk"
+      },
+      {
+        "entity": 36,
+        "sim": 2,
+        "x": 10.5,
+        "y": 0,
+        "clip": "seat_sofa_read"
+      }
+    ],
+    "billNeeds": [
+      60.0400390625,
+      61.736053466796875,
+      59.2401123046875,
+      68.49601745605469,
+      64.419921875,
+      61.460052490234375,
+      61.16004943847656
+    ],
+    "timNeeds": [
+      5.040000915527344,
+      30.920063018798828,
+      59.2401123046875,
+      56.83993911743164,
+      1.4739420413970947,
+      0.19259019196033478,
+      63.2080078125
+    ],
+    "saveHeader": [
+      84,
+      69,
+      82,
+      82,
+      73,
+      83,
+      65,
+      86,
+      15,
+      0
+    ]
+  },
+  "browserClosed": true
+}

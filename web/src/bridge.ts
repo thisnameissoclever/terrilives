@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
 import type { CharacterDraftV1, CharacterPatchV1 } from './character/schema.js';
@@ -1885,6 +1886,11 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const reason = this.handle.stall_reason_of(entityIndex);
     return reason === '' ? null : reason;
+  }
+
+  activityStatusOf(entityIndex: number): ActivityStatus | null {
+    if (!isU32(entityIndex)) return null;
+    return decodeActivityStatus(this.handle.activity_status_of(entityIndex));
   }
 
   /** Current action (or an empty first entry), then unserved orders in order. */
