@@ -225,12 +225,19 @@ mod tests {
             tc::tuning(),
         );
         let mut sim = tc::sim_with(8, 8, pack);
+        // Hunger and Energy stay above critical: a starving or exhausted
+        // person does not choose a chat (a selection rule the implementer
+        // proposed and the owner confirmed on 2026-10-18).
+        let mut needs = Needs::all_at(0.0);
+        needs.set(NeedId::Hunger, 25.0);
+        needs.set(NeedId::Energy, 25.0);
         let person = sim
             .world_mut()
             .spawn((
                 Agent,
+                terri_core::SimId(98),
                 Position { x: 1.0, y: 1.0 },
-                Needs::all_at(0.0),
+                needs,
                 friendship,
             ))
             .id();
@@ -241,15 +248,25 @@ mod tests {
         ));
         sim.tick();
         assert!(sim.world().get::<WaitingNeeds>(person).is_some());
-        sim.world_mut().spawn((
-            Agent,
-            terri_core::SimId(99),
-            Position { x: 2.0, y: 1.0 },
-            Needs::all_at(100.0),
-            terri_core::Reserved,
-        ));
+        let other = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                terri_core::SimId(99),
+                Position { x: 2.0, y: 1.0 },
+                Needs::all_at(100.0),
+                terri_core::Reserved,
+            ))
+            .id();
         sim.tick();
         assert!(sim.world().get::<WaitingNeeds>(person).is_none());
+        assert_eq!(
+            sim.world()
+                .get::<terri_core::Target>(person)
+                .map(|t| t.object),
+            Some(other),
+            "the chooser is waiting for the person"
+        );
     }
 
     #[test]

@@ -153,6 +153,7 @@ pub(crate) fn forget_person(world: &mut World, person: Entity) {
 
 pub(crate) fn maintain(world: &mut World) {
     crate::player_actions::observe(world);
+    crate::fights::yield_to_critical_needs(world);
     execution::maintain(world);
     requests::maintain(world);
     let mut held_readers: Vec<_> = world

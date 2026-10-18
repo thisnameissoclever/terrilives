@@ -22,7 +22,8 @@ pub const FIGHT_TAG: &str = "fighting";
 /// `provoked` watches a trigger's front order until execution or redirection,
 /// so withdrawal removes that entry without touching a player's identical order.
 /// `system_orders` retains its provenance through execution and queue changes;
-/// schema fifteen saves those exact identities separately from player orders.
+/// schema seventeen saves those exact identities (`system_social_orders`)
+/// separately from player orders.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
 pub struct Fights {
     pub timers: MoodletTimers,
@@ -243,14 +244,61 @@ pub(crate) fn retract(world: &mut World) {
     }
 }
 
+/// Withdraws a fight nobody ordered once either side is in crisis: Hunger,
+/// Energy or Bladder at or below the critical level, or away at work
+/// (`social_episode::urgent`). A player's order survives critical needs; a
+/// made-up grudge does not outrank food and sleep. This is the issue 301
+/// ruling in rule 3 of `docs/specs/2026-10-16-fights.md`, pending the owner's
+/// confirmation. A fight already under way runs to its end. Released claims
+/// follow the execution owner, so a waiting partner is freed on this tick.
+pub(crate) fn yield_to_critical_needs(world: &mut World) {
+    let Some(fights) = world.get_resource::<Fights>() else {
+        return;
+    };
+    let orders: Vec<(Entity, u64)> = fights
+        .system_orders
+        .iter()
+        .map(|(person, id)| (*person, *id))
+        .collect();
+    for (person, id) in orders {
+        let Some(intent) = world
+            .get::<IntentQueue>(person)
+            .and_then(|queue| queue.order(id))
+            .map(|entry| entry.intent)
+        else {
+            continue;
+        };
+        let running = world
+            .get::<Socialising>(person)
+            .is_some_and(|talk| talk.partner == intent.object);
+        let crisis = crate::social_episode::urgent(world, person)
+            || (world.get_entity(intent.object).is_ok()
+                && crate::social_episode::urgent(world, intent.object));
+        if running || !crisis {
+            continue;
+        }
+        crate::social_episode::release_order(world, person, id);
+        if let Some(mut queue) = world.get_mut::<IntentQueue>(person) {
+            queue.remove_order(id);
+        }
+        if world.get::<terri_core::Target>(person).is_none() {
+            world.entity_mut(person).remove::<terri_core::Blocked>();
+        }
+        let mut fights = world.resource_mut::<Fights>();
+        fights.provoked.remove(&person);
+        fights.system_orders.remove(&person);
+    }
+}
+
 /// Starts fights nobody ordered. Each tick, in id order, every idle person
-/// without a running Had a fight moodlet looks at every other living
-/// person, in id order: a feeling at or below the tuned threshold and a
-/// reason against them earn one seeded draw, and a draw under the tuned
-/// chance pushes a Fight order to the front of the initiator's queue,
-/// which is then served exactly as a player's order is. The first draw
-/// that passes ends the initiator's search this tick. Orders this made
-/// earlier are withdrawn first when they can no longer be served.
+/// without a running Had a fight moodlet or a crisis of their own looks at
+/// every other living person, in id order: a feeling at or below the tuned
+/// threshold, a reason against them and no crisis on their side earn one
+/// seeded draw, and a draw under the tuned chance pushes a Fight order to
+/// the front of the initiator's queue, which is then served as a player's
+/// order is unless `retract` or `yield_to_critical_needs` withdraws it. The
+/// first draw that passes ends the initiator's search this tick. Orders this
+/// made earlier are withdrawn first when they can no longer be served.
 pub(crate) fn provoke(world: &mut World) {
     let pack = world.resource::<crate::Content>().0;
     let Some(fight) = fight_index(pack) else {
@@ -270,7 +318,10 @@ pub(crate) fn provoke(world: &mut World) {
         .collect();
     people.sort_by_key(|(id, _)| *id);
     for &(id, person) in &people {
-        if !idle(world, person) || world.resource::<Fights>().active(id, now) {
+        if !idle(world, person)
+            || world.resource::<Fights>().active(id, now)
+            || crate::social_episode::urgent(world, person)
+        {
             continue;
         }
         let Some(feelings) = world.get::<Relationships>(person) else {
@@ -284,7 +335,10 @@ pub(crate) fn provoke(world: &mut World) {
             .copied()
             .collect();
         for (other_id, other) in grudges {
-            if !approachable(world, other) || reason_against(world, other_id).is_none() {
+            if !approachable(world, other)
+                || crate::social_episode::urgent(world, other)
+                || reason_against(world, other_id).is_none()
+            {
                 continue;
             }
             if world.resource_mut::<SimRng>().next_f32() >= chance {
@@ -648,6 +702,38 @@ mod tests {
             queued_fight(&sim, a, b),
             "a talk between two others holds nothing off"
         );
+    }
+
+    /// Issue 301: a crisis on either side holds off a made-up fight, so the
+    /// trigger never queues one that would only be withdrawn again.
+    #[test]
+    fn a_crisis_on_either_side_holds_off_a_fight() {
+        for (need, on_initiator) in [
+            (NeedId::Hunger, true),
+            (NeedId::Energy, true),
+            (NeedId::Hunger, false),
+            (NeedId::Bladder, false),
+        ] {
+            let (mut sim, a, b) = household(-1.0);
+            certain(&mut sim);
+            plant_reason(&mut sim, b);
+            let person = if on_initiator { a } else { b };
+            sim.world_mut()
+                .get_mut::<Needs>(person)
+                .unwrap()
+                .set(need, 5.0);
+            provoke(sim.world_mut());
+            assert!(
+                !queued_fight(&sim, a, b),
+                "{need:?} on initiator={on_initiator} holds the fight off"
+            );
+            sim.world_mut()
+                .get_mut::<Needs>(person)
+                .unwrap()
+                .set(need, 90.0);
+            provoke(sim.world_mut());
+            assert!(queued_fight(&sim, a, b), "relief lets the grudge resurface");
+        }
     }
 
     /// Each tick's expiry drops a moodlet whose end has passed and keeps a

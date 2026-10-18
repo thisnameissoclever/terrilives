@@ -161,7 +161,7 @@ fn run_chunk(
     let started = Instant::now();
     for tick in 1..=ticks {
         sim.tick();
-        if tick % frame == 0 || tick == ticks {
+        if tick.is_multiple_of(frame) || tick == ticks {
             let taken = sim.take_activity_log_export();
             state.records += u64::from(taken);
             if taken > state.largest_frame {
@@ -185,7 +185,7 @@ fn run_chunk(
 fn median(values: &mut [f64]) -> f64 {
     values.sort_by(f64::total_cmp);
     let middle = values.len() / 2;
-    if values.len() % 2 == 0 {
+    if values.len().is_multiple_of(2) {
         (values[middle - 1] + values[middle]) / 2.0
     } else {
         values[middle]
@@ -275,7 +275,7 @@ fn main() {
     let mut chunk = 0usize;
     while done < args.ticks {
         let ticks = args.chunk.min(args.ticks - done);
-        let enabled_first = chunk % 2 == 0;
+        let enabled_first = chunk.is_multiple_of(2);
         let (on_time, off_time) = if enabled_first {
             let a = run_chunk(&mut on, ticks, args.frame, &mut on_state);
             let b = run_chunk(&mut off, ticks, args.frame, &mut off_state);
