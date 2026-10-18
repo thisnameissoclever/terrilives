@@ -40,6 +40,15 @@ pub const CAREER: u32 = 16;
 pub const PARTIAL: u32 = 1 << 16;
 pub const OTHER_PARTIAL: u32 = 1 << 17;
 
+/// Bit 8 of a [`LogKind::WeeklyReview`] record's `v0`, above the outcome
+/// code: the person carries a warning, from the second poor week in a row.
+pub const REVIEW_WARNED: i32 = 1 << 8;
+
+/// Career change codes, the `v0` of a [`LogKind::CareerChange`] record.
+pub const CHANGE_HIRED: i32 = 0;
+pub const CHANGE_ASSIGNED: i32 = 1;
+pub const CHANGE_LEFT: i32 = 2;
+
 /// Chore outcome codes, the `v0` of a [`LogKind::ChoreOutcome`] record.
 pub const OUTCOME_DONE: i32 = 0;
 pub const OUTCOME_COVERED: i32 = 1;
@@ -755,6 +764,58 @@ impl ActivityLog {
             record = record.with_other(owner);
         }
         self.push(record);
+    }
+
+    /// Kind 10: one weekly review. `review` is the outcome code with
+    /// [`REVIEW_WARNED`], the performance, and the factors the Career tab
+    /// shows (`careers::factors`), read before the review changed anything;
+    /// `title` is the job held afterwards, none after a dismissal.
+    pub(crate) fn weekly_review(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        review: (i32, f32, [f32; 6]),
+        title: Option<&str>,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        let (outcome, performance, factors) = review;
+        let hundredths = |value: f32| (value * 100.0).round() as i32;
+        self.push(
+            LogRecord::new(LogKind::WeeklyReview, CAREER, tick, actor)
+                .with_label(title.map_or(NONE, |title| labels(pack).index(title)))
+                .with_value(0, outcome)
+                .with_value(1, performance.round() as i32)
+                .with_value(2, hundredths(factors[0]))
+                .with_value(3, pack_pair(hundredths(factors[4]), hundredths(factors[5]))),
+        );
+    }
+
+    /// Kind 11: a hire by job search, a career the player assigned, or a
+    /// job the player made someone leave, with the level's title.
+    pub(crate) fn career_change(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        title: Option<&str>,
+        change: i32,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        self.push(
+            LogRecord::new(LogKind::CareerChange, CAREER, tick, actor)
+                .with_label(title.map_or(NONE, |title| labels(pack).index(title)))
+                .with_value(0, change),
+        );
+    }
+
+    /// Kind 12: a death, under Social ([R3]).
+    pub(crate) fn death(&mut self, tick: u64, actor: u32) {
+        self.push(LogRecord::new(LogKind::Death, SOCIAL, tick, actor));
     }
 
     /// Kind 9: each skill `actor` took to a new level. The link pass makes

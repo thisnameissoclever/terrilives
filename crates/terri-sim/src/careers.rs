@@ -460,8 +460,10 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
         // The week ended while this person was at work: its review runs
         // now, before this shift's score joins the week that followed.
         let tick = world.resource::<SimClock>().tick;
+        let logged = log_factors(world, pack, worker);
         let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
-        review_person(world, &mut careers, pack, sim, worker, ended_week, tick);
+        let at = (ended_week, tick);
+        review_person(world, &mut careers, pack, (sim, worker), at, logged);
         world.insert_resource(careers);
     }
     // A dismissal just applied leaves no record to score into.
@@ -560,9 +562,32 @@ pub(crate) fn settle_due_review(world: &mut World, worker: Entity) {
         return;
     };
     let tick = world.resource::<SimClock>().tick;
+    let logged = log_factors(world, pack, worker);
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
-    review_person(world, &mut careers, pack, sim, worker, ended_week, tick);
+    let at = (ended_week, tick);
+    review_person(world, &mut careers, pack, (sim, worker), at, logged);
     world.insert_resource(careers);
+}
+
+/// The factors a review's log line copies, read while the careers are in
+/// the world, as the Career tab reads them; `None` when the log is off.
+fn log_factors(world: &World, pack: &ContentPack, entity: Entity) -> Option<[f32; 6]> {
+    world
+        .get_resource::<crate::activity_log::ActivityLog>()
+        .filter(|log| log.enabled())
+        .and_then(|_| factors(world, pack, entity))
+}
+
+/// Logs a career change of `entity` with `title` ([AL-sources]).
+fn log_change(world: &mut World, entity: Entity, title: Option<&'static str>, change: i32) {
+    let Some(id) = world.get::<SimId>(entity).copied() else {
+        return;
+    };
+    let pack = world.resource::<Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.career_change(pack, tick, id.0, title, change);
+    }
 }
 
 /// Every living person with their id, in id order.
@@ -640,8 +665,13 @@ fn raised_pay(job: &CompiledCareer, pay: u32) -> u32 {
 /// changes a job while its shift is being worked.
 fn review(world: &mut World, ended_week: u64, tick: u64) {
     let pack = world.resource::<Content>().0;
+    let people = people(world);
+    let logged: BTreeMap<SimId, [f32; 6]> = people
+        .iter()
+        .filter_map(|&(sim, entity)| Some((sim, log_factors(world, pack, entity)?)))
+        .collect();
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
-    for (sim, entity) in people(world) {
+    for (sim, entity) in people {
         if world.get::<Career>(entity).is_none() {
             continue;
         }
@@ -659,22 +689,25 @@ fn review(world: &mut World, ended_week: u64, tick: u64) {
             record.review_due = Some(ended_week);
             continue;
         }
-        review_person(world, &mut careers, pack, sim, entity, ended_week, tick);
+        let at = (ended_week, tick);
+        let factors = logged.get(&sim).copied();
+        review_person(world, &mut careers, pack, (sim, entity), at, factors);
     }
     world.insert_resource(careers);
 }
 
 /// One person's review of `ended_week`, applied at `tick`: the caller has
 /// taken the careers out of the world and checked that the person holds
-/// a job with at least one shift scored.
+/// a job with at least one shift scored. `logged` holds the factors the
+/// caller read for the activity log before taking the careers out, or
+/// `None` when the log is off.
 fn review_person(
     world: &mut World,
     careers: &mut Careers,
     pack: &'static ContentPack,
-    sim: SimId,
-    entity: Entity,
-    ended_week: u64,
-    tick: u64,
+    (sim, entity): (SimId, Entity),
+    (ended_week, tick): (u64, u64),
+    logged: Option<[f32; 6]>,
 ) {
     let tuning = &pack.tuning;
     let Some(job) = job_of(world, pack, entity) else {
@@ -708,6 +741,7 @@ fn review_person(
         record.consecutive_poor = 0;
         record.consecutive_good = 0;
     }
+    let warned = record.warned();
     let draw = careers.draw();
     let record = careers.records.get_mut(&sim).expect("present above");
     let mut event = outcome(
@@ -802,6 +836,18 @@ fn review_person(
             .remove::<Career>()
             .remove::<crate::reading::PendingShift>();
     }
+    if let Some(factors) = logged {
+        let title = job_of(world, pack, entity).map(|job| job.label.as_str());
+        let outcome = i32::from(event)
+            | if warned {
+                crate::activity_log::REVIEW_WARNED
+            } else {
+                0
+            };
+        if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+            log.weekly_review(pack, tick, sim.0, (outcome, performance, factors), title);
+        }
+    }
 }
 
 /// The path whose first level fits the person best among those with fit
@@ -858,6 +904,8 @@ fn search(world: &mut World) {
                 let job = &pack.careers[row as usize];
                 careers.records.insert(sim, Record::new(job));
                 world.entity_mut(entity).insert(Career(row));
+                let hire = crate::activity_log::CHANGE_HIRED;
+                log_change(world, entity, Some(job.label.as_str()), hire);
             }
         }
     }
@@ -942,14 +990,21 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
                 .entity_mut(entity)
                 .insert(Career(row))
                 .remove::<crate::reading::PendingShift>();
+            let assigned = crate::activity_log::CHANGE_ASSIGNED;
+            log_change(world, entity, Some(job.label.as_str()), assigned);
         }
         None => {
+            let held = job_of(world, pack, entity).map(|job| job.label.as_str());
             crate::attendance::close_for_career_change(world, entity);
             world.resource_mut::<Careers>().records.remove(&sim);
             world
                 .entity_mut(entity)
                 .remove::<Career>()
                 .remove::<crate::reading::PendingShift>();
+            // Quitting without a job changes nothing worth a line.
+            if held.is_some() {
+                log_change(world, entity, held, crate::activity_log::CHANGE_LEFT);
+            }
         }
     }
     None
@@ -2610,5 +2665,216 @@ mod tests {
             let life = sim.world().get::<Satisfaction>(*person).unwrap().value();
             assert!(life > -1.0, "life satisfaction holds: {life}");
         }
+    }
+
+    // ---- The activity log ([AL-sources]) -------------------------------
+
+    use crate::activity_log::{
+        pack_pair, LogKind, LogRecord, CAREER, CHANGE_ASSIGNED, CHANGE_HIRED, CHANGE_LEFT, NONE,
+        REVIEW_WARNED,
+    };
+
+    fn logged(sim: &mut Sim, kind: LogKind) -> Vec<LogRecord> {
+        crate::activity_log::finish_tick(sim.world_mut());
+        crate::activity_log_tests::drain(sim)
+            .into_iter()
+            .filter(|r| r.kind() == Some(kind))
+            .collect()
+    }
+
+    fn title(sim: &Sim, entity: Entity) -> u32 {
+        let pack = pack(sim);
+        let job = job_of(sim.world(), pack, entity).expect("employed");
+        crate::activity_log::labels(pack).index(&job.label)
+    }
+
+    /// [AL-record] kind 10: a weekly review is one Career line with the
+    /// outcome, the warning, the performance, the factors the Career tab
+    /// shows and the title held afterwards.
+    #[test]
+    fn career_review_logs_outcome_and_factors() {
+        let mut sim = pinned(|t| t.career_raise_base = 1.0);
+        let (id, entity) = worker(&mut sim);
+        let before = factors(sim.world(), pack(&sim), entity).unwrap();
+        crate::activity_log_tests::drain(&mut sim);
+        review_week(&mut sim, id, 0, 100.0);
+        let reviews = logged(&mut sim, LogKind::WeeklyReview);
+        assert_eq!(reviews.len(), 1);
+        let review = reviews[0];
+        assert_eq!((review.actor(), review.triggers()), (id.0, CAREER));
+        assert_eq!(review.value(0), i32::from(EVENT_RAISE));
+        assert_eq!(review.value(1), 100);
+        let percent = |value: f32| (value * 100.0).round() as i32;
+        assert_eq!(review.value(2), percent(before[0]));
+        assert_eq!(
+            review.value(3),
+            pack_pair(percent(before[4]), percent(before[5]))
+        );
+        assert_eq!(review.label(), title(&sim, entity));
+        assert_eq!(
+            u64::from(review.tick()),
+            u64::from(pack(&sim).tuning.day_ticks) * 7
+        );
+
+        // The second poor week in a row warns, with no other outcome.
+        let mut sim = pinned(|_| {});
+        let (id, entity) = worker(&mut sim);
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .records
+            .get_mut(&id)
+            .unwrap()
+            .consecutive_poor = 1;
+        crate::activity_log_tests::drain(&mut sim);
+        review_week(&mut sim, id, 0, 0.0);
+        let reviews = logged(&mut sim, LogKind::WeeklyReview);
+        assert_eq!(reviews.len(), 1);
+        assert_eq!(reviews[0].value(0), i32::from(EVENT_NONE) | REVIEW_WARNED);
+        assert_eq!(
+            (reviews[0].value(1), reviews[0].label()),
+            (0, title(&sim, entity))
+        );
+    }
+
+    /// [AL-sources]: a review that waited for the worker to come home is
+    /// logged when it is applied, a raise and a dismissal alike; nothing
+    /// is logged while it waits.
+    #[test]
+    fn late_review_after_a_shift_is_logged() {
+        let week_ticks = 1440 * 7;
+        for (edit, event) in [
+            (
+                (|t: &mut Tuning| t.career_raise_base = 1.0) as fn(&mut Tuning),
+                EVENT_RAISE,
+            ),
+            (|t: &mut Tuning| t.career_fire_base = 1.0, EVENT_FIRED),
+        ] {
+            let mut sim = pinned(edit);
+            let (id, entity) = worker(&mut sim);
+            {
+                let mut careers = sim.world_mut().resource_mut::<Careers>();
+                let record = careers.records.get_mut(&id).unwrap();
+                record.consecutive_poor = if event == EVENT_FIRED { 2 } else { 0 };
+                record
+                    .shifts
+                    .extend([if event == EVENT_FIRED { 0.0 } else { 100.0 }; 5]);
+            }
+            let held = title(&sim, entity);
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(AtWork { remaining_ticks: 3 });
+            sim.world_mut().resource_mut::<SimClock>().tick = week_ticks;
+            crate::activity_log_tests::drain(&mut sim);
+            review(sim.world_mut(), 0, week_ticks);
+            assert!(
+                logged(&mut sim, LogKind::WeeklyReview).is_empty(),
+                "waiting"
+            );
+            sim.world_mut().entity_mut(entity).remove::<AtWork>();
+            complete_shift(sim.world_mut(), entity);
+            let reviews = logged(&mut sim, LogKind::WeeklyReview);
+            assert_eq!(reviews.len(), 1, "{event}");
+            assert_eq!(reviews[0].value(0) & 0xff, i32::from(event));
+            if event == EVENT_FIRED {
+                assert_eq!(reviews[0].label(), NONE, "no title after a dismissal");
+                assert_ne!(reviews[0].value(0) & REVIEW_WARNED, 0);
+            } else {
+                assert_eq!(reviews[0].label(), held);
+            }
+        }
+    }
+
+    /// [AL-sources]: a job search that hires is one Career line naming the
+    /// first level; searches that hire nobody log nothing.
+    #[test]
+    fn job_search_hire_is_logged() {
+        let mut sim = shipped_with(|t| t.career_search_chance = 1.0);
+        let (id, entity) = worker(&mut sim);
+        sim.world_mut().entity_mut(entity).remove::<Career>();
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .records
+            .remove(&id);
+        crate::activity_log_tests::drain(&mut sim);
+        let employed = |sim: &mut Sim| {
+            sim.world_mut()
+                .query_filtered::<&SimId, (With<Agent>, With<Career>)>()
+                .iter(sim.world())
+                .count()
+        };
+        let before = employed(&mut sim);
+        let mut changes = Vec::new();
+        for _ in 0..40 {
+            search(sim.world_mut());
+            changes.extend(logged(&mut sim, LogKind::CareerChange));
+            if sim.world().get::<Career>(entity).is_some() {
+                break;
+            }
+        }
+        assert!(sim.world().get::<Career>(entity).is_some(), "hired");
+        // Every unemployed housemate searches; one line per hire.
+        let hired = employed(&mut sim) - before;
+        assert_eq!(changes.len(), hired, "{changes:?}");
+        changes.retain(|r| r.actor() == id.0);
+        assert_eq!(changes.len(), 1, "{changes:?}");
+        assert_eq!(
+            (
+                changes[0].actor(),
+                changes[0].value(0),
+                changes[0].triggers()
+            ),
+            (id.0, CHANGE_HIRED, CAREER)
+        );
+        assert_eq!(changes[0].label(), title(&sim, entity));
+    }
+
+    /// [AL-sources]: the player's career commands are logged when they are
+    /// applied and never when they are refused.
+    #[test]
+    fn assign_and_quit_are_logged_and_refusals_are_not() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let (id, entity) = worker(&mut sim);
+        let pack = pack(&sim);
+        let cafe = pack
+            .career_paths
+            .iter()
+            .position(|p| p.id == "cafe")
+            .expect("shipped") as u32;
+        let agent = entity.index_u32();
+        let push = |sim: &mut Sim, command: SimCommand| {
+            crate::activity_log_tests::drain(sim);
+            sim.world_mut().resource_mut::<CommandQueue>().push(command);
+            sim.tick();
+            crate::activity_log_tests::drain(sim)
+                .into_iter()
+                .filter(|r| r.kind() == Some(LogKind::CareerChange))
+                .collect::<Vec<_>>()
+        };
+        let assigned = push(&mut sim, SimCommand::AssignCareer { agent, path: cafe });
+        assert_eq!(assigned.len(), 1);
+        assert_eq!(
+            (assigned[0].actor(), assigned[0].value(0)),
+            (id.0, CHANGE_ASSIGNED)
+        );
+        let cafe_title = title(&sim, entity);
+        assert_eq!(assigned[0].label(), cafe_title);
+
+        assert!(push(&mut sim, SimCommand::AssignCareer { agent, path: 99 }).is_empty());
+        sim.world_mut().entity_mut(entity).insert(AtWork {
+            remaining_ticks: 100,
+        });
+        assert!(push(&mut sim, SimCommand::QuitCareer { agent }).is_empty());
+        sim.world_mut().entity_mut(entity).remove::<AtWork>();
+
+        let left = push(&mut sim, SimCommand::QuitCareer { agent });
+        assert_eq!(left.len(), 1);
+        assert_eq!(
+            (left[0].actor(), left[0].value(0), left[0].label()),
+            (id.0, CHANGE_LEFT, cafe_title)
+        );
+        assert!(
+            push(&mut sim, SimCommand::QuitCareer { agent }).is_empty(),
+            "quitting without a job leaves nothing"
+        );
     }
 }

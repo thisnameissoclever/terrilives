@@ -99,8 +99,8 @@ Values use fixed units so the shell rounds once: needs in tenths of a point; opi
 | 7 Chore outcome | Child of 1 when done by an action this tick, otherwise parent | Chores | `actor` performer or owner; `other` owner when someone covered; `label` duty; `v0` outcome code (Done, Covered, Skipped, Missed) |
 | 8 Feeling | Child of 2, 3 or 7, or of the eater's 1 for meal appreciation | Social, when attached to 7, and always for meal appreciation | `actor` the person whose opinion changed; `other` the person it is about; `label` cause; `v2` change |
 | 9 Skill level | Child of 1 or 2 in the same tick, otherwise parent | Skills | `label` skill; `v1` new level |
-| 10 Weekly review | Parent | Career | `label` level title after; `v0` outcome code in bits 0 to 7 and the warning in bit 8; `v1` performance; `v2` fit; `v3` mastery percent and mood packed as two `i16` |
-| 11 Career change | Parent | Career | `label` level title; `v0` hired by search, assigned by the player, or left the job |
+| 10 Weekly review | Parent | Career | `label` level title after, none after a dismissal; `v0` outcome code in bits 0 to 7 and the warning in bit 8; `v1` performance; `v2` fit; `v3` mastery percent and mood packed as two `i16` |
+| 11 Career change | Parent | Career | `label` level title, the one left for a quit; `v0` 0 hired by search, 1 assigned by the player, 2 left the job |
 | 12 Death | Parent | Social | `actor` the person who died |
 
 Ordinary skill practice that does not cross a level is part of kind 1 and never triggers.
@@ -132,7 +132,7 @@ Every source is a point where the simulation already settles the event. The sche
 | Skill level crossed | 9 | `skills::practise`, comparing `standing` before and after | Person, skill, new level |
 | Weekly review | 10 | `careers::review_person`, including reviews settled late in `complete_shift` and `settle_due_review` | Outcome code, performance, `factors()` (fit, mastery, mood), title after, the warning that starts at the second poor week |
 | Hired by job search | 11 | `careers::search` on a successful hire | Person, path's first level |
-| Career assigned or left by the player | 11 | `careers::assign` and `careers::quit` when not refused | Person, level, or left |
+| Career assigned or left by the player | 11 | `careers::assign` and `careers::quit` when not refused; a quit by someone without a job changes nothing and logs nothing | Person, level, or left |
 | Death | 12 | `mortality::tick` where the `DeathRecord` is pushed | Person |
 
 Sources that are not logged, and why:
