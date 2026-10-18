@@ -1,0 +1,110 @@
+{
+  "revisions": [
+    {
+      "revision": "e8fdeefad^",
+      "resolved": "6b7a4fbb2ff6e7a212f839ee8235141a510ad1d4",
+      "baseSpriteId": 30927,
+      "spriteCount": 472,
+      "normalizedSha256": "2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245"
+    },
+    {
+      "revision": "e8fdeefad",
+      "resolved": "e8fdeefad9666085fbaf29bb5661711ddf288647",
+      "baseSpriteId": 30927,
+      "spriteCount": 472,
+      "normalizedSha256": "a7671aabbe542ec2b311246bf9f12c016392da6c91c6f7256563ab6af2ba7eb9"
+    },
+    {
+      "revision": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+      "resolved": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+      "baseSpriteId": 30939,
+      "spriteCount": 472,
+      "normalizedSha256": "2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245"
+    },
+    {
+      "revision": "10ced796be86ede188e1fd104cf916d5db58fd6b",
+      "resolved": "10ced796be86ede188e1fd104cf916d5db58fd6b",
+      "baseSpriteId": 30939,
+      "spriteCount": 472,
+      "normalizedSha256": "a7671aabbe542ec2b311246bf9f12c016392da6c91c6f7256563ab6af2ba7eb9"
+    }
+  ],
+  "approvedPatioDelta": [
+    {
+      "path": "/catalogue/coverings/4",
+      "added": "floor.outdoor-patio"
+    },
+    {
+      "path": "/catalogue/finishes/floor.outdoor-patio",
+      "added": {
+        "patternKey": "floor.outdoor-patio",
+        "paletteKey": "stone-gray",
+        "authoredContentLook": [
+          0,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "path": "/catalogue/palettes/stone-gray",
+      "added": {
+        "multiply": [
+          0.55,
+          0.58,
+          0.6
+        ]
+      }
+    },
+    {
+      "path": "/catalogue/patterns/floor.outdoor-patio",
+      "added": {
+        "role": "floor",
+        "period": [
+          4,
+          2
+        ],
+        "resource": "tiles"
+      }
+    }
+  ],
+  "freshBaseToMergedDelta": [
+    {
+      "path": "/catalogue/coverings/4",
+      "added": "floor.outdoor-patio"
+    },
+    {
+      "path": "/catalogue/finishes/floor.outdoor-patio",
+      "added": {
+        "patternKey": "floor.outdoor-patio",
+        "paletteKey": "stone-gray",
+        "authoredContentLook": [
+          0,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "path": "/catalogue/palettes/stone-gray",
+      "added": {
+        "multiply": [
+          0.55,
+          0.58,
+          0.6
+        ]
+      }
+    },
+    {
+      "path": "/catalogue/patterns/floor.outdoor-patio",
+      "added": {
+        "role": "floor",
+        "period": [
+          4,
+          2
+        ],
+        "resource": "tiles"
+      }
+    }
+  ]
+}

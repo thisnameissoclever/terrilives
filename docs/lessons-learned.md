@@ -12439,3 +12439,17 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: native semantic dirtiness correctly became clean, but the exit predicate omitted review-local choices. The preparation path counted that input owner while the exit path did not.
 3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
 4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.
+
+## [L-historical-architecture-versus-approved-catalogue-append] Verify an approved append separately from frozen history
+
+1. What happened: the sprite CI step failed its historical architecture descriptor assertion after Outdoor patio appended four reviewed catalogue entries. This failure did not demonstrate changed atlas pixels or nonreproducible generated files.
+2. Root cause: the old guard removed drawing IDs before hashing the complete descriptor, but still treated an approved catalogue append as a change to historical geometry or resources.
+3. Prevention: independently compare the approved source revision and incoming main. Assert every approved addition exactly, then remove only those entries from a copied descriptor before applying the unchanged historical digest. Keep the original sprite-record, decoded-pixel and registration-table checks intact.
+4. Verification: reproduce the original digest failure, retain the four-entry revision diff, and require rejection of corrupted or missing Patio entries, undeclared catalogue additions, changed resources, geometry, local ordering and drawing offsets. Run the original prefix and relevant extension tests against the repaired guard.
+
+## [L-delivery-concerns-need-observed-status] Distinguish completed repairs from unresolved defects in delivery reports
+
+1. What happened: a closeout described hypothetical implementation costs as though they were remaining repairs, leaving the owner unable to tell what still needed fixing.
+2. Root cause: the report mixed completed fixes, unresolved findings and design tradeoffs without stating the actual player impact or verification status of each.
+3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
+4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
