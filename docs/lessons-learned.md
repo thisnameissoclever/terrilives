@@ -245,6 +245,8 @@ self-comparison must fail those assertions.
 was still running, despite the requirement to run heavy checks serially. A later
 test-file rename also remained pending when dependent tests started, producing
 file-not-found and obsolete-file discovery failures.
+A later native test executable also started while its build poll still reported
+running; that interrupted run could not verify the intended compiled source.
 
 **Root cause.** A yielded command was treated as ready for the next check before
 its session returned an exit code. An existing atlas test also timed out earlier
@@ -254,10 +256,14 @@ in that run; its timing does not establish that the later overlap caused it.
 an exit code. Apply the same rule to mutations that subsequent checks depend on.
 Use one command per execution call and one validation owner after edits freeze.
 Start the next command only after the current session's completion is observed.
+Require a successful build exit before launching its executable. A returned poll
+response without a final exit code is still running, not a successful build.
 
 **How to verify.** Record the full run's actual failed result and the unchanged
 isolated test's result separately. Confirm that the final serial suite passes;
 an isolated pass is not a passing full-suite run.
+Bind executable results to the source and completed build. Exclude an interrupted
+or prematurely launched run from passing verification receipts.
 
 ## [L-window-height-follows-owning-wall] Match aperture art to its wall
 
