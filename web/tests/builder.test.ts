@@ -406,19 +406,22 @@ it('sells with Delete and will not sell what a sim has been told to use', () => 
 // it would sell for, so Sell does not stay on and the reason stays shown.
 it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   const { handle, source, builder } = fixture();
+  const bike = 22;
+  expect(source.objectModel(bike)?.id).toBe('moving_box');
+  expect(source.interactionLabels(bike)[0]).toBe('Use the exercise bike');
   builder.enter();
-  builder.select(15);
+  builder.select(bike);
   expect(builder.canSell).toBe(true);
   const ids = Array.from(source.ids());
   const kinds = Array.from(source.kinds());
   const agent = ids.find((_, row) => kinds[row] === 0)!;
   // The order drains before the sale behind it and puts the object in use.
-  expect(source.useObject(agent, 15, 0)).toBe(true);
+  expect(source.useObject(agent, bike, 0)).toBe(true);
   expect(builder.sell()).toBe(true);
   source.flushCommands(); builder.afterCommands();
-  expect(source.lastSaleResult()).toMatchObject({ object: 15, payout: 0 });
+  expect(source.lastSaleResult()).toMatchObject({ object: bike, payout: 0 });
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])
-    .toEqual([15, false, null, false, 'Wait until nobody is using or approaching this object.']);
+    .toEqual([bike, false, null, false, 'Wait until nobody is using or approaching this object.']);
   expect(builder.saleRefusal).toBe('Wait until nobody is using or approaching this object.');
   handle.free();
 });

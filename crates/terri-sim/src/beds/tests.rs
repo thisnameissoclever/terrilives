@@ -367,6 +367,10 @@ fn preferred_beds_preserve_safer_sleep_alternatives_and_other_needs() {
 #[test]
 fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflicting_rows() {
     let (mut sim, bed, [first, second, _]) = fixture();
+    let mut pack = sim.world().resource::<crate::Content>().0.clone();
+    pack.reading = terri_data::pack().reading;
+    sim.world_mut()
+        .insert_resource(crate::Content(Box::leak(Box::new(pack))));
     order(&mut sim, first, bed, 0);
     order(&mut sim, second, bed, 1);
     sim.tick();
@@ -377,7 +381,11 @@ fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflict
     let mut loaded = test_content::sim_with(12, 12, sim.world().resource::<crate::Content>().0);
     loaded.load_snapshot_v5(saved.clone()).unwrap();
     assert_eq!(loaded.save_snapshot_v5(), saved);
-    assert_eq!(loaded.world_hash(), sim.world_hash());
+    let mut continued = test_content::sim_with(12, 12, sim.world().resource::<crate::Content>().0);
+    continued
+        .load_snapshot_v15(sim.save_snapshot_v15())
+        .unwrap();
+    assert_eq!(continued.world_hash(), sim.world_hash());
     for active in [
         vec![],
         vec![(first.index_u32(), 0)],
@@ -391,10 +399,10 @@ fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflict
     }
     for _ in 0..150 {
         sim.tick();
-        loaded.tick();
+        continued.tick();
     }
-    assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
-    assert_eq!(loaded.world_hash(), sim.world_hash());
+    assert_eq!(continued.save_snapshot_v15(), sim.save_snapshot_v15());
+    assert_eq!(continued.world_hash(), sim.world_hash());
 }
 
 #[test]

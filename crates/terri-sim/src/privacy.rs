@@ -458,7 +458,7 @@ fn replacement_recipe_route(
     }) {
         return None;
     }
-    let (state, origin) = crate::recipe_actions::begin(pack, model, row, recipe, selected);
+    let (state, origin, _) = crate::recipe_actions::begin(pack, model, row, recipe, selected);
     let mut domestic = world
         .get_resource::<terri_core::save::SavedDomestic>()
         .cloned()
@@ -818,6 +818,7 @@ pub(crate) fn substitute(
             maintain(world);
             return true;
         }
+        crate::recipe_actions::suspend(world, actor);
         crate::domestic::suspend_cleanup(world, actor);
         if let Some(t) = target {
             crate::reservations::release_now(world, actor, t);

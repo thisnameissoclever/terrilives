@@ -82,6 +82,7 @@ pub(crate) mod v11;
 pub(crate) mod v12;
 pub(crate) mod v13;
 pub(crate) mod v14;
+pub(crate) mod v15;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -165,7 +166,14 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
-            .filter(|command| !matches!(command, SimCommand::Book(_) | SimCommand::Character(_)))
+            .filter(|command| {
+                !matches!(
+                    command,
+                    SimCommand::Book(_)
+                        | SimCommand::Character(_)
+                        | SimCommand::ConfirmedOrder { .. }
+                )
+            })
             .map(|command| capture_command(command, pack))
             .collect(),
     }
@@ -322,7 +330,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             change: *change,
             search: *search,
         },
-        SimCommand::Book(_) | SimCommand::Character(_) => {
+        SimCommand::Book(_) | SimCommand::Character(_) | SimCommand::ConfirmedOrder { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
@@ -694,6 +702,7 @@ fn restore_with_facings(
         .collect();
     sim.world
         .insert_resource(CommandQueue::from_commands(commands));
+    crate::player_actions::adopt_legacy_objects(&mut sim.world);
     sim.sync_render_buffer();
     Ok(sim)
 }

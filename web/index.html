@@ -1033,6 +1033,20 @@
         border-radius: 6px; background: var(--hud-bg); overflow-wrap: anywhere; font-size: 11px; }
       .action-card:first-child { padding: 11px 10px; font-size: 13px; border-color: var(--need-fill); }
       .action-card small { display: block; color: var(--hud-muted); font-size: 10px; margin-bottom: 3px; }
+      /* World feedback stays behind interactive panels. */
+      #order-failure-bubbles { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+      .order-failure-bubble { position: absolute; display: block; width: 48px; height: 32px; padding: 3px 5px;
+        transform: translate(-50%, calc(-100% - 10px)); border: 2px solid #714342; border-radius: 48%; background: #f1e8d3; box-shadow: 0 2px 3px #0005; }
+      .order-failure-bubble[hidden] { display: none; }
+      .order-failure-bubble::after { content: ''; position: absolute; left: 20px; bottom: -7px; width: 9px; height: 9px;
+        transform: rotate(45deg); border-bottom: 2px solid #714342; border-right: 2px solid #714342; background: #f1e8d3; }
+      .order-failure-bubble svg { position: relative; z-index: 1; width: 100%; height: 100%; fill: none; stroke: #713a37; stroke-width: 2.4; stroke-linecap: round; }
+      #work-order-dialog { max-width: min(30rem, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; }
+      #work-order-message { white-space: pre-line; line-height: 1.5; }
+      #work-order-dialog menu { display: flex; justify-content: flex-end; gap: 10px; padding: 0; }
+      #order-history { max-height: 240px; overflow: auto; user-select: text; }
+      #order-history-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      #order-history-person { max-width: 100%; }
       /* The developer overlay: monospace, top-right, scrolls rather
          than grows past the window, and sits under the flyout so a
          debug session does not eat right-clicks. COLLAPSIBLE, from the
@@ -1483,8 +1497,24 @@
       <details id="debug-details">
         <summary>debug stats</summary>
         <pre id="debug-report"></pre>
+        <div id="order-history-controls">
+          <label for="order-history-person">Order history</label>
+          <select id="order-history-person"><option value="selected">Selected person</option></select>
+          <button id="order-history-copy" type="button" class="hud-button">Copy</button>
+          <span id="order-history-copy-status" role="status"></span>
+        </div>
+        <pre id="order-history"></pre>
       </details>
     </section>
+    <div id="order-failure-bubbles" aria-hidden="true"></div>
+    <dialog id="work-order-dialog" aria-labelledby="work-order-title" aria-describedby="work-order-message">
+      <h2 id="work-order-title" tabindex="-1">Work conflict</h2>
+      <p id="work-order-message"></p>
+      <menu>
+        <button id="work-order-cancel" class="hud-button" type="button">Cancel</button>
+        <button id="work-order-proceed" class="hud-button" type="button">Proceed</button>
+      </menu>
+    </dialog>
     <!-- Contextual Build actions follow the active selection in client pixels.
          Short screens can place them in a grid beside a bounded tool panel.
          Empty space passes input to the game; only buttons consume it. -->

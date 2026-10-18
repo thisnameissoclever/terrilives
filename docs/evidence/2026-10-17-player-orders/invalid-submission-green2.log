@@ -1,0 +1,61 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 29.10s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 53 tests
+test systems::command::submission_tests::invalid_submission_keeps_capacity_and_exhausted_allocator_refusals ... ok
+test systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads ... ok
+test systems::command::submission_tests::invalid_submission_front_at_full_capacity_preserves_running_owner_and_queue ... ok
+test systems::command::tests::a_cancel_does_not_release_an_autonomous_target_on_the_same_object_under_another_interaction ... ok
+test systems::command::submission_tests::invalid_submission_social_rows_fail_without_recalling_either_worker ... ok
+test systems::command::tests::a_cancel_still_empties_a_queue_that_holds_front_placed_orders ... ok
+test systems::command::tests::a_cancel_after_a_front_placement_still_releases_the_running_directed_action ... ok
+test systems::command::tests::a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index ... ok
+test systems::command::tests::a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it ... ok
+test systems::command::tests::a_click_preempts_an_interaction_already_running ... ok
+test systems::command::tests::a_front_order_for_a_sim_with_no_queue_yet_is_staged_ahead_of_an_append_in_the_same_batch ... ok
+test systems::command::tests::a_front_order_goes_ahead_of_everything_waiting_and_keeps_the_rest_in_order ... ok
+test systems::command::tests::a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once ... ok
+test systems::command::tests::a_front_order_lands_the_same_whether_it_drains_with_the_append_or_after_it ... ok
+test systems::command::tests::a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it ... ok
+test systems::command::tests::a_front_placement_that_drops_the_served_intent_releases_its_commitment ... ok
+test systems::command::tests::a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards ... ok
+test systems::command::tests::a_staged_queue_releases_the_served_intent_it_drops_and_keeps_a_copy_it_still_holds ... ok
+test systems::command::submission_tests::invalid_submission_front_during_book_return_preserves_journey_and_valid_orders ... ok
+test systems::command::tests::a_use_object_command_is_served_on_the_tick_it_arrives ... ok
+test systems::command::tests::a_stale_entity_index_is_ignored_rather_than_panicking ... ok
+test systems::command::tests::an_interaction_index_past_the_end_fails_at_the_command_boundary ... ok
+test systems::command::tests::cancel_intents_does_not_interrupt_an_action_the_sim_chose_for_itself ... ok
+test systems::command::tests::cancel_intents_releases_the_target_the_path_and_the_reservation ... ok
+test systems::command::tests::cancelling_a_directed_interaction_stops_it_and_returns_the_sim_to_autonomy ... ok
+test systems::command::tests::cancelling_a_full_queue_is_not_reported_as_a_capacity_rejection ... ok
+test systems::command::tests::chore_capacity_refusal_preserves_gameplay_and_saved_order_allocation ... ok
+test systems::command::tests::cleanup_capacity_refusal_preserves_gameplay_and_saved_order_allocation ... ok
+test systems::command::tests::commands_are_applied_once_rather_than_re_applied_on_every_tick ... ok
+test systems::command::tests::a_use_object_naming_the_second_interaction_runs_the_second_one ... ok
+test systems::command::tests::displacing_the_served_id_releases_execution_even_with_an_identical_order_remaining ... ok
+test systems::command::tests::dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone ... ok
+test systems::command::tests::exactly_the_order_past_the_cap_reports_the_capacity_rejection ... ok
+test systems::command::tests::placement_reports_exact_ids_for_repeated_orders_and_displaced_titles ... ok
+test systems::command::tests::invalid_typed_order_people_and_targets_leave_rejections_without_gameplay_changes ... ok
+test systems::command::tests::dropping_an_order_that_is_not_the_served_one_leaves_the_running_action_alone ... ok
+test systems::command::tests::refused_placement_reports_no_acceptance_or_displacement_and_preserves_ids ... ok
+test systems::command::tests::replace_at_full_capacity_is_accepted_after_its_ordered_cancel ... ok
+test systems::command::tests::select_ignores_an_index_that_is_not_an_agent ... ok
+test systems::command::tests::select_marks_the_named_agent_and_unmarks_whatever_was_selected_before ... ok
+test systems::command::tests::select_none_clears_the_selection ... ok
+test systems::command::tests::talk_to_respects_the_cap_on_a_queue_that_already_existed ... ok
+test systems::command::tests::split_and_batched_paused_drains_produce_the_same_saved_world ... ok
+test systems::command::tests::talk_to_staged_for_a_fresh_agent_is_capped_within_one_batch ... ok
+test systems::command::tests::the_cap_applies_to_a_queue_that_already_existed_as_well_as_to_a_new_one ... ok
+test systems::command::tests::two_clicks_on_a_sim_with_no_queue_yet_both_survive_the_same_tick ... ok
+test systems::command::tests::the_intent_queue_is_capped_at_the_tuned_depth_rather_than_growing_without_bound ... ok
+test systems::command::tests::two_commands_in_one_tick_apply_in_the_order_the_player_issued_them ... ok
+test systems::command::tests::use_object_ignores_an_index_that_is_not_a_smart_object ... ok
+test systems::command::tests::use_object_queues_the_interaction_index_the_command_named_rather_than_zero ... ok
+test systems::command::tests::use_object_queues_an_intent_for_the_named_agent_and_the_named_object ... ok
+test systems::command::tests::the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first ... ok
+test systems::command::tests::a_recorded_command_sequence_replays_to_the_same_hash ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 1501 filtered out; finished in 6.51s
+

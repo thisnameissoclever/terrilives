@@ -1,0 +1,668 @@
+{
+  "base": "7c7cfa2274729716b35fda168653c2dfe687d079",
+  "branch": "twcx/issue-273-player-orders",
+  "uncommitted": true,
+  "hashing": "Raw file checksums describe this worktree. Text also carries an LF-normalized checksum for comparison after Git text normalization.",
+  "files": [
+    {
+      "path": "crates/terri-core/src/command.rs",
+      "bytes": 50603,
+      "rawSha256": "f39a8514811a822da8ec51aa184cb666c089b388113e90f786e5ac2301ae3eda",
+      "lfTextSha256": "f39a8514811a822da8ec51aa184cb666c089b388113e90f786e5ac2301ae3eda"
+    },
+    {
+      "path": "crates/terri-core/src/command/work_order_tests.rs",
+      "bytes": 493,
+      "rawSha256": "76c5b7eb0f46727903b893b32494e882bad3174f054ea513518308a60c2f9475",
+      "lfTextSha256": "76c5b7eb0f46727903b893b32494e882bad3174f054ea513518308a60c2f9475"
+    },
+    {
+      "path": "crates/terri-core/src/lib.rs",
+      "bytes": 2696,
+      "rawSha256": "6e57653598556e1daad3c2a2076c42b8c2282d8d338fc886c13afb82f5f5f2ab",
+      "lfTextSha256": "6e57653598556e1daad3c2a2076c42b8c2282d8d338fc886c13afb82f5f5f2ab"
+    },
+    {
+      "path": "crates/terri-core/src/player_order_hash.rs",
+      "bytes": 2155,
+      "rawSha256": "8b390d5a541ac50e300c5cc9d6f03afde284d1a19399c46653fa2745720428e3",
+      "lfTextSha256": "8b390d5a541ac50e300c5cc9d6f03afde284d1a19399c46653fa2745720428e3"
+    },
+    {
+      "path": "crates/terri-core/src/save.rs",
+      "bytes": 32864,
+      "rawSha256": "9332307eecd7b3c617b0c3e0e9832c28091e4cf7b8df0a59d683a17d29b36e6d",
+      "lfTextSha256": "9332307eecd7b3c617b0c3e0e9832c28091e4cf7b8df0a59d683a17d29b36e6d"
+    },
+    {
+      "path": "crates/terri-core/src/save_v15.rs",
+      "bytes": 3011,
+      "rawSha256": "43f6f98bfcf2b09b988cb341ff184277e55493723d7485fb71e98dc0da5caccb",
+      "lfTextSha256": "cd286a97a2aeedff68b28687df395f6fbf105738dea07ae73b56e55ca76c9340"
+    },
+    {
+      "path": "crates/terri-sim/examples/order_diagnostics.rs",
+      "bytes": 4584,
+      "rawSha256": "a0112ef0647b7b59d0b71f9ca21734eef308c68dbc49ff4136e22c40968014f7",
+      "lfTextSha256": "a0112ef0647b7b59d0b71f9ca21734eef308c68dbc49ff4136e22c40968014f7"
+    },
+    {
+      "path": "crates/terri-sim/src/action_queue.rs",
+      "bytes": 20196,
+      "rawSha256": "d491b6d2ea493e07ea4a119afef3a32430ab35b3ed44199f356ffd9b7d8bdb39",
+      "lfTextSha256": "d491b6d2ea493e07ea4a119afef3a32430ab35b3ed44199f356ffd9b7d8bdb39"
+    },
+    {
+      "path": "crates/terri-sim/src/attendance.rs",
+      "bytes": 46605,
+      "rawSha256": "03f154fb1d473a9a977e951add09e36abad4a05dd401733ffc64728cdbb7c203",
+      "lfTextSha256": "f8edc50e75ffd4ff9b4e40a78ee6df43ab404a4b611194bf29c9addf6629d455"
+    },
+    {
+      "path": "crates/terri-sim/src/attendance_tests.rs",
+      "bytes": 58363,
+      "rawSha256": "579d1ab694b5842c6471f91d043a37e44ac828dcc22a6d9241ba5eb8894adb8a",
+      "lfTextSha256": "579d1ab694b5842c6471f91d043a37e44ac828dcc22a6d9241ba5eb8894adb8a"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests.rs",
+      "bytes": 34615,
+      "rawSha256": "6c640c4194e628521f2283b7361a33a3fd1172252e922d0a675a1855e7eb4995",
+      "lfTextSha256": "6c640c4194e628521f2283b7361a33a3fd1172252e922d0a675a1855e7eb4995"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/lifecycle.rs",
+      "bytes": 14947,
+      "rawSha256": "a7abf5b4884b52ab67100e5319a95987c5aad181826b5e01f58604acd5c0b2d1",
+      "lfTextSha256": "a7abf5b4884b52ab67100e5319a95987c5aad181826b5e01f58604acd5c0b2d1"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/shipped.rs",
+      "bytes": 6874,
+      "rawSha256": "99ef69570ac77638e11c39bb76c6e5cbe742286392c1fc12899fcfae26a80283",
+      "lfTextSha256": "bdd482e8969720c4cd5440b40fae0e06e625a096fdf5fdc83ea2fbaba8d118e1"
+    },
+    {
+      "path": "crates/terri-sim/src/books/command_tests.rs",
+      "bytes": 29049,
+      "rawSha256": "adf00d1104bd1364dc82a2447cf81daf006ad3d4aacdf8a1d9ab0f196609f95c",
+      "lfTextSha256": "adf00d1104bd1364dc82a2447cf81daf006ad3d4aacdf8a1d9ab0f196609f95c"
+    },
+    {
+      "path": "crates/terri-sim/src/books/commands.rs",
+      "bytes": 16840,
+      "rawSha256": "14cb183216e203a410bef03ed01e2e9dad6565bcc7038289eda4a0dbeb6d2f1c",
+      "lfTextSha256": "14cb183216e203a410bef03ed01e2e9dad6565bcc7038289eda4a0dbeb6d2f1c"
+    },
+    {
+      "path": "crates/terri-sim/src/careers.rs",
+      "bytes": 101151,
+      "rawSha256": "7cd9631b7e604684b7259e4f9eb033ce630734ac3983de9aaafa71ff500e9e3c",
+      "lfTextSha256": "0fd40051f9fe0459dcb7b295e2e0e408d028025fa39d339ad2adcab5644a1695"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/consequences.rs",
+      "bytes": 7154,
+      "rawSha256": "7f6c8207c8de4e22b09b3fb67fe3f448968c08901146ce728421039d8096246d",
+      "lfTextSha256": "7f6c8207c8de4e22b09b3fb67fe3f448968c08901146ce728421039d8096246d"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/groups.rs",
+      "bytes": 21243,
+      "rawSha256": "977b48007fcd916f3f96d0caabf5df6f80b05eae9844548c370d0c71c9461df9",
+      "lfTextSha256": "977b48007fcd916f3f96d0caabf5df6f80b05eae9844548c370d0c71c9461df9"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/lifecycle_tests.rs",
+      "bytes": 16001,
+      "rawSha256": "6b74d7026902de16d1ace1bbe02916ff58c61d7c5661bcda0e265700c23f42b1",
+      "lfTextSha256": "6b74d7026902de16d1ace1bbe02916ff58c61d7c5661bcda0e265700c23f42b1"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/mod.rs",
+      "bytes": 20203,
+      "rawSha256": "4f845334af52ba6747f798759990f7d9365ed9d65c8fb527199937849e7df470",
+      "lfTextSha256": "4f845334af52ba6747f798759990f7d9365ed9d65c8fb527199937849e7df470"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/tests.rs",
+      "bytes": 15084,
+      "rawSha256": "989223910b7c9e5230acbc8c756c2280409cc8adb7f7e01c705439d69184e50e",
+      "lfTextSha256": "989223910b7c9e5230acbc8c756c2280409cc8adb7f7e01c705439d69184e50e"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/work.rs",
+      "bytes": 27687,
+      "rawSha256": "63defd7a5e8ec2397b0ae31a6f054d280cb0852e6a571cbda70fd11750e64dc4",
+      "lfTextSha256": "63defd7a5e8ec2397b0ae31a6f054d280cb0852e6a571cbda70fd11750e64dc4"
+    },
+    {
+      "path": "crates/terri-sim/src/dining.rs",
+      "bytes": 37730,
+      "rawSha256": "fffdf977b74f3f687a4b480cca5f53b101e343ad76a19ce185ef247167b57f3a",
+      "lfTextSha256": "ad09792862405a8728ef84f7a0c643848c91e8ed759ac46f5c9eb09491df04c9"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/completion_tests.rs",
+      "bytes": 10026,
+      "rawSha256": "c3d68b4a6bfb752549511a44598da1c55ab3f1e385e1e96ddf9bd94dd4e4773e",
+      "lfTextSha256": "90a67164d7c0a05ac4aa07807aae00f6f8584df521bdc8043f31b643f7009cae"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/table_actions.rs",
+      "bytes": 15724,
+      "rawSha256": "b57fd3d47392f6ee1bdda3677f6f3dc941a6507296e313b17e83966636e8298c",
+      "lfTextSha256": "287b6b583af9ca0e6985900556942c0fe297697c330f894919f9c5343563427f"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/tests.rs",
+      "bytes": 69465,
+      "rawSha256": "8b1a0beac82ecf1dfd915566833725805a60a528b89882547058adbe04ccfa8b",
+      "lfTextSha256": "3d30bd3fb872d4cc6acfd4b54668e41213fd1ab683550d0220e37f4ba2c6950c"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic.rs",
+      "bytes": 70455,
+      "rawSha256": "91f14f6f4e2f60a705fa824c0830fd063c8891813b208bde6e69db427f35e6c8",
+      "lfTextSha256": "99de220b50c05f36b76d31ee8640596d4de4c65d2803f78ea0c5c8d1b2aa55ec"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic/tests.rs",
+      "bytes": 115549,
+      "rawSha256": "0f037565a33c1c410f9abf5dd5fcb8f4559f1929697303275646e31292f71f23",
+      "lfTextSha256": "0f037565a33c1c410f9abf5dd5fcb8f4559f1929697303275646e31292f71f23"
+    },
+    {
+      "path": "crates/terri-sim/src/edit_tests.rs",
+      "bytes": 74280,
+      "rawSha256": "7f9569c4727e847810eff07729f94d4db0012eb85161633ee7497557d18125dc",
+      "lfTextSha256": "7f9569c4727e847810eff07729f94d4db0012eb85161633ee7497557d18125dc"
+    },
+    {
+      "path": "crates/terri-sim/src/fights.rs",
+      "bytes": 43331,
+      "rawSha256": "372418b1b8b37109c4ebe3c629fdec857d721a49da469190473e4946a0f56917",
+      "lfTextSha256": "ce21a618c08cb1204546220df33c24cacd2b581e85ad269ac3602767a4fc0d13"
+    },
+    {
+      "path": "crates/terri-sim/src/lib.rs",
+      "bytes": 304225,
+      "rawSha256": "3cbb8f770d3db32a9df8a6535d0e16b955a9391cbcd334d101d259b42aac7352",
+      "lfTextSha256": "3cbb8f770d3db32a9df8a6535d0e16b955a9391cbcd334d101d259b42aac7352"
+    },
+    {
+      "path": "crates/terri-sim/src/mortality.rs",
+      "bytes": 44713,
+      "rawSha256": "591e6ccb47860e5b4754baf8ee2020e88dc1a707d29180599e6e78f7f93697b6",
+      "lfTextSha256": "591e6ccb47860e5b4754baf8ee2020e88dc1a707d29180599e6e78f7f93697b6"
+    },
+    {
+      "path": "crates/terri-sim/src/player_actions.rs",
+      "bytes": 62563,
+      "rawSha256": "c20b20acb35d7df2bb6fb6379024b8764b24c6a36fe6f9ed1be776565b33e06c",
+      "lfTextSha256": "c20b20acb35d7df2bb6fb6379024b8764b24c6a36fe6f9ed1be776565b33e06c"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy.rs",
+      "bytes": 38979,
+      "rawSha256": "0a241e199529c72076e40fa76e34827e6688c8e10278b39c7b75b593d2efddd3",
+      "lfTextSha256": "1a5f992f176550ab354464b16bedc71194b59e889085665b356da38436d7cbb0"
+    },
+    {
+      "path": "crates/terri-sim/src/reading.rs",
+      "bytes": 44544,
+      "rawSha256": "c6fabce3f21b3874350d302da0b00e2fee95764295ad4566a3498f3959578ee1",
+      "lfTextSha256": "0d7b7f2624736ec44d312fe72bfd4fb6604e7e5a22c4d5a5b5c8ecbf705bbb1d"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/planning.rs",
+      "bytes": 21421,
+      "rawSha256": "5b6a9ac06afc8889ac3f305624ded5615136dd405d48858f2b18b9b11ac0fadb",
+      "lfTextSha256": "5b6a9ac06afc8889ac3f305624ded5615136dd405d48858f2b18b9b11ac0fadb"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests.rs",
+      "bytes": 84031,
+      "rawSha256": "7821a0f4d1825df0eef9b1c232375ed4c70350cbfc1587d42de8d16f7096ad63",
+      "lfTextSha256": "7821a0f4d1825df0eef9b1c232375ed4c70350cbfc1587d42de8d16f7096ad63"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests/order_reachability.rs",
+      "bytes": 5362,
+      "rawSha256": "5641ad95f48fcd72f11cd11a31b528a7edede4c88f1e4fb7c7cc74dca388bcee",
+      "lfTextSha256": "5641ad95f48fcd72f11cd11a31b528a7edede4c88f1e4fb7c7cc74dca388bcee"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests/review.rs",
+      "bytes": 15998,
+      "rawSha256": "c834acec2feb1c91e42e2c545fa4247d42782f92bc53fb014a181780fcc3b999",
+      "lfTextSha256": "c834acec2feb1c91e42e2c545fa4247d42782f92bc53fb014a181780fcc3b999"
+    },
+    {
+      "path": "crates/terri-sim/src/recipe_actions.rs",
+      "bytes": 22546,
+      "rawSha256": "bbd46676a87058908c6d849f8825021a5956b961fafc6b90fb3ce460aec35747",
+      "lfTextSha256": "6161d26014eebc1cbdc5f857be33887173da01b20de336ca70e74182bc5746f5"
+    },
+    {
+      "path": "crates/terri-sim/src/reservations_tests.rs",
+      "bytes": 12533,
+      "rawSha256": "e314afa7dce84ee4e72d546e430ecf82baf64e061cf844c016538ee0368a76ff",
+      "lfTextSha256": "42fc7c22565b0a08c66dcce0dd7e3c60cf775692280c28f51ded2f2f2181f503"
+    },
+    {
+      "path": "crates/terri-sim/src/save.rs",
+      "bytes": 188533,
+      "rawSha256": "ee18be883656cb0f55ff2224f3f02e14b6b2c6bf029e9e8d113ec17a47138bb1",
+      "lfTextSha256": "ee18be883656cb0f55ff2224f3f02e14b6b2c6bf029e9e8d113ec17a47138bb1"
+    },
+    {
+      "path": "crates/terri-sim/src/save/social.rs",
+      "bytes": 33477,
+      "rawSha256": "9581407c7f146184aac513282280159a2ee701e528c1e157de92ff2eb52a23ad",
+      "lfTextSha256": "9581407c7f146184aac513282280159a2ee701e528c1e157de92ff2eb52a23ad"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v10.rs",
+      "bytes": 10041,
+      "rawSha256": "4e5424dddad072f7a2da7ab4b01963a30cd6da921045cbe7bd6e00d62e6cf6da",
+      "lfTextSha256": "4e5424dddad072f7a2da7ab4b01963a30cd6da921045cbe7bd6e00d62e6cf6da"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v15.rs",
+      "bytes": 9784,
+      "rawSha256": "bb67ec604f6a63d3900a41e05001a9e6f22ad292ea5ab790cf3e536b71fcab87",
+      "lfTextSha256": "bb67ec604f6a63d3900a41e05001a9e6f22ad292ea5ab790cf3e536b71fcab87"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v15_actor_tests.rs",
+      "bytes": 11820,
+      "rawSha256": "51c0a9eab06d72b6588b13ae438f625eb47c2f800b269bec72f9fad74d8adf73",
+      "lfTextSha256": "51c0a9eab06d72b6588b13ae438f625eb47c2f800b269bec72f9fad74d8adf73"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v15_tests.rs",
+      "bytes": 10820,
+      "rawSha256": "b6bdb72282bc985f7c1be800f66626b33ebe9ca3c9d0be8245372a6cfd0d88bc",
+      "lfTextSha256": "b6bdb72282bc985f7c1be800f66626b33ebe9ca3c9d0be8245372a6cfd0d88bc"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v6.rs",
+      "bytes": 28647,
+      "rawSha256": "b96eb4d4b7e69eaf22e81a7f8402eae8365b81a539104427980155d3062d97dc",
+      "lfTextSha256": "b96eb4d4b7e69eaf22e81a7f8402eae8365b81a539104427980155d3062d97dc"
+    },
+    {
+      "path": "crates/terri-sim/src/seating/tests.rs",
+      "bytes": 97258,
+      "rawSha256": "8b513d7b551313a366de8617c6a6bbf4633dc0dbf1fd0dcf25a12b03bf144702",
+      "lfTextSha256": "8b513d7b551313a366de8617c6a6bbf4633dc0dbf1fd0dcf25a12b03bf144702"
+    },
+    {
+      "path": "crates/terri-sim/src/skills_tests.rs",
+      "bytes": 35519,
+      "rawSha256": "252c57e21da7dd57b1ded908082c002b69e80671e5e7d4771326a3bd6b10a229",
+      "lfTextSha256": "b550f8a47b51631b386aaf57e825f48c27e03027c025cc08ec3b159395cfd3f1"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode.rs",
+      "bytes": 11845,
+      "rawSha256": "c1d8017ea45fe04d10eb93476bdb7b9fa421b223b35b0dc0f3fb988b143052fc",
+      "lfTextSha256": "c1d8017ea45fe04d10eb93476bdb7b9fa421b223b35b0dc0f3fb988b143052fc"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/execution.rs",
+      "bytes": 25704,
+      "rawSha256": "655c25598f3bf1debaa5273baaead1366826b4c7fe2a264221f4eac15cdf2044",
+      "lfTextSha256": "e71c2caf4ab5241fe13e58b67129ce30ab6f389a22559d7416203999d6fb05a4"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/execution_persistence.rs",
+      "bytes": 10402,
+      "rawSha256": "2dbc14ffa3dae6f9bbd7dda909958550a0a4f122fd34bb611860bee12261b097",
+      "lfTextSha256": "b784014a8bb304946fb97374b996ae41be4963de52f93b0d261d3eabe6544422"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/tests.rs",
+      "bytes": 72663,
+      "rawSha256": "69ba80462b12fc806d366e0bd25de471714fc93d6886efd0c79601ab390fe3ff",
+      "lfTextSha256": "bfab7db6888dfc0daf315e7726ce46b9945a7ce9e9680a5c9afeb762b5b6aeb4"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/action.rs",
+      "bytes": 264098,
+      "rawSha256": "e5d2f25cea6bf06460159c91d546a46b77fae489c5c7e085c45ff12c767b7110",
+      "lfTextSha256": "687ead37f4dbeec4badf959444d146806e34db60c147c4567ac6552cc464591d"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/career.rs",
+      "bytes": 64566,
+      "rawSha256": "01e0aa61965c2e694010c4a7055bbdf5826ac013d7e942ed330e93ebbd997143",
+      "lfTextSha256": "01e0aa61965c2e694010c4a7055bbdf5826ac013d7e942ed330e93ebbd997143"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/chain.rs",
+      "bytes": 114802,
+      "rawSha256": "4348d920a99d0a44946cfa7d7b7ef7913ad476a9af9f969f4b400a138507ac97",
+      "lfTextSha256": "2982e8227c0e7f9f9651a120dc7e04ca01855a52498247d852c76db283cacc2c"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/command.rs",
+      "bytes": 161523,
+      "rawSha256": "d253a4b016cfc4f32b0d7d329076f475de9dffc3a612672623e25843dbc0bb3c",
+      "lfTextSha256": "d253a4b016cfc4f32b0d7d329076f475de9dffc3a612672623e25843dbc0bb3c"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/command_submission_tests.rs",
+      "bytes": 11647,
+      "rawSha256": "9f735f64c1250d673c0d7ff7fc90ea83309cee2b1688b0b16993be6193bd1133",
+      "lfTextSha256": "9f735f64c1250d673c0d7ff7fc90ea83309cee2b1688b0b16993be6193bd1133"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interact.rs",
+      "bytes": 65689,
+      "rawSha256": "04deef8c33cb7d40b901a4afbc4ba4dbb962e607359303e2e04d997e0c7ef8ec",
+      "lfTextSha256": "04deef8c33cb7d40b901a4afbc4ba4dbb962e607359303e2e04d997e0c7ef8ec"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal_tests.rs",
+      "bytes": 60058,
+      "rawSha256": "6e263c0971d95bb204010458e63dd93b24d078130bc63155757d3206b5e9cceb",
+      "lfTextSha256": "1c82ca565c01eace96c27a1ae8c29e0301c2eb66a111834f5ee06c345825179f"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/lot_edit.rs",
+      "bytes": 10809,
+      "rawSha256": "b59e5e364dc6f48966c851c14b7e4da0c39932e710d7ef4b5798213a6fabdedd",
+      "lfTextSha256": "b59e5e364dc6f48966c851c14b7e4da0c39932e710d7ef4b5798213a6fabdedd"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement.rs",
+      "bytes": 45708,
+      "rawSha256": "1542916824204ad2e62fea13981a1cbb5e1703ad2df2b193636b299b153c5634",
+      "lfTextSha256": "1542916824204ad2e62fea13981a1cbb5e1703ad2df2b193636b299b153c5634"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/social.rs",
+      "bytes": 98614,
+      "rawSha256": "1cc9ae9d527c8ff9b27781942f44d4cbf3cdc82cd1aa94f90f6151e4a513f6da",
+      "lfTextSha256": "1cc9ae9d527c8ff9b27781942f44d4cbf3cdc82cd1aa94f90f6151e4a513f6da"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/street_tests.rs",
+      "bytes": 12746,
+      "rawSha256": "71a5b3a4640fc310bcda81dd18260ecc28562af7539f2dd3b6f5c2339575d0ed",
+      "lfTextSha256": "71a5b3a4640fc310bcda81dd18260ecc28562af7539f2dd3b6f5c2339575d0ed"
+    },
+    {
+      "path": "crates/terri-sim/src/targeted_cleanup.rs",
+      "bytes": 27855,
+      "rawSha256": "ffeace35b93a9d8602ebe555b322d1583cd1042642ac724df2d217a068b3cab5",
+      "lfTextSha256": "ffeace35b93a9d8602ebe555b322d1583cd1042642ac724df2d217a068b3cab5"
+    },
+    {
+      "path": "crates/terri-sim/src/targeted_cleanup/phase_tests.rs",
+      "bytes": 20752,
+      "rawSha256": "c48170607ee4668a432351e5923e2b388aff0b75533b3bb74a9e24f68a65ceb4",
+      "lfTextSha256": "c48170607ee4668a432351e5923e2b388aff0b75533b3bb74a9e24f68a65ceb4"
+    },
+    {
+      "path": "crates/terri-wasm/src/character_tests.rs",
+      "bytes": 11720,
+      "rawSha256": "4df6e13014fc20326e140fc78e863d32a45fe468ca0330eec0e4778095cc3c22",
+      "lfTextSha256": "4df6e13014fc20326e140fc78e863d32a45fe468ca0330eec0e4778095cc3c22"
+    },
+    {
+      "path": "crates/terri-wasm/src/inherited_runtime_tests.rs",
+      "bytes": 41304,
+      "rawSha256": "ea707807c95e3fe700813d665633abd018b87da09a2cb1ac708f0b310d10c285",
+      "lfTextSha256": "ea707807c95e3fe700813d665633abd018b87da09a2cb1ac708f0b310d10c285"
+    },
+    {
+      "path": "crates/terri-wasm/src/lib.rs",
+      "bytes": 433980,
+      "rawSha256": "bd353c53dd22f5621c44c6eb7e5861ec167d83d8527b1f9b9e4d3c7f522fec93",
+      "lfTextSha256": "bd353c53dd22f5621c44c6eb7e5861ec167d83d8527b1f9b9e4d3c7f522fec93"
+    },
+    {
+      "path": "crates/terri-wasm/src/player_order_tests.rs",
+      "bytes": 11913,
+      "rawSha256": "7364f5d4147b9d8b3d20da68d341d92b094be6c96e438384d06bb7f9821b7aa3",
+      "lfTextSha256": "7364f5d4147b9d8b3d20da68d341d92b094be6c96e438384d06bb7f9821b7aa3"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_before_voice_tests.rs",
+      "bytes": 5496,
+      "rawSha256": "20482640589bfa09ed0b88cc371f2c164ea2784d3e0851aa28786a237c627921",
+      "lfTextSha256": "20482640589bfa09ed0b88cc371f2c164ea2784d3e0851aa28786a237c627921"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_v3_tests.rs",
+      "bytes": 84700,
+      "rawSha256": "2a4c752eda63ba39952911987acb5adcff46ef7c7ee6dd78319e97ae1ea385eb",
+      "lfTextSha256": "2a4c752eda63ba39952911987acb5adcff46ef7c7ee6dd78319e97ae1ea385eb"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_v6_tests.rs",
+      "bytes": 19071,
+      "rawSha256": "d79fa8bef70bc360d2efdffc199825da3894cba048d45382b8c092229d244850",
+      "lfTextSha256": "d79fa8bef70bc360d2efdffc199825da3894cba048d45382b8c092229d244850"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 129398,
+      "rawSha256": "27df3a1a073d819d38191e6bfff2a28588b5deb4dcfcb805e138806b1cae39d6",
+      "lfTextSha256": "27df3a1a073d819d38191e6bfff2a28588b5deb4dcfcb805e138806b1cae39d6"
+    },
+    {
+      "path": "docs/GAME-SYSTEMS.md",
+      "bytes": 84086,
+      "rawSha256": "61f32b3cadc862eeeb273af0ebedea57b7e9aa6769a926130510bef99a0e6a21",
+      "lfTextSha256": "61f32b3cadc862eeeb273af0ebedea57b7e9aa6769a926130510bef99a0e6a21"
+    },
+    {
+      "path": "docs/changelog/2026-10-17-fights.md",
+      "bytes": 4134,
+      "rawSha256": "e9b3b59f4b9bb87b9178cede630b2e44f291571074daa4a901c35f08b7d6e1eb",
+      "lfTextSha256": "e9b3b59f4b9bb87b9178cede630b2e44f291571074daa4a901c35f08b7d6e1eb"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders-browser.md",
+      "bytes": 4892,
+      "rawSha256": "a3a0093f98f3cf56cd147ef578c7f58f916a676755b757434252609936d3d42c",
+      "lfTextSha256": "d5957f7ff18d41f82ce16576de0df178a3bb4f702b4983084cb39ab9fca38035"
+    },
+    {
+      "path": "docs/evidence/2026-10-17-player-orders.md",
+      "bytes": 12100,
+      "rawSha256": "888e9fd72d7fd23eb4f1a551e512b39d4c3ec1070687ad88a129bf10d6da2e2b",
+      "lfTextSha256": "888e9fd72d7fd23eb4f1a551e512b39d4c3ec1070687ad88a129bf10d6da2e2b"
+    },
+    {
+      "path": "docs/lessons-learned.md",
+      "bytes": 800500,
+      "rawSha256": "39dcf470efda57539c301dae3a8f3132960f005a48f387214a4c6bcf0c982e9d",
+      "lfTextSha256": "39dcf470efda57539c301dae3a8f3132960f005a48f387214a4c6bcf0c982e9d"
+    },
+    {
+      "path": "docs/specs/2026-07-31-visibility-and-talk-design.md",
+      "bytes": 9272,
+      "rawSha256": "37aa934937fb5942a06c0499627a89af4798a342a964b28a76aecbd7d0a1d7c1",
+      "lfTextSha256": "37aa934937fb5942a06c0499627a89af4798a342a964b28a76aecbd7d0a1d7c1"
+    },
+    {
+      "path": "docs/specs/2026-10-13-conversation-topics.md",
+      "bytes": 3610,
+      "rawSha256": "001f0995569fdf4a62cb600604a9993a858ae93e8bae65da87a442009ae66dc8",
+      "lfTextSha256": "001f0995569fdf4a62cb600604a9993a858ae93e8bae65da87a442009ae66dc8"
+    },
+    {
+      "path": "docs/specs/2026-10-17-careers.md",
+      "bytes": 16429,
+      "rawSha256": "11cca094343525cec6d58d9b9953e1a05db626a8311c9e763b7571cbfc3080f2",
+      "lfTextSha256": "11cca094343525cec6d58d9b9953e1a05db626a8311c9e763b7571cbfc3080f2"
+    },
+    {
+      "path": "docs/specs/2026-10-17-player-orders.md",
+      "bytes": 5631,
+      "rawSha256": "b466ab6864f41d13094922c1cbe893789327664e6c6e6d4b23cf0d5bf0ae2f5f",
+      "lfTextSha256": "b466ab6864f41d13094922c1cbe893789327664e6c6e6d4b23cf0d5bf0ae2f5f"
+    },
+    {
+      "path": "web/index.html",
+      "bytes": 70098,
+      "rawSha256": "964d80501c7b59077c1dcc0fcb3e8e461e1af8067dd31274a8a5aac3f28f6a78",
+      "lfTextSha256": "964d80501c7b59077c1dcc0fcb3e8e461e1af8067dd31274a8a5aac3f28f6a78"
+    },
+    {
+      "path": "web/src/bridge.ts",
+      "bytes": 98035,
+      "rawSha256": "54def02a4f71c20f84f74feae6c7d134e868a983e929224d49858071c9602a69",
+      "lfTextSha256": "54def02a4f71c20f84f74feae6c7d134e868a983e929224d49858071c9602a69"
+    },
+    {
+      "path": "web/src/main.ts",
+      "bytes": 124161,
+      "rawSha256": "ddce6acd658ef7ade5c732a82188b8619c2e093a33d57c2a1d1de51193dcc430",
+      "lfTextSha256": "ddce6acd658ef7ade5c732a82188b8619c2e093a33d57c2a1d1de51193dcc430"
+    },
+    {
+      "path": "web/src/storage/save-header.ts",
+      "bytes": 453,
+      "rawSha256": "8a2e1a607a8f27029326276cd92f95e7e35a5bff0e9a99ee77a62db6ece17a9d",
+      "lfTextSha256": "8a2e1a607a8f27029326276cd92f95e7e35a5bff0e9a99ee77a62db6ece17a9d"
+    },
+    {
+      "path": "web/src/storage/save-worker.ts",
+      "bytes": 6830,
+      "rawSha256": "5e4894bdb24fd6c8b31895ae8d66e88012c06cbcac7d96f47935ecfe64de5f1f",
+      "lfTextSha256": "5e4894bdb24fd6c8b31895ae8d66e88012c06cbcac7d96f47935ecfe64de5f1f"
+    },
+    {
+      "path": "web/src/ui/action-queue.ts",
+      "bytes": 3045,
+      "rawSha256": "59bd85248aa6bd304388462db0fc8d57706beb952a84a9599f3e011a7b9fafe1",
+      "lfTextSha256": "59bd85248aa6bd304388462db0fc8d57706beb952a84a9599f3e011a7b9fafe1"
+    },
+    {
+      "path": "web/src/ui/career-panel.ts",
+      "bytes": 20625,
+      "rawSha256": "0b2404dbb56aef8ee22f3bdab762dd67e7ff0e62f43fd3a30bb629633422da3e",
+      "lfTextSha256": "0b2404dbb56aef8ee22f3bdab762dd67e7ff0e62f43fd3a30bb629633422da3e"
+    },
+    {
+      "path": "web/src/ui/order-failure-bubbles.ts",
+      "bytes": 2450,
+      "rawSha256": "46e18e2f7327512d743dea51c0da77c19bdccdb058c9458b3d047d89451a1bcc",
+      "lfTextSha256": "46e18e2f7327512d743dea51c0da77c19bdccdb058c9458b3d047d89451a1bcc"
+    },
+    {
+      "path": "web/src/ui/player-orders.ts",
+      "bytes": 3418,
+      "rawSha256": "4dad57c9320f849edc246c224af2958ad37a51e61648833e43e45151a2de646e",
+      "lfTextSha256": "4dad57c9320f849edc246c224af2958ad37a51e61648833e43e45151a2de646e"
+    },
+    {
+      "path": "web/src/ui/work-order-confirmation.ts",
+      "bytes": 2283,
+      "rawSha256": "8dd639adc8beb0066ee31b1c8a7c955b08206988b04ae535653ef002f6c1e874",
+      "lfTextSha256": "8dd639adc8beb0066ee31b1c8a7c955b08206988b04ae535653ef002f6c1e874"
+    },
+    {
+      "path": "web/tests/action-queue.test.ts",
+      "bytes": 4800,
+      "rawSha256": "2d5039bfbedd83834cc4c393a81cabc709cd6e9d3f93bec22f729ce9bbb40072",
+      "lfTextSha256": "2d5039bfbedd83834cc4c393a81cabc709cd6e9d3f93bec22f729ce9bbb40072"
+    },
+    {
+      "path": "web/tests/bridge.test.ts",
+      "bytes": 94653,
+      "rawSha256": "671d88cb05f155bfecb1155a04505bcccb1e36d0b75c8a457a16a15c0a38d34b",
+      "lfTextSha256": "671d88cb05f155bfecb1155a04505bcccb1e36d0b75c8a457a16a15c0a38d34b"
+    },
+    {
+      "path": "web/tests/builder.test.ts",
+      "bytes": 24026,
+      "rawSha256": "ad9e805ebc070628b703a4bc74d5644a4d15e0faa12246775df9461c7a927b3d",
+      "lfTextSha256": "ad9e805ebc070628b703a4bc74d5644a4d15e0faa12246775df9461c7a927b3d"
+    },
+    {
+      "path": "web/tests/career-panel.test.ts",
+      "bytes": 22187,
+      "rawSha256": "48d0f52d0eebbf093ecc5bc10d99cc6e08fbc4d655c12351d01923424a19936d",
+      "lfTextSha256": "48d0f52d0eebbf093ecc5bc10d99cc6e08fbc4d655c12351d01923424a19936d"
+    },
+    {
+      "path": "web/tests/fixtures/v14-worker/save-header.ts",
+      "bytes": 453,
+      "rawSha256": "ebc5f6d48a64ab62baaec5674cbc89a84677955980dd43bdbb33742246f5b440",
+      "lfTextSha256": "ebc5f6d48a64ab62baaec5674cbc89a84677955980dd43bdbb33742246f5b440"
+    },
+    {
+      "path": "web/tests/fixtures/v14-worker/save-worker.ts",
+      "bytes": 6752,
+      "rawSha256": "2cbf4a00e13f49a4b45f6f11a8b8615d51e41c6975123f4802491cf79439a108",
+      "lfTextSha256": "2cbf4a00e13f49a4b45f6f11a8b8615d51e41c6975123f4802491cf79439a108"
+    },
+    {
+      "path": "web/tests/floor-scene-presentation.test.ts",
+      "bytes": 10632,
+      "rawSha256": "bdb4dd0cdebd02de437842967d39f001a9dcca1ab1633f3ca7b383cf0b6a2284",
+      "lfTextSha256": "bdb4dd0cdebd02de437842967d39f001a9dcca1ab1633f3ca7b383cf0b6a2284"
+    },
+    {
+      "path": "web/tests/instance-batch-production.test.ts",
+      "bytes": 3323,
+      "rawSha256": "6cb8a73b2b9eca9e3034cb98dd3b8dbaac55062cc450038a0a26205c92ac3925",
+      "lfTextSha256": "6cb8a73b2b9eca9e3034cb98dd3b8dbaac55062cc450038a0a26205c92ac3925"
+    },
+    {
+      "path": "web/tests/legacy-save.test.ts",
+      "bytes": 2508,
+      "rawSha256": "4a92cdeeff7af91af06cd402e61c714d7027692673a30a5089a86c1207a4f792",
+      "lfTextSha256": "4a92cdeeff7af91af06cd402e61c714d7027692673a30a5089a86c1207a4f792"
+    },
+    {
+      "path": "web/tests/order-failure-bubbles.test.ts",
+      "bytes": 1715,
+      "rawSha256": "22aa8fc6ad24d6690ef9595ae986a06e4434e793a043d63f708436dda746bfb5",
+      "lfTextSha256": "22aa8fc6ad24d6690ef9595ae986a06e4434e793a043d63f708436dda746bfb5"
+    },
+    {
+      "path": "web/tests/player-order-bridge.test.ts",
+      "bytes": 5366,
+      "rawSha256": "2cc0a25c79eb5c9f82146193641c085a6355039b2b2ac1f9013510797569f18e",
+      "lfTextSha256": "2cc0a25c79eb5c9f82146193641c085a6355039b2b2ac1f9013510797569f18e"
+    },
+    {
+      "path": "web/tests/player-order-wasm.test.ts",
+      "bytes": 4474,
+      "rawSha256": "e82b073f07450818d0fb601e8c31a81b0a4c130da70406319439c6d9ce7f228f",
+      "lfTextSha256": "e82b073f07450818d0fb601e8c31a81b0a4c130da70406319439c6d9ce7f228f"
+    },
+    {
+      "path": "web/tests/player-orders.test.ts",
+      "bytes": 6670,
+      "rawSha256": "09de6bedbec0ffd00e948b4b5f13ca875ba3a2027fc79e462712983f95a04499",
+      "lfTextSha256": "39cbca0a3bbccf60f20d2f27726250ae516806aec8c2c9ffe862966b11e0660e"
+    },
+    {
+      "path": "web/tests/portal-bridge.test.ts",
+      "bytes": 9238,
+      "rawSha256": "b43b5fcdc351bb9500319c6664ebb01f3a432262a7c0c4815a8661398fc80455",
+      "lfTextSha256": "b43b5fcdc351bb9500319c6664ebb01f3a432262a7c0c4815a8661398fc80455"
+    },
+    {
+      "path": "web/tests/save-worker.test.ts",
+      "bytes": 25416,
+      "rawSha256": "2be04f63748e5ad11c76e63f466c87185a8fc0a86a648993d0975c903e5a3646",
+      "lfTextSha256": "2be04f63748e5ad11c76e63f466c87185a8fc0a86a648993d0975c903e5a3646"
+    }
+  ],
+  "releaseWasm": {
+    "path": "web/src/wasm/terri_wasm_bg.wasm",
+    "bytes": 6137564,
+    "rawSha256": "61dc3fcd0d778b035f19ce176ab7bbe5684187c76c41e13f2c558da18a19577f",
+    "lfTextSha256": null
+  }
+}

@@ -1,5 +1,132 @@
 # Lessons Learned
 
+## [L-diagnostic-producer-coverage] Exercise the producer a diagnostic test claims to protect
+
+1. What happened: disabling normal action-event capture survived a history-ring test. That test generated only rejected submissions through a separate producer.
+2. Root cause: a shared output buffer was mistaken for coverage of every path that writes it.
+3. Prevention: drive real accepted, canceled and failed actions through public commands as well as testing refusal records. Identify the production function each test actually exercises before choosing a mutation.
+4. Verification: suppress normal event capture and require the real-action history test to fail. Restore exact source bytes, then verify bounded retention, incremental cursors and identical save/load continuation with and without retained history.
+
+## [L-invalid-order-admission] Fail invalid actions before they can become saved work
+
+1. What happened: an invalid object action waited behind a book return. Saving succeeded, but loading rejected the invalid action reference. An invalid front order could also displace valid work or recall a worker before execution discovered the error.
+2. Root cause: command admission assumed execution would validate every accepted action promptly. Activity owners can defer execution, and future queue entries may wait indefinitely.
+3. Prevention: resolve new action references before placement, displacement, participant redirection or attendance changes. Give a failed submission its exact allocated order identity and terminal reason without retaining invalid gameplay state. Preserve strict historical readers.
+4. Verification: submit invalid object and social actions behind long activities and at the front of a full queue. Require unchanged valid owners, queues and reservations, one failure for the new identity, and a valid current save. Keep capacity and exhausted-allocator refusal checks.
+
+## [L-measure-visible-diagnostic-work] Verify the displayed workload before timing it
+
+1. What happened: a full diagnostic buffer was measured while the history selected a person with no matching records. A synthetic key event also failed to toggle the actual panel.
+2. Root cause: measurement labels described intended interface state rather than observed interface state.
+3. Prevention: use the actual controls. Assert panel visibility, selected filter and rendered record count before each timing trial. Keep discarded trials separate from accepted measurements.
+4. Verification: alternate verified visible and hidden states over the same paused world, preserve its gameplay hash, and retain the raw frame samples with the inspected workload settings.
+
+## [L-arbitrate-whole-activity-continuation] Share admission and continuation decisions
+
+1. What happened: a queued conversation blocked an interrupted recipe from resuming, while the retained recipe blocked that conversation. Reciprocal requests exposed the same conflict at later recipe stages.
+2. Root cause: social admission and recipe continuation made independent priority decisions. A retained counter also failed to distinguish the current recipe from one suspended beneath another activity.
+3. Prevention: publish one participant decision and apply its continuation policy to preparation, gathering and dining. Use the same current-activity predicate at physical conversation arrival. Track current versus suspended recipe activity explicitly at physical handoff and resumption. Save and hash that distinction instead of reconstructing it from a targetless counter.
+4. Verification: finish reciprocal conversations around whole dinners, preserve exact order identities, and reject resumption of a background recipe before incoming work. Round-trip between stages and immediately after another activity ends. Keep future unready requests from granting continuation or reservations.
+
+## [L-save-supported-actor-identities] Save every supported kind of order owner
+
+1. What happened: current saves omitted orders owned by unnamed agents created through the public spawning API. Loading then rejected their queues, breaking activity and presentation continuation tests.
+2. Root cause: the writer equated a valid agent with a household Sim ID, although the public API also supports agents without that identity.
+3. Prevention: represent the owner kind explicitly. Resolve household IDs and preserved entity indices separately, without fallback between them. Keep activity-specific household requirements intact.
+4. Verification: round-trip queued and served work, recipe continuation and supported conversations for both owner kinds. Preserve existing animation and memory-growth assertions. Reject missing, wrong-kind and duplicate owner references atomically.
+
+## [L-record-start-at-physical-dispatch] Record starts before short work can finish
+
+1. What happened: an order could report that it started while only reserving its activity. A one-tick activity could instead begin and finish without any start record.
+2. Root cause: admission was treated as physical work, while observations outside the full schedule missed work components inserted and removed within that schedule.
+3. Prevention: record the running transition immediately after physical work begins and before its countdown can finish. Verify the live target and exact order owner. Keep approach and waiting separate from running; use boundary observations to synchronize retained activity rather than as the only source of start events.
+4. Verification: issue public commands with the shortest supported duration and require start before completion. Reject premature starts during approach or failed activation. Round-trip a claimed but unstarted activity, and refuse a forged running state whose start flag is false.
+
+## [L-exact-admission-deltas] Report queue changes from the operation that makes them
+
+1. What happened: adding order diagnostics copied the complete queue before and after each insertion and searched both copies for changed identities. Large batches became much more expensive to admit.
+2. Root cause: diagnostic bookkeeping reconstructed a small mutation from two complete states. Repeated nested membership searches made a batch's work grow cubically with its length.
+3. Prevention: have the authoritative queue operation return the exact accepted and displaced entries. Record those identities directly. Refuse capacity or allocation failures before creating related saved work, and keep involuntary displacement distinct from intentional cancellation.
+4. Verification: measure increasing batch sizes using real commands. Test repeated identical intents, displacement of the actual running identity, and refused chore or cleanup admission. Require unchanged gameplay and saved allocation state on refusal.
+
+## [L-social-admission-owns-execution] Keep incoming requests separate from physical leases
+
+**What happened.** Rebuilding a shared reservation map from player requests
+erased autonomous conversation approaches. Publishing a pending winner before
+its route existed also produced a reservation the saved-world validator rejected.
+Independent front-order checks then disagreed about which participant could act.
+
+**Root cause.** Pending intent, execution provenance and physical reservations
+were treated as interchangeable facts with different writers. Matching an
+action's target and interaction could not identify a repeated player order or
+distinguish it from an autonomous conversation.
+
+**Prevention.** Give social admission one authority. Keep durable requests in
+their queues, bind an execution to its exact source, and project physical leases
+only from actual admitted approaches. Movement validates arrival; completion
+consumes the execution's identity. Preserve autonomous and system provenance.
+
+**Verification.** Test autonomous approaches through maintenance, reciprocal
+front commands, repeated exact IDs, a matching queued order during autonomous
+completion, and an immediate paused-command save. Every reservation must have
+one execution owner at each command and tick boundary.
+
+## [L-attendance-accounting-units-and-pairs] Test attendance units and both sides of settlement
+
+**What happened.** Attendance initially scaled minutes by day length even though
+one simulation tick already means one minute. Its save validator also checked
+settled shifts for an outcome without rejecting an unpaid shift carrying an
+already-paid outcome. A reward assertion compared authored units with scaled
+satisfaction points and used a tolerance larger than the expected reward.
+Computing the base score before the energy bill and normal return also changed
+the existing score, because mood reads current needs and room presence.
+A shared adoption hook then inferred a legacy shift after a current-format load
+had already restored an intentionally empty attendance ledger.
+
+**Root cause.** Calendar duration was mistaken for a time-unit conversion, and
+payment validation checked only one direction of the ownership relationship.
+The reward assertion omitted `Satisfaction::REWARD_SCALE`.
+
+**Prevention.** Use the clock's established unit. Cross-validate both directions
+of every once-only payment relationship, including the captured payout and worked
+time. Convert authored rewards through the documented scale and choose a
+tolerance smaller than the smallest intended effect.
+Preserve the original scoring context before adding a new deduction: charge
+the prorated energy cost and apply the normal return, then derive the base score.
+Treat explicit empty modern data as authoritative. Run historical inference
+only for older formats, before validating and adopting their migrated state.
+
+**Verification.** A shortened day must not change the two-hour grace period.
+Refuse a flipped settlement flag or mismatched paid outcome without adopting the
+candidate world. Repeat maintenance and require no second payment, energy cost
+or satisfaction reward.
+Test full and partial attendance across a need threshold, plus an indoor return
+where room presence changes mood. Compare the base score before applying the
+attendance deduction.
+Round-trip an empty modern ledger without adding rows, and load the same older
+world twice to verify deterministic migration and preserved work entitlement.
+
+## [L-release-is-not-order-cancellation] Keep player intent separate from execution ownership
+
+**What happened.** A player-ordered conversation vanished from its queue when
+either participant developed a critical physical need. An existing test expected
+that removal, and the current-state debug panel retained no explanation.
+
+**Root cause.** The conversation cleanup treated losing a temporary reservation
+as permission to delete the underlying player order. Removal sites did not record
+terminal outcomes. Tests preserved the old interruption policy instead of the
+owner's requirement that an accepted order completes or fails visibly.
+
+**Prevention.** Give each order one stable identity across routes, reservations
+and activity transfers. Release execution ownership independently. Record one
+explicit completion, cancellation or failure before removing a player order.
+Keep diagnostics long enough to explain a transition after the state disappears.
+
+**Verification.** Issue real commands with critical needs on both participants.
+Observe the same order survive waiting and begin its action. Exercise cancellation,
+unreachable targets, activity transfers and save/load; require exact identity and
+one explained terminal outcome. Confirm diagnostic reads change no gameplay hash.
+
 ## [L-register-atlas-extensions] Register new sprites before rebuilding architecture
 
 **What happened.** Appending conversation sprites to the generator failed the
@@ -5572,11 +5699,10 @@ work. The career itself remained correct and the 12,000-tick shipped trace
 still completed and paid every shift.
 
 **Root cause.** The test silently treated `shift_start + shift_ticks` as the
-return time, then added a guessed commute margin. Authored behavior says the
-sim walks to the door first and is gone for `shift_ticks` after arrival. The
-clock therefore schedules departure, while the path and movement speed decide
-clock-in. A deterministic random-sequence change can move that arrival without
-changing the career contract at all.
+return time under the older arrival-based shift rule, then added a guessed
+commute margin. Issue #273 replaces that rule: the scheduled end now owns
+settlement and departure from work, while the return walk owns arrival home.
+Travel affects actual attendance and pay rather than extending the shift.
 
 **Prevention rule.** Test event-owned lifecycles by their observable events.
 Use an exact tick only when the schedule owns that exact tick. When travel
@@ -5584,11 +5710,9 @@ precedes a fixed-duration phase, prove the intermediate phase, then wait within
 an authored outer bound for completion and assert its effects. Do not turn one
 seed's path length into an undocumented product promise.
 
-**How to verify.** The release-WASM test still requires Tim to be `AT_WORK` at
-tick 600 with no money paid. It then observes the first return before the
-1,440-tick day wraps and requires the row to be visible plus Funds to equal one
-exact 120-credit paycheck. Removing the return, hiding flag, countdown, or
-payout still fails; changing an unrelated earlier random draw does not.
+**How to verify.** Assert settlement once at the scheduled end and pay from the
+recorded worked minutes. Observe the subsequent return walk rather than guessing
+its duration. Cover late departure, repeated early returns and an overnight shift.
 
 ## [L-split-subsumed-path-guards] Do not join a prefilter to the real invariant
 

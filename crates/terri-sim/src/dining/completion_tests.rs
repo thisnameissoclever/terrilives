@@ -135,10 +135,10 @@ fn finish_queued_meal(sim: &mut Sim, person: Entity, table: Entity, chair: Entit
                 vec![&[table.index_u32(), visual_setting, dish.id][..]]
             );
             assert_released(sim, person, table, chair);
-            let saved = sim.save_snapshot_v10();
+            let saved = sim.save_snapshot_v15();
             let hash = sim.world_hash();
-            sim.load_snapshot_v10(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v10(), saved);
+            sim.load_snapshot_v15(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v15(), saved);
             assert_eq!(sim.world_hash(), hash);
             return;
         }
@@ -203,9 +203,9 @@ fn queued_meal_cancel_releases_each_physical_setting_without_a_finished_dish() {
                 .dishes
                 .iter()
                 .any(|d| d.surface == table.index_u32()));
-            let saved = sim.save_snapshot_v10();
-            sim.load_snapshot_v10(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v10(), saved);
+            let saved = sim.save_snapshot_v15();
+            sim.load_snapshot_v15(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v15(), saved);
         }
     }
 }

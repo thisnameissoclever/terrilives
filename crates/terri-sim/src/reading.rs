@@ -15,7 +15,8 @@ pub(crate) mod persistence;
 pub(crate) mod placement;
 mod planning;
 pub(crate) use planning::{
-    best_plan, choose_plan, effective_benefits, plans, prepare, publish_plan,
+    best_plan, choose_plan, effective_benefits, has_reachable_plan, plans, prepare, publish_plan,
+    waiting_for_owned_copy,
 };
 pub use planning::{Options, Plan};
 #[cfg(test)]
@@ -42,6 +43,43 @@ pub struct ReadingJourney {
 pub struct PendingShift {
     pub scheduled_tick: u64,
     pub career: u32,
+}
+
+/// A reading order is owned by its exact journey, including mandatory book return.
+pub(crate) fn player_phase(world: &World, actor: Entity, order_id: u64) -> Option<u8> {
+    let journey = world
+        .get::<ReadingJourney>(actor)
+        .filter(|journey| journey.order == Some(order_id))?;
+    let entry = world.get::<IntentQueue>(actor)?.order(order_id)?;
+    if entry.intent.object != journey.origin.object
+        || entry.intent.interaction != journey.origin.interaction
+    {
+        return None;
+    }
+    let copy = world.resource::<BookLibrary>().copy(journey.copy)?;
+    if entry
+        .title_id
+        .as_ref()
+        .is_some_and(|title| *title != copy.title_id)
+    {
+        return None;
+    }
+    if world.get::<Blocked>(actor).is_some() || journey.stage == ReadingStage::WaitingReturn {
+        Some(2)
+    } else if journey.stage == ReadingStage::Read {
+        Some(3)
+    } else {
+        Some(1)
+    }
+}
+
+fn record_read_start(world: &mut World, actor: Entity) {
+    let order = world
+        .get::<ReadingJourney>(actor)
+        .and_then(|journey| journey.order);
+    if let Some(order) = order.filter(|order| player_phase(world, actor, *order) == Some(3)) {
+        crate::player_actions::transition(world, actor, order, 3, true);
+    }
 }
 
 pub(crate) fn action(world: &World, target: Target) -> Option<&terri_data::CompiledInteraction> {
@@ -194,6 +232,7 @@ pub(crate) fn commit_plan(
     if let Some(target) = world.get::<Target>(person).copied() {
         crate::reservations::release_now(world, person, target);
     }
+    crate::recipe_actions::suspend(world, person);
     crate::domestic::suspend_cleanup(world, person);
     let seat = plan.seat.map(|(e, n)| {
         (
@@ -254,8 +293,14 @@ fn finish(world: &mut World, person: Entity) {
         crate::reservations::release_now(world, person, target);
     }
     if let Some(order) = j.order {
-        if let Some(mut q) = world.get_mut::<IntentQueue>(person) {
-            q.remove_order(order);
+        let interrupted = world.get::<IntentQueue>(person).is_some_and(|q| {
+            q.order(order).is_some() && q.entries().first().is_some_and(|front| front.id != order)
+        });
+        if !interrupted {
+            crate::player_actions::terminal(world, person, order, "completed", None);
+            if let Some(mut q) = world.get_mut::<IntentQueue>(person) {
+                q.remove_order(order);
+            }
         }
     }
     world
@@ -272,6 +317,28 @@ pub(crate) fn request_return(world: &mut World, person: Entity) -> bool {
         ReadingStage::Return | ReadingStage::WaitingReturn | ReadingStage::Shelve
     ) {
         return true;
+    }
+    let session_ticks = world
+        .resource::<Content>()
+        .0
+        .reading
+        .as_ref()
+        .unwrap()
+        .session_ticks;
+    let incomplete_company = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+        .is_some_and(|episode| {
+            j.elapsed < session_ticks
+                && episode.extensions == 0
+                && episode.completed_novelty.is_none()
+        });
+    if incomplete_company {
+        world
+            .resource_mut::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .remove(&person);
     }
     settle_reward(world, person);
     let id = *world.get::<SimId>(person).unwrap();
@@ -360,8 +427,19 @@ pub(crate) fn reconcile(world: &mut World) {
                             .mood_critical_need_level
                 })
         });
+        if world.get_entity(j.origin.object).is_err() {
+            if let Some(order) = j.order {
+                crate::player_actions::terminal(
+                    world,
+                    person,
+                    order,
+                    "failed",
+                    Some("Reading target removed"),
+                );
+            }
+        }
         if changed
-            || urgent
+            || (urgent && j.order.is_none())
             || world.get_entity(j.origin.object).is_err()
             || (!matches!(
                 j.stage,
@@ -484,6 +562,7 @@ pub(crate) fn tick(world: &mut World) {
                 live.outcome =
                     Some(fumble.map_or(ReadingOutcome::Success, ReadingOutcome::Fumbled));
                 live.stage = ReadingStage::Read;
+                record_read_start(world, person);
             }
             ReadingStage::Read => read_tick(world, person),
             ReadingStage::Return => {

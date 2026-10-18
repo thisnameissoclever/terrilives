@@ -685,9 +685,11 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
             .set(terri_core::NeedId::Hunger, 30.0);
     }
     for p in &people[1..] {
-        let (mut progress, origin) = crate::recipe_actions::internal(pack, shared);
+        let (mut progress, origin, activity) = crate::recipe_actions::internal(pack, shared);
         progress.step = 1;
-        sim.world_mut().entity_mut(*p).insert((progress, origin));
+        sim.world_mut()
+            .entity_mut(*p)
+            .insert((progress, origin, activity));
     }
     sim.world_mut()
         .resource_mut::<SavedDomestic>()
@@ -1072,11 +1074,11 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         .0;
     let cook = sim.world().get::<SimId>(people[0]).unwrap().0;
     let guest = sim.world().get::<SimId>(people[1]).unwrap().0;
-    let (mut progress, origin) = crate::recipe_actions::internal(pack, shared);
+    let (mut progress, origin, activity) = crate::recipe_actions::internal(pack, shared);
     progress.step = 1;
     sim.world_mut()
         .entity_mut(people[1])
-        .insert((progress, origin));
+        .insert((progress, origin, activity));
     sim.world_mut()
         .resource_mut::<SavedDomestic>()
         .meals

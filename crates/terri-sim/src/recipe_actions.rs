@@ -85,8 +85,161 @@ pub enum SelectedUse {
     Complete,
 }
 
-/// Start, replacement and cancellation always operate on this complete pair.
-pub(crate) type ActiveRecipe = (ChainState, Origin);
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RecipeActivity(pub(crate) bool);
+
+/// Start, replacement and cancellation carry the recipe's current activity status.
+pub(crate) type ActiveRecipe = (ChainState, Origin, RecipeActivity);
+
+pub(crate) fn foreground_state(has_recipe: bool, activity: Option<&RecipeActivity>) -> bool {
+    has_recipe && activity.is_none_or(|activity| activity.0)
+}
+
+pub(crate) fn foreground(world: &World, actor: Entity) -> bool {
+    foreground_state(
+        world.get::<ChainState>(actor).is_some(),
+        world.get::<RecipeActivity>(actor),
+    )
+}
+
+pub(crate) fn suspend(world: &mut World, actor: Entity) {
+    if world.get::<ChainState>(actor).is_some() {
+        world.entity_mut(actor).insert(RecipeActivity(false));
+    }
+}
+
+pub(crate) fn resume(world: &mut World, actor: Entity) {
+    if world.get::<ChainState>(actor).is_some() {
+        world.entity_mut(actor).insert(RecipeActivity(true));
+    }
+}
+
+pub(crate) fn may_continue(
+    activity: Option<&RecipeActivity>,
+    elected_incoming: bool,
+    normal_priority: bool,
+) -> bool {
+    if elected_incoming {
+        foreground_state(true, activity)
+    } else {
+        normal_priority
+    }
+}
+
+pub(crate) fn continuation(world: &World, actor: Entity, normal_priority: bool) -> bool {
+    may_continue(
+        world.get::<RecipeActivity>(actor),
+        world
+            .get_resource::<crate::social_episode::SocialEpisodes>()
+            .is_some_and(|episodes| episodes.incoming.contains_key(&actor)),
+        normal_priority,
+    )
+}
+
+pub(crate) fn save_activity(world: &World) -> Vec<terri_core::save_v15::SavedOrderActor> {
+    let mut rows: Vec<_> = world
+        .try_query::<(Entity, &ChainState, &Origin, &RecipeActivity)>()
+        .map(|mut query| {
+            query
+                .iter(world)
+                .filter(|(_, _, _, activity)| !activity.0)
+                .filter_map(|(actor, ..)| crate::player_actions::saved_actor(world, actor))
+                .collect()
+        })
+        .unwrap_or_default();
+    rows.sort_unstable();
+    rows
+}
+
+fn other_current_activity(world: &World, actor: Entity) -> bool {
+    let own_dining = crate::dining::terminal(world, actor)
+        && world
+            .get::<terri_core::Target>(actor)
+            .is_some_and(|target| target.interaction == crate::systems::chain::CHAIN_STEP);
+    world
+        .get::<terri_core::Target>(actor)
+        .is_some_and(|target| target.interaction != crate::systems::chain::CHAIN_STEP)
+        || (world.get::<terri_core::Eating>(actor).is_some() && !own_dining)
+        || world.get::<crate::reading::ReadingJourney>(actor).is_some()
+        || world.get::<terri_core::Socialising>(actor).is_some()
+        || world.get::<terri_core::AtWork>(actor).is_some()
+        || world.get::<terri_core::Commuting>(actor).is_some()
+        || world.get::<terri_core::chores::ChoreWork>(actor).is_some()
+        || world
+            .get_resource::<terri_core::chores::SavedChores>()
+            .is_some_and(|chores| {
+                chores
+                    .tasks
+                    .iter()
+                    .any(|task| task.person == actor.index_u32() && !task.suspended)
+            })
+}
+
+pub(crate) fn restore_activity(
+    world: &mut World,
+    rows: Vec<terri_core::save_v15::SavedOrderActor>,
+) -> Result<(), crate::SaveError> {
+    if rows.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(crate::SaveError::InvalidValue);
+    }
+    let mut background = std::collections::BTreeSet::new();
+    for row in rows {
+        let actor = crate::player_actions::restore_actor(world, row)?;
+        if world.get::<ChainState>(actor).is_none()
+            || world.get::<Origin>(actor).is_none()
+            || world
+                .get::<terri_core::Target>(actor)
+                .is_some_and(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
+            || !background.insert(actor)
+        {
+            return Err(crate::SaveError::InvalidValue);
+        }
+    }
+    let recipes: Vec<_> = world
+        .query_filtered::<Entity, With<ChainState>>()
+        .iter(world)
+        .collect();
+    if recipes
+        .iter()
+        .any(|actor| !background.contains(actor) && other_current_activity(world, *actor))
+    {
+        return Err(crate::SaveError::InvalidValue);
+    }
+    for actor in recipes {
+        world
+            .entity_mut(actor)
+            .insert(RecipeActivity(!background.contains(&actor)));
+    }
+    Ok(())
+}
+
+pub(crate) fn adopt_legacy_activity(world: &mut World) {
+    let recipes: Vec<_> = world
+        .query_filtered::<Entity, With<ChainState>>()
+        .iter(world)
+        .collect();
+    for actor in recipes {
+        let current = !other_current_activity(world, actor);
+        world.entity_mut(actor).insert(RecipeActivity(current));
+    }
+}
+
+pub(crate) fn hash_activity(world: &World, hasher: &mut terri_core::FnvHasher) {
+    let rows = save_activity(world);
+    if rows.is_empty() {
+        return;
+    }
+    hasher.write_bytes(b"background-recipes-v15");
+    hasher.write_u64(rows.len() as u64);
+    for row in rows {
+        let (tag, identity) = match row {
+            terri_core::save_v15::SavedOrderActor::Sim(identity) => (0, identity),
+            terri_core::save_v15::SavedOrderActor::Entity(index) => (1, index),
+        };
+        hasher.write_u64(tag);
+        hasher.write_u64(u64::from(identity));
+    }
+}
 
 impl Origin {
     pub(crate) fn selected_step(&self) -> Option<u32> {
@@ -182,7 +335,11 @@ pub(crate) fn begin(
     } else {
         SelectedUse::Complete
     };
-    (ChainState::begin(recipe as u32), Origin(origin, selected))
+    (
+        ChainState::begin(recipe as u32),
+        Origin(origin, selected),
+        RecipeActivity(true),
+    )
 }
 
 pub(crate) fn internal(pack: &ContentPack, recipe: u32) -> ActiveRecipe {
@@ -194,6 +351,7 @@ pub(crate) fn internal(pack: &ContentPack, recipe: u32) -> ActiveRecipe {
             },
             SelectedUse::Complete,
         ),
+        RecipeActivity(true),
     )
 }
 

@@ -24,7 +24,8 @@ it('uploads the floor-tool highlight through the actual main packing and draw st
   const pack = vi.fn(frame.buildInstanceBatch);
   const bindings = { ...frame, buildInstanceBatch: pack, instanceCount: recount, sim, alpha: 1,
     camera: { originX: 100, originY: 50, scale: 2 }, depthScale: 16,
-    stage:{width:500,height:400},characterWorld:{beginFrame:vi.fn(),plan:null,draw:vi.fn()},
+    stage:{width:500,height:400,getBoundingClientRect:()=>({left:0,top:0,width:500,height:400})},characterWorld:{beginFrame:vi.fn(),plan:null,draw:vi.fn()},
+    nowMs:0,orderDiagnostics:{failedActors:()=>new Set<number>()},failureBubbles:{update:vi.fn()},
     reducedMotion: { matches: true }, lightingMode: { isFlat: () => true },
     lighting: null, builder: { active: false, preview: null },
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null },

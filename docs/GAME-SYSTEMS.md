@@ -93,7 +93,7 @@ These work in normal play today. They appear here because every new system must 
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
-| Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
+| Player orders | Substantial | Unlimited stored orders per person, front or back placement, incoming conversations and current/queued action cards. Each order completes or has an explicit cancellation or failure reason. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
 | Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and bounded life satisfaction persist. |
 | Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
@@ -459,6 +459,13 @@ Also missing: more direct social actions than chat, group conversations, and a r
 ### [S-careers] Jobs and careers, with player-directed career paths
 
 **Status: Partial.** The owner raised the target for this system on 2026-09-21; `docs/specs/2026-10-17-careers.md` (issue 249) delivers the paths, the reviews, the autonomy and the Career tab.
+
+**Work priority and attendance.** Player orders take priority over work. A new
+order that delays or interrupts work asks for confirmation. A worker returns
+home to perform it and can resume within the original shift window. Pay and
+shift rewards reflect actual office time; missing more than two hours deducts
+ten performance points per further hour. The Career tab explains the actual
+attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
 
 **What exists.** Three career paths in `content/careers.toml`, each four titled levels with their own hours, working days, pay range, need cost and reward; a `Career` component still names one level. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `QuitCareer` and `SetCareerAutonomy` direct it. Schema fourteen saves it. The Career row in Sim details shows the title with its working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths to assign and a Quit control; Options holds the two autonomy checkboxes.
 

@@ -21,6 +21,27 @@ fn at(sim: &Sim, entity: Entity) -> (f32, f32) {
     (position.x, position.y)
 }
 
+fn first_shift_pay_for_arrival(sim: &Sim, arrival: u64) -> i64 {
+    let job = &sim.world().resource::<crate::Content>().0.careers[0];
+    let end = u64::from(job.shift_start) + u64::from(job.shift_ticks);
+    assert!(
+        arrival < end,
+        "the first scheduled shift has time remaining"
+    );
+    let worked = end - arrival;
+    let outcomes = &sim
+        .world()
+        .resource::<crate::attendance::Attendance>()
+        .outcomes;
+    assert_eq!(
+        outcomes.len(),
+        1,
+        "one settlement for the first scheduled shift"
+    );
+    assert_eq!(outcomes[0].worked_minutes, worked as f32);
+    i64::from(job.pay) * 100 * worked as i64 / i64::from(job.shift_ticks)
+}
+
 /// Ticks until `done`, recording the worker's position on every tick; the
 /// bound keeps a broken commute from spinning.
 fn walk(sim: &mut Sim, entity: Entity, done: impl Fn(&Sim) -> bool) -> Vec<(f32, f32)> {
@@ -45,6 +66,7 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
     let out = walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
     assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
     assert!(
         out.iter().any(|&(x, y)| x > 15.0 && x < 16.0 && y == 2.0),
@@ -60,7 +82,7 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
         "came in through the front door"
     );
     assert!(home.iter().any(|&(x, _)| x > 17.0), "walked the yard");
-    let pay = sim.world().resource::<crate::Content>().0.careers[0].pay as i64 * 100;
+    let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(sim.world().resource::<terri_core::Funds>().0, funds + pay);
 }
 
@@ -78,7 +100,6 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     let tim = worker(&mut sim);
     let content = sim.world().resource::<crate::Content>().0;
     let shift_start = u64::from(content.careers[0].shift_start);
-    let pay = i64::from(content.careers[0].pay) * 100;
     for _ in 1..shift_start {
         sim.tick();
     }
@@ -96,6 +117,7 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
 
     assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
     assert_eq!(
@@ -107,6 +129,7 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
         sim.world().get::<AtWork>(tim).is_none() && sim.world().get::<Commuting>(tim).is_none()
     });
     assert_eq!(at(&sim, tim), (15.0, 3.0), "home on the landing");
+    let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(
         sim.world().resource::<terri_core::Funds>().0,
         funds + pay,
@@ -123,8 +146,10 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+    historical.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     for _ in 0..600 {
         sim.tick();
         loaded.tick();

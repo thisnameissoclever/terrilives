@@ -15,6 +15,7 @@ pub mod hash;
 pub mod ids;
 pub mod layout;
 pub mod needs;
+pub mod player_order_hash;
 pub mod rng;
 pub mod save;
 pub mod save_v6;
@@ -34,6 +35,8 @@ pub mod save_v13;
 pub use save_v13::SaveSnapshotV13;
 pub mod save_v14;
 pub use save_v14::SaveSnapshotV14;
+pub mod save_v15;
+pub use save_v15::SaveSnapshotV15;
 mod save_before_voice;
 pub mod windows;
 

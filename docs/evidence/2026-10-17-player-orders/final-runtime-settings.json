@@ -1,0 +1,515 @@
+{
+  "browser": "155.0.8059.85",
+  "gpu": {
+    "vendor": "nvidia",
+    "architecture": "lovelace",
+    "isFallback": false,
+    "visible": "visible"
+  },
+  "hashes": {
+    "web/src/wasm/terri_wasm_bg.wasm": "61dc3fcd0d778b035f19ce176ab7bbe5684187c76c41e13f2c558da18a19577f",
+    "web/index.html": "964d80501c7b59077c1dcc0fcb3e8e461e1af8067dd31274a8a5aac3f28f6a78",
+    "web/src/main.ts": "ddce6acd658ef7ade5c732a82188b8619c2e093a33d57c2a1d1de51193dcc430",
+    "web/src/bridge.ts": "54def02a4f71c20f84f74feae6c7d134e868a983e929224d49858071c9602a69",
+    "web/src/ui/player-orders.ts": "4dad57c9320f849edc246c224af2958ad37a51e61648833e43e45151a2de646e",
+    "web/src/ui/order-failure-bubbles.ts": "46e18e2f7327512d743dea51c0da77c19bdccdb058c9458b3d047d89451a1bcc"
+  },
+  "desktopViewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "phoneViewport": {
+    "width": 390,
+    "height": 844
+  },
+  "phoneIsEmulated": true,
+  "bodyAndSleep": {
+    "actors": [
+      {
+        "entity": 34,
+        "sim": 0,
+        "token": 35,
+        "clip": "walk",
+        "sample": 2.9917999999989107,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 3,
+        "y": 5.626025000000136,
+        "angle": 3.141592653589793,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          3.0090917507567942,
+          5.472577177739947,
+          2.0496408952415024
+        ],
+        "feet": [
+          2.999999996366352,
+          5.626025007154072,
+          0.15660656416816862
+        ],
+        "fixture": null,
+        "textureBytes": 0,
+        "privateBufferBytes": 17068864,
+        "prepared": {
+          "bodyCompactions": 1,
+          "bodyShapeChanges": 1,
+          "attachmentChanges": 0
+        }
+      },
+      {
+        "entity": 35,
+        "sim": 1,
+        "token": 36,
+        "clip": "bed_sleep",
+        "sample": 0.6639984374999917,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 0.5,
+        "y": 8.5,
+        "angle": 1.5707963267948966,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          -0.23184384859862328,
+          8.122934257234508,
+          1.1617453689448625
+        ],
+        "feet": [
+          1.2991474866867065,
+          8.11500006914139,
+          0.5676872375260645
+        ],
+        "fixture": 19,
+        "textureBytes": 0,
+        "privateBufferBytes": 17554752,
+        "prepared": {
+          "bodyCompactions": 1,
+          "bodyShapeChanges": 1,
+          "attachmentChanges": 0
+        }
+      },
+      {
+        "entity": 36,
+        "sim": 2,
+        "token": 37,
+        "clip": "seat_dining_sit",
+        "sample": 1.4369874999999332,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              168,
+              71,
+              62
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 1,
+        "y": 3,
+        "angle": 3.141592653589793,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          1.1286911711101144,
+          2.877083774850636,
+          1.7795379377282998
+        ],
+        "feet": [
+          1.574999990016222,
+          2.9999998880433743,
+          0.13000000268220813
+        ],
+        "fixture": 8,
+        "textureBytes": 0,
+        "privateBufferBytes": 17068864,
+        "prepared": {
+          "bodyCompactions": 1,
+          "bodyShapeChanges": 1,
+          "attachmentChanges": 0
+        }
+      }
+    ],
+    "allocation": {
+      "bufferBytes": 95182680,
+      "textureBytes": 0,
+      "textureCount": 0,
+      "sharedGeometryCount": 6
+    },
+    "view": {
+      "originX": 656,
+      "originY": 278.0002193450928,
+      "scale": 1,
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  "exercise": {
+    "tick": 17,
+    "activity": 9,
+    "actor": 35,
+    "object": 22
+  },
+  "busy": {
+    "tick": 136,
+    "selected": 35,
+    "people": [
+      {
+        "entity": 34,
+        "simId": 0,
+        "name": "Tim",
+        "career": "Office clerk"
+      },
+      {
+        "entity": 35,
+        "simId": 1,
+        "name": "Bill",
+        "career": null
+      },
+      {
+        "entity": 36,
+        "simId": 2,
+        "name": "Casey",
+        "career": null
+      }
+    ],
+    "queues": [
+      {
+        "name": "Tim",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Handle correspondence: Desk",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Bill",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Wash hands: Bathroom sink",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Casey",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Sit: Dining chair",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      }
+    ],
+    "modal": false,
+    "warning": "Tim: 8 of 8 shift hours remaining.\nBill: 8 of 8 shift hours remaining.\n\nThis order delays or interrupts work. Pay and shift rewards depend on time worked. After two missed hours, performance loses ten points per further hour. Missing the entire shift gives zero pay and a zero shift score. Work can resume before the original shift ends; the shift will not be extended.",
+    "status": "",
+    "events": {
+      "nextCursor": "29",
+      "expired": true,
+      "events": [
+        {
+          "sequence": "25",
+          "tick": "17",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "26",
+          "tick": "17",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "approaching",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "27",
+          "tick": "65",
+          "actor": 35,
+          "counterpart": 22,
+          "orderId": "0",
+          "action": "Use the exercise bike: Exercise bike",
+          "phase": "completed",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "28",
+          "tick": "71",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "started",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "29",
+          "tick": "134",
+          "actor": 36,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "completed",
+          "reason": null,
+          "blockingState": null
+        }
+      ]
+    }
+  },
+  "phone": {
+    "before": "4928803057959406784",
+    "after": "4928803057959406784",
+    "focus": "stage",
+    "overflow": false
+  },
+  "errors": []
+}

@@ -35,7 +35,24 @@ pub(crate) fn commit(world: &mut World, command: BookCommand) {
             action,
             title,
             front,
-        } => selected_order(world, agent, object, &action, title, front).map(|id| (None, Some(id))),
+        } => {
+            let result = selected_order(world, agent, object, &action, title, front);
+            if let Err(reason) = result {
+                let reason = match reason {
+                    "unknown_person" => "The selected person is no longer available.",
+                    "unknown_object" => "The selected reading object is no longer available.",
+                    "unknown_title" => "The selected book title is no longer available.",
+                    "not_owned_reading_action" => {
+                        "This object cannot offer the selected reading action."
+                    }
+                    "order_ids_exhausted" => "No more order IDs are available.",
+                    "queue_full" => "The order queue is full.",
+                    _ => reason,
+                };
+                crate::player_actions::reject_submission(world, agent, reason);
+            }
+            result.map(|id| (None, Some(id)))
+        }
         operation => {
             let mut library = world.resource::<BookLibrary>().clone();
             let mut funds = *world.resource::<Funds>();
@@ -144,9 +161,13 @@ fn selected_order(
         )
         .ok_or("order_ids_exhausted")?;
     let target = world.get::<terri_core::Target>(agent).copied();
+    let served = world
+        .get::<crate::player_actions::ServedOrder>(agent)
+        .map(|owner| owner.0);
     let release = target.filter(|t| {
         displaced.as_ref().is_some_and(|entry| {
             entry.title_id.is_none()
+                && world.get::<Agent>(t.object).is_none()
                 && entry.intent
                     == Intent {
                         cleanup: None,
@@ -154,11 +175,7 @@ fn selected_order(
                         object: t.object,
                         interaction: t.interaction,
                     }
-        }) && !queue.contains(Intent {
-            cleanup: None,
-            chore: None,
-            object: t.object,
-            interaction: t.interaction,
+                && served.map_or_else(|| !queue.contains(entry.intent), |owner| owner == entry.id)
         })
     });
     if displaced.is_some() {
@@ -166,7 +183,24 @@ fn selected_order(
             .resource_mut::<crate::systems::command::CommandFeedback>()
             .record_intent_displacement();
     }
+    let accepted = queue
+        .order(id)
+        .cloned()
+        .expect("accepted selected reading order");
+    if let Some(displaced) = displaced {
+        crate::player_actions::terminal(
+            world,
+            agent,
+            displaced.id,
+            "failed",
+            Some("Displaced by a new front order because the queue is full."),
+        );
+    }
     world.entity_mut(agent).insert(queue);
+    crate::player_actions::accept(world, agent, accepted);
+    if front {
+        crate::player_actions::explicit_front(world, agent, id);
+    }
     if let Some(target) = release {
         crate::systems::command::release_commitment(&mut world.commands(), agent, target);
         world.flush();

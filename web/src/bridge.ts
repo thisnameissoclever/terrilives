@@ -1,6 +1,8 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import type { ActionQueueRow, OrderEventBatch } from './ui/player-orders.js';
+import type { WorkConflict } from './ui/work-order-confirmation.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
 import type { CharacterDraftV1, CharacterPatchV1 } from './character/schema.js';
@@ -132,6 +134,25 @@ const VARIANT_SET_SPEED = 3;
 const VARIANT_TALK_TO = 4;
 const VARIANT_USE_OBJECT_FIRST = 5;
 const VARIANT_TALK_TO_FIRST = 6;
+
+export type OrderGate = (participants: readonly number[], submit: (approval?: string) => boolean) => boolean;
+
+function isU64Text(value: string): boolean {
+  return /^(0|[1-9][0-9]*)$/.test(value) && BigInt(value) <= 0xffffffffffffffffn;
+}
+function wireNumber(value: string): number {
+  if (value.trim() === '' || !Number.isFinite(Number(value))) throw new Error('Malformed player-order number.');
+  return Number(value);
+}
+function wireEntity(value: string): number {
+  const entity = wireNumber(value);
+  if (!isU32(entity)) throw new Error('Malformed player-order entity.');
+  return entity;
+}
+function wireIdentity(value: string): string {
+  if (!isU64Text(value)) throw new Error('Malformed player-order identity.');
+  return value;
+}
 
 export interface PlacementPreview {
   readonly valid: boolean;
@@ -487,6 +508,25 @@ function pushVarint(out: number[], value: number): void {
  * See ARCHITECTURE.md [D11] and risk [R1].
  */
 export class SimBridge {
+  private orderGate: OrderGate | null = null;
+
+  setOrderGate(gate: OrderGate | null): void { this.orderGate = gate; }
+
+  /** Every new browser order crosses this gate before anything is staged. */
+  private stagePlayerOrder(participants: readonly number[], stage: (token: string) => boolean): boolean {
+    let submitted = false;
+    const submit = (approval?: string): boolean => {
+      if (submitted) return false;
+      submitted = true;
+      const token = approval ?? this.workConflictsOf(participants).token;
+      return isU64Text(token) && stage(token);
+    };
+    return this.orderGate ? this.orderGate(participants, submit) : submit();
+  }
+
+  private stageTypedPlayerOrder(participants: readonly number[], stage: () => boolean): boolean {
+    return this.stagePlayerOrder(participants, token => stage() && this.handle.confirm_last_order(token));
+  }
   canRecoverBook(copy: number): boolean { return this.handle.canRecoverBook(copy); }
   bookPurchasePrice(): number | null { return this.handle.automaticBookPrice() ?? null; }
   private modelsCache: ModelFacts[] | null = null;
@@ -526,7 +566,8 @@ export class SimBridge {
     return isBookIndex(copy) && (shelf === null || isBookIndex(shelf)) && this.handle.transferBook(copy, shelf ?? undefined);
   }
   readBook(agent: number, object: number, action: string, title: string, front: boolean): boolean {
-    return isBookIndex(agent) && isBookIndex(object) && action.trim() !== '' && title.trim() !== '' && this.handle.readBook(agent, object, action, title, front);
+    return isBookIndex(agent) && isBookIndex(object) && action.trim() !== '' && title.trim() !== ''
+      && this.stageTypedPlayerOrder([agent], () => this.handle.readBook(agent, object, action, title, front));
   }
   pendingBookCommands(): number { return this.handle.pendingBookCommands(); }
   bookPurchaseQuote() { return decodePurchaseQuote(this.handle.bookPurchaseQuote()); }
@@ -1482,9 +1523,9 @@ export class SimBridge {
    * whatever it had chosen for itself ([D-3]).
    *
    * The first two are raw entity indices, because JavaScript cannot
-   * construct the simulation's own entity type. A stale one is ignored by
-   * the drain rather than resolved blindly, so this returning `true` means
-   * the command was queued, not that either entity still exists.
+   * construct the simulation's own entity type. The drain validates both
+   * identities and records a failure for a removed target. Returning `true`
+   * means the command was queued, not that either entity still exists.
    *
    * `interaction` indexes that object's own interaction list, which is the
    * order `interactionLabels` returns and the order the flyout draws its
@@ -1497,10 +1538,10 @@ export class SimBridge {
    * interaction, which is the exact bug this parameter was added to
    * remove; several shipped objects offer more than one interaction.
    *
-   * An index the object does not have is NOT rejected here, and nor is it
-   * rejected in Rust. It is a well-formed command, it is what a saved
-   * command log replayed against a newer content pack looks like, and
-   * `serve_intents` drops such an intent rather than indexing with it.
+   * The browser stages out-of-range indices as well-formed input. Native
+   * admission assigns that submission an identity and immediately fails it
+   * with an Unknown object action reason, preserving unrelated work. Saved
+   * command logs replayed against newer content can contain these indices.
    */
   useObject(agent: number, object: number, interaction: number): boolean {
     return this.enqueueOrder(VARIANT_USE_OBJECT, agent, object, interaction);
@@ -1533,14 +1574,22 @@ export class SimBridge {
   choreBoardEnabled():boolean{return this.handle.chore_board_enabled();}
   setChoreBoard(enabled:boolean):boolean{return this.handle.set_chore_board(enabled);}
   setChoreProfile(person:number,responsibility:number,preferences:readonly number[]):boolean{return this.handle.set_chore_profile(person,Float64Array.from([responsibility,...preferences]));}
-  cleanChore(person:number,kind:number,target:number,first:boolean):boolean{return this.handle.clean_chore(person,kind,target,first);}
+  cleanChore(person:number,kind:number,target:number,first:boolean):boolean {
+    return [person,kind,target].every(isU32) && this.stageTypedPlayerOrder([person], () => this.handle.clean_chore(person,kind,target,first));
+  }
 
   cleanDishes(agent: number, surface: number, dishes: readonly number[] | null): boolean {
-    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), false);
+    return this.stageDishOrder(agent, surface, dishes, false);
   }
 
   cleanDishesFirst(agent: number, surface: number, dishes: readonly number[] | null): boolean {
-    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), true);
+    return this.stageDishOrder(agent, surface, dishes, true);
+  }
+
+  private stageDishOrder(agent: number, surface: number, dishes: readonly number[] | null, first: boolean): boolean {
+    if (!isU32(agent) || !isU32(surface) || (dishes !== null && !dishes.every(isU32))) return false;
+    const targets = dishes === null ? undefined : Float64Array.from(dishes);
+    return this.stageTypedPlayerOrder([agent], () => this.handle.clean_dishes(agent, surface, targets, first));
   }
 
   /**
@@ -1578,7 +1627,9 @@ export class SimBridge {
     pushVarint(bytes, agent);
     pushVarint(bytes, named);
     pushVarint(bytes, interaction);
-    return this.enqueueCommand(new Uint8Array(bytes));
+    const participants = variant === VARIANT_TALK_TO || variant === VARIANT_TALK_TO_FIRST ? [agent, named] : [agent];
+    const command = new Uint8Array(bytes);
+    return this.stagePlayerOrder(participants, token => this.handle.enqueue_confirmed_order(command, token));
   }
 
   /**
@@ -1877,6 +1928,53 @@ export class SimBridge {
       : this.handle.action_queue_window_of(entityIndex, maxRows);
   }
 
+  actionQueueRowsOf(entityIndex: number, maxRows = 0xffffffff): ActionQueueRow[] {
+    if (!isU32(entityIndex) || !isU32(maxRows)) return [];
+    const words = this.handle.action_queue_rows_of(entityIndex, maxRows);
+    if (words.length % 6 !== 0) throw new Error('Malformed player-order queue rows.');
+    const rows: ActionQueueRow[] = [];
+    for (let at = 0; at < words.length; at += 6) {
+      const [id,label,phase,role,counterpart,reason] = words.slice(at, at + 6);
+      if (!phase || !['initiator','incoming'].includes(role)) throw new Error('Malformed player-order queue row.');
+      rows.push({orderId:id ? wireIdentity(id) : null,label,phase,role,counterpart:counterpart ? wireEntity(counterpart) : null,reason:reason || null});
+    }
+    return rows;
+  }
+
+  orderEventsSince(cursor: string): OrderEventBatch {
+    wireIdentity(cursor);
+    const words = this.handle.order_events_since(cursor);
+    if (words.length < 2 || (words.length - 2) % 9 !== 0 || !['0','1'].includes(words[1])) throw new Error('Malformed player-order events.');
+    const batch: OrderEventBatch = {nextCursor:wireIdentity(words[0]),expired:words[1] === '1',events:[]};
+    let previous = BigInt(cursor);
+    for (let at = 2; at < words.length; at += 9) {
+      const [sequence,tick,actor,counterpart,id,action,phase,reason,blocking] = words.slice(at, at + 9);
+      wireIdentity(sequence);
+      const tickValue = wireIdentity(tick);
+      if (BigInt(sequence) <= previous || BigInt(sequence) > BigInt(batch.nextCursor)
+        || !action || !phase) throw new Error('Malformed player-order event.');
+      previous = BigInt(sequence);
+      batch.events.push({sequence,tick:tickValue,actor:wireEntity(actor),counterpart:counterpart ? wireEntity(counterpart) : null,
+        orderId:wireIdentity(id),action,phase,reason:reason || null,blockingState:blocking || null});
+    }
+    return batch;
+  }
+
+  workConflictsOf(participants: readonly number[]): WorkConflict {
+    if (!participants.every(isU32)) throw new Error('Invalid work conflict participants.');
+    const words = this.handle.work_conflicts_of(Uint32Array.from(participants));
+    if (words.length < 1 || (words.length - 1) % 5 !== 0) throw new Error('Malformed work conflict.');
+    const conflict: WorkConflict = {token:wireIdentity(words[0]),people:[]};
+    const phases: Readonly<Record<string,string>> = {'1':'due','2':'outbound','3':'working','4':'returning'};
+    for (let at = 1; at < words.length; at += 5) {
+      const [entity,name,phase,remaining,total] = words.slice(at, at + 5);
+      const remainingMinutes = wireNumber(remaining), totalMinutes = wireNumber(total);
+      if (!phases[phase] || remainingMinutes < 0 || totalMinutes < remainingMinutes) throw new Error('Malformed work conflict person.');
+      conflict.people.push({entity:wireEntity(entity),name,phase:phases[phase],remainingMinutes,totalMinutes});
+    }
+    return conflict;
+  }
+
   /** How many player orders the sim still has waiting; 0 for none. */
   queuedOrdersOf(entityIndex: number): number {
     if (!isU32(entityIndex)) return 0;
@@ -2113,6 +2211,12 @@ export class SimBridge {
     return { path, level, levels, pay, payMin, payMax, shifts, mean: mean === -1 ? null : mean,
       last: last === -1 ? null : last, poor, good, advanceWeeks, jobSatisfaction, warned: warned === 1,
       trend: trend as -1 | 0 | 1, poorThreshold, goodThreshold };
+  }
+
+  careerAttendanceOf(entityIndex: number): readonly number[] {
+    if (!isU32(entityIndex)) return [];
+    const values = Array.from(this.handle.career_attendance_of(entityIndex));
+    return values.length === 8 && values.every(Number.isFinite) ? values : [];
   }
 
   /** The reviewed weeks in week order; empty without a job. */

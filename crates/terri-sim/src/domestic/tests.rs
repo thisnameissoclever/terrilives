@@ -190,9 +190,9 @@ fn targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued() {
             dishes: Some(vec![0]),
         });
     sim.flush_commands();
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.save_snapshot_v15();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(saved).unwrap();
+    loaded.load_snapshot_v15(saved).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     sim.tick();
     let task = sim
@@ -267,12 +267,12 @@ fn targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_
         } else if added && step == Some(0) {
             returned = true;
         }
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.save_snapshot_v15();
         if crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
             loads.insert(step);
         }
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v6(saved).unwrap_or_else(|error| {
+        loaded.load_snapshot_v15(saved).unwrap_or_else(|error| {
             panic!(
                 "targeted cleanup failed to load at {:?}, step {:?}: {:?}",
                 sim.world().resource::<SimClock>().tick,
@@ -280,7 +280,7 @@ fn targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_
                 error
             )
         });
-        assert_eq!(sim.save_snapshot_v6(), loaded.save_snapshot_v6());
+        assert_eq!(sim.save_snapshot_v15(), loaded.save_snapshot_v15());
         assert_eq!(sim.world_hash(), loaded.world_hash());
         if added && !crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
             break;
@@ -345,6 +345,7 @@ fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
         .find(|(e, _)| *e != person)
         .unwrap()
         .0;
+    sim.world_mut().entity_mut(other).remove::<AtWork>();
     add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
     assert!(start_cleanup(sim.world_mut(), other, vec![0], true));
     sim.world_mut()
@@ -372,9 +373,9 @@ fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
         .unwrap()
         .dishes
         .is_empty());
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.save_snapshot_v15();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(saved).unwrap();
+    loaded.load_snapshot_v15(saved).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     abandon(sim.world_mut(), other);
     sim.world_mut().entity_mut(other).remove::<ChainState>();
@@ -662,7 +663,7 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 assert_eq!(sim.world().get::<ChainState>(actor).unwrap().chain, recipe);
                 assert!(sim.world().get::<StepWork>(actor).is_none());
                 let mut loaded = Sim::new_from_shipped_lot();
-                loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+                loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 restored = Some(loaded);
             }
@@ -712,8 +713,8 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         assert!(restored.is_some(), "interrupted action must save and load");
         assert_eq!(completions, 1, "one real toilet completion");
         assert_eq!(
-            housemate_completions, 0,
-            "only a housemate's own visit may complete the toilet besides the actor"
+            housemate_completions, 1,
+            "the recalled housemate's explicit visit must complete exactly once"
         );
         assert!(resumed, "the suspended work must resume");
         assert!(
@@ -893,10 +894,10 @@ fn snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips() {
                     }
                 }
             }
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut restored = Sim::new_from_shipped_lot();
             restored
-                .load_snapshot_v10(snapshot)
+                .load_snapshot_v15(snapshot)
                 .expect("every in-flight domestic save loads");
             assert_eq!(
                 sim.world_hash(),
@@ -1245,7 +1246,7 @@ fn cleanliness_same_pile_crossing_and_visit_memory_survive_save_load() {
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
     tick(sim.world_mut());
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     let rng = sim.world().resource::<SimRng>().clone();
     for run in [&mut sim, &mut loaded] {
@@ -1263,7 +1264,7 @@ fn cleanliness_same_pile_crossing_and_visit_memory_survive_save_load() {
         assert_eq!(*run.world().resource::<SimRng>(), rng);
     }
     assert_eq!(sim.world_hash(), loaded.world_hash());
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     for _ in 0..3 {
         tick(sim.world_mut());
         tick(loaded.world_mut());
@@ -1380,11 +1381,11 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
                 "pickup transfers dishes rather than losing or duplicating them"
             );
         }
-        let saved = sim.save_snapshot_v10();
+        let saved = sim.save_snapshot_v15();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.world_mut().insert_resource(Content(pack));
         loaded
-            .load_snapshot_v10(saved)
+            .load_snapshot_v15(saved)
             .expect("cleanup saves load, including washing completion");
         assert_eq!(loaded.world_hash(), sim.world_hash());
         assert_eq!(
@@ -1459,7 +1460,7 @@ fn paused_cancel_reissue_and_furniture_sales_preserve_valid_claims() {
     sim.flush_commands();
     assert!(sim.world().resource::<SavedDomestic>().cleanup.is_empty());
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     let sink = sim
         .world_mut()
@@ -1491,30 +1492,98 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
         carried_dishes(sim.world()).get(&people[0].index_u32()),
         Some(&2)
     );
-    let bed = sim
+    let pack = sim.world().resource::<Content>().0;
+    let occupancy = crate::seating::occupancy(sim.world_mut());
+    let from = sim.world().get::<Position>(people[0]).unwrap();
+    let start = (from.x.round() as i32, from.y.round() as i32);
+    let field = sim
+        .world()
+        .resource::<terri_core::TileGrid>()
+        .distance_field(start)
+        .unwrap();
+    let objects: Vec<_> = sim
         .world_mut()
         .query::<(Entity, &SmartObject)>()
         .iter(sim.world())
-        .find(|(_, object)| sim.world().resource::<Content>().0.object(object.0).id == "bed")
+        .map(|(entity, object)| (entity, object.0))
+        .collect();
+    // The bunk may already be occupied; use a free physical place with a real route.
+    let (bed, ordinal, interaction) = sim.bed_places_of(people[0].index_u32()).unwrap()
+        .into_iter()
+        .filter(|place| place.occupant.is_none()
+            && place.assignee.is_none_or(|person| person == people[0].index_u32()))
+        .find_map(|place| {
+            let &(bed, definition) = objects.iter().find(|(entity, _)| entity.index_u32() == place.bed)?;
+            let definition = pack.object(definition);
+            let interaction = definition.interactions.iter().position(|action| action.tags.contains(&pack.sleep_tag))? as u32;
+            let access = crate::beds::navigation::Access::new(
+                definition,
+                &pack.sleep_tag,
+                sim.world().get::<terri_core::ObjectFacing>(bed).map_or(definition.base_facing, |f| f.0),
+                (place.x.round() as i32, place.y.round() as i32),
+                &field,
+            );
+            let admitted = occupancy.admissions(
+                pack, definition, people[0], sim.world().get::<SimId>(people[0]).copied(),
+                Target { object: bed, interaction },
+                sim.world().resource::<crate::beds::BedAssignments>(),
+            ).into_iter().any(|admission| {
+                matches!(admission, crate::beds::Admission::Sleep { ordinal, .. } if ordinal == place.ordinal)
+                    && access.for_admission(admission)
+                        .and_then(|reachable| reachable.route.path(sim.world().resource::<terri_core::TileGrid>(), start)).is_some()
+            });
+            admitted.then_some((bed, place.ordinal, interaction))
+        }).expect("cleanup interruption needs an available reachable sleeping place");
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetBedAssignment {
+            agent: people[0].index_u32(),
+            place: Some((bed.index_u32(), ordinal)),
+        });
+    sim.flush_commands();
+    assert!(sim
+        .bed_places_of(people[0].index_u32())
         .unwrap()
-        .0;
+        .iter()
+        .any(|place| place.bed == bed.index_u32()
+            && place.ordinal == ordinal
+            && place.assignee == Some(people[0].index_u32())
+            && place.occupant.is_none()));
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::UseObjectFirst {
             agent: people[0].index_u32(),
             object: bed.index_u32(),
-            interaction: 0,
+            interaction,
         });
     sim.tick();
     sim.sync_render_buffer();
     assert_eq!(
+        sim.world().get::<terri_core::SleepPlace>(people[0]),
+        Some(&terri_core::SleepPlace(ordinal))
+    );
+    assert_eq!(
+        sim.world().get::<Target>(people[0]).map(|target| target.object),
+        Some(bed),
+        "the sleep redirect must be admitted: blocked={} path={:?} queue={:?} events={:?} cleanup={:?}",
+        sim.world().get::<terri_core::Blocked>(people[0]).is_some(),
+        sim.world().get::<terri_core::Path>(people[0]),
+        sim.world().get::<terri_core::IntentQueue>(people[0]),
+        sim.action_events_since(0).events,
+        sim.world().resource::<SavedDomestic>().cleanup,
+    );
+    assert_eq!(
         carried_dishes(sim.world()).get(&people[0].index_u32()),
-        Some(&0)
+        Some(&0),
+        "admitted redirect must free the hands: chain={:?} cleanup={:?} events={:?}",
+        sim.world().get::<ChainState>(people[0]),
+        sim.world().resource::<SavedDomestic>().cleanup,
+        sim.action_events_since(0).events,
     );
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(
         loaded.render_buffer().carried_dishes,
@@ -1551,7 +1620,7 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(state.dishes[0].units, 3);
     assert!(sim.world().get::<ChainState>(people[0]).is_none());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1669,7 +1738,7 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
         loaded
             .world_mut()
             .insert_resource(*sim.world().resource::<Content>());
-        loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+        loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if sim.world().resource::<SavedDomestic>().meals.is_empty() {
             break;
@@ -1879,7 +1948,7 @@ fn gathering_preserves_the_full_eating_interval_and_replays_after_loading() {
         .unwrap()
         .remaining_ticks;
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     let mut gathering_ticks = 0;
     let mut began = false;
     for _ in 0..350 {
@@ -2090,7 +2159,7 @@ fn guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left() {
             restored
                 .world_mut()
                 .insert_resource(Content(fixture_content));
-            restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             standing_replay = Some(restored);
         }
@@ -2240,7 +2309,11 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
     let saved = sim.save_snapshot_v6();
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(loaded.world_hash(), sim.world_hash());
+    let legacy_hash = loaded.world_hash();
+    assert_eq!(loaded.save_snapshot_v6(), saved);
+    let mut current = Sim::new_from_shipped_lot();
+    current.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    assert_eq!(current.world_hash(), sim.world_hash());
     for case in 0..4 {
         let mut bad = saved.clone();
         let serving = &mut bad.legacy.domestic.as_mut().unwrap().serving_meals;
@@ -2257,12 +2330,15 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
             }
         }
         assert_eq!(loaded.load_snapshot_v6(bad), Err(SaveError::InvalidValue));
-        assert_eq!(loaded.world_hash(), sim.world_hash());
+        assert_eq!(loaded.world_hash(), legacy_hash);
     }
     sim.tick();
     let assigned = sim.save_snapshot_v6();
     loaded.load_snapshot_v6(assigned.clone()).unwrap();
-    assert_eq!(loaded.world_hash(), sim.world_hash());
+    assert_eq!(loaded.save_snapshot_v6(), assigned);
+    let assigned_hash = loaded.world_hash();
+    current.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    assert_eq!(current.world_hash(), sim.world_hash());
     assert_eq!(
         sim.world().get::<Target>(people[0]).unwrap().interaction,
         crate::systems::chain::CHAIN_STEP
@@ -2270,7 +2346,7 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
     let mut bad = assigned;
     bad.legacy.domestic.as_mut().unwrap().meals[0].table = None;
     assert_eq!(loaded.load_snapshot_v6(bad), Err(SaveError::InvalidValue));
-    assert_eq!(loaded.world_hash(), sim.world_hash());
+    assert_eq!(loaded.world_hash(), assigned_hash);
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::CancelIntents {
@@ -2282,7 +2358,7 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
         .resource::<SavedDomestic>()
         .serving_meals
         .is_empty());
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -2499,7 +2575,7 @@ fn privacy_substitution_suspends_collected_cleanup_and_replays() {
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut replay = Sim::new_from_shipped_lot();
-    replay.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    replay.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     for _ in 0..40 {
         sim.tick();
         replay.tick();
@@ -2875,7 +2951,7 @@ fn targeted_mixed_orders_preserve_scope_and_generic_ownership() {
                 .iter()
                 .any(|label| label.contains("Clean dishes")));
             let mut restored = Sim::new_from_shipped_lot();
-            restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
             let mut finished = false;
             for _ in 0..2000 {
                 sim.tick();
@@ -2947,7 +3023,7 @@ fn targeted_queued_surface_waits_through_repeat_collection_and_stale_first() {
         });
     sim.flush_commands();
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     let mut added = false;
     let mut finished = false;
     for _ in 0..2000 {
@@ -3044,7 +3120,7 @@ fn targeted_first_preserves_generic_orders_waiting_behind_it() {
         2
     );
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     let mut finished = false;
     for _ in 0..2000 {
         sim.tick();
@@ -3114,7 +3190,7 @@ fn targeted_generic_order_waits_for_a_first_floor_chore() {
         .get::<terri_core::chores::ChoreWork>(person)
         .is_some());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
     let mut chore_finished = false;
     let mut all_finished = false;
     for _ in 0..2000 {

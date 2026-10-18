@@ -19,6 +19,43 @@ pub fn drain_commands(world: &mut World) {
         crate::chores::ensure(world);
     }
     for command in issued {
+        let command = if let SimCommand::ConfirmedOrder {
+            fingerprint,
+            command,
+        } = command
+        {
+            flush_ordinary(world);
+            if command.validate_structure().is_err() {
+                let actor = command
+                    .into_command()
+                    .order_actor()
+                    .expect("confirmed variants are orders");
+                crate::player_actions::reject_submission(
+                    world,
+                    actor,
+                    "The order contains an invalid selection.",
+                );
+                continue;
+            }
+            let command = command.into_command();
+            let actor = command
+                .order_actor()
+                .expect("confirmed variants are orders");
+            let people = command
+                .order_participants()
+                .expect("confirmed variants are orders");
+            if crate::attendance::work_conflicts(world, &people).fingerprint != fingerprint {
+                crate::player_actions::reject_submission(
+                    world,
+                    actor,
+                    "Work circumstances changed. Give the order again to confirm its effects.",
+                );
+                continue;
+            }
+            command
+        } else {
+            command
+        };
         match command {
             SimCommand::SetChoreProfile {
                 agent,
@@ -37,9 +74,17 @@ pub fn drain_commands(world: &mut World) {
             chore @ (SimCommand::CleanChore { key, .. }
             | SimCommand::CleanChoreFirst { key, .. }) => {
                 flush_ordinary(world);
+                crate::chores::ensure(world);
                 if crate::chores::key_valid(world, key) {
                     world.resource_mut::<CommandQueue>().push(chore);
                     flush_ordinary(world);
+                } else {
+                    let actor = chore.order_actor().expect("chore commands are orders");
+                    crate::player_actions::reject_submission(
+                        world,
+                        actor,
+                        "The selected chore is no longer available.",
+                    );
                 }
             }
             SimCommand::Book(command) => {

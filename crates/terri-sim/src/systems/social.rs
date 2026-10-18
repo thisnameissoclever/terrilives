@@ -206,12 +206,9 @@ pub fn tick_social(
                 });
                 fights.record(my_id, clock.tick + u64::from(tuning.fight_mood_ticks));
             }
-            if let Ok(mut queue) = queues.get_mut(initiator) {
-                queue.remove_first(terri_core::Intent {
-                    cleanup: None,
-                    chore: None,
-                    object: partner,
-                    interaction: socialising.interaction,
+            if queues.get_mut(initiator).is_ok() {
+                commands.queue(move |world: &mut World| {
+                    crate::social_episode::complete_execution(world, initiator)
                 });
             }
             let mut initiator_commands = commands.entity(initiator);
@@ -346,12 +343,9 @@ pub fn tick_social(
         // the order standing, the same way an intent for a reserved
         // object waits at serve, so the sim tries again once the partner
         // is free.
-        if let Ok(mut queue) = queues.get_mut(initiator) {
-            queue.remove_first(terri_core::Intent {
-                cleanup: None,
-                chore: None,
-                object: partner,
-                interaction: socialising.interaction,
+        if queues.get_mut(initiator).is_ok() {
+            commands.queue(move |world: &mut World| {
+                crate::social_episode::complete_execution(world, initiator)
             });
         }
         let mut initiator_commands = commands.entity(initiator);
@@ -1562,15 +1556,12 @@ mod tests {
 
         // The command lands on the PARTNER this time.
         sim.world_mut()
-            .entity_mut(partner)
-            .insert(terri_core::IntentQueue::from_intents(vec![
-                terri_core::Intent {
-                    cleanup: None,
-                    chore: None,
-                    object: fridge,
-                    interaction: 0,
-                },
-            ]));
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::UseObjectFirst {
+                agent: partner.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            });
         sim.tick();
 
         assert_eq!(
@@ -2286,18 +2277,23 @@ mod tests {
 
         talk(&mut sim, a, b);
         sim.tick();
-        assert!(
-            sim.world().get::<Target>(a).is_none(),
-            "the order must not serve while the partner strolls"
+        assert_eq!(
+            sim.world().get::<Target>(a).map(|target| target.object),
+            Some(b),
+            "the initiator can approach the moving recipient"
         );
         assert!(
-            sim.world().get::<terri_core::Blocked>(a).is_some(),
-            "waiting says so out loud"
+            sim.world().get::<Socialising>(a).is_none(),
+            "the recipient finishes their stroll before admission"
+        );
+        assert!(
+            sim.world().get::<Reserved>(b).is_none(),
+            "a pending request cannot reserve a strolling recipient"
         );
 
         for _ in 0..60 {
             sim.tick();
-            if sim.world().get::<Target>(a).map(|t| t.object) == Some(b) {
+            if sim.world().get::<Socialising>(a).is_some() {
                 return;
             }
         }

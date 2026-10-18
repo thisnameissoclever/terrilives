@@ -74,6 +74,17 @@ reward. `relationship_effects` exposes a read-only causal journal for native
 traces. Boundary decisions are saved and hashed; diagnostics and derived
 compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
 
+`player_actions` owns player-order identities and their execution phases.
+Incoming social requests reference that ownership instead of duplicating orders.
+Activity systems record explicit terminal outcomes before removing an order;
+temporary route and reservation release never supplies a cancellation reason.
+`attendance` records fixed scheduled work windows, actual office time and
+settlement. New work-conflicting input carries a confirmed quote checked again
+by the command drain. Schema fifteen stores these gameplay continuations while
+preserving the older envelopes. The bounded action diagnostic history is
+session-local, cursor-based, and excluded from saves and gameplay hashes. See
+[player orders and attendance](specs/2026-10-17-player-orders.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three
@@ -235,9 +246,12 @@ currently happen inside the action or wander system that requests them.
 When paused, the shell runs step 0 by itself once per rendered frame. It uses
 the same queue and the same `drain_commands` system as a full tick; steps 1
 through 15 do not run. This keeps input alive without creating a second
-mutation path or allowing simulation time to leak through pause. The drain is
-associative across batch boundaries: splitting an ordered command stream across
-two rendered frames produces the same saved world as draining it in one batch.
+mutation path or allowing simulation time to leak through pause. The drain
+preserves command order across batches. Social admission can change execution
+ownership at each boundary: reciprocal front orders accepted before admission
+resolve in acceptance order, while a later front order can redirect an approach
+that a previous drain already admitted. Combining those drains would remove
+that intermediate admission state.
 
 Each completed full tick and paused drain is also a Bevy ECS update boundary.
 After the schedule applies its deferred commands, `World::clear_trackers()`
@@ -254,10 +268,11 @@ full ticks can miss removals after multiple paused drains.
     into a target ([D-3] of the M1b design). Serialized because it claims
     object slots, and it sits BEFORE selection because a directed action
     overrides autonomy rather than competing with it. It is the one step that
-    sees sims which are already walking or already mid-interaction: a player
-    intent **preempts** a running interaction rather than queueing behind it,
-    since a sim asleep for 24 seconds would otherwise leave a click with no
-    visible response for the whole of it.
+    sees sims which are already walking or mid-interaction. A new explicit
+    front order can redirect that activity while retaining its earlier order.
+    An appended order waits its turn. Recipients finish their current activity
+    before serving incoming conversations. Eligible incoming requests take
+    priority over their other queued work.
 5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and retain one pending needs-adjusted cleanup decision per room entry or genuinely new pile, including own old dishes. Player intents already have priority.
 6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
@@ -593,7 +608,14 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 10; the version 1 decoder and its historical optional sleep-pressure
+use version 15. Its suffix preserves exact player-order and social-execution
+ownership, incoming acceptance order, fixed scheduled shifts, attendance,
+pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
+Player-order owners use an explicit identity tag: household Sim ID or the
+preserved entity index of an unnamed agent. Restore requires the matching actor
+kind and rejects missing actors, cross-kind aliases and duplicate ownership.
+Browser storage preserves the preceding version's exact bytes in a recovery
+file before replacing its playable slot. The version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -756,6 +778,47 @@ ordered entries and allocator separately from frozen historical intent records.
 Survivor cleanup retains complete entries rather than rebuilding them from bare
 object/action pairs.
 
+Admission resolves new object and social action references before queue
+placement or work interruption. An invalid action consumes its own order ID
+and records acceptance followed by failure without displacing valid work.
+Execution still revalidates live targets and routes. A deferred activity must
+not shelter an invalid future order until the next save rejects it.
+
+Social admission computes one complete participant plan, including both ends of
+retained conversations and approaches. Incoming queue rows and permission to
+prepare an outgoing approach derive from that same plan. A recipient cannot
+also prepare an outgoing conversation. Future queued requests remain visible
+without reserving either participant. Temporary execution release preserves the
+initiating order; only an explicit terminal outcome removes it.
+
+`Sim::action_queue_rows_of` exposes order identity, label, lifecycle phase, role,
+counterpart and reason. Incoming rows reference the initiator's identity; they
+are not executable copies. An order ID is local to its actor. The existing
+label-only queue methods remain compatibility projections. A current autonomous
+activity has no order ID, and an empty current-action label is a compatibility
+sentinel that the browser hides.
+
+`Sim::action_events_since` reads events strictly after a sequence cursor. Its
+batch returns the current cursor and indicates when requested records have
+expired from the 2,048-event session window. Events include tick, actor and
+counterpart entity indices, actor-local order ID, action label, transition,
+reason and blocking state. Queue phase `running` corresponds to a `started` or
+`resumed` event. Pre-admission refusals use `rejected`; they have no accepted
+order identity and do not trigger the frustration effect. The reserved ID
+`u64::MAX` marks an unallocated submission or a career outcome rather than a
+player order.
+
+The WebAssembly exports `action_queue_rows_of` and `order_events_since` carry
+these records to `SimBridge.actionQueueRowsOf` and `orderEventsSince`. JavaScript
+keeps ticks, order IDs and cursors as decimal strings to preserve all 64 bits.
+The browser reads one incremental session stream, then filters its retained
+history by person for the debug panel and Copy. Failure warnings are emitted
+once per sequence. The squiggle expires after three seconds of animation-frame
+time, including while simulation time is paused. Loading a world clears visible
+history and effects; native sequence cursors continue without reusing old values.
+Capturing events never samples randomness. Diagnostic history stays outside
+saves and hashes.
+
 Book commands share the serialized command drain. Version 7 records their exact
 positions among ordinary commands without extending frozen `SavedCommand`
 records. A historical structural snapshot cannot preserve this new state;
@@ -772,8 +835,10 @@ Saved reading state includes the exact originating order, copy, seat, shelf
 contact, reach timing, fractional work and unsettled satisfaction. Install that
 state before spatial validation so a fetch path is checked against the shelf
 instead of the eventual seat. A deferred career departure retains the original
-scheduled shift and starts the normal full shift after the return obligation
-ends. It cannot depend on encountering the original start tick again.
+scheduled window. Player orders and mandatory book returns can delay departure;
+only the time remaining before the original end is worked. Attendance determines
+the prorated pay and rewards. Departure does not depend on encountering the
+original start tick again.
 
 An owned-reading session samples its success or fumble once when reading starts.
 Save that outcome through edits, interruptions and reloads. A completed session
@@ -1711,6 +1776,15 @@ cleanup and directed timed chores own separate saved records, so the generic
 order waits rather than adopting, replacing or being settled by their work.
 First cleanup requests validate their target and route before releasing current
 work. Serving, resumption and queue display use the same ownership distinction.
+
+`RecipeActivity` distinguishes a current whole recipe from a retained recipe
+suspended beneath another activity. Conversation admission publishes the elected
+recipient once; preparation, domestic gathering and managed dining use one
+continuation policy against that decision. A recipient finishes their current
+recipe, while a background recipe waits behind incoming work after the actual
+current activity ends. Physical handoff and resumption update this state without
+discarding the recipe counter, origin or carried items. Version 15 saves and
+hashes background recipe owners explicitly; only older readers infer that state.
 
 The published V5 skill and affinity fields follow dining. Targeted cleanup, `SavedChores`
 and `SavedGrime` append after that published tail in this order.

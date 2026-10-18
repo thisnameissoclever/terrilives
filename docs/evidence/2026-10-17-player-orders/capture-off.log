@@ -1,0 +1,33 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 4.89s
+     Running `target\debug\examples\order_diagnostics.exe --admission-only`
+enqueue_32_orders_ms=1.553
+enqueue_32_gameplay_hash=14082898863345828800
+enqueue_256_orders_ms=4.091
+enqueue_256_gameplay_hash=2552012989725853787
+enqueue_1024_orders_ms=18.647
+enqueue_1024_gameplay_hash=14752745594157464012
+enqueue_32_orders_ms=1.108
+enqueue_32_gameplay_hash=14082898863345828800
+enqueue_256_orders_ms=2.590
+enqueue_256_gameplay_hash=2552012989725853787
+enqueue_1024_orders_ms=10.284
+enqueue_1024_gameplay_hash=14752745594157464012
+enqueue_32_orders_ms=1.080
+enqueue_32_gameplay_hash=14082898863345828800
+enqueue_256_orders_ms=4.128
+enqueue_256_gameplay_hash=2552012989725853787
+enqueue_1024_orders_ms=17.274
+enqueue_1024_gameplay_hash=14752745594157464012
+enqueue_32_orders_ms=1.382
+enqueue_32_gameplay_hash=14082898863345828800
+enqueue_256_orders_ms=4.141
+enqueue_256_gameplay_hash=2552012989725853787
+enqueue_1024_orders_ms=9.903
+enqueue_1024_gameplay_hash=14752745594157464012
+enqueue_32_orders_ms=1.092
+enqueue_32_gameplay_hash=14082898863345828800
+enqueue_256_orders_ms=2.588
+enqueue_256_gameplay_hash=2552012989725853787
+enqueue_1024_orders_ms=10.766
+enqueue_1024_gameplay_hash=14752745594157464012

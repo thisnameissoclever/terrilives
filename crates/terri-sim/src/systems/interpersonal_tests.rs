@@ -511,10 +511,10 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
         "the chain order outlives the chain's start"
     );
     assert!(crate::privacy::directed(sim.world(), a));
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.save_snapshot_v15();
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v6(saved).unwrap();
+    resumed.load_snapshot_v15(saved).unwrap();
     assert!(crate::privacy::directed(resumed.world(), a));
     assert_eq!(sim.world_hash(), resumed.world_hash());
     enter(&mut resumed, a);

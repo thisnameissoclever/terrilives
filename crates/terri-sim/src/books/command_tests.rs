@@ -495,21 +495,35 @@ fn book_command_empty_allocator_is_saved_hashed_and_not_reused() {
         });
     sim.flush_commands();
     assert_ne!(sim.world_hash(), before);
-    let saved = sim.save_snapshot_v6();
+    let frozen = sim.save_snapshot_v6();
+    let (mut legacy, _, _, _, _) = fixture();
+    legacy.load_snapshot_v6(frozen.clone()).unwrap();
+    assert_eq!(legacy.save_snapshot_v6(), frozen);
+    assert_eq!(
+        legacy.world().get::<IntentQueue>(person).unwrap().next_id(),
+        1
+    );
+    let saved = sim.save_snapshot_v15();
     let hash = sim.world_hash();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
+    sim.load_snapshot_v15(saved.clone()).unwrap();
     assert_eq!(sim.world_hash(), hash);
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert_eq!(sim.save_snapshot_v15(), saved);
     let mut advanced = saved.clone();
     advanced
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
         .queues
         .iter_mut()
         .find(|q| q.owner == person.index_u32())
         .unwrap()
         .next_id = 2;
-    sim.load_snapshot_v6(advanced).unwrap();
+    sim.load_snapshot_v15(advanced).unwrap();
     assert_ne!(sim.world_hash(), hash);
-    sim.load_snapshot_v6(saved).unwrap();
+    sim.load_snapshot_v15(saved).unwrap();
     issue(&mut sim, read(person, shelf, &action, &title, false));
     sim.flush_commands();
     assert_eq!(

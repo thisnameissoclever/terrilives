@@ -43,7 +43,7 @@ fn creator_boundary_round_trips_exact_values_and_correlated_results() {
     let saved = handle.save_bytes();
     assert_eq!(
         u16::from_le_bytes([saved[SAVE_MAGIC.len()], saved[SAVE_MAGIC.len() + 1]]),
-        14
+        15
     );
     assert!(handle.load_bytes(&saved));
     assert_eq!(handle.save_bytes(), saved);
@@ -201,7 +201,7 @@ fn authentic_local_v9_saves_migrate_to_combined_v10_with_stable_continuation() {
         assert!(loaded.load_bytes(bytes));
         assert_legacy_character_projection(&loaded, bytes);
         let saved = loaded.save_bytes();
-        assert_eq!(&saved[8..10], &14u16.to_le_bytes());
+        assert_eq!(&saved[8..10], &15u16.to_le_bytes());
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&saved));
         for _ in 0..300 {

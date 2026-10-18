@@ -9,7 +9,9 @@ pub mod beds;
 pub mod books;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
+pub mod attendance;
 pub mod careers;
+pub mod player_actions;
 pub use careers::Careers;
 pub mod fights;
 pub use fights::Fights;
@@ -1323,6 +1325,34 @@ impl Sim {
         save::v14::capture(self)
     }
 
+    pub fn save_snapshot_v15(&self) -> terri_core::SaveSnapshotV15 {
+        save::v15::capture(self)
+    }
+
+    pub fn career_attendance_of(&self, index: u32) -> Vec<f32> {
+        let Some(mut people) = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Agent>>()
+        else {
+            return vec![];
+        };
+        people
+            .iter(&self.world)
+            .find(|e| e.index_u32() == index)
+            .map_or_else(Vec::new, |person| attendance::report(&self.world, person))
+    }
+
+    pub fn load_snapshot_v15(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV15,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = save::Carried::for_load(&self.world);
+        let candidate = save::v15::restore(snapshot, content, portals)?;
+        self.adopt_current_with_saved_state(candidate);
+        Ok(())
+    }
+
     pub fn load_snapshot_v14(
         &mut self,
         snapshot: terri_core::SaveSnapshotV14,
@@ -1465,7 +1495,21 @@ impl Sim {
         self.adopt_current(restored);
     }
 
-    fn adopt_current(&mut self, mut restored: Sim) {
+    fn adopt_current(&mut self, restored: Sim) {
+        self.adopt_restored(restored, true);
+    }
+
+    fn adopt_current_with_saved_state(&mut self, restored: Sim) {
+        // Explicitly saved empty gameplay ledgers are authoritative too.
+        self.adopt_restored(restored, false);
+    }
+
+    fn adopt_restored(&mut self, mut restored: Sim, infer_legacy_state: bool) {
+        player_actions::continue_session(&self.world, &mut restored.world);
+        if infer_legacy_state {
+            recipe_actions::adopt_legacy_activity(&mut restored.world);
+            attendance::migrate_legacy(&mut restored.world);
+        }
         character_draft::ensure_appearance_components(&mut restored.world);
         restored
             .world
@@ -1527,6 +1571,9 @@ impl Sim {
         world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(fights::Fights::default());
         world.insert_resource(careers::Careers::default());
+        world.insert_resource(attendance::Attendance::default());
+        world.insert_resource(player_actions::PlayerActions::default());
+        world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -2112,8 +2159,10 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        player_actions::observe(&mut self.world);
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
+        player_actions::observe(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
     }
@@ -2125,12 +2174,14 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        player_actions::observe(&mut self.world);
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
         seating::maintain(&mut self.world);
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
         social_episode::maintain(&mut self.world);
+        player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
     }
@@ -4240,6 +4291,16 @@ impl Sim {
                     SetCareerAutonomy { change, search } => {
                         vec![34, u64::from(*change), u64::from(*search)]
                     }
+                    ConfirmedOrder {
+                        fingerprint,
+                        command,
+                    } => {
+                        vec![
+                            35,
+                            *fingerprint,
+                            terri_core::player_order_hash::command(command),
+                        ]
+                    }
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26
@@ -4700,6 +4761,9 @@ impl Sim {
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
         careers::hash(&self.world, &mut hasher);
+        attendance::hash(&self.world, &mut hasher);
+        player_actions::hash(&self.world, &mut hasher);
+        recipe_actions::hash_activity(&self.world, &mut hasher);
         // The lot frame enters only once it differs from what the grid's
         // shape implies, so every older world hashes as it did.
         if let Some(frame) = lot_frame::frame(&self.world) {

@@ -302,10 +302,30 @@ pub(super) fn restore_into(
         }
     }
     candidate.world.insert_resource(state);
+    crate::social_episode::adopt_legacy(&mut candidate.world);
     Ok(())
 }
 
 pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    let executions = crate::social_episode::save_executions(world);
+    if !executions.is_empty() {
+        hash.write_bytes(b"social-execution-v15");
+        hash.write_u64(executions.len() as u64);
+        for e in executions {
+            for value in [
+                u64::from(e.initiator),
+                u64::from(e.recipient),
+                u64::from(e.interaction),
+                u64::from(e.provenance),
+                u64::from(e.order_id.is_some()),
+                e.order_id.unwrap_or(0),
+                u64::from(e.running),
+                u64::from(e.admitted),
+            ] {
+                hash.write_u64(value);
+            }
+        }
+    }
     let saved = capture(world);
     if saved.rendezvous.is_empty() && saved.topics.is_empty() && saved.communal.is_empty() {
         return;
@@ -673,6 +693,8 @@ mod tests {
         let entities = std::array::from_fn(|_| world.spawn_empty().id());
         assert_eq!(entities.map(|entity| entity.index_u32()), [0, 1, 2, 3]);
         world.insert_resource(SocialEpisodes {
+            executions: BTreeMap::new(),
+            incoming: BTreeMap::new(),
             rendezvous: BTreeMap::from([(entities[1], entities[0])]),
             topics: BTreeMap::from([(
                 entities[0],

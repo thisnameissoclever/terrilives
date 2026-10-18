@@ -4,6 +4,9 @@ pub(crate) fn dish_washed(world: &mut World, person: u32, units: u32) {
     if units == 0 {
         return;
     }
+    if let Some(actor) = crate::dining::entity(world, person) {
+        crate::player_actions::terminal_transferred(world, actor, true, "completed", None);
+    }
     ensure(world);
     let mut state = world.remove_resource::<SavedChores>().unwrap();
     let now = world.resource::<terri_core::SimClock>().tick;

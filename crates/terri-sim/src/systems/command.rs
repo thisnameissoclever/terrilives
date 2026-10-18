@@ -19,6 +19,10 @@ use terri_core::{
 pub use super::lot_edit::drain_commands;
 use crate::Content;
 
+#[cfg(test)]
+#[path = "command_submission_tests.rs"]
+mod submission_tests;
+
 /// Player-visible results produced while staged commands become simulation
 /// state.
 ///
@@ -113,7 +117,8 @@ impl Placement {
             | SimCommand::TalkToFirst { .. }
             | SimCommand::CleanDishesFirst { .. }
             | SimCommand::CleanChoreFirst { .. } => Self::Front,
-            SimCommand::Book(_)
+            SimCommand::ConfirmedOrder { .. }
+            | SimCommand::Book(_)
             | SimCommand::Character(_)
             | SimCommand::Select(_)
             | SimCommand::UseObject { .. }
@@ -150,41 +155,144 @@ impl Placement {
 
 /// Places an intent. A zero cap preserves every order without a count limit.
 /// With a positive cap, appends are refused when full and front placements
-/// displace the last intent. Returns that displaced intent for cleanup.
+/// displace the last intent. Returns the exact changed orders for diagnostics.
+struct PlacementResult {
+    accepted: Option<terri_core::components::QueuedOrder>,
+    displaced: Option<terri_core::components::QueuedOrder>,
+    release: Option<Intent>,
+    refusal: Option<&'static str>,
+}
+
+fn placement_refusal(
+    queue: &IntentQueue,
+    placement: Placement,
+    cap: usize,
+) -> Option<&'static str> {
+    if !queue.can_allocate() {
+        Some("No more order IDs are available.")
+    } else if placement == Placement::Back && cap != 0 && queue.len() >= cap {
+        Some("The order queue is full.")
+    } else {
+        None
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn pending_placement_refusal(
+    agents: &Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
+    fresh: &[(Entity, IntentQueue)],
+    agent: Entity,
+    placement: Placement,
+    cap: usize,
+) -> Option<&'static str> {
+    agents
+        .get(agent)
+        .ok()
+        .and_then(|(_, queue, _)| queue.and_then(|queue| placement_refusal(queue, placement, cap)))
+        .or_else(|| {
+            fresh
+                .iter()
+                .find(|(entity, _)| *entity == agent)
+                .and_then(|(_, queue)| placement_refusal(queue, placement, cap))
+        })
+}
+
+fn reject_order(commands: &mut Commands, actor: u32, reason: &'static str) {
+    commands.queue(move |world: &mut World| {
+        crate::player_actions::reject_submission(world, actor, reason);
+    });
+}
+
+/// Reserve a failed order's identity without displacing or redirecting valid work.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn fail_intent(
+    commands: &mut Commands,
+    agents: &mut Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
+    fresh: &mut Vec<(Entity, IntentQueue)>,
+    feedback: &mut CommandFeedback,
+    cap: usize,
+    agent: Entity,
+    intent: Intent,
+    placement: Placement,
+    reason: &'static str,
+) {
+    if let Some(reason) = pending_placement_refusal(agents, fresh, agent, placement, cap) {
+        feedback.record_intent_capacity_rejection();
+        reject_order(commands, agent.index_u32(), reason);
+        return;
+    }
+    let reserve = |queue: &mut IntentQueue| {
+        let id = queue
+            .insert_order(intent, None, false)
+            .expect("checked order allocator");
+        queue.remove_order(id).expect("reserved failed order")
+    };
+    let entry = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        reserve(&mut queue)
+    } else if let Some((_, queue)) = fresh.iter_mut().find(|(actor, _)| *actor == agent) {
+        reserve(queue)
+    } else {
+        let mut queue = IntentQueue::default();
+        let entry = reserve(&mut queue);
+        fresh.push((agent, queue));
+        entry
+    };
+    commands.queue(move |world: &mut World| {
+        crate::player_actions::fail_submission(world, agent, entry, reason);
+    });
+}
+
 fn place_in(
     queue: &mut IntentQueue,
     intent: Intent,
     placement: Placement,
     cap: usize,
     feedback: &mut CommandFeedback,
-) -> Option<Intent> {
-    if !queue.can_allocate() {
+) -> PlacementResult {
+    let mut result = PlacementResult {
+        accepted: None,
+        displaced: None,
+        release: None,
+        refusal: placement_refusal(queue, placement, cap),
+    };
+    if result.refusal.is_some() {
         feedback.record_intent_capacity_rejection();
-        return None;
+        return result;
     }
     match placement {
         Placement::Back => {
-            if cap == 0 || queue.len() < cap {
-                queue.push(intent);
-            } else {
-                feedback.record_intent_capacity_rejection();
-            }
-            None
+            let id = queue
+                .insert_order(intent, None, false)
+                .expect("available order ID");
+            result.accepted = Some(terri_core::components::QueuedOrder {
+                id,
+                intent,
+                title_id: None,
+            });
         }
         Placement::Front => {
-            let displaced = if cap != 0 && queue.len() >= cap {
+            result.displaced = if cap != 0 && queue.len() >= cap {
                 feedback.record_intent_displacement();
-                queue
-                    .pop_back_order()
-                    .filter(|e| e.title_id.is_none())
-                    .map(|e| e.intent)
+                queue.pop_back_order()
             } else {
                 None
             };
-            queue.push_front(intent);
-            displaced
+            let id = queue
+                .insert_order(intent, None, true)
+                .expect("available order ID");
+            result.accepted = Some(terri_core::components::QueuedOrder {
+                id,
+                intent,
+                title_id: None,
+            });
+            result.release = result
+                .displaced
+                .as_ref()
+                .filter(|entry| entry.title_id.is_none() && !queue.contains(entry.intent))
+                .map(|entry| entry.intent);
         }
     }
+    result
 }
 
 /// Releases the commitment `target` names: the object's or partner's
@@ -202,24 +310,28 @@ fn place_in(
 /// That is [L17] reached by a button rather than by a distance metric.
 pub(crate) fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
     commands.queue(move |world: &mut World| {
-        if let Some(journey) = world.get::<crate::reading::ReadingJourney>(agent) {
-            if journey.order.is_some() {
-                crate::reading::request_return(world, agent);
-            }
-            return;
-        }
-        crate::reservations::release_now(world, agent, target);
-        if let Ok(mut actor) = world.get_entity_mut(agent) {
-            actor.remove::<(
-                Target,
-                Path,
-                Eating,
-                terri_core::Socialising,
-                terri_core::ConversationVoice,
-                terri_core::Fumbled,
-            )>();
-        }
+        release_commitment_now(world, agent, target);
     });
+}
+
+fn release_commitment_now(world: &mut World, agent: Entity, target: Target) {
+    if let Some(journey) = world.get::<crate::reading::ReadingJourney>(agent) {
+        if journey.order.is_some() {
+            crate::reading::request_return(world, agent);
+        }
+        return;
+    }
+    crate::reservations::release_now(world, agent, target);
+    if let Ok(mut actor) = world.get_entity_mut(agent) {
+        actor.remove::<(
+            Target,
+            Path,
+            Eating,
+            terri_core::Socialising,
+            terri_core::ConversationVoice,
+            terri_core::Fumbled,
+        )>();
+    }
 }
 
 /// Places one resolved intent for `agent`, whether its queue is live, was
@@ -258,15 +370,10 @@ fn place_intent(
     intent: Intent,
     placement: Placement,
 ) {
-    // What fell off AND is no longer queued anywhere. A dropped intent
-    // that has another copy still in the queue is not a lost order: the
-    // sim is still under that order, so its commitment stands. Without
-    // this filter a queue of `[fridge, bed, bed, fridge]` losing its back
-    // `fridge` would abort the meal the front `fridge` still asks for.
-    let gone = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-        place_in(&mut queue, intent, placement, cap, feedback).filter(|d| !queue.contains(*d))
+    let result = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        place_in(&mut queue, intent, placement, cap, feedback)
     } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-        place_in(staged, intent, placement, cap, feedback).filter(|d| !staged.contains(*d))
+        place_in(staged, intent, placement, cap, feedback)
     } else {
         // A new queue always holds its first order, with an unlimited or positive cap.
         let mut queue = IntentQueue::default();
@@ -274,22 +381,46 @@ fn place_intent(
         fresh.push((agent, queue));
         displaced
     };
-    let Some(gone) = gone else {
+    if let Some(reason) = result.refusal {
+        reject_order(commands, agent.index_u32(), reason);
         return;
-    };
-    let held = agents
-        .get(agent)
-        .ok()
-        .and_then(|(_, _, target)| target.copied());
-    if let Some(target) = held {
-        // A chain step's Target carries the `CHAIN_STEP` sentinel, which
-        // no shell-produced intent names; a crafted command that did must
-        // not free a station mid-step. Chains are abandoned only by an
-        // explicit cancel, per [K4].
-        let same = target.object == gone.object && target.interaction == gone.interaction;
-        if same && target.interaction != crate::systems::chain::CHAIN_STEP {
-            release_commitment(commands, agent, target);
-        }
+    }
+    if let Some(entry) = result.displaced {
+        let id = entry.id;
+        let legacy_release = result.release.is_some();
+        commands.queue(move |world: &mut World| {
+            let owner = world
+                .get::<crate::player_actions::ServedOrder>(agent)
+                .map(|owner| owner.0);
+            let held = world.get::<Target>(agent).copied().filter(|target| {
+                target.object == entry.intent.object
+                    && target.interaction == entry.intent.interaction
+                    && target.interaction != crate::systems::chain::CHAIN_STEP
+                    && world.get::<Agent>(target.object).is_none()
+            });
+            // Exact ownership takes precedence over the legacy pair-only seam.
+            if owner.map_or(legacy_release, |owner| owner == id) {
+                if let Some(target) = held {
+                    release_commitment_now(world, agent, target);
+                }
+            }
+            crate::player_actions::terminal(
+                world,
+                agent,
+                id,
+                "failed",
+                Some("Displaced by a new front order because the queue is full."),
+            )
+        });
+    }
+    if let Some(entry) = result.accepted {
+        commands.queue(move |world: &mut World| {
+            let id = entry.id;
+            crate::player_actions::accept(world, agent, entry);
+            if placement == Placement::Front {
+                crate::player_actions::explicit_front(world, agent, id);
+            }
+        });
     }
 }
 
@@ -380,12 +511,34 @@ pub(crate) fn drain_ordinary_commands(
         match command {
             SimCommand::CleanChore { agent, key } | SimCommand::CleanChoreFirst { agent, key } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    reject_order(
+                        &mut commands,
+                        agent,
+                        "The selected person is no longer available.",
+                    );
                     continue;
                 };
                 let Some(state) = chores.as_deref_mut() else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "Household chores are unavailable.",
+                    );
                     continue;
                 };
+                if let Some(reason) =
+                    pending_placement_refusal(&agents, &fresh, agent, placement, cap)
+                {
+                    feedback.record_intent_capacity_rejection();
+                    reject_order(&mut commands, agent.index_u32(), reason);
+                    continue;
+                }
                 let Some(id) = crate::chores::issue(state, agent.index_u32(), key) else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "No more chore order IDs are available.",
+                    );
                     continue;
                 };
                 place_intent(
@@ -426,9 +579,19 @@ pub(crate) fn drain_ordinary_commands(
                 dishes,
             } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    reject_order(
+                        &mut commands,
+                        agent,
+                        "The selected person is no longer available.",
+                    );
                     continue;
                 };
                 let Some(object) = resolve(surface, objects.iter()) else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "The selected cleanup surface is no longer available.",
+                    );
                     continue;
                 };
                 if !definitions
@@ -443,11 +606,36 @@ pub(crate) fn drain_ordinary_commands(
                         })
                     })
                 {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "The selected cleanup surface or dishes are invalid.",
+                    );
+                    continue;
+                }
+                if !crate::targeted_cleanup::valid_selection(&dishes) {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "The selected dishes are invalid.",
+                    );
+                    continue;
+                }
+                if let Some(reason) =
+                    pending_placement_refusal(&agents, &fresh, agent, placement, cap)
+                {
+                    feedback.record_intent_capacity_rejection();
+                    reject_order(&mut commands, agent.index_u32(), reason);
                     continue;
                 }
                 let Some(id) =
                     crate::targeted_cleanup::issue(&mut scoped, agent.index_u32(), surface, dishes)
                 else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "No more cleanup order IDs are available.",
+                    );
                     continue;
                 };
                 if matches!(placement, Placement::Front) {
@@ -515,28 +703,54 @@ pub(crate) fn drain_ordinary_commands(
                 interaction,
             } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    reject_order(
+                        &mut commands,
+                        agent,
+                        "The selected person is no longer available.",
+                    );
                     continue;
                 };
                 let Some(object) = resolve(object, objects.iter()) else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "The selected object is no longer available.",
+                    );
                     continue;
                 };
-                // **The index is copied across, not validated here.** The
-                // two entity indices above are resolved because a raw
-                // index promises neither liveness nor kind and nothing
-                // downstream re-checks; the interaction index is
-                // different, because `serve_intents` already drops a front
-                // intent whose interaction is past the end of the object's
-                // list, before anything indexes with it. A second range
-                // check here would be a weaker copy of that one - weaker
-                // because it would need the object's definition, which
-                // this system does not query - and it would have to agree
-                // with it for ever.
-                //
-                // So out of range remains `serve_intents`' problem, and it
-                // must stay a drop rather than a panic: it is what a
-                // command log recorded against an older content pack
-                // replays as, and what an object with no interactions at
-                // all makes of any index whatsoever.
+                if let Some(reason) =
+                    pending_placement_refusal(&agents, &fresh, agent, placement, cap)
+                {
+                    feedback.record_intent_capacity_rejection();
+                    reject_order(&mut commands, agent.index_u32(), reason);
+                    continue;
+                }
+                let intent = Intent {
+                    cleanup: None,
+                    chore: None,
+                    object,
+                    interaction,
+                };
+                let valid_action = definitions.get(object).is_ok_and(|placed| {
+                    // Historical dining tables expose this managed action outside their authored rows.
+                    (content.0.object(placed.0).id == "dining_table" && interaction == 1)
+                        || crate::action_rows::resolve(content.0, placed.0, interaction)
+                            .is_some_and(|row| row.public)
+                });
+                if !valid_action {
+                    fail_intent(
+                        &mut commands,
+                        &mut agents,
+                        &mut fresh,
+                        &mut feedback,
+                        cap,
+                        agent,
+                        intent,
+                        placement,
+                        "Unknown object action",
+                    );
+                    continue;
+                }
                 let scoped_cleanup_front = matches!(placement, Placement::Front)
                     && definitions
                         .get(object)
@@ -566,12 +780,6 @@ pub(crate) fn drain_ordinary_commands(
                         }
                     });
                 }
-                let intent = Intent {
-                    cleanup: None,
-                    chore: None,
-                    object,
-                    interaction,
-                };
                 place_intent(
                     &mut commands,
                     &mut agents,
@@ -678,6 +886,9 @@ pub(crate) fn drain_ordinary_commands(
                         .remove::<crate::waiting::WaitingNeeds>();
                 }
 
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::cancel_all(world, agent, "Canceled by player")
+                });
                 if let Some(mut queue) = queue {
                     queue.clear();
                 }
@@ -725,32 +936,57 @@ pub(crate) fn drain_ordinary_commands(
                 interaction,
             } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    reject_order(
+                        &mut commands,
+                        agent,
+                        "The selected person is no longer available.",
+                    );
                     continue;
                 };
                 // The target resolves against AGENTS, the mirror of
                 // UseObject's With<SmartObject> resolve: a stale or
-                // object index is dropped silently, exactly like a stale
-                // UseObject. Self-talk is dropped too, explicitly -
+                // object index is refused, exactly like a stale
+                // UseObject. Self-talk is refused too, explicitly -
                 // autonomy excludes self by entity in the people loop,
                 // and a self-intent surviving to serve_intents would
                 // wait forever on "partner busy: me".
                 let Some(target) = resolve(target, agents.iter().map(|(entity, _, _)| entity))
                 else {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "The selected conversation partner is no longer available.",
+                    );
                     continue;
                 };
                 if target == agent {
+                    reject_order(
+                        &mut commands,
+                        agent.index_u32(),
+                        "A person cannot talk to themselves.",
+                    );
                     continue;
                 }
-                // The social index is copied, not range-checked, for
-                // UseObject's exact reasons: serve_intents drops an
-                // out-of-range front intent before anything indexes with
-                // it, and the check belongs where the data is used.
                 let intent = Intent {
                     cleanup: None,
                     chore: None,
                     object: target,
                     interaction,
                 };
+                if content.0.social.get(interaction as usize).is_none() {
+                    fail_intent(
+                        &mut commands,
+                        &mut agents,
+                        &mut fresh,
+                        &mut feedback,
+                        cap,
+                        agent,
+                        intent,
+                        placement,
+                        "Unknown social action",
+                    );
+                    continue;
+                }
                 place_intent(
                     &mut commands,
                     &mut agents,
@@ -775,6 +1011,9 @@ pub(crate) fn drain_ordinary_commands(
             // that is not a command" is exactly the crack [D-2] exists to
             // close. If a later milestone gives the simulation ownership
             // of the speed, it belongs in a resource set from here.
+            SimCommand::ConfirmedOrder { .. } => {
+                unreachable!("confirmed order was unwrapped by drain")
+            }
             SimCommand::SetSpeed(_) => {}
         }
     }
@@ -836,6 +1075,208 @@ mod tests {
     /// across two private test modules to share six lines would couple
     /// them more than it saves.
     const DECISIVE_TEMPERATURE: f32 = 0.0001;
+
+    #[test]
+    fn placement_reports_exact_ids_for_repeated_orders_and_displaced_titles() {
+        let intent = Intent {
+            object: World::new().spawn_empty().id(),
+            interaction: 0,
+            cleanup: None,
+            chore: None,
+        };
+        let mut queue = IntentQueue::default();
+        let mut feedback = CommandFeedback::default();
+        let first = place_in(&mut queue, intent, Placement::Back, 2, &mut feedback);
+        assert_eq!(first.accepted.unwrap().id, 0);
+        assert!(first.displaced.is_none());
+        let selected = queue
+            .insert_order(intent, Some("selected-title".into()), false)
+            .unwrap();
+        let replacement = place_in(&mut queue, intent, Placement::Front, 2, &mut feedback);
+        assert_eq!(replacement.accepted.unwrap().id, 2);
+        let displaced = replacement.displaced.unwrap();
+        assert_eq!(displaced.id, selected);
+        assert_eq!(displaced.title_id.as_deref(), Some("selected-title"));
+        assert!(replacement.release.is_none());
+        assert_eq!(
+            queue
+                .entries()
+                .iter()
+                .map(|entry| entry.id)
+                .collect::<Vec<_>>(),
+            [2, 0]
+        );
+        assert_eq!(feedback.take_intent_displacements(), 1);
+    }
+
+    #[test]
+    fn refused_placement_reports_no_acceptance_or_displacement_and_preserves_ids() {
+        let intent = Intent {
+            object: World::new().spawn_empty().id(),
+            interaction: 0,
+            cleanup: None,
+            chore: None,
+        };
+        let mut queue = IntentQueue::from_intents(vec![intent]);
+        let before = queue.clone();
+        let mut feedback = CommandFeedback::default();
+        let refused = place_in(&mut queue, intent, Placement::Back, 1, &mut feedback);
+        assert!(refused.accepted.is_none());
+        assert!(refused.displaced.is_none());
+        assert_eq!(queue, before);
+        let mut exhausted = IntentQueue::from_entries(vec![], u64::MAX).unwrap();
+        let refused = place_in(&mut exhausted, intent, Placement::Front, 1, &mut feedback);
+        assert!(refused.accepted.is_none());
+        assert!(refused.displaced.is_none());
+        assert_eq!(exhausted.next_id(), u64::MAX);
+        assert_eq!(feedback.take_intent_capacity_rejections(), 2);
+    }
+
+    #[test]
+    fn invalid_typed_order_people_and_targets_leave_rejections_without_gameplay_changes() {
+        let (mut sim, bed, _, agent) = scenario();
+        let before = sim.world_hash();
+        for command in [
+            SimCommand::UseObject {
+                agent: u32::MAX,
+                object: bed.index_u32(),
+                interaction: 0,
+            },
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: agent.index_u32(),
+                interaction: 0,
+            },
+            SimCommand::TalkTo {
+                agent: agent.index_u32(),
+                target: bed.index_u32(),
+                interaction: 0,
+            },
+            SimCommand::TalkTo {
+                agent: agent.index_u32(),
+                target: agent.index_u32(),
+                interaction: 0,
+            },
+        ] {
+            enqueue(&mut sim, command);
+        }
+        drain_only(&mut sim);
+        assert_eq!(sim.world_hash(), before);
+        let events = sim.action_events_since(0).events;
+        assert_eq!(events.len(), 4);
+        assert_eq!(events[0].actor, u32::MAX);
+        assert!(events[1..]
+            .iter()
+            .all(|event| event.actor == agent.index_u32()));
+        assert!(events
+            .iter()
+            .all(|event| event.phase == "rejected" && event.reason.is_some()));
+    }
+
+    fn full_shipped_queue() -> (Sim, Entity, Entity) {
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut pack = (*sim.world().resource::<Content>().0).clone();
+        pack.tuning.max_queued_intents = 1;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        crate::chores::ensure(sim.world_mut());
+        let person = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .next()
+            .unwrap();
+        let pack = sim.world().resource::<Content>().0;
+        let counter = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "counter")
+            .unwrap()
+            .0;
+        let bed = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "bed")
+            .unwrap()
+            .0;
+        enqueue(&mut sim, use_object(person, bed));
+        drain_only(&mut sim);
+        assert_eq!(
+            queue_of(&sim, person).len(),
+            1,
+            "the valid filler must occupy the queue"
+        );
+        (sim, person, counter)
+    }
+
+    #[test]
+    fn cleanup_capacity_refusal_preserves_gameplay_and_saved_order_allocation() {
+        let (mut sim, person, surface) = full_shipped_queue();
+        let before = sim.world_hash();
+        let scoped = sim
+            .world()
+            .resource::<terri_core::save::SavedTargetedCleanup>()
+            .clone();
+        enqueue(
+            &mut sim,
+            SimCommand::CleanDishes {
+                agent: person.index_u32(),
+                surface: surface.index_u32(),
+                dishes: None,
+            },
+        );
+        drain_only(&mut sim);
+        assert_eq!(
+            *sim.world()
+                .resource::<terri_core::save::SavedTargetedCleanup>(),
+            scoped
+        );
+        assert_eq!(sim.world_hash(), before);
+        assert_eq!(
+            sim.action_events_since(0)
+                .events
+                .iter()
+                .filter(|event| event.phase == "rejected")
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn chore_capacity_refusal_preserves_gameplay_and_saved_order_allocation() {
+        let (mut sim, person, _) = full_shipped_queue();
+        let before = sim.world_hash();
+        let chores = sim
+            .world()
+            .resource::<terri_core::chores::SavedChores>()
+            .clone();
+        enqueue(
+            &mut sim,
+            SimCommand::CleanChore {
+                agent: person.index_u32(),
+                key: terri_core::chores::ChoreKey {
+                    kind: terri_core::chores::ChoreKind::Dishes,
+                    target: 0,
+                },
+            },
+        );
+        drain_only(&mut sim);
+        assert_eq!(
+            *sim.world().resource::<terri_core::chores::SavedChores>(),
+            chores
+        );
+        assert_eq!(sim.world_hash(), before);
+        assert_eq!(
+            sim.action_events_since(0)
+                .events
+                .iter()
+                .filter(|event| event.phase == "rejected")
+                .count(),
+            1
+        );
+    }
 
     /// A fridge and a bed, advertising DIFFERENT needs so that directing a
     /// sim at one of them overrides what it wanted rather than merely
@@ -1217,19 +1658,7 @@ mod tests {
     }
 
     #[test]
-    fn an_interaction_index_past_the_end_is_queued_here_and_dropped_by_serve_intents() {
-        // **The out-of-range case is deliberately NOT rejected at the
-        // drain**, and that has to be asserted rather than left as a
-        // reading of the source, because "the drain refuses it" and "the
-        // drain accepts it and the server drops it" are indistinguishable
-        // from the outside two ticks later. The distinction matters: a
-        // range check here would need the object's definition, which this
-        // system does not query, so it could only be a weaker second copy
-        // of `serve_intents`' check that has to agree with it for ever.
-        //
-        // `u32::MAX` rather than 2, because it is what the WASM boundary
-        // lets through unchanged and because a clamp or a wrap anywhere on
-        // the path shows up on it and on nothing smaller.
+    fn an_interaction_index_past_the_end_fails_at_the_command_boundary() {
         let (mut sim, desk, _fridge, agent) = two_verb_scenario();
 
         enqueue(
@@ -1242,38 +1671,21 @@ mod tests {
         );
         drain_only(&mut sim);
 
+        assert!(queue_of(&sim, agent).is_empty());
+        assert_eq!(queue_of(&sim, agent).next_id(), 1);
+        let events = sim.action_events_since(0).events;
         assert_eq!(
-            queue_of(&sim, agent).front(),
-            Some(Intent {
-                cleanup: None,
-                chore: None,
-                object: desk,
-                interaction: u32::MAX,
-            }),
-            "the drain must pass the index through untouched; a saturating \
-             clamp to the last real interaction would turn 'use the verb \
-             that is not there' into 'use the last verb'"
+            events
+                .iter()
+                .map(|event| event.phase.as_str())
+                .collect::<Vec<_>>(),
+            ["accepted", "failed"]
         );
-
-        // And the simulation survives it. `serve_intents` drops the intent
-        // rather than indexing with it, which is what keeps
-        // `tick_interactions`' `interactions[i]` safe by construction.
-        for _ in 0..20 {
-            sim.tick();
-        }
-        assert!(
-            sim.world()
-                .get::<IntentQueue>(agent)
-                .is_none_or(IntentQueue::is_empty),
-            "the unservable intent must be dropped, or the sim is pinned to \
-             an instruction that can never complete"
-        );
-        assert!(
-            sim.world().get::<Eating>(agent).is_none()
-                || target_of(&sim, agent).map(|t| t.interaction) != Some(u32::MAX),
-            "and nothing may have started an interaction under an index the \
-             desk does not have"
-        );
+        assert_eq!(events[0].order_id, 0);
+        assert_eq!(events[1].order_id, 0);
+        assert_eq!(events[1].reason.as_deref(), Some("Unknown object action"));
+        assert!(sim.world().get::<Target>(agent).is_none());
+        assert!(sim.world().get::<Eating>(agent).is_none());
     }
 
     #[test]
@@ -1434,6 +1846,10 @@ mod tests {
         // Seeded with a click first, so this exercises the
         // mutate-in-place path rather than the fresh staging below.
         let (mut sim, bed, _fridge, agent) = scenario();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.social = terri_data::pack().social.clone();
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let partner = spawn_agent(&mut sim, (9.0, 8.0), hungry());
 
         enqueue(
@@ -1474,6 +1890,10 @@ mod tests {
         // through the staged-length check - a third copy of the cap,
         // invisible to both tests above.
         let (mut sim, _bed, _fridge, agent) = scenario();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.social = terri_data::pack().social.clone();
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let partner = spawn_agent(&mut sim, (9.0, 8.0), hungry());
 
         for _ in 0..cap() + 3 {
@@ -3242,6 +3662,43 @@ mod tests {
     }
 
     #[test]
+    fn displacing_the_served_id_releases_execution_even_with_an_identical_order_remaining() {
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        let served = sim
+            .world()
+            .get::<crate::player_actions::ServedOrder>(agent)
+            .unwrap()
+            .0;
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object_first(agent, bed));
+        }
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).entries().last().unwrap().id, served);
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+        assert!(queue_of(&sim, agent).order(served).is_none());
+        assert!(queue_of(&sim, agent)
+            .intents()
+            .any(|intent| intent.object == fridge));
+        assert!(
+            target_of(&sim, agent).is_none(),
+            "a different order cannot inherit the displaced execution"
+        );
+        assert!(sim.world().get::<Eating>(agent).is_none());
+        assert!(sim.world().get::<Reserved>(fridge).is_none());
+        let events = sim.action_events_since(0).events;
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| event.order_id == served && event.phase == "failed")
+                .count(),
+            1
+        );
+    }
+
+    #[test]
     fn dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone() {
         // Found by the third adversarial review. The drop-release above
         // must fire only when NO copy of the served order remains: a
@@ -3303,10 +3760,19 @@ mod tests {
         //
         // The dropped `bed/0` has to be the ONLY copy of itself, or the
         // "a copy remains" guard hides the release rule from the test; the
-        // other bed orders therefore carry interaction 1. The drain copies
-        // an interaction index without checking it ([I4]), and `drain_only`
-        // never serves, so a bed row that does not exist is fine here.
+        // other bed orders therefore carry a distinct, valid interaction 1.
         let (mut sim, bed, fridge, agent) = scenario();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        let definition = sim.world().get::<SmartObject>(bed).unwrap().0;
+        pack.objects[definition.0 as usize]
+            .interactions
+            .push(test_content::interaction(
+                "nap",
+                &[(NeedId::Energy, DELTA)],
+                DURATION,
+            ));
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let bed_row_one = SimCommand::UseObject {
             agent: agent.index_u32(),
             object: bed.index_u32(),
@@ -3366,13 +3832,28 @@ mod tests {
         // had no test. Two batches on two fixtures, one per half.
         //
         // Half one: the served meal's only copy falls off, so the meal is
-        // released. The queue component is removed after the meal starts,
-        // exactly as the one-batch cancel test does, so the batch stages
-        // a fresh queue for a sim that is mid-way through a directed meal.
+        // released. Remove both the queue and its identity companion to
+        // exercise the legacy unowned physical-commitment seam. Keeping a
+        // ServedOrder while resetting its queue's ID allocator would assign
+        // that old identity to a different newly staged order.
+        fn make_legacy_unowned(sim: &mut Sim, agent: Entity) {
+            let served = sim
+                .world()
+                .get::<crate::player_actions::ServedOrder>(agent)
+                .unwrap()
+                .0;
+            sim.world_mut()
+                .entity_mut(agent)
+                .remove::<(IntentQueue, crate::player_actions::ServedOrder)>();
+            sim.world_mut()
+                .resource_mut::<crate::player_actions::PlayerActions>()
+                .orders
+                .remove(&(agent, served));
+        }
         let (mut sim, bed, fridge, agent) = scenario();
         enqueue(&mut sim, use_object(agent, fridge));
         tick_until_interacting(&mut sim, agent);
-        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        make_legacy_unowned(&mut sim, agent);
         for _ in 1..cap() {
             enqueue(&mut sim, use_object(agent, bed));
         }
@@ -3400,7 +3881,7 @@ mod tests {
         let (mut sim, bed, fridge, agent) = scenario();
         enqueue(&mut sim, use_object(agent, fridge));
         tick_until_interacting(&mut sim, agent);
-        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        make_legacy_unowned(&mut sim, agent);
         enqueue(&mut sim, use_object(agent, fridge));
         for _ in 2..cap() {
             enqueue(&mut sim, use_object(agent, bed));

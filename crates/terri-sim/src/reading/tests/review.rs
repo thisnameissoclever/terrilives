@@ -52,10 +52,10 @@ fn complete_title(cap: u32, duration: u32) -> Totals {
                 assert_eq!(memory.pass_novelty, Some(1.0));
             }
             if totals.sessions == 2 && elapsed == 3 {
-                let saved = sim.save_snapshot_v10();
+                let saved = sim.save_snapshot_v15();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v10(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v10(), saved);
+                sim.load_snapshot_v15(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v15(), saved);
                 assert_eq!(sim.world_hash(), hash);
             }
         }
@@ -153,21 +153,29 @@ fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_infl
             .get_mut::<Traits>(p)
             .unwrap()
             .set_state(condition, 1.0);
-        let saved = sim.save_snapshot_v10();
+        let saved = sim.save_snapshot_v15();
         let hash = sim.world_hash();
         let rng = sim.world().resource::<SimRng>().clone();
-        sim.load_snapshot_v10(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v10(), saved);
-        for inflated in [earned * 1.05, 1_000_000.0] {
-            let mut bad = saved.clone();
+        sim.load_snapshot_v15(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v15(), saved);
+        assert_eq!(sim.world_hash(), hash);
+        let frozen = sim.save_snapshot_v10();
+        let pack = sim.world().resource::<Content>().0;
+        let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
+        historical.load_snapshot_v10(frozen.clone()).unwrap();
+        let historical_hash = historical.world_hash();
+        for inflated in [earned * 1.05, 1_000_000.] {
+            let mut bad = frozen.clone();
             bad.legacy.reading[0].earned_satisfaction = inflated;
             assert!(
-                sim.load_snapshot_v10(bad).is_err(),
-                "accepted fabricated {inflated} after genuine {earned}"
+                historical.load_snapshot_v10(bad).is_err(),
+                "accepted fabricated {inflated} after actual {earned}"
             );
-            assert_eq!(sim.save_snapshot_v10(), saved);
+            assert_eq!(historical.save_snapshot_v10(), frozen);
+            assert_eq!(historical.world_hash(), historical_hash);
+            assert_eq!(*historical.world().resource::<SimRng>(), rng);
+            assert_eq!(sim.save_snapshot_v15(), saved);
             assert_eq!(sim.world_hash(), hash);
-            assert_eq!(*sim.world().resource::<SimRng>(), rng);
         }
         sim.tick();
         let added = sim

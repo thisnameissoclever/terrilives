@@ -1508,13 +1508,13 @@ fn media_seat_restores_during_travel_and_active_use() {
     for tick in 0..120 {
         sim.tick();
         if tick == 0 || sim.world().get::<Eating>(person).is_some() {
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let hash = sim.world_hash();
             assert!(
-                sim.load_snapshot_v10(snapshot.clone()).is_ok(),
+                sim.load_snapshot_v15(snapshot.clone()).is_ok(),
                 "Exact media claims must restore at tick {tick}"
             );
-            assert_eq!(sim.save_snapshot_v10(), snapshot);
+            assert_eq!(sim.save_snapshot_v15(), snapshot);
             assert_eq!(sim.world_hash(), hash);
             if tick > 0 {
                 active = true;
@@ -2580,7 +2580,9 @@ fn physical_media_and_ordinary_users_share_distinct_sofa_places() {
     assert!(sim.load_snapshot_v6(duplicate).is_err());
     assert_eq!(sim.save_snapshot_v6(), good);
     let hash = sim.world_hash();
-    sim.load_snapshot_v6(good.clone()).unwrap();
+    let current = sim.save_snapshot_v15();
+    sim.load_snapshot_v15(current.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v15(), current);
     assert_eq!(sim.save_snapshot_v6(), good);
     assert_eq!(sim.world_hash(), hash);
 }
@@ -2603,14 +2605,14 @@ fn physical_claims_survive_entity_generation_reuse_and_seat_definition_reorderin
         .unwrap() as u32;
     let people: Vec<_> = (0..3).map(|_| sitter(&mut sim, sofa, sit)).collect();
     sim.tick();
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.save_snapshot_v15();
     let hash = sim.world_hash();
     let mut changed = pack.clone();
     changed.objects[def.0 as usize].seats.reverse();
     let changed = Box::leak(Box::new(changed));
     sim.world_mut().insert_resource(Content(changed));
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    sim.load_snapshot_v15(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v15(), saved);
     assert_eq!(sim.world_hash(), hash);
     for _ in 0..180 {
         if people
@@ -2638,9 +2640,9 @@ fn physical_claims_survive_entity_generation_reuse_and_seat_definition_reorderin
                 })
                 .collect();
             assert_eq!(positions.len(), 3);
-            let active = sim.save_snapshot_v6();
-            sim.load_snapshot_v6(active.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v6(), active);
+            let active = sim.save_snapshot_v15();
+            sim.load_snapshot_v15(active.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v15(), active);
             return;
         }
         sim.tick();

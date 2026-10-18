@@ -716,10 +716,14 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV15>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &14u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &15u16.to_le_bytes());
+    assert_eq!(decoded.player_orders, Default::default());
+    assert_eq!(decoded.attendance, Default::default());
+    assert!(decoded.confirmed_commands.is_empty());
+    let decoded = decoded.legacy;
     // Nobody holds a job in this fixture, so the careers are a new game's.
     assert_eq!(decoded.careers, terri_sim::Careers::default().to_saved());
     let decoded = decoded.legacy;
@@ -1883,7 +1887,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&current_bytes(&overdone)));
     assert_eq!(handle.sim.save_snapshot_v10(), overdone);
-    // A schema-ten payload resaves as schema fourteen with no burnt meals,
+    // The current envelope preserves the schema-fourteen projection with no burnt meals,
     // no fights, the frame its grid implies, its dollars as cents and a new
     // game's careers.
     let mut fourteen = SAVE_MAGIC.to_vec();
@@ -1909,7 +1913,21 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         })
         .unwrap(),
     );
-    assert_eq!(handle.save_bytes(), fourteen, "2.0 round-trips exactly");
+    let current = handle.save_bytes();
+    assert_eq!(&current[8..10], &15u16.to_le_bytes());
+    let decoded: terri_core::SaveSnapshotV15 =
+        postcard::from_bytes(&current[SAVE_HEADER_BYTES..]).unwrap();
+    assert_eq!(
+        postcard::to_allocvec(&decoded.legacy).unwrap(),
+        fourteen[SAVE_HEADER_BYTES..],
+        "the historical projection preserves 2.0 exactly"
+    );
+    assert!(handle.load_bytes(&current));
+    assert_eq!(
+        handle.save_bytes(),
+        current,
+        "all current ownership round-trips exactly"
+    );
 }
 
 /// Burnt meals (issue 243): schema eleven carries them through the public
@@ -1926,7 +1944,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -1991,7 +2009,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2059,7 +2077,7 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2149,7 +2167,7 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));

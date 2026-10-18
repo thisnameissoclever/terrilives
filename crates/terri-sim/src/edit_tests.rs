@@ -1509,9 +1509,9 @@ fn edit_talk_world() -> (Sim, Entity, Entity) {
     (sim, initiator, partner)
 }
 
-/// `career_pack` and `a_worker` from `systems/career.rs`'s tests: a 6-tick
-/// shift from day-tick 3 of a 30-tick day paying 130, 11.5 energy and 2.25
-/// satisfaction, and one worker near the front door, made editable as SimId
+/// A fixed 18-tick career window leaves room for the commute and an edit
+/// after office arrival. It starts at day-tick 3 of a 30-tick day, with 130
+/// pay, 11.5 energy and 2.25 reward units before attendance proration. SimId
 /// 0. Returns (sim, worker).
 fn edit_work_world() -> (Sim, Entity) {
     use crate::test_content;
@@ -1528,7 +1528,7 @@ fn edit_work_world() -> (Sim, Entity) {
             id: "office_job".to_string(),
             label: "Office clerk".to_string(),
             shift_start: 3,
-            shift_ticks: 6,
+            shift_ticks: 18,
             pay: 130,
             energy_cost: 11.5,
             satisfaction: 2.25,
@@ -1718,9 +1718,8 @@ fn an_edit_during_an_interrupting_order_lets_the_chain_resume_and_pay_once() {
     );
 }
 
-/// In `edit_talk_world` the conversation runs from tick 9 and ends on tick 41.
+/// Edit a running conversation; its untouched peer owns the remaining duration.
 const TALK_EDIT_TICK: u64 = 20;
-const TALK_DONE_TICK: u64 = 41;
 
 #[test]
 fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
@@ -1733,13 +1732,15 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             assert!(world.get::<terri_core::Socialising>(initiator).is_some());
             assert!(world.get::<terri_core::Reserved>(partner).is_some());
         }
+        let remaining = control
+            .world()
+            .get::<terri_core::Socialising>(initiator)
+            .expect("the control conversation is running")
+            .remaining_ticks;
+        assert!(remaining > 1);
         edit_mid_action(&mut edited, edited_id);
         control.flush_commands();
-        tick_both(
-            &mut edited,
-            &mut control,
-            TALK_DONE_TICK - TALK_EDIT_TICK - 1,
-        );
+        tick_both(&mut edited, &mut control, u64::from(remaining) - 1);
         for sim in [&edited, &control] {
             assert!(
                 sim.world()
@@ -1749,7 +1750,7 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             );
         }
         tick_both(&mut edited, &mut control, 1);
-        assert_eq!(tick_count(&edited), TALK_DONE_TICK);
+        assert_eq!(tick_count(&edited), TALK_EDIT_TICK + u64::from(remaining));
         let world = edited.world();
         assert!(
             world.get::<terri_core::Socialising>(initiator).is_none(),
@@ -1775,10 +1776,9 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
     }
 }
 
-/// In `edit_work_world` the worker clocks in on tick 13 and returns on
-/// tick 19.
+/// Editing happens after office arrival and before the fixed scheduled end.
 const WORK_EDIT_TICK: u64 = 15;
-const WORK_DONE_TICK: u64 = 19;
+const WORK_DONE_TICK: u64 = 21;
 
 /// Ticks both work worlds with mood satisfaction off, as
 /// `a_shift_walks_to_the_door_vanishes_and_the_return_pays` does, so the
@@ -1796,7 +1796,14 @@ fn tick_both_at_work(edited: &mut Sim, control: &mut Sim, ticks: u64) {
 fn an_edit_at_work_keeps_one_wage_and_the_return() {
     let (mut edited, worker) = edit_work_world();
     let (mut control, _) = edit_work_world();
-    tick_both_at_work(&mut edited, &mut control, WORK_EDIT_TICK);
+    let mut clocked_in_at = None;
+    for tick in 1..=WORK_EDIT_TICK {
+        tick_both_at_work(&mut edited, &mut control, 1);
+        if edited.world().get::<terri_core::AtWork>(worker).is_some() {
+            clocked_in_at.get_or_insert(tick);
+        }
+    }
+    let clocked_in_at = clocked_in_at.expect("the fixture must reach work before editing");
     for sim in [&edited, &control] {
         assert!(sim.world().get::<terri_core::AtWork>(worker).is_some());
         assert_eq!(sim.funds(), 0);
@@ -1820,10 +1827,28 @@ fn an_edit_at_work_keeps_one_wage_and_the_return() {
         edited.world().get::<terri_core::AtWork>(worker).is_none(),
         "the edited worker came back on schedule"
     );
-    assert_eq!(edited.funds(), 130 * 100, "one shift, one pay packet");
+    let worked = WORK_DONE_TICK - clocked_in_at;
+    assert_eq!(
+        edited.funds(),
+        130 * 100 * worked as i64 / 18,
+        "one prorated scheduled payment"
+    );
+    assert_eq!(
+        edited.funds(),
+        control.funds(),
+        "editing does not change wages"
+    );
+    assert_eq!(
+        edited
+            .world()
+            .resource::<crate::attendance::Attendance>()
+            .outcomes
+            .len(),
+        1
+    );
     assert_eq!(
         satisfaction_of(&edited, worker),
-        2.25 * terri_core::Satisfaction::REWARD_SCALE,
+        2.25 * (worked as f32 / 18.0) * terri_core::Satisfaction::REWARD_SCALE,
         "the career's satisfaction lands exactly once"
     );
     assert_eq!(

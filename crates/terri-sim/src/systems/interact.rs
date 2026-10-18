@@ -378,12 +378,15 @@ pub fn tick_interactions(
             // the finished order can be second in line. Popping the front
             // there would discard the waiting order and leave the finished
             // one to run a second time. See `IntentQueue::contains`.
-            if let Some(mut queue) = queue {
-                queue.remove_first(terri_core::Intent {
+            if queue.is_some() {
+                let intent = terri_core::Intent {
                     cleanup: None,
                     chore: None,
                     object: target.object,
                     interaction: target.interaction,
+                };
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::complete_matching(world, entity, intent)
                 });
             }
 
@@ -1273,6 +1276,13 @@ mod tests {
                 }]),
             ))
             .id();
+
+        if same_object {
+            // This branch represents a served order, rather than an identical pending request.
+            sim.world_mut()
+                .entity_mut(agent)
+                .insert(crate::player_actions::ServedOrder(0));
+        }
 
         // Only `tick_interactions`, so what is asserted afterwards is
         // what the guard did rather than what `serve_intents` did in

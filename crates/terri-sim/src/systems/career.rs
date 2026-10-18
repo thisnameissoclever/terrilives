@@ -1,210 +1,19 @@
-//! The career rabbit hole - [E4] in
-//! docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
-//!
-//! Two systems, split by where they must sit in the tick. `start_shift`
-//! runs beside the command drain, because a shift start IS a command -
-//! the same preemption a player click gets, issued by the clock.
-//! `commute_and_work` runs after movement, because arrival is a fact
-//! `follow_path` establishes.
-//!
-//! What a shift does, end to end: at `tick % day_ticks == shift_start`
-//! on one of the career's working days (`works_today`, [CAL-careers]
-//! in docs/specs/2026-10-06-calendar.md) the worker drops whatever it
-//! holds, walks out to the street's exit, or to the front door on a lot
-//! with no yard beyond it ([OS-street]), and
-//! vanishes into `AtWork` for `shift_ticks`; the return restores it where
-//! it vanished, pays the shift, then walks it home to the door's landing
-//! when the door has authored portal routing. Legacy lots still reappear
-//! on the door tile. The two walks carry the same marker with its
-//! direction written in, `Commuting::Outbound` and `Commuting::Inbound`,
-//! so the end of a walk is read by the direction that started it and
-//! never by where the worker stands.
-//! Needs keep decaying at work - a shift is tiring, and hungry - and
-//! that time-tax on the second axis is the career's real price, which
-//! is [S1]'s framing and the reason career satisfaction never needs to
-//! be negative.
-
+//! Fixed scheduled shifts defer to player orders and use ordinary commute paths.
+//! Attendance, payment and resumption live in `crate::attendance`.
 use bevy_ecs::prelude::*;
+#[cfg(test)]
 use terri_core::{
-    Agent, AtWork, Career, Commuting, Eating, Fumbled, NeedId, Needs, Path, Position, Reserved,
-    SimClock, Socialising, Target, TileGrid,
+    AtWork, Career, Eating, Fumbled, NeedId, Needs, Path, Position, Reserved, Socialising, Target,
+    TileGrid,
 };
+use terri_core::{Commuting, SimClock};
 
+#[cfg(test)]
 use crate::Content;
 
-/// Sends every worker whose shift starts THIS tick out to the street's
-/// exit, or to the front door where there is no street or the exit cannot be
-/// reached ([OS-street]). A shift starts at the career's `shift_start`
-/// day-tick on a day `works_today` accepts; on a rest day the worker
-/// stays home and nothing else about the day changes.
-///
-/// Runs before `serve_intents` and `select_action`, so on the shift
-/// tick neither can hand the worker something new: the commute is
-/// already its Path by the time they look, and both skip `Commuting`
-/// agents outright. **Work outranks the queue** - a player intent
-/// issued before the shift waits in the queue and is served after the
-/// return, which is the v1 reading of "the same preemption a player
-/// command gets": the clock preempts like a click, and nothing
-/// preempts the clock. The first career verb (quit, skip a shift)
-/// belongs to the milestone that gives careers a UI.
-///
-/// The preemption itself mirrors `CancelIntents`' removal set: release
-/// the reserved target, drop Target/Path/Eating/Socialising/Fumbled.
-/// Two career-specific additions. The worker sheds its OWN `Reserved`,
-/// because a sim someone claimed for a conversation still leaves - the
-/// partner's talk then fails tick_social's disturbed check and cleans
-/// itself up, the standing self-heal. And any sim mid-walk TOWARD the
-/// worker has its walk cancelled (Target and Path removed, nothing
-/// else), because arriving beside an empty tile and starting a
-/// conversation with a sim who is at the office is a scene nobody
-/// authored; the approacher re-selects freely next tick.
-///
-/// **The sweep also matches a sim ALREADY TALKING to the worker**, because
-/// a talk's initiator carries the same `Target{worker}`. It loses its
-/// Target here, keeps `Socialising` until `tick_social` runs later this
-/// tick, and is free to choose something new in between. That is safe
-/// only because `tick_social` removes a Target it still OWNS and no other
-/// ([L-cleanup-removes-only-what-it-owns]); before that rule the talk's
-/// cleanup deleted the new Target and froze the shipped household.
-///
-/// Known gap, unreachable while one sim has a career: with two workers
-/// whose shifts start on the same tick, a worker walking toward the
-/// OTHER worker has its fresh commute `Path` removed by that worker's
-/// sweep, which still sees the old `Target`, and `commute_and_work` then
-/// reads an outbound `Commuting` with no `Path` as an arrival. Whoever adds
-/// a second career owns closing it; [B-jobs-careers] is where that lands.
-#[allow(clippy::type_complexity)]
-pub fn start_shift(
-    mut commands: Commands,
-    clock: Res<SimClock>,
-    content: Res<Content>,
-    grid: Res<TileGrid>,
-    frame: Option<Res<crate::lot_frame::LotFrame>>,
-    workers: Query<
-        (
-            Entity,
-            &Position,
-            &Career,
-            Option<&Target>,
-            Option<&crate::reading::PendingShift>,
-            Has<crate::reading::ReadingJourney>,
-        ),
-        (With<Agent>, Without<AtWork>, Without<Commuting>),
-    >,
-    approachers: Query<(Entity, &Target), With<Agent>>,
-) {
-    // Post-validation: a pack with a worker carries a door, so this
-    // guard is for hand-built test worlds rather than shipped content.
-    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
-    let Some(door) = content
-        .0
-        .lot
-        .front_door
-        .map(|(x, y)| (x + origin.0, y + origin.1))
-    else {
-        return;
-    };
-    let day_ticks = content.0.tuning.day_ticks as u64;
-
-    // Entity order, the standing discipline for any system that writes
-    // per-agent state - no draws happen here, but the command log reads
-    // deterministically and costs nothing.
-    let mut leaving: Vec<Entity> = workers
-        .iter()
-        .filter(|(_, _, career, _, pending, _)| {
-            let career = &content.0.careers[career.0 as usize];
-            pending.is_some()
-                || (clock.tick % day_ticks == career.shift_start as u64
-                    && works_today(career, &clock, &content.0.tuning))
-        })
-        .map(|(entity, ..)| entity)
-        .collect();
-    leaving.sort_by_key(|entity| entity.index());
-
-    for worker in leaving.clone() {
-        let Ok((_, pos, career, target, pending, reading)) = workers.get(worker) else {
-            continue;
-        };
-        if reading {
-            let career = career.0;
-            let scheduled_tick = pending.map_or(clock.tick, |p| p.scheduled_tick);
-            commands.queue(move |world: &mut World| {
-                world
-                    .entity_mut(worker)
-                    .insert(crate::reading::PendingShift {
-                        scheduled_tick,
-                        career,
-                    });
-                crate::reading::request_return(world, worker);
-            });
-            continue;
-        }
-        commands
-            .entity(worker)
-            .remove::<crate::reading::PendingShift>();
-        // The CancelIntents removal set: whatever the worker held is
-        // released whole on this tick, not left to self-heal.
-        if let Some(target) = target {
-            crate::reservations::release(&mut commands, worker, *target);
-        }
-        commands
-            .entity(worker)
-            .remove::<Target>()
-            .remove::<Path>()
-            .remove::<Eating>()
-            .remove::<Socialising>()
-            .remove::<terri_core::ConversationVoice>()
-            // A half-run chain STEP is dropped like a half-run meal;
-            // the chain itself survives in its counter, and the worker
-            // comes home and finishes cooking ([K4]).
-            .remove::<terri_core::StepWork>()
-            .remove::<Fumbled>()
-            // The worker may itself be claimed - see the doc comment.
-            .remove::<Reserved>();
-
-        // A worker leaving on this same tick keeps the commute it was
-        // just given (the careers spec, rule 19): its walk toward this
-        // worker ended with its own departure above.
-        for (other, target) in approachers.iter() {
-            if other != worker && target.object == worker && !leaving.contains(&other) {
-                commands.entity(other).remove::<Target>().remove::<Path>();
-            }
-        }
-
-        // The commute, to the street's exit where the door opens onto a
-        // yard ([OS-street]), else to the door. A worker standing on the
-        // commute's end tile gets the empty path, walks it in zero steps,
-        // and clocks in on this same tick's `commute_and_work`, wherever on
-        // that tile it stands: the walk is outbound by construction.
-        let from = if grid.blocked_edges().next().is_some() {
-            (pos.x.round() as i32, pos.y.round() as i32)
-        } else {
-            (pos.x as i32, pos.y as i32)
-        };
-        let route = |to: (u32, u32)| {
-            grid.find_path(from, (to.0 as i32, to.1 as i32))
-                .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
-        };
-        // Furniture a house was saved with can stand on the exit; the
-        // worker then leaves by the door, as it did before the street.
-        match crate::portals::street_exit_at(content.0, origin, grid.width() as u32)
-            .and_then(route)
-            .or_else(|| route(door))
-        {
-            Some(steps) => {
-                commands
-                    .entity(worker)
-                    .insert((Commuting::Outbound, Path { steps, cursor: 0 }));
-            }
-            // Unreachable on shipped content - the door is validated
-            // connected, a sim never stands on a blocked tile, and the
-            // street's exit falls back to the door - but a test world can
-            // express it. The shift is simply missed:
-            // the clock only matches once per day, which is the honest
-            // consequence of being walled in at eight in the morning.
-            None => continue,
-        }
-    }
+/// Register due shifts, then depart when no player work remains.
+pub fn start_shift(world: &mut World) {
+    crate::attendance::start_tick(world);
 }
 
 /// Whether `career` works on the day `clock` is in ([CAL-careers] in
@@ -253,145 +62,9 @@ pub(crate) fn saved_commute(
     }
 }
 
-/// Clocks departures in, counts shifts down, pays returns, and finishes arrivals.
-///
-/// Runs after `follow_path`: a commuter whose `Path` is gone has
-/// arrived where it was going, because movement removes an exhausted
-/// target-less path; that is the wander shape, reused on purpose so
-/// there is exactly one mover. The same-tick handoff works because
-/// command effects apply between systems: `follow_path` removes the
-/// Path, this system sees `Commuting` without `Path` and reads the
-/// marker's direction. An outbound walk's end is the clock-in, swapped
-/// for [`AtWork`]; an inbound walk's end is home, and the marker is
-/// removed rather than clocking the worker straight back in. The
-/// direction is never inferred from the position: a worker already on
-/// the commute's end tile when the shift starts arrives on the shift
-/// tick a fraction of a tile from the tile's centre, and reading that as
-/// "not on the door, so home" is the bug that sent it back to the sofa
-/// unpaid.
-///
-/// The countdown starts on the tick AFTER arrival because the insert is
-/// deferred. The office absence therefore occupies `shift_ticks + 1` ticks.
-/// A content portal adds its ordinary one-tile walk after the worker is paid.
-// The standing type_complexity allow: the query tuple is what pushes
-// past clippy's threshold, and an alias would only move it.
-#[allow(clippy::type_complexity)]
-pub fn commute_and_work(
-    mut commands: Commands,
-    content: Res<Content>,
-    grid: Res<TileGrid>,
-    frame: Option<Res<crate::lot_frame::LotFrame>>,
-    mut workers: Query<
-        (
-            Entity,
-            Option<&Career>,
-            &Position,
-            &mut Needs,
-            Option<&mut AtWork>,
-            Option<&Commuting>,
-            Has<Path>,
-        ),
-        (
-            With<Agent>,
-            Or<(With<Career>, With<Commuting>, With<AtWork>)>,
-        ),
-    >,
-) {
-    // Entity order: Funds is shared state and addition commutes, but
-    // the discipline is cheaper than the argument for skipping it.
-    let mut working: Vec<Entity> = workers.iter().map(|(entity, ..)| entity).collect();
-    working.sort_by_key(|entity| entity.index());
-    // The door and its landing where the content lot now stands (land
-    // expansion, issue 254): the walk home ends on the moved landing.
-    let origin = frame.as_deref().map_or((0, 0), |frame| frame.origin);
-    let front_portal = crate::portals::front_portal(content.0)
-        .map(|portal| crate::lot_frame::shift_portal(portal, origin));
-
-    for worker in working {
-        let Ok((_, career, position, mut needs, at_work, commuting, has_path)) =
-            workers.get_mut(worker)
-        else {
-            continue;
-        };
-        if matches!(commuting, Some(Commuting::Inbound)) {
-            // Walking home, with or without a job: a person dismissed on
-            // the return keeps the marker for the walk like anyone else.
-            if has_path {
-                continue;
-            }
-            // Home on the landing. The walk was a normal one and the shift
-            // was paid when it began, so the marker comes off, and a review
-            // that fell due during the walk is applied now (the careers
-            // spec, rule 6).
-            commands.entity(worker).remove::<Commuting>();
-            commands.queue(move |world: &mut World| {
-                crate::careers::settle_due_review(world, worker);
-            });
-            continue;
-        }
-        let Some(career) = career.map(|career| &content.0.careers[career.0 as usize]) else {
-            // Unemployed with a work marker: nothing to count down or clock
-            // in to. The game never makes this state (a dismissal lands on
-            // the return, and the commands refuse anyone away), and tests
-            // park people this way to keep them out of a scene, so the
-            // marker is left alone as it always was.
-            continue;
-        };
-
-        match commuting {
-            Some(Commuting::Outbound) if !has_path => {
-                // Arrived. The rabbit hole swallows the sim: render skips
-                // it, selection and the people loops exclude it, and its
-                // Position stays frozen where it vanished, on the street's
-                // exit or the door, so its hash row (and its render slot)
-                // survive the absence.
-                commands
-                    .entity(worker)
-                    .remove::<Commuting>()
-                    .insert(AtWork {
-                        remaining_ticks: career.shift_ticks,
-                    });
-                continue;
-            }
-            _ => {}
-        }
-
-        let Some(mut at_work) = at_work else {
-            continue;
-        };
-        at_work.remaining_ticks -= 1;
-        if at_work.remaining_ticks == 0 {
-            // The return settles all four shift effects on one tick:
-            // reappear (the AtWork removal is what un-hides the sim),
-            // pay the household, bill the body, and credit the life score.
-            // An authored portal adds a normal one-tile walk, but the walk
-            // owns no second payment edge.
-            // Needs::drain clamps at zero; a worker who left exhausted
-            // comes home at rock bottom, not in debt.
-            let mut returning = commands.entity(worker);
-            returning.remove::<AtWork>();
-            if let Some(portal) = &front_portal {
-                // Home along a path to the landing: from the street's exit
-                // back through the door ([OS-street]), from the door tile the
-                // one step in it always was. A landing the grid cannot reach
-                // keeps that one step, as before there were paths home.
-                let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
-                let from = (position.x.round() as i32, position.y.round() as i32);
-                let steps = grid
-                    .find_path(from, landing)
-                    .and_then(|steps| grid.anchor_path((position.x, position.y), steps))
-                    .unwrap_or_else(|| vec![landing]);
-                returning.insert((Commuting::Inbound, Path { steps, cursor: 0 }));
-            }
-            needs.drain(NeedId::Energy, career.energy_cost);
-            // The pay, the life score and the week's shift score live
-            // with the careers (issue 249): the person's current pay,
-            // not the level's starting pay, is what the household gets.
-            commands.queue(move |world: &mut World| {
-                crate::careers::complete_shift(world, worker);
-            });
-        }
-    }
+/// Account office time and complete outbound and inbound walks after movement.
+pub fn commute_and_work(world: &mut World) {
+    crate::attendance::finish_tick(world);
 }
 
 #[cfg(test)]
@@ -549,6 +222,52 @@ mod tests {
         }
         assert_eq!(clock(sim), last, "one tick per Sim::tick");
         ticks
+    }
+
+    /// Assert each scheduled outcome and independently derive its integer-cent pay.
+    fn assert_scheduled_payments(sim: &Sim, expected_shifts: usize) -> i64 {
+        let job = &sim.world().resource::<Content>().0.careers[0];
+        let outcomes = &sim
+            .world()
+            .resource::<crate::attendance::Attendance>()
+            .outcomes;
+        assert_eq!(
+            outcomes.len(),
+            expected_shifts,
+            "every due shift settles exactly once"
+        );
+        let mut scheduled = std::collections::BTreeSet::new();
+        let mut expected = 0;
+        for outcome in outcomes {
+            assert!(scheduled.insert((outcome.sim, outcome.start_tick)));
+            assert_eq!(
+                outcome.start_tick
+                    % u64::from(sim.world().resource::<Content>().0.tuning.day_ticks),
+                u64::from(job.shift_start)
+            );
+            assert_eq!(
+                outcome.end_tick - outcome.start_tick,
+                u64::from(job.shift_ticks)
+            );
+            assert_eq!(outcome.scheduled_minutes, job.shift_ticks as f32);
+            assert_eq!(
+                outcome.worked_minutes + outcome.missed_minutes,
+                job.shift_ticks as f32
+            );
+            let pay = i64::from(job.pay) * 100 * outcome.worked_minutes as i64
+                / i64::from(job.shift_ticks);
+            assert_eq!(outcome.pay_cents, pay, "only actual office time earns pay");
+            if outcome.worked_minutes == 0.0 {
+                assert_eq!(outcome.score, 0.0);
+            }
+            expected += pay;
+        }
+        assert_eq!(
+            sim.funds(),
+            expected,
+            "each scheduled payment reaches the household once"
+        );
+        expected
     }
 
     fn a_worker(sim: &mut Sim, x: f32, y: f32) -> Entity {
@@ -849,7 +568,7 @@ mod tests {
                 .expect("the shipped household has an employed Sim")
         };
         let career = &content.careers[sim.world().get::<Career>(worker).unwrap().0 as usize];
-        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64 * 100);
+        let shift_start = u64::from(career.shift_start);
         assert_eq!(today(&sim), 0, "day 1 is a Monday");
 
         let mut left_at = None;
@@ -863,13 +582,24 @@ mod tests {
                 );
                 left_at.get_or_insert(tick);
             }
-            if sim.funds() == pay {
+            if sim
+                .world()
+                .resource::<crate::attendance::Attendance>()
+                .outcomes
+                .len()
+                == 1
+            {
                 paid_at.get_or_insert(tick);
             }
         }
         assert_eq!(clock(&sim), day_ticks - 1, "one tick per Sim::tick");
         assert!(left_at.is_some(), "the worker leaves for work during day 1");
-        assert!(paid_at.is_some(), "and the shift pays before day 1 ends");
+        assert_eq!(
+            paid_at,
+            Some(shift_start + u64::from(career.shift_ticks)),
+            "the scheduled shift settles at its fixed end"
+        );
+        assert_scheduled_payments(&sim, 1);
 
         for tick in day_ticks..5 * day_ticks {
             sim.tick();
@@ -942,9 +672,14 @@ mod tests {
     /// the body, satisfaction onto the life.
     #[test]
     fn a_shift_walks_to_the_door_vanishes_and_the_return_pays() {
-        let pack = career_pack(vec![]);
+        let job = CompiledCareer {
+            shift_ticks: 18,
+            ..a_career()
+        };
+        let end = u64::from(job.shift_start + job.shift_ticks);
+        let pack = pack_with_career(job.clone(), vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
-        let worker = a_worker(&mut sim, 13.0, 2.0);
+        let worker = a_worker(&mut sim, 14.0, 2.0);
 
         // Ride the day. Generous budget: the worker may stroll before
         // the shift and the commute length depends on where from.
@@ -971,16 +706,17 @@ mod tests {
                     "the rabbit hole opens at the front door and nowhere else"
                 );
             }
-            if let Some(started) = clocked_in_at {
-                if tick <= started + 5 {
-                    assert!(at_work, "a 6-tick shift does not end at tick {tick}");
-                    let pos = sim.world().get::<Position>(worker).unwrap();
-                    assert_eq!(
-                        (pos.x, pos.y),
-                        (15.0, 2.0),
-                        "nothing may move a sim that is not on the lot"
-                    );
-                }
+            if clocked_in_at.is_some() && tick < end {
+                assert!(
+                    at_work,
+                    "the scheduled shift does not end before tick {end}"
+                );
+                let pos = sim.world().get::<Position>(worker).unwrap();
+                assert_eq!(
+                    (pos.x, pos.y),
+                    (15.0, 2.0),
+                    "nothing may move a sim that is not on the lot"
+                );
             }
         }
         let started = clocked_in_at.expect("the shift must have started inside one day");
@@ -989,15 +725,18 @@ mod tests {
             sim.world().get::<AtWork>(worker).is_none(),
             "clocked in at {started}, so the return is well before tick 29"
         );
-        assert_eq!(sim.funds(), 130 * 100, "one shift, one pay packet");
+        let worked = end - started;
+        let ratio = worked as f32 / job.shift_ticks as f32;
+        assert_eq!(scaled_ticks, worked as f32);
+        assert_scheduled_payments(&sim, 1);
         assert_eq!(
             sim.world().get::<Satisfaction>(worker).unwrap().value(),
-            2.25 * Satisfaction::REWARD_SCALE,
+            job.satisfaction * ratio * Satisfaction::REWARD_SCALE,
             "the career's satisfaction lands exactly once"
         );
         // Energy: 80 at spawn, minus 29 ticks of decay - the ones
         // spent at work scaled by `at_work_decay_scale` ([X2]) - minus
-        // the 11.5 debit. Both the rate and the scale are read from
+        // the prorated energy debit. Both the rate and the scale are read from
         // content per the standing rule rather than restated.
         let decay = test_content::decay_per_tick(NeedId::Energy);
         let scale = test_content::tuning().at_work_decay_scale;
@@ -1005,7 +744,10 @@ mod tests {
             scaled_ticks > 0.0,
             "fixture is vacuous: the worker was never at work when decay ran"
         );
-        let expected = 80.0 - (29.0 - scaled_ticks) * decay - scaled_ticks * decay * scale - 11.5;
+        let expected = 80.0
+            - (29.0 - scaled_ticks) * decay
+            - scaled_ticks * decay * scale
+            - job.energy_cost * ratio;
         let energy = sim
             .world()
             .get::<Needs>(worker)
@@ -1013,7 +755,7 @@ mod tests {
             .get(NeedId::Energy);
         assert!(
             (energy - expected).abs() < 0.01,
-            "the return must debit exactly energy_cost on top of decay: \
+            "the return must debit prorated energy_cost on top of decay: \
              read {energy}, expected {expected}"
         );
     }
@@ -1239,7 +981,7 @@ mod tests {
             );
 
             let mut used_the_toilet = false;
-            for tick in 0..ticks {
+            for tick in 0..ticks + 200 {
                 sim.tick();
                 let target = sim
                     .world()
@@ -1260,6 +1002,18 @@ mod tests {
                         Some(toilet),
                         "{toilet_at:?} tick {tick}: the toilet is reserved for nobody"
                     );
+                }
+                if used_the_toilet
+                    && sim.world().get::<Eating>(talker).is_none()
+                    && sim.world().get::<Reserved>(toilet).is_none()
+                    && sim
+                        .world()
+                        .get::<Needs>(talker)
+                        .unwrap()
+                        .get(NeedId::Bladder)
+                        > 50.0
+                {
+                    break;
                 }
             }
             assert!(
@@ -1414,11 +1168,10 @@ mod tests {
         }
     }
 
-    /// At work is BUSY, not gone, to a directed talk: the initiator
-    /// waits (Blocked, intent standing) rather than starting a
-    /// conversation beside an empty tile - [C3]'s wait-on-busy.
+    /// A newly accepted conversation recalls its recipient through the normal
+    /// return route. The initiator approaches and waits until they are home.
     #[test]
-    fn a_directed_talk_at_a_worker_waits_by_the_door() {
+    fn a_directed_talk_recalls_a_worker_and_waits_until_home() {
         let base = test_content::pack_with_social(
             vec![],
             vec![test_content::interaction(
@@ -1427,19 +1180,23 @@ mod tests {
                 30,
             )],
             terri_data::Tuning {
-                day_ticks: 30,
+                day_ticks: 300,
                 duration_variance: 0.0,
                 ..test_content::tuning()
             },
         );
-        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
-            careers: vec![a_career()],
+        let pack = Box::leak(Box::new(ContentPack {
+            careers: vec![CompiledCareer {
+                shift_ticks: 180,
+                ..a_career()
+            }],
             ..base.clone()
         }));
-        let mut sim = test_content::sim_with(16, 12, pack);
+        let pack = with_front_portal(pack, (15, 2), (15, 3));
+        let mut sim = test_content::sim_with_portals(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
         sim.world_mut().entity_mut(worker).insert(AtWork {
-            remaining_ticks: 500,
+            remaining_ticks: 180,
         });
         let admirer = sim
             .world_mut()
@@ -1457,28 +1214,51 @@ mod tests {
                 target: worker.index_u32(),
                 interaction: 0,
             });
-
-        for _ in 0..10 {
-            sim.tick();
-            assert!(
-                sim.world().get::<Socialising>(admirer).is_none(),
-                "no conversation may start with a sim who is not there"
-            );
-            assert!(
-                sim.world().get::<Target>(admirer).is_none(),
-                "waiting happens standing, not walking"
-            );
-        }
+        sim.flush_commands();
         assert!(
-            sim.world().get::<terri_core::Blocked>(admirer).is_some(),
-            "the wait says why, out loud"
+            sim.world().get::<AtWork>(worker).is_none(),
+            "the new order recalls the worker"
         );
         assert_eq!(
-            sim.world()
-                .get::<terri_core::IntentQueue>(admirer)
-                .map(|q| q.len()),
-            Some(1),
-            "the intent stands and is served on the return"
+            sim.world().get::<Commuting>(worker),
+            Some(&Commuting::Inbound)
+        );
+        assert_eq!(
+            sim.world().get::<Path>(worker).unwrap().steps.last(),
+            Some(&(15, 3)),
+            "the worker follows the authored return route"
+        );
+        let mut began = false;
+        let mut finished = false;
+        for _ in 0..150 {
+            sim.tick();
+            if sim.world().get::<Commuting>(worker).is_some() {
+                assert!(
+                    sim.world().get::<Socialising>(admirer).is_none(),
+                    "the conversation waits for the return"
+                );
+            }
+            if sim.world().get::<Socialising>(admirer).is_some() {
+                began = true;
+                assert!(
+                    sim.world().get::<AtWork>(worker).is_none(),
+                    "work defers during the directed conversation"
+                );
+            } else if began {
+                finished = true;
+                break;
+            }
+        }
+        assert!(
+            began && finished,
+            "the accepted conversation starts and completes after the normal return"
+        );
+        assert!(
+            !sim.action_events_since(0)
+                .events
+                .iter()
+                .any(|event| event.phase == "failed"),
+            "returning and waiting are not failures"
         );
     }
 
@@ -1519,7 +1299,7 @@ mod tests {
     }
 
     /// The day wraps: `tick % day_ticks` fires the shift again on day
-    /// two, so two days pay twice. This is the modulo's whole job -
+    /// two, so both scheduled windows settle. This is the modulo's job -
     /// an absolute-tick comparison passes day one and never fires
     /// again. The career works Monday to Friday, and days 1 and 2 are
     /// Monday and Tuesday ([CAL-careers]).
@@ -1532,20 +1312,20 @@ mod tests {
         for _ in 0..29 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 130 * 100, "day one pays once");
+        assert_scheduled_payments(&sim, 1);
         for _ in 0..30 {
             sim.tick();
         }
-        assert_eq!(sim.funds(), 260 * 100, "day two pays again");
+        assert_scheduled_payments(&sim, 2);
     }
 
     /// [CAL-careers], [CAL-evidence] 3: over one 30-tick week a Monday to
     /// Friday career leaves on days 0 to 4 at day-tick 3, the tick the
-    /// schedule owns, pays five times, and on days 5 and 6 the worker is
+    /// schedule owns, settles five shifts, and on days 5 and 6 the worker is
     /// never commuting or at work on any tick. Without the gate it leaves
     /// seven times and is away on tick 153.
     #[test]
-    fn a_weekday_career_pays_five_times_in_seven_days_and_rests_on_the_weekend() {
+    fn a_weekday_career_settles_five_shifts_in_seven_days_and_rests_on_the_weekend() {
         let pack = pack_with_career(weekday_career(), vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1566,22 +1346,17 @@ mod tests {
             );
         }
         assert_eq!(clock(&sim), 209);
-        assert_eq!(
-            sim.funds(),
-            5 * weekday_career().pay as i64 * 100,
-            "five working days, five pay packets"
-        );
+        assert_scheduled_payments(&sim, 5);
     }
 
     /// [CAL-evidence] 3: a career working only `sun` leaves on day 6 and
     /// day 13 of two weeks, and on no other day.
     #[test]
-    fn a_sunday_only_career_pays_once_a_week() {
+    fn a_sunday_only_career_schedules_once_a_week() {
         let sunday = CompiledCareer {
             working_days: 0b1000000,
             ..a_career()
         };
-        let pay = sunday.pay as i64 * 100;
         let pack = pack_with_career(sunday, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1591,7 +1366,7 @@ mod tests {
             vec![6 * 30 + 3, 13 * 30 + 3],
             "one shift on each Sunday and none on any other day"
         );
-        assert_eq!(sim.funds(), 2 * pay, "two weeks, two pay packets");
+        assert_scheduled_payments(&sim, 2);
     }
 
     /// Review focus 1: a shift starting at day-tick 0 reads the weekday of
@@ -1622,17 +1397,16 @@ mod tests {
     }
 
     /// Review focus 2, [CAL-careers]: the gate decides only whether a shift
-    /// STARTS. A Friday shift starting at day-tick 28 runs six ticks into
-    /// Saturday, comes home and pays there, and no weekend shift follows.
-    /// The pay tick is observed, not computed from the shift length
-    /// ([L-career-tests-follow-events-not-guessed-ticks]).
+    /// STARTS. A Friday shift starting at day-tick 28 ends on Saturday's
+    /// fourth tick. Its fixed settlement includes any missed office time,
+    /// and no weekend shift follows.
     #[test]
     fn a_shift_running_into_the_weekend_still_pays() {
         let late = CompiledCareer {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64 * 100;
+        let friday_end = 4 * 30 + u64::from(late.shift_start + late.shift_ticks);
         let pack = pack_with_career(late, vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
@@ -1645,7 +1419,7 @@ mod tests {
             away(&sim, worker),
             "Friday's shift is still running at Friday's last tick"
         );
-        assert_eq!(sim.funds(), 4 * pay, "Friday's pay has not landed yet");
+        assert_scheduled_payments(&sim, 4);
 
         let mut paid_on = None;
         let mut was_away = away(&sim, worker);
@@ -1657,14 +1431,25 @@ mod tests {
                 "no departure on the weekend, tick {tick}"
             );
             was_away = is_away;
-            if paid_on.is_none() && sim.funds() == 5 * pay {
+            if paid_on.is_none()
+                && sim
+                    .world()
+                    .resource::<crate::attendance::Attendance>()
+                    .outcomes
+                    .len()
+                    == 5
+            {
                 paid_on = Some((tick, today(&sim)));
             }
         }
         assert_eq!(clock(&sim), 209, "one tick per Sim::tick");
         let (tick, weekday) = paid_on.expect("Friday's shift must pay");
         assert_eq!(weekday, 5, "the pay on tick {tick} lands on Saturday");
-        assert_eq!(sim.funds(), 5 * pay, "and nothing pays after it");
+        assert_eq!(
+            tick, friday_end,
+            "travel never extends the scheduled window"
+        );
+        assert_scheduled_payments(&sim, 5);
     }
 
     /// Review focus 3: a save written on Saturday with the worker walking
@@ -1677,18 +1462,33 @@ mod tests {
             shift_start: 28,
             ..weekday_career()
         };
-        let pay = late.pay as i64 * 100;
         let pack = with_front_portal(
             pack_with_career(late, vec![], thirty_tick_day()),
             (15, 2),
             (15, 3),
         );
+        let pack = Box::leak(Box::new(ContentPack {
+            reading: terri_data::pack().reading,
+            tuning: terri_data::Tuning {
+                career_fire_base: 0.0,
+                career_demote_base: 0.0,
+                career_promote_base: 0.0,
+                career_raise_base: 0.0,
+                ..pack.tuning
+            },
+            ..pack.clone()
+        }));
         // Loading draws a self-preservation instinct for every person
         // without one, and a hand-spawned worker has none, so the source
         // starts as a loaded world too. Otherwise the comparison below
         // would measure that one-time draw, not the weekend.
         let mut blank = test_content::sim_with_portals(16, 12, pack);
         let worker = a_worker(&mut blank, 15.0, 2.0);
+        let identity = blank
+            .world_mut()
+            .resource_mut::<terri_core::SimIdAllocator>()
+            .issue();
+        blank.world_mut().entity_mut(worker).insert(identity);
         let mut source = test_content::sim_with_portals(16, 12, pack);
         assert_eq!(source.load_snapshot_v5(blank.save_snapshot_v5()), Ok(()));
         let worker = source.world().entities().resolve_from_index(worker.index());
@@ -1700,35 +1500,66 @@ mod tests {
         // left the worker at each shift start. With the gate no Saturday
         // shift starts, so the first return on Saturday is Friday's.
         let mut saved_at = None;
-        let mut was_at_work = false;
         for tick in 1..=179u64 {
             let funds_before = source.funds();
             source.tick();
-            let at_work = source.world().get::<AtWork>(worker).is_some();
-            if tick >= 150 && was_at_work && !at_work {
+            if tick >= 150
+                && source
+                    .world()
+                    .resource::<crate::attendance::Attendance>()
+                    .outcomes
+                    .iter()
+                    .any(|outcome| outcome.start_tick == 148)
+                && source.world().get::<Commuting>(worker) == Some(&Commuting::Inbound)
+            {
                 assert!(
                     source.world().get::<Commuting>(worker).is_some(),
                     "the return walks home through the portal"
                 );
-                assert_eq!(source.funds(), funds_before + pay, "the return pays");
+                let pay = source
+                    .world()
+                    .resource::<crate::attendance::Attendance>()
+                    .outcomes
+                    .last()
+                    .unwrap()
+                    .pay_cents;
+                assert_eq!(
+                    source.funds(),
+                    funds_before + pay,
+                    "the return settles actual office time"
+                );
                 saved_at = Some(tick);
                 break;
             }
-            was_at_work = at_work;
         }
         let saved_at = saved_at.expect("Friday's shift must return within Saturday");
         assert_eq!(clock(&source), saved_at, "one tick per Sim::tick");
         assert_eq!(today(&source), 5, "the walk home is on Saturday");
         let funds_at_save = source.funds();
 
+        let snapshot = source.save_snapshot_v15();
+        assert_eq!(
+            source.world().get::<terri_core::SimId>(worker),
+            Some(&identity)
+        );
+        assert_eq!(snapshot.attendance.shifts.len(), 1);
+        let shift = &snapshot.attendance.shifts[0];
+        assert_eq!(
+            (shift.sim, shift.start_tick, shift.end_tick),
+            (identity.0, 148, 154)
+        );
+        assert!(shift.settled && !shift.legacy);
+        assert_eq!(
+            crate::attendance::validate_saved(source.world(), &snapshot.attendance),
+            Ok(())
+        );
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v5(source.save_snapshot_v5()), Ok(()));
+        assert_eq!(restored.load_snapshot_v15(snapshot), Ok(()));
         assert!(restored.world().get::<Commuting>(worker).is_some());
         assert_eq!(clock(&restored), saved_at);
 
-        // Monday's shift starts two ticks before Monday ends, so the walk to
-        // the door finishes on Tuesday; one whole day after the start is
-        // the outer bound for clocking in on this open 16x12 lot.
+        // Monday's six-tick window crosses midnight. A long commute may
+        // consume all of it, but settlement still belongs to that window.
         let monday_shift = 7 * 30 + 28;
         let last = monday_shift + 30;
         assert!(saved_at + 70 < monday_shift);
@@ -1765,14 +1596,35 @@ mod tests {
             if tick == monday_shift {
                 assert!(away(&restored, worker), "Monday's shift starts on time");
             }
-            if at_work && clocked_in.is_none() {
+            if at_work
+                && tick < monday_shift + u64::from(a_career().shift_ticks)
+                && clocked_in.is_none()
+            {
                 clocked_in = Some(tick);
             }
         }
         assert_eq!(clock(&restored), last, "one tick per Sim::tick");
-        assert!(
-            clocked_in.is_some_and(|tick| tick >= monday_shift),
-            "the worker clocks in only once Monday's shift has started: {clocked_in:?}"
+        if let Some(tick) = clocked_in {
+            assert!(
+                tick >= monday_shift,
+                "clock-in cannot precede the scheduled shift"
+            );
+        }
+        let monday: Vec<_> = restored
+            .world()
+            .resource::<crate::attendance::Attendance>()
+            .outcomes
+            .iter()
+            .filter(|outcome| outcome.start_tick == monday_shift)
+            .collect();
+        assert_eq!(
+            monday.len(),
+            1,
+            "Monday's scheduled window settles exactly once even if its commute takes too long"
+        );
+        assert_eq!(
+            monday[0].end_tick,
+            monday_shift + u64::from(a_career().shift_ticks)
         );
     }
 
@@ -1793,7 +1645,7 @@ mod tests {
         let worker = a_worker(&mut sim, 15.0, 2.0);
 
         assert_eq!(departures(&mut sim, worker, 59), vec![33]);
-        assert_eq!(sim.funds(), weekday_career().pay as i64 * 100);
+        assert_scheduled_payments(&sim, 1);
     }
 
     /// Both new hash inputs, each from both sides: two worlds equal in
