@@ -285,6 +285,16 @@ describe('the activity log panel', () => {
     expect(names.name(9)).toBe('Ann');
     expect(names.name(10)).toBeNull();
   });
+
+  it('learns the selected housemate from the roster, so its poll calls no simIdOf', () => {
+    const names = new ActivityLogNames();
+    const surface = rememberingNames({ render: () => {} }, names);
+    expect(names.selected()).toBeNull();
+    surface.render([{ simId: 9, entity: 3, name: 'Ann' }], 9, () => {});
+    expect(names.selected()).toBe(9);
+    surface.render([{ simId: 9, entity: 3, name: 'Ann' }], null, () => {});
+    expect(names.selected()).toBeNull();
+  });
 });
 
 describe('the activity log page', () => {

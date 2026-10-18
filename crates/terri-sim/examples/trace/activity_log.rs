@@ -6,6 +6,7 @@
 //! frame, and changes nothing in the simulation.
 
 use std::collections::VecDeque;
+use std::time::Duration;
 use terri_sim::activity_log::{LogKind, RECORD_WORDS, STAGING_CAPACITY};
 use terri_sim::Sim;
 
@@ -24,6 +25,13 @@ pub struct Volume {
     window: VecDeque<u32>,
     largest_frame: u32,
     buffer: Vec<u32>,
+    /// Wall time spent inside `Sim::tick`, excluding the trace's own work.
+    tick_time: Duration,
+}
+
+/// False only when `TRACE_ACTIVITY_LOG` is `0`.
+pub fn enabled_from_env() -> bool {
+    std::env::var("TRACE_ACTIVITY_LOG").map_or(true, |value| value != "0")
 }
 
 impl Volume {
@@ -42,7 +50,13 @@ impl Volume {
             window: VecDeque::with_capacity(FRAME_TICKS),
             largest_frame: 0,
             buffer: Vec::new(),
+            tick_time: Duration::ZERO,
         }
+    }
+
+    /// Adds the wall time one `Sim::tick` call took.
+    pub fn add_tick_time(&mut self, elapsed: Duration) {
+        self.tick_time += elapsed;
     }
 
     /// Drains the records staged by the tick that just ran, counting each
@@ -127,6 +141,11 @@ impl Volume {
             self.largest_frame,
             STAGING_CAPACITY / 4,
             sim.activity_log_dropped()
+        );
+        println!(
+            "activity log {}; simulation wall time {:.1} ms over {ticks} ticks",
+            if enabled_from_env() { "on" } else { "off" },
+            self.tick_time.as_secs_f64() * 1_000.0
         );
     }
 }

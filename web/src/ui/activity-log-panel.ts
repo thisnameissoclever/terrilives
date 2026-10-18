@@ -50,28 +50,45 @@ export interface ActivityLogView {
   fitAboveDock(): void;
 }
 
-/** The last name the shell saw for each `SimId`, so a line about someone who has left still names them. */
+/**
+ * The last name the shell saw for each `SimId`, so a line about someone who
+ * has left still names them, and the selected housemate's `SimId` from the
+ * same roster read, so the panel's selection poll makes no `simIdOf` call.
+ */
 export class ActivityLogNames {
   private readonly names = new Map<number, string>();
+  private selectedSimId: number | null = null;
 
-  remember(members: Iterable<{ readonly simId: number; readonly name: string }>): void {
-    for (const member of members) {
+  /**
+   * Called at the roster's cadence whether or not the panel is open, so it
+   * indexes the array rather than taking an iterator: a closed panel
+   * allocates nothing here ([AL-perf]).
+   */
+  remember(members: readonly { readonly simId: number; readonly name: string }[]): void {
+    for (let index = 0; index < members.length; index++) {
+      const member = members[index];
       if (this.names.get(member.simId) !== member.name) this.names.set(member.simId, member.name);
     }
   }
 
   name(simId: number): string | null { return this.names.get(simId) ?? null; }
+
+  rememberSelected(simId: number | null): void { this.selectedSimId = simId; }
+
+  /** The selected housemate as the roster last drew them, or null. */
+  selected(): number | null { return this.selectedSimId; }
 }
 
 /**
  * Wraps the household roster's surface so the log learns each housemate's
- * name at the roster's own cadence, with no extra reads while the panel is
- * closed.
+ * name and the selection at the roster's own cadence, with no extra reads
+ * while the panel is closed.
  */
 export function rememberingNames(surface: HouseholdRosterSurface, names: ActivityLogNames): HouseholdRosterSurface {
   return {
     render(members, selectedSimId, onSelect) {
       names.remember(members);
+      names.rememberSelected(selectedSimId);
       surface.render(members, selectedSimId, onSelect);
     },
   };

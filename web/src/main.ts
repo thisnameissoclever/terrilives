@@ -219,6 +219,23 @@ export interface StressHandle {
   /** Sampler-only timings. A 540-sample ring discards 60 warm-up ticks. */
   readonly footstepSampler: FrameTimer;
   readonly footstepSampling: boolean;
+  /**
+   * Sampler-only timings of the activity log's per-frame work: the store's
+   * drain plus the panel's update, one sample per rendered frame. Read by
+   * `scripts/activity-log-proof.cjs` for [AL-perf].
+   */
+  readonly activityLogSampler: FrameTimer;
+  /** The activity log's bounded state, for the same proof. */
+  readonly activityLog: {
+    /** Records drained since the last reset, including any since overwritten. */
+    readonly drained: number;
+    /** Records the store holds, at most its capacity. */
+    readonly held: number;
+    readonly capacity: number;
+    /** Records the simulation's staging ring overwrote before a drain. */
+    readonly dropped: number;
+    readonly open: boolean;
+  };
   readonly entities: number;
   /** Current WASM linear-memory size, read live after any growth. */
   readonly wasmMemoryBytes: number;
@@ -557,6 +574,9 @@ async function main(): Promise<void> {
     stressParam === null ||
     new URLSearchParams(location.search).get('audio') !== '0';
   const footstepSamplerTimer = stressParam === null ? null : new FrameTimer(540);
+  // Present only under `?stress=N`, so the shipping frame takes no extra
+  // clock reads for the activity log's [AL-perf] measurement.
+  const activityLogSamplerTimer = stressParam === null ? null : new FrameTimer(FRAME_WINDOW);
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   // Probe accepted floor cells, then stack filler there. Edge-mode spawning
@@ -941,10 +961,8 @@ async function main(): Promise<void> {
     labels: () => sim.activityLogLabels(),
     bands: () => sim.activityLogReactionBands(),
     dayTicks: sim.dayTicks(),
-    selected: () => {
-      const selected = sim.selectedIndex();
-      return selected === null ? null : sim.simIdOf(selected);
-    },
+    // The roster's own read, at the same cadence: no steady simIdOf call.
+    selected: () => activityLogNames.selected(),
     room: (kind, target) => sim.choreLocation(kind, target),
     refreshMs: sim.needBarRefreshMs(),
     onOpen: () => { optionsMenu.close(); compactHud.close(); },
@@ -2423,7 +2441,9 @@ async function main(): Promise<void> {
     landTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     // [AL-bridge]: once a frame, open or closed, so history exists when the
     // player opens the panel.
+    const activityLogStartedMs = activityLogSamplerTimer === null ? 0 : performance.now();
     activityLogStore.drain(sim);
+    const activityLogDrainMs = activityLogSamplerTimer === null ? 0 : performance.now() - activityLogStartedMs;
     if (roomsTool.active) selectionControls?.render();
     const roomMarker = document.querySelector<HTMLElement>('#room-map-marker')!;
     const selectedRoom = roomSelection.rooms.find(room => room.id === roomSelection.selected);
@@ -2533,7 +2553,13 @@ async function main(): Promise<void> {
     affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     careerPanel.update(nowMs);
-    activityLogPanel.update(nowMs);
+    if (activityLogSamplerTimer === null) {
+      activityLogPanel.update(nowMs);
+    } else {
+      const panelStartedMs = performance.now();
+      activityLogPanel.update(nowMs);
+      activityLogSamplerTimer.sample(activityLogDrainMs + performance.now() - panelStartedMs);
+    }
     if (needsUpdated) syncDockSummary();
     if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
       lastBookRefreshMs = nowMs; bookCommerce.render(builder.active ? builder.selected : null, overlayPause.suspendedExcept('builder'));
@@ -2562,6 +2588,9 @@ async function main(): Promise<void> {
     if (footstepSamplerTimer === null) {
       throw new Error('stress footstep timer was not created');
     }
+    if (activityLogSamplerTimer === null) {
+      throw new Error('stress activity log timer was not created');
+    }
     const admission=new StressCharacterAdmission(sim,characterContacts,contactRoster,async bytes=>{
       const loaded=await loadCharacters(bytes);if(loaded){characterWorld.reset();characterWorld.prepareFixtures(sim);}return loaded;
     });
@@ -2587,6 +2616,14 @@ async function main(): Promise<void> {
       timer,
       footstepSampler: footstepSamplerTimer,
       footstepSampling,
+      activityLogSampler: activityLogSamplerTimer,
+      activityLog: {
+        get drained() { return activityLogStore.total; },
+        get held() { return activityLogStore.length; },
+        capacity: activityLogStore.capacity,
+        get dropped() { return sim.activityLogDropped(); },
+        get open() { return activityLogPanel.isOpen(); },
+      },
       entities: sim.count,
       get wasmMemoryBytes() {
         return wasm.memory.buffer.byteLength;
