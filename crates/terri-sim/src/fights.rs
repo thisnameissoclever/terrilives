@@ -22,7 +22,8 @@ pub const FIGHT_TAG: &str = "fighting";
 /// `provoked` watches a trigger's front order until execution or redirection,
 /// so withdrawal removes that entry without touching a player's identical order.
 /// `system_orders` retains its provenance through execution and queue changes;
-/// schema fifteen saves those exact identities separately from player orders.
+/// schema seventeen saves those exact identities (`system_social_orders`)
+/// separately from player orders.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
 pub struct Fights {
     pub timers: MoodletTimers,

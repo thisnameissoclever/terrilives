@@ -6,6 +6,7 @@ use terri_core::{
     SimId, SimIdAllocator,
 };
 
+mod chat_crisis_tests;
 mod decision_tests;
 mod integration_tests;
 mod native_build_tests;

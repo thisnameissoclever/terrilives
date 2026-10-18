@@ -33,9 +33,9 @@ player orders; need decay and death remain enabled.
    conversation releases them. This applies to player and game-made orders,
    so a cycle that mixes pending chats with orders always has a ready
    order. Cycles of chats alone still use the oldest-request rule, and
-   cycles of orders alone still use acceptance order. Proposed ruling for
-   issue 301, awaiting the owner's confirmation: the order goes first even
-   when the waiting chat is older, because orders outrank autonomy.
+   cycles of orders alone still use acceptance order. Issue 301 ruling,
+   confirmed by the owner on 2026-10-18: the order goes first even when the
+   waiting chat is older, because orders outrank autonomy.
    Game-made fight orders yield to critical needs as the
    [fights](2026-10-16-fights.md) rule 3 describes; player orders do not.
 6. Unreachable destinations, removed targets and invalid actions fail with a

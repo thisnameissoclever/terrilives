@@ -26,7 +26,8 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.
 - Housemates no longer stand waiting on each other until they starve. A Sim waiting to chat now steps aside for another Sim's fight or ordered conversation with them, then chats afterward.
-- A fight a Sim starts over a missed chore is called off when either Sim becomes critically hungry, tired or desperate for the bathroom, or leaves for work. Fights you order still go ahead.
+- A fight a Sim starts over a missed chore is called off before it begins when either Sim becomes critically hungry, tired or desperate for the bathroom, or leaves for work. A fight already under way finishes, and fights you order still go ahead.
+- A Sim who chose to chat with someone gives up waiting once they become critically hungry or tired, and goes to look after themselves. Chats you order still wait.
 
 ## Art
 

@@ -80,23 +80,47 @@ fn pending_chat(sim: &mut Sim, person: Entity, partner: Entity) -> u64 {
     .expect("the chat is a valid request")
 }
 
-/// Ticks until every expected conversation has run, recording who ran what.
-fn run(sim: &mut Sim, expected: &[(Entity, Entity, u32)]) -> BTreeSet<(Entity, Entity, u32)> {
-    let mut seen = BTreeSet::new();
-    for _ in 0..1_500 {
+type Talk = (Entity, Entity, u32);
+
+/// Records every conversation seen and how many times each one started.
+#[derive(Default)]
+struct Recorder {
+    current: BTreeSet<Talk>,
+    seen: BTreeSet<Talk>,
+    starts: std::collections::BTreeMap<Talk, u32>,
+}
+
+impl Recorder {
+    fn tick(&mut self, sim: &mut Sim) {
         sim.tick();
-        let talks: Vec<_> = sim
+        let now: BTreeSet<Talk> = sim
             .world_mut()
             .query::<(Entity, &Socialising)>()
             .iter(sim.world())
             .map(|(person, talk)| (person, talk.partner, talk.interaction))
             .collect();
-        seen.extend(talks);
-        if expected.iter().all(|e| seen.contains(e)) {
-            break;
+        for talk in now.difference(&self.current) {
+            *self.starts.entry(*talk).or_default() += 1;
+        }
+        self.seen.extend(now.iter().copied());
+        self.current = now;
+    }
+
+    /// Ticks until every expected conversation has run.
+    fn until(&mut self, sim: &mut Sim, expected: &[Talk]) {
+        for _ in 0..1_500 {
+            self.tick(sim);
+            if expected.iter().all(|e| self.seen.contains(e)) {
+                break;
+            }
         }
     }
-    seen
+}
+
+fn run(sim: &mut Sim, expected: &[Talk]) -> BTreeSet<Talk> {
+    let mut recorder = Recorder::default();
+    recorder.until(sim, expected);
+    recorder.seen
 }
 
 /// The shape seed 20260728 reached on day 12: Tim waits to chat with Bill,
@@ -114,7 +138,9 @@ fn a_pending_chat_and_chained_fight_orders_cannot_wait_on_each_other() {
         }
         game_fight(&mut sim, casey, bill);
         let expected = [(bill, tim, FIGHT), (casey, bill, FIGHT), (tim, bill, CHAT)];
-        let seen = run(&mut sim, &expected);
+        let mut recorder = Recorder::default();
+        recorder.until(&mut sim, &expected);
+        let seen = recorder.seen.clone();
         for (initiator, partner, interaction) in expected {
             assert!(
                 seen.contains(&(initiator, partner, interaction)),
@@ -131,12 +157,23 @@ fn a_pending_chat_and_chained_fight_orders_cannot_wait_on_each_other() {
             Some(requests::RequestPhase::Talking),
             "player_ordered={player_ordered}: the suspended chat resumes with its identity"
         );
+        // Long enough for a duplicated fight to start again after the first.
+        for _ in 0..300 {
+            recorder.tick(&mut sim);
+        }
+        for fight in [(bill, tim, FIGHT), (casey, bill, FIGHT)] {
+            assert_eq!(
+                recorder.starts.get(&fight),
+                Some(&1),
+                "player_ordered={player_ordered}: {fight:?} is served once"
+            );
+        }
         for person in [tim, bill, casey] {
             assert!(
                 sim.world()
                     .get::<IntentQueue>(person)
                     .is_none_or(IntentQueue::is_empty),
-                "player_ordered={player_ordered}: every order is served once"
+                "player_ordered={player_ordered}: no order is left waiting"
             );
         }
     }

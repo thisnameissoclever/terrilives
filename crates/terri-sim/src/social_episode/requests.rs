@@ -741,6 +741,17 @@ pub(crate) fn maintain(world: &mut World) {
             cancel_request(world, r.id);
             continue;
         }
+        if r.origin == ConversationOrigin::Autonomous
+            && r.phase != RequestPhase::Talking
+            && world
+                .get::<terri_core::Needs>(r.initiator)
+                .is_some_and(|needs| {
+                    gives_up_chosen_chat(needs, &world.resource::<crate::Content>().0.tuning)
+                })
+        {
+            cancel_request(world, r.id);
+            continue;
+        }
     }
     refresh_markers(world);
     let marked: Vec<_> = world
@@ -757,6 +768,15 @@ pub(crate) fn maintain(world: &mut World) {
             world.entity_mut(person).remove::<CommittedConversation>();
         }
     }
+}
+
+/// Owner's decision of 2026-10-18: a chat a housemate chose for themselves
+/// gives up, and selection does not choose one, while their own Hunger or
+/// Energy is at or below the critical level. Player-ordered chats stay.
+pub(crate) fn gives_up_chosen_chat(needs: &terri_core::Needs, tuning: &terri_data::Tuning) -> bool {
+    [terri_core::NeedId::Hunger, terri_core::NeedId::Energy]
+        .into_iter()
+        .any(|need| needs.get(need) <= tuning.mood_critical_need_level)
 }
 
 fn busy(world: &World, person: Entity) -> bool {
