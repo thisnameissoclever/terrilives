@@ -1,6 +1,6 @@
 # Shared meals, room names and outdoor cleaning
 
-Shared meals earn the cook some goodwill. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
+Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
 
 ## New
 

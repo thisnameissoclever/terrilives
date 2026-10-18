@@ -1208,11 +1208,7 @@ fn appreciate_meal(world: &mut World, person: Entity, eater: SimId, cook: SimId,
     if eater == cook || gain == 0.0 {
         return;
     }
-    let cook_is_living = world
-        .query_filtered::<&SimId, With<Agent>>()
-        .iter(world)
-        .any(|id| *id == cook);
-    if !cook_is_living {
+    if crate::edit::living_entity(world, cook.0).is_none() {
         return;
     }
     crate::relationship_effects::record_opinion_change(
