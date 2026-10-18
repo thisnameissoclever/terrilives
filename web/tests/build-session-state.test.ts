@@ -28,6 +28,17 @@ it('keeps draft saves isolated, rolls back queued edits, and preserves confirmed
   expect(f.source.saveBytes()).toEqual(Uint8Array.of(2));
 });
 
+it('reports a change while the draft differs from the baseline, and none outside Build', () => {
+  const f = fixture();
+  expect(f.session.hasChanges()).toBe(false);
+  f.session.begin();
+  expect(f.session.hasChanges()).toBe(false);
+  f.edit(2); f.source.flushCommands();
+  expect(f.session.hasChanges()).toBe(true);
+  f.edit(1); f.source.flushCommands();
+  expect(f.session.hasChanges()).toBe(false);
+});
+
 it('does not expose mutable baseline bytes or lose the checkpoint on failed cancellation', () => {
   const f = fixture(); f.session.begin();
   f.session.saveBytes()[0] = 99;

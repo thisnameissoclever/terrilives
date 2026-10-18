@@ -1,0 +1,12 @@
+image-A.jpg = old-04-bathtub-refused.jpg
+image-B.jpg = old-05-furniture-dining-table.jpg
+image-C.jpg = old-01-double-bed-valid.jpg
+image-D.jpg = old-03-bathtub-north-west.jpg
+image-E.jpg = new-06-housemate.jpg
+image-F.jpg = old-06-housemate.jpg
+image-G.jpg = new-04-bathtub-refused.jpg
+image-H.jpg = new-02-bathtub-south-west.jpg
+image-I.jpg = new-03-bathtub-north-west.jpg
+image-J.jpg = old-02-bathtub-south-west.jpg
+image-K.jpg = new-01-double-bed-valid.jpg
+image-L.jpg = new-05-furniture-dining-table.jpg

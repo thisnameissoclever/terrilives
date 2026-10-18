@@ -36,6 +36,17 @@ const https = fs.existsSync(path.join(certDir, 'cert.pem'))
     }
   : undefined;
 
+/**
+ * The game's version, read from this package's `package.json` when Vite
+ * starts. That file is the one place the number is typed; the root
+ * `Cargo.toml` workspace version and the README must match it, and
+ * `tests/game-version.test.ts` fails when they differ. The Options panel
+ * shows it through `src/ui/game-version.ts`.
+ */
+const appVersion = (
+  JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as { version: string }
+).version;
+
 export default defineConfig(({ mode }) => ({
   // Relative asset URLs, so the build works from any path. GitHub Pages
   // serves a project site from /<repo>/ rather than /, and an absolute
@@ -43,6 +54,9 @@ export default defineConfig(({ mode }) => ({
   // is the kind of difference that only shows up after deploying.
   base: './',
   plugins: [changelogPlugin()],
+  // Replaced in the bundle with the quoted version string; the TypeScript
+  // declaration is in src/ui/game-version.ts, the only module that reads it.
+  define: { __APP_VERSION__: JSON.stringify(appVersion) },
   // The browser downloads the coverage file before anything samples it; Node
   // tests read the same committed file from disk instead.
   //
