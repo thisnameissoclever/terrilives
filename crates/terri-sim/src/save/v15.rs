@@ -108,7 +108,43 @@ pub(crate) fn restore(
     Ok(candidate)
 }
 
-fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Result<(), SaveError> {
+pub(crate) fn restore_requests(
+    world: &mut World,
+    saved: SavedConversationRequests,
+) -> Result<(), SaveError> {
+    restore_requests_with_executions(world, saved, &[])
+}
+
+/// V17 retains bare actors through exact execution rows. The published request
+/// layout addresses named people only; its standalone reader stays strict.
+pub(crate) fn restore_requests_with_executions(
+    world: &mut World,
+    saved: SavedConversationRequests,
+    executions: &[terri_core::save_v17::SavedSocialExecution],
+) -> Result<(), SaveError> {
+    let mut bare = BTreeMap::new();
+    for row in executions {
+        let actor = crate::dining::entity(world, row.initiator)
+            .filter(|&e| world.get::<Agent>(e).is_some())
+            .ok_or(SaveError::InvalidEntityReference)?;
+        let recipient = crate::dining::entity(world, row.recipient)
+            .filter(|&e| world.get::<Agent>(e).is_some())
+            .ok_or(SaveError::InvalidEntityReference)?;
+        if row.provenance == 2
+            || (world.get::<SimId>(actor).is_some() && world.get::<SimId>(recipient).is_some())
+        {
+            continue;
+        }
+        if bare
+            .insert(
+                actor,
+                (recipient, row.interaction, row.running, row.admitted),
+            )
+            .is_some()
+        {
+            return Err(SaveError::InvalidValue);
+        }
+    }
     if saved.requests.len() > super::MAX_ENTITIES {
         return Err(SaveError::TooManyEntities);
     }
@@ -262,7 +298,12 @@ fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Resu
             r.initiator == initiator
                 && r.recipient == recipient
                 && matches!(r.phase, RequestPhase::Approaching | RequestPhase::Talking)
-        }) {
+        }) && !bare
+            .get(&initiator)
+            .is_some_and(|&(partner, interaction, running, admitted)| {
+                partner == recipient && interaction == t.interaction && (running || admitted)
+            })
+        {
             return Err(SaveError::InvalidValue);
         }
     }
@@ -278,7 +319,12 @@ fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Resu
             r.initiator == initiator
                 && r.recipient == talk.partner
                 && r.phase == RequestPhase::Talking
-        }) {
+        }) && !bare
+            .get(&initiator)
+            .is_some_and(|&(partner, interaction, running, _)| {
+                partner == talk.partner && interaction == talk.interaction && running
+            })
+        {
             return Err(SaveError::InvalidValue);
         }
     }
@@ -299,6 +345,11 @@ fn restore_requests(world: &mut World, saved: SavedConversationRequests) -> Resu
                     && r.interaction == target.interaction
                     && matches!(r.phase, RequestPhase::Approaching | RequestPhase::Talking)
             })
+            && !bare
+                .get(&person)
+                .is_some_and(|&(partner, interaction, _, _)| {
+                    partner == target.object && interaction == target.interaction
+                })
         {
             return Err(SaveError::InvalidValue);
         }

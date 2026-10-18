@@ -1,6 +1,7 @@
-//! Observations of the last simulation tick, excluded from behavioral state.
+//! Directional opinion changes and observations of the last simulation tick.
+//! Diagnostics are excluded from behavioral state.
 use bevy_ecs::prelude::*;
-use terri_core::SimId;
+use terri_core::{Relationships, SimClock, SimId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RelationshipCause {
@@ -20,6 +21,8 @@ pub enum RelationshipCause {
     Nuisance,
     /// A finished fight, felt by both sides (fights, issue 248).
     Fight,
+    /// A completed portion of another person's cooked meal.
+    MealShared,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -79,4 +82,50 @@ pub(crate) fn reset(world: &mut World) {
     diagnostics.effects.clear();
     diagnostics.contacts.clear();
     diagnostics.waits.clear();
+}
+
+/// Apply one directional opinion change and record its clamped result.
+pub(crate) fn record_opinion_change(
+    world: &mut World,
+    responsible: u32,
+    affected: Entity,
+    delta: f32,
+    cause: RelationshipCause,
+) {
+    let Some(subject) = world.get::<SimId>(affected).copied() else {
+        return;
+    };
+    if subject.0 == responsible {
+        return;
+    }
+    if world.get::<Relationships>(affected).is_none() {
+        world.entity_mut(affected).insert(Relationships::default());
+    }
+    let before = world
+        .get::<Relationships>(affected)
+        .unwrap()
+        .feeling(SimId(responsible));
+    world
+        .get_mut::<Relationships>(affected)
+        .unwrap()
+        .bump(SimId(responsible), delta);
+    let after = world
+        .get::<Relationships>(affected)
+        .unwrap()
+        .feeling(SimId(responsible));
+    let tick = world.resource::<SimClock>().tick;
+    world
+        .resource_mut::<RelationshipDiagnostics>()
+        .effects
+        .push(RelationshipEffect {
+            tick,
+            event: 0,
+            cause,
+            responsible: SimId(responsible),
+            affected: subject,
+            requested: delta,
+            actual: after - before,
+            emergency: false,
+            directed: false,
+        });
 }

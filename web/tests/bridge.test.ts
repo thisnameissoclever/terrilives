@@ -1083,12 +1083,9 @@ describe('SimBridge', () => {
   it('runs the shipped day through the boundary: Tim leaves, hides, returns paid', () => {
     // The E4 loop against REAL content through the release wasm, which
     // is the artifact the page runs ([L12]): the shipped day is 1440
-    // ticks with office departure at 360 and a 480-tick off-lot shift, so by
-    // tick 600 Tim is off the lot (their row flagged AT_WORK, code 6). `shift_ticks`
-    // starts after the walk to the front door, so the return is an event
-    // to observe before the next day rather than `360 + 480` plus a guessed
-    // commute margin. At return the household must be exactly one pay packet
-    // richer.
+    // ticks with the original office shift fixed at 360 through 840. By tick
+    // 600 Tim is off the lot (AT_WORK, code 6). Outbound travel consumes shift
+    // time, so payment covers the observed off-lot interval in integer cents.
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
     const tim = (() => {
@@ -1103,7 +1100,11 @@ describe('SimBridge', () => {
     // [CAL-hud]: day 1 is a Monday, and the office job runs Monday to
     // Friday (mask 31) from 06:00 for eight hours.
     expect(bridge.weekdayIndex()).toBe(0);
-    expect(bridge.careerScheduleOf(tim)).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    const schedule = bridge.careerScheduleOf(tim)!;
+    expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    const scheduledEnd = schedule.shiftStart + schedule.shiftTicks;
+    const fullPayCents = bridge.careerReport(tim)!.pay * 100;
+    expect(fullPayCents).toBe(12000);
     for (const hostile of [0, -1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
       expect(bridge.careerScheduleOf(hostile)).toBeNull();
     }
@@ -1115,7 +1116,12 @@ describe('SimBridge', () => {
       throw new Error('Tim lost their render row');
     };
 
-    for (let t = 0; t < 600; t++) bridge.tick();
+    let arrivedAt: number | undefined;
+    for (let t = 0; t < 600; t++) {
+      bridge.tick();
+      if (arrivedAt === undefined && bridge.activities()[rowOf(tim)] === 6) arrivedAt = bridge.clockTick();
+    }
+    expect(arrivedAt).toBeGreaterThan(schedule.shiftStart);
     expect(bridge.activities()[rowOf(tim)]).toBe(6);
     expect(bridge.funds()).toBe(0);
 
@@ -1128,8 +1134,25 @@ describe('SimBridge', () => {
       }
     }
     expect(returnedAt).toBeDefined();
+    expect(returnedAt).toBe(scheduledEnd);
+    expect(bridge.clockTick()).toBe(scheduledEnd);
     expect(bridge.activities()[rowOf(tim)]).not.toBe(6);
-    expect(bridge.funds()).toBe(120);
+    const [scheduled, worked, missed, baseScore, deduction, score, paidCents, settled] = bridge.careerAttendanceOf(tim);
+    expect(settled).toBe(1);
+    expect(scheduled).toBe(schedule.shiftTicks);
+    expect(worked).toBe(scheduledEnd - arrivedAt!);
+    expect(missed).toBe(arrivedAt! - schedule.shiftStart);
+    expect(worked).toBeGreaterThan(0);
+    expect(worked).toBeLessThan(scheduled);
+    expect(deduction).toBeCloseTo(Math.max(0, missed - 120) / 6, 4);
+    expect(score).toBeCloseTo(Math.max(0, baseScore - deduction), 4);
+    const expectedPay = Math.floor(fullPayCents * worked / scheduled);
+    expect(paidCents).toBe(expectedPay);
+    expect(Number.isInteger(paidCents)).toBe(true);
+    expect(bridge.fundsCents()).toBe(expectedPay);
+    expect(bridge.funds()).toBe(Math.floor(expectedPay / 100));
+    bridge.tick();
+    expect(bridge.fundsCents()).toBe(expectedPay);
   });
 
   it("reads each person's likes and dislikes through release wasm without changing saves", () => {

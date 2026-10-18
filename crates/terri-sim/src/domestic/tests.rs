@@ -345,6 +345,7 @@ fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
         .find(|(e, _)| *e != person)
         .unwrap()
         .0;
+    sim.world_mut().entity_mut(other).remove::<AtWork>();
     add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
     assert!(start_cleanup(sim.world_mut(), other, vec![0], true));
     sim.world_mut()
@@ -714,8 +715,8 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         assert!(restored.is_some(), "interrupted action must save and load");
         assert_eq!(completions, 1, "one real toilet completion");
         assert_eq!(
-            housemate_completions, 0,
-            "only a housemate's own visit may complete the toilet besides the actor"
+            housemate_completions, 1,
+            "the recalled housemate's explicit visit must complete exactly once"
         );
         assert!(resumed, "the suspended work must resume");
         assert!(
@@ -1499,25 +1500,93 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
         carried_dishes(sim.world()).get(&people[0].index_u32()),
         Some(&2)
     );
-    let bed = sim
+    let pack = sim.world().resource::<Content>().0;
+    let occupancy = crate::seating::occupancy(sim.world_mut());
+    let from = sim.world().get::<Position>(people[0]).unwrap();
+    let start = (from.x.round() as i32, from.y.round() as i32);
+    let field = sim
+        .world()
+        .resource::<terri_core::TileGrid>()
+        .distance_field(start)
+        .unwrap();
+    let objects: Vec<_> = sim
         .world_mut()
         .query::<(Entity, &SmartObject)>()
         .iter(sim.world())
-        .find(|(_, object)| sim.world().resource::<Content>().0.object(object.0).id == "bed")
+        .map(|(entity, object)| (entity, object.0))
+        .collect();
+    // The bunk may already be occupied; use a free physical place with a real route.
+    let (bed, ordinal, interaction) = sim.bed_places_of(people[0].index_u32()).unwrap()
+        .into_iter()
+        .filter(|place| place.occupant.is_none()
+            && place.assignee.is_none_or(|person| person == people[0].index_u32()))
+        .find_map(|place| {
+            let &(bed, definition) = objects.iter().find(|(entity, _)| entity.index_u32() == place.bed)?;
+            let definition = pack.object(definition);
+            let interaction = definition.interactions.iter().position(|action| action.tags.contains(&pack.sleep_tag))? as u32;
+            let access = crate::beds::navigation::Access::new(
+                definition,
+                &pack.sleep_tag,
+                sim.world().get::<terri_core::ObjectFacing>(bed).map_or(definition.base_facing, |f| f.0),
+                (place.x.round() as i32, place.y.round() as i32),
+                &field,
+            );
+            let admitted = occupancy.admissions(
+                pack, definition, people[0], sim.world().get::<SimId>(people[0]).copied(),
+                Target { object: bed, interaction },
+                sim.world().resource::<crate::beds::BedAssignments>(),
+            ).into_iter().any(|admission| {
+                matches!(admission, crate::beds::Admission::Sleep { ordinal, .. } if ordinal == place.ordinal)
+                    && access.for_admission(admission)
+                        .and_then(|reachable| reachable.route.path(sim.world().resource::<terri_core::TileGrid>(), start)).is_some()
+            });
+            admitted.then_some((bed, place.ordinal, interaction))
+        }).expect("cleanup interruption needs an available reachable sleeping place");
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetBedAssignment {
+            agent: people[0].index_u32(),
+            place: Some((bed.index_u32(), ordinal)),
+        });
+    sim.flush_commands();
+    assert!(sim
+        .bed_places_of(people[0].index_u32())
         .unwrap()
-        .0;
+        .iter()
+        .any(|place| place.bed == bed.index_u32()
+            && place.ordinal == ordinal
+            && place.assignee == Some(people[0].index_u32())
+            && place.occupant.is_none()));
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::UseObjectFirst {
             agent: people[0].index_u32(),
             object: bed.index_u32(),
-            interaction: 0,
+            interaction,
         });
     sim.tick();
     sim.sync_render_buffer();
     assert_eq!(
+        sim.world().get::<terri_core::SleepPlace>(people[0]),
+        Some(&terri_core::SleepPlace(ordinal))
+    );
+    assert_eq!(
+        sim.world().get::<Target>(people[0]).map(|target| target.object),
+        Some(bed),
+        "the sleep redirect must be admitted: blocked={} path={:?} queue={:?} events={:?} cleanup={:?}",
+        sim.world().get::<terri_core::Blocked>(people[0]).is_some(),
+        sim.world().get::<terri_core::Path>(people[0]),
+        sim.world().get::<terri_core::IntentQueue>(people[0]),
+        sim.action_events_since(0).events,
+        sim.world().resource::<SavedDomestic>().cleanup,
+    );
+    assert_eq!(
         carried_dishes(sim.world()).get(&people[0].index_u32()),
-        Some(&0)
+        Some(&0),
+        "admitted redirect must free the hands: chain={:?} cleanup={:?} events={:?}",
+        sim.world().get::<ChainState>(people[0]),
+        sim.world().resource::<SavedDomestic>().cleanup,
+        sim.action_events_since(0).events,
     );
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
@@ -1649,8 +1718,23 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
     });
     let mut shared_seen = BTreeSet::new();
     let mut simultaneous = 0;
+    let mut appreciation = std::collections::BTreeMap::<u32, usize>::new();
     for _ in 0..1000 {
         sim.tick();
+        for effect in sim.relationship_effects().iter().filter(|effect| {
+            effect.cause == crate::relationship_effects::RelationshipCause::MealShared
+        }) {
+            assert_eq!(effect.responsible, SimId(0));
+            assert_eq!(
+                effect.requested,
+                sim.world()
+                    .resource::<Content>()
+                    .0
+                    .tuning
+                    .meal_appreciation_gain
+            );
+            *appreciation.entry(effect.affected.0).or_default() += 1;
+        }
         let mut seats = BTreeSet::new();
         for person in &people[..4] {
             if sim
@@ -1685,10 +1769,16 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
             .load_current_v10_view(sim.current_v10_view())
             .unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
+        // Continue the meal from the loaded snapshot, not the original world.
+        sim = loaded;
         if sim.world().resource::<SavedDomestic>().meals.is_empty() {
             break;
         }
     }
+    assert_eq!(
+        appreciation,
+        std::collections::BTreeMap::from([(1, 1), (2, 1), (3, 1)])
+    );
     assert!(simultaneous >= 30 && shared_seen == BTreeSet::from([0, 1, 2, 3]), "all invited guests eat with company for a full interval: seen={shared_seen:?}, overlap={simultaneous}, state={:?}, people={:?}",
         sim.world().resource::<SavedDomestic>(), people.iter().map(|e| (*e, sim.world().get::<Position>(*e), sim.world().get::<ChainState>(*e), sim.world().get::<Target>(*e), sim.world().get::<Needs>(*e))).collect::<Vec<_>>());
     for person in &people[..4] {
@@ -3182,4 +3272,311 @@ fn targeted_generic_order_waits_for_a_first_floor_chore() {
         }
     }
     assert!(chore_finished && all_finished);
+}
+
+fn appreciation_meal() -> (Sim, Vec<Entity>, Entity) {
+    let (mut sim, people, _, counter, table) = household();
+    sim.world_mut().insert_resource(SavedDomestic::default());
+    sim.world_mut().insert_resource(SavedDining::default());
+    let mut feelings = Relationships::default();
+    for person in people.iter().skip(1) {
+        feelings.bump(*sim.world().get::<SimId>(*person).unwrap(), 0.8);
+        sim.world_mut()
+            .entity_mut(*person)
+            .insert(Relationships::default());
+    }
+    sim.world_mut().entity_mut(people[0]).insert(feelings);
+    let chain = chain_index(sim.world(), "cook_dinner").unwrap();
+    completed(sim.world_mut(), people[0], chain, 4, Some(counter), None);
+    let guests = sim.world().resource::<SavedDomestic>().meals[0]
+        .guests
+        .clone();
+    let mut state = sim.world_mut().resource_mut::<SavedDomestic>();
+    state.meals[0].claimed = guests.clone();
+    state.meals[0].collected = guests;
+    (sim, people, table)
+}
+
+fn finish_appreciation_meal(sim: &mut Sim, eater: Entity, table: Entity) {
+    let chain = chain_index(sim.world(), SHARED).unwrap();
+    let step = sim.world().resource::<Content>().0.chains[chain as usize]
+        .steps
+        .len()
+        - 1;
+    completed(
+        sim.world_mut(),
+        eater,
+        chain,
+        step as u32,
+        Some(table),
+        None,
+    );
+}
+
+#[test]
+fn meal_appreciation_eater_thanks_the_actual_cook_once() {
+    let (mut sim, people, table) = appreciation_meal();
+    let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        sim.world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .meal_appreciation_gain
+    );
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        sim.world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .meal_appreciation_gain
+    );
+}
+
+#[test]
+fn meal_appreciation_each_shared_eater_thanks_only_the_cook() {
+    let (mut sim, people, table) = appreciation_meal();
+    let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+    let before = sim.world().get::<Relationships>(people[0]).unwrap().clone();
+    for eater in people.iter().skip(1) {
+        finish_appreciation_meal(&mut sim, *eater, table);
+        assert_eq!(
+            sim.world()
+                .get::<Relationships>(*eater)
+                .unwrap()
+                .feeling(cook),
+            sim.world()
+                .resource::<Content>()
+                .0
+                .tuning
+                .meal_appreciation_gain
+        );
+        for other in people.iter().skip(1).filter(|other| *other != eater) {
+            let other = *sim.world().get::<SimId>(*other).unwrap();
+            assert_eq!(
+                sim.world()
+                    .get::<Relationships>(*eater)
+                    .unwrap()
+                    .feeling(other),
+                0.0
+            );
+        }
+    }
+    assert_eq!(
+        sim.world().get::<Relationships>(people[0]).unwrap(),
+        &before
+    );
+}
+
+#[test]
+fn meal_appreciation_excludes_own_meals_snacks_and_uneaten_food() {
+    let (mut sim, people, _, counter, table) = household();
+    sim.world_mut().insert_resource(SavedDomestic::default());
+    sim.world_mut().insert_resource(SavedDining::default());
+    let before: Vec<_> = people
+        .iter()
+        .map(|p| sim.world().get::<Relationships>(*p).cloned())
+        .collect();
+    for name in ["cook_dinner", SNACK] {
+        let chain = chain_index(sim.world(), name).unwrap();
+        let last = sim.world().resource::<Content>().0.chains[chain as usize]
+            .steps
+            .len()
+            - 1;
+        completed(
+            sim.world_mut(),
+            people[0],
+            chain,
+            last as u32,
+            Some(table),
+            None,
+        );
+    }
+    let chain = chain_index(sim.world(), "cook_dinner").unwrap();
+    completed(sim.world_mut(), people[0], chain, 0, Some(counter), None);
+    finish_appreciation_meal(&mut sim, people[1], table);
+    let after: Vec<_> = people
+        .iter()
+        .map(|p| sim.world().get::<Relationships>(*p).cloned())
+        .collect();
+    assert_eq!(after, before);
+}
+
+#[test]
+fn meal_appreciation_changes_only_eater_opinion_within_one_meal() {
+    let (mut rewarded, people, table) = appreciation_meal();
+    let (mut control, control_people, control_table) = appreciation_meal();
+    let mut pack = control.world().resource::<Content>().0.clone();
+    pack.tuning.meal_appreciation_gain = 0.0;
+    control
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let original = rewarded
+        .world()
+        .get::<Relationships>(people[1])
+        .unwrap()
+        .clone();
+    finish_appreciation_meal(&mut rewarded, people[1], table);
+    finish_appreciation_meal(&mut control, control_people[1], control_table);
+    let effect = rewarded.relationship_effects().last().unwrap();
+    assert_eq!(
+        effect.cause,
+        crate::relationship_effects::RelationshipCause::MealShared
+    );
+    assert_eq!(
+        effect.requested,
+        rewarded
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .meal_appreciation_gain
+    );
+    assert!(effect.actual > 0.0);
+    rewarded.world_mut().entity_mut(people[1]).insert(original);
+    // The snapshot includes needs, meal records, cleanup, timing and random state.
+    assert_eq!(rewarded.current_v10_view(), control.current_v10_view());
+    assert_eq!(rewarded.world_hash(), control.world_hash());
+}
+
+#[test]
+fn meal_appreciation_clamps_disliked_cooks_and_new_batches() {
+    let (mut sim, people, table) = appreciation_meal();
+    let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+    let original_meal = sim.world().resource::<SavedDomestic>().meals[0].clone();
+    let mut feelings = Relationships::default();
+    feelings.bump(cook, -0.9);
+    sim.world_mut().entity_mut(people[1]).insert(feelings);
+    let gain = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .tuning
+        .meal_appreciation_gain;
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        -0.9 + gain
+    );
+    let mut next_meal = original_meal;
+    next_meal.tick += 1;
+    sim.world_mut().resource_mut::<SavedDomestic>().meals = vec![next_meal];
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        (-0.9 + gain) + gain
+    );
+    sim.world_mut()
+        .get_mut::<Relationships>(people[2])
+        .unwrap()
+        .bump(cook, 0.999);
+    finish_appreciation_meal(&mut sim, people[2], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[2])
+            .unwrap()
+            .feeling(cook),
+        1.0
+    );
+}
+
+#[test]
+fn meal_appreciation_plate_collection_and_abandonment_grant_nothing() {
+    let (mut sim, people, table) = appreciation_meal();
+    let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        0.0
+    );
+    let mut state = sim.world_mut().resource_mut::<SavedDomestic>();
+    state.meals[0].claimed.clear();
+    state.meals[0].collected.clear();
+    assert!(crate::dining::take_prepared_food(
+        sim.world_mut(),
+        people[1],
+        table
+    ));
+    let chain = chain_index(sim.world(), SHARED).unwrap();
+    completed(sim.world_mut(), people[1], chain, 0, Some(table), None);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        0.0
+    );
+    abandon(sim.world_mut(), people[1]);
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(people[1])
+            .unwrap()
+            .feeling(cook),
+        0.0
+    );
+}
+
+#[test]
+fn meal_appreciation_never_inserts_a_self_relationship() {
+    let (mut sim, people, table) = appreciation_meal();
+    let eater = *sim.world().get::<SimId>(people[1]).unwrap();
+    sim.world_mut().resource_mut::<SavedDomestic>().meals[0].cook = eater.0;
+    let before = sim.world().get::<Relationships>(people[1]).unwrap().clone();
+    finish_appreciation_meal(&mut sim, people[1], table);
+    assert_eq!(
+        sim.world().get::<Relationships>(people[1]).unwrap(),
+        &before
+    );
+}
+
+#[test]
+fn meal_appreciation_skips_dead_cooks_without_discarding_the_portion() {
+    for prior_opinion in [0.0, 0.4] {
+        let (mut sim, people, table) = appreciation_meal();
+        let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+        let eater = *sim.world().get::<SimId>(people[1]).unwrap();
+        if prior_opinion != 0.0 {
+            sim.world_mut()
+                .get_mut::<Relationships>(people[1])
+                .unwrap()
+                .bump(cook, prior_opinion);
+        }
+        let before = sim.world().get::<Relationships>(people[1]).unwrap().clone();
+        crate::mortality::remove_person(sim.world_mut(), people[0]);
+        assert!(sim.world().get_entity(people[0]).is_err());
+        assert_eq!(
+            sim.world().resource::<SavedDomestic>().meals[0].cook,
+            cook.0
+        );
+        finish_appreciation_meal(&mut sim, people[1], table);
+        assert_eq!(
+            sim.world().get::<Relationships>(people[1]).unwrap(),
+            &before
+        );
+        assert!(sim.world().resource::<SavedDomestic>().meals[0]
+            .eaten
+            .contains(&eater.0));
+        assert!(!sim.relationship_effects().iter().any(
+            |effect| effect.cause == crate::relationship_effects::RelationshipCause::MealShared
+        ));
+    }
 }

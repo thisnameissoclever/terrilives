@@ -1,5 +1,15 @@
 import { expect, it } from 'vitest';
-import { ActionQueue, actionCards } from '../src/ui/action-queue.js';
+import { ActionQueue, actionCards, structuredActionCards } from '../src/ui/action-queue.js';
+
+it('marks incoming requests with direction while preserving identity and waiting reason', () => {
+  const rows = [{orderId:'123',label:'Chat',phase:'waiting',role:'incoming',counterpart:7,reason:'Recipient busy'},
+    {orderId:'124',label:'Chat',phase:'queued',role:'initiator',counterpart:9,reason:null}];
+  expect(structuredActionCards(rows)).toEqual([
+    {label:'Chat',phase:'Incoming ← · Waiting',orderId:'123',reason:'Recipient busy'},
+    {label:'Chat',phase:'Queued',orderId:'124',reason:null},
+  ]);
+  expect(structuredActionCards([{orderId:null,label:'',phase:'running',role:'initiator',counterpart:null,reason:null}])).toEqual([]);
+});
 
 it('keeps repeated actions in order and distinguishes a waiting first order', () => {
   expect(actionCards(['Read', 'Chat', 'Chat'])).toEqual([

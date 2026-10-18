@@ -27,7 +27,13 @@ pub(crate) fn capture_world(world: &World) -> SaveSnapshotV6 {
         .resource::<terri_core::CommandQueue>()
         .as_slice()
         .iter()
-        .filter(|command| !matches!(command, terri_core::SimCommand::Character(_)))
+        .filter(|command| {
+            !matches!(
+                command,
+                terri_core::SimCommand::Character(_)
+                    | terri_core::SimCommand::ConfirmedOrder { .. }
+            )
+        })
         .map(|c| match c {
             terri_core::SimCommand::Book(book) => Some(book.clone()),
             _ => None,
@@ -163,6 +169,7 @@ fn restore_inner_social(
     migration: bool,
     social: Option<terri_core::save_v9::SavedSocialEpisodes>,
 ) -> Result<Sim, SaveError> {
+    let actor_references = portals.actor_references;
     let saved_people = snapshot
         .legacy
         .world
@@ -380,7 +387,16 @@ fn restore_inner_social(
         &snapshot.pending_shifts,
     )?;
     if let Some(social) = social {
-        super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
+        if actor_references == super::ActorReferences::SavedAgents {
+            super::social::restore_into_current(
+                &mut candidate,
+                social,
+                saved_people,
+                social_targets,
+            )?;
+        } else {
+            super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
+        }
     }
     crate::reading::persistence::validate(
         &candidate.world,

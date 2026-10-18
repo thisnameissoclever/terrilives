@@ -47,6 +47,8 @@ The shared device or table defines communal participation. General room and
 four-tile proximity rules affect affinity; they do not cancel otherwise valid
 communal Social benefits.
 
+Eating another housemate's cooked meal also raises the eater's opinion of the cook once per portion, independently of shared Social. See [meal-sharing appreciation](specs/2026-10-18-meal-appreciation.md) for the trigger, balance choices and save behavior.
+
 Meals provide Social only while both Sims actually eat seated in separate chairs
 facing the same table. They can eat food from different cooking batches.
 Standing, tableless meals, preparation, gathering and empty-table sitting provide
@@ -84,8 +86,7 @@ Friends collect real portions and eat together, sitting at usable chairs or stan
 affects food quality for everyone; each eater leaves their own used dish.
 Committed diners gather before their shared eating countdown begins. A busy
 friend's player orders keep priority, and critical needs release the waiting
-group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. A late arrival can extend an existing participant's activity at most twice per uninterrupted activity. Cooking for friends
-currently provides food and company; it does not invent a gratitude bonus.
+group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. A late arrival can extend an existing participant's activity at most twice per uninterrupted activity. Cooking for friends provides food and company; finishing another housemate's portion also grants appreciation toward its cook.
 
 Preparation also leaves dishes on the counter. Visible dishes lower mood,
 including the observer's own old mess. Someone else's dishes also cause a small
@@ -125,13 +126,19 @@ origin. The initiator approaches and waits while the recipient finishes their
 existing activity, including travel and the complete meal or reading goal.
 A busy recipient is not reserved. Once available, the recipient takes the
 oldest eligible request before choosing a fresh discretionary activity.
-An explicit player redirection or work defers the request rather than losing it.
-The initiator's critical needs do not cancel their chosen chat.
+A new explicit player order can redirect either person without deleting another
+person's request. Player-owned conversations delay work; a confirmed new order
+can interrupt a commute or bring an off-lot worker home. Autonomous requests
+can wait through work. Critical needs never override player orders, while need
+decay and death remain enabled. See the [player-order contract](specs/2026-10-17-player-orders.md).
 
 Private toilet, bath and shower activity makes the initiator wait outside its
 room, including while the recipient approaches the fixture. A changed route
 reuses the current fractional walking segment instead of restarting from a tile
-center. An unavailable route retains the request and reports the blockage.
+center. An autonomous conversation retains its request when no route is currently
+available. A player conversation waits when privacy temporarily blocks an otherwise
+reachable route; a destination disconnected by the lot's geometry fails with a
+recorded reason.
 Reciprocal requests and longer cycles temporarily suspend an outgoing request
 so an older conversation can proceed, then resume the suspended request.
 
@@ -163,8 +170,9 @@ privacy, with shyness scaling the reaction.
 Autonomous Sims prefer alternatives, detours or waiting. Respect decisions last
 30 simulated minutes, reducing repeated random attempts. Relevant critical needs
 can override after ten minutes without an alternative; levels at or below five
-can override immediately. Player orders bypass avoidance, exits are permitted,
-and necessary commute routes remain usable. Consequences still apply.
+can override immediately. Direct object orders bypass avoidance; conversation
+approaches wait outside occupied private rooms. Exits are permitted, and necessary
+commute routes remain usable. Consequences still apply.
 Domestic station claims and distinct dining seats also constrain privacy detours.
 
 Awake housemates in the same enclosed room within four tiles can develop relationships.

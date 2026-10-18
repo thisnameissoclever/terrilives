@@ -1,0 +1,68 @@
+[
+  {
+    "capture": "on",
+    "orders": 32,
+    "trials": 5,
+    "medianMs": 1.487,
+    "minMs": 1.193,
+    "maxMs": 2.345,
+    "hashes": [
+      "14082898863345828800"
+    ]
+  },
+  {
+    "capture": "on",
+    "orders": 256,
+    "trials": 5,
+    "medianMs": 4.644,
+    "minMs": 4.013,
+    "maxMs": 5.127,
+    "hashes": [
+      "2552012989725853787"
+    ]
+  },
+  {
+    "capture": "on",
+    "orders": 1024,
+    "trials": 5,
+    "medianMs": 16.43,
+    "minMs": 10.79,
+    "maxMs": 22.671,
+    "hashes": [
+      "14752745594157464012"
+    ]
+  },
+  {
+    "capture": "off",
+    "orders": 32,
+    "trials": 5,
+    "medianMs": 1.108,
+    "minMs": 1.08,
+    "maxMs": 1.553,
+    "hashes": [
+      "14082898863345828800"
+    ]
+  },
+  {
+    "capture": "off",
+    "orders": 256,
+    "trials": 5,
+    "medianMs": 4.091,
+    "minMs": 2.588,
+    "maxMs": 4.141,
+    "hashes": [
+      "2552012989725853787"
+    ]
+  },
+  {
+    "capture": "off",
+    "orders": 1024,
+    "trials": 5,
+    "medianMs": 10.766,
+    "minMs": 9.903,
+    "maxMs": 18.647,
+    "hashes": [
+      "14752745594157464012"
+    ]
+  }
+]

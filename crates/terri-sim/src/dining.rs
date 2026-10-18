@@ -348,15 +348,17 @@ pub(crate) fn advance(world: &mut World) {
             || world.get::<Commuting>(person).is_some()
             // A waiting order outranks the meal; the running chain's own
             // order, queued until the chain ends, does not.
-            || world.get::<ChainState>(person).is_none_or(|progress| {
-                crate::systems::chain::outranked(
-                    world.resource::<Content>().0,
-                    world.get::<IntentQueue>(person),
-                    progress.chain,
-                    |object| world.get::<SmartObject>(object).map(|placed| placed.0),
-                )
-            })
-                && !crate::reading::food_before_read(world, person)
+            || !crate::recipe_actions::continuation(world, person,
+                world.get::<ChainState>(person).is_some_and(|progress| {
+                    crate::player_actions::serving_directed_meal(world, person)
+                        || !crate::systems::chain::outranked(
+                            world.resource::<Content>().0,
+                            world.get::<IntentQueue>(person),
+                            progress.chain,
+                            |object| world.get::<SmartObject>(object).map(|placed| placed.0),
+                        )
+                }) || crate::reading::food_before_read(world, person),
+            )
         {
             continue;
         }
@@ -556,6 +558,7 @@ pub(crate) fn advance(world: &mut World) {
             .resource_mut::<SavedDining>()
             .complaints
             .sort_by_key(|(p, _)| *p);
+        crate::recipe_actions::resume(world, person);
         world.entity_mut(station).insert(Reserved);
         world.resource_mut::<SavedDining>().diners.push(diner);
         world

@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 12.14s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 1 test
+test player_actions::tests::accepted_and_canceled_capture_uses_bounded_session_history_without_affecting_continuation ... FAILED
+
+failures:
+
+---- player_actions::tests::accepted_and_canceled_capture_uses_bounded_session_history_without_affecting_continuation stdout ----
+
+thread 'player_actions::tests::accepted_and_canceled_capture_uses_bounded_session_history_without_affecting_continuation' (77916) panicked at crates\terri-sim\src\player_actions.rs:1549:9:
+assertion `left == right` failed
+  left: 0
+ right: 2048
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    player_actions::tests::accepted_and_canceled_capture_uses_bounded_session_history_without_affecting_continuation
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1554 filtered out; finished in 0.51s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

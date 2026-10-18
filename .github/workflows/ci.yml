@@ -110,7 +110,7 @@ jobs:
         with:
           node-version: 22
       - name: Test changelog generation
-        run: node --test scripts/build-changelog.test.mjs
+        run: node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs
       - name: Build the published notes
         run: node scripts/build-changelog.mjs
 

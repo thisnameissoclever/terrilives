@@ -1,0 +1,10 @@
+
+running 5 tests
+test tests::six_preview_command_tags_convert_by_meaning ... ok
+test tests::supplied_private_preview_preserves_state_and_continues_after_resave ... ignored, requires an explicitly supplied private save path
+test tests::conversion_rejects_semantically_invalid_preview ... ok
+test tests::complete_preview_requires_canonical_bytes_and_exact_header ... ok
+test tests::conversion_preserves_state_and_continues_after_resave ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 4.45s
+

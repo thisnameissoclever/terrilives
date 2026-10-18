@@ -80,6 +80,11 @@ The project `AGENTS.md`, discoverable maintenance skill and pull-request templat
 
 ## Presentation and links
 
+The header uses the approved wilted-flower logo. Its transparent light and dark
+variants follow the page's selected theme. The tab and home-screen icons share
+the same flower. Export sources and commands are documented in
+[the branding guide](../assets/branding/README.md).
+
 The owner approved the compact accordion design with both themes. Dark is the default, regardless of the device theme. The theme control saves a light or dark preference when browser storage is available. A blocked preference store does not prevent reading or switching themes. Only the newest update starts expanded. Older rows show their date and title; Expand all and Collapse all control the full history.
 
 Each update has a stable `#update-YYYY-MM-DD` link. Opening a link expands the relevant entry. `web/changelog/legacy-anchors.json` preserves the original links from before same-day consolidation; retain those aliases when changing titles or filenames. Each current filename also gets an alias automatically. New entries do not need a legacy-list addition unless an already-published filename changes.

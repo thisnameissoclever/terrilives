@@ -1,0 +1,25 @@
+✔ game resolves its icons inside the deployed project path (0.9563ms)
+✔ changelog resolves its icons inside the deployed project path (140.8477ms)
+✔ audio review resolves its icons inside the deployed project path (0.446ms)
+✔ the favicon contains real small and desktop-sized icon frames (25.5594ms)
+✔ both theme logos are transparent and have identical dimensions (53.6992ms)
+✔ newest notes come first and only the latest date starts open (21.574ms)
+✔ legacy anchors reject malformed collections and unsafe identifiers (6.0322ms)
+✔ editing, adding and deleting source notes changes the generated page (7.9827ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (7.2657ms)
+✔ literal template markers in a note cannot expand into presentation code (5.6476ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (7.4902ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.2486ms)
+✔ public notes reject development references instead of publishing them (0.2141ms)
+✔ same-day notes must be consolidated and former links reach the dated update (7.0015ms)
+✔ dark is the default even on a light system; theme choices persist and blocked storage stays usable (2.0564ms)
+✔ expand and collapse switch controls and keep keyboard focus; old links open the right update (1.5138ms)
+✔ the repository history renders and the CLI writes the same standalone page (81.0771ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 277.9008

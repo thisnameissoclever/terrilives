@@ -15,6 +15,7 @@ import { BuyTool } from '../src/ui/buy-tool.js';
 import { FloorTool } from '../src/ui/floor-tool.js';
 import { LandTool } from '../src/ui/land-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
+import { OrderDiagnostics } from '../src/ui/player-orders.js';
 import type { BuildReview } from '../src/rooms/codec.js';
 
 const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -48,7 +49,7 @@ function wiring(source: string): string {
 }
 
 class Element {
-  disabled = false; isConnected = true; open = false; returnValue = ''; textContent = '';
+  disabled = false; isConnected = true; open = false; hidden = false; returnValue = ''; textContent = '';
   listeners = new Map<string, ((event: any) => void)[]>();
   constructor(readonly doc: DocumentModel) {}
   addEventListener(type: string, fn: (event: any) => void) { this.listeners.set(type, [...this.listeners.get(type) ?? [], fn]); }
@@ -83,12 +84,16 @@ function fixture(source = main) {
   const left = vi.fn();
   const builder = new FurnitureBuilder(sim, overlayPause, { beforeEnter: () => buildSession.begin(), beforeExit: () => exit.gate(), changed, enter() {}, exit: left });
   const buildDraft = { session: buildSession, furniture: builder, tools: [wallTool, roomTool, buyTool, floorTool, landTool], pendingBookCommands: () => 0 };
+  const commandStatus = { textContent: '', setAttribute: vi.fn() };
+  const orderDiagnostics = new OrderDiagnostics(commandStatus);
+  const feedbackBubbles = new Element(document);
   const context = { RoomsTool, RoomReviewController, BuildExit, routeBuildKey, hasUnconfirmedChanges, roomSelection, roomTool, wallTool, buyTool, floorTool, landTool,
     document, canvas, builder, buildDraft, buildSession, buildBatchStatus: { textContent: '' }, confirmBuildBatch: () => buildSession.confirm(),
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
     previousFrameMs: 0, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
-    persistence: { updateAutosave() {} }, sim, commandStatus: {}, audio: { emit() {} }, bookResults: { drain() {} },
+    persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
+    orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },
     advanceFrameWithCommandFeedback: (advance: () => number, after: () => void) => { const result = advance(); after(); return result; } };
   const bound = new Function('ctx', `with(ctx) { ${wiring(source)} }`)(context) as {

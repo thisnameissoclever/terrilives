@@ -425,6 +425,8 @@ pub struct TuningFile {
     /// Optional extension; historical packs retain their existing wire records.
     #[serde(default)]
     pub autonomy: Option<crate::AutonomyTuning>,
+    /// Opinion gain toward the cook after eating a shared portion, from 0 to 1.
+    pub meal_appreciation_gain: f32,
     /// How many days each season lasts, at least 1 - [SEA-year] in
     /// `docs/specs/2026-10-17-seasons.md`.
     pub days_per_season: u32,
@@ -1599,7 +1601,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 130] = [
+    const TUNING_LINES: [(&str, &str); 131] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1632,6 +1634,7 @@ mod tests {
         ("need_bar_refresh_ms", "13"),
         ("contested_score_multiplier", "0.375"),
         ("relationship_gain_per_talk", "0.4375"),
+        ("meal_appreciation_gain", "0.01171875"),
         ("relationship_decay_per_tick", "0.001953125"),
         ("relationship_delta_scale", "0.875"),
         ("hated_communal_chance", "0.359375"),
@@ -1813,6 +1816,7 @@ mod tests {
         assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
         assert_eq!(parsed.relationship_delta_scale, 0.875);
         assert_eq!(parsed.hated_communal_chance, 0.359375);
+        assert_eq!(parsed.meal_appreciation_gain, 0.01171875);
         assert_eq!(parsed.burn_chance_novice, 0.09375);
         assert_eq!(parsed.burn_chance_master, 0.00390625);
         assert_eq!(parsed.burnt_meal_mood_penalty, 9.5);

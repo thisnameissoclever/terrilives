@@ -10,7 +10,7 @@ fn published_fifteen_dispatch_and_unpublished_room_prototype_are_distinct() {
     let mut live = SimHandle::from_lot();
     assert!(live.load_bytes(&fifteen));
     assert_eq!(live.sim.try_save_snapshot_v15().unwrap(), historical);
-    assert_eq!(&live.save_bytes()[8..10], &16u16.to_le_bytes());
+    assert_eq!(&live.save_bytes()[8..10], &17u16.to_le_bytes());
     let current = source.sim.save_snapshot_v16();
     let mut prototype = Vec::from(SAVE_MAGIC);
     prototype.extend(15u16.to_le_bytes());
@@ -46,7 +46,12 @@ fn invalid_current_request_room_and_byte_inputs_preserve_active_build_token() {
     live.tick();
     let valid = live.save_bytes();
     let snapshot = decode_current(&valid);
-    assert!(!snapshot.legacy.conversation_requests.requests.is_empty());
+    assert!(!snapshot
+        .legacy
+        .legacy
+        .conversation_requests
+        .requests
+        .is_empty());
     assert!(live.load_bytes(&valid), "positive control");
     live.sim.begin_build().unwrap();
     live.sim
@@ -66,12 +71,12 @@ fn invalid_current_request_room_and_byte_inputs_preserve_active_build_token() {
     let mut malformed = Vec::new();
     for mix_room in [false, true] {
         let mut bad = snapshot.clone();
-        bad.legacy.conversation_requests.next_id = 0;
+        bad.legacy.legacy.conversation_requests.next_id = 0;
         if mix_room {
-            bad.rooms.next_id = 0;
+            bad.legacy.rooms.next_id = 0;
         }
         let mut bytes = Vec::from(SAVE_MAGIC);
-        bytes.extend(16u16.to_le_bytes());
+        bytes.extend(17u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(&bad).unwrap());
         malformed.push(bytes);
     }
@@ -80,7 +85,7 @@ fn invalid_current_request_room_and_byte_inputs_preserve_active_build_token() {
     trailing.push(0);
     malformed.push(trailing);
     let mut future = valid;
-    future[8..10].copy_from_slice(&17u16.to_le_bytes());
+    future[8..10].copy_from_slice(&18u16.to_le_bytes());
     malformed.push(future);
     for bytes in malformed {
         assert!(!live.load_bytes(&bytes));
@@ -107,7 +112,7 @@ fn immutable_v14_pending_order_settles_before_active_build_load_baseline() {
     let tick = expected.sim.world().resource::<terri_core::SimClock>().tick;
     expected.sim.flush_commands();
     assert_eq!(expected.sim.take_build_error(), None);
-    let settled = expected.sim.save_snapshot_v16();
+    let settled = expected.sim.save_snapshot_v17();
     let mut live = SimHandle::from_lot();
     live.sim.begin_build().unwrap();
     live.sim
@@ -129,7 +134,7 @@ fn immutable_v14_pending_order_settles_before_active_build_load_baseline() {
         live.sim.world().resource::<terri_core::SimClock>().tick,
         tick
     );
-    assert_eq!(live.sim.save_snapshot_v16(), settled);
+    assert_eq!(live.sim.save_snapshot_v17(), settled);
     assert_eq!(live.sim.build_revision(), Some(0));
     let review = live
         .sim
@@ -138,7 +143,7 @@ fn immutable_v14_pending_order_settles_before_active_build_load_baseline() {
     assert_ne!(review.token.session, old.session);
     assert!(live.sim.validate_build_token(old).is_err());
     live.sim.commit_build(review.token).unwrap();
-    assert_eq!(live.sim.save_snapshot_v16(), settled);
+    assert_eq!(live.sim.save_snapshot_v17(), settled);
 }
 
 #[test]
@@ -216,7 +221,7 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
         );
         assert_eq!(projected, original, "source state changed: {name}");
         let current = game.save_bytes();
-        assert_eq!(&current[8..10], &16u16.to_le_bytes());
+        assert_eq!(&current[8..10], &17u16.to_le_bytes());
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "current adoption: {name}");
         assert_eq!(
@@ -240,28 +245,31 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
 #[test]
 fn current_room_corruption_and_bad_envelopes_do_not_replace_the_household() {
     let game = SimHandle::from_lot();
-    let original = game.sim.save_snapshot_v16();
+    let original = game.sim.save_snapshot_v17();
     let mut candidates = vec![];
     let mut bad = original.clone();
-    bad.rooms.records.push(bad.rooms.records[0].clone());
+    bad.legacy
+        .rooms
+        .records
+        .push(bad.legacy.rooms.records[0].clone());
     candidates.push(bad);
     let mut bad = original.clone();
-    bad.rooms.records.remove(0);
+    bad.legacy.rooms.records.remove(0);
     candidates.push(bad);
     let mut bad = original.clone();
-    bad.rooms.records[0].anchor = Some((999, 999));
+    bad.legacy.rooms.records[0].anchor = Some((999, 999));
     candidates.push(bad);
     let mut bad = original.clone();
-    bad.rooms.next_id = 1;
+    bad.legacy.rooms.next_id = 1;
     candidates.push(bad);
     let mut bad = original.clone();
-    bad.rooms.next_default_name = 0;
+    bad.legacy.rooms.next_default_name = 0;
     candidates.push(bad);
     for snapshot in candidates {
         let mut live = SimHandle::from_lot();
         let before = live.save_bytes();
         let mut bytes = Vec::from(SAVE_MAGIC);
-        bytes.extend(16u16.to_le_bytes());
+        bytes.extend(17u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(&snapshot).unwrap());
         assert!(!live.load_bytes(&bytes));
         assert_eq!(live.save_bytes(), before);
@@ -272,7 +280,7 @@ fn current_room_corruption_and_bad_envelopes_do_not_replace_the_household() {
     let mut truncated = current.clone();
     truncated.pop();
     let mut future = current.clone();
-    future[8..10].copy_from_slice(&17u16.to_le_bytes());
+    future[8..10].copy_from_slice(&18u16.to_le_bytes());
     for bad in [trailing, truncated, future] {
         let mut live = SimHandle::from_lot();
         let before = live.save_bytes();
@@ -285,9 +293,9 @@ fn current_room_corruption_and_bad_envelopes_do_not_replace_the_household() {
 fn blank_current_lots_do_not_inherit_authored_architecture_or_portals() {
     for (width, height) in [(1, 1), (6, 4), (20, 16)] {
         let source = SimHandle::new(width, height);
-        let saved = source.sim.save_snapshot_v16();
-        assert_eq!(saved.legacy.legacy.legacy.lot_frame, None);
-        assert!(saved.rooms.records.is_empty());
+        let saved = source.sim.save_snapshot_v17();
+        assert_eq!(saved.legacy.legacy.legacy.legacy.lot_frame, None);
+        assert!(saved.legacy.rooms.records.is_empty());
         let bytes = source.save_bytes();
         let mut restored = SimHandle::from_lot();
         assert!(restored.load_bytes(&bytes), "blank {width}x{height}");
@@ -383,8 +391,9 @@ fn review_queued_outside_commands_load_and_unknown_room_commands_refuse_atomical
         let mut live = SimHandle::from_lot();
         assert!(live.load_bytes(&bytes));
         assert_eq!(live.save_bytes(), bytes);
-        let mut bad = source.sim.save_snapshot_v16();
+        let mut bad = source.sim.save_snapshot_v17();
         let commands = &mut bad
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -401,7 +410,7 @@ fn review_queued_outside_commands_load_and_unknown_room_commands_refuse_atomical
             _ => unreachable!(),
         }
         let mut bad_bytes = Vec::from(SAVE_MAGIC);
-        bad_bytes.extend(16u16.to_le_bytes());
+        bad_bytes.extend(17u16.to_le_bytes());
         bad_bytes.extend(postcard::to_allocvec(&bad).unwrap());
         assert!(!live.load_bytes(&bad_bytes));
         assert_eq!(live.save_bytes(), bytes);

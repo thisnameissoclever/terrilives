@@ -644,7 +644,12 @@ mod tests {
             sim.flush_commands();
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-            loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+            let saved = sim.save_snapshot_v17();
+            loaded.load_snapshot_v17(saved.clone()).unwrap();
+            super::super::lifecycle_tests::assert_v17_projection(
+                &saved,
+                &loaded.save_snapshot_v17(),
+            );
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         assert!(!super::super::keys(sim.world()).contains(&key));

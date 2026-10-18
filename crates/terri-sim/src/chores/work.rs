@@ -1,8 +1,8 @@
 use super::{add, value};
 use bevy_ecs::prelude::*;
 use terri_core::{
-    chores::*, Agent, AtWork, ChainState, Commuting, Eating, Intent, IntentQueue, Needs, Path,
-    Position, SimClock, SmartObject, Socialising, Target, TileGrid,
+    chores::*, Agent, AtWork, ChainState, Commuting, Eating, IntentQueue, Needs, Path, Position,
+    SimClock, SmartObject, Socialising, Target, TileGrid,
 };
 
 pub(crate) fn key_valid(world: &World, key: ChoreKey) -> bool {
@@ -73,6 +73,18 @@ pub(super) fn may_release_path(world: &World, person: Entity) -> bool {
 }
 
 pub(crate) fn cancel(world: &mut World, person: Entity) {
+    if world.get_resource::<SavedChores>().is_some_and(|s| {
+        s.tasks.iter().any(|t| t.person == person.index_u32())
+            || s.dish_started.iter().any(|(p, _)| *p == person.index_u32())
+    }) {
+        crate::player_actions::terminal_transferred(
+            world,
+            person,
+            true,
+            "canceled",
+            Some("Chore replaced by another activity"),
+        );
+    }
     super::grime::forget(world, person.index_u32());
     if let Some(mut state) = world.get_resource_mut::<SavedChores>() {
         state.tasks.retain(|t| t.person != person.index_u32());
@@ -337,26 +349,46 @@ pub(crate) fn activate(world: &mut World, person: Entity, id: u32) {
                 })
             }));
         if contended {
-            if world.get::<IntentQueue>(person).is_none() {
-                world.entity_mut(person).insert(IntentQueue::default());
-            }
-            world
-                .get_mut::<IntentQueue>(person)
-                .unwrap()
-                .push_front(Intent {
-                    object: person,
-                    interaction: 0,
-                    cleanup: None,
-                    chore: Some(id),
-                });
+            crate::player_actions::requeue_transferred(world, person, id);
         } else {
             let prior = state
                 .tasks
                 .iter()
                 .find(|t| t.person == person.index_u32())
                 .cloned();
+            if prior.is_some() {
+                let previous: Vec<_> = world
+                    .get_resource::<crate::player_actions::PlayerActions>()
+                    .map_or_else(Vec::new, |s| {
+                        s.orders
+                            .iter()
+                            .filter(|((actor, _), s)| {
+                                *actor == person
+                                    && s.active
+                                    && s.entry.intent.chore.is_some_and(|old| old != id)
+                            })
+                            .map(|((_, id), _)| *id)
+                            .collect()
+                    });
+                for id in previous {
+                    crate::player_actions::terminal(
+                        world,
+                        person,
+                        id,
+                        "canceled",
+                        Some("Chore replaced by a new chore"),
+                    );
+                }
+            }
             state.tasks.retain(|t| t.person != person.index_u32());
             if !start(world, &mut state, person, order.key, true) {
+                crate::player_actions::terminal_transferred(
+                    world,
+                    person,
+                    true,
+                    "failed",
+                    Some("Chore unavailable or unreachable"),
+                );
                 if let Some(prior) = prior {
                     state.tasks.push(prior);
                     state.tasks.sort_by_key(|t| t.person);
@@ -439,6 +471,9 @@ fn busy(world: &World, person: Entity) -> bool {
         || world.get::<Target>(person).is_some()
         || world.get::<Eating>(person).is_some()
         || world.get::<Socialising>(person).is_some()
+        || world
+            .try_query::<&Socialising>()
+            .is_some_and(|mut q| q.iter(world).any(|talk| talk.partner == person))
         || world.get::<AtWork>(person).is_some()
         || world.get::<Commuting>(person).is_some()
         || world.get::<ChainState>(person).is_some()
@@ -493,22 +528,37 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
                         .mood_critical_need_level
             })
         });
+        let incoming_waits = world
+            .get_resource::<crate::social_episode::SocialEpisodes>()
+            .is_some_and(|s| s.rendezvous.contains_key(&person))
+            && !world
+                .get::<crate::player_actions::FrontOrder>(person)
+                .is_some_and(|front| {
+                    world.get::<IntentQueue>(person).is_some_and(|queue| {
+                        queue
+                            .entries()
+                            .first()
+                            .is_some_and(|entry| entry.id == front.0)
+                    })
+                });
         if contended
             || busy(world, person)
             || (!task.directed && urgent)
-            || world
-                .get::<IntentQueue>(person)
-                .and_then(IntentQueue::front)
-                .is_some_and(|order| {
-                    let queued_chain = world.get::<SmartObject>(order.object).and_then(|placed| {
-                        crate::systems::chain::ordered_chain(
-                            world.resource::<crate::Content>().0,
-                            placed.0,
-                            order.interaction,
-                        )
-                    });
-                    !(task.directed && (order.cleanup.is_some() || queued_chain.is_some()))
-                })
+            || (!incoming_waits
+                && world
+                    .get::<IntentQueue>(person)
+                    .and_then(IntentQueue::front)
+                    .is_some_and(|order| {
+                        let queued_chain =
+                            world.get::<SmartObject>(order.object).and_then(|placed| {
+                                crate::systems::chain::ordered_chain(
+                                    world.resource::<crate::Content>().0,
+                                    placed.0,
+                                    order.interaction,
+                                )
+                            });
+                        !(task.directed && (order.cleanup.is_some() || queued_chain.is_some()))
+                    }))
         {
             if !task.suspended && may_release_path(world, person) {
                 world.entity_mut(person).remove::<Path>();
@@ -676,6 +726,21 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
         }
         state.tasks.retain(|t| t.person != person);
         if let Some(entity) = crate::dining::entity(world, person) {
+            crate::player_actions::terminal_transferred(
+                world,
+                entity,
+                true,
+                if credit.is_some() {
+                    "completed"
+                } else {
+                    "failed"
+                },
+                if credit.is_some() {
+                    None
+                } else {
+                    Some("Chore target unavailable")
+                },
+            );
             world.entity_mut(entity).remove::<ChoreWork>();
             if may_release_path(world, entity) {
                 world.entity_mut(entity).remove::<Path>();

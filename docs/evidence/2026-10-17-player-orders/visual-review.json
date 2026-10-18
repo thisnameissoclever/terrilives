@@ -1,0 +1,19 @@
+{
+  "method": "Independent inspection of original screenshots, separate from behavioral test traces",
+  "finalGroups": [
+    {"files": "final-facing-{1,2,3,4}-{normal,large}.png", "verdict": "accept", "finding": "All eight keep the bubble above Casey without body obstruction or attachment to the close neighbor."},
+    {"files": ["final-desktop-exercising-failure.png", "final-desktop-sleeping-failure.png"], "verdict": "accept", "finding": "Bubble clears Bill's lowered exercise head and his head at the pillow."},
+    {"files": ["final-desktop-incoming.png", "final-phone-incoming.png", "final-production-incoming.png"], "verdict": "accept", "finding": "Current action precedes legible Incoming direction and counterpart."},
+    {"files": ["final-desktop-work-warning.png", "final-phone-work-warning.png"], "verdict": "accept", "finding": "Both names, hours, consequences and decision buttons fit without clipping."},
+    {"files": ["final-desktop-attendance.png"], "verdict": "accept", "finding": "Worked and missed minutes, deduction, score and earnings are readable."},
+    {"files": ["final-phone-failure.png"], "verdict": "accept", "finding": "Complete squiggle above Casey and readable reason."},
+    {"files": ["final-phone-controls-layer.png"], "verdict": "accept for control layering", "finding": "Controls cover the lower world bubble and retain clear labels; this frame does not show the entire bubble."}
+  ],
+  "blindComparisons": [
+    {"file": "review-card-p.png", "verdict": "accept"},
+    {"file": "review-card-q.png", "verdict": "reject", "reason": "Missing squiggle above the initiating Sim"},
+    {"file": "comparison-47.png", "verdict": "accept"},
+    {"file": "comparison-28.png", "verdict": "reject", "reason": "Missing squiggle above the initiating Sim"}
+  ],
+  "scope": "The independent image reviewer did not verify runtime event traces, timing measurements or page-error counts. Those have separate receipts."
+}

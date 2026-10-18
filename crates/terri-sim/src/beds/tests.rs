@@ -368,6 +368,10 @@ fn preferred_beds_preserve_safer_sleep_alternatives_and_other_needs() {
 #[test]
 fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflicting_rows() {
     let (mut sim, bed, [first, second, _]) = fixture();
+    let mut pack = sim.world().resource::<crate::Content>().0.clone();
+    pack.reading = terri_data::pack().reading;
+    sim.world_mut()
+        .insert_resource(crate::Content(Box::leak(Box::new(pack))));
     crate::test_content::assert_current_admission(&sim);
     order(&mut sim, first, bed, 0);
     order(&mut sim, second, bed, 1);

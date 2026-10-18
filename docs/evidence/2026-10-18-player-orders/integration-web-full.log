@@ -1,0 +1,155 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ ❯ tests/main-build-wiring.test.ts (21 tests | 7 failed) 572ms
+   × blocks real wall staging for overlay=false review=false 21ms
+   × blocks real wall staging for overlay=true review=false 13ms
+   × blocks real wall staging for overlay=false review=true 19ms
+   × blocks real wall staging for overlay=true review=true 20ms
+   × rejects the isolated M4 review blocker defect through a behavioral assertion 15ms
+   × rejects the isolated M5 overlay blocker defect through a behavioral assertion 13ms
+   × rejects the isolated M6 always blocked defect through a behavioral assertion 21ms
+ ❯ tests/save-worker.test.ts (143 tests | 4 failed) 663ms
+     × preserves complete V14 fresh recovery bytes before writing a real current save 78ms
+     × preserves complete V14 lived recovery bytes before writing a real current save 14ms
+     × preserves complete V14 cleaning-ordered recovery bytes before writing a real current save 5ms
+     × preserves complete V14 outdoor-boards recovery bytes before writing a real current save 5ms
+ ❯ tests/door-audio-bridge.test.ts (1 test | 1 failed) 783ms
+   × real household crossings emit physical door events after WASM growth without changing saves 763ms
+ ❯ tests/builder.test.ts (25 tests | 2 failed) 313ms
+   × waits for the drained result and refreshes a moved object on lot revision 6ms
+   × does not take an earlier move for a colour change on its way 12ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/builder.test.ts > waits for the drained result and refreshes a moved object on lot revision
+AssertionError: expected 'Placing furniture…' to be 'Placing furnitureÃ¢â‚¬Â¦' // Object.is equality
+
+Expected: "Placing furnitureÃ¢â‚¬Â¦"
+Received: "Placing furniture…"
+
+ ❯ tests/builder.test.ts:187:26
+    185|   expect(builder.confirm()).toBe(true);
+    186|   expect(builder.pending).toBe(true);
+    187|   expect(builder.status).toBe('Placing furnitureÃ¢â‚¬Â¦');
+       |                          ^
+    188|   expect(source.lotRevision()).toBe(before);
+    189|   expect(builder.confirm()).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/builder.test.ts > does not take an earlier move for a colour change on its way
+AssertionError: expected [ 1, true, 'Recolouring…' ] to deeply equal [ 1, true, 'RecolouringÃ¢â‚¬Â¦' ]
+
+- Expected
++ Received
+
+  [
+    1,
+    true,
+-   "RecolouringÃ¢â‚¬Â¦",
++   "Recolouring…",
+  ]
+
+ ❯ tests/builder.test.ts:530:6
+    528|   source.flushCommands(); builder.afterCommands();
+    529|   expect([builder.colourway, builder.pending, builder.status])
+    530|     .toEqual([1, true, 'RecolouringÃ¢â‚¬Â¦']);
+       |      ^
+    531|   builder.select(22);
+    532|   expect(builder.selected).toBe(15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/door-audio-bridge.test.ts > real household crossings emit physical door events after WASM growth without changing saves
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/door-audio-bridge.test.ts:43:83
+     41|     ]);
+     42|     expect(events.some(event => 'doorId' in event && event.doorId === …
+     43|     expect(events.some(event => 'doorId' in event && event.doorId === …
+       |                                                                                   ^
+     44|     expect(events.some(event => 'doorId' in event && event.doorId === …
+     45|     expect(scheduler.activeTrackCount()).toBe(6);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/main-build-wiring.test.ts > blocks real wall staging for overlay=false review=false
+ FAIL  tests/main-build-wiring.test.ts > blocks real wall staging for overlay=true review=false
+ FAIL  tests/main-build-wiring.test.ts > blocks real wall staging for overlay=false review=true
+ FAIL  tests/main-build-wiring.test.ts > blocks real wall staging for overlay=true review=true
+ReferenceError: orderDiagnostics is not defined
+ ❯ Object.blockedFrame tests/main-build-wiring.test.ts:94:17
+     92|     selectionControls: undefined, reviewControls: undefined, toolSwitc…
+     93|     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isS…
+     94|     previousFrameMs: 0, syncSystemLighting() {}, driver: {}, frameSimu…
+       |                 ^
+     95|     persistence: { updateAutosave() {} }, sim, commandStatus, audio: {…
+     96|     orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, …
+ ❯ blockingScenario tests/main-build-wiring.test.ts:201:7
+ ❯ tests/main-build-wiring.test.ts:209:145
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/main-build-wiring.test.ts > rejects the isolated M4 review blocker defect through a behavioral assertion
+ FAIL  tests/main-build-wiring.test.ts > rejects the isolated M5 overlay blocker defect through a behavioral assertion
+ FAIL  tests/main-build-wiring.test.ts > rejects the isolated M6 always blocked defect through a behavioral assertion
+AssertionError: expected ReferenceError: orderDiagnostics is not d… to match object { name: 'AssertionError' }
+
+- Expected
++ Received
+
+- {
+-   "name": "AssertionError",
++ ReferenceError {
++   "message": "orderDiagnostics is not defined",
+  }
+
+ ❯ tests/main-build-wiring.test.ts:231:19
+    230|   ['M6 always blocked', "wallTool.setBlocked(overlayPause.suspendedExc…
+    231| ] as const;
+    232| it.each(faults)('rejects the isolated %s defect through a behavioral a…
+       |       ^
+    233|   expect(main.split(before)).toHaveLength(2);
+    234|   try { scenario(main.replace(before, after)); throw Error('Fault surv…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 fresh recovery bytes before writing a real current save
+ FAIL  tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 lived recovery bytes before writing a real current save
+ FAIL  tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 cleaning-ordered recovery bytes before writing a real current save
+ FAIL  tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 outdoor-boards recovery bytes before writing a real current save
+AssertionError: expected 17 to be 16 // Object.is equality
+
+- Expected
++ Received
+
+- 16
++ 17
+
+ ❯ tests/save-worker.test.ts:466:105
+    464|         expect(sim.load_bytes(previous)).toBe(true);
+    465|         const current = sim.save_bytes();
+    466|         expect(new DataView(current.buffer, current.byteOffset, curren…
+       |                                                                                                         ^
+    467|         const slot = await workerSlot(previous);
+    468|         expect(await slot.request('save', current)).toMatchObject({ ok…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+
+ Test Files  4 failed | 270 passed (274)
+      Tests  14 failed | 3755 passed (3769)
+   Start at  09:21:36
+   Duration  839.52s (transform 10.24s, setup 2.16s, import 74.26s, tests 735.90s, environment 16ms)
+

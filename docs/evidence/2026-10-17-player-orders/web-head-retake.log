@@ -1,0 +1,27 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/character-head-visible-parts.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ ✓ tests/character-head-visible-parts.test.ts > retains the original compact selector independently of the prepared-rig selector 1ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected curl heads through eyes, wear and grip masks 12817ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected bob heads through eyes, wear and grip masks 23404ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected wave heads through eyes, wear and grip masks 18664ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected crop heads through eyes, wear and grip masks 13365ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected quiff heads through eyes, wear and grip masks 12688ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected bald heads through eyes, wear and grip masks 11335ms
+ ✓ tests/character-head-visible-parts.test.ts > preserves first insertion tie order and last selected part metadata for shared indices 1ms
+ ✓ tests/character-head-visible-parts.test.ts > filters shared-vertex normal adjacency to the selected triangles 1ms
+ ✓ tests/character-head-visible-parts.test.ts > reuses immutable masks, preserves them through configure, and restores all parts with undefined 1ms
+ ✓ tests/character-head-visible-parts.test.ts > uses selected region metadata and still respects hidden bone flags 1ms
+ ✓ tests/character-head-visible-parts.test.ts > reuses exact head results when only unrelated limb matrices change 0ms
+ ✓ tests/character-head-visible-parts.test.ts > invalidates head results for visibility, direct-normal dependencies, and signed zero 1ms
+ ✓ tests/character-head-visible-parts.test.ts > invalidates prepared head dependencies when the configured surface changes 0ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  15:11:02
+   Duration  93.48s (transform 508ms, setup 62ms, import 1.03s, tests 92.28s, environment 0ms)
+

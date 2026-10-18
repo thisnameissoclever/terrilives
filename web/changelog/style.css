@@ -31,6 +31,11 @@ button { font: inherit; cursor: pointer; color: var(--text); }
 .site-header { border-bottom: 1px solid var(--edge); }
 nav { max-width: 1280px; min-height: 84px; margin: auto; padding: 16px 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { font-family: 'Arial Narrow', 'Segoe UI', sans-serif; color: var(--text); font-size: 27px; font-weight: 750; letter-spacing: -1px; text-decoration: none; line-height: 1.2; }
+.brand { display: block; width: 190px; flex: 0 0 auto; }
+.brand-logo { display: block; width: 100%; height: auto; }
+.brand-logo-light { display: none; }
+:root[data-theme='light'] .brand-logo-dark { display: none; }
+:root[data-theme='light'] .brand-logo-light { display: block; }
 .nav-actions { display: flex; align-items: center; gap: 28px; }
 .play-link { display: grid; place-items: center; min-height: 44px; padding: 9px 24px; font-size: 15px; font-weight: 600; text-decoration: none; border: 1px solid var(--accent); border-radius: 7px; }
 .play-link:hover { background: var(--hover); }
@@ -80,7 +85,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16
 @media (max-width: 700px) {
   nav { padding: 16px 24px; }
   .nav-actions { gap: 16px; }
-  .brand { font-size: 24px; }
+  .brand { width: 170px; }
   main { padding: 36px 24px 28px; }
   .entry-heading { display: block; }
   details:not([open]) h2 { border: 0; padding: 0; margin-top: 5px; }
@@ -88,7 +93,7 @@ footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16
 @media (max-width: 480px) {
   body { font-size: 16px; }
   nav { display: grid; grid-template-columns: 1fr auto; gap: 12px 8px; padding: 16px 20px; }
-  .brand { font-size: 24px; }
+  .brand { width: min(160px, 100%); }
   .nav-actions { display: contents; }
   #theme-toggle { min-width: 96px; }
   .play-link { grid-column: 1 / -1; width: 100%; }

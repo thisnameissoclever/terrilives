@@ -680,13 +680,13 @@ pub(crate) fn tick(world: &mut World) {
                     world.resource_mut::<SavedDomestic>().meals[meal]
                         .claimed
                         .push(id.0);
-                    let (mut progress, origin) =
+                    let (mut progress, origin, activity) =
                         crate::recipe_actions::internal(world.resource::<Content>().0, chain);
                     progress.fumble_scale = world.resource::<SavedDomestic>().meals[meal].scale;
                     world
                         .entity_mut(person)
                         .remove::<Path>()
-                        .insert((progress, origin));
+                        .insert((progress, origin, activity));
                     continue;
                 }
             }
@@ -874,18 +874,23 @@ pub(crate) fn gather_diners(world: &mut World) {
             // dinner. The running chain's own order, queued until the chain ends, is
             // not a waiting order.
             if target.is_some_and(|target| target.interaction != crate::systems::chain::CHAIN_STEP)
-                || world.get::<ChainState>(*person).is_none_or(|chain| {
-                    crate::systems::chain::outranked(
-                        pack,
-                        world.get::<IntentQueue>(*person),
-                        chain.chain,
-                        |object| {
-                            world
-                                .get::<terri_core::SmartObject>(object)
-                                .map(|placed| placed.0)
-                        },
-                    )
-                })
+                || !crate::recipe_actions::continuation(
+                    world,
+                    *person,
+                    world.get::<ChainState>(*person).is_some_and(|chain| {
+                        crate::player_actions::serving_directed_meal(world, *person)
+                            || !crate::systems::chain::outranked(
+                                pack,
+                                world.get::<IntentQueue>(*person),
+                                chain.chain,
+                                |object| {
+                                    world
+                                        .get::<terri_core::SmartObject>(object)
+                                        .map(|placed| placed.0)
+                                },
+                            )
+                    }),
+                )
                 || world.get::<AtWork>(*person).is_some()
                 || world.get::<Commuting>(*person).is_some()
             {
@@ -1153,6 +1158,8 @@ pub(crate) fn completed(
                 .find(|meal| meal.claimed.contains(&id.0) && !meal.eaten.contains(&id.0))
             {
                 meal.eaten.push(id.0);
+                let cook = SimId(meal.cook);
+                appreciate_meal(world, person, id, cook, pack.tuning.meal_appreciation_gain);
             }
         }
         let Some(needs) = world.get::<Needs>(person).cloned() else {
@@ -1200,6 +1207,22 @@ pub(crate) fn completed(
         }
         crate::dining::maintain(world);
     }
+}
+
+fn appreciate_meal(world: &mut World, person: Entity, eater: SimId, cook: SimId, gain: f32) {
+    if eater == cook || gain == 0.0 {
+        return;
+    }
+    if crate::edit::living_entity(world, cook.0).is_none() {
+        return;
+    }
+    crate::relationship_effects::record_opinion_change(
+        world,
+        cook.0,
+        person,
+        gain,
+        crate::relationship_effects::RelationshipCause::MealShared,
+    );
 }
 
 pub(crate) fn wash_ticks(state: &SavedDomestic, person: u32, base: u32, per_unit: u32) -> u32 {

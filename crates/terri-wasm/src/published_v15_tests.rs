@@ -145,10 +145,38 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let original = decode(bytes);
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let migrated = decode_current(&source.save_bytes());
+        let migrated = decode_current(&source.save_bytes()).legacy;
+        let mut expected_requests = original.conversation_requests.clone();
+        if name == "chat-talking-later-identical" {
+            use terri_core::save_v15::{
+                SavedConversationOrigin, SavedConversationPhase, SavedConversationRequest,
+            };
+            assert_eq!(expected_requests.next_id, 2);
+            expected_requests.requests.push(SavedConversationRequest {
+                id: 2,
+                initiator: 1,
+                recipient: 0,
+                interaction: "chat".into(),
+                origin: SavedConversationOrigin::Player { order_id: 1 },
+                created: 219,
+                phase: SavedConversationPhase::Suspended,
+                waiting_tile: None,
+                target_owned: false,
+            });
+            expected_requests.next_id = 3;
+        }
         assert_eq!(
-            migrated.legacy.conversation_requests, original.conversation_requests,
-            "{name} requests"
+            postcard::to_allocvec(
+                &migrated.legacy.conversation_requests.requests
+                    [..original.conversation_requests.requests.len()]
+            )
+            .unwrap(),
+            postcard::to_allocvec(&original.conversation_requests.requests).unwrap(),
+            "{name} preserves every original published request byte"
+        );
+        assert_eq!(
+            migrated.legacy.conversation_requests, expected_requests,
+            "{name} exact requests and allocator"
         );
         assert_eq!(
             six(&migrated.legacy).queues,
@@ -200,7 +228,14 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
     for (name, bytes) in fixtures() {
         let mut expected = SimHandle::from_lot();
         assert!(expected.load_bytes(bytes));
-        expected.sim.flush_commands();
+        if !expected
+            .sim
+            .world()
+            .resource::<terri_core::CommandQueue>()
+            .is_empty()
+        {
+            expected.sim.flush_commands();
+        }
         assert_eq!(expected.sim.take_build_error(), None);
         let settled = expected.save_bytes();
         let mut live = SimHandle::from_lot();
@@ -260,10 +295,10 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
             assert_eq!(live.sim.validate_build_token(token), Ok(()));
         }
         live.sim.commit_build(token).unwrap();
-        assert_eq!(
-            decode_current(&live.save_bytes()).legacy,
-            decode_current(&settled).legacy
-        );
+        let mut committed = decode_current(&live.save_bytes());
+        let baseline = decode_current(&settled);
+        committed.legacy.rooms = baseline.legacy.rooms.clone();
+        assert_eq!(committed, baseline, "only the confirmed room name changes");
         let confirmed = live.save_bytes();
         live.sim
             .stage_room_name(
@@ -278,4 +313,232 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
         live.sim.end_build().unwrap();
         assert_eq!(live.save_bytes(), settled);
     }
+}
+
+#[test]
+fn authentic_published_player_phases_are_visible_while_paused_without_observation() {
+    use terri_core::save_v15::{SavedConversationOrigin, SavedConversationPhase};
+    for (name, expected_phase) in [
+        ("chat-approaching", "approaching"),
+        ("chat-waiting-owned", "waiting"),
+        ("chat-waiting-arrived", "waiting"),
+        ("chat-talking-later-identical", "running"),
+    ] {
+        let bytes = fixtures()
+            .into_iter()
+            .find(|(fixture, _)| *fixture == name)
+            .unwrap()
+            .1;
+        let published = decode(bytes);
+        let request = published
+            .conversation_requests
+            .requests
+            .iter()
+            .find(|request| {
+                matches!(
+                    request.origin,
+                    SavedConversationOrigin::Player { order_id: 0 }
+                )
+            })
+            .expect("authentic fixture retains its first player request");
+        let frozen = six(&published);
+        let actor = frozen
+            .legacy
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.sim_id == Some(request.initiator))
+            .unwrap()
+            .index;
+        let recipient = frozen
+            .legacy
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.sim_id == Some(request.recipient))
+            .unwrap()
+            .index;
+        let mut source = SimHandle::from_lot();
+        assert!(source.load_bytes(bytes), "authentic {name}");
+        let before = source.sim.save_snapshot_v17();
+        let world = &before
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .world;
+        assert_eq!(world.tick, frozen.legacy.world.tick);
+        assert_eq!(world.rng, frozen.legacy.world.rng);
+        assert!(source.sim.action_events_since(0).events.is_empty());
+        let own = source.sim.action_queue_rows_of(actor, 20);
+        let exact: Vec<_> = own.iter().filter(|row| row.order_id == Some(0)).collect();
+        assert_eq!(exact.len(), 1, "{name} has one exact initiator card");
+        assert_eq!(exact[0].phase, expected_phase, "{name} initiator phase");
+        assert_eq!(exact[0].role, "initiator");
+        let received = source.sim.action_queue_rows_of(recipient, 20);
+        let incoming = received
+            .iter()
+            .find(|row| {
+                row.order_id == Some(0) && row.counterpart == Some(actor) && row.role == "incoming"
+            })
+            .expect("recipient retains exact incoming order identity");
+        assert_eq!(incoming.phase, expected_phase, "{name} incoming phase");
+        if name == "chat-talking-later-identical" {
+            let future = own
+                .iter()
+                .filter(|row| row.order_id == Some(1))
+                .collect::<Vec<_>>();
+            assert_eq!(future.len(), 1);
+            assert_eq!(future[0].phase, "queued");
+            let mirror = before
+                .legacy
+                .legacy
+                .conversation_requests
+                .requests
+                .iter()
+                .find(|request| request.origin == SavedConversationOrigin::Player { order_id: 1 })
+                .unwrap();
+            assert_eq!(mirror.phase, SavedConversationPhase::Suspended);
+            assert!(!mirror.target_owned);
+            assert_eq!(
+                before
+                    .social_executions
+                    .iter()
+                    .filter(|row| row.initiator == actor)
+                    .count(),
+                1
+            );
+            assert_eq!(
+                before
+                    .social_executions
+                    .iter()
+                    .find(|row| row.initiator == actor)
+                    .unwrap()
+                    .order_id,
+                Some(0)
+            );
+        }
+        assert_eq!(
+            source.sim.save_snapshot_v17(),
+            before,
+            "paused queries are pure"
+        );
+        assert!(source.sim.action_events_since(0).events.is_empty());
+        source.sim.load_snapshot_v17(before.clone()).unwrap();
+        assert_eq!(
+            source.sim.save_snapshot_v17(),
+            before,
+            "current metadata is authoritative"
+        );
+        assert!(source.sim.action_events_since(0).events.is_empty());
+    }
+}
+
+#[test]
+fn build_input_preserves_exact_published_waiting_phases_and_session_history() {
+    let bytes = fixtures()
+        .into_iter()
+        .find(|(name, _)| *name == "chat-waiting-owned")
+        .unwrap()
+        .1;
+    let published = decode(bytes);
+    let actor = six(&published)
+        .legacy
+        .world
+        .entities
+        .iter()
+        .find(|entity| entity.sim_id == Some(1))
+        .unwrap()
+        .index;
+    let mut live = SimHandle::from_lot();
+    assert!(live.load_bytes(bytes));
+    let cards = |instance: &SimHandle| {
+        instance
+            .sim
+            .action_queue_rows_of(actor, 20)
+            .into_iter()
+            .map(|row| (row.order_id, row.phase, row.role, row.counterpart))
+            .collect::<Vec<_>>()
+    };
+    let initial_cards = cards(&live);
+    assert_eq!(initial_cards[0].0, Some(0));
+    assert_eq!(initial_cards[0].1, "waiting");
+    let baseline = live.save_bytes();
+    let tick = live.sim.world().resource::<terri_core::SimClock>().tick;
+    let random = live.sim.world().resource::<terri_core::SimRng>().clone();
+    let history_cursor = live.sim.action_events_since(0).next_cursor;
+    assert!(live.sim.action_events_since(0).events.is_empty());
+    live.sim.begin_build().unwrap();
+    live.sim.flush_commands();
+    live.sim.tick();
+    assert_eq!(
+        cards(&live),
+        initial_cards,
+        "empty Build drains preserve waiting metadata"
+    );
+    let doorway = live
+        .sim
+        .world()
+        .resource::<terri_core::layout::SavedLayout>()
+        .edges()
+        .iter()
+        .copied()
+        .find(|edge| edge.doorway)
+        .expect("authentic house has an indoor doorway");
+    for state in [
+        terri_core::layout::WallState::Open,
+        terri_core::layout::WallState::Doorway,
+    ] {
+        live.sim
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::SetWallEdge {
+                axis: doorway.axis,
+                x: doorway.x,
+                y: doorway.y,
+                state,
+            });
+        live.sim.flush_commands();
+        assert_eq!(live.sim.take_build_error(), None);
+        assert!(live
+            .sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_wall_result
+            .unwrap()
+            .reason
+            .is_none());
+        assert_eq!(
+            cards(&live),
+            initial_cards,
+            "provisional walls preserve order metadata"
+        );
+        assert_eq!(live.save_bytes(), baseline);
+    }
+    let token = live
+        .sim
+        .prepare_build_commit(terri_sim::rooms::RoomChoices::default())
+        .unwrap()
+        .token;
+    live.sim.flush_commands();
+    live.sim.tick();
+    assert_eq!(live.sim.validate_build_token(token), Ok(()));
+    assert_eq!(cards(&live), initial_cards);
+    assert_eq!(live.save_bytes(), baseline);
+    assert_eq!(
+        live.sim.world().resource::<terri_core::SimClock>().tick,
+        tick
+    );
+    assert_eq!(live.sim.world().resource::<terri_core::SimRng>(), &random);
+    let history = live.sim.action_events_since(0);
+    assert_eq!(history.next_cursor, history_cursor);
+    assert!(history.events.is_empty());
+    live.sim.cancel_build().unwrap();
+    assert_eq!(cards(&live), initial_cards);
+    assert_eq!(live.save_bytes(), baseline);
 }

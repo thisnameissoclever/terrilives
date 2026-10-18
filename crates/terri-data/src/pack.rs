@@ -1173,6 +1173,8 @@ pub struct Tuning {
     /// Optional extension; historical packs retain their existing wire records.
     #[serde(default)]
     pub autonomy: Option<crate::AutonomyTuning>,
+    /// Appreciation after a shared portion; appended for issue 275.
+    pub meal_appreciation_gain: f32,
 }
 
 impl Tuning {
@@ -2083,6 +2085,7 @@ mod tests {
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
             autonomy: None,
+            meal_appreciation_gain: 0.0,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -2850,8 +2853,9 @@ mod tests {
     /// balance values, which precede the four bytes of
     /// `hated_communal_chance`, the fourteen of the burnt-meal knobs, the
     /// eighteen of the fight knobs, the four of the land knobs, the
-    /// ninety-five of the career knobs and the final fifty of the season
-    /// knobs; every established field stays put.
+    /// ninety-five of the career knobs and the fifty of the season knobs,
+    /// followed by optional autonomy and the meal-appreciation float;
+    /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2865,8 +2869,16 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // The optional autonomy extension appends one None marker.
-        let historical_end = before.len() - 1;
+        // Optional autonomy adds a None marker; appreciation follows with four bytes.
+        let historical_end = before.len() - 5;
+        assert_eq!(&before[before.len() - 4..], &0.0f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                meal_appreciation_gain: 0.1875,
+                ..a_tuning()
+            }),
+            vec![before.len() - 2, before.len() - 1]
+        );
         assert_eq!(before[historical_end], 0);
         // Seasons (issue 251): the three season knobs are the preceding fifty
         // bytes: the season length as a one-byte varint (5), the first

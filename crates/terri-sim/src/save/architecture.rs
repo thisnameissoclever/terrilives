@@ -278,7 +278,11 @@ fn restore_v4_with_dining(
     dining: Option<&terri_core::save::SavedDining>,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
-    super::meal_migration::validate_source(&snapshot.world, content)?;
+    super::meal_migration::validate_source_with_actor_refs(
+        &snapshot.world,
+        content,
+        active_portals.actor_references,
+    )?;
     let retired = &snapshot.retired_indices;
     if retired
         .iter()

@@ -3147,6 +3147,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         return Err(ContentError::InvalidInterpersonalTuning);
     }
     let chance = |value: f32| value.is_finite() && (0.0..=1.0).contains(&value);
+    if !chance(tuning.meal_appreciation_gain) {
+        return Err(ContentError::InvalidInterpersonalTuning);
+    }
     let cooking_rules = [
         ("burn_chance_novice", chance(tuning.burn_chance_novice)),
         (
@@ -3934,6 +3937,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             career_mood_demoted_ticks: tuning.career_mood_demoted_ticks,
             career_mood_fired_ticks: tuning.career_mood_fired_ticks,
             autonomy: tuning.autonomy,
+            meal_appreciation_gain: tuning.meal_appreciation_gain,
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
@@ -5404,6 +5408,7 @@ mod tests {
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             autonomy: None,
+            meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: crate::Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -9756,6 +9761,26 @@ mod tests {
     /// Communal affinity (issue 257): the hated communal chance is a
     /// probability, so anything outside 0 to 1, or not a number, is refused;
     /// both edges are legal, since 0 and 1 are the two documented switches.
+    #[test]
+    fn meal_appreciation_tuning_is_finite_bounded_and_preserves_save_identity() {
+        assert_eq!(crate::pack().tuning.meal_appreciation_gain, 0.009);
+        for bad in [f32::NAN, f32::INFINITY, -0.001, 1.001] {
+            assert!(matches!(
+                compile_tuned(tuning_where(|t| t.meal_appreciation_gain = bad)),
+                Err(ContentError::InvalidInterpersonalTuning)
+            ));
+        }
+        let baseline = compile_tuned(full_tuning()).unwrap();
+        for gain in [0.0, 0.009, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.meal_appreciation_gain = gain)).unwrap();
+            assert_eq!(pack.tuning.meal_appreciation_gain, gain);
+            assert_eq!(
+                crate::content_fingerprint(&pack),
+                crate::content_fingerprint(&baseline)
+            );
+        }
+    }
+
     #[test]
     fn rejects_a_hated_communal_chance_outside_zero_to_one() {
         for bad in [-0.01, 1.01, f32::NAN, f32::INFINITY] {

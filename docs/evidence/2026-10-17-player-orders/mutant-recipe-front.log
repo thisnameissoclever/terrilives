@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 30.74s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-cbdb48b70b0740b7.exe)
+
+running 1 test
+test social_episode::tests::explicit_talk_front_suspends_recipe_and_resumes_original_order_identity ... FAILED
+
+failures:
+
+---- social_episode::tests::explicit_talk_front_suspends_recipe_and_resumes_original_order_identity stdout ----
+
+thread 'social_episode::tests::explicit_talk_front_suspends_recipe_and_resumes_original_order_identity' (81196) panicked at crates\terri-sim\src\social_episode\tests.rs:1774:5:
+the new explicit front must run before the retained recipe finishes; actor target=None chain=Some(ChainState { chain: 0, step: 1, fumble_scale: 1.0 }) path=None execution=None; recipient target=None chain=None path=None; recent=[ActionEvent { sequence: 6, tick: 24, actor: 4, counterpart: Some(0), order_id: 0, action: "Cook breakfast: Fridge", phase: "waiting", reason: None, blocking_state: Some("Recipient or resource busy") }, ActionEvent { sequence: 5, tick: 13, actor: 4, counterpart: Some(5), order_id: 1, action: "Chat: Housemate", phase: "accepted", reason: None, blocking_state: None }, ActionEvent { sequence: 4, tick: 13, actor: 4, counterpart: Some(0), order_id: 0, action: "Cook breakfast: Fridge", phase: "started", reason: None, blocking_state: None }, ActionEvent { sequence: 3, tick: 1, actor: 4, counterpart: Some(0), order_id: 0, action: "Cook breakfast: Fridge", phase: "approaching", reason: None, blocking_state: None }, ActionEvent { sequence: 2, tick: 1, actor: 4, counterpart: Some(0), order_id: 0, action: "Cook breakfast: Fridge", phase: "waiting", reason: None, blocking_state: Some("Recipient or resource busy") }, ActionEvent { sequence: 1, tick: 0, actor: 4, counterpart: Some(0), order_id: 0, action: "Cook breakfast: Fridge", phase: "accepted", reason: None, blocking_state: None }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    social_episode::tests::explicit_talk_front_suspends_recipe_and_resumes_original_order_identity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1553 filtered out; finished in 0.57s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

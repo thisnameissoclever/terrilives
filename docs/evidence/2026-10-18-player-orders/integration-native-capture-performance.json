@@ -1,0 +1,114 @@
+{
+  "environment": "Shared Windows desktop, test profile, two build jobs, sequential capture-enabled then capture-disabled trials",
+  "limit": "Timing variation does not isolate capture overhead; each paired workload retains identical gameplay hashes.",
+  "measurements": [
+    {
+      "capture": "on",
+      "orders": 32,
+      "trials": 5,
+      "medianMs": 3.802,
+      "minMs": 3.135,
+      "maxMs": 5.879,
+      "samplesMs": [
+        5.879,
+        4.666,
+        3.135,
+        3.802,
+        3.326
+      ],
+      "hashes": [
+        "15201387859719861122"
+      ]
+    },
+    {
+      "capture": "on",
+      "orders": 256,
+      "trials": 5,
+      "medianMs": 7.721,
+      "minMs": 4.69,
+      "maxMs": 8.63,
+      "samplesMs": [
+        8.63,
+        7.721,
+        7.737,
+        4.69,
+        5.803
+      ],
+      "hashes": [
+        "9019349123118591901"
+      ]
+    },
+    {
+      "capture": "on",
+      "orders": 1024,
+      "trials": 5,
+      "medianMs": 14.015,
+      "minMs": 12.464,
+      "maxMs": 19.811,
+      "samplesMs": [
+        13.706,
+        14.088,
+        12.464,
+        19.811,
+        14.015
+      ],
+      "hashes": [
+        "10651411615500818358"
+      ]
+    },
+    {
+      "capture": "off",
+      "orders": 32,
+      "trials": 5,
+      "medianMs": 4.784,
+      "minMs": 3.452,
+      "maxMs": 4.961,
+      "samplesMs": [
+        4.961,
+        3.452,
+        4.671,
+        4.784,
+        4.847
+      ],
+      "hashes": [
+        "15201387859719861122"
+      ]
+    },
+    {
+      "capture": "off",
+      "orders": 256,
+      "trials": 5,
+      "medianMs": 6.292,
+      "minMs": 4.552,
+      "maxMs": 7.639,
+      "samplesMs": [
+        4.552,
+        5.273,
+        6.292,
+        7.639,
+        7.483
+      ],
+      "hashes": [
+        "9019349123118591901"
+      ]
+    },
+    {
+      "capture": "off",
+      "orders": 1024,
+      "trials": 5,
+      "medianMs": 15.816,
+      "minMs": 15.464,
+      "maxMs": 20.607,
+      "samplesMs": [
+        15.524,
+        15.816,
+        20.607,
+        17.565,
+        15.464
+      ],
+      "hashes": [
+        "10651411615500818358"
+      ]
+    }
+  ]
+}

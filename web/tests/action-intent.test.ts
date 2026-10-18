@@ -55,6 +55,17 @@ it.each([
   expect(tag).toContain(`value="${value}"`);
 });
 
+it.each([
+  ['work-order-cancel', 'negative'],
+  ['work-order-proceed', 'affirmative'],
+])('gives the actual %s work confirmation button its shared action role', (id, intent) => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const tag = [...html.matchAll(/<button\b[^>]*>/g)].map(match => match[0])
+    .find(button => button.includes(`id="${id}"`));
+  expect(tag).toBeDefined();
+  expect(tag).toContain(`data-action-intent="${intent}"`);
+});
+
 it('removes a previous role when an action becomes neutral', () => {
   const { doc } = fixture(), button = doc.createElement('button');
   setActionIntent(button as unknown as HTMLButtonElement, 'affirmative');

@@ -1,0 +1,40 @@
+{
+  "source_sha256": "04c7a54f1e25b2edd20bfb66b7f2f0feb21d19616a0d4c85807d2da0aac9cc6c",
+  "output_sha256": "7001a1242490a35f50fbf9680af767ff60cced7eeeb762d7c85b97faeb77b90f",
+  "image_size": [
+    2172,
+    724
+  ],
+  "changed_pixels": 2467,
+  "changed_pixels_outside_allowed_regions": 0,
+  "regions": [
+    {
+      "name": "light",
+      "allowed_box": [
+        475,
+        185,
+        521,
+        243
+      ],
+      "sampled_petal_color": [
+        246,
+        240,
+        226
+      ]
+    },
+    {
+      "name": "dark",
+      "allowed_box": [
+        1563,
+        190,
+        1609,
+        243
+      ],
+      "sampled_petal_color": [
+        248,
+        242,
+        229
+      ]
+    }
+  ]
+}

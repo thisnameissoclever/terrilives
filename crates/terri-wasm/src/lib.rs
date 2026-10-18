@@ -1,5 +1,7 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
+#[cfg(test)]
+mod player_order_tests;
 
 #[cfg(test)]
 use terri_core::Needs;
@@ -2303,6 +2305,12 @@ impl SimHandle {
             return false;
         }
 
+        if let SimCommand::ConfirmedOrder { command, .. } = &command {
+            if command.validate_structure().is_err() {
+                return false;
+            }
+        }
+
         // Typed and raw new commerce commands share saveable ingress rules.
         if let SimCommand::Book(book) = &command {
             if matches!(
@@ -2608,8 +2616,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v16())
-            .expect("SaveSnapshotV16 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v17())
+            .expect("SaveSnapshotV17 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2638,6 +2646,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 17 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV17>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v17(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 16 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v16(snapshot).is_ok(),
@@ -3158,6 +3172,105 @@ impl SimHandle {
     /// Current action followed by every waiting order, in display order.
     pub fn action_queue_of(&self, entity_index: u32) -> Vec<String> {
         self.sim.action_queue_of(entity_index)
+    }
+
+    /// Six strings per row preserve integer order identities without JS rounding.
+    pub fn action_queue_rows_of(&self, entity_index: u32, max_rows: u32) -> Vec<String> {
+        self.sim
+            .action_queue_rows_of(entity_index, max_rows as usize)
+            .into_iter()
+            .flat_map(|row| {
+                [
+                    row.order_id.map(|id| id.to_string()).unwrap_or_default(),
+                    row.label,
+                    row.phase,
+                    row.role,
+                    row.counterpart.map(|id| id.to_string()).unwrap_or_default(),
+                    row.reason.unwrap_or_default(),
+                ]
+            })
+            .collect()
+    }
+
+    /// Cursor and expired flag, then nine strings per event. Reading never drains.
+    pub fn order_events_since(&self, cursor: &str) -> Vec<String> {
+        let Ok(cursor) = cursor.parse::<u64>() else {
+            return Vec::new();
+        };
+        let batch = self.sim.action_events_since(cursor);
+        let mut out = vec![
+            batch.next_cursor.to_string(),
+            u8::from(batch.expired).to_string(),
+        ];
+        for event in batch.events {
+            out.extend([
+                event.sequence.to_string(),
+                event.tick.to_string(),
+                event.actor.to_string(),
+                event
+                    .counterpart
+                    .map(|id| id.to_string())
+                    .unwrap_or_default(),
+                event.order_id.to_string(),
+                event.action,
+                event.phase,
+                event.reason.unwrap_or_default(),
+                event.blocking_state.unwrap_or_default(),
+            ]);
+        }
+        out
+    }
+
+    /// Work conflicts are a read-only quote; the token is checked during application.
+    pub fn work_conflicts_of(&self, participants: &[u32]) -> Vec<String> {
+        let quote = terri_sim::attendance::work_conflicts(self.sim.world(), participants);
+        let mut out = vec![quote.fingerprint.to_string()];
+        for person in quote.conflicts {
+            out.extend([
+                person.agent.to_string(),
+                self.sim.name_of(person.agent).unwrap_or("").to_string(),
+                person.phase.to_string(),
+                person.remaining_minutes.to_string(),
+                person.total_minutes.to_string(),
+            ]);
+        }
+        out
+    }
+
+    pub fn career_attendance_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim.career_attendance_of(entity_index)
+    }
+
+    pub fn enqueue_confirmed_order(&mut self, bytes: &[u8], token: &str) -> bool {
+        let Ok(fingerprint) = token.parse::<u64>() else {
+            return false;
+        };
+        let Ok((command, [])) = postcard::take_from_bytes::<SimCommand>(bytes) else {
+            return false;
+        };
+        if command
+            .clone()
+            .into_player_order()
+            .is_none_or(|order| order.validate_structure().is_err())
+            || !self.enqueue_command(bytes)
+        {
+            return false;
+        }
+        self.sim
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .confirm_last_order(fingerprint)
+    }
+
+    /// Complete one synchronous typed-stage operation before the next drain.
+    pub fn confirm_last_order(&mut self, token: &str) -> bool {
+        let Ok(fingerprint) = token.parse::<u64>() else {
+            return false;
+        };
+        self.sim
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .confirm_last_order(fingerprint)
     }
 
     /// A bounded display prefix; unseen orders are not formatted or transferred.
@@ -4252,23 +4365,55 @@ mod boundary_tests {
             // weekday morning and `worker_state` could find them first.
             assert!(handle.set_career_autonomy(false, false));
             handle.flush_commands();
-            let pay = i64::from(handle.sim.world().resource::<Content>().0.careers[0].pay);
-            let (_, at_work, _, funds) = worker_state(&mut handle);
-            let owed = if at_work || clocks_in_at_the_door {
-                pay
-            } else {
-                0
-            };
-            if clocks_in_at_the_door {
-                let (at, ..) = tick_until(&mut handle, |state| state.1);
-                assert_eq!(at, door, "{name}: clocks in at the door");
+            let attendance = handle.sim.save_snapshot_v17().attendance;
+            let shift = attendance.shifts.first().cloned();
+            let funds = handle.sim.world().resource::<terri_core::Funds>().0;
+            let mut worked_ticks = shift.as_ref().map_or(0, |s| s.worked_ticks);
+            let mut reached_home = false;
+            for _ in 0..3_000 {
+                let before = worker_state(&mut handle);
+                let now = handle.sim.world().resource::<terri_core::SimClock>().tick;
+                if before.1 && shift.as_ref().is_some_and(|s| now < s.end_tick) {
+                    worked_ticks += 1;
+                }
+                handle.tick();
+                let after = worker_state(&mut handle);
+                if clocks_in_at_the_door && !before.1 && after.1 {
+                    assert_eq!(after.0, door, "{name}: clocks in at the door");
+                }
+                if !after.1 && !after.2 {
+                    reached_home = true;
+                    break;
+                }
             }
-            let (at, _, _, paid) = tick_until(&mut handle, |state| !state.1 && !state.2);
+            assert!(reached_home, "{name}: the worker returns home");
+            let owed = shift.as_ref().map_or(0, |s| {
+                (i128::from(s.pay_cents) * i128::from(worked_ticks)
+                    / i128::from(s.end_tick - s.start_tick)) as i64
+            });
+            let (at, ..) = worker_state(&mut handle);
+            let paid = handle.sim.world().resource::<terri_core::Funds>().0;
             assert_eq!(
                 (at, paid),
                 (landing, funds + owed),
-                "{name}: home, paid once"
+                "{name}: home, paid once for the measured attendance"
             );
+            let outcomes = handle.sim.save_snapshot_v17().attendance.outcomes;
+            if let Some(shift) = shift {
+                assert_eq!(outcomes.len(), attendance.outcomes.len() + 1);
+                let outcome = outcomes.last().unwrap();
+                assert_eq!(outcome.worked_minutes, worked_ticks as f32);
+                assert_eq!(outcome.pay_cents, owed);
+                assert_eq!(
+                    (outcome.start_tick, outcome.end_tick),
+                    (shift.start_tick, shift.end_tick)
+                );
+            } else {
+                assert_eq!(
+                    outcomes, attendance.outcomes,
+                    "{name}: no second settlement"
+                );
+            }
             let (at, ..) = tick_until(&mut handle, |state| state.1);
             assert_eq!(at, exit, "{name}: the next shift goes to the street");
         }
@@ -4594,20 +4739,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v16()
+            uninterrupted.sim.save_snapshot_v17()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            16,
-            "the public writer must emit the schema-16 envelope"
+            17,
+            "the public writer must emit the schema-17 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v16(),
-            uninterrupted.sim.save_snapshot_v16()
+            resumed.sim.save_snapshot_v17(),
+            uninterrupted.sim.save_snapshot_v17()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4619,8 +4764,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v16(),
-            uninterrupted.sim.save_snapshot_v16()
+            resumed.sim.save_snapshot_v17(),
+            uninterrupted.sim.save_snapshot_v17()
         );
     }
 
@@ -10696,7 +10841,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v16();
+        let saved = source.sim.save_snapshot_v17();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -10706,8 +10851,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v16(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v16(), saved);
+        assert_eq!(restored.load_snapshot_v17(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v17(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();

@@ -1,5 +1,12 @@
 # Urgent needs and pending conversations
 
+Current contract: [player orders and attendance](../../specs/2026-10-17-player-orders.md)
+supersedes this dated design's work priority and request cleanup for player-owned
+orders. Player orders delay work and survive critical needs. A new front order
+can redirect a person without deleting another person's request. Existing
+recipient activity still finishes first. The V15 design below remains the
+published historical format; current persistence uses V17 around V16 and V15.
+
 This design defines proposed behavior for autonomous need recovery, pending conversations, and truthful activity reporting. It is the basis for the [implementation plan](../plans/2026-10-17-urgent-needs-and-pending-conversations.md). Approval of the plan is separate from implementation and publication.
 
 ## Intent and evidence

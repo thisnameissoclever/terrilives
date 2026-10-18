@@ -9,6 +9,49 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
+/** Observe paid time independently of the attendance report while exercising doors. */
+function observeShiftPayment(sim: SimBridge) {
+  const ids = Array.from(sim.ids()), kinds = Array.from(sim.kinds());
+  const worker = ids.find((entity, row) => kinds[row] === 0 && sim.simName(entity) === 'Tim')!;
+  expect(worker).toBeDefined();
+  const schedule = sim.careerScheduleOf(worker)!;
+  const fullPayCents = sim.careerReport(worker)!.pay * 100;
+  expect(fullPayCents).toBe(12000);
+  const initialCents = sim.fundsCents();
+  expect(sim.clockTick()).toBeLessThan(schedule.shiftStart);
+  const end = schedule.shiftStart + schedule.shiftTicks;
+  const working = () => sim.activities()[Array.from(sim.ids()).indexOf(worker)] === 6;
+  let workedTicks = 0, returnedAt: number | null = null;
+  return {
+    tick() {
+      const before = sim.clockTick(), wasWorking = working();
+      sim.tick();
+      if (wasWorking && before >= schedule.shiftStart && before < end) workedTicks++;
+      if (wasWorking && !working() && returnedAt === null) returnedAt = sim.clockTick();
+    },
+    assertSettled() {
+      expect(returnedAt).toBe(end);
+      expect(working()).toBe(false);
+      const [scheduled, worked, missed, base, deduction, score, paidCents, settled] = sim.careerAttendanceOf(worker);
+      expect(settled).toBe(1);
+      expect(scheduled).toBe(schedule.shiftTicks);
+      expect(worked).toBe(workedTicks);
+      expect(worked).toBeGreaterThan(0);
+      expect(worked).toBeLessThan(scheduled);
+      expect(missed).toBe(scheduled - workedTicks);
+      expect(deduction).toBeCloseTo(Math.max(0, missed - 120) / 6, 4);
+      expect(score).toBeCloseTo(Math.max(0, base - deduction), 4);
+      const expectedPay = Math.floor(fullPayCents * workedTicks / scheduled);
+      expect(paidCents).toBe(expectedPay);
+      expect(Number.isInteger(paidCents)).toBe(true);
+      expect(sim.fundsCents()).toBe(initialCents + expectedPay);
+      expect(sim.funds()).toBe(Math.floor((initialCents + expectedPay) / 100));
+      sim.tick();
+      expect(sim.fundsCents()).toBe(initialCents + expectedPay);
+    },
+  };
+}
+
 describe('front door through the release WASM bridge', () => {
   it('migrates the rotated-bathtub pre-door fingerprint through the release boundary', () => {
     const handle = SimHandle.from_lot();
@@ -31,8 +74,9 @@ describe('front door through the release WASM bridge', () => {
       expect(migrated).not.toEqual(bytes);
       expect(sim.loadBytes(migrated)).toBe(true);
       expect(sim.saveBytes()).toEqual(migrated);
-      for (let tick = 0; tick < 1000; tick++) sim.tick();
-      expect(sim.funds()).toBe(120);
+      const payment = observeShiftPayment(sim);
+      for (let tick = 0; tick < 1000; tick++) payment.tick();
+      payment.assertSettled();
       expect(sim.activities()).not.toContain(6);
     } finally {
       handle.free();
@@ -53,13 +97,14 @@ describe('front door through the release WASM bridge', () => {
       const migrated = sim.saveBytes();
       expect(sim.loadBytes(migrated)).toBe(true);
       expect(sim.saveBytes()).toEqual(migrated);
+      const payment = observeShiftPayment(sim);
       const seen = new Set<number>();
       for (let tick = 0; tick < 1000; tick++) {
-        sim.tick();
+        payment.tick();
         seen.add(sim.portalStates()[0]);
       }
       expect([...seen].sort()).toEqual([0, 1, 2, 3]);
-      expect(sim.funds()).toBe(120);
+      payment.assertSettled();
     } finally {
       handle.free();
     }

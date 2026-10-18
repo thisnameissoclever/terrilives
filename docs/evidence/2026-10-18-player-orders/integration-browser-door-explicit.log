@@ -1,0 +1,10 @@
+COMMAND: npx vitest run tests/door-audio-bridge.test.ts --maxWorkers=1; NODE_OPTIONS=--max-old-space-size=4096
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  09:43:13
+   Duration  7.91s (transform 5.31s, setup 63ms, import 6.20s, tests 1.43s, environment 0ms)
+

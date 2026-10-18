@@ -638,7 +638,7 @@ fn an_interrupted_conversation_teaches_neither_participant() {
         .is_some());
     sim.world_mut()
         .resource_mut::<CommandQueue>()
-        .push(SimCommand::UseObject {
+        .push(SimCommand::UseObjectFirst {
             agent: partner.index_u32(),
             object: lamp.index_u32(),
             interaction: 0,
