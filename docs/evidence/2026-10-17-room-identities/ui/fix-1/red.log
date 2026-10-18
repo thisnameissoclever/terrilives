@@ -1,0 +1,59 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/main-build-wiring.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/main-build-wiring.test.ts (21 tests | 3 failed) 407ms
+   × protects retained review text on clean reversal, keeps it on Keep building and adopts it before leaving once 131ms
+   × clears retained review input only through explicit discard after a clean reversal 26ms
+   × clears retained review input only through explicit cancel after a clean reversal 23ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/main-build-wiring.test.ts > protects retained review text on clean reversal, keeps it on Keep building and adopts it before leaving once
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/main-build-wiring.test.ts:126:44
+    124|   try {
+    125|     const { baseline, token } = await reverseReviewedSplit(f);
+    126|     f.key('Escape'); expect(f.dialog.open).toBe(true); expect(f.builde…
+       |                                            ^
+    127|     expect(f.left).not.toHaveBeenCalled(); expect(f.roomReview.name([1…
+    128|     f.dialog.close('keep'); expect(f.roomReview.hasChoices).toBe(true)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/main-build-wiring.test.ts > clears retained review input only through explicit discard after a clean reversal
+ FAIL  tests/main-build-wiring.test.ts > clears retained review input only through explicit cancel after a clean reversal
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/main-build-wiring.test.ts:146:96
+    144|   const f = fixture();
+    145|   try {
+    146|     const { baseline } = await reverseReviewedSplit(f); f.key('Escape'…
+       |                                                                                                ^
+    147|     if (action === 'discard') f.dialog.close('discard');
+    148|     else { f.dialog.close('keep'); f.document.nodes.get('#build-batch-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 18 passed (21)
+   Start at  00:36:14
+   Duration  841ms (transform 184ms, setup 29ms, import 312ms, tests 407ms, environment 0ms)
+

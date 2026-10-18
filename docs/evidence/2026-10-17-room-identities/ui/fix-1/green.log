@@ -1,0 +1,13 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/main-build-wiring.test.ts tests/build-exit.test.ts tests/build-session.test.ts tests/build-session-state.test.ts tests/room-selection.test.ts tests/room-review.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  6 passed (6)
+      Tests  98 passed (98)
+   Start at  00:36:50
+   Duration  5.66s (transform 2.84s, setup 55ms, import 3.60s, tests 1.46s, environment 0ms)
+

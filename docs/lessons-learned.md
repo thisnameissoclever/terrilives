@@ -12369,3 +12369,11 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: a transient predicate was treated as the final result, and the actual returned restoration record was not checked. The evidence did not record viewport events, so resize coalescing remained a hypothesis rather than a demonstrated cause.
 3. Prevention: inspect every retained final measurement before claiming restoration. Keep failed receipts unchanged. Bind each screenshot to its own measured state and source hash; filenames such as final are not proof. After a deliberate style fault, restore the normal focus and observed viewport transition, then record stable final frames without adding a production retry or timing patch.
 4. Verification: the fresh replay records12 real window/visual resize events. Three clean frames fit at scrollTop97; three zero-margin fault frames fail at91; three restored6px-margin frames fit at97. The restored screenshot has identical before/after geometry. Preserve the earlier failed restoration separately in the R7 evidence.
+
+
+## [L-dirty-state-includes-local-input-owners] Include every local input owner in the exit decision
+
+1. What happened: after entering a final-room name in review, choosing Back and exactly reversing the walls, Exit closed Build and cleared the retained name without asking.
+2. Root cause: native semantic dirtiness correctly became clean, but the exit predicate omitted review-local choices. The preparation path counted that input owner while the exit path did not.
+3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
+4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.

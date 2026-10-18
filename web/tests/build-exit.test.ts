@@ -1033,7 +1033,7 @@ describe('the page', () => {
   });
 
   it('main.ts source: the shared pending check over every tool, the contextual Cancel, discard and graphics loss', () => {
-    expect(MAIN_TS).toContain('hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges(),');
+    expect(MAIN_TS).toContain('hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,');
     expect(MAIN_TS).toContain('tools: [wallTool, windowTool, roomTool, buyTool, floorTool, landTool],');
     expect(MAIN_TS).toContain('return buildCommandsIdle(buildDraft);');
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');

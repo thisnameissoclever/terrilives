@@ -1943,7 +1943,7 @@ async function main(): Promise<void> {
   }
   // Only explicit exit confirmation continues through the builder's exit gate.
   const buildExit: BuildExit = new BuildExit(document, {
-    hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges(),
+    hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
     confirm: confirmBuildBatch,
     cancel: () => {
       const cancelled = buildSession.cancel();
