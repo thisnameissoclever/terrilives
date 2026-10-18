@@ -1,0 +1,76 @@
+{
+  "review_base": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "review_head": "ad85c8549801bfef2010dcf8e02ed4a01885f5dc",
+  "scope": "Final task and broad reviews, parent decisions and original ledger. Later retention changes are evidence only.",
+  "ruling_markers": 27,
+  "files": [
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/task-8-report.md",
+      "retained": "task-8-report.md",
+      "raw_sha256": "640ea6c7f84918917a0929af596b18d042b05ecdf16ed2e7f5853a7ef1a83dfe",
+      "retained_sha256": "640ea6c7f84918917a0929af596b18d042b05ecdf16ed2e7f5853a7ef1a83dfe",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/task-8-review.md",
+      "retained": "task-8-review.md",
+      "raw_sha256": "af45eda17e0d93f7d573332c9a71f5020411fb40670289f04eb2646848381b15",
+      "retained_sha256": "af45eda17e0d93f7d573332c9a71f5020411fb40670289f04eb2646848381b15",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/task-8-minor-resolution.md",
+      "retained": "task-8-minor-resolution.md",
+      "raw_sha256": "03efbe086b3ef14c925a57256393d4ae6c8239ddf9ecb36c763ba1b52c6e0338",
+      "retained_sha256": "03efbe086b3ef14c925a57256393d4ae6c8239ddf9ecb36c763ba1b52c6e0338",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/final-review-brief.md",
+      "retained": "final-review-brief.md",
+      "raw_sha256": "57404c9bbecff14b64cadc424ff39b2d52cb4a8d7744f6a158483451edf4ce61",
+      "retained_sha256": "8c0b8091a6051cce20e3efe111f7380be46461436f854d3e2a5bfeeccf6fb2f5",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/final-whole-branch-review.md",
+      "retained": "final-whole-branch-review.md",
+      "raw_sha256": "d3852562be64c719844292ee3043a763aba1f406a59750638d45490877d96dab",
+      "retained_sha256": "d3852562be64c719844292ee3043a763aba1f406a59750638d45490877d96dab",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/decisions-for-retention.md",
+      "retained": "decisions-for-retention.md",
+      "raw_sha256": "9787d8243070e1f95664d968477f0b450ea3f1ebccb268cd3dd970f7ca7002cf",
+      "retained_sha256": "49bd69487033b42bf055e78a03c66a9d77016a01d2242f56040f5bf5fc16ff34",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/rulings-for-closeout.json",
+      "retained": "rulings-for-closeout.json",
+      "raw_sha256": "38edb097a9a07c75451e165ec0289f99dfd07dbdd1d530e4f5043c32eff381f9",
+      "retained_sha256": "1aad3dce1d047ad16f2763eae27e8bd6a6f0cc609d484c059b33c31eccf78033",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    },
+    {
+      "source": ".superpowers/sdd/2026-10-17-room-identities/progress.md",
+      "retained": "progress.md",
+      "raw_sha256": "e589a1285e76d6ae7846a5b72476541e2a0fcf5acee498b5b6dfc69e19cc0705",
+      "retained_sha256": "0520f29819b35a801b3c5418f6851ec102547f03ddaec55c5c9073bf5e1a5994",
+      "normalization": "UTF-8 without BOM, LF, trailing horizontal/blank whitespace removed"
+    }
+  ],
+  "review_packages": [
+    {
+      "name": "final-source-ad85.diff",
+      "bytes": 1892961,
+      "sha256": "78c30e73b4f6e597623b95a8ea3351761629be6a0d5445118d251da5bf141a5b"
+    },
+    {
+      "name": "final-full-ad85.diff",
+      "bytes": 9101464,
+      "sha256": "c2b5b1fce2244667fd54c1fe1a415a012461cbf3c0239b3c8188306f7f290f9a"
+    }
+  ]
+}
