@@ -177,6 +177,29 @@ describe('save worker recovery backup', () => {
     expect(slot.files.get(PRIMARY)).toEqual(v18);
   });
 
+  it('keeps a V17 save written by main before a real current write', async () => {
+    const { default: init, SimHandle } = await import('../src/wasm/terri_wasm.js');
+    await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+    const previous = new Uint8Array(readFileSync(new URL(
+      '../../crates/terri-wasm/tests/fixtures/job-search-v17/job-search-off.sav', import.meta.url)));
+    expect([...previous.slice(8, 10)]).toEqual([17, 0]);
+    const sim = SimHandle.from_lot();
+    try {
+      expect(sim.load_bytes(previous)).toBe(true);
+      const current = sim.save_bytes();
+      expect([...current.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
+      const slot = await workerSlot(previous);
+      const cached = await slot.connect('v17');
+      expect(await slot.request('save', current)).toMatchObject({ ok: true });
+      expect(slot.files.get(V17_BACKUP)).toEqual(previous);
+      expect(slot.events.indexOf(`close ${V17_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
+      expect(await cached('save', previous)).toMatchObject({ ok: false });
+      expect(new Uint8Array((await slot.request('load')).bytes!)).toEqual(current);
+      expect(await slot.request('clear')).toMatchObject({ ok: true });
+      expect(slot.files.get(V17_BACKUP)).toEqual(previous);
+    } finally { sim.free(); }
+  });
+
   it.each([new Uint8Array(), v16, v18])('refuses an invalid V17 recovery header', async (backup) => {
     const slot = await workerSlot(v17);
     slot.files.set(V17_BACKUP, backup);

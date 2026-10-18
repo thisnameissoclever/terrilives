@@ -112,11 +112,13 @@ fn the_exports_read_and_set_each_persons_search_and_schema_eighteen_keeps_it() {
     assert_eq!(target.world_hash(), before);
 }
 
-/// Every published reader that carries the household setting gives it to
-/// each living person: the real published schema-fourteen, -fifteen and
-/// -sixteen inputs as they were saved (search on) and with the setting
-/// turned off, a schema-seventeen save, and a schema-thirteen save, which
-/// predates the setting and leaves everyone on.
+/// Every reader that carries the household setting gives it to each
+/// living person: the published schema-fourteen and schema-fifteen
+/// fixtures, the current native schema-sixteen fixture (which claims no
+/// historical producer), each as saved (search on) and with the setting
+/// turned off, a schema-seventeen save from this branch's writer, and a
+/// schema-thirteen save, which predates the setting and leaves everyone
+/// on. The saves main wrote are tested below.
 #[test]
 fn older_saves_give_every_living_person_the_household_setting() {
     let v14 = include_bytes!("../tests/fixtures/room-identities-v14/lived.sav").as_slice();
@@ -166,4 +168,65 @@ fn older_saves_give_every_living_person_the_household_setting() {
     assert!(migrated.load_bytes(&off));
     let resaved = payload!(&migrated.save_bytes(), 18, terri_core::SaveSnapshotV18);
     assert_eq!(resaved.job_search_off.len(), living_people(&migrated).len());
+}
+
+/// The schema-seventeen saves main wrote at 2b15dcfea, before the setting
+/// moved to each person (`tests/fixtures/job-search-v17/README.md`): every
+/// living person takes the household value, the game resaves as schema
+/// eighteen and carries on exactly from the resave.
+#[test]
+fn main_schema_seventeen_saves_move_to_eighteen_with_their_setting() {
+    for (name, bytes, search) in [
+        (
+            "shipped household",
+            include_bytes!("../tests/fixtures/job-search-v17/shipped-household.sav").as_slice(),
+            true,
+        ),
+        (
+            "job search off",
+            include_bytes!("../tests/fixtures/job-search-v17/job-search-off.sav").as_slice(),
+            false,
+        ),
+    ] {
+        let source = payload!(bytes, 17, terri_core::SaveSnapshotV17);
+        assert_eq!(
+            source.legacy.legacy.legacy.careers.autonomous_search, search,
+            "{name} as main saved it"
+        );
+        let mut game = SimHandle::from_lot();
+        assert!(game.load_bytes(bytes), "{name} loads");
+        let people = living_people(&game);
+        assert!(people.len() > 1, "{name} has a household");
+        for person in &people {
+            assert_eq!(
+                game.job_search_of(*person),
+                vec![u8::from(search)],
+                "{name}"
+            );
+        }
+        let employed = people
+            .iter()
+            .filter(|person| !game.career_of(**person).is_empty())
+            .count();
+        if search {
+            assert!(employed > 1, "main's search hired a housemate");
+        } else {
+            assert_eq!(employed, 1, "only the shipped worker holds a job");
+        }
+        let current = game.save_bytes();
+        let resaved = payload!(&current, 18, terri_core::SaveSnapshotV18);
+        assert_eq!(
+            resaved.job_search_off.len(),
+            if search { 0 } else { people.len() },
+            "{name}"
+        );
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&current), "{name} resave loads");
+        assert_eq!(resumed.save_bytes(), current);
+        for _ in 0..120 {
+            game.tick();
+            resumed.tick();
+            assert_eq!(resumed.world_hash(), game.world_hash(), "{name}");
+        }
+    }
 }
