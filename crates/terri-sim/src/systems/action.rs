@@ -211,9 +211,22 @@ impl BedState<'_, '_> {
     }
 }
 
-/// Legacy public softmax primitive, retained for existing callers and tests.
-/// Live autonomy uses `autonomy::grouped_probabilities` and its positive bucket
-/// sampler to retain tiny alternatives and normalize interactions per target.
+/// A standalone softmax sampler with no caller outside its own
+/// `sampler_tests` module. Live selection does not use it: [`select_action`]
+/// always pushes a wander candidate after its object, social and waiting
+/// candidates, weighs them through
+/// `critical_choices::critical_choice_probabilities`, and draws with
+/// `autonomy::sample`. `critical_choice_probabilities` hands the
+/// candidates to `autonomy::grouped_probabilities`, which normalizes
+/// interactions per target and reserves at least one bucket for every
+/// positive probability. When `tuning.autonomy` is set, a need is critical
+/// and only some candidates relieve it, `critical_choice_probabilities`
+/// instead weighs the relieving candidates against the rest with
+/// `autonomy::probabilities`, caps the rest's share at the `[autonomy]`
+/// limits, and then weighs each group with
+/// `autonomy::grouped_probabilities`. The rest of this comment describes
+/// `sample_softmax`, not how housemates choose, except where it names live
+/// selection.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -242,8 +255,9 @@ impl BedState<'_, '_> {
 /// decided entirely by the order of `scores`. Two runs that disagree
 /// about that order disagree about the outcome for the same draw. Every
 /// caller therefore has to hand candidates over in an order that is a
-/// function of the world's state and not of its archetype layout; see
-/// the object sort in [`select_action`].
+/// function of the world's state and not of its archetype layout. Live
+/// selection has the same property through `autonomy::sample`, which is
+/// why [`select_action`] sorts its objects by entity index.
 ///
 /// **Softmax is scale-sensitive**, unlike proportionate selection.
 /// Because urgency is cubed, scores span orders of magnitude, so `T` has
@@ -254,33 +268,48 @@ impl BedState<'_, '_> {
 /// not re-check it; a pack holding a zero or negative temperature cannot
 /// be built.
 ///
-/// # `exp` is the one platform call in the simulation's causal chain
+/// # Platform math here and in live selection
 ///
-/// Everything else the sim computes is IEEE-exact and therefore
-/// bit-identical on every target - `score_advertisement` cubes urgency by
-/// repeated multiplication rather than `powf` for exactly that reason,
-/// and `SimRng` is in-repo rather than taken from `rand` for it too.
-/// `f32::exp` is not: it lowers to a platform libm call whose last bit is
-/// not guaranteed to agree between the MSVC CRT that `cargo test` uses,
-/// glibc on CI, and the wasm32 build that actually ships.
+/// `f32::exp` lowers to a platform libm call whose last bit is not
+/// guaranteed to agree between the MSVC CRT that `cargo test` uses, glibc
+/// on CI, and the wasm32 build that actually ships. `score_advertisement`
+/// cubes urgency by repeated multiplication rather than `powf`, and
+/// `SimRng` is in-repo rather than taken from `rand`, so that those steps
+/// stay bit-identical on every target.
 ///
-/// **A last-bit difference changes the outcome only when the draw falls
-/// within one ulp of a bucket boundary**, which is about one decision in
-/// 2^24 and only on targets that disagree at all. So this is a small
-/// residual risk rather than a broken guarantee - but it is a real one
-/// for replay and for the planned multiplayer, and it is unavoidable
-/// while [D-2] specifies a softmax. Softmax needs an exponential.
+/// `exp` is not the only such call in the simulation's causal chain. Live
+/// selection calls `f64::exp` in `autonomy::probabilities` for every
+/// candidate's utility and exploration weights, and `hypot` and `powi`,
+/// which carry no cross-target guarantee either, feed other decisions,
+/// such as the company distance checks in `social_company`. A last-bit
+/// difference can change an outcome only when the draw falls on a bucket
+/// boundary that the difference moved. Here, where the draw is an `f32`,
+/// that is about one decision in 2^24; in `autonomy::sample`, which
+/// counts boundaries in whole buckets out of 2^53, a last-bit difference
+/// moves a boundary by a few buckets at most. So this is a small residual
+/// risk rather than a broken guarantee - but it is a real one for replay
+/// and for the planned multiplayer, and it is unavoidable while [D-2]
+/// specifies a softmax. Softmax needs an exponential.
 ///
 /// It is written down rather than fixed because the fix - an in-repo
 /// `exp` approximation, the same move the PRNG made - is a decision about
 /// how much determinism this project is buying, not an implementation
-/// detail to slip in. The tests that cover weighted selection are all
-/// robust to a last-bit difference by construction: the tie tests weigh
-/// candidates at `exp(0.0)`, which is exactly 1.0 everywhere, the
-/// decisive-temperature fixtures underflow the loser to exactly 0.0, and
-/// the distribution test is statistical over 500 seeds. Both golden world
-/// hashes are over one-candidate scenarios and so never depend on an
-/// `exp` result at all.
+/// detail to slip in. This function's own tests are robust to a last-bit
+/// difference: the zero-weight and large-score tests underflow the loser
+/// in `f32`, and the distribution tests are statistical. The two tie
+/// tests further down run through live selection, where the boundary
+/// between the tied objects depends on the wander candidate's `exp`
+/// weights; they are robust because the seeded draw sits far below that
+/// boundary, and `assert_first_draw_takes_the_first_of_two_tied_buckets`
+/// checks that it is below it. The golden world hash in `lib.rs` does
+/// depend on `exp` results. `build_scenario` spawns its agents through
+/// `Sim::spawn_agent`, which gives each one a `SimId`, so its decisions
+/// hold the other agents' social candidates beside the wander candidate,
+/// and `f64::exp` sets the weights between them. The fridge never becomes
+/// a candidate there: both of its actions are chains with a preparation
+/// step and the scenario has no counter. Agreement between native and
+/// wasm32 on that vector is a measurement each time it is checked, not a
+/// guarantee.
 pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
     assert!(
         !scores.is_empty(),
@@ -446,8 +475,7 @@ mod sampler_tests {
     /// A candidate whose weight underflows to exactly zero must be
     /// unreachable, including on a draw of exactly `0.0`.
     ///
-    /// This is what `assert_decisive` in the system tests below relies
-    /// on, and it is the one place the `<` in the bucket walk is
+    /// This is the one place the `<` in the bucket walk is
     /// distinguishable from `<=`. `next_f32` can return exactly 0.0 -
     /// one draw in 2^24 - and under `<=` that draw would pick a
     /// zero-probability candidate sitting in front, which is precisely
@@ -2593,11 +2621,15 @@ mod intent_tests {
     //! wherever it names an autonomous winner, for the reason that
     //! constant documents: selection is a weighted draw, so "autonomy
     //! would have picked the fridge" is a statement about one roll of the
-    //! dice unless the loser's weight underflows to zero. Each such test
-    //! asserts that precondition with `assert_decisive` rather than
-    //! assuming it, and most also RUN the control - the same world with
-    //! no intent queued - so that "the intent won" is measured against
-    //! what actually happens without one rather than against a prediction.
+    //! dice unless the loser's utility weight is negligible beside the
+    //! exploration share it always keeps. Each such test asserts that
+    //! precondition with `assert_decisive` rather than assuming it, and
+    //! most also RUN the control - the same world with no intent queued -
+    //! so that "the intent won" is measured against what actually happens
+    //! without one rather than against a prediction. `assert_decisive`
+    //! does not see the critical-need cap its doc describes, so a fixture
+    //! whose housemate has a critical need that some candidate relieves
+    //! must make its scoring winner one of those candidates.
 
     use super::tests::{
         action_threshold, assert_decisive, decisive_pack, def, object_of_width, planned_route,
@@ -3610,11 +3642,29 @@ mod tests {
     /// roll of the dice.
     ///
     /// The criterion is exact rather than probabilistic: the loser's
-    /// softmax weight has to UNDERFLOW to zero in `f32`, which happens
-    /// once `(winner - loser) / T` exceeds about 104. The winner's bucket
-    /// then covers the entire `[0, total)` interval, so every draw
-    /// `next_f32` can produce picks it - there is no tail to be unlucky
-    /// in. A merely small weight would leave one.
+    /// utility weight, computed here in `f32`, has to UNDERFLOW to zero,
+    /// which happens once `(winner - loser) / T` exceeds about 104. That
+    /// puts the loser's utility weight below about 10^-45 of the winner's.
+    ///
+    /// It does not empty the loser's bucket, so a tail remains. Live
+    /// selection weighs in `f64` in `autonomy::probabilities`, where the
+    /// same weight stays positive until `(winner - loser) / T` exceeds
+    /// about 745, and every candidate keeps part of the exploration share
+    /// regardless: `decisive_tuning` sets that share to 1e-8, and
+    /// `autonomy::sample` reserves at least one bucket for every positive
+    /// probability. The candidates other than the winner, the wander
+    /// candidate included, therefore hold under about 1e-8 of the interval
+    /// between them, and a fixture's draw would have to land in that
+    /// sliver to change the winner. This check keeps the loser's utility
+    /// weight so far below that share that the exploration share alone
+    /// sets the tail.
+    ///
+    /// That holds on the ordinary path only. When `tuning.autonomy` is set
+    /// and a need is critical, `critical_choices::critical_choice_probabilities`
+    /// caps the share of candidates that do not relieve it at the
+    /// `[autonomy]` limits, so with the shipped caps a loser that relieves
+    /// the critical need, while the winner does not, takes most of the
+    /// draw whatever the scores, and this check cannot see that case.
     ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
@@ -3629,10 +3679,10 @@ mod tests {
         let weight = ((loser_score - winner_score) / DECISIVE_TEMPERATURE).exp();
         assert_eq!(
             weight, 0.0,
-            "at temperature {DECISIVE_TEMPERATURE} the losing candidate \
-             still carries weight {weight}, so the winner below is a draw \
-             rather than a conclusion; scores were {winner_score} and \
-             {loser_score}"
+            "at temperature {DECISIVE_TEMPERATURE} the losing candidate's \
+             utility weight is still {weight} in f32, so the winner below \
+             could be decided by the draw rather than by scoring; scores \
+             were {winner_score} and {loser_score}"
         );
     }
 
@@ -3816,27 +3866,175 @@ mod tests {
             .collect()
     }
 
-    /// Asserts that the first draw of `content`'s seeded PRNG lands in
-    /// the FIRST of two equal buckets.
+    /// The span `autonomy::sample` draws from: one bucket for each value
+    /// of a 53-bit integer.
+    const DRAW_SPAN: u64 = 1 << 53;
+
+    /// Where `select_action`'s draw fell on the tick just run, in a world
+    /// of one agent and two objects whose scores tie.
     ///
-    /// Two bit-identical scores split the interval exactly in half, so
-    /// "the lower-index object wins" is only the claim those tests intend
-    /// while the draw is below one half. Stating that here turns the
-    /// seed from an invisible dependency into a checked precondition: if
-    /// `rng_seed` is ever retuned past the halfway point, this fails and
-    /// names the reason instead of the two tests silently inverting.
+    /// `select_action` pushes the wander candidate after both objects, so
+    /// the interval holds the two objects' buckets end to end and then the
+    /// wander candidate's share w. Two bit-identical scores give each
+    /// object (1 - w) / 2, which puts the boundary between them a little
+    /// below one half rather than at it.
+    struct TiedDraw {
+        /// The 53-bit draw, restated from the seed.
+        draw: u64,
+        /// The lower-index object's buckets out of [`DRAW_SPAN`].
+        low: u64,
+        /// The higher-index object's buckets out of [`DRAW_SPAN`].
+        high: u64,
+        /// The wander candidate's buckets out of [`DRAW_SPAN`].
+        wander: u64,
+    }
+
+    impl TiedDraw {
+        /// Turns the probabilities that `select_action` recorded in
+        /// `DecisionTelemetry` for `agent` into buckets with the sampler's
+        /// own `autonomy::sampling_buckets`, and restates the draw
+        /// `autonomy::sample` takes from a generator seeded with `seed`:
+        /// the top 27 bits of one output above the top 26 bits of the next.
+        ///
+        /// The recorded probabilities are not always whole numbers of
+        /// buckets: when a need is critical and only some candidates
+        /// relieve it, `critical_choices::critical_choice_probabilities`
+        /// scales each group's share, and the products fall between
+        /// buckets until the sampler rounds them.
+        fn measure(sim: &Sim, agent: Entity, low: Entity, high: Entity, seed: u64) -> Self {
+            let decisions = &sim
+                .world()
+                .resource::<super::super::autonomy::DecisionTelemetry>()
+                .0;
+            let decision = decisions
+                .iter()
+                .find(|d| d.agent == agent.index_u32())
+                .expect("the agent must have chosen on the tick just run");
+            let probabilities: Vec<f64> = decision.choices.iter().map(|choice| choice.4).collect();
+            let buckets = super::super::autonomy::sampling_buckets(&probabilities);
+            let buckets_of = |target: Entity| -> u64 {
+                decision
+                    .choices
+                    .iter()
+                    .zip(&buckets)
+                    .filter(|(choice, _)| choice.0 == target.index_u32())
+                    .map(|(_, buckets)| *buckets)
+                    .sum()
+            };
+            let last = decision.choices.last().map(|choice| (choice.0, choice.1));
+            assert_eq!(
+                last,
+                Some((agent.index_u32(), u32::MAX)),
+                "the wander candidate must be the last in the draw, or the \
+                 tied objects' buckets are not the first two; got {:?}",
+                decision.choices
+            );
+            let mut rng = SimRng::from_seed(seed);
+            let first = rng.next_u32();
+            let second = rng.next_u32();
+            let measured = TiedDraw {
+                draw: (u64::from(first >> 5) << 26) | u64::from(second >> 6),
+                low: buckets_of(low),
+                high: buckets_of(high),
+                wander: buckets_of(agent),
+            };
+            assert_eq!(
+                measured.low + measured.high + measured.wander,
+                DRAW_SPAN,
+                "the two tied objects and the wander candidate must be the \
+                 whole draw, or the boundary between the objects is not at \
+                 (1 - w) / 2; got {:?}",
+                decision.choices
+            );
+            measured
+        }
+
+        /// Whether the draw lands in the first bucket, whichever tied
+        /// object the candidate order put there. The two buckets can
+        /// differ by the rounding remainder that `sampling_buckets` adds
+        /// to one largest bucket, so this compares against the smaller.
+        fn in_first_bucket(&self) -> bool {
+            self.draw < self.low.min(self.high)
+        }
+
+        /// Whether the draw lands in the second bucket, whichever tied
+        /// object holds it, and short of the wander candidate's share.
+        fn in_second_bucket(&self) -> bool {
+            self.draw >= self.low.max(self.high) && self.draw < self.low + self.high
+        }
+
+        /// The draw and the boundaries as fractions of the interval, for
+        /// a failed precondition to name.
+        fn describe(&self) -> String {
+            let fraction = |buckets: u64| buckets as f64 / DRAW_SPAN as f64;
+            format!(
+                "the draw is {:.9} of the interval, the first tied bucket \
+                 ends at {:.9}, the second ends at {:.9}, and the wander \
+                 candidate holds the remaining {:.9}",
+                fraction(self.draw),
+                fraction(self.low.min(self.high)),
+                fraction(self.low + self.high),
+                fraction(self.wander)
+            )
+        }
+    }
+
+    /// Asserts that the tick just run advanced the generator seeded with
+    /// `seed` by exactly the two outputs that one `autonomy::sample` draw
+    /// takes, so the draw restated from the seed is the one selection used.
     ///
-    /// It is the FIRST draw because selection is the only consumer of the
-    /// PRNG so far, and each of those tests has exactly one agent that
-    /// chooses on exactly one tick.
-    fn assert_first_draw_takes_the_first_of_two_tied_buckets(content: &ContentPack) {
-        let draw = SimRng::from_seed(content.tuning.rng_seed).next_f32();
-        assert!(
-            draw < 0.5,
-            "the seeded first draw is {draw}, which lands in the SECOND \
-             of two equal buckets, so the golden winner below would be \
-             the higher-index object rather than the lower one"
+    /// Selection is not the generator's only consumer: `chain`, `idle` and
+    /// `movement` systems, among others, also draw from it. That selection
+    /// draws first and alone on this tick is a property of these fixtures,
+    /// so it is checked rather than assumed.
+    fn assert_the_tick_drew_only_selections_draw(sim: &Sim, seed: u64) {
+        let mut expected = SimRng::from_seed(seed);
+        expected.next_u32();
+        expected.next_u32();
+        assert_eq!(
+            sim.world().resource::<SimRng>(),
+            &expected,
+            "the tick must advance the seeded generator by exactly the two \
+             outputs one `autonomy::sample` draw takes; otherwise another \
+             system drew on this tick or selection draws differently, and \
+             the draw restated from the seed may not be the one selection \
+             used"
         );
+    }
+
+    /// Asserts that `select_action`'s draw on the tick just run landed in
+    /// the FIRST of the two tied objects' buckets.
+    ///
+    /// "The lower-index object wins" is only the claim those tests intend
+    /// while the draw is below the boundary between the tied buckets,
+    /// (1 - w) / 2 where w is the wander candidate's share. A draw between
+    /// that boundary and one half picks the higher-index object even when
+    /// the candidates are correctly ordered. Stating that here turns the
+    /// seed from an invisible dependency into a checked precondition: if
+    /// `rng_seed` is ever retuned past the boundary, this fails and names
+    /// the numbers instead of the winner assertion blaming the sort.
+    ///
+    /// It reads the boundary from the decision `select_action` recorded,
+    /// so it runs after the tick. The bucket check comes first because a
+    /// draw that lands in the wander candidate's share also sends the agent
+    /// on a stroll, which draws again.
+    fn assert_first_draw_takes_the_first_of_two_tied_buckets(
+        sim: &Sim,
+        content: &ContentPack,
+        agent: Entity,
+        low: Entity,
+        high: Entity,
+    ) {
+        let seed = content.tuning.rng_seed;
+        let measured = TiedDraw::measure(sim, agent, low, high, seed);
+        assert!(
+            measured.in_first_bucket(),
+            "the seeded first draw does not land in the FIRST of the two \
+             tied buckets, so the golden winner below would not be the \
+             lower-index object; {}",
+            measured.describe()
+        );
+        assert_the_tick_drew_only_selections_draw(sim, seed);
     }
 
     /// Asserts the single object `agent` chose, with the non-emptiness
@@ -5002,13 +5200,15 @@ mod tests {
         // test below, and it exists because that test only covers one of
         // the two iteration orders a tie can arrive in.
         //
-        // Two bit-identical scores weigh the same, so `sample_softmax`
-        // gives them one bucket each of exactly half the interval and the
-        // ORDER of the candidate list is the whole answer. There, the
-        // lower-index object iterates LAST and the sort has to move it to
-        // the front. Here there is no archetype churn, so the two orders
-        // already agree - which is what makes this the case that pins the
-        // sort's DIRECTION rather than its presence:
+        // Two bit-identical scores weigh the same, so live selection gives
+        // them equal buckets of (1 - w) / 2 each, ahead of the wander
+        // candidate's share w that `select_action` pushes last, and the
+        // ORDER of the candidate list decides which object holds the
+        // bucket the draw lands in. There, the lower-index object iterates
+        // LAST and the sort has to move it to the front. Here there is no
+        // archetype churn, so the two orders already agree - which is what
+        // makes this the case that pins the sort's DIRECTION rather than
+        // its presence:
         //
         //   ascending to descending flips the winner here and in the
         //   churned test both, whereas deleting the sort outright is
@@ -5039,13 +5239,13 @@ mod tests {
             "this test is the unchurned half of the pair, so the query \
              must already yield the objects in index order"
         );
-        assert_first_draw_takes_the_first_of_two_tied_buckets(content);
 
         sim.tick();
 
         // The precondition the whole test rests on: the two scores must
-        // be BIT-identical, not merely close, or `score > best_score`
-        // settles the winner and the tiebreak never fires.
+        // be BIT-identical, not merely close, so the two objects weigh the
+        // same and the order of the candidate list is the only thing that
+        // tells them apart.
         let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let incumbent_score = score_of(
             deficit,
@@ -5076,6 +5276,9 @@ mod tests {
             "the incumbent must hold the lower index or this test asserts \
              the opposite of what it claims"
         );
+        assert_first_draw_takes_the_first_of_two_tied_buckets(
+            &sim, content, agent, incumbent, challenger,
+        );
 
         assert_chose(
             &sim,
@@ -5083,9 +5286,9 @@ mod tests {
             incumbent,
             challenger,
             "the lower object index must occupy the first probability \
-             bucket, so the draw below one half must pick it; the other \
-             object winning means the candidates are ordered by something \
-             other than an ascending entity index",
+             bucket, so the draw in the first tied bucket must pick it; the \
+             other object winning means the candidates are ordered by \
+             something other than an ascending entity index",
         );
     }
 
@@ -5279,10 +5482,13 @@ mod tests {
         // The SHIPPED temperature, unlike the golden-winner tests above,
         // and that is a property of this fixture rather than an
         // oversight: the sealed object is unreachable, so it never
-        // becomes a candidate and the runner up is the only thing in the
-        // draw. A one-candidate draw returns that candidate at every
-        // temperature. Making it decisive would only obscure that the
-        // thing under test here is availability, not weighting.
+        // becomes a candidate, and the draw is between the runner up and
+        // the wander candidate that `select_action` always pushes last.
+        // The wander candidate's share here is about half of
+        // `choice_exploration`, its part of the exploration share, so the
+        // seeded draw picks the runner up unless it lands in that last
+        // sliver. Making it decisive would only obscure that the thing
+        // under test here is availability, not weighting.
         let content = test_content::pack(vec![
             test_content::object("sealed", &[(NeedId::Hunger, SEALED_DELTA)], DURATION),
             test_content::object("runner_up", &[(NeedId::Hunger, RUNNER_UP_DELTA)], DURATION),
@@ -5347,7 +5553,8 @@ mod tests {
             "an unreachable object must be unavailable rather than free, \
              and the agent must take the best object it can actually \
              reach; no target at all means the unreachable one won \
-             selection and then failed to path",
+             selection and then failed to path, or the seeded draw landed \
+             in the wander candidate's share",
         );
     }
 
@@ -5374,8 +5581,11 @@ mod tests {
     /// therefore the first probability bucket. That kills the two
     /// degenerate samplers a middling assertion would otherwise admit:
     /// "always take the first bucket" hands every run to the worse object
-    /// and fails the dominance assertion; "always take the last" hands
-    /// every run to the better one and fails the never-zero assertion.
+    /// and fails the assertion that the higher-scoring object must win
+    /// most of the runs; "always take the last" hands every run to the
+    /// wander candidate that `select_action` pushes after both objects,
+    /// and fails the assertion that urgent recovery must dominate the
+    /// broader pool.
     #[test]
     fn a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes() {
         // 500 runs, and the arithmetic behind the assertion windows.
@@ -5577,13 +5787,15 @@ mod tests {
     /// ignored.
     ///
     /// Two tied objects make the seed's effect maximal and readable: the
-    /// buckets are exactly half each, so the winner is simply which half
-    /// the first draw lands in.
+    /// objects get equal buckets of (1 - w) / 2 each, ahead of the wander
+    /// candidate's share w, so the winner is simply which of the two
+    /// buckets the first draw lands in.
     #[test]
     fn the_seed_selection_draws_from_is_the_one_the_content_pack_carries() {
         /// Builds the tied two-object world on a pack seeded with `seed`,
-        /// ticks once, and reports which object won.
-        fn winner(seed: u64) -> (Entity, Entity, Option<Entity>) {
+        /// ticks once, and reports which object won and where the draw
+        /// restated from `seed` fell.
+        fn winner(seed: u64) -> (Entity, Entity, Option<Entity>, TiedDraw) {
             let content = test_content::pack_tuned(
                 vec![identical_object()],
                 Tuning {
@@ -5598,42 +5810,52 @@ mod tests {
             let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
             sim.tick();
             let chosen = sim.world().get::<Target>(agent).map(|t| t.object);
-            (low, high, chosen)
+            let measured = TiedDraw::measure(&sim, agent, low, high, seed);
+            (low, high, chosen, measured)
         }
 
-        // Preconditions: the two seeds must land on opposite sides of the
-        // halfway point, or the runs below cannot disagree for the reason
-        // this test claims. The first is the shipped seed, so the second
+        // Preconditions: the shipped seed's draw must land in the first
+        // tied bucket and the other seed's in the second, short of the
+        // wander candidate's share, or the runs below cannot disagree for
+        // the reason this test claims. The boundaries come from each run's
+        // recorded decision; this is the world of
+        // `a_tied_object_with_a_higher_index_stays_in_the_later_probability_bucket`,
+        // which checks that selection's draw is the seeded generator's
+        // first on this tick. The first is the shipped seed, so the second
         // run is the one that can only be right if the fixture's seed is
         // the one selection used.
         let shipped = test_content::tuning().rng_seed;
         const OTHER_SEED: u64 = 9;
-        let shipped_draw = SimRng::from_seed(shipped).next_f32();
-        let other_draw = SimRng::from_seed(OTHER_SEED).next_f32();
+        let (low, high, chosen, shipped_draw) = winner(shipped);
+        let (other_low, other_high, other_chosen, other_draw) = winner(OTHER_SEED);
         assert!(
-            shipped_draw < 0.5,
-            "the shipped seed must draw into the first bucket; got {shipped_draw}"
+            shipped_draw.in_first_bucket(),
+            "the shipped seed must draw into the first tied bucket; {}",
+            shipped_draw.describe()
         );
         assert!(
-            other_draw >= 0.5,
-            "the other seed must draw into the SECOND bucket, or both runs \
-             agree and this test proves nothing; got {other_draw}"
+            other_draw.in_second_bucket(),
+            "the other seed must draw into the SECOND tied bucket, or both \
+             runs agree, or the agent wanders, and this test proves \
+             nothing; {}",
+            other_draw.describe()
         );
 
-        let (low, high, chosen) = winner(shipped);
         assert!(low.index() < high.index(), "spawn order sets the indices");
         assert_eq!(
             chosen,
             Some(low),
-            "the shipped seed draws below one half, so the lower-index \
-             object must win"
+            "the shipped seed draws into the first tied bucket, so the \
+             lower-index object must win"
         );
 
-        let (low, high, chosen) = winner(OTHER_SEED);
-        assert!(low.index() < high.index(), "spawn order sets the indices");
+        assert!(
+            other_low.index() < other_high.index(),
+            "spawn order sets the indices"
+        );
         assert_eq!(
-            chosen,
-            Some(high),
+            other_chosen,
+            Some(other_high),
             "a fixture that sets its own rng_seed must actually be the \
              seed selection draws from; the lower-index object winning \
              here means the shipped seed was used instead"
@@ -5645,11 +5867,12 @@ mod tests {
         // **The test the object sort exists for.**
         //
         // One agent, two objects whose scores are exactly equal. Equal
-        // scores weigh equally, so `sample_softmax` hands each of them a
-        // bucket of exactly half the interval and the ORDER of the
-        // candidate list decides which half a given draw lands in. There
-        // is no argmax left to be unique, and no tiebreak clause to make
-        // it one: `placed_objects.sort_by_key` in `select_action` is the
+        // scores weigh equally, so live selection hands each of them a
+        // bucket of (1 - w) / 2, ahead of the wander candidate's share w
+        // that `select_action` pushes last, and the ORDER of the candidate
+        // list decides which object holds the bucket a given draw lands
+        // in. There is no argmax left to be unique, and no tiebreak clause
+        // to make it one: `placed_objects.sort_by_key` in `select_action` is the
         // entire mechanism, and this is the test that fails without it.
         //
         // Until M1c the `objects` query iterated UNSORTED, and that was
@@ -5698,18 +5921,16 @@ mod tests {
              index order, or the sort has nothing to do and deleting it \
              would leave this test green; got {iteration_order:?}"
         );
-        assert_first_draw_takes_the_first_of_two_tied_buckets(content);
 
         sim.tick();
 
         // The precondition this whole test rests on: the two scores must
-        // be BIT-identical, not merely close. If they differed in the
-        // last bit, `score > best_score` would settle the winner and the
-        // tiebreak would never fire, leaving the test decorative.
-        // `decay_needs` runs before `select_action` within a tick and
-        // nothing else touches hunger on a tick where the agent only
-        // starts walking, so the post-tick level is exactly the one
-        // scoring saw.
+        // be BIT-identical, not merely close, so the two objects weigh the
+        // same and the order of the candidate list is the only thing that
+        // tells them apart. `decay_needs` runs before `select_action`
+        // within a tick and nothing else touches hunger on a tick where
+        // the agent only starts walking, so the post-tick level is exactly
+        // the one scoring saw.
         let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let score_left = score_of(
             deficit,
@@ -5735,6 +5956,7 @@ mod tests {
             score_left > action_threshold(),
             "the tied score must clear the action threshold; got {score_left}"
         );
+        assert_first_draw_takes_the_first_of_two_tied_buckets(&sim, content, agent, left, right);
 
         assert_chose(
             &sim,
