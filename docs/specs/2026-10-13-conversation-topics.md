@@ -12,8 +12,11 @@ the value of actual company. Solitary activities never claim company rewards.
 
 An approaching conversation initiator can wait beside a busy recipient. The
 recipient finishes their current activity before talking and stays available
-when idle. Cancellation, unreachable destinations, work and urgent physical
-needs must release waiting participants without losing unrelated orders.
+when idle. Player-ordered conversations retain their order through busy
+recipients, urgent physical needs and work. Incoming requests appear in the
+recipient's queue and run after their current activity. Intentional cancellation
+and explained failures release participants. The detailed lifecycle, work
+confirmation and attendance rules are in [player orders](2026-10-17-player-orders.md).
 
 A newcomer joining a communal activity can extend existing participants to
 the newcomer's remaining duration. Each participant may receive at most two

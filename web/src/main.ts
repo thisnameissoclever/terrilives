@@ -110,6 +110,9 @@ import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
+import { OrderDiagnostics } from './ui/player-orders.js';
+import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
+import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
@@ -602,6 +605,38 @@ async function main(): Promise<void> {
     (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
     START_SPEED,
   );
+  const orderDiagnostics = new OrderDiagnostics(commandStatus);
+  const failureBubbleRoot = document.querySelector<HTMLElement>('#order-failure-bubbles');
+  const workDialog = document.querySelector<HTMLDialogElement>('#work-order-dialog');
+  const workMessage = document.querySelector<HTMLElement>('#work-order-message');
+  const workProceed = document.querySelector<HTMLButtonElement>('#work-order-proceed');
+  if (!failureBubbleRoot || !workDialog || !workMessage || !workProceed) throw new Error('Missing player-order feedback markup');
+  const feedbackBubbles = failureBubbleRoot;
+  const failureBubbles = new OrderFailureBubbles(feedbackBubbles);
+  let workReturnFocus: HTMLElement | null = null;
+  const workConfirmation = new WorkOrderConfirmation(sim, overlayPause, {
+    show(conflict) {
+      workReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      workMessage.textContent = formatWorkConflict(conflict);
+      workDialog.showModal();
+      workDialog.querySelector<HTMLElement>('h2')?.focus();
+    },
+    close() { workDialog.close(); },
+    rejected() {
+      commandStatus.textContent = 'That order could not be added. Give the order again.';
+      commandStatus.setAttribute('data-kind', 'error');
+      audio.emit({type: 'command.rejected'});
+    },
+    returnFocus() {
+      const target = workReturnFocus?.isConnected && !workReturnFocus.closest('[hidden]') && workReturnFocus.getClientRects().length > 0
+        ? workReturnFocus : canvas;
+      target.focus();
+    },
+  });
+  sim.setOrderGate((participants, submit) => workConfirmation.request(participants, submit));
+  workProceed.addEventListener('click', () => workConfirmation.proceed());
+  workDialog.querySelector('#work-order-cancel')!.addEventListener('click', () => workConfirmation.cancel());
+  workDialog.addEventListener('cancel', event => { event.preventDefault(); workConfirmation.cancel(); });
 
   // The player readouts render simulation state and own nothing ([D-5]):
   // needs, selection, household state and current activity all come from
@@ -942,6 +977,7 @@ async function main(): Promise<void> {
   // collides with nothing (the only other keydown listener forwards to
   // the flyout, which consumes Escape and arrows).
   let debugPanel: DebugPanel | null = null;
+  let updateOrderHistory: (() => void) | null = null;
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const debugSection = document.querySelector<HTMLElement>('#debug-panel');
     const debugDetails = document.querySelector<HTMLDetailsElement>('#debug-details');
@@ -973,6 +1009,32 @@ async function main(): Promise<void> {
     };
     const panel = new DebugPanel(sim, root, sim.needBarRefreshMs());
     debugPanel = panel;
+    const filter = document.querySelector<HTMLSelectElement>('#order-history-person')!;
+    const history = document.querySelector<HTMLElement>('#order-history')!;
+    const copy = document.querySelector<HTMLButtonElement>('#order-history-copy')!;
+    const copyStatus = document.querySelector<HTMLElement>('#order-history-copy-status')!;
+    let roster = '', revision = -1, lastFilter = '';
+    updateOrderHistory = () => {
+      if (root.hidden) return;
+      const ids = sim.ids(), kinds = sim.kinds();
+      const people = Array.from(ids).filter((_, row) => kinds[row] === 0);
+      const signature = people.map(entity => `${entity}:${sim.simName(entity)}`).join('|');
+      if (signature !== roster) {
+        roster = signature;
+        const selected = filter.value;
+        filter.replaceChildren(new Option('Selected person', 'selected'), new Option('Everyone', 'all'),
+          ...people.map(entity => new Option(sim.simName(entity), String(entity))));
+        if (Array.from(filter.options).some(option => option.value === selected)) filter.value = selected;
+      }
+      const entity = filter.value === 'all' ? null : filter.value === 'selected' ? sim.selectedIndex() : Number(filter.value);
+      const selection = `${filter.value}:${entity}`;
+      if (revision === orderDiagnostics.revision && selection === lastFilter) return;
+      revision = orderDiagnostics.revision; lastFilter = selection;
+      history.textContent = entity === null && filter.value === 'selected' ? 'Select a person to see their order history.' : orderDiagnostics.history(entity);
+    };
+    copy.addEventListener('click', () => {
+      void navigator.clipboard.writeText(history.textContent ?? '').then(() => { copyStatus.textContent = 'Copied'; }, () => { copyStatus.textContent = 'Copy failed. Select the history text and copy it.'; });
+    });
     document.addEventListener('keydown', (event) => {
       if (event.code === 'Backquote') panel.toggle();
     });
@@ -1159,6 +1221,9 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           bookResults.resetAfterLoad();
+          orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
+          commandStatus.textContent = '';
+          commandStatus.removeAttribute('data-kind');
           bookCommerce.resetAfterLoad();
           builder.resetAfterLoad();
           // [ES-form]: a draft names a person of the replaced world, so
@@ -2303,6 +2368,8 @@ async function main(): Promise<void> {
       commandStatus,
       () => audio.emit({ type: 'command.rejected' }),
     );
+    orderDiagnostics.update(nowMs, sim);
+    feedbackBubbles.hidden = !floorScene.visible || graphicsRecovering;
     builder.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     wallTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     buyTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
@@ -2359,6 +2426,8 @@ async function main(): Promise<void> {
       const skyShade = lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient);
       characterWorld.beginFrame(sim,{originX:camera.originX,originY:camera.originY,scale:camera.scale,width:stage.width,height:stage.height,
         gridSize:depthScale,ambient,skyShade,lighting:lightingMode.isFlat()?null:lighting,sky,fixtureDepthBase:renderer.fixtureDepthBase});
+      failureBubbles.update(orderDiagnostics.failedActors(nowMs), sim, {...camera, width:stage.width, height:stage.height, rect:stage.getBoundingClientRect()},
+        row => characterWorld.plan.actorAt(row)?.head ?? null);
       const batch = buildInstanceBatch(
         sim,
         alpha,
@@ -2423,6 +2492,7 @@ async function main(): Promise<void> {
     }
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
+    updateOrderHistory?.();
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.

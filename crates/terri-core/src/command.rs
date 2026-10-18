@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
 mod character_tests;
+#[cfg(test)]
+mod work_order_tests;
 
 /// One player action, as data.
 ///
@@ -321,6 +323,286 @@ pub enum SimCommand {
         change: bool,
         search: bool,
     },
+    /// Code 35: confirm the work consequences of one player order.
+    /// Nested confirmations and non-order commands are invalid at ingress.
+    ConfirmedOrder {
+        fingerprint: u64,
+        command: PlayerOrder,
+    },
+}
+
+/// The finite set of commands that can require a work confirmation.
+/// Keeping this nonrecursive bounds parsing before any gameplay validation.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PlayerOrder {
+    UseObject {
+        agent: u32,
+        object: u32,
+        interaction: u32,
+        front: bool,
+    },
+    TalkTo {
+        agent: u32,
+        target: u32,
+        interaction: u32,
+        front: bool,
+    },
+    ReadBook {
+        agent: u32,
+        object: u32,
+        action: String,
+        title: String,
+        front: bool,
+    },
+    CleanChore {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+        front: bool,
+    },
+    CleanDishes {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+        front: bool,
+    },
+}
+
+impl PlayerOrder {
+    pub fn validate_structure(&self) -> Result<(), &'static str> {
+        match self {
+            Self::ReadBook { action, title, .. }
+                if action.trim().is_empty()
+                    || title.trim().is_empty()
+                    || action.len() > 1024
+                    || title.len() > 1024 =>
+            {
+                Err("Invalid reading identity")
+            }
+            Self::CleanDishes {
+                dishes: Some(ids), ..
+            } if ids.is_empty()
+                || ids.len() > 100_000
+                || ids.windows(2).any(|pair| pair[0] >= pair[1]) =>
+            {
+                Err("Invalid dish selection")
+            }
+            _ => Ok(()),
+        }
+    }
+
+    pub fn into_command(self) -> SimCommand {
+        match self {
+            Self::UseObject {
+                agent,
+                object,
+                interaction,
+                front: false,
+            } => SimCommand::UseObject {
+                agent,
+                object,
+                interaction,
+            },
+            Self::UseObject {
+                agent,
+                object,
+                interaction,
+                front: true,
+            } => SimCommand::UseObjectFirst {
+                agent,
+                object,
+                interaction,
+            },
+            Self::TalkTo {
+                agent,
+                target,
+                interaction,
+                front: false,
+            } => SimCommand::TalkTo {
+                agent,
+                target,
+                interaction,
+            },
+            Self::TalkTo {
+                agent,
+                target,
+                interaction,
+                front: true,
+            } => SimCommand::TalkToFirst {
+                agent,
+                target,
+                interaction,
+            },
+            Self::ReadBook {
+                agent,
+                object,
+                action,
+                title,
+                front,
+            } => SimCommand::Book(BookCommand::Read {
+                agent,
+                object,
+                action,
+                title,
+                front,
+            }),
+            Self::CleanChore {
+                agent,
+                key,
+                front: false,
+            } => SimCommand::CleanChore { agent, key },
+            Self::CleanChore {
+                agent,
+                key,
+                front: true,
+            } => SimCommand::CleanChoreFirst { agent, key },
+            Self::CleanDishes {
+                agent,
+                surface,
+                dishes,
+                front: false,
+            } => SimCommand::CleanDishes {
+                agent,
+                surface,
+                dishes,
+            },
+            Self::CleanDishes {
+                agent,
+                surface,
+                dishes,
+                front: true,
+            } => SimCommand::CleanDishesFirst {
+                agent,
+                surface,
+                dishes,
+            },
+        }
+    }
+}
+
+impl SimCommand {
+    pub fn order_actor(&self) -> Option<u32> {
+        match self {
+            Self::UseObject { agent, .. }
+            | Self::UseObjectFirst { agent, .. }
+            | Self::TalkTo { agent, .. }
+            | Self::TalkToFirst { agent, .. }
+            | Self::CleanChore { agent, .. }
+            | Self::CleanChoreFirst { agent, .. }
+            | Self::CleanDishes { agent, .. }
+            | Self::CleanDishesFirst { agent, .. }
+            | Self::Book(BookCommand::Read { agent, .. }) => Some(*agent),
+            _ => None,
+        }
+    }
+
+    pub fn into_player_order(self) -> Option<PlayerOrder> {
+        match self {
+            Self::UseObject {
+                agent,
+                object,
+                interaction,
+            } => Some(PlayerOrder::UseObject {
+                agent,
+                object,
+                interaction,
+                front: false,
+            }),
+            Self::UseObjectFirst {
+                agent,
+                object,
+                interaction,
+            } => Some(PlayerOrder::UseObject {
+                agent,
+                object,
+                interaction,
+                front: true,
+            }),
+            Self::TalkTo {
+                agent,
+                target,
+                interaction,
+            } => Some(PlayerOrder::TalkTo {
+                agent,
+                target,
+                interaction,
+                front: false,
+            }),
+            Self::TalkToFirst {
+                agent,
+                target,
+                interaction,
+            } => Some(PlayerOrder::TalkTo {
+                agent,
+                target,
+                interaction,
+                front: true,
+            }),
+            Self::Book(BookCommand::Read {
+                agent,
+                object,
+                action,
+                title,
+                front,
+            }) => Some(PlayerOrder::ReadBook {
+                agent,
+                object,
+                action,
+                title,
+                front,
+            }),
+            Self::CleanChore { agent, key } => Some(PlayerOrder::CleanChore {
+                agent,
+                key,
+                front: false,
+            }),
+            Self::CleanChoreFirst { agent, key } => Some(PlayerOrder::CleanChore {
+                agent,
+                key,
+                front: true,
+            }),
+            Self::CleanDishes {
+                agent,
+                surface,
+                dishes,
+            } => Some(PlayerOrder::CleanDishes {
+                agent,
+                surface,
+                dishes,
+                front: false,
+            }),
+            Self::CleanDishesFirst {
+                agent,
+                surface,
+                dishes,
+            } => Some(PlayerOrder::CleanDishes {
+                agent,
+                surface,
+                dishes,
+                front: true,
+            }),
+            _ => None,
+        }
+    }
+    /// People whose work an executable player order can interrupt.
+    /// A confirmation cannot wrap another confirmation or an unrelated command.
+    pub fn order_participants(&self) -> Option<Vec<u32>> {
+        match self {
+            Self::TalkTo { agent, target, .. } | Self::TalkToFirst { agent, target, .. } => {
+                let mut people = vec![*agent, *target];
+                people.sort_unstable();
+                people.dedup();
+                Some(people)
+            }
+            Self::UseObject { agent, .. }
+            | Self::UseObjectFirst { agent, .. }
+            | Self::CleanDishes { agent, .. }
+            | Self::CleanDishesFirst { agent, .. }
+            | Self::CleanChore { agent, .. }
+            | Self::CleanChoreFirst { agent, .. }
+            | Self::Book(BookCommand::Read { agent, .. }) => Some(vec![*agent]),
+            _ => None,
+        }
+    }
 }
 
 /// Resolved creator commands append after every published command discriminant.
@@ -495,6 +777,24 @@ impl CommandQueue {
     /// Commands in the order the next full or paused drain will apply them.
     pub fn as_slice(&self) -> &[SimCommand] {
         &self.0
+    }
+
+    /// Wrap the command just admitted through the validated input boundary.
+    pub fn confirm_last_order(&mut self, fingerprint: u64) -> bool {
+        let Some(last) = self.0.last() else {
+            return false;
+        };
+        let Some(command) = last.clone().into_player_order() else {
+            return false;
+        };
+        *self
+            .0
+            .last_mut()
+            .expect("the validated last command exists") = SimCommand::ConfirmedOrder {
+            fingerprint,
+            command,
+        };
+        true
     }
 }
 

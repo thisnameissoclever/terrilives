@@ -15,6 +15,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV16 {
 
 /// Project persistent household state without pending input. Command references
 /// participate in the action manifest, so derive it again from the projection.
+#[cfg(test)]
 pub(crate) fn capture_without_commands(sim: &Sim) -> SaveSnapshotV16 {
     let mut snapshot = capture(sim);
     let ten = &mut snapshot.legacy.legacy.legacy.legacy.legacy.legacy;

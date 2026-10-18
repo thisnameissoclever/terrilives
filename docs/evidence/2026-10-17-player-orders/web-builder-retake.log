@@ -1,0 +1,38 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/builder.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ ✓ tests/builder.test.ts > opens Build on the exact object without committing a previous move preview 88ms
+ ✓ tests/builder.test.ts > only stages changed geometry when confirming a build batch 7ms
+ ✓ tests/builder.test.ts > commits a valid move before selecting another object without advancing time 6ms
+ ✓ tests/builder.test.ts > switches immediately after manual Confirm without queuing a duplicate placement 4ms
+ ✓ tests/builder.test.ts > clears an automatic selection handoff on Load before subsequent placement 47ms
+ ✓ tests/builder.test.ts > cancels an invalid move on selection and keeps the original furniture unchanged 18ms
+ ✓ tests/builder.test.ts > commits rotation on keyboard selection but leaves same-object previews alone 5ms
+ ✓ tests/builder.test.ts > switches selection and reports cancellation if a valid preview is rejected during commit 5ms
+ ✓ tests/builder.test.ts > tells its controls when a lot change refreshes the object list with nothing selected 3ms
+ ✓ tests/builder.test.ts > selects inert scenery by live identity and cancels without writing simulation state 30ms
+ ✓ tests/builder.test.ts > waits for the drained result and refreshes a moved object on lot revision 5ms
+ ✓ tests/builder.test.ts > deselects an unchanged placement after Confirm without changing its position 2ms
+ ✓ tests/builder.test.ts > keeps invalid previews visible and handles refusal after a previously valid preview 3ms
+ ✓ tests/builder.test.ts > cycles supported facings and preserves the builder pause while another modal closes 3ms
+ ✓ tests/builder.test.ts > preserves a refused-load preview and resets a loaded world even when its revision is indistinguishable 5ms
+ ✓ tests/builder.test.ts > routes keyboard edits once and appends preview instances without changing original render rows 13ms
+ ✓ tests/builder.test.ts > replaces furniture at every preview destination and restores it on Cancel 35ms
+ ✓ tests/builder.test.ts > replaces the original table presentation when a valid rotated rectangle overlaps it only partly 26ms
+ ✓ tests/builder.test.ts > sells with Delete and will not sell what a sim has been told to use 7ms
+ ✓ tests/builder.test.ts > keeps the choice and turns Sell off when the drain refuses a sale 7ms
+ ✓ tests/builder.test.ts > forgets a sale on its way when a game is loaded 5ms
+ ✓ tests/builder.test.ts > sells with Backspace 2ms
+ ✓ tests/builder.test.ts > recolours the chosen object and keeps it chosen 5ms
+ ✓ tests/builder.test.ts > sends a colourway chosen while one is on its way once that lands 3ms
+ ✓ tests/builder.test.ts > does not take an earlier move for a colour change on its way 5ms
+
+ Test Files  1 passed (1)
+      Tests  25 passed (25)
+   Start at  15:28:48
+   Duration  7.38s (transform 5.64s, setup 123ms, import 6.38s, tests 372ms, environment 0ms)
+

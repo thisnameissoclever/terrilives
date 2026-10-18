@@ -1,0 +1,1073 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 --reporter=verbose tests/action-queue.test.ts tests/affinities-panel.test.ts tests/aquarium.test.ts tests/bath-production.test.ts tests/bathroom-assets.test.ts tests/bed-assignment-bridge.test.ts tests/bed-sprites.test.ts tests/bedroom-storage-assets.test.ts tests/book-bridge.test.ts tests/bookcase.test.ts tests/bridge.test.ts tests/build-context.test.ts tests/build-exit.test.ts tests/build-session-state.test.ts tests/build-session.test.ts tests/builder-controls.test.ts tests/builder.test.ts tests/buy-tool.test.ts tests/buying-details.test.ts tests/career-bridge.test.ts tests/career-panel.test.ts tests/character-contact-admission.test.ts tests/character-seat-places.test.ts tests/character-simulation.test.ts tests/character-world-contract.test.ts tests/cleaning-production.test.ts tests/coat-rack.test.ts tests/completion-audio-bridge.test.ts tests/creator-catalog-coverage.test.ts tests/desk-work-seating-production.test.ts tests/dining-chair.test.ts tests/dining-table.test.ts tests/door-audio-bridge.test.ts tests/fixture-registration.test.ts tests/floor-lamp.test.ts tests/frame.test.ts tests/fridge-reach-production.test.ts tests/housemate-form.test.ts tests/hud-scrollbar.test.ts tests/interaction-frame.test.ts tests/interaction-production.test.ts tests/legacy-save.test.ts tests/living-media.test.ts tests/long-sofa.test.ts tests/main-build-wiring.test.ts tests/media-seating-production.test.ts tests/office-chair.test.ts tests/order-failure-bubbles.test.ts tests/ottoman.test.ts tests/paper-audio-review.test.ts tests/personal-details-bridge.test.ts tests/placement-bridge.test.ts tests/player-order-bridge.test.ts tests/player-order-wasm.test.ts tests/player-orders.test.ts tests/portal-bridge.test.ts tests/potted-plant.test.ts tests/reading-render-bridge.test.ts tests/recline-production.test.ts tests/room-bridge.test.ts tests/room-codec.test.ts tests/room-review.test.ts tests/room-selection.test.ts tests/room-tool.test.ts tests/save-worker.test.ts tests/selection-ground.test.ts tests/shower-motion.test.ts tests/sim-shirt-variants.test.ts tests/skills-panel.test.ts tests/sleeping-place-bridge.test.ts tests/startup-loading.test.ts tests/toilet-production.test.ts tests/trashcan.test.ts tests/varied-autonomy.test.ts tests/wall-tool.test.ts tests/wash-hands-production.test.ts tests/window-bridge.test.ts tests/window-daylight.test.ts tests/window-tool-controls.test.ts tests/window-tool.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ ✓ tests/bridge.test.ts > SimBridge > loads the published V8 game save and continues through a current save 352ms
+ ✓ tests/bridge.test.ts > SimBridge > exports reading stages and physical copy identity through distinct buffers 4ms
+ ✓ tests/bridge.test.ts > SimBridge > exposes trait-adjusted starting satisfaction from the rebuilt simulation 15ms
+ ✓ tests/bridge.test.ts > SimBridge > refreshes aligned dish views after save/load replaces WASM memory 3ms
+ ✓ tests/bridge.test.ts > SimBridge > enables death by default and preserves a saved off command 7ms
+ ✓ tests/bridge.test.ts > SimBridge > keeps type, model and description aligned across the catalogue, placed objects and load 64ms
+ ✓ tests/bridge.test.ts > SimBridge > keeps enabled and disabled presentation lighting out of the world hash 51ms
+ ✓ tests/bridge.test.ts > SimBridge > reads spawned positions without copying 1ms
+ ✓ tests/bridge.test.ts > SimBridge > tags agents and objects distinctly 0ms
+ ✓ tests/bridge.test.ts > SimBridge > reads the trait library through release wasm and words a real person with it 2ms
+ ✓ tests/bridge.test.ts > SimBridge > exposes aligned stable Sim ids for public people with a sentinel for objects 1ms
+ ✓ tests/bridge.test.ts > SimBridge > exposes exact authored shower sound state across release-wasm growth 6ms
+ ✓ tests/bridge.test.ts > SimBridge > exposes content-derived footprint axes for every render row 0ms
+ ✓ tests/bridge.test.ts > SimBridge > carries a content-resolved sprite index per entity 0ms
+ ✓ tests/bridge.test.ts > SimBridge > reports all 62 shipped wall edges with six explicit doorway flags 1ms
+ ✓ tests/bridge.test.ts > SimBridge > reports the house's size and the yard's look 1ms
+ ✓ tests/bridge.test.ts > SimBridge > reports the season and the yard look of each season 637ms
+ ✓ tests/bridge.test.ts > SimBridge > reports the street's column and look 1ms
+ ✓ tests/bridge.test.ts > SimBridge > keeps edge-layout spawn validation and accepted saves intact in release WASM 68ms
+ ✓ tests/bridge.test.ts > SimBridge > rejects an unknown content id without trapping the wasm module 2ms
+ ✓ tests/bridge.test.ts > SimBridge > moves an agent toward the fridge over ticks 6ms
+ ✓ tests/bridge.test.ts > SimBridge > reacquires active aquarium and bike columns after release-wasm memory growth 19ms
+ ✓ tests/bridge.test.ts > SimBridge > reacquires loaded reading columns after real release-wasm memory growth 206ms
+ ✓ tests/bridge.test.ts > SimBridge > reacquires standing bookshelf reading after real release-wasm memory growth 213ms
+ ✓ tests/bridge.test.ts > SimBridge > survives memory growth from many spawns 843ms
+ ✓ tests/bridge.test.ts > SimBridge > returns a usable view after growth detached an earlier one 658ms
+ ✓ tests/bridge.test.ts > SimBridge > loads the shipped lot through from_lot before the first tick 24ms
+ ✓ tests/bridge.test.ts > SimBridge > reads bounded shyness from real wasm and preserves it through saving 2ms
+ ✓ tests/bridge.test.ts > SimBridge > saves, restores and continues through the release wasm bridge 645ms
+ ✓ tests/bridge.test.ts > SimBridge > restores the explicit empty edge layout without falling back to current or legacy walls 3ms
+ ✓ tests/bridge.test.ts > SimBridge > rejects every current-save truncation, trailing bytes, and future versions transactionally 1909ms
+ ✓ tests/bridge.test.ts > SimBridge > publishes the restored household roster before the first post-load tick 2ms
+ ✓ tests/bridge.test.ts > SimBridge > projects aligned mood data and restores it before the next tick 3ms
+ ✓ tests/bridge.test.ts > SimBridge > rejects corrupt save bytes without changing the live bridge 32ms
+ ✓ tests/bridge.test.ts > SimBridge > runs the shipped day through the boundary: Tim leaves, hides, returns paid 537ms
+ ✓ tests/bridge.test.ts > SimBridge > reads each person's likes and dislikes through release wasm without changing saves 12ms
+ ✓ tests/bridge.test.ts > SimBridge > a shipped dinner becomes visible: hands fill, the status line reads 30ms
+ ✓ tests/bridge.test.ts > SimBridge > reproduces the native golden world hash across the wasm boundary 42ms
+ ✓ tests/bridge.test.ts > SimBridge > rejects malformed command bytes without trapping the wasm module 2ms
+ ✓ tests/bridge.test.ts > SimBridge > carries a selection into the simulation and reads it back out 2ms
+ ✓ tests/bridge.test.ts > SimBridge > applies staged input while paused without advancing simulation time 1ms
+ ✓ tests/bridge.test.ts > SimBridge > preserves hundreds of pointer orders and a new front order 60ms
+ ✓ tests/bridge.test.ts > SimBridge > preserves hundreds of keyboard orders and a new front order 60ms
+ ✓ tests/bridge.test.ts > SimBridge > encodes an entity index above 127 as a multi-byte varint 50ms
+ ✓ tests/bridge.test.ts > SimBridge > directs a sim at an object, overriding what it chose for itself 27ms
+ ✓ tests/bridge.test.ts > SimBridge > carries literal activity 16 for exact handwashing through release wasm 2ms
+ ✓ tests/bridge.test.ts > SimBridge > sends the interaction index through to the simulation unclamped 12ms
+ ✓ tests/bridge.test.ts > SimBridge > directs a talk whose method bytes match the hand-written wire bytes 8ms
+ ✓ tests/bridge.test.ts > SimBridge > keeps conversation identity stable across ticks, load and real memory growth 65ms
+ ✓ tests/bridge.test.ts > SimBridge > places a plain order first, with method bytes matching the hand-written wire bytes 22ms
+ ✓ tests/bridge.test.ts > SimBridge > reads a sim needs back out of the simulation, and nothing for anything else 0ms
+ ✓ tests/bridge.test.ts > SimBridge > labels the need slots from the simulation, in the order it fills them 0ms
+ ✓ tests/bridge.test.ts > SimBridge > reports the need ceiling and the refresh interval the content authors 0ms
+ ✓ tests/bridge.test.ts > SimBridge > refuses a command the wire format cannot express rather than coercing it 5ms
+ ✓ tests/bridge.test.ts > SimBridge > caps the staging queue so rapid clicking cannot grow it without bound 5ms
+ ✓ tests/bridge.test.ts > SimBridge > exposes the world hash as a bigint that tracks simulation state 4ms
+ ✓ tests/varied-autonomy.test.ts > reproduces actual action and movement traces for equal seeds and varies them across seeds 1346ms
+ ✓ tests/varied-autonomy.test.ts > preserves subsequent stochastic choices, paths and pauses across save/load 1027ms
+ ✓ tests/portal-bridge.test.ts > front door through the release WASM bridge > migrates the rotated-bathtub pre-door fingerprint through the release boundary 1136ms
+ ✓ tests/portal-bridge.test.ts > front door through the release WASM bridge > loads the real pre-bathtub household with an active front door 646ms
+ ✓ tests/portal-bridge.test.ts > front door through the release WASM bridge > reacquires each zero-copy portal column after memory growth 2ms
+ ✓ tests/portal-bridge.test.ts > front door through the release WASM bridge > plays every door state and preserves active crossings through save and load 1018ms
+ ✓ tests/portal-bridge.test.ts > front door through the release WASM bridge > keeps the prior swing sample across paused command drains 282ms
+ ✓ tests/shower-motion.test.ts > gives an ordinary shower enough active time to show repeated washing movements 191ms
+ ✓ tests/shower-motion.test.ts > moves both configured wrists visibly during a quarter of the shower cycle 919ms
+ ✓ tests/shower-motion.test.ts > keeps active shower timing and the subsequent simulation identical after saving and reloading 431ms
+ ✓ tests/shower-motion.test.ts > tracks finite chest and pelvis steam volumes for every height/build combination, gender, facing, and quarter-cycle 747ms
+ ✓ tests/shower-motion.test.ts > keeps the fixed shower head outside the actual configured head and hair surfaces 3148ms
+ ✓ tests/room-bridge.test.ts > preserves a literal leading BOM through native summary, review and current reload 93ms
+ ✓ tests/room-bridge.test.ts > projects sparse inherited choices from the actual prepared matcher 28ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-approaching.sav' and retains exact current continuation 450ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-queued.sav' and retains exact current continuation 261ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-suspended.sav' and retains exact current continuation 242ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-talking-later-identical.sav' and retains exact current continuation 253ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-talking.sav' and retains exact current continuation 250ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-waiting-arrived.sav' and retains exact current continuation 224ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-waiting-owned.sav' and retains exact current continuation 223ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'chat-waiting-private.sav' and retains exact current continuation 262ms
+ ✓ tests/room-bridge.test.ts > migrates authentic V15 'fresh.sav' and retains exact current continuation 239ms
+ ✓ tests/room-bridge.test.ts > routes real native Build capture through the persistence controller without a browser baseline 36ms
+ ✓ tests/room-bridge.test.ts > keeps the exact prepared token after malformed choices and refused Load 14ms
+ ✓ tests/room-bridge.test.ts > successful Load replaces the native active baseline and invalidates the old review 32ms
+ ✓ tests/room-bridge.test.ts > resolves prepared report people by raw entity index rather than SimId 6ms
+ ✓ tests/room-bridge.test.ts > autosaves native committed bytes at an already reached day boundary while reviewing 1091ms
+ ✓ tests/room-bridge.test.ts > keeps confirmed membership and predecessor identity in the translated draft frame 23ms
+ ✓ tests/window-tool.test.ts > whole-window controller > reaches ordinary wall edits from every selected window unit on axis 0 731ms
+ ✓ tests/window-tool.test.ts > whole-window controller > reaches ordinary wall edits from every selected window unit on axis 1 549ms
+ ✓ tests/window-tool.test.ts > whole-window controller > keeps Remove window distinct, preserves pending selection, and reports rear-shell wall refusals 15ms
+ ✓ tests/window-tool.test.ts > whole-window controller > returns the navigated unit and reconciles a selected tail after replacing with a shorter window 7ms
+ ✓ tests/window-tool.test.ts > whole-window controller > previews, fits, selects from middle/end, replaces and removes all nine models on both axes 293ms
+ ✓ tests/window-tool.test.ts > whole-window controller > keeps pending ownership across exit and re-entry, ignores stale success on queue refusal, and retains last model 12ms
+ ✓ tests/window-tool.test.ts > whole-window controller > shows the authoritative refusal after a different queued change invalidates the preview 6ms
+ ✓ tests/window-tool.test.ts > whole-window controller > covers the invalid third line, model switches, touch coordinates, blocking and loaded lot dimensions 6ms
+ ✓ tests/window-tool.test.ts > whole-window controller > uses literal shared reasons for the new window refusal codes 0ms
+ ✓ tests/window-tool.test.ts > window preview geometry > hides the old owner, restores opaque tails, keeps adjacent arms, and leaves the lot unchanged 18ms
+ ✓ tests/legacy-save.test.ts > loads the captured historical save through release WASM and preserves continuation 862ms
+ ✓ tests/legacy-save.test.ts > migrates authentic local-character-0 V9 bytes through release WASM 192ms
+ ✓ tests/legacy-save.test.ts > migrates authentic local-character-400 V9 bytes through release WASM 152ms
+ ✓ tests/legacy-save.test.ts > migrates authentic local-character-1200 V9 bytes through release WASM 120ms
+ ✓ tests/legacy-save.test.ts > migrates authentic main-social-0 V9 bytes through release WASM 186ms
+ ✓ tests/legacy-save.test.ts > migrates authentic main-social-400 V9 bytes through release WASM 104ms
+ ✓ tests/legacy-save.test.ts > migrates authentic main-social-1200 V9 bytes through release WASM 95ms
+ ✓ tests/legacy-save.test.ts > migrates authentic main-social-active V9 bytes through release WASM 210ms
+ ✓ tests/fixture-registration.test.ts > binds placement bounds to the immutable published geometry and measured producer 1520ms
+ ✓ tests/fixture-registration.test.ts > clears the real rear-wall solid for 'offlineFridge' in all four facings 1ms
+ ✓ tests/fixture-registration.test.ts > clears the real rear-wall solid for 'offlineStove' in all four facings 0ms
+ ✓ tests/fixture-registration.test.ts > clears the real rear-wall solid for 'offlineCounter' in all four facings 1ms
+ ✓ tests/fixture-registration.test.ts > clears the real rear-wall solid for 'offlineSink' in all four facings 0ms
+ ✓ tests/fixture-registration.test.ts > clears both adjoining kitchen corner walls while preserving unsupported free-standing origins 1ms
+ ✓ tests/fixture-registration.test.ts > reports impossible opposite-wall geometry without refusing to load native state 0ms
+ ✓ tests/fixture-registration.test.ts > keeps native placement previews on the resulting object origin and ignores doorway openings 1ms
+ ✓ tests/fixture-registration.test.ts > moves furniture, every surface item, and grime through the identical physical translation 2ms
+ ✓ tests/fixture-registration.test.ts > registers the actual household without changing native state, contacts, or saves 44ms
+ ✓ tests/window-bridge.test.ts > typed windows through release WASM > decodes Rust catalogue widths and expands both axes with canonical ownership 27ms
+ ✓ tests/window-bridge.test.ts > typed windows through release WASM > round-trips every model and both rear axes before draining saved commands 841ms
+ ✓ tests/window-bridge.test.ts > typed windows through release WASM > starts a fresh pending boundary for repeated success and refusal, then reports authoritative application 12ms
+ ✓ tests/window-bridge.test.ts > typed windows through release WASM > rejects hostile inputs before unsigned conversion without staging or replacing state 140ms
+ ✓ tests/window-bridge.test.ts > typed windows through release WASM > preserves legacy Sash and floor IDs, hashes model identity, and ignores lighting preferences 18ms
+ ✓ tests/window-bridge.test.ts > rejects incomplete descriptors, unknown model IDs and malformed catalogue or preview rows 1ms
+ ✓ tests/door-audio-bridge.test.ts > real household crossings emit physical door events after WASM growth without changing saves 901ms
+ ✓ tests/paper-audio-review.test.ts > publishes exactly four ordered paper originals with paper-specific unreviewed guidance 320ms
+ ✓ tests/paper-audio-review.test.ts > identical regeneration does not write again and preserves a changed existing artifact 342ms
+ ✓ tests/paper-audio-review.test.ts > refuses redirected fixed directory assets/audio/review/paper 56ms
+ ✓ tests/paper-audio-review.test.ts > refuses redirected fixed directory web/public 56ms
+ ✓ tests/paper-audio-review.test.ts > checked-in artifact equals a fresh fixed-manifest publication 87ms
+ ✓ tests/paper-audio-review.test.ts > rejects changed paper original hash before creating output 56ms
+ ✓ tests/paper-audio-review.test.ts > rejects changed paper original size before creating output 54ms
+ ✓ tests/paper-audio-review.test.ts > rejects source-file and destination-file symlinks escaping their fixed locations 356ms
+ ✓ tests/paper-audio-review.test.ts > accepts no destination or candidate overrides 56ms
+ ✓ tests/interaction-production.test.ts > contains all registered production facings, palettes and samples after the stable prefix 29ms
+ ✓ tests/interaction-production.test.ts > compiled moving_box selects its exact occupied presentation and restores the empty body 76ms
+ ✓ tests/interaction-production.test.ts > compiled reading_chair selects its exact occupied presentation and restores the empty body 308ms
+ ✓ tests/interaction-production.test.ts > compiled bed selects its exact occupied presentation and restores the empty body 11ms
+ ✓ tests/interaction-production.test.ts > compiled armchair selects its exact occupied presentation and restores the empty body 12ms
+ ✓ tests/interaction-production.test.ts > uses every armchair sample and shirt in facing  167ms
+ ✓ tests/interaction-production.test.ts > uses every armchair sample and shirt in facing SW 110ms
+ ✓ tests/interaction-production.test.ts > uses every armchair sample and shirt in facing NW 99ms
+ ✓ tests/interaction-production.test.ts > uses every armchair sample and shirt in facing NE 112ms
+ ✓ tests/interaction-production.test.ts > an empty reading chair is not picked through the transparent space above its art 1ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > retains all 64 facing, occupancy and joint shirt combinations with registered layers 10ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > samples gray values, zero background and fractional edges using texel centers 0ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > filters the actual additive scene alpha before clamping its output 67ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > keeps both owners through row reorder, static sampling and one departure without ordinary target columns 3ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > does not override independent authored visuals or invent sleeping from an assignment 0ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > picks both visible owners and furniture at fractional zoom independently of Sim row order 34ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > draws one scene and retains distinct bubbles and visible owner rings 2ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > uses the actual shared draw row and layer against an unrelated equal-depth Sim 0ms
+ ✓ tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > renders real authored double-bed sleepers across rotation, immediate Load and memory growth 562ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains the exact published V16 save-header.ts source 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains the exact published V16 save-worker.ts source 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up V16 before V17 and refuses a cached V16 writer 20ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V16 sparse-person-active bytes before a current write 5ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V16 funded-fresh bytes before a current write 17ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V16 after backup open failure and permits retry 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V16 after backup write failure and permits retry 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V16 after backup close failure and permits retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V16 recovery after primary open failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V16 recovery after primary write failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V16 recovery after primary close failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V16 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V16 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V16 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains the exact published V15 save-header.ts source 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains the exact published V15 save-worker.ts source 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up V15 before V17 and preserves both recovery versions through New game 12ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 fresh before a synthetic V17 write 12ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-queued before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-approaching before a synthetic V17 write 17ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-waiting-owned before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-waiting-arrived before a synthetic V17 write 16ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-waiting-private before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-talking before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-talking-later-identical before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up authentic published V15 chat-suspended before a synthetic V17 write 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the V15 primary after recovery open failure 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the V15 primary after recovery write failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the V15 primary after recovery close failure 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains exact V15 recovery after primary open failure 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains exact V15 recovery after primary write failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains exact V15 recovery after primary close failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V15 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V15 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses an invalid V15 recovery header 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the frozen V14 save-header.ts byte-identical to its source 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the frozen V14 save-worker.ts byte-identical to its source 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves the complete historical V14 fresh save before writing a synthetic V17 header 28ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves the complete historical V14 lived save before writing a synthetic V17 header 21ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves the complete historical V14 cleaning-ordered save before writing a synthetic V17 header 39ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves the complete historical V14 outdoor-boards save before writing a synthetic V17 header 21ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the frozen V14 worker rejects outgoing V17 before reading or writing storage 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V14 after backup open failure and permits retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V14 after backup write failure and permits retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V14 after backup close failure and permits retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V14 and its completed recovery after primary open failure 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V14 and its completed recovery after primary write failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains V14 and its completed recovery after primary close failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V14 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V14 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V14 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses to replace V14 when its existing recovery copy cannot be read 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves the original V14 recovery across current writes and New game 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves exact V8 bytes before a current write and refuses a cached V8 overwrite 12ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V7 before a current write and refuses a cached V7 overwrite 11ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V9 before a current write and refuses a cached V9 writer 10ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V10 before a current write and refuses a cached V10 writer 11ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V11 before a current write and refuses a cached V11 writer 9ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V12 before the current write and refuses a cached V12 writer 10ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V13 before the current write and refuses a cached V13 writer 10ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves exact local-character-0 V9 recovery bytes before writing a real current save 102ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves exact main-social-active V9 recovery bytes before writing a real current save 56ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 fresh recovery bytes before writing a real current save 97ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 lived recovery bytes before writing a real current save 53ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 cleaning-ordered recovery bytes before writing a real current save 108ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves complete V14 outdoor-boards recovery bytes before writing a real current save 108ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > stores the current simulation save without changing its bytes 30ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > backs up exact V5 bytes before the first current write 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V5 after backup open failure 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V5 after backup write failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves V5 after backup close failure 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the published V5 worker refuses a V6 slot 10ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the previous V6 worker refuses a current slot 9ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the actual V2 worker refuses a V3 slot installed by a newer tab 11ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the actual V3 worker refuses a V4 slot installed by a newer tab 10ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > the actual V4 worker refuses a V5 slot installed by a newer tab 14ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses non-current outgoing headers before touching storage 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves a V2 primary after backup open failure and allows retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves a V2 primary after backup write failure and allows retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves a V2 primary after backup close failure and allows retry 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps both original recovery files immutable through writes and clear 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V4 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V4 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V4 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V3 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V3 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V3 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V2 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V2 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses a damaged or mismatched V2 recovery copy 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > does not replace V2 when its existing backup cannot be read 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves original historical bytes before a current overwrite 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses unknown primary headers before a current write 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses unknown primary headers before a current write 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > refuses unknown primary headers before a current write 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the primary untouched after backup open failure and makes retry safe 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the primary untouched after backup write failure and makes retry safe 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps the primary untouched after backup close failure and makes retry safe 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > closes a byte-exact V1 backup before opening the primary for a current write 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > preserves an existing V1 recovery copy through later writes and clear 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > fails closed on an empty backup left by an interrupted creation 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > does not write when reading terri-save-1.bin fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > does not write when reading terri-save-1.v1-backup.bin fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > retains the completed backup when the primary write fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > writes the current schema without a historical backup when none is needed: {"previous":{"0":84,"1":69,"2":82,"3":82,"4":73,"5":83,"6":65,"7":86,"8":17,"9":0,"10":29,"11":128,"12":0,"13":0,"14":0,"15":1},"next":{"0":84,"1":69,"2":82,"3":82,"4":73,"5":83,"6":65,"7":86,"8":17,"9":0,"10":29,"11":128,"12":0,"13":0,"14":0,"15":1}} 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > writes the current schema without a historical backup when none is needed: {"previous":null,"next":{"0":84,"1":69,"2":82,"3":82,"4":73,"5":83,"6":65,"7":86,"8":17,"9":0,"10":29,"11":128,"12":0,"13":0,"14":0,"15":1}} 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > does not overwrite an unreadable or newer slot installed after this tab loaded 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > does not overwrite an unreadable or newer slot installed after this tab loaded 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > serializes simultaneous first saves from two worker instances under one origin lock 1ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps bytes untouched when the load lock fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps bytes untouched when the save lock fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > keeps bytes untouched when the clear lock fails 0ms
+ ✓ tests/save-worker.test.ts > save worker recovery backup > reports unsupported Web Locks without touching storage 0ms
+ ✓ tests/placement-bridge.test.ts > validates hostile placement numbers at the actual WASM boundary 202ms
+ ✓ tests/placement-bridge.test.ts > keeps preview observational, reports the drained result, and survives memory growth 332ms
+ ✓ tests/cleaning-production.test.ts > plays counter through the compiled boundary, save/load and cancellation 260ms
+ ✓ tests/cleaning-production.test.ts > plays dining_table through the compiled boundary, save/load and cancellation 149ms
+ ✓ tests/cleaning-production.test.ts > plays trashcan through the compiled boundary, save/load and cancellation 113ms
+ ✓ tests/character-simulation.test.ts > samples real walking and reading states in all four simulation facings 487ms
+ ✓ tests/character-simulation.test.ts > gives the same real motion at 30 and 60 presentation frames per second 8ms
+ ✓ tests/character-simulation.test.ts > resumes from an explicit step without retaining an older fractional tick 2ms
+ ✓ tests/aquarium.test.ts > imports an actual released-main save, migrates owned books and preserves the aquarium 103ms
+ ✓ tests/aquarium.test.ts > keeps fish timing and the picking envelope for facing  3ms
+ ✓ tests/aquarium.test.ts > keeps fish timing and the picking envelope for facing NW 1ms
+ ✓ tests/aquarium.test.ts > keeps fish timing and the picking envelope for facing SW 2ms
+ ✓ tests/aquarium.test.ts > keeps fish timing and the picking envelope for facing NE 3ms
+ ✓ tests/aquarium.test.ts > preserves aquarium placement, colours and save bytes through four rotations 268ms
+ ✓ tests/aquarium.test.ts > keeps watching beside the tank and restores the same active action 104ms
+ ✓ tests/fridge-reach-production.test.ts > selects samples from progress, rests under reduced motion and holds when progress holds 1ms
+ ✓ tests/fridge-reach-production.test.ts > fridge reach scenes cover every facing, palette and sample with separate visible click owners 94ms
+ ✓ tests/fridge-reach-production.test.ts > the padded scene draws the fridge on the empty fridge anchor 2ms
+ ✓ tests/fridge-reach-production.test.ts > both compiled fridge steps play the reach through the bridge, and Load resumes it 151ms
+ ✓ tests/fridge-reach-production.test.ts > the shipped kitchen fridge draws the reach on every tick and finishes the step 98ms
+ ✓ tests/fridge-reach-production.test.ts > the shipped kitchen fridge reach survives Load before and during the step 111ms
+ ✓ tests/ottoman.test.ts > registers ottoman facing  without extra layers 9ms
+ ✓ tests/ottoman.test.ts > registers ottoman facing NW without extra layers 10ms
+ ✓ tests/ottoman.test.ts > registers ottoman facing SW without extra layers 4ms
+ ✓ tests/ottoman.test.ts > registers ottoman facing NE without extra layers 3ms
+ ✓ tests/ottoman.test.ts > preserves ottoman identity, footprint, facings, colours and saves 347ms
+ ✓ tests/ottoman.test.ts > restores rendered colours immediately without draining a saved edit 17ms
+ ✓ tests/ottoman.test.ts > identifies target-bound sitting with its fitted seated body pose 64ms
+ ✓ tests/build-exit.test.ts > the footer > Confirm applies the pending changes and keeps Build mode open 124ms
+ ✓ tests/build-exit.test.ts > the footer > Cancel discards the pending changes and keeps Build mode open 21ms
+ ✓ tests/build-exit.test.ts > the footer > keeps Build open for empty footer batches 8ms
+ ✓ tests/build-exit.test.ts > the footer > keeps Build mode, the changes and the reason when Confirm is refused 23ms
+ ✓ tests/build-exit.test.ts > the footer > keeps Build mode with its message when the changes cannot be discarded 4ms
+ ✓ tests/build-exit.test.ts > defers explicit exit until exact native review adoption: adopt 8ms
+ ✓ tests/build-exit.test.ts > defers explicit exit until exact native review adoption: back 5ms
+ ✓ tests/build-exit.test.ts > defers explicit exit until exact native review adoption: dismiss 4ms
+ ✓ tests/build-exit.test.ts > defers explicit exit until exact native review adoption: load 13ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > opens the dialog instead of leaving, with focus on Keep building 14ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > Confirm changes applies them and leaves 9ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > Discard changes discards them and leaves 13ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > Keep building returns to building with the changes and focus on the control that asked 9ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > Escape in the dialog keeps building 10ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > gives the game view focus when the control that asked cannot take it 4ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > counts a furniture move that is not placed, and keeps Build mode when Confirm is refused 6ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > counts a move still on its way, and settles it before confirming 8ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > discards a move still on its way 19ms
+ ✓ tests/build-exit.test.ts > leaving another way while changes are pending > stays in Build mode with its message when Discard changes cannot discard them 5ms
+ ✓ tests/build-exit.test.ts > leaving with nothing pending > leaves with no dialog, after a selection, a refused move and a confirmed batch 18ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > clears a selection first, then asks before leaving with changes pending 3ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > with focus outside the open dialog, chooses Keep building and leaves the selection alone 11ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > inside the open dialog, chooses Keep building too 4ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > held down, counts once wherever focus is, so the dialog it opens stays open 3ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > handles one Escape from the game view once 3ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > leaves another dialog, a text field, a menu and other keys alone 3ms
+ ✓ tests/build-exit.test.ts > Escape in Build mode > leaves at once with nothing selected and nothing pending 5ms
+ ✓ tests/build-exit.test.ts > the Cancel beside a selection > clears only the selection, keeping the other pending changes and Build mode 9ms
+ ✓ tests/build-exit.test.ts > the Cancel beside a selection > clears the tool in use and never leaves Build mode with nothing selected 4ms
+ ✓ tests/build-exit.test.ts > what counts as pending > counts a purchase on its way, and Discard changes gives the money back 16ms
+ ✓ tests/build-exit.test.ts > what counts as pending > treats any controller value but null or false as a command on its way 0ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > keeps the second click of a dialog button off the game, and lets a separate click through 5ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > keeps the second click of the footer Confirm off the game 5ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > keeps the second click of Exit build off the game when nothing is pending 4ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > arms nothing when the dialog closes from the keyboard 3ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > arms nothing from a pointer click that came before the keyboard close 3ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > lets a fresh double-click through soon after a pointer close, whether Build mode stays or is left 5ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > arms from the click that caused the leave even when the work outlasts a quarter second 10ms
+ ✓ tests/build-exit.test.ts > a double-click that closes the dialog or leaves > lets through clicks before any close, and a continuation after the time bound 6ms
+ ✓ tests/build-exit.test.ts > a double-tap on Exit build with changes pending > keeps the dialog open when the second tap lands on Discard changes, with Keep building focused 10ms
+ ✓ tests/build-exit.test.ts > a double-tap on Exit build with changes pending > still discards on a fresh single tap on Discard changes right after 10ms
+ ✓ tests/build-exit.test.ts > a double-tap on Exit build with changes pending > arms nothing when Escape or Enter opens the dialog 18ms
+ ✓ tests/build-exit.test.ts > dismissing the dialog > closes it as Keep building, keeping the changes, so a graphics recovery card is not hidden behind it 10ms
+ ✓ tests/build-exit.test.ts > the refused Confirm message > points at the furniture when a move is shown, and says to try again otherwise 0ms
+ ✓ tests/build-exit.test.ts > the page > has a labeled modal dialog whose buttons give the answers the controller reads 0ms
+ ✓ tests/build-exit.test.ts > the page > styles the dialog as its siblings are and stacks its three buttons on any width 0ms
+ ✓ tests/build-exit.test.ts > the page > describes Escape in the Windows note as it now works 0ms
+ ✓ tests/build-exit.test.ts > the page > main.ts source: the builder exit goes through the gate and the footer belongs to the controller 0ms
+ ✓ tests/build-exit.test.ts > the page > main.ts source: the shared pending check over every tool, the contextual Cancel, discard and graphics loss 0ms
+ ✓ tests/build-exit.test.ts > the page > main.ts source: a discard resets the Land tool as a Load does, inside restoreBuildPresentation 0ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > Back exposes enabled wall actions for the selected window unit without editing it 459ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > groups the Rust catalogue by width with actual model samples and literal labels 1ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > keeps fit/remove controls literal and disabled while loading or awaiting an authoritative result 8ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > changes help at the responsive breakpoint without losing selection and returns focus to Wall controls 2ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > shares one atlas decode and composites registered pieces without stretching 1ms
+ ✓ tests/window-tool-controls.test.ts > window chooser > keeps N scoped to game-view keyboard focus and uses the existing scrolling dock 1ms
+ ✓ tests/bookcase.test.ts > registers and picks the wall-aligned bookcase facing  75ms
+ ✓ tests/bookcase.test.ts > registers and picks the wall-aligned bookcase facing NW 9ms
+ ✓ tests/bookcase.test.ts > registers and picks the wall-aligned bookcase facing SW 3ms
+ ✓ tests/bookcase.test.ts > registers and picks the wall-aligned bookcase facing NE 2ms
+ ✓ tests/bookcase.test.ts > preserves bookcase reading, placement, colours and saves through all four rotations 347ms
+ ✓ tests/bookcase.test.ts > projects owned standing reading and restores its authoritative journey 8ms
+ ✓ tests/main-build-wiring.test.ts > protects retained review text on clean reversal, keeps it on Keep building and adopts it before leaving once 176ms
+ ✓ tests/main-build-wiring.test.ts > clears retained review input only through explicit discard after a clean reversal 38ms
+ ✓ tests/main-build-wiring.test.ts > clears retained review input only through explicit cancel after a clean reversal 28ms
+ ✓ tests/main-build-wiring.test.ts > leaves an exact reversal clean when the review has no retained choices 21ms
+ ✓ tests/main-build-wiring.test.ts > executes the actual canvas/document Escape route without discarding the native draft 30ms
+ ✓ tests/main-build-wiring.test.ts > executes review Back before any ordinary tool or exit action 16ms
+ ✓ tests/main-build-wiring.test.ts > routes both Rooms modes through the actual page array 16ms
+ ✓ tests/main-build-wiring.test.ts > blocks real wall staging for overlay=false review=false 17ms
+ ✓ tests/main-build-wiring.test.ts > blocks real wall staging for overlay=true review=false 17ms
+ ✓ tests/main-build-wiring.test.ts > blocks real wall staging for overlay=false review=true 17ms
+ ✓ tests/main-build-wiring.test.ts > blocks real wall staging for overlay=true review=true 19ms
+ ✓ tests/main-build-wiring.test.ts > routes the actual walls destination without reaching hidden furniture 15ms
+ ✓ tests/main-build-wiring.test.ts > routes the actual buy destination without reaching hidden furniture 11ms
+ ✓ tests/main-build-wiring.test.ts > routes the actual floors destination without reaching hidden furniture 14ms
+ ✓ tests/main-build-wiring.test.ts > routes the actual land destination without reaching hidden furniture 12ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M1 preventDefault defect through a behavioral assertion 15ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M2 review Back defect through a behavioral assertion 17ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M3 Rooms wrapper defect through a behavioral assertion 13ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M4 review blocker defect through a behavioral assertion 15ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M5 overlay blocker defect through a behavioral assertion 11ms
+ ✓ tests/main-build-wiring.test.ts > rejects the isolated M6 always blocked defect through a behavioral assertion 14ms
+ ✓ tests/completion-audio-bridge.test.ts > release WASM completion exports consume real orders once after memory growth and preserve state 152ms
+ ✓ tests/completion-audio-bridge.test.ts > a toilet interruption emits once after loading and lets cooking resume 240ms
+ ✓ tests/completion-audio-bridge.test.ts > paused cancellation and load cannot invent completion, while a loaded live use may finish 18ms
+ ✓ tests/completion-audio-bridge.test.ts > loading replaces a world with an undrained completion without replay 8ms
+ ✓ tests/completion-audio-bridge.test.ts > every fixed tick drains even when one rendered frame advances multiple ticks or disables audio sampling 7ms
+ ✓ tests/sim-shirt-variants.test.ts > persistent household shirt colors > assigns Tim blue, Bill green and Casey red, with green for unnamed Sims 1ms
+ ✓ tests/sim-shirt-variants.test.ts > persistent household shirt colors > does not change identity when entity IDs, facing or animation sample change 66ms
+ ✓ tests/sim-shirt-variants.test.ts > persistent household shirt colors > retains the three persistent identities after simulation and save/load 258ms
+ ✓ tests/sim-shirt-variants.test.ts > persistent household shirt colors > passes persistent identity through the actual instance builder after row reordering 2ms
+ ✓ tests/player-order-wasm.test.ts > fails an invalid future action immediately and preserves a loadable queue with exact order identities 93ms
+ ✓ tests/player-order-wasm.test.ts > cancels a real multi-person work warning without mutation and accepts repeated confirmed orders in one paused batch 356ms
+ ✓ tests/living-media.test.ts > offlineTelevision registers its facing  without pickable padding 10ms
+ ✓ tests/living-media.test.ts > offlineTelevision registers its facing NW without pickable padding 10ms
+ ✓ tests/living-media.test.ts > offlineTelevision registers its facing SW without pickable padding 4ms
+ ✓ tests/living-media.test.ts > offlineTelevision registers its facing NE without pickable padding 3ms
+ ✓ tests/living-media.test.ts > offlineTelevision preserves identity and every placed/saved facing 148ms
+ ✓ tests/living-media.test.ts > offlineTelevision colours the actual placed and preview frame instances 22ms
+ ✓ tests/living-media.test.ts > offlineTelevision uses fitted seating while retaining device activity and static art 61ms
+ ✓ tests/living-media.test.ts > offlineRadio registers its facing  without pickable padding 5ms
+ ✓ tests/living-media.test.ts > offlineRadio registers its facing NW without pickable padding 5ms
+ ✓ tests/living-media.test.ts > offlineRadio registers its facing SW without pickable padding 7ms
+ ✓ tests/living-media.test.ts > offlineRadio registers its facing NE without pickable padding 3ms
+ ✓ tests/living-media.test.ts > offlineRadio preserves identity and every placed/saved facing 47ms
+ ✓ tests/living-media.test.ts > offlineRadio colours the actual placed and preview frame instances 16ms
+ ✓ tests/living-media.test.ts > offlineRadio uses fitted seating while retaining device activity and static art 10ms
+ ✓ tests/trashcan.test.ts > registers and picks the closed bin facing  8ms
+ ✓ tests/trashcan.test.ts > registers and picks the closed bin facing NW 10ms
+ ✓ tests/trashcan.test.ts > registers and picks the closed bin facing SW 3ms
+ ✓ tests/trashcan.test.ts > registers and picks the closed bin facing NE 3ms
+ ✓ tests/trashcan.test.ts > preserves bin scenery, placement, colours and saves through all four rotations 350ms
+ ✓ tests/media-seating-production.test.ts > DiningChair draws production scenes with separate visible Sim and furniture click owners 82ms
+ ✓ tests/media-seating-production.test.ts > DeskChair draws production scenes with separate visible Sim and furniture click owners 3ms
+ ✓ tests/media-seating-production.test.ts > LongSofa draws production scenes with separate visible Sim and furniture click owners 4ms
+ ✓ tests/media-seating-production.test.ts > Ottoman draws production scenes with separate visible Sim and furniture click owners 3ms
+ ✓ tests/media-seating-production.test.ts > Chair draws production scenes with separate visible Sim and furniture click owners 3ms
+ ✓ tests/media-seating-production.test.ts > offlineTelevision uses a real shipped-house seat and restores its exact drawn scene 180ms
+ ✓ tests/media-seating-production.test.ts > offlineRadio uses a real shipped-house seat and restores its exact drawn scene 27ms
+ ✓ tests/media-seating-production.test.ts > ordinary ottoman sitting selects the same neutral catalogue without a media device 14ms
+ ✓ tests/potted-plant.test.ts > registers the plant facing  without extra layers or emission 9ms
+ ✓ tests/potted-plant.test.ts > registers the plant facing NW without extra layers or emission 11ms
+ ✓ tests/potted-plant.test.ts > registers the plant facing SW without extra layers or emission 3ms
+ ✓ tests/potted-plant.test.ts > registers the plant facing NE without extra layers or emission 3ms
+ ✓ tests/potted-plant.test.ts > preserves plant 13 placement, identity and saved facings 149ms
+ ✓ tests/potted-plant.test.ts > preserves plant 28 placement, identity and saved facings 46ms
+ ✓ tests/potted-plant.test.ts > keeps the two plants independent during rotation, recolouring and Build preview 76ms
+ ✓ tests/builder.test.ts > opens Build on the exact object without committing a previous move preview 63ms
+ ✓ tests/builder.test.ts > only stages changed geometry when confirming a build batch 40ms
+ ✓ tests/builder.test.ts > commits a valid move before selecting another object without advancing time 11ms
+ ✓ tests/builder.test.ts > switches immediately after manual Confirm without queuing a duplicate placement 7ms
+ ✓ tests/builder.test.ts > clears an automatic selection handoff on Load before subsequent placement 15ms
+ ✓ tests/builder.test.ts > cancels an invalid move on selection and keeps the original furniture unchanged 16ms
+ ✓ tests/builder.test.ts > commits rotation on keyboard selection but leaves same-object previews alone 5ms
+ ✓ tests/builder.test.ts > switches selection and reports cancellation if a valid preview is rejected during commit 6ms
+ ✓ tests/builder.test.ts > tells its controls when a lot change refreshes the object list with nothing selected 6ms
+ ✓ tests/builder.test.ts > selects inert scenery by live identity and cancels without writing simulation state 20ms
+ ✓ tests/builder.test.ts > waits for the drained result and refreshes a moved object on lot revision 6ms
+ ✓ tests/builder.test.ts > deselects an unchanged placement after Confirm without changing its position 4ms
+ ✓ tests/builder.test.ts > keeps invalid previews visible and handles refusal after a previously valid preview 5ms
+ ✓ tests/builder.test.ts > cycles supported facings and preserves the builder pause while another modal closes 2ms
+ ✓ tests/builder.test.ts > preserves a refused-load preview and resets a loaded world even when its revision is indistinguishable 3ms
+ ✓ tests/builder.test.ts > routes keyboard edits once and appends preview instances without changing original render rows 8ms
+ ✓ tests/builder.test.ts > replaces furniture at every preview destination and restores it on Cancel 32ms
+ ✓ tests/builder.test.ts > replaces the original table presentation when a valid rotated rectangle overlaps it only partly 19ms
+ ✓ tests/builder.test.ts > sells with Delete and will not sell what a sim has been told to use 9ms
+ ✓ tests/builder.test.ts > keeps the choice and turns Sell off when the drain refuses a sale 17ms
+ ✓ tests/builder.test.ts > forgets a sale on its way when a game is loaded 7ms
+ ✓ tests/builder.test.ts > sells with Backspace 3ms
+ ✓ tests/builder.test.ts > recolours the chosen object and keeps it chosen 5ms
+ ✓ tests/builder.test.ts > sends a colourway chosen while one is on its way once that lands 7ms
+ ✓ tests/builder.test.ts > does not take an earlier move for a colour change on its way 9ms
+ ✓ tests/book-bridge.test.ts > decodes the rebuilt runtime and handles a paused purchase, transfer and full destinations atomically 185ms
+ ✓ tests/book-bridge.test.ts > uses stable model/action identity, combines room/need filters and keeps browsing deterministic 66ms
+ ✓ tests/book-bridge.test.ts > imports legacy books without adding upgrade prose to the status panel 10ms
+ ✓ tests/book-bridge.test.ts > shows the real dropped copy and its retained home, then recovers the same copy through transferBook 8ms
+ ✓ tests/book-bridge.test.ts > projects the runtime snack program into its existing action row without adding unrelated requirements 1ms
+ ✓ tests/long-sofa.test.ts > registers the long sofa with unpickable padding:  9ms
+ ✓ tests/long-sofa.test.ts > registers the long sofa with unpickable padding: NW 11ms
+ ✓ tests/long-sofa.test.ts > registers the long sofa with unpickable padding: SW 4ms
+ ✓ tests/long-sofa.test.ts > registers the long sofa with unpickable padding: NE 3ms
+ ✓ tests/long-sofa.test.ts > preserves sofa identity, placement, price and interaction metadata 49ms
+ ✓ tests/long-sofa.test.ts > identifies Lie down and draws the accepted static whole-sofa recline pose 79ms
+ ✓ tests/long-sofa.test.ts > places and reloads every sofa facing without changing footprint or colourway 76ms
+ ✓ tests/long-sofa.test.ts > colours both the placed sofa and its Build preview through the real frame writers 25ms
+ ✓ tests/floor-lamp.test.ts > registers the lamp facing  without pickable padding 9ms
+ ✓ tests/floor-lamp.test.ts > registers the lamp facing NW without pickable padding 10ms
+ ✓ tests/floor-lamp.test.ts > registers the lamp facing SW without pickable padding 3ms
+ ✓ tests/floor-lamp.test.ts > registers the lamp facing NE without pickable padding 4ms
+ ✓ tests/floor-lamp.test.ts > preserves lamp identity, save round trips and illumination in every direction 156ms
+ ✓ tests/floor-lamp.test.ts > preserves lamp recolouring and emissive brightness in placement previews 21ms
+ ✓ tests/build-session.test.ts > reopens retained final-room choices after wall reversal removes every native review group 87ms
+ ✓ tests/build-session.test.ts > keeps queued and applied edits out of saves and cancels the complete draft 53ms
+ ✓ tests/build-session.test.ts > confirms one batch and exit discards only subsequent queued changes 15ms
+ ✓ tests/build-session.test.ts > settles commands queued before entry and drains chained edits before confirmation 12ms
+ ✓ tests/build-session.test.ts > preserves the draft and baseline when rollback fails 3ms
+ ✓ tests/build-session.test.ts > successful Load replaces the baseline while a rejected Load preserves it 27ms
+ ✓ tests/build-session.test.ts > does not confirm an invalid preview or an unsettled controller 18ms
+ ✓ tests/build-session.test.ts > restores funds, purchased objects, sold objects, walls and floors together 26ms
+ ✓ tests/build-session.test.ts > confirms a perimeter room and reviews enclosure loss before restoring its outer wall 13ms
+ ✓ tests/build-session.test.ts > reports changes only while the draft differs from the last confirmed world 8ms
+ ✓ tests/build-session.test.ts > ending the session drops an in-flight furniture edit, so a builder leaving through it resumes play 12ms
+ ✓ tests/bath-production.test.ts > bathing scenes animate all facings and palettes with separate visible click owners 85ms
+ ✓ tests/bath-production.test.ts > compiled bathing restores its drawn pose after Load and clears it on cancellation 107ms
+ ✓ tests/desk-work-seating-production.test.ts > desk work sits on the shipped desk chair and restores its exact drawn scene 219ms
+ ✓ tests/character-world-contract.test.ts > renders actual shower use from its validated native fixture and clears it afterward 228ms
+ ✓ tests/sleeping-place-bridge.test.ts > projects real double-bed sleeping through load, memory growth and independent cancellation 217ms
+ ✓ tests/recline-production.test.ts > draws and picks the real active whole-sofa owner in object facing 0 194ms
+ ✓ tests/recline-production.test.ts > draws and picks the real active whole-sofa owner in object facing 1 5ms
+ ✓ tests/recline-production.test.ts > draws and picks the real active whole-sofa owner in object facing 2 7ms
+ ✓ tests/recline-production.test.ts > draws and picks the real active whole-sofa owner in object facing 3 5ms
+ ✓ tests/character-contact-admission.test.ts > adopts a prepared load through the build session so cancellation keeps the loaded household 153ms
+ ✓ tests/character-contact-admission.test.ts > keeps the live bytes untouched until candidate contacts are prepared and frees a cancelled candidate 1ms
+ ✓ tests/character-contact-admission.test.ts > never adopts an already-ready load superseded before its continuation 4ms
+ ✓ tests/character-contact-admission.test.ts > retains exact live owners and bytes when native adoption rejects ready candidate bytes 2ms
+ ✓ tests/character-contact-admission.test.ts > pins queued outcomes through same-entity key transfer, refusal, removal and re-entry 4ms
+ ✓ tests/character-contact-admission.test.ts > keeps a queued native save byte-exact until the actual live command drain 62ms
+ ✓ tests/character-contact-admission.test.ts > guards only the stress facade and rejects raw mutation before touching native state 1ms
+ ✓ tests/toilet-production.test.ts > toilet scenes animate all facings and palettes with separate visible click owners 92ms
+ ✓ tests/toilet-production.test.ts > compiled toilet use restores its drawn pose after Load and clears it on cancellation 110ms
+ ✓ tests/character-seat-places.test.ts > keeps stable sofa places aligned with authored cushions in all four facings without editing saves 208ms
+ ✓ tests/frame.test.ts > domestic surface clutter > keeps the visible moving fridge state owned by its original simulation row 3ms
+ ✓ tests/frame.test.ts > domestic surface clutter > assigns separate picking tokens to the exact rendered dirty table stacks 1ms
+ ✓ tests/frame.test.ts > domestic surface clutter > keeps dish artwork in place while assigning its physical support depth and fixture owner 1ms
+ ✓ tests/frame.test.ts > domestic surface clutter > selects shelf shell depth with the complete 24-bit inventory mask 0ms
+ ✓ tests/frame.test.ts > domestic surface clutter > uses the reconstructed dropped book color and depth as one registered draw 0ms
+ ✓ tests/frame.test.ts > domestic surface clutter > draws cooking clutter and separate waiting meals, and removes them when the live columns clear 1ms
+ ✓ tests/frame.test.ts > domestic surface clutter > changes table clutter as diners finish, without growing a single giant stack 1ms
+ ✓ tests/frame.test.ts > domestic surface clutter > uses distance-driven carrying poses, with held dishes in all facings and palettes 1ms
+ ✓ tests/frame.test.ts > FixedStepDriver > runs one tick per step at the configured rate, not at a fixed rate 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > accumulates partial frames instead of dropping them 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > carries the leftover remainder forward rather than resetting it 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > returns an interpolation alpha in [0, 1) as a fraction of one step 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > clamps runaway catch-up to avoid a death spiral 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > discards the backlog it could not spend rather than carrying it 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > spends the tick budget it was constructed with, not a fixed one 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > advances the same number of ticks however the elapsed time is chopped up 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > passes no timestep to the tick callback, so speed cannot vary dt 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > multiplies the number of steps with speed and leaves the step duration alone 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > pauses by running zero steps rather than by shrinking the step 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > drains commands only while paused and resumes through full ticks 0ms
+ ✓ tests/frame.test.ts > FixedStepDriver > rejects a speed that is not a whole number of steps 0ms
+ ✓ tests/frame.test.ts > lerp > interpolates linearly 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves both authored talk frames for every look and facing 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves eating on staggered sixteen-tick boundaries from stable ids 1ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves seated reading on staggered twenty-four-tick boundaries for every look and facing 1ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves standing reading independently on the same staggered cadence 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves object-action frames after stable-id staggering 2ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > resolves both distance-driven walk frames for every look and facing 1ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > derives walking facing from every segment direction and falls back only for equal samples 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > pins frame zero under reduced motion while keeping the facing pose 2ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > falls back to the ordinary body for unknown or incomplete contracts 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > advances eating phase only when fixed simulation ticks run 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > advances reading phase only when fixed simulation ticks run 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > advances standing reading only when fixed simulation ticks run 0ms
+ ✓ tests/frame.test.ts > legacy Sim atlas compatibility > freezes calm object poses while paused and follows fixed-tick speed 0ms
+ ✓ tests/frame.test.ts > approved rigged Sim selector > selects every authored sample in all supported actions and four actual facings 8ms
+ ✓ tests/frame.test.ts > approved rigged Sim selector > honours action timing boundaries, wraps, and id phase without a render clock 1ms
+ ✓ tests/frame.test.ts > approved rigged Sim selector > advances all eight gait samples on negative axes independently of ticks and the other coordinate 6ms
+ ✓ tests/frame.test.ts > approved rigged Sim selector > uses the approved cycling frames and rejects invalid facing with the approved idle 0ms
+ ✓ tests/frame.test.ts > ambient aquarium animation > advances only the historical aquarium sprite on simulation ticks 0ms
+ ✓ tests/frame.test.ts > buildInstances > separates eligible person annotations from physical rows and resets the borrowed range 0ms
+ ✓ tests/frame.test.ts > buildInstances > swaps only the aquarium object quad and pins it under reduced motion 0ms
+ ✓ tests/frame.test.ts > buildInstances > shades a person by the sky over the tile they stand on 0ms
+ ✓ tests/frame.test.ts > buildInstances > draws authored action poses without reinterpreting activity labels 0ms
+ ✓ tests/frame.test.ts > buildInstances > keeps standing reading on the ordinary interpolated path tile 0ms
+ ✓ tests/frame.test.ts > buildInstances > keeps every reading presentation consumer on the projected socket position 0ms
+ ✓ tests/frame.test.ts > buildInstances > uses the interpolated segment at corners instead of turning toward the next leg early 0ms
+ ✓ tests/frame.test.ts > buildInstances > uses emitted walking facing for equal samples after Pause or Load 0ms
+ ✓ tests/frame.test.ts > buildInstances > pins the quiet walking frame under reduced motion without disabling interpolation 0ms
+ ✓ tests/frame.test.ts > buildInstances > interpolates between the previous and current tick rather than snapping 0ms
+ ✓ tests/frame.test.ts > buildInstances > derives depth from the interpolated position, not from either endpoint 0ms
+ ✓ tests/frame.test.ts > buildInstances > gives a sim on an object tile a strictly smaller depth than the object 0ms
+ ✓ tests/frame.test.ts > buildInstances > keeps the layer bias smaller than one tile of separation 0ms
+ ✓ tests/frame.test.ts > buildInstances > carries the content-resolved sprite index rather than the kind 0ms
+ ✓ tests/frame.test.ts > buildInstances > packs each entity into its own slot with its own kind 0ms
+ ✓ tests/frame.test.ts > buildInstances > shares the approved appearance without collapsing entity positions or ids 0ms
+ ✓ tests/frame.test.ts > buildInstances > keeps selection on the same entity after its row moves despite shared appearance 0ms
+ ✓ tests/frame.test.ts > buildInstances > marks a lamp emissive so it does not go out at night 0ms
+ ✓ tests/frame.test.ts > buildInstances > samples local light for sims, objects, and the carried badge from their own tiles 0ms
+ ✓ tests/frame.test.ts > buildInstances > keeps the prior neutral instance values when local lighting is absent 0ms
+ ✓ tests/frame.test.ts > buildInstances > re-reads the source on every call, because the pointers swap each tick 0ms
+ ✓ tests/frame.test.ts > buildInstances > reuses one scratch buffer across frames instead of allocating per frame 0ms
+ ✓ tests/frame.test.ts > buildInstances > grows the scratch buffer and picks up the new count when entities spawn 18ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > shows the same topic with each participant's reaction and readable tint 2ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > uses registered counter surface depth beside configured people 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > preserves conversation topic tint and person ownership for configured characters 6ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > floats a bubble over the activity, and none over walkers or idlers 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > maps activity code 3 to the authored eating fork 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > maps unauthored generic object use to a neutral gear bubble 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 2 (Wait) at every camera scale 1ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 3 (Eat) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 4 (Talk) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 5 (Sleep) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 7 (Use) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 8 (Reading) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 9 (Exercise) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 10 (WatchFish) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 11 (Sitting) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 12 (Shower) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 13 (Toilet) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 14 (TV) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 15 (LyingDown) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 16 (WashHands) at every camera scale 1ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 17 (WashDishes) at every camera scale 1ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 18 (Radio) at every camera scale 1ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 19 (Correspondence) at every camera scale 1ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 20 (Bath) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 21 (Ingredients) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 22 (PrepareFood) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > draws the correct bubble for activity 23 (Cooking) at every camera scale 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > never adds a bubble to an object even if an activity code is present 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > maps activity code 8 to the authored reading book 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > maps activities 9 and 10 to their distinct authored bubbles 0ms
+ ✓ tests/frame.test.ts > activity indicator bubbles > keeps the selection ring in the slot after the bubbles 0ms
+ ✓ tests/frame.test.ts > the carried badge > retains ingredients for a configured walker and suppresses a rendered dinner prop 0ms
+ ✓ tests/frame.test.ts > the carried badge > floats the kind-matched badge under the carrier, and counts it 0ms
+ ✓ tests/frame.test.ts > the carried badge > follows a walking carrier while the selection ring stays planted 0ms
+ ✓ tests/frame.test.ts > the carried badge > centres snack and dinner on every exported eating hand sample in every facing 50ms
+ ✓ tests/frame.test.ts > the carried badge > pins eating food to frame zero under reduced motion 0ms
+ ✓ tests/frame.test.ts > the carried badge > does not invent snack props for malformed or generic sibling states 0ms
+ ✓ tests/frame.test.ts > the carried badge > hides the badge of a carrier who is at work 0ms
+ ✓ tests/frame.test.ts > a sim at work > parks the row off-screen without moving anyone else's slot 0ms
+ ✓ tests/frame.test.ts > a sim at work > draws no bubble and suppresses the selection ring 0ms
+ ✓ tests/frame.test.ts > buildInstances over a real SimBridge > reproduces the previous tick at alpha 0 on two successive ticks 68ms
+ ✓ tests/frame.test.ts > buildInstances over a real SimBridge > rebuilds walking facing and distance phase from the saved tick position 42ms
+ ✓ tests/frame.test.ts > the selection ring > draws nothing extra when nothing is selected 0ms
+ ✓ tests/frame.test.ts > the selection ring > draws one ring, at the selected sim, on top of the floor and under the sim 0ms
+ ✓ tests/frame.test.ts > the selection ring > resolves the selection by entity index rather than by row 0ms
+ ✓ tests/frame.test.ts > the selection ring > tracks a walking sim between ticks rather than stepping behind it 0ms
+ ✓ tests/frame.test.ts > lower-bunk foreground composition > registered foregrounds use the same logical offsets as entity bodies 0ms
+ ✓ tests/frame.test.ts > lower-bunk foreground composition > draws the sleeper between both bunk layers and keeps the sleep bubble close 0ms
+ ✓ tests/frame.test.ts > the camera scale in buildInstances > scales entity positions but never their depth 0ms
+ ✓ tests/frame.test.ts > the camera scale in buildInstances > lifts an indicator bubble by the scaled height of its sim 0ms
+ ✓ tests/frame.test.ts > registered dinner transport and exact cooking source > cycles baked food transport in all facings and keeps food out of work badges 1ms
+ ✓ tests/frame.test.ts > registered dinner transport and exact cooking source > draws one pot at the exact active source and makes count agree with construction 1ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > shows nothing without a selection, outside Build, or while a dialog suspends it 34ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > furniture uses actual payout, both supported rotations, Confirm, Sell and Cancel 62ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > Buy retains actual prices and catalogue focus, and disables an unaffordable purchase 28ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > disables both rotation controls for an explicitly single-facing catalogue item 2ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > Walls rotates only its selection and applies each state through its validator 33ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > Room offers outline editing without building and guards pending corner changes 12ms
+ ✓ tests/build-context.test.ts > context actions use the active controller > Floors reads content names and selection never paints, even after an application 31ms
+ ✓ tests/build-context.test.ts > unchanged frames neither render nor measure; camera, buffer and invalidation each place again 3ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 1440px, respecting the sidebar or bottom dock 1ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 1280px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 701px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 700px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 390px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 320px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > bounds the complete controls at 844px, respecting the sidebar or bottom dock 0ms
+ ✓ tests/build-context.test.ts > shared shortcut definitions describe the changed floor workflow and separate wall actions 0ms
+ ✓ tests/build-context.test.ts > reports intrinsic row height when the available space cannot fit the controls 0ms
+ ✓ tests/build-context.test.ts > typed window changes refresh cached contextual fit and removal capabilities 14ms
+ ✓ tests/coat-rack.test.ts > registers the coat rack facing  with tight picking bounds 9ms
+ ✓ tests/coat-rack.test.ts > registers the coat rack facing NW with tight picking bounds 10ms
+ ✓ tests/coat-rack.test.ts > registers the coat rack facing SW with tight picking bounds 3ms
+ ✓ tests/coat-rack.test.ts > registers the coat rack facing NE with tight picking bounds 3ms
+ ✓ tests/coat-rack.test.ts > preserves coat rack identity, saved placement and all four directions 145ms
+ ✓ tests/coat-rack.test.ts > keeps colourways consistent between the placed rack and Build preview 22ms
+ ✓ tests/dining-table.test.ts > registers the wide table with unpickable padding:  8ms
+ ✓ tests/dining-table.test.ts > registers the wide table with unpickable padding: NW 11ms
+ ✓ tests/dining-table.test.ts > registers the wide table with unpickable padding: SW 3ms
+ ✓ tests/dining-table.test.ts > registers the wide table with unpickable padding: NE 3ms
+ ✓ tests/dining-table.test.ts > retains the table identity, price, saved center and all four rectangular rotations 87ms
+ ✓ tests/dining-table.test.ts > places and reloads every table rotation with the correct center and footprint 43ms
+ ✓ tests/window-daylight.test.ts > window daylight > admits daylight through every model and axis on rear and yard-facing walls 3ms
+ ✓ tests/window-daylight.test.ts > window daylight > attenuates each tile from the aperture and lights more floor through a three-unit span 0ms
+ ✓ tests/window-daylight.test.ts > window daylight > does not seed an interior window between sealed rooms, but transmits an external source 1ms
+ ✓ tests/window-daylight.test.ts > window daylight > keeps the brightest shortest route when yard and rear seeds meet 0ms
+ ✓ tests/window-daylight.test.ts > window daylight > ignores malformed, out-of-bounds and solid rear lines without aliasing another tile 1ms
+ ✓ tests/window-daylight.test.ts > window daylight > writes nonzero exposure changes into actual floor instance shade 2ms
+ ✓ tests/window-daylight.test.ts > keeps sky and per-frame daylight calculations outside the actual world hash 142ms
+ ✓ tests/build-session-state.test.ts > uses native semantic dirty state while every public save remains committed 123ms
+ ✓ tests/build-session-state.test.ts > preserves local state on refused Load and replaces it only after accepted native adoption 13ms
+ ✓ tests/build-session-state.test.ts > manual persistence writes the native confirmed bytes during editing and preparation 35ms
+ ✓ tests/selection-ground.test.ts > keeps ring sprites without the marker command, such as the tile highlight, out of the floor-marker draw 1ms
+ ✓ tests/selection-ground.test.ts > keeps the indicator on the ground beneath a pose with feet at height 0.13 32ms
+ ✓ tests/selection-ground.test.ts > keeps the indicator on the ground beneath a pose with feet at height 0.185 2ms
+ ✓ tests/selection-ground.test.ts > keeps the indicator on the ground beneath a pose with feet at height 0.568 2ms
+ ✓ tests/selection-ground.test.ts > keeps the indicator on the ground beneath a pose with feet at height 1.1 2ms
+ ✓ tests/selection-ground.test.ts > keeps the legacy sleeping indicator behind furniture instead of over the blanket 78ms
+ ✓ tests/wash-hands-production.test.ts > hand washing samples the prop-free prepare clip for every shirt and facing 9ms
+ ✓ tests/wash-hands-production.test.ts > compiled hand washing at the sink faces the basin, survives Load and clears on cancellation 114ms
+ ✓ tests/wash-hands-production.test.ts > compiled hand washing at the kitchen_sink faces the basin, survives Load and clears on cancellation 5ms
+ ✓ tests/room-review.test.ts > uses native predecessor choices and retains explicit names and inheritance after Back and fresh preparation 80ms
+ ✓ tests/room-review.test.ts > refuses a stale token without silently preparing another review or committing 9ms
+ ✓ tests/room-review.test.ts > keeps invalid raw review text and uses native lost-enclosure geometry for Show opening 6ms
+ ✓ tests/room-review.test.ts > retains separate names while changing between two native review groups 10ms
+ ✓ tests/room-review.test.ts > offers a retiring custom merge name separately from the retained identity 10ms
+ ✓ tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: owner-zero 1ms
+ ✓ tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: unassigned 0ms
+ ✓ tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: no-duty 0ms
+ ✓ tests/office-chair.test.ts > registers the desk chair without pickable blank margins:  9ms
+ ✓ tests/office-chair.test.ts > registers the desk chair without pickable blank margins: NW 11ms
+ ✓ tests/office-chair.test.ts > registers the desk chair without pickable blank margins: SW 3ms
+ ✓ tests/office-chair.test.ts > registers the desk chair without pickable blank margins: NE 3ms
+ ✓ tests/office-chair.test.ts > uses the new art in the real lot and previews all rotations without changing the save 77ms
+ ✓ tests/room-selection.test.ts > selects native floor membership including Outside and preserves raw invalid text across choices 52ms
+ ✓ tests/room-selection.test.ts > matches native scalar, raw-control and Rust whitespace rules 0ms
+ ✓ tests/room-selection.test.ts > refreshes native membership and labels for unequal bigint revisions above the safe integer range 3ms
+ ✓ tests/room-selection.test.ts > does not invent a room before Confirm and preserves the last confirmed batch on Cancel 32ms
+ ✓ tests/room-selection.test.ts > keeps Enter and composition inside the actual name-field listeners and retains drafts across modes 28ms
+ ✓ tests/dining-chair.test.ts > registers the dining chair without pickable blank margins:  11ms
+ ✓ tests/dining-chair.test.ts > registers the dining chair without pickable blank margins: NW 12ms
+ ✓ tests/dining-chair.test.ts > registers the dining chair without pickable blank margins: SW 3ms
+ ✓ tests/dining-chair.test.ts > registers the dining chair without pickable blank margins: NE 3ms
+ ✓ tests/dining-chair.test.ts > keeps both chairs facing the table and preserves their saved placement through every preview 82ms
+ ✓ tests/builder-controls.test.ts > moves one live control panel between hosts and routes native control events once 80ms
+ ✓ tests/builder-controls.test.ts > explains unavailable rotation and rotates only supported directions 2ms
+ ✓ tests/builder-controls.test.ts > keeps dropdown selection synchronized through automatic commit and invalid cancellation 6ms
+ ✓ tests/builder-controls.test.ts > sells the chosen furniture for part of its price and clears the choice 6ms
+ ✓ tests/builder-controls.test.ts > lets the player sell the only stove and refrigerator 7ms
+ ✓ tests/builder-controls.test.ts > recolours the chosen furniture from the Colour list 8ms
+ ✓ tests/wall-tool.test.ts > nearestLine > picks the nearer of the nearest vertical and horizontal line 1ms
+ ✓ tests/wall-tool.test.ts > nearestLine > offers the outer lines, so the simulation can say why they cannot change 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > picks nothing for a point off the lot 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > treats all four edges of the lot alike, corners included 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > has no line for (NaN, 1) in a 7 by 5 lot 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > has no line for (1, Infinity) in a 7 by 5 lot 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > has no line for (1, 1) in a 0 by 5 lot 0ms
+ ✓ tests/wall-tool.test.ts > nearestLine > has no line for (1, 1) in a 7 by 0 lot 0ms
+ ✓ tests/wall-tool.test.ts > tilesBeside and stateOf > names the two tiles each kind of line separates 0ms
+ ✓ tests/wall-tool.test.ts > tilesBeside and stateOf > reads a wall, a doorway and an open line from four words per record 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > does nothing until entered, and asks the player to choose a line 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > reads the chosen line and previews every state for it 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > says why a wall is refused, and disables only the refused state 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > stages an edit, waits for the drain, then reports it and reads the line again 1ms
+ ✓ tests/wall-tool.test.ts > WallTool > reports a refusal the drain found and leaves the line as it was 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > says so when the boundary will not take the edit 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > reads the line again when somebody else changes the lot 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > moves and turns the line from the keyboard, inside the lot 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > keeps its choice through Escape while an edit is on its way, and reports it 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > keeps an edit on its way through leaving the tool, then forgets it once it lands 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > comes back to an edit still on its way without claiming nothing is chosen 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > says only that the outside wall cannot change, on an outer line 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > clears its choice on Escape, and leaves a second Escape to Build mode 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > stages nothing while another pause blocks Build mode 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > rings only lot tiles, and keeps one highlight until the line changes 0ms
+ ✓ tests/wall-tool.test.ts > WallTool > forgets everything on exit and on Load, and takes the loaded lot size 0ms
+ ✓ tests/wall-tool.test.ts > the chosen line on screen > rings exactly the tiles it counts, in the tint for its validity 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool on real wasm > builds, turns into a doorway, and removes a wall in the shipped house 82ms
+ ✓ tests/wall-tool.test.ts > the Walls tool on real wasm > words every refusal the validator can give, and has a plain fallback 1ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #build-tool-furniture exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #build-tool-walls exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #furniture-tool exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #wall-tool exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #wall-status exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #wall-keyboard-help exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > declares #wall-touch-help exactly once 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > keeps the wall controls inside the build panel, hidden until the tool is chosen 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > keeps the build panel spacing inside every tool wrapper 0ms
+ ✓ tests/wall-tool.test.ts > the Walls tool in the page > is wired into the frame, the click and Load 0ms
+ ✓ tests/wall-tool.test.ts > routeBuildKey > gives every key to the furniture tool while Walls is not the tool 0ms
+ ✓ tests/wall-tool.test.ts > routeBuildKey > keeps furniture keys away from a furniture tool the player cannot see 0ms
+ ✓ tests/wall-tool.test.ts > routeBuildKey > lets Escape through to leave Build mode only once no line is chosen 0ms
+ ✓ tests/wall-tool.test.ts > WallToolControls > switches tools only when the furniture tool could let go, and shows one panel 1ms
+ ✓ tests/wall-tool.test.ts > WallToolControls > retains readable refusal feedback beside the contextual controls 0ms
+ ✓ tests/wall-tool.test.ts > WallToolControls > keeps the optional shortcuts available on desktop and phone 0ms
+ ✓ tests/wall-tool.test.ts > the Window choice > reads a glazed line, offers the other states, and stages a window 0ms
+ ✓ tests/wall-tool.test.ts > the Window choice > fits a window on an open line, by button and by key 0ms
+ ✓ tests/wall-tool.test.ts > the Window choice > reads a line that is somehow both as the wall the simulation reports 0ms
+ ✓ tests/bed-assignment-bridge.test.ts > bed assignment release bridge > enqueues, applies, refuses conflicts, clears and round-trips a real assignment 85ms
+ ✓ tests/bed-assignment-bridge.test.ts > bed assignment bridge validation > preserves full u32 identities and bigint feedback without aliasing 0ms
+ ✓ tests/bed-assignment-bridge.test.ts > bed assignment bridge validation > rejects invalid input before narrowing it through WASM 0ms
+ ✓ tests/bed-assignment-bridge.test.ts > bed assignment bridge validation > rejects malformed, duplicate and unordered rows 0ms
+ ✓ tests/bed-assignment-bridge.test.ts > bed assignment bridge validation > rejects malformed or unknown results without inventing success 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > reads its lists and limits from content and starts empty on the first page 2ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > needs a name that fits before the traits, and trims it 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > moves in only from the traits page, and Back keeps every choice 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > starts every opening on the first page 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > wears at most the tuned number of traits, each once, and only known ones 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > is off when the household is full, and says so 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > stages the trimmed name, the personality and the traits, then selects the newcomer 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > takes only the answer to its own move-in, never an older one 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > keeps a move-in on its way when the form is opened again, and drops it on Load 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > shows the refusal and lets the player try again 0ms
+ ✓ tests/housemate-form.test.ts > HousemateForm > words every refusal code 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > prefills who they are and keeps the personality unless told otherwise 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > edits in a full household 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > sends one edit with the trimmed name, the choice of personality, the traits and every tie 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > keeps the current personality when Keep is chosen after an archetype 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > shows the refusal and stays open 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > takes only the answer to its own edit, never an older one 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > reset returns to create mode 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > a load while an edit is pending closes the draft and ignores the old answer 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > reads no answer while nothing is on its way, so an earlier edit cannot close a new draft 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > refuses a tie to somebody not shown and a code it does not know, and holds still while pending 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > chooses Keep only in edit mode 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > says so when the edit could not be sent, and does not wait for an answer 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > confirms only from the traits page with a name that fits 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > confirms a move-in in create mode 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > leaves the edited person out of the tie rows 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > keeps the personality when no archetype matched 0ms
+ ✓ tests/housemate-form.test.ts > the form in edit mode > words every edit refusal plainly 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > lists each personality as a radio with its sentence, and caps the name 1ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > lists the traits with their sentences on the second page, with the limit in the legend 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > drives both pages from their controls and greys out the boxes past the limit 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > turns Enter in the name box into Next instead of closing the dialog 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > returns to the first enabled trait when a full selection disables the first box 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > closes the dialog from Cancel, and never lets the form submit 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > puts focus back on Move in after a refusal 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > puts focus on Back when a refusal leaves Move in off 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > in edit mode shows the edit title, Keep current personality, a tie row per other person, and Confirm changes 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > marks no archetype current when none matched, and picks between Keep and an archetype 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > changes a tie from its select, keeps the same select while the player uses it, and locks it while sending 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > builds the tie rows again for another person 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > edits in a full household, and goes back to the New housemate form on reset 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > wires the creator into the native dialog without an implicit form submission 1ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > keeps Edit beside the selected person and preserves personality, household, and touch controls 0ms
+ ✓ tests/housemate-form.test.ts > HousemateFormView > edits by stable identity, restores focus and discards drafts on Load 0ms
+ ✓ tests/housemate-form.test.ts > the New housemate form on real wasm > edits a person through the real boundary and keeps their SimId 39ms
+ ✓ tests/housemate-form.test.ts > the New housemate form on real wasm > moves a housemate in through the real boundary and selects them 4ms
+ ✓ tests/housemate-form.test.ts > who the newcomer is > sends the tie after the move-in, from the newcomer to the member chosen 0ms
+ ✓ tests/housemate-form.test.ts > who the newcomer is > says so when the tie could not be sent 0ms
+ ✓ tests/housemate-form.test.ts > who the newcomer is > sends no tie when the newcomer is nobody to anybody 0ms
+ ✓ tests/housemate-form.test.ts > who the newcomer is > shows the choice in the dialog, and greys the person list until a relation is chosen 0ms
+ ✓ tests/housemate-form.test.ts > who the newcomer is > refuses a relation it does not know, and forgets the choice on reset 0ms
+ ✓ tests/housemate-form.test.ts > refreshes move-in availability each frame when death frees a full household slot 0ms
+ ✓ tests/housemate-form.test.ts > keeps self-preservation random by default and accepts a chosen zero without using a trait slot 0ms
+ ✓ tests/housemate-form.test.ts > creates and saves an explicitly chosen instinct through real WASM 37ms
+ ✓ tests/career-bridge.test.ts > career release bridge > reads the shipped worker, assigns, refuses, quits and reads the settings 77ms
+ ✓ tests/career-bridge.test.ts > career bridge validation > shapes a report, a history, the factors and a result 0ms
+ ✓ tests/career-bridge.test.ts > career bridge validation > preserves full u32 identities and bigint sequences without aliasing 0ms
+ ✓ tests/career-bridge.test.ts > career bridge validation > refuses malformed runtime values and invalid indices before narrowing them 1ms
+ ✓ tests/room-tool.test.ts > roomOutline > lists every physical outline line, top and bottom, then left and right 2ms
+ ✓ tests/room-tool.test.ts > RoomTool > asks for a corner, then the opposite corner, and previews the room 1ms
+ ✓ tests/room-tool.test.ts > RoomTool > ignores a click off the lot and anything before the tool is entered 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > toggles the doorway with a click on the outline, and starts over elsewhere 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > says why a room is refused and cannot build it 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > stages exactly the room on screen, once, and reports what the drain did 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > says a room is already built and will not send it again 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > keeps waiting when the drain reports a room with other corners 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > reports a refusal the drain gave, and one it could not send 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > keeps a room on its way through leaving the tool, then forgets it once it lands 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > stages nothing while another pause holds 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > uses the keyboard: arrows, Enter to fix a corner then build, D for the doorway, Escape 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > keeps the arrows on the lot 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > re-reads the preview when something else changed the lot 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > forgets everything on Load and takes the loaded lot size 0ms
+ ✓ tests/room-tool.test.ts > RoomTool > keeps Build mode keys with the Room tool while it is in use 0ms
+ ✓ tests/room-tool.test.ts > RoomToolControls > keeps outline and refusal information in the panel 0ms
+ ✓ tests/room-tool.test.ts > RoomToolControls > keeps the optional shortcuts available on desktop and phone 0ms
+ ✓ tests/room-tool.test.ts > the Room tool on real wasm > builds a room with a doorway in the shipped house, and words every refusal 77ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > declares #build-tool-room exactly once 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > declares #room-tool exactly once 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > declares #room-status exactly once 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > declares #room-keyboard-help exactly once 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > declares #room-touch-help exactly once 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > keeps the room controls inside the build panel, hidden until the tool is chosen 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > keeps content-width Build tabs scrollable within the compact panel 0ms
+ ✓ tests/room-tool.test.ts > the Room tool in the page > is wired into the frame, the click, Load and leaving Build 0ms
+ ✓ tests/room-tool.test.ts > cycles room doorways only through interior edges at every plot corner 0ms
+ ✓ tests/action-queue.test.ts > marks incoming requests with direction while preserving identity and waiting reason 1ms
+ ✓ tests/action-queue.test.ts > keeps repeated actions in order and distinguishes a waiting first order 0ms
+ ✓ tests/action-queue.test.ts > clears on deselection and refreshes immediately on a different person 0ms
+ ✓ tests/action-queue.test.ts > renders only the visible queue window without limiting stored orders 21ms
+ ✓ tests/action-queue.test.ts > bridge exposes queue labels without mutating saved state and rejects invalid identities 77ms
+ ✓ tests/action-queue.test.ts > recomputes the bounded preview immediately when its hidden panel opens 0ms
+ ✓ tests/buy-tool.test.ts > sorts models within their primary type without changing definition ids 1ms
+ ✓ tests/buy-tool.test.ts > the catalogue order > lists by name, and by content order where two names match 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > narrows the list to one need, cycles past what it hides, and drops a choice it hides 1ms
+ ✓ tests/buy-tool.test.ts > BuyTool > keeps the filter while a purchase is on its way 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > keeps the filter and the choice while another pause holds 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > redraws when the filter changes and the choice stays 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > keeps the filter across leaving the tool and drops it on Load 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > clears the filter before the redraw a Load triggers 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > starts with nothing chosen and asks for a choice 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > shows a new choice mid-lot in its own base direction, then keeps the ghost where it is 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > ignores a choice that is not in the catalogue, and anything before the tool is entered 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > says why a position is refused, and cannot buy there 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > draws a ghost pushed off the lot at its full size, in red 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > turns only through the directions the art has 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > stages exactly the purchase on screen, once, and waits for its result 1ms
+ ✓ tests/buy-tool.test.ts > BuyTool > says so when a purchase could not be sent 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > reports what was bought, keeps the choice for another, and re-reads the spot 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > reports a refusal the drain gave 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > re-reads the ghost when something else changed the lot 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > keeps a purchase on its way through leaving the tool, then forgets it once it lands 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > forgets an unbought choice on leaving 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > stages nothing while another pause holds 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > uses the keyboard: brackets choose, arrows move, R turns, Enter buys, Escape cancels 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > steps through only what the household can afford, and chooses nothing when it can afford nothing 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > with nothing chosen, an arrow chooses the first item 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > knows what the household can afford 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > forgets everything on Load and takes the loaded lot size 0ms
+ ✓ tests/buy-tool.test.ts > BuyTool > keeps Build mode keys with the Buy tool while it is in use 0ms
+ ✓ tests/buy-tool.test.ts > buying in a colourway > buys in the chosen colourway and keeps it for the next purchase 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > names a card by its type, model and price 9ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > builds one card per item in list order, with its picture, lines and price 1ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > shows the chosen identity, retains expansion on redraw, and clears it when selection changes 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > presses the chosen card, greys out what the household cannot afford, and chooses on a press 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > offers the rooms any item belongs to and the needs any item serves, one pressed per row 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > drops a choice the filter hides, and keeps one it still shows 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > disables every control while a purchase is on its way or another pause holds 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > offers the colourways and chooses one from the Colour list 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > disables the Colour list when the art as drawn is the only colourway 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > draws the pictures once, the first time the tool is shown, from the ghost query at the base facing 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > shows the Colour list only while an item is chosen 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > keeps one card in the Tab order, and Choose item focuses the chosen card or the first shown 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > moves focus between the shown cards with the arrow keys, Home and End 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > keeps the last focused card as the Tab stop once focus leaves the grid 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > words what an item is good for from the need names 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > preserves catalogue selection, price and facing while actions live in the viewport 0ms
+ ✓ tests/buy-tool.test.ts > BuyToolControls > keeps the optional shortcuts available on desktop and phone 0ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > names a sprite the atlas has for every shipped item 25ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > finds the visible pixels of a sprite, ignoring fully transparent ones 0ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > cuts a layer down to its visible pixels, in logical pixels, and empties its scratch canvas 0ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > reads each page and cuts each sprite once, then draws the base before the foreground, placed by their anchors 1ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > leaves a card blank when one of its layers cannot be read, draws the rest, and reports the failure last 1ms
+ ✓ tests/buy-tool.test.ts > the catalogue pictures > leaves a card blank when its cut-out or its drawing fails, and still draws the others 1ms
+ ✓ tests/buy-tool.test.ts > the Buy tool on real wasm > buys in a colourway through the real boundary 13ms
+ ✓ tests/buy-tool.test.ts > the Buy tool on real wasm > lights every direction of a light and nothing else 3ms
+ ✓ tests/buy-tool.test.ts > the Buy tool on real wasm > lists the whole catalogue and words the refusal a household with no money gets 7ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #build-tool-buy exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-tool exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-room-filter exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-filter exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-clear-filters exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-object exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-facing exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-price exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-serves exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-status exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-keyboard-help exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-touch-help exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-colour exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > declares #buy-colour-label exactly once 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > keeps the buy controls inside the build panel, hidden until the tool is chosen 0ms
+ ✓ tests/buy-tool.test.ts > the Buy tool in the page > is wired into the frame, the click, Load and leaving Build 0ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > says nobody is selected without asking the bridge 1ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > words level 0, a level part way up, and the top of the ladder 0ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > floors progress to a whole percentage and reads each skill against its own ladder 0ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > never reads 100% while the person is still on the lower level 0ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > is unavailable when the library columns do not line up 0ms
+ ✓ tests/skills-panel.test.ts > skillsPanelState > is unavailable when the person has no reading or one that does not match the library 0ms
+ ✓ tests/skills-panel.test.ts > SkillsPanel > reads nothing while closed, throttles open reads, and forces a fresh read 1ms
+ ✓ tests/skills-panel.test.ts > SkillsPanel > refuses a refresh interval of 0 0ms
+ ✓ tests/skills-panel.test.ts > SkillsPanel > refuses a refresh interval of -1 0ms
+ ✓ tests/skills-panel.test.ts > SkillsPanel > refuses a refresh interval of NaN 0ms
+ ✓ tests/skills-panel.test.ts > SkillsPanel > refuses a refresh interval of Infinity 0ms
+ ✓ tests/skills-panel.test.ts > createSkillsPanelSurface > asks for a selection, then says when skills cannot be read 0ms
+ ✓ tests/skills-panel.test.ts > createSkillsPanelSurface > draws one row per skill: label, standing, then the sentence 0ms
+ ✓ tests/skills-panel.test.ts > createSkillsPanelSurface > reuses rows, skips unchanged text, and drops rows once nobody is selected 0ms
+ ✓ tests/skills-panel.test.ts > the Skills disclosure in the page > declares #skills-block exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/skills-panel.test.ts > the Skills disclosure in the page > declares #skills-empty exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/skills-panel.test.ts > the Skills disclosure in the page > declares #skill-list exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/skills-panel.test.ts > the Skills disclosure in the page > ships closed directly after the personal details inside Overview 0ms
+ ✓ tests/skills-panel.test.ts > the Skills disclosure in the page > refreshes on opening, at start, after Load and an edit, and on visible frames 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > reads the cooking skill Casey starts with as level 2 of 10, half way, without changing saves 41ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > turns aligned triples into standings 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects invalid entity -1 before calling WASM 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects invalid entity 0.5 before calling WASM 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects invalid entity NaN before calling WASM 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects invalid entity Infinity before calling WASM 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects invalid entity 4294967296 before calling WASM 0ms
+ ✓ tests/skills-panel.test.ts > skills through release WASM > rejects empty, truncated, misaligned and out-of-range readings 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > reads each real person through release WASM without changing saves 63ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > preserves signed offsets and full u32 identities, and aligns both need and text columns 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid entity -1 before calling WASM 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid entity 0.5 before calling WASM 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid entity NaN before calling WASM 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid entity Infinity before calling WASM 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid entity 4294967296 before calling WASM 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects missing, truncated and misaligned numeric or label rows 0ms
+ ✓ tests/personal-details-bridge.test.ts > personal details bridge > rejects invalid sleep, factors, activity identifiers and repetition before displaying them 1ms
+ ✓ tests/buying-details.test.ts > separates canonical optional hardware roles from opaque display notes at the projection boundary 1ms
+ ✓ tests/buying-details.test.ts > shows actual merged handwashing and seat-dependent media capacity without inventing optional dining hardware 27ms
+ ✓ tests/creator-catalog-coverage.test.ts > assigns every live catalog route to exactly one activity category or explicit hidden route 39ms
+ ✓ tests/bedroom-storage-assets.test.ts > registered bedroom storage views > keeps both cabinets registered and pickable for  18ms
+ ✓ tests/bedroom-storage-assets.test.ts > registered bedroom storage views > keeps both cabinets registered and pickable for NW 6ms
+ ✓ tests/bedroom-storage-assets.test.ts > registered bedroom storage views > keeps both cabinets registered and pickable for SW 9ms
+ ✓ tests/bedroom-storage-assets.test.ts > registered bedroom storage views > keeps both cabinets registered and pickable for NE 4ms
+ ✓ tests/affinities-panel.test.ts > affinitiesPanelState > says nobody is selected without asking the bridge 1ms
+ ✓ tests/affinities-panel.test.ts > affinitiesPanelState > gives one row per kind in order, the label capitalised and the word from the bridge 0ms
+ ✓ tests/affinities-panel.test.ts > affinitiesPanelState > is unavailable without a reading, with an empty one, or with one that does not match the labels 0ms
+ ✓ tests/affinities-panel.test.ts > affinitiesPanelState > keeps no thresholds of its own: the words come from the simulation 0ms
+ ✓ tests/affinities-panel.test.ts > AffinitiesPanel > reads nothing while closed, throttles open reads, and forces a fresh read 1ms
+ ✓ tests/affinities-panel.test.ts > AffinitiesPanel > refuses a refresh interval of 0 0ms
+ ✓ tests/affinities-panel.test.ts > AffinitiesPanel > refuses a refresh interval of -1 0ms
+ ✓ tests/affinities-panel.test.ts > AffinitiesPanel > refuses a refresh interval of NaN 0ms
+ ✓ tests/affinities-panel.test.ts > AffinitiesPanel > refuses a refresh interval of Infinity 0ms
+ ✓ tests/affinities-panel.test.ts > createAffinitiesPanelSurface > asks for a selection, then says when likes and dislikes cannot be read 0ms
+ ✓ tests/affinities-panel.test.ts > createAffinitiesPanelSurface > draws one row per kind reading label and word 0ms
+ ✓ tests/affinities-panel.test.ts > createAffinitiesPanelSurface > reuses rows, skips unchanged text, and drops rows once nobody is selected 0ms
+ ✓ tests/affinities-panel.test.ts > the Likes and dislikes disclosure in the page > declares #affinities-block exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/affinities-panel.test.ts > the Likes and dislikes disclosure in the page > declares #affinities-empty exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/affinities-panel.test.ts > the Likes and dislikes disclosure in the page > declares #affinity-list exactly once and main.ts asks for it by that id 0ms
+ ✓ tests/affinities-panel.test.ts > the Likes and dislikes disclosure in the page > ships closed directly after Skills inside Overview 0ms
+ ✓ tests/affinities-panel.test.ts > the Likes and dislikes disclosure in the page > refreshes on opening, at start, after Load and an edit, and on visible frames 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > copies a reading of the five words 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects invalid entity -1 before calling WASM 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects invalid entity 0.5 before calling WASM 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects invalid entity NaN before calling WASM 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects invalid entity Infinity before calling WASM 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects invalid entity 4294967296 before calling WASM 0ms
+ ✓ tests/affinities-panel.test.ts > the bridge read of likes and dislikes > rejects an empty reading and one holding any other word 0ms
+ ✓ tests/bathroom-assets.test.ts > reviewed bathroom sink > registers and picks facing  9ms
+ ✓ tests/bathroom-assets.test.ts > reviewed bathroom sink > registers and picks facing NW 11ms
+ ✓ tests/bathroom-assets.test.ts > reviewed bathroom sink > registers and picks facing SW 3ms
+ ✓ tests/bathroom-assets.test.ts > reviewed bathroom sink > registers and picks facing NE 3ms
+ ✓ tests/career-panel.test.ts > explains worked and missed minutes with the settled pay and performance deduction 1ms
+ ✓ tests/career-panel.test.ts > careerJobView > words the job, the week, the review, the factors and the streaks 1ms
+ ✓ tests/career-panel.test.ts > careerJobView > words a fresh job, a warning, the top of the path and the trends 0ms
+ ✓ tests/career-panel.test.ts > career graph > names every event and keys the drawing by its weeks and thresholds 0ms
+ ✓ tests/career-panel.test.ts > career graph > draws a line, the two rules and one titled marker per event 2ms
+ ✓ tests/career-panel.test.ts > CareerPanel > reads the job on demand and words an unemployed or unreadable person 1ms
+ ✓ tests/career-panel.test.ts > CareerPanel > does not read while inactive and reads at once when the selection changes 0ms
+ ✓ tests/career-panel.test.ts > CareerPanel > assigns a chosen path, reports the drain result and quits 0ms
+ ✓ tests/career-panel.test.ts > CareerPanel > refuses a second command while one is pending and words a refused send 0ms
+ ✓ tests/career-panel.test.ts > CareerPanel > forgets everything after a load 0ms
+ ✓ tests/career-panel.test.ts > career panel surface > shows every line, the graph, the trend and the controls for a held job 2ms
+ ✓ tests/career-panel.test.ts > career panel surface > words the warning, a job without reviews, the unemployed, the unavailable and the pending states 1ms
+ ✓ tests/career-panel.test.ts > career panel surface > takes focus back to the path list once a command settles 0ms
+ ✓ tests/career-panel.test.ts > career panel surface > is wired into the sheet, the Overview row and the Options flyout 0ms
+ ✓ tests/room-codec.test.ts > decodes the independent native literal without rounding unequal wide token fields 2ms
+ ✓ tests/room-codec.test.ts > rejects every truncated witness and trailing bytes 2ms
+ ✓ tests/room-codec.test.ts > rejects final review areas that exceed the lot capacity 0ms
+ ✓ tests/room-codec.test.ts > accepts zero-area Outside and permits cells absent from room membership 0ms
+ ✓ tests/room-codec.test.ts > encodes exact token fields and explicit fresh inheritance with native postcard order 0ms
+ ✓ tests/room-codec.test.ts > rejects duplicate request keys and malformed integer representations before use 0ms
+ ✓ tests/room-codec.test.ts > preserves valid long raw whitespace but rejects controls and lone surrogates 1ms
+ ✓ tests/room-codec.test.ts > refuses malformed summary relationships, options, UTF-8 and hostile counts 0ms
+ ✓ tests/room-codec.test.ts > keeps every chore and duty tag distinct and accepts owner zero 1ms
+ ✓ tests/room-codec.test.ts > decodes literal pure summary and enforces native error detail shapes 0ms
+ ✓ tests/room-codec.test.ts > checks each group kind and rejects impossible group relationships 1ms
+ ✓ tests/player-orders.test.ts > order diagnostics > clears old-world history and bubbles before entity indices can be reused after Load 2ms
+ ✓ tests/player-orders.test.ts > order diagnostics > consumes each event once and expires frustration after three wall-clock seconds 0ms
+ ✓ tests/player-orders.test.ts > order diagnostics > filters history by either participant and reports expired records 0ms
+ ✓ tests/player-orders.test.ts > order diagnostics > announces rejected work approval once without displaying frustration 0ms
+ ✓ tests/player-orders.test.ts > work order confirmation > shows every person, remaining/total hours and consequences 0ms
+ ✓ tests/player-orders.test.ts > work order confirmation > cancel never submits and proceed uses the displayed token only once, restoring pause and focus 1ms
+ ✓ tests/player-orders.test.ts > work order confirmation > retains distinct sequence identities above the JavaScript integer precision limit 0ms
+ ✓ tests/player-orders.test.ts > work order confirmation > submits conflict-free orders immediately and blocks additional requests while deciding 0ms
+ ✓ tests/player-orders.test.ts > work order confirmation > reports stale rejected approval without submitting a second order 0ms
+ ✓ tests/interaction-frame.test.ts > draws the pair at target registration, parks only its target and counts actual foreground writes 4ms
+ ✓ tests/interaction-frame.test.ts > picks only the visible Sim bounds at the paired target, leaving furniture clickable 1ms
+ ✓ tests/player-order-bridge.test.ts > player-order bridge codecs > preserves full-width simulation time rather than crashing diagnostic reads 2ms
+ ✓ tests/player-order-bridge.test.ts > player-order bridge codecs > decodes queue and event identities without rounding and retains empty optional fields 1ms
+ ✓ tests/player-order-bridge.test.ts > player-order bridge codecs > rejects malformed rows and invalid boundary arguments before calling native methods 1ms
+ ✓ tests/player-order-bridge.test.ts > player-order bridge gate > holds all eight action paths until approval and includes both social participants 1ms
+ ✓ tests/player-order-bridge.test.ts > player-order bridge gate > captures cleanup targets before a delayed decision and snapshots a token for immediate orders 1ms
+ ✓ tests/order-failure-bubbles.test.ts > keeps phone failure feedback above its head and beside Build and Options 1ms
+ ✓ tests/order-failure-bubbles.test.ts > uses the other side of controls when the right side has no room 0ms
+ ✓ tests/order-failure-bubbles.test.ts > keeps an unobstructed bubble centered and clamps its body inside the canvas edges 0ms
+ ✓ tests/order-failure-bubbles.test.ts > anchors failure feedback to the displayed head through camera zoom and canvas scaling 0ms
+ ✓ tests/order-failure-bubbles.test.ts > uses initiating entity ownership and removes the squiggle when its timer expires 1ms
+ ✓ tests/hud-scrollbar.test.ts > preserves usable sidebar width as its scrollbar appears and disappears 3ms
+ ✓ tests/hud-scrollbar.test.ts > bounds overlays above the measured dock after expansion, viewport resize and hiding 1ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > numbers each step in startup order 1ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > shows the first step in the page itself, before any script has run 0ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > shows a file count only while the step that set it is running 1ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > clamps the file count and ignores an empty total 0ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > keeps a running total of data loaded across steps 0ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > fades, then removes itself once, and ignores later updates 1ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > holds the page out of reach under the cover and releases it when the cover lifts 1ms
+ ✓ tests/startup-loading.test.ts > startup loading cover > does nothing, and never throws, when the markup is missing 0ms
+ ✓ tests/startup-loading.test.ts > waiting for a paint > resolves just after the next animation frame 0ms
+ ✓ tests/startup-loading.test.ts > waiting for a paint > still resolves in a background tab, where frames never come 0ms
+ ✓ tests/reading-render-bridge.test.ts > refreshes independently sized projections on pointer changes, shrink, same-count loads and memory growth 2ms
+
+ Test Files  80 passed (80)
+      Tests  1060 passed (1060)
+   Start at  10:41:37
+   Duration  89.42s (transform 6.60s, setup 541ms, import 33.68s, tests 47.09s, environment 5ms)
+

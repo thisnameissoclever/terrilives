@@ -512,16 +512,60 @@ fn inherited_runtime_cooking_front_is_shared_rotated_and_wall_aware() {
                         .resource_mut::<TileGrid>()
                         .set_edge_blocked((9, 3), front, true);
                 }
+                let binding = pack
+                    .object(pack.find("fixture_fridge").unwrap())
+                    .interactions[1]
+                    .recipe
+                    .as_ref()
+                    .expect("the requested action is a recipe");
+                let requested_recipe =
+                    pack.chains
+                        .iter()
+                        .position(|recipe| recipe.id == binding.recipe)
+                        .expect("the recipe binding resolves") as u32;
+                assert_eq!(pack.chains[requested_recipe as usize].id, "cook_dinner");
                 order(&mut handle, person, fridge, 1);
+                handle.flush_commands();
+                let requested = handle
+                    .sim
+                    .world()
+                    .get::<terri_core::IntentQueue>(person)
+                    .unwrap()
+                    .entries()[0]
+                    .clone();
+                assert_eq!(
+                    (requested.intent.object, requested.intent.interaction),
+                    (fridge, 1)
+                );
                 let mut cooked = false;
                 for _ in 0..850 {
                     handle.tick();
-                    let cooking = handle
+                    let physical_hob_cooking = handle
                         .sim
                         .world()
                         .get::<ChainState>(person)
-                        .is_some_and(|c| c.step == 2)
-                        && handle.sim.world().get::<StepWork>(person).is_some();
+                        .is_some_and(|state| {
+                            state.chain == requested_recipe && matches!(state.step, 2 | 3)
+                        })
+                        && handle.sim.world().get::<StepWork>(person).is_some()
+                        && handle
+                            .sim
+                            .world()
+                            .get::<terri_core::Target>(person)
+                            .is_some_and(|target| {
+                                target.object == hob && target.interaction == u32::MAX
+                            });
+                    assert!(
+                        !blocked || !physical_hob_cooking,
+                        "a blocked hob cannot physically cook: {model} {facing:?}"
+                    );
+                    let cooking = physical_hob_cooking
+                        && handle.sim.world().get::<ChainState>(person).unwrap().step == 2
+                        && handle
+                            .sim
+                            .world()
+                            .get::<terri_core::IntentQueue>(person)
+                            .is_some_and(|queue| queue.order(requested.id).is_some());
                     if cooking {
                         cooked = true;
                         handle.sim.sync_render_buffer();
@@ -548,10 +592,25 @@ fn inherited_runtime_cooking_front_is_shared_rotated_and_wall_aware() {
                 }
                 assert_eq!(cooked, !blocked, "{model} {facing:?}");
                 if blocked {
+                    let events = handle.sim.action_events_since(0).events;
+                    let failures: Vec<_> = events
+                        .iter()
+                        .filter(|event| {
+                            event.actor == person.index_u32()
+                                && event.order_id == requested.id
+                                && event.phase == "failed"
+                        })
+                        .collect();
+                    assert_eq!(failures.len(), 1, "the requested dinner fails once");
                     assert_eq!(
-                        handle.sim.world().get::<ChainState>(person).unwrap().step,
-                        2
+                        failures[0].reason.as_deref(),
+                        Some("Recipe station unreachable")
                     );
+                    assert!(!events.iter().any(|event| {
+                        event.actor == person.index_u32()
+                            && event.order_id == requested.id
+                            && matches!(event.phase.as_str(), "completed" | "canceled")
+                    }));
                 }
             }
         }

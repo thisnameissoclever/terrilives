@@ -1,0 +1,94 @@
+{
+  "cancelExact": true,
+  "cancelFocus": "stage",
+  "savedTick": 360,
+  "changedTick": 363,
+  "loadedTick": 360,
+  "saveVersion": 17,
+  "accepted": [
+    {
+      "sequence": "1",
+      "tick": "360",
+      "actor": 34,
+      "counterpart": 35,
+      "orderId": "0",
+      "action": "Chat: Bill",
+      "phase": "accepted",
+      "reason": null,
+      "blockingState": null
+    }
+  ],
+  "outcomes": {
+    "nextCursor": "6",
+    "expired": false,
+    "events": [
+      {
+        "sequence": "1",
+        "tick": "360",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "accepted",
+        "reason": null,
+        "blockingState": null
+      },
+      {
+        "sequence": "2",
+        "tick": "406",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "approaching",
+        "reason": null,
+        "blockingState": null
+      },
+      {
+        "sequence": "3",
+        "tick": "483",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "waiting",
+        "reason": null,
+        "blockingState": "Recipient or resource busy"
+      },
+      {
+        "sequence": "4",
+        "tick": "725",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "approaching",
+        "reason": null,
+        "blockingState": null
+      },
+      {
+        "sequence": "5",
+        "tick": "726",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "started",
+        "reason": null,
+        "blockingState": null
+      },
+      {
+        "sequence": "6",
+        "tick": "791",
+        "actor": 34,
+        "counterpart": 35,
+        "orderId": "0",
+        "action": "Chat: Bill",
+        "phase": "completed",
+        "reason": null,
+        "blockingState": null
+      }
+    ]
+  },
+  "browser": "155.0.8059.85"
+}

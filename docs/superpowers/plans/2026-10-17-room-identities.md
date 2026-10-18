@@ -1,5 +1,10 @@
 # Room Identity Implementation Plan
 
+Current persistence: [player orders and attendance](../../specs/2026-10-17-player-orders.md)
+adds V17 around the published V16/V15 payloads. Current capture, restoration
+and Build baselines retain player-order ownership and attendance as well as
+rooms. The V16 interfaces below remain historical compatibility contracts.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
 **Goal:** Give every enclosed room a saved identity and editable name, extend cleaning to outdoor flooring/surfaces, and commit room-dependent consequences only with the complete Build batch.

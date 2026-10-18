@@ -97,7 +97,12 @@ fn draw_voice_pair(clip_count: usize, rng: &mut SimRng) -> Option<ConversationVo
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn follow_path(
     mut commands: Commands,
-    (content, talks): (Res<Content>, Query<&Socialising>),
+    (content, talks, queues, chores): (
+        Res<Content>,
+        Query<&Socialising>,
+        Query<&terri_core::IntentQueue>,
+        Query<&terri_core::chores::ChoreWork>,
+    ),
     grid: Res<TileGrid>,
     mut rng: ResMut<SimRng>,
     mut interpersonal: ResMut<super::interpersonal::InterpersonalPhase>,
@@ -139,6 +144,7 @@ pub fn follow_path(
             Option<&Reserved>,
             Option<&Target>,
             Has<terri_core::ChainState>,
+            Option<&crate::recipe_actions::RecipeActivity>,
             Has<crate::reading::ReadingJourney>,
         ),
         (With<Agent>, Without<Path>),
@@ -250,6 +256,10 @@ pub fn follow_path(
                         ticks: remaining_ticks,
                     },
                 ));
+                let contact = *target;
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                });
             } else if let Ok(placed) = objects.get(target.object) {
                 // Both indices are in range by construction: `select_action`
                 // read them out of this same pack when it scored the advert,
@@ -325,6 +335,10 @@ pub fn follow_path(
                 if let (Some(log), Ok(id)) = (log.as_deref_mut(), identities.get(entity)) {
                     log.begin_activity(id.0);
                 }
+                let contact = *target;
+                commands.queue(move |world: &mut World| {
+                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                });
                 if act
                     .tags
                     .iter()
@@ -338,18 +352,23 @@ pub fn follow_path(
                 }
             } else if sims.get(target.object).is_ok() {
                 // An incoming claim waits without taking the running conversation.
-                let busy =
-                    partners
-                        .get(target.object)
-                        .is_ok_and(|(_, _, target, chain, reading)| {
-                            target.is_some() || chain || reading
-                        })
-                        || talks.iter().any(|talk| talk.partner == target.object)
-                        || talks.get(target.object).is_ok();
+                let busy = chores.contains(target.object)
+                    || partners.get(target.object).is_ok_and(
+                        |(_, _, target, chain, activity, reading)| {
+                            target.is_some()
+                                || crate::recipe_actions::foreground_state(chain, activity)
+                                || reading
+                        },
+                    )
+                    || talks.iter().any(|talk| talk.partner == target.object)
+                    || talks.get(target.object).is_ok();
                 let owns_incoming = beds.owns_incoming(entity, target.object);
+                let _ = &queues;
                 let committed = beds.requests.owns(entity, *target);
                 if (committed && !beds.requests.admitted(entity, target.object))
-                    || (owns_incoming && (busy || partners.get(target.object).is_err()))
+                    || beds.social_admission(entity) == Some(false)
+                    || (beds.social_admission(entity).is_some()
+                        && (busy || partners.get(target.object).is_err()))
                 {
                     commands
                         .entity(entity)
@@ -362,7 +381,7 @@ pub fn follow_path(
                 // voices or duration. Without<Path> also keeps this position
                 // query disjoint from the walkers' mutable positions.
                 let valid_contact = partners.get(target.object).is_ok_and(
-                    |(partner_position, reserved, partner_target, _, _)| {
+                    |(partner_position, reserved, partner_target, _, _, _)| {
                         reserved.is_some()
                             && partner_target.is_none()
                             && grid.can_interact_with_rect(
@@ -375,7 +394,12 @@ pub fn follow_path(
                             )
                     },
                 );
-                if (owns_incoming || grid.blocked_edges().next().is_some()) && !valid_contact {
+                if (beds.social_admission(entity).is_some()
+                    || committed
+                    || owns_incoming
+                    || grid.blocked_edges().next().is_some())
+                    && !valid_contact
+                {
                     commands.entity(entity).remove::<Path>().remove::<Target>();
                     commands.entity(target.object).remove::<Reserved>();
                     continue;
@@ -896,16 +920,13 @@ mod tests {
         // a partner it has not reached yet. Waiting for the state this
         // fixture is named for keeps it about conversation LENGTH instead of
         // about how many ticks selection happens to take today.
-        sim.world_mut().entity_mut(initiator).insert((
-            Target {
-                object: partner,
-                interaction: 0,
-            },
-            Path {
-                steps: Vec::new(),
-                cursor: 0,
-            },
-        ));
+        crate::social_episode::commit_autonomous(
+            sim.world_mut(),
+            initiator,
+            partner,
+            0,
+            Vec::new(),
+        );
         let mut ticks = 0;
         while sim.world().get::<Socialising>(initiator).is_none() {
             assert!(

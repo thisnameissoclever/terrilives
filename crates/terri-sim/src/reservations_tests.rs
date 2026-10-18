@@ -223,6 +223,8 @@ fn retargeting_a_chain_preserves_the_other_occupant() {
 #[test]
 fn leaving_for_work_preserves_the_other_occupant() {
     let (mut sim, object, first, second, target) = fixture();
+    // Work can interrupt autonomous use. Player orders now defer departure.
+    sim.world_mut().entity_mut(first).remove::<IntentQueue>();
     let start = sim.world().resource::<Content>().0.careers[0].shift_start;
     sim.world_mut().resource_mut::<terri_core::SimClock>().tick = start as u64;
     sim.world_mut().entity_mut(first).insert(Career(0));

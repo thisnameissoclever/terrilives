@@ -1,0 +1,51 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/player-order-wasm.test.ts -t fails an invalid future action
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/995e/terrilives/web
+
+ × tests/player-order-wasm.test.ts > fails an invalid future action immediately and preserves a loadable queue with exact order identities 49ms
+   → expected [ { orderId: '0', …(5) }, …(1) ] to deeply equal [ { orderId: '0', …(5) } ]
+ ↓ tests/player-order-wasm.test.ts > cancels a real multi-person work warning without mutation and accepts repeated confirmed orders in one paused batch
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/player-order-wasm.test.ts > fails an invalid future action immediately and preserves a loadable queue with exact order identities
+AssertionError: expected [ { orderId: '0', …(5) }, …(1) ] to deeply equal [ { orderId: '0', …(5) } ]
+
+- Expected
++ Received
+
+@@ -5,6 +5,14 @@
+      "orderId": "0",
+      "phase": "queued",
+      "reason": null,
+      "role": "initiator",
+    },
++   {
++     "counterpart": 25,
++     "label": "Unavailable action",
++     "orderId": "1",
++     "phase": "queued",
++     "reason": null,
++     "role": "initiator",
++   },
+  ]
+
+ ❯ tests/player-order-wasm.test.ts:21:77
+     19|     const cursor=bridge.orderEventsSince('0').nextCursor;
+     20|     expect(bridge.useObject(actor,bed,999)).toBe(true);bridge.flushCom…
+     21|     expect(bridge.actionQueueRowsOf(actor).filter(row=>row.orderId!==n…
+       |                                                                             ^
+     22|     const outcomes=bridge.orderEventsSince(cursor).events;
+     23|     expect(outcomes.map(event=>event.phase)).toEqual(['accepted','fail…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  15:17:00
+   Duration  836ms (transform 339ms, setup 141ms, import 226ms, tests 71ms, environment 0ms)
+

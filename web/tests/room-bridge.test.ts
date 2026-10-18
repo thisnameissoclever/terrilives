@@ -76,7 +76,7 @@ it.each(published.files)('migrates authentic V15 $file and retains exact current
         const source = new Uint8Array(readFileSync(new URL(`../../crates/terri-wasm/tests/fixtures/room-identities-v15/${file}`, import.meta.url)));
         expect(h.load_bytes(source)).toBe(true);
         const current = h.save_bytes();
-        expect([...current.slice(8, 10)]).toEqual([16, 0]);
+        expect([...current.slice(8, 10)]).toEqual([17, 0]);
         expect(resumed.load_bytes(current)).toBe(true);
         expect(resumed.save_bytes()).toEqual(current);
         for (let n = 0; n < 120; n++) {

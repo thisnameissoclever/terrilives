@@ -255,6 +255,13 @@ pub(crate) fn prune(world: &mut World) {
     for (person, key, day) in invalid {
         unavailable.push((key, day));
         if let Some(e) = crate::dining::entity(world, person) {
+            crate::player_actions::terminal_transferred(
+                world,
+                e,
+                true,
+                "failed",
+                Some("Chore plan invalid or target removed"),
+            );
             cancel(world, e);
         }
         state.tasks.retain(|t| t.person != person);
@@ -269,6 +276,13 @@ pub(crate) fn prune(world: &mut World) {
             let Some(endpoint) = work::contact(world, task) else {
                 unavailable.push((task.key, task.started_day));
                 if let Some(person) = crate::dining::entity(world, task.person) {
+                    crate::player_actions::terminal_transferred(
+                        world,
+                        person,
+                        true,
+                        "failed",
+                        Some("Chore target unreachable"),
+                    );
                     cancel(world, person);
                 }
                 return false;
@@ -332,6 +346,22 @@ fn prune_references(world: &mut World, state: &mut SavedChores) {
         .map(|(person, _)| person)
         .collect();
     for person in people {
+        let removed: Vec<_> = world
+            .get::<terri_core::IntentQueue>(person)
+            .into_iter()
+            .flat_map(|q| q.entries())
+            .filter(|o| o.intent.chore.is_some_and(|id| !ids.contains(&id)))
+            .map(|o| o.id)
+            .collect();
+        for id in removed {
+            crate::player_actions::terminal(
+                world,
+                person,
+                id,
+                "failed",
+                Some("Chore target removed or invalid"),
+            );
+        }
         if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(person) {
             queue.retain(|order| order.intent.chore.is_none_or(|id| ids.contains(&id)));
         }

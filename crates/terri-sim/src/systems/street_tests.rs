@@ -21,6 +21,27 @@ fn at(sim: &Sim, entity: Entity) -> (f32, f32) {
     (position.x, position.y)
 }
 
+fn first_shift_pay_for_arrival(sim: &Sim, arrival: u64) -> i64 {
+    let job = &sim.world().resource::<crate::Content>().0.careers[0];
+    let end = u64::from(job.shift_start) + u64::from(job.shift_ticks);
+    assert!(
+        arrival < end,
+        "the first scheduled shift has time remaining"
+    );
+    let worked = end - arrival;
+    let outcomes = &sim
+        .world()
+        .resource::<crate::attendance::Attendance>()
+        .outcomes;
+    assert_eq!(
+        outcomes.len(),
+        1,
+        "one settlement for the first scheduled shift"
+    );
+    assert_eq!(outcomes[0].worked_minutes, worked as f32);
+    i64::from(job.pay) * 100 * worked as i64 / i64::from(job.shift_ticks)
+}
+
 /// Ticks until `done`, recording the worker's position on every tick; the
 /// bound keeps a broken commute from spinning.
 fn walk(sim: &mut Sim, entity: Entity, done: impl Fn(&Sim) -> bool) -> Vec<(f32, f32)> {
@@ -44,33 +65,20 @@ fn walk(sim: &mut Sim, entity: Entity, done: impl Fn(&Sim) -> bool) -> Vec<(f32,
 fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
     let mut sim = Sim::new_from_shipped_lot();
     let tim = worker(&mut sim);
+    let mut pack = sim.world().resource::<crate::Content>().0.clone();
+    let fridge = pack.find("fridge").unwrap();
+    pack.objects[fridge.0 as usize]
+        .interactions
+        .retain(|action| action.id == "grab_snack");
+    sim.world_mut()
+        .insert_resource(crate::Content(Box::leak(Box::new(pack))));
     let content = sim.world().resource::<crate::Content>().0;
     let shift_start = u64::from(content.careers[0].shift_start);
     assert!(shift_start >= 2);
     sim.world_mut().resource_mut::<terri_core::SimClock>().tick = shift_start - 2;
-    let (fridge, interaction) = sim
-        .world_mut()
-        .query::<(Entity, &terri_core::SmartObject)>()
-        .iter(sim.world())
-        .find_map(|(entity, object)| {
-            let definition = content.object(object.0);
-            (definition.id == "fridge").then(|| {
-                let interaction = definition
-                    .interactions
-                    .iter()
-                    .position(|a| a.id == "grab_snack")
-                    .unwrap();
-                (entity, interaction as u32)
-            })
-        })
-        .unwrap();
-    sim.world_mut()
-        .resource_mut::<terri_core::CommandQueue>()
-        .push(terri_core::SimCommand::UseObjectFirst {
-            agent: tim.index_u32(),
-            object: fridge.index_u32(),
-            interaction,
-        });
+    let mut needs = terri_core::Needs::all_at(100.0);
+    needs.set(terri_core::NeedId::Hunger, 10.0);
+    sim.world_mut().entity_mut(tim).insert(needs);
     sim.tick();
     assert!(
         sim.world().get::<terri_core::ChainState>(tim).is_some(),
@@ -80,6 +88,21 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
         .world()
         .get::<crate::reading::ReadingJourney>(tim)
         .is_none());
+    assert!(sim
+        .world()
+        .get::<crate::recipe_actions::RecipeOrder>(tim)
+        .is_none());
+    assert!(sim
+        .world()
+        .get::<terri_core::IntentQueue>(tim)
+        .is_none_or(|queue| queue.is_empty()));
+    let kept = *sim.world().get::<terri_core::ChainState>(tim).unwrap();
+    assert_eq!(content.chains[kept.chain as usize].id, "prepare_snack");
+    let origin = sim
+        .world()
+        .get::<crate::recipe_actions::Origin>(tim)
+        .cloned()
+        .unwrap();
     let index = tim.index_u32();
     let mut stages = Vec::new();
     for _ in 0..3_000 {
@@ -102,9 +125,18 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
             }
             continue;
         }
-        assert!(
-            sim.world().get::<terri_core::ChainState>(tim).is_some(),
-            "the shift keeps the errand ({stage})"
+        let retained = sim
+            .world()
+            .get::<terri_core::ChainState>(tim)
+            .expect("the shift keeps the original autonomous errand");
+        assert_eq!(
+            (retained.chain, retained.step),
+            (kept.chain, kept.step),
+            "original recipe progress is held while away ({stage})"
+        );
+        assert_eq!(
+            sim.world().get::<crate::recipe_actions::Origin>(tim),
+            Some(&origin)
         );
         assert_eq!(
             sim.chain_status_of(index),
@@ -114,9 +146,14 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
     }
     // The shift starts on the very next tick, so the first stage seen is the walk out.
     assert_eq!(stages, ["out", "work", "in", "home"]);
-    assert!(
-        sim.world().get::<terri_core::ChainState>(tim).is_some(),
-        "the errand is still kept on arrival"
+    let retained = sim
+        .world()
+        .get::<terri_core::ChainState>(tim)
+        .expect("the original errand is still kept on arrival");
+    assert_eq!((retained.chain, retained.step), (kept.chain, kept.step));
+    assert_eq!(
+        sim.world().get::<crate::recipe_actions::Origin>(tim),
+        Some(&origin)
     );
     let status = sim
         .chain_status_of(index)
@@ -134,6 +171,7 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
     let out = walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
     assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
     assert!(
         out.iter().any(|&(x, y)| x > 15.0 && x < 16.0 && y == 2.0),
@@ -149,7 +187,7 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
         "came in through the front door"
     );
     assert!(home.iter().any(|&(x, _)| x > 17.0), "walked the yard");
-    let pay = sim.world().resource::<crate::Content>().0.careers[0].pay as i64 * 100;
+    let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(sim.world().resource::<terri_core::Funds>().0, funds + pay);
 }
 
@@ -167,7 +205,6 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     let tim = worker(&mut sim);
     let content = sim.world().resource::<crate::Content>().0;
     let shift_start = u64::from(content.careers[0].shift_start);
-    let pay = i64::from(content.careers[0].pay) * 100;
     for _ in 1..shift_start {
         sim.tick();
     }
@@ -185,6 +222,7 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
 
     assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
     assert_eq!(
@@ -196,6 +234,7 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
         sim.world().get::<AtWork>(tim).is_none() && sim.world().get::<Commuting>(tim).is_none()
     });
     assert_eq!(at(&sim, tim), (15.0, 3.0), "home on the landing");
+    let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(
         sim.world().resource::<terri_core::Funds>().0,
         funds + pay,
@@ -212,8 +251,10 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
+    let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+    historical.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for _ in 0..600 {
         sim.tick();
         loaded.tick();

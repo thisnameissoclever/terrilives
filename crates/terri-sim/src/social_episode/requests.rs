@@ -88,10 +88,161 @@ impl ConversationRequests {
     }
 }
 
+/// Published request records mirror player executions for frozen-save compatibility.
+/// The player scheduler is the only authority for these records' physical claims.
+pub(crate) fn managed_player(world: &World, r: &ConversationRequest) -> bool {
+    matches!(r.origin, ConversationOrigin::Player { order_id }
+        if world.get_resource::<crate::player_actions::PlayerActions>()
+            .is_some_and(|actions| actions.orders.contains_key(&(r.initiator, order_id))))
+}
+
+pub(crate) fn owns_autonomous_target(world: &World, person: Entity, target: Target) -> bool {
+    world
+        .get_resource::<ConversationRequests>()
+        .is_some_and(|state| {
+            state.requests.values().any(|r| {
+                r.initiator == person
+                    && r.recipient == target.object
+                    && r.interaction == target.interaction
+                    && !managed_player(world, r)
+                    && owns_physical(world, r)
+            })
+        })
+}
+
+fn mirror_players(world: &World, state: &mut ConversationRequests) {
+    let Some(episodes) = world.get_resource::<super::SocialEpisodes>() else {
+        return;
+    };
+    if let Some(actions) = world.get_resource::<crate::player_actions::PlayerActions>() {
+        let mut orders: Vec<_> = actions.orders.iter().collect();
+        orders.sort_by_key(|(_, order)| order.acceptance);
+        for (&(actor, order_id), order) in orders {
+            let intent = order.entry.intent;
+            if world.get::<terri_core::SimId>(actor).is_none()
+                || world.get::<terri_core::SimId>(intent.object).is_none()
+                || intent.cleanup.is_some()
+                || intent.chore.is_some()
+                || world.get::<Agent>(intent.object).is_none()
+                || world
+                    .resource::<crate::Content>()
+                    .0
+                    .social
+                    .get(intent.interaction as usize)
+                    .is_none_or(crate::fights::is_fight)
+                || state.requests.values().any(|r| {
+                    r.initiator == actor && r.origin == ConversationOrigin::Player { order_id }
+                })
+            {
+                continue;
+            }
+            let id = state.next_id;
+            state.next_id = id.checked_add(1).expect("conversation identity exhausted");
+            state.requests.insert(
+                id,
+                ConversationRequest {
+                    id,
+                    initiator: actor,
+                    recipient: intent.object,
+                    interaction: intent.interaction,
+                    origin: ConversationOrigin::Player { order_id },
+                    created: world.resource::<SimClock>().tick,
+                    phase: RequestPhase::Suspended,
+                    waiting_tile: None,
+                },
+            );
+        }
+    }
+    for (&actor, execution) in &episodes.executions {
+        if world.get::<terri_core::SimId>(actor).is_none()
+            || world
+                .get::<terri_core::SimId>(execution.recipient)
+                .is_none()
+        {
+            continue;
+        }
+        let super::execution::ExecutionOwner::Player(order_id) = execution.owner else {
+            continue;
+        };
+        let existing = state
+            .requests
+            .values()
+            .find(|r| r.initiator == actor && r.origin == ConversationOrigin::Player { order_id })
+            .map(|r| r.id);
+        let id = existing.unwrap_or_else(|| {
+            let id = state.next_id;
+            state.next_id = id.checked_add(1).expect("conversation identity exhausted");
+            id
+        });
+        let phase = match execution.phase {
+            super::ExecutionPhase::Running => RequestPhase::Talking,
+            super::ExecutionPhase::Approaching if execution.admitted => RequestPhase::Approaching,
+            _ => RequestPhase::Waiting,
+        };
+        let created = state
+            .requests
+            .get(&id)
+            .map_or(world.resource::<SimClock>().tick, |r| r.created);
+        let waiting_tile = if phase == RequestPhase::Waiting {
+            world
+                .get::<Path>(actor)
+                .and_then(|path| path.steps.last().copied())
+                .or_else(|| world.get::<Position>(actor).map(|position| tile(*position)))
+        } else {
+            state.requests.get(&id).and_then(|r| r.waiting_tile)
+        };
+        state.requests.insert(
+            id,
+            ConversationRequest {
+                id,
+                initiator: actor,
+                recipient: execution.recipient,
+                interaction: execution.interaction,
+                origin: ConversationOrigin::Player { order_id },
+                created,
+                phase,
+                waiting_tile,
+            },
+        );
+    }
+    for r in state.requests.values_mut() {
+        if managed_player(world, r)
+            && !episodes.executions.get(&r.initiator).is_some_and(|e| {
+                matches!(e.owner, super::execution::ExecutionOwner::Player(id)
+                if r.origin == ConversationOrigin::Player { order_id: id })
+            })
+        {
+            r.phase = RequestPhase::Suspended;
+        }
+    }
+}
+
+pub(crate) fn sync_players(world: &mut World) {
+    let mut state = world.resource::<ConversationRequests>().clone();
+    mirror_players(world, &mut state);
+    world.insert_resource(state);
+}
+
+pub(crate) fn finish_player(world: &mut World, actor: Entity, order_id: u64) {
+    let ids: Vec<_> = world
+        .resource::<ConversationRequests>()
+        .requests
+        .values()
+        .filter(|r| r.initiator == actor && r.origin == ConversationOrigin::Player { order_id })
+        .map(|r| r.id)
+        .collect();
+    for id in ids {
+        // Physical teardown belongs to the execution owner.
+        let mut state = world.resource_mut::<ConversationRequests>();
+        state.requests.remove(&id);
+        state.reasons.remove(&id);
+    }
+}
+
 fn tile(p: Position) -> (i32, i32) {
     (p.x.round() as i32, p.y.round() as i32)
 }
-fn target(r: &ConversationRequest) -> Target {
+pub(crate) fn request_target(r: &ConversationRequest) -> Target {
     Target {
         object: r.recipient,
         interaction: r.interaction,
@@ -230,12 +381,37 @@ pub(crate) fn cancel_target(world: &mut World, person: Entity, t: Target) {
         cancel_request(world, id);
     }
 }
+/// A fresh front order redirects the listener without deleting the old initiator's request.
+pub(crate) fn redirect_incoming(world: &mut World, recipient: Entity) {
+    let physical: Vec<_> = world
+        .resource::<ConversationRequests>()
+        .requests
+        .values()
+        .filter(|request| {
+            request.recipient == recipient
+                && !managed_player(world, request)
+                && matches!(
+                    request.phase,
+                    RequestPhase::Approaching | RequestPhase::Talking
+                )
+        })
+        .cloned()
+        .collect();
+    for request in physical {
+        suspend(world, &request);
+    }
+}
+
 pub(crate) fn defer_incoming(world: &mut World, recipient: Entity) {
     let incoming: Vec<_> = world
         .resource::<ConversationRequests>()
         .requests
         .values()
-        .filter(|r| r.recipient == recipient && r.phase != RequestPhase::Talking)
+        .filter(|r| {
+            r.recipient == recipient
+                && r.phase != RequestPhase::Talking
+                && !managed_player(world, r)
+        })
         .cloned()
         .collect();
     for r in incoming {
@@ -386,6 +562,9 @@ fn legacy_requests(world: &World) -> Vec<ConversationRequest> {
                 .social
                 .get(interaction as usize)
                 .is_none_or(crate::fights::is_fight)
+            || world
+                .get_resource::<super::SocialEpisodes>()
+                .is_some_and(|episodes| episodes.executions.contains_key(&initiator))
             || state.requests.values().any(|r| {
                 r.initiator == initiator && r.recipient == recipient && r.interaction == interaction
             })
@@ -415,7 +594,9 @@ fn legacy_requests(world: &World) -> Vec<ConversationRequest> {
 /// Project its identity without changing the clock or random generator.
 pub(crate) fn snapshot(world: &World) -> ConversationRequests {
     let mut state = world.resource::<ConversationRequests>().clone();
-    for request in legacy_requests(world) {
+    mirror_players(world, &mut state);
+    for mut request in legacy_requests(world) {
+        request.id = state.next_id;
         state.next_id = request.id + 1;
         state.requests.insert(request.id, request);
     }
@@ -476,7 +657,12 @@ fn recover_legacy_approaches(world: &mut World) {
 
 pub(crate) fn refresh_markers(world: &mut World) {
     let state = world.resource::<ConversationRequests>();
-    let people: BTreeSet<_> = state.requests.values().map(|r| r.initiator).collect();
+    let people: BTreeSet<_> = state
+        .requests
+        .values()
+        .filter(|r| !managed_player(world, r))
+        .map(|r| r.initiator)
+        .collect();
     let owners: Vec<_> = people
         .into_iter()
         .map(|person| {
@@ -488,6 +674,15 @@ pub(crate) fn refresh_markers(world: &mut World) {
             (person, id)
         })
         .collect();
+    let marked: Vec<_> = world
+        .query_filtered::<Entity, With<CommittedConversation>>()
+        .iter(world)
+        .collect();
+    for person in marked {
+        if !owners.iter().any(|(owner, _)| *owner == person) {
+            world.entity_mut(person).remove::<CommittedConversation>();
+        }
+    }
     for (person, id) in owners {
         world.entity_mut(person).insert(CommittedConversation(id));
     }
@@ -515,6 +710,9 @@ pub(crate) fn maintain(world: &mut World) {
         .cloned()
         .collect();
     for r in requests {
+        if managed_player(world, &r) {
+            continue;
+        }
         let invalid = world.get::<Agent>(r.initiator).is_none()
             || world.get::<Agent>(r.recipient).is_none()
             || matches!(r.origin,ConversationOrigin::Player{order_id} if world.get::<IntentQueue>(r.initiator).is_none_or(|q|q.order(order_id).is_none()));
@@ -554,7 +752,7 @@ pub(crate) fn maintain(world: &mut World) {
             .resource::<ConversationRequests>()
             .requests
             .values()
-            .any(|r| r.initiator == person)
+            .any(|r| r.initiator == person && !managed_player(world, r))
         {
             world.entity_mut(person).remove::<CommittedConversation>();
         }
@@ -686,8 +884,18 @@ fn process(world: &mut World, routes: bool) {
         occupied.insert(owner);
         occupied.insert(talk.partner);
     }
+    for (&actor, execution) in &world.resource::<super::SocialEpisodes>().executions {
+        occupied.insert(actor);
+        if execution.admitted || execution.phase == super::ExecutionPhase::Running {
+            occupied.insert(execution.recipient);
+        }
+    }
+    let elected = world.resource::<super::SocialEpisodes>().incoming.clone();
     let mut recipients = BTreeSet::new();
     for mut r in requests {
+        if managed_player(world, &r) {
+            continue;
+        }
         if !world
             .resource::<ConversationRequests>()
             .requests
@@ -713,7 +921,7 @@ fn process(world: &mut World, routes: bool) {
         if !own_target(world, &r) {
             world
                 .entity_mut(r.initiator)
-                .insert((CommittedConversation(r.id), target(&r)));
+                .insert((CommittedConversation(r.id), request_target(&r)));
         }
         let first = !recipients.contains(&r.recipient);
         let receiver_work = work(world, r.recipient);
@@ -731,7 +939,10 @@ fn process(world: &mut World, routes: bool) {
                 .rendezvous
                 .get(&r.recipient)
                 != Some(&r.initiator);
-        let receiver_busy = busy(world, r.recipient)
+        let receiver_busy = elected
+            .get(&r.recipient)
+            .is_some_and(|owner| *owner != r.initiator)
+            || busy(world, r.recipient)
             || occupied.contains(&r.recipient)
             || !first
             || later_player_choice
@@ -850,6 +1061,38 @@ struct RoutePlan {
     destination: (i32, i32),
     steps: Vec<(i32, i32)>,
     private: bool,
+}
+
+/// Player approaches use the same privacy snapshot and staging rules as autonomy.
+pub(crate) fn player_route(
+    world: &World,
+    actor: Entity,
+    recipient: Entity,
+) -> Option<Vec<(i32, i32)>> {
+    let ready = world.get::<Target>(recipient).is_none()
+        && world.get::<Path>(recipient).is_none()
+        && world.get::<Eating>(recipient).is_none()
+        && !crate::recipe_actions::foreground(world, recipient)
+        && world
+            .get::<crate::reading::ReadingJourney>(recipient)
+            .is_none()
+        && world
+            .get::<terri_core::chores::ChoreWork>(recipient)
+            .is_none()
+        && !is_talking(world, recipient);
+    let request = ConversationRequest {
+        id: 0,
+        initiator: actor,
+        recipient,
+        interaction: 0,
+        origin: ConversationOrigin::LegacyUnattributed,
+        created: 0,
+        phase: RequestPhase::Waiting,
+        waiting_tile: None,
+    };
+    plan_route(world, &request, ready)
+        .ok()
+        .map(|plan| plan.steps)
 }
 
 fn plan_route(

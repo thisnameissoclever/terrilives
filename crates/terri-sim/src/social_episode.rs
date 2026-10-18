@@ -2,11 +2,24 @@
 pub(crate) mod requests;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::{Agent, Eating, NeedId, Needs, Path, SimRng, Socialising, Target};
+#[cfg(test)]
+use terri_core::{Agent, Path};
+use terri_core::{Eating, NeedId, Needs, SimRng, Socialising, Target};
+mod execution;
+mod execution_persistence;
+pub(crate) use execution::{
+    commit_autonomous, complete_execution, execution_order, release_order, request_order_id,
+    Execution, ExecutionPhase,
+};
+pub(crate) use execution_persistence::{
+    adopt_legacy, adopt_published_player_requests, restore_executions, save_executions,
+};
 
 #[derive(Resource, Default, Clone)]
 pub struct SocialEpisodes {
     pub(crate) rendezvous: BTreeMap<Entity, Entity>,
+    pub(crate) executions: BTreeMap<Entity, Execution>,
+    pub(crate) incoming: BTreeMap<Entity, Entity>,
     pub(crate) topics: BTreeMap<Entity, Topic>,
     pub(crate) communal: BTreeMap<Entity, CommunalEpisode>,
 }
@@ -49,52 +62,71 @@ pub(crate) fn urgent(world: &World, person: Entity) -> bool {
 
 pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
     requests::started(world, initiator, partner);
-    let mut episodes = world.resource_mut::<SocialEpisodes>();
-    episodes.topics.remove(&initiator);
-    if episodes.rendezvous.get(&partner) == Some(&initiator) {
-        episodes.rendezvous.remove(&partner);
+    let target = world.get::<Target>(initiator).copied();
+    let order = {
+        let mut episodes = world.resource_mut::<SocialEpisodes>();
+        episodes.topics.remove(&initiator);
+        let order = episodes
+            .executions
+            .get_mut(&initiator)
+            .and_then(|execution| {
+                if execution.recipient != partner
+                    || target
+                        != Some(Target {
+                            object: partner,
+                            interaction: execution.interaction,
+                        })
+                {
+                    return None;
+                }
+                execution.phase = ExecutionPhase::Running;
+                match execution.owner {
+                    execution::ExecutionOwner::Player(id) => Some(id),
+                    _ => None,
+                }
+            });
+        if episodes.rendezvous.get(&partner) == Some(&initiator) {
+            episodes.rendezvous.remove(&partner);
+        }
+        order
+    };
+    if let Some(id) = order {
+        crate::player_actions::transition(world, initiator, id, 3, true);
     }
 }
 
+/// Redirecting a recipient releases physical claims, never somebody else's order.
 pub(crate) fn cancel_incoming(world: &mut World, recipient: Entity) {
-    if world
-        .resource::<requests::ConversationRequests>()
-        .requests
-        .values()
-        .any(|r| r.recipient == recipient)
-    {
-        requests::defer_incoming(world, recipient);
-        return;
-    }
-    let Some(initiator) = world
-        .resource_mut::<SocialEpisodes>()
-        .rendezvous
-        .remove(&recipient)
-    else {
-        return;
-    };
-    if let Some(target) = world
-        .get::<Target>(initiator)
-        .copied()
-        .filter(|t| t.object == recipient)
-    {
-        crate::reservations::release_now(world, initiator, target);
-        if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(initiator) {
-            queue.remove_first(terri_core::Intent {
-                object: recipient,
-                interaction: target.interaction,
-                cleanup: None,
-                chore: None,
-            });
-        }
-        world
-            .entity_mut(initiator)
-            .remove::<(Target, Path, terri_core::Blocked)>();
-    }
+    execution::redirect_recipient(world, recipient);
+    requests::defer_incoming(world, recipient);
 }
 
 pub(crate) fn forget_person(world: &mut World, person: Entity) {
     requests::forget_person(world, person);
+    let owned: Vec<_> = world
+        .get_resource::<crate::player_actions::PlayerActions>()
+        .map_or_else(Vec::new, |s| {
+            s.orders
+                .iter()
+                .filter(|((actor, _), state)| {
+                    *actor == person || state.entry.intent.object == person
+                })
+                .map(|(&(actor, id), _)| (actor, id))
+                .collect()
+        });
+    for (actor, id) in owned {
+        crate::player_actions::terminal(
+            world,
+            actor,
+            id,
+            "failed",
+            Some(if actor == person {
+                "Initiator died"
+            } else {
+                "Recipient died"
+            }),
+        );
+    }
     let topics: BTreeSet<_> = world
         .resource::<SocialEpisodes>()
         .topics
@@ -107,6 +139,7 @@ pub(crate) fn forget_person(world: &mut World, person: Entity) {
                     .is_some_and(|s| s.partner == person)
         })
         .collect();
+    execution::forget_person(world, person);
     let mut episodes = world.resource_mut::<SocialEpisodes>();
     episodes
         .rendezvous
@@ -119,137 +152,9 @@ pub(crate) fn forget_person(world: &mut World, person: Entity) {
 }
 
 pub(crate) fn maintain(world: &mut World) {
+    crate::player_actions::observe(world);
+    execution::maintain(world);
     requests::maintain(world);
-    let mut claims: Vec<_> = world
-        .resource::<SocialEpisodes>()
-        .rendezvous
-        .iter()
-        .map(|(&recipient, &initiator)| (recipient, initiator))
-        .collect();
-    claims.sort_by_key(|(recipient, _)| recipient.index_u32());
-    for (recipient, initiator) in claims {
-        if world
-            .resource::<requests::ConversationRequests>()
-            .requests
-            .values()
-            .any(|r| r.initiator == initiator && r.recipient == recipient)
-        {
-            continue;
-        }
-        let target = world.get::<Target>(initiator).copied();
-        let valid = world.get::<Agent>(recipient).is_some()
-            && target.is_some_and(|t| t.object == recipient)
-            && (world.get::<Path>(recipient).is_none()
-                || world.get::<terri_core::ChainState>(recipient).is_some()
-                || world
-                    .get::<crate::reading::ReadingJourney>(recipient)
-                    .is_some())
-            && !urgent(world, recipient)
-            && !urgent(world, initiator);
-        if !valid {
-            world
-                .resource_mut::<SocialEpisodes>()
-                .rendezvous
-                .remove(&recipient);
-            if world.get::<Socialising>(initiator).is_none() {
-                if target.is_some_and(|t| t.object == recipient) {
-                    if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(initiator) {
-                        queue.remove_first(terri_core::Intent {
-                            object: recipient,
-                            interaction: target.unwrap().interaction,
-                            cleanup: None,
-                            chore: None,
-                        });
-                    }
-                    world
-                        .entity_mut(initiator)
-                        .remove::<(Target, Path, terri_core::Blocked)>();
-                }
-                let active_partner = world
-                    .query::<&Socialising>()
-                    .iter(world)
-                    .any(|s| s.partner == recipient);
-                if !active_partner {
-                    if let Ok(mut entity) = world.get_entity_mut(recipient) {
-                        entity.remove::<terri_core::Reserved>();
-                    }
-                }
-            }
-            continue;
-        }
-        if world.get::<Socialising>(initiator).is_none() {
-            let recipient_position = world.get::<terri_core::Position>(recipient).copied();
-            let initiator_position = world.get::<terri_core::Position>(initiator).copied();
-            if let Some((recipient_position, initiator_position)) =
-                recipient_position.zip(initiator_position)
-            {
-                let to = (
-                    recipient_position.x.round() as i32,
-                    recipient_position.y.round() as i32,
-                );
-                let from = (
-                    initiator_position.x.round() as i32,
-                    initiator_position.y.round() as i32,
-                );
-                let grid = world.resource::<terri_core::TileGrid>();
-                let endpoint = world
-                    .get::<Path>(initiator)
-                    .and_then(|p| p.steps.last().copied())
-                    .unwrap_or(from);
-                if !grid.can_interact_with_rect(endpoint, to, terri_core::Footprint::SINGLE) {
-                    let route = grid.find_path_adjacent_to_tile(from, to).and_then(|steps| {
-                        grid.anchor_path((initiator_position.x, initiator_position.y), steps)
-                    });
-                    if let Some(steps) = route {
-                        world
-                            .entity_mut(initiator)
-                            .insert(Path { steps, cursor: 0 });
-                    } else {
-                        crate::reservations::release_now(world, initiator, target.unwrap());
-                        world
-                            .entity_mut(initiator)
-                            .remove::<(Target, Path, terri_core::Blocked)>();
-                        world
-                            .resource_mut::<SocialEpisodes>()
-                            .rendezvous
-                            .remove(&recipient);
-                        continue;
-                    }
-                }
-            }
-        }
-        let recipient_busy = world.get::<Target>(recipient).is_some()
-            || world.get::<terri_core::ChainState>(recipient).is_some()
-            || world
-                .get::<crate::reading::ReadingJourney>(recipient)
-                .is_some()
-            || world.get::<Eating>(recipient).is_some()
-            || world.get::<Socialising>(recipient).is_some()
-            || world
-                .query::<&Socialising>()
-                .iter(world)
-                .any(|talk| talk.partner == recipient);
-        if !recipient_busy
-            && world.get::<Path>(initiator).is_none()
-            && world.get::<Socialising>(initiator).is_none()
-        {
-            world
-                .entity_mut(initiator)
-                .remove::<terri_core::Blocked>()
-                .insert(Path {
-                    steps: vec![],
-                    cursor: 0,
-                });
-        }
-        // Finishing the old activity leaves the recipient available for its owner.
-        if world.get::<Target>(recipient).is_none() && world.get::<Path>(recipient).is_none() {
-            world
-                .entity_mut(recipient)
-                .remove::<terri_core::Wander>()
-                .remove::<terri_core::Restless>()
-                .insert(terri_core::Reserved);
-        }
-    }
     let mut held_readers: Vec<_> = world
         .resource::<SocialEpisodes>()
         .communal

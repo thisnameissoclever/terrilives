@@ -6,6 +6,10 @@ use terri_core::{
     save::*, Agent, ChainState, Intent, IntentQueue, Position, SmartObject, TileGrid,
 };
 
+#[cfg(test)]
+#[path = "targeted_cleanup/phase_tests.rs"]
+mod phase_tests;
+
 pub(crate) fn surface(world: &World, index: u32) -> Option<Entity> {
     let e = crate::dining::entity(world, index)?;
     let object = world.get::<SmartObject>(e)?;
@@ -65,6 +69,73 @@ pub(crate) fn has_active(world: &World, person: u32) -> bool {
         })
 }
 
+/// A scoped order owns its internal cleanup chain through both collection and washing.
+pub(crate) fn player_phase(world: &World, actor: Entity, cleanup_order_id: u32) -> Option<u8> {
+    let scope = world
+        .get_resource::<SavedTargetedCleanup>()?
+        .orders
+        .iter()
+        .find(|scope| {
+            scope.id == cleanup_order_id
+                && scope.person == actor.index_u32()
+                && scope.queue_position.is_none()
+        })?;
+    let domestic = world.get_resource::<SavedDomestic>()?;
+    domestic
+        .cleanup
+        .iter()
+        .find(|task| task.person == actor.index_u32() && task.directed)?;
+    let progress = world.get::<ChainState>(actor)?;
+    let pack = world.resource::<Content>().0;
+    let chain = pack
+        .chains
+        .get(progress.chain as usize)
+        .filter(|chain| chain.id == crate::domestic::CLEANUP)?;
+    let step = chain.steps.get(progress.step as usize)?;
+    if world.get::<crate::reading::ReadingJourney>(actor).is_some()
+        || world.get::<terri_core::Socialising>(actor).is_some()
+        || world.get::<terri_core::AtWork>(actor).is_some()
+        || world.get::<terri_core::Commuting>(actor).is_some()
+        || world.get::<terri_core::Blocked>(actor).is_some()
+        || world
+            .try_query::<&terri_core::Socialising>()
+            .is_some_and(|mut talks| talks.iter(world).any(|talk| talk.partner == actor))
+    {
+        return Some(2);
+    }
+    let owned_station = world
+        .get::<terri_core::Target>(actor)
+        .filter(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
+        .filter(|target| {
+            progress.step == 0
+                || world
+                    .get::<SmartObject>(target.object)
+                    .is_some_and(|object| pack.object(object.0).roles.contains(&step.role))
+        })
+        .filter(|target| {
+            progress.step != 0
+                || (target.object.index_u32() == scope.surface
+                    && surface(world, scope.surface) == Some(target.object)
+                    && crate::domestic::step_station(
+                        domestic,
+                        actor.index_u32(),
+                        world.get::<terri_core::SimId>(actor).copied(),
+                        &chain.id,
+                        progress.step,
+                    ) == Some(scope.surface))
+        });
+    if owned_station.is_none() {
+        return Some(2);
+    }
+    if world.get::<terri_core::StepWork>(actor).is_some() {
+        Some(3)
+    } else if world.get::<terri_core::Path>(actor).is_some() {
+        Some(1)
+    } else {
+        Some(2)
+    }
+}
+
 /// Validate a replacement before releasing the current scoped work.
 pub(crate) fn interrupt_for_order(world: &mut World, person: Entity, id: u32) {
     if world
@@ -121,6 +192,41 @@ pub(crate) fn interrupt_active(world: &mut World, person: Entity) {
 }
 
 pub(crate) fn abandon(world: &mut World, person: u32) {
+    let scopes: Vec<_> = world
+        .get_resource::<SavedTargetedCleanup>()
+        .map_or_else(Vec::new, |s| {
+            s.orders
+                .iter()
+                .filter(|o| o.person == person && o.queue_position.is_none())
+                .map(|o| o.id)
+                .collect()
+        });
+    if let Some(actor) = crate::dining::entity(world, person) {
+        let ids: Vec<_> = world
+            .get_resource::<crate::player_actions::PlayerActions>()
+            .map_or_else(Vec::new, |s| {
+                s.orders
+                    .iter()
+                    .filter(|((owner, _), s)| {
+                        *owner == actor
+                            && s.entry
+                                .intent
+                                .cleanup
+                                .is_some_and(|id| scopes.contains(&id))
+                    })
+                    .map(|((_, id), _)| *id)
+                    .collect()
+            });
+        for id in ids {
+            crate::player_actions::terminal(
+                world,
+                actor,
+                id,
+                "canceled",
+                Some("Cleanup replaced by another activity"),
+            );
+        }
+    }
     if let Some(mut state) = world.get_resource_mut::<SavedTargetedCleanup>() {
         state
             .orders
@@ -252,6 +358,19 @@ pub(crate) fn activate(world: &mut World, person: Entity, id: u32) {
 }
 
 fn remove_order(world: &mut World, id: u32) {
+    let person = world
+        .get_resource::<SavedTargetedCleanup>()
+        .and_then(|s| s.orders.iter().find(|o| o.id == id))
+        .map(|o| o.person);
+    if let Some(person) = person.and_then(|id| crate::dining::entity(world, id)) {
+        crate::player_actions::terminal_transferred(
+            world,
+            person,
+            false,
+            "failed",
+            Some("Cleanup target unavailable or unreachable"),
+        );
+    }
     if let Some(mut s) = world.get_resource_mut::<SavedTargetedCleanup>() {
         s.orders.retain(|o| o.id != id);
     }
@@ -300,6 +419,13 @@ pub(crate) fn refresh(world: &mut World, person: Entity) {
         return;
     }
     if surface(world, order.surface).is_none() || !washing_available(world, person) {
+        crate::player_actions::terminal_transferred(
+            world,
+            person,
+            false,
+            "failed",
+            Some("Cleanup surface removed or no reachable sink"),
+        );
         crate::domestic::abandon(world, person);
         world
             .entity_mut(person)
@@ -321,6 +447,7 @@ pub(crate) fn refresh(world: &mut World, person: Entity) {
     task.dishes.dedup();
     let empty = task.dishes.is_empty();
     if empty && !visible {
+        crate::player_actions::terminal_transferred(world, person, false, "completed", None);
         crate::domestic::abandon(world, person);
         world
             .entity_mut(person)
@@ -335,6 +462,7 @@ pub(crate) fn washed(world: &mut World, person: Entity) {
         begin(world, person, vec![]);
         refresh(world, person);
     } else {
+        crate::player_actions::terminal_transferred(world, person, false, "completed", None);
         abandon(world, person.index_u32());
     }
 }
@@ -357,6 +485,38 @@ pub(crate) fn prune(world: &mut World) {
     let Some(saved) = snapshot(world) else {
         return;
     };
+    let removed: Vec<_> = world
+        .get_resource::<SavedTargetedCleanup>()
+        .into_iter()
+        .flat_map(|state| &state.orders)
+        .filter(|order| !saved.orders.iter().any(|retained| retained.id == order.id))
+        .map(|order| (order.person, order.id))
+        .collect();
+    for (person, scope) in removed {
+        if let Some(actor) = crate::dining::entity(world, person) {
+            let ids: Vec<_> = world
+                .get_resource::<crate::player_actions::PlayerActions>()
+                .map_or_else(Vec::new, |state| {
+                    state
+                        .orders
+                        .iter()
+                        .filter(|((owner, _), order)| {
+                            *owner == actor && order.entry.intent.cleanup == Some(scope)
+                        })
+                        .map(|((_, id), _)| *id)
+                        .collect()
+                });
+            for id in ids {
+                crate::player_actions::terminal(
+                    world,
+                    actor,
+                    id,
+                    "failed",
+                    Some("Cleanup activity no longer available"),
+                );
+            }
+        }
+    }
     world.insert_resource(saved);
 }
 

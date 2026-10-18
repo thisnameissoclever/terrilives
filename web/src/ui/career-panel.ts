@@ -20,6 +20,7 @@ export interface CareerPanelSource {
   careerReport(entity: number): CareerReport | null;
   careerHistory(entity: number): readonly CareerWeek[];
   careerFactors(entity: number): CareerFactors | null;
+  careerAttendanceOf?(entity: number): readonly number[];
   careerPathLabels(): readonly string[];
   assignCareer(entity: number, path: number): boolean;
   quitCareer(entity: number): boolean;
@@ -35,6 +36,7 @@ export interface CareerJobView {
   readonly schedule: string;
   readonly weekSoFar: string;
   readonly lastReview: string;
+  readonly attendance?: string | null;
   readonly factors: readonly string[];
   readonly streaks: string;
   readonly nextPromotion: string;
@@ -57,6 +59,16 @@ export interface CareerPanelState {
 }
 
 export const CAREER_WARNING = 'Warned at work: dismissal becomes possible from the third poor week in a row.';
+
+export function careerAttendanceLine(values: readonly number[]): string | null {
+  if (values.length !== 8 || !values.every(Number.isFinite)) return null;
+  const [scheduled, worked, missed, base, deduction, score, payCents, settled] = values;
+  const number = (value: number): string => Number(value.toFixed(2)).toString();
+  const minutes = `${number(worked)} of ${number(scheduled)} scheduled minutes worked; ${number(missed)} missed.`;
+  return settled === 1
+    ? `Last shift: ${minutes} Base performance ${number(base)}, missed-work deduction ${number(deduction)}, final score ${number(score)}. Earned $${(payCents / 100).toFixed(2)}.`
+    : `Current shift: ${minutes} Pay and performance settle when the scheduled shift ends.`;
+}
 
 function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -198,6 +210,7 @@ export class CareerPanel {
     const schedule = formatCareerSchedule(title, this.source.careerScheduleOf(this.agent), this.source.dayTicks());
     this.job = careerJobView(title, this.paths[report.path], schedule, report,
       this.source.careerFactors(this.agent), this.source.careerHistory(this.agent));
+    this.job = {...this.job, attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
     if (this.choice !== null && this.choice >= this.paths.length) this.choice = null;
   }
 
@@ -306,6 +319,7 @@ export function createCareerPanelSurface(
   const schedule = line(doc, 'career-schedule');
   const week = line(doc, 'career-week');
   const lastReview = line(doc, 'career-last-review');
+  const attendance = line(doc, 'career-attendance');
   const factorsHeading = doc.createElement('p');
   factorsHeading.className = 'career-factors-heading';
   factorsHeading.textContent = 'What the score reads';
@@ -361,7 +375,7 @@ export function createCareerPanelSurface(
   status.setAttribute('role', 'status');
   // The miniature sits under the heading its control belongs to, so
   // pressing i changes what is on screen wherever the tab is scrolled.
-  content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, factorsHeading, factors,
+  content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, attendance, factorsHeading, factors,
     streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, status);
 
   const options: HTMLOptionElement[] = [];
@@ -402,6 +416,8 @@ export function createCareerPanelSurface(
       : state.unavailable ? 'Career unavailable.' : job ? '' : 'Unemployed. Choose a path below to assign one.');
     empty.hidden = state.agent !== null && !state.unavailable && job !== null;
     const detail = job !== null;
+    attendance.hidden = !job?.attendance;
+    setTextIfChanged(attendance, job?.attendance ?? '');
     for (const node of [heading, path, level, pay, schedule, week, lastReview, factorsHeading, factors, streaks, nextPromotion, graphHeading]) {
       node.hidden = !detail;
     }

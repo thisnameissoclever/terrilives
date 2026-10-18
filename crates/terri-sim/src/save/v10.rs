@@ -16,6 +16,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV10 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
+            .filter(|command| !matches!(command, SimCommand::ConfirmedOrder { .. }))
             .map(|command| match command {
                 SimCommand::Character(command) => Some(command.as_ref().clone()),
                 _ => None,

@@ -183,8 +183,10 @@ exclude capped hand washing and unavailable company, and include a valid
 media seat's Comfort and eligible shared activity. Cooking cannot promise a
 future seat or dining company before diners actually sit together.
 
-Critical-need selection additionally estimates the net physical result after
-travel, waiting, work and decay. If useful critical relief is available,
+Autonomous critical-need selection additionally estimates the net physical result after
+travel, waiting, work and decay. Critical needs never override explicit player
+orders; need decay and death remain enabled under the
+[player-order contract](specs/2026-10-17-player-orders.md). If useful critical relief is available,
 unrelated actions share at most 5% probability with one critical need or 1%
 with several. Self-preservation and preferences still influence which useful
 action appeals most. A chosen conversation remains committed while the

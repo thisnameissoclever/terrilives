@@ -1,0 +1,24 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\995e\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized] target(s) in 8.82s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-43c8ffeb9db9f3ee.exe)
+
+running 1 test
+test systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads ... FAILED
+
+failures:
+
+---- systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads stdout ----
+
+thread 'systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads' (37908) panicked at crates\terri-sim\src\systems\command_submission_tests.rs:97:5:
+assertion `left == right` failed
+  left: [QueuedOrder { id: 0, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 0 }, title_id: None }, QueuedOrder { id: 1, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 4294967295 }, title_id: None }]
+ right: [QueuedOrder { id: 0, intent: Intent { cleanup: None, chore: None, object: 19v0, interaction: 0 }, title_id: None }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::command::submission_tests::invalid_submission_append_behind_running_order_fails_exactly_and_self_save_loads
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1712 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

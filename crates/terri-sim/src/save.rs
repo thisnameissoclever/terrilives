@@ -30,12 +30,32 @@ pub(super) const MAX_ENTITIES: usize = 100_000;
 /// The frame goes into the candidate world before the grid, the walls, the
 /// people and the front door are rebuilt, because every one of them reads
 /// it (land expansion, issue 254).
+/// Each save schema owns the actor identities it can represent. Household-only
+/// relationships keep their separate stable-person checks in either mode.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) enum ActorReferences {
+    #[default]
+    Household,
+    SavedAgents,
+}
+
+impl ActorReferences {
+    fn validate(self, snapshot: &SaveSnapshotV1, content: &ContentPack) -> Result<(), SaveError> {
+        match self {
+            Self::Household => validate_snapshot(snapshot, content),
+            Self::SavedAgents => validate_snapshot_with_actor_refs(snapshot, content, self),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Carried {
     pub portals: Option<ActivePortals>,
     pub lot_frame: Option<crate::lot_frame::LotFrame>,
     pub rooms: Option<terri_core::rooms::SavedRooms>,
     pub room_mode: crate::rooms::RoomReferenceMode,
+    /// The schema selects its actor references before any source validation.
+    pub actor_references: ActorReferences,
 }
 
 impl Carried {
@@ -47,6 +67,7 @@ impl Carried {
             lot_frame: None,
             rooms: None,
             room_mode: crate::rooms::RoomReferenceMode::Legacy,
+            actor_references: ActorReferences::Household,
         }
     }
 
@@ -63,6 +84,7 @@ impl Carried {
                 .get_resource::<crate::rooms::RoomReferenceMode>()
                 .copied()
                 .unwrap_or_default(),
+            actor_references: ActorReferences::Household,
         }
     }
 }
@@ -95,6 +117,7 @@ pub(crate) mod v13;
 pub(crate) mod v14;
 pub(crate) mod v15;
 pub(crate) mod v16;
+pub(crate) mod v17;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -178,7 +201,14 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
-            .filter(|command| !matches!(command, SimCommand::Book(_) | SimCommand::Character(_)))
+            .filter(|command| {
+                !matches!(
+                    command,
+                    SimCommand::Book(_)
+                        | SimCommand::Character(_)
+                        | SimCommand::ConfirmedOrder { .. }
+                )
+            })
             .map(|command| capture_command(command, pack))
             .collect(),
     }
@@ -335,7 +365,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             change: *change,
             search: *search,
         },
-        SimCommand::Book(_) | SimCommand::Character(_) => {
+        SimCommand::Book(_) | SimCommand::Character(_) | SimCommand::ConfirmedOrder { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
@@ -589,7 +619,10 @@ pub(crate) fn restore_with_facings(
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
-    let (snapshot, migrate_legacy_household_names) = meal_migration::prepare(snapshot, content)?;
+    let (snapshot, migrate_legacy_household_names) = match active_portals.actor_references {
+        ActorReferences::Household => meal_migration::prepare(snapshot, content)?,
+        references => meal_migration::prepare_with_actor_refs(snapshot, content, references)?,
+    };
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
@@ -719,6 +752,7 @@ pub(crate) fn restore_with_facings(
         .collect();
     sim.world
         .insert_resource(CommandQueue::from_commands(commands));
+    crate::player_actions::adopt_legacy_objects(&mut sim.world);
     sim.sync_render_buffer();
     Ok(sim)
 }
@@ -1235,6 +1269,14 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
 }
 
 fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<(), SaveError> {
+    validate_snapshot_with_actor_refs(snapshot, pack, ActorReferences::Household)
+}
+
+fn validate_snapshot_with_actor_refs(
+    snapshot: &SaveSnapshotV1,
+    pack: &ContentPack,
+    references: ActorReferences,
+) -> Result<(), SaveError> {
     if !terri_data::content_fingerprint_matches(pack, snapshot.content_fingerprint) {
         return Err(SaveError::IncompatibleContent);
     }
@@ -1297,6 +1339,7 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
             pack,
             tile_count,
             pre_aquarium_bike,
+            references,
         )?;
     }
     sim_ids.sort_unstable();
@@ -1315,7 +1358,18 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         return Err(SaveError::TooManyCommands);
     }
     for command in &snapshot.queued_commands {
-        validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
+        match references {
+            ActorReferences::Household => {
+                validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?
+            }
+            mode => validate_command_with_actor_refs(
+                command,
+                &snapshot.entities,
+                pack,
+                pre_aquarium_bike,
+                mode,
+            )?,
+        }
     }
     Ok(())
 }
@@ -1428,6 +1482,22 @@ fn validate_command(
     pack: &ContentPack,
     pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
+    validate_command_with_actor_refs(
+        command,
+        entities,
+        pack,
+        pre_aquarium_bike,
+        ActorReferences::Household,
+    )
+}
+
+fn validate_command_with_actor_refs(
+    command: &SavedCommand,
+    entities: &[SavedEntity],
+    pack: &ContentPack,
+    pre_aquarium_bike: bool,
+    references: ActorReferences,
+) -> Result<(), SaveError> {
     match command {
         SavedCommand::CleanChore { .. }
         | SavedCommand::CleanChoreFirst { .. }
@@ -1526,7 +1596,7 @@ fn validate_command(
             }
         }
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
-            validate_agent_reference(entities, *index).map(|_| ())
+            validate_actor_reference(entities, *index, references).map(|_| ())
         }
         // A front placement validates exactly as its append twin: the
         // placement changes where the order lands, never what it names.
@@ -1540,7 +1610,7 @@ fn validate_command(
             object,
             interaction,
         } => {
-            validate_agent_reference(entities, *agent)?;
+            validate_actor_reference(entities, *agent, references)?;
             // The same flyout rows `serve_intents` resolves, chains
             // included - a queued "Cook dinner" is a `UseObject` whose
             // row sits past the interactions ([K5]).
@@ -1566,8 +1636,8 @@ fn validate_command(
             target,
             interaction,
         } => {
-            validate_agent_reference(entities, *agent)?;
-            validate_agent_reference(entities, *target)?;
+            validate_actor_reference(entities, *agent, references)?;
+            validate_actor_reference(entities, *target, references)?;
             if *interaction as usize >= pack.social.len() {
                 return Err(SaveError::InvalidContentReference);
             }
@@ -1582,6 +1652,7 @@ fn validate_entity(
     pack: &ContentPack,
     tile_count: usize,
     pre_aquarium_bike: bool,
+    references: ActorReferences,
 ) -> Result<(), SaveError> {
     if let Some(position) = entity.position {
         if !position.x.is_finite() {
@@ -1647,6 +1718,7 @@ fn validate_entity(
                 intent.object,
                 intent.interaction,
                 pre_aquarium_bike,
+                references,
             )?;
         }
     }
@@ -1657,6 +1729,7 @@ fn validate_entity(
             target.object,
             target.interaction,
             pre_aquarium_bike,
+            references,
         )?;
     }
     if let Some(eating) = &entity.eating {
@@ -1711,8 +1784,8 @@ fn validate_entity(
         }
     }
     if let Some(social) = entity.socialising {
-        validate_agent_reference(entities, entity.index)?;
-        validate_agent_reference(entities, social.partner)?;
+        validate_actor_reference(entities, entity.index, references)?;
+        validate_actor_reference(entities, social.partner, references)?;
         if social.interaction as usize >= pack.social.len() {
             return Err(SaveError::InvalidContentReference);
         }
@@ -1867,6 +1940,7 @@ fn validate_target_reference(
     index: u32,
     interaction: u32,
     pre_aquarium_bike: bool,
+    references: ActorReferences,
 ) -> Result<(), SaveError> {
     let entity = validate_entity_reference(entities, index)?;
     if let Some(object) = entity.smart_object.as_deref() {
@@ -1878,7 +1952,7 @@ fn validate_target_reference(
         }
         return validate_object_interaction(pack, object, interaction, pre_aquarium_bike);
     }
-    validate_social_partner(entity, pack, interaction)
+    validate_social_partner(entity, pack, interaction, references)
 }
 
 /// The same union for a QUEUED order - a front-of-queue `Intent` or a
@@ -1892,10 +1966,11 @@ fn validate_order_reference(
     index: u32,
     interaction: u32,
     pre_aquarium_bike: bool,
+    references: ActorReferences,
 ) -> Result<(), SaveError> {
     let entity = validate_entity_reference(entities, index)?;
     let Some(object) = entity.smart_object.as_deref() else {
-        return validate_social_partner(entity, pack, interaction);
+        return validate_social_partner(entity, pack, interaction, references);
     };
     validate_flyout_row(pack, object, interaction, pre_aquarium_bike)
 }
@@ -1928,8 +2003,9 @@ fn validate_social_partner(
     entity: &SavedEntity,
     pack: &ContentPack,
     interaction: u32,
+    references: ActorReferences,
 ) -> Result<(), SaveError> {
-    if !entity.agent || entity.sim_id.is_none() {
+    if !entity.agent || (references == ActorReferences::Household && entity.sim_id.is_none()) {
         return Err(SaveError::InvalidEntityReference);
     }
     if interaction as usize >= pack.social.len() {
@@ -1947,6 +2023,21 @@ fn validate_entity_reference(
         .ok()
         .map(|position| &entities[position])
         .ok_or(SaveError::InvalidEntityReference)
+}
+
+fn validate_actor_reference(
+    entities: &[SavedEntity],
+    index: u32,
+    references: ActorReferences,
+) -> Result<&SavedEntity, SaveError> {
+    if references == ActorReferences::Household {
+        return validate_agent_reference(entities, index);
+    }
+    let entity = validate_entity_reference(entities, index)?;
+    if !entity.agent {
+        return Err(SaveError::InvalidEntityReference);
+    }
+    Ok(entity)
 }
 
 fn validate_agent_reference(

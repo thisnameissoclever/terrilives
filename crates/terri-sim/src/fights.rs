@@ -19,15 +19,15 @@ pub const FIGHT_TAG: &str = "fighting";
 /// Who had a fight and the tick their Had a fight moodlet ends. Saved in
 /// schema twelve; in the world hash whenever it holds anything.
 ///
-/// `provoked` holds, per person, the queue entry id of the fight order the
-/// trigger made up for them, so `retract` can withdraw that entry and no
-/// other (a player's identical order has its own id) when the other person
-/// leaves the lot. It is not saved: after a load such an order waits as a
-/// player's would, at most until the other person comes home.
+/// `provoked` watches a trigger's front order until execution or redirection,
+/// so withdrawal removes that entry without touching a player's identical order.
+/// `system_orders` retains its provenance through execution and queue changes;
+/// schema fifteen saves those exact identities separately from player orders.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
 pub struct Fights {
     pub timers: MoodletTimers,
     provoked: std::collections::BTreeMap<Entity, u64>,
+    system_orders: std::collections::BTreeMap<Entity, u64>,
 }
 
 impl Fights {
@@ -35,6 +35,7 @@ impl Fights {
         Self {
             timers,
             provoked: Default::default(),
+            system_orders: Default::default(),
         }
     }
 
@@ -42,6 +43,24 @@ impl Fights {
     /// being watched.
     pub fn provoked(&self, person: Entity) -> bool {
         self.provoked.contains_key(&person)
+    }
+    pub(crate) fn saved_orders(&self, world: &World) -> Vec<(u32, u64)> {
+        self.system_orders
+            .iter()
+            .filter(|(actor, id)| {
+                world
+                    .get::<IntentQueue>(**actor)
+                    .is_some_and(|q| q.order(**id).is_some())
+            })
+            .map(|(actor, id)| (actor.index_u32(), *id))
+            .collect()
+    }
+    pub(crate) fn restore_order(&mut self, person: Entity, id: u64) {
+        self.provoked.insert(person, id);
+        self.system_orders.insert(person, id);
+    }
+    pub(crate) fn owns_order(&self, person: Entity, id: u64) -> bool {
+        self.system_orders.get(&person) == Some(&id)
     }
 }
 
@@ -172,9 +191,24 @@ fn approachable(world: &mut World, person: Entity) -> bool {
 /// pushed is watched, by its id, so a player's identical order is never
 /// touched: once the front of the queue is any other entry (the order was
 /// served, popped, cancelled, or a player put their own order ahead of it)
-/// the person is forgotten, and a made-up order left behind a player's
-/// waits as a player's would.
+/// this withdrawal watch ends. Its system provenance remains until the exact
+/// queue entry leaves, including while it waits behind a player's order.
 pub(crate) fn retract(world: &mut World) {
+    let live_owners: std::collections::BTreeSet<_> = world
+        .resource::<Fights>()
+        .system_orders
+        .iter()
+        .filter(|(person, id)| {
+            world
+                .get::<IntentQueue>(**person)
+                .is_some_and(|queue| queue.order(**id).is_some())
+        })
+        .map(|(&person, _)| person)
+        .collect();
+    world
+        .resource_mut::<Fights>()
+        .system_orders
+        .retain(|person, _| live_owners.contains(person));
     let provoked: Vec<(Entity, u64)> = world
         .resource::<Fights>()
         .provoked
@@ -273,7 +307,7 @@ pub(crate) fn provoke(world: &mut World) {
                 }
             };
             if let Some(id) = id {
-                world.resource_mut::<Fights>().provoked.insert(person, id);
+                world.resource_mut::<Fights>().restore_order(person, id);
             }
             break;
         }
@@ -291,6 +325,14 @@ pub(crate) fn expire(world: &mut World) {
 pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     if let Some(fights) = world.get_resource::<Fights>() {
         fights.hash_into(hash, b"fights-v1");
+        let orders = fights.saved_orders(world);
+        if !orders.is_empty() {
+            hash.write_bytes(b"system-social-orders-v15");
+            for (actor, id) in orders {
+                hash.write_u64(u64::from(actor));
+                hash.write_u64(id);
+            }
+        }
     }
 }
 
@@ -1046,7 +1088,7 @@ mod order_tests {
         );
         sim.world_mut()
             .resource_mut::<CommandQueue>()
-            .push(SimCommand::UseObject {
+            .push(SimCommand::UseObjectFirst {
                 agent: b.index_u32(),
                 object: fridge.index_u32(),
                 interaction: 0,

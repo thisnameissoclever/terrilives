@@ -6,13 +6,26 @@ use terri_core::{
 };
 use terri_sim::{Content, Sim};
 
-const _: () = assert!(terri_core::save::SAVE_SCHEMA_VERSION == 16);
+const _: () = assert!(terri_core::save::SAVE_SCHEMA_VERSION == 17);
 
 fn write(path: &Path, version: u16, payload: Vec<u8>) {
     let mut bytes = terri_core::save::SAVE_MAGIC.to_vec();
     bytes.extend(version.to_le_bytes());
     bytes.extend(payload);
     fs::write(path, bytes).expect("write review input");
+}
+fn write_current(path: &Path, sim: &Sim) {
+    let snapshot = sim.save_snapshot_v17();
+    let mut restored = Sim::new_with_lot_and_content(1, 1, *sim.world().resource::<Content>());
+    restored
+        .load_snapshot_v17(snapshot.clone())
+        .expect("valid current review input");
+    assert_eq!(restored.save_snapshot_v17(), snapshot);
+    write(
+        path,
+        terri_core::save::SAVE_SCHEMA_VERSION,
+        postcard::to_allocvec(&snapshot).unwrap(),
+    );
 }
 fn main() {
     let output = std::env::args()
@@ -54,11 +67,7 @@ fn main() {
         )
         .unwrap(),
     );
-    write(
-        &output.join("critical-before-tick-v16.sav"),
-        terri_core::save::SAVE_SCHEMA_VERSION,
-        postcard::to_allocvec(&sim.save_snapshot_v16()).unwrap(),
-    );
+    write_current(&output.join("critical-before-tick-v17.sav"), &sim);
     let pack = sim.world().resource::<Content>().0;
     let toilet = sim
         .world_mut()
@@ -99,11 +108,7 @@ fn main() {
             Blocked,
         ));
     }
-    write(
-        &output.join("waiting-for-care-v16.sav"),
-        terri_core::save::SAVE_SCHEMA_VERSION,
-        postcard::to_allocvec(&sim.save_snapshot_v16()).unwrap(),
-    );
+    write_current(&output.join("waiting-for-care-v17.sav"), &sim);
     println!(
         "Wrote historical/current critical scenarios and an arrived care waiter to {}",
         output.display()

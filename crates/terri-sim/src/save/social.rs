@@ -77,6 +77,39 @@ pub(super) fn restore_into(
     saved_people: BTreeMap<u32, u32>,
     source_targets: BTreeMap<u32, SavedTarget>,
 ) -> Result<(), SaveError> {
+    restore_into_mode(
+        candidate,
+        social,
+        saved_people,
+        source_targets,
+        super::ActorReferences::Household,
+    )
+}
+
+/// Current social references retain the frozen entity-index namespace for bare
+/// actors, while named people keep their stable identity mapping.
+pub(super) fn restore_into_current(
+    candidate: &mut Sim,
+    social: SavedSocialEpisodes,
+    saved_people: BTreeMap<u32, u32>,
+    source_targets: BTreeMap<u32, SavedTarget>,
+) -> Result<(), SaveError> {
+    restore_into_mode(
+        candidate,
+        social,
+        saved_people,
+        source_targets,
+        super::ActorReferences::SavedAgents,
+    )
+}
+
+fn restore_into_mode(
+    candidate: &mut Sim,
+    social: SavedSocialEpisodes,
+    saved_people: BTreeMap<u32, u32>,
+    source_targets: BTreeMap<u32, SavedTarget>,
+    references: super::ActorReferences,
+) -> Result<(), SaveError> {
     let content = candidate.world.resource::<Content>().0;
     let identities: BTreeMap<_, _> = candidate
         .world
@@ -91,6 +124,17 @@ pub(super) fn restore_into(
             .copied()
             .ok_or(SaveError::InvalidEntityReference)?;
         people.insert(old, entity);
+    }
+    if references == super::ActorReferences::SavedAgents {
+        for entity in candidate
+            .world
+            .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(&candidate.world)
+        {
+            if candidate.world.get::<SimId>(entity).is_none() {
+                people.insert(entity.index_u32(), entity);
+            }
+        }
     }
     let person = |index: &u32| {
         people
@@ -136,11 +180,14 @@ pub(super) fn restore_into(
     }
     for t in social.topics {
         let i = person(&t.initiator)?;
-        if candidate
-            .world
-            .get::<Socialising>(i)
-            .is_none_or(|s| s.partner == i || candidate.world.get::<SimId>(s.partner).is_none())
-        {
+        if candidate.world.get::<Socialising>(i).is_none_or(|s| {
+            s.partner == i
+                || if references == super::ActorReferences::SavedAgents {
+                    !people.values().any(|&person| person == s.partner)
+                } else {
+                    candidate.world.get::<SimId>(s.partner).is_none()
+                }
+        }) {
             return Err(SaveError::InvalidEntityReference);
         }
         // Fights (issue 248): a fight carries exactly a fight topic, with
@@ -302,10 +349,30 @@ pub(super) fn restore_into(
         }
     }
     candidate.world.insert_resource(state);
+    crate::social_episode::adopt_legacy(&mut candidate.world);
     Ok(())
 }
 
 pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    let executions = crate::social_episode::save_executions(world);
+    if !executions.is_empty() {
+        hash.write_bytes(b"social-execution-v15");
+        hash.write_u64(executions.len() as u64);
+        for e in executions {
+            for value in [
+                u64::from(e.initiator),
+                u64::from(e.recipient),
+                u64::from(e.interaction),
+                u64::from(e.provenance),
+                u64::from(e.order_id.is_some()),
+                e.order_id.unwrap_or(0),
+                u64::from(e.running),
+                u64::from(e.admitted),
+            ] {
+                hash.write_u64(value);
+            }
+        }
+    }
     let saved = capture(world);
     if saved.rendezvous.is_empty() && saved.topics.is_empty() && saved.communal.is_empty() {
         return;
@@ -674,6 +741,8 @@ mod tests {
         let entities = std::array::from_fn(|_| world.spawn_empty().id());
         assert_eq!(entities.map(|entity| entity.index_u32()), [0, 1, 2, 3]);
         world.insert_resource(SocialEpisodes {
+            executions: BTreeMap::new(),
+            incoming: BTreeMap::new(),
             rendezvous: BTreeMap::from([(entities[1], entities[0])]),
             topics: BTreeMap::from([(
                 entities[0],

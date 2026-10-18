@@ -1,5 +1,11 @@
 # Published V15 and room integration
 
+Current persistence: [player orders and attendance](../../specs/2026-10-17-player-orders.md)
+adds a V17 envelope around the published V16/V15 payloads. Current capture,
+restoration and Build baselines retain that full envelope, including order
+ownership and attendance. The V16 integration below records its historical
+design and compatibility requirements.
+
 Apply this plan with the [room plan](2026-10-17-room-identities.md) and its [binding spec](../../specs/2026-10-17-room-identities.md). Preserve published conversation commitments while adding room identities and the native Build transaction. No dependency changes, save resets, ambiguous version dispatch or duplicate browser baseline are authorized.
 
 The source inputs are published main `a481d7c7be0708c4523d9a156513b6696aaff6f6` and the room checkpoint `17aaac23fa0c520283659ce8d77c9b795ef60f24`. Use exact source and artifact receipts for reproduction; refresh remote state again before delivery.

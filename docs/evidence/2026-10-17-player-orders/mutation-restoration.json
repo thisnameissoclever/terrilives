@@ -1,0 +1,42 @@
+[
+  {
+    "mutation": "cycle-bound",
+    "source": "crates/terri-sim/src/social_episode/execution.rs",
+    "originalSha256": "655C25598F3BF1DEBAA5273BAAEAD1366826B4C7FE2A264221F4EAC15CDF2044",
+    "restoredSha256": "655C25598F3BF1DEBAA5273BAAEAD1366826B4C7FE2A264221F4EAC15CDF2044",
+    "restoredExactly": true,
+    "log": "mutant-cycle-bound.log"
+  },
+  {
+    "mutation": "diagnostic-capture",
+    "source": "crates/terri-sim/src/player_actions.rs",
+    "originalSha256": "C20B20ACB35D7DF2BB6FB6379024B8764B24C6A36FE6F9ED1BE776565B33E06C",
+    "restoredSha256": "C20B20ACB35D7DF2BB6FB6379024B8764B24C6A36FE6F9ED1BE776565B33E06C",
+    "restoredExactly": true,
+    "log": "mutant-diagnostic-capture.log"
+  },
+  {
+    "mutation": "invalid-admission",
+    "source": "crates/terri-sim/src/systems/command.rs",
+    "originalSha256": "D253A4B016CFC4F32B0D7D329076F475DE9DFFC3A612672623E25843DBC0BB3C",
+    "restoredSha256": "D253A4B016CFC4F32B0D7D329076F475DE9DFFC3A612672623E25843DBC0BB3C",
+    "restoredExactly": true,
+    "log": "mutant-invalid-admission.log"
+  },
+  {
+    "mutation": "movement-background",
+    "source": "crates/terri-sim/src/systems/movement.rs",
+    "originalSha256": "1542916824204AD2E62FEA13981A1CBB5E1703AD2DF2B193636B299B153C5634",
+    "restoredSha256": "1542916824204AD2E62FEA13981A1CBB5E1703AD2DF2B193636B299B153C5634",
+    "restoredExactly": true,
+    "log": "mutant-movement-background.log"
+  },
+  {
+    "mutation": "recipe-front",
+    "source": "crates/terri-sim/src/social_episode/execution.rs",
+    "originalSha256": "655C25598F3BF1DEBAA5273BAAEAD1366826B4C7FE2A264221F4EAC15CDF2044",
+    "restoredSha256": "655C25598F3BF1DEBAA5273BAAEAD1366826B4C7FE2A264221F4EAC15CDF2044",
+    "restoredExactly": true,
+    "log": "mutant-recipe-front.log"
+  }
+]

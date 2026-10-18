@@ -488,6 +488,59 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     }
 }
 
+/// Settle a scheduled shift once, with its captured pay and actual attendance.
+pub(crate) fn complete_attended_shift(
+    world: &mut World,
+    worker: Entity,
+    career: u32,
+    pay_cents: i64,
+    ratio: f32,
+    score: f32,
+    scheduled_week: u64,
+) {
+    let pack = world.resource::<Content>().0;
+    let job = &pack.careers[career as usize];
+    world.resource_mut::<Funds>().0 += pay_cents;
+    if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
+        satisfaction.reward(job.satisfaction * ratio);
+    }
+    let Some(sim) = world.get::<SimId>(worker).copied() else {
+        return;
+    };
+    let fit = fit(world, pack, job, worker);
+    let miserable = {
+        let mut careers = world.resource_mut::<Careers>();
+        let record = careers
+            .records
+            .entry(sim)
+            .or_insert_with(|| Record::new(job));
+        record.shifts.push(score);
+        let target = 50.0 + 40.0 * fit;
+        let step = pack.tuning.career_satisfaction_rate * ratio;
+        record.job_satisfaction = if record.job_satisfaction < target {
+            (record.job_satisfaction + step).min(target)
+        } else {
+            (record.job_satisfaction - step).max(target)
+        };
+        record.job_satisfaction < pack.tuning.career_job_misery
+    };
+    if miserable {
+        if let Some(mut satisfaction) = world.get_mut::<Satisfaction>(worker) {
+            satisfaction.reward(-pack.tuning.career_misery_satisfaction * ratio);
+        }
+    }
+    let now = world.resource::<SimClock>().tick;
+    if scheduled_week < week_of(now, pack.tuning.day_ticks) {
+        world
+            .resource_mut::<Careers>()
+            .records
+            .get_mut(&sim)
+            .unwrap()
+            .review_due = Some(scheduled_week);
+        settle_due_review(world, worker);
+    }
+}
+
 /// Applies a review that fell due while the person was away, if one
 /// waits (rule 6): called at the end of the walk home, for a week that
 /// ended during the walk. A review due at the shift's end is applied by
@@ -595,6 +648,10 @@ fn review(world: &mut World, ended_week: u64, tick: u64) {
         let Some(record) = careers.records.get_mut(&sim) else {
             continue;
         };
+        if crate::attendance::scheduled_week(world, entity) == Some(ended_week) {
+            record.review_due = Some(ended_week);
+            continue;
+        }
         if record.shifts.is_empty() {
             continue;
         }
@@ -811,6 +868,7 @@ fn search(world: &mut World) {
 /// reviews the week that ended on this tick, and sends the unemployed
 /// looking for work at the search tick of a weekday.
 pub(crate) fn tick(world: &mut World) {
+    crate::attendance::account_and_settle(world);
     let tick = world.resource::<SimClock>().tick;
     let (day_ticks, search_tick, first_weekday) = {
         let tuning = &world.resource::<Content>().0.tuning;
@@ -875,6 +933,7 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
                 return Some(CareerRefusal::UnknownPath);
             };
             let job = &pack.careers[row as usize];
+            crate::attendance::close_for_career_change(world, entity);
             world
                 .resource_mut::<Careers>()
                 .records
@@ -885,6 +944,7 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
                 .remove::<crate::reading::PendingShift>();
         }
         None => {
+            crate::attendance::close_for_career_change(world, entity);
             world.resource_mut::<Careers>().records.remove(&sim);
             world
                 .entity_mut(entity)
@@ -977,10 +1037,11 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
             // reviewed and before the one running.
             || record.review_due.is_some_and(|due| {
                 due >= week
-                    || record.shifts.is_empty()
+                    || (record.shifts.is_empty() && crate::attendance::scheduled_week(world,entity)!=Some(due))
                     || record.history.last().is_some_and(|last| last.week >= due)
                     || (world.get::<AtWork>(entity).is_none()
-                        && world.get::<Commuting>(entity).is_none())
+                        && world.get::<Commuting>(entity).is_none()
+                        && crate::attendance::scheduled_week(world,entity)!=Some(due))
             })
         {
             return Err(InvalidValue);
@@ -2422,10 +2483,8 @@ mod tests {
     /// One week of the shipped household with every working day covered:
     /// Tim keeps the office job and Casey takes the night watch, with the
     /// autonomy off so the week is the same every run. The household is
-    /// paid for every shift, both workers are reviewed at the week's end,
-    /// nobody dies, and nobody spends the week with a need on the floor.
-    /// Measured on 2026-10-17: the lowest weekly mean of any need for any
-    /// housemate was 18.8 (Tim's Fun), with or without the extra jobs.
+    /// paid for observed office time, both workers are reviewed against
+    /// their scheduled week, nobody dies, and needs retain time to recover.
     #[test]
     fn the_shipped_household_keeps_living_around_its_jobs() {
         let mut sim = Sim::new_from_shipped_lot();
@@ -2436,7 +2495,7 @@ mod tests {
             .iter()
             .position(|c| c.id == "night_watch_guard")
             .expect("shipped") as u32;
-        let (tim_id, tim) = worker(&mut sim);
+        let (tim_id, _) = worker(&mut sim);
         let casey = crate::edit::living_entity(sim.world(), 2).expect("alive");
         let casey_id = *sim.world().get::<SimId>(casey).unwrap();
         sim.world_mut().entity_mut(casey).insert(Career(night));
@@ -2452,11 +2511,25 @@ mod tests {
         let start = sim.world().resource::<Funds>().0;
         let week_ticks = u64::from(pack.tuning.day_ticks) * 7;
         let mut sums = vec![[0.0_f64; 7]; people.len()];
-        // Through Monday noon, so Casey's Sunday night shift has ended,
-        // however late a book delayed its start, and the review that fell
-        // due while they were at work is applied on the return; Tim has
-        // left for Monday's shift and not yet come home.
+        let mut observed_work = BTreeMap::<(SimId, u64), u64>::new();
+        // Through Monday noon: Sunday's fixed night shift has settled,
+        // and Monday's office shift is still running. Count office
+        // intervals independently of the saved attendance counter.
         for _ in 0..(week_ticks + 720) {
+            for person in &people {
+                if sim.world().get::<AtWork>(*person).is_some() {
+                    let id = *sim.world().get::<SimId>(*person).unwrap();
+                    if let Some(shift) = sim
+                        .world()
+                        .resource::<crate::attendance::Attendance>()
+                        .shifts
+                        .get(&id)
+                        .filter(|shift| !shift.settled)
+                    {
+                        *observed_work.entry((id, shift.start_tick)).or_default() += 1;
+                    }
+                }
+            }
             sim.tick();
             for (slot, person) in people.iter().enumerate() {
                 let needs = sim.world().get::<Needs>(*person).expect("alive");
@@ -2465,16 +2538,56 @@ mod tests {
                 }
             }
         }
-        // Five office shifts and five night shifts, the last ending on the
-        // Monday morning.
-        let office = &pack.careers[sim.world().get::<Career>(tim).unwrap().0 as usize];
-        let expected = 5 * i64::from(office.pay) + 5 * i64::from(pack.careers[night as usize].pay);
+        let attendance = sim.world().resource::<crate::attendance::Attendance>();
+        assert_eq!(
+            attendance.outcomes.len(),
+            10,
+            "five office and five night shifts settle once"
+        );
+        let mut expected = 0;
+        let mut schedules = std::collections::BTreeSet::new();
+        for outcome in &attendance.outcomes {
+            let id = SimId(outcome.sim);
+            assert!(
+                schedules.insert((id, outcome.start_tick)),
+                "one outcome per scheduled shift"
+            );
+            assert_eq!(week_of(outcome.start_tick, pack.tuning.day_ticks), 0);
+            let worked = observed_work
+                .get(&(id, outcome.start_tick))
+                .copied()
+                .unwrap_or(0);
+            assert_eq!(
+                outcome.worked_minutes, worked as f32,
+                "attendance follows observed office intervals"
+            );
+            let job = &pack.careers[outcome.career as usize];
+            assert_eq!(
+                outcome.end_tick - outcome.start_tick,
+                u64::from(job.shift_ticks)
+            );
+            let pay = i64::from(job.pay) * Funds::CENTS_PER_DOLLAR * worked as i64
+                / i64::from(job.shift_ticks);
+            assert_eq!(
+                outcome.pay_cents, pay,
+                "commute and time at home earn no pay"
+            );
+            expected += pay;
+        }
         assert_eq!(
             sim.world().resource::<Funds>().0 - start,
-            expected * Funds::CENTS_PER_DOLLAR,
-            "every shift paid"
+            expected,
+            "household receives exactly the prorated payments"
         );
         for id in [tim_id, casey_id] {
+            assert_eq!(
+                attendance
+                    .outcomes
+                    .iter()
+                    .filter(|outcome| outcome.sim == id.0)
+                    .count(),
+                5
+            );
             let record = record_of(&sim, id);
             assert_eq!(
                 record.history.len(),
@@ -2482,9 +2595,11 @@ mod tests {
                 "reviewed at the week's end or on the return"
             );
             assert_eq!(record.review_due, None);
-            // Casey's Monday return opened the new week with one score;
-            // Tim is still out on Monday's shift.
-            assert!(record.shifts.len() <= 1, "{:?}", record.shifts);
+            assert_eq!(record.history[0].week, 0);
+            assert!(
+                record.shifts.is_empty(),
+                "Sunday's night shift belongs to its scheduled week"
+            );
         }
         for (slot, person) in people.iter().enumerate() {
             assert!(sim.world().get::<Agent>(*person).is_some(), "alive");

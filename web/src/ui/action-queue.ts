@@ -1,6 +1,14 @@
+import type { ActionQueueRow } from './player-orders.js';
+
 export interface ActionQueueSource {
   selectedIndex(): number | null;
   actionQueueOf(entity: number, maxRows?: number): string[];
+  actionQueueRowsOf?(entity: number, maxRows?: number): ActionQueueRow[];
+}
+
+export function structuredActionCards(rows: readonly ActionQueueRow[]): {label: string; phase: string; orderId: string | null; reason: string | null}[] {
+  return rows.filter(row => row.label !== '').map(row => ({label: row.label, orderId: row.orderId, reason: row.reason,
+    phase: `${row.role === 'incoming' ? 'Incoming ← · ' : ''}${row.phase.charAt(0).toUpperCase()}${row.phase.slice(1)}`}));
 }
 
 /** Entry zero is the current action; an empty entry means nothing is running. */
@@ -27,19 +35,27 @@ export class ActionQueue {
     // Even the smallest card takes at least 40 pixels. Include an extra row
     // beyond the fade, keeping the stored queue independent of DOM capacity.
     const visibleLimit = Math.max(1, Math.ceil(this.root.clientHeight / 40) + 1);
-    const actions = selected === null ? [] : source.actionQueueOf(selected, visibleLimit + 1);
-    this.root.hidden = actions.length === 0 || (actions.length === 1 && !actions[0]);
-    const cards = actionCards(actions.slice(0, visibleLimit + 1)).slice(0, visibleLimit);
+    const structured = selected === null ? [] : source.actionQueueRowsOf?.(selected, visibleLimit + 1);
+    const actions = selected === null || structured ? [] : source.actionQueueOf(selected, visibleLimit + 1);
+    const cards = (structured ? structuredActionCards(structured.slice(0, visibleLimit + 1)) : actionCards(actions.slice(0, visibleLimit + 1))).slice(0, visibleLimit);
+    this.root.hidden = cards.length === 0;
     const signature = JSON.stringify(cards);
     if (signature === this.signature) return;
     this.signature = signature;
     this.root.replaceChildren();
-    for (const { label, phase } of cards) {
+    for (const row of cards) {
+      const { label, phase } = row;
       const card = this.root.ownerDocument.createElement('div');
       card.className = 'action-card';
       const caption = this.root.ownerDocument.createElement('small');
       caption.textContent = phase;
       card.append(caption, this.root.ownerDocument.createTextNode(label));
+      if ('orderId' in row && row.orderId !== null) card.dataset.orderId = String(row.orderId);
+      if ('reason' in row && row.reason) {
+        const reason = this.root.ownerDocument.createElement('small');
+        reason.textContent = String(row.reason);
+        card.append(reason);
+      }
       this.root.append(card);
     }
   }

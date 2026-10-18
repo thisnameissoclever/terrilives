@@ -5,6 +5,7 @@ import {
   CAREER_WARNING,
   CareerPanel,
   careerFactorLines,
+  careerAttendanceLine,
   careerJobView,
   createCareerPanelSurface,
   type CareerPanelSource,
@@ -14,6 +15,12 @@ import { careerEventTitle, careerGraphKey, renderCareerGraph } from '../src/ui/c
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+
+it('explains worked and missed minutes with the settled pay and performance deduction', () => {
+  expect(careerAttendanceLine([480, 300, 180, 72, 10, 62, 10625, 1])).toBe('Last shift: 300 of 480 scheduled minutes worked; 180 missed. Base performance 72, missed-work deduction 10, final score 62. Earned $106.25.');
+  expect(careerAttendanceLine([480, 40, 0, 70, 0, 70, 0, 0])).toContain('Current shift: 40');
+  expect(careerAttendanceLine([])).toBeNull();
+});
 
 function report(overrides: Partial<CareerReport> = {}): CareerReport {
   return { path: 0, level: 1, levels: 4, pay: 170, payMin: 160, payMax: 200, shifts: 2, mean: 71.5, last: 80.2,

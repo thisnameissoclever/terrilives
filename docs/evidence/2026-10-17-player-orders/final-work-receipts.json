@@ -1,0 +1,166 @@
+{
+  "speed": {
+    "modalTick": 362,
+    "heldTick": 362,
+    "resumedTick": 377,
+    "speed3Restored": true,
+    "events": {
+      "nextCursor": "11",
+      "expired": true,
+      "events": []
+    }
+  },
+  "completion": {
+    "tick": 605,
+    "selected": 34,
+    "people": [
+      {
+        "entity": 34,
+        "simId": 0,
+        "name": "Tim",
+        "career": "Office clerk"
+      },
+      {
+        "entity": 35,
+        "simId": 1,
+        "name": "Bill",
+        "career": "Office clerk"
+      },
+      {
+        "entity": 36,
+        "simId": 2,
+        "name": "Casey",
+        "career": null
+      }
+    ],
+    "queues": [
+      {
+        "name": "Tim",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Going to work",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Bill",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Going to work",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      },
+      {
+        "name": "Casey",
+        "rows": [
+          {
+            "orderId": null,
+            "label": "Reading: The Locked Laundry",
+            "phase": "running",
+            "role": "initiator",
+            "counterpart": null,
+            "reason": null
+          }
+        ]
+      }
+    ],
+    "modal": false,
+    "warning": "Tim: 8 of 8 shift hours remaining.\nBill: 8 of 8 shift hours remaining.\n\nThis order delays or interrupts work. Pay and shift rewards depend on time worked. After two missed hours, performance loses ten points per further hour. Missing the entire shift gives zero pay and a zero shift score. Work can resume before the original shift ends; the shift will not be extended.",
+    "status": "",
+    "events": {
+      "nextCursor": "17",
+      "expired": true,
+      "events": [
+        {
+          "sequence": "12",
+          "tick": "360",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "accepted",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "13",
+          "tick": "458",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "approaching",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "14",
+          "tick": "519",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "waiting",
+          "reason": null,
+          "blockingState": "Recipient or resource busy"
+        },
+        {
+          "sequence": "15",
+          "tick": "538",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "approaching",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "16",
+          "tick": "539",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "started",
+          "reason": null,
+          "blockingState": null
+        },
+        {
+          "sequence": "17",
+          "tick": "602",
+          "actor": 34,
+          "counterpart": 35,
+          "orderId": "0",
+          "action": "Chat: Bill",
+          "phase": "completed",
+          "reason": null,
+          "blockingState": null
+        }
+      ]
+    }
+  },
+  "attendance": {
+    "tick": 880,
+    "report": [
+      480,
+      157,
+      323,
+      30.639999389648438,
+      33.833335876464844,
+      0,
+      3925,
+      1
+    ]
+  }
+}

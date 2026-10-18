@@ -14,7 +14,9 @@ pub mod books;
 pub mod build_transaction;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
+pub mod attendance;
 pub mod careers;
+pub mod player_actions;
 pub use careers::Careers;
 pub mod fights;
 pub use fights::Fights;
@@ -1209,7 +1211,7 @@ impl Sim {
         }
         let mut snapshot = save::capture(self);
         rooms::migration::project_commands(self.world(), &mut snapshot.queued_commands)
-            .expect("queued room command requires current schema sixteen");
+            .expect("queued room command requires current schema seventeen");
         snapshot
     }
 
@@ -1252,7 +1254,7 @@ impl Sim {
         }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v3();
         rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
-            .expect("queued room command requires current schema sixteen");
+            .expect("queued room command requires current schema seventeen");
         snapshot
     }
 
@@ -1263,11 +1265,11 @@ impl Sim {
         }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v4();
         rooms::migration::project_commands(self.world(), &mut snapshot.world.queued_commands)
-            .expect("queued room command requires current schema sixteen");
+            .expect("queued room command requires current schema seventeen");
         snapshot
     }
 
-    /// Legacy V5 projection. It omits books, social episodes and appearance; use V16.
+    /// Legacy V5 projection. It omits books, social episodes and appearance; use V17.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
         if let Some(baseline) = self.committed_projection() {
@@ -1275,7 +1277,7 @@ impl Sim {
         }
         let mut snapshot = SnapshotSource { world: &self.world }.save_snapshot_v5();
         rooms::migration::project(self.world(), &mut snapshot)
-            .expect("current rooms cannot be represented by this historical save format; use V16");
+            .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
@@ -1298,18 +1300,18 @@ impl Sim {
         }
         let mut snapshot = save::v6::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy)
-            .expect("current rooms cannot be represented by this historical save format; use V16");
+            .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
-    /// Historical schema-ten projection. Current persistence uses schema sixteen.
+    /// Historical schema-ten projection. Current persistence uses schema seventeen.
     pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
         if let Some(baseline) = self.committed_projection() {
             return baseline.save_snapshot_v10();
         }
         let mut snapshot = save::v10::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy)
-            .expect("current rooms cannot be represented by this historical save format; use V16");
+            .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
@@ -1335,7 +1337,7 @@ impl Sim {
         }
         let mut snapshot = save::v11::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy)
-            .expect("current rooms cannot be represented by this historical save format; use V16");
+            .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
@@ -1346,7 +1348,7 @@ impl Sim {
         }
         let mut snapshot = save::v12::capture(self);
         rooms::migration::project(self.world(), &mut snapshot.legacy.legacy.legacy.legacy)
-            .expect("current rooms cannot be represented by this historical save format; use V16");
+            .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
@@ -1372,7 +1374,7 @@ impl Sim {
             self.world(),
             &mut snapshot.legacy.legacy.legacy.legacy.legacy,
         )
-        .expect("current rooms cannot be represented by this historical save format; use V16");
+        .expect("current rooms cannot be represented by this historical save format; use V17");
         snapshot
     }
 
@@ -1388,10 +1390,10 @@ impl Sim {
     }
 
     /// Historical schema-fourteen projection. Unrepresentable room state panics;
-    /// use `try_save_snapshot_v14` for refusal or V16 for current persistence.
+    /// use `try_save_snapshot_v14` for refusal or V17 for current persistence.
     pub fn save_snapshot_v14(&self) -> terri_core::SaveSnapshotV14 {
         self.try_save_snapshot_v14()
-            .expect("current rooms cannot be represented by this historical save format; use V16")
+            .expect("current rooms cannot be represented by this historical save format; use V17")
     }
 
     /// Refuses stable history or outdoor duties that schema fourteen cannot express.
@@ -1408,9 +1410,10 @@ impl Sim {
     }
 
     pub fn save_snapshot_v16(&self) -> terri_core::SaveSnapshotV16 {
-        build_transaction::committed(&self.world)
-            .cloned()
-            .unwrap_or_else(|| save::v16::capture(self))
+        if let Some(baseline) = self.committed_projection() {
+            return baseline.save_snapshot_v16();
+        }
+        save::v16::capture(self)
     }
 
     pub fn load_snapshot_v16(
@@ -1429,7 +1432,7 @@ impl Sim {
     /// Use the fallible form when current room references may be unrepresentable.
     pub fn save_snapshot_v15(&self) -> terri_core::SaveSnapshotV15 {
         self.try_save_snapshot_v15()
-            .expect("current rooms cannot be represented by this historical save format; use V16")
+            .expect("current rooms cannot be represented by this historical save format; use V17")
     }
 
     pub fn try_save_snapshot_v15(&self) -> Result<terri_core::SaveSnapshotV15, SaveError> {
@@ -1454,6 +1457,35 @@ impl Sim {
             save::Carried::for_load(self.world()),
         )?;
         self.adopt_current(candidate)
+    }
+
+    pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v17::capture(self))
+    }
+
+    pub fn career_attendance_of(&self, index: u32) -> Vec<f32> {
+        let Some(mut people) = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Agent>>()
+        else {
+            return vec![];
+        };
+        people
+            .iter(&self.world)
+            .find(|e| e.index_u32() == index)
+            .map_or_else(Vec::new, |person| attendance::report(&self.world, person))
+    }
+
+    pub fn load_snapshot_v17(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV17,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let carried = save::Carried::for_load(&self.world);
+        let candidate = save::v17::restore(snapshot, content, carried)?;
+        self.adopt_current_with_saved_state(candidate)
     }
 
     pub fn load_snapshot_v14(
@@ -1605,10 +1637,33 @@ impl Sim {
         self.adopt_current(restored)
     }
 
-    fn adopt_current(&mut self, mut restored: Sim) -> Result<(), SaveError> {
+    fn adopt_current(&mut self, restored: Sim) -> Result<(), SaveError> {
+        self.adopt_restored(restored, true)
+    }
+
+    fn adopt_current_with_saved_state(&mut self, restored: Sim) -> Result<(), SaveError> {
+        self.adopt_restored(restored, false)
+    }
+
+    fn adopt_restored(
+        &mut self,
+        mut restored: Sim,
+        infer_legacy_state: bool,
+    ) -> Result<(), SaveError> {
         rooms::migration::migrate(&mut restored)?;
+        player_actions::continue_session(&self.world, &mut restored.world);
+        if infer_legacy_state {
+            recipe_actions::adopt_legacy_activity(&mut restored.world);
+            attendance::migrate_legacy(&mut restored.world);
+            let ownership = player_actions::save(&restored.world);
+            player_actions::restore(&mut restored.world, ownership)?;
+            social_episode::adopt_published_player_requests(&mut restored.world);
+            player_actions::adopt_published_social_phases(&mut restored.world);
+            player_actions::adopt_legacy_order_phases(&mut restored.world);
+            social_episode::requests::migrate_legacy(&mut restored.world);
+        }
+
         character_draft::ensure_appearance_components(&mut restored.world);
-        social_episode::requests::migrate_legacy(&mut restored.world);
         restored.sync_render_buffer_after_commands();
         restored
             .world
@@ -1681,6 +1736,9 @@ impl Sim {
         world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(fights::Fights::default());
         world.insert_resource(careers::Careers::default());
+        world.insert_resource(attendance::Attendance::default());
+        world.insert_resource(player_actions::PlayerActions::default());
+        world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -2311,6 +2369,9 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        if !self.build_active() {
+            player_actions::observe(&mut self.world);
+        }
         if build_transaction::needs_atomic_drain(&self.world) {
             self.flush_commands();
             self.world
@@ -2322,6 +2383,7 @@ impl Sim {
         }
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
+        player_actions::observe(&mut self.world);
         activity_log::finish_tick(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
@@ -2341,6 +2403,9 @@ impl Sim {
     }
 
     fn apply_staged_commands(&mut self) {
+        if !self.build_active() {
+            player_actions::observe(&mut self.world);
+        }
         if build_transaction::needs_atomic_drain(&self.world) {
             build_transaction::run_atomic_drain(self);
             return;
@@ -2358,6 +2423,7 @@ impl Sim {
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
         social_episode::maintain(&mut self.world);
+        player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
     }
@@ -4535,6 +4601,16 @@ impl Sim {
                     SetCareerAutonomy { change, search } => {
                         vec![34, u64::from(*change), u64::from(*search)]
                     }
+                    ConfirmedOrder {
+                        fingerprint,
+                        command,
+                    } => {
+                        vec![
+                            35,
+                            *fingerprint,
+                            terri_core::player_order_hash::command(command),
+                        ]
+                    }
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26
@@ -4996,6 +5072,9 @@ impl Sim {
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
         careers::hash(&self.world, &mut hasher);
+        attendance::hash(&self.world, &mut hasher);
+        player_actions::hash(&self.world, &mut hasher);
+        recipe_actions::hash_activity(&self.world, &mut hasher);
         // The lot frame enters only once it differs from what the grid's
         // shape implies, so every older world hashes as it did.
         if let Some(frame) = lot_frame::frame(&self.world) {

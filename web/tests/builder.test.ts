@@ -184,7 +184,7 @@ it('waits for the drained result and refreshes a moved object on lot revision', 
   const before = source.lotRevision();
   expect(builder.confirm()).toBe(true);
   expect(builder.pending).toBe(true);
-  expect(builder.status).toBe('Placing furniture…');
+  expect(builder.status).toBe('Placing furniture\u2026');
   expect(source.lotRevision()).toBe(before);
   expect(builder.confirm()).toBe(false);
   source.flushCommands();
@@ -406,6 +406,8 @@ it('sells with Delete and will not sell what a sim has been told to use', () => 
 // it would sell for, so Sell does not stay on and the reason stays shown.
 it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   const { handle, source, builder } = fixture();
+  expect(source.objectModel(22)?.id).toBe('moving_box');
+  expect(source.interactionLabels(22)[0]).toBe('Use the exercise bike');
   const restored = SimHandle.from_lot();
   try {
   builder.enter();
@@ -421,7 +423,7 @@ it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   expect(source.lastSaleResult()).toMatchObject({ object: 22, payout: 0 });
   expect(source.takeBuildError()).toEqual({ ok: true, value: null });
   const saved = source.saveBytes();
-  expect([...saved.slice(8, 10)]).toEqual([16, 0]);
+  expect([...saved.slice(8, 10)]).toEqual([17, 0]);
   expect(restored.load_bytes(saved)).toBe(true);
   expect(restored.save_bytes()).toEqual(saved);
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])
@@ -525,7 +527,7 @@ it('does not take an earlier move for a colour change on its way', () => {
   expect(builder.shownColourway).toBe(2);
   source.flushCommands(); builder.afterCommands();
   expect([builder.colourway, builder.pending, builder.status])
-    .toEqual([1, true, 'Recolouring…']);
+    .toEqual([1, true, 'Recolouring\u2026']);
   builder.select(22);
   expect(builder.selected).toBe(15);
   source.flushCommands(); builder.afterCommands();
