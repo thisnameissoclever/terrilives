@@ -20,6 +20,8 @@ pub enum RelationshipCause {
     Nuisance,
     /// A finished fight, felt by both sides (fights, issue 248).
     Fight,
+    /// A completed portion of another person's cooked meal.
+    MealShared,
 }
 
 #[derive(Debug, Clone, Copy)]

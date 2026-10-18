@@ -1153,6 +1153,8 @@ pub(crate) fn completed(
                 .find(|meal| meal.claimed.contains(&id.0) && !meal.eaten.contains(&id.0))
             {
                 meal.eaten.push(id.0);
+                let cook = SimId(meal.cook);
+                appreciate_meal(world, person, id, cook, pack.tuning.meal_appreciation_gain);
             }
         }
         let Some(needs) = world.get::<Needs>(person).cloned() else {
@@ -1200,6 +1202,34 @@ pub(crate) fn completed(
         }
         crate::dining::maintain(world);
     }
+}
+
+fn appreciate_meal(world: &mut World, person: Entity, eater: SimId, cook: SimId, gain: f32) {
+    if eater == cook || gain == 0.0 {
+        return;
+    }
+    if world.get::<Relationships>(person).is_none() {
+        world.entity_mut(person).insert(Relationships::default());
+    }
+    let mut feelings = world.get_mut::<Relationships>(person).unwrap();
+    let before = feelings.feeling(cook);
+    feelings.bump(cook, gain);
+    let actual = feelings.feeling(cook) - before;
+    let tick = world.resource::<SimClock>().tick;
+    world
+        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
+        .effects
+        .push(crate::relationship_effects::RelationshipEffect {
+            tick,
+            event: 0,
+            cause: crate::relationship_effects::RelationshipCause::MealShared,
+            responsible: cook,
+            affected: eater,
+            requested: gain,
+            actual,
+            emergency: false,
+            directed: false,
+        });
 }
 
 pub(crate) fn wash_ticks(state: &SavedDomestic, person: u32, base: u32, per_unit: u32) -> u32 {

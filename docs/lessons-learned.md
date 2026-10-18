@@ -12453,3 +12453,25 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: the report mixed completed fixes, unresolved findings and design tradeoffs without stating the actual player impact or verification status of each.
 3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
 4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
+
+
+## [L-cross-system-negative-claims] Search old exclusions when adding a social effect
+
+**What happened.** Meal appreciation gained a new relationship paragraph while the domestic summary still denied any cooking gratitude. Independent review caught the contradiction before delivery.
+
+**Root cause.** The documentation scan followed the new effect's name without finding the old prose that excluded it under another name.
+
+**Prevention.** When adding behavior, search its existing summary for negative claims and synonyms as well as identifiers. Replace obsolete exclusions alongside the new rule.
+
+**Verify.** Read both the cross-system summary and feature specification together. Confirm each describes completed shared eating as appreciation and preserves the separate food and company effects.
+
+
+## [L-required-tuning-historical-expansion] Expand historical source when adding required tuning
+
+**What happened.** A new required appreciation knob made the frozen pre-books content fail to compile because its source predates the field. A temporary schema default would also have let a misspelled live knob silently disable the effect.
+
+**Root cause.** The current tuning parser also reads historical source after an explicit expansion step. Updating only the live source missed that shared parser boundary.
+
+**Prevention.** Add each live knob to the required-key tests and historical source expansion together. Reconstruct the historical behavior explicitly instead of weakening the live schema. Preserve frozen source and byte witnesses.
+
+**Verify.** Require omission of the live knob to fail. Compile historical content with the explicit reconstructed value, then run frozen-wire, save-load and inherited runtime fixture tests.
