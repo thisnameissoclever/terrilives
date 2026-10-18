@@ -1,0 +1,54 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 48 tests
+test books::command_tests::book_command_autonomous_reading_requires_available_copy ... ok
+test books::command_tests::book_command_copy_allocator_exhaustion_refuses_without_charge ... ok
+test books::command_tests::book_command_death_cleanup_preserves_surviving_titles_ids_and_allocator ... ok
+test books::command_tests::book_command_empty_allocator_is_saved_hashed_and_not_reused ... ok
+test books::command_tests::book_command_front_displacing_selected_title_preserves_unrelated_ordinary_commitment ... ok
+test books::command_tests::book_command_full_transfer_keeps_source_and_later_transfer_preserves_copy_id ... ok
+test books::command_tests::book_command_historical_ordinary_queues_receive_deterministic_ids ... ok
+test books::command_tests::book_command_interest_applies_dispositions_once_and_separates_novelty ... ok
+test books::command_tests::book_command_nonfresh_interest_discount_is_not_in_reward_multiplier ... ok
+test books::command_tests::book_command_ordinary_owned_action_waits_for_an_available_copy ... ok
+test books::command_tests::book_command_paused_transactions_charge_once_and_refuse_without_mutation ... ok
+test books::command_tests::book_command_pending_interleaving_and_query_purity ... ok
+test books::command_tests::book_command_requires_owned_action_and_exhaustion_is_atomic ... ok
+test books::command_tests::book_command_reserved_home_full_fallback_transfer_and_death_recovery ... ok
+test books::command_tests::book_command_review_combined_pending_limit_has_valid_controls_and_atomic_refusal ... ok
+test books::command_tests::book_command_selected_titles_round_trip_exactly_and_never_run_bookless ... ok
+test books::command_tests::book_command_store_estimate_needs_no_placed_reading_furniture ... ok
+test books::command_tests::book_command_v6_metadata_corruption_rolls_back_every_field ... ok
+test books::command_tests::build_transaction_book_transfers_preserve_drain_boundaries ... ok
+test books::commerce_tests::absent_or_full_cases_refuse_purchases_without_an_inventory_fallback ... ok
+test books::commerce_tests::fresh_household_has_three_unique_scattered_books ... ok
+test books::commerce_tests::inventory_arrivals_balance_and_keep_existing_homes ... ok
+test books::commerce_tests::purchase_uses_the_less_populated_case_even_when_books_are_borrowed ... ok
+test books::commerce_tests::quotes_are_stable_and_leave_ownership_unchanged ... ok
+test books::commerce_tests::reading_rank_orders_unfinished_unread_and_oldest_completed ... ok
+test books::commerce_tests::sale_is_shelf_local_and_refuses_borrowed_and_forged_quotes ... ok
+test books::commerce_tests::stale_purchase_cannot_charge_or_create_another_copy ... ok
+test books::commerce_tests::starter_overflow_keeps_unique_copies_without_charging ... ok
+test books::tests::a_copy_is_unreadable_until_its_reserved_owner_has_picked_it_up ... ok
+test books::tests::a_full_shelf_sends_every_starter_copy_to_inventory ... ok
+test books::tests::allocator_exhaustion_refuses_purchase_and_grant_without_charging_or_partial_books ... ok
+test books::tests::annual_recovery_uses_sim_time_and_queries_do_not_change_memory ... ok
+test books::tests::bookmark_and_pass_novelty_survive_interruptions_save_and_copy_switches ... ok
+test books::tests::death_cancels_an_uncollected_reservation_without_removing_the_shelved_book ... ok
+test books::tests::death_preserves_copy_and_historical_memory_and_recovery_restores_home ... ok
+test books::tests::empty_library_and_migration_grants_five_distinct_titles_once ... ok
+test books::tests::familiarity_rises_only_with_actual_work_and_browsing_does_not_postpone_recovery ... ok
+test books::tests::interest_queries_reject_invalid_requested_people_titles_tuning_and_bookmarks ... ok
+test books::tests::malformed_candidates_are_rejected_without_mutating_the_current_library ... ok
+test books::tests::migration_fills_shelves_before_inventory_and_rejects_partial_grants_atomically ... ok
+test books::tests::purchase_selection_compares_prices_in_cents ... ok
+test books::tests::purchases_charge_once_fallback_to_inventory_and_refuse_atomically ... ok
+test books::tests::reread_novelty_survives_a_long_pause_and_restoring_saved_state ... ok
+test books::tests::reservations_leave_visible_books_until_pickup_and_hold_their_home_gap ... ok
+test books::tests::taste_is_stable_under_rename_catalogue_order_addition_and_query_repetition ... ok
+test books::tests::three_sessions_complete_a_standard_title_with_full_first_pass_rewards ... ok
+test books::tests::transfer_release_and_sale_preserve_other_copy_identities ... ok
+test books::tests::work_is_limited_by_book_end_not_session_time_and_zero_work_cannot_start_a_pass ... ok
+
+test result: ok. 48 passed; 0 failed; 0 ignored; 0 measured; 1495 filtered out; finished in 1.83s

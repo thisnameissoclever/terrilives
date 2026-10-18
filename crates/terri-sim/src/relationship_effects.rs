@@ -36,7 +36,7 @@ pub struct RelationshipEffect {
     pub directed: bool,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 #[doc(hidden)]
 pub struct RelationshipDiagnostics {
     pub(crate) effects: Vec<RelationshipEffect>,

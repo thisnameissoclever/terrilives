@@ -28,7 +28,51 @@ fn fixture() -> Sim {
             })
             .collect(),
     });
+    let mut edges = sim.world().resource::<SavedLayout>().edges().to_vec();
+    edges.extend(perimeter());
+    edges.sort_by_key(|edge| (edge.axis as u8, edge.x, edge.y));
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut()).unwrap();
     sim
+}
+
+fn perimeter() -> Vec<WallEdge> {
+    (0..6)
+        .flat_map(|x| {
+            [0, 4].map(move |y| WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x,
+                y,
+                doorway: false,
+            })
+        })
+        .chain((0..4).flat_map(|y| {
+            [0, 6].map(move |x| WallEdge {
+                axis: EdgeAxis::Vertical,
+                x,
+                y,
+                doorway: false,
+            })
+        }))
+        .collect()
+}
+
+fn open_plan(sim: &mut Sim) {
+    let before = crate::chores::RoomChangeContext::capture(sim.world()).unwrap();
+    let mut edges = perimeter();
+    edges.sort_by_key(|edge| (edge.axis as u8, edge.x, edge.y));
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    let topology = crate::rooms::RoomTopology::from_world(sim.world()).unwrap();
+    let proposal = crate::rooms::match_rooms(&before.map, &topology, (0, 0));
+    let resolved = crate::rooms::resolve_rooms(
+        &proposal,
+        &crate::rooms::RoomChoices::default(),
+        sim.world().resource::<terri_core::rooms::SavedRooms>(),
+    )
+    .unwrap();
+    crate::chores::reconcile_committed_rooms(sim, &before, &resolved).unwrap();
 }
 
 fn person(sim: &mut Sim, x: f32, y: f32) -> Entity {
@@ -392,11 +436,25 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
     assert_eq!(sim.world().get::<Position>(a).unwrap().x, 1.25);
     assert_eq!(feeling(&sim, b, a), 0.0);
     let hash = sim.world_hash();
-    let saved = sim.save_snapshot_v5();
-    assert_eq!(saved.boundaries.len(), 1);
+    let saved = sim.save_snapshot_v17();
+    assert_eq!(
+        saved
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .boundaries
+            .len(),
+        1
+    );
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v5(saved.clone()).unwrap();
+    resumed.load_snapshot_v17(saved.clone()).unwrap();
     assert_eq!(resumed.world_hash(), hash);
     for _ in 0..4 {
         movement(&mut sim);
@@ -406,11 +464,47 @@ fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
     for corrupt in [0, 1, 2] {
         let mut bad = saved.clone();
         match corrupt {
-            0 => bad.boundaries[0].actor = 999,
-            1 => bad.boundaries[0].expires = 9999,
-            _ => bad.boundaries[0].waiting_since = Some(9999),
+            0 => {
+                bad.legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .boundaries[0]
+                    .actor = 999
+            }
+            1 => {
+                bad.legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .boundaries[0]
+                    .expires = 9999
+            }
+            _ => {
+                bad.legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .legacy
+                    .boundaries[0]
+                    .waiting_since = Some(9999)
+            }
         }
-        assert!(resumed.load_snapshot_v5(bad).is_err());
+        assert!(resumed.load_snapshot_v17(bad).is_err());
         assert_eq!(resumed.world_hash(), hash);
     }
     sim.world_mut().entity_mut(b).remove::<Eating>();
@@ -430,7 +524,7 @@ fn privacy_mid_wait_replay_crosses_cache_expiry_and_action_completion() {
     movement(&mut sim);
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    resumed.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for minute in 0..120 {
         sim.tick();
         resumed.tick();
@@ -511,10 +605,10 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
         "the chain order outlives the chain's start"
     );
     assert!(crate::privacy::directed(sim.world(), a));
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v15(saved).unwrap();
+    resumed.load_snapshot_v17(saved).unwrap();
     assert!(crate::privacy::directed(resumed.world(), a));
     assert_eq!(sim.world_hash(), resumed.world_hash());
     enter(&mut resumed, a);
@@ -734,7 +828,14 @@ fn shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win() {
     sim.world_mut()
         .insert_resource(terri_core::SimRng::from_seed(seed));
     let mut schedule = Schedule::default();
-    schedule.add_systems((super::prepare, super::super::action::select_action).chain());
+    schedule.add_systems(
+        (
+            crate::social_episode::requests::before_choices,
+            super::prepare,
+            super::super::action::select_action,
+        )
+            .chain(),
+    );
     schedule.run(sim.world_mut());
     assert_eq!(sim.world().get::<Target>(a).unwrap().object, safe);
     sim.world_mut()
@@ -1249,8 +1350,7 @@ fn privacy_wander_detours_keep_the_entire_stroll_within_its_budget() {
 #[test]
 fn interpersonal_open_plan_toilet_offends_all_occupants_and_accumulates_missing_components() {
     let mut sim = fixture();
-    sim.world_mut()
-        .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+    open_plan(&mut sim);
     let a = person(&mut sim, 0.0, 0.0);
     let b = person(&mut sim, 3.0, 2.0);
     let c = person(&mut sim, 4.0, 2.0);
@@ -1282,15 +1382,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v5();
+        let before = sim.save_snapshot_v17();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v5();
-        sim.load_snapshot_v5(before)
+        let after = sim.save_snapshot_v17();
+        sim.load_snapshot_v17(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v5(after)
+        sim.load_snapshot_v17(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),
@@ -1386,8 +1486,7 @@ fn interpersonal_paused_layout_edits_spawns_and_reservations_do_not_count_as_ent
     let a = person(&mut sim, 0.0, 2.0);
     let toilet = object(&mut sim, "toilet");
     using(&mut sim, b, toilet);
-    sim.world_mut()
-        .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+    open_plan(&mut sim);
     let newcomer = person(&mut sim, 4.0, 3.0);
     sim.flush_commands();
     movement(&mut sim);
@@ -1558,8 +1657,7 @@ fn shyness_wander_reconsiders_once_and_keeps_a_valid_original_on_failure() {
 #[test]
 fn shyness_autonomous_conversation_choice_prefers_a_partner_without_urgent_needs() {
     let mut sim = fixture();
-    sim.world_mut()
-        .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+    open_plan(&mut sim);
     for y in [0, 2, 3] {
         sim.world_mut()
             .resource_mut::<terri_core::TileGrid>()
@@ -1589,7 +1687,14 @@ fn shyness_autonomous_conversation_choice_prefers_a_partner_without_urgent_needs
     sim.world_mut()
         .insert_resource(terri_core::SimRng::from_seed(seed));
     let mut schedule = Schedule::default();
-    schedule.add_systems((super::prepare, super::super::action::select_action).chain());
+    schedule.add_systems(
+        (
+            crate::social_episode::requests::before_choices,
+            super::prepare,
+            super::super::action::select_action,
+        )
+            .chain(),
+    );
     schedule.run(sim.world_mut());
     assert_eq!(sim.world().get::<Target>(a).unwrap().object, available);
 }

@@ -1,3 +1,4 @@
+import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
 import {ChoresBoard} from './ui/chores-board.js';
@@ -20,11 +21,16 @@ import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
+import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { WindowTool } from './ui/window-tool.js';
 import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
+import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
+import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
+import { screenX, screenY } from './render/iso.js';
+import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
 import { LandTool } from './ui/land-tool.js';
@@ -32,9 +38,10 @@ import { LandToolControls } from './ui/land-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
+import { drawCataloguePreviews } from './ui/catalogue-previews.js';
 import { BookCommerce } from './ui/book-commerce.js';
 import { BookResults, bookRefusal } from './books/results.js';
-import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
+import { BuildToolSwitch, clearBuildSelection, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { edgesWithShell } from './render/house-shell.js';
@@ -76,6 +83,7 @@ import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
   setCutAwayWalls,
+  setSeason,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -108,6 +116,7 @@ import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confi
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
+import { showGameVersion } from './ui/game-version.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -368,10 +377,16 @@ async function main(): Promise<void> {
   const [seedLow, seedHigh] = newGameSeed();
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
+  let replaceBuildLocalState = (_reason: 'load' | 'cancel' | 'end'): void => {};
+  let hasRetainedReviewChoices = (): boolean => false;
+  let requestRoomReview: (review: BuildReview) => Promise<boolean> = async () => false;
   const buildSession = new BuildSession(sim, {
     prepare: () => prepareBuildConfirmation(),
     settled: () => settleBuildControllers(),
     restored: () => restoreBuildPresentation(),
+    replaced: reason => replaceBuildLocalState(reason),
+    needsReview: () => hasRetainedReviewChoices(),
+    review: review => requestRoomReview(review),
   });
   let contactAppearanceHash:bigint|null=null;
   const loadCharacters=async(bytes:Uint8Array):Promise<boolean>=>{
@@ -870,6 +885,11 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  // The version line at the top of the panel; its markup is empty so the
+  // number comes only from web/package.json (issue 276).
+  const gameVersion = document.getElementById('game-version');
+  if (!gameVersion) throw new Error('missing the game version line');
+  showGameVersion(gameVersion);
   optionsToggle.addEventListener('click', () => compactHud.close());
   const optionsClose = document.getElementById('options-close');
   if (!optionsClose) throw new Error('missing Options close button');
@@ -1447,7 +1467,10 @@ async function main(): Promise<void> {
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
-    frontDoors: sim.frontDoorLines() };
+    frontDoors: sim.frontDoorLines(),
+    // [SEA-yard]: the yard's seasonal looks, content read once, and the
+    // last season the frame loop saw.
+    seasonYardLooks: sim.seasonYardLooks(), season: sim.seasonIndex() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -1631,7 +1654,7 @@ async function main(): Promise<void> {
     if (!accepted) { commandStatus.textContent = 'That order could not be added'; commandStatus.setAttribute('data-kind', 'error'); }
     audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
   }, action => {
-    if (overlayPause.suspendedExcept('builder')) return false;
+    if (overlayPause.suspendedExcept('builder') || roomReview.active) return false;
     if (action.kind === 'build') return !builder.pending && !buildTools.some(tool => Boolean(tool.pending));
     return ['buy-book', 'sell-book', 'recover-book'].includes(action.kind) || !builder.active;
   });
@@ -1642,7 +1665,7 @@ async function main(): Promise<void> {
   const choresDialog=document.createElement('dialog');choresDialog.id='chores-dialog';
   const choresTitle=document.createElement('h2');choresTitle.id='chores-title';choresTitle.textContent='Chores';
   choresDialog.setAttribute('aria-labelledby','chores-title');
-  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';
+  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';setActionIntent(choresClose,'negative');
   const choresBoard=new ChoresBoard(sim,document,()=>choresDialog.close());
   const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
   choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
@@ -1697,6 +1720,30 @@ async function main(): Promise<void> {
       toolSwitch?.render();
       placementActions?.invalidate();
     },
+  });
+  let selectionControls: RoomSelectionControls | undefined;
+  let reviewControls: RoomReviewControls | undefined;
+  let finishReview: ((adopted: boolean) => void) | null = null;
+  const roomSelection = new RoomSelection(sim, () => {
+    selectionControls?.render(); cameraDirty = true;
+    if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
+      buildBatchStatus.textContent = roomSelection.error || 'Changes remain pending until Confirm.';
+    }
+  });
+  const roomsTool = new RoomsTool(roomSelection, roomTool, () => {
+    selectionControls?.render(); toolSwitch?.render(); placementActions?.invalidate(); cameraDirty = true;
+  });
+  const roomReview = new RoomReviewController(sim, {
+    changed: () => { reviewControls?.render(); placementActions?.invalidate(); cameraDirty = true; },
+    completed: adopted => {
+      if (!adopted) buildExit.clearExitIntent();
+      const finish = finishReview; finishReview = null; finish?.(adopted);
+    },
+    refused: () => buildExit.clearExitIntent(),
+  });
+  hasRetainedReviewChoices = () => roomReview.hasChoices;
+  requestRoomReview = review => new Promise<boolean>(resolve => {
+    finishReview = resolve; optionsMenu.close(); menu.close(); roomReview.open(review);
   });
   // [FL-tool]. A covering laid on one tile, beside the tools that move
   // walls and furniture.
@@ -1777,7 +1824,7 @@ async function main(): Promise<void> {
     },
   });
   landReach = () => landTool.reach();
-  const buildTools = [wallTool, roomTool, buyTool, floorTool, landTool] as const;
+  const buildTools = [wallTool, roomsTool, buyTool, floorTool, landTool] as const;
   // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
@@ -1786,6 +1833,22 @@ async function main(): Promise<void> {
   if (!placementRoot || !builderDock) {
     throw new Error('missing the placement buttons');
   }
+  const syncBuildViewport = (): void => {
+    const viewport = window.visualViewport;
+    const style = document.documentElement.style;
+    style.setProperty('--build-visible-height', `${viewport?.height ?? innerHeight}px`);
+    style.setProperty('--build-visible-width', `${viewport?.width ?? innerWidth}px`);
+    style.setProperty('--build-visible-left', `${viewport?.offsetLeft ?? 0}px`);
+    style.setProperty('--build-visible-bottom', `${Math.max(0, innerHeight - (viewport?.height ?? innerHeight) - (viewport?.offsetTop ?? 0))}px`);
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && focused.matches('#room-name, #room-review input, #room-review select')) {
+      requestAnimationFrame(() => { if (document.activeElement === focused) focused.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
+    }
+  };
+  window.visualViewport?.addEventListener('resize', syncBuildViewport);
+  window.visualViewport?.addEventListener('scroll', syncBuildViewport);
+  window.addEventListener('resize', syncBuildViewport);
+  syncBuildViewport();
   const contextLayout = createCompactBuildLayout(document, placementRoot, () => compactBuildQuery.matches);
   // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
   // and of the compact world controls. The Build dock bounds the bottom.
@@ -1807,11 +1870,8 @@ async function main(): Promise<void> {
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
     beforeEnter: () => buildSession.begin(),
-    beforeExit: () => {
-      const cancelled = buildSession.end();
-      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
-      return cancelled;
-    },
+    // Every way out asks first while changes are not confirmed; see build-exit.ts.
+    beforeExit: () => buildExit.gate(),
     changed: () => {
       builderControls?.render();
       placementActions?.invalidate();
@@ -1832,18 +1892,25 @@ async function main(): Promise<void> {
       syncBuildIsolation();
       contextLayout.setRows(false);
       wallTool.exit();
-      roomTool.exit();
+      roomsTool.exit();
       buyTool.exit();
       floorTool.exit();
       landTool.exit();
       compactHud.endEditing();
       syncBuildOptionsHost();
       optionsMenu.close();
+      builderControls?.render();
       document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
     },
   });
   const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
+  // What decides whether leaving Build mode would lose a change; see build-exit.ts.
+  const buildDraft: BuildDraftSources = {
+    session: buildSession, furniture: builder,
+    tools: [wallTool, windowTool, roomTool, buyTool, floorTool, landTool],
+    pendingBookCommands: () => sim.pendingBookCommands(),
+  };
   function syncBuildIsolation(): void {
     syncNewHousemateButton(); syncEditHousemateButton();
     document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
@@ -1857,11 +1924,10 @@ async function main(): Promise<void> {
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
-    return !builder.pending && wallTool.pending === null && windowTool.pending === null
-      && !roomTool.pending && !buyTool.pending && floorTool.pending === null && !landTool.pending
-      && sim.pendingBookCommands() === 0;
+    return buildCommandsIdle(buildDraft);
   }
   function prepareBuildConfirmation(): boolean {
+    if (!roomSelection.validate()) return false;
     // Tool actions apply to the draft. Include an outstanding furniture move
     // when the player uses the batch Confirm instead of its nearby Place button.
     if (!buildTools.some(tool => tool.active) && builder.hasPlacementChange) {
@@ -1881,7 +1947,7 @@ async function main(): Promise<void> {
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
+    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -1922,26 +1988,49 @@ async function main(): Promise<void> {
     builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
     windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
     buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
-    landTool.setLotSize(lotWidth, lotHeight);
+    // As after a Load: a land purchase still on its way was dropped with the draft.
+    landTool.resetAfterLoad(lotWidth, lotHeight);
     if (reshaped) { characterWorld.reset(); characterWorld.prepareFixtures(sim); }
     refreshBuildArchitecture(); audio.reset('load'); clampCamera();
     toolSwitch?.render(); placementActions?.invalidate();
   }
-  function cancelBuildBatch(): void {
-    const cancelled = buildSession.cancel();
-    buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled.'
-      : 'Changes could not be cancelled. Build mode remains open.';
-  }
-  document.querySelector('#build-batch-cancel')!.addEventListener('click', cancelBuildBatch);
-  document.querySelector('#build-batch-confirm')!.addEventListener('click', () => {
-    const confirmed = buildSession.confirm();
-    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : 'Finish or cancel the current placement before confirming.';
+  async function confirmBuildBatch(): Promise<boolean> {
+    const confirmed = await buildSession.confirm();
+    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange);
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
+      roomSelection.reset(); choresBoard.update(); refreshBuildArchitecture();
+      buildBatchStatus.textContent = 'Changes confirmed.';
     }
+    return confirmed;
+  }
+  // Only explicit exit confirmation continues through the builder's exit gate.
+  const buildExit: BuildExit = new BuildExit(document, {
+    hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
+    confirm: confirmBuildBatch,
+    cancel: () => {
+      const cancelled = buildSession.cancel();
+      buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled. Build mode remains open.' : buildSession.error;
+      return cancelled;
+    },
+    discard: () => {
+      const cancelled = buildSession.end();
+      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
+      return cancelled;
+    },
+    leave: () => { builder.exit(); return !builder.active; },
+    focusView: () => canvas.focus(),
+    // Escape clears the current tool's selection first; with none, it asks to leave.
+    escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
+    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
+    beforeAsk: () => { optionsMenu.close(); menu.close(); },
   });
+  replaceBuildLocalState = reason => {
+    buildExit.dismiss(); roomReview.reset(); roomSelection.reset();
+    if (reason === 'load' || reason === 'end') roomSelection.select(null);
+  };
   function syncBuildOptionsHost(): void {
     if (!optionsRoot) return;
     const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
@@ -1952,9 +2041,9 @@ async function main(): Promise<void> {
   }
   const placementButtons = new BuildContextActions(
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
-      cancelBuild: cancelBuildBatch,
-      suspended: () => optionsMenu.isOpen(),
-      focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
+      clearSelection: () => clearBuildSelection(buildTools, builder),
+      suspended: () => optionsMenu.isOpen() || roomReview.active,
+      focusCatalogue: () => buyControls?.focusCatalogue() },
     createContextSurface(document, placementRoot, stage,
       () => {
         const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
@@ -1984,9 +2073,20 @@ async function main(): Promise<void> {
   wallControls.setCompact(compactBuildQuery.matches);
   windowControls = new WindowToolControls(document, windowTool, wallTool);
   windowControls.setCompact(compactBuildQuery.matches);
-  buyControls = new BuyToolControls(document, buyTool, sim.needNames());
+  buyControls = new BuyToolControls(document, buyTool, sim.needNames(), cards => {
+    drawCataloguePreviews(cards).catch(error => console.warn('The catalogue pictures were not drawn.', error));
+  });
   buyControls.setCompact(compactBuildQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
+  selectionControls = new RoomSelectionControls(document, roomsTool);
+  reviewControls = new RoomReviewControls(document, roomReview, point => {
+    camera.originX = stage.width / 2 - screenX(point[0], point[1], 0, camera.scale);
+    camera.originY = stage.height * 0.35 - screenY(point[0], point[1], 0, camera.scale);
+    clampCamera(); cameraDirty = true;
+  }, id => {
+    const row = Array.from(sim.simIds()).indexOf(id);
+    return row < 0 ? 'Former housemate' : sim.simName(sim.ids()[row]);
+  }, entity => sim.simName(entity), () => canvas.focus(), entity => sim.entityName(entity));
   roomControls.setCompact(compactBuildQuery.matches);
   floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
     drawFloorSwatch(canvas, covering, lot.coveringLooks.subarray((covering - 1) * 3, covering * 3)), () => floorResources.retry());
@@ -2011,7 +2111,7 @@ async function main(): Promise<void> {
   document.querySelector('#build-zoom-out')?.addEventListener('click', () => zoomView(-1));
   toolSwitch = new BuildToolSwitch(document, [
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
-    { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
+    { tool: roomsTool, button: 'build-tool-room', panel: 'room-tool' },
     { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
     { tool: landTool, button: 'build-tool-land', panel: 'land-tool' },
@@ -2026,8 +2126,10 @@ async function main(): Promise<void> {
     if (event.defaultPrevented) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
-        cancelBuildBatch(); event.preventDefault(); return;
+        // BuildExit also reads Escape from the rest of the page.
+        buildExit.pressEscape(event.repeat); event.preventDefault(); return;
       }
+      if (roomReview.active) { event.preventDefault(); return; }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
         if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
@@ -2156,7 +2258,10 @@ async function main(): Promise<void> {
     () => audio.emit({ type: 'command.staged' }),
     {
       active: () => builder.active,
+      mode: () => roomReview.active ? 'review' : roomsTool.selecting ? 'room-selection' : buildTools.findIndex(tool => tool.active),
       click(pick, tile, world) {
+        if (roomReview.active) return;
+        if (roomsTool.selecting) { if (tile) roomSelection.chooseTile(tile); return; }
         if (pick?.bookCopy !== undefined) { openBookCopy(pick.bookCopy); return; }
         if (wallTool.active) {
           if (world) wallTool.choosePoint(world[0], world[1]);
@@ -2197,29 +2302,20 @@ async function main(): Promise<void> {
     menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
       rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
-  document.addEventListener('keydown', (event) => {
-    if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
-    const target = event.target;
-    if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (!overlayPause.suspendedExcept('builder')) {
-      cancelBuildBatch(); event.preventDefault();
-    }
-  });
-
   const timer = new FrameTimer(FRAME_WINDOW);
   const characterMeasurement=stressParam===null?null:new CharacterFrameMeasurement(()=>gpu.device.queue);
   let previousFrameMs = performance.now();
   window.addEventListener('pageshow',event=>{if(event.persisted)previousFrameMs=performance.now();});
   const graphicsStatus=document.createElement('div');graphicsStatus.id='graphics-recovery';graphicsStatus.hidden=true;graphicsStatus.setAttribute('role','status');
   graphicsStatus.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:20px;background:#202630;color:white;z-index:5';
-  const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';
+  const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';setActionIntent(graphicsRetry,'affirmative');
   graphicsStatus.append(graphicsText,graphicsRetry);document.body.append(graphicsStatus);
   let recoveryPending=false;
   const deviceLifetime=new DeviceLifetime();
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();housemateView?.destroy();characterWorld.destroy();
+    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
@@ -2274,13 +2370,24 @@ async function main(): Promise<void> {
     );
     orderDiagnostics.update(nowMs, sim);
     feedbackBubbles.hidden = !floorScene.visible || graphicsRecovering;
-    builder.setBlocked(overlayPause.suspendedExcept('builder'));
-    wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
-    buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    builder.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    wallTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    buyTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     bookResults.drain();
-    roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
-    floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
-    landTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    roomTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    floorTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    landTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    if (roomsTool.active) selectionControls?.render();
+    const roomMarker = document.querySelector<HTMLElement>('#room-map-marker')!;
+    const selectedRoom = roomSelection.rooms.find(room => room.id === roomSelection.selected);
+    const markerPoint = selectedRoom?.anchor ?? (roomsTool.selecting ? roomSelection.highlight()?.tiles[0] : null);
+    roomMarker.hidden = !builder.active || !roomsTool.selecting || roomReview.active || !markerPoint;
+    if (!roomMarker.hidden && markerPoint && selectedRoom) {
+      const rect = stage.getBoundingClientRect();
+      roomMarker.textContent = selectedRoom.name;
+      roomMarker.style.left = `${rect.left + screenX(markerPoint[0], markerPoint[1], camera.originX, camera.scale) * rect.width / stage.width}px`;
+      roomMarker.style.top = `${rect.top + screenY(markerPoint[0], markerPoint[1], camera.originY, camera.scale) * rect.height / stage.height}px`;
+    }
     wallTool.afterCommands();
     windowTool.afterCommands();
     roomTool.afterCommands();
@@ -2300,6 +2407,10 @@ async function main(): Promise<void> {
     // is in use, so the player sees every line they can edit. The static
     // block is rebuilt only when that changes, not on every click.
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
+    // [SEA-yard]: the yard's grass changes color when the season turns, or
+    // when a Load lands in another season; the static block is rebuilt then
+    // and not on every frame.
+    if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (floorScene.visible&&!graphicsRecovering) {
@@ -2330,7 +2441,7 @@ async function main(): Promise<void> {
         lightingMode.isFlat() ? null : lighting,
         undefined,
         buyTool.ghost() ?? builder.preview,
-        wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
+        roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null) ?? wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
         buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,

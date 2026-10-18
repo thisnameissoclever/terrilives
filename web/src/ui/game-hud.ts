@@ -1,6 +1,7 @@
 /** The player-facing clock, household and selected-sim summary. */
 import { setTextIfChanged } from './set-text-if-changed.js';
 import type { SatisfactionSurface } from './satisfaction-meter.js';
+import { activityStatusLabel, type ActivityStatus } from '../activity-status.js';
 
 /**
  * A job's working days and shift hours as the simulation reports them:
@@ -14,6 +15,9 @@ export interface CareerSchedule {
 }
 
 export interface GameHudSource {
+  activityStatusOf?(entityIndex: number): ActivityStatus | null;
+  simName?(entityIndex: number): string;
+  needNames?(): string[];
   readingStatusOf?(entityIndex: number): string | null;
   selectedIndex(): number | null;
   satisfactionOf(entityIndex: number): number | null;
@@ -27,6 +31,7 @@ export interface GameHudSource {
   clockTick(): number;
   dayTicks(): number;
   weekdayIndex(): number;
+  seasonIndex(): number;
 }
 
 export interface TextTarget {
@@ -46,7 +51,7 @@ export interface GameHudRoots {
 }
 
 const ACTIVITY_NAMES = [
-  'Deciding what to do',
+  'Idle',
   'Walking',
   'Waiting',
   'Eating',
@@ -106,6 +111,17 @@ function weekdayName(weekday: number): string | null {
 }
 
 /**
+ * Season names indexed the way the simulation counts them: 0 is Spring and
+ * 3 is Winter ([SEA-year] in `docs/specs/2026-10-17-seasons.md`).
+ */
+export const SEASON_NAMES = ['Spring', 'Summer', 'Autumn', 'Winter'] as const;
+
+/** The season name for an index from the simulation, or null for anything else. */
+function seasonName(season: number): string | null {
+  return Number.isInteger(season) ? SEASON_NAMES[season] ?? null : null;
+}
+
+/**
  * Maps a tick of the authored day onto a 24-hour `hh:mm`, so a content day
  * of any length reads as a familiar clock. `dayTicks` must be positive.
  */
@@ -120,23 +136,27 @@ function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
 
 /**
  * Formats the simulation clock without borrowing the player's wall clock,
- * as two lines: `Day {n}, {Weekday}`, a newline, then `{hh}:{mm}`. The
- * clock element keeps the newline (`white-space: pre-line`), so the HUD
- * panel is two lines tall on every day rather than growing on days with
- * longer names. `weekday` is the simulation's own answer for the current
- * tick; the shell never works one out from the day number, because only
- * the simulation knows which weekday day 1 is.
+ * as two lines: `Day {n}, {Weekday}`, a newline, then `{Season}, {hh}:{mm}`
+ * ([CAL-hud], [SEA-hud]). The clock element keeps the newline
+ * (`white-space: pre-line`), so the HUD panel is two lines tall on every
+ * day rather than growing on days with longer names; every season name has
+ * six letters, so the second line keeps one character count all year. `weekday`
+ * and `season` are the simulation's own answers for the current tick; the
+ * shell never works either out from the day number, because only the
+ * simulation knows which weekday and season day 1 is.
  */
-export function formatSimTime(tick: number, dayTicks: number, weekday: number): string {
+export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number): string {
   const name = weekdayName(weekday);
-  if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null) {
+  const seasonLabel = seasonName(season);
+  if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null
+    || seasonLabel === null) {
     return 'Day and time unavailable';
   }
   const safeTick = Math.max(0, Math.floor(tick));
   const safeDayTicks = Math.max(1, Math.floor(dayTicks));
   const day = Math.floor(safeTick / safeDayTicks) + 1;
   const time = formatTimeOfDay(safeTick % safeDayTicks, safeDayTicks);
-  return `Day ${day}, ${name}\n${time}`;
+  return `Day ${day}, ${name}\n${seasonLabel}, ${time}`;
 }
 
 const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
@@ -219,6 +239,7 @@ export class GameHud {
       source.clockTick(),
       dayTicks,
       source.weekdayIndex(),
+      source.seasonIndex(),
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 
@@ -240,7 +261,10 @@ export class GameHud {
     const activity = selected === null ? null : source.activityOf(selected);
     const chain = selected === null ? null : source.readingStatusOf?.(selected) ?? source.chainStatusOf(selected);
     const stalled = selected === null ? null : source.stallReasonOf(selected);
-    setTextIfChanged(this.roots.activity, formatActivity(activity, chain, stalled));
+    const status = selected === null ? null : source.activityStatusOf?.(selected);
+    const partner = status?.partner == null ? '' : source.simName?.(status.partner) ?? '';
+    const contextual = status ? activityStatusLabel(status, partner, source.needNames?.()) : null;
+    setTextIfChanged(this.roots.activity, contextual ?? chain ?? formatActivity(activity, chain, stalled));
 
     const queued = selected === null ? 0 : source.queuedOrdersOf(selected);
     this.roots.ordersRow.hidden = queued === 0;

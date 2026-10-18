@@ -66,7 +66,7 @@ impl Sim {
         let portals = super::Carried::for_load(&self.world);
         let candidate =
             super::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals)?;
-        self.adopt_current(candidate);
+        self.adopt_current(candidate)?;
         Ok(())
     }
 }
@@ -76,6 +76,39 @@ pub(super) fn restore_into(
     social: SavedSocialEpisodes,
     saved_people: BTreeMap<u32, u32>,
     source_targets: BTreeMap<u32, SavedTarget>,
+) -> Result<(), SaveError> {
+    restore_into_mode(
+        candidate,
+        social,
+        saved_people,
+        source_targets,
+        super::ActorReferences::Household,
+    )
+}
+
+/// Current social references retain the frozen entity-index namespace for bare
+/// actors, while named people keep their stable identity mapping.
+pub(super) fn restore_into_current(
+    candidate: &mut Sim,
+    social: SavedSocialEpisodes,
+    saved_people: BTreeMap<u32, u32>,
+    source_targets: BTreeMap<u32, SavedTarget>,
+) -> Result<(), SaveError> {
+    restore_into_mode(
+        candidate,
+        social,
+        saved_people,
+        source_targets,
+        super::ActorReferences::SavedAgents,
+    )
+}
+
+fn restore_into_mode(
+    candidate: &mut Sim,
+    social: SavedSocialEpisodes,
+    saved_people: BTreeMap<u32, u32>,
+    source_targets: BTreeMap<u32, SavedTarget>,
+    references: super::ActorReferences,
 ) -> Result<(), SaveError> {
     let content = candidate.world.resource::<Content>().0;
     let identities: BTreeMap<_, _> = candidate
@@ -91,6 +124,17 @@ pub(super) fn restore_into(
             .copied()
             .ok_or(SaveError::InvalidEntityReference)?;
         people.insert(old, entity);
+    }
+    if references == super::ActorReferences::SavedAgents {
+        for entity in candidate
+            .world
+            .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(&candidate.world)
+        {
+            if candidate.world.get::<SimId>(entity).is_none() {
+                people.insert(entity.index_u32(), entity);
+            }
+        }
     }
     let person = |index: &u32| {
         people
@@ -136,11 +180,14 @@ pub(super) fn restore_into(
     }
     for t in social.topics {
         let i = person(&t.initiator)?;
-        if candidate
-            .world
-            .get::<Socialising>(i)
-            .is_none_or(|s| s.partner == i || candidate.world.get::<SimId>(s.partner).is_none())
-        {
+        if candidate.world.get::<Socialising>(i).is_none_or(|s| {
+            s.partner == i
+                || if references == super::ActorReferences::SavedAgents {
+                    !people.values().any(|&person| person == s.partner)
+                } else {
+                    candidate.world.get::<SimId>(s.partner).is_none()
+                }
+        }) {
             return Err(SaveError::InvalidEntityReference);
         }
         // Fights (issue 248): a fight carries exactly a fight topic, with
@@ -651,17 +698,18 @@ mod tests {
         assert!(!saved.social.topics.is_empty());
         assert!(!saved.social.communal.is_empty());
         assert!(!saved.social.rendezvous.is_empty());
+        let saved = source.save_snapshot_v16();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v10(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v10(), saved);
+        restored.load_snapshot_v16(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), saved);
         source.flush_commands();
         restored.flush_commands();
-        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
         for _ in 0..40 {
             source.tick();
             restored.tick();
         }
-        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
+        assert_eq!(restored.save_snapshot_v16(), source.save_snapshot_v16());
     }
 
     #[test]

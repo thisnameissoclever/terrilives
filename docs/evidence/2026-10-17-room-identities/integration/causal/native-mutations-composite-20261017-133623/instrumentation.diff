@@ -1,0 +1,63 @@
+--- a/crates/terri-sim/src/rooms/runtime.rs
++++ b/crates/terri-sim/src/rooms/runtime.rs
+@@ -115,7 +115,7 @@
+         .map_or(0, |floors| floors.covering(x, y));
+     let cleanable = match covering {
+         0 => crate::lot_frame::house_or_grid(world).contains(x, y),
+-        1..=4 => true,
++        1..=4 => !crate::sdd_room_mutation("outdoor-materials"),
+         _ => false,
+     };
+     cleanable.then_some(match selection {
+--- a/crates/terri-sim/src/save/v15.rs
++++ b/crates/terri-sim/src/save/v15.rs
+@@ -27,7 +27,7 @@
+         content,
+         Carried {
+             rooms: Some(snapshot.rooms),
+-            room_mode: crate::rooms::RoomReferenceMode::Stable,
++            room_mode: if crate::sdd_room_mutation("current-reference-mode") { crate::rooms::RoomReferenceMode::Legacy } else { crate::rooms::RoomReferenceMode::Stable },
+             ..carried
+         },
+     )?;
+--- a/crates/terri-sim/src/lib.rs
++++ b/crates/terri-sim/src/lib.rs
+@@ -1373,6 +1373,7 @@
+         &mut self,
+         snapshot: terri_core::SaveSnapshotV15,
+     ) -> Result<(), SaveError> {
++        if crate::sdd_room_mutation("refused-adoption") { self.world.resource_mut::<terri_core::Funds>().0 += 1; }
+         let candidate = save::v15::restore(
+             snapshot,
+             self.world.resource::<Content>().0,
+@@ -6979,3 +6980,7 @@
+         );
+     }
+ }
++
++fn sdd_room_mutation(name: &str) -> bool {
++    std::env::var_os("TERRILIVES_SDD_ROOM_MUTATION").as_deref() == Some(std::ffi::OsStr::new(name))
++}
+--- a/crates/terri-sim/src/rooms/migration.rs
++++ b/crates/terri-sim/src/rooms/migration.rs
+@@ -158,6 +158,7 @@
+     // Source work was validated before this conversion. Reconcile only its
+     // physical eligibility after changing the reference namespace.
+     crate::chores::reconcile_migrated_work(sim.world_mut());
++    if crate::sdd_room_mutation("migration-random-stream") { sim.world_mut().resource_mut::<terri_core::SimRng>().next_u32(); }
+     super::retain_referenced_history(sim.world_mut());
+     Ok(())
+ }
+--- a/crates/terri-sim/src/chores/room_changes.rs
++++ b/crates/terri-sim/src/chores/room_changes.rs
+@@ -310,8 +310,9 @@
+                 world.entity_mut(person).remove::<terri_core::Path>();
+             }
+         }
++        if crate::sdd_room_mutation("unrelated-path-ownership") { if let Some(person) = crate::dining::entity(world, task.person) { world.entity_mut(person).remove::<terri_core::Path>(); } }
+         grime::forget(world, task.person);
+-        let prior_remaining = task.remaining;
++        let prior_remaining = task.remaining; if crate::sdd_room_mutation("cleaned-units-conservation") { task.completed_units = 0; }
+         task.endpoint = None;
+         task.remaining = 0;
+         let remaining = if new_key.is_none() {

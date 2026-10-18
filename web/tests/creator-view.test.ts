@@ -1,4 +1,5 @@
 import { expect, it, vi } from 'vitest';
+import {creationInstinctBands} from './helpers/creation-instinct-bands.js';
 vi.mock('../src/ui/character-creator/preview.js',()=>({CreatorPreview:class {}}));
 import { CreatorView, creatorPages } from '../src/ui/character-creator/view.js';
 import { CharacterDraft } from '../src/character/draft.js';
@@ -23,7 +24,7 @@ class Element {
     return this.all().slice(1).filter(node=>key?key in node.dataset:selector.includes('details')?node.tag==='details'&&(!selector.includes('[open]')||node.open):false);
   }
 }
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],hobbies:[],skills:[],activities:[],personalities:[]};
+const catalog:CharacterCatalog={version:2,self_preservation_bands:creationInstinctBands,name_limit:24,max_traits:4,max_household:6,traits:[],affinities:[],hobbies:[],skills:[],activities:[],personalities:[]};
 
 it.each([false,true])('opens with Walking selected and respects reduced motion (%s)',reducedMotion=>{
   const nodes=new Map<string,Element>();
@@ -142,4 +143,16 @@ it('serializes preview work and defers queued draws while hidden or destroyed',a
   visible.mockReturnValue(false);finish();await first;expect(draw).toHaveBeenCalledTimes(1);expect(view.queuedDraw).toBe(true);
   visible.mockReturnValue(true);await view.drawPreview();expect(draw).toHaveBeenCalledTimes(2);expect(draw.mock.calls[1][3]).toBe(2);
   view.destroyed=true;await view.drawPreview();expect(draw).toHaveBeenCalledTimes(2);
+});
+
+it('keeps explicit forward and cancel intent through page, label and pending changes',()=>{
+  const {view,fixed}=viewFixture();
+  for(const [page,sim,label,pending] of [['appearance',1,'Continue',false],['review',1,'Apply changes',false],['review',null,'Move in',true]] as const){
+    view.page=page;Object.assign(Reflect.get(view,'session'),{sim,pending});view.render();
+    expect(fixed.get('[data-next]')!.textContent).toBe(label);
+    expect(fixed.get('[data-next]')!.attributes['data-action-intent']).toBe('affirmative');
+    expect(fixed.get('[data-cancel]')!.attributes['data-action-intent']).toBe('negative');
+    expect(fixed.get('[data-global-random]')!.attributes['data-action-intent']).toBeUndefined();
+    expect(fixed.get('[data-next]')!.disabled).toBe(pending);
+  }
 });

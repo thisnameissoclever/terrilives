@@ -1,0 +1,63 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 --reporter=verbose tests/builder.test.ts -t keeps the choice and turns Sell off when the drain refuses a sale
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ↓ tests/builder.test.ts > opens Build on the exact object without committing a previous move preview
+ ↓ tests/builder.test.ts > only stages changed geometry when confirming a build batch
+ ↓ tests/builder.test.ts > commits a valid move before selecting another object without advancing time
+ ↓ tests/builder.test.ts > switches immediately after manual Confirm without queuing a duplicate placement
+ ↓ tests/builder.test.ts > clears an automatic selection handoff on Load before subsequent placement
+ ↓ tests/builder.test.ts > cancels an invalid move on selection and keeps the original furniture unchanged
+ ↓ tests/builder.test.ts > commits rotation on keyboard selection but leaves same-object previews alone
+ ↓ tests/builder.test.ts > switches selection and reports cancellation if a valid preview is rejected during commit
+ ↓ tests/builder.test.ts > tells its controls when a lot change refreshes the object list with nothing selected
+ ↓ tests/builder.test.ts > selects inert scenery by live identity and cancels without writing simulation state
+ ↓ tests/builder.test.ts > waits for the drained result and refreshes a moved object on lot revision
+ ↓ tests/builder.test.ts > deselects an unchanged placement after Confirm without changing its position
+ ↓ tests/builder.test.ts > keeps invalid previews visible and handles refusal after a previously valid preview
+ ↓ tests/builder.test.ts > cycles supported facings and preserves the builder pause while another modal closes
+ ↓ tests/builder.test.ts > preserves a refused-load preview and resets a loaded world even when its revision is indistinguishable
+ ↓ tests/builder.test.ts > routes keyboard edits once and appends preview instances without changing original render rows
+ ↓ tests/builder.test.ts > replaces furniture at every preview destination and restores it on Cancel
+ ↓ tests/builder.test.ts > replaces the original table presentation when a valid rotated rectangle overlaps it only partly
+ ↓ tests/builder.test.ts > sells with Delete and will not sell what a sim has been told to use
+ × tests/builder.test.ts > keeps the choice and turns Sell off when the drain refuses a sale 60ms
+   → expected null to match object { object: 15, payout: +0 }
+ ↓ tests/builder.test.ts > forgets a sale on its way when a game is loaded
+ ↓ tests/builder.test.ts > sells with Backspace
+ ↓ tests/builder.test.ts > recolours the chosen object and keeps it chosen
+ ↓ tests/builder.test.ts > sends a colourway chosen while one is on its way once that lands
+ ↓ tests/builder.test.ts > does not take an earlier move for a colour change on its way
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/builder.test.ts > keeps the choice and turns Sell off when the drain refuses a sale
+AssertionError: expected null to match object { object: 15, payout: +0 }
+
+- Expected:
+{
+  "object": 15,
+  "payout": 0,
+}
+
++ Received:
+null
+
+ ❯ tests/builder.test.ts:419:35
+    417|   expect(builder.sell()).toBe(true);
+    418|   source.flushCommands(); builder.afterCommands();
+    419|   expect(source.lastSaleResult()).toMatchObject({ object: 15, payout: …
+       |                                   ^
+    420|   expect([builder.selected, builder.pending, builder.saleValue, builde…
+    421|     .toEqual([15, false, null, false, 'Wait until nobody is using or a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 24 skipped (25)
+   Start at  23:01:23
+   Duration  3.51s (transform 2.82s, setup 30ms, import 3.30s, tests 79ms, environment 0ms)

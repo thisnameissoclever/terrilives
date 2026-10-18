@@ -407,9 +407,10 @@ fn shipped_fridge_reach_survives_loads_before_and_during_the_step() {
             }
             sim.tick();
         }
-        let save = sim.save_snapshot_v6();
+        let save = sim.save_snapshot_v16();
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v6(save).unwrap();
+        loaded.load_snapshot_v16(save.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v16(), save);
         if during {
             loaded.sync_render_buffer();
             let row = row_of(&loaded, person);

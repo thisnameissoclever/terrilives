@@ -54,6 +54,17 @@ fn full_fixture(start: u32, duration: u32, day: u32) -> (Sim, Entity, Entity) {
     );
     (sim, actor, object)
 }
+fn use_historical_blank_rooms(sim: &mut Sim) {
+    assert_eq!(sim.world().resource::<SimClock>().tick, 0);
+    sim.world_mut()
+        .remove_resource::<terri_core::rooms::SavedRooms>();
+    sim.world_mut().remove_resource::<crate::rooms::RoomMap>();
+    sim.world_mut()
+        .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
+    sim.world_mut()
+        .insert_resource(terri_core::layout::SavedLayout::LegacyCells { walls: vec![] });
+}
+
 fn issue(sim: &mut Sim, command: SimCommand) {
     sim.world_mut().resource_mut::<CommandQueue>().push(command);
     sim.flush_commands();
@@ -78,18 +89,18 @@ fn until(sim: &mut Sim, description: &str, budget: usize, predicate: impl Fn(&Si
     assert!(predicate(sim), "did not reach {description}");
 }
 fn continue_roundtrip(sim: &mut Sim, ticks: usize) {
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     let content = sim.world().resource::<Content>().0;
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(content));
     loaded
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v17(saved.clone())
         .expect("valid attendance continuation loads");
     assert_eq!(
         loaded.world_hash(),
         sim.world_hash(),
         "restoration preserves gameplay ownership"
     );
-    assert_eq!(loaded.save_snapshot_v15(), saved);
+    assert_eq!(loaded.save_snapshot_v17(), saved);
     for step in 0..ticks {
         sim.tick();
         loaded.tick();
@@ -99,8 +110,8 @@ fn continue_roundtrip(sim: &mut Sim, ticks: usize) {
             "continuation diverged at step {step}"
         );
         assert_eq!(
-            loaded.save_snapshot_v15().attendance,
-            sim.save_snapshot_v15().attendance
+            loaded.save_snapshot_v17().attendance,
+            sim.save_snapshot_v17().attendance
         );
     }
 }
@@ -122,7 +133,7 @@ fn attendance_short_day_still_uses_one_tick_per_minute() {
 }
 
 #[test]
-fn attendance_v15_roundtrips_outbound_working_early_return_and_settled_inbound() {
+fn attendance_v17_roundtrips_outbound_working_early_return_and_settled_inbound() {
     for phase in ["outbound", "working", "early return", "settled inbound"] {
         let (mut sim, actor, object) = full_fixture(60, 180, 1440);
         until(&mut sim, "outbound commute", 100, |s| {
@@ -160,7 +171,7 @@ fn attendance_v15_roundtrips_outbound_working_early_return_and_settled_inbound()
 }
 
 #[test]
-fn attendance_v15_home_hold_crosses_midnight_and_scheduled_week() {
+fn attendance_v17_home_hold_crosses_midnight_and_scheduled_week() {
     let (mut sim, actor, object) = full_fixture(1380, 180, 1440);
     sim.world_mut().resource_mut::<SimClock>().tick = 6 * 1440 + 1378;
     hold(&mut sim, actor, object);
@@ -183,7 +194,7 @@ fn attendance_v15_home_hold_crosses_midnight_and_scheduled_week() {
 }
 
 #[test]
-fn attendance_v15_rejects_flipped_settlement_and_mismatched_outcomes_transactionally() {
+fn attendance_v17_rejects_flipped_settlement_and_mismatched_outcomes_transactionally() {
     let (mut sim, actor, object) = full_fixture(60, 180, 1440);
     until(&mut sim, "office arrival", 180, |s| {
         s.world().get::<AtWork>(actor).is_some()
@@ -208,7 +219,7 @@ fn attendance_v15_rejects_flipped_settlement_and_mismatched_outcomes_transaction
             path: 0,
         },
     );
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     assert!(saved.attendance.shifts[0].settled);
     let before = sim.world_hash();
     let mut mutations = Vec::new();
@@ -229,7 +240,7 @@ fn attendance_v15_rejects_flipped_settlement_and_mismatched_outcomes_transaction
     career.attendance.outcomes[0].career = 1;
     mutations.push(career);
     for invalid in mutations {
-        assert!(sim.load_snapshot_v15(invalid).is_err());
+        assert!(sim.load_snapshot_v17(invalid).is_err());
         assert_eq!(sim.world_hash(), before, "bad saves change nothing");
     }
 }
@@ -287,6 +298,7 @@ fn attendance_future_incoming_order_does_not_hold_recipient_home() {
 fn attendance_v6_pending_reading_shift_migrates_and_survives_real_continuation() {
     use terri_core::{command::BookCommand, save_v6::ReadingStage};
     let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    use_historical_blank_rooms(&mut sim);
     sim.world_mut().entity_mut(actor).remove::<Career>();
     sim.world_mut().insert_resource(Funds::from_dollars(10000));
     let content = sim.world().resource::<Content>().0;
@@ -392,6 +404,9 @@ fn public_score_shift(indoor: bool) -> (Sim, Entity, Entity) {
     };
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
+    if indoor {
+        crate::test_content::enclose(&mut sim);
+    }
     sim.world_mut().entity_mut(actor).insert(Position {
         x: at.0 as f32,
         y: at.1 as f32,
@@ -542,23 +557,23 @@ fn attendance_shift_base_includes_returned_indoor_affinity_mood() {
 }
 
 #[test]
-fn attendance_adoption_preserves_authoritative_v15_and_only_infers_older_formats() {
+fn attendance_adoption_preserves_authoritative_v17_and_only_infers_older_formats() {
     let (mut source, actor, _) = full_fixture(60, 180, 1440);
     source.world_mut().resource_mut::<SimClock>().tick = 80;
     source.world_mut().entity_mut(actor).insert(AtWork {
         remaining_ticks: 100,
     });
-    let modern = source.save_snapshot_v15();
+    let modern = source.save_snapshot_v17();
     assert!(modern.attendance.shifts.is_empty());
     assert!(modern.attendance.outcomes.is_empty());
     let source_hash = source.world_hash();
     let content = source.world().resource::<Content>().0;
     let mut current = Sim::new_with_lot_and_content(20, 20, Content(content));
     current
-        .load_snapshot_v15(modern.clone())
+        .load_snapshot_v17(modern.clone())
         .expect("modern explicit empty attendance loads");
     assert_eq!(
-        current.save_snapshot_v15(),
+        current.save_snapshot_v17(),
         modern,
         "modern attendance is authoritative, including an empty ledger"
     );
@@ -577,8 +592,8 @@ fn attendance_adoption_preserves_authoritative_v15_and_only_infers_older_formats
     second
         .load_snapshot_v14(historical)
         .expect("older migration is repeatable");
-    let inferred = first.save_snapshot_v15().attendance;
-    assert_eq!(inferred, second.save_snapshot_v15().attendance);
+    let inferred = first.save_snapshot_v17().attendance;
+    assert_eq!(inferred, second.save_snapshot_v17().attendance);
     assert_eq!(
         first.world_hash(),
         second.world_hash(),
@@ -1077,7 +1092,14 @@ fn attendance_chat_preserves_older_player_recipe_queue_and_explicit_front_contro
 }
 
 fn reciprocal_autonomous_dinner_fixture() -> (Sim, Entity, Entity) {
+    dinner_fixture_with_room_era(false)
+}
+
+fn dinner_fixture_with_room_era(historical: bool) -> (Sim, Entity, Entity) {
     let (mut sim, actor, _) = full_fixture(60, 180, 1440);
+    if historical {
+        use_historical_blank_rooms(&mut sim);
+    }
     issue(
         &mut sim,
         SimCommand::QuitCareer {
@@ -1352,22 +1374,22 @@ fn attendance_incoming_chat_follows_current_object_before_suspended_autonomous_r
 }
 
 #[test]
-fn attendance_recipe_activity_v15_rejects_contradictory_current_owners_atomically() {
-    use terri_core::save_v15::SavedOrderActor;
+fn attendance_recipe_activity_v17_rejects_contradictory_current_owners_atomically() {
+    use terri_core::save_v17::SavedOrderActor;
     let (mut sim, actor, _, _) = on_lot_recipe_chat_fixture();
     until(&mut sim, "foreground recipe station", 100, |s| {
         s.world().get::<terri_core::StepWork>(actor).is_some()
     });
     let identity = SavedOrderActor::Sim(sim.world().get::<SimId>(actor).unwrap().0);
-    let foreground = sim.save_snapshot_v15();
+    let foreground = sim.save_snapshot_v17();
     assert!(foreground.background_recipes.is_empty());
     let mut impossible_background = foreground.clone();
     impossible_background.background_recipes.push(identity);
     assert!(matches!(
-        sim.load_snapshot_v15(impossible_background),
+        sim.load_snapshot_v17(impossible_background),
         Err(crate::SaveError::InvalidValue)
     ));
-    assert_eq!(sim.save_snapshot_v15(), foreground);
+    assert_eq!(sim.save_snapshot_v17(), foreground);
 
     let pack = sim.world().resource::<Content>().0;
     let object = sim.spawn_object(
@@ -1388,48 +1410,77 @@ fn attendance_recipe_activity_v15_rejects_contradictory_current_owners_atomicall
             .is_some_and(|target| target.object == object)
             && s.world().get::<terri_core::Eating>(actor).is_some()
     });
-    let suspended = sim.save_snapshot_v15();
+    let suspended = sim.save_snapshot_v17();
     assert_eq!(suspended.background_recipes, vec![identity]);
     let mut impossible_foreground = suspended.clone();
     impossible_foreground.background_recipes.clear();
     assert!(matches!(
-        sim.load_snapshot_v15(impossible_foreground),
+        sim.load_snapshot_v17(impossible_foreground),
         Err(crate::SaveError::InvalidValue)
     ));
-    assert_eq!(sim.save_snapshot_v15(), suspended);
+    assert_eq!(sim.save_snapshot_v17(), suspended);
     continue_roundtrip(&mut sim, 2);
 }
 
 #[test]
 fn attendance_foreground_managed_dining_survives_current_and_legacy_save_adoption() {
-    let (mut sim, actor, _) = reciprocal_autonomous_dinner_fixture();
-    until(&mut sim, "actual managed recipe dining", 700, |s| {
-        crate::dining::terminal(s.world(), actor)
-            && s.world()
-                .get::<terri_core::Target>(actor)
-                .is_some_and(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
-            && s.world().get::<terri_core::StepWork>(actor).is_some()
-    });
-    assert!(crate::recipe_actions::foreground(sim.world(), actor));
-    let snapshot = sim.save_snapshot_v15();
-    assert!(snapshot.background_recipes.is_empty());
-    let content = sim.world().resource::<Content>().0;
-    let mut legacy = Sim::new_with_lot_and_content(20, 20, Content(content));
-    legacy
-        .load_snapshot_v14(sim.save_snapshot_v14())
-        .expect("a current physical recipe is foreground after historical adoption");
-    assert!(crate::recipe_actions::foreground(legacy.world(), actor));
-    assert!(legacy.save_snapshot_v15().background_recipes.is_empty());
-    assert_eq!(
-        legacy.world_hash(),
-        sim.world_hash(),
-        "legacy inference does not change a current managed meal"
-    );
-    continue_roundtrip(&mut sim, 2);
-    for _ in 0..2 {
-        legacy.tick();
+    for historical in [false, true] {
+        let (mut sim, actor, _) = dinner_fixture_with_room_era(historical);
+        until(&mut sim, "actual managed recipe dining", 700, |s| {
+            crate::dining::terminal(s.world(), actor)
+                && s.world()
+                    .get::<terri_core::Target>(actor)
+                    .is_some_and(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
+                && s.world().get::<terri_core::StepWork>(actor).is_some()
+        });
+        assert!(crate::recipe_actions::foreground(sim.world(), actor));
+        if historical {
+            let chain = *sim.world().get::<terri_core::ChainState>(actor).unwrap();
+            let origin = sim
+                .world()
+                .get::<crate::recipe_actions::Origin>(actor)
+                .cloned()
+                .unwrap();
+            let target = sim.world().get::<terri_core::Target>(actor).copied();
+            let remaining = sim
+                .world()
+                .get::<terri_core::StepWork>(actor)
+                .unwrap()
+                .remaining_ticks;
+            let tick = sim.world().resource::<SimClock>().tick;
+            let content = sim.world().resource::<Content>().0;
+            let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(content));
+            loaded
+                .load_snapshot_v14(sim.save_snapshot_v14())
+                .expect("historical managed dining loads through the frozen reader");
+            let restored = loaded.world().get::<terri_core::ChainState>(actor).unwrap();
+            assert_eq!(
+                (restored.chain, restored.step, restored.fumble_scale),
+                (chain.chain, chain.step, chain.fumble_scale)
+            );
+            assert_eq!(
+                loaded.world().get::<crate::recipe_actions::Origin>(actor),
+                Some(&origin)
+            );
+            assert_eq!(
+                loaded.world().get::<terri_core::Target>(actor).copied(),
+                target
+            );
+            assert_eq!(
+                loaded
+                    .world()
+                    .get::<terri_core::StepWork>(actor)
+                    .unwrap()
+                    .remaining_ticks,
+                remaining
+            );
+            assert_eq!(loaded.world().resource::<SimClock>().tick, tick);
+            sim = loaded;
+        }
+        assert!(crate::recipe_actions::foreground(sim.world(), actor));
+        assert!(sim.save_snapshot_v17().background_recipes.is_empty());
+        continue_roundtrip(&mut sim, 2);
     }
-    assert_eq!(legacy.world_hash(), sim.world_hash());
 }
 
 #[test]
@@ -1535,20 +1586,20 @@ fn attendance_background_recipe_boundary_roundtrips_before_incoming_chat_arrives
             });
         if !boundary_seen && quiet_recipient && incoming_approaches {
             assert!(!crate::recipe_actions::foreground(sim.world(), recipient));
-            let identity = terri_core::save_v15::SavedOrderActor::Sim(
+            let identity = terri_core::save_v17::SavedOrderActor::Sim(
                 sim.world().get::<SimId>(recipient).unwrap().0,
             );
             assert!(sim
-                .save_snapshot_v15()
+                .save_snapshot_v17()
                 .background_recipes
                 .contains(&identity));
-            let saved = sim.save_snapshot_v15();
+            let saved = sim.save_snapshot_v17();
             let content = sim.world().resource::<Content>().0;
             let mut restored = Sim::new_with_lot_and_content(20, 20, Content(content));
             restored
-                .load_snapshot_v15(saved.clone())
+                .load_snapshot_v17(saved.clone())
                 .expect("the targetless suspended counter loads with authoritative activity state");
-            assert_eq!(restored.save_snapshot_v15(), saved);
+            assert_eq!(restored.save_snapshot_v17(), saved);
             assert_eq!(restored.world_hash(), sim.world_hash());
             continuation = Some(restored);
             boundary_seen = true;

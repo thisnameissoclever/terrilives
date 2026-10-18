@@ -134,7 +134,9 @@ impl Sim {
                 served
             };
         let reading = self.world.get::<crate::reading::ReadingJourney>(person);
-        let current = if let Some(status) = crate::reading::status(&self.world, person) {
+        let current = if let Some(status) = self.conversation_wait_label(index) {
+            Some(status)
+        } else if let Some(status) = crate::reading::status(&self.world, person) {
             Some(status)
         } else if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
@@ -175,6 +177,22 @@ impl Sim {
             self.chain_status_of(index)
         };
         let mut result = vec![current.unwrap_or_default()];
+        let request_state = self
+            .world
+            .resource::<crate::social_episode::requests::ConversationRequests>();
+        let chat_order = request_state.outgoing(person).and_then(|r| match r.origin {
+            crate::social_episode::requests::ConversationOrigin::Player { order_id } => {
+                Some(order_id)
+            }
+            _ => None,
+        });
+        let served_chat = served.is_some_and(|intent| {
+            self.world.get::<Agent>(intent.object).is_some()
+                && pack
+                    .social
+                    .get(intent.interaction as usize)
+                    .is_some_and(|a| !crate::fights::is_fight(a))
+        });
         let mut removed = false;
         if let Some(queue) = self.world.get::<IntentQueue>(person) {
             for entry in queue.entries() {
@@ -184,7 +202,9 @@ impl Sim {
                 }
                 if !removed
                     && (reading.is_some_and(|j| j.order == Some(entry.id))
-                        || (reading.is_none()
+                        || (served_chat && chat_order == Some(entry.id))
+                        || (!served_chat
+                            && reading.is_none()
                             && entry.title_id.is_none()
                             && Some(intent) == served))
                 {
@@ -201,6 +221,23 @@ impl Sim {
                 };
                 result.push(description.unwrap_or_else(|| "Unavailable action".to_string()));
             }
+        }
+        for request in request_state.requests.values().filter(|r| {
+            r.initiator == person
+                && r.phase == crate::social_episode::requests::RequestPhase::Suspended
+                && !matches!(
+                    r.origin,
+                    crate::social_episode::requests::ConversationOrigin::Player { .. }
+                )
+        }) {
+            if result.len() >= max_rows {
+                break;
+            }
+            let name = self
+                .world
+                .get::<SimName>(request.recipient)
+                .map_or("another Sim", |n| n.0.as_str());
+            result.push(format!("Conversation queued with {name}"));
         }
         result
     }

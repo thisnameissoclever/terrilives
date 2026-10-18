@@ -1718,7 +1718,7 @@ fn an_edit_during_an_interrupting_order_lets_the_chain_resume_and_pay_once() {
     );
 }
 
-/// Edit a running conversation; its untouched peer owns the remaining duration.
+/// Edit an established conversation and preserve its sampled remaining time.
 const TALK_EDIT_TICK: u64 = 20;
 
 #[test]
@@ -1738,6 +1738,7 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             .expect("the control conversation is running")
             .remaining_ticks;
         assert!(remaining > 1);
+        let done_tick = TALK_EDIT_TICK + u64::from(remaining);
         edit_mid_action(&mut edited, edited_id);
         control.flush_commands();
         tick_both(&mut edited, &mut control, u64::from(remaining) - 1);
@@ -1750,7 +1751,7 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             );
         }
         tick_both(&mut edited, &mut control, 1);
-        assert_eq!(tick_count(&edited), TALK_EDIT_TICK + u64::from(remaining));
+        assert_eq!(tick_count(&edited), done_tick);
         let world = edited.world();
         assert!(
             world.get::<terri_core::Socialising>(initiator).is_none(),

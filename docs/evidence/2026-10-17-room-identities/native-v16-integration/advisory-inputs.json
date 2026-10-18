@@ -1,0 +1,66 @@
+[
+  {
+    "file": "merge-orchestration-better-way.md",
+    "bytes": 10288,
+    "sha256": "3dde269eba27debb8951612bc79464381d704a275af686fc36141c841d902e4a",
+    "raw_bytes": 10288,
+    "raw_sha256": "3dde269eba27debb8951612bc79464381d704a275af686fc36141c841d902e4a",
+    "normalization": "none"
+  },
+  {
+    "file": "reading-tool-better-way.md",
+    "bytes": 10752,
+    "sha256": "b159bf404d07a6540b8358ee8a5b40605cabec6d643a79065c0e9db43652832e",
+    "raw_bytes": 10752,
+    "raw_sha256": "b159bf404d07a6540b8358ee8a5b40605cabec6d643a79065c0e9db43652832e",
+    "normalization": "none"
+  },
+  {
+    "file": "rejected-reading-scene.rs",
+    "bytes": 10677,
+    "sha256": "c7b9b7eb23567d2ca6543d400feedd380fc1d25e10c145e34de127d4a5d89958",
+    "raw_bytes": 10677,
+    "raw_sha256": "c7b9b7eb23567d2ca6543d400feedd380fc1d25e10c145e34de127d4a5d89958",
+    "normalization": "none"
+  },
+  {
+    "file": "rejected-reading-support.rs",
+    "bytes": 1243,
+    "sha256": "4840da37baf6e5f566b91bffd0734cce487d70d773f40071b7ce82d46d9389fa",
+    "raw_bytes": 1243,
+    "raw_sha256": "4840da37baf6e5f566b91bffd0734cce487d70d773f40071b7ce82d46d9389fa",
+    "normalization": "none"
+  },
+  {
+    "file": "rejected-reading-source-manifest.json",
+    "bytes": 805,
+    "sha256": "a9e505dbc6b5c84ff4162d614064634de22b8f19824088354b93cc58aaa60753",
+    "raw_bytes": 822,
+    "raw_sha256": "89133a0e3a8db56e1711e13b86b30785df0bc072a1a2ded0ec9879ea14bc90ab",
+    "normalization": "Git CRLF to LF"
+  },
+  {
+    "file": "rejected-reading-run.log",
+    "bytes": 1440,
+    "sha256": "5b6f4c0fd5fd4f0a9d2d605a06eb066a547dfdcbcaa19054e356df60da4a9f4f",
+    "raw_bytes": 1440,
+    "raw_sha256": "5b6f4c0fd5fd4f0a9d2d605a06eb066a547dfdcbcaa19054e356df60da4a9f4f",
+    "normalization": "none"
+  },
+  {
+    "file": "rejected-reading-receipt.json",
+    "bytes": 1052,
+    "sha256": "3eeb345ca3e2234b01a72d4aed2ffe00d46134de03c3232022ed5895ad870ad3",
+    "raw_bytes": 1096,
+    "raw_sha256": "07a62875574eada25014b010426cc46bb5cf2f5c808be741cdb959819edb50ac",
+    "normalization": "Git CRLF to LF"
+  },
+  {
+    "file": "rejected-reading-build-inputs.json",
+    "bytes": 55040,
+    "sha256": "e15228535d8237095d8cfa312c23e141187119347b4fc96b49d2ed2b2a8e1d1a",
+    "raw_bytes": 55493,
+    "raw_sha256": "fa496ffea8d495de2f941170c6b27600f5fc38bbc847e744f08d47983117f0a5",
+    "normalization": "Git CRLF to LF"
+  }
+]

@@ -1,0 +1,9 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/builder.test.ts (25 tests | 1 failed) 262ms
+   × keeps the choice and turns Sell off when the drain refuses a sale 6ms

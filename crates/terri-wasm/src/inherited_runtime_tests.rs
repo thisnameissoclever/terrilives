@@ -97,14 +97,14 @@ fn order(handle: &mut SimHandle, person: Entity, object: Entity, row: u32) {
 }
 
 fn round_trip(handle: &mut SimHandle) {
-    let saved = handle.sim.save_snapshot_v6();
+    let saved = handle.sim.current_v6_view();
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
     assert!(
         handle.load_bytes(&bytes),
         "public V6 load must accept its own state"
     );
-    assert_eq!(handle.sim.save_snapshot_v6(), saved);
+    assert_eq!(handle.sim.current_v6_view(), saved);
     assert_eq!(handle.world_hash(), hash);
     assert_eq!(handle.save_bytes(), bytes);
 }
@@ -244,7 +244,7 @@ fn inherited_runtime_public_recipe_values_origin_and_final_v6() {
         if model != "fridge" {
             assert_eq!(habits.get(pack.find("fridge").unwrap(), row), 0.0);
         }
-        assert!(handle.sim.save_snapshot_v6().chain_origins.is_empty());
+        assert!(handle.sim.current_v6_view().chain_origins.is_empty());
         round_trip(&mut handle);
     }
 }
@@ -254,7 +254,7 @@ fn inherited_runtime_current_origins_reject_transactionally() {
     let (mut handle, person, fridge) = fixture("fixture_fridge", "fixture_hob");
     order(&mut handle, person, fridge, 1);
     handle.tick();
-    let snapshot = handle.sim.save_snapshot_v6();
+    let snapshot = handle.sim.current_v6_view();
     assert_eq!(snapshot.chain_origins.len(), 1);
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
@@ -263,7 +263,8 @@ fn inherited_runtime_current_origins_reject_transactionally() {
     bad.chain_origins.clear();
     cases.push(bad);
     let mut bad = snapshot.clone();
-    bad.chain_origins.push(bad.chain_origins[0].clone());
+    let duplicate = bad.chain_origins[0].clone();
+    bad.chain_origins.push(duplicate);
     cases.push(bad);
     let mut bad = snapshot.clone();
     bad.chain_origins[0].person = fridge.index_u32();
@@ -278,7 +279,7 @@ fn inherited_runtime_current_origins_reject_transactionally() {
         cases.push(bad);
     }
     for bad in cases {
-        assert!(handle.sim.load_snapshot_v6(bad).is_err());
+        assert!(handle.sim.load_current_v6_view(bad).is_err());
         assert_eq!(handle.save_bytes(), bytes);
         assert_eq!(handle.world_hash(), hash);
     }
@@ -299,7 +300,7 @@ fn inherited_runtime_current_origins_reject_transactionally() {
         });
     handle.tick();
     assert!(
-        matches!(&handle.sim.save_snapshot_v6().chain_origins[0].origin, terri_core::save_v6::ChainOrigin::Action { model, action, .. } if model=="fridge" && action=="cook_dinner")
+        matches!(&handle.sim.current_v6_view().chain_origins[0].origin, terri_core::save_v6::ChainOrigin::Action { model, action, .. } if model=="fridge" && action=="cook_dinner")
     );
     round_trip(&mut handle);
     handle
@@ -310,7 +311,7 @@ fn inherited_runtime_current_origins_reject_transactionally() {
             agent: person.index_u32(),
         });
     handle.flush_commands();
-    assert!(handle.sim.save_snapshot_v6().chain_origins.is_empty());
+    assert!(handle.sim.current_v6_view().chain_origins.is_empty());
 }
 
 #[test]
@@ -331,7 +332,7 @@ fn inherited_runtime_death_releases_selected_appliance_origin() {
     let (mut handle, person, fridge) = fixture("fixture_fridge", "fixture_hob");
     order(&mut handle, person, fridge, 0);
     handle.tick();
-    assert_eq!(handle.sim.save_snapshot_v6().chain_origins.len(), 1);
+    assert_eq!(handle.sim.current_v6_view().chain_origins.len(), 1);
     let threshold = handle
         .sim
         .world()
@@ -347,7 +348,7 @@ fn inherited_runtime_death_releases_selected_appliance_origin() {
         .counts = vec![(person.index_u32(), threshold - 1)];
     handle.tick();
     assert!(handle.sim.world().get_entity(person).is_err());
-    assert!(handle.sim.save_snapshot_v6().chain_origins.is_empty());
+    assert!(handle.sim.current_v6_view().chain_origins.is_empty());
     assert!(
         terri_sim::placement::sale::validate_sale(handle.sim.world(), fridge.index_u32()).is_ok()
     );
@@ -361,7 +362,7 @@ fn inherited_runtime_origin_owner_requires_a_living_agent() {
     handle.tick();
     let before = handle.save_bytes();
     let hash = handle.world_hash();
-    let mut bad = handle.sim.save_snapshot_v6();
+    let mut bad = handle.sim.current_v6_view();
     let actor = bad
         .legacy
         .world
@@ -389,7 +390,7 @@ fn inherited_runtime_origin_owner_requires_a_living_agent() {
     object.reserved = false;
     bad.chain_origins[0].person = fridge.index_u32();
     assert!(
-        handle.sim.load_snapshot_v6(bad).is_err(),
+        handle.sim.load_current_v6_view(bad).is_err(),
         "needs on a furniture entity do not make it a living recipe owner"
     );
     assert_eq!(handle.save_bytes(), before);
@@ -438,7 +439,7 @@ fn inherited_runtime_media_requires_gameplay_semantics_and_restores_seats() {
             }
         }
         assert!(active);
-        let saved = handle.sim.save_snapshot_v6();
+        let saved = handle.sim.current_v6_view();
         assert_eq!(
             saved
                 .seats
@@ -475,7 +476,7 @@ fn inherited_runtime_media_requires_gameplay_semantics_and_restores_seats() {
                 agent: person.index_u32(),
             });
         handle.flush_commands();
-        assert!(handle.sim.save_snapshot_v6().seats.is_empty());
+        assert!(handle.sim.current_v6_view().seats.is_empty());
     }
 }
 
@@ -649,8 +650,8 @@ fn inherited_runtime_origin_outlives_sold_fridge_and_survives_preemption() {
         1
     );
     assert_eq!(handle.sim.queued_orders_of(person.index_u32()), 0);
-    assert!(handle.sim.save_snapshot_v6().recipe_orders.is_empty());
-    assert!(handle.sim.save_snapshot_v6().chain_origins.iter().any(|origin|
+    assert!(handle.sim.current_v6_view().recipe_orders.is_empty());
+    assert!(handle.sim.current_v6_view().chain_origins.iter().any(|origin|
         matches!(&origin.origin, terri_core::save_v6::ChainOrigin::Action { model, action, .. }
             if model == "fixture_fridge" && action == "grab_snack")));
     handle
@@ -670,7 +671,7 @@ fn inherited_runtime_origin_outlives_sold_fridge_and_survives_preemption() {
             .resource::<terri_sim::placement::LotEditState>()
             .last_sale_result
     );
-    let saved = handle.sim.save_snapshot_v6();
+    let saved = handle.sim.current_v6_view();
     assert!(saved
         .actions
         .objects
@@ -793,7 +794,7 @@ fn inherited_runtime_selected_fridge_is_visited_before_nearer_competitor() {
         selected
     );
     assert_ne!(selected, other);
-    let saved = handle.sim.save_snapshot_v6();
+    let saved = handle.sim.current_v6_view();
     assert_eq!(
         saved.chain_origins[0].selected_use,
         terri_core::save_v6::SavedSelectedUse::Station(selected.index_u32())
@@ -820,7 +821,7 @@ fn inherited_runtime_selected_fridge_is_visited_before_nearer_competitor() {
         }
     }
     assert_eq!(
-        handle.sim.save_snapshot_v6().chain_origins[0].selected_use,
+        handle.sim.current_v6_view().chain_origins[0].selected_use,
         terri_core::save_v6::SavedSelectedUse::Complete
     );
 }
@@ -929,7 +930,7 @@ fn inherited_runtime_second_sink_keeps_selected_washing_stage_and_variable_work(
     );
     let units: u32 = handle
         .sim
-        .save_snapshot_v6()
+        .current_v6_view()
         .legacy
         .domestic
         .as_ref()
@@ -978,9 +979,10 @@ fn inherited_runtime_second_sink_keeps_selected_washing_stage_and_variable_work(
     assert_eq!(work, [27, 43]);
     assert!(handle
         .sim
-        .save_snapshot_v6()
+        .current_v6_view()
         .legacy
         .domestic
+        .as_ref()
         .unwrap()
         .dishes
         .is_empty());
@@ -1073,7 +1075,7 @@ fn inherited_runtime_published_blocked_and_suspended_initial_use_migrates_explic
                 .sim
                 .load_legacy_snapshot(terri_sim::LegacySnapshot::V5(Box::new(source.clone())))
         );
-        let saved = current.sim.save_snapshot_v6();
+        let saved = current.sim.current_v6_view();
         let origin = saved
             .chain_origins
             .iter()
@@ -1089,19 +1091,13 @@ fn inherited_runtime_published_blocked_and_suspended_initial_use_migrates_explic
         let mut bound = false;
         for _ in 0..1000 {
             current.tick();
-            if current
-                .sim
-                .save_snapshot_v6()
-                .chain_origins
-                .iter()
-                .any(|o| {
-                    o.person == actor.index_u32()
-                        && matches!(
-                            o.selected_use,
-                            terri_core::save_v6::SavedSelectedUse::Station(_)
-                        )
-                })
-            {
+            if current.sim.current_v6_view().chain_origins.iter().any(|o| {
+                o.person == actor.index_u32()
+                    && matches!(
+                        o.selected_use,
+                        terri_core::save_v6::SavedSelectedUse::Station(_)
+                    )
+            }) {
                 bound = true;
                 break;
             }

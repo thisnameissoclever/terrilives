@@ -1,0 +1,13 @@
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.35s
+     Running `target\debug\examples\relationship_qa.exe .local-build/current-reading-v16-alt1-observation`
+wait: A=0 B=1
+ordered: A=0 B=1
+proximity: A=0 B=1
+reading availability: person=1 target=3 tick=0 carrying=None target_state=None available=["the_locked_laundry"]; journeys=[]; copies=[BookCopy { id: BookCopyId(0), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), borrower: None }, BookCopy { id: BookCopyId(1), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), borrower: None }]; queue=None; claims=[]
+reading availability: person=0 target=2 tick=26 carrying=None target_state=Some(Target { object: 2v0, interaction: 0 }) available=[]; journeys=[SavedReadingJourney { owner: 0, origin: 2, action: "read", order: None, copy: BookCopyId(1), shelf: 2, transfer_contact: Some((3, 2)), reach_remaining: 3, seat: None, stage: Pickup, elapsed: 0, work: 0.0, earned_satisfaction: 0.0, destination: (3, 3), outcome: None, reward_contexts: [] }, SavedReadingJourney { owner: 1, origin: 3, action: "settle_in", order: Some(0), copy: BookCopyId(0), shelf: 2, transfer_contact: None, reach_remaining: 0, seat: Some((3, "seat")), stage: Read, elapsed: 0, work: 0.0, earned_satisfaction: 0.0, destination: (5, 2), outcome: Some(Success), reward_contexts: [] }]; copies=[BookCopy { id: BookCopyId(0), title_id: "the_locked_laundry", location: Carried(SimId(1)), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 0 }), borrower: Some(SimId(1)) }, BookCopy { id: BookCopyId(1), title_id: "the_locked_laundry", location: Shelf(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), home: Some(ShelfSlot { shelf: BookShelfId(2), slot: 1 }), borrower: Some(SimId(0)) }]; queue=None; claims=[SavedPhysicalSeat { person: 1, furniture: 3, seat: "seat", target: 3, action: "settle_in", all: false }]
+
+thread 'main' (64672) panicked at crates\terri-wasm\examples\relationship_qa.rs:86:9:
+requested title needs an admitted route
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: process didn't exit successfully: `target\debug\examples\relationship_qa.exe .local-build/current-reading-v16-alt1-observation` (exit code: 101)

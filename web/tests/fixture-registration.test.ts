@@ -70,6 +70,9 @@ it('keeps native placement previews on the resulting object origin and ignores d
   const [dx,dy]=fixtureRegistration(mock).offsets;
   expect(updated[FLOATS_PER_INSTANCE]-old[FLOATS_PER_INSTANCE]).toBeCloseTo(screenX(dx,dy,0),4);
   expect(updated[FLOATS_PER_INSTANCE+1]-old[FLOATS_PER_INSTANCE+1]).toBeCloseTo(screenY(dx,dy,0),4);
+  // The floor marker in row 0 moves with the art.
+  expect(updated[0]-old[0]).toBeCloseTo(screenX(dx,dy,0),4);
+  expect(updated[1]-old[1]).toBeCloseTo(screenY(dx,dy,0),4);
   expect([...fixtureRegistration(source(sprite,[1,5,5,1])).offsets]).toEqual([0,0]);
   expect([...fixtureRegistration(source(sprite,[1,5,8,0])).offsets]).toEqual([0,0]);
 });

@@ -584,6 +584,10 @@ impl From<PublishedTuning> for Tuning {
             career_mood_promoted_ticks: Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
             career_mood_demoted_ticks: Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
+            autonomy: None,
+            days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
+            first_season: Tuning::SHIPPED_FIRST_SEASON,
+            season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
         }
     }
 }

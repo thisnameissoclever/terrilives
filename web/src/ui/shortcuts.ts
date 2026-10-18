@@ -2,7 +2,8 @@ export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors' | '
 interface ShortcutRow { readonly label: string; readonly keys: readonly string[]; readonly alternatives?: boolean }
 interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[] }
 const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←', '→'], alternatives: true };
-const CANCEL: ShortcutRow = { label: 'Cancel pending changes', keys: ['Esc'] };
+// With nothing selected, Escape leaves Build mode instead: Help lists that row.
+const CANCEL: ShortcutRow = { label: 'Clear selection', keys: ['Esc'] };
 const ROTATE: ShortcutRow = { label: 'Rotate clockwise', keys: ['R'] };
 
 export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[]): readonly ShortcutGroup[] {
@@ -11,7 +12,7 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
     { label: 'Edit the edge', rows: [{ label: 'Wall', keys: ['W'] }, { label: 'Doorway', keys: ['D'] },
       { label: 'Windows', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
   ];
-  if (tool === 'room') return [{ label: 'Outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
+  if (tool === 'room') return [{ label: 'Select rooms', rows: [CANCEL] }, { label: 'Build room outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
     { label: 'Set first corner', keys: ['Enter'] },
     { label: 'Build completed outline', keys: ['Enter'] },
     { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }];
@@ -71,7 +72,7 @@ export function installShortcuts(doc: Document, coverings: readonly string[]): v
   ] }]);
   for (const tool of tools) {
     const title = doc.createElement('h3'); title.className = 'shortcut-tool-name';
-    title.textContent = tool.charAt(0).toUpperCase() + tool.slice(1); help.append(title);
+    title.textContent = tool === 'room' ? 'Rooms' : tool.charAt(0).toUpperCase() + tool.slice(1); help.append(title);
     appendGroups(doc, help, shortcutGroups(tool, coverings));
   }
 }

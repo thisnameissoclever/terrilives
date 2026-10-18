@@ -16,6 +16,7 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
+    pack.lot.house = (7, 7);
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
@@ -23,8 +24,7 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     pack.portals[0].position = door;
     pack.portals[0].inward = landing;
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world_mut().insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     let fridge = sim.spawn_object(Position { x: 0.0, y: 0.0 }, pack.find("fridge").unwrap());
     let mut grid = TileGrid::new(7, 7);
     grid.set_blocked(0, 0, true);
@@ -35,6 +35,8 @@ fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) 
     sim.world_mut().insert_resource(grid);
     sim.world_mut()
         .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+    crate::rooms::initialize(sim.world_mut())
+        .expect("the fixture has coherent current room geometry");
     (sim, fridge)
 }
 
@@ -315,37 +317,60 @@ fn a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to
     applied(&mut sim, edit(Vertical, 1, 0, Wall));
     applied(&mut sim, edit(Vertical, 1, 0, Open));
 
-    let listener = sim
-        .world_mut()
-        .spawn((Agent, Position { x: 4.0, y: 5.0 }))
-        .id();
-    let talker = sim
-        .world_mut()
-        .spawn((
-            Agent,
-            Position { x: 3.0, y: 5.0 },
-            Target {
-                object: listener,
-                interaction: 0,
+    // Admit each direction independently; moving an active conversation by hand
+    // would contradict its saved rendezvous and request ownership.
+    for (talker_x, wall_x) in [(3.0, 4), (5.0, 5)] {
+        let (mut sim, _) = house(vec![]);
+        let listener = sim.spawn_agent(Position { x: 4.0, y: 5.0 }, 100.0);
+        let talker = sim.spawn_agent(
+            Position {
+                x: talker_x,
+                y: 5.0,
             },
-        ))
-        .id();
-    refused(
-        &mut sim,
-        edit(Vertical, 4, 5, Wall),
-        PlacementRefusal::InUse,
-    );
-    // The rule reads both ways: the target on the near side, the sim beyond.
-    sim.world_mut()
-        .entity_mut(talker)
-        .insert(Position { x: 5.0, y: 5.0 });
-    refused(
-        &mut sim,
-        edit(Vertical, 5, 5, Wall),
-        PlacementRefusal::InUse,
-    );
-    // A line elsewhere is not between them.
-    applied(&mut sim, edit(Vertical, 4, 2, Wall));
+            100.0,
+        );
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::TalkToFirst {
+                agent: talker.index_u32(),
+                target: listener.index_u32(),
+                interaction: 0,
+            });
+        sim.tick();
+        assert_eq!(
+            sim.world().get::<Target>(talker).map(|t| t.object),
+            Some(listener)
+        );
+        assert!(sim
+            .world()
+            .resource::<crate::social_episode::requests::ConversationRequests>()
+            .admitted(talker, listener));
+        assert_eq!(
+            *sim.world().get::<Position>(talker).unwrap(),
+            Position {
+                x: talker_x,
+                y: 5.0
+            }
+        );
+        assert_eq!(
+            *sim.world().get::<Position>(listener).unwrap(),
+            Position { x: 4.0, y: 5.0 }
+        );
+        let before = sim.save_snapshot_v16();
+        let mut restored = Sim::new_with_lot_and_content(7, 7, *sim.world().resource::<Content>());
+        restored.load_snapshot_v16(before.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), before);
+        refused(
+            &mut sim,
+            edit(Vertical, wall_x, 5, Wall),
+            PlacementRefusal::InUse,
+        );
+        assert_eq!(sim.save_snapshot_v16(), before);
+        // A line elsewhere is not between them.
+        applied(&mut sim, edit(Vertical, 4, 2, Wall));
+        assert_eq!(sim.take_build_error(), None);
+        restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+    }
 }
 
 /// The in-use rule is about what is ACROSS the line, not about who is near it.
@@ -875,7 +900,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             stop,
             "one tick per `Sim::tick`"
         );
-        let base = sim.save_snapshot_v6();
+        let base = sim.save_snapshot_v16();
         let rectangles = super::super::current_layout(sim.world())
             .expect("the shipped house is consistent")
             .rectangles;
@@ -907,12 +932,12 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             }
             // The public edit also reconciles media and physical leases. A new
             // wall can end an obstructed TV seat before the next game tick.
-            builder.load_snapshot_v6(base.clone()).unwrap();
+            builder.load_snapshot_v16(base.clone()).unwrap();
             stage(&mut builder, request);
             assert_eq!(last(&builder).unwrap().reason, None);
-            let after = builder.save_snapshot_v6();
+            let after = builder.save_snapshot_v16();
             assert_eq!(
-                reloaded.load_snapshot_v6(after).err(),
+                reloaded.load_snapshot_v16(after).err(),
                 None,
                 "an accepted {request:?} at tick {stop} left a save that will not load"
             );
@@ -1108,7 +1133,16 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
             doorway: None,
         };
         assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
-        super::super::rooms::commit(sim.world_mut(), room);
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::BuildRoom {
+                x0: room.x0,
+                y0: room.y0,
+                x1: room.x1,
+                y1: room.y1,
+                doorway: room.doorway,
+            });
+        sim.flush_commands();
         let boundary = line(axis, wall_x, wall_y, false);
         assert!(edges(&sim).contains(&boundary));
         for state in [Doorway, Window] {
@@ -1121,11 +1155,11 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
         applied(&mut sim, edit(axis, wall_x, wall_y, Open));
         assert!(!edges(&sim).contains(&boundary));
         let mut reader = Sim::new_from_shipped_lot();
-        reader.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        reader.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
         assert!(!edges(&reader).contains(&boundary));
         applied(&mut reader, edit(axis, wall_x, wall_y, Wall));
         assert!(edges(&reader).contains(&boundary));
-        sim.load_snapshot_v6(reader.save_snapshot_v6()).unwrap();
+        sim.load_snapshot_v16(reader.save_snapshot_v16()).unwrap();
         assert!(edges(&sim).contains(&boundary));
     }
 }

@@ -1,0 +1,19 @@
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.75s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-6fc416eeea1d48f0.exe)
+
+running 1 test
+
+thread 'room_transport_tests::room_transport_current_person_fixture_has_real_work_and_distinct_identity' (53400) panicked at crates\terri-wasm\src\room_transport_tests.rs:101:66:
+index out of bounds: the len is 0 but the index is 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test room_transport_tests::room_transport_current_person_fixture_has_real_work_and_distinct_identity ... FAILED
+
+failures:
+
+failures:
+    room_transport_tests::room_transport_current_person_fixture_has_real_work_and_distinct_identity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p terri-wasm --lib`

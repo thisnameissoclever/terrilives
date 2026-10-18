@@ -1,0 +1,100 @@
+{
+  "wait": {
+    "tick": 53,
+    "actors": [
+      {
+        "sim": 0,
+        "entity": 34,
+        "x": 13,
+        "y": 5,
+        "clip": "idle"
+      },
+      {
+        "sim": 1,
+        "entity": 35,
+        "x": 12,
+        "y": 6,
+        "clip": "toilet"
+      },
+      {
+        "sim": 2,
+        "entity": 36,
+        "x": 10.5,
+        "y": 0,
+        "clip": "seat_sofa_read"
+      }
+    ],
+    "label": "Waiting outside to talk to Bill",
+    "queue": [
+      "Waiting outside to talk to Bill"
+    ],
+    "status": {
+      "code": 4,
+      "partner": 35,
+      "needs": 0
+    }
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390,
+    "label": "Waiting outside to talk to Bill"
+  },
+  "talk": {
+    "tick": 80,
+    "label": "Talking",
+    "actors": [
+      {
+        "sim": 0,
+        "entity": 34,
+        "x": 13,
+        "y": 7,
+        "clip": "talk",
+        "needs": [
+          5.040000915527344,
+          30.920063018798828,
+          59.2401123046875,
+          56.83993911743164,
+          1.4739420413970947,
+          0.19259019196033478,
+          63.2080078125
+        ]
+      },
+      {
+        "sim": 1,
+        "entity": 35,
+        "x": 12,
+        "y": 7,
+        "clip": "talk",
+        "needs": [
+          60.0400390625,
+          61.736053466796875,
+          59.2401123046875,
+          68.49601745605469,
+          64.419921875,
+          61.460052490234375,
+          61.16004943847656
+        ]
+      },
+      {
+        "sim": 2,
+        "entity": 36,
+        "x": 10.5,
+        "y": 0,
+        "clip": "seat_sofa_read",
+        "needs": [
+          60.0400390625,
+          60.9200325012207,
+          59.816036224365234,
+          56.83993911743164,
+          62.0880126953125,
+          65.48301696777344,
+          64.94816589355469
+        ]
+      }
+    ],
+    "queue": [
+      "Chat: Bill"
+    ]
+  },
+  "errors": []
+}

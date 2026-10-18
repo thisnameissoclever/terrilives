@@ -15,7 +15,6 @@ body[data-building='true'] #builder-controls { box-sizing: border-box; width: 30
 #builder-controls select { min-width: 0; max-width: 100%; min-height: 44px;
   color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
   border-radius: 4px; font: inherit; font-size: 14px; }
-#buy-room-filter { width: 100%; }
 #buy-facts { overflow-wrap: anywhere; }
 [data-context-action] { flex-direction: column; }
 .action-price { display: block; font-size: 11px; color: var(--hud-muted); font-weight: normal; }
@@ -46,8 +45,8 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions { position: fixed; z-index: 3; display: block; pointer-events: none; }
 #placement-actions[hidden] { display: none !important; }
 #placement-actions > div { position: absolute; pointer-events: none; }
-#placement-actions .hud-button { pointer-events: auto; min-height: 44px; min-width: 0; padding: 6px 8px; background: var(--hud-bg); flex-direction: column; font-size: 13px; gap: 4px; }
-#placement-actions .hud-button:hover { background: #29313a; }
+#placement-actions .hud-button { pointer-events: auto; min-height: 44px; min-width: 0; padding: 6px 8px; background: var(--action-background, var(--hud-bg)); flex-direction: column; font-size: 13px; gap: 4px; }
+#placement-actions .hud-button:is(:hover, :focus-visible, :active):not(:disabled) { background: var(--action-hover-background, #29313a); }
 #placement-actions svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #placement-actions .context-top { top: 20px; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; align-items: flex-start; }
 #placement-actions .context-top button { flex: 1 1 80px; max-width: 108px; }
@@ -100,6 +99,27 @@ body[data-building='true'] #build-camera { display: flex; }
   #builder-dock .builder-help:not(.shortcuts) { display: none; }
   #builder-dock .shortcuts { margin-top: 4px; }
   #builder-dock .shortcuts > summary { min-height: 44px; }
+  /* A scroll container's automatic minimum height is zero, so the strip
+     keeps the height of its cards or the dock would squeeze it shut. In the
+     dock a card lays its picture beside its lines, so the whole card fits
+     the dock's short view. */
+  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; }
+  /* The strip keeps the panel's 3 pixel padding, so the panel never scrolls
+     sideways; the focus ring sits inside it. */
+  #builder-dock .catalogue-card:focus-visible { outline-offset: -1px; }
+  /* The Buy tool scrolls inside the dock; its rows keep their content's
+     height rather than sharing the dock's, so nothing overlaps. */
+  #builder-dock #buy-tool { grid-auto-rows: max-content; }
+  /* The dock does not scroll its footer, so it keeps the plain footer. */
+  #builder-dock #build-batch-actions { padding: 8px 0; margin-inline: 0; }
+  /* Each filter row is one sideways strip, as the cards are, so the cards
+     sit close below the filters in the dock's short view. */
+  #builder-dock .catalogue-filters { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: 3px; }
+  #builder-dock .catalogue-filters .hud-button { flex: none; }
+  #builder-dock .catalogue-filters .hud-button:focus-visible { outline-offset: -2px; }
+  #builder-dock .catalogue-card { flex: 0 0 172px; grid-template-columns: 52px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 6px; row-gap: 0; padding: 4px 6px; text-align: left; }
+  #builder-dock .catalogue-picture { grid-row: 1 / span 3; width: 52px; height: 52px; }
+  #builder-dock .catalogue-type, #builder-dock .catalogue-model, #builder-dock .catalogue-price { grid-column: 2; text-align: left; }
 }
 #build-context-layout[hidden] { display: none !important; }
 body[data-build-rows='true'] #build-context-layout { position: fixed; inset: 8px; display: grid; grid-template-rows: auto minmax(24px, 1fr) auto minmax(0, 36dvh); gap: 4px; z-index: 4; pointer-events: none; }
@@ -133,4 +153,52 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 
 #buy-facts { white-space: pre-line; }
 
+#room-select-controls, #room-build-controls { display: grid; gap: 8px; min-width: 0; }
+#room-tool, #room-review { --room-focus-clearance: 6px; }
+#builder-controls input[type='text'] { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; font: inherit; color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 4px; padding: 6px; }
+#builder-controls input:focus-visible, #builder-controls select:focus-visible, #room-review-heading:focus { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#room-name, #room-review input, #room-review select { scroll-margin-block: var(--room-focus-clearance); }
+#room-name-status:empty, #room-review-status:empty { display: none; }
+#room-name-status, #room-review-status { overflow-wrap: anywhere; }
+#room-review { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+#room-review[hidden] { display: none; }
+#room-review-heading { flex: none; margin: 0; font-size: 16px; }
+#room-review-scroll { min-height: 0; overflow-y: auto; padding: var(--room-focus-clearance); }
+#room-review-body fieldset { display: grid; gap: 8px; min-width: 0; margin: 10px 0; }
+#room-review-body label { display: grid; gap: 4px; min-width: 0; }
+#room-review-body p, #room-review-body legend { overflow-wrap: anywhere; }
+#room-review-actions { display: flex; flex: none; gap: 8px; padding: 8px 0; background: var(--hud-bg); }
+#room-review-actions button { flex: 1; }
+#builder-controls[data-reviewing='true'] > :not(#room-review) { display: none !important; }
+#builder-controls[data-reviewing='true'] { display: flex; flex-direction: column; overflow: hidden; }
+#room-map-marker { position: fixed; z-index: 2; transform: translate(-50%, -100%); pointer-events: none; max-width: min(260px, 60vw); padding: 4px 8px; border: 1px solid var(--need-fill); border-radius: 4px; background: var(--hud-bg); color: var(--hud-text); overflow-wrap: anywhere; }
+@media (max-width: 700px), (max-height: 480px) {
+  body:not([data-build-rows='true']) #builder-dock:has(#room-tool:not([hidden])),
+  body:not([data-build-rows='true']) #builder-dock:has(#room-review:not([hidden])) {
+    left: calc(var(--build-visible-left, 0px) + 8px); right: auto;
+    width: calc(var(--build-visible-width, 100vw) - 16px);
+    bottom: calc(var(--build-visible-bottom, 0px) + max(8px, env(safe-area-inset-bottom)));
+  }
+  #builder-dock #builder-controls:has(#room-tool:not([hidden])),
+  #builder-dock #builder-controls[data-reviewing='true'] {
+    max-height: min(calc(var(--build-visible-height, 100dvh) * .7), calc(var(--build-visible-height, 100dvh) - 100px));
+  }
+  #builder-dock #room-tool { min-height: 64px; padding: var(--room-focus-clearance); margin: calc(-1 * var(--room-focus-clearance)); }
+  #builder-dock #build-batch-status { margin-block: 6px; flex: none; }
+  #builder-dock #room-review { min-height: 0; flex: 1; }
+}
+@media (forced-colors: active) {
+  #builder-controls input[type='text'] { background: Field; color: FieldText; border-color: ButtonText; }
+  #builder-controls input:focus-visible, #builder-controls select:focus-visible, #room-review-heading:focus { outline-color: Highlight; }
+}
+
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
+/* The side panel keeps no bottom padding of its own; its footer, always its
+   last child, carries that space instead. So the stuck footer meets the
+   panel's bottom edge and nothing scrolls into view beneath it, and the
+   buttons sit where they always did. The footer also covers the side
+   padding, so a focus ring cannot show past it, and a control scrolled into
+   view stops above it with its focus ring clear: the footer is 72 pixels
+   tall and a ring reaches 4 pixels outside its control. */
+body[data-building='true'] #builder-controls { padding-bottom: 0; scroll-padding-bottom: 80px; }
+body[data-building='true'] #build-batch-actions { padding-bottom: 20px; margin-inline: -12px; padding-inline: 12px; }

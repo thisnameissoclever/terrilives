@@ -309,39 +309,57 @@ mod tests {
     }
     #[test]
     fn ordinary_sitting_claims_a_real_chair_without_food_and_saves_at_each_tick() {
-        let (mut sim, person, table) = fixture();
-        sim.world_mut()
-            .resource_mut::<CommandQueue>()
-            .push(SimCommand::UseObjectFirst {
-                agent: person.index_u32(),
-                object: table.index_u32(),
-                interaction: 0,
-            });
-        let mut seated = false;
-        for _ in 0..400 {
-            sim.tick();
-            let frozen = sim.save_snapshot_v6();
-            let mut historical = crate::Sim::new_from_shipped_lot();
-            historical.load_snapshot_v6(frozen.clone()).unwrap();
-            assert_eq!(historical.save_snapshot_v6(), frozen);
-            let current = sim.save_snapshot_v15();
-            let mut loaded = crate::Sim::new_from_shipped_lot();
-            loaded.load_snapshot_v15(current.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v15(), current);
-            assert_eq!(loaded.world_hash(), sim.world_hash());
-            if let Some(p) = projection(sim.world(), person) {
-                assert!(chairs(sim.world(), table)
-                    .iter()
-                    .any(|c| c.index_u32() == p.target_entity));
-                assert_eq!(p.visual_action, crate::render_buffer::visual_action::SIT);
-                assert!(sim.world().get::<terri_core::Carrying>(person).is_none());
-                seated = true;
+        for historical in [false, true] {
+            let (mut sim, person, table) = fixture();
+            if historical {
+                // Choose the historical room namespace before any action or grime update.
+                sim.world_mut()
+                    .remove_resource::<terri_core::rooms::SavedRooms>();
+                sim.world_mut().remove_resource::<crate::rooms::RoomMap>();
+                sim.world_mut()
+                    .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
             }
-            if seated && ordinary_sitting(sim.world(), person).is_none() {
-                break;
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObjectFirst {
+                    agent: person.index_u32(),
+                    object: table.index_u32(),
+                    interaction: 0,
+                });
+            let mut seated = false;
+            for _ in 0..400 {
+                sim.tick();
+                let mut loaded = crate::Sim::new_from_shipped_lot();
+                if historical {
+                    let frozen = sim.save_snapshot_v6();
+                    let original_reader = crate::save::v6::restore(
+                        frozen.clone(),
+                        sim.world().resource::<Content>().0,
+                        crate::save::Carried::for_load(sim.world()),
+                    )
+                    .unwrap();
+                    assert_eq!(original_reader.save_snapshot_v6(), frozen);
+                    loaded.load_snapshot_v6(frozen).unwrap();
+                    crate::test_content::assert_current_admission(&loaded);
+                } else {
+                    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
+                    assert_eq!(loaded.current_v6_view(), sim.current_v6_view());
+                    assert_eq!(loaded.world_hash(), sim.world_hash());
+                }
+                if let Some(p) = projection(sim.world(), person) {
+                    assert!(chairs(sim.world(), table)
+                        .iter()
+                        .any(|c| c.index_u32() == p.target_entity));
+                    assert_eq!(p.visual_action, crate::render_buffer::visual_action::SIT);
+                    assert!(sim.world().get::<terri_core::Carrying>(person).is_none());
+                    seated = true;
+                }
+                if seated && ordinary_sitting(sim.world(), person).is_none() {
+                    break;
+                }
             }
+            assert!(seated);
         }
-        assert!(seated);
     }
     #[test]
     fn prepared_food_order_claims_a_real_portion_and_survives_queued_and_active_saves() {
@@ -397,14 +415,18 @@ mod tests {
             });
         sim.flush_commands();
         let mut loaded = crate::Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+        loaded
+            .load_current_v10_view(sim.current_v10_view())
+            .unwrap();
         let mut carrying = false;
         let mut ate = false;
         for _ in 0..600 {
             sim.tick();
             carrying |= sim.world().get::<terri_core::Carrying>(person).is_some();
-            loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
-            assert_eq!(loaded.save_snapshot_v15(), sim.save_snapshot_v15());
+            loaded
+                .load_current_v10_view(sim.current_v10_view())
+                .unwrap();
+            assert_eq!(loaded.current_v10_view(), sim.current_v10_view());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if carrying
                 && sim

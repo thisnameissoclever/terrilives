@@ -1,0 +1,8 @@
+{
+  "source_commit": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "archive_sha256": "94E0C7FCD8EEB609362BB3758145ECC5772D4CF2408D5E87CD2DE82CAD918392",
+  "archive_bytes": 7605258240,
+  "producer": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\p15-a481",
+  "scope": "Unchanged native workspace, content, sprite atlas and exact voice WAV build inputs; unused art omitted",
+  "source_modified": false
+}

@@ -6,7 +6,7 @@ use terri_core::{CommandQueue, SimCommand};
 #[test]
 fn buying_facts_use_active_roles_and_keep_counter_dining_fallback_optional() {
     let sim = Sim::new_from_shipped_lot();
-    let before = sim.save_snapshot_v6();
+    let before = sim.current_v6_view();
     let pack = sim.world().resource::<Content>().0;
     let eating = pack
         .roles
@@ -33,7 +33,7 @@ fn buying_facts_use_active_roles_and_keep_counter_dining_fallback_optional() {
         crate::recipe_buying_requirements(pack, snack),
         (vec!["cold_storage".into(), "prep_surface".into()], vec![])
     );
-    assert_eq!(sim.save_snapshot_v6(), before);
+    assert_eq!(sim.current_v6_view(), before);
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn runtime_snack_mapping_is_shared_by_model_facts_and_ignores_unrelated_actions(
         .steps
         .iter()
         .any(|step| pack.roles[step.role as usize] == "prep_surface"));
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let hash = sim.world_hash();
     assert!(std::ptr::eq(
         sim.model_interaction_chain("fridge", "grab_snack").unwrap(),
@@ -136,7 +136,7 @@ fn runtime_snack_mapping_is_shared_by_model_facts_and_ignores_unrelated_actions(
     assert!(interaction_chain(pack, &renamed).is_some());
     renamed.recipe = None;
     assert!(interaction_chain(pack, &renamed).is_none());
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -190,9 +190,9 @@ fn targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued() {
             dishes: Some(vec![0]),
         });
     sim.flush_commands();
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.current_v6_view();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(saved).unwrap();
+    loaded.load_current_v6_view(saved).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     sim.tick();
     let task = sim
@@ -267,12 +267,12 @@ fn targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_
         } else if added && step == Some(0) {
             returned = true;
         }
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.current_v6_view();
         if crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
             loads.insert(step);
         }
         let mut loaded = Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v15(saved).unwrap_or_else(|error| {
+        loaded.load_current_v6_view(saved).unwrap_or_else(|error| {
             panic!(
                 "targeted cleanup failed to load at {:?}, step {:?}: {:?}",
                 sim.world().resource::<SimClock>().tick,
@@ -280,7 +280,7 @@ fn targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_
                 error
             )
         });
-        assert_eq!(sim.save_snapshot_v15(), loaded.save_snapshot_v15());
+        assert_eq!(sim.current_v6_view(), loaded.current_v6_view());
         assert_eq!(sim.world_hash(), loaded.world_hash());
         if added && !crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
             break;
@@ -373,9 +373,9 @@ fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
         .unwrap()
         .dishes
         .is_empty());
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.current_v6_view();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(saved).unwrap();
+    loaded.load_current_v6_view(saved).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     abandon(sim.world_mut(), other);
     sim.world_mut().entity_mut(other).remove::<ChainState>();
@@ -663,7 +663,9 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 assert_eq!(sim.world().get::<ChainState>(actor).unwrap().chain, recipe);
                 assert!(sim.world().get::<StepWork>(actor).is_none());
                 let mut loaded = Sim::new_from_shipped_lot();
-                loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+                loaded
+                    .load_current_v10_view(sim.current_v10_view())
+                    .unwrap();
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 restored = Some(loaded);
             }
@@ -894,10 +896,10 @@ fn snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips() {
                     }
                 }
             }
-            let snapshot = sim.save_snapshot_v15();
+            let snapshot = sim.current_v10_view();
             let mut restored = Sim::new_from_shipped_lot();
             restored
-                .load_snapshot_v15(snapshot)
+                .load_current_v10_view(snapshot)
                 .expect("every in-flight domestic save loads");
             assert_eq!(
                 sim.world_hash(),
@@ -1246,7 +1248,9 @@ fn cleanliness_same_pile_crossing_and_visit_memory_survive_save_load() {
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
     tick(sim.world_mut());
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
     let rng = sim.world().resource::<SimRng>().clone();
     for run in [&mut sim, &mut loaded] {
@@ -1264,7 +1268,9 @@ fn cleanliness_same_pile_crossing_and_visit_memory_survive_save_load() {
         assert_eq!(*run.world().resource::<SimRng>(), rng);
     }
     assert_eq!(sim.world_hash(), loaded.world_hash());
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     for _ in 0..3 {
         tick(sim.world_mut());
         tick(loaded.world_mut());
@@ -1381,11 +1387,11 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
                 "pickup transfers dishes rather than losing or duplicating them"
             );
         }
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.current_v10_view();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.world_mut().insert_resource(Content(pack));
         loaded
-            .load_snapshot_v15(saved)
+            .load_current_v10_view(saved)
             .expect("cleanup saves load, including washing completion");
         assert_eq!(loaded.world_hash(), sim.world_hash());
         assert_eq!(
@@ -1460,7 +1466,9 @@ fn paused_cancel_reissue_and_furniture_sales_preserve_valid_claims() {
     sim.flush_commands();
     assert!(sim.world().resource::<SavedDomestic>().cleanup.is_empty());
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     let sink = sim
         .world_mut()
@@ -1583,7 +1591,9 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(
         loaded.render_buffer().carried_dishes,
@@ -1620,7 +1630,9 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(state.dishes[0].units, 3);
     assert!(sim.world().get::<ChainState>(people[0]).is_none());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1738,7 +1750,9 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
         loaded
             .world_mut()
             .insert_resource(*sim.world().resource::<Content>());
-        loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+        loaded
+            .load_current_v10_view(sim.current_v10_view())
+            .unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if sim.world().resource::<SavedDomestic>().meals.is_empty() {
             break;
@@ -1769,7 +1783,7 @@ fn malformed_domestic_claims_are_rejected_without_replacing_the_live_world() {
     let (mut sim, people, _, counter, _) = household();
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
     start_cleanup(sim.world_mut(), people[0], vec![0], true);
-    let before = sim.save_snapshot_v5();
+    let before = sim.current_v5_view();
     for kind in 0..4 {
         let mut invalid = before.clone();
         match kind {
@@ -1778,8 +1792,8 @@ fn malformed_domestic_claims_are_rejected_without_replacing_the_live_world() {
             2 => invalid.domestic.as_mut().unwrap().cleanup[0].person = people[1].index_u32(),
             _ => invalid.domestic.as_mut().unwrap().dishes[0].surface = people[0].index_u32(),
         }
-        assert!(sim.load_snapshot_v5(invalid).is_err());
-        assert_eq!(sim.save_snapshot_v5(), before);
+        assert!(sim.load_current_v5_view(invalid).is_err());
+        assert_eq!(sim.current_v5_view(), before);
     }
     let mut shared = before.clone();
     let guest = shared
@@ -1794,7 +1808,7 @@ fn malformed_domestic_claims_are_rejected_without_replacing_the_live_world() {
         fumble_scale: 1.0,
     });
     assert!(
-        sim.load_snapshot_v5(shared).is_err(),
+        sim.load_current_v5_view(shared).is_err(),
         "an eat counter does not mint food without a real claim"
     );
 }
@@ -1948,7 +1962,9 @@ fn gathering_preserves_the_full_eating_interval_and_replays_after_loading() {
         .unwrap()
         .remaining_ticks;
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     let mut gathering_ticks = 0;
     let mut began = false;
     for _ in 0..350 {
@@ -1989,10 +2005,10 @@ fn gathering_preserves_the_full_eating_interval_and_replays_after_loading() {
 #[test]
 fn gathering_yields_to_critical_needs_player_interruptions_and_table_capacity() {
     let (sim, people, table) = gathering_household();
-    let saved = sim.save_snapshot_v5();
+    let saved = sim.current_v5_view();
     for case in 0..4 {
         let mut changed = Sim::new_from_shipped_lot();
-        changed.load_snapshot_v5(saved.clone()).unwrap();
+        changed.load_current_v5_view(saved.clone()).unwrap();
         match case {
             0 => changed
                 .world_mut()
@@ -2159,7 +2175,9 @@ fn guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left() {
             restored
                 .world_mut()
                 .insert_resource(Content(fixture_content));
-            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+            restored
+                .load_current_v10_view(sim.current_v10_view())
+                .unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             standing_replay = Some(restored);
         }
@@ -2306,14 +2324,10 @@ fn table_binding_changes_only_the_current_cooks_batch_or_active_guests_plate() {
 #[test]
 fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
     let (mut sim, people, _) = plate_with_guests_finishing_their_activity();
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(saved.clone()).unwrap();
-    let legacy_hash = loaded.world_hash();
-    assert_eq!(loaded.save_snapshot_v6(), saved);
-    let mut current = Sim::new_from_shipped_lot();
-    current.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
-    assert_eq!(current.world_hash(), sim.world_hash());
+    loaded.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(loaded.world_hash(), sim.world_hash());
     for case in 0..4 {
         let mut bad = saved.clone();
         let serving = &mut bad.legacy.domestic.as_mut().unwrap().serving_meals;
@@ -2329,24 +2343,27 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
                 meals.push(duplicate);
             }
         }
-        assert_eq!(loaded.load_snapshot_v6(bad), Err(SaveError::InvalidValue));
-        assert_eq!(loaded.world_hash(), legacy_hash);
+        assert_eq!(
+            loaded.load_current_v6_view(bad),
+            Err(SaveError::InvalidValue)
+        );
+        assert_eq!(loaded.world_hash(), sim.world_hash());
     }
     sim.tick();
-    let assigned = sim.save_snapshot_v6();
-    loaded.load_snapshot_v6(assigned.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v6(), assigned);
-    let assigned_hash = loaded.world_hash();
-    current.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
-    assert_eq!(current.world_hash(), sim.world_hash());
+    let assigned = sim.current_v6_view();
+    loaded.load_current_v6_view(assigned.clone()).unwrap();
+    assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(
         sim.world().get::<Target>(people[0]).unwrap().interaction,
         crate::systems::chain::CHAIN_STEP
     );
     let mut bad = assigned;
     bad.legacy.domestic.as_mut().unwrap().meals[0].table = None;
-    assert_eq!(loaded.load_snapshot_v6(bad), Err(SaveError::InvalidValue));
-    assert_eq!(loaded.world_hash(), assigned_hash);
+    assert_eq!(
+        loaded.load_current_v6_view(bad),
+        Err(SaveError::InvalidValue)
+    );
+    assert_eq!(loaded.world_hash(), sim.world_hash());
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::CancelIntents {
@@ -2358,7 +2375,9 @@ fn current_meal_identity_survives_saves_and_rejects_invalid_references() {
         .resource::<SavedDomestic>()
         .serving_meals
         .is_empty());
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -2575,7 +2594,9 @@ fn privacy_substitution_suspends_collected_cleanup_and_replays() {
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut replay = Sim::new_from_shipped_lot();
-    replay.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    replay
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     for _ in 0..40 {
         sim.tick();
         replay.tick();
@@ -2951,7 +2972,9 @@ fn targeted_mixed_orders_preserve_scope_and_generic_ownership() {
                 .iter()
                 .any(|label| label.contains("Clean dishes")));
             let mut restored = Sim::new_from_shipped_lot();
-            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+            restored
+                .load_current_v10_view(sim.current_v10_view())
+                .unwrap();
             let mut finished = false;
             for _ in 0..2000 {
                 sim.tick();
@@ -3023,7 +3046,9 @@ fn targeted_queued_surface_waits_through_repeat_collection_and_stale_first() {
         });
     sim.flush_commands();
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     let mut added = false;
     let mut finished = false;
     for _ in 0..2000 {
@@ -3120,7 +3145,9 @@ fn targeted_first_preserves_generic_orders_waiting_behind_it() {
         2
     );
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     let mut finished = false;
     for _ in 0..2000 {
         sim.tick();
@@ -3190,7 +3217,9 @@ fn targeted_generic_order_waits_for_a_first_floor_chore() {
         .get::<terri_core::chores::ChoreWork>(person)
         .is_some());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored
+        .load_current_v10_view(sim.current_v10_view())
+        .unwrap();
     let mut chore_finished = false;
     let mut all_finished = false;
     for _ in 0..2000 {

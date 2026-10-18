@@ -36,11 +36,11 @@ fn upstream_edit_active_reader_preserves_accrued_reward_and_book_identity() {
     for _ in 0..20 {
         sim.tick();
     }
-    let before = sim.save_snapshot_v6();
+    let before = sim.current_v6_view();
     let satisfaction = sim.world().get::<Satisfaction>(person).unwrap().value();
     assert!(before.reading[0].earned_satisfaction > 0.0);
     edit(&mut sim, person, vec![]);
-    let after = sim.save_snapshot_v6();
+    let after = sim.current_v6_view();
     assert_eq!(after.books, before.books);
     assert_eq!(after.seats, before.seats);
     assert_eq!(
@@ -51,9 +51,9 @@ fn upstream_edit_active_reader_preserves_accrued_reward_and_book_identity() {
         sim.world().get::<Satisfaction>(person).unwrap().value(),
         satisfaction
     );
-    sim.load_snapshot_v6(after.clone())
+    sim.load_current_v6_view(after.clone())
         .expect("trait edits cannot invalidate accrued reading rewards");
-    assert_eq!(sim.save_snapshot_v6(), after);
+    assert_eq!(sim.current_v6_view(), after);
 }
 
 #[test]
@@ -74,8 +74,8 @@ fn upstream_reading_practice_is_once_per_completed_session_not_return_or_reload(
         sim.tick();
     }
     assert_eq!(practice(&sim), 0.0);
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved).unwrap();
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved).unwrap();
     let order = sim
         .world()
         .get::<ReadingJourney>(person)
@@ -99,8 +99,8 @@ fn upstream_reading_practice_is_once_per_completed_session_not_return_or_reload(
             > 0.2,
         "a completed reading session records repetition once"
     );
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved).unwrap();
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved).unwrap();
     assert_eq!(practice(&sim), per_attempt);
     read(&mut sim, person, seat, &title, false);
     until(&mut sim, person, ReadingStage::Read);
@@ -131,13 +131,13 @@ fn upstream_reading_contexts_bound_work_and_survive_paused_edits() {
     for _ in 0..10 {
         sim.tick();
     }
-    assert_eq!(sim.save_snapshot_v6().reading[0].reward_contexts.len(), 1);
+    assert_eq!(sim.current_v6_view().reading[0].reward_contexts.len(), 1);
     for _ in 0..20 {
         edit(&mut sim, person, vec![]);
         edit(&mut sim, person, vec![bookworm]);
     }
     assert_eq!(
-        sim.save_snapshot_v6().reading[0].reward_contexts.len(),
+        sim.current_v6_view().reading[0].reward_contexts.len(),
         1,
         "paused edits record no work"
     );
@@ -145,9 +145,9 @@ fn upstream_reading_contexts_bound_work_and_survive_paused_edits() {
     for _ in 0..3 {
         sim.tick();
     }
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     assert_eq!(saved.reading[0].reward_contexts.len(), 2);
-    sim.load_snapshot_v6(saved.clone()).unwrap();
+    sim.load_current_v6_view(saved.clone()).unwrap();
     let hash = sim.world_hash();
     for fault in 0..8 {
         let mut bad = saved.clone();
@@ -165,8 +165,11 @@ fn upstream_reading_contexts_bound_work_and_survive_paused_edits() {
             7 => bad.reading[0].reward_contexts[0].end_work = f32::NAN,
             _ => unreachable!(),
         }
-        assert!(sim.load_snapshot_v6(bad).is_err(), "context fault {fault}");
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        assert!(
+            sim.load_current_v6_view(bad).is_err(),
+            "context fault {fault}"
+        );
+        assert_eq!(sim.current_v6_view(), saved);
         assert_eq!(sim.world_hash(), hash);
     }
 }
@@ -198,7 +201,7 @@ fn upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal() {
         purchase(&mut sim, Some(shelf), &title);
         read(&mut sim, person, seat, &title, false);
         until(&mut sim, person, ReadingStage::Travel);
-        assert_eq!(sim.save_snapshot_v6().reading[0].outcome, None);
+        assert_eq!(sim.current_v6_view().reading[0].outcome, None);
         let mut expected_rng = sim.world().resource::<SimRng>().clone();
         expected_rng.next_f32();
         until(&mut sim, person, ReadingStage::Read);
@@ -207,7 +210,7 @@ fn upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal() {
             expected_rng,
             "one capability outcome draw on arrival"
         );
-        let outcome = sim.save_snapshot_v6().reading[0].outcome;
+        let outcome = sim.current_v6_view().reading[0].outcome;
         assert_eq!(matches!(outcome, Some(ReadingOutcome::Success)), mastered);
         for _ in 0..10 {
             sim.tick();
@@ -218,18 +221,18 @@ fn upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal() {
             "reading work does not sample the outcome again"
         );
         edit(&mut sim, person, vec![]);
-        assert_eq!(sim.save_snapshot_v6().reading[0].outcome, outcome);
-        let saved = sim.save_snapshot_v6();
+        assert_eq!(sim.current_v6_view().reading[0].outcome, outcome);
+        let saved = sim.current_v6_view();
         let rng = saved.legacy.world.rng.clone();
-        sim.load_snapshot_v6(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), saved);
-        assert_eq!(sim.save_snapshot_v6().legacy.world.rng, rng);
+        sim.load_current_v6_view(saved.clone()).unwrap();
+        assert_eq!(sim.current_v6_view(), saved);
+        assert_eq!(sim.current_v6_view().legacy.world.rng, rng);
         let mut missing = saved.clone();
         missing.reading[0].outcome = None;
-        assert!(sim.load_snapshot_v6(missing).is_err());
+        assert!(sim.load_current_v6_view(missing).is_err());
         let mut malformed = saved.clone();
         malformed.reading[0].outcome = Some(ReadingOutcome::Fumbled(f32::NAN));
-        assert!(sim.load_snapshot_v6(malformed).is_err());
+        assert!(sim.load_current_v6_view(malformed).is_err());
         let order = sim
             .world()
             .get::<ReadingJourney>(person)
@@ -300,12 +303,12 @@ fn upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery() {
         deliveries.push((
             needs.get(NeedId::Fun),
             needs.get(NeedId::Comfort),
-            sim.save_snapshot_v6().reading[0].earned_satisfaction,
+            sim.current_v6_view().reading[0].earned_satisfaction,
         ));
         if repeated {
-            let saved = sim.save_snapshot_v6();
-            sim.load_snapshot_v6(saved.clone()).unwrap();
-            assert_eq!(sim.save_snapshot_v6(), saved);
+            let saved = sim.current_v6_view();
+            sim.load_current_v6_view(saved.clone()).unwrap();
+            assert_eq!(sim.current_v6_view(), saved);
             let labels: Vec<_> = sim
                 .mood_of(person.index_u32())
                 .unwrap()
@@ -326,8 +329,8 @@ fn upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery() {
                 .as_mut()
                 .unwrap()[0]
                 .value = pack.tuning.habituation_max + 0.01;
-            assert!(sim.load_snapshot_v6(bad).is_err());
-            assert_eq!(sim.save_snapshot_v6(), saved);
+            assert!(sim.load_current_v6_view(bad).is_err());
+            assert_eq!(sim.current_v6_view(), saved);
         }
     }
     assert!(scores[1] < scores[0]);
@@ -386,7 +389,7 @@ fn upstream_capacity_facts_follow_actual_media_admission_and_book_ownership() {
             "published media slots determine actual device capacity"
         );
         assert_eq!(sim.model_action_capacity(model, &action.id), Some(2));
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.current_v6_view();
         let object = saved
             .legacy
             .world
@@ -415,7 +418,7 @@ fn upstream_capacity_facts_follow_actual_media_admission_and_book_ownership() {
         }
         sim.flush_commands();
         sim.tick();
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.current_v6_view();
         assert_eq!(
             saved
                 .legacy

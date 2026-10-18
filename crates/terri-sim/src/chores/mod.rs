@@ -1,8 +1,12 @@
 //! Household dirt, timed work, preferences and weekly commitments.
 mod board;
+mod room_changes;
 pub(crate) use board::work_needed;
+pub use room_changes::*;
+pub(crate) use room_changes::{reconcile_migrated_work, validate_current_work};
 pub(crate) mod grime;
 mod groups;
+pub(crate) use groups::legacy_room_labels;
 mod patches;
 pub(crate) mod presentation;
 mod save;
@@ -19,6 +23,8 @@ pub(crate) use work::{activate, cancel, issue, key_valid, soil};
 #[cfg(test)]
 mod board_tests;
 #[cfg(test)]
+pub(crate) mod build_transaction_fixture;
+#[cfg(test)]
 mod cleanliness_tests;
 #[cfg(test)]
 mod grime_tests;
@@ -26,6 +32,8 @@ mod grime_tests;
 mod integration_tests;
 #[cfg(test)]
 mod lifecycle_tests;
+#[cfg(test)]
+mod room_change_tests;
 #[cfg(test)]
 mod tests;
 
@@ -289,6 +297,13 @@ pub(crate) fn prune(world: &mut World) {
             episode.unavailable = true;
         }
     }
+    prune_references(world, &mut state);
+    board::reconcile(world, &mut state);
+    world.insert_resource(state);
+    patches::reconcile(world);
+}
+
+fn prune_references(world: &mut World, state: &mut SavedChores) {
     state.dish_started.retain(|(person, _)| {
         crate::dining::entity(world, *person)
             .is_some_and(|e| world.get::<terri_core::Agent>(e).is_some())
@@ -359,9 +374,6 @@ pub(crate) fn prune(world: &mut World) {
             episode.settled = true;
         }
     }
-    board::reconcile(world, &mut state);
-    world.insert_resource(state);
-    patches::reconcile(world);
 }
 
 pub(crate) fn completed(
@@ -419,10 +431,10 @@ pub fn keys(world: &World) -> Vec<ChoreKey> {
         target: 0,
     }]);
     let grid = world.resource::<terri_core::TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     for y in 0..grid.height() {
         for x in 0..grid.width() {
-            if grid.is_walkable(x as i32, y as i32) {
+            if crate::rooms::stable(world) || grid.is_walkable(x as i32, y as i32) {
                 if let Some(room) = rooms.at((x as i32, y as i32)) {
                     keys.insert(ChoreKey {
                         kind: ChoreKind::Floors,
@@ -488,7 +500,8 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
         ChoreKind::Bins => u32::from(value(&state.bins, key.target)),
         ChoreKind::Floors => {
             let grid = world.resource::<terri_core::TileGrid>();
-            let rooms = crate::room_regions::RoomRegions::from_world(world);
+            let legacy = (!crate::rooms::stable(world))
+                .then(|| crate::room_regions::RoomRegions::legacy(world));
             state
                 .floors
                 .iter()
@@ -497,7 +510,11 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
                         (*cell as usize % grid.width()) as i32,
                         (*cell as usize / grid.width()) as i32,
                     );
-                    grid.is_walkable(xy.0, xy.1) && rooms.at(xy) == Some(key.target)
+                    let room = legacy.as_ref().map_or_else(
+                        || crate::rooms::cleaning_area_at(world, xy).map(|area| area.key()),
+                        |rooms| rooms.at(xy),
+                    );
+                    grid.is_walkable(xy.0, xy.1) && room == Some(key.target)
                 })
                 .map(|r| u32::from(r.1))
                 .max()
@@ -507,7 +524,11 @@ pub(crate) fn dirt_in(world: &World, state: &SavedChores, key: ChoreKey) -> u32 
 }
 
 pub fn floor_at(world: &World, x: i32, y: i32) -> Option<ChoreKey> {
-    let target = crate::room_regions::RoomRegions::from_world(world).at((x, y))?;
+    let target = if crate::rooms::stable(world) {
+        crate::rooms::cleaning_area_at(world, (x, y))?.key()
+    } else {
+        crate::room_regions::RoomRegions::legacy(world).at((x, y))?
+    };
     let key = ChoreKey {
         kind: ChoreKind::Floors,
         target,
@@ -589,8 +610,15 @@ pub fn location_label(world: &World, key: ChoreKey) -> String {
     let Some(pos) = world.get::<terri_core::Position>(object) else {
         return "Removed object".into();
     };
-    let room = crate::room_regions::RoomRegions::from_world(world)
-        .at((pos.x.round() as i32, pos.y.round() as i32));
+    let room = if crate::rooms::stable(world) {
+        world
+            .resource::<crate::rooms::RoomMap>()
+            .selection_at((pos.x.round() as u32, pos.y.round() as u32))
+            .map(|room| room.key())
+    } else {
+        crate::room_regions::RoomRegions::legacy(world)
+            .at((pos.x.round() as i32, pos.y.round() as i32))
+    };
     room.map_or_else(|| "Outside".into(), |id| groups::room_label(world, id))
 }
 

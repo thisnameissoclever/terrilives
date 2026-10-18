@@ -358,7 +358,9 @@ pub fn follow_path(
                     || talks.get(target.object).is_ok();
                 let owns_incoming = beds.owns_incoming(entity, target.object);
                 let _ = &queues;
-                if beds.social_admission(entity) == Some(false)
+                let committed = beds.requests.owns(entity, *target);
+                if (committed && !beds.requests.admitted(entity, target.object))
+                    || beds.social_admission(entity) == Some(false)
                     || (beds.social_admission(entity).is_some()
                         && (busy || partners.get(target.object).is_err()))
                 {
@@ -387,6 +389,7 @@ pub fn follow_path(
                     },
                 );
                 if (beds.social_admission(entity).is_some()
+                    || committed
                     || owns_incoming
                     || grid.blocked_edges().next().is_some())
                     && !valid_contact

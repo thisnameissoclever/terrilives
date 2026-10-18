@@ -1,0 +1,346 @@
+{
+  "purpose": "Preparation for an artificial dirt-only play fixture; no dirt has been changed by this script.",
+  "checkpoint": "567736449842f60c562fd459e35a927a01a6138d",
+  "moduleSha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "inputSha256": "a75def6a369c5d29a25faf8b8f60fb38eaf647d9f6b4306e7f9e4e4bcd924f45",
+  "width": 30,
+  "height": 26,
+  "rooms": [
+    {
+      "id": 0,
+      "anchor": null,
+      "name": "Outside",
+      "area": 500,
+      "outside": true
+    },
+    {
+      "id": 1,
+      "anchor": [
+        14,
+        2
+      ],
+      "name": "Room 1",
+      "area": 48,
+      "outside": false
+    },
+    {
+      "id": 2,
+      "anchor": [
+        10,
+        10
+      ],
+      "name": "Kitchen",
+      "area": 48,
+      "outside": false
+    },
+    {
+      "id": 3,
+      "anchor": [
+        18,
+        10
+      ],
+      "name": "Living room",
+      "area": 48,
+      "outside": false
+    },
+    {
+      "id": 4,
+      "anchor": [
+        2,
+        12
+      ],
+      "name": "Room 2",
+      "area": 40,
+      "outside": false
+    },
+    {
+      "id": 5,
+      "anchor": [
+        10,
+        16
+      ],
+      "name": "Bedroom 1",
+      "area": 36,
+      "outside": false
+    },
+    {
+      "id": 6,
+      "anchor": [
+        16,
+        16
+      ],
+      "name": "Bedroom 2",
+      "area": 36,
+      "outside": false
+    },
+    {
+      "id": 7,
+      "anchor": [
+        22,
+        16
+      ],
+      "name": "Bathroom",
+      "area": 24,
+      "outside": false
+    }
+  ],
+  "objects": [
+    {
+      "id": 0,
+      "model": "fridge",
+      "typeId": "fridge",
+      "roles": [
+        "cold_storage"
+      ]
+    },
+    {
+      "id": 1,
+      "model": "counter",
+      "typeId": "kitchen_counter",
+      "roles": [
+        "prep_surface"
+      ]
+    },
+    {
+      "id": 2,
+      "model": "stove",
+      "typeId": "stove",
+      "roles": [
+        "hob"
+      ]
+    },
+    {
+      "id": 3,
+      "model": "counter",
+      "typeId": "kitchen_counter",
+      "roles": [
+        "prep_surface"
+      ]
+    },
+    {
+      "id": 4,
+      "model": "kitchen_sink",
+      "typeId": "kitchen_sink",
+      "roles": [
+        "dish_sink"
+      ]
+    },
+    {
+      "id": 5,
+      "model": "counter",
+      "typeId": "kitchen_counter",
+      "roles": [
+        "prep_surface"
+      ]
+    },
+    {
+      "id": 6,
+      "model": "trashcan",
+      "typeId": "trash_can",
+      "roles": []
+    },
+    {
+      "id": 7,
+      "model": "dining_table",
+      "typeId": "dining_table",
+      "roles": [
+        "meal_table"
+      ]
+    },
+    {
+      "id": 8,
+      "model": "chair",
+      "typeId": "dining_chair",
+      "roles": [
+        "dining_seat"
+      ]
+    },
+    {
+      "id": 9,
+      "model": "chair",
+      "typeId": "dining_chair",
+      "roles": [
+        "dining_seat"
+      ]
+    },
+    {
+      "id": 10,
+      "model": "bookshelf",
+      "typeId": "bookcase",
+      "roles": []
+    },
+    {
+      "id": 11,
+      "model": "long_sofa",
+      "typeId": "sofa",
+      "roles": []
+    },
+    {
+      "id": 12,
+      "model": "armchair",
+      "typeId": "armchair",
+      "roles": []
+    },
+    {
+      "id": 13,
+      "model": "potted_plant",
+      "typeId": "potted_plant",
+      "roles": []
+    },
+    {
+      "id": 14,
+      "model": "coat_rack",
+      "typeId": "coat_rack",
+      "roles": []
+    },
+    {
+      "id": 15,
+      "model": "floor_lamp",
+      "typeId": "floor_lamp",
+      "roles": []
+    },
+    {
+      "id": 16,
+      "model": "radio",
+      "typeId": "radio",
+      "roles": []
+    },
+    {
+      "id": 17,
+      "model": "television",
+      "typeId": "television",
+      "roles": []
+    },
+    {
+      "id": 18,
+      "model": "sofa",
+      "typeId": "ottoman",
+      "roles": [
+        "turnable_seat"
+      ]
+    },
+    {
+      "id": 19,
+      "model": "double_bed",
+      "typeId": "bed",
+      "roles": []
+    },
+    {
+      "id": 20,
+      "model": "nightstand",
+      "typeId": "nightstand",
+      "roles": []
+    },
+    {
+      "id": 21,
+      "model": "dresser",
+      "typeId": "dresser",
+      "roles": []
+    },
+    {
+      "id": 22,
+      "model": "moving_box",
+      "typeId": "exercise_bike",
+      "roles": []
+    },
+    {
+      "id": 23,
+      "model": "desk",
+      "typeId": "desk",
+      "roles": []
+    },
+    {
+      "id": 24,
+      "model": "desk_chair",
+      "typeId": "office_chair",
+      "roles": []
+    },
+    {
+      "id": 25,
+      "model": "bed",
+      "typeId": "bunk_bed",
+      "roles": []
+    },
+    {
+      "id": 26,
+      "model": "reading_chair",
+      "typeId": "armchair",
+      "roles": []
+    },
+    {
+      "id": 27,
+      "model": "reference_shelf",
+      "typeId": "aquarium",
+      "roles": []
+    },
+    {
+      "id": 28,
+      "model": "potted_plant",
+      "typeId": "potted_plant",
+      "roles": []
+    },
+    {
+      "id": 29,
+      "model": "toilet",
+      "typeId": "toilet",
+      "roles": []
+    },
+    {
+      "id": 30,
+      "model": "shower",
+      "typeId": "shower",
+      "roles": []
+    },
+    {
+      "id": 31,
+      "model": "bathtub",
+      "typeId": "bathtub",
+      "roles": []
+    },
+    {
+      "id": 32,
+      "model": "sink",
+      "typeId": "bathroom_sink",
+      "roles": []
+    },
+    {
+      "id": 33,
+      "model": "laundry",
+      "typeId": "washing_machine",
+      "roles": []
+    }
+  ],
+  "nativeKitchenId": 2,
+  "indoorCandidates": "310,311,312,313,314,315,316,317,340,341,342,343,344,345,346,347,370,371,372,373,374,375,376,377,400,401,402,403,404,405,406,407,430,431,432,433,434,435,436,437,460,461,462,463,464,465,466,467",
+  "outdoorCandidates": "95,96,97,98",
+  "surfaceEntities": "7",
+  "outdoorPoints": [
+    [
+      5,
+      3
+    ],
+    [
+      6,
+      3
+    ],
+    [
+      7,
+      3
+    ],
+    [
+      8,
+      3
+    ]
+  ],
+  "tables": [
+    {
+      "id": 7,
+      "model": "dining_table",
+      "typeId": "dining_table",
+      "roles": [
+        "meal_table"
+      ]
+    }
+  ],
+  "nextControl": "Compile the existing wire-only helper, change only the chosen dirt records, then prove strict current native load/resave before play."
+}

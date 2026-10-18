@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "patterns": {
+    "floor.outdoor-patio": { "role": "floor", "period": [4, 2], "resource": "tiles" }
+  },
+  "palettes": {
+    "stone-gray": { "multiply": [0.55, 0.58, 0.60] }
+  },
+  "finishes": {
+    "floor.outdoor-patio": {
+      "patternKey": "floor.outdoor-patio",
+      "paletteKey": "stone-gray",
+      "authoredContentLook": [0, 1, 0]
+    }
+  },
+  "coverings": { "4": "floor.outdoor-patio" }
+}

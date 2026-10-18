@@ -1,0 +1,8 @@
+# Current room transport fixtures
+
+These are current V16 native test fixtures. They are separate from the immutable published V14 and V15 corpus and do not claim historical producer authenticity.
+
+1. `sparse-person-active.sav` is 701 bytes, SHA256 `207131b082bdf8725318972fd08588fec1f3a8e9efc6d9b59be08993bf4099de`. The native producer test creates an empty 10x8 world, paints two cells, retains an empty entity slot, reuses another slot for a person, sets that person's literal name, and starts real floor work through CleanChore. Raw entity index 1 and stable SimId 0 intentionally differ. A native companion verifies that candidate reconstruction can change the full Entity generation while retaining the raw person index, stable identity and name.
+2. `funded-fresh.sav` is 5372 bytes, SHA256 `8aaaba47286e6ce0c16ff9b25204eb690532a8f5a69fc346515c7dbe15df616a`. The native producer starts the current shipped household and changes only Funds to $100,000 as an explicit test precondition. It exercises west and north land purchases without changing gameplay prices or earned money.
+
+The producers are `room_transport_current_person_fixture_has_real_work_and_distinct_identity` and `room_transport_selection_and_predecessors_follow_both_land_offsets` in `src/room_transport_tests.rs`. Both compare their exact baseline bytes with these files before the Build draft. The person fixture also passes strict current load and exact resave. The accepted base is `e9fae39a1c9316ef88e1320c060dde76cc3eab24`, with current catalogue fingerprint `5841475410324663844`. No original fixture was changed to produce these files.

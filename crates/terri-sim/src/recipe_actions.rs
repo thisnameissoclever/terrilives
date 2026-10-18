@@ -6,6 +6,9 @@ use terri_core::{
 };
 use terri_data::{CompiledInteraction, ContentPack};
 
+#[cfg(test)]
+mod legacy_migration_tests;
+
 /// Raw roles preserve saved content; usable recipe roles also honor station admission.
 pub fn usable_recipe_role(
     pack: &ContentPack,
@@ -136,7 +139,7 @@ pub(crate) fn continuation(world: &World, actor: Entity, normal_priority: bool) 
     )
 }
 
-pub(crate) fn save_activity(world: &World) -> Vec<terri_core::save_v15::SavedOrderActor> {
+pub(crate) fn save_activity(world: &World) -> Vec<terri_core::save_v17::SavedOrderActor> {
     let mut rows: Vec<_> = world
         .try_query::<(Entity, &ChainState, &Origin, &RecipeActivity)>()
         .map(|mut query| {
@@ -177,7 +180,7 @@ fn other_current_activity(world: &World, actor: Entity) -> bool {
 
 pub(crate) fn restore_activity(
     world: &mut World,
-    rows: Vec<terri_core::save_v15::SavedOrderActor>,
+    rows: Vec<terri_core::save_v17::SavedOrderActor>,
 ) -> Result<(), crate::SaveError> {
     if rows.windows(2).any(|pair| pair[0] >= pair[1]) {
         return Err(crate::SaveError::InvalidValue);
@@ -233,8 +236,8 @@ pub(crate) fn hash_activity(world: &World, hasher: &mut terri_core::FnvHasher) {
     hasher.write_u64(rows.len() as u64);
     for row in rows {
         let (tag, identity) = match row {
-            terri_core::save_v15::SavedOrderActor::Sim(identity) => (0, identity),
-            terri_core::save_v15::SavedOrderActor::Entity(index) => (1, index),
+            terri_core::save_v17::SavedOrderActor::Sim(identity) => (0, identity),
+            terri_core::save_v17::SavedOrderActor::Entity(index) => (1, index),
         };
         hasher.write_u64(tag);
         hasher.write_u64(u64::from(identity));
@@ -445,14 +448,22 @@ pub(crate) fn restore(
     world: &mut World,
     rows: Vec<SavedChainOrigin>,
 ) -> Result<(), crate::SaveError> {
-    if rows.windows(2).any(|rows| rows[0].person >= rows[1].person) {
-        return Err(crate::SaveError::InvalidValue);
-    }
-    let pack = world.resource::<crate::Content>().0;
     let active: std::collections::BTreeSet<_> = world
         .try_query::<(Entity, &ChainState)>()
         .map(|mut q| q.iter(world).map(|(e, _)| e.index_u32()).collect())
         .unwrap_or_default();
+    restore_scoped(world, rows, active)
+}
+
+fn restore_scoped(
+    world: &mut World,
+    rows: Vec<SavedChainOrigin>,
+    active: std::collections::BTreeSet<u32>,
+) -> Result<(), crate::SaveError> {
+    if rows.windows(2).any(|rows| rows[0].person >= rows[1].person) {
+        return Err(crate::SaveError::InvalidValue);
+    }
+    let pack = world.resource::<crate::Content>().0;
     let mut seen = std::collections::BTreeSet::new();
     for row in rows {
         let invalid = crate::SaveError::InvalidValue;
@@ -617,4 +628,49 @@ pub(crate) fn historical(
             })
         })
         .collect()
+}
+
+/// Only legacy adoption reconstructs missing recipe metadata. Current saves
+/// must supply every origin and continue through the strict restore validator.
+pub(crate) fn migrate_legacy(sim: &mut crate::Sim) -> Result<(), crate::SaveError> {
+    if sim.world().resource::<crate::Content>().0.reading.is_none() {
+        return Ok(());
+    }
+    // Historical native snapshots also accept projection-only entities. Recipe
+    // execution requires Agent and Needs, so only that domain gains metadata.
+    // Current restoration still requires coverage of every saved ChainState.
+    let active: std::collections::BTreeSet<_> = sim
+        .world()
+        .try_query::<(Entity, &terri_core::Agent, &terri_core::Needs, &ChainState)>()
+        .map(|mut query| {
+            query
+                .iter(sim.world())
+                .map(|(person, _, _, _)| person.index_u32())
+                .collect()
+        })
+        .unwrap_or_default();
+    let missing: std::collections::BTreeSet<_> = active
+        .iter()
+        .copied()
+        .filter(|index| {
+            crate::dining::entity(sim.world(), *index)
+                .is_some_and(|person| sim.world().get::<Origin>(person).is_none())
+        })
+        .collect();
+    if missing.is_empty() {
+        return Ok(());
+    }
+    let mut legacy = sim.save_snapshot_v5();
+    for row in &mut legacy.world.entities {
+        if !missing.contains(&row.index) {
+            row.chain = None;
+        }
+    }
+    let mut origins: Vec<_> = capture(sim.world())
+        .into_iter()
+        .filter(|row| active.contains(&row.person))
+        .collect();
+    origins.extend(historical(&legacy)?);
+    origins.sort_by_key(|row| row.person);
+    restore_scoped(sim.world_mut(), origins, active)
 }

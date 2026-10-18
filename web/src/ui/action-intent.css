@@ -1,0 +1,49 @@
+/* Components consume these colors without changing their control geometry. */
+button[data-action-intent='affirmative'] {
+  --action-background: #264f3d;
+  --action-text: #e8f8ed;
+  --action-border: #74ae88;
+  --action-hover-background: #306348;
+}
+button[data-action-intent='negative'], button[data-action-intent='destructive'] {
+  --action-background: #5b2d35;
+  --action-text: #fff0f1;
+  --action-border: #ca8993;
+  --action-hover-background: #713b45;
+}
+button[data-action-intent] {
+  background: var(--action-background);
+  color: var(--action-text);
+  border-color: var(--action-border);
+}
+button[data-action-intent]:is(:hover, :focus-visible, :active):not(:disabled) {
+  background: var(--action-hover-background);
+  color: var(--action-text);
+  border-color: var(--action-border);
+}
+button[data-action-intent]:disabled {
+  --action-background: #202028;
+  --action-hover-background: #202028;
+  --action-text: var(--hud-muted, #a8adb7);
+  --action-border: var(--hud-edge, #555965);
+}
+button[data-action-intent] :is(.action-price, .menu-secondary) { color: inherit; }
+@media (forced-colors: active) {
+  /* Keep native text backplates readable; reserve Highlight for the focus outline. */
+  button[data-action-intent] {
+    --action-background: ButtonFace;
+    --action-text: ButtonText;
+    --action-border: ButtonBorder;
+    --action-hover-background: ButtonFace;
+    outline: 1px solid ButtonBorder;
+    outline-offset: -1px;
+  }
+  button[data-action-intent]:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  button[data-action-intent]:is(:hover, :focus-visible, :active):not(:disabled) { --action-text: ButtonText; }
+  button[data-action-intent]:disabled {
+    --action-background: ButtonFace;
+    --action-hover-background: ButtonFace;
+    --action-text: GrayText;
+    --action-border: GrayText;
+  }
+}

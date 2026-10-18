@@ -1,0 +1,119 @@
+{
+  "first_checkpoint": "00d4fc2038bacc8a875ed3552c931eaf727f62ae",
+  "merged_main": "b7ee082afe27ba88d8261788e15dc812057f71c1",
+  "hash_representation": "sha256/bytes describe indexed viewing copies; original receipt fields retain their original meaning",
+  "files": [
+    {
+      "file": "v16-merge-a481-commit.json",
+      "raw_source_sha256": "8615b7e35da56bb0b7306410c879a46fa725b7a2022ef46a959a1cc4b03b21d6",
+      "raw_bytes": 304,
+      "sha256": "8615b7e35da56bb0b7306410c879a46fa725b7a2022ef46a959a1cc4b03b21d6",
+      "bytes": 304,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-merge-b7.json",
+      "raw_source_sha256": "a4eb652559a8cc63e3cef315e842573b7613cbcb4632055789d60dab0baa2ce8",
+      "raw_bytes": 295,
+      "sha256": "a4eb652559a8cc63e3cef315e842573b7613cbcb4632055789d60dab0baa2ce8",
+      "bytes": 295,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-merge-b7.log",
+      "raw_source_sha256": "a88300d838e244a2070bfa16373ded7525186a99375e16c3bbf3493477433955",
+      "raw_bytes": 198,
+      "sha256": "a88300d838e244a2070bfa16373ded7525186a99375e16c3bbf3493477433955",
+      "bytes": 198,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-build.json",
+      "raw_source_sha256": "4ddb8f82fcaccbadb533d1f23ada0dcfe4334daf34220a1b13c53529936d9899",
+      "raw_bytes": 309,
+      "sha256": "4ddb8f82fcaccbadb533d1f23ada0dcfe4334daf34220a1b13c53529936d9899",
+      "bytes": 309,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-b7-build.log",
+      "raw_source_sha256": "a824a34532142e6ed65061ca8492ef986bb517d20c35f09ec3d81f68a6dbad17",
+      "raw_bytes": 244,
+      "sha256": "a824a34532142e6ed65061ca8492ef986bb517d20c35f09ec3d81f68a6dbad17",
+      "bytes": 244,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-source.json",
+      "raw_source_sha256": "3bd18a3cf25aaa13150c74f78c489be105b7a4646b7c6f2fdcf115a16002e5f4",
+      "raw_bytes": 55493,
+      "sha256": "fd306e38a61833159181bf2dc2f2b7e635ac62a1c27e5fcadcdff19cc045628f",
+      "bytes": 55040,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "v16-b7-focus.json",
+      "raw_source_sha256": "035eea0f85eb537ac43d8d125b0c29e039199391d20ad914ada4c4fb3ab429f4",
+      "raw_bytes": 1604,
+      "sha256": "035eea0f85eb537ac43d8d125b0c29e039199391d20ad914ada4c4fb3ab429f4",
+      "bytes": 1604,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-b7-unchurned-tie.log",
+      "raw_source_sha256": "d7d9163c676053f9417efd4aa575ab5d0ab47414f61b174dff06756c435a3c6b",
+      "raw_bytes": 223,
+      "sha256": "fd8db6b2a22816b05a7b587eda4afad7d915e37e825f03c01f31b2e0449915e4",
+      "bytes": 222,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-churned-tie.log",
+      "raw_source_sha256": "a1ea6474b1844910c4c15915d3da5272b24ba0b2fe2f74806330322fa79e4805",
+      "raw_bytes": 207,
+      "sha256": "8e820487cc7ea15b0b2ee7adf615d8cd24aecd89d2cd410b4244e4defd005189",
+      "bytes": 206,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-seed.log",
+      "raw_source_sha256": "5cd7e0f0eaed1c2443c565b1869725e8fa1cf7d4a0a36832a08266a6a2fac159",
+      "raw_bytes": 217,
+      "sha256": "475b512013af1c116a274a9b93e6873a3aa20ceeb6246fa8a3e9ebbae07976a5",
+      "bytes": 216,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-sampler.log",
+      "raw_source_sha256": "3546d57fc846ea554e27f49381d9c35183dd24846ec03537393a4c333a171ca6",
+      "raw_bytes": 594,
+      "sha256": "77ffde67a2fa4080b4e2d15b2ec79fe5985f5c2eea47410d5c4ab62943cf176c",
+      "bytes": 593,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-b7-format.json",
+      "raw_source_sha256": "9ee26a140cd39925ec5b86f590e8632b734158e4dc31cb41f87a009ca4d0a736",
+      "raw_bytes": 252,
+      "sha256": "9ee26a140cd39925ec5b86f590e8632b734158e4dc31cb41f87a009ca4d0a736",
+      "bytes": 252,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-final-index-check.json",
+      "raw_source_sha256": "58dc3ecf90482cada24a21aeb07b6c262ba1914ff2739296b14e60c3fdd57a5d",
+      "raw_bytes": 252,
+      "sha256": "58dc3ecf90482cada24a21aeb07b6c262ba1914ff2739296b14e60c3fdd57a5d",
+      "bytes": 252,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-final-index-check.log",
+      "raw_source_sha256": "dbeccbcea405bf79187b93c5d705b0c7eac235591f39951254b4530ce8c90589",
+      "raw_bytes": 158,
+      "sha256": "6b592f628554c8f5a9ba93ea22dfc517704a152a81ec7674cb9efe244827a090",
+      "bytes": 157,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    }
+  ]
+}

@@ -251,6 +251,7 @@ export class FurnitureBuilder {
     const revision = this.source.lotRevision();
     const changed = revision !== this.revision;
     this.revision = revision;
+    let saleStatus: string | null = null;
     // A sale first: once it lands there is no chosen object to requery.
     if (this.selling !== null) {
       const result = this.source.lastSaleResult();
@@ -263,6 +264,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${name || 'Furniture'} sold.`;
+        saleStatus = this.status;
         this.hooks.changed();
       }
     }
@@ -276,6 +278,7 @@ export class FurnitureBuilder {
         this.hooks.changed();
       }
     }
+    if (saleStatus !== null) { this.status = saleStatus; this.hooks.changed(); }
     // A colourway change keeps the choice; read what it is drawn in now.
     // After the requery above, which a change's new lot revision triggers,
     // so the status it sets is the one left showing.

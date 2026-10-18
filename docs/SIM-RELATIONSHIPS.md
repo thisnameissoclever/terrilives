@@ -120,10 +120,31 @@ Each participant sees the same topic but their own approval and background
 color. A disliked topic produces a small listener-to-initiator penalty in
 place of that listener's ordinary positive conversation completion gain.
 
-Incoming conversation claims belong to one initiator. A busy recipient
-finishes their current activity while the initiator approaches and waits.
-Once idle, the recipient remains available for that initiator. Urgent physical
-needs, work, cancellation and invalid paths release the hold.
+Chosen conversations retain a request with an exact initiator, recipient and
+origin. The initiator approaches and waits while the recipient finishes their
+existing activity, including travel and the complete meal or reading goal.
+A busy recipient is not reserved. Once available, the recipient takes the
+oldest eligible request before choosing a fresh discretionary activity.
+A new explicit player order can redirect either person without deleting another
+person's request. Player-owned conversations delay work; a confirmed new order
+can interrupt a commute or bring an off-lot worker home. Autonomous requests
+can wait through work. Critical needs never override player orders, while need
+decay and death remain enabled. See the [player-order contract](specs/2026-10-17-player-orders.md).
+
+Private toilet, bath and shower activity makes the initiator wait outside its
+room, including while the recipient approaches the fixture. A changed route
+reuses the current fractional walking segment instead of restarting from a tile
+center. An autonomous conversation retains its request when no route is currently
+available. A player conversation waits when privacy temporarily blocks an otherwise
+reachable route; a destination disconnected by the lot's geometry fails with a
+recorded reason.
+Reciprocal requests and longer cycles temporarily suspend an outgoing request
+so an older conversation can proceed, then resume the suspended request.
+
+Current saves preserve request identity and exact player order ownership through
+approach, waiting, suspension and talking. Autonomous completion never consumes
+a later matching player order. Older saves cannot identify that ownership, so
+migration preserves an ambiguous queued order even if it produces an extra chat.
 
 Shared activity timers extend only when another Sim actually joins. Each Sim
 can receive at most two extensions during an activity. A valid approaching
@@ -148,11 +169,16 @@ privacy, with shyness scaling the reaction.
 Autonomous Sims prefer alternatives, detours or waiting. Respect decisions last
 30 simulated minutes, reducing repeated random attempts. Relevant critical needs
 can override after ten minutes without an alternative; levels at or below five
-can override immediately. Player orders bypass avoidance, exits are permitted,
-and necessary commute routes remain usable. Consequences still apply.
+can override immediately. Direct object orders bypass avoidance; conversation
+approaches wait outside occupied private rooms. Exits are permitted, and necessary
+commute routes remain usable. Consequences still apply.
 Domestic station claims and distinct dining seats also constrain privacy detours.
 
-Awake housemates in the same room within four tiles can develop relationships.
+Awake housemates in the same enclosed room within four tiles can develop relationships.
+This membership comes from the shared confirmed room map; the single Outside
+room does not join distant outdoor housemates for passive room effects. Explicit
+shared-device and shared-table participation retains its existing scope across rooms.
+See the [room identity contract](specs/2026-10-17-room-identities.md).
 Positive contact requires acceptable hygiene in the other Sim and no critical
 need in the subject left unhelped by the current activity. Existing dislike or
 relationship mood cannot prevent recovery. Simultaneous reading, exercise and

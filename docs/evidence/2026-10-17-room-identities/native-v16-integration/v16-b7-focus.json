@@ -1,0 +1,53 @@
+{
+  "artifact": {
+    "path": "target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+    "sha256": "c632f0063610bd1e17ea7f3fdaf8c2abb99da0f6066f06523e4ea339f8bf5088"
+  },
+  "source_manifest": "v16-b7-source.json",
+  "tests": [
+    {
+      "name": "unchurned-tie",
+      "command": [
+        "target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "systems::action::tests::a_tied_object_with_a_higher_index_stays_in_the_later_probability_bucket",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "log": ".local-build\\v16-b7-unchurned-tie.log"
+    },
+    {
+      "name": "churned-tie",
+      "command": [
+        "target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "systems::action::tests::tied_scores_resolve_by_object_index_not_archetype_order",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "log": ".local-build\\v16-b7-churned-tie.log"
+    },
+    {
+      "name": "seed",
+      "command": [
+        "target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "systems::action::tests::the_seed_selection_draws_from_is_the_one_the_content_pack_carries",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "log": ".local-build\\v16-b7-seed.log"
+    },
+    {
+      "name": "sampler",
+      "command": [
+        "target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "systems::action::sampler_tests::",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": ".local-build\\v16-b7-sampler.log"
+    }
+  ],
+  "finished_utc": "2026-10-18T03:06:28.557034+00:00"
+}

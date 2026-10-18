@@ -16,7 +16,7 @@ pub(crate) mod placement;
 mod planning;
 pub(crate) use planning::{
     best_plan, choose_plan, effective_benefits, has_reachable_plan, plans, prepare, publish_plan,
-    waiting_for_owned_copy,
+    representatives, waiting_for_owned_copy,
 };
 pub use planning::{Options, Plan};
 #[cfg(test)]
@@ -341,6 +341,30 @@ pub(crate) fn request_return(world: &mut World, person: Entity) -> bool {
             .remove(&person);
     }
     settle_reward(world, person);
+    // An early return ends this communal episode synchronously, including while
+    // paused. Extended, completed and full-session history remains authoritative.
+    let before_cap = world
+        .resource::<Content>()
+        .0
+        .reading
+        .as_ref()
+        .is_some_and(|tuning| j.elapsed < tuning.session_ticks);
+    let obsolete_company = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+        .is_some_and(|episode| {
+            episode.target == j.origin
+                && episode.extensions == 0
+                && episode.completed_novelty.is_none()
+                && before_cap
+        });
+    if obsolete_company {
+        world
+            .resource_mut::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .remove(&person);
+    }
     let id = *world.get::<SimId>(person).unwrap();
     let mut library = world.resource::<BookLibrary>().clone();
     if matches!(j.stage, ReadingStage::Fetch | ReadingStage::Pickup) {
@@ -719,21 +743,18 @@ fn read_tick(world: &mut World, person: Entity) {
         .get::<Personality>(person)
         .cloned()
         .unwrap_or_default();
+    let benefits = effective_benefits(pack, &act).unwrap();
+    let effects = crate::need_interactions::physical::reading_effects(
+        benefits.fun,
+        benefits.comfort_for_ticks(1),
+        work.reward_factor,
+        taste,
+        fumble,
+        &personality,
+    );
     if let Some(mut needs) = world.get_mut::<Needs>(person) {
-        needs.fill(
-            NeedId::Fun,
-            work.reward_factor
-                * taste
-                * fumble
-                * effective_benefits(pack, &act).unwrap().fun
-                * personality.satisfaction[NeedId::Fun as usize],
-        );
-        needs.fill(
-            NeedId::Comfort,
-            effective_benefits(pack, &act).unwrap().comfort_for_ticks(1)
-                * fumble
-                * personality.satisfaction[NeedId::Comfort as usize],
-        );
+        needs.fill(NeedId::Fun, effects[NeedId::Fun.index()]);
+        needs.fill(NeedId::Comfort, effects[NeedId::Comfort.index()]);
     }
     let payout = crate::systems::satisfaction::hobby_payout(
         work.satisfaction * taste,

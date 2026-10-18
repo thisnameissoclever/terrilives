@@ -49,10 +49,9 @@ describe('clampMenuPosition', () => {
  * A `MenuSurface` that records what it was shown and keeps the pick
  * callback so a test can fire a row the way a click would.
  *
- * `createMenuSurface` itself is the untested wiring, exactly as
- * `buildNeedBars` and `buildTimeControls` are - there is no jsdom here and
- * the project's convention is structural fakes rather than a browser
- * environment. Everything with a decision in it is above that line.
+ * The project's tests use structural fakes rather than a browser DOM.
+ * This fake checks controller decisions; action-intent.test.ts also
+ * exercises the real surface's action attributes and pagination events.
  */
 function recordingSurface(): MenuSurface & {
   readonly calls: string[];

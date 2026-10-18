@@ -1,10 +1,10 @@
 # Contextual actions around the build selection
 
-The original Confirm / Cancel pair shipped in PR 113 at merge `5b124bc`, with played check [A-placement-buttons]. The owner-approved [build controls revision](2026-10-01-build-context-controls.md) extends it to all five tools and replaces duplicate panel action rows.
+The original Confirm / Cancel pair shipped in PR 113 at merge `5b124bc`, with played check [A-placement-buttons]. The owner-approved [build controls revision](2026-10-01-build-context-controls.md) supplies contextual selection actions and replaces duplicate panel action rows. Build has six destinations, including Land; each keeps the controls appropriate to its selection.
 
 ## [PA-show] Active selection and controller capabilities
 
-Furniture, Buy, Walls, Room and Floors share one typed presentation model. Only the active selection has actions. Commands, supported facings, actual prices and payouts, affordability, placement validation, pending state and refusal messages remain owned by existing controllers.
+Furniture, Buy, Walls, room construction and Floors share one typed presentation model. Rooms defaults to Select rooms, whose dropdown and name field are separate from Build room's construction actions. Land keeps its strip selection, quote and purchase dialog. Only the active selection has contextual actions. Commands, supported facings, actual prices and payouts, affordability, placement validation, pending state and refusal messages remain owned by existing controllers.
 
 Before hiding or disabling a focused action, the surface focuses the game view. Rotation SVGs have accessible direction names. Modal dialogs suspend the surface; its hidden rule outranks compact layout rules.
 
@@ -20,4 +20,4 @@ Dirty callbacks update the model; camera and buffer comparisons update positioni
 
 ## [PA-evidence] Verification boundary
 
-Projection tests retain device pixel ratios 1, 2 and 3 and art-anchor scaling. Controller and presentation tests cover all five action sets, supported directions, actual prices and payouts, refusal and pending guards, and unchanged frames. Browser checks exercise the actual game, bounds, hit testing and focus restoration. Current commands and screenshots are in [build controls evidence](../assets/review-evidence/build-controls/README.md). Local checks do not constitute owner visual acceptance.
+Projection tests retain device pixel ratios 1, 2 and 3 and art-anchor scaling. Controller and presentation tests cover contextual construction actions, supported directions, actual prices and payouts, refusal and pending guards, and unchanged frames. Room selection and Land have their own controller checks. Browser checks exercise the actual game, bounds, hit testing and focus restoration. Dated commands and screenshots are in [build controls evidence](../assets/review-evidence/build-controls/README.md). Local checks do not constitute owner visual acceptance.

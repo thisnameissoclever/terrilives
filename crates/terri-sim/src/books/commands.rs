@@ -6,7 +6,7 @@ use terri_core::{
     books::*, command::BookCommand, Agent, Funds, Intent, IntentQueue, SimId, SmartObject,
 };
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct LegacyBookImportNotice(pub bool);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BookCommandResult {
@@ -15,7 +15,7 @@ pub struct BookCommandResult {
     pub order: Option<u64>,
     pub refusal: Option<&'static str>,
 }
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct BookFeedback {
     pub sequence: u64,
     pub results: Vec<BookCommandResult>,

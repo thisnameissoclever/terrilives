@@ -1,0 +1,18 @@
+{
+  "tick": 82,
+  "label": "Talking",
+  "actors": [
+    {
+      "sim": 0,
+      "clip": "talk",
+      "x": 13,
+      "y": 7
+    },
+    {
+      "sim": 1,
+      "clip": "talk",
+      "x": 12,
+      "y": 7
+    }
+  ]
+}

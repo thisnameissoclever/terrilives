@@ -1,0 +1,66 @@
+[
+  {
+    "name": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-wasm/examples/domestic_review.rs",
+      "crates/terri-wasm/examples/relationship_qa.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-02-format.log",
+    "finished_utc": "2026-10-18T02:26:04.186570+00:00"
+  },
+  {
+    "name": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-review-tools-02-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-02-fingerprint.log",
+    "finished_utc": "2026-10-18T02:26:04.968700+00:00"
+  },
+  {
+    "name": "build",
+    "command": [
+      "cargo",
+      "build",
+      "-p",
+      "terri-wasm",
+      "--example",
+      "domestic_review",
+      "--example",
+      "relationship_qa",
+      "--locked",
+      "--jobs",
+      "1",
+      "--message-format=json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-02-build.log",
+    "finished_utc": "2026-10-18T02:26:08.985317+00:00"
+  },
+  {
+    "name": "domestic",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\domestic_review.exe",
+      ".local-build\\current-review-tools-v16-02\\domestic.sav"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-review-tools-02-domestic.log",
+    "finished_utc": "2026-10-18T02:26:18.248604+00:00"
+  },
+  {
+    "name": "relationship",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\examples\\relationship_qa.exe",
+      ".local-build\\current-review-tools-v16-02\\relationship"
+    ],
+    "exit_code": 101,
+    "log": ".local-build\\v16-review-tools-02-relationship.log",
+    "finished_utc": "2026-10-18T02:26:19.367052+00:00"
+  }
+]

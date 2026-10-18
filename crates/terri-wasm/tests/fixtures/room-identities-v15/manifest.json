@@ -1,0 +1,71 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "schema": 15,
+  "producerWasmSha256": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648",
+  "producerEvidence": "../../../../../docs/evidence/2026-10-17-room-identities/published-v15-producer/README.md",
+  "files": [
+    {
+      "file": "chat-approaching.sav",
+      "bytes": 5654,
+      "sha256": "f860aee75cced3ad23bdb3a955abaff54181e806f02ff66b8bb112b61710c545",
+      "tick": "1",
+      "originalReplayUpdates": 338
+    },
+    {
+      "file": "chat-queued.sav",
+      "bytes": 5288,
+      "sha256": "92c2401f31ba9f78bc1507a10ae819abd24d72da550532063b556e127b864fe9",
+      "tick": "0",
+      "originalReplayUpdates": 339
+    },
+    {
+      "file": "chat-suspended.sav",
+      "bytes": 5698,
+      "sha256": "ce310cfd3b1821cc43e3f0b19a0bec4033b387732b7edd37a816d304928aa390",
+      "tick": "46",
+      "originalReplayUpdates": 120
+    },
+    {
+      "file": "chat-talking-later-identical.sav",
+      "bytes": 5886,
+      "sha256": "27eefee04c3b267d57a2f58893b98db4c374bd0962e77783caa19db3636c6302",
+      "tick": "219",
+      "originalReplayUpdates": 120
+    },
+    {
+      "file": "chat-talking.sav",
+      "bytes": 5869,
+      "sha256": "49f6ecaa277d8ca6168ad2b540082cf4c76eb59f76fae2538e7de5364d6026dc",
+      "tick": "219",
+      "originalReplayUpdates": 120
+    },
+    {
+      "file": "chat-waiting-arrived.sav",
+      "bytes": 5657,
+      "sha256": "bd596755d3870781ab80714b4be045aa7ef6901891644587d95f0ce9c27c5db8",
+      "tick": "45",
+      "originalReplayUpdates": 294
+    },
+    {
+      "file": "chat-waiting-owned.sav",
+      "bytes": 5654,
+      "sha256": "f1a5d9d4bd86c69517c401a0b21881bd0841251367f049a19b523876fc9b3e27",
+      "tick": "41",
+      "originalReplayUpdates": 298
+    },
+    {
+      "file": "chat-waiting-private.sav",
+      "bytes": 6005,
+      "sha256": "d30d3f0f689dfcb0918e213a8505bcfd2476536f808ed7e17a694c26271217d3",
+      "tick": "58",
+      "originalReplayUpdates": 120
+    },
+    {
+      "file": "fresh.sav",
+      "bytes": 5282,
+      "sha256": "934423ac3cd47f21028dbb52e08e84e9afac74c856bcdd5d2423c82cfb6b4ca4",
+      "tick": "0",
+      "originalReplayUpdates": 120
+    }
+  ]
+}

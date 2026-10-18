@@ -165,7 +165,8 @@ const DRAW_BUCKETS: u64 = 1u64 << 53;
 
 /// Reserve at least one RNG bucket for every positive probability. This keeps
 /// rare alternatives selectable even below floating-point cumulative precision.
-fn sampling_buckets(probabilities: &[f64]) -> Vec<u64> {
+/// Selection's tie tests call it to find the buckets a recorded draw used.
+pub(super) fn sampling_buckets(probabilities: &[f64]) -> Vec<u64> {
     assert!(!probabilities.is_empty() && (probabilities.len() as u64) < DRAW_BUCKETS);
     let mut buckets: Vec<u64> = probabilities
         .iter()
@@ -269,15 +270,18 @@ pub fn grouped_probabilities<K: Eq + Copy>(
 }
 
 /// Per-tick diagnostics only; no simulation choice reads this resource.
-#[derive(bevy_ecs::prelude::Resource, Default)]
+#[derive(bevy_ecs::prelude::Resource, Default, Clone)]
 pub struct DecisionTelemetry(pub Vec<Decision>);
+#[derive(Clone)]
 pub struct Decision {
     pub agent: u32,
     pub instinct: u8,
     pub lowest_need: f32,
+    pub critical_need_count: u8,
     pub chosen: usize,
     /// Target index, interaction row, utility, risk penalty, probability.
     pub choices: Vec<(u32, u32, f32, f32, f64)>,
+    pub relief_masks: Vec<u8>,
 }
 
 #[cfg(test)]

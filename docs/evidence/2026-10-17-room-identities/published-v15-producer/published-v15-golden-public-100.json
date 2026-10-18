@@ -1,0 +1,666 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "producerWasmSha256": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648",
+  "recipe": {
+    "width": 24,
+    "height": 24,
+    "fridge": [
+      18,
+      14
+    ],
+    "agents": [
+      [
+        1,
+        1,
+        30
+      ],
+      [
+        2,
+        1,
+        35
+      ],
+      [
+        3,
+        1,
+        40
+      ],
+      [
+        4,
+        1,
+        45
+      ],
+      [
+        5,
+        1,
+        50
+      ],
+      [
+        6,
+        1,
+        55
+      ],
+      [
+        7,
+        1,
+        60
+      ],
+      [
+        8,
+        1,
+        65
+      ]
+    ],
+    "ticks": 100
+  },
+  "initialHash": "0c66885c725b9afa5793235a288bea9f7b9e70916a08ea8afaaa2ddb679ee91a",
+  "worldHash": "4676206450852028819",
+  "bytes": 3587,
+  "sha256": "e4d329c36b81dbe109d639bbfbca14760fb29b7dc567ddc7c1b4a647109d7325",
+  "originalReload": true,
+  "exactResave": true,
+  "initialDecoded": {
+    "schema": 15,
+    "tick": "0",
+    "width": 24,
+    "height": 24,
+    "next_request_id": "0",
+    "requests": [],
+    "entities": [
+      {
+        "index": 0,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "fridge",
+        "position": [
+          18,
+          14
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 1,
+        "sim_id": 0,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          1,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          30,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 2,
+        "sim_id": 1,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          2,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          35,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 3,
+        "sim_id": 2,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          3,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          40,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 4,
+        "sim_id": 3,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          4,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          45,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 5,
+        "sim_id": 4,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          5,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          50,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 6,
+        "sim_id": 5,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          6,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          55,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 7,
+        "sim_id": 6,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          7,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          60,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 8,
+        "sim_id": 7,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          8,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          65,
+          100,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "voice": "None"
+      }
+    ],
+    "queues": [],
+    "social_actions": [
+      "chat",
+      "fight"
+    ],
+    "rendezvous": [],
+    "queued": [],
+    "command_order_v6": "[]",
+    "command_order_v10": "[]"
+  },
+  "decoded": {
+    "schema": 15,
+    "tick": "100",
+    "width": 24,
+    "height": 24,
+    "next_request_id": "8",
+    "requests": [
+      {
+        "id": "2",
+        "initiator": 5,
+        "recipient": 4,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "1",
+        "phase": "talking",
+        "waiting_tile": [
+          6,
+          1
+        ],
+        "target_owned": true
+      },
+      {
+        "id": "4",
+        "initiator": 0,
+        "recipient": 2,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "63",
+        "phase": "talking",
+        "waiting_tile": null,
+        "target_owned": true
+      },
+      {
+        "id": "5",
+        "initiator": 1,
+        "recipient": 2,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "69",
+        "phase": "waiting",
+        "waiting_tile": [
+          3,
+          2
+        ],
+        "target_owned": true
+      },
+      {
+        "id": "6",
+        "initiator": 6,
+        "recipient": 4,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "72",
+        "phase": "waiting",
+        "waiting_tile": [
+          6,
+          1
+        ],
+        "target_owned": true
+      },
+      {
+        "id": "7",
+        "initiator": 7,
+        "recipient": 3,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "72",
+        "phase": "talking",
+        "waiting_tile": null,
+        "target_owned": true
+      }
+    ],
+    "entities": [
+      {
+        "index": 0,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "fridge",
+        "position": [
+          18,
+          14
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 1,
+        "sim_id": 0,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          2,
+          1
+        ],
+        "target": {
+          "object": 3,
+          "interaction": 0
+        },
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": {
+          "partner": 3,
+          "interaction": 0,
+          "remaining": 24
+        },
+        "needs": [
+          23.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "Some(SavedConversationVoice { first: 7, second: 4 })"
+      },
+      {
+        "index": 2,
+        "sim_id": 1,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          3,
+          2
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": true,
+        "eating": null,
+        "social": null,
+        "needs": [
+          28.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          97.3999,
+          95.20035,
+          96.80023
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 3,
+        "sim_id": 2,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          3,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": true,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          33.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 4,
+        "sim_id": 3,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          4.75,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": true,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          38.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 5,
+        "sim_id": 4,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          5,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": true,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": [
+          43.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 6,
+        "sim_id": 5,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          6,
+          1
+        ],
+        "target": {
+          "object": 5,
+          "interaction": 0
+        },
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": {
+          "partner": 5,
+          "interaction": 0,
+          "remaining": 24
+        },
+        "needs": [
+          48.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "Some(SavedConversationVoice { first: 8, second: 4 })"
+      },
+      {
+        "index": 7,
+        "sim_id": 6,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          6,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": true,
+        "eating": null,
+        "social": null,
+        "needs": [
+          53.799973,
+          94.89975,
+          92.80014,
+          89.80026,
+          99.24597,
+          98.6081,
+          96.80023
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 8,
+        "sim_id": 7,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          6,
+          0
+        ],
+        "target": {
+          "object": 4,
+          "interaction": 0
+        },
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": {
+          "partner": 4,
+          "interaction": 0,
+          "remaining": 51
+        },
+        "needs": [
+          58.800034,
+          94.89975,
+          92.80014,
+          89.80026,
+          100,
+          100,
+          96.80023
+        ],
+        "voice": "Some(SavedConversationVoice { first: 6, second: 9 })"
+      }
+    ],
+    "queues": [],
+    "social_actions": [
+      "chat",
+      "fight"
+    ],
+    "rendezvous": [],
+    "queued": [],
+    "command_order_v6": "[]",
+    "command_order_v10": "[]"
+  },
+  "scope": "Original public SimHandle spawn_object may carry components absent from native raw world.spawn; compare before attributing any difference."
+}

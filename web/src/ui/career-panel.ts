@@ -1,3 +1,4 @@
+import { setActionIntent } from './action-intent.js';
 import type { CareerFactors, CareerReport, CareerResult, CareerWeek } from '../bridge.js';
 import { careerGraphKey, renderCareerGraph, type CareerGraphThresholds } from './career-graph.js';
 import { formatCareerSchedule, type CareerSchedule } from './game-hud.js';
@@ -363,9 +364,11 @@ export function createCareerPanelSurface(
   const assign = doc.createElement('button');
   assign.type = 'button';
   assign.textContent = 'Assign';
+  setActionIntent(assign, 'affirmative');
   const quit = doc.createElement('button');
   quit.type = 'button';
   quit.textContent = 'Quit';
+  setActionIntent(quit, 'destructive');
   buttons.append(assign, quit);
   fieldset.append(legend, label, buttons);
   const status = doc.createElement('p');

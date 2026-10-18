@@ -113,7 +113,13 @@ describe('SimBridge', () => {
     const saved = handle.save_bytes();
     const catalogue = bridge.catalogue();
     const ids = Array.from(bridge.ids().subarray(0, bridge.count));
-    expect(catalogue).toHaveLength(30);
+    expect(catalogue).toHaveLength(33);
+    // Issue 250: the yard furniture is sold under its own room and placed nowhere at the start.
+    const yard = catalogue.filter(item => item.model?.rooms.includes('yard'));
+    expect(yard.map(item => item.name)).toEqual(['Pool', 'Pool lounger', 'Patio umbrella']);
+    const placedModels = ids.map(id => bridge.objectModel(id)?.id).filter(id => id !== undefined);
+    expect(placedModels.length).toBeGreaterThan(0);
+    expect(placedModels.filter(id => yard.some(item => item.model?.id === id))).toEqual([]);
     for (const item of catalogue) {
       expect(item.details?.modelName.trim().length).toBeGreaterThan(0);
       expect(item.details?.description.length).toBeGreaterThan(10);
@@ -237,7 +243,7 @@ describe('SimBridge', () => {
     });
   });
 
-  it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {
+  it('exposes aligned stable Sim ids for public people with a sentinel for objects', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = Array.from(bridge.simIds());
     expect(before.filter((id) => id !== 0xffff_ffff)).toEqual([0, 1, 2]);
@@ -245,7 +251,7 @@ describe('SimBridge', () => {
 
     bridge.spawnAgent(1, 1, 50);
     const after = bridge.simIds();
-    expect(after.at(-1)).toBe(0xffff_ffff);
+    expect(after.at(-1)).toBe(3);
     expect(Array.from(after)).not.toEqual(Array.from(bridge.ids()));
     expect(Array.from(after)).not.toEqual(Array.from(bridge.kinds()));
   });
@@ -382,6 +388,30 @@ describe('SimBridge', () => {
     expect(bridge.yardLook().map((value) => Math.round(value * 100) / 100)).toEqual([65, 2, -0.22]);
   });
 
+  // [SEA-year] and [SEA-yard] in docs/specs/2026-10-17-seasons.md: a new game
+  // starts in Spring, the season turns after seven days, and the yard's four
+  // seasonal looks cross the boundary as twelve numbers, Spring first.
+  it('reports the season and the yard look of each season', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.seasonIndex()).toBe(0);
+    const looks = bridge.seasonYardLooks();
+    expect(looks).toBeInstanceOf(Float32Array);
+    expect(Array.from(looks, (value) => Math.round(value * 100) / 100)).toEqual([
+      0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14,
+    ]);
+    // An empty room runs the same clock and content quickly: the last minute
+    // of day 7 is still Spring, and the next tick begins Summer.
+    const room = new SimHandle(5, 4);
+    const empty = new SimBridge(room, wasmMemory);
+    const week = empty.dayTicks() * 7;
+    for (let tick = 0; tick < week - 1; tick++) room.tick();
+    expect(empty.clockTick()).toBe(week - 1);
+    expect(empty.seasonIndex()).toBe(0);
+    room.tick();
+    expect(empty.seasonIndex()).toBe(1);
+  });
+
   // [OS-street]: the street's column and look, and no street without a yard.
   it("reports the street's column and look", () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
@@ -411,14 +441,14 @@ describe('SimBridge', () => {
     expect(restored.loadBytes(accepted)).toBe(true);
     expect(restored.saveBytes()).toEqual(accepted);
 
-    const legacy = new SimBridge(new SimHandle(4, 4), wasmMemory);
-    expect(legacy.wallEdges()).toBeUndefined();
-    legacy.spawnAgent(30, 30, 50);
-    expect(legacy.spawnObject(7, 5, 'bathtub')).toBe(true);
-    expect(legacy.count).toBe(2);
-    const legacyBytes = legacy.saveBytes();
-    expect(restored.loadBytes(legacyBytes)).toBe(true);
-    expect(restored.saveBytes()).toEqual(legacyBytes);
+    const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    expect(blank.wallEdges()).toEqual(new Uint32Array());
+    const blankBytes = blank.saveBytes();
+    blank.spawnAgent(30, 30, 50);
+    expect(blank.count).toBe(0);
+    expect(blank.saveBytes()).toEqual(blankBytes);
+    expect(restored.loadBytes(blankBytes)).toBe(true);
+    expect(restored.saveBytes()).toEqual(blankBytes);
   });
 
   it('rejects an unknown content id without trapping the wasm module', () => {
@@ -907,7 +937,7 @@ describe('SimBridge', () => {
     expect(sim.shynessOf(Number.NaN)).toBeNull();
     const debug = new SimBridge(new SimHandle(4, 4), wasmMemory);
     debug.spawnAgent(1, 1, 100);
-    expect(debug.shynessOf(0)).toBe(50);
+    expect(debug.shynessOf(0)).toBe(89); // Stable person 0 receives its seeded shyness.
   });
 
   it('saves, restores and continues through the release wasm bridge', () => {
@@ -936,36 +966,17 @@ describe('SimBridge', () => {
 
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
-    const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
-    // The current V5 prefix contains SavedLayout, the empty facing list, the empty
-    // retired-index list ([SL-save]) and the empty colourway list
-    // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
-    // no entities or walls; it tests the distinction between undefined and
-    // an empty list.
-    // The tail includes floors, both family lists, enabled mortality,
-    // the applied migration flag, waiting, instincts and chronotype offsets.
-    // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths;
-    // Some(SavedSkills) and Some(SavedAffinities) each add a tag and an
-    // empty row count.
-    const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0];
-    const offsets = Array.from(legacyCells.keys()).filter(index =>
-      tail.every((value, offset) => legacyCells[index + offset] === value));
-    expect(offsets).toHaveLength(1);
-    const edgeBytes = legacyCells.slice();
-    // The frozen V8 manifest and books follow this world prefix inside the V10 envelope.
-    edgeBytes[offsets[0]!] = 2;
+    const edgeBytes = blank.saveBytes();
+    expect(Array.from(edgeBytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
+    expect(blank.wallEdges()).toEqual(new Uint32Array());
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
     expect(restored.wallEdges()).toEqual(new Uint32Array());
     expect(restored.wallTiles()).toEqual(new Uint32Array());
     expect(restored.saveBytes()).toEqual(edgeBytes);
-    expect(restored.loadBytes(legacyCells)).toBe(true);
-    expect(restored.wallEdges()).toBeUndefined();
-    expect(restored.wallTiles()).toEqual(new Uint32Array());
-    expect(restored.saveBytes()).toEqual(legacyCells);
+    expect(restored.lotWidth()).toBe(4);
+    expect(restored.count).toBe(0);
   });
 
   it('rejects every current-save truncation, trailing bytes, and future versions transactionally', () => {
@@ -1290,6 +1301,23 @@ describe('SimBridge', () => {
     // exactly 1.0 everywhere. Adding a second object to this scenario
     // changes what it is exposed to.
     //
+    // Correction, 2026-10-17: the paragraph above predates the wander
+    // candidate. Selection now weighs every candidate, including a wander
+    // candidate it always adds, through
+    // `critical_choices::critical_choice_probabilities`, whose paths call
+    // `f64::exp` in `autonomy`, so one object no longer means one candidate.
+    // The comparison is not free of `exp` results either: `spawn_agent`
+    // gives each agent a `SimId`, so each decision holds the other agents'
+    // social candidates beside the wander candidate, and `f64::exp` sets
+    // the weights between them. Agreement between native and wasm32 is a
+    // measurement each time this test runs, not a guarantee. The fridge
+    // never becomes a candidate, because both of its actions need a
+    // preparation counter the scenario lacks. The later paragraphs that
+    // describe agents claiming the fridge or being outbid for it predate
+    // the staged snack change, and the one that says the scenario spawns
+    // plain agents predates `5107826ba`; both are historical. [L36]
+    // records the measurements.
+    //
     // M1c Task 4 varied every interaction's length around its content
     // duration and put a 25-tick floor under it, and this vector did not
     // move on either target for a different reason again: **no agent
@@ -1410,7 +1438,11 @@ describe('SimBridge', () => {
     // Independently measured on native and rebuilt release WASM: identical.
     // The canonical empty books-v1 suffix extends the native pre-books
     // digest 8890656731713008279 to this independently measured WASM value.
-    expect(bridge.worldHash()).toBe(0x6d3d37e1d3212a18n);
+    // Current creation assigns stable identities and uses weighted instinct.
+    // Independently measured in native and release WASM before updating either.
+    // Current rooms remove whole-lot Outside friendship and append room hash state.
+    // Independently measured native and normal release Wasm on 2026-10-17.
+    expect(bridge.worldHash()).toBe(4661132544113609906n);
   });
 
   // ---- Player commands -------------------------------------------------

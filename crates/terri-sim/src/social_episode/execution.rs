@@ -201,6 +201,9 @@ fn detach(world: &mut World, actor: Entity, remove_activity: bool) {
             .rendezvous
             .remove(&execution.recipient);
     }
+    if let ExecutionOwner::Player(_) = execution.owner {
+        super::requests::sync_players(world);
+    }
     if remove_activity && owns_target(world, actor, execution) {
         world.entity_mut(actor).remove::<(
             Target,
@@ -244,6 +247,7 @@ pub(crate) fn release_order(world: &mut World, actor: Entity, id: u64) {
     if owned {
         detach(world, actor, true);
     }
+    super::requests::finish_player(world, actor, id);
 }
 
 pub(crate) fn complete_execution(world: &mut World, actor: Entity) {
@@ -255,6 +259,7 @@ pub(crate) fn complete_execution(world: &mut World, actor: Entity) {
     detach(world, actor, false);
     match owner {
         Some(ExecutionOwner::Player(id)) => {
+            super::requests::finish_player(world, actor, id);
             crate::player_actions::terminal(world, actor, id, "completed", None)
         }
         Some(ExecutionOwner::System(Some(id))) => {
@@ -290,6 +295,7 @@ fn commit(world: &mut World, actor: Entity, execution: Execution, steps: Vec<(i3
         .resource_mut::<SocialEpisodes>()
         .executions
         .insert(actor, execution);
+    super::requests::sync_players(world);
 }
 pub(crate) fn commit_autonomous(
     world: &mut World,
@@ -315,6 +321,17 @@ pub(crate) fn commit_autonomous(
     } else {
         ExecutionOwner::Autonomous
     };
+    if owner == ExecutionOwner::Autonomous {
+        super::requests::enqueue(
+            world,
+            actor,
+            recipient,
+            interaction,
+            super::requests::ConversationOrigin::Autonomous,
+        );
+        super::requests::before_movement(world);
+        return;
+    }
     commit(
         world,
         actor,
@@ -330,36 +347,85 @@ pub(crate) fn commit_autonomous(
 }
 
 fn route(world: &World, actor: Entity, recipient: Entity) -> Option<Vec<(i32, i32)>> {
-    let from = world.get::<Position>(actor)?;
-    let to = world.get::<Position>(recipient)?;
-    let grid = world.resource::<terri_core::TileGrid>();
-    grid.find_path_adjacent_to_tile(
-        (from.x.round() as i32, from.y.round() as i32),
-        (to.x.round() as i32, to.y.round() as i32),
-    )
-    .and_then(|steps| grid.anchor_path((from.x, from.y), steps))
+    super::requests::player_route(world, actor, recipient)
 }
-fn keep_route(world: &World, actor: Entity, recipient: Entity) -> bool {
+fn temporary_route_blocked(world: &World, actor: Entity, recipient: Entity) -> bool {
     let Some(from) = world.get::<Position>(actor) else {
         return false;
     };
     let Some(to) = world.get::<Position>(recipient) else {
         return false;
     };
+    world
+        .resource::<terri_core::TileGrid>()
+        .find_path_adjacent_to_tile(
+            (from.x.round() as i32, from.y.round() as i32),
+            (to.x.round() as i32, to.y.round() as i32),
+        )
+        .is_some()
+}
+fn wait_for_route(
+    world: &mut World,
+    actor: Entity,
+    entry: &terri_core::components::QueuedOrder,
+    owner: ExecutionOwner,
+) {
+    let recipient = entry.intent.object;
+    let physical = world
+        .resource::<SocialEpisodes>()
+        .rendezvous
+        .get(&recipient)
+        == Some(&actor);
+    if physical {
+        world
+            .resource_mut::<SocialEpisodes>()
+            .rendezvous
+            .remove(&recipient);
+        world.entity_mut(recipient).remove::<Reserved>();
+    }
+    world.resource_mut::<SocialEpisodes>().executions.insert(
+        actor,
+        Execution {
+            recipient,
+            interaction: entry.intent.interaction,
+            owner,
+            phase: ExecutionPhase::Approaching,
+            admitted: false,
+        },
+    );
+    world.entity_mut(actor).remove::<Path>().insert((
+        Target {
+            object: recipient,
+            interaction: entry.intent.interaction,
+        },
+        terri_core::Blocked,
+    ));
+    crate::player_actions::transition(world, actor, entry.id, 2, true);
+}
+fn keep_route(world: &World, actor: Entity, recipient: Entity) -> bool {
+    let Some(steps) = route(world, actor, recipient) else {
+        return false;
+    };
+    let Some(position) = world.get::<Position>(actor) else {
+        return false;
+    };
+    let here = (position.x.round() as i32, position.y.round() as i32);
     let endpoint = world
         .get::<Path>(actor)
         .and_then(|p| p.steps.last().copied())
-        .unwrap_or((from.x.round() as i32, from.y.round() as i32));
-    world
-        .resource::<terri_core::TileGrid>()
-        .can_interact_with_rect(
-            endpoint,
-            (to.x.round() as i32, to.y.round() as i32),
-            terri_core::Footprint::SINGLE,
-        )
+        .unwrap_or(here);
+    endpoint == steps.last().copied().unwrap_or(here)
 }
 
 pub(crate) fn maintain(world: &mut World) {
+    let fronts: Vec<_> = world
+        .query_filtered::<Entity, With<Agent>>()
+        .iter(world)
+        .filter(|actor| explicit_social_front(world, *actor))
+        .collect();
+    for actor in fronts {
+        super::requests::redirect_incoming(world, actor);
+    }
     adopt_unowned_physical(world);
     reconcile_executions(world);
     let requests = eligible_requests(world);
@@ -368,6 +434,7 @@ pub(crate) fn maintain(world: &mut World) {
     for (actor, entry) in requests {
         prepare_request(world, actor, entry, &plan);
     }
+    super::requests::sync_players(world);
 }
 
 fn adopt_unowned_physical(world: &mut World) {
@@ -377,6 +444,7 @@ fn adopt_unowned_physical(world: &mut World) {
         .iter(world)
         .filter(|(actor, t)| {
             world.get::<Agent>(t.object).is_some()
+                && !super::requests::owns_autonomous_target(world, *actor, **t)
                 && !world
                     .resource::<SocialEpisodes>()
                     .executions
@@ -395,16 +463,36 @@ fn adopt_unowned_physical(world: &mut World) {
             .social
             .get(t.interaction as usize)
             .is_some_and(crate::fights::is_fight);
+        let owner = if system {
+            ExecutionOwner::System(None)
+        } else {
+            world
+                .get_resource::<super::requests::ConversationRequests>()
+                .and_then(|state| {
+                    state.requests.values().find(|r| {
+                        r.initiator == actor
+                            && r.recipient == t.object
+                            && r.interaction == t.interaction
+                            && super::requests::managed_player(world, r)
+                    })
+                })
+                .and_then(|r| match r.origin {
+                    super::requests::ConversationOrigin::Player { order_id } => {
+                        Some(ExecutionOwner::Player(order_id))
+                    }
+                    _ => None,
+                })
+                .unwrap_or(ExecutionOwner::Autonomous)
+        };
+        if owner == ExecutionOwner::Autonomous {
+            continue;
+        }
         world.resource_mut::<SocialEpisodes>().executions.insert(
             actor,
             Execution {
                 recipient: t.object,
                 interaction: t.interaction,
-                owner: if system {
-                    ExecutionOwner::System(None)
-                } else {
-                    ExecutionOwner::Autonomous
-                },
+                owner,
                 phase: if running {
                     ExecutionPhase::Running
                 } else {
@@ -512,6 +600,25 @@ fn elect_incoming(
         incoming: BTreeMap::new(),
         retained_recipients: BTreeSet::new(),
     };
+    if let Some(state) = world.get_resource::<super::requests::ConversationRequests>() {
+        for request in state.requests.values() {
+            if !super::requests::managed_player(world, request)
+                && matches!(
+                    request.phase,
+                    super::requests::RequestPhase::Approaching
+                        | super::requests::RequestPhase::Talking
+                )
+                && super::requests::owns_autonomous_target(
+                    world,
+                    request.initiator,
+                    super::requests::request_target(request),
+                )
+            {
+                plan.select(request.initiator, request.recipient);
+                plan.retained_recipients.insert(request.recipient);
+            }
+        }
+    }
     for (&actor, execution) in &world.resource::<SocialEpisodes>().executions {
         if execution.phase == ExecutionPhase::Running || execution.admitted {
             plan.select(actor, execution.recipient);
@@ -520,6 +627,9 @@ fn elect_incoming(
     }
     for (actor, entry) in requests {
         let recipient = entry.intent.object;
+        if route(world, *actor, recipient).is_none() {
+            continue;
+        }
         if !plan.available(*actor) || !plan.available(recipient) {
             continue;
         }
@@ -622,6 +732,12 @@ fn prepare_request(
     }
     if existing.is_none() {
         let Some(steps) = route(world, actor, recipient) else {
+            if temporary_route_blocked(world, actor, recipient) {
+                if !occupied(world, actor) {
+                    wait_for_route(world, actor, &entry, owner);
+                }
+                return;
+            }
             crate::player_actions::terminal(
                 world,
                 actor,
@@ -682,10 +798,20 @@ fn prepare_request(
         );
         crate::player_actions::transition(world, actor, entry.id, 1, true);
     }
-    if !keep_route(world, actor, recipient) {
+    let finishing_segment = world.get::<Position>(actor).is_some_and(|position| {
+        (position.x != position.x.round() || position.y != position.y.round())
+            && world
+                .get::<Path>(actor)
+                .is_some_and(|path| path.next_step().is_some())
+    });
+    if !finishing_segment && !keep_route(world, actor, recipient) {
         if let Some(steps) = route(world, actor, recipient) {
             world.entity_mut(actor).insert(Path { steps, cursor: 0 });
         } else {
+            if temporary_route_blocked(world, actor, recipient) {
+                wait_for_route(world, actor, &entry, owner);
+                return;
+            }
             detach(world, actor, true);
             crate::player_actions::terminal(
                 world,

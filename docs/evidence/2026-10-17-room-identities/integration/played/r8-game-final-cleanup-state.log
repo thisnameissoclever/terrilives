@@ -1,0 +1,11 @@
+### Result
+{"tick":838,"active":false,"pendingOutside":"Outside","paused":true}
+### Ran Playwright code
+```js
+await (async page => {await page.locator("#build-exit-keep").click();await page.locator("#build-batch-cancel").click();await page.locator("#builder-exit").click();return await page.evaluate(()=>({tick:__terriStress.sim.clockTick(),active:__terriStress.sim.buildActive(),pendingOutside:__terriStress.sim.roomSummaries().value.rooms[0].name,paused:document.querySelector("#speed-0").checked}));})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L957

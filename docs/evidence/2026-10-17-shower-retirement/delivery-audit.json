@@ -1,0 +1,223 @@
+{
+  "date": "2026-10-17",
+  "inspectedRemoteMain": "a4ac3228e6a69d19c65a001011d1a2fa27dcdd4f",
+  "allMergedCommitsReachable": true,
+  "pullRequests": [
+    {
+      "mergeCommit": {
+        "oid": "6beeab6c522acb51a0c75e002d199ebc8474ec93"
+      },
+      "mergedAt": "2026-10-17T07:17:54Z",
+      "number": 265,
+      "state": "MERGED",
+      "title": "Restore the pinned shower pose input so main deploys again"
+    },
+    {
+      "mergeCommit": {
+        "oid": "618a69369c84b1a19837e21b89df1427a42c465c"
+      },
+      "mergedAt": "2026-10-16T02:10:01Z",
+      "number": 259,
+      "state": "MERGED",
+      "title": "Fix seating, floor markers, kitchen wall clearance, and shower motion"
+    },
+    {
+      "mergeCommit": {
+        "oid": "7fb45a816031208c33f611434f6054cbed8a8c67"
+      },
+      "mergedAt": "2026-10-07T02:22:47Z",
+      "number": 230,
+      "state": "MERGED",
+      "title": "Stand hand washers at the basin with busy hands"
+    },
+    {
+      "mergeCommit": {
+        "oid": "537ec40cee9677b818c071a19a1df1a4785af66a"
+      },
+      "mergedAt": "2026-10-07T01:09:36Z",
+      "number": 229,
+      "state": "MERGED",
+      "title": "Deliver the fitted bathing loop on the wall-backed source"
+    },
+    {
+      "mergeCommit": {
+        "oid": "2f319c3bb14b4c798505e1b6c75fa3186f6f4822"
+      },
+      "mergedAt": "2026-10-06T21:05:01Z",
+      "number": 227,
+      "state": "MERGED",
+      "title": "Deliver the fitted toilet loop and merge main into the bathroom checkpoint"
+    },
+    {
+      "mergeCommit": {
+        "oid": "1a138df6438d5e984f6190956b46aaf9a69f4dc9"
+      },
+      "mergedAt": "2026-10-05T18:30:03Z",
+      "number": 213,
+      "state": "MERGED",
+      "title": "Add fitted seated media and ottoman animations"
+    },
+    {
+      "mergeCommit": {
+        "oid": "e56028e573be2a7bdfa7269b9ea2a2ee1cb7e7dd"
+      },
+      "mergedAt": "2026-10-05T14:14:56Z",
+      "number": 212,
+      "state": "MERGED",
+      "title": "Animate aquarium fish with a continuous swimming loop"
+    },
+    {
+      "mergeCommit": {
+        "oid": "b04cc50ad8a576e76c78ef66a30ef8596d3cee50"
+      },
+      "mergedAt": "2026-10-05T08:23:21Z",
+      "number": 211,
+      "state": "MERGED",
+      "title": "Render covered bunk sleepers with paged sprites"
+    },
+    {
+      "mergeCommit": {
+        "oid": "c83e32d70db6ef664e8829e85f8195bfa74e8bff"
+      },
+      "mergedAt": "2026-10-05T04:29:36Z",
+      "number": 210,
+      "state": "MERGED",
+      "title": "Give the aquarium four consistent facings and clearer fish"
+    },
+    {
+      "mergeCommit": {
+        "oid": "2465daaad3f098e34c2d11113356b62be2e55ebc"
+      },
+      "mergedAt": "2026-10-05T02:10:17Z",
+      "number": 209,
+      "state": "MERGED",
+      "title": "Allow closer camera zoom on desktop and phones"
+    },
+    {
+      "mergeCommit": {
+        "oid": "9fe41f2f33599a9fee667f6e87ef80381a58e24c"
+      },
+      "mergedAt": "2026-10-01T04:03:26Z",
+      "number": 163,
+      "state": "MERGED",
+      "title": "Improve the wall bookcase in all four directions"
+    },
+    {
+      "mergeCommit": {
+        "oid": "faf06080b63bdf88bc7d34a834f49e3073476d30"
+      },
+      "mergedAt": "2026-10-01T03:39:52Z",
+      "number": 161,
+      "state": "MERGED",
+      "title": "Give the kitchen trash can consistent four-facing artwork"
+    },
+    {
+      "mergeCommit": {
+        "oid": "66a248ec86c989a609f9308caf4b817455bfd79e"
+      },
+      "mergedAt": "2026-10-01T03:17:55Z",
+      "number": 160,
+      "state": "MERGED",
+      "title": "Give the ottoman consistent four-facing artwork"
+    },
+    {
+      "mergeCommit": {
+        "oid": "e7cf13dacbf16cf97c16cdb2bde7135f6cb1f86d"
+      },
+      "mergedAt": "2026-10-01T02:48:37Z",
+      "number": 159,
+      "state": "MERGED",
+      "title": "Improve potted plants with consistent four-facing artwork"
+    },
+    {
+      "mergeCommit": {
+        "oid": "b6e5973bcb4d162657818632137fbb1113745fc4"
+      },
+      "mergedAt": "2026-10-01T02:23:52Z",
+      "number": 158,
+      "state": "MERGED",
+      "title": "Give the coat rack consistent facings and supported fabric"
+    },
+    {
+      "mergeCommit": {
+        "oid": "90f429e28595d6663ce62ab1ccaa60834bdb600d"
+      },
+      "mergedAt": "2026-10-01T01:59:38Z",
+      "number": 157,
+      "state": "MERGED",
+      "title": "Improve the floor lamp and preserve lighting in all facings"
+    },
+    {
+      "mergeCommit": {
+        "oid": "5887a5e59e7be50eda9b6208c4c40593f5eec09a"
+      },
+      "mergedAt": "2026-10-01T01:29:05Z",
+      "number": 156,
+      "state": "MERGED",
+      "title": "Give the armchair consistent facings and matched seated animation"
+    },
+    {
+      "mergeCommit": {
+        "oid": "fb6dd04d9ae0f554b3d007a4297267077ffe14ac"
+      },
+      "mergedAt": "2026-10-01T00:22:21Z",
+      "number": 155,
+      "state": "MERGED",
+      "title": "Give the television and radio consistent four-facing artwork"
+    },
+    {
+      "mergeCommit": {
+        "oid": "bee2a02d094b1df72a3d872f4301efe868bfc61a"
+      },
+      "mergedAt": "2026-09-30T23:44:29Z",
+      "number": 154,
+      "state": "MERGED",
+      "title": "Give the long sofa consistent four-facing artwork"
+    },
+    {
+      "mergeCommit": {
+        "oid": "627259f5b19d89f5e711a2c6d6d5de5c41efc227"
+      },
+      "mergedAt": "2026-09-30T23:19:06Z",
+      "number": 151,
+      "state": "MERGED",
+      "title": "Match the dining table to the reviewed four-facing furniture"
+    },
+    {
+      "mergeCommit": {
+        "oid": "7b23f9c0e4ff6736a75f3428c322829053e91a58"
+      },
+      "mergedAt": "2026-09-30T22:53:04Z",
+      "number": 148,
+      "state": "MERGED",
+      "title": "Give dining chairs rounded woodwork and consistent four-way views"
+    },
+    {
+      "mergeCommit": {
+        "oid": "29d128f3d11da8c8a2d6126ef7c6e0f53f4db34f"
+      },
+      "mergedAt": "2026-09-30T22:33:02Z",
+      "number": 146,
+      "state": "MERGED",
+      "title": "Refresh desk chair art while preserving saved facings"
+    },
+    {
+      "mergeCommit": {
+        "oid": "4e92ce5fbe79e40136d6279039aef544fdbf484e"
+      },
+      "mergedAt": "2026-09-30T22:01:48Z",
+      "number": 145,
+      "state": "MERGED",
+      "title": "Keep rooms visible with short walls and local fading"
+    },
+    {
+      "mergeCommit": {
+        "oid": "d5ec05bca80171374eb1263095866c05dc4af800"
+      },
+      "mergedAt": "2026-09-20T18:17:51Z",
+      "number": 83,
+      "state": "MERGED",
+      "title": "Align room boundaries, chair facings and the bunk ladder"
+    }
+  ]
+}

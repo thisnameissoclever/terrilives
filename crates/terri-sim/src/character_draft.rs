@@ -10,7 +10,7 @@ pub use catalog::catalog;
 
 pub use terri_core::character::CharacterResult;
 
-#[derive(bevy_ecs::prelude::Resource, Default)]
+#[derive(bevy_ecs::prelude::Resource, Default, Clone)]
 pub struct CharacterResults(pub Vec<CharacterResult>);
 
 pub(crate) fn commit(

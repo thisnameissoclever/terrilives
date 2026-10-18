@@ -1,0 +1,178 @@
+{
+  "sourceRevision": "684707b3917b73d8e2fa5d65a58adf6691f0ca63",
+  "producerWasmSha256": "cc346229433593864f06caf1056379f4324c321d4cbbbd681abad6a25bdb92d8",
+  "producer": "Original unmodified release Wasm; original historical inputs remain unchanged",
+  "records": [
+    {
+      "name": "floor-work-preempted.sav",
+      "schema": 14,
+      "length": 5819,
+      "sha256": "ee988d485bc43b076d015cf710ce99c4accd944092047a9eef746aeb24f8e463",
+      "tick": "267",
+      "worldHash": "5516586289783409066",
+      "actions": [
+        "Original floor-work-active.sav",
+        "Published UseObjectFirst tag5 against the exercise bike",
+        "Drain and advance one ordinary tick"
+      ],
+      "entity": 35,
+      "progress": 0,
+      "actionQueue": [
+        "Use the exercise bike: Exercise bike"
+      ],
+      "captureScriptSha256": "2b27a592acd3b11cdd1ca436d47e8f895336daeb5af1e92f7abb7cf039267f3c",
+      "nativePrecondition": "Raw frozen-record task kind/suspended flag must be independently asserted; display labels alone do not prove it."
+    },
+    {
+      "name": "surface-work-active.sav",
+      "schema": 14,
+      "length": 5792,
+      "sha256": "59f62cc98b1295e378d4bd8bea245faecd9662dc5d0fa74b3c592a7b0661c5ca",
+      "tick": "270",
+      "worldHash": "17904362927450555233",
+      "actions": [
+        "Original lived.sav",
+        "Explicit ChoreKind::Surfaces tag2 order against the first dirty surface",
+        "Drain and advance ordinary ticks until actual wiping progress"
+      ],
+      "entity": 35,
+      "progress": 22,
+      "actionQueue": [
+        "Wipe surface - 1/1"
+      ],
+      "captureScriptSha256": "2b27a592acd3b11cdd1ca436d47e8f895336daeb5af1e92f7abb7cf039267f3c",
+      "nativePrecondition": "Raw frozen-record task kind/suspended flag must be independently asserted; display labels alone do not prove it."
+    },
+    {
+      "name": "purchased-land-career.sav",
+      "schema": 14,
+      "length": 6274,
+      "sha256": "f1ff23f56a4154421e68cce42ac52ae25186f6b39f80ec0600f0f9474244673c",
+      "tick": "240",
+      "worldHash": "1768283332054972990",
+      "actions": [
+        "Decode original fresh.sav as unchanged V14 wire records; prove exact original re-encoding",
+        "Set only matching $100000 funds in cents and whole dollars; prove all non-money fields exact",
+        "Load that seed into original source and require exact round trip",
+        "Purchase Side::Rear=0 then Side::Left=1: west then south, from the street-facing interface",
+        "Advance240 ordinary ticks",
+        "Assign the first person to a different career path using the original command"
+      ],
+      "funding": "Artificial test precondition, not earned income; no room field or current migration/projection used",
+      "seedSha256": "6a6aff7bd82acb75f1d9b4c1236dfd2c89dd41f60fb77f8dd5cb82064eecb816",
+      "seedHelperSha256": "3dab5f9a261b49218c003cbba0b6f7017c7cc4e81a92ef6c9de50dc5aed7d458",
+      "fundsBefore": 10000000,
+      "fundsAfter": 2380000,
+      "quotes": [
+        [
+          16,
+          10,
+          160,
+          2400000,
+          7600000,
+          1
+        ],
+        [
+          30,
+          10,
+          300,
+          5220000,
+          2380000,
+          1
+        ]
+      ],
+      "origin": [
+        10,
+        0
+      ],
+      "width": 30,
+      "height": 26,
+      "entity": 34,
+      "beforeCareer": [
+        0,
+        0,
+        4,
+        120,
+        120,
+        150,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        2,
+        50,
+        0,
+        0,
+        40,
+        65
+      ],
+      "afterCareer": [
+        1,
+        0,
+        4,
+        80,
+        80,
+        100,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        2,
+        50,
+        0,
+        0,
+        40,
+        65
+      ],
+      "choreRows": [
+        0,
+        0,
+        2,
+        200,
+        0,
+        1,
+        10,
+        1,
+        100,
+        1,
+        1,
+        18,
+        0,
+        0,
+        1,
+        1,
+        190,
+        1,
+        100,
+        1,
+        1,
+        196,
+        2,
+        0,
+        1,
+        1,
+        202,
+        0,
+        0,
+        1,
+        3,
+        6,
+        1,
+        50,
+        1,
+        4,
+        10,
+        0,
+        0,
+        1,
+        5,
+        10,
+        1,
+        100,
+        1
+      ]
+    }
+  ]
+}

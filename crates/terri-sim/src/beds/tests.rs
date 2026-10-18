@@ -58,6 +58,7 @@ fn fixture() -> (Sim, Entity, [Entity; 3]) {
             ))
             .id()
     });
+    crate::test_content::enclose(&mut sim);
     (sim, bed, agents)
 }
 
@@ -371,21 +372,18 @@ fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflict
     pack.reading = terri_data::pack().reading;
     sim.world_mut()
         .insert_resource(crate::Content(Box::leak(Box::new(pack))));
+    crate::test_content::assert_current_admission(&sim);
     order(&mut sim, first, bed, 0);
     order(&mut sim, second, bed, 1);
     sim.tick();
     sim.world_mut()
         .resource_mut::<BedAssignments>()
         .set(SimId(2), Some(BedPlace { bed, ordinal: 1 }));
-    let saved = sim.save_snapshot_v5();
+    let saved = sim.current_v5_view();
     let mut loaded = test_content::sim_with(12, 12, sim.world().resource::<crate::Content>().0);
-    loaded.load_snapshot_v5(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v5(), saved);
-    let mut continued = test_content::sim_with(12, 12, sim.world().resource::<crate::Content>().0);
-    continued
-        .load_snapshot_v15(sim.save_snapshot_v15())
-        .unwrap();
-    assert_eq!(continued.world_hash(), sim.world_hash());
+    loaded.load_current_v5_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v5_view(), saved);
+    assert_eq!(loaded.world_hash(), sim.world_hash());
     for active in [
         vec![],
         vec![(first.index_u32(), 0)],
@@ -394,15 +392,15 @@ fn shared_sleep_state_roundtrips_without_restart_and_rejects_missing_or_conflict
     ] {
         let mut bad = saved.clone();
         bad.sleeping_places.as_mut().unwrap().active_places = active;
-        assert!(loaded.load_snapshot_v5(bad).is_err());
-        assert_eq!(loaded.save_snapshot_v5(), saved);
+        assert!(loaded.load_current_v5_view(bad).is_err());
+        assert_eq!(loaded.current_v5_view(), saved);
     }
     for _ in 0..150 {
         sim.tick();
-        continued.tick();
+        loaded.tick();
     }
-    assert_eq!(continued.save_snapshot_v15(), sim.save_snapshot_v15());
-    assert_eq!(continued.world_hash(), sim.world_hash());
+    assert_eq!(loaded.current_v5_view(), sim.current_v5_view());
+    assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
 #[test]

@@ -56,6 +56,111 @@ fn walk(sim: &mut Sim, entity: Entity, done: impl Fn(&Sim) -> bool) -> Vec<(f32,
     panic!("the commute never finished");
 }
 
+/// A shift keeps an unfinished errand for home, but on the way to work, at
+/// work and on the way home the worker is not doing it, so the errand line
+/// is blank throughout; home again, the kept errand shows. The errand is
+/// started on the tick before the shift, as a worker caught mid-snack
+/// would have it, and every stage is observed rather than predicted.
+#[test]
+fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let tim = worker(&mut sim);
+    let mut pack = sim.world().resource::<crate::Content>().0.clone();
+    let fridge = pack.find("fridge").unwrap();
+    pack.objects[fridge.0 as usize]
+        .interactions
+        .retain(|action| action.id == "grab_snack");
+    sim.world_mut()
+        .insert_resource(crate::Content(Box::leak(Box::new(pack))));
+    let content = sim.world().resource::<crate::Content>().0;
+    let shift_start = u64::from(content.careers[0].shift_start);
+    assert!(shift_start >= 2);
+    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = shift_start - 2;
+    let mut needs = terri_core::Needs::all_at(100.0);
+    needs.set(terri_core::NeedId::Hunger, 10.0);
+    sim.world_mut().entity_mut(tim).insert(needs);
+    sim.tick();
+    assert!(
+        sim.world().get::<terri_core::ChainState>(tim).is_some(),
+        "The actual snack starts before departure"
+    );
+    assert!(sim
+        .world()
+        .get::<crate::reading::ReadingJourney>(tim)
+        .is_none());
+    assert!(sim
+        .world()
+        .get::<crate::recipe_actions::RecipeOrder>(tim)
+        .is_none());
+    assert!(sim
+        .world()
+        .get::<terri_core::IntentQueue>(tim)
+        .is_none_or(|queue| queue.is_empty()));
+    let kept = *sim.world().get::<terri_core::ChainState>(tim).unwrap();
+    assert_eq!(content.chains[kept.chain as usize].id, "prepare_snack");
+    let origin = sim
+        .world()
+        .get::<crate::recipe_actions::Origin>(tim)
+        .cloned()
+        .unwrap();
+    let index = tim.index_u32();
+    let mut stages = Vec::new();
+    for _ in 0..3_000 {
+        sim.tick();
+        let stage = match (
+            sim.world().get::<Commuting>(tim),
+            sim.world().get::<AtWork>(tim),
+        ) {
+            (Some(Commuting::Outbound), _) => "out",
+            (Some(Commuting::Inbound), _) => "in",
+            (None, Some(_)) => "work",
+            (None, None) => "home",
+        };
+        if stages.last() != Some(&stage) {
+            stages.push(stage);
+        }
+        if stage == "home" {
+            if stages.len() > 1 {
+                break;
+            }
+            continue;
+        }
+        let retained = sim
+            .world()
+            .get::<terri_core::ChainState>(tim)
+            .expect("the shift keeps the original autonomous errand");
+        assert_eq!(
+            (retained.chain, retained.step),
+            (kept.chain, kept.step),
+            "original recipe progress is held while away ({stage})"
+        );
+        assert_eq!(
+            sim.world().get::<crate::recipe_actions::Origin>(tim),
+            Some(&origin)
+        );
+        assert_eq!(
+            sim.chain_status_of(index),
+            None,
+            "no errand line while away ({stage})"
+        );
+    }
+    // The shift starts on the very next tick, so the first stage seen is the walk out.
+    assert_eq!(stages, ["out", "work", "in", "home"]);
+    let retained = sim
+        .world()
+        .get::<terri_core::ChainState>(tim)
+        .expect("the original errand is still kept on arrival");
+    assert_eq!((retained.chain, retained.step), (kept.chain, kept.step));
+    assert_eq!(
+        sim.world().get::<crate::recipe_actions::Origin>(tim),
+        Some(&origin)
+    );
+    let status = sim
+        .chain_status_of(index)
+        .expect("home again, the kept errand shows");
+    assert!(status.contains(" - step: "), "{status}");
+}
+
 /// Out through the front door and across the yard to the street's exit, at
 /// work there out of sight, then home along a path back through the door to
 /// the landing, paid once.
@@ -149,7 +254,7 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
     let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     historical.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for _ in 0..600 {
         sim.tick();
         loaded.tick();

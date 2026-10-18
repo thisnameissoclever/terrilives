@@ -4,7 +4,7 @@ import {conversationBubble, conversationTint} from './render/conversation-bubble
 import type {CharacterScenePlan} from './render/character/scene-plan.js';
 import {fixtureSurfaceHeight,surfacePropDepthOffset} from './render/fixture-depth.js';
 import {fixtureRegistration} from './render/fixture-registration.js';
-import {GROUND_SELECTION_COMMAND} from './render/ground-selection.js';
+import {writeHousemateMarker} from './render/ground-selection.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
 import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
@@ -18,8 +18,6 @@ import { BOOK_REACH_CATALOG } from './render/atlas.js';
  */
 
 import {
-  FLOOR_DEPTH,
-  DEPTH_LAYER_STEP,
   LAYER_FOREGROUND,
   LAYER_PROP,
   LAYER_SIM,
@@ -65,21 +63,6 @@ import {
   sampleLight,
   type TileLighting,
 } from './render/lighting.js';
-
-/**
- * The atlas slot for the selection ring, resolved once at module load.
- *
- * By name rather than by a literal index, because the index is assigned by
- * declaration order in the atlas build and a hardcoded number here would
- * silently draw whatever sprite later took that slot. `spriteIndex` throws on an
- * unknown name, so a missing ring is a startup failure rather than a wrong
- * picture.
- */
-const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
-/** Semantic overlay strength: the ring must stay legible at midnight. */
-const SELECTION_RING_EMISSIVE = 1;
-/** The indicator shares the floor-decal plane, behind every raised surface. */
-const SELECTION_RING_DEPTH = FLOOR_DEPTH - DEPTH_LAYER_STEP / 4;
 
 /**
  * Legacy sim looks, retained for compatibility tests. [ML-chars].
@@ -1537,9 +1520,7 @@ export function buildInstanceBatch(
   const ringRow = replacedRow === null ? findSelectedRow(source, selected) : null;
   const configuredRing=ringRow!==null?dynamic?.actorAt(ringRow):undefined;
   if(configuredRing){const [x,y]=configuredRing.feet;
-    writeInstance(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale),
-      SELECTION_RING_DEPTH,SELECTION_RING_SPRITE,TINT_NONE,TINT_NONE,TINT_NONE,SELECTION_RING_EMISSIVE);
-    scratch[(slot-1)*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=GROUND_SELECTION_COMMAND;
+    writeHousemateMarker(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale));
   }else if (ringRow !== null) {
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     // A body drawn off its fixture's tile is ringed under its drawn feet.
@@ -1552,19 +1533,7 @@ export function buildInstanceBatch(
     const wy = lerp(previous[groundRow * 2 + 1], current[groundRow * 2 + 1], alpha)
       + fixtureOffsets[groundRow*2+1]
       + (reach ? interactions.reachFeet[ringRow * 2 + 1] : 0);
-    writeInstance(
-      scratch,
-      slot++,
-      screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
-      SELECTION_RING_DEPTH,
-      SELECTION_RING_SPRITE,
-      TINT_NONE,
-      TINT_NONE,
-      TINT_NONE,
-      SELECTION_RING_EMISSIVE,
-    );
-    scratch[(slot-1)*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=GROUND_SELECTION_COMMAND;
+    writeHousemateMarker(scratch, slot++, screenX(wx, wy, originX, scale), screenY(wx, wy, originY, scale));
   }
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,

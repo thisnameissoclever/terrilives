@@ -1,6 +1,6 @@
 //! The reviewed 2x1-to-1x2 bathtub transition, separate from digest acceptance.
 
-use super::{validate_snapshot, SaveError};
+use super::{ActorReferences, SaveError};
 use std::collections::{BTreeMap, VecDeque};
 use terri_core::{Footprint, SaveSnapshotV1, SavedEntity, SavedPath, SavedPosition, TileGrid};
 use terri_data::ContentPack;
@@ -28,11 +28,19 @@ const NEW: Footprint = Footprint { width: 1, depth: 2 };
 type Tile = (i32, i32);
 
 pub(super) fn prepare(
-    mut snapshot: SaveSnapshotV1,
+    snapshot: SaveSnapshotV1,
     destination: &ContentPack,
 ) -> Result<(SaveSnapshotV1, bool), SaveError> {
+    prepare_with_actor_refs(snapshot, destination, ActorReferences::Household)
+}
+
+pub(super) fn prepare_with_actor_refs(
+    mut snapshot: SaveSnapshotV1,
+    destination: &ContentPack,
+    references: ActorReferences,
+) -> Result<(SaveSnapshotV1, bool), SaveError> {
     if terri_data::content_fingerprint_matches(destination, snapshot.content_fingerprint) {
-        validate_snapshot(&snapshot, destination)?;
+        references.validate(&snapshot, destination)?;
         let rename =
             terri_data::content_fingerprint_is_legacy(destination, snapshot.content_fingerprint);
         return Ok((snapshot, rename));
@@ -41,14 +49,14 @@ pub(super) fn prepare(
     let source = reviewed_source(destination).ok_or(SaveError::IncompatibleContent)?;
     // Keep the original digest during source validation. It owns the legacy
     // name rules and the restrictions on formerly inert interaction rows.
-    validate_snapshot(&snapshot, &source)?;
+    references.validate(&snapshot, &source)?;
     for (index, _) in &snapshot.sleep_pressure {
         super::validate_entity_reference(&snapshot.entities, *index)?;
     }
     let rename = terri_data::content_fingerprint_is_legacy(&source, snapshot.content_fingerprint);
     rotate_world(&mut snapshot, &source, destination)?;
     snapshot.content_fingerprint = terri_data::content_fingerprint(destination);
-    validate_snapshot(&snapshot, destination)?;
+    references.validate(&snapshot, destination)?;
     Ok((snapshot, rename))
 }
 

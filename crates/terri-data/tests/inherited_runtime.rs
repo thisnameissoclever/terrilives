@@ -97,7 +97,29 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let encoded = postcard::to_allocvec(&pack).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
-    if std::env::var_os("TERRI_WRITE_RUNTIME_FIXTURE").is_some() {
+    if std::env::var_os("TERRI_WRITE_RUNTIME_FIXTURE").is_some()
+        || std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some()
+    {
+        let old_bytes = std::fs::read(&path).unwrap();
+        if old_bytes != encoded {
+            let (old, tail) =
+                postcard::take_from_bytes::<terri_data::ContentPack>(&old_bytes).unwrap();
+            assert!(tail.is_empty());
+            assert_eq!(old.coverings.len(), 3);
+            assert_eq!(&pack.coverings[..3], old.coverings.as_slice());
+            assert_eq!(pack.coverings.len(), 4);
+            let mut previous = pack.clone();
+            assert_eq!(previous.coverings.pop().unwrap().name, "Outdoor patio");
+            assert_eq!(
+                postcard::to_allocvec(&previous).unwrap(),
+                old_bytes,
+                "only the appended patio covering may change the current fixture"
+            );
+            eprintln!("Patio-only fixture proof: all previous fields encode byte-exactly");
+        }
+        if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
+            return;
+        }
         let staged = path.with_extension("pack.staged");
         std::fs::write(&staged, &encoded).unwrap();
         std::fs::rename(&staged, &path)

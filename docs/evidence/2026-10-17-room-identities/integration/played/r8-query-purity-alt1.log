@@ -1,0 +1,154 @@
+### Result
+{
+  "utc": "2026-10-18T08:15:07.653Z",
+  "moduleSha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "seedSha256": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+  "cases": [
+    {
+      "mode": "cancel",
+      "semanticReviewEqual": true,
+      "tokens": [
+        {
+          "session": "1",
+          "revision": "1",
+          "preparation": "1"
+        },
+        {
+          "session": "2",
+          "revision": "1",
+          "preparation": "1"
+        }
+      ],
+      "originalOwnTokensValid": true,
+      "queryBatches": 2,
+      "queriesPerBatch": 100,
+      "committedIsolation": true,
+      "refusalCodes": [
+        11,
+        11
+      ],
+      "tableRows": [
+        [
+          5,
+          2,
+          1,
+          600,
+          1
+        ],
+        [
+          5,
+          2,
+          1,
+          600,
+          1
+        ]
+      ],
+      "firstTick": [
+        240,
+        241
+      ],
+      "finalSha256": "7268cbe5a1047c9a2cfa73e2bf7a87cc50b9c5cca3613a9ffe8050a29df6b487",
+      "exactFinalEquality": true
+    },
+    {
+      "mode": "confirm",
+      "semanticReviewEqual": true,
+      "tokens": [
+        {
+          "session": "7",
+          "revision": "1",
+          "preparation": "1"
+        },
+        {
+          "session": "8",
+          "revision": "1",
+          "preparation": "1"
+        }
+      ],
+      "originalOwnTokensValid": true,
+      "queryBatches": 2,
+      "queriesPerBatch": 100,
+      "committedIsolation": true,
+      "refusalCodes": [],
+      "tableRows": [
+        [
+          5,
+          0,
+          1,
+          600,
+          1
+        ],
+        [
+          5,
+          0,
+          1,
+          600,
+          1
+        ]
+      ],
+      "firstTick": [
+        240,
+        241
+      ],
+      "finalSha256": "b036ac04932e80e7156dea7cf1a2f479ae64af2cefa08bdfeb6a43e9cd1e81ab",
+      "exactFinalEquality": true
+    },
+    {
+      "mode": "dirty-end",
+      "semanticReviewEqual": true,
+      "tokens": [
+        {
+          "session": "13",
+          "revision": "1",
+          "preparation": "1"
+        },
+        {
+          "session": "14",
+          "revision": "1",
+          "preparation": "1"
+        }
+      ],
+      "originalOwnTokensValid": true,
+      "queryBatches": 2,
+      "queriesPerBatch": 100,
+      "committedIsolation": true,
+      "refusalCodes": [
+        1,
+        1
+      ],
+      "tableRows": [
+        [
+          5,
+          2,
+          1,
+          600,
+          1
+        ],
+        [
+          5,
+          2,
+          1,
+          600,
+          1
+        ]
+      ],
+      "firstTick": [
+        240,
+        241
+      ],
+      "finalSha256": "7268cbe5a1047c9a2cfa73e2bf7a87cc50b9c5cca3613a9ffe8050a29df6b487",
+      "exactFinalEquality": true
+    }
+  ],
+  "liveUnchanged": true,
+  "limit": "Public observations, token validity, committed/adopted saves and first tick were compared. Raw claims, raw draft and unsaved private resources are covered by retained static audit, not newly exposed getters."
+}
+### Ran Playwright code
+```js
+await page.evaluate('async () => JSON.parse(await (await import("/.scratch/r8-query-purity-alt1.js")).run())');
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L850

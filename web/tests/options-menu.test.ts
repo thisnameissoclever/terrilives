@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { OptionsMenu, attachOptionsMenu } from '../src/ui/options-menu.js';
 import { restorePersistenceFocus } from '../src/ui/persistence-controller.js';
@@ -170,7 +171,7 @@ describe('the Options flyout in the page', () => {
     expect(options).toBeLessThan(INDEX_HTML.indexOf('id="sim-dock"'));
   });
 
-  it.each(['lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
+  it.each(['game-version', 'lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
     'game-actions', 'save-game', 'load-game', 'death-enabled', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
@@ -239,7 +240,33 @@ describe('the Options flyout wired into main.ts', () => {
 
   it('closes Options when Build starts and restores focus to Build when it ends', () => {
     expect(MAIN_TS).toMatch(/enter\(\) \{\r?\n\s*optionsMenu\.close\(\);/);
-    expect(MAIN_TS).toMatch(/compactHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*document\.querySelector<HTMLButtonElement>\('#build-toggle'\)\?\.focus\(\);/);
+    const file = ts.createSourceFile('main.ts', MAIN_TS, ts.ScriptTarget.Latest, true);
+    const main = file.statements.filter(ts.isFunctionDeclaration).find(node => node.name?.text === 'main')!;
+    const builders = main.body!.statements.filter(ts.isVariableStatement).flatMap(node => [...node.declarationList.declarations])
+      .filter(node => ts.isIdentifier(node.name) && node.name.text === 'builder');
+    expect(builders).toHaveLength(1);
+    const creation = builders[0].initializer!; if (!ts.isNewExpression(creation)) throw Error('Builder constructor missing');
+    const hooks = creation.arguments![2]; if (!ts.isObjectLiteralExpression(hooks)) throw Error('Builder hooks missing');
+    const exits = hooks.properties.filter(ts.isMethodDeclaration).filter(node => node.name.getText(file) === 'exit');
+    expect(exits).toHaveLength(1);
+    const check = (code: string) => {
+      const events: string[] = []; let visible = false, focused = false;
+      const context = { syncBuildIsolation() {}, contextLayout: { setRows() {} },
+        wallTool: { exit() {} }, roomsTool: { exit() {} }, buyTool: { exit() {} }, floorTool: { exit() {} }, landTool: { exit() {} },
+        compactHud: { endEditing: () => events.push('end') }, syncBuildOptionsHost() {}, optionsMenu: { close: () => events.push('close') },
+        builderControls: { render: () => { visible = true; events.push('render'); } },
+        document: { querySelector: () => ({ focus: () => { focused = visible; events.push('focus'); } }) }, cameraDirty: false };
+      new Function('ctx', `with(ctx) { const hooks = { ${code} }; hooks.exit(); }`)(context);
+      expect(focused).toBe(true); expect(events).toEqual(['end', 'close', 'render', 'focus']);
+    };
+    const exit = exits[0].getText(file);
+    // Transpile the complete method in its object context, preserving the actual order.
+    const run = (source: string) => {
+      const wrapped = ts.transpile(`const extracted = { ${source} };`, { target: ts.ScriptTarget.ES2022 });
+      return wrapped.slice(wrapped.indexOf('{') + 1, wrapped.lastIndexOf('}'));
+    };
+    check(run(exit));
+    expect(() => check(run(exit.replace('builderControls?.render();', '')))).toThrow('expected false to be true');
   });
 
   it('returns focus to the gear, which leads the fallbacks, after Load, New game and Help', () => {

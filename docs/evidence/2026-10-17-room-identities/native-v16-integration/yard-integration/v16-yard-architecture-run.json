@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python",
+    "-B",
+    ".local-build/v16-yard-architecture.py"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-architecture-run.log",
+  "finished_utc": "2026-10-18T04:09:29.689185+00:00"
+}

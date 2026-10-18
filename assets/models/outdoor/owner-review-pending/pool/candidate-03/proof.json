@@ -1,0 +1,113 @@
+{
+  "state": "complete",
+  "object": "pool",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "outdoor/render_pool.py": "9e78e1f5ff2369188589def9a22ca2ca958f90851cc19583f72d74ee8e0a070a",
+    "outdoor/pool_model.py": "0ed361ef085853e5ab7825b4d2b763c011ddbc81f174b63bbc0b85464b6c7576",
+    "outdoor/pool_layout.py": "c5b29caaa6165ef7c914ef94a4f9137a3af8273ed1a761e67f63c3eb77750fc2",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "0a331a1f4001e86b0a3beb77eb4e5c60ae55f38c72b5111c059a9a4b139395ba"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "e144c25833ed46aadf32d80c931a2b51c01668e870925fd0022a0570c2e5f56c"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "2053bcff8f3d6ccb33987d01fa9c012cb483e50d32074effc7195803dff357b0"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "035e528db481ea679c4e28813eac8292a9cb8c2a3c630581a1a31d670f6f4932"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint": [
+      2,
+      2
+    ],
+    "rim_outer": [
+      1.92,
+      1.92
+    ],
+    "coping_top": 0.33,
+    "water_z": 0.27,
+    "outer_bounds": [
+      1.92,
+      1.996,
+      0.5680000000000001
+    ],
+    "decorative": true,
+    "ladder_side": "+Y"
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Pool ladder bumper 1 0.13",
+    "Pool ladder bumper 2 0.13",
+    "Pool ladder rail 1",
+    "Pool ladder rail 2",
+    "Pool stone coping",
+    "Pool wall",
+    "Pool wall trim band 1",
+    "Pool wall trim band 2",
+    "Pool water surface"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "a9989a31f6f0ecbf7055b2912f1d66255be5c95bba93e8e0248257c0e6f37177"
+}

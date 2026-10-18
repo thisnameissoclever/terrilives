@@ -1,0 +1,32 @@
+{
+  "purpose": "Artificial dirt-only play setup, not an immutable compatibility fixture.",
+  "hashes": {
+    ".local-build/r6-room-play-current16.sav": "a75def6a369c5d29a25faf8b8f60fb38eaf647d9f6b4306e7f9e4e4bcd924f45",
+    ".local-build/room-play-dirt-current16.sav": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+    ".local-build/seed-current-play-dirt.rs": "cdaf37760e19d383414f568b629743de479db747429d88c0d23b8968618bc8ce",
+    ".local-build/seed-current-play-dirt.exe": "21a85255623611720d8fe33bc77f630939b305b42bcd77550b738aad16f136d5",
+    "target/debug/deps/libterri_core-238595c1921a5136.rlib": "0da49439d76a458effb886222a398596a04483ce7881ddf510b60603b88bcfdb",
+    "target/debug/deps/libpostcard-e74fb1e44f22043c.rlib": "dde0d57bdf5c1144a66f65b2620b1233ce08fc1e871b69bb44736e474027b38f",
+    "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1"
+  },
+  "strictCurrentLoad": true,
+  "exactResave": true,
+  "gameplayTicks": 0,
+  "dirtUnits": 600,
+  "indoorTiles": [
+    317,
+    340,
+    341
+  ],
+  "outdoorTiles": [
+    95,
+    96,
+    97,
+    98
+  ],
+  "surfaceEntities": [
+    7
+  ],
+  "otherSnapshotFields": "Compared exactly by the wire-only helper before output.",
+  "sourceManifest": ".local-build/r6-final-native-source.json"
+}

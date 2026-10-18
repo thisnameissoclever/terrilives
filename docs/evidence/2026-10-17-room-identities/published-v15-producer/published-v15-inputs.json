@@ -1,0 +1,2891 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "git_blob": "75224178fbc96ba489ff77840d99e793ebd9f9a1",
+      "bytes": 26732,
+      "sha256": "9c18adf66281f474c9b63731263d8d53ffde7a4228d27ec403c25e85b393a84c"
+    },
+    {
+      "path": "Cargo.toml",
+      "git_blob": "98c6adda9aa9630d45e39f3ddc2790ba671600cd",
+      "bytes": 1117,
+      "sha256": "565e16151d4395fff3fee6fba26b3aed2a5fa8d52752ab0be63c9d241efa1636"
+    },
+    {
+      "path": "assets/sprites/atlas.toml",
+      "git_blob": "374e1d5dc32a7ecee636949c60629e459d725536",
+      "bytes": 4337959,
+      "sha256": "8d6d8bbd75b695f7a11c8bbc25f0e53b5589e662e2d876bf8b3da458b25bcc00"
+    },
+    {
+      "path": "content/books.toml",
+      "git_blob": "7b737adc96e7d3c7ce51579b312f087422b12318",
+      "bytes": 6343,
+      "sha256": "37b977de5c22399feb4f2f2ddc3e2f739549de4ec0d1cc1933da417c1f27a926"
+    },
+    {
+      "path": "content/careers.toml",
+      "git_blob": "14037acaa5be1022ff2759aa4f1974308881b16c",
+      "bytes": 6996,
+      "sha256": "2944de84d4226dfdd969776ce38e61c28e391f358b97065b06be258f695ca808"
+    },
+    {
+      "path": "content/chains.toml",
+      "git_blob": "2e202d4f6e2ccfc13768af8e0289b5275fbfce62",
+      "bytes": 5053,
+      "sha256": "4f03deafc48f2b13ab33ef47235c07e172aebc52d2befc9f2c94941147d1abf5"
+    },
+    {
+      "path": "content/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "content/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "content/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "content/objects.toml",
+      "git_blob": "c35b844b63185a0958c484273d2f70f432de19db",
+      "bytes": 28936,
+      "sha256": "5923744ea2d4b096c70b0ca03b07e3da1a4a7b9f2f73c5d516c225264c4976e7"
+    },
+    {
+      "path": "content/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "content/skills.toml",
+      "git_blob": "ce6702019f0c3f5bcc438efe06e5b1e4ecb61c36",
+      "bytes": 946,
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "content/social.toml",
+      "git_blob": "dcb05538b5f90270595b527522f796a4b7ec4389",
+      "bytes": 8474,
+      "sha256": "4e85a5a8d42895c3806945c7f39c999f7b66536ae3952725475997a3d32285c3"
+    },
+    {
+      "path": "content/traits.toml",
+      "git_blob": "5ebab652a9b77b25b3893931be8ec0d8706e505e",
+      "bytes": 7355,
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "content/tuning.toml",
+      "git_blob": "2ce53ae707f8bb8dba673ee66cd0fc47867ebb69",
+      "bytes": 58487,
+      "sha256": "0f3e28ccdb7f9e5e322470a5430266a08b6ea1a9916c2c818535d2dc76a2678a"
+    },
+    {
+      "path": "content/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-core/Cargo.toml",
+      "git_blob": "1347b78bbdea48cbf1a242a6cd9ab270c6e43e33",
+      "bytes": 418,
+      "sha256": "6fd270d9ee0eb66d5075a521fc1c96253b2c65629036897efce3e69557d5a21d"
+    },
+    {
+      "path": "crates/terri-core/examples/find_fscore_counterexample.rs",
+      "git_blob": "a5516e425713a8eaa769f3dfa1b1d43428119ffa",
+      "bytes": 8113,
+      "sha256": "fa6ca474dd5e7ef3d4ac8b8dfbe0e936eb4857cde26378a5290d9a6d4a2124cd"
+    },
+    {
+      "path": "crates/terri-core/src/appearance.rs",
+      "git_blob": "4c9eb1d859150a32ffd4de3383789e0a1d530d94",
+      "bytes": 9695,
+      "sha256": "dd3b605632e3b71ce03f7c072e98d51c79c73037c9aa77e054555881d3cbe34e"
+    },
+    {
+      "path": "crates/terri-core/src/books.rs",
+      "git_blob": "fb4ac9906011fc29b953f188060270d51660acdc",
+      "bytes": 3893,
+      "sha256": "416ceac3a33d6759c3894735918e17126429a818331bcae95ed6b8ce8705a279"
+    },
+    {
+      "path": "crates/terri-core/src/character.rs",
+      "git_blob": "82e3048289f7bd4496e4e6d235e6b5116857d531",
+      "bytes": 9613,
+      "sha256": "d905163f4f69402635f3fe86a70989311e7bdaa2324594c5485d576fd702554c"
+    },
+    {
+      "path": "crates/terri-core/src/character_catalog.rs",
+      "git_blob": "836eaa0b489e78b231557ea4ce7efed6bf608c24",
+      "bytes": 2278,
+      "sha256": "8196c8bd2b82424b0baf5657f5603534ea1c08bfea46206894294304f9fbe30c"
+    },
+    {
+      "path": "crates/terri-core/src/character_hash.rs",
+      "git_blob": "fea113d6ba91e597ab2f9c177d57804602eb4af1",
+      "bytes": 4569,
+      "sha256": "deab7ddd15fb0451173ad528600ca8e590305e03f083e13d869ce5ff78110a74"
+    },
+    {
+      "path": "crates/terri-core/src/chores.rs",
+      "git_blob": "2cca92fb11f8a53c8997d895b1bcbe805728420e",
+      "bytes": 8360,
+      "sha256": "8b911f29e382e4ac5a066ed8378fe0f3b88e92b00ddc6e73cda76e5e6c7905bd"
+    },
+    {
+      "path": "crates/terri-core/src/cleanliness.rs",
+      "git_blob": "b5f9843ee226b6fe002b1481ea74d06b351dba13",
+      "bytes": 1878,
+      "sha256": "98ffc6923c723592d77f95a8c48e7938111cafc32817fe809c11b6985490607c"
+    },
+    {
+      "path": "crates/terri-core/src/clock.rs",
+      "git_blob": "806ae0cb24e63611a90e5703ecf34f551ba87749",
+      "bytes": 8967,
+      "sha256": "ace44d12e9014218c3a8d7c1c204e44d52a0d8fe897c9f9ebc8ff5f7fcc2e8d6"
+    },
+    {
+      "path": "crates/terri-core/src/command.rs",
+      "git_blob": "eb3c2938b3af99793291556d9dcd158deffa445c",
+      "bytes": 41984,
+      "sha256": "24283f3ef20a0ca1575c22b2326ec66c6fda6c0c1354f7bac6011593a3d5df4b"
+    },
+    {
+      "path": "crates/terri-core/src/command/character_tests.rs",
+      "git_blob": "b4bb07bbc43dd5d4c09af10e035004fc4f4c9df2",
+      "bytes": 2422,
+      "sha256": "9b88d34e94729cb21f1482cd6a39d8bdef24e7c1ffaa4a45b7f384d296e58327"
+    },
+    {
+      "path": "crates/terri-core/src/components.rs",
+      "git_blob": "8c16f87e6dca52ef5c93f1f279cd983e63bd131e",
+      "bytes": 65487,
+      "sha256": "935fd55e4f1d104f9223eeb53322f07b757e7fc6515001392667987fd4ce164c"
+    },
+    {
+      "path": "crates/terri-core/src/facing.rs",
+      "git_blob": "b36b781e8ac678d743e469666cd9974143e4df1b",
+      "bytes": 7729,
+      "sha256": "637dc2b355c95b238bbd8fe6940293ac4f4c9cc55f3c119a4da2a42e4a7d828b"
+    },
+    {
+      "path": "crates/terri-core/src/grid.rs",
+      "git_blob": "85fc34861c3613c828f2d2a54ec31d80b7aebea4",
+      "bytes": 69243,
+      "sha256": "a9f0d9fb1e95ef1c0a54411c75013bee962a622a5f476aa667e98be8aafed53e"
+    },
+    {
+      "path": "crates/terri-core/src/grid/distance_tests.rs",
+      "git_blob": "f378f14f239bb2479c10b9a3e889382892148f57",
+      "bytes": 802,
+      "sha256": "35cdb9279edabf019e67ad6a11a37188c6fb2e6e69cf6f2f574dfde8f8d13d30"
+    },
+    {
+      "path": "crates/terri-core/src/grid/edge_tests.rs",
+      "git_blob": "34fdd745d963f4aa19fdb6218a381f8d98f75b70",
+      "bytes": 10708,
+      "sha256": "e93a032a541df42486d32a2be9c466efd3d11bcd827deb6d2878b7461567a759"
+    },
+    {
+      "path": "crates/terri-core/src/grid/segment_tests.rs",
+      "git_blob": "9ba6be68d2ea9c634bc9c60701baaff0e8d8629c",
+      "bytes": 3251,
+      "sha256": "b77b7c047c3f7dc4a2b09e88fec365cc9b06c9e2d3412c9e31eb9a4a61981133"
+    },
+    {
+      "path": "crates/terri-core/src/grime.rs",
+      "git_blob": "f491db433ed86c3e9085f40800ffe5b9a0f12f73",
+      "bytes": 1160,
+      "sha256": "00a523642f850146968381e49378459e74d01c50245210779b1aa009517249ae"
+    },
+    {
+      "path": "crates/terri-core/src/hash.rs",
+      "git_blob": "c370c7bf09ba99dc0bdb01752087ca407d2cf362",
+      "bytes": 7174,
+      "sha256": "4fb4ff4965da780887c5a1492a53393e5febefa7cc92c335ee172a278d777caa"
+    },
+    {
+      "path": "crates/terri-core/src/ids.rs",
+      "git_blob": "6ece057bea9c81ae8efdb14472a9c7cfe10854e2",
+      "bytes": 621,
+      "sha256": "1fc0f8a7dcb59a39362cebc9fb4c356b3a4fb63281b604d26c7d3031ffa3c8de"
+    },
+    {
+      "path": "crates/terri-core/src/layout.rs",
+      "git_blob": "83155ab90120ec0aa7bc1cb11a494f185212bfb5",
+      "bytes": 32357,
+      "sha256": "e129e79b01ecd2ed70107eae0a5b55c3cf01555e34b4d7589a299b4099debc8e"
+    },
+    {
+      "path": "crates/terri-core/src/legacy_chores_preview.rs",
+      "git_blob": "48163897a07ceac133827fb2a4e94a3ea4f7d9b0",
+      "bytes": 11716,
+      "sha256": "cd9cfd40f3e6a3f0c021014c7631783b87cded1e15c7073f0ef68910dc15beb1"
+    },
+    {
+      "path": "crates/terri-core/src/lib.rs",
+      "git_blob": "06af17f0e4c26768b4ecc195cf6fd672ac7ca34f",
+      "bytes": 2669,
+      "sha256": "b026989b8664296439fc90e9e36726965582711f570f89b53620bd8002195f45"
+    },
+    {
+      "path": "crates/terri-core/src/needs.rs",
+      "git_blob": "825ece3b20f5a642ba584ea2b6479ae7dac515a7",
+      "bytes": 5885,
+      "sha256": "d69ab29dfb2a3a4ed54ef77aca8f2781a085d6fae00edc016c180b2cfb18af64"
+    },
+    {
+      "path": "crates/terri-core/src/rng.rs",
+      "git_blob": "0e6f5c19c19283842e09905be07698ffb0493593",
+      "bytes": 14878,
+      "sha256": "c2add9739db6af65f368eba6e53dd7b1d19a5fd26b0261ea5961321616afb977"
+    },
+    {
+      "path": "crates/terri-core/src/save.rs",
+      "git_blob": "7a35aa51463d3097539965267356fb6e66485931",
+      "bytes": 32864,
+      "sha256": "9332307eecd7b3c617b0c3e0e9832c28091e4cf7b8df0a59d683a17d29b36e6d"
+    },
+    {
+      "path": "crates/terri-core/src/save_before_voice.rs",
+      "git_blob": "71b0565ae342f0d68270994532a96405d856015e",
+      "bytes": 3988,
+      "sha256": "a7d7e8b7e17c5be442ad728aee78022a54b6e656a384ab073e6ddc3fc93bb4d7"
+    },
+    {
+      "path": "crates/terri-core/src/save_v10.rs",
+      "git_blob": "8c4a47dddaf1981623d65a5008a1f48e63f46a67",
+      "bytes": 1091,
+      "sha256": "244fffb4d0b8c54b3dc9f53bd40c21f511e09b851cf6fbd8e4fd5d94de70931d"
+    },
+    {
+      "path": "crates/terri-core/src/save_v11.rs",
+      "git_blob": "cf742d60d17557150ac631fcecf5ab13875028f7",
+      "bytes": 722,
+      "sha256": "4a9ab72a8fa944f7c307ced5998c4ba2f091806d1f7a7ecb0b755ce4917889de"
+    },
+    {
+      "path": "crates/terri-core/src/save_v12.rs",
+      "git_blob": "357428dbe65434f1aaf1dd1911aeb3d600568b37",
+      "bytes": 707,
+      "sha256": "554e5d8226ff1aeb84db93a6496bcb3cff13a3f124e4a896c3408d326783a400"
+    },
+    {
+      "path": "crates/terri-core/src/save_v13.rs",
+      "git_blob": "4ae1666d985a427e3a310edce3d63a19dfee2ac4",
+      "bytes": 1063,
+      "sha256": "42a4158640025b5faa3dc6a17f4f32e970ddf8812334e7b84b90b2937a19f2d2"
+    },
+    {
+      "path": "crates/terri-core/src/save_v14.rs",
+      "git_blob": "b346d1577ee6411764b264044bca5eb264897552",
+      "bytes": 2459,
+      "sha256": "26070972d41ee0e9f9eadd940d0447d1ffe7fc0cb9a53f63750419b642a9c104"
+    },
+    {
+      "path": "crates/terri-core/src/save_v15.rs",
+      "git_blob": "01797b4d5fdc9ac4924119ca78a79d2b13e76af8",
+      "bytes": 1291,
+      "sha256": "5e0e97811151eed0f7e0a32933e0e0a919d8491a6b6cf173acb66f182365cb11"
+    },
+    {
+      "path": "crates/terri-core/src/save_v6.rs",
+      "git_blob": "33fa496f9cdd2e0b226c7857c5ff97d1f6a69316",
+      "bytes": 12899,
+      "sha256": "d2afcb89d1f0d3ed7ba35e3e605bd587f4196c5b9c44288f861c3e8b4910dca1"
+    },
+    {
+      "path": "crates/terri-core/src/save_v7.rs",
+      "git_blob": "aefdde0d8937ecc08866a551b83d9b4219b32019",
+      "bytes": 5120,
+      "sha256": "1b1d9766b2a043c02c16ff1980d22637167987325e1de7f577ccb5e64a345e96"
+    },
+    {
+      "path": "crates/terri-core/src/save_v8.rs",
+      "git_blob": "0482112b3b824a4e844515acf089935613bf65f8",
+      "bytes": 139,
+      "sha256": "5ca21d634948d1915df0a18f5209675cbfd751be641b6edf1f7670e92ce998df"
+    },
+    {
+      "path": "crates/terri-core/src/save_v9.rs",
+      "git_blob": "2a979b28d4cc578da5565722cb717c5f74fe6421",
+      "bytes": 1000,
+      "sha256": "00d802565e0c1d35d98374261c9a5829f3aac0076dc11f72b89512bc0c7f5592"
+    },
+    {
+      "path": "crates/terri-core/src/shyness.rs",
+      "git_blob": "fb5dc6d97932eae3dee00099dbd2a8b8c76c9105",
+      "bytes": 2256,
+      "sha256": "d7ee00a8f411eace957ef19a61c0b64ed32450183361717f96d366df0960c0be"
+    },
+    {
+      "path": "crates/terri-core/src/windows.rs",
+      "git_blob": "416ad88f29da60e8d08924178047b177068fc5e8",
+      "bytes": 9534,
+      "sha256": "0ad79601f7c84eea2365ef4d0d5de74e1b7b43474a1cb8c32e173aa16880569e"
+    },
+    {
+      "path": "crates/terri-data/Cargo.toml",
+      "git_blob": "505eebac5c4479987f89769e82f2c7b125a5883a",
+      "bytes": 1548,
+      "sha256": "7a7064014240735d044933788b21cb9e35934cd03d4035c496bcb563f7bd2c56"
+    },
+    {
+      "path": "crates/terri-data/build.rs",
+      "git_blob": "d9087abdea3f041e23bc26778c639c5249127876",
+      "bytes": 17120,
+      "sha256": "7658868f8b008d9ed22e5fb4e76599917ce73fdf3ee8093cdcc035d556c30cab"
+    },
+    {
+      "path": "crates/terri-data/build_pre_books.rs",
+      "git_blob": "ab2e1cce85c7f28815f77229216e4d06f4e14f65",
+      "bytes": 10743,
+      "sha256": "0d11cf4d990fcd93af39ab5d33f8265b6512e690653f5094e7f167a94ebfb973"
+    },
+    {
+      "path": "crates/terri-data/src/autonomy_tuning.rs",
+      "git_blob": "68cdee3d55a42dc0df7437915dae563b42d3b1ed",
+      "bytes": 3371,
+      "sha256": "15d7b6af93724d51afeab0e01a198b7eeaa6dd8b95f2dec53a09d4c73c8f9da7"
+    },
+    {
+      "path": "crates/terri-data/src/books.rs",
+      "git_blob": "12dd59193d806d12f50446b5c5bfc3a4677bd543",
+      "bytes": 4149,
+      "sha256": "08cfea1441fd52ef5815b4e1f807c13b9917c213434b227960851c3eae84b783"
+    },
+    {
+      "path": "crates/terri-data/src/compile.rs",
+      "git_blob": "ff111a55050fa835388a4eca74681a84e62d544e",
+      "bytes": 591124,
+      "sha256": "2c81cea9c64fb97a0c69ca8823e920eccce007d8e05008f96d3cc8d87bcc6807"
+    },
+    {
+      "path": "crates/terri-data/src/error.rs",
+      "git_blob": "b94611f2fcf81b1e5b0632fc8ebcfbf68847c624",
+      "bytes": 109390,
+      "sha256": "6d2dc495fc3440b070cb7d20dabffa69b4f9ec62a02c780322e2bbc870b6098f"
+    },
+    {
+      "path": "crates/terri-data/src/hierarchy.rs",
+      "git_blob": "b8e09a521d1945ce88040cca5efadb8b2006f475",
+      "bytes": 25108,
+      "sha256": "ab5820013f62d9482447497a20a2f782c87abde7286590fb0f0ac7b18731ffb1"
+    },
+    {
+      "path": "crates/terri-data/src/lib.rs",
+      "git_blob": "40a3e05c0a66b3bea86d7c14d954b600b8c98603",
+      "bytes": 142656,
+      "sha256": "47588e18daa9315dc3906ce4051d4fc2597250d31fdefc35a54b769bf08db1c1"
+    },
+    {
+      "path": "crates/terri-data/src/need_tuning.rs",
+      "git_blob": "84080a7c34164be72c74dc8ab111e0ec3737a0ad",
+      "bytes": 1763,
+      "sha256": "99a41339738813a6c322038033e769ec2a6810727e7ee0537a24ce19905ee9d7"
+    },
+    {
+      "path": "crates/terri-data/src/pack.rs",
+      "git_blob": "a2c53b99d4c1b655741c60854980229cf90240c8",
+      "bytes": 147493,
+      "sha256": "7bf0ea47f4f14380019afd0d5ce6e586857a8b40af2d41859a11643be34b7e09"
+    },
+    {
+      "path": "crates/terri-data/src/published_pack_wire.rs",
+      "git_blob": "c8bd23071c94883e4ac1d9b6c68be7779338352f",
+      "bytes": 50235,
+      "sha256": "3b0656651cfe2372dfe65e9e4661f5f5ace2796e516c89fd79609ed6c4c0ac25"
+    },
+    {
+      "path": "crates/terri-data/src/relationship_tuning.rs",
+      "git_blob": "1f993ae54a15803c56f0ae1b13894d52e9e45137",
+      "bytes": 3249,
+      "sha256": "96b05bb100d7070137580374009227f63ed65d75d33e888bf4b8380824e02f39"
+    },
+    {
+      "path": "crates/terri-data/src/schema.rs",
+      "git_blob": "a8ede7810817b7905dcda5059883cbedc9eee0f1",
+      "bytes": 118444,
+      "sha256": "0b78f0db913585599a17d5d6f098c493e7b7ee69efb0551a318e6aa3160fcb78"
+    },
+    {
+      "path": "crates/terri-data/tests/bathroom_layout.rs",
+      "git_blob": "5f74aee574bd79197ad56a57b9fbe045a5137543",
+      "bytes": 650,
+      "sha256": "2f74c2d35c7427e153f673ccfa4ed70c61bbb976c9f0782e6c832ce49cdce9bf"
+    },
+    {
+      "path": "crates/terri-data/tests/book_content.rs",
+      "git_blob": "64cbaa369a4825d3834c7111688d0f08298d2343",
+      "bytes": 4730,
+      "sha256": "71629b5741726ba1f31097bad990ccfb30db11d5f4d141b034f47bd4ce2a8fa2"
+    },
+    {
+      "path": "crates/terri-data/tests/content_hierarchy.rs",
+      "git_blob": "3b94c523d9dc836a74948baaf23cc3a6e06154be",
+      "bytes": 35669,
+      "sha256": "7b8656b75cc07a767ed8a13f742492574e9088450caa6a2466e5fc3704c3f103"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/save-provenance.json",
+      "git_blob": "a72bf2dead84814673ada6bb0b4a02e042076cad",
+      "bytes": 2628,
+      "sha256": "de0f0ce38dcdb7b1d378f793b70fd078e1dd1fb609e7a7673c34dd3b3d0a5e68"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/table-active-pending-v6.sav",
+      "git_blob": "2daf209268e315df250b7a5402f2bc97eddc8bb5",
+      "bytes": 4771,
+      "sha256": "a9ba9ea3e9a62a9b48eeae7c6b4e419a0689492f05754eeca212aa565dc9a158"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/table-active-v6.sav",
+      "git_blob": "b5783abba74462a02342138d450e3017e76d2951",
+      "bytes": 4766,
+      "sha256": "020d297942f041cb4238b9899969ff7e3123b0912503f1e44be0850886af6dc0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/table-active-waiter-v6.sav",
+      "git_blob": "c87fd909ff6cf28efde4c5bb007522746ddf3c34",
+      "bytes": 4800,
+      "sha256": "7112e199c1671f7f8d0115b10d371e09ff01c9cc4d622c17466d4ec52ecdd22c"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/table-inactive-v6.sav",
+      "git_blob": "2353382d993d9ddc9e8428062f74b2fd20e360a9",
+      "bytes": 4529,
+      "sha256": "845c53e61c09e9a655e5f4695160578eb00ea21a9b348c85ad908c8fe9eeb6e9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/catalogue-retirement-v6/table-queued-v6.sav",
+      "git_blob": "994083813dd1b5e34dd7e3e276863bd0ccefc5a2",
+      "bytes": 4593,
+      "sha256": "fbd9da8ac890bdda28977c5f64d389b25786fef77a41122df95ca694d7177767"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/inherited-runtime.pack",
+      "git_blob": "1e10cdbc423605a1b46b86d7b239f13b4b08e6fc",
+      "bytes": 22325,
+      "sha256": "7edd7623f285f5cafc3ba623575d0c44451c302199c6d0e1c37e2e99e0e1427f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/inherited-runtime.toml",
+      "git_blob": "58de18506c2ecf0067e6808aa9e760400e4077b3",
+      "bytes": 1991,
+      "sha256": "608aa68485095517ba76aae37d5bb22981771a9b0e6091d64c927ad9ee38809f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/atlas.toml",
+      "git_blob": "a85e604c6a3fd95881768708294accc7565d2558",
+      "bytes": 393425,
+      "sha256": "81b3103398d41de28329a69b92a01a06b858c88d4ff15f29a49f74c9ab7f121f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/careers.toml",
+      "git_blob": "d33b5ddc11aae241fa132b549fbbe54df0c4a802",
+      "bytes": 2234,
+      "sha256": "37cead6a00bb5cc0b4bf74aa505ef292c61c137e0e9d2ab7e79bdc6e37322f5e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/chains.toml",
+      "git_blob": "df7966a65f425529e99cf3574671aa4ca74e81ad",
+      "bytes": 5060,
+      "sha256": "2bd184f491e95ee3650f658d23170d4f5b75deba5ab8e033ae62c89b6c534932"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/objects.toml",
+      "git_blob": "eb9a17ba0573e06a40c5258f71538cf6ae81d4db",
+      "bytes": 42862,
+      "sha256": "fca3449f107d219528bbd43087a463d7fbea03c99387840b4c462b3435abe8f8"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/skills.toml",
+      "git_blob": "ce6702019f0c3f5bcc438efe06e5b1e4ecb61c36",
+      "bytes": 946,
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/social.toml",
+      "git_blob": "b1cbd1a561f58e3b6c8d88633bfebb4b13b3fa7e",
+      "bytes": 7684,
+      "sha256": "f10965dba9b9aa8a71ff29c463aa107de94640b6540fc8cb2231273a57e0e5f9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/source-revision.txt",
+      "git_blob": "d1e1ac3598eca6b660523474e664ec7efcdb4719",
+      "bytes": 42,
+      "sha256": "1a6a943a161bb72d6d98ee1239b31b8a8c56f6b7a76f2ed329b910bff0a06117"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/traits.toml",
+      "git_blob": "5ebab652a9b77b25b3893931be8ec0d8706e505e",
+      "bytes": 7355,
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/tuning.toml",
+      "git_blob": "285aae53e290e1d2f74f6a5a039761e44d2e85ea",
+      "bytes": 50060,
+      "sha256": "de6396e22f0c8e9f3856aca7a78d1b3c0eccbf94b8c2290fa46ca4450c4c24e4"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/voice-durations.toml",
+      "git_blob": "c2a622f3d89186e05aabc1b752a4dc93be4f6a43",
+      "bytes": 1479,
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-2f319c3b/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/atlas.toml",
+      "git_blob": "9ccaad44fa7e10641ebfcbcdae8e8dd407570c7f",
+      "bytes": 378155,
+      "sha256": "115661e02564f5a52a959e3002fb29e1f89731baf151397a4d7c49bd71805c9e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/careers.toml",
+      "git_blob": "d33b5ddc11aae241fa132b549fbbe54df0c4a802",
+      "bytes": 2234,
+      "sha256": "37cead6a00bb5cc0b4bf74aa505ef292c61c137e0e9d2ab7e79bdc6e37322f5e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/chains.toml",
+      "git_blob": "c770e3d96b3dba3ac2127dd7646a4c1546188363",
+      "bytes": 4840,
+      "sha256": "389d3f4e2c0d8af21d5f1950c78f5b8f2e83b3e6989ec1904cec5a1a89feea66"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/objects.toml",
+      "git_blob": "cd25d1074c0fe373010066952df7f0bb36aeb548",
+      "bytes": 45934,
+      "sha256": "247fc0a586fc0bde1abe2797e3b554b9e42676fdea0f8a4377da091e1568d1e6"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/skills.toml",
+      "git_blob": "ce6702019f0c3f5bcc438efe06e5b1e4ecb61c36",
+      "bytes": 946,
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/social.toml",
+      "git_blob": "bef6470c90d827d0cd65dcfe610ee930174a6a8d",
+      "bytes": 7455,
+      "sha256": "3a2471f341edddf79b57275ec356a69c12c308366a55b2a384eb2f9bdbd18f39"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/source-revision.txt",
+      "git_blob": "b9f6839f4ee20c398cb6d6d7ed8776f00ff60d3a",
+      "bytes": 42,
+      "sha256": "3599c21841b96c52bd2d442c5f2161304d0e2ad51843a7a409899349467ac89d"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/traits.toml",
+      "git_blob": "5ebab652a9b77b25b3893931be8ec0d8706e505e",
+      "bytes": 7355,
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/tuning.toml",
+      "git_blob": "5d0736eceb3c6f1b856d10a2165630902cdc42c0",
+      "bytes": 49711,
+      "sha256": "1403c0b6644746dab9bd117cf2bdba6abfb8e9d5a86951cfd83c95f03b8717e3"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/voice-durations.toml",
+      "git_blob": "c2a622f3d89186e05aabc1b752a4dc93be4f6a43",
+      "bytes": 1479,
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-89040f82/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/atlas.toml",
+      "git_blob": "10f88b797ae2239a5323e19b99dbfbef2662bd34",
+      "bytes": 327849,
+      "sha256": "dc4fd8567ffdf3205fcb5c7206242c965890a8e8debfb896e082cee1858b4dd1"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/bill-completions.txt",
+      "git_blob": "5583eaa0a3e3eba6dcf492e547c11e5a106ac876",
+      "bytes": 2079,
+      "sha256": "4b589646c7e9b924e300e8aef5eeb817c3bf28ef7318d705cc4c8d31f0220884"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/careers.toml",
+      "git_blob": "7ec622a0c7b7e6d2e1b7e35ebedcfcf6b1f449e7",
+      "bytes": 1919,
+      "sha256": "9403da867b0b367f52ed7b9205433d033f771bc0d30410b1d88354cbf462e1c4"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/chains.toml",
+      "git_blob": "c770e3d96b3dba3ac2127dd7646a4c1546188363",
+      "bytes": 4840,
+      "sha256": "389d3f4e2c0d8af21d5f1950c78f5b8f2e83b3e6989ec1904cec5a1a89feea66"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/edited.sav",
+      "git_blob": "58fb5c9e4abbfd3c001d20038a277ab8f9b9129b",
+      "bytes": 3210,
+      "sha256": "57f3b5550cb7dd4570cc39befbb727daad1bbda63d7389d5b361d6d5b3894612"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/edited.txt",
+      "git_blob": "7838e22e5a6cd57248d536ecd7eb376b06e65f2e",
+      "bytes": 73676,
+      "sha256": "1e0a3d37aaadcd09832ab8e857d363604e329fa8f34652aa22b9df1be92701e1"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-0.sav",
+      "git_blob": "6943ff957a1e80b3bd3d148286ff25aabbd90f89",
+      "bytes": 3197,
+      "sha256": "1a3bfb92a54c33d74fe4476a3faa23553be022160aa59990a652b502f41d55dc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-0.txt",
+      "git_blob": "b331d258814a4e9059d62c997657ccdf8c9eaa18",
+      "bytes": 73663,
+      "sha256": "b262b6879ec86900d4e116439089158ab0e2047e7bf0eebe83976bea279cad9d"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-100.sav",
+      "git_blob": "cff7ecd9da0720f4ff8d0a3621c307c8b1fe7311",
+      "bytes": 3428,
+      "sha256": "300e2f79aa66ebb26313d6ed40f081c7b17f783684753cbec594aaae8d82fb7e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-100.txt",
+      "git_blob": "529ef760d6a5dccc020b45a6305df27242ba017a",
+      "bytes": 84814,
+      "sha256": "222fb15608b3c528d28b2676bf777480dedce257f4334c288ebee10982f339dc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-1000.sav",
+      "git_blob": "f762eace2c0911a884528ba12e18fd2495564c75",
+      "bytes": 3483,
+      "sha256": "92287e0c55184efdd3ece901d68ef2c093e68be5bb9f5f5a76a8569b1c0dfd65"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-1000.txt",
+      "git_blob": "564828a4aff92b550e25fce135c6891eb615a247",
+      "bytes": 81654,
+      "sha256": "eefbdfeb5248aa33416782ce5d2f2ad24688e611c8f0a8daddfd347e35b3393a"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-2000.sav",
+      "git_blob": "9b879b0c8fef97256823fb34b8bf10b71a8b44a9",
+      "bytes": 3485,
+      "sha256": "438b982681af455b81b3cf5959b654e87266ce7a1f7810d9a0f6be504838e6de"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household-2000.txt",
+      "git_blob": "528a5913e57a4258d59b0b23eb4f92b05daf233d",
+      "bytes": 79544,
+      "sha256": "f4aa2c4785723d1fa56661c66cdf4598e8296717c98924815c6507e126b79b22"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/objects.toml",
+      "git_blob": "879341d6a02a1a543d194a81182b918f62ec42a5",
+      "bytes": 45039,
+      "sha256": "c4361282560d96c1059624731df3d98087ce4fa595cd0317a6af62a815feaa3b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/pending-edit.sav",
+      "git_blob": "d53738629724a288ad0e6cfd92632c8d0f9125b9",
+      "bytes": 3256,
+      "sha256": "08f56da2374255ccb0807cfe85a09c05bae9ecf3862d575def86b75d2652e121"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/pending-edit.txt",
+      "git_blob": "550482d55a8fdeee49cab406652c3a3883ebe282",
+      "bytes": 74149,
+      "sha256": "6236f59463e0d2c7e0ad2180e04dfa06e40f02cfa07cb43ec5a13d75c6d0817f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/repeated-snacks-bill.sav",
+      "git_blob": "f923f586a575fe78c295956f7f399fcb61ae0e47",
+      "bytes": 3461,
+      "sha256": "313e6247f65369fe49b1ad6e3d4cc98047450a02616c9e26ed5564baa2411f6c"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/repeated-snacks-bill.txt",
+      "git_blob": "22ec651a7948b050f38ff7f77cdf7bda8a2c5f57",
+      "bytes": 81967,
+      "sha256": "6a8816894f781c371ab8ba2908d92266e2d35aa2c1cd06d20e5730255a7c88a4"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/saves.json",
+      "git_blob": "d8bea2ed61b1b3d141df40ccfb3858f182cf8aac",
+      "bytes": 1543,
+      "sha256": "1fee50d5980deba8d9f9c81e5e0edce9a255a32fdb9566e4cb06e64d328d6b8f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/skills.toml",
+      "git_blob": "ce6702019f0c3f5bcc438efe06e5b1e4ecb61c36",
+      "bytes": 946,
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/social.toml",
+      "git_blob": "bef6470c90d827d0cd65dcfe610ee930174a6a8d",
+      "bytes": 7455,
+      "sha256": "3a2471f341edddf79b57275ec356a69c12c308366a55b2a384eb2f9bdbd18f39"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/source.json",
+      "git_blob": "bc4b68ca6601af18b83ea26eadfca35662cfe9bf",
+      "bytes": 2136,
+      "sha256": "69c232d3f654da20f8d352b843f61ef456af5d4091150418f826ff09f4192cac"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/traits.toml",
+      "git_blob": "5ebab652a9b77b25b3893931be8ec0d8706e505e",
+      "bytes": 7355,
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/tuning.toml",
+      "git_blob": "de7ded719888a50c502a8d80d7c325aec3c80acd",
+      "bytes": 47453,
+      "sha256": "10f00f7d01f2facf269674e6a708b373dab1dc990781e6b0736b41b0ef69b585"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/voice-durations.toml",
+      "git_blob": "c2a622f3d89186e05aabc1b752a4dc93be4f6a43",
+      "bytes": 1479,
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-920abaf/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/active-dining-845101d-observations.txt",
+      "git_blob": "ff2482166fe827c00625a5a7a45e14f15a23823c",
+      "bytes": 29080,
+      "sha256": "3572a71d792338b284655265f9446ce7eaf4cb307da0e5728852d65ae02cc9b8"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/active-dining-845101d.sav",
+      "git_blob": "f2684bfbaa4c2ad9c0015cf3899dccfe0e83568f",
+      "bytes": 3418,
+      "sha256": "8d85f41fde8e7b2a357ecc93d09539b7c2a179c9158b8c7aa4b521b85b17ee85"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/active-dining-845101d.txt",
+      "git_blob": "68ed6103f7f74ddf0d97cf443535dc0a0703853b",
+      "bytes": 79548,
+      "sha256": "31a304a775920773ddbf711f9bcc75bb0676373a6f260291332233625f38b21f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-radio-845101d-observations.txt",
+      "git_blob": "b63852ba68c81b30371091b26a4e5d5545ced613",
+      "bytes": 204,
+      "sha256": "fc4e57f0e03d20e8594f979f4490470196e4c86b48aff00e21348f3a85b3bfc4"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-radio-845101d.sav",
+      "git_blob": "932796681b670c48970aaacd32a19bfdfdc90a86",
+      "bytes": 3262,
+      "sha256": "eb5e492cd59f110d958408d382cfe3a6f6795308230cd5babe95c1358cdfcbf2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-radio-845101d.txt",
+      "git_blob": "a15f9d5aa0c8c0523f7d6c723f7e47eb321c6a78",
+      "bytes": 77587,
+      "sha256": "462eb08d89d64da882b7bc0c581561e4ddca6218b366d1cb001a6597675d04c1"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-tv-845101d-observations.txt",
+      "git_blob": "8a7ffd83d5713cd44e8c970e92149befef5f294b",
+      "bytes": 204,
+      "sha256": "fcd63adc37ad0bf03b77c85d71982d67d30f205a02bbb2a02f4ada8a21fee439"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-tv-845101d.sav",
+      "git_blob": "b2b46b54f7df4207e101258bb4ca5cc3e1ea8212",
+      "bytes": 3267,
+      "sha256": "0f609f3331fe29a650ffb2e3263cc5e85cbe231d7dc15b6d1ae3624897444a05"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/contended-tv-845101d.txt",
+      "git_blob": "085c7cc16a5627ff818a6c2c5ed9fb56bfd94614",
+      "bytes": 77590,
+      "sha256": "75247bd29d4cbab09725db1e53717a4efcbc56be74e7b49ab4d73901a1666248"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/edited-845101d.sav",
+      "git_blob": "35592d96466d160514ae55883f329f293d611d0f",
+      "bytes": 3121,
+      "sha256": "9f4804d915677fe497ca536eff7def648a1c72929fd298ec4cfd81ccb518fb60"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/pending-edit-845101d.sav",
+      "git_blob": "be03d935f874a7220539cc0e75f744c0f7e24966",
+      "bytes": 3176,
+      "sha256": "e72d4b9867ca142f8a362483a2ac7acf5dd0cd9acf51b49c23bf86fd2200cea2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/shared-tv-845101d-observations.txt",
+      "git_blob": "5a68d0d80218923089c5f7bb7f2f71457f78f098",
+      "bytes": 159,
+      "sha256": "508bff50b026f3181e6acc84606ff101bac9d6e9427b3c40dbd6d5f1d1fd746c"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-edit-845101d/source.json",
+      "git_blob": "a606b9f02363b86a5a69ac958bb2df0b4bb6459b",
+      "bytes": 1431,
+      "sha256": "66129959fcd33a02b73bbcf4691b468f85fad648962bd18a0392f1cfa5160157"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/atlas.toml",
+      "git_blob": "10f88b797ae2239a5323e19b99dbfbef2662bd34",
+      "bytes": 327849,
+      "sha256": "dc4fd8567ffdf3205fcb5c7206242c965890a8e8debfb896e082cee1858b4dd1"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/careers.toml",
+      "git_blob": "d33b5ddc11aae241fa132b549fbbe54df0c4a802",
+      "bytes": 2234,
+      "sha256": "37cead6a00bb5cc0b4bf74aa505ef292c61c137e0e9d2ab7e79bdc6e37322f5e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/chains.toml",
+      "git_blob": "c770e3d96b3dba3ac2127dd7646a4c1546188363",
+      "bytes": 4840,
+      "sha256": "389d3f4e2c0d8af21d5f1950c78f5b8f2e83b3e6989ec1904cec5a1a89feea66"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/objects.toml",
+      "git_blob": "8ccccff3f04d6b1b5c2126ed4993063e9e7141e1",
+      "bytes": 45946,
+      "sha256": "a44a5ae6f3330c709a0f24a87e10939ea00d9d1b6b559361d4cc9550557ca58e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/skills.toml",
+      "git_blob": "ce6702019f0c3f5bcc438efe06e5b1e4ecb61c36",
+      "bytes": 946,
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/social.toml",
+      "git_blob": "bef6470c90d827d0cd65dcfe610ee930174a6a8d",
+      "bytes": 7455,
+      "sha256": "3a2471f341edddf79b57275ec356a69c12c308366a55b2a384eb2f9bdbd18f39"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/source-revision.txt",
+      "git_blob": "9aa2e61f089662d8d27c286bf0347603755005e0",
+      "bytes": 10,
+      "sha256": "273bd52732c99d93150a9bef610524b3a4592f0662d2910a2ad53d8695e779ac"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/traits.toml",
+      "git_blob": "5ebab652a9b77b25b3893931be8ec0d8706e505e",
+      "bytes": 7355,
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/tuning.toml",
+      "git_blob": "5d0736eceb3c6f1b856d10a2165630902cdc42c0",
+      "bytes": 49711,
+      "sha256": "1403c0b6644746dab9bd117cf2bdba6abfb8e9d5a86951cfd83c95f03b8717e3"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/voice-durations.toml",
+      "git_blob": "c2a622f3d89186e05aabc1b752a4dc93be4f6a43",
+      "bytes": 1479,
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/atlas.toml",
+      "git_blob": "11d6637fe87aa70972e4bb7dd798fe231447945a",
+      "bytes": 246116,
+      "sha256": "82b089ee887941337185682c7d4f8bed30b262ffa4109e90d1cc781d59b4bc57"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/baseline.json",
+      "git_blob": "9a4bd9e8b95bd853980a0d50fb3fd19fed3ce1a5",
+      "bytes": 365,
+      "sha256": "3f594d6d97c2ce4773f05a2898b511f073ebf9cbacf2c15e3ff328ebcf781d1e"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/careers.toml",
+      "git_blob": "7ec622a0c7b7e6d2e1b7e35ebedcfcf6b1f449e7",
+      "bytes": 1919,
+      "sha256": "9403da867b0b367f52ed7b9205433d033f771bc0d30410b1d88354cbf462e1c4"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/chains.toml",
+      "git_blob": "c770e3d96b3dba3ac2127dd7646a4c1546188363",
+      "bytes": 4840,
+      "sha256": "389d3f4e2c0d8af21d5f1950c78f5b8f2e83b3e6989ec1904cec5a1a89feea66"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/household-0.sav",
+      "git_blob": "5a410831d93cfdb8c3364f72552bf2adf6e80fe2",
+      "bytes": 3155,
+      "sha256": "117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/household-100.sav",
+      "git_blob": "a3e030edad5f2efe09ef52c61c60d81b0349a8df",
+      "bytes": 3378,
+      "sha256": "67080e2944967f8a1cc7ee0b88d35c829fc8ddba0f0a6505f281acfaab88b898"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/household-1000.sav",
+      "git_blob": "c7c69fe5d4cad6be2cff98a9e934f813da22c8cb",
+      "bytes": 3385,
+      "sha256": "a84af82d14c5233817042e7520e506f073291a44a6bbfa443facf90c4e233923"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/household-2000.sav",
+      "git_blob": "0b7a8df771307b3321536754bbd05d8f597ab1d6",
+      "bytes": 3399,
+      "sha256": "5eb4bb4502cd6794e919849a5563fe778eb59ea393d8a1a08eefa60d2101ab58"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/household.toml",
+      "git_blob": "9fdab2b16f5b0878b3eede1bb0199910d14b6e0d",
+      "bytes": 3803,
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/lot.toml",
+      "git_blob": "1eb831dfdeb935eb3fdf9968e1b296f6a72795e9",
+      "bytes": 12939,
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/needs.toml",
+      "git_blob": "3c0dbee103393196fd9c3ec28e7cf781b72d9c03",
+      "bytes": 937,
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/objects.toml",
+      "git_blob": "879341d6a02a1a543d194a81182b918f62ec42a5",
+      "bytes": 45039,
+      "sha256": "c4361282560d96c1059624731df3d98087ce4fa595cd0317a6af62a815feaa3b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/personalities.toml",
+      "git_blob": "a4e36ed6e49145c43d5c3d3be3e23298a74eced3",
+      "bytes": 8833,
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/saves.json",
+      "git_blob": "c4cf6a2aeea3e1451a5b2381fdc56d5179a35314",
+      "bytes": 275,
+      "sha256": "86617ab097a66301b448d176527882ea79168fb72f60531c5d651bf2b38e27fc"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/social.toml",
+      "git_blob": "bef6470c90d827d0cd65dcfe610ee930174a6a8d",
+      "bytes": 7455,
+      "sha256": "3a2471f341edddf79b57275ec356a69c12c308366a55b2a384eb2f9bdbd18f39"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/traits.toml",
+      "git_blob": "32d0124bf1544e159682d410d0572fcd898cc568",
+      "bytes": 7490,
+      "sha256": "836e2542d5ed2bf9c356806e829bf74fd6fecf75da560bfbd37487da28c86a0f"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/tuning.toml",
+      "git_blob": "2a9ea40baa3429da9d84372105f00ef0a11e9fc2",
+      "bytes": 45821,
+      "sha256": "b0771d7e4f8a07df8dc94997f76472d4bbd3d8a5e5d706588819833c8af4b4fe"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/voice-durations.json",
+      "git_blob": "98fecedd68388b861661a4b2ff5f1e94c3fd0603",
+      "bytes": 1614,
+      "sha256": "91c51ca04a5726eb084cd638e4d69e6722063528cf3e848731585e569ab8af8c"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/voice-durations.toml",
+      "git_blob": "c2a622f3d89186e05aabc1b752a4dc93be4f6a43",
+      "bytes": 1479,
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-books/voice.toml",
+      "git_blob": "0d91bcfc26a5a2dfbb2cadbad3c707256861fd69",
+      "bytes": 3350,
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/pre-hierarchy-objects.toml",
+      "git_blob": "cef042db7641eeca9a7f3144f774c01e08718613",
+      "bytes": 7810,
+      "sha256": "91c564c8938e284511c50055ac379e3f28084a807c8994bd5f5fd5a08374586c"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/source-admissibility/constructed-tv-continuation-845101d-v5.json",
+      "git_blob": "79660e1f0646397c85172dd203747525722e67b9",
+      "bytes": 591,
+      "sha256": "12fd3e841fe3b81c8b8feda443ba29c63d87b42630e8a09ddc374c1a57002c98"
+    },
+    {
+      "path": "crates/terri-data/tests/fixtures/source-admissibility/constructed-tv-continuation-845101d-v5.sav",
+      "git_blob": "4f5f3d50a88ca4c10d29eba5c4ad8fc374bcad31",
+      "bytes": 3277,
+      "sha256": "02cd26651c7413bc33c3cc0c0572cfdd0039130926fdebf0b7014a96c99d9d3e"
+    },
+    {
+      "path": "crates/terri-data/tests/inherited_runtime.rs",
+      "git_blob": "e242f1e69e9905b49c1820beeb4f477910c8f32e",
+      "bytes": 6367,
+      "sha256": "d4aab2418ec2acdcdede2ea88f66038bb3a6445e4fca71cc82b6ddb75ca60bc8"
+    },
+    {
+      "path": "crates/terri-sim/Cargo.toml",
+      "git_blob": "5f3fd3eab10d52823d597e0b2a348c9001ce1b49",
+      "bytes": 449,
+      "sha256": "f9fae2c190ef9dabd3cf27819669448bd0a10412833ebe03b820da36afd12532"
+    },
+    {
+      "path": "crates/terri-sim/examples/grime_balance.rs",
+      "git_blob": "fd986eeab41b728e17a0e4f1c2464a438c0b4b24",
+      "bytes": 3095,
+      "sha256": "65bb0e34817cfe97df4348b333f2b7a26a17e60cd481c2562651a4a99de54b76"
+    },
+    {
+      "path": "crates/terri-sim/examples/relationship_balance.rs",
+      "git_blob": "91a2aeb0221cd0492b00653e3b83103e5c1cf442",
+      "bytes": 23944,
+      "sha256": "f558b22f6c8b01be607e52df3173c0cee5610bda4f0f5c1011708388a4d1bf2d"
+    },
+    {
+      "path": "crates/terri-sim/examples/satisfaction_study.rs",
+      "git_blob": "492f72adbe00658e411876ea3ebece9096cb9a23",
+      "bytes": 1027,
+      "sha256": "79bc4e01cdbdb61c8f448236791e95a6bd164eaae469d39bd3cec6ceff79b0ea"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace.rs",
+      "git_blob": "e51feac9041ca468c57ac175be3ada6b0672ee1d",
+      "bytes": 65068,
+      "sha256": "0ca7a3db0a44595492de1864009b6866fa0b2e99ac4bdb5d3b035c4cd87ec047"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace/catalogue.rs",
+      "git_blob": "d38a6f72a335b890912dbf3f0c90c7550e19abb2",
+      "bytes": 10138,
+      "sha256": "a4f1367ffabbc863e30695b81d191872e04b02d6f109a5f4b72bb2a75777751b"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace/catalogue_meals.rs",
+      "git_blob": "353cc2b72f961c90af3706d38ee3a17249a1660a",
+      "bytes": 17196,
+      "sha256": "aac29348caf725d3ed0f08eb8c9e3d4650ff7d4f6729d4441d9eee43c6256ac2"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace/relationships.rs",
+      "git_blob": "47e77e8993bd4837e19009e663e82707db4aadae",
+      "bytes": 5222,
+      "sha256": "d7cee32bd9f78476b73b209cbc2d395beb98f070cc1fee5a35c582c91d331819"
+    },
+    {
+      "path": "crates/terri-sim/src/action_queue.rs",
+      "git_blob": "f070d0d703a704fe6e3192df0bdc363896e0566b",
+      "bytes": 21530,
+      "sha256": "eb6da59935e157a6d1e66561e66402e62eaa277177de62aa8f60171ded708bd8"
+    },
+    {
+      "path": "crates/terri-sim/src/action_rows.rs",
+      "git_blob": "0feda1815a235f2f5d735bd179cbaefbf073b878",
+      "bytes": 2784,
+      "sha256": "80cadae2bf9ee792561fd0b2874edf0ff1bd0807e141f578f65f625518cf0186"
+    },
+    {
+      "path": "crates/terri-sim/src/activity_status.rs",
+      "git_blob": "73db930aa6ed065faf52d4b9c19056313860d5f7",
+      "bytes": 5171,
+      "sha256": "871e4ab4577fead6467ccb9ad7d69be638e84292fe406fa4b48455acffbe285f"
+    },
+    {
+      "path": "crates/terri-sim/src/activity_tests.rs",
+      "git_blob": "4f5da836bcf03533341983cf57de8b266b7b3100",
+      "bytes": 21162,
+      "sha256": "5452fd1a403b005a26f38bebd1cddda4c65f35f8c689f3306c3e7ff370f4368a"
+    },
+    {
+      "path": "crates/terri-sim/src/affinity.rs",
+      "git_blob": "258ee94833d47960d8fabfa6f4240e6da3406d10",
+      "bytes": 20759,
+      "sha256": "9e7d180bb8dd5a5c52f40cf5a793af5d9346c32721e9df886011973994aee692"
+    },
+    {
+      "path": "crates/terri-sim/src/affinity_tests.rs",
+      "git_blob": "6f81cb76966ac85f4e7f7fa619c1c058e5a2df4e",
+      "bytes": 32412,
+      "sha256": "527f839e113b11065496bba8225b92d29d9a1b04c389d8a9fb172633165693d7"
+    },
+    {
+      "path": "crates/terri-sim/src/beds.rs",
+      "git_blob": "57e1f9320b8d48df434006e2c2f1e2c663712fdb",
+      "bytes": 21693,
+      "sha256": "27195a2a3591fb700bb7e2458e2fb894486e561890498ff91af505f0a4664303"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/navigation.rs",
+      "git_blob": "7e640631940d1430a5c86682f20cbc87ada6a897",
+      "bytes": 4513,
+      "sha256": "76f0a5d8304dbe49da1237f8d72707b1ebb05d48694bf108a6cac048723a2b3f"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests.rs",
+      "git_blob": "d69b71882355e3e2087d03f4a4cbc958764db0b3",
+      "bytes": 34209,
+      "sha256": "3f92d2d80c70d64da5245efa839218d972f39c2b671a4858f284140264804c6a"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/lifecycle.rs",
+      "git_blob": "fb877574d3ff11ed4ce77d047d92f82f789f1810",
+      "bytes": 14606,
+      "sha256": "ffb9fe1c054be62ccb8d4ca0b0f50d3706119b917b63163d55b862418c70efc4"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/navigation.rs",
+      "git_blob": "0fda5bfbce40c6c68b7bf83629858ff8625bad92",
+      "bytes": 7622,
+      "sha256": "500204797747f5df6f13dd55a756c185b78dddf9a10222e0e4f99d066b5d7a13"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/projection.rs",
+      "git_blob": "19565b6508179f4fc755d4a1c6d117ee93e8eb1d",
+      "bytes": 7217,
+      "sha256": "d6431a8f1d4348e286560b16ead32161e1d984a9460d30810c13d9d82ba8b6fb"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/shipped.rs",
+      "git_blob": "ee262745c11288f0a2ca1c29606c6556f1754bd5",
+      "bytes": 6689,
+      "sha256": "d13a9e8ea16b189ea374549a8d1ba510ffff93b60b1ea3fa7fe02e5290242fab"
+    },
+    {
+      "path": "crates/terri-sim/src/books.rs",
+      "git_blob": "f5b842125a3d1c92e702b7acb39300b8df1abaea",
+      "bytes": 554,
+      "sha256": "7192a79e2e91c8d71b7c050e2bae60f51d00715b96772651b64ee23a390120a0"
+    },
+    {
+      "path": "crates/terri-sim/src/books/command_tests.rs",
+      "git_blob": "e165a43add37c23e382458015ca802babb080fdd",
+      "bytes": 28653,
+      "sha256": "09cc54bce00301aa6c1e6a4b071221936d613258d3c76dfd0c493c30c761639e"
+    },
+    {
+      "path": "crates/terri-sim/src/books/commands.rs",
+      "git_blob": "e59d565e1b4461e4931b8d07ab269f4e0afdf933",
+      "bytes": 15350,
+      "sha256": "1272072be6a28041c1a6cda49a3df4442b6aad42a3e00d4809b4439f65dd298d"
+    },
+    {
+      "path": "crates/terri-sim/src/books/commerce_tests.rs",
+      "git_blob": "9b0dd18d38331ea26d66e0823b92014e6e86c460",
+      "bytes": 7908,
+      "sha256": "602387731566e093eb048b5cdd02976cf7c523d695fb8ecb5dbafe7ae80e1be2"
+    },
+    {
+      "path": "crates/terri-sim/src/books/context.rs",
+      "git_blob": "24828a050021c6ac38bfd6bed9dfd3df7c74feb4",
+      "bytes": 3285,
+      "sha256": "42700e6bdee757e1e9fcdd8e1dabac26dc808c067239a7eeedacab140dffcffa"
+    },
+    {
+      "path": "crates/terri-sim/src/books/domain.rs",
+      "git_blob": "963c74dbab37f119872d40342a8523036fa1530b",
+      "bytes": 25716,
+      "sha256": "e9515cfe6626b5073864576041c137717290694c6fc66626f17afd83f2b4d55c"
+    },
+    {
+      "path": "crates/terri-sim/src/books/domain/commerce.rs",
+      "git_blob": "12ee7f5c33b81f15d55324dc3aad3fd804bf2e79",
+      "bytes": 11380,
+      "sha256": "4dbed9c4c611cbc67265578f61e1ae42d0da307d8d34dba48f13a1d6b5ddfd3b"
+    },
+    {
+      "path": "crates/terri-sim/src/books/lifecycle.rs",
+      "git_blob": "b6d18ceede115fa301975c4cae68af15ed7089c3",
+      "bytes": 1822,
+      "sha256": "1bb01762d46f91121c8a6ed0e9b5d59bb4c2264cf257027ca5274a10223a3871"
+    },
+    {
+      "path": "crates/terri-sim/src/books/tests.rs",
+      "git_blob": "a682dd5896080fbba7f9468c21d7f8128ae7f47d",
+      "bytes": 21631,
+      "sha256": "2c55437b95d8d97e703fc0b45f233e278dff4065167fa1f1eb5656f99e85a882"
+    },
+    {
+      "path": "crates/terri-sim/src/burnt_meals.rs",
+      "git_blob": "e1808df6b83ed801803021f4d4a6a9534780b464",
+      "bytes": 5159,
+      "sha256": "789b9f18be3a107cd1fd47ed6389171641ad8b5e5c4471f04ae7417bfb4a2fd2"
+    },
+    {
+      "path": "crates/terri-sim/src/careers.rs",
+      "git_blob": "189ee712b819f590f31d2549c41a10115147cd99",
+      "bytes": 94356,
+      "sha256": "4b3884468a80fda0d9923f5ba3f1ba34640a7a4227ac1877c0e9301a4b914048"
+    },
+    {
+      "path": "crates/terri-sim/src/character_draft.rs",
+      "git_blob": "b5eac898bc7e60378a3b0fc7da19296aec4b8aec",
+      "bytes": 11587,
+      "sha256": "de6eea4bf5da4c085f49cce1c9afb207c374915445c65a2225ee0650d5e2cb30"
+    },
+    {
+      "path": "crates/terri-sim/src/character_draft/application.rs",
+      "git_blob": "8aea36ddb84bc7e2110d65a5c71a1d78921efcae",
+      "bytes": 21883,
+      "sha256": "e477b4f5a8608e3919ed58d1e347758fad6e57b7addd5d48912b4c03f4bf8964"
+    },
+    {
+      "path": "crates/terri-sim/src/character_draft/catalog.rs",
+      "git_blob": "7ac91a181e78f3beb10f9a5abe283466ff1ebbc7",
+      "bytes": 5217,
+      "sha256": "4f013c1cee8d5704adf2114c094e07c9ebcca68172ba72bc43e73608d3a87f30"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/board.rs",
+      "git_blob": "f6b337723b8cfa8d321665090f9fe0266db9ae30",
+      "bytes": 14938,
+      "sha256": "e3f921d2a577e487f97fe7cc83fe698a79da1fc40b8090e25fefe4399dd2dbcd"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/board_tests.rs",
+      "git_blob": "1deefa52fe59e1182539a82ee7c536cd53bade8a",
+      "bytes": 9023,
+      "sha256": "bdf106d52a540c6aa7757994b826f298c14d55964438b08cf11be9e71255509e"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/cleanliness_tests.rs",
+      "git_blob": "42b8c402c3d9cb327d3d7b2d11d677723f4d18d0",
+      "bytes": 14045,
+      "sha256": "3ad0c59106e1f1a64f1cea256273c54a765c11edcc753218cbabeae41e30aaf5"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/consequences.rs",
+      "git_blob": "b701ba18d1c1333e07c3a1a5222c8122f0ddd6ba",
+      "bytes": 6992,
+      "sha256": "645aaaeb1757076f0231030a4e366adc7d7db70c0a51030ee3f2ce46642ba4e7"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/grime.rs",
+      "git_blob": "10d59418d9fc0dbd19e8b64f9bf81886e15f9945",
+      "bytes": 7682,
+      "sha256": "be931bb596a7e1e2c5da5dde22dcb4818642a4eade40af261c245287a17906e5"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/grime_tests.rs",
+      "git_blob": "ab1ac22d3f41a0e227f667292688c6db86ca5fd0",
+      "bytes": 26390,
+      "sha256": "b6e8e0d72fd6bacc8dbea9baea6e6bb9042834e7888eb72515046717dea28ef1"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/groups.rs",
+      "git_blob": "69230e495321489c8a26ee0c584cb3a4f0349b60",
+      "bytes": 21052,
+      "sha256": "9e960ae8a36580969591b6f337b569cd87023644c15974776e7483c984b3836c"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/integration_tests.rs",
+      "git_blob": "41e7a110bb306dfd710d658b3bb593abff8cb401",
+      "bytes": 9339,
+      "sha256": "ab67b6869c7a1650ae9a6848ad301976ed1e3cd219d6217f673c12463fb361c6"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/lifecycle_tests.rs",
+      "git_blob": "e2ed9e44e718f4f3b68e50b2e75df524930a87ed",
+      "bytes": 14412,
+      "sha256": "f4fa6ee510135334bf5601dd3fed2d1229b6bf35a3923e6d72243ae249692102"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/mod.rs",
+      "git_blob": "e6dfdfccd5df7b190ddc3977951562e611b27017",
+      "bytes": 19178,
+      "sha256": "17f517c1325e80bcf466369a385108772aa86399060afa545e4b8ca2c3f77d7a"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/patches.rs",
+      "git_blob": "a34a9404c1fe47c31b13563c29a684cb08db4376",
+      "bytes": 7604,
+      "sha256": "42d915d2b42b2497d6fd2dfc4e4a11b42453795af7a9df8bc2f51b864963d921"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/policy.rs",
+      "git_blob": "360d7f97b6c4e0b4d7dec57359aca5450c9ba326",
+      "bytes": 5856,
+      "sha256": "55b845d56f57d8032e96e8539d607cae07fd4fdf9a5be5c2833aa6386d5f690e"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/presentation.rs",
+      "git_blob": "2ec85a6d5ad45d6c8ff1e7dc8374881d987f52f1",
+      "bytes": 11497,
+      "sha256": "37e536327f88397166cf674fd7e9653cb678c109d79d04b4318c3d0314a0e349"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/save.rs",
+      "git_blob": "4f4ffaf6571a490be8a5c1645b9d206b96798dc4",
+      "bytes": 9395,
+      "sha256": "2b1149d0b677dead84a9dd630a6762bad7a8713bad19b4060f6eb193a5b07d23"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/tests.rs",
+      "git_blob": "9a99ad019fee1661fe31f694b5d0a20025932945",
+      "bytes": 11294,
+      "sha256": "87f4bb7337e82b4ef2c8a9deb264a60bdf632ce211a528537db81730e449b163"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/work.rs",
+      "git_blob": "e01a3c204085b51c5934dcf30dc02b444b514ad8",
+      "bytes": 25083,
+      "sha256": "00df3e7fb5cc0cf5f691c620a2d1bfae233fae9fa250def3cfd2e9c228fedfe7"
+    },
+    {
+      "path": "crates/terri-sim/src/compatibility.rs",
+      "git_blob": "cc2b3dcdc9706cff42b823d8fdab8689e3111fba",
+      "bytes": 6323,
+      "sha256": "16cad7ce8365a6b099a6e4cbb82e3d99c305e25f4de34b2c786fe923cfe3eda6"
+    },
+    {
+      "path": "crates/terri-sim/src/completion_sound_tests.rs",
+      "git_blob": "b879894106d9b5645052d64c88ed20160c7f90aa",
+      "bytes": 10544,
+      "sha256": "523244a05f1c0948063ae12427241c7c3785d64f731e06f7e4e3de80bae1b420"
+    },
+    {
+      "path": "crates/terri-sim/src/completion_sounds.rs",
+      "git_blob": "1e3500368d6ffca548c54b11bab43bc1df6ffede",
+      "bytes": 734,
+      "sha256": "296b0486f587f1200ea10d5edb1c8b1c8cb01858ca71f0915f01a7015e73bb42"
+    },
+    {
+      "path": "crates/terri-sim/src/creation_instinct.rs",
+      "git_blob": "a9be17e7f42157706eae596be29045e736308157",
+      "bytes": 3179,
+      "sha256": "1f98893efae0bb24a598cf1c568d0cc5e29371d03641b8229bccce76a8962720"
+    },
+    {
+      "path": "crates/terri-sim/src/details.rs",
+      "git_blob": "05d0f743908db58aa107943eaca9467bd5eedb40",
+      "bytes": 10921,
+      "sha256": "a7ab8f57ce9df6931bcd882c07708a8221e6d7b44b7dae3c3f69407af3629585"
+    },
+    {
+      "path": "crates/terri-sim/src/dining.rs",
+      "git_blob": "6230ed99012d86065b0df2e4592fa3984fb0eb37",
+      "bytes": 36508,
+      "sha256": "76cb57f4348761f9f6dc370dd8a514a4e8ac98b0a70d7bae5d1322d46bb1ddd2"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/completion_tests.rs",
+      "git_blob": "22fa02720f82ecf3d180fa2d97f98e2fa1510c37",
+      "bytes": 9766,
+      "sha256": "7a27e2fa4727c20f34ed80c36e00e1418b809d57875308228557f475cfd40907"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/table_actions.rs",
+      "git_blob": "491d7917dfe06537ce5926878948ac2de4276238",
+      "bytes": 14679,
+      "sha256": "4d7cec50f85a6c48a1dd59f218b9ab9f7be7ae00b58530b0d715d51b713a8de6"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/tests.rs",
+      "git_blob": "ccb5fb6120f51344ce1a96a6eb6c5fd526d0038c",
+      "bytes": 67953,
+      "sha256": "e519dfaadc89b65cdcc67ee94027f2504664f98dbfb8258891cde55f10431fd2"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic.rs",
+      "git_blob": "34031c7425c8422e9d368305bfd105550ca1d47f",
+      "bytes": 68227,
+      "sha256": "c80bb207f5c36dbc90f0980d7dc07c86199e93c36423a2890bad4a34b887b502"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic/tests.rs",
+      "git_blob": "e8be026b0876cb100e3836cbd4af086bdaf552ae",
+      "bytes": 111629,
+      "sha256": "7b8cc611bda889d9306d7f1e6a1646b9e89bce3b4ba1b7ca7c4aaf23b73855f3"
+    },
+    {
+      "path": "crates/terri-sim/src/ecs_lifecycle_tests.rs",
+      "git_blob": "3b60d6696e3e29ad45b1de40e44ce12e78b179a2",
+      "bytes": 3410,
+      "sha256": "37bfbc8947b62e71abcdcb4f6cec06fa75c25ce7f657910246d9e64865d12df6"
+    },
+    {
+      "path": "crates/terri-sim/src/edit.rs",
+      "git_blob": "2ce18b9c35df27c43070ddcd8f147a9fd6842456",
+      "bytes": 9414,
+      "sha256": "951bcaab6c6ff518a376948d7dce71b266fe2dfebf5d02722af90fb0a4d8ecc6"
+    },
+    {
+      "path": "crates/terri-sim/src/edit_tests.rs",
+      "git_blob": "ee7e4585db73438b9b7a01bf0e7bf9c6fcf91e93",
+      "bytes": 73551,
+      "sha256": "b16ee7eb2333f23d186ffa2e88853146f1911ab9b264c4afcf24ca3b3fdcfeb6"
+    },
+    {
+      "path": "crates/terri-sim/src/facing_tests.rs",
+      "git_blob": "52b6ee7ceb696ed1ab5bdf5974337b5c93a6ce46",
+      "bytes": 7217,
+      "sha256": "8a3fda05df93220a653c17b367b070c2ae7eeb1ff20dd240caa34278b4157f13"
+    },
+    {
+      "path": "crates/terri-sim/src/family.rs",
+      "git_blob": "31f50b1aa8aeb92ed21855840b57fea453046bb0",
+      "bytes": 6385,
+      "sha256": "9496f263959b645c2ac643bfdcf5057df3b7ade6c76aa1388ce9244c9c334540"
+    },
+    {
+      "path": "crates/terri-sim/src/fights.rs",
+      "git_blob": "02177ff41baa0a8dbd6e281b4a8a1308410517b5",
+      "bytes": 40643,
+      "sha256": "e882d00eb669b51767c73e7f04f15997d0023b31230b0a00a350bb0a7fda74b6"
+    },
+    {
+      "path": "crates/terri-sim/src/household.rs",
+      "git_blob": "74ee396870899b8f8902a6a8dc11deb957fcdfbe",
+      "bytes": 14128,
+      "sha256": "e35302d9ef668e5844e175bb6e87409ab38752da06a6bf45ff99a97adb1cbdd8"
+    },
+    {
+      "path": "crates/terri-sim/src/household_tests.rs",
+      "git_blob": "30406d5d536604350ef543304cd15eee100d1b26",
+      "bytes": 34006,
+      "sha256": "4c94c842cdc0a8a50f67fdd8bdb8cde2c663ac81c70b20d81962f156be4382ac"
+    },
+    {
+      "path": "crates/terri-sim/src/land.rs",
+      "git_blob": "0908b0b0a46773c22a5bb843f6f884e4dbcd2aa2",
+      "bytes": 47107,
+      "sha256": "0e947137c09065269f73160019e1cbafd5128964509f132f1cdbc7ae70e6800d"
+    },
+    {
+      "path": "crates/terri-sim/src/lib.rs",
+      "git_blob": "4193df6b1be95b4b48ec3e24c295c332d3891146",
+      "bytes": 305750,
+      "sha256": "39b9dd37955a1092142ac9414751eed09d6ad7fa1551d22c7640c00781d74163"
+    },
+    {
+      "path": "crates/terri-sim/src/lot_frame.rs",
+      "git_blob": "188fcb58acdea55b23b368af72edcece84161e20",
+      "bytes": 10879,
+      "sha256": "a355b50fe5790e87bd01dd55f93a0f7fc8f0d8955b3e2d57018382391420da00"
+    },
+    {
+      "path": "crates/terri-sim/src/media.rs",
+      "git_blob": "9778659ed7da0650ccee1434ed5a41abe48dd00f",
+      "bytes": 37094,
+      "sha256": "1ac656940e3e6dec740999faed1cf99ac43c192be78d5a405ff6451f3308d0ab"
+    },
+    {
+      "path": "crates/terri-sim/src/mood.rs",
+      "git_blob": "82085dbfc93b9b981523e9fc6e3a6cc519e8ca8d",
+      "bytes": 64951,
+      "sha256": "5ebe6ff720c050b0093528ab76c34b33faa123401209711e3ac7c6df2af7c30d"
+    },
+    {
+      "path": "crates/terri-sim/src/moodlet_timers.rs",
+      "git_blob": "1fba82ad02ef2eda59b17129f294567298ee59f3",
+      "bytes": 4347,
+      "sha256": "6d6e340cd551d70d1c8be5623328330cacd01e85f715c8d1effd8ad62a22579e"
+    },
+    {
+      "path": "crates/terri-sim/src/mortality.rs",
+      "git_blob": "fdb2b816c2235c9529bfb8d86ec7ee3f9f525a97",
+      "bytes": 44595,
+      "sha256": "9e535ed811792dd04258e427580dc012b13ba7689f6336b8594b69b03ce97211"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions.rs",
+      "git_blob": "3ab554753008239690ce1fc94330d260e4b41db0",
+      "bytes": 14802,
+      "sha256": "17a82a442072c3967717a601ee12d017ef56e5813fadc462b2d65b2d5c13edc9"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions/physical.rs",
+      "git_blob": "6f8aa6d8fedb3090b0a83d35adbb8ab154ffcae0",
+      "bytes": 4323,
+      "sha256": "6e117ff9fce3de6c407c4bcc8346389a3b1e2a5ba0048c70399bb304bc64925b"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions/tests.rs",
+      "git_blob": "f3a92e93f8da52a5c50604953b338449de66e462",
+      "bytes": 15220,
+      "sha256": "ec9191610eed62511af9c3fc010a435fe9f3b54a1ca183d76406740629de4eb7"
+    },
+    {
+      "path": "crates/terri-sim/src/placement.rs",
+      "git_blob": "06bbbef82d4b383d6ccd0469c944d943edea9af9",
+      "bytes": 23328,
+      "sha256": "7da6bec97202be41a2caa8b673d0576e569abce87a12c29bb78f3c541af27776"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/colourway.rs",
+      "git_blob": "181a0f333713fdaa239cc10686035268b24a85cd",
+      "bytes": 2172,
+      "sha256": "d49c33b5e9a3064340747365637fd220c3cf7fe808c78b8e2e16db88a3de91d6"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/colourway_tests.rs",
+      "git_blob": "95f08ce39f34c81208920fde5c8eee2510c3e5f2",
+      "bytes": 13008,
+      "sha256": "16c532c0c24af77de650b662f4d169e6bb7bf8c8e7512d971fe4bc48780d2035"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/floors.rs",
+      "git_blob": "5c4633a942210aa742d8723d9c85de45a4a54969",
+      "bytes": 2521,
+      "sha256": "e3fdc9a46ab0ad16159cf1fee51a9307083982923fdf62fefb60a26affc0fbfe"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/purchase.rs",
+      "git_blob": "9ae6e7d6b7319e07314347c4797af4ab1b62366e",
+      "bytes": 5037,
+      "sha256": "ea808f5dba9619fa12b378553c3829d851274d2897955b6f206fa6f5433a812c"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/purchase_tests.rs",
+      "git_blob": "63ab4fdfb0f9dfa8b216e1812f954a241895197e",
+      "bytes": 34135,
+      "sha256": "3fdc9985cbfb257563b5c022e9986ba5e38a4706f3e4dcf71bd4cf90bb7630e3"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/room_tests.rs",
+      "git_blob": "0a3db7ff2f747ae5615426d71768a338e6b748d9",
+      "bytes": 34751,
+      "sha256": "12a9e1f03a22f62bce6ed9e5432ee48f7554d5a178b6b3fcdb35f9b3966580ab"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/rooms.rs",
+      "git_blob": "c395e5c26e21e2a106e45e876623da6554b2011f",
+      "bytes": 8883,
+      "sha256": "7ed70742b33734f1c15bdf34891518f0978a8e844119d1a231258a2ff1863174"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/sale.rs",
+      "git_blob": "aec399eaa4103022fee1f1ff7cf8ff5beb41ddc1",
+      "bytes": 5753,
+      "sha256": "493b888264d762cddc2265a4e370a90b9c262ba1296d3f8dd77a188681237fd3"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/sale_tests.rs",
+      "git_blob": "befdd5d0c75802a8e28cbf8b046b206fdaf86de8",
+      "bytes": 18676,
+      "sha256": "11cba2c8c516e65278c33f1acc67f1643ec23dbffe389cdc6e90597e16687482"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/tests.rs",
+      "git_blob": "ebe5bcad2613cee2165149fbaa71a25ae9bbce51",
+      "bytes": 38848,
+      "sha256": "f857c35078b2731a80b2903b7fdc3f4fa5ad631559878dff3085556aa09e9b91"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/wall_tests.rs",
+      "git_blob": "2e9257e26365b97e6ce94516060859658c8051e8",
+      "bytes": 39315,
+      "sha256": "69cce608135484d0be8fe9461c37cc2e511d8ae4815d92019f4580bb9cd32ad7"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/walls.rs",
+      "git_blob": "84033f939eb46f5313610b5fe45b17cceac6d91e",
+      "bytes": 12263,
+      "sha256": "35e971ad00777f0d19aea021519f6ad8319a613c4a6db6382d35198cd9d31d73"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/window_tests.rs",
+      "git_blob": "067b716d4f29c2418b813225252d79f779388f57",
+      "bytes": 19566,
+      "sha256": "e379efa423524fd175e1b7728cfa517c1be887fd670cc4ab1b7739e057b80370"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/windows.rs",
+      "git_blob": "882ee2f2ebae7e2dfbe8c0def8b7f2cd8985724a",
+      "bytes": 10287,
+      "sha256": "5d5e0fe6c058ab6716cf428a0580a78b6cf3c9250d05b9d436d501e0aa355ab6"
+    },
+    {
+      "path": "crates/terri-sim/src/portals.rs",
+      "git_blob": "4f046cce4cb0546cf231e944a0c61a46ec3d0a06",
+      "bytes": 50854,
+      "sha256": "3c181bcf25a96b2fab4b491df6c21b6a4c93651a92d522661a0528e7a2467558"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy.rs",
+      "git_blob": "59bd1ac108a18d6d387a7d7e19ef58c1971e3d7e",
+      "bytes": 38105,
+      "sha256": "a2d61ab4fd54559d6788796d8f7186cbdc8d4c9dcec98faf69f7d92f932edd23"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy_bed_tests.rs",
+      "git_blob": "a85fd5a588fec8ebdd4bb99ce88ada792bb9e169",
+      "bytes": 17245,
+      "sha256": "f1c00c2a1cf7f7b69540c0f4650f1d3db740001c7358cad648b0a5be914fe37b"
+    },
+    {
+      "path": "crates/terri-sim/src/reading.rs",
+      "git_blob": "e14265fe99e13a6888f9f2cd4e2c6a7bde0c8662",
+      "bytes": 40505,
+      "sha256": "25ccc6f5d9353a93837b92700bcd04e1ce4583d9841541bfdbb766dc0f8566ec"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/accrual.rs",
+      "git_blob": "1394d320228fdfd773da397be44acdd76f74e491",
+      "bytes": 5970,
+      "sha256": "b0c4f51a3c6b3fd2fd50d23aac088e59587c746bde9711eb7ce918e58ff68f6d"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/persistence.rs",
+      "git_blob": "07897c067175cd9ebd68923c9e1560bb8867fe64",
+      "bytes": 20654,
+      "sha256": "e5c264170b293ad84629340ac7c63f7ce077a5746d3f04afbdcf530e36260099"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/placement.rs",
+      "git_blob": "307809e66f7c92580ff7f57920a026a95a5b90e6",
+      "bytes": 8060,
+      "sha256": "7a7fe49e421a89e8392fa76b098e7235b4bf786a077b2ff5d1872581b833fe0d"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/planning.rs",
+      "git_blob": "4a82b0ad1368ab3a1d6339643ac3135ad263f9a2",
+      "bytes": 22228,
+      "sha256": "3ca471e2f63729d6533c7f730fd3a927a667e34686a1bf90bafd5e5be42892ef"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests.rs",
+      "git_blob": "e21759cc2973b7e4e6bff50df27ccfd8667fe2e7",
+      "bytes": 76474,
+      "sha256": "62bc63f04a954dd934e982897f29de4e96a461be3cfc3457559b58f5f8812450"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests/priority.rs",
+      "git_blob": "58dc05c0efde9fd084fc759151c375d3817b99b4",
+      "bytes": 4298,
+      "sha256": "8f1ee0fdc583392198663b76a210154fda33060f6f0596d48932153dc6eee1bc"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests/review.rs",
+      "git_blob": "7e40ddf811f08c988fdd3f2e7881557afdc1fbcb",
+      "bytes": 15508,
+      "sha256": "2f63a5dc98b1bc2069150b9503af694f7f5f517bddd1a992aa79329d0ba35165"
+    },
+    {
+      "path": "crates/terri-sim/src/reading/tests/upstream_integration.rs",
+      "git_blob": "4cd9bfb6c0531813f86aa3cce5b23d5d629921ab",
+      "bytes": 16397,
+      "sha256": "45cdf6b313a8cc23d42f80c337be6f13f41e73432487f147edc9038aec0a03d1"
+    },
+    {
+      "path": "crates/terri-sim/src/recipe_actions.rs",
+      "git_blob": "87af0e3bdf25b4b049ec55dd89cbdce89982f680",
+      "bytes": 18553,
+      "sha256": "75745a2e65890cfd751a42d9a823b4be42bbb1a7539f8aa8c0bea663fb8ca2f3"
+    },
+    {
+      "path": "crates/terri-sim/src/recipe_actions/legacy_migration_tests.rs",
+      "git_blob": "d74c935c0a18c450f5a4394777179cd22b2f063a",
+      "bytes": 3693,
+      "sha256": "1673512f29b124baddc3f05ce78c1ffb780988c17731057eea1e2f55e06f5171"
+    },
+    {
+      "path": "crates/terri-sim/src/relationship_dynamics.rs",
+      "git_blob": "ae1d353704bf649205bd827f363bd7cc46340506",
+      "bytes": 33518,
+      "sha256": "5dd9c3233c2162c5ebdeef902c3d03cbe9b83c4c8a2872ffb853049d91fffd08"
+    },
+    {
+      "path": "crates/terri-sim/src/relationship_effects.rs",
+      "git_blob": "982be878d7a18b109dc11773fd441724dbc122d0",
+      "bytes": 2634,
+      "sha256": "49da10d62e2ddf4cd8c2d83bfa045ff5b1c55954d43113d6c5217a9a0d1c69a4"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer.rs",
+      "git_blob": "0242e4aba2689ba1028b37a6e0ebac2bdd380357",
+      "bytes": 210018,
+      "sha256": "78f88040ce3348c9ba6e6ebad6a1b229f43e168da5012790f3dd0e078dbc676d"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer/bath_projection_tests.rs",
+      "git_blob": "66c751c5ac93ac924505f091b6467d8cf65d78fa",
+      "bytes": 5790,
+      "sha256": "d5aa52d61d8b85f36ec86902eb606e8bf0d73760b05add0e29dca093aa469906"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer/fridge_reach_projection_tests.rs",
+      "git_blob": "8331bf53dabaa9f5f38851fab27d844cca6b433a",
+      "bytes": 15355,
+      "sha256": "e919cb90f57abe7a51ca452da78ab5541d2f2fe4dc0860e71ae570ff308ff9e9"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer/toilet_projection_tests.rs",
+      "git_blob": "bf07674c7a427fd01b834f3b13f9617c4cd93e61",
+      "bytes": 5403,
+      "sha256": "4ff87923605a42a7bf6a8d60583931e96aadc53bcdd68dff04e45a63aea98234"
+    },
+    {
+      "path": "crates/terri-sim/src/reservations.rs",
+      "git_blob": "0e4cf7a3f51917b8ce54b53b72b1e08f3d1ea6f0",
+      "bytes": 6076,
+      "sha256": "983dea525fe1b6c3228e3af89dde2b0dc7ca13baceb166431d7f89b510aa7586"
+    },
+    {
+      "path": "crates/terri-sim/src/reservations_tests.rs",
+      "git_blob": "1eb9eb3924a3046c914f43c66d6c62ffae479681",
+      "bytes": 12118,
+      "sha256": "2a5bbecd5f3625211d7e59b2f830b897d77d478031ad15cfded4cfe810ac85f7"
+    },
+    {
+      "path": "crates/terri-sim/src/room_regions.rs",
+      "git_blob": "493d5bfa011a5fe88f41758333e0560ce753dd78",
+      "bytes": 10584,
+      "sha256": "7ef4f08c789344caf5cb41b63782455682099c71c55f52312d5dd53a2bd36202"
+    },
+    {
+      "path": "crates/terri-sim/src/save.rs",
+      "git_blob": "1dac94665f9cdbb08deefc192418ed7467ddb39c",
+      "bytes": 188261,
+      "sha256": "7c595884f3f0e07268634ccf78ea8c3d8f679995161d26e37975aa09c5d2fef8"
+    },
+    {
+      "path": "crates/terri-sim/src/save/action_refs.rs",
+      "git_blob": "0610ca03c75c1ba588a7e2f5e7b94129dae3c1fd",
+      "bytes": 16618,
+      "sha256": "40b9e1ba07004df0b13af1ac2afca685e24fb356c208ef86da6effb46d8ee96a"
+    },
+    {
+      "path": "crates/terri-sim/src/save/affinities.rs",
+      "git_blob": "67d30bb23540d94a1075e236ae8bc12689958ad7",
+      "bytes": 5527,
+      "sha256": "8d960e03f8d763a07e2c0369f22ecf1b0fdf053b6576689d87799a11aa740dd6"
+    },
+    {
+      "path": "crates/terri-sim/src/save/affinities_tests.rs",
+      "git_blob": "5d53553ec4ac225afb2d0b9c15b55df6ea2b40b3",
+      "bytes": 13563,
+      "sha256": "611ff963896b4725bbe3ab6d8a17512e2054c269fe48e43ab7dea73d73384498"
+    },
+    {
+      "path": "crates/terri-sim/src/save/architecture.rs",
+      "git_blob": "9dc295f9c72009d55397862fc76f0c76a0d74d60",
+      "bytes": 38798,
+      "sha256": "0b59c59ffa069ce8173f4879028db2faeacec64c6b7677a2612358869df261cb"
+    },
+    {
+      "path": "crates/terri-sim/src/save/architecture_boundary_tests.rs",
+      "git_blob": "b5f2a95586f9382c1bdc2b6c06d09a462ce04abb",
+      "bytes": 14460,
+      "sha256": "af042bbcad0853b46f3ebed666faf4e97100cf281b57be1608bf227b8ce370de"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub.rs",
+      "git_blob": "3cda9ef45023491312aa753a9363bc9477cbe487",
+      "bytes": 15236,
+      "sha256": "e6ff8bdf3c37b632176171c00de185c1597674ea9f49d99255d884a7c5e32ab6"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub/mutation_tests.rs",
+      "git_blob": "09d767d8f913de80ecbfd148fa485c6112d51863",
+      "bytes": 2640,
+      "sha256": "0a0ed6429aff01e4f4ef1a6633863a3c9d7f486cf7b4546e36ca97a9227dddc7"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub/source_layout.rs",
+      "git_blob": "bde90e783dbf6aa14a40377f9eb1c6bcaa97f3b4",
+      "bytes": 3171,
+      "sha256": "14914917e9cc050cd7d3c86df93c340e42b19ff53f40e7e72556b37d111581e8"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub_tests.rs",
+      "git_blob": "0ddecf619573514601a8ba3b644ff71e3da492dd",
+      "bytes": 26879,
+      "sha256": "2ebeef820346be10ef2b9bfa1420aa236e8978b7816466aa37b4924628f36148"
+    },
+    {
+      "path": "crates/terri-sim/src/save/books_migration.rs",
+      "git_blob": "3d56b20c4bd0d060abae08042d84dda9e9d18c47",
+      "bytes": 7436,
+      "sha256": "d85e3c04090eba0563057a4a3f0a843de93e70707de60fd5a38db5fefae0f6e9"
+    },
+    {
+      "path": "crates/terri-sim/src/save/chronotype.rs",
+      "git_blob": "e00f32dfa4a6daf313fc8c275d6c269d131192b6",
+      "bytes": 5707,
+      "sha256": "f36a0c445e4eb35b061cdd398e82410a08f1c99a0e12334d0ef25e52a5ef133d"
+    },
+    {
+      "path": "crates/terri-sim/src/save/meal_migration.rs",
+      "git_blob": "f822bccbce4744ffc0a37e4d36fab9f98f97af09",
+      "bytes": 1812,
+      "sha256": "65081bdcaab92074734d1b355d9e198b5294f60e3c88aa356778ce1af2866068"
+    },
+    {
+      "path": "crates/terri-sim/src/save/self_preservation.rs",
+      "git_blob": "c9de591535f525126715e24c070c8f1aa5f57a99",
+      "bytes": 7180,
+      "sha256": "65400a4de5cec2744ba1ced4ae3a036ec422734e324f4ca7e74ddc62c700b05a"
+    },
+    {
+      "path": "crates/terri-sim/src/save/skills.rs",
+      "git_blob": "b5a857747be0e66bd44c4e3a4597a9ce3f8d0d61",
+      "bytes": 5490,
+      "sha256": "5bb397b29086fb5a1ee8640adbe3cd52ffc34b9e31119cd12f607040c3f680c7"
+    },
+    {
+      "path": "crates/terri-sim/src/save/skills_tests.rs",
+      "git_blob": "3124f7b10a54df9c4ee61af07b78a5c3104d9b9b",
+      "bytes": 13569,
+      "sha256": "f0a62a0f0a698415f5b208436b1a9cd2749005750371314de9c9877032d4d5d6"
+    },
+    {
+      "path": "crates/terri-sim/src/save/sleeping_places.rs",
+      "git_blob": "1807f22cee3a2df2e66880c1620b75ca78e646d8",
+      "bytes": 5791,
+      "sha256": "baf6b55d8cac59675af073600e37758a9f0c4b3593391e93f5312959a0559779"
+    },
+    {
+      "path": "crates/terri-sim/src/save/social.rs",
+      "git_blob": "885ae848b943fd8b472352cd580daaeb97a82e0f",
+      "bytes": 32710,
+      "sha256": "3a1c8f48129842ea588ce7a331fbb721ae3a46e22a36a84af4f62957ffb8eb89"
+    },
+    {
+      "path": "crates/terri-sim/src/save/table_retirement.rs",
+      "git_blob": "3a41ff57aa0b216ec05b210c2e8d75dc5ac99e80",
+      "bytes": 8385,
+      "sha256": "d6ef2081b068f0bfb383c8c7abf938fd5cbe3e6fa45eb3e6e76f70f7c3f7c55e"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v10.rs",
+      "git_blob": "c390995ae3eac633f40b7dc6e4cb271233f429b9",
+      "bytes": 9956,
+      "sha256": "a7b0706c81e42a7d991db4e278e472a881c94b8210a7f2fd4e6ef8557fb4a00e"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v11.rs",
+      "git_blob": "abef65ba67ee3ce49c045a9b8e81654ad19a23b3",
+      "bytes": 6450,
+      "sha256": "7249a778a62ac13cf27a22caf38ac201d3967712d983919f15ab1a79b0f56df6"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v12.rs",
+      "git_blob": "81d6cd62c3da32fc9a4702b45a06c0cf03592128",
+      "bytes": 6129,
+      "sha256": "aa5009e7908025b4b5b606fc5c13b0a45e78c2632a2d6fa0ba42b5b1cbbd7ba5"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v13.rs",
+      "git_blob": "12dedfd591ef7f0908e70f97342e3da6231a160a",
+      "bytes": 8707,
+      "sha256": "f2735e5bb8334d504e519e3f7435168071077cf87c9f762f87846c59221d8d0b"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v14.rs",
+      "git_blob": "1034c32c9ef3c83c317bcdfe985225ac11971922",
+      "bytes": 1123,
+      "sha256": "8daf16b50de2c763f35951a58c29a667307ff8457ce4a0513d572412abe687c2"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v15.rs",
+      "git_blob": "82ede77a9d7d07571b90b2cf34f5f7fc93b31193",
+      "bytes": 13096,
+      "sha256": "70eeb85f87ca1b17600e325e6750e297ea47884dd86159ed3b4ce67ff90ebd81"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v3_tests.rs",
+      "git_blob": "606950ea04fe5e3e99b134dd98f3a802df20769e",
+      "bytes": 5780,
+      "sha256": "d5b5cbcf1726e6100e8809ed213675a7790b2297206cf88be3f80e590b83e209"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v6.rs",
+      "git_blob": "56c824ef60072031f6a62f83828b2c9b9b021176",
+      "bytes": 28509,
+      "sha256": "013999255bd5c089eddaa1a19759381574f22c0fed27afbf00611aba4c74d9e3"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v6_tests.rs",
+      "git_blob": "2c3b4c21506211a7cb07db2412bdd0f91b8b12fd",
+      "bytes": 28889,
+      "sha256": "09bf546f56b74e2ab251f8ce4148056edad1390db3c72df9a4532a002b82e281"
+    },
+    {
+      "path": "crates/terri-sim/src/save/wall_migration.rs",
+      "git_blob": "3afdcd49d42c05e56732dd4716301fbf868787aa",
+      "bytes": 3940,
+      "sha256": "6592d4908378b1aa3767c5b67db90a2d9242d049a1ee2aeefa22b6bdb63c76ba"
+    },
+    {
+      "path": "crates/terri-sim/src/save/wall_migration_tests.rs",
+      "git_blob": "3f546432bfbe6591b17e4bdae12eef26c929dcd3",
+      "bytes": 12795,
+      "sha256": "9b291139f7274d042919190a804abf45c7332ee04e050ed96bab4d0f8854d635"
+    },
+    {
+      "path": "crates/terri-sim/src/save/yard.rs",
+      "git_blob": "b282be554471330f70a04815114e47885358d119",
+      "bytes": 3049,
+      "sha256": "3831f66591494910a9d1b6d4559e6711e63d1afc8ee4c268841908ee1b108193"
+    },
+    {
+      "path": "crates/terri-sim/src/save/yard_tests.rs",
+      "git_blob": "c7a8cff7ce54a993870f0a1cdafeb6dedfbc9b90",
+      "bytes": 6261,
+      "sha256": "88574ac70d031986a4cbf46600c907be7ffb0fd7bc1f5ab95343375dc2145f6d"
+    },
+    {
+      "path": "crates/terri-sim/src/seating.rs",
+      "git_blob": "6b6f1313a9a1c12a12b27e4ffa671b081ea4aa26",
+      "bytes": 19179,
+      "sha256": "1e72fd9346f297398f6e1fae6a0837bc80ad802cc7c83ef16fbae68095d69b28"
+    },
+    {
+      "path": "crates/terri-sim/src/seating/persistence.rs",
+      "git_blob": "2d63ea6a89b67542d808baf509745c02391d6ae7",
+      "bytes": 18739,
+      "sha256": "79c5a57b1bc67574a7f97a944cf35695a4667ccb149dd292b9236d62d4f7935e"
+    },
+    {
+      "path": "crates/terri-sim/src/seating/tests.rs",
+      "git_blob": "63b40180e04cb98ffa1dd2829e938502091ef32f",
+      "bytes": 100226,
+      "sha256": "00de6cdab2ea1f22041563f143410588d5e952a86257a93c53bf3564d190daf5"
+    },
+    {
+      "path": "crates/terri-sim/src/shyness.rs",
+      "git_blob": "3aa75fa20861562712668d04b1e72236f8b0e0a1",
+      "bytes": 1623,
+      "sha256": "e546eb3e13b4d85e8a67e8dda226e7706d2a25b1c6fe960333ef24233de35112"
+    },
+    {
+      "path": "crates/terri-sim/src/skills.rs",
+      "git_blob": "b646d69dbce3f4603c6646414212125a118d2522",
+      "bytes": 9532,
+      "sha256": "cb0ee73059bba4dfb26c786fac5d91ca2df38a5e8023b17e94e16d0029ac440d"
+    },
+    {
+      "path": "crates/terri-sim/src/skills_tests.rs",
+      "git_blob": "98006f2fe7e6ab4a1b67490bdbcb31df7d71e536",
+      "bytes": 34541,
+      "sha256": "15e466a8ca278a82dc11d98b1288fa92f57b632f3ee2abe6b47310f6078e6d0a"
+    },
+    {
+      "path": "crates/terri-sim/src/social_company.rs",
+      "git_blob": "46e6a7b7de0e1e6b8e82cda963cbbf66e253b85e",
+      "bytes": 43024,
+      "sha256": "0fb2aa4addd8bd1dcee215732d67ce966b8742efdc51876865cce6a42083ae4b"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode.rs",
+      "git_blob": "b2b64716514bd8dc0456a4f4fed7639bde9c2f21",
+      "bytes": 16373,
+      "sha256": "6961441f707f239383f177e38ac5a680da833c00a0d387a9c2251cde2f50e460"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/requests.rs",
+      "git_blob": "0d1e3dfb338f2ae9ce7e901339d816fa69e15a55",
+      "bytes": 33977,
+      "sha256": "ae2f191161650d036c16b48f930ca92831ba7620cbec2730937c4dc219e92b57"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/requests/route_cache.rs",
+      "git_blob": "7c6b903d720ef1de26e54bd3c4656c9ca99a69aa",
+      "bytes": 4422,
+      "sha256": "448e4b74602afe08ff9798b099ab9916c3a431629d2a38796199caa2a6742a30"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/tests.rs",
+      "git_blob": "53ab83f005cd3ec58bfdabfff1afc0796842c49f",
+      "bytes": 35816,
+      "sha256": "69c8ce287ebaa90e624ecabfccae0c652666893f91b7d8e14d854f0561f2d926"
+    },
+    {
+      "path": "crates/terri-sim/src/social_episode/tests/decision_tests.rs",
+      "git_blob": "dc9c8596a419258a11dc483e684800ca1eb01745",
+      "bytes": 47875,
+      "sha256": "6d6765a891e1598ee80976c8e9a68ee9d8f93e215348e5d993ddb5a29faf0bfd"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/action.rs",
+      "git_blob": "415d94813139a9000e4875f4d0ba9f33fd5a034c",
+      "bytes": 261727,
+      "sha256": "7c1b09d3d9c140c1967777d703a42a0d38eff18626fe8b083f6888a4bc7310e2"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/advertise.rs",
+      "git_blob": "7652cb51e350b421172f5ea4e149a766233979bf",
+      "bytes": 26368,
+      "sha256": "a622cf8ec984f299167c8bbc4afc38067e16d51ab6bb3a66fbd97586370954b0"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/autonomy.rs",
+      "git_blob": "b6dd5c27b0e2a92a4907410098c9f68c5649f8d8",
+      "bytes": 23218,
+      "sha256": "67787d69426f7a15c15c09dbde039cfc40f5af1b8a65a2349637fb504d8d382b"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/career.rs",
+      "git_blob": "7f4e750ad6d62715efb1b166132f268bd62956cb",
+      "bytes": 74481,
+      "sha256": "d8b9ba7b42e74949b96344265b629809251d3c4cdc964dfb555c26bf4ccb8be3"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/chain.rs",
+      "git_blob": "43939927ca55d837046e0c2d7b8fd65b4da5dded",
+      "bytes": 104290,
+      "sha256": "e345aae222228a551ad11ea1a99254fc7844551676bd6160f22517c9f44f48ca"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/circadian.rs",
+      "git_blob": "e584d641dfaa0014c237fde16acd00f480cd74bd",
+      "bytes": 32346,
+      "sha256": "79d04c16245704d4762c591d5247c7930241bf80b33333c74f49330f8eb1d60a"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/command.rs",
+      "git_blob": "42dca71335cb18b0fbb57bbd5a0e91f900b62148",
+      "bytes": 145472,
+      "sha256": "89738c1287ef20970f605c0a2a0deb3967d980d64aae96d0d13235cefc752f21"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/critical_choices.rs",
+      "git_blob": "3da7222f99e8dd0f61c63c715eb834a166c05d75",
+      "bytes": 10250,
+      "sha256": "bfe14c9f66997ace55ba7a0f25d50d138872ff4afeec73bcc007e4b2bb680803"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/critical_choices/forecast.rs",
+      "git_blob": "0aba4d115a4251658eae452b4020c1ae6f728b26",
+      "bytes": 5826,
+      "sha256": "3546c2c8c563074cad13f3daca5e2768ed560522777760d0a1b3bb0e3a718d60"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/habituation.rs",
+      "git_blob": "3677d41b495076ba51c4e1cb8dfa7b25a8a771a5",
+      "bytes": 25182,
+      "sha256": "d2fad77073db0d13e537e3319e73d8348620f036c9261bba6f334e87815994ee"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/idle.rs",
+      "git_blob": "ffa22f77e6220eb156fb1e6f302a134636a1e623",
+      "bytes": 37198,
+      "sha256": "ece918f8468a7da1b310f048fb080a81c36a7d11023b2bc39878fd5a46dda1d5"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interact.rs",
+      "git_blob": "60728bd0529d0245aea7b43f38571c83a3931c68",
+      "bytes": 65263,
+      "sha256": "61a95c10421c5c84b97ddf626e2fcba5bf3555cd80ea8cb67898ee555f6ffc4e"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal.rs",
+      "git_blob": "aace803614e419c1052d5d174393c40105de5f90",
+      "bytes": 29786,
+      "sha256": "61f6d03f0424d77b7044b45edb73527007962095e45d8a9aee82fa250c1b22a0"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal/navigation.rs",
+      "git_blob": "6dd75a5ce8bba4f104458e4027eb2d2f0d21494a",
+      "bytes": 4592,
+      "sha256": "43857c08fd06747bcc8912a38bcf336492e0955857f5c12ad0d9cb528470f206"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal_tests.rs",
+      "git_blob": "d28a82f190fa26db09f076021ecbcb9d685b8b04",
+      "bytes": 58709,
+      "sha256": "1f480928517cea818aa0ab42e1aac2c84b86221384b8ba283d2d290c034187d7"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/lot_edit.rs",
+      "git_blob": "28514515bda5ed3341c6c894a2da41ab2c0fe52c",
+      "bytes": 9075,
+      "sha256": "388f1442ee9445b79268b6efc22967fe02a8d1370527910261f2496f6df51c1c"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/mod.rs",
+      "git_blob": "59dc860a00021388bc021067fc72d1da47e92086",
+      "bytes": 2303,
+      "sha256": "ce184247f9df5b89b2d116565ab67c1d1d5a41219885e101ae52391d5d1114f9"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement.rs",
+      "git_blob": "1d422fc3675143d44fe895db986b3007185d21cc",
+      "bytes": 44923,
+      "sha256": "ac36808cc18999b80c22eef6b2a8e399d942fd529f25a401b6c3cff695f0f626"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement_edge_tests.rs",
+      "git_blob": "76f5b2dea270281351e9839fe535c1d9e273982f",
+      "bytes": 6435,
+      "sha256": "ecd03c6724c209fca38643d6d21ed79efdf20230cc80c85516e53b85ac383544"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/needs.rs",
+      "git_blob": "fe95fd3467c21da166f1b80ea3506f570aa49d1c",
+      "bytes": 22148,
+      "sha256": "375b8656d611e275e5e5f52dfaca9b8eae3812a27a1650b8d4302cf5c5731935"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/satisfaction.rs",
+      "git_blob": "e399f499c8d9053497a46c70b73ee0c7a10368da",
+      "bytes": 19158,
+      "sha256": "67e386a04ded6f215017f2f21de03a52c0551b16f3e6b8f142b4c3a4e67eedd1"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/social.rs",
+      "git_blob": "5a347de2099edae2ba807de2f78839d8c48aab15",
+      "bytes": 99414,
+      "sha256": "e2fe57f58e23f38e0b9afaaee43f6606a832d348659a461a16eae45c9665f0b9"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/street_tests.rs",
+      "git_blob": "780b6945cb05aaba17d7f4f4f05fe776a8c68df5",
+      "bytes": 14957,
+      "sha256": "bf6c379bab0c693df3b4869db9d566e28189d0dc2612cb9d0381cb5d76be3191"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/trait_effects.rs",
+      "git_blob": "8ecea30e9a7906eea08cad0e43d7cc613c5cd0d7",
+      "bytes": 32509,
+      "sha256": "bcebecbbcc422fe28d1de496f154cef5407b8a4839a09eba63b6acab98bfc660"
+    },
+    {
+      "path": "crates/terri-sim/src/targeted_cleanup.rs",
+      "git_blob": "00105e3d1b89af27586efdd6ff739541a3dc1521",
+      "bytes": 21849,
+      "sha256": "36e901cdfc511cbd67d24d3805331b6b8af3f443bbef879054b608469b948561"
+    },
+    {
+      "path": "crates/terri-sim/src/test_content.rs",
+      "git_blob": "4da803e7c3a7ccea69fbc8457dadc34e0bc2517b",
+      "bytes": 23188,
+      "sha256": "981a0d550f915a798908a2de6405c02802ae68ffa30fa8027f3a11c3489c447a"
+    },
+    {
+      "path": "crates/terri-sim/src/waiting.rs",
+      "git_blob": "35d059bcde93c86f42820dbf32ff10a425daa59d",
+      "bytes": 22479,
+      "sha256": "f46ca2a9fcb4cf5451ba47965bbbb7d8778369336a4c33dee992c0a15d7f68ec"
+    },
+    {
+      "path": "crates/terri-wasm/Cargo.toml",
+      "git_blob": "fd8c238e318a8df97c184df861313ad4f985420d",
+      "bytes": 982,
+      "sha256": "b834312136d119ec21eee01274d708d0301499f021ba598ceca490e0001008d4"
+    },
+    {
+      "path": "crates/terri-wasm/examples/chores_review.rs",
+      "git_blob": "70cd1c5e21ac0dae69ed0e40540b86c32a269f03",
+      "bytes": 4115,
+      "sha256": "ac848a6f6aa5ec005dc825fb2dc5b436b683d67fde332ec47d4929895d61ed46"
+    },
+    {
+      "path": "crates/terri-wasm/examples/cleaning_animation_review.rs",
+      "git_blob": "6256d9161a4009cb831ed562515a7c7559b98d76",
+      "bytes": 3903,
+      "sha256": "50501276720f401457bdd12161dc1fe24ff042a889794c430cb570af3fae62e8"
+    },
+    {
+      "path": "crates/terri-wasm/examples/conversation_review.rs",
+      "git_blob": "3f9764ed79f7311e45708e34e904fb72f4044c96",
+      "bytes": 3457,
+      "sha256": "38cbb963043082eae309fab44b4877b46f41f366a9ea9214c39a4ee227c9ee7d"
+    },
+    {
+      "path": "crates/terri-wasm/examples/creator_contact_review.rs",
+      "git_blob": "49bc2f23c155162a1fcf086b62f93e95bc6c1160",
+      "bytes": 1573,
+      "sha256": "c962634efb409c73ace4781cc22a06eecaf800d41ff29f7b1d15c49b93735eb4"
+    },
+    {
+      "path": "crates/terri-wasm/examples/domestic_review.rs",
+      "git_blob": "620185b5a623bb70861f9816d1c741dc4cd683cb",
+      "bytes": 6019,
+      "sha256": "3d4aad269e61243db3d5e41ac433d5c7ff5bb595c5747cb764650b86f6fea20c"
+    },
+    {
+      "path": "crates/terri-wasm/examples/fixture_depth_review.rs",
+      "git_blob": "bba4a1c0664b13181a3b9f801ff78f45793374e4",
+      "bytes": 1667,
+      "sha256": "18d9b188422c80d6f24963b4a229ffdfe3001bc9332d296b9865c971baef3035"
+    },
+    {
+      "path": "crates/terri-wasm/examples/migrate_chores_preview.rs",
+      "git_blob": "b06d53bd880a93e9b72707b34b83777c0e9b2fab",
+      "bytes": 14221,
+      "sha256": "4f1b64f53ef9b988a659c25cdfcf95b4210b8a32168f12aa757f588ef7cad02d"
+    },
+    {
+      "path": "crates/terri-wasm/examples/relationship_qa.rs",
+      "git_blob": "a470bd66600e8a8cfc33b19e9278c39163349f0c",
+      "bytes": 8180,
+      "sha256": "8f1594853da47a8d4f7d7268c3bba15391e79c91c662dbba4337456eef6a142f"
+    },
+    {
+      "path": "crates/terri-wasm/examples/targeted_cleanup_review.rs",
+      "git_blob": "c9bfca73d4453ce2822b4474267540ffee339b97",
+      "bytes": 2722,
+      "sha256": "f30dc2a434c6bad3857e88c257e382707a098cdaefe2fbc292dca9545128e597"
+    },
+    {
+      "path": "crates/terri-wasm/src/affinity_boundary_tests.rs",
+      "git_blob": "27f54673c75c469c820b115253ad5bd019834a55",
+      "bytes": 6819,
+      "sha256": "c66d934a12325464da736d2f83564118134ef7832bb8dea5f31a67ccc4ce7986"
+    },
+    {
+      "path": "crates/terri-wasm/src/bed_assignment_tests.rs",
+      "git_blob": "50254af1ad9504ff0e127757d6b0bc4dd7589cf0",
+      "bytes": 3609,
+      "sha256": "5293de2f59df4cb0a3a7fb02746730be76064784fe82ceab68f44cd31bbd05cf"
+    },
+    {
+      "path": "crates/terri-wasm/src/book_commerce_tests.rs",
+      "git_blob": "6879bd3da0c9bbb40e9a32da6010c4225f36c559",
+      "bytes": 3853,
+      "sha256": "bddfadd17118675b959191db96ea3fe352b8f8201480e86e75a5e4f35581c087"
+    },
+    {
+      "path": "crates/terri-wasm/src/book_tests.rs",
+      "git_blob": "386c6ab964566c5b023d2b80ce8f7310521a92bc",
+      "bytes": 14978,
+      "sha256": "6b826c9b50e110c83fe48a4368382a2cf4002bdbc7f837f0ad7477a02c9f944f"
+    },
+    {
+      "path": "crates/terri-wasm/src/browser_books.rs",
+      "git_blob": "d57d8dcaaee38609d5b617ee3043a0b01716fbae",
+      "bytes": 28113,
+      "sha256": "84ddf905b93e6120a4251c070c31e05669c42446c203586ba60c7c883664ffbc"
+    },
+    {
+      "path": "crates/terri-wasm/src/calendar_boundary_tests.rs",
+      "git_blob": "3e1c0ed1245e185b594badaee3a3ec81937d6303",
+      "bytes": 10492,
+      "sha256": "5565021ab33b4202fdcbdcb8ea49d0615ff44f16c71529ec26b9c48c7459737b"
+    },
+    {
+      "path": "crates/terri-wasm/src/character_tests.rs",
+      "git_blob": "04da98cb4498069b50572ad29cd5bbe1387c220d",
+      "bytes": 11893,
+      "sha256": "ecda4a48f363e166e45ab0dcf2afaf7097ce475bbdbe6a15e3ac2cac63582295"
+    },
+    {
+      "path": "crates/terri-wasm/src/inherited_runtime_tests.rs",
+      "git_blob": "030cfc4570306df18d71ba6a6d7e666696eaf3c2",
+      "bytes": 38378,
+      "sha256": "4fa5e38332a0e8c65b418ba0256dc17824827c652b37141726b52f06e99fbda7"
+    },
+    {
+      "path": "crates/terri-wasm/src/lib.rs",
+      "git_blob": "3a719df3e73c6454c02a82bd1adb163563eae835",
+      "bytes": 431374,
+      "sha256": "c4cff7e32c7784baf02ca9da0618e5c789241ce2f6384049f2aced82d0b3af70"
+    },
+    {
+      "path": "crates/terri-wasm/src/placement_tests.rs",
+      "git_blob": "deb97c4067700c8e3d870f0203054694b7c36760",
+      "bytes": 8813,
+      "sha256": "64f0bd3c5c046b227b8eb013d3514ea679472f1360013498e34e5b953b335b26"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_before_voice.rs",
+      "git_blob": "fdb4bc4776d19a0a3f59d48b2020f7ee56ad709a",
+      "bytes": 1512,
+      "sha256": "0f7561516f3b8b8840d23814cae0e499f949c76aacf0325a5a7138510dda0534"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_before_voice_tests.rs",
+      "git_blob": "b80876e4626d59ef98b71b22de3fb2cfa25221c2",
+      "bytes": 5496,
+      "sha256": "20482640589bfa09ed0b88cc371f2c164ea2784d3e0851aa28786a237c627921"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_v3_tests.rs",
+      "git_blob": "3f9a36e825c891438fa887680bbdeffe577c1af5",
+      "bytes": 85312,
+      "sha256": "d18eafa33b39f7b2fd9a3ee96144bfeff70487462a53d9c253ae01019aaa0cd6"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_v6_tests.rs",
+      "git_blob": "5b0df66f7f80fa31525f3366b4b6516a9e1f397b",
+      "bytes": 19071,
+      "sha256": "d79fa8bef70bc360d2efdffc199825da3894cba048d45382b8c092229d244850"
+    },
+    {
+      "path": "crates/terri-wasm/src/sim_details_tests.rs",
+      "git_blob": "71c91a14087e4a64a1e29db72bb8aa8cd2f39588",
+      "bytes": 3469,
+      "sha256": "7d759f0ae5614ccf6c039ff55f67e4be5bf17f422b39c1ab2bad8a1912153654"
+    },
+    {
+      "path": "crates/terri-wasm/src/skills_boundary_tests.rs",
+      "git_blob": "e5b543dd78c2c7cc3f2e2d8426ea8a09d9bba42b",
+      "bytes": 6501,
+      "sha256": "06ec4f0504504ccf19a4b6503d24c16076922eba26125fd99c7063355bfe73f3"
+    },
+    {
+      "path": "crates/terri-wasm/src/spawn_boundary_tests.rs",
+      "git_blob": "5db28b54e8b09d87870fe8a5a9fc3e716c512eec",
+      "bytes": 5221,
+      "sha256": "7bfcfb6d81b61bd7f4ab37f804a1a9f92dd0e22bcbb1991ae69124607c83afaf"
+    },
+    {
+      "path": "crates/terri-wasm/src/table_retirement_tests.rs",
+      "git_blob": "21b8950532609c3022417ee1ada8db53c5cf01b9",
+      "bytes": 12012,
+      "sha256": "7df551599598ddb9d6f4b1caed0ad5623a12a6ebbcee3c7a1c8421276471e7da"
+    },
+    {
+      "path": "crates/terri-wasm/src/targeted_cleanup_tests.rs",
+      "git_blob": "1ca1708bc572eb096346ca768e884d0c04dfaadd",
+      "bytes": 7085,
+      "sha256": "692fe36a7a4e71296d53d801f83d44c3a87d4f4c4786caff6e79974e69189002"
+    },
+    {
+      "path": "crates/terri-wasm/src/unlimited_queue_tests.rs",
+      "git_blob": "a515df6e818136a0c02ee8690f34e50e37bc33b8",
+      "bytes": 2398,
+      "sha256": "aaab3b3fb2cd8834f99b826ef63131a8075d9a11624df12c72a5ba3aa7eff6c9"
+    },
+    {
+      "path": "crates/terri-wasm/src/upstream_integration_tests.rs",
+      "git_blob": "2f9ff59b497ebac619d3ad73e103054609a9fc1d",
+      "bytes": 18676,
+      "sha256": "be48642c41df98577b21e80a3cff49dbcd50304caf4554d36e9e8229f1be75df"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/README.md",
+      "git_blob": "36a82de924ca123a6b1e6e401749182e275d0f91",
+      "bytes": 6952,
+      "sha256": "baf6a4cc7bd27c78d43bf06bf9c739ccba4de281d2b325f1d4b24aad60aba599"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-manifest.json",
+      "git_blob": "d234ad3e761d9e35767810c0bd5dde36c9d185c7",
+      "bytes": 3770,
+      "sha256": "b9e906e00a8db9bc2bd9532483f2d83daa855d73e7fb2f10dfdf3bfa2c166bc1"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-sleeping-assigned.bin",
+      "git_blob": "50985bbf4c785c26649bfc0c1bc1aa13aa07be47",
+      "bytes": 3216,
+      "sha256": "e5e806e578f0c770800466a77afe6093e54964442770bfda2bffe65060271ea8"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-sleeping-pending-clear.bin",
+      "git_blob": "3383a8767f9b9a650e22a3c0030fc34b88d64f85",
+      "bytes": 3219,
+      "sha256": "974e6b669f710c974b4aa949e2ef0ea4b146851f4945e6312fa24c5c2e1a56c3"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-walking-assigned.bin",
+      "git_blob": "d5bb7b09929d7b346a17f8f2ba46c1e06ac42966",
+      "bytes": 3234,
+      "sha256": "fadfcb1a1404eaa557a72f2ba018b4f99801adde34220cb6841161125f1a3b2c"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/command-memory/completed-edit-pre-box-v9.sav",
+      "git_blob": "fe56ddec1b41ce4eebf9113ed0e93a329244616c",
+      "bytes": 5244,
+      "sha256": "4f8f0f5c48cf4e20f5e880980d68a2dd76e6e77ccdad4a622514b08d47907878"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/command-memory/queued-edit-pre-box-v9.sav",
+      "git_blob": "fe779204590c727bb0605d5c75597442d731a2a1",
+      "bytes": 5270,
+      "sha256": "e94ea6d0d9fe955a8f29f76a34edd7c06175bf08dec143c675d740aa36062fe9"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/main-commuting-366.hex",
+      "git_blob": "e76b96fc6762d6c4d03749cc3fe9314961d5b514",
+      "bytes": 6006,
+      "sha256": "f561979d03b43afde233c0e6e4b7bd5f930620a88730b1bda71caa4324bc763a"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-bathtub-rotation.hex",
+      "git_blob": "865002faecf5b284e7a0396735f067b1260e6b23",
+      "bytes": 5214,
+      "sha256": "90484172cd416f3b3b3644d83d67468c01c31841c567107c03edf9c0def4d2be"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-builder-600.hex",
+      "git_blob": "1185c8cd841ece779872cfcd455024ff4a3234cb",
+      "bytes": 5235,
+      "sha256": "215cc03598a9f5a7c28e51d94bf59903103c21f6cb7866ad48ffb893d88cf8a3"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-builder-908.hex",
+      "git_blob": "53ae92904914e2ac9993006119d565c743653dc9",
+      "bytes": 5239,
+      "sha256": "82ecff8208b3d276cb0682ff0b085ce3db8ee360a3e9a558397e163c2a5cbe31"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-front-door-schema2.hex",
+      "git_blob": "d1ac77a514aa829ab5255989cbdbbf161b746e02",
+      "bytes": 5414,
+      "sha256": "5869bb457bdc86bf3227fc6e9c60e1102836cde581ce49f9033462bd5022fbb1"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-meals-dinner.hex",
+      "git_blob": "53f41740271e0b3a83d6e1bc0f007af2e455b591",
+      "bytes": 8110,
+      "sha256": "c2f23f55eec2bfa603569cdac31abc3780934e4713379a9de9aa70dc4b40c924"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-meals-snack.hex",
+      "git_blob": "117fe9629c20137dd0eb40d0c9ad4be57eb103f8",
+      "bytes": 8052,
+      "sha256": "84fd0ce9349d37e2d46f45062495ea4e50471631b7707b3eb1e185599c6e4cc9"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-trait-library-2400.hex",
+      "git_blob": "56a7f0b7ea8d15cf64917ceedb53d54a97269087",
+      "bytes": 5736,
+      "sha256": "0c97e223ba2a2af3c0c6e4d6e06068bfb8cf3803478fe45cac66a065ec36f7c7"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-trait-library-600.hex",
+      "git_blob": "49240eb60ed0d6313f3bf14784a6559340ebf8b5",
+      "bytes": 5666,
+      "sha256": "e18b8b3fb490fac2f42ed714a7750edc03f3520b0e2c887600fed76991a62ee0"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-voice-157.hex",
+      "git_blob": "307250d8b95a9b110379b1296cd263de9504a096",
+      "bytes": 5296,
+      "sha256": "54337d66bf0a3a5abeefdb98fe87e7eb3623badc56b0cb082daafbcb73d6eddf"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-yard-600.hex",
+      "git_blob": "53fbdbf9c18e2e7f2518e8c7055c79bcf96297a3",
+      "bytes": 5888,
+      "sha256": "eef3091c1617d305cb995eb492a62a36c49f2c4e1fdf7fa2cca015873b1a4389"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/public-main-meal.hex",
+      "git_blob": "ef24062b90613f312566d1ea1aa9e3bb14e08f08",
+      "bytes": 6359,
+      "sha256": "0bb192f757e70e38b25f52790ccf4d8f7ff8010f3a650860aecba7c6e4d6b57a"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/active-handwash.bin",
+      "git_blob": "b102be788a82ce2ee286054055570557518d83ac",
+      "bytes": 3754,
+      "sha256": "1a5b964d4def366dac3adf229b429be47217a9e6c5dbbb8cc1f7626ea380b9e9"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/active-handwash.observation.txt",
+      "git_blob": "409ebcd5091bccbb8fe4e7b272b35832649720ca",
+      "bytes": 89132,
+      "sha256": "71efbb14c4e30eb1cacf9f71ba3bea9c33e8a3bf7c55f6b2a5098233a2a4ee7a"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/active-toilet.bin",
+      "git_blob": "b9357a02b75df79940f1b6aff6e21f8b95b5c64a",
+      "bytes": 3750,
+      "sha256": "8e19e37b3dbdd241602eb417c887c38f9b0f282bcb92d66fd33e90dbf4a500a2"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/active-toilet.observation.txt",
+      "git_blob": "4eec0c3e91947a534294d5d32315888f734f52aa",
+      "bytes": 88961,
+      "sha256": "659c6c18a9171d0dccf88fdfcf6e343b58ddbf29424d0543d2d2158455099c62"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard",
+      "git_blob": "5dbac8fb23dcd0fe1123dffa604adfa6053ecfee",
+      "bytes": 8430,
+      "sha256": "641c762eaded306f9cc707c08dff52ac0e8c674c2ea3112352207de54c699062"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/initial.bin",
+      "git_blob": "817bbf314ccaa3255bd3c8d9064feccb24f24bb0",
+      "bytes": 3360,
+      "sha256": "dc8b093e10865eda9dc2f7fe307f2671f26ef7bbd27327a8eb5f6e2fb153ed5d"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/initial.observation.txt",
+      "git_blob": "1135528b704011a1255618fe5578a6be18c0893f",
+      "bytes": 75345,
+      "sha256": "1c537ed12c56f4fce69f15e45d9f8bdf97cfa159e5d9490f325b0237f41c7c46"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/pending-23-28.bin",
+      "git_blob": "f592ce1a590ceab8eccfc5aee9807ce6be1ae13b",
+      "bytes": 3385,
+      "sha256": "c39ac348ef5b28e78b540a4a1fbb2b48eb5b16a801f859132acb4e3fff335e58"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/pending-23-28.observation.txt",
+      "git_blob": "846ceff5aa90eb707db4ed0581102bfb00b8671a",
+      "bytes": 76306,
+      "sha256": "ce6894d8a2a0f604355d5ac78a992bb33f45f5c87f022304503da8b4e2a2a1f7"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/played.bin",
+      "git_blob": "484f32ef73d67b4ca7a77035374374aa927a11b3",
+      "bytes": 3867,
+      "sha256": "1e36d6c37ddae437ca188743312e104d11a5279188f3af7ef3b4997bfb48a32f"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/played.observation.txt",
+      "git_blob": "860c56cc9e817e2342e08623456485b334e3c7f0",
+      "bytes": 91705,
+      "sha256": "de9425b50115e84f86b4ea8029f0c45d698450847c228521a05feed210f31c9a"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/source-receipt.json",
+      "git_blob": "c9ac0da7e1bdcf72ab6a9eec52e100685d1075ce",
+      "bytes": 2961,
+      "sha256": "beafbae82f0e2db1f2aa1f0ac3a1ab6ff735cbdf7975239c40635774f47bf75f"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/two-listener-radio.bin",
+      "git_blob": "ccadb495e49996edeba8f61962a5b07057374042",
+      "bytes": 3583,
+      "sha256": "49d88187168f13a9d8232a37555a721ead2b39837fe0a470c0dc87d2dc51fd2b"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/two-listener-radio.observation.txt",
+      "git_blob": "ef95f4749f1602d612f22503f47ca51def007b39",
+      "bytes": 81717,
+      "sha256": "7b43793be46188ba03492c85ec00dc0a5777015336b42094e23c8c63c58c0333"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/two-viewer-tv.bin",
+      "git_blob": "668895f00e64ec9c783cc503751fe5dede1d4549",
+      "bytes": 3665,
+      "sha256": "eab59a86bf9934d7e98a37b2c9369341aa52dde5a3d8d2f9410a66597fcfe79f"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-2f319c3b/two-viewer-tv.observation.txt",
+      "git_blob": "1cc13aa4934b357f0b7ffc0aad2bc360ab38f25c",
+      "bytes": 84827,
+      "sha256": "c649ab4ef5dc14352236cca6d66cc600a595e3286b6f20d7ec70d6f0192d2f57"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-89040f82/chores-cleanup.bin",
+      "git_blob": "c089bc2e114247e8b964a0bead551d7184a489ae",
+      "bytes": 3851,
+      "sha256": "f1c9f3036980082531e97464f752a42e17e06de25582c4c5f311ccd40a6ec331"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-89040f82/content-pack.postcard",
+      "git_blob": "4355e11b67cfdb1d99fed8a0fdc48fc1cbc0f879",
+      "bytes": 8285,
+      "sha256": "be9d0bf1880c637ac9ed5113366aafe9153576a0a335b092efbb9ab694eed926"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-89040f82/initial.bin",
+      "git_blob": "817bbf314ccaa3255bd3c8d9064feccb24f24bb0",
+      "bytes": 3360,
+      "sha256": "dc8b093e10865eda9dc2f7fe307f2671f26ef7bbd27327a8eb5f6e2fb153ed5d"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-89040f82/played.bin",
+      "git_blob": "31365d3b8ddff12fb2b3ee67a35036d71199aee5",
+      "bytes": 3864,
+      "sha256": "f72ae3f7b17548c100b2b6ec08a86387a8588db742e17cf3f77a3fa61ecfed81"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-89040f82/table-seat.bin",
+      "git_blob": "33a9412244b69e57e31af24de0d6ca69d506a13a",
+      "bytes": 3855,
+      "sha256": "94ef84c36a135708cc3b9330d2944bf8384626c6894ecf55f1bec2fe605b3e3d"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-f3cb7a1c/content-pack.postcard",
+      "git_blob": "73ba6316389c1d2e37ad422b93008ad63f120c7b",
+      "bytes": 8297,
+      "sha256": "222763506816b2cdd10fb9f7614cec5b23ece6f80b6377ae79e1477d3afde595"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-f3cb7a1c/initial.bin",
+      "git_blob": "229e0c5504384c49188dc6f2186696771aa26166",
+      "bytes": 3357,
+      "sha256": "659f3f7f4b53e4e476aaaa7a0894b55cf950031780d89939c31ea67dbfa8bd6c"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/published-f3cb7a1c/old-table.bin",
+      "git_blob": "2048fbfb06cfaf2d5f07df6b3e66d3880f6b8c44",
+      "bytes": 3530,
+      "sha256": "60af5ac87b7206120d240d323dcfccf8c07356d06cef743131a8b99ba52497fe"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/capture_local_v9.mjs",
+      "git_blob": "cf94712b52805b622be5bc937d59d96bc4fddac0",
+      "bytes": 743,
+      "sha256": "80a3f09092436e03aaa7e90dc99de94245a530ff9e10dbb8a7a3820b7a300357"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/capture_main_v9.rs",
+      "git_blob": "5790635772736834664f8612ea86eae5e5a5d432",
+      "bytes": 2145,
+      "sha256": "52bc5da0d8b2f18dd9aabacb9010417af1b962f0dd476291bf2f81ffe3176465"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/local-character-0.sav",
+      "git_blob": "ac029edbcddf8ac8c5513c10bd8e9bfaf7877057",
+      "bytes": 5244,
+      "sha256": "8fa748db328864248779f97df1082a146293f442603e4775333cd83039fda989"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/local-character-1200.sav",
+      "git_blob": "f6c5f53f7466dc54d3f0bd3f849fbfacd1da67ac",
+      "bytes": 5902,
+      "sha256": "fa87f14865f2ee239d685c3a884cc71d51631feb47070c76edd86624c8aba2cf"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/local-character-400.sav",
+      "git_blob": "09021c81ff7d47542f93379677e44ca7596ab7c2",
+      "bytes": 5836,
+      "sha256": "90b3cff33cb953df7ff41c2ce667f6780060da7a13a4c798e65ddd5745f969f4"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/main-social-0.sav",
+      "git_blob": "1dd544731e082e23a2f37d1e38cef5bd1c4d83e4",
+      "bytes": 4786,
+      "sha256": "995d1f84cf4c2d621cc346988df719a263d9122d2d2636f9972b0a98531a2149"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/main-social-1200.sav",
+      "git_blob": "0d9f1d65b51729614ecefd121e06686372b1a5d1",
+      "bytes": 5444,
+      "sha256": "ad0e6025d11cc1df81cf8744cae22427d6a78de0cf32574cc5842d60144cbe47"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/main-social-400.sav",
+      "git_blob": "deff34be2aacebefad5e0fe9eec02c2ca9987955",
+      "bytes": 5321,
+      "sha256": "91551537c1cd34140abe2338e1d568738a0e9cf97054bfc70c98be960c0ee224"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/main-social-active.sav",
+      "git_blob": "5697a6c1c7005a3441f85a4e8218d37af03a1458",
+      "bytes": 5369,
+      "sha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/schema-v9/provenance.json",
+      "git_blob": "b8a402dd363881e8a450de3ee75ac0a3b34c3891",
+      "bytes": 1298,
+      "sha256": "d6b37246a765077c78685ffea66ec0daf24a1c45b02ea71eaae41a7360611713"
+    },
+    {
+      "path": "crates/test-fixtures/pre-yard-placements.rs",
+      "git_blob": "345003c1fa03f70b67c51bb58ad85d265ebae3bc",
+      "bytes": 1634,
+      "sha256": "6723a7690da821f333217a20071b5445a7d132f082a15323c4c8aaf0d9b50439"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "git_blob": "76027a441e2599520cd172b9050d194586a24ded",
+      "bytes": 1004,
+      "sha256": "350e50f9118f1f6ca7df6bb8b48f8f4cdf05b80b30cd3ed7a16465b313aa43a7"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-1.wav",
+      "git_blob": "b495e0ea52b064de7b9986044b0f7c824ede9a46",
+      "bytes": 297644,
+      "sha256": "d67da7c19ddfc91d7d571e42a9693343363f80f2656fc04e0a3bc64b837bb013"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-10.wav",
+      "git_blob": "2ddbb8760b866301b550729a0c704de6e58ed1b9",
+      "bytes": 336044,
+      "sha256": "df951d5c29a79778a2aac0e9d368320eb90c772d7960bf496e9d9a1d199f8387"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-11.wav",
+      "git_blob": "a925a4c63ed112670857917b9e53927a35c81de1",
+      "bytes": 441644,
+      "sha256": "3aa42dd4f74b84a00292506990dad218a9d92d0fa7b9b24ad5497c9d3c75e42d"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-12.wav",
+      "git_blob": "24c77324980274da33270f074246e439e9e2ffea",
+      "bytes": 364844,
+      "sha256": "def27e3c8b2e3491f95d7fd041f4074303069d1a0b37027b5b8e018ac2cf850f"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-2.wav",
+      "git_blob": "787cfc45522be35e615cbc3d53ce98741ac56c65",
+      "bytes": 240044,
+      "sha256": "7adf6eef720eaf9583090049fdbd04f1830c05f221617cb1604b55501e703717"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-3.wav",
+      "git_blob": "17ee965eb6159c81bb207e866ff689fe98882bfd",
+      "bytes": 316844,
+      "sha256": "eb2e52c1a6e8654dc5b546e0473fb8f32efc7f0843e31c92434939fe0816ff8e"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-4.wav",
+      "git_blob": "c87d5163498c88a52f321bfb4586aff1f687f38c",
+      "bytes": 316844,
+      "sha256": "a6e7f0232ab2424ddbebe0cc6bf6134d0fcd04ea3f099ae580ffc95c4c238e60"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-5.wav",
+      "git_blob": "1a43a915210bbbb2c05ae8c48b0baa6fdfe896eb",
+      "bytes": 278444,
+      "sha256": "dad7de2530ddf504ca4255668c847f50ce31f0ec0e9dc74d146a5228690f3a50"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-6.wav",
+      "git_blob": "86f77ad754ebdbd4023e8af06fa059b2f17ff801",
+      "bytes": 345644,
+      "sha256": "799445ef7a1e4c1f0102cef603aa296fa1249564c5ff65d067e875ff4244dd07"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-7.wav",
+      "git_blob": "0d493b7c2cbfa0b223aa06c632a89ee6cbf1d3db",
+      "bytes": 316844,
+      "sha256": "66b2a6d9bb15a80ac78ca291865844c8c7cef2f25b353ad2d5dd8b03b001f5cd"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-8.wav",
+      "git_blob": "d3865fcf351f1e54e005f654ada49df4c11e72a2",
+      "bytes": 316844,
+      "sha256": "2e4e79d013a15983f0a0ab4dc1fa8f5d12fa7f330b13e58cccb097b5663a76ff"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-9.wav",
+      "git_blob": "e806e53ee78c481fd1fdb0fa33ab73a66282799e",
+      "bytes": 297644,
+      "sha256": "add01d80b1f5e2c87e4e8f85e122d92f90dc21119d0bfc845e8ea73aec838d18"
+    }
+  ]
+}

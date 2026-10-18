@@ -1,0 +1,15 @@
+{
+  "status": "intentionally interrupted, incomplete",
+  "reason": "After the first builder-sale failure, no further test results were reported for several minutes and the verified task-owned runner used little CPU. Parent stopped only its Vitest process to obtain focused failure output.",
+  "elapsed_seconds": 419.806,
+  "terminated_task_vitest_pid": 11996,
+  "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+  "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+  "aggregate_test_result_available": false,
+  "focused_case": "parent-r6-builder-sale.log",
+  "focused_exit": 1,
+  "focused_duration_seconds": 4.646,
+  "focused_failure": "builder.test.ts:419 received null lastSaleResult instead of a refused-sale receipt",
+  "full_suite_stall_cause": "unclassified; next full run needs verbose progress",
+  "foreign_processes_stopped": false
+}

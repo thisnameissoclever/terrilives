@@ -1,0 +1,170 @@
+{
+  "source_sha256": "f3cda7418d524c3316514d9ff822cd1059894e0aa77aecf69675f87dd68fc6e1",
+  "artifacts": {
+    "terri_wasm": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+      "sha256": "f06926ef6e807390794cfb6f910aae97c9ba0edb9729032119b6fe9f73e3e8a6"
+    },
+    "terri_sim": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "sha256": "668b2241c31a4c17ecae20a6dc10d5ea30f6f33640adbc23880a324d9145b391"
+    }
+  },
+  "tests": [
+    {
+      "name": "placement",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "placement::tests::placement_reseeds_only_edited_furniture_preserving_fractional_walking_sample",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-placement.log"
+    },
+    {
+      "name": "wall",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "placement::walls::tests::a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-wall.log"
+    },
+    {
+      "name": "portals",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "portals::tests::prior_openness_advances_only_on_ticks_and_resets_on_load",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-portals.log"
+    },
+    {
+      "name": "legacy-recipes",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "recipe_actions::legacy_migration_tests::",
+        "--test-threads=1"
+      ],
+      "exit_code": 101,
+      "passed": 2,
+      "failed": 1,
+      "log": ".local-build\\v16-repair-01-legacy-recipes.log"
+    },
+    {
+      "name": "fridge",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "render_buffer::tests::fridge_reach_projection_tests::shipped_fridge_reach_survives_loads_before_and_during_the_step",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-fridge.log"
+    },
+    {
+      "name": "writers",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "every_public_snapshot_writer_reads_the_committed_baseline",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-writers.log"
+    },
+    {
+      "name": "ordinary-runtime",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "build_transaction::ordinary_tests::",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "passed": 6,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-ordinary-runtime.log"
+    },
+    {
+      "name": "paused-walk",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "render_buffer::tests::paused_sync_and_load_keep_walk_facing_when_position_samples_are_equal",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-paused-walk.log"
+    },
+    {
+      "name": "socket-cancel",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "render_buffer::tests::exercise_socket_entry_continuation_and_cancel_reseed_both_samples",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-socket-cancel.log"
+    },
+    {
+      "name": "reading-cancel",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+        "render_buffer::tests::paused_reading_entry_and_cancel_still_reseed_both_position_samples",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-reading-cancel.log"
+    },
+    {
+      "name": "boundary",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+        "boundary_tests::save_bytes_round_trip_and_continue_the_running_sim",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-boundary.log"
+    },
+    {
+      "name": "creator",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+        "character_tests::creator_boundary_round_trips_exact_values_and_correlated_results",
+        "--test-threads=1",
+        "--exact"
+      ],
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "log": ".local-build\\v16-repair-01-creator.log"
+    }
+  ],
+  "complete": true,
+  "finished_utc": "2026-10-18T03:36:52.070781+00:00"
+}

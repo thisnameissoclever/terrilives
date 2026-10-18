@@ -1,0 +1,45 @@
+[
+  {
+    "name": "format",
+    "command": [
+      "rustfmt",
+      "--edition",
+      "2021",
+      "crates/terri-sim/examples/trace.rs"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-trace-08-format.log",
+    "finished_utc": "2026-10-18T02:10:20.589353+00:00"
+  },
+  {
+    "name": "fingerprint",
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      ".local-build/v16-source-fingerprint.py",
+      ".local-build/v16-trace-08-source.json"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-trace-08-fingerprint.log",
+    "finished_utc": "2026-10-18T02:10:21.261363+00:00"
+  },
+  {
+    "name": "run",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "terri-sim",
+      "--example",
+      "trace",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      "10",
+      "42"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-trace-08-run.log",
+    "finished_utc": "2026-10-18T02:10:23.646641+00:00"
+  }
+]

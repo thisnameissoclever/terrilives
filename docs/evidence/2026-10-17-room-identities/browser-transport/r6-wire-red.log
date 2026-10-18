@@ -1,0 +1,159 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+   Compiling terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+error[E0433]: failed to resolve: could not find `browser_rooms` in the crate root
+  --> crates\terri-wasm\src\room_transport_tests.rs:29:23
+   |
+29 |     assert_eq!(super::browser_rooms::review_response(Ok(review)), [
+   |                       ^^^^^^^^^^^^^ could not find `browser_rooms` in the crate root
+
+error[E0599]: no method named `begin_build` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:7:23
+    |
+  7 |     assert_eq!(handle.begin_build(), [1, 0]);
+    |                       ^^^^^^^^^^^ method not found in `SimHandle`
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `begin_build` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+  7 |     assert_eq!(handle.sim.begin_build(), [1, 0]);
+    |                       ++++
+
+error[E0599]: no method named `stage_room_name` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:8:23
+    |
+  8 |     assert_eq!(handle.stage_room_name(&[1, 0, 6, b'G', b'a', b'r', b'd', b'e', b'n']), [1, 0]);
+    |                       ^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `stage_room_name` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+  8 |     assert_eq!(handle.sim.stage_room_name(&[1, 0, 6, b'G', b'a', b'r', b'd', b'e', b'n']), [1, 0]);
+    |                       ++++
+help: there is a method `sim_name` with a similar name
+    |
+  8 -     assert_eq!(handle.stage_room_name(&[1, 0, 6, b'G', b'a', b'r', b'd', b'e', b'n']), [1, 0]);
+  8 +     assert_eq!(handle.sim_name(&[1, 0, 6, b'G', b'a', b'r', b'd', b'e', b'n']), [1, 0]);
+    |
+
+error[E0599]: no method named `prepare_build_commit` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:9:25
+    |
+  9 |     let review = handle.prepare_build_commit(&[1, 0, 0, 0, 0]);
+    |                         ^^^^^^^^^^^^^^^^^^^^ method not found in `SimHandle`
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `prepare_build_commit` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+  9 |     let review = handle.sim.prepare_build_commit(&[1, 0, 0, 0, 0]);
+    |                         ++++
+
+error[E0599]: no method named `rooms_revision` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:12:27
+    |
+ 12 |     let revision = handle.rooms_revision();
+    |                           ^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `rooms_revision` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+ 12 |     let revision = handle.sim.rooms_revision();
+    |                           ++++
+help: there is a method `lot_revision` with a similar name
+    |
+ 12 -     let revision = handle.rooms_revision();
+ 12 +     let revision = handle.lot_revision();
+    |
+
+error[E0599]: no method named `stage_room_name` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:13:23
+    |
+ 13 |     assert_eq!(handle.stage_room_name(&[1, 0, 3, b' ', b'X', b'\n']), [1, 1, 6, 0]);
+    |                       ^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `stage_room_name` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+ 13 |     assert_eq!(handle.sim.stage_room_name(&[1, 0, 3, b' ', b'X', b'\n']), [1, 1, 6, 0]);
+    |                       ++++
+help: there is a method `sim_name` with a similar name
+    |
+ 13 -     assert_eq!(handle.stage_room_name(&[1, 0, 3, b' ', b'X', b'\n']), [1, 1, 6, 0]);
+ 13 +     assert_eq!(handle.sim_name(&[1, 0, 3, b' ', b'X', b'\n']), [1, 1, 6, 0]);
+    |
+
+error[E0599]: no method named `rooms_revision` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:14:23
+    |
+ 14 |     assert_eq!(handle.rooms_revision(), revision);
+    |                       ^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `rooms_revision` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+ 14 |     assert_eq!(handle.sim.rooms_revision(), revision);
+    |                       ++++
+help: there is a method `lot_revision` with a similar name
+    |
+ 14 -     assert_eq!(handle.rooms_revision(), revision);
+ 14 +     assert_eq!(handle.lot_revision(), revision);
+    |
+
+error[E0599]: no method named `commit_build` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:16:23
+    |
+ 16 |     assert_eq!(handle.commit_build(token.0, token.1, token.2), [1, 0]);
+    |                       ^^^^^^^^^^^^ method not found in `SimHandle`
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `commit_build` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+ 16 |     assert_eq!(handle.sim.commit_build(token.0, token.1, token.2), [1, 0]);
+    |                       ++++
+
+error[E0599]: no method named `build_active` found for struct `SimHandle` in the current scope
+   --> crates\terri-wasm\src\room_transport_tests.rs:17:20
+    |
+ 17 |     assert!(handle.build_active());
+    |                    ^^^^^^^^^^^^ method not found in `SimHandle`
+    |
+   ::: crates\terri-wasm\src\lib.rs:129:1
+    |
+129 | pub struct SimHandle {
+    | -------------------- method `build_active` not found for this struct
+    |
+help: one of the expressions' fields has a method of the same name
+    |
+ 17 |     assert!(handle.sim.build_active());
+    |                    ++++
+
+Some errors have detailed explanations: E0433, E0599.
+For more information about an error, try `rustc --explain E0433`.
+error: could not compile `terri-wasm` (lib test) due to 9 previous errors

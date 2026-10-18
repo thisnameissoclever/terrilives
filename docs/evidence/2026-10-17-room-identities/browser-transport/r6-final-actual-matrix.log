@@ -1,0 +1,12 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts tests/room-bridge.test.ts tests/bridge.test.ts tests/build-session.test.ts tests/save-worker.test.ts tests/save-store.test.ts tests/legacy-save.test.ts tests/persistence-controller.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  8 passed (8)
+      Tests  248 passed (248)
+   Start at  22:38:35
+   Duration  12.88s (transform 2.96s, setup 66ms, import 3.53s, tests 8.60s, environment 0ms)

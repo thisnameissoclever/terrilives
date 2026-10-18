@@ -1,0 +1,47 @@
+# Published V15 corpus review
+
+Accept this corpus as authentic published-V15 input for the integration gates. No Critical or Important authenticity finding remains. I found one minor broken documentation link. This verdict covers original production, captured phase meaning and original-module replay evidence. It does not establish current-V16 migration, transaction conservation, corruption rejection or browser recovery.
+
+Reviewed nine `.sav` files and adjacent receipts in `crates/terri-wasm/tests/fixtures/room-identities-v15/`, plus the retained scripts, source/input/build receipts and codec under `docs/evidence/2026-10-17-room-identities/published-v15-producer/`. This review made no source/index/HEAD changes, ran no Cargo or builds, and did not touch the ongoing native integration. Its only file write is this report.
+
+## Findings
+
+1. **Minor: README fixture backlink traverses one directory too far.** In the producer README, `../../../../../crates/terri-wasm/tests/fixtures/room-identities-v15/manifest.json` resolves outside the repository root and does not exist. Change it to `../../../../crates/terri-wasm/tests/fixtures/room-identities-v15/manifest.json`. The reverse `manifest.json::producerEvidence` link uses five parent segments correctly and resolves to the producer README. This does not affect any fixture or its provenance.
+2. **Evidence boundary:** the private-wait and Suspended receipts each prove 120 subsequent equal updates. They do not separately assert completion of those specific requests. The shared chat trace does assert first-order completion at tick 282 while later identical order 1 survives. Keep these claims distinct. No further original replay run is necessary merely to accept the files as authentic fixtures; integration tests must provide their own scenario-specific continuation gates.
+
+## Checks executed during this review
+
+1. Recomputed byte length, SHA-256 and Git blob hash for all **481** retained producer inputs under `.local-build/p15-a481`. Every value matches `published-v15-inputs.json` and the actual `a481d7c7be0708c4523d9a156513b6696aaff6f6` Git tree. The manifest exactly covers its declared prefixes: native workspace, content, atlas and voice inputs; no expected entry is missing and no extra entry appears.
+2. Recomputed hashes for the original generated JS, Wasm and declaration artifacts. All match the retained build receipt. Wasm is `6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648`; JS is `772d9ecc02d768b0fdeb311c0520f18f344f3690b1851ab841d9d46f7aec441c`. The build log identifies the isolated original source paths, release completion, and exit 0; its receipt records locked dependencies, one job and a separate target. I did not rehash the 7.6 GB archive because the complete compiled-input/Git-blob verification directly checks the relevant source.
+3. Checked all nine retained saves against their manifest and JSON byte lengths, SHA-256 values and ticks. All agree. Ran the existing read-only `.local-build/published-v15-codec.exe inspect` on every save. Every decode consumes the entire published V15 payload, reencodes byte-exactly, and matches the retained decoded receipt where present. Fresh has its smaller documented receipt shape.
+4. Loaded every retained save into a fresh instance of the unchanged original Wasm module. All **9/9** loads succeeded, immediately resaved byte-for-byte, and matched their recorded world hash. Each handle was freed in `finally`. This independently repeats the immediate original-module acceptance check; I did not rerun the longer generation traces.
+5. Checked the retained build wrapper, codec source and four scenario scripts against their task-owned originals under `.local-build`. All six are byte-identical. Reviewed their execution and assertions, including original-source/shadow replay and the exact player-order completion control.
+6. Loaded the private-wait file into the original module and queried the new person's actual status. `activity_status_of(37)` returned `[4,35,0]`; original `activity_status.rs` maps code 4 to `WaitReason::Privacy`, with partner entity 35. This adds direct original-runtime confirmation beyond the retained bath/waiting guard.
+
+## Producer independence and codec scope
+
+The scenario scripts import only `.local-build/p15-a481/web/src/wasm/terri_wasm.js` and that directory's Wasm. They create original `SimHandle`s, issue commands through `enqueue_command`, drain/tick normally, and capture `save_bytes`. They do not patch snapshots, request records, phases, actor coordinates or Wasm memory. The private fixture's additional person is created through the existing public `spawn_agent(11,8,100)` API and strictly roundtripped before the chat is requested. The Suspended fixture loads the already authenticated arrived-waiter file and issues a real front-inserted chat.
+
+The codec includes the exact frozen `p15-a481/crates/terri-core/src/save_v15.rs`, with only a root `SaveSnapshotV14` re-export from its linked core artifact. It does not import the branch's incompatible room-only V15 type. Its compile-time Serde trait assertion and successful recorded compilation cover the shared trait boundary. It reads saves and encodes commands; no branch simulation writes retained bytes. The older linked V1-V14/command DTO source equivalence was established in the prior fixture blueprint; original-module strict admission independently confirms the result here. DTO deserialization is not being substituted for semantic original-loader validation.
+
+The build receipts retain local execution paths and the README explicitly explains their relocation requirement. The copied build wrapper's `ROOT` and the scenario scripts' relative imports therefore need path adjustment for reproduction from their retained documentation directory. That is a documented reproduction constraint, not evidence that the original run used a different producer.
+
+## Captured semantics
+
+| Fixture | Independently decoded meaning and reviewed guard |
+| --- | --- |
+| `fresh.sav` | Tick 0, no requests; original writer/module acceptance and 120-update source/shadow receipt. |
+| `chat-queued.sav` | Tick 0, exact encoded player TalkTo remains in queued input, with no admitted request yet. Subsequent shared trace has 339 equal updates. |
+| `chat-approaching.sav` | Tick 1, player request 0, stable initiator 1 to recipient 0, order 0, owned target and matching raw-index rendezvous. Autonomous request 1 is separately Waiting. 338 equal updates recorded. |
+| `chat-waiting-owned.sav` | Tick 41, request 0 retains order 0 and owns waiting tile `[6,1]`; frozen initiator Target is absent as required by published V15 capture. No rendezvous falsely owns the recipient. 298 equal updates recorded. |
+| `chat-waiting-arrived.sav` | Tick 45, Bill/raw entity 35 is exactly at `[6,1]`, path absent, blocked, with request 0 still owned Waiting. Tim/raw entity 34 is unreserved and rendezvous is empty. The script reached this through normal ticks, with no teleport. 294 equal updates recorded. |
+| `chat-talking.sav` | Tick 219, request 0 is Talking with owned target and actual positive-duration Socialising to the recipient. 120 equal updates recorded. |
+| `chat-talking-later-identical.sav` | Same active request/order 0 plus later identical `social:chat` order 1. The real append/flush preserves both distinct IDs. The shared trace checks removal of order 0 while order 1 remains at tick 282, and all loaded shadows remain byte/hash equal through at least 120 updates after capture. |
+| `chat-suspended.sav` | Tick 46, original player request 0/order 0 is Suspended with `target_owned=false`. Queue owner 35 retains old order 0 behind front order 1. New request 2 owns the A-to-Casey approach and rendezvous `[36,35]`. An autonomous request is also Suspended. This was generated through original front insertion, not saved-phase editing. 120 equal updates recorded. |
+| `chat-waiting-private.sav` | Tick 58, new stable person 3/raw entity 37 owns player request 1/order 0 toward Bill/raw entity 35. Bill is using the bathtub with 54 ticks remaining; the action template has `bathroom_privacy`. The waiting tile is `[11,8]`, the waiter has no raw Target, and rendezvous is empty. Original runtime reports Privacy with Bill as partner. Public spawn and bath baseline are separately roundtripped; 120 equal updates recorded. |
+
+The scripts correctly distinguish raw entity indices, stable person IDs, request IDs and order IDs. Zero is accepted as a legitimate ID. Queue action strings use `social:chat`, while request action strings use `chat`; the successful exact-order assertions account for that distinction. Earlier exploratory failures are disclosed and do not supply retained fixture proof.
+
+The shared chat collector compares every active reloaded shadow against the uninterrupted original after every tick, enqueue and flush. The suspended/private collectors establish exact immediate reload and compare both bytes and world hashes for each of 120 subsequent updates. Captured trace ticks specify command timing; ordinary intervening ticks follow from the recipe and recorded capture tick. This is sufficient bounded original replay evidence without claiming unrecorded current behavior.
+
+**Next steps**: Parent fixes the one README backlink and uses these immutable files for current-V16 migration and transaction tests. No further authenticity repair or producer rebuild is needed on the evidence reviewed.

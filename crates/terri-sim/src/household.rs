@@ -49,7 +49,7 @@ pub(crate) fn spawn_member_with_affinities(
     }
     let instinct = member
         .instinct
-        .unwrap_or_else(|| world.resource_mut::<terri_core::SimRng>().range(101) as u8);
+        .unwrap_or_else(|| crate::creation_instinct::sample_for_world(world));
     // Worn traits open at their content-defined states: a capability at
     // its start_level, a condition at its start_severity, a disposition
     // stateless at 0 ([E3]).

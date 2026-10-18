@@ -1,0 +1,74 @@
+{
+  "head": "477ca9ced027aad14d8c134435cb96d5bf5a3d76",
+  "build_jobs": 1,
+  "test_threads": 1,
+  "complete": true,
+  "checks": [
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-format.log",
+      "started_utc": "2026-10-18T03:41:37.484168+00:00",
+      "state": "complete",
+      "pid": 55636,
+      "exit_code": 0,
+      "seconds": 1.98,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "finished_utc": "2026-10-18T03:41:39.466093+00:00"
+    },
+    {
+      "name": "workspace",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--no-fail-fast",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "--test-threads=1"
+      ],
+      "log": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-workspace.log",
+      "started_utc": "2026-10-18T03:41:39.466320+00:00",
+      "state": "complete",
+      "pid": 70932,
+      "exit_code": 0,
+      "seconds": 1271.48,
+      "log_sha256": "40072e40f8f5e6c4b3fdda2075f8a5d9c6f578bc56fd4e34634c363ddfc7818e",
+      "finished_utc": "2026-10-18T04:02:50.949844+00:00"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-02-clippy.log",
+      "started_utc": "2026-10-18T04:02:50.950113+00:00",
+      "state": "complete",
+      "pid": 77420,
+      "exit_code": 0,
+      "seconds": 57.88,
+      "log_sha256": "c5dc5800e3aaafff9f203afb645f5c89616c9d474288dab1adf481ba0ebf0a54",
+      "finished_utc": "2026-10-18T04:03:48.826619+00:00"
+    }
+  ],
+  "head_unchanged": true,
+  "tree_clean": true,
+  "passed": true
+}

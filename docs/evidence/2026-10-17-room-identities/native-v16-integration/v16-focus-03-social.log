@@ -1,0 +1,70 @@
+
+running 53 tests
+test social_episode::requests::runtime::tests::observations_remap_person_zero_without_replacing_validated_requests ... ok
+test social_episode::tests::actual_newcomer_arrivals_extend_each_participant_at_most_twice ... ok
+test social_episode::tests::busy_recipient_finishes_while_initiator_approaches_then_waits_beside_them ... ok
+test social_episode::tests::critical_need_values_preserve_the_chosen_chat_and_unrelated_orders ... ok
+test social_episode::tests::current_save_rejects_shared_physical_conversation_participants ... ok
+test social_episode::tests::death_tick_prunes_topic_owners_and_communal_peer_references_before_save ... ok
+test social_episode::tests::decision_tests::a_geometry_edit_on_the_same_change_tick_cannot_reuse_a_failed_route ... ok
+test social_episode::tests::decision_tests::a_legacy_approach_without_episode_metadata_resaves_before_another_tick ...
+thread 'social_episode::tests::decision_tests::a_legacy_approach_without_episode_metadata_resaves_before_another_tick' (12004) panicked at crates\terri-sim\src\lib.rs:1275:14:
+current rooms cannot be represented by this historical save format; use V16: InvalidValue
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test social_episode::tests::decision_tests::a_reserved_listener_keeps_the_real_waiting_activity_instead_of_idle_context ... ok
+test social_episode::tests::decision_tests::arrived_conversation_wait_is_reported_as_waiting ... ok
+test social_episode::tests::decision_tests::autonomous_chat_completion_preserves_a_later_matching_player_order ... ok
+test social_episode::tests::decision_tests::chosen_chat_survives_initiator_critical_physical_needs ... ok
+test social_episode::tests::decision_tests::conversation_fun_relief_matches_actual_disliked_company_delivery ... ok
+test social_episode::tests::decision_tests::crisis_probability_limits_hold_at_every_instinct_anchor_with_death_on_or_off ... ok
+test social_episode::tests::decision_tests::current_save_keeps_an_arrived_waiter_without_reserving_the_busy_recipient ... ok
+test social_episode::tests::decision_tests::current_save_preserves_the_exact_order_completed_by_a_chat ... ok
+test social_episode::tests::decision_tests::current_save_replays_a_suspended_request_cycle_through_talking_and_completion ... ok
+test social_episode::tests::decision_tests::death_disabled_without_reachable_care_reports_unavailable_relief ... ok
+test social_episode::tests::decision_tests::final_walking_step_keeps_its_gait_until_the_actual_motion_finishes ... ok
+test social_episode::tests::decision_tests::four_critical_needs_leave_at_most_one_percent_for_unrelated_choices ... ok
+test social_episode::tests::decision_tests::invalid_current_request_records_refuse_without_replacing_the_live_world ... ok
+test social_episode::tests::decision_tests::legacy_chat_migration_keeps_an_ambiguous_player_order_after_completion ...
+thread 'social_episode::tests::decision_tests::legacy_chat_migration_keeps_an_ambiguous_player_order_after_completion' (75028) panicked at crates\terri-sim\src\social_episode\tests\decision_tests.rs:138:55:
+called `Result::unwrap()` on an `Err` value: InvalidGrid
+FAILED
+test social_episode::tests::decision_tests::passive_conversation_listener_waits_for_the_active_owner_remaining_time ... ok
+test social_episode::tests::decision_tests::paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world ... ok
+test social_episode::tests::decision_tests::privacy_changes_invalidate_a_blocked_chat_without_geometry_edits ... ok
+test social_episode::tests::decision_tests::private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_reload ... ok
+test social_episode::tests::decision_tests::random_creation_reserves_extreme_instinct_values_for_explicit_player_choices ... ok
+test social_episode::tests::decision_tests::receiver_finishes_critical_food_while_the_initiator_keeps_one_request ... ok
+test social_episode::tests::decision_tests::reciprocal_player_requests_finish_as_two_distinct_conversations ... ok
+test social_episode::tests::decision_tests::request_lifecycle_canceling_a_suspended_duplicate_preserves_the_active_order ... ok
+test social_episode::tests::decision_tests::request_lifecycle_canceling_an_active_request_releases_its_exact_pair ... ok
+test social_episode::tests::decision_tests::request_lifecycle_staggered_reciprocal_orders_keep_the_earlier_one_first ... ok
+test social_episode::tests::decision_tests::retargeted_chat_finishes_the_current_fractional_segment_before_turning ... ok
+test social_episode::tests::decision_tests::third_person_privacy_cannot_take_a_free_recipients_choice_window ... ok
+test social_episode::tests::decision_tests::three_person_request_cycle_cannot_deadlock ... ok
+test social_episode::tests::decision_tests::unchanged_blocked_chat_retries_only_after_navigation_inputs_change ... ok
+test social_episode::tests::decision_tests::unreachable_oldest_request_does_not_hold_the_recipient_or_block_reachable_chat ... ok
+test social_episode::tests::dislike_still_delivers_and_family_adds_an_independent_bonus ... ok
+test social_episode::tests::liked_stranger_company_keeps_the_independent_disliked_family_bonus ... ok
+test social_episode::tests::lonely_disliked_company_and_family_are_scored_as_the_benefit_delivered ... ok
+test social_episode::tests::native_build_tests::native_build_conserves_an_arrived_waiter_and_queue_free_projection ... ok
+test social_episode::tests::native_build_tests::native_build_conserves_real_approaching_talking_and_suspended_requests ... ok
+test social_episode::tests::native_build_tests::native_waiting_request_mixed_growth_translates_once_and_cancel_restores ... ok
+test social_episode::tests::newcomer_waits_for_running_conversation_without_stealing_the_partner ... ok
+test social_episode::tests::recipient_player_talk_defers_inbound_waiter_and_preserves_all_orders ... ok
+test social_episode::tests::same_tick_arrivals_use_original_durations_and_cancelled_approaches_release_holds ... ok
+test social_episode::tests::same_tick_conversation_redirect_chooses_the_new_listeners_preference ... ok
+test social_episode::tests::shared_activity_selection_values_company_at_the_future_endpoint ... ok
+test social_episode::tests::social_capacity_increases_shared_interest_weight_without_admitting_dislike ... ok
+test social_episode::tests::topic_sampler_uses_social_capacity_across_fixed_seeds_and_excludes_own_dislikes ... ok
+test social_episode::tests::topics_replay_and_listener_dislike_is_directional_once_at_completion ... ok
+test social_episode::tests::waiting_claim_round_trips_mid_approach_and_cancellation_releases_it ... ok
+test social_episode::tests::waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe ... ok
+
+failures:
+
+failures:
+    social_episode::tests::decision_tests::a_legacy_approach_without_episode_metadata_resaves_before_another_tick
+    social_episode::tests::decision_tests::legacy_chat_migration_keeps_an_ambiguous_player_order_after_completion
+
+test result: FAILED. 51 passed; 2 failed; 0 ignored; 0 measured; 1555 filtered out; finished in 9.10s

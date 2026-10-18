@@ -1195,6 +1195,9 @@ mod tests {
         let pack = with_front_portal(pack, (15, 2), (15, 3));
         let mut sim = test_content::sim_with_portals(16, 12, pack);
         let worker = a_worker(&mut sim, 15.0, 2.0);
+        sim.world_mut()
+            .entity_mut(worker)
+            .insert(terri_core::SimId(0));
         sim.world_mut().entity_mut(worker).insert(AtWork {
             remaining_ticks: 180,
         });
@@ -1202,6 +1205,7 @@ mod tests {
             .world_mut()
             .spawn((
                 Agent,
+                terri_core::SimId(1),
                 Position { x: 12.0, y: 2.0 },
                 Needs::all_at(80.0),
                 terri_core::IntentQueue::default(),
@@ -1489,8 +1493,9 @@ mod tests {
             .resource_mut::<terri_core::SimIdAllocator>()
             .issue();
         blank.world_mut().entity_mut(worker).insert(identity);
+        crate::save::self_preservation::migrate(blank.world_mut());
         let mut source = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(source.load_snapshot_v5(blank.save_snapshot_v5()), Ok(()));
+        assert_eq!(source.load_current_v5_view(blank.current_v5_view()), Ok(()));
         let worker = source.world().entities().resolve_from_index(worker.index());
 
         // The save point is the return itself: at work on one tick,
@@ -1537,7 +1542,7 @@ mod tests {
         assert_eq!(today(&source), 5, "the walk home is on Saturday");
         let funds_at_save = source.funds();
 
-        let snapshot = source.save_snapshot_v15();
+        let snapshot = source.save_snapshot_v17();
         assert_eq!(
             source.world().get::<terri_core::SimId>(worker),
             Some(&identity)
@@ -1554,7 +1559,7 @@ mod tests {
             Ok(())
         );
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v15(snapshot), Ok(()));
+        assert_eq!(restored.load_snapshot_v17(snapshot), Ok(()));
         assert!(restored.world().get::<Commuting>(worker).is_some());
         assert_eq!(clock(&restored), saved_at);
 
@@ -1573,8 +1578,8 @@ mod tests {
                 "the loaded world diverged on tick {tick}"
             );
             assert_eq!(
-                restored.save_snapshot_v5(),
-                source.save_snapshot_v5(),
+                restored.current_v5_view(),
+                source.current_v5_view(),
                 "the loaded world's saved state diverged on tick {tick}"
             );
             let at_work = restored.world().get::<AtWork>(worker).is_some();

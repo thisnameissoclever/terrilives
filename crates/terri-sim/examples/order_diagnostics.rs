@@ -12,31 +12,36 @@ fn read_cost(sim: &Sim, cursor: u64, repetitions: usize) -> f64 {
     start.elapsed().as_secs_f64() * 1_000_000.0 / repetitions as f64
 }
 
+fn fixture_entities(sim: &mut Sim) -> (terri_core::Entity, terri_core::Entity) {
+    let actor = sim
+        .world_mut()
+        .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<Agent>>()
+        .iter(sim.world())
+        .min_by_key(|entity| entity.index_u32())
+        .expect("the shipped household has a person");
+    let pack = sim.world().resource::<Content>().0;
+    let object = sim
+        .world_mut()
+        .query::<(terri_core::Entity, &SmartObject)>()
+        .iter(sim.world())
+        .filter(|(_, object)| pack.object(object.0).id == "fridge")
+        .map(|(entity, _)| entity)
+        .min_by_key(|entity| entity.index_u32())
+        .expect("the shipped house has a fridge");
+    (actor, object)
+}
+
 fn main() {
     for count in [32, 256, 1024] {
         let mut batch_sim = Sim::new_from_shipped_lot();
-        let snapshot = batch_sim.save_snapshot_v5();
-        let actor = snapshot
-            .world
-            .entities
-            .iter()
-            .find(|entity| entity.agent)
-            .unwrap()
-            .index;
-        let object = snapshot
-            .world
-            .entities
-            .iter()
-            .find(|entity| entity.smart_object.as_deref() == Some("fridge"))
-            .unwrap()
-            .index;
+        let (actor, object) = fixture_entities(&mut batch_sim);
         for _ in 0..count {
             batch_sim
                 .world_mut()
                 .resource_mut::<CommandQueue>()
                 .push(SimCommand::UseObject {
-                    agent: actor,
-                    object,
+                    agent: actor.index_u32(),
+                    object: object.index_u32(),
                     interaction: 0,
                 });
         }
@@ -47,26 +52,13 @@ fn main() {
             started.elapsed().as_secs_f64() * 1000.0
         );
         println!("enqueue_{count}_gameplay_hash={}", batch_sim.world_hash());
-        assert_eq!(batch_sim.queued_orders_of(actor), count);
+        assert_eq!(batch_sim.queued_orders_of(actor.index_u32()), count);
     }
     if std::env::args().any(|argument| argument == "--admission-only") {
         return;
     }
     let mut sim = Sim::new_from_shipped_lot();
-    let actor = sim
-        .world_mut()
-        .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<Agent>>()
-        .iter(sim.world())
-        .next()
-        .expect("the shipped household has a person");
-    let pack = sim.world().resource::<Content>().0;
-    let object = sim
-        .world_mut()
-        .query::<(terri_core::Entity, &SmartObject)>()
-        .iter(sim.world())
-        .find(|(_, object)| pack.object(object.0).id == "fridge")
-        .map(|(entity, _)| entity)
-        .expect("the shipped house has a fridge");
+    let (actor, object) = fixture_entities(&mut sim);
     let start = Instant::now();
     for _ in 0..64 {
         for _ in 0..32 {
@@ -92,7 +84,7 @@ fn main() {
     assert!(batch.expired);
     let mut empty = Sim::new_from_shipped_lot();
     empty
-        .load_snapshot_v15(sim.save_snapshot_v15())
+        .load_snapshot_v17(sim.save_snapshot_v17())
         .expect("the same gameplay state restores");
     assert_eq!(
         sim.world_hash(),

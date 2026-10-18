@@ -1,0 +1,10 @@
+{
+  "web/index.html": {
+    "before": "db14f3ecdcb8500211e98b3a2448c6862cd8f8ddd82ce7706265cb21424b64f5",
+    "after": "fd26f38d2833b3d78e072b30999985775a81ca3f822cdb077d34c700b3eb3403"
+  },
+  "web/tests/action-intent.test.ts": {
+    "before": "9bd70050be6e90642501ad7fd8ea43b0e010a2779400d8dcb2734f8204c665f2",
+    "after": "9c5acce072e22503b1671859762ff6ff67433dffd5788c2f2559fac668207c8e"
+  }
+}

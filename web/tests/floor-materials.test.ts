@@ -6,7 +6,7 @@ import { prepareArchitectureFinishes } from '../src/render/architecture-finishes
 import { FLOOR_DEPTH } from '../src/render/iso.js';
 import { architectureMode, FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
 
-const looks = Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18]);
+const looks = Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]);
 const lot = { width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
   house: [2, 2] as const, street: 2, yardLook: [65, 2, -.22] as const, streetLook: [0, .15, -.22] as const,
   architecture: { windows: [], catalogue: [] }, coveringLooks: looks };
@@ -22,7 +22,7 @@ describe('floor materials', () => {
     expect(floorSpriteName(1, 'house', 4, 4)).toBe(floorSpriteName(1, 'house', 0, 0));
     expect(floorSpriteName(1, 'house', 1, 0)).not.toBe(floorSpriteName(1, 'house', 0, 0));
   });
-  it.each([1, 2, 3])('preserves authored covering %s and composes content changes once', covering => {
+  it.each([1, 2, 3, 4])('preserves authored covering %s and composes content changes once', covering => {
     const material = floorMaterial(covering, 'house', 0, 0);
     const baseline = material.authoredContentLook;
     expect(relativeFloorLook(Float32Array.from(baseline), baseline)).toEqual([0, 1, 0]);
@@ -32,14 +32,37 @@ describe('floor materials', () => {
     expect(actual[1]).toBeCloseTo(.5);
     expect(actual[2]).toBeCloseTo(.1);
   });
+  it('renders Outdoor patio through the neutral carrier with rectangular stone paving', () => {
+    const material = floorMaterial(4, 'yard', 2, 3);
+    expect(material.finishKey).toBe('floor.outdoor-patio');
+    expect(material.accepted).toBe(false);
+    expect(material.sprite.name).toContain('neutral');
+    expect(material.pattern).toEqual({ role: 'floor', period: [4, 2], resource: 'tiles' });
+    expect(material.palette.multiply).toEqual([.55, .58, .60]);
+    expect(floorMaterial(4, 'house', 2, 3)).toEqual(material);
+    expect(activeFloorFinishKeys([0, 0, 4], null)).toEqual(['floor.outdoor-patio']);
+    const finishes = prepareArchitectureFinishes(activeFloorFinishKeys([], 4), {
+      maxSampledTexturesPerShaderStage: 16, maxTextureDimension2D: 8192,
+      maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8,
+    });
+    expect(finishes.resources).toEqual(['tiles']);
+    expect(Array.from(finishes.table.slice(0, 7))).toEqual([
+      0, 2, 4, 2, Math.fround(.55), Math.fround(.58), Math.fround(.60),
+    ]);
+    const architecture = { ...lot.architecture, finishes };
+    const preview = buildStaticInstances({ ...lot, architecture, floorPreview: [0, 0, 4] }, 100, 50, 4).instances.slice(0, 16);
+    const committed = buildStaticInstances({ ...lot, architecture, floors: new Uint32Array([0, 0, 4]) }, 100, 50, 4).instances.slice(0, 16);
+    expect(preview).toEqual(committed);
+    expect(committed[OFFSET_WALL_MASK]).toBe(architectureMode(true, 1));
+  });
   it('resolves appended patterns and palettes without new geometry or saved ID changes', () => {
     const original = ARCHITECTURE.catalogue;
     const catalogue = { ...original,
       patterns: { ...original.patterns, 'floor.fixture': { role: 'floor' as const, period: [8, 2], resource: 'tiles' } },
       palettes: { ...original.palettes, blue: { multiply: [.3, .6, 1] } },
       finishes: { ...original.finishes, fixture: { patternKey: 'floor.fixture', paletteKey: 'blue', authoredContentLook: [0, 1, 0] } },
-      coverings: { ...original.coverings, 4: 'fixture' } };
-    const material = floorMaterial(4, 'house', 2, 3, catalogue);
+      coverings: { ...original.coverings, 5: 'fixture' } };
+    const material = floorMaterial(5, 'house', 2, 3, catalogue);
     expect(material.finishKey).toBe('fixture');
     expect(material.accepted).toBe(false);
     expect(material.sprite.name).toContain('neutral');
@@ -47,17 +70,17 @@ describe('floor materials', () => {
     expect(material.palette.multiply).toEqual([.3, .6, 1]);
     expect(floorMaterial(1, 'house', 2, 3, catalogue).accepted).toBe(true);
     expect(activeFloorFinishKeys([0, 0, 1], null, catalogue)).toEqual([]);
-    expect(activeFloorFinishKeys([0, 0, 1], 4, catalogue)).toEqual(['fixture']);
+    expect(activeFloorFinishKeys([0, 0, 1], 5, catalogue)).toEqual(['fixture']);
     const finishes = prepareArchitectureFinishes(['fixture'], { maxSampledTexturesPerShaderStage: 16,
       maxTextureDimension2D: 8192, maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8 }, catalogue);
     const built = buildStaticInstances({ ...lot, coveringLooks: Float32Array.from([...looks, 0, 1, 0]),
-      floors: new Uint32Array([0, 0, 4, 1, 0, 1]), architecture: { ...lot.architecture, floorCatalogue: catalogue, finishes } }, 200.25, 100.5, 4, .73);
+      floors: new Uint32Array([0, 0, 5, 1, 0, 1]), architecture: { ...lot.architecture, floorCatalogue: catalogue, finishes } }, 200.25, 100.5, 4, .73);
     expect(built.instances[OFFSET_WALL_MASK]).toBe(architectureMode(true, 1));
     expect(built.instances[FLOATS_PER_INSTANCE + OFFSET_WALL_MASK]).toBe(architectureMode(true));
-    expect(built.instances[3]).toBe(floorMaterial(4, 'house', 0, 0, catalogue).sprite.id);
+    expect(built.instances[3]).toBe(floorMaterial(5, 'house', 0, 0, catalogue).sprite.id);
     expect(Array.from(finishes.table.slice(2, 7))).toEqual([8, 2, Math.fround(.3), Math.fround(.6), 1]);
     expect(() => buildStaticInstances({ ...lot, coveringLooks: Float32Array.from([...looks, 0, 1, 0]),
-      floors: new Uint32Array([0, 0, 4]), architecture: { ...lot.architecture, floorCatalogue: catalogue } }, 0, 0, 4)).toThrow('not prepared');
+      floors: new Uint32Array([0, 0, 5]), architecture: { ...lot.architecture, floorCatalogue: catalogue } }, 0, 0, 4)).toThrow('not prepared');
   });
   it('writes one shared-depth canonical row per tile with identity accepted color', () => {
     const result = buildStaticInstances({ ...lot, floors: new Uint32Array([0, 0, 1, 1, 0, 2, 0, 1, 3]) }, 123.25, 67.75, 4, .731);
@@ -75,6 +98,25 @@ describe('floor materials', () => {
       const committed = buildStaticInstances({ ...lot, floors: new Uint32Array(covering ? [0, 0, covering] : []) }, 100, 50, 4).instances.slice(0, 16);
       expect(preview).toEqual(committed);
     }
+  });
+  // [SEA-yard] in docs/specs/2026-10-17-seasons.md: the accepted grass takes
+  // only the season's change, because the yard look matches its authored one.
+  it("draws the accepted grass under exactly the season's change", () => {
+    const seasons = Float32Array.from([0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14]);
+    const yardTile = 1; // (1, 0): house [1, 1] leaves it in the yard.
+    const changeOf = (season: number) => {
+      const built = buildStaticInstances({ ...lot, house: [1, 1], seasonYardLooks: seasons, season }, 0, 0, 4);
+      const base = yardTile * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE;
+      return [Array.from(built.instances.slice(base, base + 3)), built.instances[OFFSET_COLOURWAY_HUE]] as const;
+    };
+    const [spring, springHouse] = changeOf(0);
+    expect(spring).toEqual([0, 0, 0]);
+    expect(springHouse).toBe(0);
+    [[-20, -0.15, 0.04], [-45, -0.1, -0.05], [12, -0.7, 0.14]].forEach((expected, index) => {
+      const [change, house] = changeOf(index + 1);
+      expected.forEach((value, k) => expect(change[k]).toBeCloseTo(value, 5));
+      expect(house).toBe(0);
+    });
   });
   it('retains the historical sprite and content-transform path without opt-in', () => {
     const result = buildStaticInstances({ ...lot, architecture: undefined, floors: new Uint32Array([0, 0, 1]) }, 0, 0, 4);

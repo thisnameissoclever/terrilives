@@ -103,6 +103,13 @@ export class CharacterDraft {
   }
   private randomValue(field: CharacterField): FieldValue {
     if (field.id === 'name') return this.rng.choose(namesForPresentation(this.current.appearance.presentation));
+    if(field.id==='behavior.self_preservation'){
+      const bucket=this.rng.index(100);let end=0;
+      for(const band of this.catalog.self_preservation_bands){
+        end+=band.weight;if(bucket<end)return band.min+this.rng.index(band.max-band.min+1);
+      }
+      throw new Error('Creation instinct probabilities are unavailable.');
+    }
     if (field.choices) return structuredClone(this.rng.choose(field.choices).value);
     if (field.kind === 'boolean') return this.rng.index(2) === 1;
     if (field.min === undefined || field.max === undefined || !field.step) throw new Error(`No randomization domain: ${field.id}`);

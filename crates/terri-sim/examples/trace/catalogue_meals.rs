@@ -150,7 +150,7 @@ pub fn run(seed: u64) {
         let mut controls = false;
         println!("MEAL SETUP {case} seed {seed}; Hunger {hunger:?}, Comfort60, other needs100; neutral personal multipliers/no Traits or Career; global decay unchanged; idle pause10000; public commands {ordered}; action {action}; authored minutes {}",pack.object(pack.find("fridge").unwrap()).interactions[row as usize].duration_ticks);
         for tick in 1..=2000 {
-            let before = sim.save_snapshot_v6();
+            let before = super::current_catalogue_state(&sim);
             let cook_before = person(&before, people[0].1.index_u32());
             if cancel
                 && !cancel_sent
@@ -169,7 +169,7 @@ pub fn run(seed: u64) {
             }
             sim.tick();
             elapsed = tick;
-            let after = sim.save_snapshot_v6();
+            let after = super::current_catalogue_state(&sim);
             let cook_after = person(&after, people[0].1.index_u32());
             if !snacks
                 && !plated
@@ -403,6 +403,6 @@ pub fn run(seed: u64) {
         } else {
             "owned deliveries complete"
         };
-        println!("MEAL RESULT {case}: {status}; elapsed{elapsed}; batch{batch:?}; invited{invitations:?}; collected{collected:?}; served{served:?}; diningStart{dining_start:?}; concurrentEatingTicks{concurrent}; dishesAtEnd{}; cleanup excluded; countdown/movement observations omit arrival transitions and are not a full time decomposition",sim.save_snapshot_v5().domestic.unwrap().dishes.iter().map(|d|d.units).sum::<u32>());
+        println!("MEAL RESULT {case}: {status}; elapsed{elapsed}; batch{batch:?}; invited{invitations:?}; collected{collected:?}; served{served:?}; diningStart{dining_start:?}; concurrentEatingTicks{concurrent}; dishesAtEnd{}; cleanup excluded; countdown/movement observations omit arrival transitions and are not a full time decomposition",super::current_catalogue_state(&sim).legacy.domestic.unwrap().dishes.iter().map(|d|d.units).sum::<u32>());
     }
 }

@@ -19,7 +19,7 @@
 #household-summary .summary-row { gap: 4px; }
 #household-summary .summary-label { font-size: 10px; }
 #household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
-/* The clock is always two lines, day and weekday then time, so the panel keeps one height. */
+/* The clock is always two lines, day and weekday then season and time, so the panel keeps one height. */
 #clock-value { white-space: pre-line; }
 /* In the 144-pixel desktop panel the Time label sits above the clock, so the
    clock has the panel's full inner width and keeps two lines on every day.
@@ -72,10 +72,10 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #chores-dialog .chore-do-now {
   min-height: 40px;
   padding: 9px 15px;
-  border: 1px solid #75b9d7;
+  border: 1px solid var(--action-border, #75b9d7);
   border-radius: 6px;
-  background: #294b5b;
-  color: #effaff;
+  background: var(--action-background, #294b5b);
+  color: var(--action-text, #effaff);
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -84,7 +84,7 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   white-space: nowrap;
   align-self: center;
 }
-#chores-dialog .chore-do-now:hover:not(:disabled) { background: #356277; border-color: #a0dbf1; }
+#chores-dialog .chore-do-now:is(:hover, :focus-visible, :active):not(:disabled) { background: var(--action-hover-background, #356277); border-color: var(--action-border, #a0dbf1); }
 #chores-dialog .chore-do-now:focus-visible { outline: 2px solid #c6eeff; outline-offset: 3px; }
 #chores-dialog .chore-do-now:disabled { opacity: .4; cursor: default; background: #26323a; border-color: #4d6370; }
 @media (max-width: 600px) {
@@ -209,7 +209,8 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #dock-wellbeing { order: 1; flex: 1 0 100%; gap: 16px; }
   #dock-wellbeing .summary-label { font-size: 11px; }
   #dock-wellbeing .mood-track { height: 5px; }
-  #sim-identity { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  #sim-identity { flex-basis: 100%; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 0 8px; }
+  #dock-activity { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   #needs-caption { font-size: 18px; }
   #dock-activity, #dock-critical { font-size: 11px; }
   #sim-dock-header > .hud-button { min-height: 44px; padding: 0 7px; }

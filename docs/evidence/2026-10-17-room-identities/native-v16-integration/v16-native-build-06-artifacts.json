@@ -1,0 +1,16 @@
+{
+  "source_manifest": ".local-build/v16-native-build-06-source.json",
+  "build_exit": 0,
+  "artifacts": [
+    {
+      "target": "terri_wasm",
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_wasm-6fc416eeea1d48f0.exe",
+      "sha256": "94a541691a798dca01242941f96b5592ce2048cf70c676d4427321aa24752d3a"
+    },
+    {
+      "target": "terri_sim",
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "sha256": "d613d6f0dac9644c7c38a60303bae56d6ffdc8bb3a6692ab1859974cacf6b077"
+    }
+  ]
+}

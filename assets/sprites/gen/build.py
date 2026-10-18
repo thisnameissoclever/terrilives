@@ -1545,6 +1545,19 @@ def main():
     for sprite in conversation_icons.render_icons():
         densities[len(sprites)] = 2
         sprites.append(sprite)
+    # Issue 250's outdoor furniture: the pool, the pool lounger and the patio
+    # umbrella append after the conversation icons, so every earlier index
+    # keeps its place.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-07.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
     sync_generated_architecture(sprites, check=args.check)
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
                 if index not in visible_layers and index not in shelf_data['positions']]

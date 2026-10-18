@@ -241,7 +241,6 @@ pub fn tick_interactions(
             });
             continue;
         }
-        let duration = act.duration_ticks as f32;
         for (need_index, delta) in &act.advertises {
             if *delta > 0.
                 && *need_index as usize == NeedId::Social.index()
@@ -273,15 +272,15 @@ pub fn tick_interactions(
             } else {
                 1.
             };
-            let delta =
-                super::advertise::scaled_delta(*delta, satisfaction * fumble * company_scale);
-            let delta = crate::need_interactions::cap_delta(
-                content.0,
-                act,
-                &needs,
-                *need_index,
-                delta / duration,
+            let delta = crate::need_interactions::physical::ordinary_rate(
+                *delta,
+                satisfaction,
+                fumble,
+                company_scale,
+                act.duration_ticks,
             );
+            let delta =
+                crate::need_interactions::cap_delta(content.0, act, &needs, *need_index, delta);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
         }
         let was_positive = eating.remaining_ticks > 0;

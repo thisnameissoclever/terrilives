@@ -1,5 +1,33 @@
 # Alpha Feel Notes
 
+## [A-room-names-outdoor-cleaning] Rooms, Patio and action colors, 2026-10-18
+
+The displayed game was played with ordinary needs and autonomy in an isolated
+browser. Indoor and outdoor floor cleaning and outdoor table wiping reached
+completion. Saving and loading during table wiping preserved the active work,
+which then finished. Patio flooring and confirmed land survived a later cancelled
+edit and Save/Load. A published-format historical household also continued through
+a conversation and a hunger, eating and recovery cycle. Exact scenes, observations
+and selected captures are in the [integration record](evidence/2026-10-17-room-identities/integration/README.md).
+
+The pass found and fixed clipped room fields/focus outlines, loss of a retained
+review-only name when exiting after an exact wall reversal, and missing semantic
+colors on the Exit dialog. Keep building now preserves that name until a refreshed
+review is accepted or the player explicitly discards it. The reviewed Exit controls
+show green confirmation and red return/discard actions with visible focus. The
+[room interface evidence](evidence/2026-10-17-room-identities/ui/README.md) records
+the field repair; the [blind Exit review](evidence/2026-10-17-room-identities/integration/reviews/r8-exit-colors-visual-review.md)
+rejects the gray control and accepts the corrected capture and restoration.
+
+The bookcase partly obscures the indoor cleaner at the first work position;
+this pass does not establish an unobstructed pose there. Unchanged art and the
+accepted desktop, phone-size, short-landscape, enlarged-text and reduced-viewport
+evidence are reused within their recorded limits. These browser simulations do
+not prove physical phone-keyboard behavior. Natural visibility-triggered saving
+also remains unverified. Selected stills describe their captured phases, not a
+complete animation or whole-game art approval. Task-owned pages and servers were
+closed after verification.
+
 ## [A-build-context-controls] Build actions in the viewport, 2026-10-01
 
 The displayed game was exercised on desktop, phone and short landscape with all five Build tools. Contextual actions followed selection, pan and zoom. Floors selected without painting; applying a covering changed the chosen tile. Furniture sale showed the actual payout. Help and Options suspended contextual actions, and tool changes reset only the relevant shortcut disclosure.
@@ -3969,3 +3997,10 @@ Showering uses a longer sampled duration, visible washing movement, and transluc
 Moving gameplay exposed repeated head-envelope work that steady images concealed. Prepared numeric scans and exact matrix-dependency caching preserve the measured head geometry while reducing that work. Initial configuration pauses and occasional slow frames remain reported, rather than being omitted from the performance record.
 
 The screenshots, source bindings, executed checks, review coverage, and desktop measurements are in [the dated repair evidence](evidence/2026-10-15-seating-selection-shower/report.md). This focused repair pass does not claim exhaustive inspection of every animation pixel or performance on phones.
+
+
+## [A-urgent-needs-pending-conversations] Critical choices and committed conversations, 2026-10-17
+
+The displayed game reproduced the reported cancellation loop with an idle pose and repeated sideways movement. The repaired build was played through approach, protected bathroom use, waiting outside, and conversation. Named activity and queue text were checked at desktop and 390-pixel phone widths. A clipped partner name was repaired, and active chores retain their actual activity instead of Idle.
+
+The initiator remains committed while waiting and needs continue to decay. Long work shifts, blocked routes, and chosen waits can still delay care. Selected images, live-state measurements, independent review limits, and executed regression checks are recorded in [the dated evidence](evidence/2026-10-17-urgent-needs-conversations/README.md). This focused pass does not claim inspection of every object or every animation frame.

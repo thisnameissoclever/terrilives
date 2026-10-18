@@ -1,0 +1,207 @@
+{
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "logs": [
+    {
+      "log": ".local-build/r7-initial-red.log",
+      "sha256": "9b39d9352f9b3767d2d954829f9bcaa79bd530ba1c40b88408faaa7607f2143f",
+      "bytes": 3770,
+      "summary": [
+        "FAIL  tests/room-selection.test.ts [ tests/room-selection.test.ts ]",
+        "FAIL  tests/build-session.test.ts > keeps queued and applied edits out of saves and cancels the complete draft",
+        "FAIL  tests/build-session.test.ts > preserves the draft and baseline when rollback fails",
+        "FAIL  tests/builder.test.ts > keeps the choice and turns Sell off when the drain refuses a sale",
+        "Test Files  3 failed (3)",
+        "Tests  3 failed | 32 passed (35)",
+        "Duration  4.19s (transform 2.81s, setup 40ms, import 3.38s, tests 487ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-review-red.log",
+      "sha256": "8aa76a0063fc8e5db875a83f9282611c620d78e76a764bcde6411e08e75e25bc",
+      "bytes": 1059,
+      "summary": [
+        "FAIL  tests/room-review.test.ts [ tests/room-review.test.ts ]",
+        "Test Files  1 failed (1)",
+        "Tests  no tests",
+        "Duration  218ms (transform 99ms, setup 30ms, import 0ms, tests 0ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-exit-red.log",
+      "sha256": "cb95d0b47f3c9f0814140b90f2e70df8d8dde85455e28788144980041fc2b900",
+      "bytes": 6091,
+      "summary": [
+        "FAIL  tests/build-exit.test.ts > the footer > Confirm applies the pending changes and keeps Build mode open",
+        "FAIL  tests/build-exit.test.ts > the footer > Cancel discards the pending changes and keeps Build mode open",
+        "FAIL  tests/build-exit.test.ts > the footer > keeps Build open for empty footer batches",
+        "FAIL  tests/build-exit.test.ts > the footer > keeps Build mode, the changes and the reason when Confirm is refused",
+        "FAIL  tests/build-exit.test.ts > the footer > keeps Build mode with its message when the changes cannot be discarded",
+        "FAIL  tests/build-exit.test.ts > leaving another way while changes are pending > Confirm changes applies them and leaves",
+        "FAIL  tests/build-exit.test.ts > leaving another way while changes are pending > stays in Build mode with its message when Discard changes cannot discard them",
+        "Test Files  1 failed (1)",
+        "Tests  7 failed | 40 passed (47)",
+        "Duration  3.96s (transform 2.92s, setup 29ms, import 3.42s, tests 422ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-input-red.log",
+      "sha256": "8e86ddd47fbdb306121ba1451026c029fb1de1acea08a5ec66feef5dec4cecfd",
+      "bytes": 1182,
+      "summary": [
+        "FAIL  tests/input.test.ts > guards deferred displayed picks: tool",
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 5 passed | 94 skipped (100)",
+        "Duration  3.37s (transform 2.75s, setup 30ms, import 3.24s, tests 7ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-chores-red.log",
+      "sha256": "c21f941b50d9f6125be0fc335a24143de0736d6984e3eaf325a9c345c29e1137",
+      "bytes": 1852,
+      "summary": [
+        "FAIL  tests/chores-board.test.ts > refreshes a paused chore label when only its room name changes",
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 6 passed (7)",
+        "Duration  175ms (transform 59ms, setup 30ms, import 46ms, tests 7ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-retained-empty-red.log",
+      "sha256": "6fadb4d58c01959ce55edbc636dd8c264dd75ea42131ff2d369312746decaf80",
+      "bytes": 1384,
+      "summary": [
+        "FAIL  tests/build-session.test.ts > reopens retained final-room choices after wall reversal removes every native review group",
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 10 skipped (11)",
+        "Duration  329ms (transform 115ms, setup 30ms, import 114ms, tests 89ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-outside-destination-red.log",
+      "sha256": "e8be119428a72ce0843436abd8262da2444978f907511696494a5e1cbb552c4f",
+      "bytes": 1898,
+      "summary": [
+        "FAIL  tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: owner-zero",
+        "FAIL  tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: unassigned",
+        "FAIL  tests/room-review.test.ts > shows the receiving Outside metadata in lost-enclosure review: no-duty",
+        "Test Files  1 failed (1)",
+        "Tests  3 failed | 5 skipped (8)",
+        "Duration  254ms (transform 107ms, setup 31ms, import 102ms, tests 26ms, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-focused-second.log",
+      "sha256": "a641d0d89228594aa5c3dc3211acfcd6fb563608a1e7ba4929d4dd4602684667",
+      "bytes": 579,
+      "summary": [
+        "Test Files  10 passed (10)",
+        "Tests  242 passed (242)",
+        "Duration  7.77s (transform 3.45s, setup 76ms, import 5.30s, tests 1.51s, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-focused-third.log",
+      "sha256": "dfd593208288729d327f5e756f29411c45faca04713b697caf2e229da6f2b95b",
+      "bytes": 138651,
+      "summary": [
+        "FAIL  tests/build-exit.test.ts > defers explicit exit until exact native review adoption: adopt",
+        "FAIL  tests/wall-tool.test.ts > the Walls tool in the page > main.ts source: routes Escape through the tools before Build mode, as other keys go",
+        "Test Files  2 failed | 11 passed (13)",
+        "Tests  2 failed | 346 passed (348)",
+        "Errors  1 error",
+        "Duration  9.51s (transform 3.33s, setup 94ms, import 6.80s, tests 1.45s, environment 1ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-focused-fourth.log",
+      "sha256": "2c49281819e631031a3e4bdf78b84c11114048055c3140e59b2c2db2871ec3ca",
+      "bytes": 136335,
+      "summary": [
+        "FAIL  tests/wall-tool.test.ts > the Walls tool in the page > main.ts source: routes Escape through the tools before Build mode, as other keys go",
+        "Test Files  1 failed | 12 passed (13)",
+        "Tests  1 failed | 348 passed (349)",
+        "Duration  9.32s (transform 3.27s, setup 100ms, import 6.55s, tests 1.50s, environment 1ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-wiring-controls-final.log",
+      "sha256": "28dbdcda6657a42eb94392ae370f32975018092564b6ee8e151c2dba9bc6e5ee",
+      "bytes": 436,
+      "summary": [
+        "Test Files  5 passed (5)",
+        "Tests  125 passed (125)",
+        "Duration  5.68s (transform 2.90s, setup 51ms, import 4.08s, tests 1.11s, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-final-bounded-tests.log",
+      "sha256": "be7c5d9b185846eb0ad3e6e7f20edb0c79dca3e8ae132d803af8d2199378926d",
+      "bytes": 467,
+      "summary": [
+        "Test Files  6 passed (6)",
+        "Tests  134 passed (134)",
+        "Duration  5.57s (transform 2.87s, setup 56ms, import 3.70s, tests 1.30s, environment 0ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-whole-web.log",
+      "sha256": "429afd17d572c11b57773a08f7b84049dfeb44de1b445b43061259264eb55d8f",
+      "bytes": 1511219,
+      "summary": [
+        "FAIL  tests/buy-tool.test.ts > the Buy tool in the page > is wired into the frame, the click, Load and leaving Build",
+        "FAIL  tests/floor-scene-presentation.test.ts > main floor scene presentation > retains the current scene while graphics are recovering and resumes coherent drawing",
+        "FAIL  tests/floor-scene-presentation.test.ts > main floor scene presentation > keeps camera/static/dynamic rendering coherent during a delayed or rejected preview load",
+        "FAIL  tests/floor-scene-presentation.test.ts > main floor scene presentation > hides the complete loaded scene on missing resources, reports failure and rebuilds current camera on Retry",
+        "FAIL  tests/floor-scene-presentation.test.ts > main floor scene presentation > rejects obsolete renderer completion after a second Load and preserves that newer scene",
+        "FAIL  tests/game-version.test.ts > the version line in Options > is the first thing in the Options panel, as plain text with no hand-typed number",
+        "FAIL  tests/instance-batch-production.test.ts > uploads the floor-tool highlight through the actual main packing and draw statements without recounting",
+        "FAIL  tests/room-tool.test.ts > the Room tool in the page > is wired into the frame, the click, Load and leaving Build",
+        "FAIL  tests/wall-tool.test.ts > the Walls tool in the page > main.ts source: routes Escape through the tools before Build mode, as other keys go",
+        "Test Files  6 failed | 263 passed (269)",
+        "Tests  9 failed | 3691 passed (3700)",
+        "Duration  584.16s (transform 5.93s, setup 1.42s, import 62.40s, tests 496.92s, environment 14ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-whole-web-final.log",
+      "sha256": "c97ae61f15d5df4406f98774f64df05ae2e1e6e0ae043e4f629599f1eba1c463",
+      "bytes": 1169375,
+      "summary": [
+        "FAIL  tests/options-menu.test.ts > the Options flyout wired into main.ts > closes Options when Build starts and restores focus to Build when it ends",
+        "Test Files  1 failed | 269 passed (270)",
+        "Tests  1 failed | 3721 passed (3722)",
+        "Duration  574.35s (transform 5.77s, setup 1.38s, import 61.80s, tests 487.84s, environment 14ms)"
+      ]
+    },
+    {
+      "log": ".local-build/r7-post-run-typecheck.log",
+      "sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
+      "bytes": 54,
+      "summary": []
+    },
+    {
+      "log": ".local-build/r7-final-build.log",
+      "sha256": "e441ba47302a0b9cf4547968ca8a45f5ae0adf1c05c655f291ee491fe2c5cd23",
+      "bytes": 19921,
+      "summary": [
+        "\u2713 built in 15.10s"
+      ]
+    },
+    {
+      "log": ".local-build/r7-cleanup.log",
+      "sha256": "64408eac706101381c384d831cb01d166d46a1469911ace62e0a17b9c5f7f5e0",
+      "bytes": 89,
+      "summary": []
+    },
+    {
+      "log": ".local-build/r7-restoration-cleanup.log",
+      "sha256": "94f85ff1db02b3fd04027d66aaf7679f73bfa6dc2387bfc8a6505022791892c2",
+      "bytes": 101,
+      "summary": []
+    }
+  ],
+  "cleanup": [
+    "playwright close exit=0\nStopped owned Vite PID 52092 on5193\nRemaining5193 listeners=0\n",
+    "playwright restoration close exit=0\nStopped owned Vite PID 62144 on5193\nRemaining5193 listeners=0\n"
+  ]
+}

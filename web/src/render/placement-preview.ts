@@ -9,6 +9,7 @@ import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { coveredWindowLines, type WindowDefinition, type WindowEditPreview, type WindowPlacement } from '../architecture/windows.js';
 import type { WallLine } from '../ui/wall-tool.js';
 import {fixturePlacementOffset,type FixtureRegistrationSource} from './fixture-registration.js';
+import {writePlacementMarker} from './ground-selection.js';
 
 const lineKey = (line: WallLine): string => `${line.axis}/${line.x}/${line.y}`;
 export const windowOwnerKey = (window: WindowPlacement): string => `window/${lineKey(window)}/${window.model}`;
@@ -39,7 +40,10 @@ const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;
 const INVALID = [229 / 255, 140 / 255, 133 / 255] as const;
 
-/** Floor tiles ringed in the preview tints: the Walls tool's chosen line. */
+/**
+ * Floor tiles ringed in the preview tints: the tiles a Walls, Room, Floors,
+ * Land or Window tool choice covers, a line or an area.
+ */
 export interface TileHighlight {
   readonly tiles: readonly (readonly [number, number])[];
   readonly valid: boolean;
@@ -49,7 +53,12 @@ export function tileHighlightCount(highlight: TileHighlight | null): number {
   return highlight ? highlight.tiles.length : 0;
 }
 
-/** Appends one ring per tile, at the depth the placement preview's rings use. */
+/**
+ * Appends one ring sprite per tile, a quarter layer above the prop layer at
+ * that tile. A highlight marks a set of tiles, a line or an area, rather than
+ * one object, so it keeps the per-tile ring instead of the placement
+ * preview's floor marker.
+ */
 export function writeTileHighlight(out: Float32Array, slot: number,
   highlight: TileHighlight | null, originX: number, originY: number,
   gridSize: number, scale: number): number {
@@ -62,9 +71,10 @@ export function writeTileHighlight(out: Float32Array, slot: number,
   return slot;
 }
 
+/** One floor marker, the art and an optional foreground layer; nothing for an empty preview. */
 export function placementInstanceCount(preview: PlacementPreview | null): number {
   return preview && preview.width > 0 && preview.depth > 0
-    ? preview.width * preview.depth + 1 + (preview.foreground === null ? 0 : 1) : 0;
+    ? 2 + (preview.foreground === null ? 0 : 1) : 0;
 }
 
 /**
@@ -73,7 +83,10 @@ export function placementInstanceCount(preview: PlacementPreview | null): number
  * in the object's colourway ([RC-render]). A purchase's candidate is drawn in
  * the colourway chosen in the Buy tool's Colour list. Its art takes the sky's
  * shade on the tile it would stand on, as the placed object will
- * ([OS-daylight]); the footprint rings are markers and stay unshaded.
+ * ([OS-daylight]). One floor marker sized to the footprint goes first
+ * ([PM-marker] in docs/specs/2026-10-17-placement-marker.md); it is drawn
+ * later in the scene pass, over the opaque scene and under the short walls,
+ * so it stays unshaded and the art hides its middle.
  */
 export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,
@@ -82,17 +95,13 @@ export function writePlacementPreview(out: Float32Array, slot: number,
   sky: SkyExposure = OPEN_SKY,physicalSource?:FixtureRegistrationSource): number {
   if (!preview || placementInstanceCount(preview) === 0) return slot;
   const tint = preview.valid ? VALID : INVALID;
-  for (let dy = 0; dy < preview.depth; dy += 1) {
-    for (let dx = 0; dx < preview.width; dx += 1) {
-      const x = preview.x + dx, y = preview.y + dy;
-      writeInstance(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
-        layeredDepth(x, y, gridSize, LAYER_PROP + 0.25), RING, ...tint, 1);
-    }
-  }
   const centreX = preview.x + (preview.width - 1) / 2;
   const centreY = preview.y + (preview.depth - 1) / 2;
   const offset=physicalSource?fixturePlacementOffset(physicalSource,preview.sprite,centreX,centreY):null;
   const x=centreX+(offset?.[0]??0),y=centreY+(offset?.[1]??0);
+  // The marker shares the art's physical registration, as the housemate marker follows a registered fixture.
+  writePlacementMarker(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
+    preview.width, preview.depth, preview.valid);
   const light = lighting ? sampleLight(lighting, Math.floor(x), Math.floor(y)) : 0;
   const shade = sampleShade(sky, Math.floor(x), Math.floor(y));
   for (let layer = 0; layer < 2; layer += 1) {

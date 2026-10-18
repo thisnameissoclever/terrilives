@@ -94,7 +94,9 @@ for the current name styling and responsive checks.
 
 Time, Funds and live status remain in the upper-left group, followed by speed,
 Build and Options. The default group is 144px wide on desktop and 182px on
-compact screens. Options contains Light, Death, Sound, Effects, Save, Load,
+compact screens. Options opens with the game's version as plain text that takes
+no focus, Version {n}, with the number from `web/package.json`. It contains
+Light, Death, Sound, Effects, Save, Load,
 New game, New housemate and Help. Close Options, Escape and an outside press close it.
 Opening Options closes the Sim sheet. Cancelling Load or New game returns
 stranded keyboard focus to the visible Options button and releases that
@@ -173,7 +175,7 @@ existing controller, and retains Exit build and Options. Desktop Build uses
 the left panel; compact Build uses the bottom dock at width <=700px or height <=480px, independently of the Sim dock breakpoint. Desktop Build tools have a fixed 304px outer width. Leaving
 Build restores the prior Sim sheet/collapse state while retaining any viewport
 change. Placement buttons avoid the left world group and the bottom Build
-dock, including by moving to the right when there is no room below. All five tools now share the surface described in [contextual build controls](2026-10-01-build-context-controls.md). Shortcuts is optional and starts collapsed.
+dock, including by moving to the right when there is no room below. Build retains six destinations, including Land. Contextual construction actions use the surface described in [contextual build controls](2026-10-01-build-context-controls.md); Rooms defaults to Select rooms, and Land retains its strip and quote controls. Shortcuts is optional and starts collapsed.
 
 See [implementation evidence](../assets/review-evidence/compact-hud/README.md)
 for checks, screenshots and adversarial review results.

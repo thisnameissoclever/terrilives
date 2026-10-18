@@ -169,6 +169,7 @@ fn restore_inner_social(
     migration: bool,
     social: Option<terri_core::save_v9::SavedSocialEpisodes>,
 ) -> Result<Sim, SaveError> {
+    let actor_references = portals.actor_references;
     let saved_people = snapshot
         .legacy
         .world
@@ -259,9 +260,14 @@ fn restore_inner_social(
     crate::recipe_actions::restore(&mut candidate.world, snapshot.chain_origins)?;
     crate::books::validate_borrower_positions(&candidate.world, &snapshot.books)
         .map_err(|_| SaveError::InvalidValue)?;
-    let books = with_book_world(&candidate.world, |world| {
-        BookLibrary::from_saved(snapshot.books, world)
-    })?;
+    let books = if content.reading.is_none() {
+        BookLibrary::from_saved_without_reading(snapshot.books, &content.books)
+            .map_err(|_| SaveError::InvalidValue)?
+    } else {
+        with_book_world(&candidate.world, |world| {
+            BookLibrary::from_saved(snapshot.books, world)
+        })?
+    };
     candidate.world.insert_resource(books);
     for saved in snapshot.queues {
         let entity = live_entity(&candidate.world, saved.owner).ok_or(SaveError::InvalidValue)?;
@@ -381,7 +387,16 @@ fn restore_inner_social(
         &snapshot.pending_shifts,
     )?;
     if let Some(social) = social {
-        super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
+        if actor_references == super::ActorReferences::SavedAgents {
+            super::social::restore_into_current(
+                &mut candidate,
+                social,
+                saved_people,
+                social_targets,
+            )?;
+        } else {
+            super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
+        }
     }
     crate::reading::persistence::validate(
         &candidate.world,
@@ -397,7 +412,7 @@ fn restore_inner_social(
         .has_edges()
     {
         architecture::validate_edge_world(
-            &candidate.save_snapshot(),
+            &super::capture(&candidate),
             candidate.world.resource::<terri_core::TileGrid>(),
             content,
             &candidate.world,
@@ -418,17 +433,18 @@ pub(crate) fn validate_live_books(world: &World) -> Result<(), SaveError> {
     let Some(library) = world.get_resource::<BookLibrary>() else {
         return Ok(());
     };
-    // Historical/synthetic content has no catalogue, and cannot own books.
+    // Current bookless content preserves its library metadata without owned data.
     if world.resource::<Content>().0.reading.is_none() {
-        return if library.state().copies.is_empty() && library.state().memories.is_empty() {
-            Ok(())
-        } else {
-            Err(SaveError::InvalidValue)
-        };
+        crate::books::validate_without_reading(
+            library.state(),
+            &world.resource::<Content>().0.books,
+        )
+        .map_err(|_| SaveError::InvalidValue)?;
+    } else {
+        with_book_world(world, |context| {
+            crate::books::validate_saved(library.state(), context)
+        })?;
     }
-    with_book_world(world, |context| {
-        crate::books::validate_saved(library.state(), context)
-    })?;
     crate::books::validate_borrower_positions(world, library.state())
         .map_err(|_| SaveError::InvalidValue)?;
     crate::reading::persistence::validate(world, world.resource::<terri_core::TileGrid>())?;

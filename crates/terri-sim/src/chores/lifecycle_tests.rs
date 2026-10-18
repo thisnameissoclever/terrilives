@@ -44,25 +44,25 @@ fn fixture(kind: ChoreKind) -> (Sim, Entity, ChoreKey) {
     (sim, person, key)
 }
 
-pub(super) fn assert_v15_projection(
-    before: &terri_core::SaveSnapshotV15,
-    after: &terri_core::SaveSnapshotV15,
+pub(super) fn assert_v17_projection(
+    before: &terri_core::SaveSnapshotV17,
+    after: &terri_core::SaveSnapshotV17,
 ) {
     assert_eq!(
         after.player_orders, before.player_orders,
-        "V15 player-order projection changed during restoration"
+        "V17 player-order projection changed during restoration"
     );
     assert_eq!(
         after.social_executions, before.social_executions,
-        "V15 execution projection changed during restoration"
+        "V17 execution projection changed during restoration"
     );
     assert_eq!(
         after.system_social_orders, before.system_social_orders,
-        "V15 system-order projection changed during restoration"
+        "V17 system-order projection changed during restoration"
     );
     assert_eq!(
         after.attendance, before.attendance,
-        "V15 attendance projection changed during restoration"
+        "V17 attendance projection changed during restoration"
     );
     assert_eq!(after.confirmed_commands, before.confirmed_commands);
     if after.legacy != before.legacy {
@@ -77,7 +77,7 @@ pub(super) fn assert_v15_projection(
             .unwrap_or(original.len().min(restored.len()));
         let start = at.saturating_sub(4);
         panic!(
-            "V15 legacy projection first differs at line {at}; original={:?}; restored={:?}",
+            "V17 legacy projection first differs at line {at}; original={:?}; restored={:?}",
             &original[start..(at + 5).min(original.len())],
             &restored[start..(at + 5).min(restored.len())]
         );
@@ -86,11 +86,11 @@ pub(super) fn assert_v15_projection(
 
 fn reload(sim: &Sim) {
     let mut loaded = Sim::new_from_shipped_lot();
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     loaded
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v17(sim.save_snapshot_v17())
         .expect("ordinary lifecycle state must reload");
-    assert_v15_projection(&saved, &loaded.save_snapshot_v15());
+    assert_v17_projection(&saved, &loaded.save_snapshot_v17());
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -375,7 +375,7 @@ fn real_dish_washing_crosses_midnight_and_reloads_without_double_settlement() {
 }
 
 #[test]
-fn suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells() {
+fn suspended_floor_plan_replans_remaining_cells_without_settling_its_episode() {
     let mut sim = Sim::new_from_shipped_lot();
     ensure(sim.world_mut());
     let person = sim
@@ -420,6 +420,7 @@ fn suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells() {
     work::advance(sim.world_mut(), &mut state);
     assert!(state.tasks[0].suspended);
     sim.world_mut().insert_resource(state);
+    sim.begin_build().unwrap();
     for y in 0..6 {
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -435,33 +436,33 @@ fn suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells() {
             });
     }
     sim.flush_commands();
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    let report = review.duties.clone();
+    sim.commit_build(review.token).unwrap();
+    assert!(report.replanned_people.contains(&person.index_u32()));
     assert_ne!(
         crate::room_regions::RoomRegions::from_world(sim.world()).at((1, 2)),
         crate::room_regions::RoomRegions::from_world(sim.world()).at((5, 2)),
         "actual edit must split rooms"
     );
-    prune(sim.world_mut());
-    assert!(sim.world().resource::<SavedChores>().tasks.is_empty());
+    let state = sim.world().resource::<SavedChores>();
+    let task = state
+        .tasks
+        .iter()
+        .find(|task| task.person == person.index_u32())
+        .unwrap();
+    assert!(task.suspended);
+    assert_eq!(task.cells, vec![2 * width + 1]);
+    assert_eq!(task.completed_units, 0);
+    let episode = state
+        .episodes
+        .iter()
+        .find(|e| e.key == key && e.day == 0)
+        .unwrap();
+    assert_eq!(episode.decision, Some(true));
+    assert_eq!(episode.outcome, DutyOutcome::WillDo);
+    assert!(!episode.settled);
     reload(&sim);
-    let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
-    assert!(
-        state
-            .episodes
-            .iter()
-            .find(|e| e.key == key && e.day == 0)
-            .unwrap()
-            .unavailable
-    );
-    let day = sim.world().resource::<crate::Content>().0.tuning.day_ticks;
-    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day);
-    board::tick(sim.world_mut(), &mut state);
-    assert_eq!(
-        state
-            .episodes
-            .iter()
-            .find(|e| e.key == key && e.day == 0)
-            .unwrap()
-            .outcome,
-        DutyOutcome::Unavailable
-    );
 }

@@ -4,7 +4,9 @@
 //! read by `build.rs` at build time and by the simulation at run time,
 //! so it has to compile for the host and for `wasm32-unknown-unknown`.
 
+mod autonomy_tuning;
 pub mod books;
+pub use autonomy_tuning::{AutonomyTuning, CreationInstinctBand};
 pub mod compile;
 #[cfg(test)]
 mod published_pack_wire;
@@ -864,6 +866,27 @@ mod tests {
         assert_eq!(office.working_days, 0b0011111);
     }
 
+    /// [SEA-year] and [SEA-yard] in `docs/specs/2026-10-17-seasons.md`: a
+    /// new game starts in Spring, each season lasts seven days, and Spring
+    /// draws the grass as authored. The live tuning is not compared with
+    /// the `Tuning::SHIPPED_*` values that packs published before the
+    /// seasons reconstruct: a later retune changes the live file alone.
+    #[test]
+    fn the_shipped_season_content_matches_the_spec() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.days_per_season, 7);
+        assert_eq!(tuning.first_season, 0);
+        assert_eq!(tuning.season_yard_looks[0], [0.0, 1.0, 0.0]);
+        // Autumn turns the grass toward yellow and Winter pales it: a turn
+        // below zero, and a Winter strength below every other season's with
+        // a lightness above every other season's.
+        let [spring, summer, autumn, winter] = tuning.season_yard_looks;
+        assert!(autumn[0] < 0.0);
+        for other in [spring, summer, autumn] {
+            assert!(winter[1] < other[1] && winter[2] > other[2]);
+        }
+    }
+
     /// [OA-kinds]: the four shipped kinds, in the order every person's values
     /// are listed in, each with its reach, its one object and, for the
     /// aquarium and the television, a trait tag.
@@ -1641,7 +1664,7 @@ mod tests {
             }
         }
         assert_eq!(
-            changed_rows, 28,
+            changed_rows, 29,
             "the fixture must include every shipped interaction"
         );
         assert_eq!(
@@ -2702,6 +2725,9 @@ mod tests {
                 "long_sofa",
                 "moving_box",
                 "nightstand",
+                "patio_umbrella",
+                "pool",
+                "pool_lounger",
                 "potted_plant",
                 "radio",
                 "reading_chair",
@@ -3120,10 +3146,12 @@ mod tests {
         assert_eq!(t.resale_fraction, 0.5);
     }
 
-    /// Every object the design declares is actually placed. An object in
-    /// `objects.toml` that nothing puts on the lot cannot be chosen, so
-    /// it contributes nothing to the decision the milestone exists to
-    /// evaluate - and nothing else in the pipeline notices.
+    /// Every object the design declares can reach the lot: it is placed
+    /// on the shipped lot, or the store sells it. An object in
+    /// `objects.toml` that is neither placed nor priced can never be
+    /// chosen, so it contributes nothing - and nothing else in the
+    /// pipeline notices. The yard's outdoor furniture (issue 250) is
+    /// sold, not placed: the starting house has no pool.
     #[test]
     fn every_declared_object_is_placed_on_the_lot() {
         let p = pack();
@@ -3138,8 +3166,25 @@ mod tests {
 
         let mut declared: Vec<&str> = p.objects.iter().map(|o| o.id.as_str()).collect();
         declared.sort_unstable();
-
-        assert_eq!(placed, declared, "every declared object must be placed");
+        let unplaced: Vec<&str> = declared
+            .iter()
+            .copied()
+            .filter(|id| !placed.contains(id))
+            .collect();
+        let unsold: Vec<&str> = unplaced
+            .iter()
+            .copied()
+            .filter(|id| p.objects.iter().any(|o| o.id == *id && o.price.is_none()))
+            .collect();
+        assert!(
+            unsold.is_empty(),
+            "every declared object must be placed or sold: {unsold:?}"
+        );
+        assert_eq!(
+            unplaced,
+            ["patio_umbrella", "pool", "pool_lounger"],
+            "only the yard furniture is sold without a place in the starting house"
+        );
     }
 
     /// Every declared need has some way to be satisfied.

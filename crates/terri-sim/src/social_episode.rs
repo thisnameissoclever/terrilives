@@ -1,4 +1,5 @@
 //! Owned conversation rendezvous, topics and bounded shared activity episodes.
+pub(crate) mod requests;
 use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 #[cfg(test)]
@@ -10,7 +11,9 @@ pub(crate) use execution::{
     commit_autonomous, complete_execution, execution_order, release_order, request_order_id,
     Execution, ExecutionPhase,
 };
-pub(crate) use execution_persistence::{adopt_legacy, restore_executions, save_executions};
+pub(crate) use execution_persistence::{
+    adopt_legacy, adopt_published_player_requests, restore_executions, save_executions,
+};
 
 #[derive(Resource, Default, Clone)]
 pub struct SocialEpisodes {
@@ -58,6 +61,7 @@ pub(crate) fn urgent(world: &World, person: Entity) -> bool {
 }
 
 pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
+    requests::started(world, initiator, partner);
     let target = world.get::<Target>(initiator).copied();
     let order = {
         let mut episodes = world.resource_mut::<SocialEpisodes>();
@@ -94,9 +98,11 @@ pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
 /// Redirecting a recipient releases physical claims, never somebody else's order.
 pub(crate) fn cancel_incoming(world: &mut World, recipient: Entity) {
     execution::redirect_recipient(world, recipient);
+    requests::defer_incoming(world, recipient);
 }
 
 pub(crate) fn forget_person(world: &mut World, person: Entity) {
+    requests::forget_person(world, person);
     let owned: Vec<_> = world
         .get_resource::<crate::player_actions::PlayerActions>()
         .map_or_else(Vec::new, |s| {
@@ -148,6 +154,7 @@ pub(crate) fn forget_person(world: &mut World, person: Entity) {
 pub(crate) fn maintain(world: &mut World) {
     crate::player_actions::observe(world);
     execution::maintain(world);
+    requests::maintain(world);
     let mut held_readers: Vec<_> = world
         .resource::<SocialEpisodes>()
         .communal

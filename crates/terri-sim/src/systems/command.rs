@@ -31,7 +31,7 @@ mod submission_tests;
 /// can authoritatively report that an otherwise valid order did not fit.
 /// Counts accumulate across drains until the shell consumes them, which keeps
 /// a fast running frame from erasing feedback before JavaScript can read it.
-#[derive(Resource, Debug, Default)]
+#[derive(Resource, Debug, Default, Clone)]
 pub struct CommandFeedback {
     intent_capacity_rejections: u32,
     intent_displacements: u32,
@@ -309,7 +309,26 @@ fn place_in(
 /// `Without<Eating>`, and the sim would freeze while its needs drained.
 /// That is [L17] reached by a button rather than by a distance metric.
 pub(crate) fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
+    release_commitment_checked(commands, agent, target, false);
+}
+
+fn release_commitment_checked(
+    commands: &mut Commands,
+    agent: Entity,
+    target: Target,
+    orders_only: bool,
+) {
     commands.queue(move |world: &mut World| {
+        if orders_only
+            && world
+                .resource::<crate::social_episode::requests::ConversationRequests>()
+                .outgoing(agent)
+                .is_some_and(|r| {
+                    r.origin == crate::social_episode::requests::ConversationOrigin::Autonomous
+                })
+        {
+            return;
+        }
         release_commitment_now(world, agent, target);
     });
 }
@@ -322,6 +341,7 @@ fn release_commitment_now(world: &mut World, agent: Entity, target: Target) {
         return;
     }
     crate::reservations::release_now(world, agent, target);
+    crate::social_episode::requests::cancel_target(world, agent, target);
     if let Ok(mut actor) = world.get_entity_mut(agent) {
         actor.remove::<(
             Target,
@@ -895,7 +915,7 @@ pub(crate) fn drain_ordinary_commands(
 
                 if serving {
                     if let Some(target) = released {
-                        release_commitment(&mut commands, agent, target);
+                        release_commitment_checked(&mut commands, agent, target, true);
                     }
                 }
 

@@ -1,0 +1,17 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "C7B9B7EB23567D2CA6543D400FEEDD380FC1D25E10C145E34DE127D4A5D89958",
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.superpowers\\sdd\\2026-10-17-room-identities\\reading-tool-better-way-source\\relationship_qa.rs"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "4840DA37BAF6E5F566B91BFFD0734CCE487D70D773F40071B7CE82D46D9389FA",
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.superpowers\\sdd\\2026-10-17-room-identities\\reading-tool-better-way-source\\support-mod.rs"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "0CA4431A4D72B46A10F1FD19895D008E606C7488DC6A9C38D8D09CC46BB98EA6",
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.superpowers\\sdd\\2026-10-17-room-identities\\reading-tool-better-way-source\\terri-wasm-lib.rs"
+  }
+]

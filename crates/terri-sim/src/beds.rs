@@ -91,7 +91,7 @@ pub struct AssignmentResult {
 }
 
 /// Feedback is presentation state and is neither saved nor hashed.
-#[derive(Resource, Debug, Default)]
+#[derive(Resource, Debug, Default, Clone)]
 pub struct AssignmentFeedback {
     pub sequence: u64,
     pub last: Option<AssignmentResult>,

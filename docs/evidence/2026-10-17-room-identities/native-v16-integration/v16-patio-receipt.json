@@ -1,0 +1,50 @@
+[
+  {
+    "mode": "PROVE",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-data",
+      "--test",
+      "inherited_runtime",
+      "--locked",
+      "--jobs",
+      "1",
+      "inherited_runtime_fixture_compiles_real_model_actions_and_rounding",
+      "--",
+      "--exact",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-patio-prove.log",
+    "source_main": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+    "before_sha256": "7edd7623f285f5cafc3ba623575d0c44451c302199c6d0e1c37e2e99e0e1427f",
+    "after_sha256": "7edd7623f285f5cafc3ba623575d0c44451c302199c6d0e1c37e2e99e0e1427f",
+    "finished_utc": "2026-10-18T01:41:52.724649+00:00"
+  },
+  {
+    "mode": "WRITE",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-data",
+      "--test",
+      "inherited_runtime",
+      "--locked",
+      "--jobs",
+      "1",
+      "inherited_runtime_fixture_compiles_real_model_actions_and_rounding",
+      "--",
+      "--exact",
+      "--nocapture"
+    ],
+    "exit_code": 0,
+    "log": ".local-build\\v16-patio-write.log",
+    "source_main": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+    "before_sha256": "7edd7623f285f5cafc3ba623575d0c44451c302199c6d0e1c37e2e99e0e1427f",
+    "after_sha256": "c38a8d6dd71b823f1f4ced4ea378ca6a02cf7e58f50edcb3d5489623e77999a7",
+    "finished_utc": "2026-10-18T01:41:53.369062+00:00"
+  }
+]

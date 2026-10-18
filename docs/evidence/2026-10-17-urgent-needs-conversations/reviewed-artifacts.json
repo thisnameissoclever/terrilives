@@ -1,0 +1,22 @@
+[
+  {
+    "path": "web/src/wasm/terri_wasm_bg.wasm",
+    "sha256": "9b301ab07f93964ee3c79fd3ea83a0495a0dd5103b26014d43a3a610765e6f77"
+  },
+  {
+    "path": "web/src/wasm/terri_wasm.js",
+    "sha256": "490dc186ab8ad49f77217af803b408098567181f500f5ab8c3bf0aaabcf98b79"
+  },
+  {
+    "path": "crates/terri-sim/src/social_episode/requests.rs",
+    "sha256": "482d167d4e636e02d5e13cfc80aac3a7ed975070a9f5b3b5bb597654bce01a9b"
+  },
+  {
+    "path": "crates/terri-sim/src/systems/critical_choices.rs",
+    "sha256": "f0a632c3f91c998f3ba55b26852cc08c32aa82483bae7e0fa4f97e60a03ff229"
+  },
+  {
+    "path": "web/src/ui/compact-hud.css",
+    "sha256": "c371164d46196fe7b222b5fba170feab757ae5e9a557255f6b563beb3eb4368a"
+  }
+]

@@ -31,7 +31,7 @@ pub struct ActionQueueRow {
     pub counterpart: Option<u32>,
     pub reason: Option<String>,
 }
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct ActionDiagnostics {
     records: VecDeque<ActionEvent>,
     sequence: u64,
@@ -588,11 +588,58 @@ pub(crate) fn continue_session(old: &World, new: &mut World) {
     });
 }
 
+/// Published request ownership proves a continuing player activity. Adopt its
+/// phase without emitting a new session event or executing gameplay observation.
+pub(crate) fn adopt_published_social_phases(world: &mut World) {
+    use crate::social_episode::requests::{ConversationOrigin, RequestPhase};
+    let phases: Vec<_> = world
+        .resource::<crate::social_episode::requests::ConversationRequests>()
+        .requests
+        .values()
+        .filter_map(|request| {
+            let ConversationOrigin::Player { order_id } = request.origin else {
+                return None;
+            };
+            if crate::social_episode::execution_order(world, request.initiator) != Some(order_id) {
+                return None;
+            }
+            let phase = match request.phase {
+                RequestPhase::Talking => 3,
+                RequestPhase::Approaching => 1,
+                RequestPhase::Waiting => 2,
+                RequestPhase::Suspended => return None,
+            };
+            Some((
+                request.initiator,
+                order_id,
+                request.recipient,
+                request.interaction,
+                phase,
+            ))
+        })
+        .collect();
+    let mut actions = world.resource_mut::<PlayerActions>();
+    for (actor, id, recipient, interaction, phase) in phases {
+        let Some(order) = actions.orders.get_mut(&(actor, id)) else {
+            continue;
+        };
+        if order.entry.intent.object == recipient
+            && order.entry.intent.interaction == interaction
+            && order.entry.intent.cleanup.is_none()
+            && order.entry.intent.chore.is_none()
+        {
+            order.phase = phase;
+            order.active = true;
+            order.started |= phase == 3;
+        }
+    }
+}
+
 pub(crate) fn saved_actor(
     world: &World,
     actor: Entity,
-) -> Option<terri_core::save_v15::SavedOrderActor> {
-    use terri_core::save_v15::SavedOrderActor;
+) -> Option<terri_core::save_v17::SavedOrderActor> {
+    use terri_core::save_v17::SavedOrderActor;
     world.get::<Agent>(actor)?;
     Some(world.get::<terri_core::SimId>(actor).map_or_else(
         || SavedOrderActor::Entity(actor.index_u32()),
@@ -602,10 +649,10 @@ pub(crate) fn saved_actor(
 
 pub(crate) fn restore_actor(
     world: &World,
-    saved: terri_core::save_v15::SavedOrderActor,
+    saved: terri_core::save_v17::SavedOrderActor,
 ) -> Result<Entity, crate::save::SaveError> {
     use crate::save::SaveError;
-    use terri_core::save_v15::SavedOrderActor;
+    use terri_core::save_v17::SavedOrderActor;
     match saved {
         SavedOrderActor::Sim(identity) => {
             let mut query = world
@@ -630,8 +677,8 @@ pub(crate) fn restore_actor(
     }
 }
 
-pub(crate) fn save(world: &World) -> terri_core::save_v15::SavedPlayerOrders {
-    let mut result = terri_core::save_v15::SavedPlayerOrders::default();
+pub(crate) fn save(world: &World) -> terri_core::save_v17::SavedPlayerOrders {
+    let mut result = terri_core::save_v17::SavedPlayerOrders::default();
     let Some(actions) = world.get_resource::<PlayerActions>() else {
         return result;
     };
@@ -640,7 +687,7 @@ pub(crate) fn save(world: &World) -> terri_core::save_v15::SavedPlayerOrders {
         let Some(identity) = saved_actor(world, actor) else {
             continue;
         };
-        result.orders.push(terri_core::save_v15::SavedPlayerOrder {
+        result.orders.push(terri_core::save_v17::SavedPlayerOrder {
             actor: identity,
             order_id: id,
             acceptance: s.acceptance,
@@ -696,7 +743,7 @@ pub(crate) fn save(world: &World) -> terri_core::save_v15::SavedPlayerOrders {
                     .and_then(|s| s.orders.iter().find(|o| o.id == id))
                     .map(|o| o.key)
             });
-            result.orders.push(terri_core::save_v15::SavedPlayerOrder {
+            result.orders.push(terri_core::save_v17::SavedPlayerOrder {
                 actor: identity,
                 order_id: entry.id,
                 acceptance,
@@ -723,7 +770,7 @@ pub(crate) fn save(world: &World) -> terri_core::save_v15::SavedPlayerOrders {
 }
 pub(crate) fn restore(
     world: &mut World,
-    saved: terri_core::save_v15::SavedPlayerOrders,
+    saved: terri_core::save_v17::SavedPlayerOrders,
 ) -> Result<(), crate::save::SaveError> {
     use crate::save::SaveError;
     let inferred: Vec<_> = world
@@ -933,12 +980,12 @@ pub(crate) fn hash(world: &World, hasher: &mut terri_core::FnvHasher) {
     if state.next_acceptance == 0 && state.orders.is_empty() {
         return;
     }
-    hasher.write_bytes(b"player-orders-v15");
+    hasher.write_bytes(b"player-orders-v17");
     hasher.write_u64(state.next_acceptance);
     for s in state.orders {
         let (actor_kind, actor) = match s.actor {
-            terri_core::save_v15::SavedOrderActor::Sim(identity) => (0, identity),
-            terri_core::save_v15::SavedOrderActor::Entity(index) => (1, index),
+            terri_core::save_v17::SavedOrderActor::Sim(identity) => (0, identity),
+            terri_core::save_v17::SavedOrderActor::Entity(index) => (1, index),
         };
         for value in [
             actor_kind,
@@ -1071,6 +1118,124 @@ fn retained_work_phase(world: &World, actor: Entity, id: u64, state: &OrderState
     }
 }
 
+/// Read exact activity ownership without scheduling, transitions or diagnostics.
+fn projected_order_phase(
+    world: &World,
+    actor: Entity,
+    id: u64,
+    state: &OrderState,
+) -> Option<(u8, bool)> {
+    let intent = state.entry.intent;
+    if let Some(phase) = crate::reading::player_phase(world, actor, id) {
+        return Some((phase, true));
+    }
+    if let Some(phase) = retained_work_phase(world, actor, id, state) {
+        return Some((phase, true));
+    }
+    let meal_owned = world
+        .get::<DirectedMealOrder>(actor)
+        .is_some_and(|owner| owner.0 == id)
+        && world
+            .get::<terri_core::ChainState>(actor)
+            .is_some_and(|chain| {
+                world.resource::<crate::Content>().0.chains[chain.chain as usize].id
+                    == crate::domestic::SHARED
+            });
+    if meal_owned
+        && (world
+            .get::<Target>(actor)
+            .is_some_and(|target| target.interaction != crate::systems::chain::CHAIN_STEP)
+            || world.get::<Socialising>(actor).is_some())
+    {
+        return Some((2, true));
+    }
+    let social_order = world.get::<Agent>(intent.object).is_some()
+        && intent.cleanup.is_none()
+        && intent.chore.is_none();
+    let active = meal_owned
+        || (social_order && crate::social_episode::execution_order(world, actor) == Some(id))
+        || (!social_order
+            && world
+                .get::<ServedOrder>(actor)
+                .is_some_and(|owner| owner.0 == id)
+            && world.get::<Target>(actor).is_some_and(|target| {
+                target.object == intent.object && target.interaction == intent.interaction
+            }))
+        || (world
+            .get::<crate::recipe_actions::RecipeOrder>(actor)
+            .is_some_and(|owner| owner.0 == id)
+            && world
+                .get::<Target>(actor)
+                .is_none_or(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
+            && world.get::<Socialising>(actor).is_none()
+            && world.get::<terri_core::AtWork>(actor).is_none()
+            && world.get::<terri_core::Commuting>(actor).is_none());
+    if active {
+        let earlier =
+            world
+                .resource::<PlayerActions>()
+                .orders
+                .iter()
+                .any(|(&(owner, other), order)| {
+                    owner == actor
+                        && other != id
+                        && order.entry.intent == intent
+                        && (order.active || order.acceptance < state.acceptance)
+                });
+        if earlier {
+            return None;
+        }
+        let waiting = world.get::<terri_core::Blocked>(actor).is_some();
+        let running = world.get::<Socialising>(actor).is_some()
+            || world.get::<terri_core::Eating>(actor).is_some()
+            || world.get::<terri_core::StepWork>(actor).is_some();
+        let phase = if waiting {
+            2
+        } else if running {
+            3
+        } else if world.get::<Path>(actor).is_some() {
+            1
+        } else {
+            2
+        };
+        Some((phase, true))
+    } else if state.active && intent.cleanup.is_none() && intent.chore.is_none() {
+        Some((0, false))
+    } else if !state.active {
+        let waiting = world.get::<terri_core::Blocked>(actor).is_some()
+            && world
+                .get::<IntentQueue>(actor)
+                .is_some_and(|queue| queue.entries().first().is_some_and(|entry| entry.id == id));
+        Some((if waiting { 2 } else { 0 }, false))
+    } else {
+        None
+    }
+}
+
+/// Complete inferred historical metadata only for an exact continuing owner.
+/// Established active rows and ambiguous queued orders remain authoritative.
+pub(crate) fn adopt_legacy_order_phases(world: &mut World) {
+    let phases: Vec<_> = world
+        .resource::<PlayerActions>()
+        .orders
+        .iter()
+        .filter(|(_, order)| !order.active)
+        .filter_map(|(&(actor, id), order)| {
+            projected_order_phase(world, actor, id, order)
+                .filter(|(_, active)| *active)
+                .map(|(phase, _)| (actor, id, phase))
+        })
+        .collect();
+    let mut actions = world.resource_mut::<PlayerActions>();
+    for (actor, id, phase) in phases {
+        if let Some(order) = actions.orders.get_mut(&(actor, id)) {
+            order.phase = phase;
+            order.active = true;
+            order.started |= phase == 3;
+        }
+    }
+}
+
 pub(crate) fn observe(world: &mut World) {
     maintain_served_orders(world);
     let mut entries: Vec<_> = world
@@ -1158,95 +1323,8 @@ pub(crate) fn observe(world: &mut World) {
             terminal(world, actor, id, "failed", Some("Target removed"));
             continue;
         }
-        if let Some(phase) = crate::reading::player_phase(world, actor, id) {
-            transition(world, actor, id, phase, true);
-            continue;
-        }
-        if let Some(phase) = retained_work_phase(world, actor, id, &state) {
-            transition(world, actor, id, phase, true);
-            continue;
-        }
-        let meal_owned = world
-            .get::<DirectedMealOrder>(actor)
-            .is_some_and(|owner| owner.0 == id)
-            && world
-                .get::<terri_core::ChainState>(actor)
-                .is_some_and(|chain| {
-                    world.resource::<crate::Content>().0.chains[chain.chain as usize].id
-                        == crate::domestic::SHARED
-                });
-        if meal_owned
-            && (world
-                .get::<Target>(actor)
-                .is_some_and(|target| target.interaction != crate::systems::chain::CHAIN_STEP)
-                || world.get::<Socialising>(actor).is_some())
-        {
-            transition(world, actor, id, 2, true);
-            continue;
-        }
-        let social_order = world.get::<Agent>(intent.object).is_some()
-            && intent.cleanup.is_none()
-            && intent.chore.is_none();
-        let active = meal_owned
-            || (social_order && crate::social_episode::execution_order(world, actor) == Some(id))
-            || (!social_order
-                && world
-                    .get::<ServedOrder>(actor)
-                    .is_some_and(|owner| owner.0 == id)
-                && world.get::<Target>(actor).is_some_and(|t| {
-                    t.object == intent.object && t.interaction == intent.interaction
-                }))
-            || (world
-                .get::<crate::recipe_actions::RecipeOrder>(actor)
-                .is_some_and(|o| o.0 == id)
-                && world
-                    .get::<Target>(actor)
-                    .is_none_or(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
-                && world.get::<Socialising>(actor).is_none()
-                && world.get::<terri_core::AtWork>(actor).is_none()
-                && world.get::<terri_core::Commuting>(actor).is_none());
-        if active {
-            let earlier = world
-                .get_resource::<PlayerActions>()
-                .unwrap()
-                .orders
-                .iter()
-                .any(|(&(owner, other), s)| {
-                    owner == actor
-                        && other != id
-                        && s.entry.intent == intent
-                        && (s.active || s.acceptance < state.acceptance)
-                });
-            if earlier {
-                continue;
-            }
-            let waiting = world.get::<terri_core::Blocked>(actor).is_some();
-            let running = world.get::<Socialising>(actor).is_some()
-                || world.get::<terri_core::Eating>(actor).is_some()
-                || world.get::<terri_core::StepWork>(actor).is_some();
-            transition(
-                world,
-                actor,
-                id,
-                if waiting {
-                    2
-                } else if running {
-                    3
-                } else if world.get::<Path>(actor).is_some() {
-                    1
-                } else {
-                    2
-                },
-                true,
-            );
-        } else if state.active && intent.cleanup.is_none() && intent.chore.is_none() {
-            transition(world, actor, id, 0, false);
-        } else if !state.active {
-            let waiting = world.get::<terri_core::Blocked>(actor).is_some()
-                && world
-                    .get::<IntentQueue>(actor)
-                    .is_some_and(|q| q.entries().first().is_some_and(|e| e.id == id));
-            transition(world, actor, id, if waiting { 2 } else { 0 }, false);
+        if let Some((phase, active)) = projected_order_phase(world, actor, id, &state) {
+            transition(world, actor, id, phase, active);
         }
     }
 }
@@ -1449,7 +1527,7 @@ fn maintain_served_orders(world: &mut World) {
 }
 
 /// Historical object actions used matching queue-front intent as their owner.
-/// New V15 loads replace this inference with their explicit saved companion.
+/// V17 loads replace this inference with their explicit saved companion.
 pub(crate) fn adopt_legacy_objects(world: &mut World) {
     let owners: Vec<_> = world
         .query::<(Entity, &Target, &IntentQueue)>()
@@ -1576,16 +1654,16 @@ mod tests {
         assert_eq!(empty.next_cursor, 2050);
         assert_eq!(sim.world_hash(), before);
 
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.save_snapshot_v17();
         let mut loaded = crate::Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v15(saved.clone()).unwrap();
+        loaded.load_snapshot_v17(saved.clone()).unwrap();
         assert!(loaded.action_events_since(0).events.is_empty());
-        assert_eq!(loaded.save_snapshot_v15(), saved);
+        assert_eq!(loaded.save_snapshot_v17(), saved);
         assert_eq!(loaded.world_hash(), before);
         for _ in 0..8 {
             sim.tick();
             loaded.tick();
-            assert_eq!(loaded.save_snapshot_v15(), sim.save_snapshot_v15());
+            assert_eq!(loaded.save_snapshot_v17(), sim.save_snapshot_v17());
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
     }
@@ -1673,7 +1751,7 @@ mod tests {
                 interaction: 0,
             });
         sim.flush_commands();
-        let snapshot = sim.save_snapshot_v15();
+        let snapshot = sim.save_snapshot_v17();
         assert_eq!(snapshot.player_orders.orders.len(), 1);
         let before = sim.world_hash();
         for mutation in 0..3 {
@@ -1688,7 +1766,7 @@ mod tests {
                     malformed.player_orders.orders.push(duplicate);
                 }
             }
-            assert!(sim.load_snapshot_v15(malformed).is_err());
+            assert!(sim.load_snapshot_v17(malformed).is_err());
             assert_eq!(sim.world_hash(), before);
         }
     }

@@ -1,0 +1,23 @@
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+error[E0599]: no method named `prepare_build_commit_projected` found for struct `Sim` in the current scope
+   --> crates\terri-sim\src\build_transaction\cases.rs:98:48
+    |
+ 98 |     let failed:Result<(),BuildCommitError>=sim.prepare_build_commit_projected(RoomChoices::default(),|_|Err(BuildCommitError::Alloc...
+    |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-sim\src\lib.rs:166:1
+    |
+166 | pub struct Sim {
+    | -------------- method `prepare_build_commit_projected` not found for this struct
+    |
+help: there is a method `prepare_build_commit` with a similar name, but with different arguments
+   --> crates\terri-sim\src\build_transaction.rs:301:5
+    |
+301 | /     pub fn prepare_build_commit(
+302 | |         &mut self,
+303 | |         choices: RoomChoices,
+304 | |     ) -> Result<BuildReview, BuildCommitError> {
+    | |______________________________________________^
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `terri-sim` (lib test) due to 1 previous error

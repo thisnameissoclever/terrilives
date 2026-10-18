@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {afterEach,expect,it,vi} from 'vitest';
 import manifest from '../../assets/models/sims/character-repair/fixture-depth/manifest.json';
-import {ATLAS_WIDTH,ATLAS_HEIGHT} from '../src/render/atlas.js';
+import {ATLAS_WIDTH,ATLAS_HEIGHT,SPRITES,spriteIndex} from '../src/render/atlas.js';
 import {PreviewFixtureRenderer as Renderer} from '../src/render/character/preview-fixture.js';
 
 afterEach(()=>vi.unstubAllGlobals());
@@ -37,7 +37,12 @@ it('shares four registered crops and releases them only after the final preview 
   const gpu=graphics();
   const [first,second]=await Promise.all([Renderer.create(gpu.device),Renderer.create(gpu.device)]);
   expect(gpu.textures.map(texture=>texture.size)).toEqual([[192,240,4],[192,240,4]]);
-  expect(gpu.colorCopies.map(copy=>copy.source.origin)).toEqual([[1351,723],[0,964],[1544,723],[1737,723]]);
+  // Layer n must copy the atlas record of the nth facing below; reading the origins from the atlas table keeps this check valid when the sprite packer moves the chair.
+  const origins=['offlineArmchair','offlineArmchairNE','offlineArmchairNW','offlineArmchairSW'].map(name=>{
+    const sprite=SPRITES[spriteIndex(name)];return [sprite.x,sprite.y];
+  });
+  expect(new Set(origins.map(String)).size).toBe(4);
+  expect(gpu.colorCopies.map(copy=>copy.source.origin)).toEqual(origins);
   expect(gpu.colorCopies.map(copy=>copy.destination.origin)).toEqual([[0,0,0],[0,0,1],[0,0,2],[0,0,3]]);
   expect(gpu.closed).toBe(1);
   const depthPage=readFileSync(new URL('../../assets/models/sims/character-repair/fixture-depth/'+manifest.pages[1].path,import.meta.url));

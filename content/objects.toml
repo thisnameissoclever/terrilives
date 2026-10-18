@@ -56,6 +56,10 @@ label = "Exercise"
 id = "utility"
 label = "Utility"
 
+[[category]]
+id = "outdoor"
+label = "Outdoor"
+
 [[action_template]]
 id = "grab_snack"
 [action_template.properties]
@@ -625,6 +629,33 @@ category = "utility"
 [object_type.properties]
 rooms = { set = ["utility", "kitchen"] }
 
+# Issue 250: outdoor furniture, sold under the Yard room. Rooms classify the
+# store only, so these can stand anywhere on the lot.
+[[object_type]]
+id = "pool"
+label = "Pool"
+category = "outdoor"
+[object_type.properties]
+rooms = { set = ["yard"] }
+
+[[object_type]]
+id = "pool_lounger"
+label = "Pool lounger"
+category = "outdoor"
+[object_type.properties]
+rooms = { set = ["yard"] }
+
+[[object_type.action]]
+id = "sit"
+template = "lounge"
+
+[[object_type]]
+id = "patio_umbrella"
+label = "Patio umbrella"
+category = "outdoor"
+[object_type.properties]
+rooms = { set = ["yard"] }
+
 [[model]]
 id = "fridge"
 object_type = "fridge"
@@ -944,6 +975,38 @@ name = { set = "Stackwell Duo" }
 description = { set = "Two round doors and matching enamel cabinets in a tidy vertical stack. An economical way to give the laundry corner a more finished appearance." }
 price = { set = 60 }
 sprite = { set = "offlineLaundry" }
+
+# Names and descriptions proposed for the owner's review ([L58]).
+[[model]]
+id = "pool"
+object_type = "pool"
+[model.properties]
+name = { set = "Backyard Square" }
+description = { set = "A square above-ground pool with a stone rim, wooden sides, blue water and a pair of chrome rails." }
+price = { set = 1200 }
+sprite = { set = "offlinePool" }
+footprint = { set = { width = 2, depth = 2 } }
+
+[[model]]
+id = "pool_lounger"
+object_type = "pool_lounger"
+[model.properties]
+name = { set = "Sunstrip" }
+description = { set = "A wooden sun lounger with a padded teal cushion and a raised back." }
+price = { set = 120 }
+sprite = { set = "offlinePoolLoungerSW" }
+base_facing = { set = "SW" }
+footprint = { set = { width = 1, depth = 2 } }
+seat = { set = [{ id = "seat", x = 0.0, y = 0.5, facing = "SE", approaches = [[1, 0], [1, 1]] }] }
+
+[[model]]
+id = "patio_umbrella"
+object_type = "patio_umbrella"
+[model.properties]
+name = { set = "Shady Eight" }
+description = { set = "Eight cream and coral panels on a slim pole and a weighted base." }
+price = { set = 90 }
+sprite = { set = "offlinePatioUmbrella" }
 
 [[colourway]]
 id = "as_drawn"

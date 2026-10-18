@@ -23,7 +23,6 @@ use terri_core::{
     StepWork, Target, TileGrid, Traits,
 };
 
-use super::advertise::scaled_delta;
 use crate::Content;
 
 /// `Target::interaction`'s chain-step sentinel. Out of band by
@@ -733,7 +732,8 @@ pub fn tick_chain_steps(
                 continue;
             }
             let per_need = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
-            let delta = scaled_delta(*delta, per_need * fumble);
+            let delta =
+                crate::need_interactions::physical::terminal_delta(*delta, per_need, fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
         }
 

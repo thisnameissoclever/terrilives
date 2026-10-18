@@ -172,6 +172,22 @@ fn roll(world: &mut World, probability: f32) -> bool {
 
 /// Room boundaries include doorways; furniture occupancy does not split a room.
 fn rooms(world: &World) -> (usize, Vec<u32>) {
+    if crate::rooms::stable(world) {
+        let map = world.resource::<crate::rooms::RoomMap>();
+        let width = map.topology.width as usize;
+        return (
+            width,
+            (0..map.topology.cells.len())
+                .map(|index| {
+                    map.selection_at(((index % width) as u32, (index / width) as u32))
+                        .map_or(u32::MAX, |room| room.key())
+                })
+                .collect(),
+        );
+    }
+    legacy_rooms(world)
+}
+pub(crate) fn legacy_rooms(world: &World) -> (usize, Vec<u32>) {
     let grid = world.resource::<TileGrid>();
     let (width, height) = (grid.width(), grid.height());
     let layout = world.get_resource::<terri_core::layout::SavedLayout>();
@@ -244,6 +260,9 @@ fn room_piles(
     let Some(room) = room_at(width, labels, position) else {
         return Vec::new();
     };
+    if crate::rooms::stable(world) && room == 0 {
+        return Vec::new();
+    }
     state
         .dishes
         .iter()
@@ -1243,7 +1262,6 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
     let object =
         |index| entity(world, index).is_some_and(|e| world.get::<SmartObject>(e).is_some());
     let unique = |ids: &[u32]| ids.iter().copied().collect::<BTreeSet<_>>().len() == ids.len();
-    let tiles = world.resource::<TileGrid>().width() * world.resource::<TileGrid>().height();
     if [
         state.cleanliness.len(),
         state.dishes.len(),
@@ -1270,7 +1288,7 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
         || state.visits.windows(2).any(|p| p[0].person >= p[1].person)
         || state.visits.iter().any(|visit| {
             !person(visit.person)
-                || visit.room as usize >= tiles
+                || !crate::rooms::reference_valid(world, visit.room)
                 || visit.seen.len() > state.dishes.len()
                 || visit.seen.windows(2).any(|p| p[0] >= p[1])
                 || visit

@@ -1,0 +1,31 @@
+{
+  "observed_utc": "2026-10-18T00:36:53.741166+00:00",
+  "source_commit": "09b6797ed4572e82d605d8c14e0c991263ecb8ed",
+  "viewport_desktop": [
+    1280,
+    900
+  ],
+  "viewport_phone": [
+    390,
+    844
+  ],
+  "reduced_motion": true,
+  "speeds": [
+    1,
+    3
+  ],
+  "isolated_storage": true,
+  "browser_closed": true,
+  "files": {
+    "web/src/wasm/terri_wasm_bg.wasm": "0186b2013e2d910c97b4d93a18c95424012ed05378d0012e49bc6bc16f334e70",
+    "web/src/wasm/terri_wasm.js": "772d9ecc02d768b0fdeb311c0520f18f344f3690b1851ab841d9d46f7aec441c",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-source-hashes.json": "6577d7bd058afbb2fd793cf254e937e01f8392573d9d5410918fc62b2eea0637",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-autonomy-settled.png": "e90459ec65f814a50c6aa4de960e28e42fc965ca620a81af703cdb9f5931a81a",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-autonomy-walking.png": "19ccbe7eac21aaa27b90b68d9c9daf63d064760f61c08c85ea8638c22eb3cbdf",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-care-talk-mobile.png": "694f269aae76e6987bdc40ed75c34aa1440f2049fcfb2ce0030d5ff140b15a34",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-private-wait-desktop.png": "0e627c3e092613495b2600ae740c174910e449d44883ba354f6a33bec2f6c834",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-private-wait-mobile.png": "d7c47e4399eb48ed9fc4b56f7dcdd1933c00c238acebbc613f62969b8fdc6915",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-autonomy-proof.json": "a71f1581324d3f86782e3d4e6141511db010801f5b3c565e3412fd3ea9c4f77b",
+    ".superpowers/sdd/2026-10-17-urgent-needs-and-pending-conversations/final-browser/final-care-proof.json": "e88cca1ee37ce2c24287c06d978ad729c8ddab34c5f7fd7672d36bda7c3f6c8b"
+  }
+}

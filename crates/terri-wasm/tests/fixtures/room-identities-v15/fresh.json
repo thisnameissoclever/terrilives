@@ -1,0 +1,510 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "schema": 15,
+  "seed": [
+    42,
+    0
+  ],
+  "producerWasmSha256": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648",
+  "bytes": 5282,
+  "sha256": "934423ac3cd47f21028dbb52e08e84e9afac74c856bcdd5d2423c82cfb6b4ca4",
+  "tick": "0",
+  "worldHash": "6800757168812363231",
+  "requests": [],
+  "nextRequestId": "0",
+  "commandGolden": [
+    1,
+    3,
+    9,
+    0
+  ],
+  "strictOriginalReload": true,
+  "exactOriginalResave": true,
+  "originalReplayTicks": 120,
+  "originalReplayExact": true,
+  "decodedPayloadRoundtrip": true,
+  "actors": [
+    {
+      "index": 34,
+      "sim_id": 0,
+      "name": "Tim",
+      "agent": true,
+      "model": null,
+      "position": [
+        9,
+        2
+      ],
+      "target": null,
+      "path": null,
+      "reserved": false,
+      "blocked": false,
+      "eating": null,
+      "social": null,
+      "needs": [
+        62,
+        100,
+        100,
+        100,
+        100,
+        78,
+        100
+      ],
+      "voice": "None"
+    },
+    {
+      "index": 35,
+      "sim_id": 1,
+      "name": "Bill",
+      "agent": true,
+      "model": null,
+      "position": [
+        2,
+        8
+      ],
+      "target": null,
+      "path": null,
+      "reserved": false,
+      "blocked": false,
+      "eating": null,
+      "social": null,
+      "needs": [
+        100,
+        83,
+        100,
+        100,
+        100,
+        100,
+        55
+      ],
+      "voice": "None"
+    },
+    {
+      "index": 36,
+      "sim_id": 2,
+      "name": "Casey",
+      "agent": true,
+      "model": null,
+      "position": [
+        5,
+        1
+      ],
+      "target": null,
+      "path": null,
+      "reserved": false,
+      "blocked": false,
+      "eating": null,
+      "social": null,
+      "needs": [
+        100,
+        100,
+        71,
+        100,
+        58,
+        100,
+        100
+      ],
+      "voice": "None"
+    }
+  ],
+  "socialLabels": [
+    "Chat",
+    "Fight"
+  ],
+  "objects": [
+    {
+      "index": 0,
+      "model": "fridge",
+      "position": [
+        0,
+        0
+      ],
+      "labels": [
+        "Grab a snack",
+        "Cook breakfast"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 1,
+      "model": "counter",
+      "position": [
+        1,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 2,
+      "model": "stove",
+      "position": [
+        2,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 3,
+      "model": "counter",
+      "position": [
+        3,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 4,
+      "model": "kitchen_sink",
+      "position": [
+        4,
+        0
+      ],
+      "labels": [
+        "Wash hands",
+        "Clean dishes"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 5,
+      "model": "counter",
+      "position": [
+        5,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 6,
+      "model": "trashcan",
+      "position": [
+        6,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 7,
+      "model": "dining_table",
+      "position": [
+        2,
+        3
+      ],
+      "labels": [
+        "Sit",
+        "Eat prepared food"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 8,
+      "model": "chair",
+      "position": [
+        1,
+        3
+      ],
+      "labels": [
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 9,
+      "model": "chair",
+      "position": [
+        4,
+        3
+      ],
+      "labels": [
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 10,
+      "model": "bookshelf",
+      "position": [
+        8,
+        0
+      ],
+      "labels": [
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 11,
+      "model": "long_sofa",
+      "position": [
+        10,
+        0
+      ],
+      "labels": [
+        "Lie down",
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 1
+    },
+    {
+      "index": 12,
+      "model": "armchair",
+      "position": [
+        13,
+        0
+      ],
+      "labels": [
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 13,
+      "model": "potted_plant",
+      "position": [
+        15,
+        0
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 14,
+      "model": "coat_rack",
+      "position": [
+        15,
+        1
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 15,
+      "model": "floor_lamp",
+      "position": [
+        14,
+        2
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 16,
+      "model": "radio",
+      "position": [
+        8,
+        3
+      ],
+      "labels": [
+        "Listen to the radio"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 17,
+      "model": "television",
+      "position": [
+        10,
+        3
+      ],
+      "labels": [
+        "Watch TV"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 18,
+      "model": "sofa",
+      "position": [
+        12,
+        3
+      ],
+      "labels": [
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 19,
+      "model": "double_bed",
+      "position": [
+        0,
+        8
+      ],
+      "labels": [
+        "Go to bed"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 20,
+      "model": "nightstand",
+      "position": [
+        2,
+        6
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 21,
+      "model": "dresser",
+      "position": [
+        0,
+        10
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 22,
+      "model": "moving_box",
+      "position": [
+        4,
+        11
+      ],
+      "labels": [
+        "Use the exercise bike"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 23,
+      "model": "desk",
+      "position": [
+        6,
+        6
+      ],
+      "labels": [
+        "Handle correspondence"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 24,
+      "model": "desk_chair",
+      "position": [
+        6,
+        7
+      ],
+      "labels": [
+        "Sit",
+        "Read a book"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 25,
+      "model": "bed",
+      "position": [
+        9,
+        6
+      ],
+      "labels": [
+        "Sleep"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 26,
+      "model": "reading_chair",
+      "position": [
+        9,
+        9
+      ],
+      "labels": [
+        "Sit and read",
+        "Sit"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 27,
+      "model": "reference_shelf",
+      "position": [
+        6,
+        10
+      ],
+      "labels": [
+        "Watch the fish"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 28,
+      "model": "potted_plant",
+      "position": [
+        10,
+        11
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 29,
+      "model": "toilet",
+      "position": [
+        12,
+        6
+      ],
+      "labels": [
+        "Use the toilet"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 30,
+      "model": "shower",
+      "position": [
+        14,
+        6
+      ],
+      "labels": [
+        "Take a shower"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 31,
+      "model": "bathtub",
+      "position": [
+        14,
+        9
+      ],
+      "labels": [
+        "Take a bath"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 32,
+      "model": "sink",
+      "position": [
+        12,
+        10
+      ],
+      "labels": [
+        "Wash hands"
+      ],
+      "defaultInteraction": 0
+    },
+    {
+      "index": 33,
+      "model": "laundry",
+      "position": [
+        12,
+        11
+      ],
+      "labels": [],
+      "defaultInteraction": 0
+    }
+  ]
+}

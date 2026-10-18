@@ -1,0 +1,29 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/room-codec.test.ts (11 tests | 1 failed) 10ms
+   × rejects final review areas that exceed the lot capacity 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/room-codec.test.ts > rejects final review areas that exceed the lot capacity
+AssertionError: expected function to throw an error, but it didn't
+ ❯ tests/room-codec.test.ts:29:76
+     27|         0, 0, 0, 0,
+     28|     ]);
+     29|     expect(() => decodeBuildReview(overCapacity, { width: 1, height: 1…
+       |                                                                            ^
+     30| });
+     31| it('accepts zero-area Outside and permits cells absent from room membe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  23:03:15
+   Duration  156ms (transform 41ms, setup 30ms, import 25ms, tests 10ms, environment 0ms)

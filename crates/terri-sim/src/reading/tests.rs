@@ -5,8 +5,240 @@ mod order_reachability;
 mod priority;
 
 #[test]
-fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
+fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
+    let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    block_furniture(&mut sim);
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, p, seat, &title, false);
+    sim.tick();
+    until(&mut sim, p, ReadingStage::Fetch);
+    sim.begin_build().unwrap();
+    issue(
+        &mut sim,
+        SimCommand::BuildRoom {
+            x0: 13,
+            y0: 13,
+            x1: 15,
+            y1: 15,
+            doorway: Some(terri_core::layout::WallLine {
+                axis: terri_core::layout::EdgeAxis::Vertical,
+                x: 16,
+                y: 14,
+            }),
+        },
+    );
+    sim.flush_commands();
+    assert!(sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_room_result
+        .unwrap()
+        .reason
+        .is_none());
+    assert_ne!(
+        crate::rooms::RoomTopology::from_world(sim.world()).unwrap(),
+        sim.world().resource::<crate::rooms::RoomMap>().topology
+    );
+    issue(
+        &mut sim,
+        SimCommand::PlaceObject {
+            object: shelf.index_u32(),
+            x: 6,
+            y: 8,
+            facing: Facing::SouthWest,
+        },
+    );
+    sim.flush_commands();
+    assert!(sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_result
+        .unwrap()
+        .reason
+        .is_none());
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    sim.commit_build(review.token).unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<ReadingJourney>(p)
+            .unwrap()
+            .transfer_contact,
+        Some((6, 9))
+    );
+    let saved = sim.save_snapshot_v17();
+    sim.load_snapshot_v17(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v17(), saved);
+}
+
+#[test]
+fn crisis_reading_samples_the_concrete_plan_it_classifies() {
+    use bevy_ecs::system::RunSystemOnce;
     let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    let other = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .books
+        .iter()
+        .find(|book| book.id != title)
+        .unwrap()
+        .id
+        .clone();
+    purchase(&mut sim, Some(shelf), &other);
+    sim.world_mut()
+        .get_mut::<Needs>(person)
+        .unwrap()
+        .set(NeedId::Fun, 20.);
+    let model = sim.world().get::<SmartObject>(seat).unwrap().0;
+    let interaction = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .object(model)
+        .interactions
+        .iter()
+        .position(|action| action.book_reading)
+        .unwrap() as u32;
+    let target = Target {
+        object: seat,
+        interaction,
+    };
+    let mut choices = plans(sim.world_mut(), person, target, None);
+    assert!(choices.iter().any(|plan| plan.title == title));
+    assert!(choices.iter().any(|plan| plan.title == other));
+    for plan in &mut choices {
+        plan.priority = (1, 0, 0.);
+        plan.score = 100.;
+        plan.risk = 0.;
+        plan.need_outcome.net_change = [0.; NEED_COUNT];
+        plan.need_outcome.net_change[NeedId::Fun.index()] =
+            if plan.title == title { 1. } else { -1. };
+    }
+    let helpful_copies: std::collections::BTreeSet<_> = choices
+        .iter()
+        .filter(|plan| plan.title == title)
+        .map(|plan| plan.copy)
+        .collect();
+    sim.world_mut()
+        .insert_resource(Options(std::collections::HashMap::from([(
+            (person, seat, interaction),
+            choices,
+        )])));
+    sim.world_mut()
+        .run_system_once(crate::systems::action::select_action)
+        .unwrap();
+    let decision = &sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0[0];
+    assert_eq!(
+        decision
+            .choices
+            .iter()
+            .filter(|row| row.0 == seat.index_u32() && row.1 == interaction)
+            .count(),
+        2,
+        "both title outcomes must participate in the outer crisis draw"
+    );
+    for (row, mask) in decision.choices.iter().zip(&decision.relief_masks) {
+        if row.0 == seat.index_u32() && row.1 == interaction {
+            assert!(
+                row.4 > 0.,
+                "every reading variant retains a random bucket: {mask}"
+            );
+        }
+    }
+    let unrelated: f64 = decision
+        .choices
+        .iter()
+        .zip(&decision.relief_masks)
+        .filter(|(_, mask)| **mask == 0)
+        .map(|(row, _)| row.4)
+        .sum();
+    let limit = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .tuning
+        .autonomy
+        .unwrap()
+        .unrelated_single;
+    assert!(unrelated <= f64::from(limit) + 1e-12);
+    let journey = sim
+        .world()
+        .get::<ReadingJourney>(person)
+        .expect("high-scoring reading wins");
+    assert_eq!(
+        helpful_copies.contains(&journey.copy),
+        decision.relief_masks[decision.chosen] != 0,
+        "execution must use the selected plan without a second title draw"
+    );
+}
+
+#[test]
+fn review_physical_reading_prediction_respects_disposition_that_changes_actual_fun() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    let pack = sim.world().resource::<Content>().0;
+    let model = sim.world().get::<SmartObject>(seat).unwrap().0;
+    let row = pack
+        .object(model)
+        .interactions
+        .iter()
+        .position(|a| a.book_reading)
+        .unwrap() as u32;
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::with_dispositions(
+            [1.; 7],
+            [1.; 7],
+            vec![(model, row, 0.)],
+        ));
+    sim.world_mut()
+        .get_mut::<Needs>(person)
+        .unwrap()
+        .set(NeedId::Fun, 0.);
+    let target = Target {
+        object: seat,
+        interaction: row,
+    };
+    let options = plans(sim.world_mut(), person, target, Some(&title));
+    let plan = options.iter().find(|p| p.target == target).unwrap();
+    assert_eq!(
+        plan.need_outcome.net_change[NeedId::Fun.index()],
+        0.,
+        "Reading's disposition changes delivered Fun, not just appeal"
+    );
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world().get::<Needs>(person).unwrap().get(NeedId::Fun),
+        0.
+    );
+}
+
+#[test]
+fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
+    communal_completion_case(true);
+}
+
+#[test]
+fn outside_reading_does_not_hold_completed_work_for_incoming_company() {
+    communal_completion_case(false);
+}
+
+fn communal_completion_case(indoor: bool) {
+    let (mut sim, person, shelf, seat, title) = if indoor {
+        indoor_fixture("reading_chair")
+    } else {
+        fixture("reading_chair")
+    };
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.reading.as_mut().unwrap().session_ticks = 20;
     pack.books
@@ -46,6 +278,7 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
     }
     read(&mut sim, other, other_seat, &title, false);
     let mut saw_completed_hold = false;
+    let mut checked_return = false;
     let mut saw_overlap = false;
     let mut held_values = None;
     let mut held_comfort: Option<f32> = None;
@@ -60,6 +293,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
             .and_then(|e| e.completed_novelty);
         if marker.is_some() && stage(&sim, person) == Some(ReadingStage::Read) {
             saw_completed_hold = true;
+            if !checked_return {
+                assert_held_return_continuation(&sim, person);
+                checked_return = true;
+            }
             let journey = sim.world().get::<ReadingJourney>(person).unwrap();
             let values = (journey.elapsed, journey.work, journey.earned_satisfaction);
             if let Some(previous) = held_values {
@@ -100,10 +337,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
                 assert_eq!(fun, previous, "completed book work supplies no further Fun");
             }
             held_fun = Some(fun);
-            let snapshot = sim.save_snapshot_v15();
+            let snapshot = sim.current_v10_view();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v15(), snapshot);
+            loaded.load_current_v10_view(snapshot.clone()).unwrap();
+            assert_eq!(loaded.current_v10_view(), snapshot);
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         if stage(&sim, person) == Some(ReadingStage::Read)
@@ -118,22 +355,50 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
                     <= 2
             );
         }
-        if saw_completed_hold && stage(&sim, person) == Some(ReadingStage::Return) {
-            let snapshot = sim.save_snapshot_v15();
+        if !indoor
+            && stage(&sim, person) == Some(ReadingStage::Return)
+            && sim
+                .reading_progress(person.index_u32(), &title)
+                .unwrap()
+                .completed_passes
+                == 0
+        {
+            let order = sim
+                .world()
+                .get::<ReadingJourney>(person)
+                .unwrap()
+                .order
+                .unwrap();
+            finish_order(&mut sim, person, order);
+            read(&mut sim, person, seat, &title, false);
+            continue;
+        }
+        if (saw_completed_hold || !indoor) && stage(&sim, person) == Some(ReadingStage::Return) {
+            let snapshot = sim.current_v10_view();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v15(), snapshot);
+            loaded.load_current_v10_view(snapshot.clone()).unwrap();
+            assert_eq!(loaded.current_v10_view(), snapshot);
             break;
         }
     }
-    assert!(
-        saw_completed_hold,
-        "reader finishes the book while waiting for admitted company"
+    assert_eq!(
+        saw_completed_hold, indoor,
+        "only enclosed reading holds completed work for company"
     );
-    assert!(
-        saw_overlap,
-        "the incumbent remains for actual newcomer participation"
-    );
+    if indoor {
+        assert!(checked_return);
+        assert!(
+            saw_overlap,
+            "the incumbent remains for actual newcomer participation"
+        );
+    } else {
+        assert_eq!(
+            sim.world()
+                .resource::<crate::rooms::RoomMap>()
+                .selection_at((9, 5)),
+            Some(terri_core::rooms::RoomSelection::Outside)
+        );
+    }
     assert_eq!(
         sim.reading_progress(person.index_u32(), &title)
             .unwrap()
@@ -144,7 +409,7 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
 
 #[test]
 fn paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save() {
-    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    let (mut sim, person, shelf, seat, title) = indoor_fixture("reading_chair");
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.reading.as_mut().unwrap().session_ticks = 20;
     pack.books
@@ -205,10 +470,10 @@ fn paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_vali
     );
     sim.flush_commands();
     assert_ne!(stage(&sim, person), Some(ReadingStage::Read));
-    let saved = sim.save_snapshot_v10();
+    let saved = sim.current_v10_view();
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-    loaded.load_snapshot_v10(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v10(), saved);
+    loaded.load_current_v10_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v10_view(), saved);
     assert_eq!(
         sim.reading_progress(person.index_u32(), &title)
             .unwrap()
@@ -293,6 +558,15 @@ fn reading_render_projection_tracks_active_seat_and_canonical_reach() {
             "missing journey stage {expected}"
         );
     }
+}
+
+fn indoor_fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
+    let (mut sim, person, shelf, seat, title) = fixture(model);
+    crate::test_content::enclose(&mut sim);
+    let rooms = crate::room_regions::RoomRegions::from_world(sim.world());
+    assert!(rooms.at((9, 5)).is_some());
+    assert_eq!(rooms.at((9, 5)), rooms.at((12, 5)));
+    (sim, person, shelf, seat, title)
 }
 
 fn fixture(model: &str) -> (Sim, Entity, Entity, Entity, String) {
@@ -453,7 +727,7 @@ fn reading_journey_actual_command_three_sessions_retain_first_pass_novelty() {
 }
 #[test]
 fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
-    let (mut sim, p, shelf, seat, title) = fixture("reading_chair");
+    let (mut sim, p, shelf, seat, title) = indoor_fixture("reading_chair");
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     sim.tick();
@@ -466,14 +740,14 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         ReadingStage::Shelve,
     ] {
         until(&mut sim, p, stage);
-        let saved = sim.save_snapshot_v15();
+        let saved = sim.current_v10_view();
         let hash = sim.world_hash();
-        sim.load_snapshot_v15(saved.clone())
-            .unwrap_or_else(|error| panic!("{stage:?}: {error:?}"));
-        assert_eq!(sim.save_snapshot_v15(), saved);
+        sim.load_current_v10_view(saved.clone())
+            .unwrap_or_else(|e| panic!("{stage:?}: {e:?}"));
+        assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
         // Keep the frozen reader's malformed-state contract separate from
-        // current order ownership, which only V15 can carry.
+        // current order ownership, which the full V17 envelope carries.
         let frozen = sim.save_snapshot_v10();
         let pack = sim.world().resource::<Content>().0;
         let mut historical = Sim::new_with_lot_and_content(20, 20, Content(pack));
@@ -485,15 +759,26 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         assert_eq!(historical.save_snapshot_v10(), frozen);
         assert_eq!(historical.world_hash(), historical_hash);
         let mut unearned = frozen.clone();
-        unearned.legacy.reading[0].earned_satisfaction = 10.;
+        unearned.legacy.reading[0].earned_satisfaction = 10.0;
         assert!(historical.load_snapshot_v10(unearned).is_err());
         assert_eq!(historical.save_snapshot_v10(), frozen);
         let mut bad = frozen.clone();
         bad.legacy.reading.clear();
         assert!(historical.load_snapshot_v10(bad).is_err());
         assert_eq!(historical.save_snapshot_v10(), frozen);
-        assert_eq!(sim.save_snapshot_v15(), saved);
+        assert_eq!(sim.current_v10_view(), saved);
         assert_eq!(sim.world_hash(), hash);
+        for fault in 0..3 {
+            let mut bad = saved.clone();
+            match fault {
+                0 => bad.legacy.reading[0].copy = BookCopyId(999),
+                1 => bad.legacy.reading[0].earned_satisfaction = 10.0,
+                _ => bad.legacy.reading.clear(),
+            }
+            assert!(sim.load_current_v10_view(bad).is_err());
+            assert_eq!(sim.current_v10_view(), saved);
+            assert_eq!(sim.world_hash(), hash);
+        }
     }
 }
 
@@ -695,7 +980,7 @@ fn reading_player_running_phase_starts_at_actual_read_entry_without_oscillation(
     assert_eq!(starts[0].tick, sim.world().resource::<SimClock>().tick);
     let pack = sim.world().resource::<Content>().0;
     let mut restored = Sim::new_with_lot_and_content(20, 20, Content(pack));
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     for _ in 0..3 {
         sim.tick();
         restored.tick();
@@ -893,10 +1178,36 @@ fn reading_journey_all_seating_models_and_repeated_browsing_are_rng_neutral() {
 #[test]
 fn reading_journey_duplicate_orders_return_before_new_exact_order() {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    crate::test_content::assert_current_admission(&sim);
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     until(&mut sim, p, ReadingStage::Read);
     sim.tick();
+    crate::test_content::assert_current_admission(&sim);
+    let elapsed = sim.world().get::<ReadingJourney>(p).unwrap().elapsed;
+    let cap = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .reading
+        .as_ref()
+        .unwrap()
+        .session_ticks;
+    let early_episode = sim
+        .current_v10_view()
+        .social
+        .communal
+        .iter()
+        .find(|row| row.owner == p.index_u32())
+        .unwrap()
+        .clone();
+    eprintln!("early read elapsed={elapsed} cap={cap} communal={early_episode:?}");
+    assert!(elapsed < cap);
+    assert_eq!(early_episode.extensions, 0);
+    assert_eq!(early_episode.completed_novelty, None);
+    let paused_tick = sim.world().resource::<SimClock>().tick;
+    let paused_rng = sim.world().resource::<SimRng>().clone();
+
     let old = sim.world().get::<ReadingJourney>(p).unwrap().order.unwrap();
     read(&mut sim, p, seat, &title, true);
     sim.flush_commands();
@@ -907,20 +1218,41 @@ fn reading_journey_duplicate_orders_return_before_new_exact_order() {
         sim.world().get::<ReadingJourney>(p).unwrap().order,
         Some(old)
     );
+
+    eprintln!(
+        "paused return stage={:?}, communal={:?}",
+        stage(&sim, p),
+        sim.current_v10_view().social.communal
+    );
     assert!(
         !sim.world()
             .resource::<crate::social_episode::SocialEpisodes>()
             .communal
             .contains_key(&p),
-        "an incomplete unextended reading episode ends before the return route starts"
+        "an early unextended return has no communal continuation"
     );
-    let saved = sim.save_snapshot_v15();
-    sim.load_snapshot_v15(saved.clone()).unwrap_or_else(|error| {
-        let mut historical=Sim::new_with_lot_and_content(20,20,Content(sim.world().resource::<Content>().0));
-        let frozen=historical.load_snapshot_v10(sim.save_snapshot_v10());
-        panic!("duplicate reading return rejected: {error:?}; frozen reader={frozen:?}; queue={:?}; journey={:?}; ownership={:#?}",sim.world().get::<IntentQueue>(p),sim.world().get::<ReadingJourney>(p),saved.player_orders);
-    });
-    assert_eq!(sim.save_snapshot_v15(), saved);
+    assert_eq!(sim.world().resource::<SimClock>().tick, paused_tick);
+    assert_eq!(sim.world().resource::<SimRng>(), &paused_rng);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
+    let whole = sim.save_snapshot_v17();
+    let hash = sim.world_hash();
+    for fault in 0..3 {
+        let mut bad = sim.current_v10_view();
+        let mut obsolete = early_episode.clone();
+        if fault == 1 {
+            obsolete.owner = u32::MAX;
+        }
+        if fault == 2 {
+            obsolete.target.object = u32::MAX;
+        }
+        bad.social.communal.push(obsolete);
+        assert!(sim.load_current_v10_view(bad).is_err());
+        assert_eq!(sim.save_snapshot_v17(), whole);
+        assert_eq!(sim.world_hash(), hash);
+    }
+
     for _ in 0..300 {
         sim.tick();
         if sim
@@ -997,9 +1329,9 @@ fn reading_journey_fractional_work_survives_interruption_and_load() {
     assert_eq!(m.progress_ticks, 0);
     assert_eq!(m.progress_fraction, 0.75);
     assert_eq!(m.pass_novelty, Some(1.0));
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
     issue(
         &mut sim,
         SimCommand::CancelIntents {
@@ -1061,10 +1393,36 @@ fn reading_journey_specialist_reward_and_comfort_ratios() {
 #[test]
 fn reading_journey_blocked_return_keeps_copy_and_recovers() {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    crate::test_content::assert_current_admission(&sim);
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     until(&mut sim, p, ReadingStage::Read);
     sim.tick();
+    crate::test_content::assert_current_admission(&sim);
+    let elapsed = sim.world().get::<ReadingJourney>(p).unwrap().elapsed;
+    let cap = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .reading
+        .as_ref()
+        .unwrap()
+        .session_ticks;
+    let early_episode = sim
+        .current_v10_view()
+        .social
+        .communal
+        .iter()
+        .find(|row| row.owner == p.index_u32())
+        .unwrap()
+        .clone();
+    eprintln!("early read elapsed={elapsed} cap={cap} communal={early_episode:?}");
+    assert!(elapsed < cap);
+    assert_eq!(early_episode.extensions, 0);
+    assert_eq!(early_episode.completed_novelty, None);
+    let paused_tick = sim.world().resource::<SimClock>().tick;
+    let paused_rng = sim.world().resource::<SimRng>().clone();
+
     let home = *sim.world().get::<Position>(shelf).unwrap();
     for tile in [(2, 3), (4, 3), (3, 2), (3, 4)] {
         sim.world_mut()
@@ -1083,9 +1441,41 @@ fn reading_journey_blocked_return_keeps_copy_and_recovers() {
         sim.book_copies()[0].location,
         BookLocation::Carried(_)
     ));
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+
+    eprintln!(
+        "paused return stage={:?}, communal={:?}",
+        stage(&sim, p),
+        sim.current_v10_view().social.communal
+    );
+    assert!(
+        !sim.world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .contains_key(&p),
+        "an early unextended return has no communal continuation"
+    );
+    assert_eq!(sim.world().resource::<SimClock>().tick, paused_tick);
+    assert_eq!(sim.world().resource::<SimRng>(), &paused_rng);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
+    let whole = sim.save_snapshot_v17();
+    let hash = sim.world_hash();
+    for fault in 0..3 {
+        let mut bad = sim.current_v10_view();
+        let mut obsolete = early_episode.clone();
+        if fault == 1 {
+            obsolete.owner = u32::MAX;
+        }
+        if fault == 2 {
+            obsolete.target.object = u32::MAX;
+        }
+        bad.social.communal.push(obsolete);
+        assert!(sim.load_current_v10_view(bad).is_err());
+        assert_eq!(sim.save_snapshot_v17(), whole);
+        assert_eq!(sim.world_hash(), hash);
+    }
+
     for _ in 0..3 {
         sim.tick();
         assert_eq!(stage(&sim, p), Some(ReadingStage::WaitingReturn));
@@ -1192,10 +1582,10 @@ fn reading_journey_and_older_orders_defer_work_in_the_saved_scheduled_window() {
         (obligation.start_tick, obligation.end_tick),
         (scheduled_start, scheduled_end)
     );
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     let before = sim.world_hash();
-    sim.load_snapshot_v15(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v15(), saved);
+    sim.load_snapshot_v17(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v17(), saved);
     assert_eq!(sim.world_hash(), before);
     let funds = sim.world().resource::<Funds>().0;
     let mut observed_work = 0;
@@ -1545,9 +1935,9 @@ fn reading_journey_batches_actual_satisfaction_and_preserves_nondefault_fun_base
                 .earned_satisfaction
                 > 0.0
         );
-        let saved = sim.save_snapshot_v6();
-        sim.load_snapshot_v6(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        let saved = sim.current_v6_view();
+        sim.load_current_v6_view(saved.clone()).unwrap();
+        assert_eq!(sim.current_v6_view(), saved);
         until(&mut sim, p, ReadingStage::Return);
         let gain = sim.world().get::<Satisfaction>(p).unwrap().value() - 50.0;
         let fun = sim.world().get::<Needs>(p).unwrap().get(NeedId::Fun);
@@ -1764,7 +2154,7 @@ fn reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stag
         read(&mut sim, p, seat, &title, false);
         sim.tick();
         until(&mut sim, p, phase);
-        let before = sim.save_snapshot_v6();
+        let before = sim.current_v6_view();
         let hash = sim.world_hash();
         let rng = sim.world().resource::<SimRng>().clone();
         for _ in 0..3 {
@@ -1776,7 +2166,7 @@ fn reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stag
             )
             .is_ok());
         }
-        assert_eq!(sim.save_snapshot_v6(), before);
+        assert_eq!(sim.current_v6_view(), before);
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(*sim.world().resource::<SimRng>(), rng);
         let at = *sim.world().get::<Position>(p).unwrap();
@@ -1787,7 +2177,7 @@ fn reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stag
             Facing::SouthEast
         )
         .is_err());
-        assert_eq!(sim.save_snapshot_v6(), before);
+        assert_eq!(sim.current_v6_view(), before);
         let location = sim.book_copies()[0].location;
         issue(
             &mut sim,
@@ -1822,9 +2212,9 @@ fn reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stag
                 ReadingStage::Return
             }
         );
-        let saved = sim.save_snapshot_v6();
-        sim.load_snapshot_v6(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        let saved = sim.current_v6_view();
+        sim.load_current_v6_view(saved.clone()).unwrap();
+        assert_eq!(sim.current_v6_view(), saved);
         if matches!(phase, ReadingStage::Fetch | ReadingStage::Pickup) {
             until(&mut sim, p, ReadingStage::Read);
         } else {
@@ -1844,7 +2234,7 @@ fn reading_journey_transfer_claim_corruption_rejects_without_adopting() {
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     until(&mut sim, p, ReadingStage::Pickup);
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let hash = sim.world_hash();
     for case in 0..4 {
         let mut bad = saved.clone();
@@ -1854,8 +2244,8 @@ fn reading_journey_transfer_claim_corruption_rejects_without_adopting() {
             2 => bad.reading[0].reach_remaining = 0,
             _ => bad.reading[0].shelf = seat.index_u32(),
         };
-        assert!(sim.load_snapshot_v6(bad).is_err());
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        assert!(sim.load_current_v6_view(bad).is_err());
+        assert_eq!(sim.current_v6_view(), saved);
         assert_eq!(sim.world_hash(), hash);
     }
 }
@@ -1879,9 +2269,9 @@ fn reading_journey_dropped_render_rows_keep_copy_identity_through_recovery() {
     };
     assert_eq!(sim.render_buffer().dropped_book_ids, vec![0]);
     assert_eq!(sim.render_buffer().dropped_book_positions, vec![x, y]);
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.render_buffer().dropped_book_ids, vec![0]);
     issue(
         &mut sim,
@@ -1962,7 +2352,7 @@ fn reading_journey_preview_cost_and_neutrality_on_real_household() {
     read(&mut sim, p, shelf, &title, false);
     sim.tick();
     assert!(sim.world().get::<ReadingJourney>(p).is_some());
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let hash = sim.world_hash();
     let run = |object: Entity| {
         let at = *sim.world().get::<Position>(object).unwrap();
@@ -1984,7 +2374,7 @@ fn reading_journey_preview_cost_and_neutrality_on_real_household() {
     eprintln!(
         "reading preview benchmark: 10 ordinary={ordinary_us}us; 10 committed-shelf={shelf_us}us"
     );
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.world_hash(), hash);
     assert_eq!(sim.world().resource::<SimRng>(), &saved.legacy.world.rng);
 }
@@ -2033,8 +2423,8 @@ fn reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint() {
     read(&mut sim, other, other_seat, &title, false);
     sim.tick();
     assert_eq!(stage(&sim, other), Some(ReadingStage::Fetch));
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
     let hash = sim.world_hash();
     let mut bad = saved.clone();
     let journey = bad
@@ -2068,8 +2458,8 @@ fn reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint() {
         .find(|e| e.index == other.index_u32())
         .unwrap()
         .path = Some(terri_core::SavedPath { steps, cursor: 0 });
-    assert!(sim.load_snapshot_v6(bad).is_err());
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert!(sim.load_current_v6_view(bad).is_err());
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -2080,14 +2470,14 @@ fn reading_journey_autonomy_owns_copy_and_duplicate_editions_do_not_bias_choices
     sim.world_mut()
         .entity_mut(p)
         .insert(Needs::with(NeedId::Fun, 0.0));
-    let one = sim.save_snapshot_v6();
+    let one = sim.current_v6_view();
     purchase(&mut sim, Some(shelf), &title);
-    let two = sim.save_snapshot_v6();
+    let two = sim.current_v6_view();
     let mut reads = 0;
     for seed in 0..100 {
         let mut decisions = vec![];
         for saved in [&one, &two] {
-            sim.load_snapshot_v6(saved.clone()).unwrap();
+            sim.load_current_v6_view(saved.clone()).unwrap();
             sim.world_mut().insert_resource(SimRng::from_seed(seed));
             sim.tick();
             let j = sim.world().get::<ReadingJourney>(p);
@@ -2150,9 +2540,9 @@ fn reading_journey_two_standing_readers_leave_the_shelf_front_available() {
         endpoint: (4, 3),
         kind: crate::seating::UseKind::ShelfTransfer
     }));
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
 }
 #[test]
 fn reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking() {
@@ -2160,7 +2550,7 @@ fn reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking() {
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     sim.tick();
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     let hash = sim.world_hash();
     let mut bad = saved.clone();
     bad.legacy
@@ -2173,14 +2563,15 @@ fn reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking() {
         .as_mut()
         .unwrap()
         .x = f32::MAX;
-    let result =
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| sim.load_snapshot_v6(bad)));
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        sim.load_current_v6_view(bad)
+    }));
     assert!(
         result.is_ok(),
         "malformed saved shelf coordinates must not panic"
     );
     assert!(result.unwrap().is_err());
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    assert_eq!(sim.current_v6_view(), saved);
     assert_eq!(sim.world_hash(), hash);
 }
 
@@ -2227,9 +2618,9 @@ fn reading_return_blocks_front_chore_and_board_until_book_is_home() {
             .order(order)
             .is_some());
     }
-    let saved = sim.save_snapshot_v6();
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
+    let saved = sim.current_v6_view();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
     sim.world_mut()
         .resource_mut::<TileGrid>()
         .set_blocked(4, 3, false);
@@ -2340,7 +2731,7 @@ fn complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap() {
             queue_position: 3,
         }];
     }
-    let saved = sim.save_snapshot_v6();
+    let saved = sim.current_v6_view();
     assert_eq!(
         saved
             .queues
@@ -2351,15 +2742,15 @@ fn complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap() {
             .len(),
         4
     );
-    sim.load_snapshot_v6(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v6(), saved);
-    let before = sim.save_snapshot_v6();
+    sim.load_current_v6_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v6_view(), saved);
+    let before = sim.current_v6_view();
     let mut limited = pack.clone();
     limited.tuning.max_queued_intents = 3;
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(limited))));
-    assert!(sim.load_snapshot_v6(saved).is_err());
-    assert_eq!(sim.save_snapshot_v6(), before);
+    assert!(sim.load_current_v6_view(saved).is_err());
+    assert_eq!(sim.current_v6_view(), before);
 }
 
 #[test]
@@ -2405,7 +2796,20 @@ fn contextual_reading_relief_matches_delivery_and_never_double_pays_comfort() {
 
 #[test]
 fn owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity() {
-    let (mut sim, first, shelf, seat, title) = fixture("reading_chair");
+    reading_company_case(true);
+}
+
+#[test]
+fn outside_reading_has_no_shared_social_payment() {
+    reading_company_case(false);
+}
+
+fn reading_company_case(indoor: bool) {
+    let (mut sim, first, shelf, seat, title) = if indoor {
+        indoor_fixture("reading_chair")
+    } else {
+        fixture("reading_chair")
+    };
     purchase(&mut sim, Some(shelf), &title);
     purchase(&mut sim, Some(shelf), &title);
     let pack = sim.world().resource::<Content>().0;
@@ -2446,6 +2850,25 @@ fn owned_reading_company_requires_actual_read_stage_and_scales_directional_affin
     crate::social_company::refresh(sim.world_mut());
     let expected = pack.tuning.need_interactions.shared_social_per_tick * 1.25;
     crate::need_interactions::tick(sim.world_mut());
+    if !indoor {
+        for person in [first, second] {
+            assert_eq!(
+                sim.world()
+                    .get::<Needs>(person)
+                    .unwrap()
+                    .get(NeedId::Social),
+                30.
+            );
+        }
+        assert_eq!(
+            sim.world()
+                .resource::<crate::rooms::RoomMap>()
+                .selection_at((9, 5)),
+            Some(terri_core::rooms::RoomSelection::Outside)
+        );
+        return;
+    }
+
     assert!(
         (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30. - expected).abs()
             < 0.00001
@@ -2468,5 +2891,102 @@ fn owned_reading_company_requires_actual_read_stage_and_scales_directional_affin
         sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
         before,
         "mandatory return is no longer shared reading"
+    );
+}
+
+fn assert_held_return_continuation(sim: &Sim, person: Entity) {
+    crate::test_content::assert_current_admission(sim);
+    let mut returning = crate::save::v17::restore(
+        sim.save_snapshot_v17(),
+        sim.world().resource::<Content>().0,
+        crate::save::Carried::for_load(sim.world()),
+    )
+    .unwrap();
+    let owner = crate::dining::entity(returning.world(), person.index_u32()).unwrap();
+    let before = returning
+        .world()
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal[&owner]
+        .clone();
+    assert!(before.extensions > 0 || before.completed_novelty.is_some());
+    let tick = returning.world().resource::<SimClock>().tick;
+    let rng = returning.world().resource::<SimRng>().clone();
+    assert!(request_return(returning.world_mut(), owner));
+    let after = &returning
+        .world()
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal[&owner];
+    assert_eq!(
+        (
+            after.target,
+            after.extensions,
+            &after.participants,
+            after.remaining,
+            after.completed_novelty
+        ),
+        (
+            before.target,
+            before.extensions,
+            &before.participants,
+            before.remaining,
+            before.completed_novelty
+        )
+    );
+    assert_eq!(returning.world().resource::<SimClock>().tick, tick);
+    assert_eq!(returning.world().resource::<SimRng>(), &rng);
+    crate::test_content::assert_current_admission(&returning);
+}
+
+#[test]
+fn actual_extended_unfinished_reading_retains_its_return_history() {
+    let (mut sim, first, shelf, seat, title) = indoor_fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    purchase(&mut sim, Some(shelf), &title);
+    let pack = sim.world().resource::<Content>().0;
+    let other_seat = sim.spawn_object(
+        Position { x: 12., y: 5. },
+        pack.find("reading_chair").unwrap(),
+    );
+    let second = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Reader".into(),
+            personality: 0,
+            position: Position { x: 1., y: 2. },
+            needs: [80.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    read(&mut sim, first, seat, &title, false);
+    read(&mut sim, second, other_seat, &title, false);
+    let mut checked = false;
+    for _ in 0..500 {
+        sim.tick();
+        for person in [first, second] {
+            if stage(&sim, person) == Some(ReadingStage::Read)
+                && sim
+                    .world()
+                    .resource::<crate::social_episode::SocialEpisodes>()
+                    .communal
+                    .get(&person)
+                    .is_some_and(|e| e.extensions > 0 && e.completed_novelty.is_none())
+            {
+                assert_held_return_continuation(&sim, person);
+                checked = true;
+                break;
+            }
+        }
+        if checked {
+            break;
+        }
+    }
+    assert!(
+        checked,
+        "actual simultaneous readers must produce extension history"
     );
 }

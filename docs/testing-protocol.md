@@ -221,6 +221,11 @@ gate that measures what a player actually receives.
 
 Do not commit or upload review videos, either as files, converted animated GIF loops, or inside trace archives. Retain selected screenshots, measurements, reproduction settings, and written findings. Watch animations and transitions in the actual game. Keep temporary recordings in ignored local scratch storage; check archive contents before staging evidence.
 
+Keep bulk screenshot sequences in ignored `.scratch/` storage as well. Commit
+the selected still images needed to explain the finding, together with the
+reproduction settings and structured results. Historical capture paths and
+recovery are explained in [verification records](evidence/README.md).
+
 1. Reproduce the reported state in an isolated browser using the actual game or creator. Record the source or built-file hashes, viewport, camera, action, facing, body settings, and animation phase. Label any unavailable original settings instead of inventing an exact reproduction.
 2. Capture each supported facing at the normal display size and the enlarged preview size. For selectable parts, include every affected choice and representative combinations with adjacent parts; default-preset captures alone cannot approve a clothing catalogue. Inspect the saved images at their original resolution. Watch the affected animation and its relevant entry/exit transitions separately; paused captures prove only their recorded phases.
 3. For a reported defect with a reproducible cause, restore that cause only in an isolated test or browser. Require the regression assertion to fail. Capture the defective and corrected states with matching settings, then restore the current renderer and require identical corrected output. Preserve the failure and restoration receipts.

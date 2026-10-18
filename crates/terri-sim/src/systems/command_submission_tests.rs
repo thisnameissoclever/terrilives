@@ -27,15 +27,15 @@ fn household(cap: u32) -> (Sim, Vec<Entity>, Entity) {
 }
 
 fn roundtrip(sim: &Sim) {
-    let saved = sim.save_snapshot_v15();
+    let saved = sim.save_snapshot_v17();
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
         .world_mut()
         .insert_resource(Content(sim.world().resource::<Content>().0));
     loaded
-        .load_snapshot_v15(saved.clone())
+        .load_snapshot_v17(saved.clone())
         .expect("public commands must leave a loadable self-save");
-    assert_eq!(loaded.save_snapshot_v15(), saved);
+    assert_eq!(loaded.save_snapshot_v17(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 

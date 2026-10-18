@@ -278,7 +278,11 @@ fn restore_v4_with_dining(
     dining: Option<&terri_core::save::SavedDining>,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
-    super::meal_migration::validate_source(&snapshot.world, content)?;
+    super::meal_migration::validate_source_with_actor_refs(
+        &snapshot.world,
+        content,
+        active_portals.actor_references,
+    )?;
     let retired = &snapshot.retired_indices;
     if retired
         .iter()
@@ -342,14 +346,14 @@ fn finish_restore(
         crate::seating::migrate(&mut candidate.world)?;
     }
     super::validate_portal_returns(
-        &candidate.save_snapshot(),
+        &super::capture(&candidate),
         candidate.world.resource::<TileGrid>(),
         content,
         crate::lot_frame::origin(&candidate.world),
     )?;
     if layout.has_edges() && seats.is_none() {
         validate_edge_world(
-            &candidate.save_snapshot(),
+            &super::capture(&candidate),
             candidate.world.resource::<TileGrid>(),
             content,
             &candidate.world,
@@ -357,6 +361,13 @@ fn finish_restore(
     }
     let typed = matches!(layout, SavedLayout::EdgeWallsV3 { .. });
     candidate.world.insert_resource(layout);
+    if let Some(rooms) = candidate
+        .world
+        .get_resource::<terri_core::rooms::SavedRooms>()
+        .cloned()
+    {
+        crate::rooms::install(&mut candidate.world, rooms).map_err(|_| SaveError::InvalidValue)?;
+    }
     if typed {
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;
@@ -851,6 +862,13 @@ mod tests {
         let mut resumed = Sim::new();
         resumed.load_snapshot_v2(v2.clone()).unwrap();
         assert_eq!(resumed.save_snapshot_v2(), v2);
+        let current = resumed.save_snapshot_v16();
+        resumed.load_snapshot_v16(current.clone()).unwrap();
+        assert_eq!(resumed.save_snapshot_v16(), current);
+        assert_eq!(
+            resumed.world.resource::<SavedLayout>(),
+            &SavedLayout::LegacyAuthoredV1
+        );
     }
 
     #[test]

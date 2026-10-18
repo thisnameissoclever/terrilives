@@ -2,7 +2,7 @@
 use crate::{careers::Careers, Content};
 use bevy_ecs::prelude::*;
 use std::collections::BTreeMap;
-use terri_core::save_v15::{SavedAttendance, SavedScheduledShift, SavedShiftOutcome};
+use terri_core::save_v17::{SavedAttendance, SavedScheduledShift, SavedShiftOutcome};
 use terri_core::{
     Agent, AtWork, Career, Commuting, FnvHasher, Funds, NeedId, Needs, Path, Position, SimClock,
     SimId, TileGrid,

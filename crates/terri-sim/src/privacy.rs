@@ -19,7 +19,20 @@ pub(crate) fn directed(world: &World, entity: Entity) -> bool {
                 interaction: target.interaction,
             })
         });
-    ordered
+    let player_owned = world
+        .get_resource::<crate::player_actions::PlayerActions>()
+        .is_some_and(|actions| {
+            actions
+                .orders
+                .iter()
+                .any(|((actor, _), state)| *actor == entity && state.active)
+        });
+    let untracked_legacy_order = ordered
+        && world
+            .get_resource::<crate::player_actions::PlayerActions>()
+            .is_none_or(|actions| !actions.orders.keys().any(|(actor, _)| *actor == entity));
+    untracked_legacy_order
+        || player_owned
         || world
             .get_resource::<terri_core::chores::SavedChores>()
             .is_some_and(|s| {
@@ -34,6 +47,20 @@ pub(crate) fn directed(world: &World, entity: Entity) -> bool {
             .and_then(|row| row.directed_chain)
             .zip(world.get::<terri_core::ChainState>(entity))
             .is_some_and(|(chain, state)| chain == state.chain)
+}
+
+/// An elected incoming player request preserves the recipient's current care.
+/// That priority does not turn autonomous care into a privacy override.
+fn receiving_player_priority(world: &World, entity: Entity) -> bool {
+    world
+        .get_resource::<crate::social_episode::SocialEpisodes>()
+        .is_some_and(|episodes| {
+            episodes.executions.iter().any(|(actor, execution)| {
+                execution.recipient == entity
+                    && (execution.admitted || episodes.incoming.get(&entity) == Some(actor))
+                    && crate::social_episode::execution_order(world, *actor).is_some()
+            })
+        })
 }
 
 impl BoundaryDecisions {
@@ -248,7 +275,12 @@ pub(crate) fn route(world: &mut World) {
             continue;
         }
         let safe = phase.safe_grid(actor, world.resource::<TileGrid>());
-        if world.get::<terri_core::Commuting>(actor).is_none() {
+        if !receiving_player_priority(world, actor)
+            && world.get::<terri_core::Commuting>(actor).is_none()
+            && world
+                .get::<crate::social_episode::requests::CommittedConversation>(actor)
+                .is_none()
+        {
             let helps = target.map_or_else(Vec::new, |target| {
                 crate::need_interactions::goal_benefits(world, actor, target)
             });

@@ -1,0 +1,19 @@
+
+running 1 test
+test build_transaction::cases::temporary_paving_removal_preserves_suspended_work ... FAILED
+
+failures:
+
+---- build_transaction::cases::temporary_paving_removal_preserves_suspended_work stdout ----
+
+thread 'build_transaction::cases::temporary_paving_removal_preserves_suspended_work' (77216) panicked at crates\terri-sim\src\build_transaction\cases.rs:529:5:
+assertion `left == right` failed: temporary ineligibility must not prune suspended work
+  left: []
+ right: [ChoreTask { person: 35, key: ChoreKey { kind: Floors, target: 0 }, cells: [277], cursor: 0, endpoint: Some(277), remaining: 21, directed: true, suspended: true, started_day: 0, completed_units: 114 }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    build_transaction::cases::temporary_paving_removal_preserves_suspended_work
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.04s

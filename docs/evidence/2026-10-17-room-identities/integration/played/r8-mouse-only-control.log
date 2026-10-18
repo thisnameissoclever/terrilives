@@ -1,0 +1,27 @@
+### Result
+{"before":{"view":{"originX":336,"originY":-289,"scale":1,"width":1440,"height":1000},"origin":{"x":336,"y":-289},"graphics":0,"lot":35,"selected":35,"walls":"true","reviewHidden":true,"status":"Choose a line between two floor tiles.","dialogs":[]},"proof":{"edge":{"axis":0,"x":28,"y":2},"adjacent":[[27,2],[28,2]],"point":{"x":1152,"y":330.5},"line":{"axis":0,"x":28,"y":2},"oldPoint":{"x":1152,"y":183},"oldLine":null,"camera":{"x":336,"y":-289,"scale":1},"scaleProvenance":"Fresh loaded camera scale1; no game zoom input","rect":{"x":0,"y":0,"width":1440,"height":1000,"top":0,"right":1440,"bottom":1000,"left":0},"buffer":[1440,1000],"room":[{"id":1,"anchor":[24,2],"name":"Retained final name","area":48,"outside":false}]},"settled":true,"after":{"view":{"originX":336,"originY":-289,"scale":1,"width":1440,"height":1000},"origin":{"x":336,"y":-289},"graphics":0,"lot":35,"selected":35,"walls":"true","reviewHidden":true,"status":"No wall on this line.","dialogs":[]},"native":{"axis":0,"x":28,"y":2,"state":1,"reason":null},"pick":null,"events":[{"type":"pointerdown","target":"stage","x":1152,"y":330.5,"pointerId":1,"pointerType":"mouse","buttons":1,"time":1534321.565000005,"prevented":false},{"type":"pointerup","target":"stage","x":1152,"y":330.5,"pointerId":1,"pointerType":"mouse","buttons":0,"time":1534325.1000000015,"prevented":false},{"type":"click","target":"stage","x":1152,"y":330,"pointerId":1,"pointerType":"mouse","buttons":0,"time":1534325.1000000015,"prevented":false},{"type":"keydown","target":"stage","key":"w","time":1534604.9150000066,"prevented":false},{"type":"pointerdown","target":"build-batch-cancel","x":173.0399932861328,"y":576.1199951171875,"pointerId":1,"pointerType":"mouse","buttons":1,"time":1534659.490000002,"prevented":false},{"type":"pointerup","target":"build-batch-cancel","x":173.0399932861328,"y":576.1199951171875,"pointerId":1,"pointerType":"mouse","buttons":0,"time":1534659.5500000045,"prevented":false},{"type":"click","target":"build-batch-cancel","x":173,"y":576,"pointerId":1,"pointerType":"mouse","buttons":0,"time":1534659.5500000045,"prevented":false}]}
+### Ran Playwright code
+```js
+await (async page=>{
+  await page.locator('#build-tool-walls').click();await page.locator('#stage').focus();await page.waitForTimeout(150);
+  const snap=()=>page.evaluate(()=>({view:__terriStress.characters.snapshot().view,origin:{...__terriStress.origin},graphics:__terriStress.graphicsGeneration,lot:__terriStress.sim.lotRevision(),selected:__terriStress.sim.selectedIndex(),walls:document.querySelector('#build-tool-walls').getAttribute('aria-pressed'),reviewHidden:document.querySelector('#room-review').hidden,status:document.querySelector('#wall-status').textContent,dialogs:[...document.querySelectorAll('dialog[open]')].map(d=>d.id)}));
+  const before=await snap();if(before.view.scale!==1||before.view.originX!==before.origin.x||before.view.originY!==before.origin.y)throw Error('Camera/view not matched');
+  const proof=await page.evaluate(async()=>(await import('/.scratch/r7-wall-helper.js')).wallPoint({axis:0,x:28,y:2}));
+  await page.evaluate(()=>{window.__r8PointerEvents=[];window.__r8PointerObserver=e=>__r8PointerEvents.push({type:e.type,target:e.target.id,x:e.clientX,y:e.clientY,pointerId:e.pointerId,pointerType:e.pointerType,buttons:e.buttons,key:e.key,time:e.timeStamp,prevented:e.defaultPrevented});for(const type of ['pointerdown','pointerup','pointercancel','click','keydown'])document.addEventListener(type,__r8PointerObserver,true);});
+  try{
+    await page.mouse.click(proof.point.x,proof.point.y);
+    let settled=true;try{await page.waitForFunction(()=>document.querySelector('#wall-status').textContent==='No wall on this line.',null,{timeout:5000});}catch{settled=false;}
+    const after=await snap();await page.screenshot({path:'.local-build/r8-mouse-only-selection.png'});
+    let native=null,pick=null;
+    if(settled){await page.keyboard.press('w');await page.waitForFunction(()=>{const r=__terriStress.sim.lastWallEditResult();return r?.axis===0&&r.x===28&&r.y===2&&r.state===1&&r.reason===null;},null,{timeout:5000});native=await page.evaluate(()=>__terriStress.sim.lastWallEditResult());await page.locator('#build-batch-cancel').click();}
+    else {const started=Date.now();pick=await page.evaluate(async point=>{const hit=await __terriStress.characters.pick(Math.floor(point.x),Math.floor(point.y));return {kind:hit===undefined?'undefined':hit===null?'null':'hit',hit};},proof.point);pick.elapsedMs=Date.now()-started;}
+    return {before,proof,settled,after,native,pick,events:await page.evaluate(()=>__r8PointerEvents)};
+  }finally{await page.evaluate(()=>{for(const type of ['pointerdown','pointerup','pointercancel','click','keydown'])document.removeEventListener(type,__r8PointerObserver,true);});}
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L773-L783

@@ -574,23 +574,23 @@
       }
       .hud-button {
         min-height: 44px;
-        border: 1px solid var(--hud-edge);
+        border: 1px solid var(--action-border, var(--hud-edge));
         border-radius: 4px;
-        background: #202028;
-        color: var(--hud-text);
+        background: var(--action-background, #202028);
+        color: var(--action-text, var(--hud-text));
         font: inherit;
         cursor: pointer;
       }
-      .hud-button:hover,
-      .hud-button[aria-pressed='true'] {
-        border-color: var(--need-fill);
-        background: #29313a;
+      .hud-button:hover:not(:disabled),
+      .hud-button[aria-pressed='true']:not(:disabled) {
+        border-color: var(--action-border, var(--need-fill));
+        background: var(--action-hover-background, #29313a);
       }
       .hud-button:focus-visible {
-        border-color: var(--need-fill);
+        border-color: var(--action-border, var(--need-fill));
         outline: 2px solid var(--hud-text);
         outline-offset: 2px;
-        background: #29313a;
+        background: var(--action-hover-background, #29313a);
       }
       .hud-button:disabled {
         cursor: not-allowed;
@@ -705,6 +705,7 @@
       #new-game-dialog,
       #load-game-dialog,
       #land-dialog,
+      #build-exit-dialog,
       #housemate-dialog {
         max-width: min(360px, calc(100vw - 32px));
         border: 1px solid var(--hud-edge);
@@ -716,12 +717,14 @@
       #new-game-dialog::backdrop,
       #load-game-dialog::backdrop,
       #land-dialog::backdrop,
+      #build-exit-dialog::backdrop,
       #housemate-dialog::backdrop {
         background: rgba(0, 0, 0, 0.72);
       }
       #new-game-dialog h2,
       #load-game-dialog h2,
       #land-dialog h2,
+      #build-exit-dialog h2,
       #housemate-dialog h2 {
         margin-top: 0;
       }
@@ -770,6 +773,7 @@
       #new-game-dialog menu,
       #load-game-dialog menu,
       #land-dialog menu,
+      #build-exit-dialog menu,
       #housemate-dialog menu {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -777,6 +781,9 @@
         margin: 16px 0 0;
         padding: 0;
       }
+      /* Three choices with two-word labels: one full-width row each, so a
+         phone never squeezes a label onto a third line. */
+      #build-exit-dialog menu { grid-template-columns: minmax(0, 1fr); }
       #build-toggle { width: 100%; }
       #builder-desktop { display: grid; gap: 8px; }
       #builder-controls { display: grid; gap: 8px; }
@@ -788,13 +795,50 @@
       #builder-controls p { margin: 0; }
       /* The tool wrappers keep the panel's own spacing for what they hold. */
       #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
-      #builder-object, #builder-colour, #buy-object, #buy-filter, #buy-colour {
+      #builder-object, #builder-colour, #buy-colour {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
         border: 1px solid var(--hud-edge); border-radius: 4px;
         font: inherit; font-size: 14px;
       }
       .builder-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      /* The store catalogue: filter rows of pressed buttons and a grid of cards. */
+      .catalogue-filter-row { display: grid; gap: 4px; }
+      .catalogue-filter-label { color: var(--hud-muted); font-size: 12px; }
+      .catalogue-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+      .catalogue-filters .hud-button { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+      #buy-clear-filters { justify-self: start; min-height: 36px; font-size: 13px; }
+      .catalogue-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px;
+        /* Only the panel scrolls; each row takes its tallest card's height
+           and the other cards in it stretch to match. */
+        grid-auto-rows: max-content; align-items: stretch; padding: 3px; margin: -3px;
+      }
+      .catalogue-card {
+        display: grid; justify-items: center; align-content: start; gap: 2px;
+        min-height: 44px; padding: 6px 4px; min-width: 0;
+        color: var(--hud-text); background: var(--hud-bg);
+        border: 1px solid var(--hud-edge); border-radius: 4px;
+        font: inherit; font-size: 12px; line-height: 1.2; cursor: pointer;
+      }
+      @media not (any-pointer: coarse) {
+        #builder-controls .catalogue-filters .hud-button, #builder-controls #buy-clear-filters { min-height: 32px; padding: 3px 8px; font-size: 12px; }
+      }
+      .catalogue-filters .hud-button[aria-pressed='true'] { border-color: var(--need-fill); color: var(--need-fill); font-weight: 600; }
+      .catalogue-card:not([aria-disabled='true']):not(:disabled):hover { background: #29313a; }
+      .catalogue-card:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+      .catalogue-card[aria-pressed='true'] { border-color: var(--need-fill); box-shadow: 0 0 0 1px var(--need-fill); }
+      /* A grayed card dims its picture most and its lines a little, so the
+         muted lines keep about 5 to 1 contrast on the panel; its border and
+         focus ring are not dimmed. */
+      .catalogue-card[aria-disabled='true'] { cursor: default; }
+      .catalogue-card[aria-disabled='true'] > * { opacity: 0.8; }
+      .catalogue-card[aria-disabled='true'] > .catalogue-picture { opacity: 0.45; }
+      .catalogue-card:disabled { opacity: 0.45; cursor: default; }
+      .catalogue-card[hidden] { display: none; }
+      .catalogue-picture { width: 72px; height: 72px; }
+      .catalogue-type { font-weight: 600; text-align: center; overflow-wrap: anywhere; }
+      .catalogue-model, .catalogue-price { color: var(--hud-muted); text-align: center; overflow-wrap: anywhere; }
       /* [B-phone-build-dock]: each tool holds its choices, then a footer of
          its status and buttons. On a desktop the choices join the tool's
          own grid and the help lines follow the footer, as they always did. */
@@ -919,6 +963,15 @@
       #options-panel[hidden] {
         display: none;
       }
+      /* The game version, first in Options: small plain text that takes
+         no focus, so Close Options stays the first stop for a keyboard. */
+      .options-version {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--hud-muted);
+        overflow-wrap: anywhere;
+      }
       /* [PA-place]: above the Build dock (2) so it can sit just over it,
          below the gear (8) and every menu. */
       #placement-actions {
@@ -976,9 +1029,14 @@
       }
       #object-menu.object-menu-radial .menu-entry {
         position: fixed; width: max-content; min-width: 60px; min-height: 44px;
-        padding: 8px 12px; border: 1px solid var(--hud-edge); border-radius: 4px;
-        background: var(--hud-bg); color: var(--hud-text); pointer-events: auto;
+        padding: 8px 12px; border: 1px solid var(--action-border, var(--hud-edge)); border-radius: 4px;
+        background: var(--action-background, var(--hud-bg)); color: var(--action-text, var(--hud-text)); pointer-events: auto;
         font: inherit; line-height: 1.25; text-align: center; white-space: normal;
+      }
+      #object-menu.object-menu-radial .menu-entry:is(:hover, :focus-visible, :active):not(:disabled) {
+        background: var(--action-hover-background, var(--hud-bg));
+        color: var(--action-text, var(--hud-text));
+        border-color: var(--action-border, var(--hud-edge));
       }
       .action-price, .menu-secondary { display: block; color: var(--hud-muted); font-size: .8em; margin-top: 3px; }
       .book-commerce { margin-top: 10px; }
@@ -991,7 +1049,7 @@
       .radial-identity .object-model { justify-content: center; }
       .radial-identity .object-description-arrow { display: none; }
       .radial-identity .object-description { max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
-      .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: transparent; color: var(--hud-muted); font: inherit; }
+      .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: var(--action-background, transparent); color: var(--action-text, var(--hud-muted)); font: inherit; }
       #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       #object-menu.object-menu-radial .menu-entry:disabled { opacity: .5; cursor: default; }
       #buy-identity .object-identity { padding: 6px 0; }
@@ -1008,10 +1066,10 @@
          controls; these rules only undo the browser's own chrome. */
       .menu-entry {
         appearance: none;
-        background: none;
+        background: var(--action-background, none);
         border: 0;
         border-radius: 4px;
-        color: inherit;
+        color: var(--action-text, inherit);
         font: inherit;
         text-align: left;
         min-height: 44px;
@@ -1020,10 +1078,10 @@
         white-space: normal;
         overflow-wrap: anywhere;
       }
-      .menu-entry:hover,
+      .menu-entry:hover:not(:disabled),
       .menu-entry:focus-visible {
-        background: var(--need-fill);
-        color: #10131a;
+        background: var(--action-hover-background, var(--need-fill));
+        color: var(--action-text, #10131a);
         outline: none;
       }
       #action-queue { height: 220px; overflow: hidden;
@@ -1091,6 +1149,7 @@
     </style>
     <link rel="stylesheet" href="/src/ui/compact-hud.css" />
     <link rel="stylesheet" href="/src/ui/build-controls.css" />
+    <link rel="stylesheet" href="/src/ui/action-intent.css" />
   </head>
   <body>
     <canvas
@@ -1100,6 +1159,7 @@
       tabindex="0"
       aria-label="Isometric household. Use Help for controls and accessible status."
     ></canvas>
+    <div id="room-map-marker" hidden></div>
     <div id="startup-loading">
       <div class="startup-spinner" aria-hidden="true"></div>
       <p id="startup-loading-title">Loading Natural Causes</p>
@@ -1118,7 +1178,7 @@
       <section id="household-summary" aria-label="Household status">
         <div id="clock-row" class="summary-row">
           <span class="summary-label">Time</span>
-          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;00:00</strong>
+          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;Spring, 00:00</strong>
         </div>
         <div class="summary-row">
           <span class="summary-label">Funds</span>
@@ -1147,7 +1207,9 @@
         aria-expanded="false"
       >Options</button>
       <div id="options-panel" role="group" aria-label="Options" hidden>
-        <button id="options-close" class="hud-button" type="button">Close Options</button>
+        <!-- Filled from web/package.json at startup (src/ui/game-version.ts). -->
+        <p id="game-version" class="options-version"></p>
+        <button data-action-intent="negative" id="options-close" class="hud-button" type="button">Close Options</button>
         <button
           id="lighting-mode"
           class="hud-button"
@@ -1193,7 +1255,7 @@
         </section>
         <section id="game-actions" aria-label="Game actions">
         <button id="new-housemate" class="hud-button" type="button">New housemate</button>
-        <button id="save-game" class="hud-button" type="button">Save</button>
+        <button data-action-intent="affirmative" id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
 
 
@@ -1259,7 +1321,7 @@
 <button class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-queue" aria-expanded="false">Queue</button>
 <button class="hud-button" type="button" data-open-sim-panel="people" aria-controls="sim-people" aria-expanded="false">People</button>
 <button class="hud-button" type="button" data-open-sim-panel="traits" aria-controls="sim-traits" aria-expanded="false">Traits</button>
-<button class="hud-button" type="button" data-open-sim-panel="career" aria-controls="sim-career" aria-expanded="false">Career</button></nav><button id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
+<button class="hud-button" type="button" data-open-sim-panel="career" aria-controls="sim-career" aria-expanded="false">Career</button></nav><button data-action-intent="negative" id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
         <div id="sim-sheet-content">
           <section id="sim-overview" data-sim-panel="overview" aria-label="Overview" hidden><div id="overview-needs"></div><div id="selected-summary">
           <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
@@ -1287,7 +1349,7 @@
           class="hud-button"
           type="button"
           aria-pressed="true"
-        >Queue mode</button><button id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
+        >Queue mode</button><button data-action-intent="destructive" id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
             <p id="queue-preview-note">Upcoming actions. The preview shows as many as fit; all waiting orders remain queued.</p>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
@@ -1311,12 +1373,12 @@
     </section>
     <div id="builder-dock">
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
-        <div class="build-navigation"><div class="build-heading"><h2 id="builder-name">Build mode</h2><button id="builder-exit" class="hud-button" type="button">Exit build</button></div>
+        <div class="build-navigation"><div class="build-heading"><h2 id="builder-name">Build mode</h2><button data-action-intent="negative" id="builder-exit" class="hud-button" type="button">Exit build</button></div>
         <p id="builder-paused" class="builder-note">Household paused</p>
         <div id="build-tools" role="group" aria-label="Build tool">
           <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true" aria-controls="furniture-tool">Furniture</button>
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false" aria-controls="wall-tool">Walls</button>
-          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Room</button>
+          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Rooms</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false" aria-controls="buy-tool">Buy</button>
           <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false" aria-controls="floor-tool">Floors</button>
           <button id="build-tool-land" class="hud-button" type="button" aria-pressed="false" aria-controls="land-tool">Land</button>
@@ -1348,9 +1410,9 @@
             <details id="wall-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="wall-shortcut-content"></div></details>
             <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it.</p>
             <div id="window-choices" hidden>
-              <div class="builder-row"><strong>Windows</strong><button id="window-back" class="hud-button" type="button">Wall controls</button></div>
+              <div class="builder-row"><strong>Windows</strong><button data-action-intent="negative" id="window-back" class="hud-button" type="button">Wall controls</button></div>
               <div id="window-models"></div>
-              <p id="window-keyboard-help" class="builder-note">Choose a model and a wall line. With the game view focused: arrows move; V and H turn; Enter fits; W builds a wall; D makes a doorway; Delete removes the selected window; Escape cancels.</p>
+              <p id="window-keyboard-help" class="builder-note">Choose a model and a wall line. With the game view focused: arrows move; V and H turn; Enter fits; W builds a wall; D makes a doorway; Delete removes the selected window; Escape clears the selected line, or leaves Build mode when none is selected.</p>
               <p id="window-touch-help" class="builder-note" hidden>Choose a model, then tap a wall line. Tap a window to replace or remove its whole span. Drag to pan; pinch to zoom.</p>
             </div>
           </div>
@@ -1360,8 +1422,8 @@
           <div id="window-actions" class="builder-actions" hidden>
             <p id="window-status" role="status" aria-live="polite">Choose a wall line for the window.</p>
             <div class="builder-row">
-              <button id="window-fit" class="hud-button" type="button" disabled>Place Window</button>
-              <button id="window-remove" class="hud-button" type="button" hidden>Remove window</button>
+              <button data-action-intent="affirmative" id="window-fit" class="hud-button" type="button" disabled>Place Window</button>
+              <button data-action-intent="destructive" id="window-remove" class="hud-button" type="button" hidden>Remove window</button>
             </div>
           </div>
         </div>
@@ -1372,7 +1434,7 @@
           <div class="builder-choices">
             <details id="floor-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="floor-shortcut-content"></div></details>
             <div id="floor-material-samples" aria-label="Floor materials"></div>
-            <button id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
+            <button data-action-intent="affirmative" id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
             <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, then choose its floor covering from the nearby buttons.</p>
 
           </div>
@@ -1392,10 +1454,22 @@
           </div>
           <div class="builder-actions">
             <p id="land-status" role="status" aria-live="polite">Choose a strip of land.</p>
-            <button id="land-buy" class="hud-button" type="button" disabled>Buy land</button>
+            <button data-action-intent="affirmative" id="land-buy" class="hud-button" type="button" disabled>Buy land</button>
           </div>
         </div>
         <div id="room-tool" class="builder-tool" hidden>
+          <div class="builder-row" aria-label="Rooms mode">
+            <button id="room-mode-select" class="hud-button" type="button" aria-pressed="true">Select rooms</button>
+            <button id="room-mode-build" class="hud-button" type="button" aria-pressed="false">Build room</button>
+          </div>
+          <div id="room-select-controls">
+            <label for="room-selection">Room</label><select id="room-selection"></select>
+            <label for="room-name">Room name</label><input id="room-name" type="text" aria-describedby="room-name-status" disabled>
+            <p id="room-name-status" role="status" aria-live="polite"></p>
+            <p class="builder-note">Room boundaries update when you Confirm.</p>
+            <p class="builder-note">Outside counts as one room, including disconnected outdoor areas.</p>
+          </div>
+          <div id="room-build-controls" hidden>
           <div class="builder-choices">
             <details id="room-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="room-shortcut-content"></div></details>
             <p id="room-touch-help" class="builder-note builder-help" hidden>Select two opposite corner tiles. Use Doorway to select an outline edge, then Build room. Drag to pan; pinch to zoom.</p>
@@ -1405,16 +1479,16 @@
 
           </div>
         </div>
+        </div>
         <div id="buy-tool" class="builder-tool" hidden>
           <div class="builder-choices">
-            <label for="buy-room-filter">Room</label>
-            <select id="buy-room-filter"></select>
-            <label for="buy-filter">Show</label>
-            <select id="buy-filter"><option value="">Everything</option></select>
-            <label for="buy-object">Buy</label>
-            <select id="buy-object"><option value="">Choose something to buy</option></select>
+            <div class="catalogue-filter-row"><span class="catalogue-filter-label" id="buy-room-label">Room type</span><div id="buy-room-filter" class="catalogue-filters" role="group" aria-labelledby="buy-room-label"></div></div>
+            <div class="catalogue-filter-row"><span class="catalogue-filter-label" id="buy-show-label">Show</span><div id="buy-filter" class="catalogue-filters" role="group" aria-labelledby="buy-show-label"></div></div>
+            <button id="buy-clear-filters" class="hud-button" type="button" disabled>Clear filters</button>
+            <span class="catalogue-filter-label" id="buy-object-label">Buy</span>
+            <div id="buy-object" class="catalogue-grid" role="group" aria-labelledby="buy-object-label"></div>
             <div id="buy-identity" hidden></div>
-            <label for="buy-colour">Colour</label>
+            <label id="buy-colour-label" for="buy-colour">Colour</label>
             <select id="buy-colour"></select>
             <div class="builder-row">
               <span id="buy-facing"></span>
@@ -1431,10 +1505,22 @@
 
           </div>
         </div>
+        <section id="room-review" hidden aria-labelledby="room-review-heading">
+          <h3 id="room-review-heading" tabindex="-1">Review room changes</h3>
+          <div id="room-review-scroll">
+            <label for="room-review-group">Change</label><select id="room-review-group"></select>
+            <div id="room-review-body"></div>
+            <p id="room-review-status" role="status" aria-live="polite"></p>
+          </div>
+          <div id="room-review-actions">
+            <button id="room-review-back" class="hud-button" type="button" data-action-intent="negative">Back to build</button>
+            <button id="room-review-confirm" class="hud-button" type="button" data-action-intent="affirmative">Confirm changes</button>
+          </div>
+        </section>
         <p id="build-batch-status" role="status" aria-live="polite">Changes remain pending until Confirm.</p>
         <div id="build-batch-actions">
-          <button id="build-batch-cancel" class="hud-button" type="button">Cancel</button>
-          <button id="build-batch-confirm" class="hud-button" type="button">Confirm</button>
+          <button data-action-intent="negative" id="build-batch-cancel" class="hud-button" type="button">Cancel</button>
+          <button data-action-intent="affirmative" id="build-batch-confirm" class="hud-button" type="button">Confirm</button>
         </div>
       </section>
     </div>
@@ -1445,10 +1531,10 @@
       <h2 id="help-title" tabindex="-1">How to play</h2>
       <div id="help-body">
         <p class="dialog-note">Game time is paused while this guide is open.</p>
-<details class="help-topic" open><summary>Build &amp; place</summary><ol><li>Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Use Confirm at the bottom of the build controls to keep your changes. Cancel or Escape discards all changes since the last Confirm. Exit build also discards unconfirmed changes before returning to play.</li><li>Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.</li><li>Room builds a whole room at once. Select two opposite corner tiles. Doorway lets you choose an edge of the outline; Corners restarts the outline. Build room stages the entire room. Confirm keeps it; Cancel discards pending build changes.</li><li>Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.</li><li>Floors selects a tile without changing it. Choose Boards, Tiles or Carpet beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm keeps changes; Cancel discards pending build changes.</li></ol></details><details class="help-topic"><summary>People &amp; actions</summary><ol><li>Choose a person under Household to select them and see their needs.</li><li>Tap or click an object to give the selected person its default action.</li><li>Long-press or right-click for more actions, including talking to another person.</li><li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li><li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li><li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li><li>Choose People inside Sim details to see how the selected person feels about everyone else.</li></ol></details><details class="help-topic"><summary>Camera</summary><ol><li>Drag to move the camera. Pinch, use the mouse wheel, or use the zoom buttons to move closer or farther away.</li></ol></details><details class="help-topic"><summary>Options &amp; saves</summary><ol><li>Open Options for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li></ol></details><details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
+<details class="help-topic" open><summary>Build &amp; place</summary><ol><li>Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Use Confirm at the bottom to keep this batch and continue building. Cancel there discards every change since the last Confirm and keeps Build open. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.</li><li>Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.</li><li>Rooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm keeps the batch and leaves Build open.</li><li>Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.</li><li>Floors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes.</li></ol></details><details class="help-topic"><summary>People &amp; actions</summary><ol><li>Choose a person under Household to select them and see their needs.</li><li>Tap or click an object to give the selected person its default action.</li><li>Long-press or right-click for more actions, including talking to another person.</li><li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li><li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li><li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li><li>Choose People inside Sim details to see how the selected person feels about everyone else.</li></ol></details><details class="help-topic"><summary>Camera</summary><ol><li>Drag to move the camera. Pinch, use the mouse wheel, or use the zoom buttons to move closer or farther away.</li></ol></details><details class="help-topic"><summary>Options &amp; saves</summary><ol><li>Open Options for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li></ol></details><details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
       </div>
       <div id="help-actions">
-        <button id="close-help" class="hud-button" type="button">Got it</button>
+        <button data-action-intent="affirmative" id="close-help" class="hud-button" type="button">Got it</button>
       </div>
     </dialog>
     <dialog id="new-game-dialog" aria-labelledby="new-game-title">
@@ -1456,8 +1542,8 @@
       <p>This replaces the saved household and cannot be undone.</p>
       <form method="dialog">
         <menu>
-          <button class="hud-button" value="cancel">Keep playing</button>
-          <button id="confirm-new-game" class="hud-button" value="confirm">Start over</button>
+          <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
+          <button data-action-intent="affirmative" id="confirm-new-game" class="hud-button" value="confirm">Start over</button>
         </menu>
       </form>
     </dialog>
@@ -1472,8 +1558,8 @@
       <p>Progress since the last save will be replaced.</p>
       <form method="dialog">
         <menu>
-          <button class="hud-button" value="cancel">Keep playing</button>
-          <button id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
+          <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
+          <button data-action-intent="affirmative" id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
         </menu>
       </form>
     </dialog>
@@ -1482,8 +1568,21 @@
       <p id="land-dialog-text"></p>
       <form method="dialog">
         <menu>
-          <button id="land-dialog-cancel" class="hud-button" value="cancel">Cancel</button>
-          <button id="land-dialog-confirm" class="hud-button" value="confirm">Buy</button>
+          <button data-action-intent="negative" id="land-dialog-cancel" class="hud-button" value="cancel">Cancel</button>
+          <button data-action-intent="affirmative" id="land-dialog-confirm" class="hud-button" value="confirm">Buy</button>
+        </menu>
+      </form>
+    </dialog>
+    <!-- Leaving Build mode while changes are not confirmed. build-exit.ts
+         reads the button values; Escape closes the dialog with none. -->
+    <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text">
+      <h2 id="build-exit-title">Leave Build mode?</h2>
+      <p id="build-exit-text">You have changes that are not confirmed. Discarding them undoes every change since the last Confirm, including purchases and sales.</p>
+      <form method="dialog">
+        <menu>
+          <button id="build-exit-keep" class="hud-button" data-action-intent="negative" value="keep" autofocus>Keep building</button>
+          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
+          <button id="build-exit-discard" class="hud-button" data-action-intent="negative" value="discard">Discard changes</button>
         </menu>
       </form>
     </dialog>
@@ -1511,14 +1610,14 @@
       <h2 id="work-order-title" tabindex="-1">Work conflict</h2>
       <p id="work-order-message"></p>
       <menu>
-        <button id="work-order-cancel" class="hud-button" type="button">Cancel</button>
-        <button id="work-order-proceed" class="hud-button" type="button">Proceed</button>
+        <button id="work-order-cancel" data-action-intent="negative" class="hud-button" type="button">Cancel</button>
+        <button id="work-order-proceed" data-action-intent="affirmative" class="hud-button" type="button">Proceed</button>
       </menu>
     </dialog>
     <!-- Contextual Build actions follow the active selection in client pixels.
          Short screens can place them in a grid beside a bounded tool panel.
          Empty space passes input to the game; only buttons consume it. -->
-    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out">−</button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
+    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out">âˆ’</button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
     <div id="placement-actions" hidden aria-label="Build actions for the current selection">
 
     </div>

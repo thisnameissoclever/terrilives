@@ -184,7 +184,7 @@ it('waits for the drained result and refreshes a moved object on lot revision', 
   const before = source.lotRevision();
   expect(builder.confirm()).toBe(true);
   expect(builder.pending).toBe(true);
-  expect(builder.status).toBe('Placing furniture…');
+  expect(builder.status).toBe('Placing furniture\u2026');
   expect(source.lotRevision()).toBe(before);
   expect(builder.confirm()).toBe(false);
   source.flushCommands();
@@ -406,24 +406,30 @@ it('sells with Delete and will not sell what a sim has been told to use', () => 
 // it would sell for, so Sell does not stay on and the reason stays shown.
 it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   const { handle, source, builder } = fixture();
-  const bike = 22;
-  expect(source.objectModel(bike)?.id).toBe('moving_box');
-  expect(source.interactionLabels(bike)[0]).toBe('Use the exercise bike');
+  expect(source.objectModel(22)?.id).toBe('moving_box');
+  expect(source.interactionLabels(22)[0]).toBe('Use the exercise bike');
+  const restored = SimHandle.from_lot();
+  try {
   builder.enter();
-  builder.select(bike);
+  builder.select(22);
   expect(builder.canSell).toBe(true);
   const ids = Array.from(source.ids());
   const kinds = Array.from(source.kinds());
   const agent = ids.find((_, row) => kinds[row] === 0)!;
   // The order drains before the sale behind it and puts the object in use.
-  expect(source.useObject(agent, bike, 0)).toBe(true);
+  expect(source.useObject(agent, 22, 0)).toBe(true);
   expect(builder.sell()).toBe(true);
   source.flushCommands(); builder.afterCommands();
-  expect(source.lastSaleResult()).toMatchObject({ object: bike, payout: 0 });
+  expect(source.lastSaleResult()).toMatchObject({ object: 22, payout: 0 });
+  expect(source.takeBuildError()).toEqual({ ok: true, value: null });
+  const saved = source.saveBytes();
+  expect([...saved.slice(8, 10)]).toEqual([17, 0]);
+  expect(restored.load_bytes(saved)).toBe(true);
+  expect(restored.save_bytes()).toEqual(saved);
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])
-    .toEqual([bike, false, null, false, 'Wait until nobody is using or approaching this object.']);
+    .toEqual([22, false, null, false, 'Wait until nobody is using or approaching this object.']);
   expect(builder.saleRefusal).toBe('Wait until nobody is using or approaching this object.');
-  handle.free();
+  } finally { handle.free(); restored.free(); }
 });
 
 // [SL-shell]: a Load forgets a sale on its way, so a later result for the
@@ -521,7 +527,7 @@ it('does not take an earlier move for a colour change on its way', () => {
   expect(builder.shownColourway).toBe(2);
   source.flushCommands(); builder.afterCommands();
   expect([builder.colourway, builder.pending, builder.status])
-    .toEqual([1, true, 'Recolouring…']);
+    .toEqual([1, true, 'Recolouring\u2026']);
   builder.select(22);
   expect(builder.selected).toBe(15);
   source.flushCommands(); builder.afterCommands();

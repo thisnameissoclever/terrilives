@@ -1,0 +1,68 @@
+{
+  "head_start": "567736449842f60c562fd459e35a927a01a6138d",
+  "scope": "Native inputs only; independently owned browser/docs may change. No overlapping heavy commands.",
+  "source_before": "67adab4fb28ea4bbc3f42543069939636f414f883cca00fbb2925926a20881bd",
+  "checks": [
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "started_utc": "2026-10-18T07:07:39.781853+00:00",
+      "state": "complete",
+      "pid": 59884,
+      "exit_code": 0,
+      "seconds": 2.035,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "workspace",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--no-fail-fast",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "--test-threads=1"
+      ],
+      "started_utc": "2026-10-18T07:07:41.817734+00:00",
+      "state": "complete",
+      "pid": 38048,
+      "exit_code": 0,
+      "seconds": 1298.341,
+      "log_sha256": "fae27f15ab72a9e1f91bfb4a3e2ddd74a017cb36c41282e72ceafa38b34678dc"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_utc": "2026-10-18T07:29:20.159807+00:00",
+      "state": "complete",
+      "pid": 41480,
+      "exit_code": 0,
+      "seconds": 0.323,
+      "log_sha256": "732186322402325172940531d8d6d7cfac85dc902585b2bef6715ad6839dacfd"
+    }
+  ],
+  "complete": true,
+  "source_after": "67adab4fb28ea4bbc3f42543069939636f414f883cca00fbb2925926a20881bd",
+  "source_unchanged": true,
+  "passed": true
+}

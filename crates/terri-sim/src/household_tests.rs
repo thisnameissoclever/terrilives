@@ -5,6 +5,19 @@ use super::*;
 use crate::Sim;
 use terri_core::{CommandQueue, Needs, SimCommand, SimName, Traits};
 
+fn expected_creation_instinct(rng: &mut terri_core::SimRng) -> u8 {
+    let (min, width) = match rng.range(100) {
+        0..=4 => (11, 20),
+        5..=14 => (31, 20),
+        15..=24 => (51, 10),
+        25..=49 => (61, 10),
+        50..=79 => (71, 10),
+        80..=94 => (81, 10),
+        _ => (91, 5),
+    };
+    min + rng.range(width) as u8
+}
+
 fn move_in(sim: &mut Sim, name: &str, personality: u32, traits: &[u32]) -> HousemateResult {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -299,7 +312,7 @@ fn a_housemate_saves_loads_and_plays_on() {
         sim.tick();
     }
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+    loaded.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
     assert_eq!(loaded.world().get::<SimName>(ann).unwrap().0, "Ann");
     assert_eq!(household_size(loaded.world()), 4);
     for _ in 0..300 {
@@ -629,7 +642,7 @@ fn self_preservation_seed_precedes_household_draws_and_legacy_move_in() {
     let values = sim.save_snapshot_v5().self_preservation;
     assert_eq!(values.len(), 3);
     for (_, value) in values {
-        assert_eq!(usize::from(value), reference.range(101));
+        assert_eq!(value, expected_creation_instinct(&mut reference));
         // Each person's affinity draws follow their instinct ([OA-values]);
         // how many is the same whatever they wear.
         crate::affinity::draw(&mut reference, pack, None);
@@ -640,8 +653,8 @@ fn self_preservation_seed_precedes_household_draws_and_legacy_move_in() {
         sim.world()
             .get::<terri_core::SelfPreservation>(entity(&sim, ann))
             .unwrap()
-            .0 as usize,
-        reference.range(101)
+            .0,
+        expected_creation_instinct(&mut reference)
     );
     crate::affinity::draw(&mut reference, pack, None);
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
@@ -693,7 +706,7 @@ fn spawn_member_draws_affinities_right_after_the_instinct() {
     };
 
     let ann = spawn(&mut sim, None, &[]);
-    let instinct = reference.range(101) as u8;
+    let instinct = expected_creation_instinct(&mut reference);
     let expected = crate::affinity::draw(&mut reference, content, None);
     assert_eq!(
         sim.world().get::<terri_core::SelfPreservation>(ann),
@@ -751,7 +764,7 @@ fn the_shipped_household_draws_affinities_in_entity_order_after_each_instinct() 
     assert_eq!(people.len(), 3);
     let mut reference = terri_core::SimRng::from_seed(SEED);
     for (index, name, worn, values) in &people {
-        reference.range(101);
+        expected_creation_instinct(&mut reference);
         let expected = crate::affinity::draw(&mut reference, pack, Some(worn));
         assert_eq!(values, &expected, "{name} at {index}");
     }
@@ -788,7 +801,7 @@ fn the_shipped_household_draws_affinities_in_entity_order_after_each_instinct() 
 }
 
 #[test]
-fn self_preservation_creation_covers_every_integer_including_endpoints() {
+fn self_preservation_creation_covers_every_random_integer_and_excludes_player_only_extremes() {
     let mut counts = [0usize; 101];
     for seed in 0..1000 {
         let sim = Sim::new_from_shipped_lot_with_seed(seed);
@@ -798,7 +811,9 @@ fn self_preservation_creation_covers_every_integer_including_endpoints() {
     }
     assert_eq!(counts.iter().sum::<usize>(), 3000);
     assert!(
-        counts.iter().all(|count| *count >= 8 && *count <= 55),
+        counts[11..=95].iter().all(|count| *count > 0)
+            && counts[..11].iter().all(|count| *count == 0)
+            && counts[96..].iter().all(|count| *count == 0),
         "{counts:?}"
     );
 }

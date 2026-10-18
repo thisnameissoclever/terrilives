@@ -1,0 +1,83 @@
+{
+  "method": "two isolated fault executions in one instrumented build",
+  "head": "477ca9ced027aad14d8c134435cb96d5bf5a3d76",
+  "original": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "f56d0d5d63f260f3f3a0e538af59cc64c70bff80d1ff082ec6d450ca7a507032",
+    "crates\\terri-sim\\src\\build_transaction.rs": "5accd764041b2a3931425f9c5f611fe689458eaf0e6b36d3853be4678bb72311"
+  },
+  "cases": [
+    {
+      "name": "deferral-control",
+      "flag": null,
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "build_transaction::cases::temporary_paving_removal_preserves_suspended_work",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "stale-control",
+      "flag": null,
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "deferral",
+      "flag": "deferral",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "build_transaction::cases::temporary_paving_removal_preserves_suspended_work",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "exit": 101
+    },
+    {
+      "name": "stale",
+      "flag": "stale",
+      "command": [
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+        "build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "exit": 101
+    }
+  ],
+  "instrumented": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "4e753c1ef20b5606d0e79310da2edd3dec1ee95b3d4fb37defe7be1dee2a266f",
+    "crates\\terri-sim\\src\\build_transaction.rs": "664ea87975daad7f4eb6cd07ff88d10b5ca6865650df0a5efc319f9e6268eadc"
+  },
+  "build": {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "--lib",
+      "--no-run",
+      "--locked",
+      "--jobs",
+      "1",
+      "--message-format=json"
+    ],
+    "exit": 0
+  },
+  "instrumented_executable_sha256": "200c87aaf2852b7ffb7e072da90b4ac39306fda1708b705c9478d8ecb466d62c",
+  "accepted": true,
+  "restored": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "f56d0d5d63f260f3f3a0e538af59cc64c70bff80d1ff082ec6d450ca7a507032",
+    "crates\\terri-sim\\src\\build_transaction.rs": "5accd764041b2a3931425f9c5f611fe689458eaf0e6b36d3853be4678bb72311"
+  },
+  "source_bytes_restored": true,
+  "source_diff_empty": true,
+  "index_unchanged": true,
+  "git_status": ""
+}

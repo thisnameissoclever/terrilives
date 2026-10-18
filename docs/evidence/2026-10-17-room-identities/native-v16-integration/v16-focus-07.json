@@ -1,0 +1,116 @@
+[
+  {
+    "name": "golden",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "world_hash_matches_its_golden_vector",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-07-golden.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 1.42s"
+    ],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:07:36.915472+00:00"
+  },
+  {
+    "name": "dining-origin",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "historical_in_flight_diners_adopt",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-07-dining-origin.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.82s"
+    ],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:07:37.743654+00:00"
+  },
+  {
+    "name": "reading-forecast",
+    "command": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-cdf69b4a77d815d8.exe",
+      "review_physical_reading_prediction",
+      "--test-threads=1",
+      "--nocapture"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-07-reading-forecast.log",
+    "summary": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.23s"
+    ],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:07:37.979935+00:00"
+  },
+  {
+    "name": "review-example",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "terri-wasm",
+      "--example",
+      "conversation_review",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      ".local-build/current-conversation-v16"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-07-review-example.log",
+    "summary": [],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:07:47.172065+00:00"
+  },
+  {
+    "name": "trace-example",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "terri-sim",
+      "--example",
+      "trace",
+      "--locked",
+      "--jobs",
+      "1",
+      "--",
+      "10",
+      "42"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+    "exit_code": 101,
+    "log": ".local-build\\v16-focus-07-trace-example.log",
+    "summary": [],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:08:30.446872+00:00"
+  },
+  {
+    "name": "storage-mocks",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "tests/save-worker.test.ts",
+      "--maxWorkers=1",
+      "-t",
+      "^(?!.*(?:real current save|current simulation save)).*$"
+    ],
+    "cwd": "web",
+    "exit_code": 0,
+    "log": ".local-build\\v16-focus-07-storage-mocks.log",
+    "summary": [],
+    "source_manifest": ".local-build/v16-native-build-07-source.json",
+    "finished_utc": "2026-10-18T02:08:34.337457+00:00"
+  }
+]

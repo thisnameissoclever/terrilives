@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "--workspace",
+    "--all-targets",
+    "--locked",
+    "--jobs",
+    "1",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-clippy.log",
+  "finished_utc": "2026-10-18T04:33:11.792735+00:00"
+}

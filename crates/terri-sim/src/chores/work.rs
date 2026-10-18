@@ -9,8 +9,37 @@ pub(crate) fn key_valid(world: &World, key: ChoreKey) -> bool {
     match key.kind {
         ChoreKind::Dishes => key.target == 0,
         ChoreKind::Floors => {
+            if crate::rooms::stable(world) {
+                let map = world.resource::<crate::rooms::RoomMap>();
+                let eligible = |cell: u32| {
+                    crate::rooms::cleaning_area_at(
+                        world,
+                        (
+                            (cell % map.topology.width) as i32,
+                            (cell / map.topology.width) as i32,
+                        ),
+                    )
+                    .is_some()
+                };
+                return if key.target == 0 {
+                    map.topology.cells.iter().enumerate().any(|(cell, area)| {
+                        *area == crate::rooms::TopologyCell::Outside && eligible(cell as u32)
+                    })
+                } else {
+                    map.component_ids
+                        .iter()
+                        .position(|id| id.get() == key.target)
+                        .is_some_and(|index| {
+                            map.topology.components[index]
+                                .cells
+                                .iter()
+                                .copied()
+                                .any(eligible)
+                        })
+                };
+            }
             let width = world.resource::<TileGrid>().width() as u32;
-            crate::room_regions::RoomRegions::from_world(world)
+            crate::room_regions::RoomRegions::cleanable(world)
                 .at(((key.target % width) as i32, (key.target / width) as i32))
                 == Some(key.target)
         }
@@ -129,7 +158,7 @@ pub(crate) fn start(
     let from = (pos.x.round() as i32, pos.y.round() as i32);
     let (cells, endpoint) = match key.kind {
         ChoreKind::Floors => {
-            let rooms = crate::room_regions::RoomRegions::from_world(world);
+            let rooms = crate::room_regions::RoomRegions::cleanable(world);
             let cells: Vec<_> = state
                 .floors
                 .iter()
@@ -425,7 +454,7 @@ pub(super) fn plan_valid(world: &World, task: &ChoreTask) -> bool {
         return true;
     }
     let grid = world.resource::<TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     task.cells.iter().all(|cell| {
         rooms.at((
             (*cell as usize % grid.width()) as i32,

@@ -11,6 +11,7 @@ import { WallTool, WALL, DOORWAY, WINDOW, OPEN } from '../src/ui/wall-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { BuildContextActions, contextModel, contextPosition, type ContextTools } from '../src/ui/placement-actions.js';
 import { shortcutGroups } from '../src/ui/shortcuts.js';
+import { clearBuildSelection } from '../src/ui/build-tools.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -31,10 +32,8 @@ function fixture(singleFacing = false) {
   const tools: ContextTools = { furniture, buy: new BuyTool(source, 16, 12, hooks),
     walls: new WallTool(source, 16, 12, hooks), room: new RoomTool(source, 16, 12, hooks),
     floors: new FloorTool(source, 16, 12, hooks), focusCatalogue: vi.fn(),
-    cancelBuild: vi.fn(() => {
-      furniture.cancel(); tools.buy.cancel(); tools.walls.clearSelection();
-      tools.walls.windows?.handleKey('Escape'); tools.room.cancel(); tools.floors.clearSelection();
-    }) };
+    // The page's contextual Cancel: clears the tool in use and keeps the batch.
+    clearSelection: vi.fn(() => clearBuildSelection([tools.walls, tools.room, tools.buy, tools.floors], furniture)) };
   furniture.enter();
   return { handle, source, ...tools, tools };
 }
@@ -59,7 +58,7 @@ describe('context actions use the active controller', () => {
     try {
       f.furniture.select(7);
       const actions = contextModel(f.tools)!.actions;
-      expect(actions.find(a => a.id === 'sell')).toMatchObject({label: 'Sell', price: f.furniture.saleValue});
+      expect(actions.find(a => a.id === 'sell')).toMatchObject({label: 'Sell', price: f.furniture.saleValue, intent: 'destructive'});
       const first = f.furniture.preview!.facing;
       actions.find(a => a.id === 'left')!.invoke();
       expect(f.furniture.preview!.facing).toBe((first + 3) % 4);
@@ -91,8 +90,10 @@ describe('context actions use the active controller', () => {
       expect(item).toBeDefined(); f.buy.choose(item.definition);
       let model = contextModel(f.tools)!;
       expect(model.tool).toBe('buy');
-      expect(model.actions.find(a => a.id === 'confirm')).toMatchObject({label: 'Buy', price: item.price});
+      expect(model.actions.find(a => a.id === 'confirm')).toMatchObject({label: 'Buy', price: item.price, intent: 'affirmative'});
       expect(model.actions.find(a => a.id === 'confirm')!.enabled).toBe(false);
+      expect(model.actions.find(a => a.id === 'choose')).toMatchObject({intent: 'negative'});
+      expect(model.actions.find(a => a.id === 'cancel')).toMatchObject({intent: 'negative'});
       const first = f.buy.preview!.facing;
       model.actions.find(a => a.id === 'left')!.invoke();
       expect(f.buy.preview!.facing).toBe((first + 3) % 4);
@@ -146,6 +147,7 @@ describe('context actions use the active controller', () => {
       f.walls.rotate(); f.walls.clearSelection();
       expect(f.walls.line).toEqual(line);
       expect(contextModel(f.tools)!.actions.every(a => !a.enabled)).toBe(true);
+      expect(contextModel(f.tools)!.actions.find(a => a.id === 'clear')).toMatchObject({intent: 'negative'});
       f.walls.pending = null; f.walls.setBlocked(true); f.walls.rotate(); f.walls.clearSelection();
       expect(f.walls.line).toEqual(line);
       f.walls.setBlocked(false);
@@ -168,6 +170,7 @@ describe('context actions use the active controller', () => {
       f.room.restartCorners(); f.room.chooseDoorway();
       expect(f.room.second).toEqual([3, 2]);
       expect(contextModel(f.tools)!.actions.every(a => !a.enabled)).toBe(true);
+      expect(contextModel(f.tools)!.actions.find(a => a.id === 'cancel')).toMatchObject({intent: 'negative'});
       pending.mockRestore();
       contextModel(f.tools)!.actions.find(a => a.id === 'corners')!.invoke();
       expect(f.room.first).toBeNull();
@@ -202,6 +205,7 @@ describe('context actions use the active controller', () => {
       f.floors.pending = 1; f.floors.clearSelection();
       expect(f.floors.tile).toEqual([5, 4]);
       expect(contextModel(f.tools)!.actions.every(a => !a.enabled)).toBe(true);
+      expect(contextModel(f.tools)!.actions.find(a => a.id === 'clear')).toMatchObject({intent: 'negative'});
       f.floors.pending = null;
       f.floors.setBlocked(true);f.floors.handleKey('Escape');
       expect(f.floors.tile).toEqual([5, 4]);

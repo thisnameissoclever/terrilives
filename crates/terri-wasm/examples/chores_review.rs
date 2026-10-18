@@ -1,5 +1,6 @@
 //! Normal household with starting mess for playing chore behavior.
-use terri_core::{SAVE_MAGIC, SAVE_SCHEMA_VERSION};
+#[path = "support/mod.rs"]
+mod support;
 use terri_sim::Sim;
 
 fn main() {
@@ -35,7 +36,8 @@ fn main() {
         .day_ticks;
     sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day) * 5 + 660;
     sim.tick();
-    let mut saved = sim.save_snapshot_v5();
+    let mut household = sim.save_snapshot_v17();
+    let saved = support::v5_mut(&mut household);
     let people: Vec<_> = saved
         .world
         .entities
@@ -73,7 +75,7 @@ fn main() {
     };
     chores.surfaces = vec![(counter, 850)];
     chores.bins = vec![(bin, 850)];
-    sim.load_snapshot_v5(saved)
+    sim.load_snapshot_v17(household)
         .expect("played fixture must be valid");
     if let Some(identity) = review_sim {
         let person = sim
@@ -86,13 +88,16 @@ fn main() {
         sim.world_mut()
             .entity_mut(person)
             .insert(terri_core::Position { x: 6.0, y: 3.0 });
+        let room = terri_sim::rooms::cleaning_area_at(sim.world(), (6, 3))
+            .expect("review tile is cleanable")
+            .key();
         sim.world_mut()
             .resource_mut::<terri_core::CommandQueue>()
             .push(terri_core::SimCommand::CleanChoreFirst {
                 agent: person.index_u32(),
                 key: terri_core::chores::ChoreKey {
                     kind: terri_core::chores::ChoreKind::Floors,
-                    target: 0,
+                    target: room,
                 },
             });
         let mut started = false;
@@ -114,8 +119,6 @@ fn main() {
     } else {
         sim.tick();
     }
-    let mut bytes = SAVE_MAGIC.to_vec();
-    bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
-    bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v10()).unwrap());
+    let bytes = support::encode(&sim);
     std::fs::write(path, bytes).expect("write the review fixture");
 }

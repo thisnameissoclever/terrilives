@@ -5,7 +5,9 @@ import { SimBridge, type CatalogueItem, type PlacementPreview, type PurchaseResu
 import { emissiveForSprite } from '../src/render/lighting.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { BuyTool, CHOOSE_ITEM, listed } from '../src/ui/buy-tool.js';
-import { BuyToolControls, itemLabel, servesLabel } from '../src/ui/buy-tool-controls.js';
+import { BuyToolControls, cardName, roomWord, servesLabel } from '../src/ui/buy-tool-controls.js';
+import { drawCataloguePreviews, makeCropLayer, visibleBounds } from '../src/ui/catalogue-previews.js';
+import { SPRITES, SPRITE_ANCHORS, type AtlasSprite } from '../src/render/atlas.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -470,55 +472,95 @@ describe('buying in a colourway', () => {
 describe('BuyToolControls', () => {
   class FakeElement {
     ownerDocument!: Document;
+    tagName = '';
     className = '';
     open = false;
     hidden = false;
     disabled = false;
     textContent = '';
     value = '';
+    type = '';
+    tabIndex = 0;
+    width = 0;
+    height = 0;
     readonly children: FakeElement[] = [];
     readonly attributes = new Map<string, string>();
-    readonly listeners = new Map<string, (() => void)[]>();
+    readonly listeners = new Map<string, ((event?: unknown) => void)[]>();
     setAttribute(name: string, value: string) { this.attributes.set(name, value); }
-    addEventListener(type: string, listener: () => void) {
+    getAttribute(name: string) { return this.attributes.get(name) ?? null; }
+    addEventListener(type: string, listener: (event?: unknown) => void) {
       this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
     }
-    removeEventListener(type: string, listener: () => void) {
+    removeEventListener(type: string, listener: (event?: unknown) => void) {
       this.listeners.set(type, (this.listeners.get(type) ?? []).filter(entry => entry !== listener));
     }
-    fire(type: string) { for (const listener of this.listeners.get(type) ?? []) listener(); }
+    fire(type: string, event?: unknown) { for (const listener of this.listeners.get(type) ?? []) listener(event); }
     append(...children: FakeElement[]) { this.children.push(...children); }
     replaceChildren(...children: FakeElement[]) { this.children.splice(0, this.children.length, ...children); }
+    focus() { (this.ownerDocument as unknown as { activeElement: FakeElement }).activeElement = this; }
   }
+
+  /** A model stub with rooms: `shows` reads only the rooms, and nothing chooses it. */
+  const inRooms = (item: CatalogueItem, rooms: string[]): CatalogueItem =>
+    ({ ...item, model: { rooms, width: 1, depth: 1, roles: [], actions: [], shelfCapacity: 0 } as unknown as CatalogueItem['model'] });
 
   function controls(items?: CatalogueItem[]) {
     const elements = new Map<string, FakeElement>();
     const doc = {
+      activeElement: null as FakeElement | null,
       querySelector: (selector: string) => {
         const id = selector.slice(1);
-        if (!elements.has(id)) elements.set(id, Object.assign(new FakeElement(), { ownerDocument: doc }));
+        if (!elements.has(id)) elements.set(id, Object.assign(new FakeElement(), { ownerDocument: doc, tagName: 'div' }));
         return elements.get(id);
       },
-      createElement: () => Object.assign(new FakeElement(), { ownerDocument: doc }),
-    } as unknown as Document;
+      createElement: (tag: string) => Object.assign(new FakeElement(), { ownerDocument: doc, tagName: tag }),
+    } as unknown as Document & { activeElement: FakeElement | null };
     const { buy, source } = tool();
+    const pictures: { sprite: number; foreground: number | null }[] = [];
+    const previews = (cards: readonly { canvas: HTMLCanvasElement; sprite: number; foreground: number | null }[]) => {
+      for (const card of cards) pictures.push({ sprite: card.sprite, foreground: card.foreground });
+    };
     if (items) {
       source.items = items;
       // The controller reads the catalogue once at construction.
       const describedBuy = new BuyTool(source, 10, 10, { changed() {} });
-      const view = new BuyToolControls(doc, describedBuy, NEEDS);
-      return { buy: describedBuy, source, view, element: (id: string) => elements.get(id)! };
+      const view = new BuyToolControls(doc, describedBuy, NEEDS, previews);
+      return { buy: describedBuy, source, view, doc, pictures, element: (id: string) => elements.get(id)! };
     }
-    const view = new BuyToolControls(doc, buy, NEEDS);
-    return { buy, source, view, element: (id: string) => elements.get(id)! };
+    const view = new BuyToolControls(doc, buy, NEEDS, previews);
+    return { buy, source, view, doc, pictures, element: (id: string) => elements.get(id)! };
   }
+
+  const cards = (element: (id: string) => FakeElement) => element('buy-object').children;
+  const names = (element: (id: string) => FakeElement) => cards(element).map(card => card.getAttribute('aria-label'));
+  const row = (element: (id: string) => FakeElement, id: string) => element(id).children;
+  const pressed = (buttons: FakeElement[]) => buttons.map(button => button.getAttribute('aria-pressed') === 'true');
+
+  it('names a card by its type, model and price', () => {
+    expect(cardName(CHAIR)).toBe('Chair (40)');
+    expect(cardName({ ...CHAIR, price: 1_250, details: { modelName: 'Soakster 9,001', description: 'Seat.' } })).toBe('Chair: Soakster 9,001 (1,250)');
+    expect(roomWord('living_room')).toBe('Living Room');
+  });
+
+  it('builds one card per item in list order, with its picture, lines and price', () => {
+    const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Lounge', description: 'A chair for sitting.' } };
+    const { element, pictures, source } = controls([chair, BED]);
+    expect(names(element)).toEqual(['Armchair: Lounge (40)', 'Bed (250)']);
+    const [first] = cards(element);
+    expect(first.tagName).toBe('button');
+    expect(first.children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-model', 'catalogue-price']);
+    expect(first.children.map(child => child.textContent)).toEqual(['', 'Armchair', 'Lounge', '40']);
+    expect([first.children[0].width, first.children[0].height, first.children[0].getAttribute('aria-hidden')]).toEqual([144, 144, 'true']);
+    expect(cards(element)[1].children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-price']);
+    // The pictures come from the ghost's query at the lot's corner, at the base facing.
+    expect(pictures, 'nothing is drawn before the tool is shown').toEqual([]);
+  });
 
   it('shows the chosen identity, retains expansion on redraw, and clears it when selection changes', () => {
     const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Lounge', description: 'A chair for sitting.' } };
     const { buy, view, element } = controls([chair, BED]);
-    expect(element('buy-object').children.map(option => option.textContent)).toContain('Armchair: Lounge (40)');
     buy.enter();
-    buy.choose(CHAIR.definition);
+    buy.choose(chair.definition);
     view.render();
     const identity = element('buy-identity');
     expect(identity.hidden).toBe(false);
@@ -535,20 +577,100 @@ describe('BuyToolControls', () => {
     expect(identity.children).toHaveLength(0);
   });
 
-  it('offers only the needs something serves, in need order, and narrows the list to one', () => {
-    const { buy, view, element } = controls();
+  it('presses the chosen card, greys out what the household cannot afford, and chooses on a press', () => {
+    const { buy, source, view, element } = controls();
+    expect(names(element)).toEqual(['Bed (250)', 'Chair (40)', 'Desk (180)']);
+    source.money = 180;
     buy.enter();
     view.render();
-    const filter = element('buy-filter');
-    expect(filter.children.map((option) => [option.value, option.textContent])).toEqual(
-      [['', 'Everything'], ['1', 'Energy'], ['5', 'Fun'], ['6', 'Comfort']]);
-    filter.value = String(ENERGY);
-    filter.fire('change');
-    expect(element('buy-object').children.map((option) => option.textContent)).toEqual(
-      ['Choose something to buy', 'Bed (250)']);
-    filter.value = '';
-    filter.fire('change');
-    expect(element('buy-object').children).toHaveLength(4);
+    const grayed = () => cards(element).map(card => card.getAttribute('aria-disabled') === 'true');
+    expect(grayed()).toEqual([true, false, false]);
+    // A grayed card stays in reach but a press on it chooses nothing.
+    cards(element)[0].fire('click');
+    expect(buy.chosen).toBeNull();
+    cards(element)[1].fire('click');
+    expect(buy.chosen).toBe(CHAIR);
+    expect(pressed(cards(element))).toEqual([false, true, false]);
+    expect([element('buy-price').textContent, element('buy-facing').textContent, element('buy-serves').textContent])
+      .toEqual(['Price: 40', 'Facing: South-west', 'Good for: no need on its own']);
+    // Pressing the chosen card again keeps its ghost and facing.
+    buy.rotate();
+    const facing = buy.preview?.facing;
+    cards(element)[1].fire('click');
+    expect(buy.preview?.facing).toBe(facing);
+    source.money = 250;
+    view.render();
+    expect(grayed()).toEqual([false, false, false]);
+  });
+
+  it('offers the rooms any item belongs to and the needs any item serves, one pressed per row', () => {
+    const kitchenChair = inRooms(CHAIR, ['kitchen', 'dining_room']);
+    const { buy, view, doc, element } = controls([kitchenChair, inRooms(BED, ['bedroom']), DESK]);
+    expect(row(element, 'buy-room-filter').map(button => button.textContent)).toEqual(['Every room', 'Bedroom', 'Dining Room', 'Kitchen']);
+    expect(row(element, 'buy-filter').map(button => button.textContent)).toEqual(['Everything', 'Energy', 'Fun', 'Comfort']);
+    expect(pressed(row(element, 'buy-room-filter'))).toEqual([true, false, false, false]);
+    expect(element('buy-clear-filters').disabled).toBe(true);
+    buy.enter();
+    row(element, 'buy-room-filter')[3].fire('click');
+    expect(buy.roomFilter).toBe('kitchen');
+    expect(pressed(row(element, 'buy-room-filter'))).toEqual([false, false, false, true]);
+    expect(cards(element).map(card => card.hidden)).toEqual([true, false, true]);
+    expect(element('buy-clear-filters').disabled).toBe(false);
+    row(element, 'buy-filter')[2].fire('click');
+    expect(buy.filter).toBe(FUN);
+    expect(cards(element).map(card => card.hidden), 'no kitchen item serves Fun').toEqual([true, true, true]);
+    // A press that did not focus the button, as a click does in some
+    // browsers, leaves focus where it was.
+    row(element, 'buy-filter')[2].focus();
+    element('buy-clear-filters').fire('click');
+    expect(doc.activeElement).toBe(row(element, 'buy-filter')[2]);
+    row(element, 'buy-filter')[2].fire('click');
+    element('buy-clear-filters').focus();
+    element('buy-clear-filters').fire('click');
+    expect([buy.filter, buy.roomFilter]).toEqual([null, null]);
+    expect(doc.activeElement, 'focus leaves the button it disables for Every room').toBe(row(element, 'buy-room-filter')[0]);
+    expect(cards(element).map(card => card.hidden)).toEqual([false, false, false]);
+    expect(pressed(row(element, 'buy-filter'))).toEqual([true, false, false, false]);
+    expect(element('buy-clear-filters').disabled).toBe(true);
+  });
+
+  it('drops a choice the filter hides, and keeps one it still shows', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    cards(element)[2].fire('click');
+    expect(buy.chosen).toBe(DESK);
+    row(element, 'buy-filter')[1].fire('click');
+    expect([buy.chosen, buy.preview, buy.canBuy, element('buy-price').textContent]).toEqual([null, null, false, '']);
+    expect(pressed(cards(element))).toEqual([false, false, false]);
+    cards(element)[0].fire('click');
+    row(element, 'buy-filter')[3].fire('click');
+    expect(buy.chosen).toBe(BED);
+    view.render();
+    expect(cards(element).map(card => card.hidden)).toEqual([false, true, true]);
+  });
+
+  // Review findings [H1] and [H10] on the catalogue branch.
+  it('disables every control while a purchase is on its way or another pause holds', () => {
+    const { buy, source, view, element } = controls();
+    buy.enter();
+    cards(element)[0].fire('click');
+    buy.buy();
+    view.render();
+    expect(source.staged).toEqual([[BED.definition, 4, 3, 0]]);
+    const everything = [...cards(element), ...row(element, 'buy-room-filter'), ...row(element, 'buy-filter'), element('buy-clear-filters')];
+    expect(everything.every(button => button.disabled)).toBe(true);
+    source.result = { definition: BED.definition, x: 4, y: 3, facing: 0, reason: null, object: 41 };
+    buy.afterCommands();
+    view.render();
+    expect(cards(element).map(card => card.disabled)).toEqual([false, false, false]);
+    buy.setBlocked(true);
+    view.render();
+    expect(everything.every(button => button.disabled)).toBe(true);
+    buy.setBlocked(false);
+    buy.cancel();
+    view.render();
+    expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent,
+      element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
   });
 
   it('offers the colourways and chooses one from the Colour list', () => {
@@ -561,7 +683,7 @@ describe('BuyToolControls', () => {
     colour.value = '1';
     colour.fire('change');
     expect(buy.colourway).toBe(1);
-    buy.choose(CHAIR.definition);
+    cards(element)[1].fire('click');
     buy.buy();
     view.render();
     expect([buy.pending, colour.disabled]).toEqual([true, true]);
@@ -575,10 +697,10 @@ describe('BuyToolControls', () => {
     const doc = {
       querySelector: (selector: string) => {
         const id = selector.slice(1);
-        if (!elements.has(id)) elements.set(id, new FakeElement());
+        if (!elements.has(id)) elements.set(id, Object.assign(new FakeElement(), { ownerDocument: doc }));
         return elements.get(id);
       },
-      createElement: () => new FakeElement(),
+      createElement: (tag: string) => Object.assign(new FakeElement(), { ownerDocument: doc, tagName: tag }),
     } as unknown as Document;
     const source = new FakeShop();
     source.colourwayNames = () => ['As drawn'];
@@ -589,29 +711,105 @@ describe('BuyToolControls', () => {
     expect(elements.get('buy-colour')!.disabled).toBe(true);
   });
 
-  it('says what the chosen item is good for', () => {
-    const { buy, view, element } = controls();
+  it('draws the pictures once, the first time the tool is shown, from the ghost query at the base facing', () => {
+    const { buy, view, pictures, source } = controls();
+    expect(pictures).toEqual([]);
     buy.enter();
     view.render();
-    expect(element('buy-serves').textContent).toBe('');
-    buy.choose(BED.definition);
+    // FakeShop answers a preview with the definition as the sprite.
+    expect(pictures).toEqual([BED, CHAIR, DESK].map(item => ({ sprite: item.definition, foreground: null })));
+    for (const item of [BED, CHAIR, DESK]) expect(source.previews).toContainEqual([item.definition, 0, 0, item.baseFacing]);
     view.render();
-    expect(element('buy-serves').textContent).toBe('Good for: Energy, Comfort');
-    buy.choose(CHAIR.definition);
-    view.render();
-    expect(element('buy-serves').textContent).toBe('Good for: no need on its own');
+    expect(pictures).toHaveLength(3);
   });
 
-  // Review findings [H1] and [H10] on the catalogue branch.
-  it('disables the Show list while another pause holds, and shows a filter set elsewhere', () => {
+  it('shows the Colour list only while an item is chosen', () => {
     const { buy, view, element } = controls();
     buy.enter();
-    buy.setFilter(FUN);
     view.render();
-    expect([element('buy-filter').value, element('buy-filter').disabled]).toEqual(['5', false]);
-    buy.setBlocked(true);
+    expect([element('buy-colour').hidden, element('buy-colour-label').hidden]).toEqual([true, true]);
+    cards(element)[1].fire('click');
+    expect([element('buy-colour').hidden, element('buy-colour-label').hidden]).toEqual([false, false]);
+    buy.cancel();
     view.render();
-    expect(element('buy-filter').disabled).toBe(true);
+    expect(element('buy-colour').hidden).toBe(true);
+  });
+
+  it('keeps one card in the Tab order, and Choose item focuses the chosen card or the first shown', () => {
+    const { buy, source, view, doc, element } = controls();
+    buy.enter();
+    expect(cards(element).map(card => card.tabIndex)).toEqual([0, -1, -1]);
+    source.money = 100;
+    view.render();
+    expect(cards(element).map(card => card.tabIndex), 'a grayed card is still the first shown').toEqual([0, -1, -1]);
+    view.focusCatalogue();
+    expect(doc.activeElement).toBe(cards(element)[0]);
+    source.money = 1_000;
+    // A browser focuses a card it clicks.
+    cards(element)[2].focus();
+    cards(element)[2].fire('click');
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
+    // The chosen card keeps Choose item's focus after the household can no longer afford it.
+    source.money = 10;
+    view.render();
+    view.focusCatalogue();
+    expect(doc.activeElement).toBe(cards(element)[2]);
+  });
+
+  it('moves focus between the shown cards with the arrow keys, Home and End', () => {
+    const { buy, view, doc, element } = controls();
+    buy.enter();
+    row(element, 'buy-filter')[1].fire('click');
+    view.render();
+    const key = (name: string) => {
+      let prevented = false;
+      element('buy-object').fire('keydown', { key: name, preventDefault: () => { prevented = true; } });
+      return prevented;
+    };
+    expect(key('ArrowRight')).toBe(true);
+    expect(doc.activeElement).toBe(cards(element)[0]);
+    expect(cards(element)[0].tabIndex).toBe(0);
+    expect(key('ArrowRight')).toBe(true);
+    expect(doc.activeElement, 'the Bed is the only card the Energy filter shows').toBe(cards(element)[0]);
+    element('buy-clear-filters').fire('click');
+    key('End');
+    expect(doc.activeElement).toBe(cards(element)[2]);
+    key('ArrowLeft');
+    expect(doc.activeElement).toBe(cards(element)[1]);
+    // The card moved to is the one Tab stop, so Tab leaves the grid from it.
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, 0, -1]);
+    view.render();
+    expect(cards(element).map(card => card.tabIndex), 'kept across a redraw').toEqual([-1, 0, -1]);
+    // A click or Tab focusing a card makes it the Tab stop too, and the
+    // focused card keeps it across a redraw even when another is chosen.
+    cards(element)[0].fire('click');
+    cards(element)[2].fire('focus');
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
+    cards(element)[2].focus();
+    view.render();
+    expect(cards(element).map(card => card.tabIndex), 'the focused card over the chosen one').toEqual([-1, -1, 0]);
+    key('Home');
+    expect(doc.activeElement).toBe(cards(element)[0]);
+    key('ArrowUp');
+    expect(doc.activeElement, 'wraps around').toBe(cards(element)[2]);
+    expect(key('Enter')).toBe(false);
+    for (const modifier of ['altKey', 'ctrlKey', 'metaKey', 'shiftKey']) {
+      let prevented = false;
+      element('buy-object').fire('keydown', { key: 'ArrowLeft', [modifier]: true, preventDefault: () => { prevented = true; } });
+      expect(prevented, `a browser shortcut with ${modifier} passes through`).toBe(false);
+    }
+  });
+
+  it('keeps the last focused card as the Tab stop once focus leaves the grid', () => {
+    const { buy, view, doc, element } = controls();
+    buy.enter();
+    view.render();
+    cards(element)[2].focus();
+    cards(element)[2].fire('focus');
+    row(element, 'buy-room-filter')[0].focus();
+    view.render();
+    expect([buy.chosen, doc.activeElement === cards(element)[2]]).toEqual([null, false]);
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
   });
 
   it('words what an item is good for from the need names', () => {
@@ -620,48 +818,18 @@ describe('BuyToolControls', () => {
     expect(servesLabel(0, NEEDS)).toBe('Good for: no need on its own');
   });
 
-  it('lists every item with its price and greys out what the household cannot afford', () => {
-    const { buy, source, view, element } = controls();
-    const options = element('buy-object').children;
-    expect(options.map((option) => option.textContent)).toEqual(
-      ['Choose something to buy', 'Bed (250)', 'Chair (40)', 'Desk (180)']);
-    source.money = 180;
-    buy.enter();
-    view.render();
-    expect(options.slice(1).map((option) => option.disabled)).toEqual([true, false, false]);
-    source.money = 250;
-    view.render();
-    expect(options.slice(1).map((option) => option.disabled)).toEqual([false, false, false]);
-  });
-
   it('preserves catalogue selection, price and facing while actions live in the viewport', () => {
     const { buy, source, view, element } = controls();
     buy.enter();
-    element('buy-object').value = String(BED.definition);
-    element('buy-object').fire('change'); view.render();
+    cards(element)[0].fire('click');
     expect([element('buy-price').textContent, element('buy-facing').textContent])
       .toEqual(['Price: 250', 'Facing: South-east']);
     buy.rotate(); buy.buy(); view.render();
     expect(source.staged).toEqual([[BED.definition, 4, 3, 2]]);
-    expect([element('buy-object').disabled, element('buy-filter').disabled]).toEqual([true, true]);
     source.result = { definition: BED.definition, x: 4, y: 3, facing: 2, reason: null, object: 41 };
     buy.afterCommands(); buy.cancel(); view.render();
     expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent,
       element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
-  });
-
-  // Review finding [F6] on PR 96: the placeholder must not leave a buyable ghost.
-  it('drops the choice when the list is set back to its placeholder', () => {
-    const { buy, source, view, element } = controls();
-    buy.enter();
-    element('buy-object').value = String(CHAIR.definition);
-    element('buy-object').fire('change');
-    element('buy-object').value = '';
-    element('buy-object').fire('change');
-    expect([buy.chosen, buy.preview, buy.canBuy, element('buy-price').textContent,
-      element('buy-serves').textContent]).toEqual([null, null, false, '', '']);
-    buy.buy();
-    expect(source.staged).toEqual([]);
   });
 
   it('keeps the optional shortcuts available on desktop and phone', () => {
@@ -671,9 +839,144 @@ describe('BuyToolControls', () => {
     view.setCompact(false);
     expect([element('buy-keyboard-help').hidden, element('buy-touch-help').hidden]).toEqual([false, false]);
   });
+});
 
-  it('writes a price the way the Funds line does, apart from a name with a comma in it', () => {
-    expect(itemLabel('Dining chair', 1_250)).toBe('Dining chair (1,250)');
+describe('the catalogue pictures', () => {
+  it('names a sprite the atlas has for every shipped item', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, wasmMemory);
+      const buy = new BuyTool(bridge, 16, 12, { changed() {} });
+      expect(buy.items.length).toBeGreaterThan(0);
+      for (const item of buy.items) {
+        const art = buy.art(item);
+        expect(SPRITES[art.sprite]?.w, item.name).toBeGreaterThan(0);
+        if (art.foreground !== null) expect(SPRITES[art.foreground]?.w, item.name).toBeGreaterThan(0);
+      }
+    } finally { handle.free(); }
+  });
+
+  it('finds the visible pixels of a sprite, ignoring fully transparent ones', () => {
+    const width = 4;
+    const rgba = new Uint8ClampedArray(width * 3 * 4);
+    expect(visibleBounds(rgba, width, 3)).toBeNull();
+    rgba[(1 * width + 1) * 4 + 3] = 1;
+    rgba[(2 * width + 2) * 4 + 3] = 255;
+    expect(visibleBounds(rgba, width, 3)).toEqual([1, 1, 3, 3]);
+  });
+
+  it('cuts a layer down to its visible pixels, in logical pixels, and empties its scratch canvas', async () => {
+    // A density-2 sprite at (5, 7) on its page, 12 by 24 texels, whose
+    // visible texels run from (2, 4) to (9, 19).
+    const sprite = { name: 'test', x: 5, y: 7, w: 12, h: 24, pixel_density: 2, page: 0 } as AtlasSprite;
+    const alpha = new Uint8ClampedArray(12 * 24 * 4);
+    alpha[(4 * 12 + 2) * 4 + 3] = 255;
+    alpha[(19 * 12 + 9) * 4 + 3] = 255;
+    const copies: unknown[][] = [];
+    const bitmaps: unknown[][] = [];
+    const scratch = { width: 0, height: 0, getContext: () => ({
+      drawImage: (...args: unknown[]) => { copies.push(args); },
+      getImageData: () => ({ data: alpha }),
+    }) } as unknown as HTMLCanvasElement;
+    const page = { page: 0 } as unknown as ImageBitmap;
+    const image = { close() {} } as unknown as ImageBitmap;
+    const crop = makeCropLayer({ canvas: () => scratch,
+      bitmap: async (...args) => { bitmaps.push(args); return image; } });
+    const cut = await crop(page, sprite);
+    expect(copies).toEqual([[page, 5, 7, 12, 24, 0, 0, 12, 24]]);
+    expect(bitmaps).toEqual([[scratch, 2, 4, 8, 16]]);
+    expect(cut?.bounds).toEqual([1, 2, 5, 10]);
+    expect(cut?.image).toBe(image);
+    expect([scratch.width, scratch.height]).toEqual([0, 0]);
+    alpha.fill(0);
+    expect(await crop(page, sprite), 'a sprite with no visible pixels has no cut-out').toBeNull();
+    expect(bitmaps).toHaveLength(1);
+  });
+
+  /** A canvas that records what is drawn on it and when it is cleared. */
+  const recorder = (name: string, log: string[], fail = false) => ({ width: 144, height: 144, getContext: () => ({
+    imageSmoothingEnabled: false, imageSmoothingQuality: 'low',
+    drawImage: (image: { label: string }, ...box: number[]) => {
+      if (fail) throw new Error('draw failed');
+      log.push(`${name}:${image.label}:${box.map(value => Math.round(value)).join(',')}`);
+    },
+    clearRect: () => { log.push(`${name}:cleared`); },
+  }) }) as unknown as HTMLCanvasElement;
+  const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
+  /** Pages that load, logging each load and release. */
+  const pages = (log: string[], failing: number[] = []) => async (page: number) => {
+    if (failing.includes(page)) throw new Error(`page ${page} offline`);
+    log.push(`load ${page}`);
+    return { page, close: () => { log.push(`close ${page}`); } } as unknown as ImageBitmap;
+  };
+  /** Cut-outs 20 by 40 logical pixels at (10, 20), labeled by page. */
+  const crops = (log: string[], failing: number[] = []) => async (page: ImageBitmap) => {
+    const at = (page as unknown as { page: number }).page;
+    log.push(`crop on ${at}`);
+    if (failing.includes(at)) throw new Error(`crop on ${at} failed`);
+    return { image: { label: `p${at}` } as unknown as CanvasImageSource, bounds: [10, 20, 30, 60] as const,
+      close: () => { log.push(`release p${at}`); } };
+  };
+
+  it('reads each page and cuts each sprite once, then draws the base before the foreground, placed by their anchors', async () => {
+    const log: string[] = [];
+    const [two, three] = [indexOn(2), indexOn(3)];
+    expect(Math.min(two, three)).toBeGreaterThanOrEqual(0);
+    // The base's page comes after the foreground's: the base is still drawn first.
+    await drawCataloguePreviews([{ canvas: recorder('lone', log), sprite: three, foreground: null },
+      { canvas: recorder('pair', log), sprite: three, foreground: two }], pages(log), crops(log));
+    expect(log.slice(0, 6), 'the sprite both cards share is cut out once')
+      .toEqual(['load 2', 'crop on 2', 'close 2', 'load 3', 'crop on 3', 'close 3']);
+    // A 20 by 40 cut-out in a 144 canvas scales by 3.6 and is centered across.
+    const drawn = log.slice(6, 9);
+    expect(drawn).toContain('lone:p3:36,0,72,144');
+    // The foreground sits where the anchors put it: the base's anchor minus
+    // its own, both in logical pixels, the renderer's bottom center by default.
+    const anchorOf = (index: number) => SPRITE_ANCHORS[index]
+      ?? [SPRITES[index].w / (SPRITES[index].pixel_density ?? 1) / 2, SPRITES[index].h / (SPRITES[index].pixel_density ?? 1)];
+    const [sx, sy] = [anchorOf(three)[0] - anchorOf(two)[0], anchorOf(three)[1] - anchorOf(two)[1]];
+    const box = [10 + Math.min(0, sx), 20 + Math.min(0, sy), 30 + Math.max(0, sx), 60 + Math.max(0, sy)];
+    const scale = Math.min(144 / (box[2] - box[0]), 144 / (box[3] - box[1]));
+    const [ox, oy] = [(144 - (box[2] - box[0]) * scale) / 2, (144 - (box[3] - box[1]) * scale) / 2];
+    const rect = (shiftX: number, shiftY: number) => [ox + (10 + shiftX - box[0]) * scale, oy + (20 + shiftY - box[1]) * scale,
+      20 * scale, 40 * scale].map(value => Math.round(value)).join(',');
+    const pair = drawn.filter(line => line.startsWith('pair:'));
+    expect(pair).toEqual([`pair:p3:${rect(0, 0)}`, `pair:p2:${rect(sx, sy)}`]);
+    expect(log.slice(9).sort()).toEqual(['release p2', 'release p3']);
+  });
+
+  it('leaves a card blank when one of its layers cannot be read, draws the rest, and reports the failure last', async () => {
+    const log: string[] = [];
+    const [one, two, three] = [indexOn(1), indexOn(2), indexOn(3)];
+    expect(Math.min(one, two, three)).toBeGreaterThanOrEqual(0);
+    await expect(drawCataloguePreviews([
+      { canvas: recorder('lost-base', log), sprite: one, foreground: three },
+      { canvas: recorder('lost-front', log), sprite: three, foreground: one },
+      { canvas: recorder('whole', log), sprite: two, foreground: null },
+    ], pages(log, [1]), crops(log))).rejects.toThrow('page 1 offline');
+    expect(log.filter(line => line.startsWith('lost-')), 'neither half-read card is drawn').toEqual([]);
+    expect(log.some(line => line.startsWith('whole:p2:'))).toBe(true);
+    expect(log).toContain('load 3');
+    expect(log.findIndex(line => line.startsWith('whole:p2:')), 'a card is drawn once its own pages are read')
+      .toBeLessThan(log.indexOf('load 3'));
+  });
+
+  it('leaves a card blank when its cut-out or its drawing fails, and still draws the others', async () => {
+    const log: string[] = [];
+    const [two, three] = [indexOn(2), indexOn(3)];
+    await expect(drawCataloguePreviews([
+      { canvas: recorder('uncut', log), sprite: two, foreground: null },
+      { canvas: recorder('broken', log, true), sprite: three, foreground: null },
+      { canvas: recorder('fine', log), sprite: three, foreground: null },
+    ], pages(log), crops(log, [2]))).rejects.toThrow('crop on 2 failed');
+    expect(log.filter(line => line.startsWith('uncut'))).toEqual([]);
+    expect(log).toContain('broken:cleared');
+    expect(log.some(line => line.startsWith('fine:p3:'))).toBe(true);
+    expect(log).toContain('close 2');
+    expect(log).toContain('release p3');
+    const failures: string[] = [];
+    await expect(drawCataloguePreviews([{ canvas: recorder('broken', failures, true), sprite: three, foreground: null }],
+      pages(failures), crops(failures))).rejects.toThrow('draw failed');
   });
 });
 
@@ -766,9 +1069,9 @@ describe('the Buy tool on real wasm', () => {
 });
 
 describe('the Buy tool in the page', () => {
-  const IDS = ['build-tool-buy', 'buy-tool', 'buy-filter', 'buy-object', 'buy-facing',
-    'buy-price', 'buy-serves', 'buy-status', 'buy-keyboard-help',
-    'buy-touch-help', 'buy-colour'];
+  const IDS = ['build-tool-buy', 'buy-tool', 'buy-room-filter', 'buy-filter', 'buy-clear-filters', 'buy-object',
+    'buy-facing', 'buy-price', 'buy-serves', 'buy-status', 'buy-keyboard-help',
+    'buy-touch-help', 'buy-colour', 'buy-colour-label'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
     expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
@@ -784,9 +1087,11 @@ describe('the Buy tool in the page', () => {
   it('is wired into the frame, the click, Load and leaving Build', () => {
     for (const wiring of ['buyTool.afterCommands()', 'buyTool.moveTo(tile[0], tile[1])',
       'buyTool.resetAfterLoad(lotWidth, lotHeight)', 'buyTool.exit()',
-      "buyTool.setBlocked(overlayPause.suspendedExcept('builder'))",
+      "buyTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active)",
       'buyControls?.setCompact(event.matches)',
-      'new BuyToolControls(document, buyTool, sim.needNames())']) {
+      'new BuyToolControls(document, buyTool, sim.needNames(), cards => {',
+      'drawCataloguePreviews(cards)',
+      'focusCatalogue: () => buyControls?.focusCatalogue()']) {
       expect(MAIN_TS).toContain(wiring);
     }
     // The ghost reaches the one packer; its batch publishes the live count.

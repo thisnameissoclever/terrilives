@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-format-check.log",
+  "finished_utc": "2026-10-18T04:32:04.904523+00:00"
+}

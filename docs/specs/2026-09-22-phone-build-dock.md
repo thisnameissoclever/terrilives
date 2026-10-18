@@ -4,7 +4,7 @@ The original dock slice shipped in PR 102 at merge `909604a`. The approved [cont
 
 ## [PD-parts] Navigation, settings and contextual actions
 
-The dock contains Build mode, Exit build, and all five tools: Furniture, Walls, Room, Buy and Floors. Settings, selection information and a collapsed Shortcuts reference follow. Catalogue filters, colours, prices, object identity and refusal explanations remain available.
+The dock contains Build mode, Exit build, and six tools: Furniture, Walls, Rooms, Buy, Floors, and Land. Rooms defaults to Select rooms and also offers Build room for rectangular construction. Settings, selection information and a collapsed Shortcuts reference follow. Catalogue filters, colors, prices, object identity and refusal explanations remain available. The store's room-type filter does not refer to player-named rooms.
 
 Edits now appear around the active selection in the viewport. The dock does not duplicate placement, rotation, sale, wall or floor actions. Empty space between contextual buttons still accepts game input.
 
@@ -21,6 +21,8 @@ Compact rows share one grid with world controls, visible game space and the tool
 ## [PD-rows] Reading order and hiding
 
 Desktop settings precede selection feedback and Shortcuts. Phone settings scroll without covering navigation. Shortcuts starts closed when entering another tool; selection redraws preserve an opened disclosure. Hidden must win against every responsive display rule, including for contextual actions behind a modal dialog.
+
+The room dropdown remains available when a floor target is small or covered by furniture. Switching tools or changing room selection preserves unfinished name text. Enter in the name field does not confirm the build. Room-change review retains choices when changing rows; Back to build keeps the draft. Affirmative actions use the shared green style, and cancellation or return actions use red.
 
 ## Review record
 

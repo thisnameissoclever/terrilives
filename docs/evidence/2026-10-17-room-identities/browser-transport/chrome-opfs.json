@@ -1,0 +1,72 @@
+{
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "secure": true,
+  "opfs": true,
+  "locks": true,
+  "cases": [
+    {
+      "kind": "first-repeat-oldworker-Newgame",
+      "historical": 14,
+      "passed": true
+    },
+    {
+      "kind": "first-repeat-oldworker-Newgame",
+      "historical": 15,
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "backup",
+      "phase": "open",
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "backup",
+      "phase": "write",
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "backup",
+      "phase": "close",
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "primary",
+      "phase": "open",
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "primary",
+      "phase": "write",
+      "passed": true
+    },
+    {
+      "kind": "fault",
+      "target": "primary",
+      "phase": "close",
+      "passed": true
+    },
+    {
+      "kind": "malformed-backup",
+      "passed": true
+    },
+    {
+      "kind": "concurrent-workers",
+      "passed": true
+    }
+  ],
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "golden": "4661132544113609906",
+  "bom_literal_preserved": true,
+  "artifacts": {
+    "v15": "f1a5d9d4bd86c69517c401a0b21881bd0841251367f049a19b523876fc9b3e27",
+    "v14": "05c24b97e85f297fa1e233cf5c16db47356a21ded9f682c0574157576d70fe23",
+    "current": "b00fbbbaf4b8a785706e15b706d489310e46c93b58223ca7e52b30b58c87b02d"
+  },
+  "passed": true,
+  "raw_cli_sha256": "5361524d28d101ce3c793a4514336908744dabd3c832728d82a10b0ba3f2ff3f"
+}

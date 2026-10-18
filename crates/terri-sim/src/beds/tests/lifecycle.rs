@@ -221,6 +221,7 @@ fn full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facin
     ];
     for (facing, (first_end, second_end)) in terri_core::Facing::ALL.into_iter().zip(endpoints) {
         let (mut sim, bed, [first, second, third]) = fixture();
+        crate::test_content::assert_current_admission(&sim);
         let mut pack = sim.world().resource::<crate::Content>().0.clone();
         pack.objects[0].facing_sprites =
             terri_data::FacingSprites([Some(pack.objects[0].sprite); 4]);
@@ -256,9 +257,9 @@ fn full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facin
         assert!(sim.world().get::<Target>(third).is_none());
 
         let mut loaded = test_content::sim_with(12, 12, pack);
-        let walking = sim.save_snapshot_v5();
-        loaded.load_snapshot_v5(walking.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v5(), walking);
+        let walking = sim.current_v5_view();
+        loaded.load_current_v5_view(walking.clone()).unwrap();
+        assert_eq!(loaded.current_v5_view(), walking);
         let mut saw_both_sleeping = false;
         let mut saw_handoff = false;
         let mut partner_sleep = None;
@@ -266,7 +267,7 @@ fn full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facin
             sim.tick();
             loaded.tick();
             assert_eq!(loaded.world_hash(), sim.world_hash(), "{facing:?}");
-            assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
+            assert_eq!(loaded.current_v5_view(), sim.current_v5_view());
             assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
             if !saw_both_sleeping
                 && sim.world().get::<Eating>(first).is_some()
@@ -287,9 +288,9 @@ fn full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facin
                 }
                 assert!(sim.world().get::<Blocked>(third).is_some());
                 assert!(sim.world().get::<Target>(third).is_none());
-                let sleeping = sim.save_snapshot_v5();
-                loaded.load_snapshot_v5(sleeping.clone()).unwrap();
-                assert_eq!(loaded.save_snapshot_v5(), sleeping);
+                let sleeping = sim.current_v5_view();
+                loaded.load_current_v5_view(sleeping.clone()).unwrap();
+                assert_eq!(loaded.current_v5_view(), sleeping);
             }
             if let Some((started_at, original)) = partner_sleep {
                 let elapsed = sim.world().resource::<SimClock>().tick - started_at;

@@ -1,0 +1,931 @@
+{
+  "source": "a481d7c7be0708c4523d9a156513b6696aaff6f6",
+  "schema": 15,
+  "seed": [
+    42,
+    0
+  ],
+  "file": "chat-waiting-private.sav",
+  "bytes": 6005,
+  "sha256": "d30d3f0f689dfcb0918e213a8505bcfd2476536f808ed7e17a694c26271217d3",
+  "producerWasmSha256": "6472eed2c581986d5b29ce82660d200a6059aa872bdadcaa8d96299237740648",
+  "tick": "58",
+  "worldHash": "11546284282373361035",
+  "decoded": {
+    "schema": 15,
+    "tick": "58",
+    "width": 20,
+    "height": 16,
+    "next_request_id": "2",
+    "requests": [
+      {
+        "id": "0",
+        "initiator": 0,
+        "recipient": 1,
+        "interaction": "chat",
+        "origin": {
+          "kind": "autonomous"
+        },
+        "created": "1",
+        "phase": "waiting",
+        "waiting_tile": [
+          13,
+          5
+        ],
+        "target_owned": true
+      },
+      {
+        "id": "1",
+        "initiator": 3,
+        "recipient": 1,
+        "interaction": "chat",
+        "origin": {
+          "kind": "player",
+          "order_id": "0"
+        },
+        "created": "58",
+        "phase": "waiting",
+        "waiting_tile": [
+          11,
+          8
+        ],
+        "target_owned": true
+      }
+    ],
+    "entities": [
+      {
+        "index": 0,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "fridge",
+        "position": [
+          0,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 1,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "counter",
+        "position": [
+          1,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 2,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "stove",
+        "position": [
+          2,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 3,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "counter",
+        "position": [
+          3,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 4,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "kitchen_sink",
+        "position": [
+          4,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 5,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "counter",
+        "position": [
+          5,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 6,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "trashcan",
+        "position": [
+          6,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 7,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "dining_table",
+        "position": [
+          2,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 8,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "chair",
+        "position": [
+          1,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 9,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "chair",
+        "position": [
+          4,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 10,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "bookshelf",
+        "position": [
+          8,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 11,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "long_sofa",
+        "position": [
+          10,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 12,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "armchair",
+        "position": [
+          13,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 13,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "potted_plant",
+        "position": [
+          15,
+          0
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 14,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "coat_rack",
+        "position": [
+          15,
+          1
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 15,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "floor_lamp",
+        "position": [
+          14,
+          2
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 16,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "radio",
+        "position": [
+          8,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 17,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "television",
+        "position": [
+          10,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 18,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "sofa",
+        "position": [
+          12,
+          3
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 19,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "double_bed",
+        "position": [
+          0,
+          8
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 20,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "nightstand",
+        "position": [
+          2,
+          6
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 21,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "dresser",
+        "position": [
+          0,
+          10
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 22,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "moving_box",
+        "position": [
+          4,
+          11
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 23,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "desk",
+        "position": [
+          6,
+          6
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 24,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "desk_chair",
+        "position": [
+          6,
+          7
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 25,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "bed",
+        "position": [
+          9,
+          6
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 26,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "reading_chair",
+        "position": [
+          9,
+          9
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 27,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "reference_shelf",
+        "position": [
+          6,
+          10
+        ],
+        "target": null,
+        "path": null,
+        "reserved": true,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 28,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "potted_plant",
+        "position": [
+          10,
+          11
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 29,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "toilet",
+        "position": [
+          12,
+          6
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 30,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "shower",
+        "position": [
+          14,
+          6
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 31,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "bathtub",
+        "position": [
+          14,
+          9
+        ],
+        "target": null,
+        "path": null,
+        "reserved": true,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 32,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "sink",
+        "position": [
+          12,
+          10
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 33,
+        "sim_id": null,
+        "name": null,
+        "agent": false,
+        "model": "laundry",
+        "position": [
+          12,
+          11
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": null,
+        "social": null,
+        "needs": null,
+        "voice": "None"
+      },
+      {
+        "index": 34,
+        "sim_id": 0,
+        "name": "Tim",
+        "agent": true,
+        "model": null,
+        "position": [
+          13,
+          5
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": true,
+        "eating": null,
+        "social": null,
+        "needs": [
+          58.403984,
+          97.041855,
+          95.82408,
+          94.08415,
+          98.49194,
+          74.38075,
+          98.700806
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 35,
+        "sim_id": 1,
+        "name": "Bill",
+        "agent": true,
+        "model": null,
+        "position": [
+          14,
+          8
+        ],
+        "target": {
+          "object": 31,
+          "interaction": 0
+        },
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": {
+          "model": "bathtub",
+          "interaction": 0,
+          "remaining": 54
+        },
+        "social": null,
+        "needs": [
+          96.404205,
+          80.556564,
+          97.311264,
+          94.08415,
+          98.49194,
+          97.2162,
+          53.20957
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 36,
+        "sim_id": 2,
+        "name": "Casey",
+        "agent": true,
+        "model": null,
+        "position": [
+          6,
+          9
+        ],
+        "target": {
+          "object": 27,
+          "interaction": 0
+        },
+        "path": null,
+        "reserved": false,
+        "blocked": false,
+        "eating": {
+          "model": "reference_shelf",
+          "interaction": 0,
+          "remaining": 34
+        },
+        "social": null,
+        "needs": [
+          96.404205,
+          97.041855,
+          67.241806,
+          94.08415,
+          55.88881,
+          99.45499,
+          100
+        ],
+        "voice": "None"
+      },
+      {
+        "index": 37,
+        "sim_id": 3,
+        "name": null,
+        "agent": true,
+        "model": null,
+        "position": [
+          11,
+          8
+        ],
+        "target": null,
+        "path": null,
+        "reserved": false,
+        "blocked": true,
+        "eating": null,
+        "social": null,
+        "needs": [
+          99.938,
+          99.949,
+          99.928,
+          99.898,
+          99.974,
+          99.952,
+          99.968
+        ],
+        "voice": "None"
+      }
+    ],
+    "queues": [
+      {
+        "owner": 35,
+        "next_id": "1",
+        "orders": [
+          {
+            "id": "0",
+            "target": 31,
+            "action": "interaction:soak",
+            "title": null
+          }
+        ]
+      },
+      {
+        "owner": 37,
+        "next_id": "1",
+        "orders": [
+          {
+            "id": "0",
+            "target": 35,
+            "action": "social:chat",
+            "title": null
+          }
+        ]
+      }
+    ],
+    "social_actions": [
+      "chat",
+      "fight"
+    ],
+    "rendezvous": [],
+    "queued": [],
+    "command_order_v6": "[]",
+    "command_order_v10": "[]"
+  },
+  "traceAtCapture": [
+    {
+      "tick": "0",
+      "operation": "enqueue",
+      "op": "use-front",
+      "args": [
+        35,
+        31,
+        0
+      ],
+      "hex": "05231f00"
+    },
+    {
+      "tick": "0",
+      "operation": "flush"
+    },
+    {
+      "tick": "57",
+      "operation": "spawn_agent",
+      "args": [
+        11,
+        8,
+        100
+      ],
+      "index": 37,
+      "simId": 3
+    },
+    {
+      "tick": "57",
+      "operation": "enqueue",
+      "op": "talk",
+      "args": [
+        37,
+        35,
+        0
+      ],
+      "hex": "04252300"
+    },
+    {
+      "tick": "57",
+      "operation": "flush"
+    }
+  ],
+  "detail": {
+    "roles": {
+      "A": {
+        "index": 37,
+        "simId": 3,
+        "name": null
+      },
+      "B": {
+        "index": 35,
+        "simId": 1,
+        "name": "Bill"
+      }
+    },
+    "requestId": "1",
+    "recipientActivity": {
+      "model": "bathtub",
+      "interaction": 0,
+      "remaining": 54
+    }
+  },
+  "strictOriginalReload": true,
+  "exactOriginalResave": true,
+  "decodedPayloadRoundtrip": true,
+  "uninterruptedVsReloaded": {
+    "updates": 120,
+    "exactSaveBytes": true,
+    "exactWorldHash": true
+  }
+}

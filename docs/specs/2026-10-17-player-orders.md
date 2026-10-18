@@ -1,5 +1,11 @@
 # Player orders, attendance and action diagnostics
 
+The integrated persistence format is V17: `SaveSnapshotV17` wraps the complete
+published V16 room envelope and its published V15 conversation envelope, then
+adds player-order ownership and attendance. Current capture and restoration
+use `save_snapshot_v17` and `load_snapshot_v17`; published V15/V16 readers and
+wire layouts remain supported.
+
 Issue #273 defines this change. Player orders retain stable identity from
 acceptance through completion, cancellation or an explained failure. A path or
 reservation release does not cancel an order. Critical needs never override

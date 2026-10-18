@@ -1,0 +1,55 @@
+{
+  "base_commit": "ac116ae9d44e6976bf316644ca2bc0e4c22be4a3",
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "source_identity_note": "RED main bytes reconstructed by reversing only the one-line fix, then verified against the prior checkpoint raw-file hash and normalized base Git blob. The new regression file did not change between RED and GREEN. No pre-run broad source manifest is claimed.",
+  "red_main_sha256": "d667efde03e57c0a2b07de3f369f57f98792a3e39e261cd42c97c2379c74bb05",
+  "green_main_sha256": "d0fc63d7b855b52e5d4b84b270c754de71f33070b955365cc0b338f33d104f93",
+  "regression_file_sha256": "0dfb81ea28a2e44166c181b077e21014d97feb214da9758ef46df259ab426b2e",
+  "green_source_files": [
+    {
+      "path": "web/src/main.ts",
+      "sha256": "d0fc63d7b855b52e5d4b84b270c754de71f33070b955365cc0b338f33d104f93"
+    },
+    {
+      "path": "web/tests/main-build-wiring.test.ts",
+      "sha256": "0dfb81ea28a2e44166c181b077e21014d97feb214da9758ef46df259ab426b2e"
+    },
+    {
+      "path": "web/tests/build-exit.test.ts",
+      "sha256": "be6c1945201249fcc66d5de2a5d4e6a6cb390ae52f42ce1eb40cb18afa1c8e1d"
+    }
+  ],
+  "gates": [
+    {
+      "gate": "red",
+      "exit": 1,
+      "raw_log": ".local-build/r7-fix1-red.log",
+      "raw_sha256": "2a525f7b7fd07ccaa7072add19a3fc234eda8d19b8b67f5e58a3e8ed0acee809",
+      "retained_log": "red.log",
+      "retained_sha256": "054ec88f5f356a7d91aead13bafa9a678b5a5530fa1faff1432e46830828a301"
+    },
+    {
+      "gate": "green",
+      "exit": 0,
+      "raw_log": ".local-build/r7-fix1-green.log",
+      "raw_sha256": "e3644338ed0f6c5d2331d426bbe08f6d1dd96fe55328e52937f37fbcd2e7cda3",
+      "retained_log": "green.log",
+      "retained_sha256": "b8eff669ecfbcdc946fb10ec44556cd0cc5a6696cdad347d4cd0f4d1a82cc490"
+    },
+    {
+      "gate": "typecheck",
+      "exit": 0,
+      "raw_log": ".local-build/r7-fix1-typecheck.log",
+      "raw_sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
+      "retained_log": "typecheck.log",
+      "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad"
+    }
+  ],
+  "commands": {
+    "red": "npm --prefix web test -- --maxWorkers=1 tests/main-build-wiring.test.ts",
+    "green": "npm --prefix web test -- --maxWorkers=1 tests/main-build-wiring.test.ts tests/build-exit.test.ts tests/build-session.test.ts tests/build-session-state.test.ts tests/room-selection.test.ts tests/room-review.test.ts",
+    "typecheck": "npm --prefix web run typecheck"
+  },
+  "node_options": "--max-old-space-size=4096",
+  "retained_log_normalization": "UTF-8 with LF line endings and one final newline; raw ignored logs remain unchanged."
+}

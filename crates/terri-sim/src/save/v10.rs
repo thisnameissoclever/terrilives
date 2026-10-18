@@ -157,7 +157,13 @@ mod tests {
 
     #[test]
     fn appearance_and_interleaved_queued_edits_survive_exact_round_trip() {
-        let mut sim = Sim::new_from_shipped_lot();
+        let current = Sim::new_from_shipped_lot();
+        let mut sim = restore(
+            current.save_snapshot_v10(),
+            terri_data::pack(),
+            crate::save::Carried::default(),
+        )
+        .unwrap();
         let mut appearance = CharacterAppearanceV1::default();
         appearance.body.height = 87;
         appearance.hairstyle = "wave".into();

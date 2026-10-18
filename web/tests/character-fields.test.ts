@@ -1,10 +1,11 @@
+import { creationInstinctBands } from './helpers/creation-instinct-bands.js';
 import { expect, it } from 'vitest';
 import { characterFields } from '../src/character/fields.js';
 import { defaultAppearance, floatBits, neutralDraft } from '../src/character/schema.js';
 import { validateDraft } from '../src/character/validate.js';
 import type { CharacterCatalog } from '../src/character/catalog.js';
 
-export const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,
+export const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,self_preservation_bands:creationInstinctBands,
   traits:[{id:'private',label:'Private person',description:'Prefers privacy.',kind:'disposition',initial_state:floatBits(0),weights:[]},
     {id:'isolated',label:'Isolated',description:'Affects satisfaction.',kind:'condition',initial_state:floatBits(.5),weights:[]}],
   affinities:[{id:'plants',label:'Plants',description:'Reaction to nearby plants.'}],

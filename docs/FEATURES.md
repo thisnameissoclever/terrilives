@@ -2,7 +2,7 @@
 
 ## Household chores
 
-The local chores implementation adds targeted dish cleanup, indoor floor and
+The local chores implementation adds targeted dish cleanup, eligible indoor and outdoor floor and
 surface grime, bin waste, timed cleaning, separate responsibility and chore
 preferences, and an automatic weekly board with saved daily outcomes. The main
 bottom bar opens Chores, which exposes assignments, recent outcomes, actual performers and profile
@@ -25,7 +25,7 @@ their original save versions, sprite counts and measurements describe those rele
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, editing a living person's name, personality, traits and family ties, and each person's likes and dislikes for plants, the aquarium, the television and the radio, shown in Sim details; likes and dislikes shipped 2026-10-06 | Appearance and gender choices, random generation, deeper traits, colour preferences and editing likes and dislikes |
 | Skills | Cooking, Fitness and Reading, learned by every completed attempt, read by the matching capability trait's fumble roll, saved with the household and listed in Sim details; shipped 2026-10-05 | Better outcomes and unlocks at higher levels, more skills, career performance, and a fuller skills panel if the owner wants one |
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
-| Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
+| Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors; a pool, a pool lounger and a patio umbrella sold for the yard | Exterior presentation, more outdoor objects, outdoor activities such as swimming, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, liked or disliked plants and aquarium in the room, being bothered by another's television or radio, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
@@ -445,7 +445,9 @@ The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Re
 
 Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
 
-The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours. Dates, seasons, pay days and scheduled events remain open; see `specs/2026-10-06-calendar.md`.
+The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours; see `specs/2026-10-06-calendar.md`.
+
+The seasons slice of [S-calendar] (issue 251) shipped on 2026-10-17: the year is Spring, Summer, Autumn and Winter, seven days each, a new game starts in Spring, the clock names the season before the time, and the yard's grass takes a tint in each season. The season has no gameplay effect yet. Dates, pay days and scheduled events remain open; see `specs/2026-10-17-seasons.md`.
 
 The first object-affinities slice [B-object-affinities] shipped on 2026-10-06: every person has a value for plants, the aquarium, the television and the radio, shown as Loves to Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood, and somebody else using a television or radio a person dislikes in the same room lowers their mood and their feeling toward that person. Colour preferences, editing the values, the general nuisance field and pets remain open; see `specs/2026-10-06-object-affinities.md`.
 
@@ -852,16 +854,19 @@ third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
 the yard by day while the rooms stay dimmer, lighter by an open doorway and
 darkest at the back of the house, and people, furniture, interior doors and the
 placement preview take their tile's shade. Its played check is
-[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]); the house seen
-from outside and outdoor objects remain.
+[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]). The first outdoor
+objects, a decorative pool, a pool lounger with Sit and a decorative patio umbrella
+sold under a Yard room, are specified in `docs/specs/2026-10-17-outdoor-furniture.md`
+(issue 250); the house seen from outside, more outdoor objects and outdoor
+activities such as swimming remain.
 
 ### [B-floors] The player chooses what each floor is
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles and Carpet. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
-Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
+Room-wide painting remains separate work. Floor cleaning follows eligible material and lot ownership, as defined in `docs/specs/2026-10-17-room-identities.md`. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for the original material evidence and acceptance limits.
 
 ### [B-windows] Windows admit daylight
 
@@ -895,7 +900,7 @@ Asked for by the owner on 2026-09-22. During play the house's east and south wal
 
 **Status: Complete.**
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision shares contextual actions across all five tools, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision has six Build destinations: Furniture, Walls, Rooms, Buy, Floors and Land. It shares contextual actions where applicable, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
@@ -1136,6 +1141,16 @@ Sims.
 
 **Status: Complete for the room and furniture builder slice; wider build scope remains under [S-build].**
 
+Rooms detects enclosures across the owned lot and lets the player name them in
+Build mode. Select rooms uses the confirmed map; Build room retains rectangular
+construction. Open-plan spaces count as one room, and Outside is one shared room.
+Confirm resolves final boundaries, names, and cleaning duties together, with a
+review for splits, merges, and lost enclosures. Native transactions preserve the
+last confirmed save and unfinished work until adoption. Outdoor flooring and
+surfaces are cleanable, while grass and the street are excluded. Outdoor patio is
+an additional covering. See [room identity and naming](specs/2026-10-17-room-identities.md)
+and [build confirmation](specs/2026-10-13-build-confirmation.md).
+
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
 that commit. The Walls tool shipped in PR 95 at merge `1a90a75`; main's CI
@@ -1174,8 +1189,8 @@ as requested on 2026-09-20. Build pauses the household, selects any
 placed furniture, and previews its destination and supported direction.
 Confirm applies a validated command; Cancel leaves the world unchanged.
 Collision, walls, interaction approaches, active reservations, remaining
-walking routes and the front-door landing are protected. The current Save V5 preserves
-positions, directions and room architecture, retaining older-save support. Keyboard controls and compact
+walking routes and the front-door landing are protected. Current saves preserve
+positions, directions, room architecture and named identities, retaining older-save support. Keyboard controls and compact
 touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
@@ -1326,14 +1341,11 @@ was a chord of the ellipse inscribed in the head's box while the head
 itself is a rounded rectangle, so skin showed at both top corners of
 every sim. `hair_cap` in `objects.py` traces the head instead.
 
-### [A-animations] Several ordinary actions are still static poses
+### [A-animations] Action-specific household motion
 
-**Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
-
-The owner requested missing sitting poses and animations soon on 2026-10-01.
-Deliver seating for meals, reading, TV and listening with the early
-[S-activity-seating] slice. Reuse the existing armchair sitting and seated-reading
-poses where they fit, and add the remaining seat and activity combinations.
+Household actions select their own rigged motion and physical fixture contacts.
+Seating for meals, reading, TV and listening shares the physical-seat lease in
+[S-activity-seating]. The device remains the gameplay target when its user sits.
 
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
@@ -1342,9 +1354,8 @@ samples in each of four directions, with matching furniture contributions and
 forward pedalling. The older two-pose supplement and failed mirrored-bike
 contacts remain historical evidence, not the current bike's limitation. See
 `docs/assets/review-evidence/furniture/README.md` for GPU and played checks.
-All Sims share one approved appearance with household-specific shirts. The lower bunk also
-has a generated foreground layer, so its upper mattress, near posts, rail, and
-ladder cover the horizontal body correctly. Cooking, dish carrying and washing,
+Characters keep their configured appearance during interactions. Sleeping uses
+fitted held poses under the bed cover. Cooking, dish carrying and washing,
 floor mopping, counter and table wiping, and bin emptying have action clips.
 Cleaning tools follow the hands; the bin lid follows the bag-lifting sequence.
 Using the toilet has a fitted seated loop on the fixture's seat socket in all
@@ -1363,16 +1374,18 @@ Working at the desk seats the Sim on a chair placed against the desk and
 facing it (any fitted seat type) through the same physical-seat lease as
 television and radio viewing, entered from a free side of the chair; a desk
 without such a chair keeps the standing use.
-Double-bed sleeping, showering and ordinary idling remain static poses.
+Showering uses a looping washing motion and localized translucent steam around
+the chest and pelvis. The long sofa's Lie down action uses a fitted reclining
+pose rather than an upright sitting pose. Ordinary idling remains a held pose.
 Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
 Eat prepared food needs an available prepared portion for the selected Sim.
 Moving a table does not move independently placed chairs. The generic
 `Using object` activity stays deliberately text-only until each category has
 an honest anchor and body contract.
 
-This is the largest single lever on how alive the game looks, and it is
-mostly generator work once the simulation can name an exact action and anchor;
-the shared frame-selection path already generalises.
+Current character and interaction verification is recorded in
+[the creator runtime contract](specs/2026-10-12-character-creator-runtime.md)
+and [the seating and shower evidence](evidence/2026-10-15-seating-selection-shower/report.md).
 
 ## Explicitly out of scope for v1
 
@@ -1386,8 +1399,8 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Shared civic projects** | Depends on a backend beyond content sync |
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
-| **Native desktop build** | Shell swap, deferred by choice, not blocked |
-| **Weather, seasons, vehicles** | Classic expansion-pack material. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
+| **Native desktop build** | Shell swap, deferred by choice, not blocked. Shell options, costs and multithreading paths are in [the desktop app research](plans/2026-10-17-desktop-app.md) |
+| **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle and the yard's seasonal tint have shipped ([S-calendar]); seasons with gameplay effects have not. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
 ## Design tone

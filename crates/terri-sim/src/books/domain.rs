@@ -124,6 +124,14 @@ impl BookLibrary {
         Ok(Self { saved })
     }
 
+    pub(crate) fn from_saved_without_reading(
+        saved: SavedBookLibrary,
+        catalogue: &[BookDefinition],
+    ) -> Result<Self, BookError> {
+        validate_without_reading(&saved, catalogue)?;
+        Ok(Self { saved })
+    }
+
     pub fn copy(&self, id: BookCopyId) -> Option<&BookCopy> {
         self.saved.copies.iter().find(|copy| copy.id == id)
     }
@@ -134,6 +142,17 @@ impl BookLibrary {
             .iter()
             .find(|memory| memory.sim_id == person && memory.title_id == title)
     }
+}
+
+/// Bookless content can retain empty-library identity metadata, but no owned data.
+pub(crate) fn validate_without_reading(
+    saved: &SavedBookLibrary,
+    catalogue: &[BookDefinition],
+) -> Result<(), BookError> {
+    if !catalogue.is_empty() || !saved.copies.is_empty() || !saved.memories.is_empty() {
+        return Err(BookError::InvalidState("book data requires reading tuning"));
+    }
+    Ok(())
 }
 
 impl BookWorld<'_> {

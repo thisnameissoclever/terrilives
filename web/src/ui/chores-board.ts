@@ -1,3 +1,4 @@
+import { setActionIntent } from './action-intent.js';
 import {CHORE_LABELS} from './object-menu.js';
 
 export interface ChoresSource {
@@ -40,7 +41,7 @@ export class ChoresBoard {
     for(const [i,name] of ['Responsibility','Dishes preference','Floor cleaning preference','Surface wiping preference','Bin emptying preference'].entries()){
       const label=doc.createElement('label');label.textContent=name;const input=doc.createElement('input');input.type='number';input.min=i===0?'0':'-100';input.max='100';input.step='1';input.setAttribute('aria-label',name);input.addEventListener('input',()=>{this.draft=true;});label.append(input);fields.append(label);this.inputs.push(input);
     }
-    const apply=doc.createElement('button');apply.type='button';apply.className='hud-button';apply.textContent='Apply preferences';apply.addEventListener('click',()=>{
+    const apply=doc.createElement('button');apply.type='button';apply.className='hud-button';apply.textContent='Apply preferences';setActionIntent(apply,'affirmative');apply.addEventListener('click',()=>{
       const selected=this.source.selectedIndex();if(selected===null)return;const values=this.inputs.map(i=>Number(i.value));
       if(values.some((v,i)=>!Number.isInteger(v)||v>(100)||v<(i===0?0:-100))){this.status.textContent='Use whole numbers within the displayed ranges.';return;}
       const accepted=this.source.setChoreProfile(selected,values[0],values.slice(1));this.status.textContent=accepted?'Preference changes queued.':'Those changes could not be sent.';if(accepted)this.draft=false;
@@ -60,16 +61,17 @@ export class ChoresBoard {
     this.history.textContent=profile.length===6?`Commitment history score: ${profile[1]}/100 (starts at 50)`:'Chore profile unavailable';
     if(!this.draft&&profile.length===6){this.inputs[0].value=String(profile[0]);for(let i=1;i<5;i++)this.inputs[i].value=String(profile[i+1]);}
     this.inputs.forEach(i=>{i.disabled=selected===null;});
-    const signature=JSON.stringify([rows,episodes,[...names],selected]);if(signature===this.signature)return;this.signature=signature;this.table.replaceChildren();
+    const locations=rows.map(row=>this.source.choreLocation(row.kind,row.target));
+    const signature=JSON.stringify([rows,episodes,[...names],selected,locations]);if(signature===this.signature)return;this.signature=signature;this.table.replaceChildren();
     this.outcomes.replaceChildren();for(const e of episodes){
       const line=this.root.ownerDocument.createElement('p');line.textContent=`Day ${e.day+1}: ${CHORE_LABELS[e.kind]} · ${names.get(e.owner)??'Former housemate'} · ${DUTY_LABELS[e.outcome]}${e.performer===4294967295?'':` · Performed by ${names.get(e.performer)??'Former housemate'}`}`;
       this.outcomes.append(line);
     }
-    for(const row of rows){
+    for(const [index,row] of rows.entries()){
       const line=this.root.ownerDocument.createElement('div');line.className='chore-row';const title=this.root.ownerDocument.createElement('strong');
-      const location=this.source.choreLocation(row.kind,row.target);
+      const location=locations[index];
       title.textContent=`${CHORE_LABELS[row.kind]}${row.kind===0?"":` in ${location}`}`;const detail=this.root.ownerDocument.createElement('span');detail.textContent=`${names.get(row.owner)??'Unassigned'} · ${DUTY_LABELS[row.outcome]} · ${row.kind===0?'Dirty dishes':row.kind===3?'Bin fill':'Grime'}: ${Math.round(row.dirt/10)}%`;
-      const button=this.root.ownerDocument.createElement('button');button.type='button';button.className='hud-button chore-do-now';button.textContent='Do now';button.disabled=selected===null||row.dirt===0;button.addEventListener('click',()=>{const actor=this.source.selectedIndex();if(actor!==null&&this.source.cleanChore(actor,row.kind,row.target,true))this.afterOrder();});line.append(title,detail,button);this.table.append(line);
+      const button=this.root.ownerDocument.createElement('button');button.type='button';button.className='hud-button chore-do-now';button.textContent='Do now';setActionIntent(button,'affirmative');button.disabled=selected===null||row.dirt===0;button.addEventListener('click',()=>{const actor=this.source.selectedIndex();if(actor!==null&&this.source.cleanChore(actor,row.kind,row.target,true))this.afterOrder();});line.append(title,detail,button);this.table.append(line);
     }
   }
 }

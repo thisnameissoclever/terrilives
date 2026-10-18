@@ -39,11 +39,11 @@ The deliberate avoidance policy now replaces the earlier one-off wander reconsid
 
 ## Rooms and active use
 
-Derive regions from the current house architecture. Walls, windows and doorway boundaries separate regions, even though a doorway allows movement. An absent boundary joins neighboring tiles. Removing a separating wall can therefore merge rooms; leaving a genuine open gap can also make two areas one room.
+Use the shared confirmed room map across the entire owned lot. Walls, windows and doorway boundaries separate rooms, even though a doorway allows movement. An absent boundary joins neighboring tiles. Removing a separating wall can therefore merge rooms; leaving a genuine open gap can also make two areas one room. Build changes take effect for privacy only at Confirm.
 
 Furniture occupancy must not split rooms. Include the furniture's occupied tiles in the architecture region; otherwise a large table or bathtub can manufacture a false wall. Use the furniture's region, not a nearby person's standing tile, as the privacy region. Existing placement rules prevent furniture from straddling a wall.
 
-Room identity is a derived internal value, not a player-assigned room name or a new saved identifier. Iterate region seeds in tile order and use a bounded flood fill. Recompute from the current layout before autonomous selection and movement; no persistent room state is needed. Retained versions of the frozen cell-wall house use its five known doorway boundaries without changing the save. Custom legacy cell layouts have no doorway records, so their gaps remain open and can join regions. Edge-wall layouts use their explicit doorway and window records.
+Rooms have stable saved identities and editable names under the [room identity contract](2026-10-17-room-identities.md). Names do not classify private actions. The confirmed architectural membership supplies the indoor privacy view; the single shared Outside room never creates lot-wide privacy effects. Retained versions of the frozen cell-wall house use their known shell and five doorway boundaries. Custom legacy cell layouts have no doorway records, so their gaps remain open and can join regions. Edge-wall layouts use their explicit doorway and window records.
 
 Classify private actions with the content tag `bathroom_privacy` on `relieve_self`, `take_shower` and `soak`. Do not infer privacy from a hygiene or bladder benefit: washing hands is not a private bathroom use. Do not check object display names or require an authored bathroom label.
 

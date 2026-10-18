@@ -7,7 +7,7 @@ use bevy_ecs::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Agent, IntentQueue, Reserved, Socialising, Target};
 
-pub(crate) fn save_executions(world: &World) -> Vec<terri_core::save_v15::SavedSocialExecution> {
+pub(crate) fn save_executions(world: &World) -> Vec<terri_core::save_v17::SavedSocialExecution> {
     let state = world.resource::<SocialEpisodes>();
     let mut rows: Vec<_> = state
         .executions
@@ -17,7 +17,19 @@ pub(crate) fn save_executions(world: &World) -> Vec<terri_core::save_v15::SavedS
     // Tests and frozen readers can expose an earlier physical-only continuation.
     if let Some(mut physical) = world.try_query::<(Entity, &Target)>() {
         for (actor, t) in physical.iter(world) {
-            if state.executions.contains_key(&actor) || world.get::<Agent>(t.object).is_none() {
+            if state.executions.contains_key(&actor)
+                || world.get::<Agent>(t.object).is_none()
+                || super::requests::owns_autonomous_target(world, actor, *t)
+            {
+                continue;
+            }
+            if !world
+                .resource::<crate::Content>()
+                .0
+                .social
+                .get(t.interaction as usize)
+                .is_some_and(crate::fights::is_fight)
+            {
                 continue;
             }
             rows.push(saved_row(
@@ -51,13 +63,13 @@ pub(crate) fn save_executions(world: &World) -> Vec<terri_core::save_v15::SavedS
     rows.sort_by_key(|row| row.initiator);
     rows
 }
-fn saved_row(actor: Entity, e: Execution) -> terri_core::save_v15::SavedSocialExecution {
+fn saved_row(actor: Entity, e: Execution) -> terri_core::save_v17::SavedSocialExecution {
     let (provenance, order_id) = match e.owner {
         ExecutionOwner::Autonomous => (0, None),
         ExecutionOwner::Player(id) => (1, Some(id)),
         ExecutionOwner::System(id) => (2, id),
     };
-    terri_core::save_v15::SavedSocialExecution {
+    terri_core::save_v17::SavedSocialExecution {
         initiator: actor.index_u32(),
         recipient: e.recipient.index_u32(),
         interaction: e.interaction,
@@ -69,7 +81,7 @@ fn saved_row(actor: Entity, e: Execution) -> terri_core::save_v15::SavedSocialEx
 }
 pub(crate) fn restore_executions(
     world: &mut World,
-    rows: Vec<terri_core::save_v15::SavedSocialExecution>,
+    rows: Vec<terri_core::save_v17::SavedSocialExecution>,
 ) -> Result<(), crate::save::SaveError> {
     use crate::save::SaveError;
     if rows.len() > world.entities().count_spawned() as usize {
@@ -78,6 +90,22 @@ pub(crate) fn restore_executions(
     let mut restored = BTreeMap::new();
     let mut recipients = BTreeSet::new();
     let physical = world.resource::<SocialEpisodes>().rendezvous.clone();
+    let mut participants = BTreeSet::new();
+    for request in world
+        .resource::<super::requests::ConversationRequests>()
+        .requests
+        .values()
+    {
+        if !super::requests::managed_player(world, request)
+            && matches!(
+                request.phase,
+                super::requests::RequestPhase::Approaching | super::requests::RequestPhase::Talking
+            )
+            && (!participants.insert(request.initiator) || !participants.insert(request.recipient))
+        {
+            return Err(SaveError::InvalidValue);
+        }
+    }
     for row in rows {
         let actor = crate::dining::entity(world, row.initiator)
             .filter(|&a| world.get::<Agent>(a).is_some())
@@ -138,7 +166,36 @@ pub(crate) fn restore_executions(
             },
             admitted: row.admitted,
         };
+        let request_matches = match owner {
+            ExecutionOwner::Player(_)
+                if world.get::<terri_core::SimId>(actor).is_none()
+                    || world.get::<terri_core::SimId>(recipient).is_none() =>
+            {
+                true
+            }
+            ExecutionOwner::Player(order_id) => world
+                .resource::<super::requests::ConversationRequests>()
+                .requests
+                .values()
+                .any(|request| {
+                    request.initiator == actor
+                        && request.recipient == recipient
+                        && request.interaction == row.interaction
+                        && request.origin
+                            == super::requests::ConversationOrigin::Player { order_id }
+                        && request.phase
+                            == if row.running {
+                                super::requests::RequestPhase::Talking
+                            } else if row.admitted {
+                                super::requests::RequestPhase::Approaching
+                            } else {
+                                super::requests::RequestPhase::Waiting
+                            }
+                }),
+            _ => true,
+        };
         if actor == recipient
+            || !request_matches
             || !owns_target(world, actor, e)
             || world
                 .resource::<crate::Content>()
@@ -169,6 +226,8 @@ pub(crate) fn restore_executions(
                     || world.get::<terri_core::AtWork>(recipient).is_some()
                     || world.get::<terri_core::Commuting>(recipient).is_some()))
             || (!row.running && (physical.get(&recipient) == Some(&actor)) != row.admitted)
+            || ((row.admitted || row.running)
+                && (!participants.insert(actor) || !participants.insert(recipient)))
             || restored.insert(actor, e).is_some()
         {
             return Err(SaveError::InvalidValue);
@@ -177,7 +236,11 @@ pub(crate) fn restore_executions(
     let physical_targets = world
         .query::<(Entity, &Target)>()
         .iter(world)
-        .filter(|(_, t)| world.get::<Agent>(t.object).is_some())
+        .filter(|(actor, t)| {
+            world.get::<Agent>(t.object).is_some()
+                && (restored.contains_key(actor)
+                    || !super::requests::owns_autonomous_target(world, *actor, **t))
+        })
         .count();
     if physical_targets != restored.len()
         || restored.iter().any(|(&a, e)| {
@@ -194,41 +257,81 @@ pub(crate) fn restore_executions(
     Ok(())
 }
 
-/// Frozen engines treated a matching queue front as the physical execution.
-/// This inference belongs only to historical readers; V15 restores exact ownership.
+/// Published V15/V16 player records retain their exact order identity on adoption.
+pub(crate) fn adopt_published_player_requests(world: &mut World) {
+    let rows: Vec<_> = world
+        .resource::<super::requests::ConversationRequests>()
+        .requests
+        .values()
+        .filter(|r| {
+            super::requests::managed_player(world, r)
+                && r.phase != super::requests::RequestPhase::Suspended
+                && world.get::<Target>(r.initiator) == Some(&super::requests::request_target(r))
+        })
+        .cloned()
+        .collect();
+    for request in rows {
+        let super::requests::ConversationOrigin::Player { order_id } = request.origin else {
+            continue;
+        };
+        world.resource_mut::<SocialEpisodes>().executions.insert(
+            request.initiator,
+            Execution {
+                recipient: request.recipient,
+                interaction: request.interaction,
+                owner: ExecutionOwner::Player(order_id),
+                phase: if request.phase == super::requests::RequestPhase::Talking {
+                    ExecutionPhase::Running
+                } else {
+                    ExecutionPhase::Approaching
+                },
+                admitted: matches!(
+                    request.phase,
+                    super::requests::RequestPhase::Approaching
+                        | super::requests::RequestPhase::Talking
+                ),
+            },
+        );
+    }
+    super::requests::refresh_markers(world);
+}
+
+/// Older physical state cannot prove that a matching queued order owns the chat.
+/// Preserve that ambiguous chat in the published request runtime; exact published
+/// player metadata is adopted separately above.
 pub(crate) fn adopt_legacy(world: &mut World) {
+    adopt_published_player_requests(world);
     let rows: Vec<_> = world
         .query::<(Entity, &Target)>()
         .iter(world)
-        .filter(|(_, t)| world.get::<Agent>(t.object).is_some())
+        .filter(|(actor, t)| {
+            world.get::<Agent>(t.object).is_some()
+                && !super::requests::owns_autonomous_target(world, *actor, **t)
+        })
         .map(|(a, t)| (a, *t))
         .collect();
     for (actor, t) in rows {
-        let owner = world
-            .get::<IntentQueue>(actor)
-            .and_then(|q| q.entries().first())
-            .filter(|entry| {
-                entry.intent.object == t.object
-                    && entry.intent.interaction == t.interaction
-                    && entry.intent.cleanup.is_none()
-                    && entry.intent.chore.is_none()
-            })
-            .map_or_else(
-                || {
-                    if world
-                        .resource::<crate::Content>()
-                        .0
-                        .social
-                        .get(t.interaction as usize)
-                        .is_some_and(crate::fights::is_fight)
-                    {
-                        ExecutionOwner::System(None)
-                    } else {
-                        ExecutionOwner::Autonomous
-                    }
-                },
-                |entry| ExecutionOwner::Player(entry.id),
-            );
+        if world
+            .resource::<SocialEpisodes>()
+            .executions
+            .contains_key(&actor)
+        {
+            continue;
+        }
+        let owner = if world
+            .resource::<crate::Content>()
+            .0
+            .social
+            .get(t.interaction as usize)
+            .is_some_and(crate::fights::is_fight)
+        {
+            ExecutionOwner::System(None)
+        } else {
+            ExecutionOwner::Autonomous
+        };
+        if owner == ExecutionOwner::Autonomous {
+            continue;
+        }
         let running = world.get::<Socialising>(actor).is_some();
         let admitted = running
             || world.resource::<SocialEpisodes>().rendezvous.get(&t.object) == Some(&actor)

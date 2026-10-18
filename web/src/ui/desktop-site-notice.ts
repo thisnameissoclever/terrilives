@@ -9,6 +9,8 @@
  * the shrunken page, and let the player switch it off.
  */
 
+import { setActionIntent } from './action-intent.js';
+
 /** What the browser reports; split out so the decision can be tested. */
 export interface ScreenFacts {
   /** `(any-pointer: coarse)`: a finger can point. */
@@ -104,9 +106,10 @@ export function showDesktopSiteNotice(view: NoticeWindow, document: Document): b
   const close = document.createElement('button');
   close.type = 'button';
   close.textContent = 'Close';
+  setActionIntent(close, 'negative');
   close.style.cssText = [
-    `min-height:${Math.round(44 * scale)}px`, 'font:inherit', 'color:inherit',
-    'background:#16161c', 'border:1px solid #9aa3ad', 'cursor:pointer',
+    `min-height:${Math.round(44 * scale)}px`, 'font:inherit',
+    'border-width:1px', 'border-style:solid', 'cursor:pointer',
   ].join(';');
   close.addEventListener('click', () => {
     remember(view);

@@ -90,7 +90,7 @@ fn cost(world: &World, key: ChoreKey) -> u32 {
         };
     }
     let grid = world.resource::<terri_core::TileGrid>();
-    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let rooms = crate::room_regions::RoomRegions::cleanable(world);
     (0..grid.height())
         .flat_map(|y| (0..grid.width()).map(move |x| (x, y)))
         .filter(|(x, y)| {
@@ -102,23 +102,13 @@ fn cost(world: &World, key: ChoreKey) -> u32 {
         .div_ceil(9) as u32
         * super::patches::WORK_TICKS
 }
-pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+/// Refresh completed group eligibility without assigning owners or drawing randomness.
+pub(crate) fn refresh_grouped_need(world: &World, state: &mut SavedChores) {
     if !state.board_enabled {
         return;
     }
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
-    let week = day / 7;
-    let live = people(world);
-    let roster: Vec<_> = live.iter().map(|p| p.0).collect();
-    let available = keys(world);
-    for episode in &mut state.episodes {
-        if !episode.settled && !available.contains(&episode.key) {
-            episode.outcome = DutyOutcome::Unavailable;
-            episode.unavailable = true;
-            episode.settled = true;
-        }
-    }
     let cleared: Vec<_> = state
         .episodes
         .iter()
@@ -138,6 +128,26 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
             episode.outcome = DutyOutcome::NoWork;
         }
     }
+}
+
+pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+    if !state.board_enabled {
+        return;
+    }
+    let day = world.resource::<SimClock>().tick
+        / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
+    let week = day / 7;
+    let live = people(world);
+    let roster: Vec<_> = live.iter().map(|p| p.0).collect();
+    let available = keys(world);
+    for episode in &mut state.episodes {
+        if !episode.settled && !available.contains(&episode.key) {
+            episode.outcome = DutyOutcome::Unavailable;
+            episode.unavailable = true;
+            episode.settled = true;
+        }
+    }
+    refresh_grouped_need(world, state);
     if state.week != Some(week)
         || state.roster != roster
         || state.assignments.iter().map(|a| a.key).collect::<Vec<_>>() != available
@@ -164,7 +174,63 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
         state.week = Some(week);
         state.roster = roster;
     }
-    for assignment in state.assignments.clone() {
+    start_episodes(state, day, state.assignments.clone());
+    state.episodes.retain(|e| e.day.saturating_add(8) >= day);
+    let episodes: std::collections::BTreeSet<_> = state.episodes.iter().map(|e| e.id).collect();
+    state.dish_contributions.retain(|r| episodes.contains(&r.0));
+}
+/// Construction assigns only new duties; ordinary tick policy owns deferred
+/// assignment, week changes, and daily episode maintenance.
+pub(super) fn assign_new_duties(world: &World, state: &mut SavedChores, new: &[ChoreKey]) {
+    if !state.board_enabled || new.is_empty() {
+        return;
+    }
+    let day = world.resource::<SimClock>().tick
+        / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
+    let profiles: Vec<_> = people(world)
+        .iter()
+        .filter_map(|(id, _)| {
+            state
+                .profiles
+                .iter()
+                .find(|profile| profile.sim_id == *id)
+                .cloned()
+        })
+        .collect();
+    let available = keys(world);
+    let weighted: Vec<_> = available
+        .iter()
+        .filter(|key| {
+            new.contains(key)
+                || state
+                    .assignments
+                    .iter()
+                    .any(|assignment| assignment.key == **key)
+        })
+        .map(|key| (*key, cost(world, *key)))
+        .collect();
+    let assignment_week = state.week.unwrap_or(day / 7);
+    state.assignments = policy::assign_with_existing(
+        &weighted,
+        &profiles,
+        assignment_week,
+        state.rng.as_mut().expect("chore stream is initialized"),
+        &state.assignments,
+    );
+    if !state.assignments.is_empty() {
+        state.week = Some(assignment_week);
+    }
+    let added = state
+        .assignments
+        .iter()
+        .filter(|assignment| new.contains(&assignment.key))
+        .cloned()
+        .collect();
+    start_episodes(state, day, added);
+}
+
+fn start_episodes(state: &mut SavedChores, day: u64, assignments: Vec<ChoreAssignment>) {
+    for assignment in assignments {
         if let Some(old) = state
             .episodes
             .iter_mut()
@@ -203,10 +269,8 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
             unavailable: false,
         });
     }
-    state.episodes.retain(|e| e.day.saturating_add(8) >= day);
-    let episodes: std::collections::BTreeSet<_> = state.episodes.iter().map(|e| e.id).collect();
-    state.dish_contributions.retain(|r| episodes.contains(&r.0));
 }
+
 fn history(state: &mut SavedChores, id: u32, outcome: u8) {
     if let Some(p) = state.profiles.iter_mut().find(|p| p.sim_id == id) {
         p.commitment = ((u16::from(p.commitment) * 4 + u16::from(outcome)) / 5) as u8;
@@ -276,7 +340,7 @@ pub(crate) fn credit(
     let Some(index) = state
         .episodes
         .iter()
-        .rposition(|e| e.key == key && e.day == day)
+        .rposition(|e| e.key == key && e.day == day && !e.settled)
     else {
         return;
     };

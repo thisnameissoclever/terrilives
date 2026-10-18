@@ -59,7 +59,7 @@ fn ordinary_completion_rolls_follow_identity_order_after_component_churn() {
             sim.world(),
             ChoreKey {
                 kind: ChoreKind::TableSurfaces,
-                target: 0,
+                target: 1,
             },
         )[0];
         let first = crate::dining::entity(sim.world(), table).unwrap();
@@ -229,7 +229,7 @@ fn grime_mood_scales_above_tolerance_even_without_dirty_floors() {
         sim.world(),
         ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         },
     )[0];
     sim.world_mut()
@@ -412,7 +412,7 @@ fn real_dish_washing_rolls_for_sink_neighbors_after_washing() {
         sim.world(),
         ChoreKey {
             kind: ChoreKind::CounterSurfaces,
-            target: 0,
+            target: 1,
         },
     )[0];
     let sink = sim

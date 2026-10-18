@@ -2,9 +2,72 @@ use super::*;
 use crate::{test_content, Content, Sim};
 use bevy_ecs::system::RunSystemOnce;
 use terri_core::{
-    CommandQueue, Hobbies, IntentQueue, Personality, Relationships, Reserved, SimCommand, SimId,
-    SimIdAllocator,
+    CommandQueue, Hobbies, IntentQueue, Personality, Position, Relationships, Reserved, SimCommand,
+    SimId, SimIdAllocator,
 };
+
+mod decision_tests;
+mod integration_tests;
+mod native_build_tests;
+
+#[test]
+fn current_save_rejects_shared_physical_conversation_participants() {
+    for approaching in [false, true] {
+        let (mut sim, a, b) = chat_fixture();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.reading = terri_data::pack().reading;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        sim.world_mut().get_mut::<Position>(a).unwrap().x = 6.;
+        let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                id,
+                Position { x: 8., y: 1. },
+                Needs::all_at(90.),
+                Relationships::default(),
+            ))
+            .id();
+        start(&mut sim, a, b, 30);
+        if approaching {
+            sim.world_mut().entity_mut(c).insert(Target {
+                object: b,
+                interaction: 0,
+            });
+            sim.world_mut()
+                .resource_mut::<SocialEpisodes>()
+                .rendezvous
+                .insert(b, c);
+        } else {
+            start(&mut sim, c, b, 30);
+        }
+        let bad = sim.save_snapshot_v16();
+        assert_eq!(bad.legacy.conversation_requests.requests.len(), 2);
+        let mut live = Sim::new_with_lot_and_content(12, 8, *sim.world().resource::<Content>());
+        let before = live.world_hash();
+        assert!(
+            live.load_snapshot_v16(bad).is_err(),
+            "approaching={approaching}"
+        );
+        assert_eq!(
+            live.world_hash(),
+            before,
+            "rejection preserves the live world"
+        );
+    }
+}
+
+fn use_historical_room_references(sim: &mut Sim) {
+    sim.world_mut()
+        .remove_resource::<terri_core::rooms::SavedRooms>();
+    sim.world_mut().remove_resource::<crate::rooms::RoomMap>();
+    sim.world_mut()
+        .insert_resource(crate::rooms::RoomReferenceMode::Legacy);
+    sim.world_mut()
+        .insert_resource(terri_core::layout::SavedLayout::LegacyCells { walls: vec![] });
+}
 
 fn chat_fixture() -> (Sim, Entity, Entity) {
     let pack = test_content::pack_with_social(
@@ -198,6 +261,30 @@ fn failed_approach_removes_only_its_exact_occurrence_among_repeated_orders() {
         .entity_mut(b)
         .insert(terri_core::Position { x: 9., y: 5. });
     maintain(sim.world_mut());
+    assert!(
+        sim.world()
+            .get::<IntentQueue>(a)
+            .unwrap()
+            .order(ids[0])
+            .is_some(),
+        "the current physical segment finishes before the unreachable destination is settled"
+    );
+    for _ in 0..4 {
+        sim.tick();
+        if sim
+            .world()
+            .get::<IntentQueue>(a)
+            .unwrap()
+            .order(ids[0])
+            .is_none()
+        {
+            let position = sim.world().get::<Position>(a).unwrap();
+            assert_eq!(position.x, position.x.round());
+            assert_eq!(position.y, position.y.round());
+            break;
+        }
+    }
+
     assert!(sim
         .world()
         .get::<IntentQueue>(a)
@@ -355,7 +442,7 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
     assert!(sim.world().get::<Path>(a).is_some());
     let hash = sim.world_hash();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     assert_eq!(restored.world_hash(), hash);
     sim.tick();
     restored.tick();
@@ -373,9 +460,9 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
         .rendezvous
         .is_empty());
     assert!(restored.world().get::<Reserved>(b).is_none());
-    let cancelled = restored.save_snapshot_v15();
+    let cancelled = restored.save_snapshot_v17();
     let mut paused = test_content::sim_with(12, 8, restored.world().resource::<Content>().0);
-    paused.load_snapshot_v15(cancelled).unwrap();
+    paused.load_snapshot_v17(cancelled).unwrap();
     assert!(paused
         .world()
         .resource::<SocialEpisodes>()
@@ -420,7 +507,7 @@ fn newcomer_waits_for_running_conversation_without_stealing_the_partner() {
 }
 
 #[test]
-fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders() {
+fn recipient_player_talk_defers_inbound_waiter_and_preserves_all_orders() {
     let (mut sim, a, b) = chat_fixture();
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
     let c = sim
@@ -428,6 +515,7 @@ fn recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders(
         .spawn((
             Agent,
             id,
+            Reserved,
             terri_core::Position { x: 8., y: 1. },
             Needs::all_at(90.),
         ))
@@ -504,6 +592,8 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
     sim.world_mut()
         .entity_mut(c)
         .insert(Hobbies(vec!["reading".into()]));
+    // This test isolates listener identity; C must stay uncommitted during setup.
+    sim.world_mut().entity_mut(c).insert(Reserved);
     talk(&mut sim, a, b);
     for _ in 0..100 {
         sim.tick();
@@ -516,10 +606,18 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
         -1.
     );
     let position = *sim.world().get::<terri_core::Position>(a).unwrap();
-    sim.world_mut().entity_mut(c).insert(terri_core::Position {
-        x: position.x + 1.,
-        y: position.y,
-    });
+    sim.world_mut()
+        .entity_mut(c)
+        .remove::<Reserved>()
+        .insert(terri_core::Position {
+            x: position.x + 1.,
+            y: position.y,
+        });
+    assert!(sim
+        .world()
+        .resource::<requests::ConversationRequests>()
+        .outgoing(c)
+        .is_none());
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::TalkToFirst {
@@ -528,6 +626,11 @@ fn same_tick_conversation_redirect_chooses_the_new_listeners_preference() {
             interaction: 0,
         });
     sim.tick();
+    assert!(sim.world().get::<Socialising>(a).is_some(),
+        "Redirect: target={:?}, path={:?}, receiver target={:?}, receiver path={:?}, receiver reserved={}, requests={:?}",
+        sim.world().get::<Target>(a),sim.world().get::<Path>(a),sim.world().get::<Target>(c),sim.world().get::<Path>(c),
+        sim.world().get::<Reserved>(c).is_some(),
+        sim.world().resource::<requests::ConversationRequests>().requests.values().collect::<Vec<_>>());
     assert_eq!(sim.world().get::<Socialising>(a).unwrap().partner, c);
     assert_eq!(
         sim.world().resource::<SocialEpisodes>().topics[&a].listener_preference,
@@ -557,10 +660,10 @@ fn death_tick_prunes_topic_owners_and_communal_peer_references_before_save() {
         sim.tick();
         assert!(sim.world().get::<Agent>(dead).is_none());
         assert!(sim.world().resource::<SocialEpisodes>().topics.is_empty());
-        let saved = sim.save_snapshot_v10();
+        let saved = sim.current_v10_view();
         let mut loaded = test_content::sim_with(12, 8, pack);
-        loaded.load_snapshot_v10(saved.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v10(), saved);
+        loaded.load_current_v10_view(saved.clone()).unwrap();
+        assert_eq!(loaded.current_v10_view(), saved);
     }
     let (mut sim, p, def) = shared_fixture();
     let mut pack = sim.world().resource::<Content>().0.clone();
@@ -584,10 +687,10 @@ fn death_tick_prunes_topic_owners_and_communal_peer_references_before_save() {
         .communal
         .values()
         .all(|e| !e.participants.contains(&p[1])));
-    let saved = sim.save_snapshot_v10();
+    let saved = sim.current_v10_view();
     let mut loaded = Sim::new_with_lot_and_content(12, 8, Content(pack));
-    loaded.load_snapshot_v10(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v10(), saved);
+    loaded.load_current_v10_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v10_view(), saved);
 }
 
 #[test]
@@ -977,10 +1080,10 @@ fn waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe() {
                 stations.insert(target.object);
             }
             if !saved_busy && stations.len() >= 2 && sim.world().get::<Path>(b).is_some() {
-                let saved = sim.save_snapshot_v10();
+                let saved = sim.current_v10_view();
                 let mut loaded = Sim::new_with_lot_and_content(24, 16, Content(pack));
-                loaded.load_snapshot_v10(saved.clone()).unwrap();
-                assert_eq!(loaded.save_snapshot_v10(), saved);
+                loaded.load_current_v10_view(saved.clone()).unwrap();
+                assert_eq!(loaded.current_v10_view(), saved);
                 saved_busy = true;
             }
         }
@@ -1038,6 +1141,7 @@ fn shared_fixture() -> (Sim, Vec<Entity>, terri_core::ObjectDefId) {
             .id();
         people.push(e);
     }
+    crate::test_content::enclose(&mut sim);
     (sim, people, def)
 }
 fn arrive(sim: &mut Sim, person: Entity, def: terri_core::ObjectDefId, ticks: u32) {
@@ -1221,10 +1325,10 @@ fn paused_talk_flush_saves_only_physical_admission_and_round_trips() {
     );
     assert_eq!(sim.world().get::<Target>(a).map(|t| t.object), Some(b));
     assert_eq!(execution_order(sim.world(), a), Some(0));
-    let snapshot = sim.save_snapshot_v15();
+    let snapshot = sim.save_snapshot_v17();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v15(snapshot.clone()).unwrap();
-    assert_eq!(restored.save_snapshot_v15(), snapshot);
+    restored.load_snapshot_v17(snapshot.clone()).unwrap();
+    assert_eq!(restored.save_snapshot_v17(), snapshot);
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..100 {
         sim.tick();
@@ -1298,6 +1402,10 @@ fn autonomous_object_completion_does_not_spend_matching_unserved_player_order() 
         .world()
         .get::<crate::player_actions::ServedOrder>(a)
         .is_none());
+    assert!(
+        !crate::privacy::directed(sim.world(), a),
+        "a matching future player order does not turn autonomous care into player-owned work"
+    );
     sim.tick();
     sim.tick();
     assert_eq!(sim.world().get::<IntentQueue>(a).unwrap().len(), 1);
@@ -1322,8 +1430,9 @@ fn autonomous_object_completion_does_not_spend_matching_unserved_player_order() 
 }
 
 #[test]
-fn frozen_social_save_adopts_only_the_matching_front_execution() {
+fn frozen_social_save_preserves_ambiguous_chat_and_both_matching_orders() {
     let (mut sim, a, b) = chat_fixture();
+    use_historical_room_references(&mut sim);
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.reading = terri_data::pack().reading;
     sim.world_mut()
@@ -1340,7 +1449,7 @@ fn frozen_social_save_adopts_only_the_matching_front_execution() {
     let frozen = sim.save_snapshot_v9();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
     restored.load_snapshot_v9(frozen).unwrap();
-    assert_eq!(execution_order(restored.world(), a), Some(0));
+    assert_eq!(execution_order(restored.world(), a), None);
     for _ in 0..180 {
         restored.tick();
     }
@@ -1410,13 +1519,19 @@ fn every_competing_social_boundary_has_one_physical_owner_and_round_trips() {
             }
         }
         for (&recipient, &actor) in &state.rendezvous {
-            let execution = state.executions.get(&actor).unwrap();
-            assert!(execution.admitted);
-            assert_eq!(execution.phase, ExecutionPhase::Approaching);
-            assert_eq!(execution.recipient, recipient);
+            if let Some(execution) = state.executions.get(&actor) {
+                assert!(execution.admitted);
+                assert_eq!(execution.phase, ExecutionPhase::Approaching);
+                assert_eq!(execution.recipient, recipient);
+            } else {
+                assert!(sim
+                    .world()
+                    .resource::<requests::ConversationRequests>()
+                    .admitted(actor, recipient));
+            }
         }
         let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-        restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+        restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         sim.tick();
         restored.tick();
@@ -1446,7 +1561,7 @@ fn autonomous_approach_keeps_its_exact_claim_through_maintenance_and_save() {
     maintain(sim.world_mut());
     assert!(sim.world().get::<Reserved>(b).is_some());
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..100 {
         sim.tick();
@@ -1458,6 +1573,7 @@ fn autonomous_approach_keeps_its_exact_claim_through_maintenance_and_save() {
 #[test]
 fn frozen_object_save_adopts_its_original_front_without_repeating_it() {
     let (mut sim, a, _) = chat_fixture();
+    use_historical_room_references(&mut sim);
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.reading = terri_data::pack().reading;
     sim.world_mut()
@@ -1530,21 +1646,21 @@ fn pending_and_running_system_fights_keep_provenance_through_v15() {
     sim.world_mut()
         .resource_mut::<crate::fights::Fights>()
         .restore_order(a, id);
-    let pending = sim.save_snapshot_v15();
+    let pending = sim.save_snapshot_v17();
     assert!(pending.player_orders.orders.is_empty());
     assert!(pending.social_executions.is_empty());
     assert_eq!(pending.system_social_orders, vec![(a.index_u32(), id)]);
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v15(pending).unwrap();
+    restored.load_snapshot_v17(pending).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..120 {
         sim.tick();
         restored.tick();
         assert_eq!(restored.world_hash(), sim.world_hash());
-        assert!(sim.save_snapshot_v15().player_orders.orders.is_empty());
+        assert!(sim.save_snapshot_v17().player_orders.orders.is_empty());
         let mut checkpoint = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
         checkpoint
-            .load_snapshot_v15(sim.save_snapshot_v15())
+            .load_snapshot_v17(sim.save_snapshot_v17())
             .unwrap();
         assert_eq!(checkpoint.world_hash(), sim.world_hash());
     }
@@ -1651,7 +1767,7 @@ fn system_cancel_at_ordinary_command_boundary_removes_exact_execution() {
     assert!(!sim.world().resource::<SocialEpisodes>().executions.contains_key(&a),"the ordinary command boundary must release the exact system execution without whole-world arbitration");
     assert!(sim.world().get::<Reserved>(b).is_none());
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1765,7 +1881,7 @@ fn explicit_talk_front_suspends_recipe_and_resumes_original_order_identity() {
             );
             interruption_cursor = history.next_cursor;
             let mut restored = Sim::new_with_lot_and_content(24, 16, Content(pack));
-            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+            restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             interrupted = true;
             break;
@@ -1830,9 +1946,9 @@ fn explicit_talk_front_suspends_chore_and_resumes_original_order_identity() {
     crate::chores::ensure(sim.world_mut());
     let key = ChoreKey {
         kind: ChoreKind::Floors,
-        target: crate::room_regions::RoomRegions::from_world(sim.world())
-            .at((7, 1))
-            .unwrap(),
+        target: crate::rooms::cleaning_area_at(sim.world(), (7, 1))
+            .unwrap()
+            .key(),
     };
     crate::chores::add(
         &mut sim.world_mut().resource_mut::<SavedChores>().floors,
@@ -1893,7 +2009,7 @@ fn explicit_talk_front_suspends_chore_and_resumes_original_order_identity() {
             );
             interruption_cursor = history.next_cursor;
             let mut restored = Sim::new_with_lot(16, 8);
-            restored.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
+            restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             interrupted = true;
             break;
@@ -2047,9 +2163,9 @@ fn autonomous_busy_recipient_refuses_before_any_physical_claim_or_random_draw() 
         } else {
             let key = terri_core::chores::ChoreKey {
                 kind: terri_core::chores::ChoreKind::Floors,
-                target: crate::room_regions::RoomRegions::from_world(sim.world())
-                    .at((7, 1))
-                    .unwrap(),
+                target: crate::rooms::cleaning_area_at(sim.world(), (7, 1))
+                    .unwrap()
+                    .key(),
             };
             // A retained next-cell plan is busy before its next contact or work marker exists.
             sim.world_mut()

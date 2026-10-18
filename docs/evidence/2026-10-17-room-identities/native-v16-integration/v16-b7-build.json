@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "terri-sim",
+    "--lib",
+    "--no-run",
+    "--locked",
+    "--jobs",
+    "1"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-b7-build.log",
+  "finished_utc": "2026-10-18T03:06:06.880255+00:00"
+}

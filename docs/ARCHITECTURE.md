@@ -15,7 +15,7 @@ from other docs and from discussion. Do not renumber them.
 | Presentation | 2.5D, fixed isometric camera |
 | Simulation core | Rust, compiled to `wasm32` and native from one source |
 | Shell (first) | TypeScript + WebGPU renderer, DOM-based UI |
-| Shell (later) | Native desktop, as a shell swap rather than a rewrite |
+| Shell (later) | Native desktop, as a shell swap rather than a rewrite; options and multithreading paths in [the desktop app research](plans/2026-10-17-desktop-app.md) |
 | Scale target | "Town" tier: ~1k-5k sims, ~100k objects |
 | Multiplayer v1 | Layer 1 only (asynchronous, no time coupling) |
 | Multiplayer later | Layer 2 (synchronous sessions), designed for but not built |
@@ -429,10 +429,11 @@ together with `ChainState`.
 
 Privacy detours and safe-alternative probes use the same selected-appliance
 eligibility as ordinary admission. Urgency follows the initiating action's
-resolved positive benefits, not the recipe's internal defaults. An ordinary
-urgent substitute may temporarily suspend a recipe. A procedural substitute
-starts a complete replacement recipe after releasing its predecessor's domestic
-commitments; it cannot run the public recipe row as an ordinary interaction.
+resolved positive benefits, not the recipe's internal defaults. For an autonomous
+recipe, an ordinary urgent substitute may temporarily suspend it. A procedural
+substitute starts a complete replacement recipe after releasing its predecessor's
+domestic commitments; it cannot run the public recipe row as an ordinary
+interaction. Critical needs never replace a player-owned recipe.
 Owned-book return obligations still precede either kind of replacement.
 
 Bound cleanup repeats its resolved collection work as required. Washing adds
@@ -505,8 +506,9 @@ Household inventory cannot supply reading until a copy is shelved.
 
 The journey reserves its copy and physical seat before travel. Pickup leaves
 the copy on the shelf until its reach finishes; shelving leaves it carried
-until that reach finishes. The return obligation survives interruption and
-replacement orders, including urgent needs. A moved shelf changes the return
+until that reach finishes. The return obligation survives explicit redirection
+and interruptions, including urgent-need changes to autonomous reading. Critical
+needs never interrupt player-owned reading. A moved shelf changes the return
 route; blocked access keeps the copy with its borrower while awaiting a route.
 Death releases the claim and leaves the copy recoverable on the lot.
 
@@ -608,7 +610,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 15. Its suffix preserves exact player-order and social-execution
+use version 17. Its suffix preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -635,6 +637,40 @@ also gated by that legacy match rather than by a name string alone. The next
 incompatible published wire shape must bump the version and make an explicit migration
 decision.
 
+Published V15 wraps V14 with exact conversation ownership. V16 wraps that
+complete V15 payload with room names, stable IDs, canonical
+anchors, and monotonic allocators. Architectural membership is rebuilt from the
+saved walls; it is not duplicated on every object. The envelope version selects
+whether room-bearing integers mean historical region seeds or stable identities.
+Historical loads validate their original meanings before conversion. Current loads
+install and validate the room registry before dependent visits, chores, and work;
+they do not repair an inconsistent registry. Historical writers refuse a current
+target whose complete membership cannot be represented by the old map.
+V17 wraps the complete V16 payload with player-order ownership, activity
+continuations, incoming acceptance order, work attendance and confirmed input.
+The published V15 and V16 readers retain their original wire shapes.
+
+During Build, the native transaction owns a validated baseline, accepted-command
+journal, pending names, and at most one prepared candidate. Current-schema save
+capture returns the baseline while a draft or review is active. Final geometry and
+dependent work reconcile once during preparation, and an exact session/revision
+token gates adoption. The draft and journal are transient. Browser `BuildSession`
+settles previews and presents controls rather than maintaining another baseline.
+Order observation also respects the Build freeze in both tick and input draining;
+an empty flush cannot advance phases, append history or invalidate a prepared token.
+See [room identity and naming](specs/2026-10-17-room-identities.md).
+
+Native reconstruction retains complete conversation requests and exact player-order
+ownership. A request-owned runtime snapshot remaps wait reasons and delays through
+stable person IDs without replacing validated persistent requests. Build Cancel
+uses the latest committed runtime baseline; successful external Load establishes
+a new one. Session-local action history survives an internal native transaction;
+external Load starts a new history without resetting its sequence cursor. Derived
+markers are rebuilt and world-specific route caches are cleared.
+West and north land growth translates waiting tiles once. The native `build_dirty`
+query compares authored state, normalized pending names and queued build input
+without flushing, preparing a review, allocating identities or advancing time.
+
 V2 and V3 saves store either explicit cell walls, explicit wall/door edges, or the
 frozen legacy authored-wall presentation. The latter preserves V1 custom
 worlds whose collision bitmap does not identify wall ownership. Loading V2/V3
@@ -652,11 +688,9 @@ An invalid candidate never replaces the running world. V1 and V2 cannot store
 runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
-bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
-`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
-`terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin`,
-`terri-save-1.v7-backup.bin`, `terri-save-1.v8-backup.bin`, or `terri-save-1.v9-backup.bin`, according to its
-source version. It never replaces an existing recovery file. A backup
+bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
+16. A V16 primary therefore receives `terri-save-1.v16-backup.bin` before the first
+V17 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -669,7 +703,9 @@ a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
-V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header. The storage writer and load-status controller share the current
+V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
+Frozen V10 through V16 workers also refuse a newer primary; the published V16 fixture refuses
+V17 before writing player-order ownership. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -971,7 +1007,13 @@ Activity bubbles occupy a separate annotation pass after physical and translucen
 
 Short walls and grime use separate translucent draws after opaque geometry. They test existing scene depth without claiming an entire opaque pixel. Render passes restore their pipeline, bind group, and vertex streams after dynamic draws. Wall adjacency and build-mode behavior remain defined in `docs/specs/2026-09-30-cutaway-walls.md`.
 
-The selected person's ellipse uses an explicit packed command distinct from placement tile rings. It draws smooth translucent color at scene resolution on the floor-decal plane. Posed foot height never raises it above the floor, and it cannot replace physical depth or object identity. Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Both effects finish before activity annotations and color reduction.
+Floor markers use an explicit packed command outside every architecture mode: the selected person's ellipse and the single ellipse under an object being placed in Build mode. Each marker row carries its world semi-axes and color.
+
+One instanced draw inside the scene pass, after opaque geometry, people and grime and before short walls, renders every marker as smooth translucent color at scene resolution on the floor-decal plane, with a border of constant screen width. Short walls write no depth, so drawing them afterwards is what lets them cover a marker behind them.
+
+Posed foot height never raises the person's marker above the floor, and no marker can replace physical depth or object identity. A placement marker passes just outside the corners of the object's footprint, so it tilts with a footprint that is longer on one side ([PM-marker] in `docs/specs/2026-10-17-placement-marker.md`). The tile highlight that the Walls, Room, Floors, Land and Window tools show for a line or an area remains one ring sprite per tile.
+
+Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Floor markers and steam both finish before activity annotations and color reduction.
 
 The art direction remains Muted Line: reviewed offline Blender artwork, historical procedural sprites, and configured cartoon character meshes. Registered color and depth share source samples; ordinary image interpolation uses premultiplied linear values. Existing colorway and lighting meanings are preserved. Dated evidence distinguishes source preservation, actual visual comparisons, graphics measurements, and owner acceptance.
 
@@ -986,7 +1028,7 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles and carpet; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
+Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles, carpet and Outdoor patio; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Outdoor patio appends covering ID 4 without changing IDs 1-3. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
 
 Whole windows store a model and canonical start in appended layout variants. The nine models span one, two or three lines on either axis. Historical window lines decode as Sash placements. Shared validation handles fit, replacement, removal, Room edits and load; it rejects partial spans, junctions, overlap and coordinate overflow before committing layout/grid changes. Historical command and layout encodings remain unchanged. The bridge exposes whole-window preview/result APIs while preserving the old expanded-line getter.
 
@@ -999,8 +1041,9 @@ step, passing doorways and stopping at walls, and is rebuilt with the lamp
 field. Each instance carries its tile's shade (one minus its exposure) in the
 spare fourth float of its colourway attribute, instance slot 15; static rows
 bake it with the camera block, and people, furniture, doors and the placement
-preview sample it per frame. Markers (the selection and footprint rings, the
-tile highlight and activity bubbles) stay unshaded. The sprite
+preview sample it per frame. Markers (the floor markers under a selected
+person and an object being placed, the tile highlight and activity bubbles)
+stay unshaded. The sprite
 uniform grows by one vec4, `sky`, whose first float is
 `interior_daylight_shade` times the sun's strength, or 0 in flat light. The
 shader multiplies the ambient by one minus that times the instance's shade
@@ -1203,7 +1246,8 @@ The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
 size from the lot's north-west corner, and every other tile is yard: walkable
 floor to the simulation, drawn by the shell as the floor under the lot's
-`yard_look` colour shift. Neither is saved. The house's east and south walls are
+`yard_look` colour shift with the current season's color change on top
+([SEA-yard] in `docs/specs/2026-10-17-seasons.md`). Neither is saved. The house's east and south walls are
 ordinary wall edges, and the front door stands on the east one, its line a
 doorway that `portals::front_door_lines` names from the content, never from the
 presentation-only portal rows: the front door swings for a sim walking through
@@ -1789,19 +1833,23 @@ hashes background recipe owners explicitly; only older readers infer that state.
 The published V5 skill and affinity fields follow dining. Targeted cleanup, `SavedChores`
 and `SavedGrime` append after that published tail in this order.
 `SavedChores` follows targeted cleanup.
-It owns indoor grime, surface grime, bin contents and pending unbinned waste,
+It owns indoor and outdoor tile grime, surface grime, bin contents and pending unbinned waste,
 permanent-SimId profiles, scoped order records, timed work, weekly assignments,
 daily decisions and settled outcomes. Its separate seeded random stream,
 allocators and all future-affecting state enter deterministic hashing. Historical
 nested save records and ordinary intent encodings remain unchanged.
 
 The chores scheduler runs through normal ticks. Floor work captures reachable
-dirty cells in one architectural room; surface and bin work claim one real
+dirty eligible cells in one confirmed room or shared Outside; surface and bin work claim one real
 object and approach its footprint through the existing path mover. ChoreWork
-suppresses ordinary autonomous selection while work is active. Other orders
-and urgent needs can suspend work; cancellation releases its owned path and
-marker. Room edits cancel invalid floor plans. Object movement refreshes
-contacts, and selling a bin moves its contents to unbinned waste. Load validation
+suppresses ordinary autonomous selection while work is active. Other player
+orders can suspend chore work; urgent needs can suspend autonomous chore work.
+Critical needs never override an explicit chore order. Cancellation releases
+its owned path and marker. Final Build confirmation reconciles remaining work against accepted geometry,
+retaining valid progress and replanning changed targets without construction credit
+or neglect. Removing a covering preserves dormant dirt. Outdoor counters and tables
+remain cleanable even on grass; grass and the street receive no floor-cleaning duty.
+Object movement refreshes contacts after adoption, and selling a bin moves its contents to unbinned waste. Load validation
 rejects unsupported work variants and contacts before world adoption.
 
 Weekly assignments balance estimated work and sample chore preferences. Saved

@@ -1,0 +1,5 @@
+### Error
+Error: page.evaluate: Error: Canvas does not own projected point
+    at Module.tilePoint (http://127.0.0.1:5194/.scratch/r8-play-helper.js:9:64)
+    at eval (eval at evaluate (:368:30), <anonymous>:1:60)
+    at async <anonymous>:394:30
