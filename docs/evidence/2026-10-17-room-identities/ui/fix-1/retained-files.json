@@ -1,27 +1,27 @@
 [
   {
     "file": "green.log",
-    "sha256": "0116adf97fe404dd56ee34bd9d9eb004e97a5436e68c85f33bc9cde2b0885721",
-    "bytes": 459
+    "sha256": "b8eff669ecfbcdc946fb10ec44556cd0cc5a6696cdad347d4cd0f4d1a82cc490",
+    "bytes": 458
   },
   {
     "file": "README.md",
-    "sha256": "530587ef70caee8944e40d6f6d20dd8e249850239c9e7a857f7faab6ce1073f6",
-    "bytes": 4167
+    "sha256": "7512e57e404ab0f9ff0640742611201e20a17dd900810c4dccc947db4dd93815",
+    "bytes": 4191
   },
   {
     "file": "receipts.json",
-    "sha256": "e1e3a20f3c645c8b6253fc33ca60ea7cba75d51294ab6ba22479f5882847a7d1",
-    "bytes": 2578
+    "sha256": "5b3da8f363fbcc898bebc96872af3ebfeb0389572bcce87d491ef70ed33abf8e",
+    "bytes": 2698
   },
   {
     "file": "red.log",
-    "sha256": "8469c6b6b79a331517893cb9bfdc62b4d9469f9a3f8067fd28da054b3324d864",
-    "bytes": 2396
+    "sha256": "054ec88f5f356a7d91aead13bafa9a678b5a5530fa1faff1432e46830828a301",
+    "bytes": 2395
   },
   {
     "file": "typecheck.log",
-    "sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
-    "bytes": 50
+    "sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+    "bytes": 49
   }
 ]

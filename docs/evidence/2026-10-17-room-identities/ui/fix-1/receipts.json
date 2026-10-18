@@ -26,7 +26,7 @@
       "raw_log": ".local-build/r7-fix1-red.log",
       "raw_sha256": "2a525f7b7fd07ccaa7072add19a3fc234eda8d19b8b67f5e58a3e8ed0acee809",
       "retained_log": "red.log",
-      "retained_sha256": "8469c6b6b79a331517893cb9bfdc62b4d9469f9a3f8067fd28da054b3324d864"
+      "retained_sha256": "054ec88f5f356a7d91aead13bafa9a678b5a5530fa1faff1432e46830828a301"
     },
     {
       "gate": "green",
@@ -34,7 +34,7 @@
       "raw_log": ".local-build/r7-fix1-green.log",
       "raw_sha256": "e3644338ed0f6c5d2331d426bbe08f6d1dd96fe55328e52937f37fbcd2e7cda3",
       "retained_log": "green.log",
-      "retained_sha256": "0116adf97fe404dd56ee34bd9d9eb004e97a5436e68c85f33bc9cde2b0885721"
+      "retained_sha256": "b8eff669ecfbcdc946fb10ec44556cd0cc5a6696cdad347d4cd0f4d1a82cc490"
     },
     {
       "gate": "typecheck",
@@ -42,7 +42,7 @@
       "raw_log": ".local-build/r7-fix1-typecheck.log",
       "raw_sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
       "retained_log": "typecheck.log",
-      "retained_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd"
+      "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad"
     }
   ],
   "commands": {
@@ -50,5 +50,6 @@
     "green": "npm --prefix web test -- --maxWorkers=1 tests/main-build-wiring.test.ts tests/build-exit.test.ts tests/build-session.test.ts tests/build-session-state.test.ts tests/room-selection.test.ts tests/room-review.test.ts",
     "typecheck": "npm --prefix web run typecheck"
   },
-  "node_options": "--max-old-space-size=4096"
+  "node_options": "--max-old-space-size=4096",
+  "retained_log_normalization": "UTF-8 with LF line endings and one final newline; raw ignored logs remain unchanged."
 }
