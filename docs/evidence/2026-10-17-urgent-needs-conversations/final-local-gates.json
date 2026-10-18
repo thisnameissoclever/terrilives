@@ -1,0 +1,47 @@
+[
+  {
+    "name": "final-fmt",
+    "exit": 0,
+    "seconds": 5.04
+  },
+  {
+    "name": "final-clippy",
+    "exit": 0,
+    "seconds": 36.49
+  },
+  {
+    "name": "workspace-optimized-final",
+    "exit": 0,
+    "seconds": 794.43
+  },
+  {
+    "name": "doctests-final",
+    "exit": 0,
+    "seconds": 105.9
+  },
+  {
+    "name": "release-boundaries-final",
+    "exit": 0,
+    "seconds": 386.35
+  },
+  {
+    "name": "trace-build-final",
+    "exit": 0,
+    "seconds": 7.94
+  },
+  {
+    "name": "trace-matrix-final",
+    "exit": 0,
+    "seconds": 209.12
+  },
+  {
+    "name": "wasm-build-final",
+    "exit": 0,
+    "seconds": 113.65
+  },
+  {
+    "name": "web-checks-final",
+    "exit": 0,
+    "seconds": 109.45
+  }
+]
