@@ -178,9 +178,10 @@ fn forward(
         RelationshipCause::ChoreFulfilled | RelationshipCause::ChoreNeglected => {
             log.feeling(pack, effect)
         }
+        // Summed into the shared activity it belongs to.
+        RelationshipCause::SharedActivity => log.shared(effect),
         // Continuous: they move many pairs every tick ([AL-sources]).
         RelationshipCause::Proximity
-        | RelationshipCause::SharedActivity
         | RelationshipCause::Incompatibility
         | RelationshipCause::Decay => {}
     }

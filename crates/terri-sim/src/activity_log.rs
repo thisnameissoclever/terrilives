@@ -34,6 +34,12 @@ pub const SOCIAL: u32 = 4;
 pub const SKILLS: u32 = 8;
 pub const CAREER: u32 = 16;
 
+/// Flags in bits 16 to 23 of word 2. Set when the actor's, or the other
+/// person's, Social total began before any activity start this world saw,
+/// after a Load, so Details omits that total ([AL-capture] item 4).
+pub const PARTIAL: u32 = 1 << 16;
+pub const OTHER_PARTIAL: u32 = 1 << 17;
+
 /// Chore outcome codes, the `v0` of a [`LogKind::ChoreOutcome`] record.
 pub const OUTCOME_DONE: i32 = 0;
 pub const OUTCOME_COVERED: i32 = 1;
@@ -136,6 +142,11 @@ impl LogRecord {
         self
     }
 
+    pub fn with_flags(mut self, flags: u32) -> Self {
+        self.0[KIND] |= flags & 0x00ff_0000;
+        self
+    }
+
     pub fn seq(&self) -> u32 {
         self.0[SEQ]
     }
@@ -150,6 +161,11 @@ impl LogRecord {
 
     pub fn triggers(&self) -> u32 {
         (self.0[KIND] >> 8) & 0xff
+    }
+
+    /// [`PARTIAL`] and [`OTHER_PARTIAL`].
+    pub fn flags(&self) -> u32 {
+        self.0[KIND] & 0x00ff_0000
     }
 
     pub fn actor(&self) -> u32 {
@@ -337,6 +353,8 @@ pub struct ActivityLog {
 /// layout ever reaches them ([AL-boundary] rule 2).
 #[derive(Clone, Default)]
 struct Scratch {
+    /// What each person's current activity has delivered so far.
+    company: BTreeMap<u32, Company>,
     /// Open disliked-object episodes by affected and responsible person.
     nuisances: BTreeMap<(u32, u32), Nuisance>,
     /// This pass's chat and fight feelings, waiting for the record of the
@@ -349,6 +367,60 @@ struct Nuisance {
     last_tick: u64,
     change: f32,
     object: u32,
+}
+
+/// What one person's current activity has delivered: Social in need
+/// points, the opinion change from sharing the activity, and the first
+/// companion seen. `partial` when no activity start reset it in this world.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Company {
+    pub social: f32,
+    pub opinion: f32,
+    pub companion: Option<u32>,
+    pub partial: bool,
+}
+
+impl Company {
+    const UNSEEN: Self = Self {
+        social: 0.0,
+        opinion: 0.0,
+        companion: None,
+        partial: true,
+    };
+
+    /// Social in tenths of a point, the record's unit.
+    pub fn social_tenths(&self) -> i32 {
+        (self.social * 10.0).round() as i32
+    }
+}
+
+/// The skill an action practised and where it stands afterwards.
+pub(crate) struct Practised {
+    label: &'static str,
+    level: i32,
+    percent: i32,
+}
+
+/// The first of the pack's skills that `tags` practise, read from `skills`
+/// after practice has been added. Reads only.
+pub(crate) fn practised(
+    skills: Option<&terri_core::Skills>,
+    pack: &'static ContentPack,
+    tags: &[String],
+) -> Option<Practised> {
+    let skills = skills?;
+    let ladder = crate::skills::Ladder::from_tuning(&pack.tuning);
+    let (index, skill) = pack
+        .skills
+        .iter()
+        .enumerate()
+        .find(|(_, skill)| tags.contains(&skill.tag))?;
+    let standing = crate::skills::standing(&ladder, skill.levels, skills.practice(index as u32));
+    Some(Practised {
+        label: &skill.label,
+        level: i32::from(standing.level),
+        percent: (standing.progress * 100.0).floor() as i32,
+    })
 }
 
 /// One opinion change held for the record that explains it.
@@ -516,6 +588,162 @@ impl ActivityLog {
         });
     }
 
+    /// Starts a fresh Social total where an activity begins: a meal, a chat
+    /// or an object interaction ([AL-capture] item 4).
+    pub(crate) fn begin_activity(&mut self, person: u32) {
+        if self.enabled {
+            self.scratch.company.insert(person, Company::default());
+        }
+    }
+
+    /// Social delivered to `person` this tick, and who they had company of.
+    pub(crate) fn social(&mut self, person: u32, delivered: f32, companion: Option<u32>) {
+        if !self.enabled || delivered == 0.0 {
+            return;
+        }
+        let company = self.company_of(person);
+        company.social += delivered;
+        company.companion = company.companion.or(companion);
+    }
+
+    /// A shared-activity opinion change, summed into the activity it
+    /// belongs to rather than logged on its own.
+    pub(crate) fn shared(&mut self, effect: &RelationshipEffect) {
+        let company = self.company_of(effect.affected.0);
+        company.opinion += effect.actual;
+        company.companion = company.companion.or(Some(effect.responsible.0));
+    }
+
+    /// The person's current total, without changing it.
+    pub fn company(&self, person: u32) -> Company {
+        self.scratch
+            .company
+            .get(&person)
+            .copied()
+            .unwrap_or(Company::UNSEEN)
+    }
+
+    fn company_of(&mut self, person: u32) -> &mut Company {
+        self.scratch
+            .company
+            .entry(person)
+            .or_insert(Company::UNSEEN)
+    }
+
+    /// Reads the total an activity delivered and starts the next one fresh.
+    fn take_company(&mut self, person: u32) -> Company {
+        self.scratch
+            .company
+            .insert(person, Company::default())
+            .unwrap_or(Company::UNSEEN)
+    }
+
+    /// Removes and sums the held feelings of `affected` about `responsible`.
+    fn take_feeling(&mut self, cause: RelationshipCause, affected: u32, responsible: u32) -> f32 {
+        let mut change = 0.0;
+        self.scratch.feelings.retain(|held| {
+            let claimed =
+                held.cause == cause && held.affected == affected && held.responsible == responsible;
+            if claimed {
+                change += held.change;
+            }
+            !claimed
+        });
+        change
+    }
+
+    /// Kind 1: an object interaction, a recipe or a book finished. Carries
+    /// the Social and shared opinion its company delivered and the skill it
+    /// practised ([AL-record]).
+    pub(crate) fn action_done(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        label: &str,
+        skill: Option<Practised>,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        let company = self.take_company(actor);
+        let labels = labels(pack);
+        let mut record = LogRecord::new(LogKind::ActionDone, ACTIONS, tick, actor)
+            .with_other(company.companion.unwrap_or(NONE))
+            .with_label(labels.index(label))
+            .with_value(0, company.social_tenths())
+            .with_value(3, opinion_units(company.opinion));
+        if company.social_tenths() > 0 && company.companion.is_some() {
+            record = record.with_triggers(SOCIAL);
+        }
+        if company.partial {
+            record = record.with_flags(PARTIAL);
+        }
+        if let Some(skill) = skill {
+            record = record
+                .with_label2(labels.index(skill.label))
+                .with_value(1, skill.level)
+                .with_value(2, skill.percent);
+        }
+        self.push(record);
+    }
+
+    /// Kind 2 or 3: a finished chat or fight with its topic and both
+    /// opinion changes. A chat adds both reactions to the topic, as
+    /// preferences times 100, and both Social totals ([AL-record]).
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn conversation_done(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        initiator: u32,
+        listener: u32,
+        interaction: &str,
+        topic: Option<&crate::social_episode::Topic>,
+        fight: bool,
+    ) {
+        if !self.enabled {
+            return;
+        }
+        let (kind, cause) = if fight {
+            (LogKind::FightDone, RelationshipCause::Fight)
+        } else {
+            (LogKind::ChatDone, RelationshipCause::Conversation)
+        };
+        let mine = self.take_company(initiator);
+        let theirs = self.take_company(listener);
+        let spoke = self.take_feeling(cause, initiator, listener);
+        let heard = self.take_feeling(cause, listener, initiator);
+        let labels = labels(pack);
+        let mut record = LogRecord::new(kind, ACTIONS | SOCIAL, tick, initiator)
+            .with_other(listener)
+            .with_label(labels.index(interaction))
+            .with_label2(topic.map_or(NONE, |topic| labels.index(&topic.tag)))
+            .with_value(2, opinion_units(spoke))
+            .with_value(3, opinion_units(heard));
+        if !fight {
+            let reaction = |preference: f32| (preference * 100.0).round() as i32;
+            record = record
+                .with_value(
+                    0,
+                    topic.map_or(0, |topic| {
+                        pack_pair(
+                            reaction(topic.initiator_preference),
+                            reaction(topic.listener_preference),
+                        )
+                    }),
+                )
+                .with_value(1, pack_pair(mine.social_tenths(), theirs.social_tenths()));
+            if mine.partial {
+                record = record.with_flags(PARTIAL);
+            }
+            if theirs.partial {
+                record = record.with_flags(OTHER_PARTIAL);
+            }
+        }
+        self.push(record);
+    }
+
     /// The feelings held this pass, oldest first.
     pub fn held_feelings(&self) -> &[HeldFeeling] {
         &self.scratch.feelings
@@ -602,6 +830,24 @@ fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord) -> bool {
         (LogKind::SkillLevel, Some(LogKind::ActionDone)) => parent.actor() == child.actor(),
         (LogKind::SkillLevel, Some(LogKind::ChatDone)) => parent.involves(child.actor()),
         _ => false,
+    }
+}
+
+/// Adds Social delivered to `person` by company this tick, naming the
+/// lowest-numbered companion the company resource sees.
+pub(crate) fn add_social(world: &mut World, person: Entity, delivered: f32) {
+    if delivered == 0.0 {
+        return;
+    }
+    let Some(id) = world.get::<terri_core::SimId>(person).copied() else {
+        return;
+    };
+    let companion = world
+        .get_resource::<crate::social_company::SocialCompany>()
+        .and_then(|company| company.companion(person))
+        .map(|other| other.0);
+    if let Some(mut log) = world.get_resource_mut::<ActivityLog>() {
+        log.social(id.0, delivered, companion);
     }
 }
 

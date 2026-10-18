@@ -924,6 +924,12 @@ pub(crate) fn gather_diners(world: &mut World) {
                     && participants.len() + outsiders > dining_capacity(world, table)))
         {
             world.resource_mut::<SavedDomestic>().meals[index].dining_started = true;
+            // The meal's company starts now ([AL-capture] item 4).
+            if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+                for id in participants.union(&arrived) {
+                    log.begin_activity(*id);
+                }
+            }
             if meal.table.is_none() {
                 world
                     .resource_mut::<SavedDining>()

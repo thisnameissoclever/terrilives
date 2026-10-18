@@ -138,6 +138,7 @@ pub fn tick_social(
                 // still runs its course so the reservation still ends.
                 continue;
             };
+            let social_before = my_needs.get(NeedId::Social);
             let satisfaction_of =
                 |need: usize| personalities.get(me).map_or(1.0, |p| p.satisfaction[need]);
             // My feeling about THEM scales what I get - which for the
@@ -172,6 +173,10 @@ pub fn tick_social(
                 );
                 let id = NeedId::ALL[*need_index as usize];
                 my_needs.fill(id, delta);
+            }
+            if let (Some(log), Ok(id)) = (log.as_deref_mut(), sim_ids.get(me)) {
+                let delivered = my_needs.get(NeedId::Social) - social_before;
+                log.social(id.0, delivered, other_sim_id(&sim_ids, other).map(|o| o.0));
             }
         }
 
@@ -219,6 +224,15 @@ pub fn tick_social(
                 );
                 fights.record(my_id, clock.tick + u64::from(tuning.fight_mood_ticks));
             }
+            log_conversation(
+                log.as_deref_mut(),
+                (content.0, clock.tick),
+                &sim_ids,
+                (initiator, partner),
+                act,
+                episodes.topics.get(&initiator),
+                true,
+            );
             if let Ok(mut queue) = queues.get_mut(initiator) {
                 queue.remove_first(terri_core::Intent {
                     cleanup: None,
@@ -346,6 +360,16 @@ pub fn tick_social(
             }
         }
 
+        log_conversation(
+            log.as_deref_mut(),
+            (content.0, clock.tick),
+            &sim_ids,
+            (initiator, partner),
+            act,
+            episodes.topics.get(&initiator),
+            false,
+        );
+
         // **A player-issued talk lives until the conversation it named
         // finishes** - the exact rule `tick_interactions` applies to a
         // meal, ported here because TalkTo made a directed conversation
@@ -390,6 +414,25 @@ pub fn tick_social(
         // command must not panic if the partner despawned mid-talk.
         commands.entity(partner).try_remove::<Reserved>();
     }
+}
+
+/// Stages a finished conversation's record, copying the topic before
+/// `social_episode::maintain` removes it ([AL-capture] item 3).
+fn log_conversation(
+    log: Option<&mut crate::activity_log::ActivityLog>,
+    (pack, tick): (&'static terri_data::ContentPack, u64),
+    sim_ids: &Query<&SimId>,
+    (initiator, partner): (Entity, Entity),
+    act: &terri_data::CompiledInteraction,
+    topic: Option<&crate::social_episode::Topic>,
+    fight: bool,
+) {
+    let (Some(log), Ok(speaker), Some(listener)) =
+        (log, sim_ids.get(initiator), other_sim_id(sim_ids, partner))
+    else {
+        return;
+    };
+    log.conversation_done(pack, tick, speaker.0, listener.0, &act.label, topic, fight);
 }
 
 /// The partner's stable identity, if it still has one. A helper rather
@@ -2540,5 +2583,130 @@ mod tests {
             .get::<Needs>(who)
             .expect("the fixture gave every sim needs")
             .get(NeedId::Social)
+    }
+
+    /// The chat's records, oldest first.
+    fn chat_records(sim: &Sim) -> Vec<crate::activity_log::LogRecord> {
+        sim.activity_log()
+            .records()
+            .filter(|r| r.kind() == Some(crate::activity_log::LogKind::ChatDone))
+            .copied()
+            .collect()
+    }
+
+    /// Runs one chat between the household of two with the topic set to
+    /// reading, which the listener rates `listener`, and returns its record
+    /// and the two Conversation effects of its completion tick.
+    fn logged_chat(
+        listener: f32,
+    ) -> (
+        Sim,
+        crate::activity_log::LogRecord,
+        RelationshipEffect,
+        RelationshipEffect,
+    ) {
+        let pack = chat_pack();
+        let (mut sim, first, second) = household_of_two(pack);
+        let mut started = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(first).is_some() {
+                started = true;
+                break;
+            }
+        }
+        assert!(started, "the lonely sim starts a chat");
+        sim.world_mut()
+            .resource_mut::<crate::social_episode::SocialEpisodes>()
+            .topics
+            .insert(
+                first,
+                crate::social_episode::Topic {
+                    code: 8,
+                    tag: "reading".into(),
+                    initiator_preference: 0.8,
+                    listener_preference: listener,
+                },
+            );
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(first).is_none() {
+                break;
+            }
+        }
+        let records = chat_records(&sim);
+        assert_eq!(records.len(), 1, "one line per chat");
+        let effect = |me: Entity, other: Entity| {
+            let me = *sim.world().get::<SimId>(me).unwrap();
+            let other = *sim.world().get::<SimId>(other).unwrap();
+            *sim.relationship_effects()
+                .iter()
+                .find(|e| {
+                    e.cause == RelationshipCause::Conversation
+                        && e.affected == me
+                        && e.responsible == other
+                })
+                .expect("the completion tick's Conversation effect")
+        };
+        let (spoke, heard) = (effect(first, second), effect(second, first));
+        (sim, records[0], spoke, heard)
+    }
+
+    /// [AL-capture] item 3: the chat line copies the topic and both
+    /// reactions before the topic is forgotten, and carries both Social
+    /// totals and both opinion changes. A disliked topic costs the listener
+    /// `0.02 * preference`; a liked one records the gain.
+    #[test]
+    fn chat_completion_logs_topic_reactions_social_and_opinion() {
+        use crate::activity_log::{opinion_units, unpack_pair, ACTIONS, SOCIAL};
+        let (sim, record, spoke, heard) = logged_chat(-0.5);
+        let pack = sim.world().resource::<Content>().0;
+        assert_eq!((record.actor(), record.other()), (0, 1));
+        assert_eq!(
+            record.label(),
+            sim.activity_log().label(pack, &pack.social[0].label)
+        );
+        assert_eq!(record.label2(), sim.activity_log().label(pack, "reading"));
+        assert_eq!(record.triggers(), ACTIONS | SOCIAL);
+        assert_eq!(record.flags(), 0, "both totals began with this chat");
+        assert_eq!(unpack_pair(record.value(0)), (80, -50));
+        let (mine, theirs) = unpack_pair(record.value(1));
+        assert!(mine > 0 && theirs > 0, "both refilled: {mine}, {theirs}");
+        assert_eq!(record.value(2), opinion_units(spoke.actual));
+        assert!((heard.requested - 0.02 * -0.5).abs() < 1e-7);
+        assert_eq!(record.value(3), opinion_units(heard.actual));
+        assert_eq!(record.value(3), -100, "the listener's loss");
+
+        let (_, record, _, heard) = logged_chat(0.5);
+        assert!(heard.actual > 0.0, "a liked topic still gains");
+        assert_eq!(record.value(3), opinion_units(heard.actual));
+        assert_eq!(unpack_pair(record.value(0)), (80, 50));
+    }
+
+    /// A chat the partner walks away from pays nothing, and the log says
+    /// nothing either ([AL-sources]).
+    #[test]
+    fn interrupted_chat_logs_nothing() {
+        let pack = chat_pack();
+        let (mut sim, first, second) = household_of_two(pack);
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(first).is_some() {
+                break;
+            }
+        }
+        assert!(sim.world().get::<Socialising>(first).is_some());
+        sim.world_mut().entity_mut(second).insert(Target {
+            object: first,
+            interaction: 0,
+        });
+        sim.tick();
+        assert!(sim.world().get::<Socialising>(first).is_none(), "disturbed");
+        assert!(chat_records(&sim).is_empty());
+        assert!(sim
+            .activity_log()
+            .records()
+            .all(|r| r.kind() != Some(crate::activity_log::LogKind::FightDone)));
+        assert!(sim.activity_log().held_feelings().is_empty());
     }
 }

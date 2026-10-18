@@ -103,7 +103,10 @@ pub fn follow_path(
     mut interpersonal: ResMut<super::interpersonal::InterpersonalPhase>,
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     clock: Res<terri_core::SimClock>,
-    mut diagnostics: ResMut<crate::relationship_effects::RelationshipDiagnostics>,
+    (mut diagnostics, mut log): (
+        ResMut<crate::relationship_effects::RelationshipDiagnostics>,
+        Option<ResMut<crate::activity_log::ActivityLog>>,
+    ),
     identities: Query<&terri_core::SimId>,
     beds: super::action::BedState,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
@@ -319,6 +322,9 @@ pub fn follow_path(
                     interaction: target.interaction,
                     remaining_ticks,
                 });
+                if let (Some(log), Ok(id)) = (log.as_deref_mut(), identities.get(entity)) {
+                    log.begin_activity(id.0);
+                }
                 if act
                     .tags
                     .iter()
@@ -412,6 +418,13 @@ pub fn follow_path(
                 commands.queue(move |world: &mut World| {
                     crate::social_episode::started(world, entity, partner)
                 });
+                if let Some(log) = log.as_deref_mut() {
+                    for person in [entity, partner] {
+                        if let Ok(id) = identities.get(person) {
+                            log.begin_activity(id.0);
+                        }
+                    }
+                }
                 let mut talker = commands.entity(entity);
                 talker.remove::<Path>().insert(Socialising {
                     interaction: target.interaction,

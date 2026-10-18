@@ -270,7 +270,7 @@ fn label_table_covers_every_action_and_chain_label() {
 /// the way `hash_ignores_archetype_layout_and_entity_history` does, and
 /// every 97th tick is followed by a paused-frame command drain, so the
 /// end-of-tick pass also runs outside the schedule.
-fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, usize) {
+fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec<LogKind>) {
     let mut sim = Sim::new_from_shipped_lot();
     sim.set_activity_log_enabled(log);
     let bystander = churn.then(|| sim.world_mut().spawn(Position { x: 2.0, y: 2.0 }).id());
@@ -293,7 +293,7 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, usi
         sim.world_mut().entity_mut(agents[0]).remove::<Eating>();
     }
     let mut hashes = Vec::with_capacity(ticks);
-    let mut staged = 0;
+    let mut staged = Vec::new();
     let mut out = Vec::new();
     for tick in 0..ticks {
         sim.tick();
@@ -305,7 +305,11 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, usi
         if tick % 97 == 96 {
             sim.flush_commands();
         }
-        staged += sim.take_activity_log(&mut out) as usize;
+        sim.take_activity_log(&mut out);
+        staged.extend(
+            out.chunks_exact(12)
+                .filter_map(|words| LogKind::from_code(words[2] as u8)),
+        );
         out.clear();
         hashes.push(sim.world_hash());
     }
@@ -316,7 +320,7 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, usi
 /// log on and a different archetype history, once with it off, and requires
 /// identical world hashes after every tick and the same generator at the
 /// end. Every emitter added to the simulation must keep both runs equal.
-fn assert_log_never_changes_the_world(days: usize) -> usize {
+fn assert_log_never_changes_the_world(days: usize) -> Vec<LogKind> {
     let ticks = days
         * Sim::new_from_shipped_lot()
             .world()
@@ -326,9 +330,12 @@ fn assert_log_never_changes_the_world(days: usize) -> usize {
             .day_ticks as usize;
     let (on, on_rng, records) = run_household(true, true, ticks);
     let (off, off_rng, none) = run_household(false, false, ticks);
-    assert_eq!(none, 0, "a disabled log stages nothing");
+    assert!(none.is_empty(), "a disabled log stages nothing");
     if let Some(tick) = on.iter().zip(&off).position(|(a, b)| a != b) {
-        panic!("the world diverged at tick {tick} with {records} records staged");
+        panic!(
+            "the world diverged at tick {tick} with {} records staged",
+            records.len()
+        );
     }
     assert_eq!(on_rng, off_rng);
     records
@@ -339,10 +346,10 @@ fn assert_log_never_changes_the_world(days: usize) -> usize {
 #[test]
 fn activity_log_never_changes_the_world() {
     let records = assert_log_never_changes_the_world(2);
-    assert!(
-        records > 0,
-        "the emitters must have run for this to prove anything"
-    );
+    // The emitters must have run for the comparison to prove anything.
+    for kind in [LogKind::ActionDone, LogKind::ChatDone, LogKind::Annoyed] {
+        assert!(records.contains(&kind), "no {kind:?} in two days");
+    }
 }
 
 /// The full twenty game days of [AL-perf]. A debug build takes about

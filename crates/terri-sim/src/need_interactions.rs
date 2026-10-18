@@ -416,13 +416,17 @@ pub(crate) fn tick(world: &mut World) {
         })
         .collect();
     for (person, comfort, social) in payments {
+        let mut delivered = 0.;
         if let Some(mut needs) = world.get_mut::<Needs>(person) {
             if comfort != 0. {
                 needs.fill(NeedId::Comfort, comfort);
             }
             if social != 0. {
+                let before = needs.get(NeedId::Social);
                 needs.fill(NeedId::Social, social);
+                delivered = needs.get(NeedId::Social) - before;
             }
         }
+        crate::activity_log::add_social(world, person, delivered);
     }
 }

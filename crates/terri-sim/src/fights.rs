@@ -1068,4 +1068,56 @@ mod order_tests {
             .iter()
             .all(|e| e.cause != crate::relationship_effects::RelationshipCause::Fight));
     }
+
+    /// [AL-record] kind 3: a finished fight is one line naming both sides,
+    /// the fight topic and both losses.
+    #[test]
+    fn fight_completion_logs_reason_and_both_losses() {
+        use crate::activity_log::{opinion_units, LogKind, ACTIONS, SOCIAL};
+        let (mut sim, a, b, _fridge) = household();
+        order_fight(&mut sim, a, b);
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_some(),
+            "the fight",
+        );
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_none(),
+            "the end of the fight",
+        );
+        let pack = sim.world().resource::<crate::Content>().0;
+        let records: Vec<_> = sim.activity_log().records().copied().collect();
+        let fights: Vec<_> = records
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::FightDone))
+            .collect();
+        assert_eq!(fights.len(), 1, "{records:?}");
+        assert!(records.iter().all(|r| r.kind() != Some(LogKind::ChatDone)));
+        let record = fights[0];
+        let (a_id, b_id) = (
+            *sim.world().get::<SimId>(a).unwrap(),
+            *sim.world().get::<SimId>(b).unwrap(),
+        );
+        assert_eq!((record.actor(), record.other()), (a_id.0, b_id.0));
+        assert_eq!(record.triggers(), ACTIONS | SOCIAL);
+        assert_eq!(
+            record.label2(),
+            sim.activity_log().label(pack, Reason::tag(None))
+        );
+        let loss = |me: SimId, other: SimId| {
+            sim.relationship_effects()
+                .iter()
+                .find(|e| {
+                    e.cause == crate::relationship_effects::RelationshipCause::Fight
+                        && e.affected == me
+                        && e.responsible == other
+                })
+                .unwrap()
+                .actual
+        };
+        assert_eq!(record.value(2), opinion_units(loss(a_id, b_id)));
+        assert_eq!(record.value(3), opinion_units(loss(b_id, a_id)));
+        assert!(record.value(2) < 0 && record.value(3) < 0);
+    }
 }
