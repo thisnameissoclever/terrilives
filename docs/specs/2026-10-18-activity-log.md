@@ -362,13 +362,13 @@ These are proposals, not approved copy. They live in one shell module, `web/src/
 | Surface | Proposed strings |
 | --- | --- |
 | Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details; Time; Only entries involving {name}.; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries |
-| Head | {name}: {label}; with {name}; about {topic} |
+| Head | {name}: {label}; with {name}; about {topic}; Someone, for a person the shell never saw a name for |
 | Time | D{day}, T{hh}:{mm} |
 | Topic words, phase 1 | eating; small talk; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging about; washing; cleaning; music; letters; baths; cooking; something; the dishes; chores; nothing in particular |
 | Reactions | {name} loves it; {name} likes it; {name} does not mind it; {name} dislikes it; {name} hates it |
-| Feelings | {name} appreciates {name}; {name} and {name} like each other less; Annoyed by {name}'s dishes; Annoyed by {name}'s dirty place setting; Annoyed that {name} walked in; Annoyed that {name} used the {object} nearby; Annoyed that {name} interrupted; Bothered by {name} using the {kind}, reused from the mood panel; ({n} times) |
+| Feelings | {name} appreciates {name}; {name} and {name} like each other less; Annoyed by {name}'s dishes; Annoyed by {name}'s dirty place setting; Annoyed that {name} walked in; Annoyed that {name} used the {object} nearby; Annoyed that {name} interrupted; Bothered by {name} using the {kind}, reused from the mood panel; ({n} times), which shares its parentheses with a Details number as ({n} times, {+n} opinion of {name}); {name} resents {name}, for a chore neglected; Annoyed that {name} used something nearby, when the fixture is unknown; Annoyed by {name}, for a cause the shell does not know |
 | Chores | Chores this week: {duties}; {duty} ({room}); covered {name}'s chore; Missed {duty}; Skipped {duty} |
-| Skills | {skill} level {n}; {skill} reached level {n}; ({p}%) |
+| Skills | {skill} level {n}; {skill} reached level {n}; ({p}%); a chat partner's level-up reads {name}: {skill} reached level {n} |
 | Career | Weekly review: {outcome}; Promoted to {title}; Got a raise; Demoted to {title}; Fired; Changed path to {title}; No change; Warned at work; Hired as {title}; Career assigned: {title}; Job left |
 | Details | +{n} Social; {+n} opinion of {name}; performance {n} of 100; fit {n}; skill {n}%; mood {n} |
 | Household | Died |
