@@ -15,6 +15,8 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>Natural Causes</title>
+    <link rel="icon" href="./favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
     <style>
       /* Flat shapes and a coherent palette; [D-7] puts art out of scope
          for this milestone, and the readouts only have to be legible
@@ -90,6 +92,13 @@
       #startup-loading-title {
         font-size: 20px;
         font-weight: 700;
+      }
+      .startup-logo {
+        display: block;
+        width: min(300px, 70vw);
+        height: auto;
+        max-height: 30vh;
+        object-fit: contain;
       }
       #startup-loading-step {
         font-size: 15px;
@@ -1161,6 +1170,7 @@
     ></canvas>
     <div id="room-map-marker" hidden></div>
     <div id="startup-loading">
+      <img class="startup-logo" src="./branding/logo-dark.png" alt="" aria-hidden="true" width="803" height="476" />
       <div class="startup-spinner" aria-hidden="true"></div>
       <p id="startup-loading-title">Loading Natural Causes</p>
       <p id="startup-loading-step" role="status" aria-live="polite">Step 1 of 10: Downloading the game</p>

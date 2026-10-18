@@ -1,0 +1,31 @@
+test_architecture_guard_rejects_missing_or_corrupt_patio_entries (test_aquarium_prefix.AquariumPrefixTests.test_architecture_guard_rejects_missing_or_corrupt_patio_entries) ... ok
+test_architecture_guard_rejects_unrelated_descriptor_drift (test_aquarium_prefix.AquariumPrefixTests.test_architecture_guard_rejects_unrelated_descriptor_drift) ... ok
+test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves (test_aquarium_prefix.AquariumPrefixTests.test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves) ... ok
+test_preserves_bed_dining_coverage_surface_and_other_registration_tables (test_aquarium_prefix.AquariumPrefixTests.test_preserves_bed_dining_coverage_surface_and_other_registration_tables) ... ok
+test_preserves_every_released_record_and_decoded_pixel (test_aquarium_prefix.AquariumPrefixTests.test_preserves_every_released_record_and_decoded_pixel) ... ok
+test_accepts_only_the_exact_prefix_and_reviewed_extension (test_architecture_extensions.ArchitectureExtensions.test_accepts_only_the_exact_prefix_and_reviewed_extension) ... ok
+test_loads_only_the_pinned_reviewed_aquarium_catalog (test_architecture_extensions.ArchitectureExtensions.test_loads_only_the_pinned_reviewed_aquarium_catalog) ... ok
+test_loads_the_pinned_bath_extension_without_replacing_history (test_architecture_extensions.ArchitectureExtensions.test_loads_the_pinned_bath_extension_without_replacing_history) ... <workspace>\assets\models\bedroom\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for parts in zip(*(image.getdata() for image in layers)):
+<workspace>\assets\models\seating\seat_export_contract.py:157: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for red, green, blue, coverage in zip(*(band.getdata() for band in filtered)):
+<workspace>\assets\models\bedroom\double_bed_layers.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for expected, result, *parts in zip(reference.getdata(), actual.getdata(),
+<workspace>\assets\models\bedroom\double_bed_layers.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  *(owner.getdata() for owner in owners)):
+ok
+test_loads_the_pinned_bathroom_extension_without_replacing_history (test_architecture_extensions.ArchitectureExtensions.test_loads_the_pinned_bathroom_extension_without_replacing_history) ... ok
+test_loads_the_separately_pinned_covered_bunk_extension (test_architecture_extensions.ArchitectureExtensions.test_loads_the_separately_pinned_covered_bunk_extension) ... ok
+test_rejects_changed_prefix_pixels (test_architecture_extensions.ArchitectureExtensions.test_rejects_changed_prefix_pixels) ... ok
+test_rejects_duplicate_and_escaping_extension_catalogs (test_architecture_extensions.ArchitectureExtensions.test_rejects_duplicate_and_escaping_extension_catalogs) ... ok
+test_rejects_missing_prefix_without_blessing_extension_as_history (test_architecture_extensions.ArchitectureExtensions.test_rejects_missing_prefix_without_blessing_extension_as_history) ... ok
+test_rejects_swapped_extension_identity_and_pixels (test_architecture_extensions.ArchitectureExtensions.test_rejects_swapped_extension_identity_and_pixels) ... ok
+test_rejects_undeclared_extra_records (test_architecture_extensions.ArchitectureExtensions.test_rejects_undeclared_extra_records) ... ok
+test_patio_extension_preserves_accepted_catalogue_and_baked_pixels (test_offline_architecture.ArchitectureImport.test_patio_extension_preserves_accepted_catalogue_and_baked_pixels) ... ok
+test_catalogue_extensions_refuse_overwrites_gaps_and_invalid_resources (test_offline_architecture.ArchitectureImport.test_catalogue_extensions_refuse_overwrites_gaps_and_invalid_resources) ... ok
+test_catalogue_extension_hash_is_pinned (test_offline_architecture.ArchitectureImport.test_catalogue_extension_hash_is_pinned) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 97.777s
+
+OK
