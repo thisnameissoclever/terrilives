@@ -292,6 +292,10 @@ fn a_chat_suspended_by_an_order_gives_up_cleanly_in_a_crisis() {
     sim.tick();
     assert_eq!(phase(&sim), None, "the suspended chat gives up");
     assert!(
+        sim.world().get::<Reserved>(tim).is_some(),
+        "the order keeps its claim on Tim through the give-up"
+    );
+    assert!(
         sim.world()
             .get::<requests::CommittedConversation>(tim)
             .is_none(),
@@ -303,6 +307,21 @@ fn a_chat_suspended_by_an_order_gives_up_cleanly_in_a_crisis() {
         recorder.seen.contains(&(bill, tim, FIGHT)),
         "the player's fight still runs"
     );
+    // A suspended chat would normally resume once the fight ends, so keep
+    // watching past the fight's end before checking that it never returns.
+    for _ in 0..1_500 {
+        recorder.tick(&mut sim);
+        if !recorder.current.contains(&(bill, tim, FIGHT)) {
+            break;
+        }
+    }
+    assert!(
+        !recorder.current.contains(&(bill, tim, FIGHT)),
+        "the fight ends"
+    );
+    for _ in 0..300 {
+        recorder.tick(&mut sim);
+    }
     assert!(
         !recorder.seen.contains(&(tim, bill, CHAT)),
         "the abandoned chat does not resume"

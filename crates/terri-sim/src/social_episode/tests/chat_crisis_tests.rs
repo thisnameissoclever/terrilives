@@ -104,7 +104,7 @@ fn a_waiting_chosen_chat_gives_up_too() {
 
 /// The give-up must not become a loop of choosing the same chat again: a
 /// critically hungry, lonely housemate with food in reach goes to eat. A chat
-/// chosen during selection would be cancelled before movement in the same
+/// chosen during selection would be canceled before movement in the same
 /// tick, so the test counts requests created rather than requests seen.
 #[test]
 fn a_critically_hungry_lonely_housemate_eats_instead_of_reselecting_a_chat() {
