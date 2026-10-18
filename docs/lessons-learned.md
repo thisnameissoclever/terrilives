@@ -3630,41 +3630,36 @@ lot, agrees with itself, and passes. Measured. The fix was to ask the
 question of `from_lot()`'s real lot instead. **A control that rebuilds its
 world from the values it is testing is not a control.**
 
-**Correction, measured 2026-10-17 on `main` at `c2ef49b59`:** the sentences
-above that begin "Second, its blindness became load-bearing" no longer
-describe live selection. Commit `413412814` (#143) moved `select_action` from
-`sample_softmax` to `autonomy::grouped_probabilities`, which calls `f64::exp`,
-and added a wander candidate that `select_action` pushes after every other
-candidate. One object therefore no longer means one candidate: an agent that
-can use the fridge weighs it against wandering.
+**Correction, measured 2026-10-17:** the sentences above that begin "Second,
+its blindness became load-bearing" no longer describe live selection. Commit
+`413412814` (#143) moved `select_action` from `sample_softmax` to
+`autonomy::grouped_probabilities`, which calls `f64::exp`, and added a wander
+candidate that `select_action` pushes after every other candidate. One object
+therefore no longer means one candidate: an agent that can use the fridge
+weighs it against wandering.
 
-The vector is still independent of `exp` results, for a different reason. A
-temporary probe that logged `DecisionTelemetry` over `build_scenario`'s 100
-ticks found 33 decisions, each holding the wander candidate alone at
-probability 1.0, and a lone candidate's probability is 1.0 whatever `exp`
-returns. Two conditions keep it alone: both of the fridge's actions are chains
-with a preparation step and the scenario has no counter, so the fridge never
-becomes a candidate; and the agents carry no `SimId`, so none becomes another's
-social or waiting candidate. A second probe that gave the eight agents
-identities found all 17 decisions over the same 100 ticks held several
-candidates, so the exposure changes with any decision that has more than one
-candidate, rather than whenever a second object appears.
+At `c2ef49b59` the vector was still independent of `exp` results, for a
+different reason. A temporary probe that logged `DecisionTelemetry` over
+`build_scenario`'s 100 ticks found 33 decisions, each holding the wander
+candidate alone at probability 1.0, which no `exp` result can change. The
+fridge never became a candidate, because both of its actions are chains with a
+preparation step and the scenario has no counter, and the agents had no
+`SimId`, so none became another's social or waiting candidate.
+
+That second condition no longer holds. Commit `5107826ba` spawns the
+scenario's agents through `Sim::spawn_agent`, which gives each one a `SimId`,
+and the same probe, run on a merge of `main` at `a481d7c7b`, found 12
+decisions, each holding seven social candidates at unequal probabilities beside
+the wander candidate. The vector therefore depends on `f64::exp` results, and
+agreement between native and wasm32 is a measurement each time it is checked,
+not a guarantee. The fridge still never becomes a candidate.
 
 `hypot` and `powi` also carry no cross-target guarantee and feed decisions
 elsewhere, for example the company distance checks in `social_company`;
 whether either reaches this scenario was not measured. [L55]'s second reason
-rests on the same one-candidate premise. The comments on `sample_softmax` and
-in `world_hash_matches_its_golden_vector` now say this, and
-[L-confirm-live-callers] records how the stale premise survived.
-
-**Follow-up, measured 2026-10-17 on a merge of `main` at `a481d7c7b`:** commit
-`5107826ba` spawns the scenario's agents through `Sim::spawn_agent`, which
-gives each one a `SimId`. A probe found each of the 12 decisions over the 100
-ticks held seven social candidates beside the wander candidate, so the vector
-now depends on `f64::exp` results, the case the correction above describes.
-The fridge still never becomes a candidate. Agreement between native and
-wasm32 on this vector is therefore a measurement each time it is checked, not
-a guarantee, and the comments now say so.
+rested on the one-candidate premise. The comments on `sample_softmax` and in
+`world_hash_matches_its_golden_vector` say this, and [L-confirm-live-callers]
+records how the stale premise survived.
 
 ---
 
@@ -4678,7 +4673,7 @@ candidate. Live selection adds a wander candidate, and since commit
 `5107826ba` the scenario's agents have identities, so each decision also holds
 the other agents' social candidates. A change to how those candidates are
 weighted can now move the digest, though the fridge itself still never becomes
-a candidate; [L36]'s follow-up records the measurement.
+a candidate; [L36]'s correction records the measurement.
 
 **3. A behavioural test would not have been enough.** The obvious repair -
 "habituate the sim on A, assert it picks B" - passes for three of the four

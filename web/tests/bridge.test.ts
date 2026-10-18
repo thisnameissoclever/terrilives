@@ -1302,10 +1302,11 @@ describe('SimBridge', () => {
     // the weights between them. Agreement between native and wasm32 is a
     // measurement each time this test runs, not a guarantee. The fridge
     // never becomes a candidate, because both of its actions need a
-    // preparation counter the scenario lacks; the later paragraphs that
+    // preparation counter the scenario lacks. The later paragraphs that
     // describe agents claiming the fridge or being outbid for it predate
-    // the staged snack change and are historical too. [L36] records the
-    // measurements.
+    // the staged snack change, and the one that says the scenario spawns
+    // plain agents predates `5107826ba`; both are historical. [L36]
+    // records the measurements.
     //
     // M1c Task 4 varied every interaction's length around its content
     // duration and put a 25-tick floor under it, and this vector did not

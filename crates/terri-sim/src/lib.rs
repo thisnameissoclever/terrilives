@@ -6559,10 +6559,11 @@ mod determinism_tests {
         // native and wasm32 on this vector is a measurement each time it is
         // checked, not a guarantee. The fridge still never becomes a
         // candidate, because both of its actions are chains with a
-        // preparation step and there is no counter here; the later
+        // preparation step and there is no counter here. The later
         // paragraphs that describe agents claiming the fridge or being
-        // outbid for it predate the staged snack change and are historical
-        // too. [L36] records the measurements.
+        // outbid for it predate the staged snack change, and those that
+        // say the agents have no identity predate `5107826ba`; both are
+        // historical. [L36] records the measurements.
         //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every

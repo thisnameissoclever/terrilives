@@ -216,16 +216,17 @@ impl BedState<'_, '_> {
 /// always pushes a wander candidate after its object, social and waiting
 /// candidates, weighs them through
 /// `critical_choices::critical_choice_probabilities`, and draws with
-/// `autonomy::sample`. That function hands the candidates to
-/// `autonomy::grouped_probabilities`, which normalizes interactions per
-/// target and reserves at least one bucket for every positive
-/// probability. When `tuning.autonomy` is set, a need is critical and
-/// only some candidates relieve it, the function instead weighs the
-/// relieving candidates against the rest with `autonomy::probabilities`,
-/// caps the rest's share at the `[autonomy]` limits, and then weighs each
-/// group with `autonomy::grouped_probabilities`. The rest of this comment
-/// describes this function, not how housemates choose, except where it
-/// names live selection.
+/// `autonomy::sample`. `critical_choice_probabilities` hands the
+/// candidates to `autonomy::grouped_probabilities`, which normalizes
+/// interactions per target and reserves at least one bucket for every
+/// positive probability. When `tuning.autonomy` is set, a need is critical
+/// and only some candidates relieve it, `critical_choice_probabilities`
+/// instead weighs the relieving candidates against the rest with
+/// `autonomy::probabilities`, caps the rest's share at the `[autonomy]`
+/// limits, and then weighs each group with
+/// `autonomy::grouped_probabilities`. The rest of this comment describes
+/// `sample_softmax`, not how housemates choose, except where it names live
+/// selection.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -2621,12 +2622,14 @@ mod intent_tests {
     //! constant documents: selection is a weighted draw, so "autonomy
     //! would have picked the fridge" is a statement about one roll of the
     //! dice unless the loser's utility weight is negligible beside the
-    //! exploration share it always keeps and no critical need overrides
-    //! the scores, the exception `assert_decisive` describes. Each such
-    //! test asserts that precondition with `assert_decisive` rather than
-    //! assuming it, and most also RUN the control - the same world with
-    //! no intent queued - so that "the intent won" is measured against
-    //! what actually happens without one rather than against a prediction.
+    //! exploration share it always keeps. Each such test asserts that
+    //! precondition with `assert_decisive` rather than assuming it, and
+    //! most also RUN the control - the same world with no intent queued -
+    //! so that "the intent won" is measured against what actually happens
+    //! without one rather than against a prediction. `assert_decisive`
+    //! does not see the critical-need cap its doc describes, so a fixture
+    //! whose housemate has a critical need must also make its scoring
+    //! winner one that relieves that need.
 
     use super::tests::{
         action_threshold, assert_decisive, decisive_pack, def, object_of_width, planned_route,
@@ -3659,9 +3662,9 @@ mod tests {
     /// That holds on the ordinary path only. When `tuning.autonomy` is set
     /// and a need is critical, `critical_choices::critical_choice_probabilities`
     /// caps the share of candidates that do not relieve it at the
-    /// `[autonomy]` limits, so a loser that relieves the critical need
-    /// takes most of the draw whatever the scores, and this check cannot
-    /// see that case.
+    /// `[autonomy]` limits, so with the shipped caps a loser that relieves
+    /// the critical need takes most of the draw whatever the scores, and
+    /// this check cannot see that case.
     ///
     /// This is also what stops `DECISIVE_TEMPERATURE` from silently
     /// becoming too high for some future fixture whose two candidates sit
@@ -5202,9 +5205,10 @@ mod tests {
         // candidate's share w that `select_action` pushes last, and the
         // ORDER of the candidate list decides which object holds the
         // bucket the draw lands in. There, the lower-index object iterates
-        // LAST and the sort has to move it to the front. Here there is no archetype churn, so the two orders
-        // already agree - which is what makes this the case that pins the
-        // sort's DIRECTION rather than its presence:
+        // LAST and the sort has to move it to the front. Here there is no
+        // archetype churn, so the two orders already agree - which is what
+        // makes this the case that pins the sort's DIRECTION rather than
+        // its presence:
         //
         //   ascending to descending flips the winner here and in the
         //   churned test both, whereas deleting the sort outright is
