@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## [L-world-feedback-overlay-bounds] Measure the controls around world feedback
+
+1. What happened: independent phone review found the failure bubble partly behind Build controls. A full diagnostic history also extended below the viewport and behind the household dock.
+2. Root cause: head projection located the actor correctly but did not account for overlaid controls. The diagnostic panel subtracted a fixed margin from viewport height without accounting for its top offset or the dock's variable height.
+3. Prevention: keep feedback behind interactive controls, move its body beside measured obstacles, and retain a tail to the original actor anchor. Bound scrollable diagnostics using the measured dock position and the panel's actual top offset.
+4. Verification: capture the obstructed phone case and a full history. Assert that the bubble body clears the controls and the panel ends above the dock. Review the captures independently, and require the reviewer to reject the known missing-feedback control.
+
 ## [L-schema-owned-actor-references] Validate identity under the outer save contract
 
 1. What happened: a current save supported unnamed player-order owners but rejected their approaching or running conversations. A later raw-entity restore adapter did not repair the rejection.
