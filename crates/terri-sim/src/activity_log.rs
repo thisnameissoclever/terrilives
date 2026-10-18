@@ -487,6 +487,17 @@ impl ActivityLog {
         self.dropped
     }
 
+    /// Entries the scratch area holds: Social totals by person, open
+    /// nuisance episodes by pair, and the held-feeling buffer's capacity.
+    /// Diagnostic only, for the bounded-state measurement of [AL-perf].
+    pub fn scratch_sizes(&self) -> (usize, usize, usize) {
+        (
+            self.scratch.company.len(),
+            self.scratch.nuisances.len(),
+            self.scratch.feelings.capacity(),
+        )
+    }
+
     /// The `seq` the next staged record receives.
     pub fn next_seq(&self) -> u32 {
         self.next_seq
