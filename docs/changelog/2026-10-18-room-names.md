@@ -1,7 +1,7 @@
 # Shared meals, room names and outdoor cleaning
 
 Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
-Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work.
+Sims keep your orders through urgent needs, explain failures, confirm new orders that interrupt work, and no longer wait on each other until they starve.
 
 ## New
 
@@ -25,6 +25,8 @@ Sims keep your orders through urgent needs, explain failures, and confirm new or
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.
+- Housemates no longer stand waiting on each other until they starve. A Sim waiting to chat now steps aside for another Sim's fight or ordered conversation with them, then chats afterward.
+- A fight a Sim starts over a missed chore is called off when either Sim becomes critically hungry, tired or desperate for the bathroom, or leaves for work. Fights you order still go ahead.
 
 ## Art
 

@@ -9,6 +9,7 @@ use terri_core::{
 mod decision_tests;
 mod integration_tests;
 mod native_build_tests;
+mod order_cycle_tests;
 
 #[test]
 fn current_save_rejects_shared_physical_conversation_participants() {

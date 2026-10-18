@@ -852,6 +852,38 @@ fn suspend(world: &mut World, r: &ConversationRequest) {
     }
 }
 
+/// The autonomous chat a person is doing nothing but wait for: it owns their
+/// target, the recipient has not admitted it, and no meal, journey, chain,
+/// chore or conversation of theirs is under way.
+pub(crate) fn only_waiting(world: &World, person: Entity) -> Option<u64> {
+    let request = world
+        .get_resource::<ConversationRequests>()?
+        .outgoing(person)?;
+    (request.phase == RequestPhase::Waiting
+        && !managed_player(world, request)
+        && own_target(world, request)
+        && world.get::<Eating>(person).is_none()
+        && world.get::<ChainState>(person).is_none()
+        && world
+            .get::<crate::reading::ReadingJourney>(person)
+            .is_none()
+        && world.get::<terri_core::chores::ChoreWork>(person).is_none()
+        && !is_talking(world, person))
+    .then_some(request.id)
+}
+
+/// Issue 301: a pending chat must not hold its own initiator hostage. An
+/// order admitted to that person suspends the chat, which keeps its age and
+/// resumes once the order's conversation releases them.
+pub(crate) fn yield_waiting(world: &mut World, person: Entity) -> bool {
+    let Some(id) = only_waiting(world, person) else {
+        return false;
+    };
+    let request = world.resource::<ConversationRequests>().requests[&id].clone();
+    suspend(world, &request);
+    true
+}
+
 pub(crate) fn before_choices(world: &mut World) {
     maintain(world);
     process(world, false);
