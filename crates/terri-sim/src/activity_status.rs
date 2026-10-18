@@ -36,6 +36,7 @@ impl Sim {
             || world.get::<Reserved>(person).is_some()
             || world.get::<Eating>(person).is_some()
             || world.get::<StepWork>(person).is_some()
+            || crate::chores::presentation::projection(world, person).is_some()
             || world
                 .get::<crate::reading::ReadingJourney>(person)
                 .is_some()

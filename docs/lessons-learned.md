@@ -12101,3 +12101,11 @@ Load the production atlas during test collection and prepare mocked module depen
 A reading row was scored using its best book and seat, then execution drew another plan. The second draw could replace critical relief with an unrelated outcome after the crisis probability limit had already been applied. During critical-need selection, enumerate each available reading plan in the same grouped draw as other actions and execute the selected plan directly. Keep object grouping so extra titles do not multiply an object's lottery entry. Verify mixed helpful and unrelated title outcomes retain positive probabilities, their aggregate unrelated probability stays within the configured limit, and the committed copy matches the selected outcome.
 
 Current-save validation must also check ownership across both conversation participants. Unique initiators alone permit two physical conversations to share a recipient. Reject overlapping Approaching or Talking pairs transactionally, while allowing Waiting and Suspended requests to retain their dependencies. Verify both Talking/Talking and Talking/Approaching conflicts leave the live world unchanged.
+
+
+## [L-activity-context-precedence] Preserve active work when adding status context
+
+1. What happened: a trace reported long critical Idle intervals while Sims were cleaning. The HUD could also replace the correct chore label with Idle.
+2. Root cause: the new context classifier omitted chores, and its generic Idle label took precedence over the existing chore status and rendered activity. The older motion observer also treated chore ownership as unexplained inactivity.
+3. Prevention: recognize valid physical chores through the same read-only projection used by rendering. Preserve suspension and contact checks rather than assuming every ownership marker means active work. State whether a diagnostic bucket counts physical work or ownership of an entire goal.
+4. Verification: require stationary floor, surface and bin work to report active context while needs are critical. Require suspended work without a physical projection to remain inactive. Verify the HUD preserves the chore label, rerun matched traces, and compare world hashes to prove classification changes do not alter simulation behavior.

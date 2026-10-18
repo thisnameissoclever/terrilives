@@ -65,6 +65,15 @@ describe('game HUD formatting', () => {
     hud.update(1000, s);
     expect(r.activity.textContent).toBe('Waiting to talk to Bill');
   });
+  it.each(['Clean floor', 'Wipe surface - 1/1', 'Empty bin - 1/1'])(
+    'preserves the active chore label %s when native context reports active work', (label) => {
+      const r = roots();
+      const s = source({ activityOf: () => 24, chainStatusOf: () => label,
+        activityStatusOf: () => ({ code: 0, partner: null, needs: 0 }) });
+      new GameHud(r, 100).update(1000, s);
+      expect(r.activity.textContent).toBe(label);
+    },
+  );
   it.each([
     [12, 'Showering'], [13, 'Using the toilet'], [14, 'Watching TV'],
     [15, 'Lying down'], [16, 'Washing hands'], [17, 'Washing dishes'],

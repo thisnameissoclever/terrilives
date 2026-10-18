@@ -74,6 +74,7 @@ struct Interaction {
 #[derive(Default, Clone)]
 struct Motion {
     walking: u64,
+    /// Ordinary use and owned reading/chore goals, including their held travel.
     interacting: u64,
     /// Off the lot working, or walking to the door to be - [E4]. Its
     /// own bucket because the career's whole antagonist quality is the
@@ -225,6 +226,8 @@ fn main() {
     let mut critical_idle_run = vec![0u32; sims.len()];
     let mut critical_idle_max = vec![0u32; sims.len()];
     let mut critical_need_ticks = [0u64; NEED_COUNT];
+    let mut critical_idle_samples = 0u32;
+    let idle_debug = std::env::var_os("TERRI_TRACE_IDLE_DEBUG").is_some();
     let mut critical_meter_rises = [0u64; NEED_COUNT];
     let mut previous_levels: Vec<[f32; NEED_COUNT]> = sims
         .iter()
@@ -412,6 +415,33 @@ fn main() {
                 continue;
             };
             let living = world.get::<terri_core::Agent>(agent).is_some();
+            if idle_debug
+                && index == 2
+                && (3808..=3820).contains(&world.resource::<terri_core::SimClock>().tick)
+            {
+                let decision = world
+                    .get_resource::<terri_sim::systems::autonomy::DecisionTelemetry>()
+                    .and_then(|telemetry| {
+                        telemetry
+                            .0
+                            .iter()
+                            .find(|row| row.agent == agent.index_u32())
+                    })
+                    .map(|row| {
+                        (
+                            row.choices.get(row.chosen),
+                            row.relief_masks.get(row.chosen),
+                        )
+                    });
+                let saved = sim.save_snapshot_v15();
+                let frozen = &saved.legacy.legacy.legacy.legacy.legacy.legacy;
+                println!("IDLE_INTERVAL tick {} position {:?}, decision {decision:?}, queue {:?}, pending shifts {:?}, requests {:?}, status {:?}, target {:?}, path {:?}, wander {:?}",
+                    world.resource::<terri_core::SimClock>().tick, world.get::<terri_core::Position>(agent),
+                    world.get::<terri_core::IntentQueue>(agent).map(|queue| queue.entries()),
+                    frozen.pending_shifts, saved.conversation_requests.requests,
+                    sim.activity_status_of(agent.index_u32()), world.get::<terri_core::Target>(agent),
+                    world.get::<Path>(agent), world.get::<Wander>(agent));
+            }
             let mut idle_now = false;
             if let Some(status) = sim.activity_status_of(agent.index_u32()) {
                 activity_context_ticks[status.code as usize] += 1;
@@ -425,6 +455,50 @@ fn main() {
                     0
                 };
                 critical_idle_max[index] = critical_idle_max[index].max(critical_idle_run[index]);
+                if critical_idle_run[index] == 6 && critical_idle_samples < 12 {
+                    critical_idle_samples += 1;
+                    let chore = world
+                        .get_resource::<terri_core::chores::SavedChores>()
+                        .and_then(|state| {
+                            state
+                                .tasks
+                                .iter()
+                                .find(|task| task.person == agent.index_u32())
+                        })
+                        .map(|task| (task.key.kind, task.remaining, task.suspended));
+                    println!("CRITICAL_IDLE_SAMPLE tick {} Sim {index}: chore {chore:?}, chore marker {}, target {:?}, path {}, chain status {:?}",
+                        world.resource::<terri_core::SimClock>().tick,
+                        world.get::<terri_core::chores::ChoreWork>(agent).is_some(),
+                        world.get::<terri_core::Target>(agent), world.get::<Path>(agent).is_some(),
+                        sim.chain_status_of(agent.index_u32()));
+                    let components: Vec<_> = world
+                        .inspect_entity(agent)
+                        .unwrap()
+                        .map(|info| info.name().to_string())
+                        .collect();
+                    let orders: Vec<_> = world
+                        .get::<terri_core::IntentQueue>(agent)
+                        .into_iter()
+                        .flat_map(|queue| queue.entries())
+                        .map(|entry| {
+                            (
+                                entry.id,
+                                entry.intent.object.index_u32(),
+                                entry.intent.interaction,
+                                entry.title_id.as_deref(),
+                            )
+                        })
+                        .collect();
+                    let identity = world.get::<SimId>(agent).map(|id| id.0);
+                    let requests: Vec<_> = sim
+                        .save_snapshot_v15()
+                        .conversation_requests
+                        .requests
+                        .into_iter()
+                        .filter(|request| Some(request.initiator) == identity)
+                        .collect();
+                    println!("CRITICAL_IDLE_OWNERS components {components:?}; orders {orders:?}; requests {requests:?}; wander {:?}", world.get::<Wander>(agent));
+                }
             }
             if let Some(position) = world.get::<terri_core::Position>(agent).copied() {
                 if let Some(previous) = previous_positions[index] {
@@ -524,7 +598,10 @@ fn main() {
                 motion[index].at_work += 1;
             } else if world.get::<terri_core::ChainState>(agent).is_some() {
                 motion[index].chaining += 1;
-            } else if world.get::<Eating>(agent).is_some() || readers.contains(&agent.index_u32()) {
+            } else if world.get::<Eating>(agent).is_some()
+                || world.get::<terri_core::chores::ChoreWork>(agent).is_some()
+                || readers.contains(&agent.index_u32())
+            {
                 motion[index].interacting += 1;
             } else if world.get::<Socialising>(agent).is_some() || is_partner {
                 motion[index].talking += 1;
