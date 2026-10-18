@@ -1664,7 +1664,7 @@ mod tests {
             }
         }
         assert_eq!(
-            changed_rows, 28,
+            changed_rows, 29,
             "the fixture must include every shipped interaction"
         );
         assert_eq!(
@@ -2725,6 +2725,9 @@ mod tests {
                 "long_sofa",
                 "moving_box",
                 "nightstand",
+                "patio_umbrella",
+                "pool",
+                "pool_lounger",
                 "potted_plant",
                 "radio",
                 "reading_chair",
@@ -3143,10 +3146,12 @@ mod tests {
         assert_eq!(t.resale_fraction, 0.5);
     }
 
-    /// Every object the design declares is actually placed. An object in
-    /// `objects.toml` that nothing puts on the lot cannot be chosen, so
-    /// it contributes nothing to the decision the milestone exists to
-    /// evaluate - and nothing else in the pipeline notices.
+    /// Every object the design declares can reach the lot: it is placed
+    /// on the shipped lot, or the store sells it. An object in
+    /// `objects.toml` that is neither placed nor priced can never be
+    /// chosen, so it contributes nothing - and nothing else in the
+    /// pipeline notices. The yard's outdoor furniture (issue 250) is
+    /// sold, not placed: the starting house has no pool.
     #[test]
     fn every_declared_object_is_placed_on_the_lot() {
         let p = pack();
@@ -3161,8 +3166,25 @@ mod tests {
 
         let mut declared: Vec<&str> = p.objects.iter().map(|o| o.id.as_str()).collect();
         declared.sort_unstable();
-
-        assert_eq!(placed, declared, "every declared object must be placed");
+        let unplaced: Vec<&str> = declared
+            .iter()
+            .copied()
+            .filter(|id| !placed.contains(id))
+            .collect();
+        let unsold: Vec<&str> = unplaced
+            .iter()
+            .copied()
+            .filter(|id| p.objects.iter().any(|o| o.id == *id && o.price.is_none()))
+            .collect();
+        assert!(
+            unsold.is_empty(),
+            "every declared object must be placed or sold: {unsold:?}"
+        );
+        assert_eq!(
+            unplaced,
+            ["patio_umbrella", "pool", "pool_lounger"],
+            "only the yard furniture is sold without a place in the starting house"
+        );
     }
 
     /// Every declared need has some way to be satisfied.

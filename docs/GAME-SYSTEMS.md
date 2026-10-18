@@ -500,7 +500,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Partial.** Yard and street merged in PRs 106 and 107. Workers cross the yard to leave via the street, and newcomers enter from it. PR 116 added outdoor daylight reaching rooms through doorways, and PR 126 added windows admitting that daylight. Roofs, further exterior presentation, outdoor objects and activities, and ambience remain. See [B-outside].
+**Status: Partial.** Yard and street merged in PRs 106 and 107. Workers cross the yard to leave via the street, and newcomers enter from it. PR 116 added outdoor daylight reaching rooms through doorways, and PR 126 added windows admitting that daylight. The store sells a decorative pool, a pool lounger with Sit and a decorative patio umbrella for the yard (issue 250, `docs/specs/2026-10-17-outdoor-furniture.md`). Roofs, further exterior presentation, more outdoor objects, outdoor activities such as swimming, and ambience remain. See [B-outside].
 
 ### [S-emergencies] Fires, emergencies, and disasters
 

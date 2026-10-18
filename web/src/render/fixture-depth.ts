@@ -1,5 +1,6 @@
 import staticDepth from '../../../assets/models/sims/character-repair/fixture-depth/manifest.json';
 import aquariumDepth from '../../../assets/models/sims/character-repair/aquarium-depth/manifest.json';
+import outdoorDepth from '../../../assets/models/sims/character-repair/outdoor-depth/manifest.json';
 import shelfDepth from '../../../assets/models/sims/character-repair/shelf-depth/manifest.json';
 import components from '../../../assets/models/sims/character-repair/components/manifest.json';
 import droppedBooks from '../../../assets/models/sims/character-repair/dropped-book/manifest.json';
@@ -9,7 +10,7 @@ import {spriteDrawOffsetX,spriteDrawOffsetY} from './sprite-anchors.js';
 import {spriteWidth,spriteHeight} from './sprite-size.js';
 import {TILE_HALF_HEIGHT} from './iso.js';
 
-const files=import.meta.glob<string>('../../../assets/models/sims/character-repair/{fixture-depth,aquarium-depth,shelf-depth,components,dropped-book}/*.rgba',{eager:true,query:'?url',import:'default'});
+const files=import.meta.glob<string>('../../../assets/models/sims/character-repair/{fixture-depth,aquarium-depth,outdoor-depth,shelf-depth,components,dropped-book}/*.rgba',{eager:true,query:'?url',import:'default'});
 interface Rectangle {pageIndex:number;x:number;y:number;w:number;h:number}
 interface Page {pageIndex:number;path:string;sha256:string;width:number;height:number}
 interface Entry extends Rectangle {density:number;page:number}
@@ -33,7 +34,7 @@ function add(rect:Rectangle,density:number,pageBase:number):number {
   if(!page||density<=0||rect.x<0||rect.y<0||rect.w<=0||rect.h<=0||rect.x+rect.w>page.width||rect.y+rect.h>page.height)throw new Error('Fixture companion rectangle is invalid.');
   entries.push({...rect,density,page:pageBase+rect.pageIndex});return entries.length-1;
 }
-for(const [folder,manifest] of [['fixture-depth',staticDepth],['aquarium-depth',aquariumDepth]] as const){
+for(const [folder,manifest] of [['fixture-depth',staticDepth],['aquarium-depth',aquariumDepth],['outdoor-depth',outdoorDepth]] as const){
   if(manifest.state!=='complete')throw new Error('Fixture depth export is incomplete.');
   const pageBase=addPages(folder,manifest.pages);
   for(const row of manifest.sprites){

@@ -119,7 +119,7 @@ def main():
     atlas_pages={}
     checks=[]
     seen=set()
-    for bundle in ['fixture-depth','aquarium-depth']:
+    for bundle in ['fixture-depth','aquarium-depth','outdoor-depth']:
         folder=BASE/bundle
         manifest=json.loads((folder/'manifest.json').read_text())
         assert manifest['state']=='complete',bundle
