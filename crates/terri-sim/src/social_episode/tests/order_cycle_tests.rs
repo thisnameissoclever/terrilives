@@ -254,3 +254,57 @@ fn a_game_made_fight_yields_to_a_crisis_but_a_player_fight_does_not() {
         }
     }
 }
+
+/// A chat the cycle fix suspended for an order gives up cleanly when its
+/// initiator turns critically hungry: the order's claim on the initiator and
+/// its conversation are untouched, and the chat does not come back.
+#[test]
+fn a_chat_suspended_by_an_order_gives_up_cleanly_in_a_crisis() {
+    let (mut sim, tim, bill, _casey) = three_people();
+    let chat = pending_chat(&mut sim, tim, bill);
+    player_fight(&mut sim, bill, tim);
+    let phase = |sim: &Sim| {
+        sim.world()
+            .resource::<requests::ConversationRequests>()
+            .requests
+            .get(&chat)
+            .map(|r| r.phase)
+    };
+    for _ in 0..50 {
+        sim.tick();
+        if phase(&sim) == Some(requests::RequestPhase::Suspended) {
+            break;
+        }
+    }
+    assert_eq!(
+        phase(&sim),
+        Some(requests::RequestPhase::Suspended),
+        "the order suspends the waiting chat"
+    );
+    assert!(
+        sim.world().get::<Reserved>(tim).is_some(),
+        "the order claims Tim"
+    );
+    sim.world_mut()
+        .get_mut::<Needs>(tim)
+        .unwrap()
+        .set(NeedId::Hunger, 5.);
+    sim.tick();
+    assert_eq!(phase(&sim), None, "the suspended chat gives up");
+    assert!(
+        sim.world()
+            .get::<requests::CommittedConversation>(tim)
+            .is_none(),
+        "no commitment marker is left behind"
+    );
+    let mut recorder = Recorder::default();
+    recorder.until(&mut sim, &[(bill, tim, FIGHT)]);
+    assert!(
+        recorder.seen.contains(&(bill, tim, FIGHT)),
+        "the player's fight still runs"
+    );
+    assert!(
+        !recorder.seen.contains(&(tim, bill, CHAT)),
+        "the abandoned chat does not resume"
+    );
+}

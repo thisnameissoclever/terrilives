@@ -27,7 +27,7 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 - Trying to sell furniture that is in use keeps the refusal visible.
 - Housemates no longer stand waiting on each other until they starve. A Sim waiting to chat now steps aside for another Sim's fight or ordered conversation with them, then chats afterward.
 - A fight a Sim starts over a missed chore is called off before it begins when either Sim becomes critically hungry, tired or desperate for the bathroom, or leaves for work. A fight already under way finishes, and fights you order still go ahead.
-- A Sim who chose to chat with someone gives up waiting once they become critically hungry or tired, and goes to look after themselves. Chats you order still wait.
+- A Sim who chose to chat with someone gives up waiting once they become critically hungry or tired, and will usually go and look after themselves. Sims also no longer start a chat of their own while critically hungry or tired. Chats you order still wait.
 
 ## Art
 

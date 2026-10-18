@@ -770,9 +770,11 @@ pub(crate) fn maintain(world: &mut World) {
     }
 }
 
-/// Owner's decision of 2026-10-18: a chat a housemate chose for themselves
-/// gives up, and selection does not choose one, while their own Hunger or
-/// Energy is at or below the critical level. Player-ordered chats stay.
+/// A chat a housemate chose for themselves gives up while their own Hunger or
+/// Energy is at or below the critical level (the owner's decision of
+/// 2026-10-18). Selection also does not choose one then, even for critical
+/// Social; the implementer proposed that exclusion and the owner confirmed
+/// it on 2026-10-18. Player-ordered and `LegacyUnattributed` chats stay.
 pub(crate) fn gives_up_chosen_chat(needs: &terri_core::Needs, tuning: &terri_data::Tuning) -> bool {
     [terri_core::NeedId::Hunger, terri_core::NeedId::Energy]
         .into_iter()

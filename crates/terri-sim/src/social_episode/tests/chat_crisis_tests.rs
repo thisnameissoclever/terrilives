@@ -82,9 +82,17 @@ fn a_waiting_chosen_chat_gives_up_too() {
         interaction: 0,
         remaining_ticks: 500,
     });
-    autonomous_chat(&mut sim, a, b);
+    let id = autonomous_chat(&mut sim, a, b);
     requests::before_movement(sim.world_mut());
-    assert!(outgoing(&sim, a).is_some());
+    assert_eq!(
+        sim.world()
+            .resource::<requests::ConversationRequests>()
+            .requests
+            .get(&id)
+            .map(|r| r.phase),
+        Some(requests::RequestPhase::Waiting),
+        "the busy partner leaves the chat waiting"
+    );
     sim.world_mut()
         .get_mut::<Needs>(a)
         .unwrap()
@@ -95,26 +103,39 @@ fn a_waiting_chosen_chat_gives_up_too() {
 }
 
 /// The give-up must not become a loop of choosing the same chat again: a
-/// critically hungry, lonely housemate with food in reach goes to eat.
+/// critically hungry, lonely housemate with food in reach goes to eat. A chat
+/// chosen during selection would be cancelled before movement in the same
+/// tick, so the test counts requests created rather than requests seen.
 #[test]
 fn a_critically_hungry_lonely_housemate_eats_instead_of_reselecting_a_chat() {
-    let (mut sim, a, _b) = chat_partners();
+    let (mut sim, a, b) = chat_partners();
     let mut needs = Needs::all_at(100.);
     needs.set(NeedId::Hunger, 5.);
     needs.set(NeedId::Social, 0.);
     *sim.world_mut().get_mut::<Needs>(a).unwrap() = needs;
     let fridge = sim.world().resource::<Content>().0.find("fridge").unwrap();
+    // A reserved partner makes no choices of their own, so every request
+    // counted below is one the hungry housemate chose.
+    sim.world_mut().entity_mut(b).insert(Reserved);
     sim.world_mut()
         .spawn((Position { x: 4., y: 5. }, terri_core::SmartObject(fridge)));
-    let mut chats = 0;
+    let next_id = |sim: &Sim| {
+        sim.world()
+            .resource::<requests::ConversationRequests>()
+            .next_id
+    };
+    let before = next_id(&sim);
     for _ in 0..200 {
         sim.tick();
-        chats += usize::from(outgoing(&sim, a).is_some());
         if sim.world().get::<terri_core::Eating>(a).is_some() {
             break;
         }
     }
-    assert_eq!(chats, 0, "no chat is chosen while it would give up");
+    assert_eq!(
+        next_id(&sim) - before,
+        0,
+        "no chat is chosen while it would give up"
+    );
     assert!(
         sim.world().get::<terri_core::Eating>(a).is_some(),
         "the hungry housemate eats"
@@ -149,5 +170,55 @@ fn a_player_ordered_chat_stays_through_the_initiators_critical_needs() {
             );
         }
         assert!(talked, "{need:?}: the ordered chat runs");
+    }
+}
+
+/// A chat already under way finishes even if its initiator turns critical:
+/// the give-up covers pending chats, not a running conversation.
+#[test]
+fn a_running_chosen_chat_finishes_through_the_initiators_crisis() {
+    for need in [NeedId::Hunger, NeedId::Energy] {
+        let (mut sim, a, b) = chat_partners();
+        sim.world_mut()
+            .get_mut::<Needs>(a)
+            .unwrap()
+            .set(NeedId::Social, 40.);
+        let id = autonomous_chat(&mut sim, a, b);
+        let talking = |sim: &Sim| {
+            sim.world()
+                .get::<Socialising>(a)
+                .is_some_and(|s| s.partner == b && s.interaction == 0)
+        };
+        for _ in 0..200 {
+            sim.tick();
+            if talking(&sim) {
+                break;
+            }
+        }
+        assert!(talking(&sim), "{need:?}: the chat starts");
+        let social = sim.world().get::<Needs>(a).unwrap().get(NeedId::Social);
+        sim.world_mut().get_mut::<Needs>(a).unwrap().set(need, 5.);
+        let mut ticks = 0;
+        while talking(&sim) && ticks < 200 {
+            sim.tick();
+            ticks += 1;
+            if talking(&sim) {
+                assert!(
+                    sim.world()
+                        .resource::<requests::ConversationRequests>()
+                        .requests
+                        .contains_key(&id),
+                    "{need:?}: the running chat keeps its request"
+                );
+            }
+        }
+        assert!(
+            ticks > 1,
+            "{need:?}: the chat runs on after the crisis begins"
+        );
+        assert!(
+            sim.world().get::<Needs>(a).unwrap().get(NeedId::Social) > social + 10.,
+            "{need:?}: the finished chat delivers its Social"
+        );
     }
 }
