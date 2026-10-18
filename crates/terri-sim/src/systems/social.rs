@@ -283,7 +283,10 @@ pub fn tick_social(
             // Practice does not depend on the satisfaction ledger: every
             // participant learns from a completed talk ([SK-learning]).
             if let Ok(mut skills) = skills.get_mut(me) {
-                crate::skills::practise(&mut skills, content.0, &act.tags);
+                let rises = crate::skills::practise(&mut skills, content.0, &act.tags);
+                if let (Some(log), Ok(id)) = (log.as_deref_mut(), sim_ids.get(me)) {
+                    log.levels(content.0, clock.tick, id.0, rises);
+                }
             }
         }
         for (me, other) in [(initiator, partner), (partner, initiator)] {

@@ -440,9 +440,10 @@ pub fn tick_interactions(
             if let Some(mut traits) = traits {
                 super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
             }
-            if let Some(skills) = skills.as_deref_mut() {
-                crate::skills::practise(skills, content.0, &act.tags);
-            }
+            let rises = skills
+                .as_deref_mut()
+                .map(|skills| crate::skills::practise(skills, content.0, &act.tags))
+                .unwrap_or_default();
             if let (Some(log), Ok(id), true) = (
                 log.as_deref_mut().filter(|log| log.enabled()),
                 ids.get(entity),
@@ -455,6 +456,9 @@ pub fn tick_interactions(
                         });
                 let skill = crate::activity_log::practiced(skills.as_deref(), content.0, &act.tags);
                 log.action_done(content.0, clock.tick, id.0, label, skill);
+            }
+            if let (Some(log), Ok(id)) = (log.as_deref_mut(), ids.get(entity)) {
+                log.levels(content.0, clock.tick, id.0, rises);
             }
             commands.entity(entity).try_remove::<terri_core::Fumbled>();
             commands

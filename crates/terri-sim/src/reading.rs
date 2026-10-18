@@ -831,7 +831,7 @@ fn finish_session(
         episode.remaining = 0;
     }
     let mut skills = world.get::<Skills>(person).cloned().unwrap_or_default();
-    crate::skills::practise(&mut skills, pack, &act.tags);
+    let rises = crate::skills::practise(&mut skills, pack, &act.tags);
     let content = world.resource::<Content>().0;
     let tick = world.resource::<terri_core::SimClock>().tick;
     if let (Some(id), Some(mut log)) = (
@@ -842,6 +842,7 @@ fn finish_session(
     ) {
         let skill = crate::activity_log::practiced(Some(&skills), content, &act.tags);
         log.action_done(content, tick, id.0, &act.label, skill);
+        log.levels(content, tick, id.0, rises);
     }
     let model = world.get::<SmartObject>(target.object).unwrap().0;
     let mut repetition = world

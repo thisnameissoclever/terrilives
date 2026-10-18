@@ -705,3 +705,48 @@ fn interaction_start_resets_company_and_completion_logs_label_and_skill() {
     assert_eq!(record.value(1), i32::from(standing.level));
     assert_eq!(record.value(2), (standing.progress * 100.0).floor() as i32);
 }
+
+/// [AL-record] kind 9: crossing a level stages one Skills record, a child
+/// of the action that crossed it, and practice that does not cross a level
+/// stages none.
+#[test]
+fn skill_level_up_is_logged_once_per_level() {
+    let pack = terri_data::pack();
+    let (_, _, skill) = skill_interaction(pack);
+    let definition = &pack.skills[skill];
+    let ladder = crate::skills::Ladder::from_tuning(&pack.tuning);
+    // Half an attempt short of level 1.
+    let practice = ladder.cumulative(1) - definition.practice_per_attempt * 0.5;
+    let (mut sim, person, id, ..) = about_to_train(practice);
+    let target = *sim.world().get::<terri_core::Target>(person).unwrap();
+    let mut records = train_to_completion(&mut sim, person);
+    // A second attempt practices without reaching level 2.
+    assert!(practice + 2.0 * definition.practice_per_attempt < ladder.cumulative(2));
+    sim.world_mut().entity_mut(person).insert((
+        target,
+        terri_core::Path {
+            steps: vec![],
+            cursor: 0,
+        },
+    ));
+    records.extend(train_to_completion(&mut sim, person));
+    let levels: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::SkillLevel))
+        .collect();
+    assert_eq!(levels.len(), 1, "{records:?}");
+    let level = levels[0];
+    let labels = crate::activity_log::labels(pack);
+    assert_eq!(
+        (level.actor(), level.label(), level.value(1)),
+        (id, labels.index(&definition.label), 1)
+    );
+    assert_eq!(level.triggers(), crate::activity_log::SKILLS);
+    let parent = records
+        .iter()
+        .find(|r| r.seq() == level.parent())
+        .expect("the level-up has a parent");
+    assert_eq!(parent.kind(), Some(LogKind::ActionDone));
+    assert_eq!((parent.actor(), parent.tick()), (id, level.tick()));
+    assert_eq!(parent.value(1), 1, "the action line shows the new level");
+}

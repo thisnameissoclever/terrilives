@@ -700,6 +700,33 @@ impl ActivityLog {
         self.push(record);
     }
 
+    /// Kind 9: each skill `actor` took to a new level. The link pass makes
+    /// it a child of the action or chat in the same tick that crossed it; a
+    /// recipe step's level-up before its recipe finishes stays its own line.
+    pub(crate) fn levels(
+        &mut self,
+        pack: &'static ContentPack,
+        tick: u64,
+        actor: u32,
+        rises: crate::skills::LevelUps,
+    ) {
+        if !self.enabled || rises.is_empty() {
+            return;
+        }
+        let labels = labels(pack);
+        for (skill, level) in rises.iter() {
+            let label = pack
+                .skills
+                .get(skill as usize)
+                .map_or(NONE, |skill| labels.index(&skill.label));
+            self.push(
+                LogRecord::new(LogKind::SkillLevel, SKILLS, tick, actor)
+                    .with_label(label)
+                    .with_value(1, i32::from(level)),
+            );
+        }
+    }
+
     /// Kind 2 or 3: a finished chat or fight with its topic and both
     /// opinion changes. A chat adds both reactions to the topic, as
     /// preferences times 100, and both Social totals ([AL-record]).

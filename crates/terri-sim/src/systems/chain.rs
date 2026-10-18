@@ -655,7 +655,10 @@ pub fn tick_chain_steps(
                 super::trait_effects::learn_and_manage(traits, content.0, &step.tags);
             }
             if let Some(skills) = skills.as_deref_mut() {
-                crate::skills::practise(skills, content.0, &step.tags);
+                let rises = crate::skills::practise(skills, content.0, &step.tags);
+                if let (Some(log), Some(id)) = (log.as_deref_mut(), sim_id) {
+                    log.levels(content.0, burning.1.tick, id.0, rises);
+                }
             }
         }
 
