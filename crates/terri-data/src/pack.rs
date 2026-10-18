@@ -1170,6 +1170,9 @@ pub struct Tuning {
     /// Spring first, composed with `CompiledLot::yard_look` by the shell -
     /// [SEA-yard]. Presentation only; the simulation never reads it.
     pub season_yard_looks: [[f32; 3]; 4],
+    /// Optional extension; historical packs retain their existing wire records.
+    #[serde(default)]
+    pub autonomy: Option<crate::AutonomyTuning>,
 }
 
 impl Tuning {
@@ -2079,6 +2082,7 @@ mod tests {
             career_mood_promoted_ticks: 1500,
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
+            autonomy: None,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -2861,15 +2865,18 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Seasons (issue 251): the three season knobs are the final fifty
+        // The optional autonomy extension appends one None marker.
+        let historical_end = before.len() - 1;
+        assert_eq!(before[historical_end], 0);
+        // Seasons (issue 251): the three season knobs are the preceding fifty
         // bytes: the season length as a one-byte varint (5), the first
         // season as one raw byte (2), then the four yard looks as twelve
         // floats in season order, with no length prefix because the table
         // has a fixed size.
-        let season = before.len() - 50;
+        let season = historical_end - 50;
         assert_eq!(before[season..season + 2], [5, 2]);
         assert_eq!(
-            before[season + 2..],
+            before[season + 2..historical_end],
             [
                 0.5f32, 1.25, 0.03125, -7.5, 0.875, 0.0625, -40.5, 0.8125, -0.046875, 11.5, 0.375,
                 0.125
@@ -2903,7 +2910,7 @@ mod tests {
                 season_yard_looks: looks,
                 ..a_tuning()
             }),
-            vec![before.len() - 2],
+            vec![historical_end - 2],
             "winter lightness"
         );
         // Careers (issue 249): the twenty-six career knobs are the
@@ -2923,6 +2930,7 @@ mod tests {
         assert_eq!(
             changed(Tuning {
                 career_mood_fired_ticks: 5801,
+                autonomy: None,
                 ..a_tuning()
             }),
             vec![season - 2],

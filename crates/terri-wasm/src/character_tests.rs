@@ -43,7 +43,7 @@ fn creator_boundary_round_trips_exact_values_and_correlated_results() {
     let saved = handle.save_bytes();
     assert_eq!(
         u16::from_le_bytes([saved[SAVE_MAGIC.len()], saved[SAVE_MAGIC.len() + 1]]),
-        14
+        15
     );
     assert!(handle.load_bytes(&saved));
     assert_eq!(handle.save_bytes(), saved);
@@ -86,7 +86,15 @@ fn creator_catalog_and_name_patch_wire_contract_are_explicit() {
     let handle = SimHandle::from_lot();
     let catalog: terri_core::character_catalog::CharacterCatalog =
         postcard::from_bytes(&handle.character_catalog()).unwrap();
-    assert_eq!(catalog.version, 1);
+    assert_eq!(catalog.version, 2);
+    assert_eq!(
+        catalog
+            .self_preservation_bands
+            .iter()
+            .map(|b| b.weight as u32)
+            .sum::<u32>(),
+        100
+    );
     assert!(!catalog.activities.is_empty());
     assert!(!catalog.skills.is_empty());
     let command = SimCommand::Character(Box::new(CharacterCommand::Edit {
@@ -201,7 +209,7 @@ fn authentic_local_v9_saves_migrate_to_combined_v10_with_stable_continuation() {
         assert!(loaded.load_bytes(bytes));
         assert_legacy_character_projection(&loaded, bytes);
         let saved = loaded.save_bytes();
-        assert_eq!(&saved[8..10], &14u16.to_le_bytes());
+        assert_eq!(&saved[8..10], &15u16.to_le_bytes());
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&saved));
         for _ in 0..300 {

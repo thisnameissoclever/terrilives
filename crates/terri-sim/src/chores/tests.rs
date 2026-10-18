@@ -196,7 +196,7 @@ fn surface_and_bin_work_require_elapsed_work_and_keep_valid_interrupted_saves() 
                     && task.remaining > 0
                     && (1..500).contains(&value(&state.surfaces, object));
                 let mut loaded = Sim::new_from_shipped_lot();
-                loaded.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
+                loaded.load_snapshot_v15(sim.save_snapshot_v15()).unwrap();
                 assert_eq!(loaded.world_hash(), sim.world_hash());
             } else {
                 break;

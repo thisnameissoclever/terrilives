@@ -2,6 +2,7 @@
 
 mod action_queue;
 pub mod action_rows;
+pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
 pub mod affinity;
@@ -18,6 +19,7 @@ pub mod lot_frame;
 pub use lot_frame::LotFrame;
 pub mod character_draft;
 pub mod chores;
+mod creation_instinct;
 pub mod moodlet_timers;
 mod reading;
 mod recipe_actions;
@@ -297,11 +299,14 @@ fn opposite_facing(value: u32) -> u32 {
 /// diagonal step too. A coincident step has no direction and therefore cannot
 /// select walking body art.
 fn facing_toward_path_step(source: &terri_core::Position, path: &terri_core::Path) -> Option<u32> {
-    use render_buffer::facing;
-
     let (target_x, target_y) = path.next_step()?;
-    let dx = target_x as f32 - source.x;
-    let dy = target_y as f32 - source.y;
+    facing_between(source.x, source.y, target_x as f32, target_y as f32)
+}
+
+fn facing_between(source_x: f32, source_y: f32, target_x: f32, target_y: f32) -> Option<u32> {
+    use render_buffer::facing;
+    let dx = target_x - source_x;
+    let dy = target_y - source_y;
     if dx == 0.0 && dy == 0.0 {
         return None;
     }
@@ -1192,7 +1197,7 @@ impl SnapshotSource<'_> {
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v10` for complete persistence of a current world.
+    /// Use `save_snapshot_v15` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -1222,7 +1227,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1236,7 +1241,7 @@ impl Sim {
         SnapshotSource { world: &self.world }.save_snapshot_v4()
     }
 
-    /// Legacy V5 projection. It omits books, social episodes and appearance; use V10.
+    /// Legacy V5 projection. Use V15 to retain the complete current state.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
         SnapshotSource { world: &self.world }.save_snapshot_v5()
@@ -1250,7 +1255,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let active_portals = save::Carried::for_load(&self.world);
         let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1259,7 +1264,7 @@ impl Sim {
         save::v6::capture(self)
     }
 
-    /// Current persistence, including social episodes, appearance and creator command ordering.
+    /// Historical V10 projection with social episodes, appearance and creator command ordering.
     pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
         save::v10::capture(self)
     }
@@ -1321,6 +1326,21 @@ impl Sim {
     /// careers (issue 249).
     pub fn save_snapshot_v14(&self) -> terri_core::SaveSnapshotV14 {
         save::v14::capture(self)
+    }
+
+    pub fn save_snapshot_v15(&self) -> terri_core::SaveSnapshotV15 {
+        save::v15::capture(self)
+    }
+
+    pub fn load_snapshot_v15(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV15,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = save::Carried::for_load(&self.world);
+        let candidate = save::v15::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
     }
 
     pub fn load_snapshot_v14(
@@ -1407,7 +1427,7 @@ impl Sim {
         let content = self.world.resource::<Content>().0;
         let portals = save::Carried::for_load(&self.world);
         let candidate = save::books_migration::restore(snapshot, content, portals)?;
-        self.adopt(candidate);
+        self.adopt(candidate)?;
         Ok(())
     }
 
@@ -1426,7 +1446,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1445,7 +1465,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1458,15 +1478,19 @@ impl Sim {
     ///
     /// A house saved before the yard grows into it first ([OS-migrate]), so
     /// every loader passes through the same growth.
-    fn adopt(&mut self, mut restored: Sim) {
+    fn adopt(&mut self, mut restored: Sim) -> Result<(), SaveError> {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
+        recipe_actions::migrate_legacy(&mut restored)?;
         self.adopt_current(restored);
+        Ok(())
     }
 
     fn adopt_current(&mut self, mut restored: Sim) {
         character_draft::ensure_appearance_components(&mut restored.world);
+        social_episode::requests::migrate_legacy(&mut restored.world);
+        restored.sync_render_buffer_after_commands();
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1495,7 +1519,7 @@ impl Sim {
         // [OA-values]: nor values, so every person draws them once.
         save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
-        self.adopt(restored);
+        self.adopt(restored)?;
         Ok(())
     }
 
@@ -1524,6 +1548,8 @@ impl Sim {
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(social_company::SocialCompany::default());
         world.insert_resource(social_episode::SocialEpisodes::default());
+        world.insert_resource(social_episode::requests::ConversationRequests::default());
+        world.register_component::<social_episode::requests::CommittedConversation>();
         world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(fights::Fights::default());
         world.insert_resource(careers::Careers::default());
@@ -1741,6 +1767,7 @@ impl Sim {
                 (
                     reading::prepare,
                     systems::action::serve_intents,
+                    social_episode::requests::before_choices,
                     crate::relationship_effects::reset,
                     domestic::tick,
                     targeted_cleanup::tick,
@@ -1774,6 +1801,7 @@ impl Sim {
                     social_company::refresh,
                     privacy::route,
                     systems::interpersonal::refresh_routes,
+                    social_episode::requests::before_movement,
                     systems::movement::follow_path,
                     social_episode::begin_topics,
                     social_company::extend_episodes,
@@ -1967,6 +1995,26 @@ impl Sim {
         }
 
         sim
+    }
+
+    /// Creates a person on validated floor with stable identity and random instinct.
+    /// The public browser boundary validates coordinates before calling this seam.
+    pub fn spawn_agent(&mut self, position: terri_core::Position, hunger: f32) -> Entity {
+        let instinct = creation_instinct::sample_for_world(&mut self.world);
+        let id = self
+            .world
+            .resource_mut::<terri_core::SimIdAllocator>()
+            .issue();
+        self.world
+            .spawn((
+                terri_core::Agent,
+                id,
+                position,
+                terri_core::Needs::with(terri_core::NeedId::Hunger, hunger),
+                terri_core::SelfPreservation(instinct),
+                terri_core::Skills::default(),
+            ))
+            .id()
     }
 
     /// Spawns one runtime object at its definition's base direction.
@@ -2676,6 +2724,8 @@ impl Sim {
             } else if path.is_some() {
                 render_buffer::activity::WALKING
             } else if reserved
+                || (social_episode::requests::status(&self.world, entity).is_some()
+                    && self.world.get::<terri_core::Blocked>(entity).is_some())
                 || (self.world.get::<terri_core::Blocked>(entity).is_some()
                     && self.world.get::<waiting::WaitingNeeds>(entity).is_some())
             {
@@ -2776,6 +2826,31 @@ impl Sim {
             });
         }
         rows.sort_by_key(|row| row.index);
+
+        // The final path step is consumed before rendering. Its actual last
+        // movement still needs a gait until interpolation reaches the endpoint.
+        // Socket transitions and edits snap instead and must not imply walking.
+        if advance_interpolation {
+            for (index, row) in rows.iter_mut().enumerate() {
+                if row.activity == render_buffer::activity::WALKING
+                    && row.visual_action == render_buffer::visual_action::NONE
+                    && self.render_rows.get(index) == Some(&row.entity)
+                    && !row.socket_projected
+                    && !previous_socket_projection.contains(&row.entity)
+                    && !discontinuities.contains(&row.entity)
+                {
+                    if let Some(previous) = self.render.prev_positions.get(index * 2..index * 2 + 2)
+                    {
+                        if let Some(direction) =
+                            facing_between(previous[0], previous[1], row.x, row.y)
+                        {
+                            row.visual_action = render_buffer::visual_action::WALK;
+                            row.facing = direction;
+                        }
+                    }
+                }
+            }
+        }
 
         let domestic_items = domestic::surface_items(&self.world);
         let chore_state = self.world.get_resource::<terri_core::chores::SavedChores>();
@@ -4609,6 +4684,7 @@ impl Sim {
         }
 
         mortality::hash(&self.world, &mut hasher);
+        save::v15::hash(&self.world, &mut hasher);
         waiting::hash(&self.world, &mut hasher);
         let instincts = save::self_preservation::capture(&self.world);
         if !instincts.is_empty() {
@@ -5941,21 +6017,15 @@ mod determinism_tests {
         sim.world_mut()
             .spawn((Position { x: 18.0, y: 14.0 }, shipped_fridge()));
         for i in 0..8 {
-            // Match the public debug-spawn API before either target ticks:
-            // each accepted spawn draws its instinct from the same RNG.
-            let instinct = sim
-                .world_mut()
-                .resource_mut::<terri_core::SimRng>()
-                .range(101) as u8;
-            sim.world_mut().spawn((
-                terri_core::SelfPreservation(instinct),
-                Agent,
+            // Both targets use the same public creation seam. Identity and
+            // weighted instinct draws are part of this current-runtime vector.
+            sim.spawn_agent(
                 Position {
                     x: 1.0 + i as f32,
                     y: 1.0,
                 },
-                Needs::with(NeedId::Hunger, 30.0 + i as f32 * 5.0),
-            ));
+                30.0 + i as f32 * 5.0,
+            );
         }
         sim
     }
@@ -6774,7 +6844,10 @@ mod determinism_tests {
         // Continuing FNV-1a from the prior 8890656731713008279 with the empty
         // library and taste seed 20260728 yields this value exactly; rebuilt
         // release WASM independently measured the same result.
-        const GOLDEN: u64 = 7871509166762830360;
+        // Current public creation now assigns identities and draws weighted
+        // instinct bands. Native and rebuilt WASM independently measured this
+        // intentional scenario change; historical save vectors stay frozen.
+        const GOLDEN: u64 = 4676206450852028819;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

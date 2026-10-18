@@ -4,7 +4,9 @@
 //! read by `build.rs` at build time and by the simulation at run time,
 //! so it has to compile for the host and for `wasm32-unknown-unknown`.
 
+mod autonomy_tuning;
 pub mod books;
+pub use autonomy_tuning::{AutonomyTuning, CreationInstinctBand};
 pub mod compile;
 #[cfg(test)]
 mod published_pack_wire;

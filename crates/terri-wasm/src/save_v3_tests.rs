@@ -158,7 +158,33 @@ pub(super) fn expect_affinity_seed(handle: &SimHandle, expected: &mut SaveSnapsh
 fn assert_current_resave_is_stable(handle: &SimHandle) {
     let bytes = handle.save_bytes();
     let mut next = SimHandle::from_lot();
-    assert!(next.load_bytes(&bytes));
+    if !next.load_bytes(&bytes) {
+        let saved = handle.sim.save_snapshot_v15();
+        let v10 = &saved.legacy.legacy.legacy.legacy.legacy;
+        eprintln!(
+            "current requests: {:?}; legacy rendezvous: {:?}; origins: {:?}",
+            saved.conversation_requests, v10.social.rendezvous, v10.legacy.chain_origins
+        );
+        for row in v10
+            .legacy
+            .legacy
+            .world
+            .entities
+            .iter()
+            .filter(|row| row.agent)
+        {
+            eprintln!(
+                "agent {} sim {:?} target {:?} reserved {} social {:?} chain {:?}",
+                row.index, row.sim_id, row.target, row.reserved, row.socialising, row.chain
+            );
+        }
+        let mut inner = SimHandle::from_lot();
+        eprintln!(
+            "inner V14 result: {:?}",
+            inner.sim.load_snapshot_v14(saved.legacy)
+        );
+        panic!("current resave rejected");
+    }
     assert_eq!(next.save_bytes(), bytes);
 }
 
@@ -716,10 +742,12 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV15>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &14u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &15u16.to_le_bytes());
+    assert!(decoded.conversation_requests.requests.is_empty());
+    let decoded = decoded.legacy;
     // Nobody holds a job in this fixture, so the careers are a new game's.
     assert_eq!(decoded.careers, terri_sim::Careers::default().to_saved());
     let decoded = decoded.legacy;
@@ -1909,7 +1937,14 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         })
         .unwrap(),
     );
-    assert_eq!(handle.save_bytes(), fourteen, "2.0 round-trips exactly");
+    assert!(
+        handle.load_bytes(&fourteen),
+        "The historical schema-fourteen envelope remains readable"
+    );
+    let mut fifteen = fourteen;
+    fifteen[8..10].copy_from_slice(&15u16.to_le_bytes());
+    fifteen.extend([0, 0]); // Empty request allocator and request list.
+    assert_eq!(handle.save_bytes(), fifteen, "2.0 round-trips exactly");
 }
 
 /// Burnt meals (issue 243): schema eleven carries them through the public
@@ -1926,7 +1961,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -1991,7 +2026,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2059,7 +2094,7 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2149,7 +2184,7 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        14u16.to_le_bytes()
+        15u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));

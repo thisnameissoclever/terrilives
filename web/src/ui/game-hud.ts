@@ -1,6 +1,7 @@
 /** The player-facing clock, household and selected-sim summary. */
 import { setTextIfChanged } from './set-text-if-changed.js';
 import type { SatisfactionSurface } from './satisfaction-meter.js';
+import { activityStatusLabel, type ActivityStatus } from '../activity-status.js';
 
 /**
  * A job's working days and shift hours as the simulation reports them:
@@ -14,6 +15,9 @@ export interface CareerSchedule {
 }
 
 export interface GameHudSource {
+  activityStatusOf?(entityIndex: number): ActivityStatus | null;
+  simName?(entityIndex: number): string;
+  needNames?(): string[];
   readingStatusOf?(entityIndex: number): string | null;
   selectedIndex(): number | null;
   satisfactionOf(entityIndex: number): number | null;
@@ -47,7 +51,7 @@ export interface GameHudRoots {
 }
 
 const ACTIVITY_NAMES = [
-  'Deciding what to do',
+  'Idle',
   'Walking',
   'Waiting',
   'Eating',
@@ -257,7 +261,10 @@ export class GameHud {
     const activity = selected === null ? null : source.activityOf(selected);
     const chain = selected === null ? null : source.readingStatusOf?.(selected) ?? source.chainStatusOf(selected);
     const stalled = selected === null ? null : source.stallReasonOf(selected);
-    setTextIfChanged(this.roots.activity, formatActivity(activity, chain, stalled));
+    const status = selected === null ? null : source.activityStatusOf?.(selected);
+    const partner = status?.partner == null ? '' : source.simName?.(status.partner) ?? '';
+    const contextual = status ? activityStatusLabel(status, partner, source.needNames?.()) : null;
+    setTextIfChanged(this.roots.activity, contextual ?? chain ?? formatActivity(activity, chain, stalled));
 
     const queued = selected === null ? 0 : source.queuedOrdersOf(selected);
     this.roots.ordersRow.hidden = queued === 0;

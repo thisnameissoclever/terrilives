@@ -4,6 +4,157 @@ use terri_core::command::BookCommand;
 mod priority;
 
 #[test]
+fn crisis_reading_samples_the_concrete_plan_it_classifies() {
+    use bevy_ecs::system::RunSystemOnce;
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    let other = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .books
+        .iter()
+        .find(|book| book.id != title)
+        .unwrap()
+        .id
+        .clone();
+    purchase(&mut sim, Some(shelf), &other);
+    sim.world_mut()
+        .get_mut::<Needs>(person)
+        .unwrap()
+        .set(NeedId::Fun, 20.);
+    let model = sim.world().get::<SmartObject>(seat).unwrap().0;
+    let interaction = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .object(model)
+        .interactions
+        .iter()
+        .position(|action| action.book_reading)
+        .unwrap() as u32;
+    let target = Target {
+        object: seat,
+        interaction,
+    };
+    let mut choices = plans(sim.world_mut(), person, target, None);
+    assert!(choices.iter().any(|plan| plan.title == title));
+    assert!(choices.iter().any(|plan| plan.title == other));
+    for plan in &mut choices {
+        plan.priority = (1, 0, 0.);
+        plan.score = 100.;
+        plan.risk = 0.;
+        plan.need_outcome.net_change = [0.; NEED_COUNT];
+        plan.need_outcome.net_change[NeedId::Fun.index()] =
+            if plan.title == title { 1. } else { -1. };
+    }
+    let helpful_copies: std::collections::BTreeSet<_> = choices
+        .iter()
+        .filter(|plan| plan.title == title)
+        .map(|plan| plan.copy)
+        .collect();
+    sim.world_mut()
+        .insert_resource(Options(std::collections::HashMap::from([(
+            (person, seat, interaction),
+            choices,
+        )])));
+    sim.world_mut()
+        .run_system_once(crate::systems::action::select_action)
+        .unwrap();
+    let decision = &sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0[0];
+    assert_eq!(
+        decision
+            .choices
+            .iter()
+            .filter(|row| row.0 == seat.index_u32() && row.1 == interaction)
+            .count(),
+        2,
+        "both title outcomes must participate in the outer crisis draw"
+    );
+    for (row, mask) in decision.choices.iter().zip(&decision.relief_masks) {
+        if row.0 == seat.index_u32() && row.1 == interaction {
+            assert!(
+                row.4 > 0.,
+                "every reading variant retains a random bucket: {mask}"
+            );
+        }
+    }
+    let unrelated: f64 = decision
+        .choices
+        .iter()
+        .zip(&decision.relief_masks)
+        .filter(|(_, mask)| **mask == 0)
+        .map(|(row, _)| row.4)
+        .sum();
+    let limit = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .tuning
+        .autonomy
+        .unwrap()
+        .unrelated_single;
+    assert!(unrelated <= f64::from(limit) + 1e-12);
+    let journey = sim
+        .world()
+        .get::<ReadingJourney>(person)
+        .expect("high-scoring reading wins");
+    assert_eq!(
+        helpful_copies.contains(&journey.copy),
+        decision.relief_masks[decision.chosen] != 0,
+        "execution must use the selected plan without a second title draw"
+    );
+}
+
+#[test]
+fn review_physical_reading_prediction_respects_disposition_that_changes_actual_fun() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    let pack = sim.world().resource::<Content>().0;
+    let model = sim.world().get::<SmartObject>(seat).unwrap().0;
+    let row = pack
+        .object(model)
+        .interactions
+        .iter()
+        .position(|a| a.book_reading)
+        .unwrap() as u32;
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::with_dispositions(
+            [1.; 7],
+            [1.; 7],
+            vec![(model, row, 0.)],
+        ));
+    sim.world_mut()
+        .get_mut::<Needs>(person)
+        .unwrap()
+        .set(NeedId::Fun, 0.);
+    let target = Target {
+        object: seat,
+        interaction: row,
+    };
+    let options = plans(sim.world_mut(), person, target, Some(&title));
+    let plan = options.iter().find(|p| p.target == target).unwrap();
+    assert_eq!(
+        plan.need_outcome.net_change[NeedId::Fun.index()],
+        0.,
+        "Reading's disposition changes delivered Fun, not just appeal"
+    );
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world().get::<Needs>(person).unwrap().get(NeedId::Fun),
+        0.
+    );
+}
+
+#[test]
 fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
     let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
     let mut pack = sim.world().resource::<Content>().0.clone();
@@ -99,10 +250,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
                 assert_eq!(fun, previous, "completed book work supplies no further Fun");
             }
             held_fun = Some(fun);
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v10(), snapshot);
+            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v15(), snapshot);
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         if stage(&sim, person) == Some(ReadingStage::Read)
@@ -118,10 +269,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
             );
         }
         if saw_completed_hold && stage(&sim, person) == Some(ReadingStage::Return) {
-            let snapshot = sim.save_snapshot_v10();
+            let snapshot = sim.save_snapshot_v15();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v10(), snapshot);
+            loaded.load_snapshot_v15(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v15(), snapshot);
             break;
         }
     }

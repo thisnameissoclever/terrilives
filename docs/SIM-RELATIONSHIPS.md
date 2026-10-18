@@ -120,10 +120,25 @@ Each participant sees the same topic but their own approval and background
 color. A disliked topic produces a small listener-to-initiator penalty in
 place of that listener's ordinary positive conversation completion gain.
 
-Incoming conversation claims belong to one initiator. A busy recipient
-finishes their current activity while the initiator approaches and waits.
-Once idle, the recipient remains available for that initiator. Urgent physical
-needs, work, cancellation and invalid paths release the hold.
+Chosen conversations retain a request with an exact initiator, recipient and
+origin. The initiator approaches and waits while the recipient finishes their
+existing activity, including travel and the complete meal or reading goal.
+A busy recipient is not reserved. Once available, the recipient takes the
+oldest eligible request before choosing a fresh discretionary activity.
+An explicit player redirection or work defers the request rather than losing it.
+The initiator's critical needs do not cancel their chosen chat.
+
+Private toilet, bath and shower activity makes the initiator wait outside its
+room, including while the recipient approaches the fixture. A changed route
+reuses the current fractional walking segment instead of restarting from a tile
+center. An unavailable route retains the request and reports the blockage.
+Reciprocal requests and longer cycles temporarily suspend an outgoing request
+so an older conversation can proceed, then resume the suspended request.
+
+Current saves preserve request identity and exact player order ownership through
+approach, waiting, suspension and talking. Autonomous completion never consumes
+a later matching player order. Older saves cannot identify that ownership, so
+migration preserves an ambiguous queued order even if it produces an extra chat.
 
 Shared activity timers extend only when another Sim actually joins. Each Sim
 can receive at most two extensions during an activity. A valid approaching

@@ -46,30 +46,41 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
     let tim = worker(&mut sim);
     let content = sim.world().resource::<crate::Content>().0;
     let shift_start = u64::from(content.careers[0].shift_start);
-    let day_ticks = u64::from(content.tuning.day_ticks);
-    let snack = content
-        .chains
-        .iter()
-        .position(|chain| chain.id == "prepare_snack")
-        .expect("the shipped pack has the snack chain") as u32;
-    let index = tim.index_u32();
-    for _ in 0..day_ticks {
-        if sim.world().resource::<terri_core::SimClock>().tick % day_ticks == shift_start - 1 {
-            break;
-        }
-        sim.tick();
-    }
-    assert!(
-        sim.world().get::<Commuting>(tim).is_none() && sim.world().get::<AtWork>(tim).is_none(),
-        "home on the tick before the shift"
-    );
+    assert!(shift_start >= 2);
+    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = shift_start - 2;
+    let (fridge, interaction) = sim
+        .world_mut()
+        .query::<(Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find_map(|(entity, object)| {
+            let definition = content.object(object.0);
+            (definition.id == "fridge").then(|| {
+                let interaction = definition
+                    .interactions
+                    .iter()
+                    .position(|a| a.id == "grab_snack")
+                    .unwrap();
+                (entity, interaction as u32)
+            })
+        })
+        .unwrap();
     sim.world_mut()
-        .entity_mut(tim)
-        .insert(terri_core::ChainState {
-            chain: snack,
-            step: 0,
-            fumble_scale: 1.0,
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObjectFirst {
+            agent: tim.index_u32(),
+            object: fridge.index_u32(),
+            interaction,
         });
+    sim.tick();
+    assert!(
+        sim.world().get::<terri_core::ChainState>(tim).is_some(),
+        "The actual snack starts before departure"
+    );
+    assert!(sim
+        .world()
+        .get::<crate::reading::ReadingJourney>(tim)
+        .is_none());
+    let index = tim.index_u32();
     let mut stages = Vec::new();
     for _ in 0..3_000 {
         sim.tick();

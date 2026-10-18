@@ -1,9 +1,11 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
+#[cfg(test)]
+use terri_core::Needs;
 use terri_core::{
-    Agent, CommandQueue, NeedId, Needs, Position, SimCommand, TileGrid, NEED_MAX, NEED_MIN,
-    SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    Agent, CommandQueue, NeedId, Position, SimCommand, TileGrid, NEED_MAX, NEED_MIN, SAVE_MAGIC,
+    SAVE_SCHEMA_VERSION,
 };
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
@@ -1839,25 +1841,7 @@ impl SimHandle {
         {
             return;
         }
-        // Hunger is the only need JavaScript can set, because it is the
-        // only one anything advertises against. The other six start
-        // satisfied, which is what keeps a spawned agent's behaviour
-        // identical to the single-need version.
-        let instinct = self
-            .sim
-            .world_mut()
-            .resource_mut::<terri_core::SimRng>()
-            .range(101) as u8;
-        // Empty practice, so a tagged completion teaches this agent as it
-        // teaches everyone else, and a reload (which gives every person a
-        // `Skills`) continues the same world ([SK-save]).
-        self.sim.world_mut().spawn((
-            terri_core::SelfPreservation(instinct),
-            Agent,
-            Position { x, y },
-            Needs::with(NeedId::Hunger, hunger),
-            terri_core::Skills::default(),
-        ));
+        self.sim.spawn_agent(Position { x, y }, hunger);
         self.sim.sync_render_buffer();
     }
 
@@ -2621,8 +2605,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v14())
-            .expect("SaveSnapshotV14 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v15())
+            .expect("SaveSnapshotV15 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2646,6 +2630,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 15 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV15>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v15(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 14 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV14>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v14(snapshot).is_ok(),
@@ -3142,6 +3132,13 @@ impl SimHandle {
     /// contract.
     pub fn stall_reason_of(&self, entity_index: u32) -> String {
         self.sim.stall_reason_of(entity_index).unwrap_or_default()
+    }
+
+    pub fn activity_status_of(&self, entity_index: u32) -> Vec<u32> {
+        self.sim
+            .activity_status_of(entity_index)
+            .map(|s| vec![s.code, s.partner.unwrap_or(u32::MAX), u32::from(s.needs)])
+            .unwrap_or_default()
     }
 
     /// Current action followed by every waiting order, in display order.
@@ -4581,8 +4578,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            14,
-            "the public writer must emit the schema-14 envelope"
+            15,
+            "the public writer must emit the schema-15 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -5317,9 +5314,8 @@ mod boundary_tests {
         /// The probe is found by HIGHEST ENTITY INDEX, not by row: it is
         /// the newest spawn and nothing despawns during the run, so the
         /// index is unambiguous, while query rows come out in archetype
-        /// order and the probe - which carries no `SimId` - sits in a
-        /// different archetype from the household ([L47]'s row-is-not-an-id
-        /// lesson, met in a test helper).
+        /// order. Public spawns have stable Sim identities; row order still
+        /// does not identify the newest entity ([L47]).
         fn moves_from(tile: (f32, f32)) -> bool {
             fn probe_position(handle: &SimHandle) -> (f32, f32) {
                 use terri_core::Entity;
@@ -5335,6 +5331,21 @@ mod boundary_tests {
             }
 
             let mut handle = SimHandle::from_lot();
+            // Existing household choices must not reserve the geometry probe.
+            let household: Vec<_> = handle
+                .sim
+                .world_mut()
+                .query::<(terri_core::Entity, &terri_core::Agent)>()
+                .iter(handle.sim.world())
+                .map(|(person, _)| person)
+                .collect();
+            for person in household {
+                handle
+                    .sim
+                    .world_mut()
+                    .entity_mut(person)
+                    .insert(terri_core::Reserved);
+            }
             let count = handle.entity_count();
             handle.spawn_agent(tile.0, tile.1, 20.0);
             if handle.entity_count() == count {
@@ -10004,7 +10015,17 @@ mod instinct_boundary_tests {
     fn self_preservation_debug_spawn_uses_rng_and_refused_spawn_draws_nothing() {
         let mut handle = SimHandle::new(4, 4);
         let mut reference = handle.sim.world().resource::<terri_core::SimRng>().clone();
-        let expected = reference.range(101) as u8;
+        let (min, width) = match reference.range(100) {
+            0..=4 => (11, 20),
+            5..=14 => (31, 20),
+            15..=24 => (51, 10),
+            25..=49 => (61, 10),
+            50..=79 => (71, 10),
+            80..=94 => (81, 10),
+            95..=99 => (91, 5),
+            _ => unreachable!(),
+        };
+        let expected = min + reference.range(width) as u8;
         handle.spawn_agent(1.0, 1.0, 50.0);
         assert_eq!(handle.self_preservation_of(0), f64::from(expected));
         assert_eq!(

@@ -422,6 +422,9 @@ pub struct TuningFile {
     pub career_mood_demoted_ticks: u32,
     /// How many ticks the Fired moodlet lasts.
     pub career_mood_fired_ticks: u32,
+    /// Optional extension; historical packs retain their existing wire records.
+    #[serde(default)]
+    pub autonomy: Option<crate::AutonomyTuning>,
     /// How many days each season lasts, at least 1 - [SEA-year] in
     /// `docs/specs/2026-10-17-seasons.md`.
     pub days_per_season: u32,

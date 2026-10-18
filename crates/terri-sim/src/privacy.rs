@@ -248,7 +248,11 @@ pub(crate) fn route(world: &mut World) {
             continue;
         }
         let safe = phase.safe_grid(actor, world.resource::<TileGrid>());
-        if world.get::<terri_core::Commuting>(actor).is_none() {
+        if world.get::<terri_core::Commuting>(actor).is_none()
+            && world
+                .get::<crate::social_episode::requests::CommittedConversation>(actor)
+                .is_none()
+        {
             let helps = target.map_or_else(Vec::new, |target| {
                 crate::need_interactions::goal_benefits(world, actor, target)
             });

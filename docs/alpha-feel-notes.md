@@ -3969,3 +3969,10 @@ Showering uses a longer sampled duration, visible washing movement, and transluc
 Moving gameplay exposed repeated head-envelope work that steady images concealed. Prepared numeric scans and exact matrix-dependency caching preserve the measured head geometry while reducing that work. Initial configuration pauses and occasional slow frames remain reported, rather than being omitted from the performance record.
 
 The screenshots, source bindings, executed checks, review coverage, and desktop measurements are in [the dated repair evidence](evidence/2026-10-15-seating-selection-shower/report.md). This focused repair pass does not claim exhaustive inspection of every animation pixel or performance on phones.
+
+
+## [A-urgent-needs-pending-conversations] Critical choices and committed conversations, 2026-10-17
+
+The displayed game reproduced the reported cancellation loop with an idle pose and repeated sideways movement. The repaired build was played through approach, protected bathroom use, waiting outside, and conversation. Named activity and queue text were checked at desktop and 390-pixel phone widths. A clipped partner name was repaired, and active chores retain their actual activity instead of Idle.
+
+The initiator remains committed while waiting and needs continue to decay. Long work shifts, blocked routes, and chosen waits can still delay care. Selected images, live-state measurements, independent review limits, and executed regression checks are recorded in [the dated evidence](evidence/2026-10-17-urgent-needs-conversations/README.md). This focused pass does not claim inspection of every object or every animation frame.

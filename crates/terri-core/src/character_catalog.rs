@@ -15,6 +15,13 @@ pub struct CharacterCatalog {
     pub hobbies: Vec<CreatorHobby>,
     pub activities: Vec<CreatorActivity>,
     pub personalities: Vec<CreatorPersonality>,
+    pub self_preservation_bands: Vec<CreatorInstinctBand>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatorInstinctBand {
+    pub min: u8,
+    pub max: u8,
+    pub weight: u8,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreatorWeight {
