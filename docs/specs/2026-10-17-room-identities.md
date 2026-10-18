@@ -84,7 +84,7 @@ Extend the existing Build session with a simulation-owned transaction. One modul
 5. Match the candidate's final geometry to the baseline. Apply review choices and reconcile dependent gameplay state once. New automatic assignments use the candidate's copied random stream, not the live draft's stream.
 6. Validate the complete candidate through the current save/load validation path. Keep at most one prepared candidate, identified by a token tied to the session, journal revision, and review choices.
 7. Confirm changes adopts that exact candidate and replaces the baseline atomically. A stale token, replay failure, or validation failure changes neither the draft nor the baseline. Retain the draft, stay paused, and report the actual failure.
-8. Back to build discards only the prepared review. Cancel or Exit build restores the baseline and discards the journal and pending names. Confirming one batch and cancelling a later batch retains the first batch.
+8. Back to build discards only the prepared review. Footer Confirm accepts the batch and keeps paused Build open. Footer Cancel restores the latest confirmed baseline, clears the journal and pending names, and keeps paused Build open. Requesting Exit build uses the existing unconfirmed-changes dialog. Its Confirm action commits, completes any required room review, and then leaves; Discard restores the baseline and leaves; Keep building preserves the draft. Review Back or a refused commit cancels the pending exit. Confirming one batch and cancelling a later batch retains the first batch.
 
 Every persistence path, including manual Save, visibility-triggered saving and autosave, requests committed bytes. Never serialize a partly reconciled draft as a resumable save. Graphics recovery preserves the native handle and transaction.
 
@@ -120,9 +120,9 @@ Retain existing footstep probabilities, grime increments, cleaning durations, th
 
 ## Save compatibility
 
-At the inspected source revision, `684707b3917b73d8e2fa5d65a58adf6691f0ca63`, native and browser markers are 14. Introduce schema 15 only if it remains unallocated at integration; otherwise choose the next unused schema and update this design, its plan, the native marker, and browser marker together.
+Published schema 15 stores conversation commitments around the frozen V14 household. Room persistence uses schema 16, containing that complete published V15 payload plus room records and allocators. Keep the native and browser markers consistent. If another schema becomes published before integration, preserve it and allocate the next unused outer version.
 
-Freeze every published V1-V14 wire layout and command discriminant. Add an outer envelope containing the unchanged V14 shape and room records/allocators. The outer version explicitly selects whether room-bearing integers mean legacy region seeds or stable IDs. A nominal V14 writer must never emit stable IDs under the old meaning; historical fixture projections must translate representable references or reject an unrepresentable projection.
+Freeze every published V1-V15 wire layout and command discriminant. V16 explicitly selects stable room references in its nested household data; standalone V15 and earlier saves retain legacy room-seed meanings. A historical writer must translate representable references or refuse an unrepresentable projection. Never interpret the unpublished room-only V15 prototype as the published conversation format. Preserve request identity, player order ownership, phases and waiting-target representation through private current capture, strict restoration and transaction replay.
 
 Restore current saves with the registry installed before domestic, dining, chores, and grime validate their room references. Replace tile-count checks for current room identities with registry checks. Do not load with old semantics and repair after validation.
 
@@ -132,7 +132,9 @@ If an old domestic region becomes several current rooms, verify that the person'
 
 Preserve dirt, claims, in-progress work, queue order, personalities, books, careers, funds in cents, land frame, histories, and every random stream. Rebuild derived caches without ticking or applying relationship effects. Validate old active work under old rules, then explicitly replan only work whose new eligibility or geometry differs. Current-schema load is strict adoption, not another historical migration.
 
-Before replacing an older browser save with the new schema, preserve its bytes in the established version-specific recovery file. Add a frozen V14 worker fixture. Prove that an old worker refuses the new primary file and that recovery bytes survive failed writes and New game. Reject truncated, trailing, ambiguous historical, unsupported-future, duplicate-room, and out-of-range records without mutating the live household.
+Before replacing an older browser save with the new schema, preserve its bytes in the established version-specific recovery file. Retain frozen V14 evidence and add an authentic published V15 producer and frozen V15 worker. Preserve both recovery files. Prove that an old worker refuses the new primary file and that recovery bytes survive failed writes and New game. Reject truncated, trailing, ambiguous historical, unsupported-future, duplicate-room, malformed conversation ownership, and out-of-range records without mutating the live household.
+
+The native transaction owns semantic dirty detection. Compare the authored draft with its baseline, effective normalized names, and pending native input without flushing, ticking, allocating identities, or changing tokens. Browser tool previews contribute their unsettled state separately. Public committed bytes cannot detect draft changes. Preserve pending conversation state and necessary runtime observations through ordinary construction and Build lifecycle operations; remap entity references, rebuild derived caches, and translate waiting tiles exactly once during north/west land growth.
 
 ## Interface and scope
 

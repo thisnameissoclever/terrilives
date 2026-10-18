@@ -10,12 +10,14 @@
 
 **Spec:** [Room identity, naming, and cleaning](../../specs/2026-10-17-room-identities.md). Read it before this plan. Apply the separate [action-button color plan](2026-10-17-action-button-colors.md) to the new controls.
 
+**Published-schema integration:** Apply [V16 integration](2026-10-17-room-v16-integration.md) before releasing browser integration. It preserves published V15 conversation commitments, native draft ownership and the existing exit dialog while retaining the approved repeated-batch naming flow.
+
 ## Global constraints
 
 1. Automatic room changes and their gameplay consequences become permanent only when the player confirms the complete build.
 2. An open-plan space is one room when no architectural boundary separates it.
 3. Outdoor flooring and applicable outdoor surfaces receive cleaning duties. Grass does not.
-4. Freeze every published V1-V14 wire layout and command discriminant.
+4. Freeze every published V1-V15 wire layout and command discriminant.
 5. No dependencies or save resets are authorized.
 6. Keep review videos out of the repository.
 7. Do not implement a second camera, arbitrary-polygon construction tool, manual object-room override, or named outdoor zoning system.
@@ -35,9 +37,9 @@
 | Stable room and review types | New `crates/terri-core/src/rooms.rs`; export from `crates/terri-core/src/lib.rs` |
 | Shared geometry, identity matching, query cache | Existing `crates/terri-sim/src/room_regions.rs`; new `crates/terri-sim/src/rooms/{mod,matching,tests}.rs` |
 | Native draft/candidate lifecycle | New `crates/terri-sim/src/build_transaction.rs`; integrate `lib.rs`, `systems/lot_edit.rs`, placement/book/land paths |
-| Historical/current persistence | New `crates/terri-core/src/save_v15.rs`, `crates/terri-sim/src/save/v15.rs`, `crates/terri-sim/src/rooms/migration.rs`; existing save/load and hash modules |
+| Historical/current persistence | New `crates/terri-core/src/save_v16.rs`, `crates/terri-sim/src/save/v16.rs`, `crates/terri-sim/src/rooms/migration.rs`; preserve published V15 request persistence and earlier readers |
 | Cleaning and consumer reconciliation | `chores/{mod,board,groups,work,patches,grime,save}.rs`, `domestic.rs`, `dining.rs`, privacy/interpersonal/affinity/social consumers, `land.rs` |
-| Browser persistence | `web/src/storage/{save-header,save-worker,save-store}.ts`; frozen V14 worker fixtures and storage tests |
+| Browser persistence | `web/src/storage/{save-header,save-worker,save-store}.ts`; frozen V14/V15 workers and storage tests |
 | Runtime/browser bridge | `crates/terri-wasm/src/lib.rs`, `web/src/bridge.ts`; new `web/src/ui/room-selection.ts`, `room-review.ts` |
 | Build interface | `web/index.html`, `web/src/main.ts`, `web/src/ui/{build-session,build-tools,room-tool,room-tool-controls}.ts`, `web/src/ui/build-controls.css` |
 
@@ -75,18 +77,19 @@ Keep room matching, history conversion, and transaction orchestration separate. 
 
 ### Task 3: Add current save semantics and historical conversion
 
-**Files:** new `terri-core/src/save_v15.rs`; `terri-core/src/{lib,save}.rs`; new `terri-sim/src/save/v15.rs`, `rooms/migration.rs`; existing `save.rs`, `save/architecture.rs`, `save/v13.rs`, `save/v14.rs`, `domestic.rs`, `dining.rs`, `chores/save.rs`, `lib.rs`; corresponding save tests.
+**Files:** new `terri-core/src/save_v16.rs`; `terri-core/src/{lib,save}.rs`; new `terri-sim/src/save/v16.rs`, `rooms/migration.rs`; existing published `save/v15.rs`, `save.rs`, `save/architecture.rs`, `save/v13.rs`, `save/v14.rs`, `domestic.rs`, `dining.rs`, `chores/save.rs`, `lib.rs`; corresponding save tests.
 
-**Interfaces:** Define `SaveSnapshotV15 { legacy: SaveSnapshotV14, rooms: SavedRooms }`. Define `RoomReferenceMode::{Legacy, Stable}` and carry the mode plus validated registry through lower-level restoration. `save::v15::capture(&Sim) -> SaveSnapshotV15` and `save::v15::restore(SaveSnapshotV15, &'static ContentPack, Carried) -> Result<Sim, SaveError>` are the current capture and private-candidate constructor. Add public `Sim::save_snapshot_v15` and `Sim::load_snapshot_v15` following the existing candidate-before-adoption pattern.
+**Interfaces:** Define `SaveSnapshotV16 { legacy: SaveSnapshotV15, rooms: SavedRooms }`, retaining the exact published V15 conversation envelope. Define `RoomReferenceMode::{Legacy, Stable}` and carry the mode plus validated registry through lower-level restoration. `save::v16::capture(&Sim) -> SaveSnapshotV16` and `save::v16::restore(SaveSnapshotV16, &'static ContentPack, Carried) -> Result<Sim, SaveError>` are the current capture and private-candidate constructor. Add public `Sim::save_snapshot_v16` and `Sim::load_snapshot_v16` following the existing candidate-before-adoption pattern. Keep published V15 APIs and add a fallible historical projection where required.
 
 Convert existing visit/opportunity room fields in place after verifying membership in the original source region. Preserve their existing noticed/known sets and pending decision. The current containing room ID, or zero for outside, supplies the new reference. Do not add duplicate saved visit metadata. Existing movement/reset rules own its lifetime.
 
 - [ ] Freeze authentic V14 save bytes before changing the writer. Include active cleaning, dirty surfaces, suspended work, queued chore commands, domestic memory, careers, books, and purchased land. Retain the historical binary/source identity in dated evidence.
+- [ ] Retain authentic published V15 queued, waiting, approaching, talking and suspended conversation evidence, with exact order ownership and original producer acceptance.
 - [ ] Add failures for duplicate/missing room records, zero live IDs, bad anchors, invalid allocators, dangling visit references, truncated/trailing bytes, and unsupported versions. Assert failed adoption leaves the prior world untouched.
 - [ ] Add migration tests using both legacy room maps. Assert preserved names where recoverable, owners, dirt, progress, queue order, memory sets, outcomes, funds, careers, and every random stream. Test an unrecoverable retired seed without attaching it to a live room.
 - [ ] Save and reload a migrated continuing visit before its next boundary crossing. Assert unchanged noticed dishes/pending decision and no duplicate resentment or cleanup roll, then verify the ordinary next crossing/reset works.
 - [ ] Run `cargo test -p terri-sim save` and the existing domestic/dining/chore-save groups. Require current stable-ID validation and exterior dirt cases to fail before adding support.
-- [ ] Implement the new outer envelope without changing nested V14 layouts. Validate old references under old semantics first; install current room records before current dependent-state validation. Convert only room-bearing chore kinds and the two queued chore-command variants.
+- [ ] Implement the new outer envelope without changing published V1-V15 layouts. Validate old references under old semantics first; install current room records before current dependent-state validation. Convert only room-bearing chore kinds and the two queued chore-command variants. Preserve V15 waiting-target stripping/restoration and request ownership.
 - [ ] Make historical capture helpers explicitly project stable IDs back to representable legacy references or refuse the projection. Never emit mislabelled historical payloads; update fixture construction sites deliberately.
 - [ ] Hash saved names, IDs, allocators, and retired records. Keep existing visit/opportunity hashing. Do not hash derived geometry caches independently.
 - [ ] Run native historical/current tests plus targeted mutations against version/mode selection and transactional refusal. Commit the persistence layer. Recheck schema allocation at integration; use the next unused schema if 15 was claimed elsewhere.
@@ -112,7 +115,7 @@ Convert existing visit/opportunity room fields in place after verifying membersh
 
 **Files:** new `build_transaction.rs`; `terri-sim/src/lib.rs`, `systems/lot_edit.rs`, `placement.rs`, `placement/sale.rs`, book commerce/movement paths found by impact scan, `land.rs`; new transaction test module.
 
-**Interfaces:** Define nonserialized `BuildTransaction` owning baseline `SaveSnapshotV15`, accepted `Vec<BuildJournalEntry>`, pending names, monotonically changing revision, and optional prepared candidate. A journal entry stores the accepted typed command and expected placement/purchase result. Define `BuildToken { session: u64, revision: u64, preparation: u64 }` and `BuildCommitError` with typed reasons.
+**Interfaces:** Define nonserialized `BuildTransaction` owning baseline `SaveSnapshotV16`, accepted `Vec<BuildJournalEntry>`, pending names, monotonically changing revision, and optional prepared candidate. A journal entry stores the accepted typed command and expected placement/purchase result. Define `BuildToken { session: u64, revision: u64, preparation: u64 }` and `BuildCommitError` with typed reasons.
 
 Add `Sim::begin_build() -> Result<(), BuildCommitError>`, `Sim::stage_room_name(RoomSelection, String) -> Result<(), BuildCommitError>`, `Sim::prepare_build_commit(RoomChoices) -> Result<BuildReview, BuildCommitError>`, `Sim::commit_build(BuildToken) -> Result<(), BuildCommitError>`, `Sim::discard_build_review() -> Result<(), BuildCommitError>`, `Sim::cancel_build() -> Result<(), BuildCommitError>`, and `Sim::end_build() -> Result<(), BuildCommitError>`. Cancel restores the baseline while remaining in paused Build. End restores it and ends the transaction so the shell may resume its prior speed. Discard invalidates the prepared token/candidate without changing the draft. `BuildReview` contains the token, change groups, proposed names, area changes, and duty effects; it never exposes a mutable candidate. Current persistence capture returns the committed baseline while active; internal draft inspection uses a separate nonpersistent projection.
 
@@ -130,7 +133,7 @@ Add `Sim::begin_build() -> Result<(), BuildCommitError>`, `Sim::stage_room_name(
 
 ### Task 6: Expose rooms and transactions; protect browser saves
 
-**Files:** `crates/terri-wasm/src/lib.rs` and current save boundary tests; `web/src/bridge.ts`; `web/src/storage/{save-header,save-worker}.ts`; `web/tests/{save-worker,save-store,legacy-save,persistence-controller}.test.ts`; new frozen `web/tests/fixtures/v14-worker/`.
+**Files:** `crates/terri-wasm/src/lib.rs` and current save boundary tests; `web/src/bridge.ts`; `web/src/storage/{save-header,save-worker}.ts`; `web/tests/{save-worker,save-store,legacy-save,persistence-controller}.test.ts`; frozen `web/tests/fixtures/v14-worker/` and new authentic `v15-worker/`.
 
 **Interfaces:** Expose existing-pattern primitive/typed-array methods rather than adding JSON dependencies. Room summaries use rows `[room_id, anchor_x, anchor_y, area, flags]` plus `room_name(room_id) -> String`; ID zero denotes Outside in this presentation. Expose `room_tiles(room_id) -> Vec<u32>` and a single revision to invalidate summaries/highlights. The browser wraps these as `RoomSummary { id, name, anchor, area, outside }` and validates row lengths.
 
@@ -139,7 +142,7 @@ These selection methods report the confirmed map, translated into the current dr
 Transaction bridge methods mirror Task 5. Encode tokens as three u64 values with the project's existing exact-integer wire helpers; never round them through JavaScript numbers. Review transport uses postcard bytes and an explicitly versioned record layout matching `BuildReview`/`RoomChoices`; define the TypeScript codec alongside its Rust byte-contract tests. Freeze new layout/tag values when first published.
 
 - [ ] Add real WebAssembly boundary tests for names, provisional review choices, stale tokens, current save bytes, and old reference conversion. Keep published command bytes unchanged.
-- [ ] Add a V14 recovery backup and immutable V14 worker fixture. Test new-schema writes over V14, failed backup writes, New game recovery retention, and cached old-worker refusal.
+- [ ] Preserve V14 recovery and its immutable worker. Add V15 recovery and an authentic published V15 worker. Test V16 writes over both older formats, failed backup writes, New game recovery retention, and cached old-worker refusal.
 - [ ] Test manual Save, visibility-triggered saving and autosave while the draft is dirty or a review is open. Each must write baseline bytes, never the draft. Verify that graphics recovery preserves the native handle and transaction.
 - [ ] Run `cargo test -p terri-wasm` and `npm --prefix web test -- --maxWorkers=1` for the storage/persistence test files.
 - [ ] Implement bridge codecs and native committed-byte routing. Update native/browser version markers together. Preserve exact historical recovery names and older fixtures.
