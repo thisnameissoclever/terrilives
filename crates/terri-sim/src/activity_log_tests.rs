@@ -372,6 +372,7 @@ fn every_relationship_cause_is_logged_or_excluded() {
         Episode,
         Held,
         Feeling,
+        Appreciation,
         Excluded,
     }
     for cause in Cause::ALL {
@@ -385,11 +386,10 @@ fn every_relationship_cause_is_logged_or_excluded() {
             Cause::Nuisance => Expect::Episode,
             Cause::Conversation | Cause::Fight => Expect::Held,
             Cause::ChoreFulfilled | Cause::ChoreNeglected => Expect::Feeling,
-            Cause::Proximity
-            | Cause::SharedActivity
-            | Cause::Incompatibility
-            | Cause::Decay
-            | Cause::MealShared => Expect::Excluded,
+            Cause::MealShared => Expect::Appreciation,
+            Cause::Proximity | Cause::SharedActivity | Cause::Incompatibility | Cause::Decay => {
+                Expect::Excluded
+            }
         };
         let mut sim = Sim::new_with_lot(4, 4);
         let pack = sim.world().resource::<Content>().0;
@@ -454,6 +454,20 @@ fn every_relationship_cause_is_logged_or_excluded() {
                     (1, 2, label)
                 );
                 assert_eq!((records[0].value(2), records[0].triggers()), (-123, 0));
+            }
+            Expect::Appreciation => {
+                let records = staged(&sim);
+                assert_eq!(records.len(), 1, "{cause:?}");
+                assert_eq!(records[0].kind(), Some(LogKind::Feeling));
+                assert_eq!(
+                    (records[0].actor(), records[0].other(), records[0].label()),
+                    (1, 2, label)
+                );
+                assert_eq!(
+                    (records[0].value(2), records[0].triggers()),
+                    (-123, SOCIAL),
+                    "an appreciation shows under Social even without its meal"
+                );
             }
             Expect::Excluded => {
                 assert!(staged(&sim).is_empty(), "{cause:?}");

@@ -189,8 +189,8 @@ fn forward(
         RelationshipCause::Proximity
         | RelationshipCause::Incompatibility
         | RelationshipCause::Decay => {}
-        // Logged by the meal appreciation source in the next commit.
-        RelationshipCause::MealShared => {}
+        // A child of the eater's finished meal, shown under Social.
+        RelationshipCause::MealShared => log.appreciation(pack, effect),
     }
 }
 

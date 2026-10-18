@@ -40,6 +40,7 @@ The owner decided these points on 2026-10-17 and 2026-10-18.
 5. Performance is critical. The log sits outside simulated and saved state, never feeds back into the simulation, never enters the world hash, is bounded, and is read incrementally by the shell.
 6. Details shows numbers only where they compare with other quantities, rounded to integers.
 7. Time adds a prefix such as `D74, T15:45` and is off by default.
+8. A guest who finishes a portion of a shared meal someone else cooked appreciates the cook, as [the meal appreciation specification](2026-10-18-meal-appreciation.md) defines. The log shows that appreciation on the guest's meal line under Social.
 
 ## [AL-terms] Terms
 
@@ -47,7 +48,7 @@ The owner decided these points on 2026-10-17 and 2026-10-18.
 | --- | --- |
 | Event | One thing that happened in the simulation at one tick, such as a finished chat or a weekly review. |
 | Record | The fixed-size numeric description of one event that the simulation hands to the shell. It holds no text. |
-| Parent and child | A child record adds a clause to its parent's line instead of making a line of its own. An appreciation is a child of the chore it rewards. |
+| Parent and child | A child record adds a clause to its parent's line instead of making a line of its own. An appreciation is a child of the chore or meal it rewards. |
 | Line | What the panel shows for one parent record and its children. |
 | Head | The part of a line every visible line shows: `Name: label`, with the other person and topic when the event has them. |
 | Clause | A part of a line that one filter adds, such as the Social reactions or the Career outcome. |
@@ -96,7 +97,7 @@ Values use fixed units so the shell rounds once: needs in tenths of a point; opi
 | 5 Chores this week | Parent | Chores | `actor` duty owner; `v0` week |
 | 6 Duty | Child of 5 | none | `label` duty kind; `label2` room |
 | 7 Chore outcome | Child of 1 when done by an action this tick, otherwise parent | Chores | `actor` performer or owner; `other` owner when someone covered; `label` duty; `v0` outcome code (Done, Covered, Skipped, Missed) |
-| 8 Feeling | Child of 2, 3 or 7 | Social, when attached to 7 | `actor` the person whose opinion changed; `other` the person it is about; `label` cause; `v2` change |
+| 8 Feeling | Child of 2, 3 or 7, or of the eater's 1 for meal appreciation | Social, when attached to 7, and always for meal appreciation | `actor` the person whose opinion changed; `other` the person it is about; `label` cause; `v2` change |
 | 9 Skill level | Child of 1 or 2 in the same tick, otherwise parent | Skills | `label` skill; `v1` new level |
 | 10 Weekly review | Parent | Career | `label` level title after; `v0` outcome code in bits 0 to 7 and the warning in bit 8; `v1` performance; `v2` fit; `v3` mastery percent and mood packed as two `i16` |
 | 11 Career change | Parent | Career | `label` level title; `v0` hired by search, assigned by the player, or left the job |
@@ -124,6 +125,7 @@ Every source is a point where the simulation already settles the event. The sche
 | Disliked object in use | 4 | `affinity::bother`, every tick per pair | One record per episode, not per tick [AL-group] |
 | New weekly duties | 5, 6 | `chores::board::reconcile` after `policy::assign` writes new assignments | Assignments grouped by owner: duty kind and room |
 | Chore done or covered | 7, 8 | `chores::board::credit` | Owner, performer, duty, outcome; the ChoreFulfilled feelings from each other housemate; the ChoreNeglected feeling when a helper covers a declined duty |
+| Meal appreciated | 8 | `domestic::appreciate_meal` through `relationship_effects::record_opinion_change`, cause MealShared | Eater, cook, opinion change; a child of the eater's kind 1 record for the shared meal, which completes in the same tick |
 | Chore missed | 7, 8 | `chores::board::tick` at the day rollover | Owner, duty, Missed; the ChoreNeglected feelings |
 | Chore skipped | 7 | `chores::board::tick` where the willingness roll fails | Owner, duty, Skipped |
 | Skill level crossed | 9 | `skills::practise`, comparing `standing` before and after | Person, skill, new level |
@@ -145,7 +147,7 @@ No source turned out to be impossible. Two are costlier than the others: the Soc
 
 Each item below is captured by copying a value at the moment the simulation computes it. None changes an outcome.
 
-1. **Relationship effects.** Every effect today is pushed straight into `RelationshipDiagnostics.effects`, a per-tick observation that `relationship_effects::reset` clears early in each tick. Phase 1 routes every push through one function, `relationship_effects::record`, which also forwards discrete causes to the log. Its match over `RelationshipCause` has no wildcard arm, so a new cause fails to compile until someone classifies it as logged or excluded. Logged: Conversation, LowNeedInterruption, CriticalNeedInterruption, PrivacyEntry, PrivacyStart, HouseholdMess, ChoreFulfilled, ChoreNeglected, Nuisance (as episodes), Fight and the new DirtySetting. Excluded: Proximity, SharedActivity, Incompatibility and Decay, which are continuous.
+1. **Relationship effects.** Every effect today is pushed straight into `RelationshipDiagnostics.effects`, a per-tick observation that `relationship_effects::reset` clears early in each tick. Phase 1 routes every push through one function, `relationship_effects::record`, which also forwards discrete causes to the log. Its match over `RelationshipCause` has no wildcard arm, so a new cause fails to compile until someone classifies it as logged or excluded. Logged: Conversation, LowNeedInterruption, CriticalNeedInterruption, PrivacyEntry, PrivacyStart, HouseholdMess, ChoreFulfilled, ChoreNeglected, MealShared, Nuisance (as episodes), Fight and the new DirtySetting. `record_opinion_change`, which chores and meal appreciation share, records through `record` too. Excluded: Proximity, SharedActivity, Incompatibility and Decay, which are continuous.
 2. **Dirty place setting.** `blocked_setting_annoyance` changes opinion without recording an effect. It gains a `DirtySetting` cause and records through `record`. The diagnostic is not saved or hashed, so only tests that count diagnostics can notice.
 3. **Topic and reactions.** `SocialEpisodes.topics` holds the topic and both preferences only while the chat runs. The chat record copies them at completion, before `social_episode::maintain` removes the entry.
 4. **Social gained.** Chats, table meals and shared media deliver Social per tick, and no total is kept. The scratch area accumulates delivered Social per `SimId`, reset where the activity starts (`Eating` and `Socialising` inserts in `systems::movement::follow_path`, and the meal countdown in `domestic::gather_diners`), and is read at completion. An activity that was already running when the world loaded has no reset point, so its record marks the total partial and Details omits it.
@@ -181,7 +183,7 @@ Tim reads a book, practicing Reading at level 3 and 40 percent of the way to lev
 | Skills | hidden, unless the book took Tim to a new level: Tim: Read a book; Reading reached level 4 |
 | Social | hidden |
 
-Bill does Tim's dishes, covering Tim's chore, and Casey appreciates it.
+Bill does Tim's dishes, covering Tim's chore, and Casey appreciates it. A meal appreciation reads the same way on the guest's meal line: `Casey: Join meal; Casey appreciates Tim` under Social.
 
 | Filters on | Line |
 | --- | --- |
@@ -323,7 +325,7 @@ Rust tests in `crates/terri-sim`:
 1. `activity_log_never_changes_the_world`: the shipped household for 20 game days with the log enabled and disabled, with archetype churn induced in one run per L5 and L6, compares world hashes at every tick and `SimRng` state at the end.
 2. `world_hash_matches_its_golden_vector` passes unmodified, and so do the published-save hash tests.
 3. `every_relationship_cause_is_logged_or_excluded`: drives each cause and asserts the classification; the wildcard-free match is the compile-time half.
-4. Per source: `chat_completion_logs_topic_reactions_social_and_opinion`, `fight_completion_logs_reason_and_both_losses`, `interrupted_chat_logs_nothing`, `chain_logs_once_with_the_meal_label`, `table_meal_logs_company_and_social`, `mess_annoyance_logs_each_notice`, `dirty_setting_annoyance_is_recorded`, `privacy_incidents_log_victim_and_intruder`, `nuisance_logs_one_record_per_episode`, `chore_week_logs_one_header_per_owner`, `chore_done_links_to_the_performing_action`, `chore_cover_and_appreciation_are_children`, `missed_chore_logs_neglect_feelings`, `skipped_chore_is_logged`, `skill_level_up_is_logged_once_per_level`, `practise_reports_levels_without_changing_practice`, `career_review_logs_outcome_and_factors`, `late_review_after_a_shift_is_logged`, `job_search_hire_is_logged`, `assign_and_quit_are_logged_and_refusals_are_not`, `death_is_logged`.
+4. Per source: `chat_completion_logs_topic_reactions_social_and_opinion`, `fight_completion_logs_reason_and_both_losses`, `interrupted_chat_logs_nothing`, `chain_logs_once_with_the_meal_label`, `table_meal_logs_company_and_social`, `mess_annoyance_logs_each_notice`, `dirty_setting_annoyance_is_recorded`, `meal_appreciation_is_logged_on_the_eaters_meal`, `privacy_incidents_log_victim_and_intruder`, `nuisance_logs_one_record_per_episode`, `chore_week_logs_one_header_per_owner`, `chore_done_links_to_the_performing_action`, `chore_cover_and_appreciation_are_children`, `missed_chore_logs_neglect_feelings`, `skipped_chore_is_logged`, `skill_level_up_is_logged_once_per_level`, `practise_reports_levels_without_changing_practice`, `career_review_logs_outcome_and_factors`, `late_review_after_a_shift_is_logged`, `job_search_hire_is_logged`, `assign_and_quit_are_logged_and_refusals_are_not`, `death_is_logged`.
 5. Bounds and lifecycle: `staging_ring_overwrites_oldest_and_counts_drops`, `load_starts_an_empty_log`, `build_transaction_carries_staged_records`, `link_pass_attaches_children_in_the_same_tick`, `label_table_covers_every_action_and_chain_label`.
 
 Wasm tests in `crates/terri-wasm`: `activity_log_take_returns_records_in_sequence_and_empties_staging`, `activity_log_disabled_emits_nothing`.
@@ -396,17 +398,16 @@ Each ruling below is a reversible choice made to complete the design. Each needs
 - [Q1] Should subject interests be derived from existing traits, skills and affinities plus a fixed personal variation, or authored per person and editable in the character creator? Deriving them needs no save change and ships with phase 2. Authoring them needs a new save schema, creator fields and old-save defaults. Recommendation: derive them now and revisit after play.
 - [Q2] Should subjects affect compatibility, the score that drives relationship drift and friction? Including them would make shared interests matter beyond chats but changes relationship balance across the household. Recommendation: leave them out of phase 2 and decide after a measured play session.
 - [Q3] Should subjects get their own bubble art? Art costs generation, review and atlas space; the Talk symbol works meanwhile. Recommendation: ship with the Talk symbol and commission art only for subjects that prove common in play.
-- [Q4] The issue's example "Tim appreciates Bill" after a shared meal describes an effect the game does not have; cooking for someone gives food and company but no gratitude. The log will only show "shared with Tim". Adding gratitude is a simulation change. Recommendation: leave it out of this issue and record it as a relationship idea.
 - [Q5] Should subject interests appear in the Likes and dislikes panel, read only, with the existing Loves to Hates words? Without them, a player cannot see why Bill dislikes trains. Recommendation: yes, in phase 2.
 
 ## [AL-research] Corrections to the earlier research report
 
 1. The research said topic codes 24 to 26 mean fights in one place and cleaning in another. Both topic tables, `tag_code` in the simulation and the bubble table in `web/src/render/conversation-bubbles.ts`, treat 24 to 26 as fights. The overlap is with the activity-status codes in `render_buffer.rs`, where 24 to 26 are mopping, wiping and emptying a bin, because topic codes were assigned from activity codes. No code misreads a value today; phase 2 separates the namespaces.
-2. The research's example of appreciation after a shared meal has no counterpart in the code. Only a completed chore produces appreciation (ChoreFulfilled).
+2. The research's example of appreciation after a shared meal had no counterpart in the code it read. Meal appreciation is now a separate owner-approved effect (MealShared), and the log records it.
 3. The research did not mention that the dirty place-setting annoyance changes opinion without recording a relationship effect, or that incompatibility friction is continuous like decay. Both matter to the log and are handled in [AL-capture].
 4. The research's volume figures, about 52 events per game day and about 14 mess annoyances a day, were not re-measured for this design. The plan's first task measures them again on current main, because critical-need choices, pending conversations and room identities merged after the research.
 5. The remaining claims checked out: the initiator always likes the topic; topic, reactions and total Social are discarded when a chat ends; skill level-ups, job-search hires and moodlet starts are never recorded; a dismissal deletes career history; death records exist natively without a wasm export; and the comment in `content/social.toml` saying neutral and disliked partners give no Social is wrong, since the code gives full Social at neutral and half at -1, which `neutral_lonely_chat_builds_friendship_while_refilling_social` confirms.
 
 ## [AL-out] What this does not do
 
-No saved history, notifications, camera jumps, mute settings or per-person memories; [F-notifications] and [P-memories] in `docs/GAME-SYSTEMS.md` remain separate work that can reuse these records. No Problems, Mood, Household, Money or Relationships filter. No new simulation effects: no gratitude for meals, no penalty for waiting on someone's furniture, no change to how often anyone chats, fights or cleans. Phase 2 adds no saved interests, no creator fields and no compatibility change unless the owner chooses them under [Q1] and [Q2].
+No saved history, notifications, camera jumps, mute settings or per-person memories; [F-notifications] and [P-memories] in `docs/GAME-SYSTEMS.md` remain separate work that can reuse these records. No Problems, Mood, Household, Money or Relationships filter. No new simulation effects: no penalty for waiting on someone's furniture, no change to how often anyone chats, fights or cleans. Phase 2 adds no saved interests, no creator fields and no compatibility change unless the owner chooses them under [Q1] and [Q2].

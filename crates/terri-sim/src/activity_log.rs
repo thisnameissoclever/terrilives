@@ -577,6 +577,17 @@ impl ActivityLog {
         );
     }
 
+    /// A diner's appreciation of the cook, staged under Social as a child
+    /// the link pass attaches to the eater's finished meal.
+    pub(crate) fn appreciation(&mut self, pack: &'static ContentPack, effect: &RelationshipEffect) {
+        self.push(
+            LogRecord::new(LogKind::Feeling, SOCIAL, effect.tick, effect.affected.0)
+                .with_other(effect.responsible.0)
+                .with_label(labels(pack).index(effect.cause.log_label()))
+                .with_value(2, opinion_units(effect.actual)),
+        );
+    }
+
     /// Holds a chat or fight feeling until that conversation's record is
     /// staged in the same tick.
     pub(crate) fn hold_feeling(&mut self, effect: &RelationshipEffect) {
@@ -754,7 +765,7 @@ impl ActivityLog {
     /// parent from the same pass, and forgets feelings nothing claimed.
     pub(crate) fn finish(&mut self, pack: &'static ContentPack, tick: u64, day_ticks: u32) {
         self.close_nuisances(pack, tick, day_ticks);
-        self.link();
+        self.link(labels(pack).index(RelationshipCause::MealShared.log_label()));
         self.unlinked = self.next_seq;
         self.scratch.feelings.clear();
     }
@@ -784,7 +795,7 @@ impl ActivityLog {
     /// Children name their parent's `seq`; a child with no parent in its
     /// pass stays a parent itself. Kept to the records staged since the last
     /// pass, so a child never attaches to an earlier tick's event.
-    fn link(&mut self) {
+    fn link(&mut self, meal: u32) {
         // Sequence numbers rise through the ring, so this pass's records
         // are its tail.
         let first = (0..self.len)
@@ -799,7 +810,7 @@ impl ActivityLog {
                 .rev()
                 .filter(|&offset| offset != child)
                 .map(|offset| *self.at(offset))
-                .find(|candidate| adopts(candidate, kind, &record));
+                .find(|candidate| adopts(candidate, kind, &record, meal));
             if let Some(parent) = parent {
                 let slot = (self.head + child) % STAGING_CAPACITY;
                 self.ring[slot].0[PARENT] = parent.seq();
@@ -817,16 +828,22 @@ impl ActivityLog {
 
 /// Whether `parent` takes a `kind` record as its child: a duty to its week,
 /// a performed chore to the action that did it, a feeling to the chore
-/// outcome it answers, and a skill level to the action or chat that crossed
-/// it ([AL-record]).
-fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord) -> bool {
+/// outcome it answers, a diner's appreciation of the cook to the meal the
+/// diner finished, and a skill level to the action or chat that crossed it
+/// ([AL-record]). `meal` is the label of the meal appreciation cause.
+fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord, meal: u32) -> bool {
     match (kind, parent.kind()) {
         (LogKind::Duty, Some(LogKind::ChoresThisWeek)) => parent.actor() == child.actor(),
         (LogKind::ChoreOutcome, Some(LogKind::ActionDone)) => {
             matches!(child.value(0), OUTCOME_DONE | OUTCOME_COVERED)
                 && parent.actor() == child.actor()
         }
-        (LogKind::Feeling, Some(LogKind::ChoreOutcome)) => parent.involves(child.other()),
+        (LogKind::Feeling, Some(LogKind::ChoreOutcome)) => {
+            child.label() != meal && parent.involves(child.other())
+        }
+        (LogKind::Feeling, Some(LogKind::ActionDone)) => {
+            child.label() == meal && parent.actor() == child.actor()
+        }
         (LogKind::SkillLevel, Some(LogKind::ActionDone)) => parent.actor() == child.actor(),
         (LogKind::SkillLevel, Some(LogKind::ChatDone)) => parent.involves(child.actor()),
         _ => false,

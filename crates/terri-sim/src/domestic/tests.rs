@@ -1567,8 +1567,10 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
-#[test]
-fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
+/// Person 0 has cooked dinner for the household and invited the three
+/// hungry friends with ids 1 to 3 to the returned table; person 4 is
+/// away at work.
+fn shared_meal_scenario() -> (Sim, Vec<Entity>, Entity) {
     let (mut sim, _, _, counter, table) = household();
     for index in 3..5 {
         sim.world_mut()
@@ -1647,6 +1649,12 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
     sim.world_mut().entity_mut(people[4]).insert(AtWork {
         remaining_ticks: 10_000,
     });
+    (sim, people, table)
+}
+
+#[test]
+fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
+    let (mut sim, people, table) = shared_meal_scenario();
     let mut shared_seen = BTreeSet::new();
     let mut simultaneous = 0;
     let mut appreciation = std::collections::BTreeMap::<u32, usize>::new();
@@ -3621,5 +3629,66 @@ fn meal_appreciation_skips_dead_cooks_without_discarding_the_portion() {
         assert!(!sim.relationship_effects().iter().any(
             |effect| effect.cause == crate::relationship_effects::RelationshipCause::MealShared
         ));
+    }
+}
+
+/// [AL-sources]: each guest's appreciation of the cook is one Social
+/// feeling attached to the line of the meal that guest finished, with the
+/// change the diagnostic reports, and the log never changes the meal.
+#[test]
+fn meal_appreciation_is_logged_on_the_eaters_meal() {
+    use crate::activity_log::{opinion_units, LogKind, LogRecord, RECORD_WORDS, SOCIAL};
+    use crate::relationship_effects::RelationshipCause;
+    let run = |log: bool| {
+        let (mut sim, ..) = shared_meal_scenario();
+        sim.set_activity_log_enabled(log);
+        let (mut hashes, mut records, mut effects, mut out) = (vec![], vec![], vec![], vec![]);
+        for _ in 0..1000 {
+            sim.tick();
+            hashes.push(sim.world_hash());
+            sim.take_activity_log(&mut out);
+            records.extend(
+                out.chunks_exact(RECORD_WORDS)
+                    .map(|words| LogRecord(words.try_into().unwrap())),
+            );
+            out.clear();
+            effects.extend(
+                sim.relationship_effects()
+                    .iter()
+                    .filter(|e| e.cause == RelationshipCause::MealShared)
+                    .copied(),
+            );
+            if sim.world().resource::<SavedDomestic>().meals.is_empty() {
+                break;
+            }
+        }
+        let meal = sim.activity_log().label(
+            sim.world().resource::<Content>().0,
+            RelationshipCause::MealShared.log_label(),
+        );
+        (hashes, records, effects, meal)
+    };
+    let (on, records, effects, meal) = run(true);
+    let (off, none, _, _) = run(false);
+    assert_eq!(on, off, "the log never changes the meal");
+    assert!(none.is_empty());
+    assert_eq!(effects.len(), 3, "three guests thank the cook");
+    for effect in &effects {
+        let (eater, cook) = (effect.affected.0, effect.responsible.0);
+        let feeling = records
+            .iter()
+            .find(|r| r.kind() == Some(LogKind::Feeling) && r.label() == meal && r.actor() == eater)
+            .unwrap_or_else(|| panic!("no appreciation by {eater}: {records:?}"));
+        assert_eq!(cook, 0);
+        assert_eq!(feeling.other(), cook);
+        assert_eq!(feeling.triggers(), SOCIAL);
+        assert_eq!(feeling.value(2), opinion_units(effect.actual));
+        assert_eq!(u64::from(feeling.tick()), effect.tick);
+        let parent = records
+            .iter()
+            .find(|r| r.seq() == feeling.parent())
+            .unwrap_or_else(|| panic!("appreciation by {eater} has no parent"));
+        assert_eq!(parent.kind(), Some(LogKind::ActionDone));
+        assert_eq!((parent.actor(), parent.tick()), (eater, feeling.tick()));
     }
 }

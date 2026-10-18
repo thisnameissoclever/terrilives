@@ -51,7 +51,7 @@
 ## Review focus
 
 1. A record emitted inside a system must not change what that system or a later one does. Tasks 1 to 6 own the enabled-versus-disabled equality proof; the reviewer should try to break it with archetype churn and with a paused-frame command drain.
-2. A child must attach to the right parent: a chore credit to the performer's completing action in the same tick, appreciation to the credit, a level-up to the action that crossed it. Tasks 1, 3, 4 and 5 own the link tests.
+2. A child must attach to the right parent: a chore credit to the performer's completing action in the same tick, appreciation to the credit, meal appreciation to the eater's finished meal, a level-up to the action that crossed it. Tasks 1, 3, 4 and 5 own the link tests.
 3. A Load, a Build confirm and a Build cancel must neither lose nor repeat staged records. Tasks 1 and 8 own these proofs.
 4. A stale typed-array view during label lookups must not lose records (lesson L72). Task 8 owns the detach test.
 5. The panel must allocate nothing per frame while closed and nothing per frame without new records while open. Task 11 owns the allocation profile.
