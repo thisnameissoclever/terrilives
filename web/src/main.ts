@@ -116,6 +116,10 @@ import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confi
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
+import { ActivityLogStore } from './ui/activity-log-store.js';
+import {
+  ActivityLogNames, ActivityLogPanel, activityLogElements, attachActivityLogPanel, createActivityLogView, rememberingNames,
+} from './ui/activity-log-panel.js';
 import { showGameVersion } from './ui/game-version.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
@@ -478,6 +482,12 @@ async function main(): Promise<void> {
   await afterPaint();
 
   const bookResults = new BookResults(sim);
+  // [AL-bridge]: the session's activity log, drained every frame whether
+  // or not its panel is open. `?activitylog=0` is the disabled baseline
+  // the performance budget compares against.
+  const activityLogStore = new ActivityLogStore();
+  const activityLogNames = new ActivityLogNames();
+  if (new URLSearchParams(location.search).get('activitylog') === '0') sim.setActivityLogEnabled(false);
   let lotWidth = handle.lot_width();
   let lotHeight = handle.lot_height();
   // Checked rather than assumed. An empty lot is not a crash: it renders
@@ -852,7 +862,10 @@ async function main(): Promise<void> {
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
   const compactBuildQuery = window.matchMedia('(max-width: 700px), (max-height: 480px)');
   const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
-  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
+  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => {
+    optionsMenu.close();
+    activityLogPanel.close();
+  });
   compactHud.setCompact(compactHudQuery.matches);
   const dockActivity = document.getElementById('dock-activity');
   const dockTraitsEmpty = document.getElementById('dock-traits-empty');
@@ -890,7 +903,7 @@ async function main(): Promise<void> {
   const gameVersion = document.getElementById('game-version');
   if (!gameVersion) throw new Error('missing the game version line');
   showGameVersion(gameVersion);
-  optionsToggle.addEventListener('click', () => compactHud.close());
+  optionsToggle.addEventListener('click', () => { compactHud.close(); activityLogPanel.close(); });
   const optionsClose = document.getElementById('options-close');
   if (!optionsClose) throw new Error('missing Options close button');
   optionsClose.addEventListener('click', () => { optionsMenu.close(); optionsToggle.focus(); });
@@ -917,6 +930,33 @@ async function main(): Promise<void> {
     // Any open dialog owns Escape, even when focus has fallen to the page.
     (target) => document.querySelector('dialog[open]') !== null
       || (target instanceof Element && target.closest('dialog') !== null),
+  );
+  // [AL-panel]: the Log toggle at the top right and its right-side panel.
+  // Opening it closes Options and Sim details; opening either closes it.
+  const activityLogDom = activityLogElements(document);
+  const activityLogPanel = new ActivityLogPanel({
+    store: activityLogStore,
+    view: createActivityLogView(document, activityLogDom),
+    names: activityLogNames,
+    labels: () => sim.activityLogLabels(),
+    bands: () => sim.activityLogReactionBands(),
+    dayTicks: sim.dayTicks(),
+    selected: () => {
+      const selected = sim.selectedIndex();
+      return selected === null ? null : sim.simIdOf(selected);
+    },
+    room: (kind, target) => sim.choreLocation(kind, target),
+    refreshMs: sim.needBarRefreshMs(),
+    onOpen: () => { optionsMenu.close(); compactHud.close(); },
+  });
+  attachActivityLogPanel(
+    document,
+    activityLogDom,
+    activityLogPanel,
+    // A dialog and the object menu keep Escape, as they do for Sim details.
+    (target) => document.querySelector('dialog[open]') !== null
+      || (target instanceof Element && target.closest('dialog') !== null)
+      || menuRoot?.hidden === false,
   );
   compactHudQuery.addEventListener('change', (event) => {
     compactHud.setCompact(event.matches);
@@ -949,7 +989,7 @@ async function main(): Promise<void> {
   );
   const householdRoster = new HouseholdRoster(
     sim,
-    createHouseholdRosterSurface(document, householdRosterRoot),
+    rememberingNames(createHouseholdRosterSurface(document, householdRosterRoot), activityLogNames),
     sim.needBarRefreshMs(),
     () => {
       commandStatus.textContent = 'That person could not be selected';
@@ -1221,6 +1261,8 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           bookResults.resetAfterLoad();
+          activityLogStore.resetAfterLoad();
+          activityLogPanel.resetAfterLoad();
           orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
           commandStatus.textContent = '';
           commandStatus.removeAttribute('data-kind');
@@ -1917,12 +1959,14 @@ async function main(): Promise<void> {
     document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
     deathInput!.disabled = buildSession.active;
     careerAutonomy.setDisabled(buildSession.active);
+    activityLogPanel.setBuilding(buildSession.active);
   }
   function settleBuildControllers(): boolean {
     wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
     floorTool.afterCommands(); buyTool.afterCommands(); landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
+    activityLogStore.drain(sim);
     if (builder.afterCommands()) refreshBuildArchitecture();
     return buildCommandsIdle(buildDraft);
   }
@@ -2377,6 +2421,9 @@ async function main(): Promise<void> {
     roomTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     floorTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
     landTool.setBlocked(overlayPause.suspendedExcept('builder') || roomReview.active);
+    // [AL-bridge]: once a frame, open or closed, so history exists when the
+    // player opens the panel.
+    activityLogStore.drain(sim);
     if (roomsTool.active) selectionControls?.render();
     const roomMarker = document.querySelector<HTMLElement>('#room-map-marker')!;
     const selectedRoom = roomSelection.rooms.find(room => room.id === roomSelection.selected);
@@ -2486,6 +2533,7 @@ async function main(): Promise<void> {
     affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     careerPanel.update(nowMs);
+    activityLogPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
       lastBookRefreshMs = nowMs; bookCommerce.render(builder.active ? builder.selected : null, overlayPause.suspendedExcept('builder'));

@@ -237,6 +237,67 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 body[data-building='true'] #hud #time-controls { display: none; }
 #hud:has(#options-panel:not([hidden])) { z-index: 8; }
 
+/* [AL-panel]: the Log toggle owns the window's top right in normal play, and
+   its panel runs from below it to the top of the Sim dock, whose height main.ts
+   writes to --activity-log-bottom. Above the dock (5), below Options (8), the
+   debug panel (9) and the object menu (10). Build hides both. */
+#activity-log-toggle {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  z-index: 8;
+  min-width: 44px;
+  min-height: 32px;
+  padding: 0 12px;
+}
+#activity-log-toggle[aria-expanded='true'] { background: #29313a; border-color: var(--need-fill); }
+#activity-log-toggle[hidden], body[data-building='true'] #activity-log-toggle,
+#activity-log[hidden], body[data-building='true'] #activity-log { display: none; }
+#activity-log {
+  position: fixed;
+  top: calc(max(8px, env(safe-area-inset-top)) + 40px);
+  right: max(8px, env(safe-area-inset-right));
+  bottom: var(--activity-log-bottom, 140px);
+  width: min(360px, calc(100vw - 16px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-edge);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0006;
+  z-index: 7;
+}
+#activity-log [hidden] { display: none !important; }
+#activity-log-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 10px; border-bottom: 1px solid var(--hud-edge); }
+#activity-log .activity-log-title { margin: 0; font-size: 14px; }
+#activity-log-header .hud-button { flex: none; min-height: 36px; padding-inline: 8px; }
+#activity-log-filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; }
+#activity-log-filters .hud-button { min-height: 32px; padding: 2px 8px; font-size: 12px; }
+#activity-log-filters .hud-button[aria-pressed='true'] { border-color: var(--need-fill); color: var(--need-fill); font-weight: 600; }
+#activity-log-selected { margin: 0 10px 6px; color: var(--hud-muted); font-size: 12px; overflow-wrap: anywhere; }
+#activity-log-scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 10px 8px; border-top: 1px solid var(--hud-edge); }
+#activity-log-earlier { width: 100%; min-height: 32px; margin-bottom: 6px; font-size: 12px; }
+#activity-log-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
+#activity-log-list li { overflow-wrap: anywhere; }
+#activity-log-empty { margin: 4px 0; color: var(--hud-muted); font-size: 12px; }
+@media (max-width: 600px), (max-height: 480px) {
+  /* The open panel covers the full width from the top edge to the dock,
+     above the sidebar; its header leaves room for the toggle. */
+  #activity-log-toggle { min-height: 44px; }
+  #activity-log { top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); width: auto; }
+  #activity-log-header { padding-right: 72px; }
+  #activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }
+}
+@media (any-pointer: coarse) {
+  #activity-log-toggle, #activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }
+}
+/* A 44-pixel toggle on a wide touch screen: the panel starts below it. */
+@media (any-pointer: coarse) and (min-width: 601px) and (min-height: 481px) {
+  #activity-log { top: calc(max(8px, env(safe-area-inset-top)) + 52px); }
+}
+
 #dock-critical { grid-column: 1 / -1; color: var(--hud-danger); }
 #dock-critical:empty { display: none; }
 

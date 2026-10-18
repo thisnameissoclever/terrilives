@@ -335,6 +335,7 @@ describe('the Options flyout wired into main.ts', () => {
   });
 
   it('wires the shared compact HUD with a queue capacity refresh', () => {
-    expect(MAIN_TS).toContain('createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close())');
+    // Opening Sim details also closes the activity log ([AL-panel] item 2).
+    expect(MAIN_TS).toContain('createCompactHud(document, () => actionQueue.invalidate(), () => {\n    optionsMenu.close();\n    activityLogPanel.close();\n  });');
   });
 });
