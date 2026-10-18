@@ -20,3 +20,7 @@ Shared meals earn the cook some goodwill. Name rooms across the whole lot, revie
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.
+
+## Art
+
+- Natural Causes has a wilted-flower logo on the loading screen and changelog, with matching browser-tab and home-screen icons.

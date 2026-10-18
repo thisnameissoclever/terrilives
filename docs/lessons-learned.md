@@ -1,5 +1,71 @@
 # Lessons Learned
 
+## [L-public-page-branding-needs-publisher] Update the publisher of a generated page
+
+**What happened.** Icon links were added to a published audio-review HTML file,
+but regenerating that file omitted them and failed its artifact-equality test.
+
+**Root cause.** The checked-in page was mistaken for its authored source.
+
+**Prevention.** Find the template or publisher before editing generated HTML.
+Keep site-relative resources in the public publisher when the shared template
+also produces standalone local pages.
+
+**Verification.** Regeneration must reproduce the checked-in output exactly.
+Check that the generated public page declares icon links that resolve within
+the deployed project path.
+
+## [L-icon-canvas-is-not-artwork-size] Measure artwork inside the icon canvas
+
+**What happened.** A square icon export had the required dimensions, but its
+flower occupied only half the canvas and became a speck at favicon size.
+
+**Root cause.** Pillow's `thumbnail` preserves a smaller source at its existing
+size. It does not enlarge the artwork to the requested bounding dimensions.
+
+**Prevention.** Explicitly resize the source while preserving its proportions,
+then measure the visible artwork's bounds inside the exported canvas.
+
+**Verification.** Inspect the actual 16- and 32-pixel icon frames. Verify the
+occupied bounds as well as the file dimensions; a large empty canvas is not a
+large symbol.
+
+## [L-art-review-must-reject-known-defects] Review the reported defect before judging the overall image
+
+**What happened.** A logo revision was presented as corrected even though a
+foreground petal still appeared to emerge behind the flower's center. The edit
+also removed the center's speckles, brightened its color, and made the wilted
+flower look healthier. A later review accepted improved petal layering while
+missing the owner's repeated objection to the oversized, projecting center.
+
+**Root cause.** Review judged the overall silhouette without tracing each
+petal's attachment and overlap. A request to repair geometry was treated as
+permission to simplify details that the owner wanted preserved. Review then
+mistook relative improvement for satisfaction of the full brief. Repeatedly
+using the defective shape as the edit reference kept it in the candidates.
+
+**Prevention.** Compare the rejected image and candidate against the owner's
+specific observations. Trace each overlapping part from its attachment to its
+tip. Preserve unaffected texture, color, and mood. Give an independent reviewer
+the actual defect and preservation requirements, and require review of the
+exact composed result rather than only an isolated component. Give each
+reported defect its own acceptance check. When the owner rejects size or
+projection, check the complete silhouette and proportions; changing shading
+does not establish that the shape is corrected. Reviewer approval does not
+override a visible defect or the owner's art direction.
+
+When the owner supplies an exact base image and marks one local correction,
+that selection governs the edit. Do not carry earlier redesign instructions
+into it. For an authorized pixel edit, verify that pixels outside the specified
+regions are identical rather than judging preservation by appearance alone.
+For an attachment correction, verify contact with the named origin as well as
+foreground overlap; covering the wrong edge alone can leave the part detached.
+
+**Verification.** The reviewer must reject the known defective image for the
+reported overlap, then explain how the candidate changes that overlap without
+losing the preserved details. Review small icons at their actual display sizes
+separately; acceptance of a large logo does not establish favicon legibility.
+
 ## [L-surface-inventory-and-capability-identity] Check composed controls and opaque identities
 
 **What happened.** Final played review found the existing Exit dialog's three

@@ -53,6 +53,8 @@ test('publishes exactly four ordered paper originals with paper-specific unrevie
     record.author === 'rubberduck' && record.license === 'CC0-1.0' && record.pack === 'rubberduck-100-sfx' &&
     record.page === 'https://opengameart.org/content/100-cc0-sfx')).toBe(true);
   expect(html).toContain('<title>Paper sound review</title>');
+  expect(html).toContain('<link rel="icon" href="./favicon.ico"');
+  expect(html).toContain('<link rel="apple-touch-icon" href="./apple-touch-icon.png"');
   expect(html).toContain('Four unedited, unreviewed recordings');
   expect(html).toContain('page turn');
   expect(html).toContain('tear, crumple');
