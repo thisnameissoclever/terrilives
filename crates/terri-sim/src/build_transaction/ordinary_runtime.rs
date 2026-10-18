@@ -48,6 +48,13 @@ pub(crate) fn refresh_derived(world: &mut World) {
 /// Use existing discontinuity rules while retaining ordinary interpolation.
 /// External Load continues to use Sim::adopt_current directly and resets history.
 pub(crate) fn install(sim: &mut Sim, candidate: Sim) -> Result<(), SaveError> {
+    // Adoption syncs the candidate's render buffer and consumes these markers.
+    // The live interpolation history below still needs them on its next sync.
+    let discontinuities = candidate
+        .world
+        .resource::<crate::placement::LotEditState>()
+        .discontinuities
+        .clone();
     let render = std::mem::take(&mut sim.render);
     let rows = std::mem::take(&mut sim.render_rows);
     let sockets = std::mem::take(&mut sim.socket_projected_entities);
@@ -56,6 +63,14 @@ pub(crate) fn install(sim: &mut Sim, candidate: Sim) -> Result<(), SaveError> {
     sim.render = render;
     sim.portals = portals;
     if result.is_ok() {
+        let discontinuities = discontinuities
+            .into_iter()
+            .filter_map(|entity| crate::dining::entity(&sim.world, entity.index_u32()))
+            .collect::<Vec<_>>();
+        sim.world
+            .resource_mut::<crate::placement::LotEditState>()
+            .discontinuities
+            .extend(discontinuities);
         sim.render_rows = rows
             .into_iter()
             .filter_map(|entity| crate::dining::entity(&sim.world, entity.index_u32()))

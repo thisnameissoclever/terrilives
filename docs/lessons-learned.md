@@ -262,12 +262,15 @@ Retain session and exit metadata before displaying large log output. Capture the
 native exit code immediately, before a trailing log reader such as `Get-Content`
 can hide it. An unknown or truncated outcome requires read-only state
 reconciliation, never an automatic retry of the mutation.
+For grouped checks, inspect every result and the aggregate exit. A completed
+receipt or a successful log tail can still contain an earlier failed group.
 
 **How to verify.** Record the full run's actual failed result and the unchanged
 isolated test's result separately. Confirm that the final serial suite passes;
 an isolated pass is not a passing full-suite run.
 Bind executable results to the source and completed build. Exclude an interrupted
 or prematurely launched run from passing verification receipts.
+Report passed and failed totals across all groups before accepting the batch.
 
 ## [L-window-height-follows-owning-wall] Match aperture art to its wall
 
@@ -12257,6 +12260,8 @@ For diagnostic viewing copies, distinguish original working bytes from Git-store
 2. Root cause: a complete persistent household is not a complete runtime image. Feedback sequences, interpolation, diagnostics and derived caches have separate lifetimes, and external Load deliberately resets some of them.
 3. Prevention: define one native transaction fork/install contract. Account for every nonserialized Sim field and resource as preserved, candidate-mutated, rebuilt, or intentionally reset. Remap entity references where needed. Preserve strict save validation and the external Load reset policy.
 4. Verification: issue an ordinary construction edit after feedback and between interpolation samples. Require unchanged feedback and unaffected entity/door history. Check refused commands mixed with unchanged construction, typed preparation failures, command ordering, and tick versus explicit drain behavior. Rebuild derived caches instead of copying stale entity handles.
+
+The full native suite later caught a separate interpolation failure: candidate adoption consumed edited-object discontinuity markers while syncing a render buffer that ordinary installation then discarded. Restoring only the old buffers left moved furniture interpolating from its old location. Preserve the candidate's pending markers across adoption and remap them into the installed world for the next live sync. Verify the edited object snaps, the untouched person's fractional sample remains exact, and the markers are consumed after that sync. External Load must still reset interpolation history.
 
 ## [L-snapshot-projection-metadata] Project commands and their validation metadata together
 

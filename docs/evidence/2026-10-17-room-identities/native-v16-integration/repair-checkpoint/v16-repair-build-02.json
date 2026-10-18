@@ -1,0 +1,20 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "terri-sim",
+    "-p",
+    "terri-wasm",
+    "--lib",
+    "--no-run",
+    "--locked",
+    "--jobs",
+    "1",
+    "--message-format=json"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-repair-build-02.log",
+  "finished_utc": "2026-10-18T03:38:28.530732+00:00"
+}

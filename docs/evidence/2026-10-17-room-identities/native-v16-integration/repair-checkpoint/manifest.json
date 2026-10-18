@@ -1,0 +1,238 @@
+{
+  "base": "e08c663da8ea4ff4a743b807bb937df5b04377e6",
+  "source_sha256": "895d643ae4b8d7a144fc87bf12e3fe28ce221f6a308c7f65e408fd136f43a3f4",
+  "focused_passed": 19,
+  "focused_failed": 0,
+  "groups": 12,
+  "aggregate_exit_code": 0,
+  "protected_paths_unchanged": [
+    "crates/terri-wasm/tests/fixtures",
+    "web/tests/fixtures/v15-worker",
+    "crates/terri-core/src/save_v15.rs",
+    "crates/terri-sim/src/save/v15.rs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "web/package.json",
+    "web/package-lock.json",
+    "web/src/wasm",
+    "crates/terri-sim/src/placement/tests.rs"
+  ],
+  "files": [
+    {
+      "file": "native-v16-full-01.json",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-01.json",
+      "raw_sha256": "2a3cefbdcb6ce6dde69b1975774890c86e69ce84ab694726cd591a5c011831de",
+      "raw_bytes": 1464,
+      "stored_sha256": "cadeffe054d64b9df404fc3189a65187952efb3e3836234321bc7f38130b361b",
+      "stored_bytes": 1412,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "native-v16-full-01-workspace.log",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-full-01-workspace.log",
+      "raw_sha256": "67b0d550fef750c03586888a52ecbefd0a7451d89fb971c23ab7ddb848b245dc",
+      "raw_bytes": 232498,
+      "stored_sha256": "67b0d550fef750c03586888a52ecbefd0a7451d89fb971c23ab7ddb848b245dc",
+      "stored_bytes": 232498,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "native-v16-repair-report.md",
+      "source_path": ".superpowers\\sdd\\2026-10-17-room-identities\\native-v16-repair-report.md",
+      "raw_sha256": "55b5e222a68105f246369e3e261dedb979073b3ef86d710b71519a3440a30932",
+      "raw_bytes": 5370,
+      "stored_sha256": "55b5e222a68105f246369e3e261dedb979073b3ef86d710b71519a3440a30932",
+      "stored_bytes": 5370,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-build-01.json",
+      "source_path": ".local-build\\v16-repair-build-01.json",
+      "raw_sha256": "c250aa51e273bea8bcaee027c5e0223a8c33bf9f96858d46fa6775f260423d3f",
+      "raw_bytes": 373,
+      "stored_sha256": "c250aa51e273bea8bcaee027c5e0223a8c33bf9f96858d46fa6775f260423d3f",
+      "stored_bytes": 373,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-build-02.json",
+      "source_path": ".local-build\\v16-repair-build-02.json",
+      "raw_sha256": "ab42a921285b5f561ca35cdd6455ecd21dd88236de60b97036005e3330fbb452",
+      "raw_bytes": 373,
+      "stored_sha256": "ab42a921285b5f561ca35cdd6455ecd21dd88236de60b97036005e3330fbb452",
+      "stored_bytes": 373,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-focus-01.json",
+      "source_path": ".local-build\\v16-repair-focus-01.json",
+      "raw_sha256": "0cffb6d24ad2caa34ab2f8800b35eff612ab8c1eadc74468bc3ee92ff4867bb0",
+      "raw_bytes": 5697,
+      "stored_sha256": "0cffb6d24ad2caa34ab2f8800b35eff612ab8c1eadc74468bc3ee92ff4867bb0",
+      "stored_bytes": 5697,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-focus-02.json",
+      "source_path": ".local-build\\v16-repair-focus-02.json",
+      "raw_sha256": "7a82dcbbd8213bd70b5a0a3d59ec80a3087432ee1bec148579f957b72526ca9a",
+      "raw_bytes": 5695,
+      "stored_sha256": "7a82dcbbd8213bd70b5a0a3d59ec80a3087432ee1bec148579f957b72526ca9a",
+      "stored_bytes": 5695,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-focused-01.json",
+      "source_path": ".local-build\\v16-repair-focused-01.json",
+      "raw_sha256": "364cd92026f59f8fbe5420f443a27d2e1b03437d79146f3e6b3b1e93f825335a",
+      "raw_bytes": 264,
+      "stored_sha256": "364cd92026f59f8fbe5420f443a27d2e1b03437d79146f3e6b3b1e93f825335a",
+      "stored_bytes": 264,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-focused-02.json",
+      "source_path": ".local-build\\v16-repair-focused-02.json",
+      "raw_sha256": "869539f765b071c62ee19ee83d7f93b398ed5a73d614b88f4c32f43a5da4f2f3",
+      "raw_bytes": 264,
+      "stored_sha256": "869539f765b071c62ee19ee83d7f93b398ed5a73d614b88f4c32f43a5da4f2f3",
+      "stored_bytes": 264,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-source-02.json",
+      "source_path": ".local-build\\v16-repair-source-02.json",
+      "raw_sha256": "13ea4aa9a6ce82ed5b21ac2387a42dd00698e9399934405677c729494a22b32d",
+      "raw_bytes": 55493,
+      "stored_sha256": "ebcd6f12ff80c59b3a32afdf7a95412d60f938e34d521df25e6eb8e67ab19315",
+      "stored_bytes": 55040,
+      "normalization": "CRLF to LF only"
+    },
+    {
+      "file": "v16-repair-01-legacy-recipes.log",
+      "source_path": ".local-build\\v16-repair-01-legacy-recipes.log",
+      "raw_sha256": "3b9f9b0832281c508a6f20ce752ace61b4db129fdd13e29517fe4d8d48cd608c",
+      "raw_bytes": 1100,
+      "stored_sha256": "2a9b3f6b823020a0a28881dae3b9f9589ba3c3da87e35924affa0e260f3731c4",
+      "stored_bytes": 1099,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-format-check.json",
+      "source_path": ".local-build\\v16-repair-format-check.json",
+      "raw_sha256": "4ef1c4d50e09f9b7525a5031427300bc5d16b9870b91bffe20ac6b2d51a65413",
+      "raw_bytes": 262,
+      "stored_sha256": "4ef1c4d50e09f9b7525a5031427300bc5d16b9870b91bffe20ac6b2d51a65413",
+      "stored_bytes": 262,
+      "normalization": "none"
+    },
+    {
+      "file": "v16-repair-02-placement.log",
+      "source_path": ".local-build\\v16-repair-02-placement.log",
+      "raw_sha256": "1de12efbedcd4ed9464f21d16d9c3012196dd4da885ebed5cbc746f3aa6ffcbc",
+      "raw_bytes": 222,
+      "stored_sha256": "f6dca28b722c3e6c959f972820340fb62efb4e2ecccea039167fbffa10d8db9e",
+      "stored_bytes": 221,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-wall.log",
+      "source_path": ".local-build\\v16-repair-02-wall.log",
+      "raw_sha256": "1c1c8ee80dce7e41092cb1921fb30aaf97ef344537280be23639ca5670bfd2e6",
+      "raw_bytes": 230,
+      "stored_sha256": "f139061246a99f167561804d69e23c0f190b5aeda558442e7759dc7478887e2a",
+      "stored_bytes": 229,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-portals.log",
+      "source_path": ".local-build\\v16-repair-02-portals.log",
+      "raw_sha256": "ca8f53adba65c81220a38d674ef292914cfeb23911506784ceb8c3d3eadf3b76",
+      "raw_bytes": 200,
+      "stored_sha256": "00c6462e3cdde102e26a0800e5d122ab68a8fe45558e5a1cbabd80e1b26a144f",
+      "stored_bytes": 199,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-legacy-recipes.log",
+      "source_path": ".local-build\\v16-repair-02-legacy-recipes.log",
+      "raw_sha256": "b6f9f5bafb97451429219c50e9cc61cfdf50f241a1e7a926304c3c37f41c69ce",
+      "raw_bytes": 478,
+      "stored_sha256": "1807238b4704529bc20afe9d07e30b43d0605885bf31f628bbe797173d413c12",
+      "stored_bytes": 477,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-fridge.log",
+      "source_path": ".local-build\\v16-repair-02-fridge.log",
+      "raw_sha256": "95bc4f9d5d3780f548021135f6da5fbbc4e36a171c85a46816a6cb1b1d73ebd5",
+      "raw_bytes": 243,
+      "stored_sha256": "7f004f65be21731f53f47248e40afe5a021b729b4e370725f3faaa36393feda1",
+      "stored_bytes": 242,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-writers.log",
+      "source_path": ".local-build\\v16-repair-02-writers.log",
+      "raw_sha256": "c35c738b4d276a9dd79466107cfae7a4a1938b35b115e2c8df1f2758ca3eec69",
+      "raw_bytes": 211,
+      "stored_sha256": "986bfcbc9586111653cb48556a439492a7da9df19242aac5e603e78cf18942d5",
+      "stored_bytes": 210,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-ordinary-runtime.log",
+      "source_path": ".local-build\\v16-repair-02-ordinary-runtime.log",
+      "raw_sha256": "bd156a5e3a235a558b5e3c60713ebf342d43b2cbde2fd950a504cd3d26e978fb",
+      "raw_bytes": 805,
+      "stored_sha256": "190b9d7b65af213211f9ef0435df526b4ecce9b0e61a97b8960164d6d69f3526",
+      "stored_bytes": 804,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-paused-walk.log",
+      "source_path": ".local-build\\v16-repair-02-paused-walk.log",
+      "raw_sha256": "9b98d16f08903804ae34c0bf90438cf9bfee528a9e28149542bb216b523334c9",
+      "raw_bytes": 219,
+      "stored_sha256": "248e9f6d163d27bafa8e3b6a66e3c8c6764ccbda435a7597070d1e78beb7c406",
+      "stored_bytes": 218,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-socket-cancel.log",
+      "source_path": ".local-build\\v16-repair-02-socket-cancel.log",
+      "raw_sha256": "6f00c38f9a02abb48b7bdcc3147db85112d1262ddd5673d71a41df6d658a3f5d",
+      "raw_bytes": 215,
+      "stored_sha256": "18142aac7f2242641d86c83f7e3b7cb348675c2c030a8611ce285ea8e4717b52",
+      "stored_bytes": 214,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-reading-cancel.log",
+      "source_path": ".local-build\\v16-repair-02-reading-cancel.log",
+      "raw_sha256": "a2c3fb3237673ea78a87d1219262bb4ae87e72d018d70b4d84efc710413be6a1",
+      "raw_bytes": 216,
+      "stored_sha256": "a41adaf4d1e10e21a3a438dcb4b83b341dad1dba36a08ce44b117566b341fb3d",
+      "stored_bytes": 215,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-boundary.log",
+      "source_path": ".local-build\\v16-repair-02-boundary.log",
+      "raw_sha256": "e3dd6e401eff32e2a04901cffa2b1311e390347b435dde681c246f22233e409f",
+      "raw_bytes": 193,
+      "stored_sha256": "a3fe46d5be63495ff3a2355071e15b47656597d3ef0323e6c11ed50de4d60081",
+      "stored_bytes": 192,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    },
+    {
+      "file": "v16-repair-02-creator.log",
+      "source_path": ".local-build\\v16-repair-02-creator.log",
+      "raw_sha256": "9c8a1701142c6d3570f3241f709b4ae1b7ba0b8189fafacb5b61995c6ddb9434",
+      "raw_bytes": 208,
+      "stored_sha256": "86a3f2741158eafc7ab5b9cd8996d04374c094e64130dd7aefdb1fea7a0a7586",
+      "stored_bytes": 207,
+      "normalization": "Viewing copy: LF, trailing horizontal whitespace removed, one final newline"
+    }
+  ]
+}

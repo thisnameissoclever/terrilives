@@ -4596,8 +4596,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            15,
-            "the public writer must emit the schema-15 envelope"
+            16,
+            "the public writer must emit the schema-16 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();

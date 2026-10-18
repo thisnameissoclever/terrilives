@@ -317,44 +317,60 @@ fn a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to
     applied(&mut sim, edit(Vertical, 1, 0, Wall));
     applied(&mut sim, edit(Vertical, 1, 0, Open));
 
-    let listener = sim
-        .world_mut()
-        .spawn((Agent, Position { x: 4.0, y: 5.0 }))
-        .id();
-    let talker = sim
-        .world_mut()
-        .spawn((
-            Agent,
-            Position { x: 3.0, y: 5.0 },
-            Target {
-                object: listener,
-                interaction: 0,
+    // Admit each direction independently; moving an active conversation by hand
+    // would contradict its saved rendezvous and request ownership.
+    for (talker_x, wall_x) in [(3.0, 4), (5.0, 5)] {
+        let (mut sim, _) = house(vec![]);
+        let listener = sim.spawn_agent(Position { x: 4.0, y: 5.0 }, 100.0);
+        let talker = sim.spawn_agent(
+            Position {
+                x: talker_x,
+                y: 5.0,
             },
-        ))
-        .id();
-    for person in [listener, talker] {
-        let identity = sim
-            .world_mut()
-            .resource_mut::<terri_core::SimIdAllocator>()
-            .issue();
-        sim.world_mut().entity_mut(person).insert(identity);
+            100.0,
+        );
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::TalkToFirst {
+                agent: talker.index_u32(),
+                target: listener.index_u32(),
+                interaction: 0,
+            });
+        sim.tick();
+        assert_eq!(
+            sim.world().get::<Target>(talker).map(|t| t.object),
+            Some(listener)
+        );
+        assert!(sim
+            .world()
+            .resource::<crate::social_episode::requests::ConversationRequests>()
+            .admitted(talker, listener));
+        assert_eq!(
+            *sim.world().get::<Position>(talker).unwrap(),
+            Position {
+                x: talker_x,
+                y: 5.0
+            }
+        );
+        assert_eq!(
+            *sim.world().get::<Position>(listener).unwrap(),
+            Position { x: 4.0, y: 5.0 }
+        );
+        let before = sim.save_snapshot_v16();
+        let mut restored = Sim::new_with_lot_and_content(7, 7, *sim.world().resource::<Content>());
+        restored.load_snapshot_v16(before.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v16(), before);
+        refused(
+            &mut sim,
+            edit(Vertical, wall_x, 5, Wall),
+            PlacementRefusal::InUse,
+        );
+        assert_eq!(sim.save_snapshot_v16(), before);
+        // A line elsewhere is not between them.
+        applied(&mut sim, edit(Vertical, 4, 2, Wall));
+        assert_eq!(sim.take_build_error(), None);
+        restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
     }
-    refused(
-        &mut sim,
-        edit(Vertical, 4, 5, Wall),
-        PlacementRefusal::InUse,
-    );
-    // The rule reads both ways: the target on the near side, the sim beyond.
-    sim.world_mut()
-        .entity_mut(talker)
-        .insert(Position { x: 5.0, y: 5.0 });
-    refused(
-        &mut sim,
-        edit(Vertical, 5, 5, Wall),
-        PlacementRefusal::InUse,
-    );
-    // A line elsewhere is not between them.
-    applied(&mut sim, edit(Vertical, 4, 2, Wall));
 }
 
 /// The in-use rule is about what is ACROSS the line, not about who is near it.

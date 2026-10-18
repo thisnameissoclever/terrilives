@@ -613,7 +613,7 @@ mod tests {
             assert_eq!(sim.portal_buffer().previous_openness, before);
             if before != sim.portal_buffer().openness {
                 transitions += 1;
-                restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+                restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
                 assert_eq!(
                     restored.portal_buffer().openness,
                     sim.portal_buffer().openness

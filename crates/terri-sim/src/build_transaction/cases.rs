@@ -447,7 +447,11 @@ fn every_public_snapshot_writer_reads_the_committed_baseline() {
     let v12 = sim.save_snapshot_v12();
     let v13 = sim.save_snapshot_v13();
     let v14 = sim.try_save_snapshot_v14();
-    let v15 = sim.save_snapshot_v16();
+    let v15 = sim
+        .try_save_snapshot_v15()
+        .expect("baseline is representable in V15");
+    assert_eq!(sim.save_snapshot_v15(), v15);
+    let v16 = sim.save_snapshot_v16();
     sim.begin_build().unwrap();
     pave(&mut sim, 4);
     assert_eq!(sim.save_snapshot(), v1);
@@ -461,7 +465,9 @@ fn every_public_snapshot_writer_reads_the_committed_baseline() {
     assert_eq!(sim.save_snapshot_v12(), v12);
     assert_eq!(sim.save_snapshot_v13(), v13);
     assert_eq!(sim.try_save_snapshot_v14(), v14);
-    assert_eq!(sim.save_snapshot_v16(), v15);
+    assert_eq!(sim.try_save_snapshot_v15(), Ok(v15.clone()));
+    assert_eq!(sim.save_snapshot_v15(), v15);
+    assert_eq!(sim.save_snapshot_v16(), v16);
 }
 
 #[test]
