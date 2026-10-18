@@ -1291,6 +1291,16 @@ describe('SimBridge', () => {
     // exactly 1.0 everywhere. Adding a second object to this scenario
     // changes what it is exposed to.
     //
+    // Correction, 2026-10-17: the paragraph above predates the wander
+    // candidate. Selection now weighs every candidate, including a wander
+    // candidate it always adds, through `autonomy::grouped_probabilities`,
+    // which calls `f64::exp`, so one object no longer means one candidate.
+    // The comparison stays free of `exp` results because the fridge never
+    // becomes a candidate in this scenario: every decision holds the
+    // wander candidate alone, at probability 1.0. Letting any agent here
+    // choose an object changes what it is exposed to. [L36] records the
+    // measurement.
+    //
     // M1c Task 4 varied every interaction's length around its content
     // duration and put a 25-tick floor under it, and this vector did not
     // move on either target for a different reason again: **no agent

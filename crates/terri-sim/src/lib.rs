@@ -6474,6 +6474,20 @@ mod determinism_tests {
         // and by the two tie tests, all of which are robust to a
         // last-bit difference.
         //
+        // **Correction, 2026-10-17:** the two paragraphs above predate the
+        // wander candidate, and their reason no longer holds. Selection
+        // does not call `sample_softmax` or `f32::exp`: `select_action`
+        // pushes a wander candidate after every other candidate and weighs
+        // them through `autonomy::grouped_probabilities`, which calls
+        // `f64::exp`, so one object no longer means one candidate. The
+        // conclusion still holds for a different reason: the fridge never
+        // becomes a candidate in this scenario, so every decision over its
+        // 100 ticks holds the wander candidate alone, and a lone
+        // candidate's probability is 1.0 whatever `exp` returns. A change
+        // that lets any agent here choose the fridge, or adds an object one
+        // can choose, puts `f64::exp` results into the digest's causal
+        // chain. [L36] records the measurement.
+        //
         // **M1c Task 4 did not move it either, and this time for a
         // SECOND, independent reason worth knowing.** [D-4] made every
         // interaction's length a sampled value and put a 25-tick floor

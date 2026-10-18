@@ -3630,6 +3630,27 @@ lot, agrees with itself, and passes. Measured. The fix was to ask the
 question of `from_lot()`'s real lot instead. **A control that rebuilds its
 world from the values it is testing is not a control.**
 
+**Correction, measured 2026-10-17 on `main` at `c2ef49b59`:** the sentences
+above that begin "Second, its blindness became load-bearing" no longer
+describe live selection. Commit `413412814` (#143) moved `select_action` from
+`sample_softmax` to `autonomy::grouped_probabilities`, which calls `f64::exp`,
+and added a wander candidate that `select_action` pushes after every other
+candidate, so one object no longer means one candidate: an agent that can use
+the fridge weighs it against wandering. The vector is still independent of
+`exp` results, for a different reason. A temporary probe that logged
+`DecisionTelemetry` over `build_scenario`'s 100 ticks found 33 decisions, and
+each held the wander candidate alone at probability 1.0; the fridge never
+became a candidate. A lone candidate's probability is 1.0 whatever `exp`
+returns. The exposure therefore changes when any agent in the scenario can
+choose the fridge, or when an added object is one an agent can choose, rather
+than whenever a second object appears. `hypot` and `powi` also carry no
+cross-target guarantee and feed decisions elsewhere, for example the company
+distance checks in `social_company`; whether either reaches this scenario was
+not measured. [L55]'s second reason rests on the same one-candidate premise.
+The comments on `sample_softmax` and in `world_hash_matches_its_golden_vector`
+now say this, and [L-confirm-live-callers] records how the stale premise
+survived.
+
 ---
 
 ## [L37] A WebGPU canvas read outside a rAF callback is black, and the screenshot is what proves it
@@ -12081,3 +12102,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the deletion filter protected literal filenames in documentation and source, but some readers assemble filenames from naming patterns or structured reports. A file's location under `docs/evidence/` does not establish that it is disposable.
 3. Prevention: inspect file readers, expand their supported naming patterns, and follow report fields used as input paths. Preserve the inputs required by useful retained tools. Distinguish generated review output from test fixtures and asset production inputs before deciding which checks apply.
 4. Verification: run the affected postprocessors with isolated outputs, verify preserved input bytes against Git, and confirm the deletion set contains no code, functional assets, or required test inputs. Update current documentation when a capture sequence moves into Git history.
+
+## [L-confirm-live-callers] Check a function's production callers before citing its comments
+
+1. What happened: comments in `crates/terri-sim/src/systems/action.rs` and lesson [L36] kept describing housemates' choices through `sample_softmax` for more than two weeks after commit `413412814` (#143) moved live selection to `autonomy::grouped_probabilities` and added a wander candidate to every decision. They called `exp` the simulation's one platform call, said the golden world hash was safe from `exp` because one object meant one candidate, which stopped being the reason once every decision included the wander candidate, and justified the tie tests' first-draw precondition with an even split of the draw. The wander candidate's share had moved the boundary between the tied objects to 0.499167, so that precondition still compared against one half: seed 3619, whose first draw is 0.499286, passes it and then picks the higher-index object, which would fail the winner assertion with a message blaming the object sort.
+2. Root cause: the function kept its doc comment and its standalone tests after its only production caller was replaced, and the note added at that time said it was retained for existing callers without confirming that any remained. Readers took the comment as a description of running behavior because the function still compiled, was public, and had passing tests.
+3. Prevention: before citing a function's comments, or a lesson built on them, as a statement about how the game behaves, search for its callers (for example `rg -n "sample_softmax\(" crates`) and confirm that at least one sits outside a `#[cfg(test)]` module; this crate keeps most tests inline, so a file name does not settle it. If none does, describe the live path and say in the function's comment that nothing outside tests calls it. When a test precondition reasons about a probability boundary, read the boundary from what the live path recorded, such as `DecisionTelemetry`, rather than from the arithmetic of a function the live path no longer calls.
+4. Verification: list the callers with their enclosing modules. For a draw precondition, log the real draw and boundary once, then construct a seed whose draw falls between the assumed and real boundaries and confirm the precondition rejects it, as `assert_first_draw_takes_the_first_of_two_tied_buckets` rejects seed 3619.
