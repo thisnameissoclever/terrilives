@@ -1,6 +1,6 @@
 # Activity Log and Richer Conversation Topics Implementation Plan
 
-> **For agentic workers:** Use `superpowers:executing-plans` for the simulation tasks, which share one resource and one schedule. If the owner chooses delegated implementation, use `superpowers:subagent-driven-development` with explicit file ownership per task. The checkboxes describe future implementation work.
+> **For agentic workers:** Use `superpowers:executing-plans` for the simulation tasks, which share one resource and one schedule. If the owner chooses delegated implementation, use `superpowers:subagent-driven-development` with explicit file ownership per task. A ticked box marks a step done on the activity log branch.
 
 **Goal:** Give the player a session-only activity log with seven filters and a selected-housemate view (phase 1), then give conversations player-readable topics, separate topic identity from activity codes and add subjects such as trains and bicycling (phase 2).
 
@@ -67,14 +67,14 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Interfaces:** `pub struct LogRecord([u32; 12])` with named accessors; `pub enum LogKind` with the twelve kinds of [AL-record]; trigger constants `ACTIONS = 1`, `CHORES = 2`, `SOCIAL = 4`, `SKILLS = 8`, `CAREER = 16`. `#[derive(Resource)] pub struct ActivityLog` holding a preallocated ring of 256 records, `next_seq: u32`, `dropped: u32`, `enabled: bool`, a scratch area keyed by `SimId` in `BTreeMap`s, and the label table. `pub(crate) fn emit(world: &mut World, record: LogRecord)`, a no-op when disabled. `pub(crate) fn finish_tick(world: &mut World)`, which links children to parents and closes ended episodes. `Sim::take_activity_log(&mut self, out: &mut Vec<u32>) -> u32`, `Sim::activity_log_labels(&self) -> &[String]`, `Sim::set_activity_log_enabled(&mut self, bool)`.
 
-1. [ ] Build the label table once from the content pack in a fixed order: every object interaction label, every chain label including each time-of-day meal label from `domestic::meal_label`, every social interaction label, every topic tag that `social_episode::tag_code` and `fights::Reason::tag` can produce, every skill label, every career level title and every chore duty kind. Look labels up with a `BTreeMap<String, u32>` built at the same time.
-2. [ ] Add `staging_ring_overwrites_oldest_and_counts_drops`: emit 300 test records and assert 256 remain, oldest first, `dropped` is 44 and `seq` values are contiguous.
-3. [ ] Add `link_pass_attaches_children_in_the_same_tick`: emit a parent and children in one tick in both orders and assert `parent` fields after `finish_tick`; a child with no parent in its tick stays a parent.
-4. [ ] Add `load_starts_an_empty_log`: stage records, save and load through the current public save path, and assert the restored log is empty with `next_seq` 1.
-5. [ ] Add `build_transaction_carries_staged_records`: stage records, enter Build, confirm and cancel in separate runs, and assert the same records remain exactly once. Add `ActivityLog` to `copy_feedback`.
-6. [ ] Add `label_table_covers_every_action_and_chain_label` over the shipped pack.
-7. [ ] Add `activity_log_never_changes_the_world`: run the shipped household for 20 game days (28,800 ticks) twice, enabled and disabled, inducing archetype churn in one run as `hash_ignores_archetype_layout_and_entity_history` does, and compare `world_hash` at every tick and `SimRng` state at the end. It passes trivially now; it becomes meaningful as Tasks 2 to 6 add emitters, and each of those tasks reruns it.
-8. [ ] Run `cargo test -p terri-sim activity_log -- --test-threads=1` and `cargo test -p terri-sim world_hash -- --test-threads=1`.
+1. [x] Build the label table once from the content pack in a fixed order: every object interaction label, every chain label including each time-of-day meal label from `domestic::meal_label`, every social interaction label, every topic tag that `social_episode::tag_code` and `fights::Reason::tag` can produce, every skill label, every career level title and every chore duty kind. Look labels up with a `BTreeMap<String, u32>` built at the same time.
+2. [x] Add `staging_ring_overwrites_oldest_and_counts_drops`: emit 300 test records and assert 256 remain, oldest first, `dropped` is 44 and `seq` values are contiguous.
+3. [x] Add `link_pass_attaches_children_in_the_same_tick`: emit a parent and children in one tick in both orders and assert `parent` fields after `finish_tick`; a child with no parent in its tick stays a parent.
+4. [x] Add `load_starts_an_empty_log`: stage records, save and load through the current public save path, and assert the restored log is empty with `next_seq` 1.
+5. [x] Add `build_transaction_carries_staged_records`: stage records, enter Build, confirm and cancel in separate runs, and assert the same records remain exactly once. Add `ActivityLog` to `copy_feedback`.
+6. [x] Add `label_table_covers_every_action_and_chain_label` over the shipped pack.
+7. [x] Add `activity_log_never_changes_the_world`: run the shipped household for 20 game days (28,800 ticks) twice, enabled and disabled, inducing archetype churn in one run as `hash_ignores_archetype_layout_and_entity_history` does, and compare `world_hash` at every tick and `SimRng` state at the end. It passes trivially now; it becomes meaningful as Tasks 2 to 6 add emitters, and each of those tasks reruns it. As built, the test runs two game days and also pins the two-day hash fold to main without the log, so code that runs in both modes cannot hide; the twenty-day comparison is `activity_log_never_changes_the_world_over_twenty_days`, ignored by default.
+8. [x] Run `cargo test -p terri-sim activity_log -- --test-threads=1` and `cargo test -p terri-sim world_hash -- --test-threads=1`.
 
 **Done when:** the tests pass, `world_hash_matches_its_golden_vector` is unchanged, and no simulation system reads `ActivityLog`.
 
@@ -84,13 +84,13 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Interfaces:** `pub(crate) fn record(world: &mut World, effect: RelationshipEffect)` in `relationship_effects.rs`, which pushes the diagnostic and forwards discrete causes to `activity_log`. A new `RelationshipCause::DirtySetting`. A nuisance episode table in the log scratch area keyed by `(affected, responsible)`.
 
-1. [ ] Replace every direct push with `record`. The function's match over `RelationshipCause` has no wildcard arm.
-2. [ ] Record `DirtySetting` effects from `blocked_setting_annoyance`, with requested and actual values computed as the other sites do. Check whether any existing test counts diagnostics and update its expected count with a comment naming this task.
-3. [ ] Emit kind 4 for HouseholdMess, DirtySetting, PrivacyEntry, PrivacyStart, LowNeedInterruption and CriticalNeedInterruption, carrying the fixture model for privacy incidents where `private_start` and `moved` have it.
-4. [ ] Turn Nuisance into episodes: open on first appearance, add each tick's actual change, emit one kind 4 record when the pair is absent for a whole tick or the day ends, from `finish_tick`.
-5. [ ] Hold Conversation, Fight, ChoreFulfilled and ChoreNeglected as kind 8 feelings for the link pass. Drop Proximity, SharedActivity, Incompatibility and Decay, except that SharedActivity and the Social deliveries of Task 3 accumulate per action.
-6. [ ] Add `every_relationship_cause_is_logged_or_excluded`, `mess_annoyance_logs_each_notice`, `dirty_setting_annoyance_is_recorded`, `privacy_incidents_log_victim_and_intruder` and `nuisance_logs_one_record_per_episode`.
-7. [ ] Run `cargo test -p terri-sim relationship -- --test-threads=1`, `cargo test -p terri-sim activity_log -- --test-threads=1` and `cargo test -p terri-sim affinity -- --test-threads=1`.
+1. [x] Replace every direct push with `record`. The function's match over `RelationshipCause` has no wildcard arm.
+2. [x] Record `DirtySetting` effects from `blocked_setting_annoyance`, with requested and actual values computed as the other sites do. Check whether any existing test counts diagnostics and update its expected count with a comment naming this task.
+3. [x] Emit kind 4 for HouseholdMess, DirtySetting, PrivacyEntry, PrivacyStart, LowNeedInterruption and CriticalNeedInterruption, carrying the fixture model for privacy incidents where `private_start` and `moved` have it.
+4. [x] Turn Nuisance into episodes: open on first appearance, add each tick's actual change, emit one kind 4 record when the pair is absent for a whole tick or the day ends, from `finish_tick`.
+5. [x] Hold Conversation, Fight, ChoreFulfilled and ChoreNeglected as kind 8 feelings for the link pass. Drop Proximity, SharedActivity, Incompatibility and Decay, except that SharedActivity and the Social deliveries of Task 3 accumulate per action.
+6. [x] Add `every_relationship_cause_is_logged_or_excluded`, `mess_annoyance_logs_each_notice`, `dirty_setting_annoyance_is_recorded`, `privacy_incidents_log_victim_and_intruder` and `nuisance_logs_one_record_per_episode`.
+7. [x] Run `cargo test -p terri-sim relationship -- --test-threads=1`, `cargo test -p terri-sim activity_log -- --test-threads=1` and `cargo test -p terri-sim affinity -- --test-threads=1`.
 
 **Done when:** the new tests pass, the equality test passes, and removing the forwarding call from `record` fails the annoyance tests.
 
@@ -98,11 +98,11 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `crates/terri-sim/src/systems/interact.rs`, `systems/chain.rs`, `reading.rs`, `systems/social.rs`, `systems/movement.rs`, `domestic.rs` (`gather_diners`), `social_company.rs` (`tick_meals`), `need_interactions.rs`, and the log module.
 
-1. [ ] Emit kind 1 at completion in `tick_interactions`, at the terminal payout in `tick_chain_steps`, and at reading completion in `reading::tick`. Resolve the label through `action_rows` and `ActionRow::label(tick, day_ticks)` at that tick.
-2. [ ] Reset the Social accumulator where `follow_path` inserts `Eating` or `Socialising` and where the meal countdown starts. Add delivered Social at each per-tick delivery site and SharedActivity opinion changes from Task 2. Mark a record partial when no reset happened since the world was created or loaded.
-3. [ ] Emit kind 2 at chat completion in `tick_social`, copying the topic and both preferences from `SocialEpisodes.topics` before `social_episode::maintain` runs, and kind 3 for a completed fight. Emit nothing on the disturbed branch.
-4. [ ] Add `chat_completion_logs_topic_reactions_social_and_opinion`, `fight_completion_logs_reason_and_both_losses`, `interrupted_chat_logs_nothing`, `chain_logs_once_with_the_meal_label` and `table_meal_logs_company_and_social`. The chat test asserts a disliked topic records the listener's `0.02 * preference` loss and a liked one records the gain.
-5. [ ] Run `cargo test -p terri-sim activity_log -- --test-threads=1`, `cargo test -p terri-sim social -- --test-threads=1` and the equality test.
+1. [x] Emit kind 1 at completion in `tick_interactions`, at the terminal payout in `tick_chain_steps`, and at reading completion in `reading::tick`. Resolve the label through `action_rows` and `ActionRow::label(tick, day_ticks)` at that tick.
+2. [x] Reset the Social accumulator where `follow_path` inserts `Eating` or `Socialising` and where the meal countdown starts. Add delivered Social at each per-tick delivery site and SharedActivity opinion changes from Task 2. Mark a record partial when no reset happened since the world was created or loaded.
+3. [x] Emit kind 2 at chat completion in `tick_social`, copying the topic and both preferences from `SocialEpisodes.topics` before `social_episode::maintain` runs, and kind 3 for a completed fight. Emit nothing on the disturbed branch.
+4. [x] Add `chat_completion_logs_topic_reactions_social_and_opinion`, `fight_completion_logs_reason_and_both_losses`, `interrupted_chat_logs_nothing`, `chain_logs_once_with_the_meal_label` and `table_meal_logs_company_and_social`. The chat test asserts a disliked topic records the listener's `0.02 * preference` loss and a liked one records the gain.
+5. [x] Run `cargo test -p terri-sim activity_log -- --test-threads=1`, `cargo test -p terri-sim social -- --test-threads=1` and the equality test.
 
 **Done when:** the tests pass, each chain logs exactly once, and every `practise` call site that marks a completion has a matching kind 1 or kind 2 emission.
 
@@ -110,10 +110,10 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `crates/terri-sim/src/skills.rs` and its five callers: `systems/interact.rs`, `systems/chain.rs`, `systems/social.rs`, `reading.rs` and `trait_effects.rs`. Search with `rg "practise\(" crates/terri-sim/src` first; update every caller, including tests.
 
-1. [ ] Change `practise` to return the skills whose level from `standing` rose, as a small fixed array, without changing the stored practice values or their update order.
-2. [ ] Forward each rise to the log as kind 9. A chain step's rise links to nothing and stays a parent, because its chain has not completed.
-3. [ ] Add `practise_reports_levels_without_changing_practice` (compare stored practice against the previous implementation's arithmetic for every shipped skill across the ladder) and `skill_level_up_is_logged_once_per_level`.
-4. [ ] Run `cargo test -p terri-sim skills -- --test-threads=1` and the equality test.
+1. [x] Change `practise` to return the skills whose level from `standing` rose, as a small fixed array, without changing the stored practice values or their update order.
+2. [x] Forward each rise to the log as kind 9. A chain step's rise links to nothing and stays a parent, because its chain has not completed.
+3. [x] Add `practise_reports_levels_without_changing_practice` (compare stored practice against the previous implementation's arithmetic for every shipped skill across the ladder) and `skill_level_up_is_logged_once_per_level`.
+4. [x] Run `cargo test -p terri-sim skills -- --test-threads=1` and the equality test.
 
 **Done when:** all callers compile against the new signature, the skills tests pass unchanged, and the new tests pass.
 
@@ -121,10 +121,10 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `crates/terri-sim/src/chores/board.rs` (`reconcile`, `credit`, `tick`) and the log module.
 
-1. [ ] Emit kind 5 with kind 6 children for each owner whenever `reconcile` writes new assignments, grouping `SavedChores.assignments` by owner.
-2. [ ] Emit kind 7 Done or Covered in `credit`, Missed at the day rollover in `tick`, and Skipped where the willingness roll fails. Link Done and Covered to the performer's kind 1 record in the same tick, and the ChoreFulfilled and ChoreNeglected feelings to the outcome.
-3. [ ] Add `chore_week_logs_one_header_per_owner`, `chore_done_links_to_the_performing_action`, `chore_cover_and_appreciation_are_children`, `missed_chore_logs_neglect_feelings` and `skipped_chore_is_logged`.
-4. [ ] Run `cargo test -p terri-sim chores -- --test-threads=1` and the equality test.
+1. [x] Emit kind 5 with kind 6 children for each owner whenever `reconcile` writes new assignments, grouping `SavedChores.assignments` by owner.
+2. [x] Emit kind 7 Done or Covered in `credit`, Missed at the day rollover in `tick`, and Skipped where the willingness roll fails. Link Done and Covered to the performer's kind 1 record in the same tick, and the ChoreFulfilled and ChoreNeglected feelings to the outcome.
+3. [x] Add `chore_week_logs_one_header_per_owner`, `chore_done_links_to_the_performing_action`, `chore_cover_and_appreciation_are_children`, `missed_chore_logs_neglect_feelings` and `skipped_chore_is_logged`.
+4. [x] Run `cargo test -p terri-sim chores -- --test-threads=1` and the equality test.
 
 **Done when:** the tests pass and the chores tests are unchanged.
 
@@ -132,11 +132,11 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `crates/terri-sim/src/careers.rs` (`review_person`, `search`, `assign`, `quit`), `crates/terri-sim/src/mortality.rs` (`tick`) and the log module.
 
-1. [ ] Emit kind 10 in `review_person`, which covers reviews settled late through `complete_shift` and `settle_due_review`. Copy the outcome code, performance, the fit, mastery and mood from `factors()`, the title after the outcome, and the warning that starts at the second consecutive poor week.
-2. [ ] Emit kind 11 for a successful hire in `search` and for `assign` and `quit` when they are not refused.
-3. [ ] Emit kind 12 where `mortality::tick` pushes the `DeathRecord`.
-4. [ ] Add `career_review_logs_outcome_and_factors`, `late_review_after_a_shift_is_logged`, `job_search_hire_is_logged`, `assign_and_quit_are_logged_and_refusals_are_not` and `death_is_logged`.
-5. [ ] Run `cargo test -p terri-sim careers -- --test-threads=1`, `cargo test -p terri-sim mortality -- --test-threads=1` and the equality test.
+1. [x] Emit kind 10 in `review_person`, which covers reviews settled late through `complete_shift` and `settle_due_review`. Copy the outcome code, performance, the fit, mastery and mood from `factors()`, the title after the outcome, and the warning that starts at the second consecutive poor week.
+2. [x] Emit kind 11 for a successful hire in `search` and for `assign` and `quit` when they are not refused.
+3. [x] Emit kind 12 where `mortality::tick` pushes the `DeathRecord`.
+4. [x] Add `career_review_logs_outcome_and_factors`, `late_review_after_a_shift_is_logged`, `job_search_hire_is_logged`, `assign_and_quit_are_logged_and_refusals_are_not` and `death_is_logged`.
+5. [x] Run `cargo test -p terri-sim careers -- --test-threads=1`, `cargo test -p terri-sim mortality -- --test-threads=1` and the equality test.
 
 **Done when:** the tests pass and the careers and mortality tests are unchanged.
 
@@ -144,8 +144,8 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `crates/terri-sim/examples/trace.rs` to print record counts per kind per game day and the dropped count, read-only. Add a dated evidence record under `docs/assets/review-evidence/activity-log/`.
 
-1. [ ] Run `cargo run --release -p terri-sim --example trace -- 28800` for three seeds the trace supports. Record records per game day by kind, the largest number of records in one tick, the largest in five consecutive ticks, and dropped records.
-2. [ ] Compare with the research's figures of about 52 events and about 14 mess annoyances per game day. If the largest five-tick count exceeds a quarter of the 256-record ring, raise the ring size in Task 1's constant and its test, and record why.
+1. [x] Run `cargo run --release -p terri-sim --example trace -- 28800` for three seeds the trace supports. Record records per game day by kind, the largest number of records in one tick, the largest in five consecutive ticks, and dropped records.
+2. [x] Compare with the research's figures of about 52 events and about 14 mess annoyances per game day. If the largest five-tick count exceeds a quarter of the 256-record ring, raise the ring size in Task 1's constant and its test, and record why.
 
 **Done when:** the evidence record holds the measured numbers with the revision, command and seeds. The specification keeps no counts.
 
@@ -155,9 +155,9 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Interfaces:** wasm exports `activity_log_take() -> u32`, `activity_log_ptr() -> *const u32`, `activity_log_dropped() -> u32`, `activity_log_labels() -> String` and `set_activity_log_enabled(bool)`, as [AL-bridge] defines. Bridge methods `takeActivityLog(into: Uint32Array, at: number): number`, `activityLogLabels(): string[]`, `activityLogDropped(): number` and `setActivityLogEnabled(on: boolean): void`. `takeActivityLog` builds a fresh view and copies before returning.
 
-1. [ ] Add `activity_log_take_returns_records_in_sequence_and_empties_staging` and `activity_log_disabled_emits_nothing` in the wasm crate.
-2. [ ] Rebuild the wasm package. In `activity-log-bridge.test.ts`, run the shipped household until a chat completes and assert the record's fields; decode the label table; detach the memory buffer during the first label lookup and assert no records are lost; load a save and assert the next take starts at `seq` 1.
-3. [ ] Run `cargo test -p terri-wasm activity_log -- --test-threads=1` and `npm --prefix web test -- --maxWorkers=1 tests/activity-log-bridge.test.ts`.
+1. [x] Add `activity_log_take_returns_records_in_sequence_and_empties_staging` and `activity_log_disabled_emits_nothing` in the wasm crate.
+2. [x] Rebuild the wasm package. In `activity-log-bridge.test.ts`, run the shipped household until a chat completes and assert the record's fields; decode the label table; detach the memory buffer during the first label lookup and assert no records are lost; load a save and assert the next take starts at `seq` 1.
+3. [x] Run `cargo test -p terri-wasm activity_log -- --test-threads=1` and `npm --prefix web test -- --maxWorkers=1 tests/activity-log-bridge.test.ts`.
 
 **Done when:** both suites pass against the freshly built wasm.
 
@@ -165,11 +165,11 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Add `web/src/ui/activity-log-store.ts`, `web/src/ui/activity-log-compose.ts` and `web/src/ui/activity-log-words.ts`. Add `web/tests/activity-log-store.test.ts` and `web/tests/activity-log-compose.test.ts`.
 
-1. [ ] Implement the store as one preallocated `Uint32Array` of 2,000 records with a head index and count, a `resetAfterLoad()`, and a drain that throws when `seq` does not increase outside a reset.
-2. [ ] Implement composition by the rules of [AL-compose], [AL-selected], [AL-group] and [AL-numbers], reading every string from `activity-log-words.ts` and names from a `SimId` to name map refreshed from the household roster.
-3. [ ] In the compose test, reproduce every example line of [AL-compose] under each filter combination listed, the selected-housemate cases, same-day grouping with its count and summed change, omission of numbers that round to zero, and timestamps at the first and last minute of a day.
-4. [ ] In the store test, cover the 2,000-record bound, ring wrap, reset and the backwards-sequence error.
-5. [ ] Run `npm --prefix web test -- --maxWorkers=1 tests/activity-log-store.test.ts tests/activity-log-compose.test.ts` and `npm --prefix web run typecheck`.
+1. [x] Implement the store as one preallocated `Uint32Array` of 2,000 records with a head index and count, a `resetAfterLoad()`, and a drain that throws when `seq` does not increase outside a reset.
+2. [x] Implement composition by the rules of [AL-compose], [AL-selected], [AL-group] and [AL-numbers], reading every string from `activity-log-words.ts` and names from a `SimId` to name map refreshed from the household roster.
+3. [x] In the compose test, reproduce every example line of [AL-compose] under each filter combination listed, the selected-housemate cases, same-day grouping with its count and summed change, omission of numbers that round to zero, and timestamps at the first and last minute of a day.
+4. [x] In the store test, cover the 2,000-record bound, ring wrap, reset and the backwards-sequence error.
+5. [x] Run `npm --prefix web test -- --maxWorkers=1 tests/activity-log-store.test.ts tests/activity-log-compose.test.ts` and `npm --prefix web run typecheck`.
 
 **Done when:** the tests pass and no string used by the composer is defined outside `activity-log-words.ts`.
 
@@ -177,22 +177,22 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** Edit `web/index.html` (toggle and panel markup), `web/src/ui/compact-hud.css` (panel, corner and compact rules), `web/src/main.ts` (drain in the per-frame `afterCommands` hooks, `resetAfterLoad` in the Load callback beside `bookResults.resetAfterLoad`, Build hide, mutual exclusion with Options and the Sim sheet, `?activitylog=0`). Add `web/src/ui/activity-log-panel.ts` and `web/tests/activity-log-panel.test.ts`. Extend `web/tests/mobile-hud.test.ts` and `web/tests/compact-hud.test.ts`.
 
-1. [ ] Implement [AL-panel]: the `Log` toggle, the non-modal panel modeled on `OptionsMenu`, the `#sim-sheet` structure, `aria-pressed` filter toggles, the selected-person line polled at `needBarRefreshMs()`, the 200-row window with Show earlier entries, the empty states and the scroll rule.
-2. [ ] Compose and append only new visible lines while open; do no text or DOM work while closed. Guard repeated text writes with `set-text-if-changed.ts`.
-3. [ ] Correct the out-of-date comment in `web/index.html` that says Options owns the top-right corner.
-4. [ ] Test toggle state, Escape and focus return, exclusion with Options and the Sim sheet, the Build hide, default filters, filter persistence across a simulated Load, the window bound, and the compact layout query.
-5. [ ] Run `npm --prefix web test -- --maxWorkers=1 tests/activity-log-panel.test.ts tests/mobile-hud.test.ts tests/compact-hud.test.ts` and `npm --prefix web run typecheck`.
+1. [x] Implement [AL-panel]: the `Log` toggle, the non-modal panel modeled on `OptionsMenu`, the `#sim-sheet` structure, `aria-pressed` filter toggles, the selected-person line polled at `needBarRefreshMs()`, the 200-row window with Show earlier entries, the empty states and the scroll rule.
+2. [x] Compose and append only new visible lines while open; do no text or DOM work while closed. Guard repeated text writes with `set-text-if-changed.ts`.
+3. [x] Correct the out-of-date comment in `web/index.html` that says Options owns the top-right corner.
+4. [x] Test toggle state, Escape and focus return, exclusion with Options and the Sim sheet, the Build hide, default filters, filter persistence across a simulated Load, the window bound, and the compact layout query.
+5. [x] Run `npm --prefix web test -- --maxWorkers=1 tests/activity-log-panel.test.ts tests/mobile-hud.test.ts tests/compact-hud.test.ts` and `npm --prefix web run typecheck`.
 
 **Done when:** the tests pass and the production build (`npm --prefix web run build`) succeeds.
 
 ## Task 11: Prove the performance budget
 
-**Files:** Add `scripts/activity-log-proof.cjs`, reusing the calibration and measurement helpers of `scripts/audio-browser-proof.cjs` by moving them into `scripts/lib/browser-frame-gate.cjs`. Add the results to the evidence record of Task 7.
+**Files:** Add `scripts/activity-log-proof.cjs`, reusing the calibration and measurement helpers of `scripts/audio-browser-proof.cjs` by moving them into `scripts/lib/browser-frame-gate.cjs`, and `web/tests/activity-log-proof.test.js` for its verdicts. Edit `web/src/main.ts` to expose the stress-only `activityLogSampler` and the store's counts, and `crates/terri-sim/examples/trace.rs` to time `Sim::tick` and honor `TRACE_ACTIVITY_LOG=0`. Add the results to a dated performance record beside the volume record of Task 7, under `docs/assets/review-evidence/activity-log/`.
 
-1. [ ] Extract the helpers without changing the audio script's behavior. Run `node scripts/audio-browser-proof.cjs performance` before and after the extraction and keep both reports.
-2. [ ] Implement `performance` and `memory` modes for the log with the thresholds of [AL-perf], comparing `?stress=1000` against `?stress=1000&activitylog=0`, once with the panel closed and once open with every filter on.
-3. [ ] Take the [V11] sampling heap profile by the procedure in `docs/gpu-verification.md` with the panel closed and open, and attribute allocation by function.
-4. [ ] Run the native cost comparison: five runs each of the trace with the log enabled and disabled, reporting medians.
+1. [ ] Extract the helpers without changing the audio script's behavior. Run `node scripts/audio-browser-proof.cjs performance` before and after the extraction and keep both reports. The extraction is done and `web/tests/audio-memory-report.test.js` passes; the two reports remain, because the audio script's fixed `?stress=1000` page does not finish starting on current main (see the performance record).
+2. [x] Implement `performance` and `memory` modes for the log with the thresholds of [AL-perf], comparing `?stress=1000` against `?stress=1000&activitylog=0`, once with the panel closed and once open with every filter on. Both modes take `--stress N`, so they also run where `?stress=1000` cannot.
+3. [x] Take the [V11] sampling heap profile by the procedure in `docs/gpu-verification.md` with the panel closed and open, and attribute allocation by function.
+4. [x] Run the native cost comparison: five runs each of the trace with the log enabled and disabled, reporting medians.
 5. [ ] If a threshold fails in both modes, profile the whole frame before changing the log, per lesson L-performance-features-need-a-disabled-baseline. Do not relax a threshold or retry for a favorable sample.
 
 **Done when:** every threshold of [AL-perf] passes, and the evidence record holds the commands, build hash, display calibration, raw results and verdicts.
@@ -201,11 +201,11 @@ Phase 1 ends with a mergeable branch: the log, the panel, the performance eviden
 
 **Files:** `docs/player-visible-strings.md`, `docs/ARCHITECTURE.md` ([D11]), `docs/GAME-SYSTEMS.md` ([F-notifications]), `content/social.toml` (comment only), `docs/changelog/` per the changelog skill.
 
-1. [ ] Add an Activity log row to the string inventory listing the proposed strings as awaiting the owner's review.
-2. [ ] Describe the log projection in [D11]: staged records, one drain per frame, one copy before string calls.
-3. [ ] Note in [F-notifications] that the log records events a feed can reuse; the feed itself remains unbuilt.
-4. [ ] Correct the comment in `content/social.toml` that says neutral and disliked partners give no Social refill. TOML comments are not compiled, so the digest does not move; confirm with the terri-data digest tests.
-5. [ ] Apply `.agents/skills/maintain-changelog/SKILL.md`: add a player-facing note for the Log, then run `node --test scripts/build-changelog.test.mjs` and `node scripts/build-changelog.mjs`.
+1. [x] Add an Activity log row to the string inventory listing the proposed strings as awaiting the owner's review.
+2. [x] Describe the log projection in [D11]: staged records, one drain per frame, one copy before string calls.
+3. [x] Note in [F-notifications] that the log records events a feed can reuse; the feed itself remains unbuilt.
+4. [x] Correct the comment in `content/social.toml` that says neutral and disliked partners give no Social refill. TOML comments are not compiled, so the digest does not move; confirm with the terri-data digest tests.
+5. [x] Apply `.agents/skills/maintain-changelog/SKILL.md`: add a player-facing note for the Log, then run `node --test scripts/build-changelog.test.mjs` and `node scripts/build-changelog.mjs`.
 
 **Done when:** the documents describe the shipped behavior and the changelog tests pass.
 

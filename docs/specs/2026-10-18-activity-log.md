@@ -1,6 +1,6 @@
 # Activity log and richer conversation topics
 
-Issue 275 asks for a player-facing log of what the household does: a button at the top right opens a right-side panel, seven filters choose what each line says, and selecting a housemate narrows the log to events that involve them. This document is the contract for that work. It describes proposed behavior, not shipped behavior. The [implementation plan](../superpowers/plans/2026-10-18-activity-log.md) orders the work into two separately mergeable phases: the log first, then richer conversation topics.
+Issue 275 asks for a player-facing log of what the household does: a button at the top right opens a right-side panel, seven filters choose what each line says, and selecting a housemate narrows the log to events that involve them. This document is the contract for that work. The phase 1 sections describe the log as built; [AL-topics] describes phase 2, which is still proposed. The [implementation plan](../superpowers/plans/2026-10-18-activity-log.md) orders the work into two separately mergeable phases: the log first, then richer conversation topics.
 
 The design was written on 2026-10-18 against main `10ced796b`. Facts about the current code below were read from that revision; the plan repeats the checks an implementer should run before relying on them.
 
@@ -201,7 +201,7 @@ Names are the current names from the household roster. The shell keeps the last 
 
 With nobody selected, every visible line shows. With a housemate selected, a line shows only when that person's `SimId` is the head's actor or other person, or the actor or other person of a child whose clause is currently shown. The issue's examples follow: a chat shows for both participants; "Bill: Annoyed by Casey's dishes" shows for Bill and for Casey; "Bill: Do dishes; Casey appreciates Bill" shows for Casey only while Social is on, because only then does the line say anything about Casey.
 
-The panel says whom it is showing in one plain line under the filters, `Only entries involving {name}.`, and nothing when nobody is selected. Selection is read as the other HUD panels read it: `selectedIndex()` through `simIdOf`, polled at the existing panel refresh cadence (`need_bar_refresh_ms`, 100 ms) while the panel is open. There is no selection-change event to subscribe to.
+The panel says whom it is showing in one plain line under the filters, `Only entries involving {name}.`, and nothing when nobody is selected. The panel takes the selection from the household roster, which already resolves the selected housemate's `SimId` from the `sim_ids` column at the HUD refresh cadence (`need_bar_refresh_ms`, 100 ms), and checks it at that cadence while open. The check therefore makes no `simIdOf` call, which the release frame-time gate requires of every steady frame. There is no selection-change event to subscribe to.
 
 ## [AL-group] Grouping repeated events
 
@@ -227,7 +227,7 @@ Quantities left as words: other need changes, which are rates delivered over an 
 
 ## [AL-bridge] The wasm bridge and the shell drain
 
-The simulation stages records; the shell drains them once per rendered frame and keeps the session's history. Five exports in `crates/terri-wasm/src/lib.rs` carry it:
+The simulation stages records; the shell drains them once per rendered frame and keeps the session's history. Six exports in `crates/terri-wasm/src/lib.rs` carry it:
 
 | Export | Returns |
 | --- | --- |
@@ -236,6 +236,7 @@ The simulation stages records; the shell drains them once per rendered frame and
 | `activity_log_dropped()` | Records overwritten in the staging ring before a take. Diagnostic only. |
 | `activity_log_labels()` | The label table as one string with one label per line, read once per page. |
 | `set_activity_log_enabled(bool)` | Turns emission off for the disabled baseline, set from `?activitylog=0` at startup. |
+| `activity_log_reaction_bands()` | The Likes and dislikes band edges `affinity_band_loves` and `affinity_band_likes`, read once when the panel first opens, which turn topic preferences into reaction words. |
 
 The staging ring holds 256 records, preallocated with the world, which is far above the most a frame can produce: the shell runs at most five ticks per frame (`MAX_TICKS_PER_FRAME` in `web/src/main.ts`), and the shipped household produces about 52 events per game day by the research's measurement. When the ring is full, the oldest record is overwritten and `dropped` increases.
 
@@ -280,6 +281,10 @@ The acceptance rule is that a player cannot notice the log, measured against the
 
 A frame-time p95 alone cannot pass this gate, because [D11] records that a p95 and a heap trend both stayed green while the render loop allocated 57.8 MB. Only the allocation profile counts as evidence about allocation.
 
+`scripts/activity-log-proof.cjs` runs the three browser measures with the calibration and frame-window helpers it shares with the audio proof in `scripts/lib/browser-frame-gate.cjs`. Its `performance` mode runs three alternating pairs of enabled and disabled pages for each panel state and judges the work regression on the median pair; every run must meet the other limits. Its `allocation` mode takes the sampling heap profile against the development server, where module paths and function names survive, and its `memory` mode fills the store by running the page's own frame body with a fabricated clock. Every page runs with `audio=0` and Chrome's `--mute-audio`. The trace example prints the wall time spent inside `Sim::tick`, and `TRACE_ACTIVITY_LOG=0` turns the log off for the simulation cost comparison. Under `?stress=N` the page exposes `activityLogSampler`, the time of the store's drain plus the panel's update in each frame, and the store's counts.
+
+Under `?stress=N` every filler agent has a `SimId`, so each one stages its own records. A stress page therefore drives the log with far more records than a household does, and with enough agents the staging ring overwrites records between frames; `dropped` counts them. Dated measurements live in `docs/assets/review-evidence/activity-log/`.
+
 ## [AL-topics] Phase 2: richer conversation topics
 
 Today a topic is an activity tag. The initiator's preferences come from `compatibility::preferences`, a sorted map of tag to value built from personality dispositions, disposition traits and hobbies. `begin_topics` (`social_episode.rs`) offers every tag the initiator rates above zero, weights each by `mine * (1 + 4 * inclination * max(theirs, 0))`, and spends one `SimRng::next_f32` draw. With no candidate the topic is small talk. The initiator therefore always likes the topic; only the listener can dislike it, which turns their completion gain into a loss of `0.02 * preference`.
@@ -323,21 +328,22 @@ Subjects have no bubble art. Until art is approved, a subject uses the existing 
 
 Rust tests in `crates/terri-sim`:
 
-1. `activity_log_never_changes_the_world`: the shipped household for 20 game days with the log enabled and disabled, with archetype churn induced in one run per L5 and L6, compares world hashes at every tick and `SimRng` state at the end.
+1. `activity_log_never_changes_the_world`: the shipped household for two game days with the log enabled and disabled, with archetype churn induced in one run per L5 and L6, compares world hashes at every tick and `SimRng` state at the end, and pins the two-day hash fold to main without the log, so code that runs in both modes cannot hide. `activity_log_never_changes_the_world_over_twenty_days` runs the same comparison for 20 game days and is ignored by default.
 2. `world_hash_matches_its_golden_vector` passes unmodified, and so do the published-save hash tests.
 3. `every_relationship_cause_is_logged_or_excluded`: drives each cause and asserts the classification; the wildcard-free match is the compile-time half.
 4. Per source: `chat_completion_logs_topic_reactions_social_and_opinion`, `fight_completion_logs_reason_and_both_losses`, `interrupted_chat_logs_nothing`, `chain_logs_once_with_the_meal_label`, `table_meal_logs_company_and_social`, `mess_annoyance_logs_each_notice`, `dirty_setting_annoyance_is_recorded`, `meal_appreciation_is_logged_on_the_eaters_meal`, `privacy_incidents_log_victim_and_intruder`, `nuisance_logs_one_record_per_episode`, `chore_week_logs_one_header_per_owner`, `chore_done_links_to_the_performing_action`, `chore_cover_and_appreciation_are_children`, `missed_chore_logs_neglect_feelings`, `skipped_chore_is_logged`, `skill_level_up_is_logged_once_per_level`, `practise_reports_levels_without_changing_practice`, `career_review_logs_outcome_and_factors`, `late_review_after_a_shift_is_logged`, `job_search_hire_is_logged`, `assign_and_quit_are_logged_and_refusals_are_not`, `death_is_logged`.
 5. Bounds and lifecycle: `staging_ring_overwrites_oldest_and_counts_drops`, `load_starts_an_empty_log`, `build_transaction_carries_staged_records`, `link_pass_attaches_children_in_the_same_tick`, `label_table_covers_every_action_and_chain_label`.
 
-Wasm tests in `crates/terri-wasm`: `activity_log_take_returns_records_in_sequence_and_empties_staging`, `activity_log_disabled_emits_nothing`.
+Wasm tests in `crates/terri-wasm`: `activity_log_take_returns_records_in_sequence_and_empties_staging`, `activity_log_disabled_emits_nothing`, `activity_log_labels_cross_as_one_line_each`, `a_load_starts_the_next_take_at_seq_one`, `reaction_bands_are_the_likes_and_dislikes_edges`.
 
 Web tests in `web/tests`, against the freshly built release wasm per lesson L-integration-tests-need-matching-wasm:
 
 1. `activity-log-bridge.test.ts`: records cross the boundary, the label table decodes, a detached view during label reads cannot lose records (L72), and Load resets the store.
 2. `activity-log-compose.test.ts`: every example line in [AL-compose] for every filter combination listed, the selected-housemate rule, rounding and omission of zero numbers, and the timestamp at day boundaries.
 3. `activity-log-store.test.ts`: the 2,000-record bound, ring wrap, grouping by day, and a backwards `seq` throwing outside Load.
-4. `activity-log-panel.test.ts`: toggle, `aria-expanded`, `aria-pressed`, Escape and focus return, mutual exclusion with Options and the Sim sheet, hidden in Build, empty states, the 200-row window and Show earlier entries.
+4. `activity-log-panel.test.ts`: toggle, `aria-expanded`, `aria-pressed`, Escape and focus return, mutual exclusion with Options and the Sim sheet, hidden in Build, empty states, the 200-row window and Show earlier entries, and the selection taken from the roster's read.
 5. `mobile-hud.test.ts` and `compact-hud.test.ts` extended for the phone layout and the corner.
+6. `activity-log-proof.test.js`: the performance, allocation and memory verdicts of `scripts/activity-log-proof.cjs` against prepared results.
 
 Phase 2 adds compiler tests for `topics.toml`, `subject_interest_is_independent_of_entity_order`, `topic_draw_spends_one_value_and_includes_subjects`, `legacy_topic_tags_keep_their_art`, `subject_topic_round_trips_and_loads_in_the_published_v16_reader`, `missing_subject_loads_as_generic`, `topics_do_not_move_the_content_digest`, and a bubble test that every old tag draws the same sprite as before.
 

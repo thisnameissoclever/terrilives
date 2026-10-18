@@ -11,8 +11,10 @@
 # and completing the interaction moves both relationships up
 # (relationship_gain_per_talk).
 #
-# Positive Social applies independently to participants who like their partner.
-# Neutral and disliked partners provide no Social refill. Completed chats can
+# Social refills every participant, scaled by how they feel about their
+# partner: a neutral partner gives the authored amount, a liked partner more
+# and a disliked one less, down to half at the lowest feeling
+# (relationship_delta_scale), and family adds a little. Completed chats can
 # still build friendship, including when loneliness is critical.
 # The other deltas apply to BOTH participants: a conversation is the one
 # interaction in the game where the object gets as much out of being

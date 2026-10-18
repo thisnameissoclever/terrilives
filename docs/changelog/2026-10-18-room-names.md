@@ -1,7 +1,7 @@
-# Shared meals, room names and outdoor cleaning
+# Shared meals, room names, outdoor cleaning and an activity log
 
 Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
-Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work.
+Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work. A new Log lists what the household has done this session.
 
 ## New
 
@@ -10,6 +10,9 @@ Sims keep your orders through urgent needs, explain failures, and confirm new or
 - Splitting, merging or opening an existing room shows a review of the resulting names and cleaning duties. Back to build keeps your edits.
 - Housemates can clean covered floors outside and wipe outdoor counters and tables. Grass and the street receive no floor cleaning.
 - Floors offers Outdoor patio, a rectangular paving finish that can be cleaned indoors or outdoors.
+- The Log button at the top right opens a list of what the household has done: finished activities, chats and fights, annoyances, chores, new skill levels, weekly reviews, job changes and deaths. The game keeps running while it is open.
+- Log filters choose what each entry shows: Actions, Chores, Social, Skills, Career, Details for numbers such as opinion changes, and Time for the day and time. Select a housemate to see only entries involving them.
+- The log covers the current session only. It is not saved, and it starts empty when you load a game or start a new one.
 
 ## Improved
 

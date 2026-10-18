@@ -1433,6 +1433,17 @@ cadence. A successful Load force-refreshes Mood in the same callback as roster
 and People, before a tick can advance or an old row can survive the restored
 world.
 
+The activity log is a projection of the same kind, with history kept in the
+shell rather than the simulation. The simulation stages fixed-size numeric
+records in an unsaved, unhashed resource that no system reads. The shell drains
+them once per rendered frame, whether or not the panel is open: one export call
+moves the staged records into a buffer, and the bridge builds one fresh view
+over it and copies the words into a preallocated typed-array ring before any
+other bridge call, including the label lookups that return strings. A frame
+with no records makes only the count call. Text is composed only while the
+panel is open, and only for new records. The label table crosses once per page
+as one string. See [the activity log specification](specs/2026-10-18-activity-log.md).
+
 **The discipline that makes this safe, in one rule: never cache a view.** WASM
 linear memory grows, and growth detaches every typed-array view over the old
 `ArrayBuffer`; a detached view reads as length 0 or throws. So `web/src/bridge.ts`
