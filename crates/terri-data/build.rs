@@ -40,6 +40,9 @@ pub use relationship_tuning::RelationshipTuning;
 #[path = "src/need_tuning.rs"]
 mod need_tuning;
 pub use need_tuning::NeedInteractionTuning;
+#[path = "src/autonomy_tuning.rs"]
+mod autonomy_tuning;
+pub use autonomy_tuning::AutonomyTuning;
 #[path = "src/schema.rs"]
 mod schema;
 

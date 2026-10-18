@@ -1,0 +1,62 @@
+[
+  {
+    "case": "17-0",
+    "before": "0x5f57d8bab205ad5d",
+    "after": "0x5f57d8bab205ad5d",
+    "equal": true
+  },
+  {
+    "case": "17-100",
+    "before": "0xee9447c924b15e2b",
+    "after": "0xee9447c924b15e2b",
+    "equal": true
+  },
+  {
+    "case": "17-30",
+    "before": "0x722be08598b01d31",
+    "after": "0x722be08598b01d31",
+    "equal": true
+  },
+  {
+    "case": "17-50",
+    "before": "0xd10e5533cec08f89",
+    "after": "0xd10e5533cec08f89",
+    "equal": true
+  },
+  {
+    "case": "17-70",
+    "before": "0x27ed0428e95d6f8a",
+    "after": "0x27ed0428e95d6f8a",
+    "equal": true
+  },
+  {
+    "case": "42-0",
+    "before": "0xbd0577d1005fdc4d",
+    "after": "0xbd0577d1005fdc4d",
+    "equal": true
+  },
+  {
+    "case": "42-100",
+    "before": "0xaa15d9f610603f74",
+    "after": "0xaa15d9f610603f74",
+    "equal": true
+  },
+  {
+    "case": "42-30",
+    "before": "0x55c51f4a88e30516",
+    "after": "0x55c51f4a88e30516",
+    "equal": true
+  },
+  {
+    "case": "42-50",
+    "before": "0xe4ef6f702ce6c392",
+    "after": "0xe4ef6f702ce6c392",
+    "equal": true
+  },
+  {
+    "case": "42-70",
+    "before": "0xe84d9edb2bc85f3c",
+    "after": "0xe84d9edb2bc85f3c",
+    "equal": true
+  }
+]

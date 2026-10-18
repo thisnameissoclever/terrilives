@@ -237,7 +237,7 @@ describe('SimBridge', () => {
     });
   });
 
-  it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {
+  it('exposes aligned stable Sim ids for public people with a sentinel for objects', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = Array.from(bridge.simIds());
     expect(before.filter((id) => id !== 0xffff_ffff)).toEqual([0, 1, 2]);
@@ -245,7 +245,7 @@ describe('SimBridge', () => {
 
     bridge.spawnAgent(1, 1, 50);
     const after = bridge.simIds();
-    expect(after.at(-1)).toBe(0xffff_ffff);
+    expect(after.at(-1)).toBe(3);
     expect(Array.from(after)).not.toEqual(Array.from(bridge.ids()));
     expect(Array.from(after)).not.toEqual(Array.from(bridge.kinds()));
   });
@@ -931,7 +931,7 @@ describe('SimBridge', () => {
     expect(sim.shynessOf(Number.NaN)).toBeNull();
     const debug = new SimBridge(new SimHandle(4, 4), wasmMemory);
     debug.spawnAgent(1, 1, 100);
-    expect(debug.shynessOf(0)).toBe(50);
+    expect(debug.shynessOf(0)).toBe(89); // Stable person 0 receives its seeded shyness.
   });
 
   it('saves, restores and continues through the release wasm bridge', () => {
@@ -1411,7 +1411,9 @@ describe('SimBridge', () => {
     // Independently measured on native and rebuilt release WASM: identical.
     // The canonical empty books-v1 suffix extends the native pre-books
     // digest 8890656731713008279 to this independently measured WASM value.
-    expect(bridge.worldHash()).toBe(0x6d3d37e1d3212a18n);
+    // Current creation assigns stable identities and uses weighted instinct.
+    // Independently measured in native and release WASM before updating either.
+    expect(bridge.worldHash()).toBe(0x40e538fdcf6ce193n);
   });
 
   // ---- Player commands -------------------------------------------------

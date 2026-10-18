@@ -1,0 +1,180 @@
+{
+  "cases": [
+    {
+      "seed": 17,
+      "instinct": 0,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 2,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 916
+    },
+    {
+      "seed": 17,
+      "instinct": 30,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 589
+    },
+    {
+      "seed": 17,
+      "instinct": 50,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 624
+    },
+    {
+      "seed": 17,
+      "instinct": 70,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 1,
+      "maximum_request_age": 818
+    },
+    {
+      "seed": 17,
+      "instinct": 100,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 3,
+      "idle_reversals": 0,
+      "handwash_run": 1,
+      "maximum_request_age": 616
+    },
+    {
+      "seed": 42,
+      "instinct": 0,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 696
+    },
+    {
+      "seed": 42,
+      "instinct": 30,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 1244
+    },
+    {
+      "seed": 42,
+      "instinct": 50,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 3,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 171
+    },
+    {
+      "seed": 42,
+      "instinct": 70,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 3,
+      "idle_reversals": 0,
+      "handwash_run": 1,
+      "maximum_request_age": 812
+    },
+    {
+      "seed": 42,
+      "instinct": 100,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 2,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 668
+    },
+    {
+      "seed": 88,
+      "instinct": 0,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 663
+    },
+    {
+      "seed": 88,
+      "instinct": 30,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 3,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 767
+    },
+    {
+      "seed": 88,
+      "instinct": 50,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 959
+    },
+    {
+      "seed": 88,
+      "instinct": 70,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 0,
+      "maximum_request_age": 761
+    },
+    {
+      "seed": 88,
+      "instinct": 100,
+      "deaths": 0,
+      "policy_violations": 0,
+      "unexplained_losses": 0,
+      "critical_idle_max": 1,
+      "idle_reversals": 0,
+      "handwash_run": 1,
+      "maximum_request_age": 360
+    }
+  ],
+  "totals": {
+    "cases": 15,
+    "ticks": 180000,
+    "deaths": 0,
+    "policy_violations": 0,
+    "unexplained_losses": 0,
+    "critical_idle_max": 3,
+    "idle_reversals": 0,
+    "handwash_run": 1,
+    "maximum_request_age": 1244
+  }
+}

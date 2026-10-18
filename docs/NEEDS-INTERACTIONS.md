@@ -183,6 +183,19 @@ exclude capped hand washing and unavailable company, and include a valid
 media seat's Comfort and eligible shared activity. Cooking cannot promise a
 future seat or dining company before diners actually sit together.
 
+Critical-need selection additionally estimates the net physical result after
+travel, waiting, work and decay. If useful critical relief is available,
+unrelated actions share at most 5% probability with one critical need or 1%
+with several. Self-preservation and preferences still influence which useful
+action appeals most. A chosen conversation remains committed while the
+recipient finishes care; low meters do not repeatedly cancel and restart it.
+Prediction and delivery share physical reward scaling and restoration ceilings.
+Reading retains its physical taste and disposition effects. During critical-need selection, each eligible book and seat contributes its own predicted outcome to the shared choice distribution. Execution uses that selected plan without a second title draw. Forecasts separate
+active rewards from travel, pickup, return and shelving, and apply food payment
+after work's decay has clamped at zero. Unknown future failures and changes in
+company still make these nominal forecasts rather than guaranteed outcomes.
+See the [autonomy specification](specs/2026-09-30-varied-autonomy.md).
+
 Every need also decays throughout ordinary life:
 
 | Need | Points lost per game minute before modifiers |

@@ -1718,9 +1718,8 @@ fn an_edit_during_an_interrupting_order_lets_the_chain_resume_and_pay_once() {
     );
 }
 
-/// In `edit_talk_world` the conversation runs from tick 9 and ends on tick 41.
+/// Edit an established conversation and preserve its sampled remaining time.
 const TALK_EDIT_TICK: u64 = 20;
-const TALK_DONE_TICK: u64 = 41;
 
 #[test]
 fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
@@ -1733,13 +1732,15 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             assert!(world.get::<terri_core::Socialising>(initiator).is_some());
             assert!(world.get::<terri_core::Reserved>(partner).is_some());
         }
+        let remaining = control
+            .world()
+            .get::<terri_core::Socialising>(initiator)
+            .unwrap()
+            .remaining_ticks;
+        let done_tick = TALK_EDIT_TICK + u64::from(remaining);
         edit_mid_action(&mut edited, edited_id);
         control.flush_commands();
-        tick_both(
-            &mut edited,
-            &mut control,
-            TALK_DONE_TICK - TALK_EDIT_TICK - 1,
-        );
+        tick_both(&mut edited, &mut control, u64::from(remaining) - 1);
         for sim in [&edited, &control] {
             assert!(
                 sim.world()
@@ -1749,7 +1750,7 @@ fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
             );
         }
         tick_both(&mut edited, &mut control, 1);
-        assert_eq!(tick_count(&edited), TALK_DONE_TICK);
+        assert_eq!(tick_count(&edited), done_tick);
         let world = edited.world();
         assert!(
             world.get::<terri_core::Socialising>(initiator).is_none(),

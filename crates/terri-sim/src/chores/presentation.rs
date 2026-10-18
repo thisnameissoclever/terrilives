@@ -190,6 +190,15 @@ mod tests {
                 state.tasks[0].remaining = total / 2;
                 sim.world_mut().insert_resource(state);
                 let (visual, progress) = projection(sim.world(), person).unwrap();
+                sim.world_mut()
+                    .get_mut::<terri_core::Needs>(person)
+                    .unwrap()
+                    .set(terri_core::NeedId::Hunger, 10.);
+                assert_eq!(
+                    sim.activity_status_of(person.index_u32()).unwrap().code,
+                    0,
+                    "active surface or bin work cannot be overridden by an Idle label"
+                );
                 assert_eq!(
                     (visual.visual_action, visual.facing, visual.target_entity),
                     (action, facing, object.index_u32())
@@ -263,6 +272,15 @@ mod tests {
         work::advance(sim.world_mut(), &mut state);
         sim.world_mut().insert_resource(state);
         let (visual, progress) = projection(sim.world(), person).unwrap();
+        sim.world_mut()
+            .get_mut::<terri_core::Needs>(person)
+            .unwrap()
+            .set(terri_core::NeedId::Hunger, 10.);
+        assert_eq!(
+            sim.activity_status_of(person.index_u32()).unwrap().code,
+            0,
+            "active floor work cannot be overridden by an Idle label"
+        );
         assert_eq!(visual.visual_action, 14);
         assert_eq!(progress, 41);
         sim.sync_render_buffer();
@@ -281,6 +299,11 @@ mod tests {
         assert_eq!(projection(loaded.world(), person).unwrap().1, progress);
         sim.world_mut().resource_mut::<SavedChores>().tasks[0].suspended = true;
         assert!(projection(sim.world(), person).is_none());
+        assert_eq!(
+            sim.activity_status_of(person.index_u32()).unwrap().code,
+            8,
+            "a suspended marker without physical work is not an active chore"
+        );
         work::cancel(sim.world_mut(), person);
         assert!(projection(sim.world(), person).is_none());
     }

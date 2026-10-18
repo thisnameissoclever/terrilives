@@ -1117,3 +1117,16 @@ fun_per_session = 30.0
 # Resolved owned-reading action Fun divided by this value is the seat multiplier.
 action_fun_reference = 30.0
 satisfaction_per_session = 3.0
+
+[autonomy]
+unrelated_single = 0.05
+unrelated_multiple = 0.01
+creation_instinct_bands = [
+  { min = 11, max = 30, weight = 5 },
+  { min = 31, max = 50, weight = 10 },
+  { min = 51, max = 60, weight = 10 },
+  { min = 61, max = 70, weight = 25 },
+  { min = 71, max = 80, weight = 30 },
+  { min = 81, max = 90, weight = 15 },
+  { min = 91, max = 95, weight = 5 },
+]

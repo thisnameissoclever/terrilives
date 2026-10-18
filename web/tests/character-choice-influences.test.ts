@@ -1,8 +1,9 @@
+import { creationInstinctBands } from './helpers/creation-instinct-bands.js';
 import {expect,it} from 'vitest';
 import {choiceInfluences} from '../src/character/choice-influences.js';
 import {floatBits,neutralDraft} from '../src/character/schema.js';
 import type {CharacterCatalog} from '../src/character/catalog.js';
-const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,affinities:[],skills:[],personalities:[],hobbies:[{id:'chat',label:'Conversation'}],
+const catalog:CharacterCatalog={version:1,name_limit:24,max_traits:4,max_household:6,self_preservation_bands:creationInstinctBands,affinities:[],skills:[],personalities:[],hobbies:[{id:'chat',label:'Conversation'}],
  traits:[{id:'keen',label:'Keen',description:'',kind:'disposition',initial_state:floatBits(0),weights:[{tag:'television',value:floatBits(1.5)}]},
  {id:'averse',label:'Averse',description:'',kind:'disposition',initial_state:floatBits(0),weights:[{tag:'television',value:floatBits(.5)}]},
  {id:'chatty',label:'Chatty',description:'',kind:'disposition',initial_state:floatBits(0),weights:[{tag:'chat',value:floatBits(1.25)}]}],

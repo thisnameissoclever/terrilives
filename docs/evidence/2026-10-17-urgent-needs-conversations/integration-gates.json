@@ -1,0 +1,110 @@
+{
+  "revision": "0bd5dd8c7e259c2d4a74eae23310c3595c4526cc",
+  "web_files": [
+    "tests/action-queue.test.ts",
+    "tests/bed-assignment-bridge.test.ts",
+    "tests/book-bridge.test.ts",
+    "tests/bridge.test.ts",
+    "tests/build-context.test.ts",
+    "tests/build-exit.test.ts",
+    "tests/build-session-state.test.ts",
+    "tests/build-session.test.ts",
+    "tests/builder-controls.test.ts",
+    "tests/career-bridge.test.ts",
+    "tests/character-action-plan.test.ts",
+    "tests/character-choice-influences.test.ts",
+    "tests/character-draft.test.ts",
+    "tests/character-fields.test.ts",
+    "tests/character-motion.test.ts",
+    "tests/character-random.test.ts",
+    "tests/character-session.test.ts",
+    "tests/character-simulation.test.ts",
+    "tests/character-world-contract.test.ts",
+    "tests/compact-hud.test.ts",
+    "tests/completion-audio-bridge.test.ts",
+    "tests/creator-catalog-coverage.test.ts",
+    "tests/creator-field-control.test.ts",
+    "tests/creator-repair.test.ts",
+    "tests/creator-view.test.ts",
+    "tests/door-audio-bridge.test.ts",
+    "tests/fixture-registration.test.ts",
+    "tests/floor-materials.test.ts",
+    "tests/floor-scene-status.test.ts",
+    "tests/footprint-registration.test.ts",
+    "tests/game-hud.test.ts",
+    "tests/game-version.test.ts",
+    "tests/ground-markers.test.ts",
+    "tests/hud-scrollbar.test.ts",
+    "tests/land-tool.test.ts",
+    "tests/legacy-save.test.ts",
+    "tests/long-sofa.test.ts",
+    "tests/mobile-hud.test.ts",
+    "tests/options-menu.test.ts",
+    "tests/personal-details-bridge.test.ts",
+    "tests/placement-bridge.test.ts",
+    "tests/placement-preview.test.ts",
+    "tests/portal-bridge.test.ts",
+    "tests/queue-mode.test.ts",
+    "tests/reading-render-bridge.test.ts",
+    "tests/save-store.test.ts",
+    "tests/save-worker.test.ts",
+    "tests/scene-sampling.test.ts",
+    "tests/selection-ground.test.ts",
+    "tests/sleeping-place-bridge.test.ts",
+    "tests/tiles.test.ts",
+    "tests/wall-tool.test.ts",
+    "tests/window-bridge.test.ts"
+  ],
+  "checks": [
+    {
+      "name": "integration-fmt",
+      "exit": 0,
+      "seconds": 12.67
+    },
+    {
+      "name": "integration-clippy",
+      "exit": 0,
+      "seconds": 53.0
+    },
+    {
+      "name": "integration-land",
+      "exit": 0,
+      "seconds": 266.1
+    },
+    {
+      "name": "integration-wasm",
+      "exit": 0,
+      "seconds": 116.49
+    },
+    {
+      "name": "integration-web",
+      "exit": 0,
+      "seconds": 55.76
+    },
+    {
+      "name": "integration-typecheck",
+      "exit": 0,
+      "seconds": 23.58
+    },
+    {
+      "name": "integration-web-build",
+      "exit": 0,
+      "seconds": 29.55
+    },
+    {
+      "name": "integration-changelog-test",
+      "exit": 0,
+      "seconds": 0.31
+    },
+    {
+      "name": "integration-changelog-build",
+      "exit": 0,
+      "seconds": 0.06
+    },
+    {
+      "name": "integration-doc-ids",
+      "exit": 0,
+      "seconds": 0.07
+    }
+  ]
+}

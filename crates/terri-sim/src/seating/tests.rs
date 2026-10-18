@@ -2,6 +2,94 @@ use crate::{Content, Sim};
 use terri_core::{Eating, Facing, Intent, IntentQueue, Path, Position, Target};
 
 #[test]
+fn review_physical_media_prediction_includes_the_actual_company_multiplier() {
+    use terri_core::{
+        CommandQueue, NeedId, Needs, Personality, Relationships, Reserved, SimCommand,
+    };
+    let (mut sim, a, device, _) = fixture_at("radio", 10., 12., Facing::SouthWest);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let model = pack.find("radio").unwrap();
+    pack.objects[model.0 as usize].interactions[0].advertises =
+        vec![(NeedId::Social.index() as u8, 5.)];
+    pack.objects[model.0 as usize].interactions[0].duration_ticks = 38;
+    pack.tuning.duration_variance = 0.;
+    pack.social.clear();
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    sim.world_mut()
+        .entity_mut(a)
+        .insert((Reserved, IntentQueue::default()));
+    let b = sim.spawn_agent(Position { x: 0., y: 4. }, 90.);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObjectFirst {
+            agent: b.index_u32(),
+            object: device.index_u32(),
+            interaction: 0,
+        });
+    for _ in 0..40 {
+        sim.tick();
+        if sim.world().get::<Eating>(b).is_some() {
+            break;
+        }
+    }
+    sim.world_mut()
+        .get_mut::<Eating>(b)
+        .unwrap()
+        .remaining_ticks = 300;
+    let mut personality = Personality::neutral();
+    personality.drain[NeedId::Social.index()] = 2.;
+    let mut feelings = Relationships::default();
+    feelings.bump(*sim.world().get::<terri_core::SimId>(b).unwrap(), -1.);
+    let mut needs = Needs::all_at(90.);
+    needs.set(NeedId::Social, 10.);
+    sim.world_mut().entity_mut(a).remove::<Reserved>().insert((
+        Position { x: 0., y: 10. },
+        personality,
+        feelings,
+        needs,
+    ));
+    sim.tick();
+    let d = sim
+        .world()
+        .resource::<crate::systems::autonomy::DecisionTelemetry>()
+        .0
+        .iter()
+        .find(|d| d.agent == a.index_u32())
+        .unwrap();
+    let row = d
+        .choices
+        .iter()
+        .position(|c| c.0 == device.index_u32() && c.1 == 0)
+        .unwrap();
+    assert_eq!(
+        d.relief_masks[row], 0,
+        "Disliked company cannot promise more Social than it delivers after travel"
+    );
+    let before = sim.world().get::<Needs>(a).unwrap().get(NeedId::Social);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObjectFirst {
+            agent: a.index_u32(),
+            object: device.index_u32(),
+            interaction: 0,
+        });
+    let mut began = false;
+    let mut finished = false;
+    for _ in 0..180 {
+        sim.tick();
+        let active = sim.world().get::<Eating>(a).is_some();
+        began |= active;
+        if began && !active {
+            finished = true;
+            break;
+        }
+    }
+    assert!(finished);
+    assert!(sim.world().get::<Needs>(a).unwrap().get(NeedId::Social) < before);
+}
+
+#[test]
 fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
     for kind in ["television", "radio"] {
         for (seat_x, seat_y, seated) in [(5., 3., true), (10., 12., false)] {
@@ -450,6 +538,8 @@ fn autonomous_viewers_fill_each_seat_in_view_and_the_standing_allowance() {
         let (mut sim, first, device, _) =
             fixture_at("television", seat_x, seat_y, Facing::SouthWest);
         let mut pack = sim.world().resource::<Content>().0.clone();
+        // This fixture measures device capacity, independently of company choices.
+        pack.social.clear();
         pack.tuning.choice_temperature = 0.0001;
         pack.tuning.choice_comfort_temperature = 0.0001;
         pack.tuning.choice_exploration = 1e-8;
