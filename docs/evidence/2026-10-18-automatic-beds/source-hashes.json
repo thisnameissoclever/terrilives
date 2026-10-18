@@ -1,8 +1,14 @@
 {
-  "crates/terri-sim/src/beds/automatic.rs": "534bd78f0056b83392cd3361e00b11c5986f76feb6bc865a819dccaaee173865",
-  "crates/terri-sim/src/mood.rs": "e7845953be17b16419777e68347bd90b06d638342d399f54c2a1772599edb9bb",
-  "web/src/ui/mood-panel.ts": "e02234a4f8f55cad505b6975f2788e94ea083c27753127a1da245c5a1477c2be",
-  "web/src/ui/mood-help.ts": "f5cc3eb40b3edb61cea81ac42eb9cb7a1d37fa98595de0b11ed588ee2ca8f758",
-  "web/index.html": "897c81ce74124d11c13d384c61a87e0ea1f1d142fb03248d9f161e4fbf80fb49",
-  "web/src/wasm/terri_wasm_bg.wasm": "90d37f84f0aa1d995e5b9af6d0770776a28deefed3b2bbe8e3c3377a41be0a06"
+  "source_revision": "9cafc745d",
+  "integrated_main": "2b15dcfea",
+  "sha256": {
+    "crates/terri-sim/src/beds/automatic.rs": "534bd78f0056b83392cd3361e00b11c5986f76feb6bc865a819dccaaee173865",
+    "crates/terri-sim/src/mood.rs": "2fab6f67303714f0d9535215dcbfd8847bc7b536c79ac8d22c70fa187da355be",
+    "crates/terri-sim/src/save/architecture.rs": "9710a28aa0a964ab62b8d45a1fd3ccf353ceef32e1164252cd0c068feb9093be",
+    "crates/terri-sim/src/save/v6.rs": "fe8634dc4cb143344355cdac483173a4e3cbecb151adc7363b69e5dadd95c13f",
+    "web/src/ui/mood-panel.ts": "e02234a4f8f55cad505b6975f2788e94ea083c27753127a1da245c5a1477c2be",
+    "web/src/ui/mood-help.ts": "f5cc3eb40b3edb61cea81ac42eb9cb7a1d37fa98595de0b11ed588ee2ca8f758",
+    "web/index.html": "f68366e5d24cf011b165c1e53c25258b44d76da668bc749f3e737e2840341ada",
+    "web/src/wasm/terri_wasm_bg.wasm": "7caec75b86b8de6f860fd8c23acffb46d2d1b78315693ecbd49b9f46b06adecd"
+  }
 }

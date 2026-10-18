@@ -1,9 +1,7 @@
 # Shared meals, room names and outdoor cleaning
 
 Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
-Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work.
-
-Sims claim available beds, and condition numbers explain their mood effects.
+Sims keep your orders through urgent needs, explain failures, and confirm new orders that interrupt work. Sims claim available beds, and condition numbers explain their mood effects.
 
 ## New
 
@@ -30,6 +28,7 @@ Sims claim available beds, and condition numbers explain their mood effects.
 
 - The missing-bed mood penalty applies only to Sims without an assigned bed.
 - Windows can be installed while a Sim is fetching or reading a book.
+- Saves preserve book fetching and reading when windows are installed.
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.

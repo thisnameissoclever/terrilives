@@ -2,7 +2,7 @@
 
 **Goal:** Assign reachable unclaimed sleeping places automatically and explain condition scores only over the numbers in Sim details.
 
-**Approved behavior:** Preserve existing assignments. Never take another person's assigned place. Apply the existing -20 mood penalty only to people without an assignment. Explain signed mood points rather than percentages; mood can affect life satisfaction over time. Keep labels and empty row space outside the tooltip trigger.
+**Approved behavior:** Preserve existing assignments. Never take another person's assigned place. Apply the existing -20 mood penalty only to people without an assignment. Explain signed mood points and the effect of sustained mood on life satisfaction. Keep labels and empty row space outside the tooltip trigger.
 
 **Architecture:** Run deterministic assignment before action selection on simulation ticks, using existing physical sleeping places, navigation and saved ownership. Derive the individual mood condition from that ownership. Keep tooltip presentation in the existing mood panel without a new simulation or save field.
 

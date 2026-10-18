@@ -441,7 +441,7 @@ An unassigned living Sim automatically claims a reachable unassigned sleeping pl
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, missing bed assignments, death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 Future facial expressions and unique animations should reflect both current mood and overall life satisfaction. The owner requested this direction on 2026-10-01; expression states remain unbuilt. [Life satisfaction](specs/2026-10-01-life-satisfaction.md) defines the implemented score and meter.
 

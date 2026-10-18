@@ -309,7 +309,17 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         assert_eq!(person.path.is_some(), !sleeping);
         let places = snapshot.sleeping_places.as_ref().unwrap();
         assert!(places.active_places.contains(&(agent, 1)));
-        assert_eq!(places.assignments.len(), 1);
+        assert_eq!(
+            places.assignments.len(),
+            3,
+            "the other housemates automatically claim the remaining places"
+        );
+        assert!(
+            places
+                .assignments
+                .contains(&(person.sim_id.unwrap(), bed, 1)),
+            "the explicit manual assignment must remain intact"
+        );
         // Independently encode the published bed-era order, without privacy fields.
         let prefix = postcard::to_allocvec(&(
             &snapshot.world,

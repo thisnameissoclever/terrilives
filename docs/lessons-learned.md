@@ -12741,3 +12741,13 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Keep provenance for unfinished objects and historical responsibility. Check the living actor separately before granting a new social effect; preserve existing opinions and let consumption finish normally.
 
 **Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.
+
+## [L-keep-workspace-test-inputs-stable] Reuse the established Cargo build context
+
+**What happened.** A package-only retest rebuilt dependencies after a workspace build had finished.
+
+**Root cause.** Changing package selection changed Cargo's dependency build inputs and matched a different set of cached artifacts.
+
+**Prevention.** Keep workspace package selection for focused retries. Use `cargo test --workspace --no-run --message-format=json` to obtain current test executable paths, then execute the remaining targets. Include test-enabled examples and documentation tests when a failed library interrupted the workspace run.
+
+**Verification.** Inspect Cargo's artifact records for freshness and target names. Require the corrected tests, remaining examples and documentation tests to pass. Retain the earlier passing results only when their source and build inputs remain unchanged.
