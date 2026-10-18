@@ -42,4 +42,4 @@ The issue leaves the interactions undefined. These choices are the smallest cohe
 2. The atlas regenerates with the twelve new sprites after every earlier sprite, and `build.py --check` passes.
 3. Content compiles; the data tests name the three new objects, their footprints and the lounger's Sit, pin the lounger's seat and approach tiles in all four facings, and check that every declared object is either placed on the shipped lot or sold.
 4. The store lists thirty-three items, with Yard in the Room row showing the three new cards.
-5. A played check on the production bundle buys and places each object in the yard, turns the lounger, and has a housemate sit on it, with frames reviewed by a fresh reviewer.
+5. A played check on the production bundle buys and places each object in the yard, turns the lounger, has a housemate sit on it in all four facings and walk under the umbrella's canopy, with frames reviewed by a fresh reviewer.
