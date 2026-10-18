@@ -1,0 +1,186 @@
+{
+  "tabId": "5",
+  "url": "http://localhost:5206/",
+  "displayed": true,
+  "requestedSurface": {
+    "width": 507,
+    "height": 1097
+  },
+  "before": {
+    "active": "build-exit-keep",
+    "batchStatus": "",
+    "building": "true",
+    "clock": "Day 1, Monday\nSpring, 07:20",
+    "dialog": true,
+    "dialogButtons": [
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 395.8653869628906
+        },
+        "font": "13px",
+        "id": "build-exit-keep",
+        "intent": null,
+        "text": "Keep building"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 447.84857177734375
+        },
+        "font": "13px",
+        "id": "build-exit-discard",
+        "intent": "negative",
+        "text": "Discard changes"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 499.8317260742187
+        },
+        "font": "13px",
+        "id": "build-exit-confirm",
+        "intent": "affirmative",
+        "text": "Confirm changes"
+      }
+    ],
+    "dialogTitle": "Leave Build mode?",
+    "dockButtons": [],
+    "land": "false",
+    "pause": true,
+    "viewport": {
+      "dpr": 1.2999999523162842,
+      "height": 844,
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "scale": 1,
+      "visualHeight": 843.84619140625,
+      "visualWidth": 390,
+      "width": 390
+    }
+  },
+  "stableBefore": {
+    "active": "build-exit-keep",
+    "batchStatus": "",
+    "building": "true",
+    "clock": "Day 1, Monday\nSpring, 07:20",
+    "dialog": true,
+    "dialogButtons": [
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 395.8653869628906
+        },
+        "font": "13px",
+        "id": "build-exit-keep",
+        "intent": null,
+        "text": "Keep building"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 447.84857177734375
+        },
+        "font": "13px",
+        "id": "build-exit-discard",
+        "intent": "negative",
+        "text": "Discard changes"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 499.8317260742187
+        },
+        "font": "13px",
+        "id": "build-exit-confirm",
+        "intent": "affirmative",
+        "text": "Confirm changes"
+      }
+    ],
+    "dialogTitle": "Leave Build mode?",
+    "dockButtons": [],
+    "land": "false",
+    "pause": true,
+    "viewport": {
+      "dpr": 1.2999999523162842,
+      "height": 844,
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "scale": 1,
+      "visualHeight": 843.84619140625,
+      "visualWidth": 390,
+      "width": 390
+    }
+  },
+  "after": {
+    "active": "build-exit-keep",
+    "batchStatus": "",
+    "building": "true",
+    "clock": "Day 1, Monday\nSpring, 07:20",
+    "dialog": true,
+    "dialogButtons": [
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 395.8653869628906
+        },
+        "font": "13px",
+        "id": "build-exit-keep",
+        "intent": null,
+        "text": "Keep building"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 447.84857177734375
+        },
+        "font": "13px",
+        "id": "build-exit-discard",
+        "intent": "negative",
+        "text": "Discard changes"
+      },
+      {
+        "box": {
+          "height": 43.990386962890625,
+          "width": 320.46875,
+          "x": 34.75961685180664,
+          "y": 499.8317260742187
+        },
+        "font": "13px",
+        "id": "build-exit-confirm",
+        "intent": "affirmative",
+        "text": "Confirm changes"
+      }
+    ],
+    "dialogTitle": "Leave Build mode?",
+    "dockButtons": [],
+    "land": "false",
+    "pause": true,
+    "viewport": {
+      "dpr": 1.2999999523162842,
+      "height": 844,
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "scale": 1,
+      "visualHeight": 843.84619140625,
+      "visualWidth": 390,
+      "width": 390
+    }
+  }
+}

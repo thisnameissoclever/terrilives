@@ -722,7 +722,7 @@ describe('HousemateFormView', () => {
     expect(CREATOR_VIEW).not.toContain('Removing a condition forgets its severity. Skills are kept.');
     expect(REMOVAL_NOTE).toBe('');
     const phone = COMPACT_HUD_CSS.slice(COMPACT_HUD_CSS.indexOf('@media (max-width: 600px), (max-height: 480px)'));
-    expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 44px;/);
+    expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 36px;/);
     const creatorPhone=CREATOR_CSS.slice(CREATOR_CSS.lastIndexOf('@media(max-width:760px)'));
     expect(creatorPhone).toContain('min-height:44px');
     expect(creatorPhone).toContain('.creator-shell select');

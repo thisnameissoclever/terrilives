@@ -273,7 +273,7 @@ it('preserves a refused-load preview and resets a loaded world even when its rev
   expect(builder.selected).toBeNull();
   expect(builder.preview).toBeNull();
   expect(builder.pending).toBe(false);
-  expect(builder.status).toBe('Choose furniture to move or rotate.');
+  expect(builder.status).toBe('');
   handle.free();
 });
 

@@ -1148,7 +1148,7 @@ Confirm resolves final boundaries, names, and cleaning duties together, with a
 review for splits, merges, and lost enclosures. Native transactions preserve the
 last confirmed save and unfinished work until adoption. Outdoor flooring and
 surfaces are cleanable, while grass and the street are excluded. Outdoor patio is
-an additional covering. See [room identity and naming](specs/2026-10-17-room-identities.md)
+an additional covering. Footer Confirm keeps edits and leaves Build; Cancel discards them and leaves. Entering Land first resolves any pending edits through the same confirm/discard/keep decision. See [room identity and naming](specs/2026-10-17-room-identities.md)
 and [build confirmation](specs/2026-10-13-build-confirmation.md).
 
 The lot starts from `content/lot.toml`. The furniture builder shipped in

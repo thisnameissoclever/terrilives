@@ -14,7 +14,7 @@ export const BARE = 0;
 type FloorSource = Pick<SimBridge, 'coveringNames' | 'floorTiles' | 'floorEditPreview' |
   'setFloor' | 'lastFloorEditResult' | 'lotRevision'>;
 
-export const CHOOSE_TILE = 'Choose a tile.';
+export const CHOOSE_TILE = '';
 const NOT_SENT = 'That change could not be sent.';
 
 /** The tile under a world point, or null when the point is off the lot. */

@@ -26,7 +26,7 @@ export class FurnitureBuilder {
   preview: PlacementPreview | null = null;
   objects: readonly BuilderObject[] = [];
   name = '';
-  status = 'Choose furniture to move or rotate.';
+  status = '';
   pending = false;
   blocked = false;
   /** What selling the chosen object would pay back, or null when it would not sell. */
@@ -347,7 +347,7 @@ export class FurnitureBuilder {
       this.source.placementPreview(this.selected, 0, 0, facing);
     this.preview = { ...geometry, ...preview, width: geometry.width, depth: geometry.depth,
       sprite: geometry.sprite, foreground: geometry.foreground };
-    this.status = preview.valid ? 'Ready to place.' : preview.reason ?? 'This placement is unavailable.';
+    this.status = preview.valid ? '' : preview.reason ?? 'This placement is unavailable.';
     const sale = this.source.salePreview(this.selected);
     this.saleValue = sale.reason === null ? sale.payout : null;
     this.saleRefusal = sale.reason;
@@ -369,6 +369,6 @@ export class FurnitureBuilder {
     this.preview = null;
     this.mask = 0;
     this.name = '';
-    this.status = 'Choose furniture to move or rotate.';
+    this.status = '';
   }
 }

@@ -11881,7 +11881,7 @@ Load the production atlas during test collection and prepare mocked module depen
 
 **Root cause.** The file writer inherited the Windows locale encoding rather than specifying UTF-8.
 
-**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults.
+**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults. For a garbled glyph, compare source codepoints and actual response bytes: a correct UTF-8 header cannot repair text already stored incorrectly. Structural icons can use ASCII SVG markup while retaining their accessible names.
 
 **How to verify.** Strictly decode the saved file as UTF-8 and assert the rendered label's exact characters. Review the diff for unrelated byte changes before continuing.
 
@@ -12679,6 +12679,41 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: the report mixed completed fixes, unresolved findings and design tradeoffs without stating the actual player impact or verification status of each.
 3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
 4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
+
+## [L-activation-across-focus-transfer] Guard the complete native activation sequence
+
+1. What happened: holding Enter on Land could open its decision, activate the newly focused Keep button and reopen the decision after focus returned.
+2. Root cause: repeated activation was guarded after successful completion but not at dialog opening or Keep focus restoration.
+3. Prevention: preserve the activation guard across every focus transfer in the operation, while allowing a fresh deliberate press. Keep pointer click-count protection separate.
+4. Verification: model the native button default after an uncancelled keydown. Repeated Enter must neither close a new decision nor reopen it after Keep; a fresh press must work.
+
+## [L-review-back-is-an-outcome] Preserve deliberate cancellation without reporting failure
+
+1. What happened: Back from a room review preserved the draft but displayed a generic confirmation-failure message.
+2. Root cause: the page treated every false confirmation result as a refused operation, including deliberate review cancellation.
+3. Prevention: let the existing review/session owner identify cancellation explicitly. Clear pending destinations and narration for that outcome without suppressing genuine refusal messages.
+4. Verification: execute the actual page binding. Back must preserve raw input and draft state with no false error; a subsequent native refusal and invalid name must still show useful errors.
+
+## [L-intrinsic-control-height] Measure the rendered control rather than its minimum
+
+1. What happened: roster buttons remained 31px tall after their minimum was reduced to 28px.
+2. Root cause: line height, vertical padding and borders imposed a larger intrinsic size.
+3. Prevention: measure actual border boxes with their real labels and fonts. Adjust vertical padding when necessary while preserving horizontal dimensions and spacing.
+4. Verification: compare measured original and final heights, font sizes and widths in desktop, compact and coarse-pointer layouts. Inspect complete focus outlines and enlarged text.
+
+## [L-capture-bytes-and-visible-state] Validate the saved image against the claimed state
+
+1. What happened: several browser captures contained an earlier panel or a different image size from their accompanying viewport receipts. Files named PNG contained JPEG bytes. An immediate parent popup capture also lacked the visibly painted popup that its DOM already reported.
+2. Root cause: capture acceptance relied on DOM metadata, requested dimensions and filenames without consistently validating the saved bytes and their visible contents.
+3. Prevention: identify the actual image format and decoded dimensions. Match each saved image to its displayed target, stable viewport and intended visible state. A hidden child page's visibility flag does not establish a displayed browser pane.
+4. Verification: decode and inspect every accepted image. Reject wrong-state or wrong-size captures, preserve their original receipts, and obtain fresh independent review of replacements. DOM geometry and hashes do not substitute for the pictured result.
+
+## [L-timed-out-input-is-not-atomic] Observe state after a failed browser action
+
+1. What happened: a timed-out action partly changed game speed, while its paired Pause never ran. A separate mouse-to-touch experiment emitted a trusted touch start without a release and left later pointer commands timing out.
+2. Root cause: the verification assumed a failed compound action had no effect and treated restored emulation settings as proof that pending input had ended.
+3. Prevention: inspect fresh UI state after any action failure. Use finally cleanup, pause the actual household, and distinguish restored configuration from restored input state. Stop unsupported input routes rather than patching the game around tool errors.
+4. Verification: confirm the checked speed and a stable clock. Retain partial-event and restoration receipts. A fresh-target control may recover normal testing but does not prove the input provider was repaired or establish touch or held-key coverage.
 
 
 ## [L-cross-system-negative-claims] Search old exclusions when adding a social effect

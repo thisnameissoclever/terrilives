@@ -1,0 +1,44 @@
+{
+  "head": "2b15dcfea9b6a147eec87b11607118f3c3349e1d",
+  "source_before": "73e06ccf665c9b0f128f25b81dda4f9f7efe98af34634f095a7949886a3a5ce9",
+  "input_count": 52790,
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "typecheck"
+      ],
+      "started_utc": "2026-10-18T19:28:37.495397+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 17.942,
+      "log_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd"
+    },
+    {
+      "name": "suite",
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "--reporter=default",
+        "--reporter=../.local-build/web-progress-reporter.mjs"
+      ],
+      "started_utc": "2026-10-18T19:28:55.438174+00:00",
+      "state": "complete",
+      "exit_code": 1,
+      "seconds": 1141.419,
+      "log_sha256": "51a2c0397af71669b958dbebaf1560ae5f8687031c612b95fb166c945aa270d0"
+    }
+  ],
+  "complete": true,
+  "source_after": "73e06ccf665c9b0f128f25b81dda4f9f7efe98af34634f095a7949886a3a5ce9",
+  "source_unchanged": true,
+  "passed": false
+}
