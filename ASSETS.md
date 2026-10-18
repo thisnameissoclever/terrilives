@@ -1,5 +1,11 @@
 # Asset Provenance
 
+## Brand identity
+
+The owner approved the wilted-flower logo and its corrected petal attachment on
+October 18, 2026. The source, export procedure, theme variants, and icon sizes
+are documented in [assets/branding/README.md](assets/branding/README.md).
+
 Every third-party asset, its source, and its licence. Kept even where a licence
 requires no attribution, because provenance questions are expensive to answer
 retroactively and cheap to record now.
