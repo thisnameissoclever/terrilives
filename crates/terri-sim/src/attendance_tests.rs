@@ -89,18 +89,19 @@ fn until(sim: &mut Sim, description: &str, budget: usize, predicate: impl Fn(&Si
     assert!(predicate(sim), "did not reach {description}");
 }
 fn continue_roundtrip(sim: &mut Sim, ticks: usize) {
-    let saved = sim.save_snapshot_v17();
+    // The current save, which also carries each person's job search.
+    let saved = sim.save_snapshot_v18();
     let content = sim.world().resource::<Content>().0;
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(content));
     loaded
-        .load_snapshot_v17(saved.clone())
+        .load_snapshot_v18(saved.clone())
         .expect("valid attendance continuation loads");
     assert_eq!(
         loaded.world_hash(),
         sim.world_hash(),
         "restoration preserves gameplay ownership"
     );
-    assert_eq!(loaded.save_snapshot_v17(), saved);
+    assert_eq!(loaded.save_snapshot_v18(), saved);
     for step in 0..ticks {
         sim.tick();
         loaded.tick();
@@ -1593,13 +1594,13 @@ fn attendance_background_recipe_boundary_roundtrips_before_incoming_chat_arrives
                 .save_snapshot_v17()
                 .background_recipes
                 .contains(&identity));
-            let saved = sim.save_snapshot_v17();
+            let saved = sim.save_snapshot_v18();
             let content = sim.world().resource::<Content>().0;
             let mut restored = Sim::new_with_lot_and_content(20, 20, Content(content));
             restored
-                .load_snapshot_v17(saved.clone())
+                .load_snapshot_v18(saved.clone())
                 .expect("the targetless suspended counter loads with authoritative activity state");
-            assert_eq!(restored.save_snapshot_v17(), saved);
+            assert_eq!(restored.save_snapshot_v18(), saved);
             assert_eq!(restored.world_hash(), sim.world_hash());
             continuation = Some(restored);
             boundary_seen = true;

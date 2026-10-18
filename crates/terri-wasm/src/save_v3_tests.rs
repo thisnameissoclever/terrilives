@@ -744,10 +744,12 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV17>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV18>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &17u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &18u16.to_le_bytes());
+    assert!(decoded.job_search_off.is_empty());
+    let decoded = decoded.legacy;
     assert_eq!(decoded.player_orders, Default::default());
     assert_eq!(decoded.attendance, Default::default());
     assert!(decoded.confirmed_commands.is_empty());
@@ -1983,7 +1985,7 @@ fn schema_eleven_round_trips_burnt_meals_and_schema_ten_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        17u16.to_le_bytes()
+        18u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2048,7 +2050,7 @@ fn schema_twelve_round_trips_fights_and_schema_eleven_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        17u16.to_le_bytes()
+        18u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2116,7 +2118,7 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        17u16.to_le_bytes()
+        18u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
@@ -2163,10 +2165,12 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
         .expect("the shipped household has a worker")
         .0
         .index_u32();
-    assert_eq!(source.career_autonomy(), vec![1, 1]);
-    assert!(source.set_career_autonomy(false, true));
+    assert!(source.career_change_autonomy());
+    assert_eq!(source.job_search_of(worker), vec![1]);
+    assert!(source.set_career_change_autonomy(false));
     source.flush_commands();
-    assert_eq!(source.career_autonomy(), vec![0, 1]);
+    assert!(!source.career_change_autonomy());
+    assert_eq!(source.job_search_of(worker), vec![1]);
     assert_eq!(
         source.career_path_labels(),
         vec!["Office", "Cafe", "Night watch"]
@@ -2206,11 +2210,11 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     let bytes = source.save_bytes();
     assert_eq!(
         bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        17u16.to_le_bytes()
+        18u16.to_le_bytes()
     );
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&bytes));
-    assert_eq!(loaded.career_autonomy(), vec![0, 1]);
+    assert!(!loaded.career_change_autonomy());
     assert_eq!(loaded.career_report(worker), source.career_report(worker));
     assert_eq!(loaded.world_hash(), source.world_hash());
     assert_eq!(loaded.save_bytes(), bytes);
@@ -2220,7 +2224,8 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     thirteen.extend(postcard::to_allocvec(&source.sim.save_snapshot_v13()).unwrap());
     let mut old = SimHandle::from_lot();
     assert!(old.load_bytes(&thirteen));
-    assert_eq!(old.career_autonomy(), vec![1, 1], "the settings default on");
+    assert!(old.career_change_autonomy(), "the settings default on");
+    assert_eq!(old.job_search_of(worker), vec![1]);
     assert_eq!(
         old.career_report(worker)[0],
         1.0,

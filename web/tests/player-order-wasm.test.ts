@@ -40,7 +40,8 @@ it('cancels a real multi-person work warning without mutation and accepts repeat
     expect(people.every(entity=>entity!==undefined)).toBe(true);
     const bed=Array.from(bridge.ids()).find((entity,row)=>bridge.kinds()[row]!==0&&bridge.objectModel(entity)?.id==='bed')!;
     expect(bed).toBeDefined();
-    expect(bridge.setCareerAutonomy(false,false)).toBe(true);
+    expect(bridge.setCareerChangeAutonomy(false)).toBe(true);
+    for(const person of household)expect(bridge.setJobSearch(person,false)).toBe(true);
     for(const person of people)expect(bridge.assignCareer(person,0)).toBe(true);
     bridge.flushCommands();
     expect(people.map(person=>bridge.careerOf(person))).toEqual(['Office clerk','Office clerk']);
