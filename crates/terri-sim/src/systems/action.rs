@@ -2221,9 +2221,12 @@ pub fn select_action(
             }
         }
 
+        // A chosen chat would give up at once, so it is not chosen at all.
+        let chats_give_up =
+            crate::social_episode::requests::gives_up_chosen_chat(&needs, &content.0.tuning);
         for (other, other_pos, other_id, reserved, _other_needs, busy) in &company {
             let other = *other;
-            if other == agent {
+            if other == agent || chats_give_up {
                 continue;
             }
             // Autonomous requests can wait for current care, but a player

@@ -27,7 +27,18 @@ player orders; need decay and death remain enabled.
    Follow moving recipients through their current activity. Busy never means
    failed, and waiting has no timeout. A new explicit front order may redirect
    either person without deleting another person's request.
-5. Unreachable destinations, removed targets and invalid actions fail with a
+5. A person who is only waiting for their own autonomous chat is not busy to
+   an order addressed to them. When that order is admitted, the chat is
+   suspended with its identity and age and resumes after the order's
+   conversation releases them. This applies to player and game-made orders,
+   so a cycle that mixes pending chats with orders always has a ready
+   order. Cycles of chats alone still use the oldest-request rule, and
+   cycles of orders alone still use acceptance order. Issue 301 ruling,
+   confirmed by the owner on 2026-10-18: the order goes first even when the
+   waiting chat is older, because orders outrank autonomy.
+   Game-made fight orders yield to critical needs as the
+   [fights](2026-10-16-fights.md) rule 3 describes; player orders do not.
+6. Unreachable destinations, removed targets and invalid actions fail with a
    recorded reason. Cancellation is a separate outcome. Show a frustration
    squiggle above the initiator for three real-time seconds on failure, alongside
    a readable status reason. Never show failure feedback for waiting, completion
