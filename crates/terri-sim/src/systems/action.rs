@@ -214,11 +214,16 @@ impl BedState<'_, '_> {
 /// A standalone softmax sampler with no caller outside its own
 /// `sampler_tests` module. Live selection does not use it: [`select_action`]
 /// always pushes a wander candidate after its object, social and waiting
-/// candidates, weighs them through `autonomy::grouped_probabilities`,
-/// which normalizes interactions per target and reserves at least one
-/// bucket for every positive probability, and draws with
-/// `autonomy::sample`. The rest of this comment describes this function,
-/// not how housemates choose, except where it names live selection.
+/// candidates, weighs them through
+/// `critical_choices::critical_choice_probabilities`, and draws with
+/// `autonomy::sample`. That function hands the candidates to
+/// `autonomy::grouped_probabilities`, which normalizes interactions per
+/// target and reserves at least one bucket for every positive
+/// probability; when a need is critical and only some candidates relieve
+/// it, it first splits the share between those candidates and the rest
+/// with `autonomy::probabilities`. The rest of this comment describes
+/// this function, not how housemates choose, except where it names live
+/// selection.
 ///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
@@ -3873,11 +3878,17 @@ mod tests {
     }
 
     impl TiedDraw {
-        /// Reads each candidate's buckets from the `DecisionTelemetry`
-        /// that `select_action` recorded for `agent`, and restates the
-        /// draw `autonomy::sample` takes from a generator seeded with
-        /// `seed`: the top 27 bits of one output above the top 26 bits of
-        /// the next.
+        /// Turns the probabilities that `select_action` recorded in
+        /// `DecisionTelemetry` for `agent` into buckets with the sampler's
+        /// own `autonomy::sampling_buckets`, and restates the draw
+        /// `autonomy::sample` takes from a generator seeded with `seed`:
+        /// the top 27 bits of one output above the top 26 bits of the next.
+        ///
+        /// The recorded probabilities are not always whole numbers of
+        /// buckets: when a need is critical,
+        /// `critical_choices::critical_choice_probabilities` scales each
+        /// group's share, and the products fall between buckets until the
+        /// sampler rounds them.
         fn measure(sim: &Sim, agent: Entity, low: Entity, high: Entity, seed: u64) -> Self {
             let decisions = &sim
                 .world()
@@ -3887,12 +3898,15 @@ mod tests {
                 .iter()
                 .find(|d| d.agent == agent.index_u32())
                 .expect("the agent must have chosen on the tick just run");
+            let probabilities: Vec<f64> = decision.choices.iter().map(|choice| choice.4).collect();
+            let buckets = super::super::autonomy::sampling_buckets(&probabilities);
             let buckets_of = |target: Entity| -> u64 {
                 decision
                     .choices
                     .iter()
-                    .filter(|choice| choice.0 == target.index_u32())
-                    .map(|choice| (choice.4 * DRAW_SPAN as f64) as u64)
+                    .zip(&buckets)
+                    .filter(|(choice, _)| choice.0 == target.index_u32())
+                    .map(|(_, buckets)| *buckets)
                     .sum()
             };
             let last = decision.choices.last().map(|choice| (choice.0, choice.1));
@@ -5174,10 +5188,10 @@ mod tests {
         // test below, and it exists because that test only covers one of
         // the two iteration orders a tie can arrive in.
         //
-        // Two bit-identical scores weigh the same, so
-        // `autonomy::grouped_probabilities` gives them equal buckets of
-        // (1 - w) / 2 each, ahead of the wander candidate's share w that
-        // `select_action` pushes last, and the ORDER of the candidate list
+        // Two bit-identical scores weigh the same, so live selection gives
+        // them equal buckets of (1 - w) / 2 each, ahead of the wander
+        // candidate's share w that `select_action` pushes last, and the
+        // ORDER of the candidate list
         // decides which object holds the bucket the draw lands in. There,
         // the lower-index object iterates LAST and the sort has to move it to
         // the front. Here there is no archetype churn, so the two orders
@@ -5841,9 +5855,9 @@ mod tests {
         // **The test the object sort exists for.**
         //
         // One agent, two objects whose scores are exactly equal. Equal
-        // scores weigh equally, so `autonomy::grouped_probabilities` hands
-        // each of them a bucket of (1 - w) / 2, ahead of the wander
-        // candidate's share w that `select_action` pushes last, and the
+        // scores weigh equally, so live selection hands each of them a
+        // bucket of (1 - w) / 2, ahead of the wander candidate's share w
+        // that `select_action` pushes last, and the
         // ORDER of the candidate list decides which object holds the
         // bucket a given draw lands in. There
         // is no argmax left to be unique, and no tiebreak clause to make

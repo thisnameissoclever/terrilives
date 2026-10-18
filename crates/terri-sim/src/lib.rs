@@ -6548,9 +6548,10 @@ mod determinism_tests {
         // wander candidate, and their reason no longer holds. Selection
         // does not call `sample_softmax` or `f32::exp`: `select_action`
         // pushes a wander candidate after every other candidate and weighs
-        // them through `autonomy::grouped_probabilities`, which calls
-        // `f64::exp`, so one object no longer means one candidate. The
-        // conclusion still holds for a different reason: every decision
+        // them through `critical_choices::critical_choice_probabilities`,
+        // whose paths call `f64::exp` in `autonomy`, so one object no
+        // longer means one candidate. The conclusion still holds for a
+        // different reason: every decision
         // over this scenario's 100 ticks holds the wander candidate alone,
         // and a lone candidate's probability is 1.0 whatever `exp`
         // returns. Two conditions keep it alone: both of the fridge's

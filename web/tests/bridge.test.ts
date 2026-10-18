@@ -1293,8 +1293,9 @@ describe('SimBridge', () => {
     //
     // Correction, 2026-10-17: the paragraph above predates the wander
     // candidate. Selection now weighs every candidate, including a wander
-    // candidate it always adds, through `autonomy::grouped_probabilities`,
-    // which calls `f64::exp`, so one object no longer means one candidate.
+    // candidate it always adds, through
+    // `critical_choices::critical_choice_probabilities`, whose paths call
+    // `f64::exp` in `autonomy`, so one object no longer means one candidate.
     // The comparison stays free of `exp` results because every decision
     // in this scenario holds the wander candidate alone, at probability
     // 1.0. The fridge never becomes a candidate, because both of its
