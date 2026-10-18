@@ -50,7 +50,7 @@ The atlas importer, `assets/sprites/gen/offline_props.py`, rejects a facing whos
 | Pool lounger | `owner-review-pending/lounger/candidate-01` | none |
 | Patio umbrella | `owner-review-pending/umbrella/candidate-02` | 01 had a slate base collar that blended into the base and a slightly flatter canopy |
 
-An independent visual review accepted the three current candidates; the review is in `docs/assets/review-evidence/outdoor/2026-10-17/art-review.md`. The static prop catalog `../static-props-07.json` binds each accepted proof with the status `accepted-independent-review`, and `assets/sprites/gen/build.py` imports their twelve sprites into the atlas after every earlier sprite.
+An independent visual review accepted the three current candidates; the review is in `docs/assets/review-evidence/outdoor/2026-10-17/art-review.md`. The static prop catalog `../static-props-07.json` binds each accepted proof with the status `accepted-independent-review`, and `assets/sprites/gen/build.py` imports their twelve sprites into the atlas after every earlier sprite. `../sims/character-repair/export_outdoor_depth.py` gives those twelve sprites registered depth in `../sims/character-repair/outdoor-depth`, so the renderer compares housemates with each pixel's physical depth rather than with a depth estimated from its footprint.
 
 ## Tests
 
