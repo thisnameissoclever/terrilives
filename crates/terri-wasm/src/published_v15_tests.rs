@@ -83,6 +83,19 @@ fn checksum_control_compares_the_exact_original_published_state() {
         } else {
             sim.save_snapshot_v15()
         };
+        super::current_test_snapshot::project_reviewed_catalogue_fingerprint(
+            six(&original).legacy.world.content_fingerprint,
+            &mut captured
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .world
+                .content_fingerprint,
+        );
         if current {
             let original_five = &six(&original).legacy;
             let actual_five = &mut captured.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
@@ -112,13 +125,14 @@ fn checksum_control_compares_the_exact_original_published_state() {
             actual_five.layout = original_five.layout.clone();
             assert_eq!(
                 captured, original,
-                "only blank-layout encoding and Outside proximity relationships change"
+                "after the reviewed catalogue fingerprint rewrite, only blank-layout encoding and Outside proximity relationships change"
             );
+            assert_eq!(sim.world_hash(), 4661132544113609906);
             eprintln!("checksum cause: original=4676206450852028819 current={} relationship_rows={changed_relationships}", sim.world_hash());
         } else {
             assert_eq!(
                 captured, original,
-                "exact original producer state before any projection"
+                "exact original producer state after only the reviewed catalogue fingerprint rewrite"
             );
             assert_eq!(sim.world_hash(), 4676206450852028819);
         }

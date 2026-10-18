@@ -4,11 +4,15 @@
   "bundles": {
     "fixture-depth": {
       "path": "fixture-depth/manifest.json",
-      "sha256": "4b9322a25f321f6f3f1273111aeade1625310b6ab6f10477e3f108dbb84c114e"
+      "sha256": "82655f5e51e26fa9ca935f6d2a385ab0f267bd0c77c9f758787b1404e54327bf"
     },
     "aquarium-depth": {
       "path": "aquarium-depth/manifest.json",
-      "sha256": "6f402794fe1e0be7aeffc4ddb65a19256bc90c7661ab6718ee4e54e25c0167e4"
+      "sha256": "b0cbbde462fdf7b7643b04e5696f4d480403bcfdbb72d959329b0aa9f980a671"
+    },
+    "outdoor-depth": {
+      "path": "outdoor-depth/manifest.json",
+      "sha256": "78d376703b5be55cb382be810f2555ff2c05339135294cce134fc7ebe58f4903"
     },
     "shelf-depth": {
       "path": "shelf-depth/manifest.json",
@@ -233,6 +237,27 @@
       "sprite": "offlineLaundry",
       "atlasIndex": 1117,
       "depthBundle": "fixture-depth",
+      "representation": "unchanged-published-color-with-registered-source-surface-depth"
+    },
+    {
+      "model": "pool",
+      "sprite": "offlinePool",
+      "atlasIndex": 30927,
+      "depthBundle": "outdoor-depth",
+      "representation": "unchanged-published-color-with-registered-source-surface-depth"
+    },
+    {
+      "model": "pool_lounger",
+      "sprite": "offlinePoolLoungerSW",
+      "atlasIndex": 30933,
+      "depthBundle": "outdoor-depth",
+      "representation": "unchanged-published-color-with-registered-source-surface-depth"
+    },
+    {
+      "model": "patio_umbrella",
+      "sprite": "offlinePatioUmbrella",
+      "atlasIndex": 30935,
+      "depthBundle": "outdoor-depth",
       "representation": "unchanged-published-color-with-registered-source-surface-depth"
     }
   ],

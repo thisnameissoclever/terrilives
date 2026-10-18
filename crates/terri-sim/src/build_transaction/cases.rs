@@ -468,6 +468,27 @@ fn every_public_snapshot_writer_reads_the_committed_baseline() {
     assert_eq!(sim.try_save_snapshot_v15(), Ok(v15.clone()));
     assert_eq!(sim.save_snapshot_v15(), v15);
     assert_eq!(sim.save_snapshot_v16(), v16);
+
+    sim.cancel_build().unwrap();
+    assert!(sim.build_active());
+    assert_eq!(sim.try_save_snapshot_v15(), Ok(v15.clone()));
+    assert_eq!(sim.save_snapshot_v15(), v15);
+    assert_eq!(sim.save_snapshot_v16(), v16);
+
+    // A no-op confirmation retains this admitted historical representation.
+    // A changed Outside duty need not be representable by an older writer.
+    confirm(&mut sim);
+    assert!(sim.build_active());
+    assert_eq!(sim.try_save_snapshot_v15(), Ok(v15.clone()));
+    assert_eq!(sim.save_snapshot_v15(), v15);
+    assert_eq!(sim.save_snapshot_v16(), v16);
+
+    pave(&mut sim, 4);
+    sim.cancel_build().unwrap();
+    assert!(sim.build_active());
+    assert_eq!(sim.try_save_snapshot_v15(), Ok(v15.clone()));
+    assert_eq!(sim.save_snapshot_v15(), v15);
+    assert_eq!(sim.save_snapshot_v16(), v16);
 }
 
 #[test]

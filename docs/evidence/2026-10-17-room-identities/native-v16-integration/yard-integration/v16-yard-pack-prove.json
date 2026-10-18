@@ -1,0 +1,27 @@
+{
+  "main": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "mode": "prove",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "terri-data",
+    "--test",
+    "inherited_runtime",
+    "--locked",
+    "--jobs",
+    "1",
+    "inherited_runtime_fixture_compiles_real_model_actions_and_rounding",
+    "--",
+    "--exact",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "before_sha256": "76f1feeb977863df7e5220ca66fe5e78c578417978a917ed7e4ccab0d4d11b42",
+  "after_sha256": "76f1feeb977863df7e5220ca66fe5e78c578417978a917ed7e4ccab0d4d11b42",
+  "before_bytes": 22982,
+  "after_bytes": 22982,
+  "log": ".local-build\\v16-yard-pack-prove.log",
+  "finished_utc": "2026-10-18T04:10:10.571671+00:00"
+}

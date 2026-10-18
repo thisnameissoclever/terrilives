@@ -1,0 +1,47 @@
+{
+  "build": {
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "--lib",
+      "--no-run",
+      "--locked",
+      "--jobs",
+      "1",
+      "--message-format=json"
+    ],
+    "exit": 0
+  },
+  "target": {
+    "kind": [
+      "lib"
+    ],
+    "crate_types": [
+      "lib"
+    ],
+    "name": "terri_sim",
+    "src_path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\crates\\terri-sim\\src\\lib.rs",
+    "edition": "2021",
+    "doc": true,
+    "doctest": true,
+    "test": true
+  },
+  "features": [],
+  "executable": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-3eba8eb593be4501.exe",
+  "instrumented_executable_sha256": "200c87aaf2852b7ffb7e072da90b4ac39306fda1708b705c9478d8ecb466d62c",
+  "hash_observation": "Captured by the original fault execution; the reusable build path may now contain another executable.",
+  "original_source": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "f56d0d5d63f260f3f3a0e538af59cc64c70bff80d1ff082ec6d450ca7a507032",
+    "crates\\terri-sim\\src\\build_transaction.rs": "5accd764041b2a3931425f9c5f611fe689458eaf0e6b36d3853be4678bb72311"
+  },
+  "instrumented_source": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "4e753c1ef20b5606d0e79310da2edd3dec1ee95b3d4fb37defe7be1dee2a266f",
+    "crates\\terri-sim\\src\\build_transaction.rs": "664ea87975daad7f4eb6cd07ff88d10b5ca6865650df0a5efc319f9e6268eadc"
+  },
+  "restored_source": {
+    "crates\\terri-sim\\src\\systems\\lot_edit.rs": "f56d0d5d63f260f3f3a0e538af59cc64c70bff80d1ff082ec6d450ca7a507032",
+    "crates\\terri-sim\\src\\build_transaction.rs": "5accd764041b2a3931425f9c5f611fe689458eaf0e6b36d3853be4678bb72311"
+  }
+}

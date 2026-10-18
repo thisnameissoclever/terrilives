@@ -1,0 +1,4 @@
+   Compiling terri-data v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-data)
+    Checking terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+    Checking terri-wasm v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.94s

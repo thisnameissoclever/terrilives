@@ -193,11 +193,28 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
         assert!(tail.is_empty());
         let mut game = SimHandle::from_lot();
         assert!(game.load_bytes(bytes), "{name}");
-        assert_eq!(
-            game.sim.try_save_snapshot_v14().unwrap(),
-            original,
-            "source state changed: {name}"
+        let mut projected = game.sim.try_save_snapshot_v14().unwrap();
+        super::current_test_snapshot::project_reviewed_catalogue_fingerprint(
+            original
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .world
+                .content_fingerprint,
+            &mut projected
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .world
+                .content_fingerprint,
         );
+        assert_eq!(projected, original, "source state changed: {name}");
         let current = game.save_bytes();
         assert_eq!(&current[8..10], &16u16.to_le_bytes());
         let mut resumed = SimHandle::from_lot();
@@ -462,7 +479,27 @@ fn review_authentic_explicit_surface_migration_preserves_work() {
         && task.remaining > 0));
     let mut game = SimHandle::from_lot();
     assert!(game.load_bytes(bytes));
-    let projected = game.sim.try_save_snapshot_v14().unwrap();
+    let mut projected = game.sim.try_save_snapshot_v14().unwrap();
+    super::current_test_snapshot::project_reviewed_catalogue_fingerprint(
+        source
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .world
+            .content_fingerprint,
+        &mut projected
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .world
+            .content_fingerprint,
+    );
     assert_eq!(
         projected
             .legacy
@@ -540,7 +577,27 @@ fn review_authentic_land_careers_and_money_keep_their_actual_source_values() {
         );
         let mut game = SimHandle::from_lot();
         assert!(game.load_bytes(bytes));
-        let projected = game.sim.try_save_snapshot_v14().unwrap();
+        let mut projected = game.sim.try_save_snapshot_v14().unwrap();
+        super::current_test_snapshot::project_reviewed_catalogue_fingerprint(
+            source
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .world
+                .content_fingerprint,
+            &mut projected
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .legacy
+                .world
+                .content_fingerprint,
+        );
         assert_eq!(projected, source);
         let current = game.save_bytes();
         let mut loaded = SimHandle::from_lot();

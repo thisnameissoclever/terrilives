@@ -25,7 +25,7 @@ their original save versions, sprite counts and measurements describe those rele
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, editing a living person's name, personality, traits and family ties, and each person's likes and dislikes for plants, the aquarium, the television and the radio, shown in Sim details; likes and dislikes shipped 2026-10-06 | Appearance and gender choices, random generation, deeper traits, colour preferences and editing likes and dislikes |
 | Skills | Cooking, Fitness and Reading, learned by every completed attempt, read by the matching capability trait's fumble roll, saved with the household and listed in Sim details; shipped 2026-10-05 | Better outcomes and unlocks at higher levels, more skills, career performance, and a fuller skills panel if the owner wants one |
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
-| Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
+| Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors; a pool, a pool lounger and a patio umbrella sold for the yard | Exterior presentation, more outdoor objects, outdoor activities such as swimming, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, liked or disliked plants and aquarium in the room, being bothered by another's television or radio, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
@@ -854,8 +854,11 @@ third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
 the yard by day while the rooms stay dimmer, lighter by an open doorway and
 darkest at the back of the house, and people, furniture, interior doors and the
 placement preview take their tile's shade. Its played check is
-[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]); the house seen
-from outside and outdoor objects remain.
+[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]). The first outdoor
+objects, a decorative pool, a pool lounger with Sit and a decorative patio umbrella
+sold under a Yard room, are specified in `docs/specs/2026-10-17-outdoor-furniture.md`
+(issue 250); the house seen from outside, more outdoor objects and outdoor
+activities such as swimming remain.
 
 ### [B-floors] The player chooses what each floor is
 

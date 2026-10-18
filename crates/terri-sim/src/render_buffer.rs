@@ -4251,6 +4251,7 @@ mod tests {
                 activity::SITTING,
                 visual_action::NONE,
             ),
+            ("pool_lounger", "sit", activity::SITTING, visual_action::SIT),
         ];
         assert_eq!(
             pack.objects

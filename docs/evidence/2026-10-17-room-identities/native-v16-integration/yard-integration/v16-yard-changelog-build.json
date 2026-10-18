@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "scripts/build-changelog.mjs"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-changelog-build.log",
+  "finished_utc": "2026-10-18T04:32:12.297386+00:00"
+}

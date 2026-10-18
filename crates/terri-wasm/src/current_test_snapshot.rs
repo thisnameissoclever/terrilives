@@ -1,6 +1,21 @@
 //! Strict current-envelope readers and typed field views for boundary tests.
 use super::*;
 
+/// Independent Data-tool measurements bind a481's 30-model catalogue and 513's
+/// 33-model catalogue, with and without Patio. See the yard-integration evidence.
+/// This projection can change only the global metadata field, never saved state.
+pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut u64) {
+    assert_eq!(
+        source, 17481476517581295759,
+        "authenticated V14/V15 catalogue"
+    );
+    assert_eq!(
+        *captured, 5841475410324663844,
+        "independently measured current catalogue"
+    );
+    *captured = source;
+}
+
 pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV16 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(

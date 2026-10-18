@@ -1,0 +1,66 @@
+{
+  "compile_receipt": "v16-yard-fingerprint-compile.json",
+  "command": [
+    ".local-build\\v16-yard-fingerprint.exe"
+  ],
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-fingerprint-run.log",
+  "finished_utc": "2026-10-18T04:24:17.564314+00:00",
+  "measured": {
+    "original": 17481476517581295759,
+    "main513": 5841475410324663844,
+    "combined_patio": 5841475410324663844,
+    "original_models": 30,
+    "current_models": 33,
+    "original_model_prefix_exact": true,
+    "patio_only_pack_delta": true,
+    "combined_matches_compiled_pack": true
+  },
+  "packs": [
+    {
+      "path": ".local-build\\p15-target\\wasm32-unknown-unknown\\release\\build\\terri-data-3721efb1e6b3d722\\out\\content_pack.postcard",
+      "bytes": 21002,
+      "sha256": "8584f80b0e503248e134a81536453550f0fe1fa370e28d65010cd04c757354ae"
+    },
+    {
+      "path": ".local-build\\v16-yard-production-513.postcard",
+      "bytes": 21659,
+      "sha256": "a40fd88f9c740d30ca319592d2b5a64330bf4af4e0f4102d31ea6b45d0ac0bcc"
+    },
+    {
+      "path": ".local-build\\v16-yard-production-combined.postcard",
+      "bytes": 21685,
+      "sha256": "2a47b0d994785afe56bcf4d2c8c66a33c4b3afec274200a53ced88b58a9eeb3e"
+    }
+  ],
+  "whole_dto_log_comparisons": [
+    {
+      "log": ".local-build\\v16-yard-focus-published-v15.log",
+      "case": 0,
+      "actual_sha256": "6b8e0a5a916f4de95e3587376bc0ab8fcaff11e4c5e1f79df039dadb8712a16c",
+      "original_sha256": "9300b4dbd86aa9be4021fa45988071ab34dd8b53d79f666b0c8831d088b38b1c",
+      "only_measured_fingerprint_difference": true
+    },
+    {
+      "log": ".local-build\\v16-yard-focus-room-boundary.log",
+      "case": 0,
+      "actual_sha256": "f151081533ac9124a02f42ccbcc5f5a131891596090d73d76782a5f259c912d2",
+      "original_sha256": "1cb577139d4805da0a4921bc80979cae4a7ff3197f429189aa47c3327c5f1721",
+      "only_measured_fingerprint_difference": true
+    },
+    {
+      "log": ".local-build\\v16-yard-focus-room-boundary.log",
+      "case": 1,
+      "actual_sha256": "d235bbd8017583ded8cab53a7ceba4ffcd0d810f02b3789b8e4a9d518aaa2380",
+      "original_sha256": "44c1b7c073abdd6daf84ae1d320a9e00f628ed7d7f05a330d7bce0dce8669440",
+      "only_measured_fingerprint_difference": true
+    },
+    {
+      "log": ".local-build\\v16-yard-focus-room-boundary.log",
+      "case": 2,
+      "actual_sha256": "312dbca3ab77edd7a83d7bb6665e9461c54e9e5c575dcf030eef243028da812c",
+      "original_sha256": "428faac536e4263aeb1e9afb8ce0129c4ebf53521a8bae7c61900f745c568d37",
+      "only_measured_fingerprint_difference": true
+    }
+  ]
+}

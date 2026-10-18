@@ -1,0 +1,58 @@
+{
+  "source_sha256": "6ab85726fc6856b819a8a106d1201d6183d4c81931eb966d7e161c9e57172c16",
+  "canonical_source_receipt": "v16-yard-source.json",
+  "main513_lot_sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9",
+  "unchanged_main_inputs": [
+    "crates/terri-data/src",
+    "crates/terri-data/build.rs",
+    "crates/terri-data/Cargo.toml",
+    "assets/sprites/atlas.toml",
+    "web/public/audio/voice",
+    "content/books.toml",
+    "content/careers.toml",
+    "content/chains.toml",
+    "content/household.toml",
+    "content/needs.toml",
+    "content/objects.toml",
+    "content/personalities.toml",
+    "content/skills.toml",
+    "content/social.toml",
+    "content/traits.toml",
+    "content/tuning.toml",
+    "content/voice.toml"
+  ],
+  "libraries": {
+    "postcard": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libpostcard-8cde63b74b92078f.rlib",
+      "sha256": "30534b5f43e64ab920346c9581d87b6dcb2850d40e56fed224b2682287de09f8"
+    },
+    "toml": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libtoml-25e1cffd9a539eb9.rlib",
+      "sha256": "1d20fa8372975e8c38dd16e51b5e2227138fdb934e51f0949d1c782afce3bc15"
+    },
+    "terri_data": {
+      "path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libterri_data-d60cb8720bd04492.rlib",
+      "sha256": "11872f3f9ddc7c969341a8d404f19cd44ab9d65108c28bfbd05ba3a8f372fc86"
+    }
+  },
+  "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
+  "command": [
+    "rustc",
+    "--edition=2021",
+    ".local-build\\v16-yard-fingerprint.rs",
+    "-o",
+    ".local-build\\v16-yard-fingerprint.exe",
+    "-L",
+    "dependency=target/debug/deps",
+    "--extern",
+    "postcard=D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libpostcard-8cde63b74b92078f.rlib",
+    "--extern",
+    "toml=D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libtoml-25e1cffd9a539eb9.rlib",
+    "--extern",
+    "terri_data=D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\libterri_data-d60cb8720bd04492.rlib"
+  ],
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-fingerprint-compile.log",
+  "finished_utc": "2026-10-18T04:24:09.006208+00:00",
+  "executable_sha256": "65f8203c063c5f71d6c403bd0f49f30023bc819c78bf19d70374baea13765413"
+}

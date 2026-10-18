@@ -1,0 +1,7 @@
+{
+  "main": "513c86be2aa44fb4d5576279d0e1ae69991e870e",
+  "branch_before_sha256": "c38a8d6dd71b823f1f4ced4ea378ca6a02cf7e58f50edcb3d5489623e77999a7",
+  "incoming_sha256": "76f1feeb977863df7e5220ca66fe5e78c578417978a917ed7e4ccab0d4d11b42",
+  "incoming_bytes": 22982,
+  "purpose": "Exact incoming baseline for combined compile minus only Patio proof; final fixture remains to be regenerated"
+}

@@ -451,8 +451,17 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
         terri_data::content_fingerprint(&legacy),
         "new sitting actions belong to V6, not the published positional shape"
     );
-    assert_eq!(current.objects.len(), legacy.objects.len());
-    for actual in &current.objects {
+    // The yard furniture (issue 250) appends after every published model,
+    // so the published models keep their positions and are compared below.
+    let (retained, appended) = current.objects.split_at(legacy.objects.len());
+    assert_eq!(
+        appended.iter().map(|o| o.id.as_str()).collect::<Vec<_>>(),
+        ["pool", "pool_lounger", "patio_umbrella"]
+    );
+    for object in appended {
+        assert!(published.find(&object.id).is_none(), "{} is new", object.id);
+    }
+    for actual in retained {
         let expected = published.object(
             published
                 .find(&actual.id)
@@ -643,6 +652,100 @@ fn every_shipped_model_has_classification_and_seat_actions_take_capacity_from_se
         seat_actions > 0,
         "the shipped pack has seat actions to check"
     );
+}
+
+/// Issue 250's yard furniture: each type, its footprint and its actions.
+/// The pool and the umbrella are decorative; the lounger's only action is
+/// the shared Sit, which seats one person on its one seat.
+#[test]
+fn yard_furniture_declares_its_types_footprints_and_the_lounger_sit() {
+    use terri_data::{Footprint, SeatUse};
+
+    let pack = terri_data::pack();
+    for (id, type_label, width, depth, actions) in [
+        ("pool", "Pool", 2, 2, &[][..]),
+        ("pool_lounger", "Pool lounger", 1, 2, &["sit"][..]),
+        ("patio_umbrella", "Patio umbrella", 1, 1, &[][..]),
+    ] {
+        let object = pack.object(pack.find(id).expect("shipped yard model"));
+        let metadata = object.metadata.as_ref().unwrap();
+        assert_eq!(metadata.category_id, "outdoor", "{id}");
+        assert_eq!(metadata.type_label, type_label, "{id}");
+        assert_eq!(metadata.rooms, ["yard"], "{id}");
+        assert_eq!(object.footprint, Footprint { width, depth }, "{id}");
+        assert_eq!(
+            object
+                .interactions
+                .iter()
+                .map(|action| action.id.as_str())
+                .collect::<Vec<_>>(),
+            actions,
+            "{id}"
+        );
+    }
+    let lounger = pack.object(pack.find("pool_lounger").unwrap());
+    let sit = &lounger.interactions[0];
+    assert_eq!(sit.label, "Sit");
+    assert_eq!(sit.seat_use, SeatUse::One);
+    assert_eq!(sit.slots, 1);
+    assert_eq!(sit.duration_ticks, 40);
+    assert_eq!(lounger.seats.len(), 1);
+}
+
+/// The lounger's one seat and its two approach tiles in every facing,
+/// from an origin of (10, 20) so a transposed origin cannot pass. The
+/// lounger is authored facing south-west with its backrest on the first
+/// tile; the seat is the center of the second tile, facing the long side
+/// both approaches stand beside. Approaches are offsets from the origin
+/// tile, and a seat facing names the lot direction as the content does:
+/// SE is +x, NW is -x, SW is +y and NE is -y.
+#[test]
+fn pool_lounger_seat_and_approaches_turn_with_the_lounger() {
+    use terri_data::{CompiledPlacementSocket, CompiledSocketFacing as Seat, Facing};
+
+    let pack = terri_data::pack();
+    let lounger = pack.object(pack.find("pool_lounger").unwrap());
+    assert_eq!(lounger.base_facing, Facing::SouthWest);
+    for (facing, (x, y), seat_facing, mut approaches) in [
+        (
+            Facing::SouthWest,
+            (0.0, 1.0),
+            Seat::PositiveX,
+            vec![(1, 0), (1, 1)],
+        ),
+        (
+            Facing::SouthEast,
+            (1.0, 0.0),
+            Seat::NegativeY,
+            vec![(0, -1), (1, -1)],
+        ),
+        (
+            Facing::NorthWest,
+            (0.0, 0.0),
+            Seat::PositiveY,
+            vec![(0, 1), (1, 1)],
+        ),
+        (
+            Facing::NorthEast,
+            (0.0, 0.0),
+            Seat::NegativeX,
+            vec![(-1, 0), (-1, 1)],
+        ),
+    ] {
+        assert_eq!(
+            lounger.seat_at(0, 10.0, 20.0, facing),
+            Some(CompiledPlacementSocket {
+                x: 10.0 + x,
+                y: 20.0 + y,
+                facing: seat_facing,
+            }),
+            "{facing:?}"
+        );
+        let mut actual = lounger.seat_approaches_at(0, facing).unwrap();
+        actual.sort_unstable();
+        approaches.sort_unstable();
+        assert_eq!(actual, approaches, "{facing:?}");
+    }
 }
 
 #[test]

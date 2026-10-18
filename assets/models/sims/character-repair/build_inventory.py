@@ -17,7 +17,7 @@ def main():
     indices={row['name']:index for index,row in enumerate(atlas['sprite'])}
     records={}
     bundles={}
-    for family in ['fixture-depth','aquarium-depth','shelf-depth','components','dropped-book']:
+    for family in ['fixture-depth','aquarium-depth','outdoor-depth','shelf-depth','components','dropped-book']:
         path=BASE/family/'manifest.json'
         manifest=json.loads(path.read_text())
         assert manifest['state']=='complete'

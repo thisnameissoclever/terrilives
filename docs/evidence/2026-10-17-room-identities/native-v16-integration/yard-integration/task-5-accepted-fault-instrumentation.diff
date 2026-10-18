@@ -1,0 +1,33 @@
+diff --git a/crates/terri-sim/src/build_transaction.rs b/crates/terri-sim/src/build_transaction.rs
+index af044fc64..eb1704ede 100644
+--- a/crates/terri-sim/src/build_transaction.rs
++++ b/crates/terri-sim/src/build_transaction.rs
+@@ -449,9 +449,10 @@ impl Sim {
+             .prepared
+             .as_ref()
+             .filter(|p| {
+-                p.review.token == token
+-                    && token.session == b.session
+-                    && token.revision == b.revision
++                std::env::var("TERRI_R5_FAULT").ok().as_deref() == Some("stale")
++                    || (p.review.token == token
++                        && token.session == b.session
++                        && token.revision == b.revision)
+             })
+             .ok_or(BuildCommitError::StaleToken)?;
+         if save::v16::capture(self) != prepared.draft {
+diff --git a/crates/terri-sim/src/systems/lot_edit.rs b/crates/terri-sim/src/systems/lot_edit.rs
+index ec2708bb5..8ef8d9122 100644
+--- a/crates/terri-sim/src/systems/lot_edit.rs
++++ b/crates/terri-sim/src/systems/lot_edit.rs
+@@ -9,7 +9,9 @@ pub fn drain_commands(world: &mut World) {
+     {
+         return;
+     }
+-    if world.contains_resource::<crate::build_transaction::BuildTransaction>() {
++    if world.contains_resource::<crate::build_transaction::BuildTransaction>()
++        && std::env::var("TERRI_R5_FAULT").ok().as_deref() != Some("deferral")
++    {
+         crate::build_transaction::drain(world);
+         return;
+     }

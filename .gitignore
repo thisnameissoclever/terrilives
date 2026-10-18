@@ -90,6 +90,10 @@ assets/models/living/owner-review-pending/armchair/candidate-02/*.blend
 assets/models/living/owner-review-pending/armchair/candidate-03/contributions-01/*.png
 # Rejected aquarium models stay local; retain rejected images and receipts.
 assets/models/living/owner-review-pending/aquarium/rejected/**/*.blend
+assets/models/outdoor/owner-review-pending/pool/candidate-01/*.blend
+assets/models/outdoor/owner-review-pending/pool/candidate-02/*.blend
+assets/models/outdoor/owner-review-pending/pool/candidate-03/*.blend
+assets/models/outdoor/owner-review-pending/umbrella/candidate-01/*.blend
 
 # Full-resolution dining bakes; runtime frames and receipts are tracked.
 assets/models/domestic/dining/*/*.png

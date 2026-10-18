@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {expect,it} from 'vitest';
 import staticDepth from '../../assets/models/sims/character-repair/fixture-depth/manifest.json';
 import aquariumDepth from '../../assets/models/sims/character-repair/aquarium-depth/manifest.json';
+import outdoorDepth from '../../assets/models/sims/character-repair/outdoor-depth/manifest.json';
 import shelfDepth from '../../assets/models/sims/character-repair/shelf-depth/manifest.json';
 import components from '../../assets/models/sims/character-repair/components/manifest.json';
 import dropped from '../../assets/models/sims/character-repair/dropped-book/manifest.json';
@@ -20,7 +21,7 @@ function page(folder:string,record:{path:string;sha256:string;width:number;heigh
  return data;
 }
 
-const bundles=[['fixture-depth',staticDepth],['aquarium-depth',aquariumDepth],['shelf-depth',shelfDepth],['components',components],['dropped-book',dropped]] as const;
+const bundles=[['fixture-depth',staticDepth],['aquarium-depth',aquariumDepth],['outdoor-depth',outdoorDepth],['shelf-depth',shelfDepth],['components',components],['dropped-book',dropped]] as const;
 const sourceHashes=new Map<string,string>();
 const pageCases:{folder:string;record:{path:string;sha256:string;width:number;height:number}}[]=[];
 for(const [folder,manifest] of bundles){
@@ -36,12 +37,12 @@ it.each([...sourceHashes])('verifies immutable source %s',(path,sha)=>{
 });
 it('requires fixture coverage provenance to match the current sprite atlas',()=>{
  const atlasHash=digest(readFileSync(new URL('../../assets/sprites/atlas.toml',import.meta.url)));
- for(const manifest of [staticDepth,aquariumDepth])expect(manifest.atlasSha256).toBe(atlasHash);
+ for(const manifest of [staticDepth,aquariumDepth,outdoorDepth])expect(manifest.atlasSha256).toBe(atlasHash);
 });
 it('binds all completed companion pages to valid appended atlas records',()=>{
  for(const [,manifest] of bundles)expect(manifest.state).toBe('complete');
  expect(pageCases.length).toBe(FIXTURE_DEPTH_PAGE_COUNT);
- const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(400);
+ const table=fixtureDepthTable();expect(table.length).toBe(FIXTURE_DEPTH_COUNT*FLOATS_PER_SPRITE);expect(FIXTURE_DEPTH_COUNT).toBe(412);
  for(let index=0;index<FIXTURE_DEPTH_COUNT;index++){
   const row=table.subarray(index*FLOATS_PER_SPRITE,(index+1)*FLOATS_PER_SPRITE);
   expect(row[0]).toBeGreaterThanOrEqual(0);expect(row[1]).toBeGreaterThanOrEqual(0);expect(row[2]).toBeLessThanOrEqual(1);expect(row[3]).toBeLessThanOrEqual(1);
@@ -49,8 +50,8 @@ it('binds all completed companion pages to valid appended atlas records',()=>{
  }
 });
 
-it('registers every static and aquarium frame and samples separate near and far counter surfaces',()=>{
- for(const manifest of [staticDepth,aquariumDepth])for(const row of manifest.sprites){
+it('registers every static, aquarium and outdoor frame and samples separate near and far counter surfaces',()=>{
+ for(const manifest of [staticDepth,aquariumDepth,outdoorDepth])for(const row of manifest.sprites){
   expect(SPRITES[row.sprite].name).toBe(row.name);expect(SPRITES[row.sprite].w).toBe(row.w);expect(SPRITES[row.sprite].h).toBe(row.h);
   expect(row.x+row.w).toBeLessThanOrEqual(ATLAS_WIDTH);expect(row.y+row.h).toBeLessThanOrEqual(ATLAS_HEIGHT);
   expect(fixtureDepthSprite(row.sprite,40000)).not.toBeNull();expect(row.minSum).toBeGreaterThanOrEqual(-2);expect(row.maxSum).toBeLessThanOrEqual(2);

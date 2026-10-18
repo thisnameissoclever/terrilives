@@ -1,0 +1,10 @@
+{
+  "command": [
+    "python",
+    ".local-build/v16-yard-wasm.py"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives",
+  "exit_code": 0,
+  "log": ".local-build\\v16-yard-wasm-run.log",
+  "finished_utc": "2026-10-18T04:31:28.012835+00:00"
+}

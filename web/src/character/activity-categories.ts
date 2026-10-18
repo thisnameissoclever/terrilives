@@ -9,7 +9,7 @@ export const activityCategories:readonly ActivityCategory[]=[
   {id:'eat',label:'Eat & cook',routes:[['fridge','grab_snack'],['fridge','cook_dinner'],['dining_table','sit_properly'],['dining_table','take_prepared_food']]},
   {id:'sleep',label:'Sleep',routes:[['bed','sleep'],['double_bed','sleep_properly']]},
   {id:'wash',label:'Wash & bathroom',routes:[['shower','take_shower'],['toilet','relieve_self'],['sink','wash_hands'],['kitchen_sink','wash_up'],['bathtub','soak']]},
-  {id:'relax',label:'Relax',routes:[['sofa','lounge'],['chair','sit'],['long_sofa','stretch_out'],['long_sofa','sit'],['armchair','take_the_chair'],['desk_chair','sit'],['reading_chair','sit']]},
+  {id:'relax',label:'Relax',routes:[['sofa','lounge'],['chair','sit'],['long_sofa','stretch_out'],['long_sofa','sit'],['armchair','take_the_chair'],['desk_chair','sit'],['reading_chair','sit'],['pool_lounger','sit']]},
   {id:'read',label:'Read',routes:[['sofa','read'],['bookshelf','read'],['chair','read'],['long_sofa','read'],['armchair','read'],['desk_chair','read'],['reading_chair','settle_in']]},
   {id:'television',label:'Watch TV',routes:[['television','watch_tv']]},
   {id:'music',label:'Listen to music',routes:[['radio','listen']]},
