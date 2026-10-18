@@ -12325,3 +12325,17 @@ Current-save validation must also check ownership across both conversation parti
 4. Verification: require the historical control to reproduce the original full snapshot and checksum. Isolate each approved current-format difference, retain source and artifact hashes, and obtain an independent current release-Wasm measurement before claiming cross-target agreement.
 
 Adding unplaced catalogue models can change the saved global content fingerprint while leaving a scenario's state and world hash unchanged. Exact historical comparisons caught this after the Yard catalogue grew from 30 models to 33. Measure original and current fingerprints through the canonical Data function on source-bound production packs, independently of the save writer under test. Guard both measured values before translating that single metadata field, then keep whole-payload equality and literal world-hash controls. Exercise actual old-format inputs as well; a metadata explanation is not proof that every historical reader still admits its files.
+
+## [L-prepared-person-index-frame] Prove the person frame behind review reports
+
+1. What happened: a room-review witness read a saved person's old full Entity handle after ordinary construction had replaced the world. A separate fixture changed a blank-lot covering but expected lost cleaning eligibility even though the default floor remained cleanable.
+2. Root cause: the fixtures assumed that stable SimIds, raw entity indices, full Entity generations and floor eligibility followed the same rules. They do not.
+3. Prevention: inspect the actual report producers. Duty owners use SimIds; replanned and unavailable people use raw entity indices. Resolve raw indices against the current world and bind review lookups to the prepared token. Create reused entity slots after initial reconstruction, and prove a material or topology edit actually changes the task's eligible targets before expecting replanning.
+4. Verification: use a real active task with SimId 0 at raw index 1, a reused slot and a differing candidate Entity generation. Require preserved name/identity across native preparation and the actual release-Wasm report. Keep current generated fixtures separate from published historical inputs, and exercise a real daily autosave trigger without advancing time during Build.
+
+## [L-review-wire-projection-atomicity] Encode a review before replacing its token
+
+1. What happened: source review found that the first room transport implementation installed a new prepared review before reserving its outgoing byte buffer. A serialization allocation failure could report refusal after replacing the old token without delivering the new review. No runtime out-of-memory event was observed.
+2. Root cause: native preparation and fallible transport projection ended on opposite sides of the token replacement.
+3. Prevention: pass a protocol-free fallible projector into the existing native preparation path. Validate the candidate and project the borrowed review before changing the preparation counter or installing Prepared. Keep wire types in the Wasm crate and avoid an arbitrary outbound cap.
+4. Verification: inject projection failure with a nonempty draft, pending names, a valid old review and nonempty runtime observations. Require exact baseline, raw draft, pending names, counter, view revision and runtime preservation, then commit the old token successfully. State the boundary: preparation can settle newly queued input before this point; this control has no new queued commands.

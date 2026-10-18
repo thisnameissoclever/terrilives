@@ -84,6 +84,58 @@ fn dirty_query_is_semantic_pure_and_preserves_prepared_tokens() {
 }
 
 #[test]
+fn failed_review_projection_preserves_existing_preparation_and_runtime() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let person = sim
+        .world
+        .query_filtered::<Entity, With<terri_core::Agent>>()
+        .iter(&sim.world)
+        .next()
+        .unwrap();
+    sim.world
+        .resource_mut::<crate::social_episode::requests::ConversationRequests>()
+        .delays
+        .insert(person, Some(7));
+    sim.begin_build().unwrap();
+    pave(&mut sim, 4);
+    sim.stage_room_name(RoomSelection::Outside, "Pending garden".into())
+        .unwrap();
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
+    let names = sim.build_rooms().unwrap();
+    let runtime = crate::social_episode::requests::runtime::capture(&sim.world);
+    assert_ne!(runtime, Default::default());
+    let revision = sim.rooms_revision();
+    let preparation = sim.world.resource::<BuildTransaction>().preparation;
+    let pending_names = sim.world.resource::<BuildTransaction>().names.clone();
+    assert!(sim.world.resource::<CommandQueue>().is_empty());
+    let failed: Result<(), BuildCommitError> = sim
+        .prepare_build_commit_projected(RoomChoices::default(), |_| {
+            Err(BuildCommitError::AllocationFailed)
+        });
+    assert_eq!(failed, Err(BuildCommitError::AllocationFailed));
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
+    assert_eq!(sim.build_rooms().unwrap(), names);
+    assert_eq!(
+        crate::social_episode::requests::runtime::capture(&sim.world),
+        runtime
+    );
+    assert_eq!(sim.rooms_revision(), revision);
+    assert_eq!(
+        sim.world.resource::<BuildTransaction>().preparation,
+        preparation
+    );
+    assert_eq!(
+        sim.world.resource::<BuildTransaction>().names,
+        pending_names
+    );
+    assert_eq!(sim.validate_build_token(review.token), Ok(()));
+    sim.commit_build(review.token).unwrap();
+}
+
+#[test]
 fn loaded_pending_commands_settle_before_the_fresh_build_baseline() {
     let mut source = Sim::new_from_shipped_lot();
     for command in [
@@ -796,6 +848,175 @@ fn enclosed_blank() -> Sim {
     let saved = sim.save_snapshot_v16();
     sim.load_snapshot_v16(saved).unwrap();
     sim
+}
+
+#[test]
+fn prepared_predecessors_preserve_sparse_overlap_and_refusal_atomicity() {
+    let mut sim = enclosed_blank();
+    let wall = |sim: &mut Sim, x, state| {
+        for y in 1..=5 {
+            issue(
+                sim,
+                SimCommand::SetWallEdge {
+                    axis: EdgeAxis::Vertical,
+                    x,
+                    y,
+                    state,
+                },
+            );
+        }
+    };
+    wall(&mut sim, 4, WallState::Wall);
+    let old = sim.world.resource::<RoomMap>().clone();
+    let a = match old.selection_at((1, 1)).unwrap() {
+        RoomSelection::Room(id) => id,
+        _ => panic!("enclosed A"),
+    };
+    let b = match old.selection_at((7, 1)).unwrap() {
+        RoomSelection::Room(id) => id,
+        _ => panic!("enclosed B"),
+    };
+    assert_ne!(a, b);
+    sim.begin_build().unwrap();
+    wall(&mut sim, 4, WallState::Open);
+    wall(&mut sim, 3, WallState::Wall);
+    wall(&mut sim, 6, WallState::Wall);
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    assert_eq!(review.groups[0].change.kind, RoomChangeKind::Repartition);
+    for (anchor, expected) in [((1, 1), vec![a]), ((3, 1), vec![a, b]), ((6, 1), vec![b])] {
+        let mut actual = sim
+            .build_component_predecessors(review.token, anchor)
+            .unwrap();
+        actual.sort();
+        let mut expected = expected;
+        expected.sort();
+        assert_eq!(actual, expected);
+    }
+    let baseline = sim.save_snapshot_v16();
+    let draft = save::v16::capture(&sim);
+    let bad = RoomChoices {
+        inheritance: BTreeMap::from([((1, 1), Some(b))]),
+        ..Default::default()
+    };
+    assert_eq!(
+        sim.prepare_build_commit(bad),
+        Err(BuildCommitError::Room(RoomError::InvalidChoice))
+    );
+    assert_eq!(sim.save_snapshot_v16(), baseline);
+    assert_eq!(save::v16::capture(&sim), draft);
+    assert_eq!(sim.validate_build_token(review.token), Ok(()));
+    assert_eq!(
+        sim.build_component_predecessors(review.token, (0, 0)),
+        Err(BuildCommitError::InvalidRoom)
+    );
+    sim.discard_build_review().unwrap();
+    assert_eq!(
+        sim.build_component_predecessors(review.token, (1, 1)),
+        Err(BuildCommitError::StaleToken)
+    );
+}
+
+#[test]
+fn prepared_report_people_keep_raw_indices_across_sparse_reused_entity_slots() {
+    use terri_core::{chores::SavedChores, Position, SimId, SimName};
+    let mut sim = Sim::new_with_lot(10, 8);
+    for x in [2, 3] {
+        issue(
+            &mut sim,
+            SimCommand::SetFloor {
+                x,
+                y: 2,
+                covering: 4,
+            },
+        );
+    }
+    let _retained = sim.world.spawn_empty().id();
+    let hole = sim.world.spawn_empty().id();
+    sim.world.despawn(hole);
+    let person = sim.spawn_agent(Position { x: 1., y: 2. }, 80.);
+    assert_eq!(person.index_u32(), hole.index_u32());
+    let stable = sim.world.get::<SimId>(person).unwrap().0;
+    assert_ne!(person.index_u32(), stable);
+    sim.world
+        .entity_mut(person)
+        .insert(SimName("Index witness".into()));
+    crate::chores::ensure(&mut sim.world);
+    {
+        let mut chores = sim.world.resource_mut::<SavedChores>();
+        chores.board_enabled = false;
+        chores.floors = vec![(22, 800), (23, 800)];
+    }
+    issue(
+        &mut sim,
+        SimCommand::CleanChore {
+            agent: person.index_u32(),
+            key: terri_core::chores::ChoreKey {
+                kind: terri_core::chores::ChoreKind::Floors,
+                target: 0,
+            },
+        },
+    );
+    for _ in 0..20 {
+        if !sim.world.resource::<SavedChores>().tasks.is_empty() {
+            break;
+        }
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world.resource::<SavedChores>().tasks[0].cells,
+        vec![22, 23]
+    );
+    sim.begin_build().unwrap();
+    issue(
+        &mut sim,
+        SimCommand::BuildRoom {
+            x0: 3,
+            y0: 1,
+            x1: 5,
+            y1: 3,
+            doorway: Some(WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 6,
+                y: 2,
+            }),
+        },
+    );
+    assert!(sim
+        .world
+        .resource::<crate::placement::LotEditState>()
+        .last_room_result
+        .unwrap()
+        .reason
+        .is_none());
+    let review = sim.prepare_build_commit(RoomChoices::default()).unwrap();
+    let people: Vec<_> = review
+        .duties
+        .replanned_people
+        .iter()
+        .chain(&review.duties.unavailable_people)
+        .copied()
+        .collect();
+    assert_eq!(people, vec![person.index_u32()]);
+    let prepared = sim
+        .world
+        .resource::<BuildTransaction>()
+        .prepared
+        .as_ref()
+        .unwrap();
+    let candidate = crate::dining::entity(&prepared.candidate.world, people[0]).unwrap();
+    assert_ne!(
+        person, candidate,
+        "restoration need not preserve Entity generations"
+    );
+    assert_eq!(
+        prepared.candidate.world.get::<SimId>(candidate).unwrap().0,
+        stable
+    );
+    assert_eq!(
+        prepared.candidate.world.get::<SimName>(candidate),
+        sim.world.get::<SimName>(person)
+    );
+    assert_eq!(sim.validate_build_token(review.token), Ok(()));
 }
 
 #[test]

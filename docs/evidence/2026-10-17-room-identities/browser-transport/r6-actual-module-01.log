@@ -1,0 +1,74 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-codec.test.ts tests/room-bridge.test.ts tests/save-worker.test.ts tests/save-store.test.ts tests/legacy-save.test.ts tests/persistence-controller.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/legacy-save.test.ts (8 tests | 8 failed) 130ms
+   × loads the captured historical save through release WASM and preserves continuation 88ms
+   × migrates authentic local-character-0 V9 bytes through release WASM 7ms
+   × migrates authentic local-character-400 V9 bytes through release WASM 10ms
+   × migrates authentic local-character-1200 V9 bytes through release WASM 4ms
+   × migrates authentic main-social-0 V9 bytes through release WASM 4ms
+   × migrates authentic main-social-400 V9 bytes through release WASM 4ms
+   × migrates authentic main-social-1200 V9 bytes through release WASM 4ms
+   × migrates authentic main-social-active V9 bytes through release WASM 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/legacy-save.test.ts > loads the captured historical save through release WASM and preserves continuation
+AssertionError: expected [ 16, +0 ] to deeply equal [ 15, +0 ]
+
+- Expected
++ Received
+
+  [
+-   15,
++   16,
+    0,
+  ]
+
+ ❯ tests/legacy-save.test.ts:21:39
+     19|     expect(loaded.save_bytes()).toEqual(before);
+     20|     const current = loaded.save_bytes();
+     21|     expect([...current.slice(8, 10)]).toEqual([15, 0]);
+       |                                       ^
+     22|     expect(resumed.load_bytes(current)).toBe(true);
+     23|     for (let tick = 0; tick < 300; tick += 1) { loaded.tick(); resumed…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/legacy-save.test.ts > migrates authentic local-character-0 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic local-character-400 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic local-character-1200 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic main-social-0 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic main-social-400 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic main-social-1200 V9 bytes through release WASM
+ FAIL  tests/legacy-save.test.ts > migrates authentic main-social-active V9 bytes through release WASM
+AssertionError: expected [ 16, +0 ] to deeply equal [ 15, +0 ]
+
+- Expected
++ Received
+
+  [
+-   15,
++   16,
+    0,
+  ]
+
+ ❯ tests/legacy-save.test.ts:43:41
+     41|       expect(loaded.load_bytes(bytes)).toBe(true);
+     42|       const current = loaded.save_bytes();
+     43|       expect([...current.slice(8, 10)]).toEqual([15, 0]);
+       |                                         ^
+     44|       expect(resumed.load_bytes(current)).toBe(true);
+     45|       expect(resumed.save_bytes()).toEqual(current);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  8 failed | 155 passed (163)
+   Start at  21:55:34
+   Duration  1.63s (transform 193ms, setup 55ms, import 160ms, tests 906ms, environment 0ms)

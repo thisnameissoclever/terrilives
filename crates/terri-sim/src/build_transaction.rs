@@ -93,6 +93,7 @@ struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
     draft: SaveSnapshotV16,
+    overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
@@ -301,22 +302,50 @@ impl Sim {
         &mut self,
         choices: RoomChoices,
     ) -> Result<BuildReview, BuildCommitError> {
-        self.prepare_build_commit_validated(choices, |candidate| {
-            save::v16::restore(
-                save::v16::capture(candidate),
-                candidate.world.resource::<Content>().0,
-                save::Carried::for_load(&candidate.world),
-            )
-            .map(|_| ())
-        })
+        self.prepare_build_commit_projected(choices, |review| Ok(review.clone()))
+    }
+
+    /// Project a validated review before replacing the current preparation.
+    /// Like ordinary preparation, this may settle newly queued input at entry.
+    pub fn prepare_build_commit_projected<T>(
+        &mut self,
+        choices: RoomChoices,
+        project: impl FnOnce(&BuildReview) -> Result<T, BuildCommitError>,
+    ) -> Result<T, BuildCommitError> {
+        self.prepare_build_commit_projected_validated(
+            choices,
+            |candidate| {
+                save::v16::restore(
+                    save::v16::capture(candidate),
+                    candidate.world.resource::<Content>().0,
+                    save::Carried::for_load(&candidate.world),
+                )
+                .map(|_| ())
+            },
+            project,
+        )
     }
 
     /// Keep preparation atomic even when its final external-format validator refuses.
+    #[cfg(test)]
     fn prepare_build_commit_validated(
         &mut self,
         choices: RoomChoices,
         validate: impl FnOnce(&Sim) -> Result<(), SaveError>,
     ) -> Result<BuildReview, BuildCommitError> {
+        self.prepare_build_commit_projected_validated(
+            choices,
+            validate,
+            |review| Ok(review.clone()),
+        )
+    }
+
+    fn prepare_build_commit_projected_validated<T>(
+        &mut self,
+        choices: RoomChoices,
+        validate: impl FnOnce(&Sim) -> Result<(), SaveError>,
+        project: impl FnOnce(&BuildReview) -> Result<T, BuildCommitError>,
+    ) -> Result<T, BuildCommitError> {
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -431,14 +460,16 @@ impl Sim {
             retired_names,
             duties,
         };
+        let projected = project(&review)?;
         let mut b = self.world.resource_mut::<BuildTransaction>();
         b.preparation = preparation;
         b.prepared = Some(Prepared {
-            review: review.clone(),
+            review,
             candidate: Box::new(candidate),
             draft,
+            overlaps: proposal.overlaps,
         });
-        Ok(review)
+        Ok(projected)
     }
     fn prepared_build(&self, token: BuildToken) -> Result<&Prepared, BuildCommitError> {
         let b = self
@@ -461,6 +492,41 @@ impl Sim {
     }
     pub fn validate_build_token(&self, token: BuildToken) -> Result<(), BuildCommitError> {
         self.prepared_build(token).map(|_| ())
+    }
+    /// Structural predecessor choices from the exact prepared overlap proposal.
+    pub fn build_component_predecessors(
+        &self,
+        token: BuildToken,
+        anchor: (u32, u32),
+    ) -> Result<Vec<RoomId>, BuildCommitError> {
+        let prepared = self.prepared_build(token)?;
+        if !prepared
+            .candidate
+            .world
+            .resource::<RoomMap>()
+            .topology
+            .components
+            .iter()
+            .any(|c| c.anchor == anchor)
+        {
+            return Err(BuildCommitError::InvalidRoom);
+        }
+        let count = prepared
+            .overlaps
+            .iter()
+            .filter(|row| row.final_anchor == anchor)
+            .count();
+        let mut ids = Vec::new();
+        ids.try_reserve_exact(count)
+            .map_err(|_| BuildCommitError::AllocationFailed)?;
+        ids.extend(
+            prepared
+                .overlaps
+                .iter()
+                .filter(|row| row.final_anchor == anchor)
+                .map(|row| row.old_id),
+        );
+        Ok(ids)
     }
     pub fn build_component_tiles(
         &self,

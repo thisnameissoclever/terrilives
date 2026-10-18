@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "source": "3edc8da2d98fb19d20e159ab4166ac5476620026a806a85f3d9a96b3b35ffd7e",
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "original_sha256": "e4d329c36b81dbe109d639bbfbca14760fb29b7dc567ddc7c1b4a647109d7325",
+  "input_schema": 15,
+  "current_schema": 16,
+  "legacy_edge_projection": [],
+  "current_sha256": "79661ff9e0bd812d5d6b4dc8e4a34baea0958983ff7c0c206c91a7262069019c",
+  "continuation_updates": 120
+}

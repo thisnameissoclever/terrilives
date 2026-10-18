@@ -1,0 +1,193 @@
+{
+  "all_final_gates_exit_zero": true,
+  "gates": [
+    {
+      "command": [
+        "cargo.exe",
+        "test",
+        "-p",
+        "terri-sim",
+        "--locked",
+        "--jobs",
+        "1",
+        "build_transaction",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.816,
+      "source_before": "c5d59d5103e32113cdfb633a9cf8e36b74b9595db293f79bfd833956270ad11d",
+      "source_after": "c5d59d5103e32113cdfb633a9cf8e36b74b9595db293f79bfd833956270ad11d",
+      "source_unchanged": true,
+      "log_sha256": "a40994862fc08495dc062a71b2f08b3b8175cb20c8710fbfda1a259d3fff638f",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "c5bd9f9c431aeb54ccaf9b0d0d78be4ebc05a0798de97796a5162a309d98572f",
+        "web/src/wasm/terri_wasm_bg.wasm": "6ee43380251c128ef26281752bd6ab1c0e07f1ec74fab0f30411688510623aa7",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "4605984971717fdfaf1b70673f23902da98d20e7c4e65870c519b5727d5e36c3"
+      }
+    },
+    {
+      "command": [
+        "cargo.exe",
+        "test",
+        "-p",
+        "terri-wasm",
+        "--release",
+        "--locked",
+        "--jobs",
+        "1",
+        "room_transport",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 50.256,
+      "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_unchanged": true,
+      "log_sha256": "c22f65032541bde5ba8ae6e6ec66211938bf8d6f00b193ddcd2b4807ced78b09",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "cargo.exe",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--jobs",
+        "1",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.867,
+      "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_unchanged": true,
+      "log_sha256": "f0788aa36d1c86b6ccdfb7f4042a5574102d82061c046422a2d42e008a1e4710",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "wasm-pack.exe",
+        "build",
+        "crates/terri-wasm",
+        "--target",
+        "web",
+        "--out-dir",
+        "../../web/src/wasm"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 39.862,
+      "source_before": "ce7487c3e8e1e66ba8e077daccaf46a6ec31b37a9004e248fc40a4a07c9ddb2d",
+      "source_after": "ce7487c3e8e1e66ba8e077daccaf46a6ec31b37a9004e248fc40a4a07c9ddb2d",
+      "source_unchanged": true,
+      "log_sha256": "fb04a399d3e563aeba8f7fa147a5ab459b92e8af7e57af94349b7687cec37c7d",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "tests/room-codec.test.ts",
+        "tests/room-bridge.test.ts",
+        "tests/bridge.test.ts",
+        "tests/build-session.test.ts",
+        "tests/save-worker.test.ts",
+        "tests/save-store.test.ts",
+        "tests/legacy-save.test.ts",
+        "tests/persistence-controller.test.ts"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 13.976,
+      "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_unchanged": true,
+      "log_sha256": "f797efce246d5413c0c649ab9b26cdd8dad5eeabe39f7558e887344c6e20599d",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "typecheck"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 8.289,
+      "source_before": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_after": "d4934194273928875a1ee056e548a7c93a08abec339d4382c99aa0bf75671dae",
+      "source_unchanged": true,
+      "log_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "build"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 18.562,
+      "source_before": "fe80abcc8a31808095b8e120f9f58546e229f98096bee8cddbd4e31002eaf489",
+      "source_after": "fe80abcc8a31808095b8e120f9f58546e229f98096bee8cddbd4e31002eaf489",
+      "source_unchanged": true,
+      "log_sha256": "520e496d607e6914aa6468ec90a3770fe3802e4c97e427a648755bb9d550db4b",
+      "generated_artifacts": {
+        "web/src/wasm/terri_wasm.js": "9c9504d64f536e175ca02ebd842e204fd518286f58b329ea0420a0fd1597508e",
+        "web/src/wasm/terri_wasm.d.ts": "fcf9afe47b6fa648877ca852f8f02af2e861bfb6c9ab5dcb5d650c44a66867f3",
+        "web/src/wasm/terri_wasm_bg.wasm": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+        "web/src/wasm/terri_wasm_bg.wasm.d.ts": "8d6732a90ab775b6e4b14510a7f6930870fc8fe92faae3462af26dd85399c5a3"
+      }
+    }
+  ],
+  "earlier_full_native": {
+    "unit_passed": 307,
+    "example_passed": 4,
+    "optional_private_input_ignored": 1,
+    "exit": 0,
+    "executable_sha256": "8fe9c3086062e203bf0d9e94007aadc089a62b6c27655f22a3f642f1c20b3e76",
+    "source_manifest_kind": "reconstructed after run; not contemporaneous"
+  },
+  "chrome": {
+    "exit": 0,
+    "opfs_cases": 10,
+    "bom_literal_preserved": true,
+    "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1"
+  }
+}

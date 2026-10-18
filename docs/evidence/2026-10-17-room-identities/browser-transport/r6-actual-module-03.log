@@ -1,0 +1,57 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/room-bridge.test.ts tests/bridge.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/bridge.test.ts (56 tests | 1 failed) 4009ms
+     × keeps edge-layout spawn validation and accepted saves intact in release WASM 41ms
+ ❯ tests/room-bridge.test.ts (12 tests | 1 failed) 1681ms
+   × projects sparse inherited choices from the actual prepared matcher 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > keeps edge-layout spawn validation and accepted saves intact in release WASM
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/bridge.test.ts:448:48
+    446|     const blankBytes = blank.saveBytes();
+    447|     blank.spawnAgent(30, 30, 50);
+    448|     expect(blank.spawnObject(7, 5, 'bathtub')).toBe(false);
+       |                                                ^
+    449|     expect(blank.count).toBe(0);
+    450|     expect(blank.saveBytes()).toEqual(blankBytes);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/room-bridge.test.ts > projects sparse inherited choices from the actual prepared matcher
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/room-bridge.test.ts:14:46
+     12|   const wall=(x:number,state:number)=>{for(let y=1;y<=5;y++){expect(si…
+     13|   try {
+     14|     expect(sim.buildRoom([1,1,7,5],[0,8,3])).toBe(true);sim.flushComma…
+       |                                              ^
+     15|     wall(4,1);const before=value(sim.roomSummaries());const a=before.r…
+     16|     value(sim.beginBuild());wall(4,0);wall(3,1);wall(6,1);const review…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 66 passed (68)
+   Start at  21:57:38
+   Duration  9.24s (transform 2.83s, setup 35ms, import 3.34s, tests 5.69s, environment 0ms)

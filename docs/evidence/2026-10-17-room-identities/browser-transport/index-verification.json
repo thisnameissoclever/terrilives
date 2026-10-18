@@ -1,0 +1,362 @@
+{
+  "excludes_self": true,
+  "files": [
+    {
+      "path": "crates/terri-sim/src/build_transaction.rs",
+      "working_sha256": "454d0f2fb91755648479f61d3388e1e2e056c67c39b7e38f9617deb23dde0027",
+      "git_stored_sha256": "454d0f2fb91755648479f61d3388e1e2e056c67c39b7e38f9617deb23dde0027",
+      "working_bytes": 27597,
+      "git_stored_bytes": 27597
+    },
+    {
+      "path": "crates/terri-sim/src/build_transaction/cases.rs",
+      "working_sha256": "f06cde41eed364158802e949239e37f96fffa29cb5a2110f5f275e00daed6fc1",
+      "git_stored_sha256": "f06cde41eed364158802e949239e37f96fffa29cb5a2110f5f275e00daed6fc1",
+      "working_bytes": 43624,
+      "git_stored_bytes": 43624
+    },
+    {
+      "path": "crates/terri-wasm/src/browser_rooms.rs",
+      "working_sha256": "34063e1ba2f3ce2603204c09153ca0328ad692d9de92ea3ada49ae57465370e0",
+      "git_stored_sha256": "34063e1ba2f3ce2603204c09153ca0328ad692d9de92ea3ada49ae57465370e0",
+      "working_bytes": 19632,
+      "git_stored_bytes": 19632
+    },
+    {
+      "path": "crates/terri-wasm/src/lib.rs",
+      "working_sha256": "31bcf5aa7d66dc07f7ef2c11d40ed55bc74b47c6dcbf75a9b3f4ea372b4889cf",
+      "git_stored_sha256": "31bcf5aa7d66dc07f7ef2c11d40ed55bc74b47c6dcbf75a9b3f4ea372b4889cf",
+      "working_bytes": 435000,
+      "git_stored_bytes": 435000
+    },
+    {
+      "path": "crates/terri-wasm/src/room_transport_tests.rs",
+      "working_sha256": "b28317c65408f2bd8d20407173747da7eb1b6ef1b89b9a954183f1169580d9b5",
+      "git_stored_sha256": "b28317c65408f2bd8d20407173747da7eb1b6ef1b89b9a954183f1169580d9b5",
+      "working_bytes": 10373,
+      "git_stored_bytes": 10373
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-transport-v16/README.md",
+      "working_sha256": "6566e7890c7be86b1ba82287dbf3bd2e11b6534ce93007116fb6bf78834e40b0",
+      "git_stored_sha256": "6566e7890c7be86b1ba82287dbf3bd2e11b6534ce93007116fb6bf78834e40b0",
+      "working_bytes": 1614,
+      "git_stored_bytes": 1614
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-transport-v16/funded-fresh.sav",
+      "working_sha256": "8aaaba47286e6ce0c16ff9b25204eb690532a8f5a69fc346515c7dbe15df616a",
+      "git_stored_sha256": "8aaaba47286e6ce0c16ff9b25204eb690532a8f5a69fc346515c7dbe15df616a",
+      "working_bytes": 5372,
+      "git_stored_bytes": 5372
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/room-transport-v16/sparse-person-active.sav",
+      "working_sha256": "207131b082bdf8725318972fd08588fec1f3a8e9efc6d9b59be08993bf4099de",
+      "git_stored_sha256": "207131b082bdf8725318972fd08588fec1f3a8e9efc6d9b59be08993bf4099de",
+      "working_bytes": 701,
+      "git_stored_bytes": 701
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/chrome-opfs-proof.html",
+      "working_sha256": "1826c1feedf50a2931bab3e61c6f2f1ea3c6a5c87b08ac5adf0819042f1258a8",
+      "git_stored_sha256": "1826c1feedf50a2931bab3e61c6f2f1ea3c6a5c87b08ac5adf0819042f1258a8",
+      "working_bytes": 8481,
+      "git_stored_bytes": 8481
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/chrome-opfs.json",
+      "working_sha256": "740e1bf4c07e378a23f1d0e127816a02ee0af7dee885d2b644abce99a331a2c9",
+      "git_stored_sha256": "740e1bf4c07e378a23f1d0e127816a02ee0af7dee885d2b644abce99a331a2c9",
+      "working_bytes": 1723,
+      "git_stored_bytes": 1723
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/full307-source-reconstruction.json",
+      "working_sha256": "e56f87a9408d3a725f04de2781cd1c39daa1b636b79cecfda2b2a39586c0c8c2",
+      "git_stored_sha256": "e56f87a9408d3a725f04de2781cd1c39daa1b636b79cecfda2b2a39586c0c8c2",
+      "working_bytes": 57038,
+      "git_stored_bytes": 57038
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/gates.json",
+      "working_sha256": "e8511f02f20afc3014a530a8ce3c90132b161889a491459d03cf7c32b7901643",
+      "git_stored_sha256": "e8511f02f20afc3014a530a8ce3c90132b161889a491459d03cf7c32b7901643",
+      "working_bytes": 7966,
+      "git_stored_bytes": 7966
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/legacy-golden-continuation.json",
+      "working_sha256": "a400291f9acfad5ff0d293e40fccc167d785a2961bb47e9c41ab38a7aa695c2d",
+      "git_stored_sha256": "a400291f9acfad5ff0d293e40fccc167d785a2961bb47e9c41ab38a7aa695c2d",
+      "working_bytes": 474,
+      "git_stored_bytes": 474
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/legacy-golden-proof.mjs",
+      "working_sha256": "daf1a0ce583f38f9620dd1472b44c4a7d75616133da3f39ff8ccb022ed26e0ee",
+      "git_stored_sha256": "daf1a0ce583f38f9620dd1472b44c4a7d75616133da3f39ff8ccb022ed26e0ee",
+      "working_bytes": 1637,
+      "git_stored_bytes": 1637
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/native-source-manifest.json",
+      "working_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+      "git_stored_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+      "working_bytes": 56791,
+      "git_stored_bytes": 56791
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/native-v16-yard-review.md",
+      "working_sha256": "547504189b73fb2c95e098bbfffe35b6d5c86dbfd7cb49764b2b86eb7cf18a99",
+      "git_stored_sha256": "547504189b73fb2c95e098bbfffe35b6d5c86dbfd7cb49764b2b86eb7cf18a99",
+      "working_bytes": 12026,
+      "git_stored_bytes": 12026
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/play-seed-setup.json",
+      "working_sha256": "3b93a31b9364d0eb2b3e4bfcb26c0ca20543ff8c17062264a503347d0ea97ab1",
+      "git_stored_sha256": "3b93a31b9364d0eb2b3e4bfcb26c0ca20543ff8c17062264a503347d0ea97ab1",
+      "working_bytes": 1524,
+      "git_stored_bytes": 1524
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/post-build-test-delta.json",
+      "working_sha256": "843577cc2322bc28e68ad8b6c285a84a9123f089031f09020e93cf81317e3829",
+      "git_stored_sha256": "843577cc2322bc28e68ad8b6c285a84a9123f089031f09020e93cf81317e3829",
+      "working_bytes": 807,
+      "git_stored_bytes": 807
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-actual-module-01.log",
+      "working_sha256": "5781327ecfb11ac709f123c0be6a78cc1195067f7f67031fd0c824437aae7139",
+      "git_stored_sha256": "5781327ecfb11ac709f123c0be6a78cc1195067f7f67031fd0c824437aae7139",
+      "working_bytes": 3255,
+      "git_stored_bytes": 3255
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-actual-module-02.log",
+      "working_sha256": "e54614271f2652bab9d9ff3a79bbbc8a9f39a20bc18d0c7f4f5adf599153da14",
+      "git_stored_sha256": "e54614271f2652bab9d9ff3a79bbbc8a9f39a20bc18d0c7f4f5adf599153da14",
+      "working_bytes": 2151,
+      "git_stored_bytes": 2151
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-actual-module-03.log",
+      "working_sha256": "b3634259001f653be853046a1a9fa6fed729fb2f0de6399536b4fa598fbaa9df",
+      "git_stored_sha256": "b3634259001f653be853046a1a9fa6fed729fb2f0de6399536b4fa598fbaa9df",
+      "working_bytes": 2079,
+      "git_stored_bytes": 2079
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-codec-red.log",
+      "working_sha256": "05591c57e9e8ab0a7253180e22120aed2168fb55209f71659413812842ce6d2c",
+      "git_stored_sha256": "05591c57e9e8ab0a7253180e22120aed2168fb55209f71659413812842ce6d2c",
+      "working_bytes": 935,
+      "git_stored_bytes": 935
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-current-clippy.log",
+      "working_sha256": "1eefd858eb11317653536ba51019daac99f8153163d2ac8d1714942fea2dfb6d",
+      "git_stored_sha256": "1eefd858eb11317653536ba51019daac99f8153163d2ac8d1714942fea2dfb6d",
+      "working_bytes": 750,
+      "git_stored_bytes": 750
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-current-transactions.log",
+      "working_sha256": "eb375da0a93363fd58412df3e5a54c2de90d155e281fd85b260e8485cb839bc6",
+      "git_stored_sha256": "eb375da0a93363fd58412df3e5a54c2de90d155e281fd85b260e8485cb839bc6",
+      "working_bytes": 3905,
+      "git_stored_bytes": 3905
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-actual-matrix.log",
+      "working_sha256": "4a01de478ea49c4c7a003aadaa2365aaa85e063d5daad3895468bbaacf9a5134",
+      "git_stored_sha256": "4a01de478ea49c4c7a003aadaa2365aaa85e063d5daad3895468bbaacf9a5134",
+      "working_bytes": 501,
+      "git_stored_bytes": 501
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-build.log",
+      "working_sha256": "2bfad2139e7b75ab50f7a02e85617f406d3e4ab2744c0105e08e2d8650046b97",
+      "git_stored_sha256": "2bfad2139e7b75ab50f7a02e85617f406d3e4ab2744c0105e08e2d8650046b97",
+      "working_bytes": 19755,
+      "git_stored_bytes": 19755
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-chrome-cleanup.log",
+      "working_sha256": "3d1560e4f072d76db05b7e35a46cb3f3514b284c1edacb52efd06bda146a3066",
+      "git_stored_sha256": "3d1560e4f072d76db05b7e35a46cb3f3514b284c1edacb52efd06bda146a3066",
+      "working_bytes": 65,
+      "git_stored_bytes": 65
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-release-matrix.log",
+      "working_sha256": "894a9eb37a0897e725f60c7124ca70f8afd9516cc72c09d253eecd663a94b908",
+      "git_stored_sha256": "894a9eb37a0897e725f60c7124ca70f8afd9516cc72c09d253eecd663a94b908",
+      "working_bytes": 1556,
+      "git_stored_bytes": 1556
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-scope-clippy.log",
+      "working_sha256": "f0788aa36d1c86b6ccdfb7f4042a5574102d82061c046422a2d42e008a1e4710",
+      "git_stored_sha256": "f0788aa36d1c86b6ccdfb7f4042a5574102d82061c046422a2d42e008a1e4710",
+      "working_bytes": 72,
+      "git_stored_bytes": 72
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-type-matrix.log",
+      "working_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+      "git_stored_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+      "working_bytes": 49,
+      "git_stored_bytes": 49
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-final-wasm.log",
+      "working_sha256": "fb04a399d3e563aeba8f7fa147a5ab459b92e8af7e57af94349b7687cec37c7d",
+      "git_stored_sha256": "fb04a399d3e563aeba8f7fa147a5ab459b92e8af7e57af94349b7687cec37c7d",
+      "working_bytes": 615,
+      "git_stored_bytes": 615
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-native-full.log",
+      "working_sha256": "04b6faff1a608377169463789e91d19e0c5a34e611a3d93a8d33516f8417cb91",
+      "git_stored_sha256": "04b6faff1a608377169463789e91d19e0c5a34e611a3d93a8d33516f8417cb91",
+      "working_bytes": 29935,
+      "git_stored_bytes": 29935
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-native-red.log",
+      "working_sha256": "f1514762b9df13bff5c17ffa60df33f3d1132a645451b8f0a8a522b45191e8d6",
+      "git_stored_sha256": "f1514762b9df13bff5c17ffa60df33f3d1132a645451b8f0a8a522b45191e8d6",
+      "working_bytes": 2696,
+      "git_stored_bytes": 2696
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-person-autosave-translation.log",
+      "working_sha256": "8abe9f1d369067c9528ddb4e744653f4e82a33f103a671d64f93ca4ab3747d42",
+      "git_stored_sha256": "8abe9f1d369067c9528ddb4e744653f4e82a33f103a671d64f93ca4ab3747d42",
+      "working_bytes": 846,
+      "git_stored_bytes": 846
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-person-fixture-02.log",
+      "working_sha256": "d412eb4ad3ced54512cdba4ee9cf8dd8a0fdfc502e50c4a92d2014ca8340df54",
+      "git_stored_sha256": "d412eb4ad3ced54512cdba4ee9cf8dd8a0fdfc502e50c4a92d2014ca8340df54",
+      "working_bytes": 965,
+      "git_stored_bytes": 965
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-person-fixture.log",
+      "working_sha256": "8db21b20f3459995f25b623aa457597a5408c36812d0f01131ac49f0a5b992ce",
+      "git_stored_sha256": "8db21b20f3459995f25b623aa457597a5408c36812d0f01131ac49f0a5b992ce",
+      "working_bytes": 965,
+      "git_stored_bytes": 965
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-person-frame-01.log",
+      "working_sha256": "d1a4e76a5040098cd33795f250957bba1c4087e1219ae402cdd090bdd71daa0c",
+      "git_stored_sha256": "d1a4e76a5040098cd33795f250957bba1c4087e1219ae402cdd090bdd71daa0c",
+      "working_bytes": 1098,
+      "git_stored_bytes": 1098
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-person-frame-02.log",
+      "working_sha256": "dc873d54eaa58a6a93a25d083f23aa64c456ee6b986b6289b157a1c1fab80951",
+      "git_stored_sha256": "dc873d54eaa58a6a93a25d083f23aa64c456ee6b986b6289b157a1c1fab80951",
+      "working_bytes": 1126,
+      "git_stored_bytes": 1126
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-projector-red.log",
+      "working_sha256": "3137b74c0021e9efac865a81258c603930192c7a96634115c1ab8ddcf5928af5",
+      "git_stored_sha256": "3137b74c0021e9efac865a81258c603930192c7a96634115c1ab8ddcf5928af5",
+      "working_bytes": 1170,
+      "git_stored_bytes": 1170
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/r6-wire-red.log",
+      "working_sha256": "b862db3205901e83761a679895efd747bafda048f705a43d1638a5dbf3d027f7",
+      "git_stored_sha256": "b862db3205901e83761a679895efd747bafda048f705a43d1638a5dbf3d027f7",
+      "working_bytes": 6607,
+      "git_stored_bytes": 6607
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/retained-files.json",
+      "working_sha256": "232f7abfefef00b03cdb83bc1157b9083f4c95f831cb5c1747f0e35d5c39f4fe",
+      "git_stored_sha256": "232f7abfefef00b03cdb83bc1157b9083f4c95f831cb5c1747f0e35d5c39f4fe",
+      "working_bytes": 14186,
+      "git_stored_bytes": 14186
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/source-manifest.json",
+      "working_sha256": "a11333997d0caf82e80317574c304c8b53fd517c5bdca162439a15b30a81078c",
+      "git_stored_sha256": "a11333997d0caf82e80317574c304c8b53fd517c5bdca162439a15b30a81078c",
+      "working_bytes": 120304,
+      "git_stored_bytes": 120304
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/transport-report.md",
+      "working_sha256": "8ff739476a0ec63ff73cf978e2ac433160f07deb693cfa968e9c46fdd2b3010d",
+      "git_stored_sha256": "8ff739476a0ec63ff73cf978e2ac433160f07deb693cfa968e9c46fdd2b3010d",
+      "working_bytes": 11934,
+      "git_stored_bytes": 11934
+    },
+    {
+      "path": "docs/evidence/2026-10-17-room-identities/browser-transport/wire-v1.md",
+      "working_sha256": "662a3809372b9d3c6cb1902860a01829394f3dde5a13b7b07bdad7e691e2abf6",
+      "git_stored_sha256": "662a3809372b9d3c6cb1902860a01829394f3dde5a13b7b07bdad7e691e2abf6",
+      "working_bytes": 6600,
+      "git_stored_bytes": 6600
+    },
+    {
+      "path": "docs/lessons-learned.md",
+      "working_sha256": "3a73308a281ff4738620ed7137832d201f997f18742386ec4edd32969beac003",
+      "git_stored_sha256": "3a73308a281ff4738620ed7137832d201f997f18742386ec4edd32969beac003",
+      "working_bytes": 833138,
+      "git_stored_bytes": 833138
+    },
+    {
+      "path": "web/src/bridge.ts",
+      "working_sha256": "28575c09d621a0db44f75fcdff44d3da4cf8a1bd6bd5cd991edb4bafee1f253f",
+      "git_stored_sha256": "28575c09d621a0db44f75fcdff44d3da4cf8a1bd6bd5cd991edb4bafee1f253f",
+      "working_bytes": 95726,
+      "git_stored_bytes": 95726
+    },
+    {
+      "path": "web/src/rooms/codec.ts",
+      "working_sha256": "d95fea2f115e46ef243277cdfdd593143550084a68b031f1d40d5ad27f8ffb39",
+      "git_stored_sha256": "d95fea2f115e46ef243277cdfdd593143550084a68b031f1d40d5ad27f8ffb39",
+      "working_bytes": 12813,
+      "git_stored_bytes": 12813
+    },
+    {
+      "path": "web/tests/bridge.test.ts",
+      "working_sha256": "c60345345b1aa2bd9533929846d5c99630674e22006ff11ed453b45c4a45d817",
+      "git_stored_sha256": "c60345345b1aa2bd9533929846d5c99630674e22006ff11ed453b45c4a45d817",
+      "working_bytes": 95383,
+      "git_stored_bytes": 95383
+    },
+    {
+      "path": "web/tests/legacy-save.test.ts",
+      "working_sha256": "cae1756c9d44794a532814bb125b5a2b5b30e5744a6fd697c2ed4ee5de806a76",
+      "git_stored_sha256": "cae1756c9d44794a532814bb125b5a2b5b30e5744a6fd697c2ed4ee5de806a76",
+      "working_bytes": 2508,
+      "git_stored_bytes": 2508
+    },
+    {
+      "path": "web/tests/room-bridge.test.ts",
+      "working_sha256": "a5aa5afa217195306ab28778c9a301c992cdd56376446be871616dd48b1596f9",
+      "git_stored_sha256": "a5aa5afa217195306ab28778c9a301c992cdd56376446be871616dd48b1596f9",
+      "working_bytes": 12324,
+      "git_stored_bytes": 12324
+    },
+    {
+      "path": "web/tests/room-codec.test.ts",
+      "working_sha256": "bc5309302efd9ce1484a54b3bb25c3aa41c62a09992096a803ed0c8667faa647",
+      "git_stored_sha256": "bc5309302efd9ce1484a54b3bb25c3aa41c62a09992096a803ed0c8667faa647",
+      "working_bytes": 6797,
+      "git_stored_bytes": 6797
+    }
+  ]
+}

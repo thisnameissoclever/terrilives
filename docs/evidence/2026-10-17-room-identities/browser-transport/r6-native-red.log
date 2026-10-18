@@ -1,0 +1,55 @@
+   Compiling terri-data v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-data)
+   Compiling terri-sim v1.0.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+error[E0599]: no method named `build_component_predecessors` found for struct `Sim` in the current scope
+   --> crates\terri-sim\src\build_transaction\cases.rs:821:30
+    |
+821 |         let mut actual = sim.build_component_predecessors(review.token, anchor).unwrap();
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-sim\src\lib.rs:166:1
+    |
+166 | pub struct Sim {
+    | -------------- method `build_component_predecessors` not found for this struct
+    |
+help: there is a method `build_component_tiles` with a similar name
+    |
+821 -         let mut actual = sim.build_component_predecessors(review.token, anchor).unwrap();
+821 +         let mut actual = sim.build_component_tiles(review.token, anchor).unwrap();
+    |
+
+error[E0599]: no method named `build_component_predecessors` found for struct `Sim` in the current scope
+   --> crates\terri-sim\src\build_transaction\cases.rs:833:20
+    |
+833 |     assert_eq!(sim.build_component_predecessors(review.token, (0, 0)), Err(BuildCommitError::InvalidRoom));
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-sim\src\lib.rs:166:1
+    |
+166 | pub struct Sim {
+    | -------------- method `build_component_predecessors` not found for this struct
+    |
+help: there is a method `build_component_tiles` with a similar name
+    |
+833 -     assert_eq!(sim.build_component_predecessors(review.token, (0, 0)), Err(BuildCommitError::InvalidRoom));
+833 +     assert_eq!(sim.build_component_tiles(review.token, (0, 0)), Err(BuildCommitError::InvalidRoom));
+    |
+
+error[E0599]: no method named `build_component_predecessors` found for struct `Sim` in the current scope
+   --> crates\terri-sim\src\build_transaction\cases.rs:835:20
+    |
+835 |     assert_eq!(sim.build_component_predecessors(review.token, (1, 1)), Err(BuildCommitError::StaleToken));
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+   ::: crates\terri-sim\src\lib.rs:166:1
+    |
+166 | pub struct Sim {
+    | -------------- method `build_component_predecessors` not found for this struct
+    |
+help: there is a method `build_component_tiles` with a similar name
+    |
+835 -     assert_eq!(sim.build_component_predecessors(review.token, (1, 1)), Err(BuildCommitError::StaleToken));
+835 +     assert_eq!(sim.build_component_tiles(review.token, (1, 1)), Err(BuildCommitError::StaleToken));
+    |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `terri-sim` (lib test) due to 3 previous errors

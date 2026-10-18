@@ -441,14 +441,14 @@ describe('SimBridge', () => {
     expect(restored.loadBytes(accepted)).toBe(true);
     expect(restored.saveBytes()).toEqual(accepted);
 
-    const legacy = new SimBridge(new SimHandle(4, 4), wasmMemory);
-    expect(legacy.wallEdges()).toBeUndefined();
-    legacy.spawnAgent(30, 30, 50);
-    expect(legacy.spawnObject(7, 5, 'bathtub')).toBe(true);
-    expect(legacy.count).toBe(2);
-    const legacyBytes = legacy.saveBytes();
-    expect(restored.loadBytes(legacyBytes)).toBe(true);
-    expect(restored.saveBytes()).toEqual(legacyBytes);
+    const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    expect(blank.wallEdges()).toEqual(new Uint32Array());
+    const blankBytes = blank.saveBytes();
+    blank.spawnAgent(30, 30, 50);
+    expect(blank.count).toBe(0);
+    expect(blank.saveBytes()).toEqual(blankBytes);
+    expect(restored.loadBytes(blankBytes)).toBe(true);
+    expect(restored.saveBytes()).toEqual(blankBytes);
   });
 
   it('rejects an unknown content id without trapping the wasm module', () => {
@@ -966,36 +966,17 @@ describe('SimBridge', () => {
 
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
-    const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
-    // The current V5 prefix contains SavedLayout, the empty facing list, the empty
-    // retired-index list ([SL-save]) and the empty colourway list
-    // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
-    // no entities or walls; it tests the distinction between undefined and
-    // an empty list.
-    // The tail includes floors, both family lists, enabled mortality,
-    // the applied migration flag, waiting, instincts and chronotype offsets.
-    // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths;
-    // Some(SavedSkills) and Some(SavedAffinities) each add a tag and an
-    // empty row count.
-    const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0];
-    const offsets = Array.from(legacyCells.keys()).filter(index =>
-      tail.every((value, offset) => legacyCells[index + offset] === value));
-    expect(offsets).toHaveLength(1);
-    const edgeBytes = legacyCells.slice();
-    // The frozen V8 manifest and books follow this world prefix inside the V10 envelope.
-    edgeBytes[offsets[0]!] = 2;
+    const edgeBytes = blank.saveBytes();
+    expect(Array.from(edgeBytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, CURRENT_SAVE_VERSION, 0]);
+    expect(blank.wallEdges()).toEqual(new Uint32Array());
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
     expect(restored.wallEdges()).toEqual(new Uint32Array());
     expect(restored.wallTiles()).toEqual(new Uint32Array());
     expect(restored.saveBytes()).toEqual(edgeBytes);
-    expect(restored.loadBytes(legacyCells)).toBe(true);
-    expect(restored.wallEdges()).toBeUndefined();
-    expect(restored.wallTiles()).toEqual(new Uint32Array());
-    expect(restored.saveBytes()).toEqual(legacyCells);
+    expect(restored.lotWidth()).toBe(4);
+    expect(restored.count).toBe(0);
   });
 
   it('rejects every current-save truncation, trailing bytes, and future versions transactionally', () => {
@@ -1436,7 +1417,9 @@ describe('SimBridge', () => {
     // digest 8890656731713008279 to this independently measured WASM value.
     // Current creation assigns stable identities and uses weighted instinct.
     // Independently measured in native and release WASM before updating either.
-    expect(bridge.worldHash()).toBe(0x40e538fdcf6ce193n);
+    // Current rooms remove whole-lot Outside friendship and append room hash state.
+    // Independently measured native and normal release Wasm on 2026-10-17.
+    expect(bridge.worldHash()).toBe(4661132544113609906n);
   });
 
   // ---- Player commands -------------------------------------------------

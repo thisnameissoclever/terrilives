@@ -12,8 +12,11 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 mod book_commerce_tests;
+mod browser_rooms;
 #[cfg(test)]
 mod character_tests;
+#[cfg(test)]
+mod room_transport_tests;
 mod save_before_voice;
 
 #[cfg(test)]

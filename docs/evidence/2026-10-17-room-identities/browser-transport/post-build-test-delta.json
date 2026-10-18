@@ -1,0 +1,20 @@
+{
+  "production_source_unchanged": true,
+  "test_only_delta": [
+    {
+      "path": "crates/terri-wasm/src/room_transport_tests.rs",
+      "built_sha256": "b5d0e7b781d1f80daf1edbeb45c9dfbfdce24509e0ba036ba07fd7fcee4aea96",
+      "current_sha256": "b28317c65408f2bd8d20407173747da7eb1b6ef1b89b9a954183f1169580d9b5"
+    },
+    {
+      "path": "web/tests/room-bridge.test.ts",
+      "built_sha256": "0b07c6b4954eac14ecb2e40e8f464ad627bd89786df32da8528af4de5b205931",
+      "current_sha256": "a5aa5afa217195306ab28778c9a301c992cdd56376446be871616dd48b1596f9"
+    },
+    {
+      "path": "web/tests/room-codec.test.ts",
+      "built_sha256": "064a9bc657d74460d9831e530c81b78dc2cfc0b36a71183f6bb6862f0e49a04f",
+      "current_sha256": "bc5309302efd9ce1484a54b3bb25c3aa41c62a09992096a803ed0c8667faa647"
+    }
+  ]
+}

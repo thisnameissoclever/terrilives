@@ -1,6 +1,9 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
+  decodeBuildError, encodeRoomChoices, encodeRoomName, checkBuildToken, RoomWireError, EMPTY_ROOM_CHOICES,
+  type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
 import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
@@ -839,6 +842,40 @@ export class SimBridge {
   /** Versioned simulation bytes for browser-owned storage. */
   saveBytes(): Uint8Array {
     return this.handle.save_bytes();
+  }
+
+  buildActive(): boolean { return this.handle.build_active(); }
+  buildDirty(): boolean { return this.handle.build_dirty(); }
+  roomsRevision(): bigint { return this.handle.rooms_revision(); }
+  beginBuild() { return decodeRoomUnit(this.handle.begin_build()); }
+  cancelBuild() { return decodeRoomUnit(this.handle.cancel_build()); }
+  endBuild() { return decodeRoomUnit(this.handle.end_build()); }
+  discardBuildReview() { return decodeRoomUnit(this.handle.discard_build_review()); }
+  takeBuildError() { return decodeBuildError(this.handle.take_build_error()); }
+  stageRoomName(id: number, name: string) { return decodeRoomUnit(this.handle.stage_room_name(encodeRoomName(id, name))); }
+  roomSummaries() { return decodeRoomSummary(this.handle.room_summaries()); }
+  private roomContext() { return {width:this.handle.lot_width(),height:this.handle.lot_height()}; }
+  roomTiles(id: number) {
+    if (!Number.isInteger(id) || id < 0 || id > 0xffffffff) throw new RoomWireError();
+    return decodeRoomTiles(this.handle.room_tiles(id),this.roomContext());
+  }
+  prepareBuildCommit(choices: RoomChoices = EMPTY_ROOM_CHOICES, expected: BuildToken | null = null) {
+    return decodeBuildReview(this.handle.prepare_build_commit(encodeRoomChoices(choices,expected)),this.roomContext());
+  }
+  commitBuild(token: BuildToken) {
+    checkBuildToken(token);
+    return decodeRoomUnit(this.handle.commit_build(token.session,token.revision,token.preparation));
+  }
+  private componentAnchor(anchor: Point): void {
+    if (!Array.isArray(anchor) || anchor.length !== 2 || anchor.some(n=>!Number.isInteger(n)||n<0||n>0xffffffff)) throw new RoomWireError();
+  }
+  buildComponentTiles(token: BuildToken, anchor: Point) {
+    checkBuildToken(token);this.componentAnchor(anchor);
+    return decodeRoomTiles(this.handle.build_component_tiles(token.session,token.revision,token.preparation,...anchor),this.roomContext());
+  }
+  buildComponentPredecessors(token: BuildToken, anchor: Point) {
+    checkBuildToken(token);this.componentAnchor(anchor);
+    return decodeRoomPredecessors(this.handle.build_component_predecessors(token.session,token.revision,token.preparation,...anchor));
   }
 
   /** Atomic restore. Rejected bytes leave the running simulation untouched. */
