@@ -982,3 +982,162 @@ fn viewer_admission_counts_only_standing_viewers() {
         "a device in use for another action admits no viewer, seated or not"
     );
 }
+
+#[test]
+fn automatic_assignments_claim_distinct_places_and_penalize_only_the_unassigned() {
+    let (mut sim, bed, people) = fixture();
+    sim.tick();
+    let assignments = sim.world().resource::<BedAssignments>();
+    assert_eq!(
+        assignments.assigned_to(SimId(0)),
+        Some(BedPlace { bed, ordinal: 0 })
+    );
+    assert_eq!(
+        assignments.assigned_to(SimId(1)),
+        Some(BedPlace { bed, ordinal: 1 })
+    );
+    assert_eq!(assignments.assigned_to(SimId(2)), None);
+    for (index, person) in people.into_iter().enumerate() {
+        let mood = sim.mood_of(person.index_u32()).unwrap();
+        let penalty = mood.moodlets.iter().find(|m| m.label == "No assigned bed");
+        assert_eq!(penalty.map(|m| m.score), (index == 2).then_some(-20.));
+        assert!(!mood.moodlets.iter().any(|m| m.label == "Not enough beds"));
+    }
+}
+
+#[test]
+fn automatic_assignment_preserves_a_manual_place_and_reclaims_after_clear() {
+    let (mut sim, bed, _) = fixture();
+    sim.world_mut()
+        .resource_mut::<BedAssignments>()
+        .set(SimId(2), Some(BedPlace { bed, ordinal: 0 }));
+    sim.tick();
+    let assignments = sim.world().resource::<BedAssignments>();
+    assert_eq!(
+        assignments.assigned_to(SimId(2)),
+        Some(BedPlace { bed, ordinal: 0 })
+    );
+    assert_eq!(
+        assignments.assigned_to(SimId(0)),
+        Some(BedPlace { bed, ordinal: 1 })
+    );
+    assert_eq!(assignments.assigned_to(SimId(1)), None);
+    sim.world_mut()
+        .resource_mut::<BedAssignments>()
+        .set(SimId(0), None);
+    sim.tick();
+    assert_eq!(
+        sim.world()
+            .resource::<BedAssignments>()
+            .assigned_to(SimId(0)),
+        Some(BedPlace { bed, ordinal: 1 })
+    );
+}
+
+#[test]
+fn automatic_assignment_ignores_unreachable_places_and_claims_new_beds() {
+    let (mut sim, bed, _) = fixture();
+    for (x, y) in [(7, 6), (7, 8)] {
+        sim.world_mut()
+            .resource_mut::<terri_core::TileGrid>()
+            .set_blocked(x, y, true);
+    }
+    sim.tick();
+    assert_eq!(sim.world().resource::<BedAssignments>().iter().count(), 0);
+    sim.world_mut()
+        .resource_mut::<terri_core::TileGrid>()
+        .set_blocked(7, 6, false);
+    sim.tick();
+    assert_eq!(
+        sim.world()
+            .resource::<BedAssignments>()
+            .assigned_to(SimId(0)),
+        Some(BedPlace { bed, ordinal: 0 })
+    );
+    let added = sim
+        .world_mut()
+        .spawn((SmartObject(ObjectDefId(0)), Position { x: 9., y: 4. }))
+        .id();
+    sim.world_mut()
+        .resource_mut::<terri_core::TileGrid>()
+        .set_blocked(9, 4, true);
+    sim.tick();
+    assert_eq!(
+        sim.world()
+            .resource::<BedAssignments>()
+            .assigned_to(SimId(1))
+            .unwrap()
+            .bed,
+        added
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<BedAssignments>()
+            .assigned_to(SimId(2))
+            .unwrap()
+            .bed,
+        added
+    );
+}
+
+#[test]
+fn automatic_assignment_is_stable_across_saves_and_does_not_run_while_paused() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let before = sim.world().resource::<BedAssignments>().clone();
+    sim.flush_commands();
+    assert_eq!(sim.world().resource::<BedAssignments>(), &before);
+    sim.tick();
+    assert!(sim.world().resource::<BedAssignments>().iter().count() > 0);
+    let snapshot = sim.current_v6_view();
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_current_v6_view(snapshot).unwrap();
+    for _ in 0..100 {
+        sim.tick();
+        loaded.tick();
+        assert_eq!(sim.world_hash(), loaded.world_hash());
+    }
+}
+
+#[test]
+fn automatic_assignment_does_not_consume_randomness_or_change_active_work() {
+    use bevy_ecs::system::RunSystemOnce;
+    let (mut sim, bed, people) = fixture();
+    order(&mut sim, people[0], bed, 0);
+    sim.world_mut()
+        .run_system_once(crate::systems::action::serve_intents)
+        .unwrap();
+    assert!(sim.world().get::<Target>(people[0]).is_some());
+    let before_rng = sim.world().resource::<terri_core::SimRng>().clone();
+    let targets: Vec<_> = people
+        .iter()
+        .map(|e| sim.world().get::<Target>(*e).copied())
+        .collect();
+    super::automatic::assign(sim.world_mut());
+    let after_rng = sim.world().resource::<terri_core::SimRng>();
+    assert_eq!(&before_rng, after_rng);
+    assert_eq!(
+        targets,
+        people
+            .iter()
+            .map(|e| sim.world().get::<Target>(*e).copied())
+            .collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn automatic_assignment_uses_person_identity_after_entity_order_changes() {
+    let (mut sim, bed, people) = fixture();
+    sim.world_mut().entity_mut(people[0]).insert(SimId(2));
+    sim.world_mut().entity_mut(people[2]).insert(SimId(0));
+    super::automatic::assign(sim.world_mut());
+    let assignments = sim.world().resource::<BedAssignments>();
+    assert_eq!(
+        assignments.assigned_to(SimId(0)),
+        Some(BedPlace { bed, ordinal: 0 })
+    );
+    assert_eq!(
+        assignments.assigned_to(SimId(1)),
+        Some(BedPlace { bed, ordinal: 1 })
+    );
+    assert_eq!(assignments.assigned_to(SimId(2)), None);
+}

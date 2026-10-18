@@ -9078,7 +9078,7 @@ mod boundary_tests {
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
-                "Not enough beds",
+                "No assigned bed",
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");

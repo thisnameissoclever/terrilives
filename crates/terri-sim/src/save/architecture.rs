@@ -364,7 +364,8 @@ fn finish_restore(
     {
         crate::rooms::install(&mut candidate.world, rooms).map_err(|_| SaveError::InvalidValue)?;
     }
-    if typed {
+    // V6 restores owned reading after this architectural layer.
+    if typed && seats.is_none() {
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;
     }

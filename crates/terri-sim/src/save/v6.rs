@@ -402,6 +402,15 @@ fn restore_inner_social(
             &candidate.world,
         )?;
     }
+    if matches!(
+        candidate
+            .world
+            .resource::<terri_core::layout::SavedLayout>(),
+        terri_core::layout::SavedLayout::EdgeWallsV3 { .. }
+    ) {
+        crate::placement::windows::validate_restored_windows(&candidate.world)
+            .map_err(|_| SaveError::InvalidGrid)?;
+    }
     candidate.sync_render_buffer_after_commands();
     Ok(candidate)
 }

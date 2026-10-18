@@ -426,6 +426,22 @@
         color: var(--hud-muted);
         font-variant-numeric: tabular-nums;
       }
+      .moodlet-score { cursor: help; }
+      .moodlet-score:focus-visible { outline: 1px solid var(--hud-muted); outline-offset: 2px; }
+      .mood-number-help {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        box-sizing: border-box;
+        width: min(290px, calc(100vw - 16px));
+        padding: 10px 12px;
+        border: 1px solid var(--hud-muted);
+        border-radius: 6px;
+        background: var(--hud-bg, #19191f);
+        color: var(--hud-text, #ededf0);
+        font: 12px/1.45 system-ui, sans-serif;
+        pointer-events: none;
+      }
       .moodlet-row[data-tone='negative'] .moodlet-score {
         color: var(--hud-danger);
       }

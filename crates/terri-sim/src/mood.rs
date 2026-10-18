@@ -168,9 +168,12 @@ fn derive_mood_with_chores(
         });
     }
 
-    if world.get::<SimId>(subject).is_some() && has_bed_shortage(world) {
+    if world
+        .get::<SimId>(subject)
+        .is_some_and(|id| !has_assigned_bed(world, *id))
+    {
         moodlets.push(Moodlet {
-            label: "Not enough beds".to_string(),
+            label: "No assigned bed".to_string(),
             score: -20.0,
         });
     }
@@ -422,27 +425,22 @@ fn satisfaction_change(score: f32, tuning: &terri_data::Tuning) -> f32 {
         * tuning.satisfaction_mood_per_tick
 }
 
-/// Count usable sleep places, including occupied beds and people away at work.
-fn has_bed_shortage(world: &World) -> bool {
+/// Missing ownership is an individual concern, independent of household capacity.
+fn has_assigned_bed(world: &World, person: SimId) -> bool {
     let pack = world.resource::<Content>().0;
     if pack.sleep_tag.is_empty() {
-        return false;
+        return true;
     }
-    let people = world
-        .try_query_filtered::<&SimId, With<Agent>>()
-        .map_or(0, |mut q| q.iter(world).count());
-    let beds: usize = world.try_query::<&SmartObject>().map_or(0, |mut q| {
-        q.iter(world)
-            .map(|object| {
+    world
+        .resource::<crate::beds::BedAssignments>()
+        .assigned_to(person)
+        .is_some_and(|place| {
+            world.get::<SmartObject>(place.bed).is_some_and(|o| {
                 pack.objects
-                    .get(object.0 .0 as usize)
-                    .map_or(0, |definition| {
-                        usize::from(crate::beds::capacity(pack, definition))
-                    })
+                    .get(o.0 .0 as usize)
+                    .is_some_and(|o| place.ordinal < crate::beds::capacity(pack, o))
             })
-            .sum()
-    });
-    people > beds
+        })
 }
 
 fn need_labels(need: NeedId) -> (&'static str, &'static str) {
@@ -554,8 +552,10 @@ mod tests {
             .iter()
             .position(|object| object.id == "double_bed")
             .unwrap();
-        sim.world_mut()
-            .spawn(SmartObject(terri_core::ObjectDefId(bed as u32)));
+        sim.world_mut().spawn((
+            SmartObject(terri_core::ObjectDefId(bed as u32)),
+            Position { x: 4.0, y: 4.0 },
+        ));
         let victim = sim
             .world_mut()
             .spawn((
@@ -694,71 +694,48 @@ mod tests {
     }
 
     #[test]
-    fn bed_shortage_counts_sleep_slots_and_clears_when_capacity_returns() {
+    fn only_unassigned_people_receive_the_bed_penalty_even_with_spare_capacity() {
         let mut sim = Sim::new_from_shipped_lot();
-        let people: Vec<Entity> = sim
+        crate::beds::automatic::assign(sim.world_mut());
+        let people: Vec<_> = sim
             .world_mut()
-            .query_filtered::<Entity, With<Agent>>()
+            .query::<(Entity, &SimId)>()
             .iter(sim.world())
+            .map(|(e, id)| (e, *id))
             .collect();
-        let beds: Vec<Entity> = sim
-            .world_mut()
-            .query::<(Entity, &SmartObject)>()
-            .iter(sim.world())
-            .filter(|(_, o)| {
-                terri_data::pack()
-                    .object(o.0)
-                    .interactions
-                    .iter()
-                    .any(|i| i.tags.contains(&terri_data::pack().sleep_tag))
-            })
-            .map(|(e, _)| e)
-            .collect();
-        for bed in beds {
-            sim.world_mut().despawn(bed);
-        }
-        for person in &people {
-            let mood = sim.mood_of(person.index_u32()).unwrap();
-            assert!(mood
-                .moodlets
-                .iter()
-                .any(|m| m.label == "Not enough beds" && m.score == -20.0));
-        }
-        let pack = terri_data::pack();
-        let double = pack
-            .objects
+        let (person, id) = people
             .iter()
-            .position(|o| o.id == "double_bed")
+            .copied()
+            .find(|(_, id)| has_assigned_bed(sim.world(), *id))
             .unwrap();
-        let one = sim
-            .world_mut()
-            .spawn(SmartObject(terri_core::ObjectDefId(double as u32)))
-            .id();
-        assert!(
-            has_bed_shortage(sim.world()),
-            "one double bed cannot sleep three people"
-        );
+        assert!(!mood(&sim, person)
+            .moodlets
+            .iter()
+            .any(|m| m.label == "No assigned bed"));
+        let place = sim
+            .world()
+            .resource::<crate::beds::BedAssignments>()
+            .assigned_to(id)
+            .unwrap();
         sim.world_mut()
-            .spawn(SmartObject(terri_core::ObjectDefId(double as u32)));
-        assert!(
-            !has_bed_shortage(sim.world()),
-            "two double beds provide four places"
-        );
-        for person in &people {
-            assert!(!sim
-                .mood_of(person.index_u32())
-                .unwrap()
-                .moodlets
-                .iter()
-                .any(|m| m.label == "Not enough beds"));
-        }
-        sim.world_mut().despawn(one);
-        assert!(has_bed_shortage(sim.world()));
-        sim.world_mut().despawn(people[0]);
-        assert!(
-            !has_bed_shortage(sim.world()),
-            "only living household members need beds"
-        );
+            .resource_mut::<crate::beds::BedAssignments>()
+            .set(id, None);
+        assert!(mood(&sim, person)
+            .moodlets
+            .iter()
+            .any(|m| m.label == "No assigned bed" && m.score == -20.));
+        sim.world_mut()
+            .resource_mut::<crate::beds::BedAssignments>()
+            .set(id, Some(place));
+        assert!(!mood(&sim, person)
+            .moodlets
+            .iter()
+            .any(|m| m.label == "No assigned bed"));
+        sim.world_mut().despawn(place.bed);
+        assert!(mood(&sim, person)
+            .moodlets
+            .iter()
+            .any(|m| m.label == "No assigned bed" && m.score == -20.));
     }
 
     fn condition(label: &str) -> CompiledTrait {
@@ -1050,7 +1027,7 @@ mod tests {
                 "Comforted by Distant friend",
                 "Comforted by Close friend",
                 "Comforted by Exactly known",
-                "Not enough beds",
+                "No assigned bed",
             ],
             "query and spawn order must collapse to stable SimId order"
         );

@@ -189,6 +189,10 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
             for _ in 0..13 {
                 source.tick();
             }
+            // V10 omits modern request identity and age. Compare continuations
+            // from the same historical state on both sides of this boundary.
+            let historical = source.save_snapshot_v10();
+            source.load_snapshot_v10(historical).unwrap();
             let line = if axis == EdgeAxis::Vertical {
                 WallLine { axis, x: 0, y: 1 }
             } else {
@@ -452,4 +456,39 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
             Err(SaveError::InvalidGrid)
         );
     }
+}
+
+#[test]
+fn a_window_edit_with_owned_reading_restores_the_complete_runtime_before_validation() {
+    let mut sim = Sim::new_from_shipped_lot();
+    for _ in 0..2 {
+        sim.tick();
+    }
+    assert!(sim
+        .world_mut()
+        .query::<&crate::reading::ReadingJourney>()
+        .iter(sim.world())
+        .next()
+        .is_some());
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::FitWindow {
+            axis: terri_core::layout::EdgeAxis::Vertical,
+            x: 0,
+            y: 1,
+            model: terri_core::windows::WindowModel::Sash,
+        });
+    sim.flush_commands();
+    assert_eq!(sim.take_build_error(), None);
+    assert_eq!(
+        sim.world()
+            .resource::<crate::placement::LotEditState>()
+            .last_window_result
+            .as_ref()
+            .map(|r| r.reason),
+        Some(None)
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
+    assert_eq!(loaded.world_hash(), sim.world_hash());
 }

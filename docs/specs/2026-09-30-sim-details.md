@@ -113,3 +113,9 @@ Local evidence is retained in `.tmp/sim-details/` for this worktree.
 These browser sizes are responsive viewport checks, not a physical phone or
 spoken screen-reader acceptance pass. Table header scopes and meter names
 have automated and accessibility-tree evidence.
+
+## Condition number explanations
+
+Each signed condition number in Overview explains its contribution to overall mood when hovered or focused with the keyboard. Labels and the empty space between labels and values do not trigger help. Positive values add mood points, negative values subtract them, and the displayed zero explains that the rounded contribution is zero. Overall mood combines the contributions and stays between -100 and +100. Sustained mood gradually affects life satisfaction.
+
+The explanation follows live values and closes when its number disappears, the list is hidden, the page scrolls, the viewport resizes, or Escape is pressed. Its panel remains within the viewport and above the scrolling sheet. No new simulation or save fields are needed.

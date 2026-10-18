@@ -425,11 +425,7 @@ house has a bunk and a double bed.
 See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
 `docs/assets/review-evidence/bed-assignment/navigation.md`.
 
-A separate shipped household capacity rule gives
-every living member a -20 Not enough beds moodlet when sleep places are fewer
-than people. The double bed counts as two places and the supported lower bunk
-as one. This affects the shared sustained-mood satisfaction mechanism, without
-assigning ownership or adding a separate drain.
+An unassigned living Sim automatically claims a reachable unassigned sleeping place on a simulation tick. Existing assignments remain in place. A double bed provides two places and the supported lower bunk one. Only a Sim without an assigned bed receives the -20 No assigned bed mood condition. The condition subtracts mood points; it does not directly change Comfort or life satisfaction. Sustained mood contributes to life satisfaction through the existing mechanism.
 
 **Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
 

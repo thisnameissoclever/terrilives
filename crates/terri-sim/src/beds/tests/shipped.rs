@@ -51,7 +51,11 @@ fn shipped_double_bed_admits_two_walkers_and_sleepers_without_changing_the_house
         assert!(sim.world().get::<Eating>(*person).is_none());
     }
     let assignments = sim.world().resource::<BedAssignments>().clone();
-    assert_eq!(assignments.iter().count(), 2);
+    assert_eq!(
+        assignments.iter().count(),
+        3,
+        "the third housemate automatically claims the remaining bunk place"
+    );
     for (ordinal, person) in people.iter().enumerate() {
         assert_eq!(
             assignments.assigned_to(*sim.world().get::<SimId>(*person).unwrap()),

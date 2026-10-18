@@ -12439,3 +12439,33 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: native semantic dirtiness correctly became clean, but the exit predicate omitted review-local choices. The preparation path counted that input owner while the exit path did not.
 3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
 4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.
+
+## [L-explicit-utf8-for-source-edits] Preserve Unicode during scripted edits
+
+**What happened.** A scripted interface edit changed the existing zoom-out symbol into corrupted text. Review caught the unrelated change before delivery.
+
+**Root cause.** Python read UTF-8 source using the Windows locale encoding, then wrote that misdecoded text as UTF-8.
+
+**Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
+
+**Verification.** Compare pre-existing non-ASCII text with the base revision and check the zoom-out control in the browser.
+
+## [L-condition-help-states-the-effect] Explain the value directly
+
+**What happened.** Condition tooltips used a forbidden contrast formula and repeated explanations that made a short hover panel cumbersome.
+
+**Root cause.** The copy added imagined misunderstandings instead of answering the player's immediate question about the number.
+
+**Prevention.** State the affected value, direction and amount first. Add only the context needed to interpret that value. Apply the writing-style skill before putting prose into the interface.
+
+**Verification.** Read every tooltip variant in the rendered panel and run the prose checks on its final text.
+
+## [L-window-validation-after-owned-reading] Validate complete restored state
+
+**What happened.** Installing a window while a Sim fetched a book failed final transaction validation with InvalidGrid.
+
+**Root cause.** Window validation invoked the full grid validator inside architectural restoration, before the newer save reader restored owned reading journeys. The validator saw the saved target with its required journey still absent.
+
+**Prevention.** Keep structural validation in the architectural layer. Run validation that depends on activity ownership after that ownership has been restored, and before adopting the candidate world.
+
+**Verification.** Install a window during owned reading, require a successful transaction, and round-trip the current save with an identical world hash. Retain malformed-window rejection checks.

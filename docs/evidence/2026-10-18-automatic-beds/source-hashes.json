@@ -1,0 +1,8 @@
+{
+  "crates/terri-sim/src/beds/automatic.rs": "534bd78f0056b83392cd3361e00b11c5986f76feb6bc865a819dccaaee173865",
+  "crates/terri-sim/src/mood.rs": "e7845953be17b16419777e68347bd90b06d638342d399f54c2a1772599edb9bb",
+  "web/src/ui/mood-panel.ts": "e02234a4f8f55cad505b6975f2788e94ea083c27753127a1da245c5a1477c2be",
+  "web/src/ui/mood-help.ts": "f5cc3eb40b3edb61cea81ac42eb9cb7a1d37fa98595de0b11ed588ee2ca8f758",
+  "web/index.html": "897c81ce74124d11c13d384c61a87e0ea1f1d142fb03248d9f161e4fbf80fb49",
+  "web/src/wasm/terri_wasm_bg.wasm": "90d37f84f0aa1d995e5b9af6d0770776a28deefed3b2bbe8e3c3377a41be0a06"
+}

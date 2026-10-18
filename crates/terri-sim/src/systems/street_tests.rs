@@ -213,7 +213,11 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
         sim.world().get::<AtWork>(tim).is_some()
     });
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    let historical = sim.save_snapshot_v5();
+    loaded.load_snapshot_v5(historical.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v5(), historical);
+    // Current continuation also carries modern conversation ownership.
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
     for _ in 0..600 {
         sim.tick();
         loaded.tick();
