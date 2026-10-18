@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { setActionIntent } from '../src/ui/action-intent.js';
 import { createContextSurface, type ContextModel } from '../src/ui/placement-actions.js';
 import { ChoresBoard, type ChoresSource } from '../src/ui/chores-board.js';
@@ -40,6 +41,19 @@ function fixture() {
   return { doc, root: doc.createElement('div') };
 }
 afterEach(() => vi.unstubAllGlobals());
+
+it.each([
+  ['build-exit-keep', 'negative', 'keep'],
+  ['build-exit-confirm', 'affirmative', 'confirm'],
+  ['build-exit-discard', 'negative', 'discard'],
+])('gives the actual %s exit button its shared action role', (id, intent, value) => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const tag = [...html.matchAll(/<button\b[^>]*>/g)].map(match => match[0])
+    .find(button => button.includes(`id="${id}"`));
+  expect(tag).toBeDefined();
+  expect(tag).toContain(`data-action-intent="${intent}"`);
+  expect(tag).toContain(`value="${value}"`);
+});
 
 it('removes a previous role when an action becomes neutral', () => {
   const { doc } = fixture(), button = doc.createElement('button');

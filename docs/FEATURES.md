@@ -2,7 +2,7 @@
 
 ## Household chores
 
-The local chores implementation adds targeted dish cleanup, indoor floor and
+The local chores implementation adds targeted dish cleanup, eligible indoor and outdoor floor and
 surface grime, bin waste, timed cleaning, separate responsibility and chore
 preferences, and an automatic weekly board with saved daily outcomes. The main
 bottom bar opens Chores, which exposes assignments, recent outcomes, actual performers and profile
@@ -900,7 +900,7 @@ Asked for by the owner on 2026-09-22. During play the house's east and south wal
 
 **Status: Complete.**
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision shares contextual actions across all five tools, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision has six Build destinations: Furniture, Walls, Rooms, Buy, Floors and Land. It shares contextual actions where applicable, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 

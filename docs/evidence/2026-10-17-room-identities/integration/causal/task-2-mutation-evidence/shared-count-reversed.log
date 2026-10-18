@@ -1,0 +1,46 @@
+
+running 13 tests
+test rooms::identity_tests::rooms_current_adoption_is_strict_and_history_pruning_never_reuses_an_id ... ok
+test rooms::identity_tests::rooms_outside_is_one_editable_selection_even_when_no_cleanable_area_exists ... ok
+test rooms::identity_tests::rooms_resize_preserves_id_name_and_only_moves_anchor ... ok
+test rooms::identity_tests::rooms_translation_preserves_ids_names_and_counters ... ok
+test rooms::identity_tests::rooms_lost_enclosure_retires_without_resurrection_and_new_rooms_allocate_monotonically ... ok
+test rooms::identity_tests::rooms_names_validate_unicode_controls_and_preserve_plain_text_duplicates ... ok
+test rooms::identity_tests::rooms_invalid_choices_registry_and_allocator_overflow_fail_without_mutation ... ok
+test rooms::identity_tests::rooms_exact_match_preserves_every_saved_byte_and_allocator ... ok
+test rooms::identity_tests::rooms_generated_names_skip_custom_collisions_including_later_components ... ok
+test rooms::identity_tests::rooms_split_defaults_to_largest_child_but_choice_can_move_inheritance ... FAILED
+test rooms::identity_tests::rooms_merge_prefers_overlap_then_old_fraction_then_id ... FAILED
+test rooms::identity_tests::rooms_equal_split_ties_use_row_order_and_many_to_many_uses_one_id_once ... ok
+test rooms::identity_tests::rooms_north_west_land_translation_preserves_stable_references_and_object_namespaces ... ok
+
+failures:
+
+---- rooms::identity_tests::rooms_split_defaults_to_largest_child_but_choice_can_move_inheritance stdout ----
+
+thread 'rooms::identity_tests::rooms_split_defaults_to_largest_child_but_choice_can_move_inheritance' (54932) panicked at crates\terri-sim\src\rooms\identity_tests.rs:127:5:
+assertion `left == right` failed
+  left: [(8, "Kitchen"), (9, "Room 1")]
+ right: [(9, "Room 1"), (8, "Kitchen")]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rooms::identity_tests::rooms_merge_prefers_overlap_then_old_fraction_then_id stdout ----
+
+thread 'rooms::identity_tests::rooms_merge_prefers_overlap_then_old_fraction_then_id' (52584) panicked at crates\terri-sim\src\rooms\identity_tests.rs:156:5:
+assertion `left == right` failed
+  left: [(2, "Small")]
+ right: [(9, "Large")]
+
+
+failures:
+    rooms::identity_tests::rooms_merge_prefers_overlap_then_old_fraction_then_id
+    rooms::identity_tests::rooms_split_defaults_to_largest_child_but_choice_can_move_inheritance
+
+test result: FAILED. 11 passed; 2 failed; 0 ignored; 0 measured; 1475 filtered out; finished in 0.01s
+
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\f19a\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.52s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`

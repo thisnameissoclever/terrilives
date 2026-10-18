@@ -1,0 +1,14 @@
+### Result
+{
+  "preparedMatchedBaseline": true,
+  "liveTickUnchanged": 1440
+}
+### Ran Playwright code
+```js
+await page.evaluate('async () => {const b=new Uint8Array(await (await fetch("/.scratch/r8-matched-baseline.sav")).arrayBuffer());const w=await(await(await navigator.storage.getDirectory()).getFileHandle("terri-save-1.bin",{create:true})).createWritable();await w.write(b);await w.close();return {preparedMatchedBaseline:true,liveTickUnchanged:__terriStress.sim.clockTick()};}');
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L851-L863

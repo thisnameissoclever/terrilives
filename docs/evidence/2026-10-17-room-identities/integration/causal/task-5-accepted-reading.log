@@ -1,0 +1,230 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 53 tests
+test reading::tests::build_transaction_active_shelf_move_uses_trusted_draft_projection ... ok
+test reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings ... FAILED
+test reading::tests::complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap ... FAILED
+test reading::tests::contextual_reading_relief_matches_delivery_and_never_double_pays_comfort ... ok
+test reading::tests::owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity ... FAILED
+test reading::tests::paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save ... FAILED
+test reading::tests::priority::cross_case_journey_round_trips_under_current_contract ... FAILED
+test reading::tests::priority::unfinished_title_on_another_case_wins_even_against_higher_unread_utility ... ok
+test reading::tests::priority::unread_titles_remain_weighted_and_preview_does_not_promise_a_random_choice ... ok
+test reading::tests::reading_journey_actual_command_three_sessions_retain_first_pass_novelty ... ok
+test reading::tests::reading_journey_all_seating_models_and_repeated_browsing_are_rng_neutral ... ok
+test reading::tests::reading_journey_autonomy_owns_copy_and_duplicate_editions_do_not_bias_choices ... ok
+test reading::tests::reading_journey_batches_actual_satisfaction_and_preserves_nondefault_fun_baseline ... FAILED
+test reading::tests::reading_journey_blocked_return_keeps_copy_and_recovers ... FAILED
+test reading::tests::reading_journey_bookcase_standing_fallback_and_shelf_move ... ok
+test reading::tests::reading_journey_cancel_before_pickup_releases_and_after_pickup_returns ... ok
+test reading::tests::reading_journey_clear_unrelated_orders_preserves_autonomous_reader ... ok
+test reading::tests::reading_journey_death_preserves_copy_for_transfer_recovery ... ok
+test reading::tests::reading_journey_dropped_render_rows_keep_copy_identity_through_recovery ... FAILED
+test reading::tests::reading_journey_duplicate_orders_return_before_new_exact_order ... FAILED
+test reading::tests::reading_journey_each_stage_roundtrips_and_bad_state_rolls_back ... FAILED
+test reading::tests::reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking ... FAILED
+test reading::tests::reading_journey_fractional_work_survives_interruption_and_load ... FAILED
+test reading::tests::reading_journey_front_access_rotations_and_solid_boundary ... ok
+test reading::tests::reading_journey_pending_career_restores_and_pays_full_shift ... FAILED
+test reading::tests::reading_journey_preview_cost_and_neutrality_on_real_household ... ok
+test reading::tests::reading_journey_queued_read_lets_existing_food_chain_finish ... ok
+test reading::tests::reading_journey_reach_phases_preserve_location_and_cancel_pickup_safely ... ok
+test reading::tests::reading_journey_same_shelf_serializes_fetches_then_shares_reading ... ok
+test reading::tests::reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint ... FAILED
+test reading::tests::reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stage ... FAILED
+test reading::tests::reading_journey_specialist_reward_and_comfort_ratios ... ok
+test reading::tests::reading_journey_statistical_specialist_preference_can_be_outweighed ... ok
+test reading::tests::reading_journey_transfer_claim_corruption_rejects_without_adopting ... FAILED
+test reading::tests::reading_journey_two_standing_readers_leave_the_shelf_front_available ... FAILED
+test reading::tests::reading_journey_urgent_need_returns_before_other_activity_and_recline_waits ... ok
+test reading::tests::reading_journey_waits_for_ownership_and_auto_shelved_arrivals ... ok
+test reading::tests::reading_render_projection_tracks_active_seat_and_canonical_reach ... ok
+test reading::tests::reading_return_blocks_front_chore_and_board_until_book_is_home ... FAILED
+test reading::tests::review::fix1_equal_routes_use_stable_copy_ids_and_reserved_copy_falls_back ... ok
+test reading::tests::review::fix1_fast_work_exceeds_short_cap_and_slow_fractional_work_survives ... FAILED
+test reading::tests::review::fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_inflation ... FAILED
+test reading::tests::review::fix1_native_reference_facts_and_capped_plan_score_use_distinct_units ... ok
+test reading::tests::review::fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order ... FAILED
+test reading::tests::review::fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhere ... ok
+test reading::tests::review::fix1_session_cap_changes_only_session_partition ... FAILED
+test reading::tests::upstream_integration::upstream_capacity_facts_follow_actual_media_admission_and_book_ownership ... ok
+test reading::tests::upstream_integration::upstream_edit_active_reader_preserves_accrued_reward_and_book_identity ... FAILED
+test reading::tests::upstream_integration::upstream_reading_contexts_bound_work_and_survive_paused_edits ... FAILED
+test reading::tests::upstream_integration::upstream_reading_hash_observes_outcome_and_every_reward_context_field ... ok
+test reading::tests::upstream_integration::upstream_reading_practice_is_once_per_completed_session_not_return_or_reload ... FAILED
+test reading::tests::upstream_integration::upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery ... FAILED
+test reading::tests::upstream_integration::upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal ... FAILED
+
+failures:
+
+---- reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings stdout ----
+
+thread 'reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings' (64176) panicked at crates\terri-sim\src\reading\tests.rs:196:5:
+reader finishes the book while waiting for admitted company
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- reading::tests::complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap stdout ----
+
+thread 'reading::tests::complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap' (60840) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity stdout ----
+
+thread 'reading::tests::owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity' (37976) panicked at crates\terri-sim\src\reading\tests.rs:2183:5:
+assertion failed: (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30. -
+                expected).abs() < 0.00001
+
+---- reading::tests::paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save stdout ----
+
+thread 'reading::tests::paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save' (37920) panicked at crates\terri-sim\src\reading\tests.rs:266:5:
+assertion failed: held
+
+---- reading::tests::priority::cross_case_journey_round_trips_under_current_contract stdout ----
+
+thread 'reading::tests::priority::cross_case_journey_round_trips_under_current_contract' (21268) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_batches_actual_satisfaction_and_preserves_nondefault_fun_baseline stdout ----
+
+thread 'reading::tests::reading_journey_batches_actual_satisfaction_and_preserves_nondefault_fun_baseline' (71424) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_blocked_return_keeps_copy_and_recovers stdout ----
+
+thread 'reading::tests::reading_journey_blocked_return_keeps_copy_and_recovers' (66348) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_dropped_render_rows_keep_copy_identity_through_recovery stdout ----
+
+thread 'reading::tests::reading_journey_dropped_render_rows_keep_copy_identity_through_recovery' (46816) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_duplicate_orders_return_before_new_exact_order stdout ----
+
+thread 'reading::tests::reading_journey_duplicate_orders_return_before_new_exact_order' (66476) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_each_stage_roundtrips_and_bad_state_rolls_back stdout ----
+
+thread 'reading::tests::reading_journey_each_stage_roundtrips_and_bad_state_rolls_back' (17840) panicked at crates\terri-sim\src\lib.rs:1304:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking stdout ----
+
+thread 'reading::tests::reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking' (62692) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_fractional_work_survives_interruption_and_load stdout ----
+
+thread 'reading::tests::reading_journey_fractional_work_survives_interruption_and_load' (580) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_pending_career_restores_and_pays_full_shift stdout ----
+
+thread 'reading::tests::reading_journey_pending_career_restores_and_pays_full_shift' (75064) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint stdout ----
+
+thread 'reading::tests::reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint' (69576) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stage stdout ----
+
+thread 'reading::tests::reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stage' (59180) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_transfer_claim_corruption_rejects_without_adopting stdout ----
+
+thread 'reading::tests::reading_journey_transfer_claim_corruption_rejects_without_adopting' (74768) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_journey_two_standing_readers_leave_the_shelf_front_available stdout ----
+
+thread 'reading::tests::reading_journey_two_standing_readers_leave_the_shelf_front_available' (78104) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::reading_return_blocks_front_chore_and_board_until_book_is_home stdout ----
+
+thread 'reading::tests::reading_return_blocks_front_chore_and_board_until_book_is_home' (71400) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::review::fix1_fast_work_exceeds_short_cap_and_slow_fractional_work_survives stdout ----
+
+thread 'reading::tests::review::fix1_fast_work_exceeds_short_cap_and_slow_fractional_work_survives' (73472) panicked at crates\terri-sim\src\lib.rs:1304:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::review::fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_inflation stdout ----
+
+thread 'reading::tests::review::fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_inflation' (53724) panicked at crates\terri-sim\src\lib.rs:1304:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::review::fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order stdout ----
+
+thread 'reading::tests::review::fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order' (49784) panicked at crates\terri-sim\src\lib.rs:1304:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::review::fix1_session_cap_changes_only_session_partition stdout ----
+
+thread 'reading::tests::review::fix1_session_cap_changes_only_session_partition' (69180) panicked at crates\terri-sim\src\lib.rs:1304:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::upstream_integration::upstream_edit_active_reader_preserves_accrued_reward_and_book_identity stdout ----
+
+thread 'reading::tests::upstream_integration::upstream_edit_active_reader_preserves_accrued_reward_and_book_identity' (61764) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::upstream_integration::upstream_reading_contexts_bound_work_and_survive_paused_edits stdout ----
+
+thread 'reading::tests::upstream_integration::upstream_reading_contexts_bound_work_and_survive_paused_edits' (77248) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::upstream_integration::upstream_reading_practice_is_once_per_completed_session_not_return_or_reload stdout ----
+
+thread 'reading::tests::upstream_integration::upstream_reading_practice_is_once_per_completed_session_not_return_or_reload' (78480) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::upstream_integration::upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery stdout ----
+
+thread 'reading::tests::upstream_integration::upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery' (39052) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+---- reading::tests::upstream_integration::upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal stdout ----
+
+thread 'reading::tests::upstream_integration::upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal' (75672) panicked at crates\terri-sim\src\lib.rs:1293:14:
+current rooms cannot be represented by this historical save format; use V15: InvalidValue
+
+
+failures:
+    reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings
+    reading::tests::complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap
+    reading::tests::owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity
+    reading::tests::paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save
+    reading::tests::priority::cross_case_journey_round_trips_under_current_contract
+    reading::tests::reading_journey_batches_actual_satisfaction_and_preserves_nondefault_fun_baseline
+    reading::tests::reading_journey_blocked_return_keeps_copy_and_recovers
+    reading::tests::reading_journey_dropped_render_rows_keep_copy_identity_through_recovery
+    reading::tests::reading_journey_duplicate_orders_return_before_new_exact_order
+    reading::tests::reading_journey_each_stage_roundtrips_and_bad_state_rolls_back
+    reading::tests::reading_journey_extreme_finite_shelf_coordinates_reject_without_panicking
+    reading::tests::reading_journey_fractional_work_survives_interruption_and_load
+    reading::tests::reading_journey_pending_career_restores_and_pays_full_shift
+    reading::tests::reading_journey_saved_transfer_cannot_overlap_a_reading_seat_endpoint
+    reading::tests::reading_journey_shelf_moves_commit_reroutes_atomically_at_every_transfer_stage
+    reading::tests::reading_journey_transfer_claim_corruption_rejects_without_adopting
+    reading::tests::reading_journey_two_standing_readers_leave_the_shelf_front_available
+    reading::tests::reading_return_blocks_front_chore_and_board_until_book_is_home
+    reading::tests::review::fix1_fast_work_exceeds_short_cap_and_slow_fractional_work_survives
+    reading::tests::review::fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_inflation
+    reading::tests::review::fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order
+    reading::tests::review::fix1_session_cap_changes_only_session_partition
+    reading::tests::upstream_integration::upstream_edit_active_reader_preserves_accrued_reward_and_book_identity
+    reading::tests::upstream_integration::upstream_reading_contexts_bound_work_and_survive_paused_edits
+    reading::tests::upstream_integration::upstream_reading_practice_is_once_per_completed_session_not_return_or_reload
+    reading::tests::upstream_integration::upstream_reading_repetition_changes_appeal_and_mood_but_not_delivery
+    reading::tests::upstream_integration::upstream_reading_rolls_mastery_once_and_keeps_outcome_after_trait_removal
+
+test result: FAILED. 26 passed; 27 failed; 0 ignored; 0 measured; 1490 filtered out; finished in 37.16s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

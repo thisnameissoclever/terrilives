@@ -1,0 +1,81 @@
+{
+  "baseline_commit": "6acc24eaf90a8adf9491ccd45452c30cd1fbf37b",
+  "method": "Six isolated fault executions in one instrumented build; each exact test has a passing neutral control. Not six independently rebuilt mutants.",
+  "environment": "TERRILIVES_SDD_ROOM_MUTATION",
+  "controls": [
+    {
+      "fault": "outdoor-materials",
+      "test": "rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty",
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "fault": "current-reference-mode",
+      "test": "rooms::integration_tests::stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically",
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "fault": "refused-adoption",
+      "test": "rooms::integration_tests::stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically",
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "fault": "migration-random-stream",
+      "test": "rooms::integration_tests::review_stale_legacy_visit_and_duty_seeds_remain_separate_retired_history",
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "fault": "cleaned-units-conservation",
+      "test": "chores::room_change_tests::review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_path",
+      "exit": 0,
+      "passed": true
+    },
+    {
+      "fault": "unrelated-path-ownership",
+      "test": "chores::room_change_tests::review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_path",
+      "exit": 0,
+      "passed": true
+    }
+  ],
+  "faults": [
+    {
+      "fault": "outdoor-materials",
+      "test": "rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty",
+      "exit": 101,
+      "intended_assertion_failed": false,
+      "assertion": "assertion failed",
+      "location": "thread 'rooms::integration_tests::outdoor_coverings_create_one_outside_floor_duty' (24484) panicked at crates\\terri-sim\\src\\rooms\\integration_tests.rs:20:5:"
+    }
+  ],
+  "original_sha256": {
+    "crates/terri-sim/src/rooms/runtime.rs": "dba49a10c62d9ac85199db0b75f9a6198b2a9d9c0c09efdb9bbc08821413e982",
+    "crates/terri-sim/src/save/v15.rs": "620934a0aa0a17f270ae63dc60be4a9f864a55684534e3df8c7b0af1a5ac0595",
+    "crates/terri-sim/src/lib.rs": "e048d1d0baa917f0b8a00577b2d50c1c8f366fc11deb74dd035dc6d7264e3fd1",
+    "crates/terri-sim/src/rooms/migration.rs": "8eeebe9fa453fe3d73fae2a366078d18ae86104b909c3de138252a433bc61c46",
+    "crates/terri-sim/src/chores/room_changes.rs": "6f34c7f35221c79c85346ce84756c23862fef1d21b8a08f4cd433122e11ba22a"
+  },
+  "instrumented_sha256": {
+    "crates/terri-sim/src/rooms/runtime.rs": "d1c7a65279dfac66d3caa18c6ed47129de8a1a6acfcc714e777e381268c81fc3",
+    "crates/terri-sim/src/save/v15.rs": "a022addb8af8dc167312eccd4f541379b1f6d82687e547250dcfe6073f317456",
+    "crates/terri-sim/src/lib.rs": "56c8d710a626b759141af62679534d8ab64d62914ed17df4852404d31d558ae5",
+    "crates/terri-sim/src/rooms/migration.rs": "35171bb34b4466e3e667f0763c95b8f01f725b148f19e29782056394547aff5e",
+    "crates/terri-sim/src/chores/room_changes.rs": "36f69119b1bcd4f2ba88713c159dc2b8c1c5798bfe74d78a8707b8bc98c7ddd1"
+  },
+  "compile_exit": 0,
+  "executable": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\target\\debug\\deps\\terri_sim-0bcea68002488dc1.exe",
+  "restored_sha256": {
+    "crates/terri-sim/src/rooms/runtime.rs": "dba49a10c62d9ac85199db0b75f9a6198b2a9d9c0c09efdb9bbc08821413e982",
+    "crates/terri-sim/src/save/v15.rs": "620934a0aa0a17f270ae63dc60be4a9f864a55684534e3df8c7b0af1a5ac0595",
+    "crates/terri-sim/src/lib.rs": "e048d1d0baa917f0b8a00577b2d50c1c8f366fc11deb74dd035dc6d7264e3fd1",
+    "crates/terri-sim/src/rooms/migration.rs": "8eeebe9fa453fe3d73fae2a366078d18ae86104b909c3de138252a433bc61c46",
+    "crates/terri-sim/src/chores/room_changes.rs": "6f34c7f35221c79c85346ce84756c23862fef1d21b8a08f4cd433122e11ba22a"
+  },
+  "all_sources_restored": true,
+  "parent_environment_unchanged": true,
+  "tracked_source_clean": true,
+  "index_source_clean": true,
+  "harness_sha256": "4311c55cc6d42611729f1d17d0df35eeac41b234175f667799964ec2ecb85a50"
+}

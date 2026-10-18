@@ -1,0 +1,6 @@
+### Result
+[{"name":"r8-changelog-desktop-dark","width":1440,"scrollWidth":1425,"theme":"dark","latest":"Room names and outdoor cleaning"},{"name":"r8-changelog-desktop-light","width":1440,"scrollWidth":1425,"theme":"light","latest":"Room names and outdoor cleaning"},{"name":"r8-changelog-phone-light","width":390,"scrollWidth":375,"theme":"light","latest":"Room names and outdoor cleaning"},{"name":"r8-changelog-phone-dark","width":390,"scrollWidth":375,"theme":"dark","latest":"Room names and outdoor cleaning"}]
+### Ran Playwright code
+```js
+await (async page => {const result=[];async function capture(name){await page.screenshot({path:".local-build/"+name+".png"});result.push(await page.evaluate(name=>({name,width:innerWidth,scrollWidth:document.documentElement.scrollWidth,theme:document.documentElement.dataset.theme,latest:document.querySelector("article h2").textContent}),name));}await capture("r8-changelog-desktop-dark");await page.getByRole("button",{name:"Use light theme",exact:true}).click();await capture("r8-changelog-desktop-light");await page.setViewportSize({width:390,height:844});await capture("r8-changelog-phone-light");await page.getByRole("button",{name:"Use dark theme",exact:true}).click();await capture("r8-changelog-phone-dark");return result;})(page);
+```

@@ -1,0 +1,16 @@
+{
+  "before": {
+    "captured_at": "2026-10-18T08:13:59.817753+00:00",
+    "source_sha256": "2385c68250bb874c96a25f31a82497edd05c6e7df30a7fe0b5ce9ddcedf18a09"
+  },
+  "after": {
+    "captured_at": "2026-10-18T08:23:55.672493+00:00",
+    "source_sha256": "2385c68250bb874c96a25f31a82497edd05c6e7df30a7fe0b5ce9ddcedf18a09"
+  },
+  "count": 52748,
+  "exact_rows_equal": true,
+  "raw_manifest_sha256": {
+    "before": "b2ef66b6d9c06d309bd6dcae8fc0e2f601c540651760b726a738272e6c7b99d9",
+    "after": "314921186565afd5c5e9c569163ee5f68ac63d2b39dd8fcbf387aa9d9cad1aa6"
+  }
+}

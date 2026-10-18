@@ -1,0 +1,86 @@
+{
+  "source": "3edc8da2d98fb19d20e159ab4166ac5476620026a806a85f3d9a96b3b35ffd7e",
+  "module_sha256": "6c0562aca59fe17b20000845ebeddb71337859b2b39bd8e212a10ec5ab3154c1",
+  "seed_sha256": "fb5299c77020b61b196bb097964073d53101e1ac0af16bdfd776d1238fea7876",
+  "schema": 16,
+  "width": 30,
+  "height": 26,
+  "enclosed": 7,
+  "outside": 1,
+  "rooms": [
+    {
+      "id": 0,
+      "anchor": null,
+      "name": "Outside",
+      "area": 500
+    },
+    {
+      "id": 1,
+      "anchor": [
+        14,
+        2
+      ],
+      "name": "Room 1",
+      "area": 48
+    },
+    {
+      "id": 2,
+      "anchor": [
+        10,
+        10
+      ],
+      "name": "Kitchen",
+      "area": 48
+    },
+    {
+      "id": 3,
+      "anchor": [
+        18,
+        10
+      ],
+      "name": "Living room",
+      "area": 48
+    },
+    {
+      "id": 4,
+      "anchor": [
+        2,
+        12
+      ],
+      "name": "Room 2",
+      "area": 40
+    },
+    {
+      "id": 5,
+      "anchor": [
+        10,
+        16
+      ],
+      "name": "Bedroom 1",
+      "area": 36
+    },
+    {
+      "id": 6,
+      "anchor": [
+        16,
+        16
+      ],
+      "name": "Bedroom 2",
+      "area": 36
+    },
+    {
+      "id": 7,
+      "anchor": [
+        22,
+        16
+      ],
+      "name": "Bathroom",
+      "area": 24
+    }
+  ],
+  "output": ".local-build/r6-room-play-current16.sav",
+  "output_sha256": "a75def6a369c5d29a25faf8b8f60fb38eaf647d9f6b4306e7f9e4e4bcd924f45",
+  "funded_play_setup": true,
+  "compatibility_fixture": false,
+  "matches_requested": true
+}

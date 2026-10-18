@@ -12,6 +12,8 @@ A discard resets every tool as a Load does, so a purchase dropped with the draft
 
 The native simulation owns the baseline, accepted-command journal, pending room names, and prepared review. Browser `BuildSession` settles previews and presents the controls. Confirm replays accepted edits from the baseline into a private candidate, resolves final room membership once, and validates that candidate before adoption. A review token identifies its session, revision, and preparation; an obsolete token cannot commit another arrangement. See [room identity and naming](2026-10-17-room-identities.md).
 
+Retained explicit review choices also count as pending input when deciding whether to leave Build. Reversing wall edits exactly can make native geometry clean while a name entered in review remains pending. Exit still asks first. Keep building preserves that name, and Confirm obtains and displays a fresh review before adoption; Cancel or Discard clears it explicitly.
+
 All persistence paths request committed native bytes, including manual Save, visibility-triggered saving and autosave. Dirty drafts and open reviews never replace the committed save. Graphics-device recovery preserves the native handle and its transaction.
 
 Successful Load replaces the baseline with the loaded household and clears the old journal. When Build is active, the privately loaded household settles its saved command stream once, without advancing time, before establishing the fresh baseline, just as at Build entry. Rejected Load or settlement preserves the live household and transaction. A failed preparation, commit, or rollback keeps Build open and paused, reports the failure, and retains the baseline.
@@ -19,6 +21,8 @@ Successful Load replaces the baseline with the loaded household and clears the o
 Cancellation clears queued draft commands and tool receipts, restores funds and owned objects, and refreshes architecture, floor resources, selection, lighting, and audio. Store purchases, sales, and book transactions made during Build belong to the same batch. Household editing, chores, death settings, and Sim-detail controls are unavailable while the batch is active so cancellation cannot silently undo unrelated changes.
 
 Room names, chore assignments, and room-entry consequences remain unchanged during edits. Detection compares the last confirmed rooms with the final draft, so removing and restoring a wall in one batch preserves identities and names. New unrelated enclosures receive numbered names at Confirm. Build remains open so the player can select and rename them in another batch. Outside counts as one shared room; grass remains ineligible for floor cleaning.
+
+This preserves saved assignments and gameplay consequences. Chores are unavailable during Build; raw diagnostic chore rows can reflect draft object positions and are not a confirmed assignment report. Confirm reconciles the private candidate from the native baseline rather than adopting those diagnostic rows.
 
 Physical room outlines include the owned lot perimeter. Perimeter solids are saved, drawn, and validated as physical architecture. They do not become movement-grid barriers between an owned tile and an out-of-bounds tile: off-lot movement is already disallowed. Doorways remain interior-only. The Wall tool can remove and rebuild explicit perimeter solids while preserving the original implicit rear shell. The original implicit rear house shell is not duplicated. Existing saves are preserved without guessing where old incomplete rooms were meant to have walls.
 

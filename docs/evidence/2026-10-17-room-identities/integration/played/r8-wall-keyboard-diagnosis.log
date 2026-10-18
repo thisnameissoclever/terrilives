@@ -1,0 +1,11 @@
+### Result
+{"status":"No wall on this line.","buttons":"\n\n    PlaceRotate counterclockwiseRotate clockwiseSell$60Cancel","dialogs":0,"selection":"","rooms":"false","walls":"true"}
+### Ran Playwright code
+```js
+await (async page => {await page.locator("#stage").focus();await page.keyboard.press("ArrowRight");return {status:await page.locator("#wall-status").textContent(),buttons:await page.locator("#placement-actions").textContent(),dialogs:await page.locator("dialog[open]").count(),selection:await page.locator("#builder-object").inputValue(),rooms:await page.locator("#build-tool-room").getAttribute("aria-pressed"),walls:await page.locator("#build-tool-walls").getAttribute("aria-pressed")};})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L462-L499

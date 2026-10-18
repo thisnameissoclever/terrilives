@@ -1,0 +1,11 @@
+### Result
+{"receipts":[{"x":15,"y":5,"covering":4,"reason":0},{"x":15,"y":6,"covering":4,"reason":0},{"x":16,"y":5,"covering":4,"reason":0}],"floors":[12,12,1,12,13,1,12,14,1,12,15,1,12,16,1,12,17,1,12,18,1,13,12,1,13,13,1,13,14,1,13,15,1,13,16,1,13,17,1,13,18,1,14,12,1,14,13,1,14,14,1,14,15,1,14,16,1,14,17,1,14,18,1,15,3,2,15,4,2,15,5,4,15,6,4,15,12,1,15,13,1,15,14,1,15,15,1,15,16,1,15,17,1,15,18,1,16,3,2,16,4,2,16,5,4,16,6,4,16,12,1,16,13,1,16,14,1,16,15,1,17,3,2,17,4,2,17,5,2,17,6,2,17,12,1,17,13,1,17,14,1,17,15,1,18,3,2,18,4,2,18,5,2,18,6,2,18,12,1,18,13,1,18,14,1,18,15,1,19,3,2,19,4,2,19,5,2,19,6,2,20,3,2,20,4,2,20,5,2,20,6,2,24,2,3,24,3,3,24,4,3,24,5,3,24,6,3,24,7,3,25,2,3,25,3,3,25,4,3,25,5,3,25,6,3,25,7,3,26,2,3,26,3,3,26,4,3,26,5,3,26,6,3,26,7,3,27,2,3,27,3,3,27,4,3,27,5,3,27,6,3,27,7,3,28,2,3,28,3,3,28,4,3,28,5,3,28,6,3,28,7,3,29,2,3,29,3,3,29,4,3,29,5,3,29,6,3,29,7,3,30,2,3,30,3,3,30,4,3,30,5,3,30,6,3,30,7,3,31,2,3,31,3,3,31,4,3,31,5,3,31,6,3,31,7,3]}
+### Ran Playwright code
+```js
+await (async page => {const receipts=[];for(const tile of [[15,5],[15,6],[16,5]]){const cancel=page.locator("#placement-actions").getByRole("button",{name:"Cancel",exact:true});if(await cancel.isVisible())await cancel.click();const proof=await page.evaluate(async tile=>(await import("/.scratch/r8-play-helper.js")).tilePoint(...tile),tile);await page.mouse.click(proof.point.x,proof.point.y);await page.waitForTimeout(150);await page.locator("#placement-actions").getByRole("button",{name:"Outdoor patio",exact:true}).click();await page.waitForFunction(([x,y])=>{const r=__terriStress.sim.lastFloorEditResult();return r?.x===x&&r.y===y&&r.covering===4&&r.reason===0;},tile);receipts.push(await page.evaluate(()=>__terriStress.sim.lastFloorEditResult()));}await page.locator("#build-batch-confirm").click();await page.waitForFunction(()=>!__terriStress.sim.buildDirty());await page.screenshot({path:".local-build/r8-patio-four-confirmed.png"});return {receipts,floors:await page.evaluate(()=>Array.from(__terriStress.sim.floorTiles()))};})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L729-L741

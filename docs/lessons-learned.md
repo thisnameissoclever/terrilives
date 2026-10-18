@@ -1,5 +1,67 @@
 # Lessons Learned
 
+## [L-surface-inventory-and-capability-identity] Check composed controls and opaque identities
+
+**What happened.** Final played review found the existing Exit dialog's three
+buttons missing the shared action roles, despite other Build controls using them.
+A separate query-purity proof failed three times on helper assumptions: fractional
+display coordinates passed as tile commands, eager BigInt serialization in an
+error label, and expected token equality across independent native handles.
+
+**Root cause.** The control inventory omitted a composed dialog. The proof
+conflated identical outcomes with identical capabilities; native session tokens
+are deliberately unique across handles.
+
+**Prevention.** Audit actual markup and composed dialogs, including incoming
+controls. Check tile admission and drained receipts, format errors lazily, and
+compare semantic review content separately from each handle's typed token.
+After three failures, obtain a fresh approach review before another run.
+
+**Verification.** Actual-markup role tests reject each missing Exit attribute.
+Matched game captures must reject the gray control and accept restored shared
+roles. A query comparison uses each original token only with its owning handle,
+checks exact terminal outcomes and first-tick advancement, and states which
+private fields are covered by source inspection rather than public getters.
+
+## [L-test-progress-before-stall] Inspect test lifecycle progress before declaring a stall
+
+**What happened.** The first whole-web run during room integration was interrupted
+after sparse output and low coordinator CPU were treated as a stopped suite.
+A later run's per-file reporter showed steady character-contact test progress.
+The original interrupted run's exact cause remains unproven.
+
+**Root cause.** Coordinator activity and quiet output were used as substitutes
+for evidence from the worker actually running the cases.
+
+**Prevention.** Record module and case lifecycle progress or inspect worker
+activity before classifying a stall. Preserve interrupted runs as incomplete.
+Do not inflate deadlines or suppress cases to obtain a passing result.
+
+**Verification.** Retain the command, normal runner configuration, per-file
+events, exit status and unchanged input manifest for the completed suite.
+
+## [L-review-release-and-capture-provenance] Bind reviews to released source and matched captures
+
+**What happened.** A reduced-viewport image captured at 06:40:44 UTC was submitted
+after a 06:48 UTC correction because its filename contained final. The reviewer
+correctly rejected the older pixels, but the parent initially called it a current
+defect. Later, fix-1 review began from an intermediate clean commit before the
+worker released source and index. Evidence-only EOF/hash cleanup then changed
+HEAD; a bounded addendum linked the original review package to the final head.
+No code or data damage occurred.
+
+**Root cause.** Filename wording and a clean working tree were mistaken for
+source identity and an explicit ownership handoff.
+
+**Prevention.** Freeze review after the worker explicitly releases source and
+index, then verify HEAD and status. Bind every selected image to source, hash and
+capture time. Require a current matched capture before claiming a repair failed;
+preserve valid historical findings and original review packages.
+
+**Verification.** Compare actual source/capture receipts and final released
+HEAD. When evidence-only commits follow a frozen package, retain that package
+and provide a separately scoped addendum with the final identities.
+
 ## [L-register-atlas-extensions] Register new sprites before rebuilding architecture
 
 **What happened.** Appending conversation sprites to the generator failed the

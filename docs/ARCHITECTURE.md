@@ -954,7 +954,7 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles and carpet; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
+Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles, carpet and Outdoor patio; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Outdoor patio appends covering ID 4 without changing IDs 1-3. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
 
 Whole windows store a model and canonical start in appended layout variants. The nine models span one, two or three lines on either axis. Historical window lines decode as Sash placements. Shared validation handles fit, replacement, removal, Room edits and load; it rejects partial spans, junctions, overlap and coordinate overflow before committing layout/grid changes. Historical command and layout encodings remain unchanged. The bridge exposes whole-window preview/result APIs while preserving the old expanded-line getter.
 
@@ -1750,19 +1750,22 @@ work. Serving, resumption and queue display use the same ownership distinction.
 The published V5 skill and affinity fields follow dining. Targeted cleanup, `SavedChores`
 and `SavedGrime` append after that published tail in this order.
 `SavedChores` follows targeted cleanup.
-It owns indoor grime, surface grime, bin contents and pending unbinned waste,
+It owns indoor and outdoor tile grime, surface grime, bin contents and pending unbinned waste,
 permanent-SimId profiles, scoped order records, timed work, weekly assignments,
 daily decisions and settled outcomes. Its separate seeded random stream,
 allocators and all future-affecting state enter deterministic hashing. Historical
 nested save records and ordinary intent encodings remain unchanged.
 
 The chores scheduler runs through normal ticks. Floor work captures reachable
-dirty cells in one architectural room; surface and bin work claim one real
+dirty eligible cells in one confirmed room or shared Outside; surface and bin work claim one real
 object and approach its footprint through the existing path mover. ChoreWork
 suppresses ordinary autonomous selection while work is active. Other orders
 and urgent needs can suspend work; cancellation releases its owned path and
-marker. Room edits cancel invalid floor plans. Object movement refreshes
-contacts, and selling a bin moves its contents to unbinned waste. Load validation
+marker. Final Build confirmation reconciles remaining work against accepted geometry,
+retaining valid progress and replanning changed targets without construction credit
+or neglect. Removing a covering preserves dormant dirt. Outdoor counters and tables
+remain cleanable even on grass; grass and the street receive no floor-cleaning duty.
+Object movement refreshes contacts after adoption, and selling a bin moves its contents to unbinned waste. Load validation
 rejects unsupported work variants and contacts before world adoption.
 
 Weekly assignments balance estimated work and sample chore preferences. Saved

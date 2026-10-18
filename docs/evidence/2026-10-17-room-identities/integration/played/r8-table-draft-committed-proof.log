@@ -1,0 +1,41 @@
+### Result
+{
+  "utc": "2026-10-18T07:53:13.413Z",
+  "tick": 240,
+  "seedSha256": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+  "committedSha256": "775c278e15cca36cdc12720f91aee5643ccd65a42a938b47fb6dcbb1a389a8ab",
+  "canonicalSeedSha256": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+  "exactSeed": false,
+  "exactCanonicalSeed": false,
+  "strictCurrentLoad": true,
+  "exactResave": true,
+  "duties": [
+    {
+      "kind": 5,
+      "target": 2,
+      "owner": 1,
+      "dirt": 600,
+      "location": "Kitchen"
+    }
+  ],
+  "table": {
+    "id": 7,
+    "position": [
+      12.5,
+      13
+    ],
+    "dirt": 600
+  },
+  "liveUnchanged": true,
+  "buildActive": true,
+  "buildDirty": true
+}
+### Ran Playwright code
+```js
+await page.evaluate('async () => (await import("/.scratch/r8-committed-proof.js")).prove()');
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L115-L202

@@ -1,0 +1,11 @@
+### Error
+Error: Move queue
+    at must (http://127.0.0.1:5194/.scratch/r8-query-purity.js:4:38)
+    at Module.run (http://127.0.0.1:5194/.scratch/r8-query-purity.js:17:30)
+    at async eval (eval at evaluate (:368:30), <anonymous>:4:30)
+    at async <anonymous>:394:30
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L316-L349

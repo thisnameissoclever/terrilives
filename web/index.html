@@ -1566,9 +1566,9 @@
       <p id="build-exit-text">You have changes that are not confirmed. Discarding them undoes every change since the last Confirm, including purchases and sales.</p>
       <form method="dialog">
         <menu>
-          <button id="build-exit-keep" class="hud-button" value="keep" autofocus>Keep building</button>
-          <button id="build-exit-confirm" class="hud-button" value="confirm">Confirm changes</button>
-          <button id="build-exit-discard" class="hud-button" value="discard">Discard changes</button>
+          <button id="build-exit-keep" class="hud-button" data-action-intent="negative" value="keep" autofocus>Keep building</button>
+          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
+          <button id="build-exit-discard" class="hud-button" data-action-intent="negative" value="discard">Discard changes</button>
         </menu>
       </form>
     </dialog>

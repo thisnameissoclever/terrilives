@@ -1,0 +1,11 @@
+### Result
+{"proof":{"edge":{"axis":0,"x":18,"y":2},"adjacent":[[17,2],[18,2]],"point":{"x":1152,"y":267.5002193450928},"line":{"axis":0,"x":18,"y":2},"oldPoint":{"x":1152,"y":170.00021934509277},"oldLine":{"axis":1,"x":15,"y":0},"camera":{"x":656,"y":-141.99978065490723,"scale":1},"scaleProvenance":"Fresh loaded camera scale1; no game zoom input","rect":{"x":0,"y":0,"width":1440,"height":1000,"top":0,"right":1440,"bottom":1000,"left":0},"buffer":[1440,1000],"room":[{"id":1,"anchor":[14,2],"name":"Workshop","area":48,"outside":false}]},"selected":"Choose a line between two floor tiles.","after":"Choose a line between two floor tiles.","native":null,"keyOwner":"stage"}
+### Ran Playwright code
+```js
+await (async page => {const proof=await page.evaluate(async()=> (await import("/.scratch/r7-wall-helper.js")).wallPoint({axis:0,x:18,y:2}));await page.mouse.click(proof.point.x,proof.point.y);const selected=await page.locator("#wall-status").textContent();await page.keyboard.press("w");await page.waitForTimeout(100);return {proof,selected,after:await page.locator("#wall-status").textContent(),native:await page.evaluate(()=>__terriStress.sim.lastWallEditResult()),keyOwner:await page.evaluate(()=>document.activeElement?.id)};})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5194/?stress=0&audio=0
+- Page Title: Natural Causes
+### Events
+- New console entries: .playwright-cli\console-2026-10-18T07-46-14-040Z.log#L451-L461

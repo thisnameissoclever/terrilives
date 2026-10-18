@@ -1,0 +1,15 @@
+
+running 1 test
+test rooms::integration_tests::stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically ... FAILED
+
+failures:
+
+failures:
+    rooms::integration_tests::stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1511 filtered out; finished in 0.05s
+
+
+thread 'rooms::integration_tests::stable_visit_ids_exceeding_tile_count_validate_and_missing_ids_refuse_atomically' (74812) panicked at crates\terri-sim\src\rooms\integration_tests.rs:193:45:
+called `Result::unwrap()` on an `Err` value: InvalidValue
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

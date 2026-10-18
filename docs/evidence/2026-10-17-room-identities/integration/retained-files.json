@@ -1,0 +1,1269 @@
+{
+  "reviews/task-7-code-review.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-7-code-review.md",
+    "raw_sha256": "d43656f76b212624ea7e14575fc854a6ceacfcd83c4ce433878429f6429170f8",
+    "retained_sha256": "d43656f76b212624ea7e14575fc854a6ceacfcd83c4ce433878429f6429170f8",
+    "bytes": 8698,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/task-7-fix-1-report.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-7-fix-1-report.md",
+    "raw_sha256": "73d124ce32aff684dc2483598121adad6726519f04fdef046f33986c1ce3e30b",
+    "retained_sha256": "39c948b8948caff9c76e5d9ad6cfa7c1e51903ad8075a7bc02941a5fc601c48d",
+    "bytes": 4658,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/task-7-fix-1-rereview.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-7-fix-1-rereview.md",
+    "raw_sha256": "d31fe839c158382a76b0f911fea3b0390fc380ad55c405643bb937388b5b9283",
+    "retained_sha256": "d31fe839c158382a76b0f911fea3b0390fc380ad55c405643bb937388b5b9283",
+    "bytes": 4657,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/task-7-visual-review.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-7-visual-review.md",
+    "raw_sha256": "f4a4f029e4b97eeb81e31bebacef24cee10f0807fad7e2bc9c9d8dfa20f33c40",
+    "retained_sha256": "f4a4f029e4b97eeb81e31bebacef24cee10f0807fad7e2bc9c9d8dfa20f33c40",
+    "bytes": 12112,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/r8-draft-chore-projection-audit.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/r8-draft-chore-projection-audit.md",
+    "raw_sha256": "e3c61f4df048c8a7c6a811eb3f14792c0e6336069901dbf7faf40835033578ac",
+    "retained_sha256": "e3c61f4df048c8a7c6a811eb3f14792c0e6336069901dbf7faf40835033578ac",
+    "bytes": 10244,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/r8-query-proof-better-way.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/r8-query-proof-better-way.md",
+    "raw_sha256": "63f9b1e2fe49a8531a87af73c0c7aa6e7994f0c555caad8ab7fa26e9805e8057",
+    "retained_sha256": "63f9b1e2fe49a8531a87af73c0c7aa6e7994f0c555caad8ab7fa26e9805e8057",
+    "bytes": 11002,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/r8-postload-pointer-audit.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/r8-postload-pointer-audit.md",
+    "raw_sha256": "6e9d2309854e89543ae823fd23914a75c40a3774065461cee1bd10ad82a1e52c",
+    "retained_sha256": "6e9d2309854e89543ae823fd23914a75c40a3774065461cee1bd10ad82a1e52c",
+    "bytes": 10817,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "reviews/r8-exit-colors-visual-review.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/r8-exit-colors-visual-review.md",
+    "raw_sha256": "529d2549a15c64cd80a2fba70dbf12b5e56955c044f75a0c98bf69cc704b69fa",
+    "retained_sha256": "529d2549a15c64cd80a2fba70dbf12b5e56955c044f75a0c98bf69cc704b69fa",
+    "bytes": 6400,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "decisions-for-retention.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/decisions-for-retention.md",
+    "raw_sha256": "db419576ca8937068e3f33108772af815db91ca2dcd2d939f7dd02c0fb80e9f4",
+    "retained_sha256": "9723fb6ea6e5e52751afb4e1653d0e78244fd15f4c13e0ec1b8371a5bfbf7b6e",
+    "bytes": 5719,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "rulings-for-closeout.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/rulings-for-closeout.json",
+    "raw_sha256": "1e3aa5bec007eacf47575df4c62ca0849dc6216874d8976572caf2f9276aebab",
+    "retained_sha256": "1e3aa5bec007eacf47575df4c62ca0849dc6216874d8976572caf2f9276aebab",
+    "bytes": 23626,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-2-mutation-evidence/anchor-column-before-row.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/anchor-column-before-row.log",
+    "raw_sha256": "d8dfe8e32113e2136c7047f71a27eb29099667baf31e3153b66a0963f301e07d",
+    "retained_sha256": "7d374c2bbcb589554ab89b0e90fed1f658e39305d558fe1913c3ec35042480dd",
+    "bytes": 2368,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-mutation-evidence/duplicate-inheritance-allowed.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/duplicate-inheritance-allowed.log",
+    "raw_sha256": "3268a6a0ce542e9843ac97c64d8e61b9a1bec0bd9222ff91e194a96966ab9b42",
+    "retained_sha256": "0f37e214d067834a32ebfd868e7f2be8b10f53fd7ed159650d2326f04c1c69f6",
+    "bytes": 2801,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-mutation-evidence/old-id-order-reversed.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/old-id-order-reversed.log",
+    "raw_sha256": "7aa255a5ce091b8a06f1976e7569a3222993744f81a33fbafe5b2b9a2c0126e3",
+    "retained_sha256": "abdca6df242751edd62f6f9c7a61cd0c68af239726a3285166c7ad08840991c4",
+    "bytes": 2776,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-mutation-evidence/retained-fraction-reversed.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/retained-fraction-reversed.log",
+    "raw_sha256": "03d74513e273e655efc95a8aebde60abfb3c5534c5569d1c5ca4475293334665",
+    "retained_sha256": "8f75f552a55f4d17ef78f8f869ab4d433c9fe99a9dd4d3fdcf383f7cfd8aa613",
+    "bytes": 2294,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-mutation-evidence/shared-count-reversed.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/shared-count-reversed.log",
+    "raw_sha256": "d8ef1a5e653874da424715b3a39705bade33864beeca8944df3f982cfd923024",
+    "retained_sha256": "bc2b38727841bbadb1dd5082135b9650c4487a21935e85b4a4713548acea1fe8",
+    "bytes": 2966,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-mutation-evidence/summary.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/summary.json",
+    "raw_sha256": "a5523846ccec8dc23bea2e9f32a60e3ff1d0a5484a637124e9090c0dccd07e80",
+    "retained_sha256": "e8c3db1b170926950eca8acbbd855d9d4b57e4f59abd37c72d2d1491e9885a99",
+    "bytes": 1320,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-2-mutation-evidence/west-translation-lost.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutation-evidence/west-translation-lost.log",
+    "raw_sha256": "e1b3d6ae889a29b2ccc2ca7f2f3199a624079502ba523d3848a6ec6427832174",
+    "retained_sha256": "28c088f2733fd13ebcd076f5704307f7739ccd1aff5ca4bf5f2f815947f906d4",
+    "bytes": 2319,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/cleaned-units-conservation-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/cleaned-units-conservation-neutral.log",
+    "raw_sha256": "292a96645cac2c149cfe8910b408b05600c73cc5d7147244d60bb943f7ece92b",
+    "retained_sha256": "50e27b139613500bc487006698972927f18f3aa9c41449af04bd58528757221e",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/compile.stderr.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/compile.stderr.log",
+    "raw_sha256": "82bb5fe785b7127f13b57663e497530b66150ecdfc8308e187b30e71f10e7007",
+    "retained_sha256": "16ffeb32ac4a63b5f64932a1dd5a3e6bc40a6885928d6556653efb389bbf321a",
+    "bytes": 159,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/compile.stdout.jsonl": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/compile.stdout.jsonl",
+    "raw_sha256": "cca3d1ca3fb0e698e7a50e5b8bd2cee6a55fc1df040c60ebd86701ca48c37224",
+    "retained_sha256": "79f826f84e2c7d45a9dc3fab8d9fa4b80277f8571942aaba5153527e280a5c09",
+    "bytes": 79717,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/current-reference-mode-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/current-reference-mode-neutral.log",
+    "raw_sha256": "f0c6f678d65339303d4423e852a1e562985bce4e77353a89585255388a443c14",
+    "retained_sha256": "41b92df81e36045f1dd6e55887fbc84712b99a99cb3cd681016b5f5ea1bfb5fc",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/harness.py": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/harness.py",
+    "raw_sha256": "4311c55cc6d42611729f1d17d0df35eeac41b234175f667799964ec2ecb85a50",
+    "retained_sha256": "764e8f34bdf0b76b24cc38d6ba40276d557ad0c838514d9fa9ad407272a98e88",
+    "bytes": 8203,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/instrumentation.diff": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/instrumentation.diff",
+    "raw_sha256": "dcabd08157a654e6fd4d0015ff648e4f7e6d0c4adaeb166553f29e867dd25cb5",
+    "retained_sha256": "cb028867e647e39ec8edb3b63c3e16bf2e2086bcf464abe49903cd53fb87d12a",
+    "bytes": 2769,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/migration-random-stream-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/migration-random-stream-neutral.log",
+    "raw_sha256": "43fc4252e051a6a0526da89c4a43b00363200d38f2cda9bd54084cd40831f2de",
+    "retained_sha256": "0e00757fc6981c86ea3ba718d3e84d40755abe7ba008e6e996e209b5f064d997",
+    "bytes": 225,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/outdoor-materials-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/outdoor-materials-fault.log",
+    "raw_sha256": "274bba10b6bfb7e53550f755ba0643b07a2642b43b4807f1e39efff2bfa29586",
+    "retained_sha256": "a69473c4270d186a3ab4f0bd539f6de5dd71d2228c36a8bdb17c982fdfd41b63",
+    "bytes": 574,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/outdoor-materials-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/outdoor-materials-neutral.log",
+    "raw_sha256": "ede50b48c33bfcfaa8c9b8f97fb2372e4737c484e5f845a71c60b645241deb9f",
+    "retained_sha256": "7afecfdc8f56b091164134fa3db33b3452c73c7a1487ae07ed4b4429ba77db4d",
+    "bytes": 200,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/refused-adoption-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/refused-adoption-neutral.log",
+    "raw_sha256": "093e250f70b809007b52165a8e06f7b9b56577d7a559d4bc01557077dff1b593",
+    "retained_sha256": "af3787c0edf4dd9275e86c5accc2af14ca45591c52607d26b3ac452a2330a868",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/summary.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/summary.json",
+    "raw_sha256": "5a4ad68857144e309edfdf40cfbaf096d2992f4ff3af8b65ce0bfaf8fcf03c25",
+    "retained_sha256": "381b1d617d198da7a3d10833543f8c6a2dd5b3267adf0809b547c7f853dde92c",
+    "bytes": 4099,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/unrelated-path-ownership-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/unrelated-path-ownership-neutral.log",
+    "raw_sha256": "f8d62773a307221359edb76c0dfaf2c50d0e12af33ace96227b3bb60cc1443bd",
+    "retained_sha256": "ae5c232d002a261de288a21dc1f4a3fc0463e52977222c3e15832d8086bb84d0",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/cleaned-units-conservation-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/cleaned-units-conservation-fault.log",
+    "raw_sha256": "8a76794a953bfd545f98100dbad4cf59fd5cae50d627ad6412619f300da42268",
+    "retained_sha256": "f0608829876537cb0896c277220723c7dc15017dedb800e02ba1b63e96f42339",
+    "bytes": 701,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/cleaned-units-conservation-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/cleaned-units-conservation-neutral.log",
+    "raw_sha256": "ae334b654da6bd7bf5d87438994e72020d6ff44b775b4f85da1a340172c5750e",
+    "retained_sha256": "26b2217ac67761cfb022a009cbe22b1ae8d37f7e99164c48ee84dd9dc0168ebe",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/current-reference-mode-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/current-reference-mode-fault.log",
+    "raw_sha256": "5b4cfb006ea8b5aa7f6491f4a04e1e53714d72df19e68ef5ffe3fefba85e4bd8",
+    "retained_sha256": "d69f1049cb7b2c3ce80cce7e48658befeafaab2de99b479185f88c3cfe06a8f4",
+    "bytes": 704,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/current-reference-mode-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/current-reference-mode-neutral.log",
+    "raw_sha256": "76961bd3afc61fbfc222e257197bcef7ed9a08451d64e3d837691f3afdc631db",
+    "retained_sha256": "3ac173cce5889bfdf859128a5eddc42dd3807d0e6eecdc9f9db2167317713633",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/migration-random-stream-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/migration-random-stream-fault.log",
+    "raw_sha256": "c2cf601491c6ff28ee4514cce4ed69af4cf5f2145285234d6411b6fc9820008d",
+    "retained_sha256": "f46748a7928a49ecdbd930797f844df6ff54bc9d6802fd9a3ad23c982edf0f41",
+    "bytes": 778,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/migration-random-stream-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/migration-random-stream-neutral.log",
+    "raw_sha256": "93f17af4608ec294bb307e7ffd462440097a72748c8a63852aa92a101f529f7b",
+    "retained_sha256": "c55964f925aa9dfa32e9771689c8154638755d771d59e2821c10fdd558ad8653",
+    "bytes": 225,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/outdoor-materials-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/outdoor-materials-fault.log",
+    "raw_sha256": "45f9d10050d0bc91b853734e125df61233394275db469c606d629368e571248a",
+    "retained_sha256": "d1bf1e85aaecdbd4ff5bbf505589b0cec9d6e08efdc95570478136a3b8ed0e41",
+    "bytes": 574,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/outdoor-materials-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/outdoor-materials-neutral.log",
+    "raw_sha256": "183571c338d0923646d1bfd01563817d857ee0bba9958f5bcc1ccab3a821ec25",
+    "retained_sha256": "d95bec29e46409298ccd7f92f2c674a912763594ad56ba6792b6b25f34be029c",
+    "bytes": 200,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/refused-adoption-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/refused-adoption-fault.log",
+    "raw_sha256": "70d8a44191d41d4b86d9695f11f4d71ddca36f1ab9e836155fccd7316810a626",
+    "retained_sha256": "99511e277458f17962f5b49623410b3a5086a1085b09d1b3d2c582b0412d760e",
+    "bytes": 92642,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/refused-adoption-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/refused-adoption-neutral.log",
+    "raw_sha256": "a63b7cd99930a98252539d08cccbe232c5ff94b094f318aa542bdbdfbb65e7dd",
+    "retained_sha256": "4a0a31e2f4cc78b0100c2408d6ff66c4464da6d4fdf64da971830784d8a6e862",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/runner.py": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/runner.py",
+    "raw_sha256": "14d3ca817dcc5c2eec80dcda79722e3d707db20dce1d382cd701fc3f622d0739",
+    "retained_sha256": "0846637e98bc1e68e65f10bdcc1bebe990631bce7ae7aa29199680817c303085",
+    "bytes": 3919,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/summary.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/summary.json",
+    "raw_sha256": "5b74cd8de112ae9bd97214895566c8992870bfad6726a2469416f0dc46d6baef",
+    "retained_sha256": "e71b53009376b19978be0be84939ad4680195b7903a5245f39e4b6d55d6e73a8",
+    "bytes": 4965,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/unrelated-path-ownership-fault.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/unrelated-path-ownership-fault.log",
+    "raw_sha256": "c080b257238c66bc8c380037e3cc00a3a0585b23a85affd2d738f5a17fa66083",
+    "retained_sha256": "b5d3624496b9ed0b4eb6b5a672f26a835c99afa312dce01de440d127654d2306",
+    "bytes": 691,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/native-mutations-composite-20261017-133623/completion/unrelated-path-ownership-neutral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/native-mutations-composite-20261017-133623/completion/unrelated-path-ownership-neutral.log",
+    "raw_sha256": "0d8ceba9f6c20fb4d3bd51864c1f519ed1fc6ff7b229d3e2e108b8b0bf9239fb",
+    "retained_sha256": "6908a213a1246556ce7f489da201c5daf1008b15749af01b994d783006a9dd23",
+    "bytes": 233,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-books.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-books.log",
+    "raw_sha256": "41382991697417596f34b84fa7969c6a0f68129d1d3025f960092ec3c1445305",
+    "retained_sha256": "10b04d37029324b50740c3d12ca0e865b1b68a4c827e3ec6bdc008c5e5126cc6",
+    "bytes": 4894,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-fault-artifacts.jsonl": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-artifacts.jsonl",
+    "raw_sha256": "1b4196fefc5a114485c529c05e13d9cff823988f4ae0bccd3fe86476be311c60",
+    "retained_sha256": "d6178812cd17ce0c14a71e205cc05e2aec45b0584d1c6472f50be0b0cceb1829",
+    "bytes": 79717,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-accepted-fault-build.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-build.log",
+    "raw_sha256": "f1b3805c9bd7cb08d88de64cec376d5c6735e9b02bb0313ea1804cadf4c7ae0a",
+    "retained_sha256": "f1b3805c9bd7cb08d88de64cec376d5c6735e9b02bb0313ea1804cadf4c7ae0a",
+    "bytes": 159,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-fault-deferral-control.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-deferral-control.log",
+    "raw_sha256": "8c021861db3e37430dea27efc68dc7d9b977eead1f9ae3a7417905b4411ebd31",
+    "retained_sha256": "74eb08b8ae803c8cb3574afd3cc15ab8dbc6fdfa6ed0633b0188725c96e66f80",
+    "bytes": 202,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-fault-deferral.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-deferral.log",
+    "raw_sha256": "da17411219bf658818b0cfde8a7f59006f0703cb3934b3fb40bb810da0ecc595",
+    "retained_sha256": "d8088dff16edd1a125efd81e33ef9104b15396dcb65d9bd0a03c26740f9220c7",
+    "bytes": 955,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-fault-instrumentation.diff": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-instrumentation.diff",
+    "raw_sha256": "e817d4dec0a87f3dc8b0467ea50a221b3fafdbf7cc96502cd94faf1ce8c65148",
+    "retained_sha256": "e817d4dec0a87f3dc8b0467ea50a221b3fafdbf7cc96502cd94faf1ce8c65148",
+    "bytes": 1485,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-accepted-fault-proof.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-proof.json",
+    "raw_sha256": "cae364f58354238798a02adfe577135eabb31f49d5ffca7f2f931ddc6ed99419",
+    "retained_sha256": "542209fe602c86deafaa60b811ea69f3b3d40e0dd691c8c4609efada6bae8737",
+    "bytes": 2799,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-accepted-fault-stale-control.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-stale-control.log",
+    "raw_sha256": "6baac1105720fbfe5055da04fb61943d127a78e02c11697ac344afeb13204b37",
+    "retained_sha256": "e7766ca60554ed04d671255aab06e677ea1502b4948a1c8868d83288a6a4f7a6",
+    "bytes": 217,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-fault-stale.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-fault-stale.log",
+    "raw_sha256": "1aff35f790b4e7b62f80b03eae61a0580ecd99bfa4d1db8ee8d118dd54f5765a",
+    "retained_sha256": "2a796d607719c49ad54cc4bf5b8b547e85be0ae94c00c264ab51f5d88b120f56",
+    "bytes": 778,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-faults.py": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-faults.py",
+    "raw_sha256": "ca63db0ee29bc76061fb170441722e19824124d12f9daba8f7967ff8854e0ea1",
+    "retained_sha256": "a40f77b59ba992ca4944a7fd1a33defa0e3f11fea73d7fcf06061dd0e75b0492",
+    "bytes": 5188,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-accepted-gates.json": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-gates.json",
+    "raw_sha256": "727ee42690134709e53a6971e907c168c561cd3065ae393c688e9ffff7132fd1",
+    "retained_sha256": "2d5defdbaa0a8f1d26966e01ca3c6fa1cb80ef33cd7cc55fa6809b047938ae53",
+    "bytes": 673,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-accepted-placement.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-placement.log",
+    "raw_sha256": "02b95eb0b05443ceb357b55734697d9d38b9f73ada40843ea797f196b9fd0cd4",
+    "retained_sha256": "93760f24fce68409af70bf5d07149c87d00b51d8172038be0158a4355dedb200",
+    "bytes": 14005,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-5-accepted-reading.log": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-accepted-reading.log",
+    "raw_sha256": "c946b8657a353bb976b35fd436912b4e6fceff4ca30fec4daaaaeb4cbac43d1d",
+    "retained_sha256": "c946b8657a353bb976b35fd436912b4e6fceff4ca30fec4daaaaeb4cbac43d1d",
+    "bytes": 18051,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "causal/task-2-report.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-report.md",
+    "raw_sha256": "b89f2c399492b69013c5a5b0a8d7fb9afa7672c145aff990e9acd349ca76567a",
+    "retained_sha256": "b89f2c399492b69013c5a5b0a8d7fb9afa7672c145aff990e9acd349ca76567a",
+    "bytes": 7409,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-2-review.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-review.md",
+    "raw_sha256": "6de2a7ca9b905d94e241f89d519c7656aae72b1ec09d161b1bb93b509f8c8cb8",
+    "retained_sha256": "f91ae76041efff9e17e013e27a058a7f62b6e02234ffad1f295fae5e39e3e595",
+    "bytes": 2113,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-2-mutations.py": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-2-mutations.py",
+    "raw_sha256": "c31a33df3bcdbd65ff52c58d5f3d70c9db30bcb11d005d04a6691f7484c08bbd",
+    "retained_sha256": "c31a33df3bcdbd65ff52c58d5f3d70c9db30bcb11d005d04a6691f7484c08bbd",
+    "bytes": 2444,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-report.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-report.md",
+    "raw_sha256": "5eefc9d87658260e6481af54e513097c2c84a0dfaf0f22ef50c4ba0ea20f7b01",
+    "retained_sha256": "564f8ebdf61b2cc5da1c1e192f484f168feae1fe470230d3b6e832e6141e4833",
+    "bytes": 16417,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-native-integration-report.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-native-integration-report.md",
+    "raw_sha256": "60b522c1c94383638faed537c480ca659e963ce534430221d0c2987a3f81046b",
+    "retained_sha256": "d3760ef004599d40618b35df65bd571c2fc18de15d1a3eeffea3a7453acadf97",
+    "bytes": 35891,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "causal/task-5-current-continuation-audit.md": {
+    "source": ".superpowers/sdd/2026-10-17-room-identities/task-5-current-continuation-audit.md",
+    "raw_sha256": "4fea42aa6c7ace50d1081f77bbdfa7dc522ed4bfcaaff1f7c3d00a195fd00ad0",
+    "retained_sha256": "4fea42aa6c7ace50d1081f77bbdfa7dc522ed4bfcaaff1f7c3d00a195fd00ad0",
+    "bytes": 13079,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "native/r8-native-final-01-before.json": {
+    "source": ".local-build/r8-native-final-01-before.json",
+    "raw_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+    "retained_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+    "bytes": 56791,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "native/r8-native-final-01-after.json": {
+    "source": ".local-build/r8-native-final-01-after.json",
+    "raw_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+    "retained_sha256": "1669cbd91db3090dbd378d02a6266de5cd6c13bfa1c46960a8f02148114bdea8",
+    "bytes": 56791,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "native/r8-native-final-01-format.log": {
+    "source": ".local-build/r8-native-final-01-format.log",
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "native/r8-native-final-01-workspace.log": {
+    "source": ".local-build/r8-native-final-01-workspace.log",
+    "raw_sha256": "fae27f15ab72a9e1f91bfb4a3e2ddd74a017cb36c41282e72ceafa38b34678dc",
+    "retained_sha256": "0c4f314fb8e8352eedfdfe8148d7192ac2452a488bed513c771d6cf2424143b8",
+    "bytes": 229484,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "native/r8-native-final-01-clippy.log": {
+    "source": ".local-build/r8-native-final-01-clippy.log",
+    "raw_sha256": "732186322402325172940531d8d6d7cfac85dc902585b2bef6715ad6839dacfd",
+    "retained_sha256": "732186322402325172940531d8d6d7cfac85dc902585b2bef6715ad6839dacfd",
+    "bytes": 72,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "native/r8-native-final-01-receipt.json": {
+    "source": ".local-build/r8-native-final-01-receipt.json",
+    "raw_sha256": "d4d83636f5ee7fb4b06cf027db2be6e6ece09b52aedc2ae728c50bcbcbfe83ee",
+    "retained_sha256": "84d3f61e8202e91e6505017deb99b8ac1fb48eb0dfa9fc3ba6e2339039c84b2c",
+    "bytes": 1778,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "native/r8-native-gates.py": {
+    "source": ".local-build/r8-native-gates.py",
+    "raw_sha256": "79d4cac403f1bad3fc39b7d4312846fcf608fce95f89eb1727906b7daa48c20e",
+    "retained_sha256": "ed7116c85812d031a41334f6a10b9774a1f039c83ed583851ea4f994523f1eb9",
+    "bytes": 2744,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "native/r6-source-manifest.py": {
+    "source": ".local-build/r6-source-manifest.py",
+    "raw_sha256": "9b6a48cb50eaacadc9084f5e1812f62d01b5cd50530ed427ace4e209919edfd7",
+    "retained_sha256": "9b6a48cb50eaacadc9084f5e1812f62d01b5cd50530ed427ace4e209919edfd7",
+    "bytes": 851,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-parent-gate-audit.json": {
+    "source": ".local-build/r8-parent-gate-audit.json",
+    "raw_sha256": "e7aa2cb7f872f1ab51d8aa1486771cabc58537f3cde43da34ff2033db8bae931",
+    "retained_sha256": "e7aa2cb7f872f1ab51d8aa1486771cabc58537f3cde43da34ff2033db8bae931",
+    "bytes": 2370,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-parent-gate-audit-02.json": {
+    "source": ".local-build/r8-parent-gate-audit-02.json",
+    "raw_sha256": "e3bf0a58fe2b5ebeeb64f94475594b0c6393fde5474bd9ba163e26a6952be5b3",
+    "retained_sha256": "e3bf0a58fe2b5ebeeb64f94475594b0c6393fde5474bd9ba163e26a6952be5b3",
+    "bytes": 2537,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-exit-intent-red.log": {
+    "source": ".local-build/r8-exit-intent-red.log",
+    "raw_sha256": "942ba7f43a0dffb5fa262ebee0818f5c597ec05007c343a4eb1f6545a4e80566",
+    "retained_sha256": "23624a95f9d59666401e9be7213854897db166ca0577f525343eeff6878efd6c",
+    "bytes": 2859,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-exit-intent-green.log": {
+    "source": ".local-build/r8-exit-intent-green.log",
+    "raw_sha256": "cd131783945ce3565e70c074ded84cf5dbf76760e3b1db870e920d70dc7bcec1",
+    "retained_sha256": "a20ad1468e9bc93ff83fcfa984439fd3e13663c23a2ca26f470277d467a64599",
+    "bytes": 309,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-final-gates.py": {
+    "source": ".local-build/r8-final-gates.py",
+    "raw_sha256": "1a88d8cf941d87c0eeed7937331f5658e414b6d390243a977d4cb16cfeb2282a",
+    "retained_sha256": "1a88d8cf941d87c0eeed7937331f5658e414b6d390243a977d4cb16cfeb2282a",
+    "bytes": 3373,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-final-gates-02.py": {
+    "source": ".local-build/r8-final-gates-02.py",
+    "raw_sha256": "8b63f17e7c34b6af78db4efec2cc2b13065be01ce0064c4649ba3f1ed4ff3cbe",
+    "retained_sha256": "8b63f17e7c34b6af78db4efec2cc2b13065be01ce0064c4649ba3f1ed4ff3cbe",
+    "bytes": 3373,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/web-progress-reporter.mjs": {
+    "source": ".local-build/web-progress-reporter.mjs",
+    "raw_sha256": "5a3fa71f9d9bb84dced7e52715ff33767be808728d25a21ffe264c64360ecd83",
+    "retained_sha256": "c5df96cf0af14076d4acbe07301fef6ea2f557c601a38f73e9153da4c08a6013",
+    "bytes": 610,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-web-final-01-receipt.json": {
+    "source": ".local-build/r8-web-final-01-receipt.json",
+    "raw_sha256": "3c4cb4229fce78a707abd2c44034dc708e2078ac5b91762c0963f8941dd4884c",
+    "retained_sha256": "eed95df1d0845f965017441e6e0dd9719d7af8db7b09eca259acde21c0d11c18",
+    "bytes": 2604,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-web-final-01-typecheck.log": {
+    "source": ".local-build/r8-web-final-01-typecheck.log",
+    "raw_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+    "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+    "bytes": 49,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-01-suite.log": {
+    "source": ".local-build/r8-web-final-01-suite.log",
+    "raw_sha256": "33213321ff2fade66ea8e3a2d1aeaf2bd65cb078f94954a603a5118f1d64921d",
+    "retained_sha256": "682240f35cff281577e88ff05cb3635793bcb2fcff5965795dc803e32800ac2d",
+    "bytes": 1061105,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-01-build.log": {
+    "source": ".local-build/r8-web-final-01-build.log",
+    "raw_sha256": "a96c4cd38f2f7388500e1c79517a8b65ed4204e97429f90d12f7937ebbde449d",
+    "retained_sha256": "fb43d673dbd6443e757b6f2682fa14ade73a415a127c010b240ddd6dbcda1697",
+    "bytes": 19755,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-01-doc-ids.log": {
+    "source": ".local-build/r8-web-final-01-doc-ids.log",
+    "raw_sha256": "932d842df5916269a3980cd5ec2503159c754a7b45d7828a22429491e498bf66",
+    "retained_sha256": "be943b6bf3885e472f09862584591e459d2e3207dfd3bbd7b640a79a3c1fa43b",
+    "bytes": 50,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-01-changelog-test.log": {
+    "source": ".local-build/r8-web-final-01-changelog-test.log",
+    "raw_sha256": "b28b6304543205e87c2fb8937a953c852cbd7d4b13f6e64615ba1d4d5b7ad403",
+    "retained_sha256": "b28b6304543205e87c2fb8937a953c852cbd7d4b13f6e64615ba1d4d5b7ad403",
+    "bytes": 1184,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-01-changelog-build.log": {
+    "source": ".local-build/r8-web-final-01-changelog-build.log",
+    "raw_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+    "retained_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+    "bytes": 83,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-receipt.json": {
+    "source": ".local-build/r8-web-final-02-receipt.json",
+    "raw_sha256": "b92e60bb650b480800e3019eb18464687a3d4d1ebf5e330351ebd876b94b13be",
+    "retained_sha256": "86c131bbfde8d56b5b2b765b26a2a7bdb9245c646ffdbe2e845210ed9753b556",
+    "bytes": 2604,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "web/r8-web-final-02-typecheck.log": {
+    "source": ".local-build/r8-web-final-02-typecheck.log",
+    "raw_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+    "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad",
+    "bytes": 49,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-suite.log": {
+    "source": ".local-build/r8-web-final-02-suite.log",
+    "raw_sha256": "6f15181c26b160e135208969f708ea3e17ad152ffc12f15089f9a5db8c18b645",
+    "retained_sha256": "f49f59663cb78642a158eff882e41f33bdf9727c81bc865b9acb22c3453148ac",
+    "bytes": 1062095,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-build.log": {
+    "source": ".local-build/r8-web-final-02-build.log",
+    "raw_sha256": "7acd4cfc44af86be87321e0e89d0ac0c3284cbab523ecc802616ebb9f7e75163",
+    "retained_sha256": "ffa5628fad694947f3d865bb5308c14756fa67b5a40e77ee1872207212138bed",
+    "bytes": 19755,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-doc-ids.log": {
+    "source": ".local-build/r8-web-final-02-doc-ids.log",
+    "raw_sha256": "932d842df5916269a3980cd5ec2503159c754a7b45d7828a22429491e498bf66",
+    "retained_sha256": "be943b6bf3885e472f09862584591e459d2e3207dfd3bbd7b640a79a3c1fa43b",
+    "bytes": 50,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-changelog-test.log": {
+    "source": ".local-build/r8-web-final-02-changelog-test.log",
+    "raw_sha256": "5eb6a96aec407201978d05030e5b0f98093f253ebbb736f85a6405a6ce16c743",
+    "retained_sha256": "5eb6a96aec407201978d05030e5b0f98093f253ebbb736f85a6405a6ce16c743",
+    "bytes": 1185,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/r8-web-final-02-changelog-build.log": {
+    "source": ".local-build/r8-web-final-02-changelog-build.log",
+    "raw_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+    "retained_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd",
+    "bytes": 83,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "web/final-inputs.json.gz": {
+    "source": ".local-build/r8-web-final-02-before.json",
+    "raw_sha256": "b2ef66b6d9c06d309bd6dcae8fc0e2f601c540651760b726a738272e6c7b99d9",
+    "retained_sha256": "c55acae9e0ea1711e2e779cfd4f8339999148219a9f27f8c0a9a9dfb0edb348e",
+    "bytes": 3612153,
+    "transform": "gzip mtime0; UTF-8 JSON only, no media"
+  },
+  "played/r8-before-table.log": {
+    "source": ".local-build/r8-before-table.log",
+    "raw_sha256": "bc7e1d9afb62d93a456f01c9a776d5648a274c079c847a52108db000982cf610",
+    "retained_sha256": "3658be6c0d2151afe0d0c412524d8870babcb768106193c764b7f84454973773",
+    "bytes": 5293,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-draft.log": {
+    "source": ".local-build/r8-table-draft.log",
+    "raw_sha256": "4e58e2b72f3a6c0f6725b2a076a0d332159d3d09794a65c78a1512af348427b0",
+    "retained_sha256": "c18dd6f0599d718629f568df6cf0fa98908285e9ca69b513f3adfe9dff386355",
+    "bytes": 3204,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-draft-committed-proof.log": {
+    "source": ".local-build/r8-table-draft-committed-proof.log",
+    "raw_sha256": "802e9d5de1c9fd34667cd8753f43f8d85579925cb20198fa56af182b4d26f485",
+    "retained_sha256": "ded155ae3eba17141e3a1d32b1e6bad5bc11fa569691ff8ca0bc62ee2a1dd2b7",
+    "bytes": 1047,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-draft-manual-save.log": {
+    "source": ".local-build/r8-table-draft-manual-save.log",
+    "raw_sha256": "c81be53789fbbc01c8ed4b5799982e6761dd2e6495cc2612bd9e3bb0890deafe",
+    "retained_sha256": "cc06f20f025de33687465fd913baeaabc70a9dcc654fa2011e480ca3bd05d953",
+    "bytes": 72,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-draft-manual-save-readback.log": {
+    "source": ".local-build/r8-table-draft-manual-save-readback.log",
+    "raw_sha256": "f57972256cd8ce2e8aa8fc8ad39fbf18aece48f93c3e67773c0105a2473d3567",
+    "retained_sha256": "5c8522e8f4f2afbc9ac5f8c27b57255e3adff469cc8b10e26ca21f76d34680ff",
+    "bytes": 1089,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-baseline-after-cancel.log": {
+    "source": ".local-build/r8-table-baseline-after-cancel.log",
+    "raw_sha256": "a8505c2cc0a5e6c6d7ced3d7cdfdf6b2a70134ff34f75a41bd31ffdb3c4a5fa3",
+    "retained_sha256": "65881b17a1cfd24c2429e4c10d7513a7e72bb8c4ff920e7e38eab9b020be60f4",
+    "bytes": 3315,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-replayed-draft.log": {
+    "source": ".local-build/r8-table-replayed-draft.log",
+    "raw_sha256": "459214f6cc7331853bae7243a59967d61c2516eb3749901f2405e07c59605693",
+    "retained_sha256": "4317e823aab3a8580b33e652d14526a8250ea0448e9e5dc970b330f3b228acf6",
+    "bytes": 3524,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-table-confirmed.log": {
+    "source": ".local-build/r8-table-confirmed.log",
+    "raw_sha256": "41702b73ac5c13432eb35c47498e6c9cebaa7744db6aca7c6aa6b14ba638e18d",
+    "retained_sha256": "99e6862d3969e13c5cdf0255ad3cf3b03936dd0461d960ed0f27522a986d59c4",
+    "bytes": 2842,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-floor-active.log": {
+    "source": ".local-build/r8-outdoor-floor-active.log",
+    "raw_sha256": "696fa6b7d43fc16fa6c54580fc9883f6442745f025fca5669ce77d06a08f8275",
+    "retained_sha256": "c63611ea8c41525f236c4284a4c316fe537a7c55336187e80d3c5e7c19262e1b",
+    "bytes": 3888,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-floor-middle.log": {
+    "source": ".local-build/r8-outdoor-floor-middle.log",
+    "raw_sha256": "bea0aa2b9ab50c041ab0c6eaf56a567bf575ecc696256fd63064c290e49346ad",
+    "retained_sha256": "f3d7976312c055ebdffc48bf16ba2a2e3083ff70691a7c08f1c4213de3f59488",
+    "bytes": 3153,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-floor-complete.log": {
+    "source": ".local-build/r8-outdoor-floor-complete.log",
+    "raw_sha256": "435f26c494a835c58a8ca31b0baa67d8734312653829ed6cb113ae0a334c0e92",
+    "retained_sha256": "83322b9e8a2236215252734768843607a22f1529320433067d1d6e2c7b071314",
+    "bytes": 3323,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-table-active.log": {
+    "source": ".local-build/r8-outdoor-table-active.log",
+    "raw_sha256": "263897beb83ed8d286458661510af28ff536c44f2bdbeab33e50b9d165974c6a",
+    "retained_sha256": "99145f7061cbbbff557b29a4db60fe00b7c577b6e492b7dcee748c3b44868e86",
+    "bytes": 3688,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-active-table-save-load.log": {
+    "source": ".local-build/r8-active-table-save-load.log",
+    "raw_sha256": "7872125e67e493eaafbf923e84f2a5d86b6ee418ef0dd201d859091db07633f1",
+    "retained_sha256": "4d3c62285ecd25391f8bb9b71e35f1243efc42ff4e2eaa2f24364e9131499898",
+    "bytes": 6240,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-table-complete.log": {
+    "source": ".local-build/r8-outdoor-table-complete.log",
+    "raw_sha256": "93db2123751951f5c726a9dfa74e3b1c96c96107788bdcb4b14add6963209141",
+    "retained_sha256": "10557d53c3327b7ed3f9ec1076a4f0e4c41d45f5693f8988337ae347614c6012",
+    "bytes": 3261,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-indoor-floor-active.log": {
+    "source": ".local-build/r8-indoor-floor-active.log",
+    "raw_sha256": "06eadff770f9dcd7bb1bd17916881828e834ed6089a345072a2ba6190770d48a",
+    "retained_sha256": "3b443eef91b2a5eaa09036911ab53f6a90569119c7c2ed33857600943a8f2603",
+    "bytes": 3814,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-indoor-floor-middle.log": {
+    "source": ".local-build/r8-indoor-floor-middle.log",
+    "raw_sha256": "ca8a58153ff1ec2b982b6413825b94980bdaa02894dc5f46be6862dfa256aa02",
+    "retained_sha256": "a2e9189205a96ff10b91bb8021c34e0ad230065c2b83e4a9131bc59a8ebf9a21",
+    "bytes": 3143,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-indoor-floor-complete.log": {
+    "source": ".local-build/r8-indoor-floor-complete.log",
+    "raw_sha256": "083b2c9e8d82b512186f5e6ad9b77a216b9ed514fbea324096def0bf1e091329",
+    "retained_sha256": "dba0b593c0081b3d5805806959ae60110eba2d7fbade54cafdf033370d672877",
+    "bytes": 3263,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-seed.log": {
+    "source": ".local-build/r8-historical-seed.log",
+    "raw_sha256": "066e7ffd8a66a8708dd1e16a32a930f1af317bb443c87052db194232e5ac86c8",
+    "retained_sha256": "ac04f8f093c48f7cbd3f5475597c7a845008c1feec535c3a0b852e687a8a59eb",
+    "bytes": 734,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-loaded.log": {
+    "source": ".local-build/r8-historical-loaded.log",
+    "raw_sha256": "9d85ac3bc068d583bea6149fec157326ea49ef5a3b5ca28fcd02c8571a2c7b5b",
+    "retained_sha256": "ca655693fa80a5006808226e07374611237fb2b8a5d33826989f56a2a71e4c60",
+    "bytes": 2526,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-conversation-active.log": {
+    "source": ".local-build/r8-historical-conversation-active.log",
+    "raw_sha256": "10d8c55cb84cf7be0e274706401b2c193c5bf7c352db1a73c8b6bdc510e85854",
+    "retained_sha256": "6cb4f959177430d35f96c943a4c28bb4845de67ef63aed72adf85fad0d29e55f",
+    "bytes": 2712,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-conversation-complete.log": {
+    "source": ".local-build/r8-historical-conversation-complete.log",
+    "raw_sha256": "a16114fdbbd0691001feb9ccc2278220868510140e21509ac3df3ef2179b2c9f",
+    "retained_sha256": "3d33899a04c65d56e32b196322294d6a38369fbca95a280628143bf9e919072f",
+    "bytes": 2750,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-need-eating.log": {
+    "source": ".local-build/r8-historical-need-eating.log",
+    "raw_sha256": "adeeab9d4ea4297c412e9c910493a176385ad7ac575bb5c66897b17b5d702444",
+    "retained_sha256": "f93317dec8c30cfb991dd413c78c391406ac94fbd64ce1c4cbe0d76190a2779b",
+    "bytes": 2835,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-need-complete.log": {
+    "source": ".local-build/r8-historical-need-complete.log",
+    "raw_sha256": "83946c2d175789fe71180f7ea6ceaa6b2c3711bcdfef4ae994bb0ac739b064c5",
+    "retained_sha256": "30fe8fa450dc4f5b6d4b6cd6852fa638f83c89c902eb43811dc88df10eb9c40f",
+    "bytes": 2853,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-historical-timeline.log": {
+    "source": ".local-build/r8-historical-timeline.log",
+    "raw_sha256": "4a40eeede69cef353c1895c93a50c62c3f4ef887c63bb5380aa882be7b2c8fcd",
+    "retained_sha256": "fce395a6b38b3cd72dd8f385c936aa45d0008575efa9d16e7c6e936e8e24a2b0",
+    "bytes": 23119,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-retained-exit-case.log": {
+    "source": ".local-build/r8-retained-exit-case.log",
+    "raw_sha256": "c81be53789fbbc01c8ed4b5799982e6761dd2e6495cc2612bd9e3bb0890deafe",
+    "retained_sha256": "cc06f20f025de33687465fd913baeaabc70a9dcc654fa2011e480ca3bd05d953",
+    "bytes": 72,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-first-wall-diagnosis.log": {
+    "source": ".local-build/r8-first-wall-diagnosis.log",
+    "raw_sha256": "1827e1624c3bb69f00e1c6aa75455478e1bbfbdeab86e1a711153494c5b8da1b",
+    "retained_sha256": "0e7f2dc77a5b68416c18ef23496d9abaf0d4ff39abc0e3d76aa998132aa19925",
+    "bytes": 1437,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-wall-keyboard-diagnosis.log": {
+    "source": ".local-build/r8-wall-keyboard-diagnosis.log",
+    "raw_sha256": "85fc3499a0ca0ff9eae79f3a6a29bc8e90b1043bf38b7c219065ab88845c93e9",
+    "retained_sha256": "fd6ae813e2ff8645f5d133af2dc6bc75560b4e82524a6da8a0169337204dc70e",
+    "bytes": 901,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-retained-exit-keyboard.log": {
+    "source": ".local-build/r8-retained-exit-keyboard.log",
+    "raw_sha256": "c81be53789fbbc01c8ed4b5799982e6761dd2e6495cc2612bd9e3bb0890deafe",
+    "retained_sha256": "cc06f20f025de33687465fd913baeaabc70a9dcc654fa2011e480ca3bd05d953",
+    "bytes": 72,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-retained-exit-finish.log": {
+    "source": ".local-build/r8-retained-exit-finish.log",
+    "raw_sha256": "72fc7b2c3bcc1e4243bc978e017eab8baf6e0efbf5707f5bca22ed6885ccf2f2",
+    "retained_sha256": "063ed1ae65debb81baaa2bd238bb187184413187ae7929198bc05422de150b0b",
+    "bytes": 5551,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-mouse-only-control.log": {
+    "source": ".local-build/r8-mouse-only-control.log",
+    "raw_sha256": "2f5f0613000446631de4c30d5aa9c489da6521b773d9450384993378650d5511",
+    "retained_sha256": "7091265e994197ae8f55f1c462c0e690d923168cd8202300e98e73b99f15a536",
+    "bytes": 5006,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-selection.log": {
+    "source": ".local-build/r8-patio-selection.log",
+    "raw_sha256": "b9af576acd2a3b80586c56bfaead01dc8d06463a768b122614242ef1efdc846e",
+    "retained_sha256": "5f889ed1e32a1fa21e7d96d85a85b33864fcd6014ddbdb4466c866b44e96111c",
+    "bytes": 940,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-confirmed.log": {
+    "source": ".local-build/r8-patio-confirmed.log",
+    "raw_sha256": "c81be53789fbbc01c8ed4b5799982e6761dd2e6495cc2612bd9e3bb0890deafe",
+    "retained_sha256": "cc06f20f025de33687465fd913baeaabc70a9dcc654fa2011e480ca3bd05d953",
+    "bytes": 72,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-complete.log": {
+    "source": ".local-build/r8-patio-complete.log",
+    "raw_sha256": "8974b2b7004bdea181281dcc869ffa2ec74cc1b9cc25e941f35d3e3699984cfd",
+    "retained_sha256": "bc4370702b01ca32c72e25e5a11e467cef6b644d8242166d5b81d4bbcfff1d29",
+    "bytes": 246,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-resource-ready-retry.log": {
+    "source": ".local-build/r8-patio-resource-ready-retry.log",
+    "raw_sha256": "28957727419101118bf13d47d4271301b37e98ee3b7df29af0024cff4527b0f9",
+    "retained_sha256": "3fe1771ea0288cfd08f484351c7521bae7a0b6cc35a92bddd69fe63ea951877b",
+    "bytes": 623,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-land-north-cancel.log": {
+    "source": ".local-build/r8-land-north-cancel.log",
+    "raw_sha256": "d4f8e559afb767e4dfc36ef280dc4a94673c27486c050ddadca263a3d4755e72",
+    "retained_sha256": "d040e8e34fe5f5be52a16e257c3d58533180a1d5d9be8b1fd9e1bd1428df3be8",
+    "bytes": 5950,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-land-west-confirmed.log": {
+    "source": ".local-build/r8-land-west-confirmed.log",
+    "raw_sha256": "49fa66fda5991d7cd5a08ddb9ba5e6147a5521e95e7693917eb1565e848f92ff",
+    "retained_sha256": "d0b1b07cde26937eded029715a780a2d10ec32aad3a00f49f7d815502a23c5a3",
+    "bytes": 4444,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-four-confirmed.log": {
+    "source": ".local-build/r8-patio-four-confirmed.log",
+    "raw_sha256": "e58abd4f5ac18f17978d2fd9320d03ad529274e8eb3c75e5058f23ac94fe7136",
+    "retained_sha256": "c63facf4f0c7287b6ca157e77eb9515bc6e1585ed7e7ef28f6c5fc1d7ed664bb",
+    "bytes": 2246,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-patio-cancel-save-load.log": {
+    "source": ".local-build/r8-patio-cancel-save-load.log",
+    "raw_sha256": "ff515a183343ca6955f0494e732ff935a933224f2ab766f8d3622304985d9e1c",
+    "retained_sha256": "546b345383d4d9b778206d0c33ff5fbc083bdd07a5236ac8f87931f693c0d4d3",
+    "bytes": 5574,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-exit-gray-current.log": {
+    "source": ".local-build/r8-exit-gray-current.log",
+    "raw_sha256": "286264d5833ba44ed075052c187af9a7c73a649ff5733e284349dbf75e4f4a30",
+    "retained_sha256": "888e7b787332fe31785378e820b624bd74d7eb6d120e4e94a94fb7be0b1fa1ba",
+    "bytes": 21930,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-fixed-source-reload.log": {
+    "source": ".local-build/r8-fixed-source-reload.log",
+    "raw_sha256": "1b8c56e2ac09c6209aa2154cb964a698b02014edd7000140d38edc7d35644725",
+    "retained_sha256": "5f3f88e4463a5c9a208d9d604021edacca0617d178eb2fef20dae26e4e1a4a14",
+    "bytes": 849,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-matched-baseline-setup.log": {
+    "source": ".local-build/r8-matched-baseline-setup.log",
+    "raw_sha256": "4516fa4012f0779f943637d2810fe1e561564f067a80f5db1c59f9a08d6243d5",
+    "retained_sha256": "afd4d216aab8c535374830edca30975a0d62df22e4a9fe528a27eee0b17e8aec",
+    "bytes": 678,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-matched-baseline-loaded.log": {
+    "source": ".local-build/r8-matched-baseline-loaded.log",
+    "raw_sha256": "9a729db6b2b10846172708d78421b9389c2703fd98f0d0eb801506aa270ec7e6",
+    "retained_sha256": "5f32e3f160630f7a98aed1866d3efde10ac735143923e5901de3a437c33e03eb",
+    "bytes": 719,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-exit-color-mapping.log": {
+    "source": ".local-build/r8-exit-color-mapping.log",
+    "raw_sha256": "958b98180518b3270f6997e28c3d59c4bcc54f072fa0975ed3117b454063c6b7",
+    "retained_sha256": "ec341eb2782ec451e326bd08d3776c000324f9e346130091d09597e849ff35bb",
+    "bytes": 49,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-exit-color-restoration.log": {
+    "source": ".local-build/r8-exit-color-restoration.log",
+    "raw_sha256": "8c2c26f133c83289defd9bd5a4958067a67945d13cea72ece2098032efd0067a",
+    "retained_sha256": "22086152083fc21f3e68372d05113ea4239c36ce022bf71d13e86cc4303eee02",
+    "bytes": 6293,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-changelog-visual.log": {
+    "source": ".local-build/r8-changelog-visual.log",
+    "raw_sha256": "770694f71741a70fc4216fb657df0d9000cbe6356e6f27c0b0fdd3bc3e696db0",
+    "retained_sha256": "17417c95952a4201d4166b6b8bc11c0ea195e73bbe10866dc566abe731b266fb",
+    "bytes": 1292,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-game-final-cleanup-state.log": {
+    "source": ".local-build/r8-game-final-cleanup-state.log",
+    "raw_sha256": "d5a46b4ef0c6fdcb036ac63ec6782f3499bd1745ceb518e3c48ab5a2871d5a96",
+    "retained_sha256": "351a461cd7719be8f40e3c66b6e71e7adb9cb6c9a13496dabedf902cdda898cd",
+    "bytes": 698,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-query-purity.log": {
+    "source": ".local-build/r8-query-purity.log",
+    "raw_sha256": "0bcfe4d2edbf522f57f7711efadd80ad27982019412fa902a283a200b24dd1b9",
+    "retained_sha256": "284ae6d71a18be896503f87db0fa3a4b3e080202df0e96cd746a60b50e893ff8",
+    "bytes": 457,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-query-purity-v2.log": {
+    "source": ".local-build/r8-query-purity-v2.log",
+    "raw_sha256": "e28a4179498e2a112090a195afd98e3f4e61d617248ded8ecaac75b6001b0f47",
+    "retained_sha256": "9d5b3be58e9c252033d71a27ff66d8e656ef9529057038548209c72b99febf98",
+    "bytes": 628,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-query-purity-v3.log": {
+    "source": ".local-build/r8-query-purity-v3.log",
+    "raw_sha256": "2802dc4fe55f39dfd2706c5164b6844811e7d794f4e1f07a3ed7623fa655f676",
+    "retained_sha256": "96a826c79812fd50dff418ce22f4fae79379d0286592b71b6c87610e7cc38d30",
+    "bytes": 477,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-query-purity-alt1.log": {
+    "source": ".local-build/r8-query-purity-alt1.log",
+    "raw_sha256": "eb29aee6682b5d5cae4967a3cb7912a41278495966279454ec32f522052c19d2",
+    "retained_sha256": "af51c531cd9a49b3c32141ce887afe8fd34e81bd7f0a47dfc2b938b2bf5f0c5e",
+    "bytes": 3388,
+    "transform": "UTF-8, LF, one final newline for nonempty text; log lines also trim trailing horizontal whitespace"
+  },
+  "played/r8-outdoor-floor-active.png": {
+    "source": ".local-build/r8-outdoor-floor-active.png",
+    "raw_sha256": "7a8fdeff9d41bba9186763510243d2f37a8247368345a3a438456283870c7129",
+    "retained_sha256": "7a8fdeff9d41bba9186763510243d2f37a8247368345a3a438456283870c7129",
+    "bytes": 682863,
+    "transform": "identity"
+  },
+  "played/r8-outdoor-floor-complete.png": {
+    "source": ".local-build/r8-outdoor-floor-complete.png",
+    "raw_sha256": "ed107082eb8ce2f5c3682d75f318b524074345a0c4e1aa6b7e095aabce83e00b",
+    "retained_sha256": "ed107082eb8ce2f5c3682d75f318b524074345a0c4e1aa6b7e095aabce83e00b",
+    "bytes": 719777,
+    "transform": "identity"
+  },
+  "played/r8-outdoor-table-active.png": {
+    "source": ".local-build/r8-outdoor-table-active.png",
+    "raw_sha256": "a1aad3a312149f8e87b2d013909743158cb97644176b99d9d4063cca8f6fb954",
+    "retained_sha256": "a1aad3a312149f8e87b2d013909743158cb97644176b99d9d4063cca8f6fb954",
+    "bytes": 719898,
+    "transform": "identity"
+  },
+  "played/r8-outdoor-table-complete.png": {
+    "source": ".local-build/r8-outdoor-table-complete.png",
+    "raw_sha256": "4082f75981b62780a14424a27d6e2e22ed0bd9830a6f146aeb2dd4cdd8dce7e5",
+    "retained_sha256": "4082f75981b62780a14424a27d6e2e22ed0bd9830a6f146aeb2dd4cdd8dce7e5",
+    "bytes": 712137,
+    "transform": "identity"
+  },
+  "played/r8-indoor-floor-middle.png": {
+    "source": ".local-build/r8-indoor-floor-middle.png",
+    "raw_sha256": "087a042434fc83717ecf4296693a57ea25e4ebe61505b24bf46dfac47676c250",
+    "retained_sha256": "087a042434fc83717ecf4296693a57ea25e4ebe61505b24bf46dfac47676c250",
+    "bytes": 864677,
+    "transform": "identity"
+  },
+  "played/r8-indoor-floor-complete.png": {
+    "source": ".local-build/r8-indoor-floor-complete.png",
+    "raw_sha256": "26368304ec901a754578fc0ddc8e67d476881e66e8e47f60c296f133460f9ae3",
+    "retained_sha256": "26368304ec901a754578fc0ddc8e67d476881e66e8e47f60c296f133460f9ae3",
+    "bytes": 879349,
+    "transform": "identity"
+  },
+  "played/r8-historical-conversation-active.png": {
+    "source": ".local-build/r8-historical-conversation-active.png",
+    "raw_sha256": "f5f4be8b6193c7c675ebefcc8a278c6dec388f570cb229e653a6ac1e64094c8b",
+    "retained_sha256": "f5f4be8b6193c7c675ebefcc8a278c6dec388f570cb229e653a6ac1e64094c8b",
+    "bytes": 430902,
+    "transform": "identity"
+  },
+  "played/r8-historical-need-eating.png": {
+    "source": ".local-build/r8-historical-need-eating.png",
+    "raw_sha256": "e85f2e644201cf5752d2704a2cfe838d21558df9ec418e7f1ebc7484cfe7af7b",
+    "retained_sha256": "e85f2e644201cf5752d2704a2cfe838d21558df9ec418e7f1ebc7484cfe7af7b",
+    "bytes": 470823,
+    "transform": "identity"
+  },
+  "played/r8-historical-need-complete.png": {
+    "source": ".local-build/r8-historical-need-complete.png",
+    "raw_sha256": "7b24e04cfd8a1f88b4c6577d78d28067899b12d0fa37e624a98541b3548f44dc",
+    "retained_sha256": "7b24e04cfd8a1f88b4c6577d78d28067899b12d0fa37e624a98541b3548f44dc",
+    "bytes": 478355,
+    "transform": "identity"
+  },
+  "played/r8-retained-name-exit-prompt.png": {
+    "source": ".local-build/r8-retained-name-exit-prompt.png",
+    "raw_sha256": "2fe4633aeb1baeb11b1fce146e35ae3fddcfbd634f587d10b8ff77d86112564e",
+    "retained_sha256": "2fe4633aeb1baeb11b1fce146e35ae3fddcfbd634f587d10b8ff77d86112564e",
+    "bytes": 453607,
+    "transform": "identity"
+  },
+  "played/r8-retained-name-refreshed-review.png": {
+    "source": ".local-build/r8-retained-name-refreshed-review.png",
+    "raw_sha256": "024b8116cb7d7555618b68058d4c3ecf16cbe5dc15447c8ea5af20134f05455f",
+    "retained_sha256": "024b8116cb7d7555618b68058d4c3ecf16cbe5dc15447c8ea5af20134f05455f",
+    "bytes": 856398,
+    "transform": "identity"
+  },
+  "played/r8-mouse-only-selection.png": {
+    "source": ".local-build/r8-mouse-only-selection.png",
+    "raw_sha256": "c2fd69215fb00bf352c15f380a172f947f7806566ff7ca2c28b5178bb62256fa",
+    "retained_sha256": "c2fd69215fb00bf352c15f380a172f947f7806566ff7ca2c28b5178bb62256fa",
+    "bytes": 838992,
+    "transform": "identity"
+  },
+  "played/r8-patio-west-confirmed.png": {
+    "source": ".local-build/r8-patio-west-confirmed.png",
+    "raw_sha256": "d611f21edf01b69a7a2b075e795b604bf703f20eab602cc56dcf2e2f521f4615",
+    "retained_sha256": "d611f21edf01b69a7a2b075e795b604bf703f20eab602cc56dcf2e2f521f4615",
+    "bytes": 911730,
+    "transform": "identity"
+  },
+  "played/r8-patio-west-after-load.png": {
+    "source": ".local-build/r8-patio-west-after-load.png",
+    "raw_sha256": "936bd689b67cda055a359f2a1d7e0e65e88f40ed274b937c7bfd46b7179f1d8e",
+    "retained_sha256": "936bd689b67cda055a359f2a1d7e0e65e88f40ed274b937c7bfd46b7179f1d8e",
+    "bytes": 892003,
+    "transform": "identity"
+  },
+  "played/r8-exit-proof-a.png": {
+    "source": ".local-build/r8-exit-proof-a.png",
+    "raw_sha256": "0f3c55029925151e30dc179d3117366b5da0488a5f06810ab2e39afeff765c31",
+    "retained_sha256": "0f3c55029925151e30dc179d3117366b5da0488a5f06810ab2e39afeff765c31",
+    "bytes": 511701,
+    "transform": "identity"
+  },
+  "played/r8-exit-proof-b.png": {
+    "source": ".local-build/r8-exit-proof-b.png",
+    "raw_sha256": "5da9155b994bc32ad8fbd2cc0a7b31ed4f9ddfd933142bcaa4c57d897123c712",
+    "retained_sha256": "5da9155b994bc32ad8fbd2cc0a7b31ed4f9ddfd933142bcaa4c57d897123c712",
+    "bytes": 511865,
+    "transform": "identity"
+  },
+  "played/r8-changelog-desktop-dark.png": {
+    "source": ".local-build/r8-changelog-desktop-dark.png",
+    "raw_sha256": "57c9e0aaea20890c41a75c8f5ea32c8ea258680f74a947d036b1ab146e4059a8",
+    "retained_sha256": "57c9e0aaea20890c41a75c8f5ea32c8ea258680f74a947d036b1ab146e4059a8",
+    "bytes": 81015,
+    "transform": "identity"
+  },
+  "played/r8-changelog-phone-light.png": {
+    "source": ".local-build/r8-changelog-phone-light.png",
+    "raw_sha256": "eee7e9097c6b905453b3781cb53da15961b4ee2efa4d7f47ba1cebb8bed43253",
+    "retained_sha256": "eee7e9097c6b905453b3781cb53da15961b4ee2efa4d7f47ba1cebb8bed43253",
+    "bytes": 41567,
+    "transform": "identity"
+  },
+  "helpers/r8-retained-exit-case.js": {
+    "source": ".local-build/r8-retained-exit-case.js",
+    "raw_sha256": "aba4a7a3abd57efafc1327707acd7c3ad386791b671b33807a895b46e2b324e2",
+    "retained_sha256": "aba4a7a3abd57efafc1327707acd7c3ad386791b671b33807a895b46e2b324e2",
+    "bytes": 3696,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-retained-exit-keyboard.js": {
+    "source": ".local-build/r8-retained-exit-keyboard.js",
+    "raw_sha256": "90d1c7b8e8842e27156a7038d13bcddf94ac9b33187191e22dfce340569a9fb9",
+    "retained_sha256": "90d1c7b8e8842e27156a7038d13bcddf94ac9b33187191e22dfce340569a9fb9",
+    "bytes": 2978,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-retained-exit-finish.js": {
+    "source": ".local-build/r8-retained-exit-finish.js",
+    "raw_sha256": "1635f3c40c9b6ee1ef3610b35904bc58d6cec9689296e4b851dfedf67cfe70d1",
+    "retained_sha256": "1635f3c40c9b6ee1ef3610b35904bc58d6cec9689296e4b851dfedf67cfe70d1",
+    "bytes": 2261,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-mouse-only-control.js": {
+    "source": ".local-build/r8-mouse-only-control.js",
+    "raw_sha256": "2e72ab7738076bfa2905096ae161f843417acda77750108b6a6555608e687607",
+    "retained_sha256": "2e72ab7738076bfa2905096ae161f843417acda77750108b6a6555608e687607",
+    "bytes": 2641,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-exit-color-capture.js": {
+    "source": ".local-build/r8-exit-color-capture.js",
+    "raw_sha256": "3fa5151eb8852695890d44498636aff4545e54d40c36f5807c946e659d4633f1",
+    "retained_sha256": "3fa5151eb8852695890d44498636aff4545e54d40c36f5807c946e659d4633f1",
+    "bytes": 2354,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-exit-color-restoration.js": {
+    "source": ".local-build/r8-exit-color-restoration.js",
+    "raw_sha256": "929d5932ddd7d171145340c4380b28589e926a9fa2b784041d3dc5239fef2a13",
+    "retained_sha256": "929d5932ddd7d171145340c4380b28589e926a9fa2b784041d3dc5239fef2a13",
+    "bytes": 1795,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-play-helper.js": {
+    "source": "web/.scratch/r8-play-helper.js",
+    "raw_sha256": "c56e961f64d5724bad490a69bf91425035d503847bc6445e5553e1ac05e990d8",
+    "retained_sha256": "c56e961f64d5724bad490a69bf91425035d503847bc6445e5553e1ac05e990d8",
+    "bytes": 1849,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-play-observe.js": {
+    "source": "web/.scratch/r8-play-observe.js",
+    "raw_sha256": "0c961ed432979a81c187b8d0abf7ab6f83fdc016eaeb67e1352d1458b81eebbb",
+    "retained_sha256": "0c961ed432979a81c187b8d0abf7ab6f83fdc016eaeb67e1352d1458b81eebbb",
+    "bytes": 1843,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-committed-proof.js": {
+    "source": "web/.scratch/r8-committed-proof.js",
+    "raw_sha256": "b6f8797ce4c5ee9a662ebf6eaca0aca8c46b45cc12a5562372a256665efdd20f",
+    "retained_sha256": "b6f8797ce4c5ee9a662ebf6eaca0aca8c46b45cc12a5562372a256665efdd20f",
+    "bytes": 1762,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-query-purity.js": {
+    "source": "web/.scratch/r8-query-purity.js",
+    "raw_sha256": "9f6481e918990d7c759bd466c101aff9881a68d588bb9444e3901fd524fea085",
+    "retained_sha256": "9f6481e918990d7c759bd466c101aff9881a68d588bb9444e3901fd524fea085",
+    "bytes": 4025,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-query-purity-v2.js": {
+    "source": "web/.scratch/r8-query-purity-v2.js",
+    "raw_sha256": "91e41e0ccc013fad1a9d15c5ed35a219cd340e4b11646673155987d4723db973",
+    "retained_sha256": "91e41e0ccc013fad1a9d15c5ed35a219cd340e4b11646673155987d4723db973",
+    "bytes": 4023,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-query-purity-v3.js": {
+    "source": "web/.scratch/r8-query-purity-v3.js",
+    "raw_sha256": "b71bfb9590bb31f91cc3ceb17772bb26e2348f260f71e8be660c8032673b1c40",
+    "retained_sha256": "b71bfb9590bb31f91cc3ceb17772bb26e2348f260f71e8be660c8032673b1c40",
+    "bytes": 4073,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r8-query-purity-alt1.js": {
+    "source": "web/.scratch/r8-query-purity-alt1.js",
+    "raw_sha256": "b674eb798672d12c1f11c9c0657b05448425587712035cf1cdf05d0c70960fec",
+    "retained_sha256": "b674eb798672d12c1f11c9c0657b05448425587712035cf1cdf05d0c70960fec",
+    "bytes": 6215,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "helpers/r7-wall-helper.js": {
+    "source": "web/.scratch/r7-wall-helper.js",
+    "raw_sha256": "09b24326c666994bdc5f227e0934feb975cee3084b6b1f8a05b77dab1cd62ab0",
+    "retained_sha256": "ee77510393f1a152bcb0886f9563e872fad741157cd2a249c4d2c1f02f809911",
+    "bytes": 2299,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "play-setup/room-play-dirt-current16.sav": {
+    "source": ".local-build/room-play-dirt-current16.sav",
+    "raw_sha256": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+    "retained_sha256": "1c6cee2e692650b0101ea9a1699fb6b04ab060bf14d51ed9e0c83016d2fd2c57",
+    "bytes": 6955,
+    "transform": "identity"
+  },
+  "play-setup/r6-room-play-current16.sav": {
+    "source": ".local-build/r6-room-play-current16.sav",
+    "raw_sha256": "a75def6a369c5d29a25faf8b8f60fb38eaf647d9f6b4306e7f9e4e4bcd924f45",
+    "retained_sha256": "a75def6a369c5d29a25faf8b8f60fb38eaf647d9f6b4306e7f9e4e4bcd924f45",
+    "bytes": 6930,
+    "transform": "identity"
+  },
+  "play-setup/room-play-dirt-current16-receipt.json": {
+    "source": ".local-build/room-play-dirt-current16-receipt.json",
+    "raw_sha256": "ade8074e015079a2d23e46d29170af60897ab3bd25fef2a37682ddc9492a18cf",
+    "retained_sha256": "ade8074e015079a2d23e46d29170af60897ab3bd25fef2a37682ddc9492a18cf",
+    "bytes": 1316,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "play-setup/room-play-dirt-input.json": {
+    "source": ".local-build/room-play-dirt-input.json",
+    "raw_sha256": "49cd81a49e4abcf259ae2efc31fe620abb6287c83ef1d67541ec22e4ebcdf4a4",
+    "retained_sha256": "49cd81a49e4abcf259ae2efc31fe620abb6287c83ef1d67541ec22e4ebcdf4a4",
+    "bytes": 6091,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "play-setup/r6-play-seed-result.json": {
+    "source": ".local-build/r6-play-seed-result.json",
+    "raw_sha256": "3b93a31b9364d0eb2b3e4bfcb26c0ca20543ff8c17062264a503347d0ea97ab1",
+    "retained_sha256": "3b93a31b9364d0eb2b3e4bfcb26c0ca20543ff8c17062264a503347d0ea97ab1",
+    "bytes": 1524,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  },
+  "play-setup/matched-baseline838.sav": {
+    "source": "web/.scratch/r8-matched-baseline.sav",
+    "raw_sha256": "4688ccbdc7628d70808f2434c91b7083452d83345c819c998430bee4f8610b6a",
+    "retained_sha256": "4688ccbdc7628d70808f2434c91b7083452d83345c819c998430bee4f8610b6a",
+    "bytes": 7340,
+    "transform": "identity"
+  },
+  "helpers/retain-r8-evidence.py": {
+    "source": ".local-build/retain-r8-evidence.py",
+    "raw_sha256": "baa688d78a21155a9a1a8d54e9d47eb11ee102052b04abc948051e658a0a671d",
+    "retained_sha256": "baa688d78a21155a9a1a8d54e9d47eb11ee102052b04abc948051e658a0a671d",
+    "bytes": 8956,
+    "transform": "UTF-8, LF, one final newline for nonempty text"
+  }
+}

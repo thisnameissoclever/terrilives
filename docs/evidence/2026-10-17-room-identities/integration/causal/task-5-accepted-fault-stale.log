@@ -1,0 +1,19 @@
+
+running 1 test
+test build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit ... FAILED
+
+failures:
+
+---- build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit stdout ----
+
+thread 'build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit' (74400) panicked at crates\terri-sim\src\build_transaction\cases.rs:306:9:
+assertion `left == right` failed
+  left: Ok(())
+ right: Err(StaleToken)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    build_transaction::cases::tokens_never_resurrect_after_load_cancel_exit_or_repeated_submit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1607 filtered out; finished in 0.07s

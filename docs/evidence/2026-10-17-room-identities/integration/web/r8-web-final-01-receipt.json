@@ -1,0 +1,96 @@
+{
+  "head": "dc1a4b6bc684b475ca382d1e2eb594e29b95b140",
+  "source_before": "70dfc900bbcd4a391779c756a6a2ddcee560427284b1535881ecc38b518f0063",
+  "input_count": 52748,
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "typecheck"
+      ],
+      "started_utc": "2026-10-18T07:48:20.877240+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 7.901,
+      "log_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd"
+    },
+    {
+      "name": "suite",
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "--reporter=default",
+        "--reporter=../.local-build/web-progress-reporter.mjs"
+      ],
+      "started_utc": "2026-10-18T07:48:28.779151+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 578.055,
+      "log_sha256": "33213321ff2fade66ea8e3a2d1aeaf2bd65cb078f94954a603a5118f1d64921d"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm.cmd",
+        "--prefix",
+        "web",
+        "run",
+        "build"
+      ],
+      "started_utc": "2026-10-18T07:58:06.835237+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 15.484,
+      "log_sha256": "a96c4cd38f2f7388500e1c79517a8b65ed4204e97429f90d12f7937ebbde449d"
+    },
+    {
+      "name": "doc-ids",
+      "command": [
+        "python",
+        "check-doc-ids.py"
+      ],
+      "started_utc": "2026-10-18T07:58:22.319475+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 0.077,
+      "log_sha256": "932d842df5916269a3980cd5ec2503159c754a7b45d7828a22429491e498bf66"
+    },
+    {
+      "name": "changelog-test",
+      "command": [
+        "node",
+        "--test",
+        "scripts/build-changelog.test.mjs"
+      ],
+      "started_utc": "2026-10-18T07:58:22.396650+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 0.188,
+      "log_sha256": "b28b6304543205e87c2fb8937a953c852cbd7d4b13f6e64615ba1d4d5b7ad403"
+    },
+    {
+      "name": "changelog-build",
+      "command": [
+        "node",
+        "scripts/build-changelog.mjs"
+      ],
+      "started_utc": "2026-10-18T07:58:22.584592+00:00",
+      "state": "complete",
+      "exit_code": 0,
+      "seconds": 0.05,
+      "log_sha256": "a814ece015715c429ae559676d2dfec043b33b2a448daf49c2d59e008f918ebd"
+    }
+  ],
+  "complete": true,
+  "source_after": "70dfc900bbcd4a391779c756a6a2ddcee560427284b1535881ecc38b518f0063",
+  "source_unchanged": true,
+  "passed": true
+}
