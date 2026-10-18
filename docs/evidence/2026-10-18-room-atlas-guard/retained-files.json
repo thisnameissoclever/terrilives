@@ -1,0 +1,38 @@
+[
+  {
+    "file": "focused-red.log",
+    "rawSha256": "1f4b35b2b6da1e399993e88ba03592eaa9a1f94c12a0d630ed5fca6a03d4e66a",
+    "retainedSha256": "89a91ede236f2822c452e48ca0158d2735f312baa46204a2933615bc25e9ac65",
+    "normalization": "UTF-8/LF; workspace path replaced with <workspace>; one final newline"
+  },
+  {
+    "file": "focused-green.log",
+    "rawSha256": "bf863029cb9c9ead9e4e8b3dfaf01c15036f3b2925d0e6ebd93983748a66e542",
+    "retainedSha256": "4c34fa8e57edf03925c1900541d725ff93daa21c67622068c6661b0b68aa7c52",
+    "normalization": "UTF-8/LF; workspace path replaced with <workspace>; one final newline"
+  },
+  {
+    "file": "regression-green.log",
+    "rawSha256": "3df07907e03bbb05c617c7b3d1b2cf050b93fec767b6e455ea29a11e69068cb2",
+    "retainedSha256": "689f0b4c01d2fae73a3daa3ae821ac4fa17b88a1659f6061fa39b9f8c9a79a32",
+    "normalization": "UTF-8/LF; workspace path replaced with <workspace>; one final newline"
+  },
+  {
+    "file": "architecture-delta.json",
+    "rawSha256": "734592aa35dad01f3fe40a5fe93db515c608c65a0c396d3dd66b8f33cc9d2e72",
+    "retainedSha256": "78649f4584d806fbe3a2ad2e78e3f396f092ff8524d917f73605e91285047f68",
+    "normalization": "UTF-8/LF; workspace path replaced with <workspace>; one final newline"
+  },
+  {
+    "file": "preserved-assets.json",
+    "rawSha256": "6db316848115c9f2c3c6f276a2ca004cd0c2665bdb7c73671402f5925f700ff8",
+    "retainedSha256": "d64fe280c4dfba3e6059db20289bc7e928bddef03ef8a3020e05de47715e8a48",
+    "normalization": "UTF-8/LF; workspace path replaced with <workspace>; one final newline"
+  },
+  {
+    "file": "fresh-review.md",
+    "rawSha256": "a64eded463de85ce1656b54cc23c6f0c17919eb5ea5f022c88722d3c0af704a7",
+    "retainedSha256": "a64eded463de85ce1656b54cc23c6f0c17919eb5ea5f022c88722d3c0af704a7",
+    "normalization": "UTF-8/LF; trailing whitespace removed; one final newline"
+  }
+]

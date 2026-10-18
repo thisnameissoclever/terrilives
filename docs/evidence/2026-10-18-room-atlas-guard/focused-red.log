@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves (test_aquarium_prefix.AquariumPrefixTests.test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<workspace>\assets\sprites\gen\test_aquarium_prefix.py", line 39, in test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves
+    self.assertEqual(digest, '2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a7671aabbe542ec2b311246bf9f12c016392da6c91c6f7256563ab6af2ba7eb9' != '2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245'
+- a7671aabbe542ec2b311246bf9f12c016392da6c91c6f7256563ab6af2ba7eb9
++ 2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.958s
+
+FAILED (failures=1)
