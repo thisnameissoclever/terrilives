@@ -528,7 +528,8 @@ need_bar_refresh_ms = 100
 # and shared activities; see the relationship-development evidence.
 # Zero disables this completion reward.
 relationship_gain_per_talk = 0.17
-# Appreciation per completed shared portion; average chore gratitude, issue 275.
+# Appreciation per completed shared portion, issue 275. This matches the
+# code-defined chore reward at average cleanliness; chore gratitude is not tuned here.
 meal_appreciation_gain = 0.009
 
 # How much every relationship drifts toward zero each tick - toward

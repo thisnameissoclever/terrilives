@@ -3478,3 +3478,36 @@ fn meal_appreciation_never_inserts_a_self_relationship() {
         &before
     );
 }
+
+#[test]
+fn meal_appreciation_skips_dead_cooks_without_discarding_the_portion() {
+    for prior_opinion in [0.0, 0.4] {
+        let (mut sim, people, table) = appreciation_meal();
+        let cook = *sim.world().get::<SimId>(people[0]).unwrap();
+        let eater = *sim.world().get::<SimId>(people[1]).unwrap();
+        if prior_opinion != 0.0 {
+            sim.world_mut()
+                .get_mut::<Relationships>(people[1])
+                .unwrap()
+                .bump(cook, prior_opinion);
+        }
+        let before = sim.world().get::<Relationships>(people[1]).unwrap().clone();
+        crate::mortality::remove_person(sim.world_mut(), people[0]);
+        assert!(sim.world().get_entity(people[0]).is_err());
+        assert_eq!(
+            sim.world().resource::<SavedDomestic>().meals[0].cook,
+            cook.0
+        );
+        finish_appreciation_meal(&mut sim, people[1], table);
+        assert_eq!(
+            sim.world().get::<Relationships>(people[1]).unwrap(),
+            &before
+        );
+        assert!(sim.world().resource::<SavedDomestic>().meals[0]
+            .eaten
+            .contains(&eater.0));
+        assert!(!sim.relationship_effects().iter().any(
+            |effect| effect.cause == crate::relationship_effects::RelationshipCause::MealShared
+        ));
+    }
+}

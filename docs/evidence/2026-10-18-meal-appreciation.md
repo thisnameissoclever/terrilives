@@ -28,7 +28,7 @@ The inherited runtime fixture changes only by the four-byte tuning float appende
 | --- | --- | --- |
 | `crates/terri-data/tests/fixtures/inherited-runtime.pack` | `d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5` | `6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5` |
 
-Regeneration command: `TERRI_WRITE_RUNTIME_FIXTURE=1 cargo test -p terri-data --test inherited_runtime`, using a process environment variable in PowerShell. The generator test proves that removing precisely those four bytes recovers the complete previous fixture. All three integration tests passed with exit code 0. Existing frozen published wire witnesses remain unchanged and explicitly reconstruct zero appreciation.
+Regeneration command: `TERRI_WRITE_RUNTIME_FIXTURE=1 cargo test -p terri-data --test inherited_runtime`, using a process environment variable in PowerShell. At regeneration time, while the stored fixture differed from the fresh encoding, the generator test proved that removing precisely those four bytes recovered the complete previous fixture. That conditional byte proof does not run when the stored fixture already matches. All three integration tests passed with exit code 0. Existing frozen published wire witnesses remain unchanged and explicitly reconstruct zero appreciation.
 
 The first full workspace run exited 101 with an incorrect new byte-difference expectation: `0.125f32` differs from zero in only one byte. The corrected test uses `0.1875f32`, whose two changed byte positions are pinned. No production encoding changed to satisfy this assertion.
 
@@ -60,8 +60,31 @@ The first web-suite run reported no completed file after nearly six minutes and 
 Full output, diagnostic CPU profiles and the temporary progress reporter remain in the parent scratch folder, outside the repository. Native logs use `meal-workspace-final.log`, `meal-clippy-final.log`, `meal-fmt-final.log` and `meal-doc-ids-final.log`; other check logs use the `meal-` prefix. No browser or development server was started.
 
 
-## Final web result and handoff
+## Final web result
 
 `npx vitest run --maxWorkers=1 --testTimeout=20000 --reporter=default --reporter=../../meal-progress-reporter.mjs`, run in `web`, exited 0: 270 files passed, 3,732 tests passed, none failed or skipped. Duration: 676.77 seconds. The added reporter only logs file start and completion; it lives outside the repository. The final log is `meal-vitest-final.log` in the parent scratch folder. Release-WebAssembly world-hash and bridge checks passed with their existing expectations; no wasm golden value was edited.
 
-The staged text files report `i/lf w/lf` through `git ls-files --eol`. Staged whitespace and prohibited-dash checks pass. No dependency, lockfile, historical save, generated wasm or review video is included. The specification marks balance and other discretionary gameplay rules for owner confirmation. The coordinating session owns review and shipping; this task only creates a local commit and does not push, merge or open a pull request.
+
+## Review correction verification
+
+The correction to `214df0127` adds `meal_appreciation_skips_dead_cooks_without_discarding_the_portion`. Before the fix it exited 101: an empty relationship list became a `0.009` opinion of the dead cook. After the fix all eight focused meal tests passed with exit code 0. The regression removes the cook through mortality cleanup, verifies that the meal survives, then checks that the guest consumes the portion without adding an opinion or appreciation diagnostic. It also preserves an existing opinion of the dead cook.
+
+The gain-validation test was updated to require `InvalidInterpersonalTuning`. It exited 101 before moving the gain out of the cooking-rule validation and passed afterward with exit code 0. Accepted values and compiled tuning bytes remain unchanged.
+
+Chores and meals now use `relationship_effects::record_opinion_change`. The helper retains the former chore implementation, including self exclusion, relationship insertion, clamping and diagnostic fields. Both call sites retain their original system position; the meal wrapper separately checks that the cook is still a living agent. Chore gratitude's code-defined formula remains unchanged.
+
+The specification removes task workflow instructions, states the living-cook rule and records the balance comparison for owner confirmation. Eligible seated company at neutral compatibility adds about `0.0103` opinion per game minute; the proposed meal reward is about 5 percent of a finished conversation's base gain. The changelog keeps one tight New list and the other contributors' room text. The fixture proof above is explicitly historical regeneration evidence. Review and shipping ownership text was removed.
+
+A read-only review of these corrections found no outcome or call-order regression. This review did not run tests; the check results below provide execution evidence.
+
+
+| Correction check | Exit | Result |
+| --- | --- | --- |
+| `cargo fmt --all -- --check` | 0 | Formatting passed. |
+| `cargo clippy --workspace --all-targets -- -D warnings` | 0 | All targets passed with warnings denied. |
+| `cargo test --workspace` | 0 | 2,461 passed, 0 failed, 1 ignored documentation test. |
+| `py -3 check-doc-ids.py` | 0 | IDs unique and allocation-free. |
+| `node --test scripts/build-changelog.test.mjs` | 0 | 12 passed, 0 failed. |
+| `node scripts/build-changelog.mjs` | 0 | Public page generated locally. |
+
+The runtime fixture is byte-identical to `214df0127`, with SHA-256 `6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5`. No golden value, content digest or saved manifest changed, so no fixture regeneration was required. The earlier release wasm and web results above precede these corrections. Correction logs remain outside the repository in the parent scratch folder as `meal-review-*.log`.

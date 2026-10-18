@@ -1,8 +1,9 @@
 use super::{dirt_in, keys, policy, work};
+use crate::relationship_effects::record_opinion_change as effect;
 use bevy_ecs::prelude::*;
 use terri_core::{
-    chores::*, Agent, AtWork, Commuting, Eating, IntentQueue, Needs, Path, Relationships, SimClock,
-    SimId, Socialising, Target,
+    chores::*, Agent, AtWork, Commuting, Eating, IntentQueue, Needs, Path, SimClock, SimId,
+    Socialising, Target,
 };
 
 fn people(world: &World) -> Vec<(u32, Entity)> {
@@ -275,50 +276,6 @@ fn history(state: &mut SavedChores, id: u32, outcome: u8) {
     if let Some(p) = state.profiles.iter_mut().find(|p| p.sim_id == id) {
         p.commitment = ((u16::from(p.commitment) * 4 + u16::from(outcome)) / 5) as u8;
     }
-}
-fn effect(
-    world: &mut World,
-    responsible: u32,
-    affected: Entity,
-    delta: f32,
-    cause: crate::relationship_effects::RelationshipCause,
-) {
-    let Some(subject) = world.get::<SimId>(affected).copied() else {
-        return;
-    };
-    if subject.0 == responsible {
-        return;
-    }
-    if world.get::<Relationships>(affected).is_none() {
-        world.entity_mut(affected).insert(Relationships::default());
-    }
-    let before = world
-        .get::<Relationships>(affected)
-        .unwrap()
-        .feeling(SimId(responsible));
-    world
-        .get_mut::<Relationships>(affected)
-        .unwrap()
-        .bump(SimId(responsible), delta);
-    let after = world
-        .get::<Relationships>(affected)
-        .unwrap()
-        .feeling(SimId(responsible));
-    let tick = world.resource::<SimClock>().tick;
-    world
-        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
-        .push(crate::relationship_effects::RelationshipEffect {
-            tick,
-            event: 0,
-            cause,
-            responsible: SimId(responsible),
-            affected: subject,
-            requested: delta,
-            actual: after - before,
-            emergency: false,
-            directed: false,
-        });
 }
 pub(crate) fn credit(
     world: &mut World,

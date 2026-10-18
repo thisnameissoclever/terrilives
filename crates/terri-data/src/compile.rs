@@ -3147,11 +3147,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         return Err(ContentError::InvalidInterpersonalTuning);
     }
     let chance = |value: f32| value.is_finite() && (0.0..=1.0).contains(&value);
+    if !chance(tuning.meal_appreciation_gain) {
+        return Err(ContentError::InvalidInterpersonalTuning);
+    }
     let cooking_rules = [
-        (
-            "meal_appreciation_gain",
-            chance(tuning.meal_appreciation_gain),
-        ),
         ("burn_chance_novice", chance(tuning.burn_chance_novice)),
         (
             "burn_chance_master",
@@ -9768,9 +9767,7 @@ mod tests {
         for bad in [f32::NAN, f32::INFINITY, -0.001, 1.001] {
             assert!(matches!(
                 compile_tuned(tuning_where(|t| t.meal_appreciation_gain = bad)),
-                Err(ContentError::CookingTuningOutOfRange {
-                    key: "meal_appreciation_gain"
-                })
+                Err(ContentError::InvalidInterpersonalTuning)
             ));
         }
         let baseline = compile_tuned(full_tuning()).unwrap();

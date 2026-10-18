@@ -12475,3 +12475,14 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Add each live knob to the required-key tests and historical source expansion together. Reconstruct the historical behavior explicitly instead of weakening the live schema. Preserve frozen source and byte witnesses.
 
 **Verify.** Require omission of the live knob to fail. Compile historical content with the explicit reconstructed value, then run frozen-wire, save-load and inherited runtime fixture tests.
+
+
+## [L-persistent-provenance-is-not-a-living-actor] Check living identity before granting new gratitude
+
+**What happened.** A prepared meal kept its cook's permanent identity after death, and a later eater gained a new opinion of the dead cook. Opinions of dead Sims do not decay, so that new gratitude was permanent.
+
+**Root cause.** The completion handler treated saved responsibility as proof that the responsible person still existed. Historical provenance and living participation have different lifetimes.
+
+**Prevention.** Keep provenance for unfinished objects and historical responsibility. Check the living actor separately before granting a new social effect; preserve existing opinions and let consumption finish normally.
+
+**Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.

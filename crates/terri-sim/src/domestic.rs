@@ -1208,28 +1208,20 @@ fn appreciate_meal(world: &mut World, person: Entity, eater: SimId, cook: SimId,
     if eater == cook || gain == 0.0 {
         return;
     }
-    if world.get::<Relationships>(person).is_none() {
-        world.entity_mut(person).insert(Relationships::default());
+    let cook_is_living = world
+        .query_filtered::<&SimId, With<Agent>>()
+        .iter(world)
+        .any(|id| *id == cook);
+    if !cook_is_living {
+        return;
     }
-    let mut feelings = world.get_mut::<Relationships>(person).unwrap();
-    let before = feelings.feeling(cook);
-    feelings.bump(cook, gain);
-    let actual = feelings.feeling(cook) - before;
-    let tick = world.resource::<SimClock>().tick;
-    world
-        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
-        .push(crate::relationship_effects::RelationshipEffect {
-            tick,
-            event: 0,
-            cause: crate::relationship_effects::RelationshipCause::MealShared,
-            responsible: cook,
-            affected: eater,
-            requested: gain,
-            actual,
-            emergency: false,
-            directed: false,
-        });
+    crate::relationship_effects::record_opinion_change(
+        world,
+        cook.0,
+        person,
+        gain,
+        crate::relationship_effects::RelationshipCause::MealShared,
+    );
 }
 
 pub(crate) fn wash_ticks(state: &SavedDomestic, person: u32, base: u32, per_unit: u32) -> u32 {
