@@ -38,6 +38,9 @@
 //!   targetless path. This is the measured contract for local idle wandering:
 //!   endpoint distance alone cannot reveal a short-looking destination whose
 //!   route takes a sim around a wall and across the house.
+//! - **Activity log volume**: records per kind per game day, the largest
+//!   tick and five-tick burst, and dropped records, drained once a tick as
+//!   the shell drains once a frame. The staging ring's size rests on it.
 
 use std::collections::BTreeMap;
 use terri_core::{
@@ -45,6 +48,8 @@ use terri_core::{
     Socialising, Wander, NEED_COUNT,
 };
 use terri_sim::Sim;
+#[path = "trace/activity_log.rs"]
+mod activity_log;
 #[path = "trace/catalogue.rs"]
 mod catalogue;
 #[path = "trace/catalogue_meals.rs"]
@@ -161,6 +166,7 @@ fn main() {
     }
     println!("seed {seed}, instinct override {override_instinct:?}");
     let mut relationship_summary = relationships::Summary::default();
+    let mut log_volume = activity_log::Volume::new(&sim);
 
     // The household, in SimId order - which is declaration order in
     // content/household.toml, so this trace's "sim 0" is the page's Tim.
@@ -266,6 +272,7 @@ fn main() {
 
     for _ in 0..ticks {
         sim.tick();
+        log_volume.observe(&mut sim);
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
 
@@ -1399,4 +1406,5 @@ fn main() {
     println!("\nworld hash {:#018x}", sim.world_hash());
     relationship_summary.print(&sim);
     catalogue_summary.print(&sim);
+    log_volume.print(&sim, ticks);
 }
