@@ -16,7 +16,9 @@ This is the contract for issue 250, the first outdoor objects of [S-outside] in 
 2. **Pool lounger**, model Sunstrip, $120: a wooden sun lounger with a teal cushion and a raised back, on a 1 by 2 footprint authored like the bathtub (long axis along the footprint's depth, base facing south-west). It has one action, Sit, from the shared `lounge` template (Comfort 20, 40 ticks, one sitter). Its one seat is authored at (0, 0.5) from the footprint's center, which is the center of the second tile, at the foot end away from the backrest. The seat faces south-east, toward the long side that its two approach tiles stand beside, so a housemate sits on that edge of the cushion with the shared chair-sitting pose; the cushion top stands 0.42 units high to match that pose.
 3. **Patio umbrella**, model Shady Eight, $90: an eight-panel cream and coral canopy on a slim pole and a weighted base, on a 1 by 1 footprint. It has no action and casts no shade; the canopy overhangs the neighboring tiles.
 
-All three are ordinary objects: they can be bought, placed, turned, moved and sold like any other, inside the house or out, because rooms classify the store and never limit placement. None of them is placed on the shipped lot; the store sells them. The `lounge` template tags the lounger's Sit as `lounging`, so a housemate with the Avoids the couch trait, which halves the appeal of that tag, likes the lounger less too.
+All three are ordinary objects: they can be bought, placed, turned, moved and sold like any other, inside the house or out, because rooms classify the store and never limit placement. None of them is placed on the shipped lot; the store sells them.
+
+The `lounge` template tags the lounger's Sit as `lounging`, so a housemate with the Avoids the couch trait, which halves the appeal of that tag, likes the lounger less too.
 
 ## [OF-store] How the store lists them
 
