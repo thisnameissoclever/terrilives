@@ -16,6 +16,13 @@
       "sourceHashes": "unchanged"
     },
     {
+      "bundle": "outdoor-depth",
+      "sprites": 12,
+      "pages": 1,
+      "coverage": "all-nonzero-alpha-exact",
+      "sourceHashes": "unchanged"
+    },
+    {
       "bundle": "shelf-depth",
       "facings": 4,
       "slots": 96,
@@ -75,7 +82,7 @@
     },
     {
       "bundle": "model-catalogue",
-      "models": 30,
+      "models": 33,
       "missing": []
     }
   ]

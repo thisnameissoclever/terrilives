@@ -1,6 +1,6 @@
 # Fixture and prop companions
 
-These exports keep the published fixture colors and add depth from the geometry that produced them. `asset-inventory.json` lists 30 furniture models and 83 character clips. It predates the three outdoor models, and `build_inventory.py` regenerates it. The production atlas and accepted model files remain unchanged.
+These exports keep the published fixture colors and add depth from the geometry that produced them. `asset-inventory.json` lists the furniture models and character clips these exports cover, with the manifest hash of each bundle; `build_inventory.py` regenerates it. The production atlas and accepted model files remain unchanged.
 
 1. `fixture-depth` contains 140 registered records for static furniture, plates, bowls, and pots. `aquarium-depth` contains 40 records for the published aquarium frames. `outdoor-depth` contains 12 records for the pool, pool lounger and patio umbrella from `static-props-07.json`, exported by `export_outdoor_depth.py`. Each record names its original atlas index and its rectangle in an independent 2048 by 2048 RGBA page.
 2. `shelf-depth` contains an empty case and 24 independent book masks for each facing. Keep the existing stock-color composition. Among the case and present stock slots, select the largest decoded depth whose mask is nonzero.

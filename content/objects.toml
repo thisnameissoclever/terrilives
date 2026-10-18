@@ -1004,7 +1004,7 @@ id = "patio_umbrella"
 object_type = "patio_umbrella"
 [model.properties]
 name = { set = "Shady Eight" }
-description = { set = "Eight cream and coral panels on a slim pole and a weighted base. It casts no actual shade, but it looks the part." }
+description = { set = "Eight cream and coral panels on a slim pole and a weighted base." }
 price = { set = 90 }
 sprite = { set = "offlinePatioUmbrella" }
 
