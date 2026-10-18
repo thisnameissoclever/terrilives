@@ -252,7 +252,7 @@ table. Authored in `content/chains.toml`.
 | **outline** | In Build room, all four sides of the chosen rectangle, including solid walls on the owned plot perimeter. Only interior outline lines can become doorways. |
 | **price** | What an object costs in the Buy tool, in Funds (`price` in `content/objects.toml`). An object with no price is not for sale. A save stores Funds, never prices. |
 | **catalogue** | Everything with a price, listed by name in the Buy tool. Items the household cannot afford are greyed out. |
-| **Buy tool** | Build mode's third tool. The player chooses from the catalogue, points at the floor, turns the ghost and presses Buy. A purchase is refused where a move would be, and when Funds are short of the price; the status line says which. |
+| **Buy tool** | Build mode's Buy destination. The player chooses from the catalogue, points at the floor, turns the ghost and presses Buy. A purchase is refused where a move would be, and when Funds are short of the price; the status line says which. |
 | **Walls tool** | Build mode's second tool. The player picks a line and presses Wall, Doorway or Remove. A wall is refused if it would cut through furniture, stand on a person, come between a person and what they are using, or cut part of the house off; the status line says which. |
 
 ## Under the hood
