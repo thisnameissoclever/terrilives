@@ -12754,3 +12754,17 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Keep provenance for unfinished objects and historical responsibility. Check the living actor separately before granting a new social effect; preserve existing opinions and let consumption finish normally.
 
 **Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.
+
+## [L-count-survivor-allowances] Preserve counted allowances when normalizing identities
+
+1. What happened: a replacement mutation-result model converted the reviewed survivor baseline into a set. One accepted normalized name could then excuse several distinct missed mutations.
+2. Root cause: the prior sorted-list comparison consumed matching baseline lines one for one. Set membership preserved names but discarded their multiplicity. Projecting records to one worker too early could also reuse an allowance across workers.
+3. Prevention: retain counted allowances, allocate them deterministically over the complete merged result collection, and only then project a worker's view. Keep exact mutation identities separate from the shortened names used for baseline policy.
+4. Verification: one allowance must reject a second matching miss, two allowances must accept exactly two, and a further miss must fail. Replace counted consumption with set membership in an isolated copy and require these assertions to fail. When testing a rejection guard, keep all other evidence consistent so a different guard cannot hide its removal.
+
+## [L-bind-mutation-execution] Bind acceptance to the executable and source that ran
+
+1. What happened: independent review reproduced three acceptance defects in a proposed resumable mutation runner. Cargo could execute a different binary from the one Python hashed. A child could change the owned source copy while leaving the protected checkout clean. Complete predecessor results could bypass a failed current-source check.
+2. Root cause: tool lookup, source verification and final aggregation checked different representations of the intended computation. A version string, clean original checkout or valid historical result did not establish the actual executable and current input bytes.
+3. Prevention: resolve and hash one executable, then invoke that absolute path throughout. Prevent lockfile updates and check owned inputs at each evidence boundary, allowing only the verified active mutation. Revalidate current computation inputs before final acceptance even when all outcomes came from earlier attempts. Do not reset unexpected changes and accept the results they produced.
+4. Verification: use divergent PATH and Cargo-home tools, a child that changes the owned lockfile or another tracked input, and complete predecessor coverage followed by changed current inputs. Require each corresponding guard-removal control to fail its intended assertion. Keep a documentation-only continuation as a passing control, and distinguish fixture-process evidence from a real Rust campaign.

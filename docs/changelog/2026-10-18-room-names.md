@@ -18,11 +18,7 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 - A failed order gives a reason and briefly shows a frustrated squiggle above the Sim.
 - Job search is now set for each housemate: the Career tab in Sim details has a **Look for work automatically when unemployed** box, on for every new housemate. Options no longer has a job search box for the whole household; a saved game that had it off keeps job search off for everyone.
 - Older saved games keep their unfinished orders when updated. New saves require this version or newer; recovery copies preserve the original older saves.
-- Confirm and Cancel at the bottom of Build now close Build. Confirm keeps your changes; Cancel discards them.
-- Switching to Land asks you to confirm or discard other pending Build changes first.
-- Hover over a clipped Sim status, focus it with the keyboard, or tap it to read the full text.
-- Sim dock buttons take up less vertical space while keeping their widths and readable labels.
-- Build controls omit repetitive selection and ready messages while keeping useful feedback.
+- Confirm and Cancel at the bottom of Build keep Build open. Confirm keeps the batch; Cancel restores your latest confirmed changes. Exit build handles returning to play.
 - Affirmative actions use green controls; Back, Cancel and discard actions use red controls. Focus remains visible in compact room controls.
 - Saving while you edit or review a build keeps the last confirmed arrangement. Older saved games retain their room labels and unfinished work, with recovery copies kept when their save format changes.
 
@@ -30,8 +26,6 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.
-- The Build zoom-out control displays a proper minus icon.
-- Keep building uses a normal button in the exit dialog, and Confirm appears directly below Discard changes.
 - Housemates no longer stand waiting on each other until they starve. A Sim waiting to chat now steps aside for another Sim's fight or ordered conversation with them, then chats afterward.
 - A fight a Sim starts over a missed chore is called off before it begins when either Sim becomes critically hungry, tired or desperate for the bathroom, or leaves for work. A fight already under way finishes, and fights you order still go ahead.
 - A Sim who chose to chat with someone gives up waiting once they become critically hungry or tired, and will usually go and look after themselves. Sims also no longer start a chat of their own while critically hungry or tired. Chats you order still wait.
