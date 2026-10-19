@@ -1,7 +1,7 @@
 //! Household dirt, timed work, preferences and weekly commitments.
 mod board;
 mod room_changes;
-pub(crate) use board::work_needed;
+pub(crate) use board::{work_needed, work_needed_for};
 pub use room_changes::*;
 pub(crate) use room_changes::{reconcile_migrated_work, validate_current_work};
 pub(crate) mod grime;
@@ -19,6 +19,7 @@ mod work;
 use bevy_ecs::prelude::*;
 pub use policy::{enjoyment, willingness};
 use terri_core::chores::*;
+pub(crate) use work::start as start_response;
 pub(crate) use work::{activate, cancel, issue, key_valid, soil};
 #[cfg(test)]
 mod board_tests;
@@ -75,6 +76,7 @@ pub(crate) fn tick(world: &mut World) {
     crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     patches::reconcile(world);
+    crate::fights::retract(world);
 }
 pub(crate) fn value(rows: &[(u32, u16)], key: u32) -> u16 {
     rows.binary_search_by_key(&key, |r| r.0)
@@ -307,6 +309,7 @@ pub(crate) fn prune(world: &mut World) {
     crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     patches::reconcile(world);
+    crate::chore_repair::reconcile(world);
 }
 
 fn prune_references(world: &mut World, state: &mut SavedChores) {
@@ -393,6 +396,7 @@ pub(crate) fn completed(
     if units == 0 {
         return;
     }
+    crate::chore_repair::appreciate(world, person, units);
     if key.kind == ChoreKind::Surfaces {
         if let Some(group) =
             crate::dining::entity(world, key.target).and_then(|e| groups::key_for(world, e))

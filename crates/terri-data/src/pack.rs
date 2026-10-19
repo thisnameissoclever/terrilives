@@ -778,6 +778,14 @@ impl CompiledLot {
     }
 }
 
+/// Fight behavior selected by authenticated content, independent of save format.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FightRules {
+    #[default]
+    Attributed,
+    Published,
+}
+
 /// The validated system knobs, compiled from `content/tuning.toml`.
 ///
 /// Every value here has been through `compile`, so a reader may assume
@@ -1178,6 +1186,26 @@ pub struct Tuning {
     /// Presentation-only extension after the historical tuning fields.
     #[serde(default)]
     pub weather: Option<crate::WeatherTuning>,
+    /// Purposeful fight and chore response balance, appended after weather.
+    pub fight_grievance_ticks: u32,
+    pub fight_history_ticks: u32,
+    pub fight_repeat_grievance_ticks: u32,
+    pub fight_mood_bad_multiplier: f32,
+    pub fight_mood_good_multiplier: f32,
+    pub fight_opinion_strength: f32,
+    pub fight_severity_reference: f32,
+    pub chore_fight_response_base: f32,
+    pub chore_fight_response_ticks: u32,
+    pub chore_fight_response_cleanliness: f32,
+    pub chore_fight_response_responsibility: f32,
+    pub chore_fight_response_commitment: f32,
+    pub chore_fight_response_preference: f32,
+    pub chore_fight_response_affinity: f32,
+    pub chore_fight_response_mood: f32,
+    pub chore_repair_base: f32,
+    pub chore_repair_cleanliness: f32,
+    /// Authenticated producer references retain their original fight rules.
+    pub fight_rules: FightRules,
 }
 
 impl Tuning {
@@ -2089,6 +2117,24 @@ mod tests {
             career_mood_fired_ticks: 5800,
             autonomy: None,
             weather: None,
+            fight_grievance_ticks: 360,
+            fight_history_ticks: 10080,
+            fight_repeat_grievance_ticks: 1440,
+            fight_mood_bad_multiplier: 2.0,
+            fight_mood_good_multiplier: 0.25,
+            fight_opinion_strength: 0.5,
+            fight_severity_reference: 0.25,
+            chore_fight_response_base: 0.80,
+            chore_fight_response_ticks: 240,
+            chore_fight_response_cleanliness: 0.20,
+            chore_fight_response_responsibility: 0.10,
+            chore_fight_response_commitment: 0.05,
+            chore_fight_response_preference: 0.05,
+            chore_fight_response_affinity: 0.05,
+            chore_fight_response_mood: 0.05,
+            chore_repair_base: 0.08,
+            chore_repair_cleanliness: 0.04,
+            fight_rules: FightRules::Attributed,
             meal_appreciation_gain: 0.0,
             days_per_season: 5,
             first_season: 2,
@@ -2874,10 +2920,36 @@ mod tests {
                 .collect()
         };
         // Autonomy, appreciation and weather follow the original season fields.
-        let historical_end = before.len() - 6;
-        assert_eq!(before[before.len() - 1], 0);
+        let mut tail = Vec::new();
+        macro_rules! tail_field {
+            ($field:ident) => {
+                tail.extend(postcard::to_allocvec(&a_tuning().$field).unwrap());
+            };
+        }
+        tail_field!(fight_grievance_ticks);
+        tail_field!(fight_history_ticks);
+        tail_field!(fight_repeat_grievance_ticks);
+        tail_field!(fight_mood_bad_multiplier);
+        tail_field!(fight_mood_good_multiplier);
+        tail_field!(fight_opinion_strength);
+        tail_field!(fight_severity_reference);
+        tail_field!(chore_fight_response_base);
+        tail_field!(chore_fight_response_ticks);
+        tail_field!(chore_fight_response_cleanliness);
+        tail_field!(chore_fight_response_responsibility);
+        tail_field!(chore_fight_response_commitment);
+        tail_field!(chore_fight_response_preference);
+        tail_field!(chore_fight_response_affinity);
+        tail_field!(chore_fight_response_mood);
+        tail_field!(chore_repair_base);
+        tail_field!(chore_repair_cleanliness);
+        tail_field!(fight_rules);
+        let purposeful_start = before.len() - tail.len();
+        assert_eq!(&before[purposeful_start..], tail);
+        let historical_end = purposeful_start - 6;
+        assert_eq!(before[purposeful_start - 1], 0);
         assert_eq!(
-            &before[before.len() - 5..before.len() - 1],
+            &before[purposeful_start - 5..purposeful_start - 1],
             &0.0f32.to_le_bytes()
         );
         assert_eq!(
@@ -2885,7 +2957,7 @@ mod tests {
                 meal_appreciation_gain: 0.1875,
                 ..a_tuning()
             }),
-            vec![before.len() - 3, before.len() - 2]
+            vec![purposeful_start - 3, purposeful_start - 2]
         );
         assert_eq!(before[historical_end], 0);
         // Seasons (issue 251): the three season knobs are the preceding fifty

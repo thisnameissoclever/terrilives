@@ -1052,10 +1052,10 @@ fn review_continuing_visit_memory_survives_split_and_reload_until_actual_crossin
         .unwrap();
     assert_eq!(visit.room, current_room);
     assert_eq!(visit.seen, vec![500]);
-    let saved = sim.save_snapshot_v19();
+    let saved = sim.current_v19_view();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v19(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v19(), saved);
+    loaded.load_current_v19_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v19_view(), saved);
     crate::domestic::tick(loaded.world_mut());
     let visit = loaded
         .world()

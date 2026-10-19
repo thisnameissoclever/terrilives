@@ -329,6 +329,26 @@ pub(crate) fn bother(world: &mut World) {
         feelings.bump(responsible, requested);
         let actual = feelings.feeling(responsible) - before;
         world.entity_mut(person).insert(feelings);
+        if let Some(target) = world.get::<Target>(nuisance.user).copied() {
+            use terri_core::save_v20::{GrievanceKind, GrievanceSubject, NuisanceKind};
+            let kind = match pack.affinities[nuisance.kind as usize].id.as_str() {
+                "television" | "tv" => NuisanceKind::Television,
+                "music" | "radio" => NuisanceKind::Music,
+                "exercise" => NuisanceKind::Exercise,
+                _ => NuisanceKind::Other,
+            };
+            crate::social_conflicts::remember(
+                world,
+                affected,
+                responsible,
+                GrievanceKind::Nuisance,
+                GrievanceSubject::Nuisance {
+                    object: target.object.index_u32(),
+                    kind,
+                },
+                -requested,
+            );
+        }
         world
             .resource_mut::<RelationshipDiagnostics>()
             .effects

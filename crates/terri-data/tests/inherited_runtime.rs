@@ -43,6 +43,8 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
     result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
     assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
     result.tuning.relationship_gain_per_talk = 0.17;
+    result.tuning.fight_rules = terri_data::FightRules::Published;
+    result.tuning.fight_chance_per_tick = terri_data::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK;
     for action in &mut result.social {
         if action.id == "chat" {
             let social = action
@@ -139,26 +141,48 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Restore the previous grass values and remove only the appended weather
-            // field. Every other byte must match the pre-weather runtime fixture.
-            let mut previous_pack = pack.clone();
-            previous_pack.tuning.season_yard_looks = terri_data::Tuning::SHIPPED_SEASON_YARD_LOOKS;
+            // This mutable fixture retains its published balance. The current
+            // compiled contract appends only the purposeful-fight tuning tail.
+            // Removing that exact tail must recover every previous input byte.
             let prefix = postcard::to_allocvec(&(
-                &previous_pack.decay_per_tick,
-                &previous_pack.objects,
-                previous_pack.sim_sprite,
-                &previous_pack.lot,
-                &previous_pack.tuning,
+                &pack.decay_per_tick,
+                &pack.objects,
+                pack.sim_sprite,
+                &pack.lot,
+                &pack.tuning,
             ))
             .unwrap();
-            let weather_bytes = postcard::to_allocvec(&previous_pack.tuning.weather).unwrap();
-            let mut previous = postcard::to_allocvec(&previous_pack).unwrap();
-            previous.drain(prefix.len() - weather_bytes.len()..prefix.len());
+            let mut tail = Vec::new();
+            macro_rules! tail_field {
+                ($field:ident) => {
+                    tail.extend(postcard::to_allocvec(&pack.tuning.$field).unwrap());
+                };
+            }
+            tail_field!(fight_grievance_ticks);
+            tail_field!(fight_history_ticks);
+            tail_field!(fight_repeat_grievance_ticks);
+            tail_field!(fight_mood_bad_multiplier);
+            tail_field!(fight_mood_good_multiplier);
+            tail_field!(fight_opinion_strength);
+            tail_field!(fight_severity_reference);
+            tail_field!(chore_fight_response_base);
+            tail_field!(chore_fight_response_ticks);
+            tail_field!(chore_fight_response_cleanliness);
+            tail_field!(chore_fight_response_responsibility);
+            tail_field!(chore_fight_response_commitment);
+            tail_field!(chore_fight_response_preference);
+            tail_field!(chore_fight_response_affinity);
+            tail_field!(chore_fight_response_mood);
+            tail_field!(chore_repair_base);
+            tail_field!(chore_repair_cleanliness);
+            tail_field!(fight_rules);
+            let mut previous = encoded.clone();
+            previous.drain(prefix.len() - tail.len()..prefix.len());
             assert_eq!(
                 previous, old_bytes,
-                "only grass tuning and the appended weather field may change the fixture"
+                "only the appended fight tuning contract may change this fixture"
             );
-            eprintln!("Weather fixture proof: restored grass and removed weather recover every previous byte");
+            eprintln!("Purposeful-fight fixture proof: removing the compiled tail recovers every previous byte");
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;

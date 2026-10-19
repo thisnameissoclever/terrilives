@@ -166,7 +166,9 @@ fn daily_choices_are_saved_once_and_do_not_reroll_after_personality_edits_or_loa
     sim.world_mut().insert_resource(state);
     let before = sim.world_hash();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+    loaded
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), before);
 }
 
@@ -247,7 +249,7 @@ fn helper_credit_identifies_the_actual_performer_and_cannot_reward_the_same_comp
         .0;
     let helper_id = sim.world().get::<SimId>(helper).unwrap().0;
     state.surfaces.retain(|r| r.0 != key.target);
-    board::credit(
+    completed(
         sim.world_mut(),
         &mut state,
         helper.index_u32(),
@@ -287,7 +289,9 @@ fn weekly_assignments_persist_and_new_weeks_use_the_saved_chore_stream() {
     assert_ne!(state.rng, stream);
     sim.world_mut().insert_resource(state);
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+    loaded
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -356,7 +360,7 @@ fn balance_household_grace_helper_resentment_uses_the_same_boundary() {
         crate::neglect::refresh_in(sim.world_mut(), &state);
         // Normal work clears physical dirt before completion credit is awarded.
         state.surfaces.clear();
-        board::credit(
+        completed(
             sim.world_mut(),
             &mut state,
             helper.index_u32(),
@@ -439,19 +443,19 @@ fn balance_household_grace_real_gradual_wipe_retains_its_admitted_boundary() {
             ticks += 1;
             if ticks == 20 {
                 sim.world_mut().insert_resource(state.clone());
-                let saved = sim.save_snapshot_v19();
+                let saved = sim.current_v19_view();
                 assert_eq!(!saved.neglect.matured_episodes.is_empty(), elapsed == 120);
                 let mut loaded =
                     crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-                loaded.load_snapshot_v19(saved.clone()).expect(
+                loaded.load_current_v19_view(saved.clone()).expect(
                     "gradual cleaning must preserve its observed episode through a current save",
                 );
-                assert_eq!(loaded.save_snapshot_v19(), saved);
+                assert_eq!(loaded.current_v19_view(), saved);
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 if elapsed == 120 {
                     let mut changed = saved.clone();
                     changed.neglect.matured_episodes.clear();
-                    loaded.load_snapshot_v19(changed).unwrap();
+                    loaded.load_current_v19_view(changed).unwrap();
                     assert_ne!(
                         loaded.world_hash(),
                         sim.world_hash(),
@@ -558,10 +562,10 @@ fn balance_household_grace_cancel_below_tolerance_clears_prior_maturity() {
     cancel(sim.world_mut(), helper);
     crate::neglect::refresh(sim.world_mut());
     assert!(!crate::neglect::episode_matured(sim.world(), episode_id));
-    let mut invalid = sim.save_snapshot_v19();
+    let mut invalid = sim.current_v19_view();
     invalid.neglect.matured_episodes.push(episode_id);
     assert!(
-        sim.load_snapshot_v19(invalid).is_err(),
+        sim.load_current_v19_view(invalid).is_err(),
         "load rejects maturity after the work was discharged"
     );
     let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();

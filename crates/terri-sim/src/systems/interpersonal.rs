@@ -703,6 +703,29 @@ pub(crate) fn apply(world: &mut World) {
             .feeling(effect.responsible)
             - before;
         let tick = world.resource::<terri_core::SimClock>().tick;
+        let grievance = match effect.cause {
+            RelationshipCause::PrivacyEntry => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyEntry)
+            }
+            RelationshipCause::PrivacyStart => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyStart)
+            }
+            RelationshipCause::LowNeedInterruption
+            | RelationshipCause::CriticalNeedInterruption => {
+                Some(terri_core::save_v20::GrievanceKind::NeedInterruption)
+            }
+            _ => None,
+        };
+        if let Some(kind) = grievance {
+            crate::social_conflicts::remember(
+                world,
+                effect.offended,
+                effect.responsible,
+                kind,
+                terri_core::save_v20::GrievanceSubject::None,
+                (-effect.delta).max(0.0),
+            );
+        }
         world
             .resource_mut::<RelationshipDiagnostics>()
             .effects

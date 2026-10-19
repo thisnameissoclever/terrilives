@@ -113,6 +113,8 @@ pub(crate) fn reconcile_committed_world(
                 });
             }
         }
+        crate::chore_repair::reconcile(world);
+        crate::social_conflicts::tick(world);
         crate::rooms::refresh_visits(world, &before.person_rooms);
         crate::rooms::retain_referenced_history(world);
         return Ok(report);
@@ -273,6 +275,8 @@ pub(crate) fn reconcile_committed_world(
     crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     super::patches::reconcile(world);
+    crate::chore_repair::reconcile(world);
+    crate::social_conflicts::tick(world);
     crate::rooms::refresh_visits(world, &before.person_rooms);
     crate::rooms::retain_referenced_history(world);
     Ok(report)

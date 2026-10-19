@@ -187,6 +187,11 @@ fn detach(world: &mut World, actor: Entity, remove_activity: bool) {
     else {
         return;
     };
+    let order = match execution.owner {
+        ExecutionOwner::Player(id) | ExecutionOwner::System(Some(id)) => Some(id),
+        _ => None,
+    };
+    crate::social_conflicts::cancel_execution(world, actor, order);
     if let ExecutionOwner::Player(id) = execution.owner {
         if front(world, actor) == Some(id) {
             world

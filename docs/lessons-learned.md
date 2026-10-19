@@ -12899,3 +12899,34 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: the checker compared language-specific container types across a serialization boundary. The persisted receipts were identical.
 3. Prevention: normalize both sides through the declared serialization format before comparing evidence. Preserve the original outputs and repair the checker separately; do not rerun valid completed work to hide the false alarm.
 4. Verification: require equivalent tuple and array representations to compare equal. Require an altered scoped blob or actual source-byte hash to compare unequal. Retain the correction and its controls with the dated qualification evidence.
+
+## [L-physical-cleaning-credit] Keep actual cleaning credit separate from board history
+
+**What happened:** Cleaning appreciation originally depended on settling a board episode. That omitted board-disabled and repeated real work. Reusing episode contribution totals for a later argument could also award credit to an earlier washer for fresh dishes.
+
+**Root cause:** A historical accounting row was being used as proof of current physical completion. An episode can remain after its original work ends, and its contribution total does not identify a new continuous duty.
+
+**Prevention:** Award ordinary appreciation from successful physical completion with positive completed units. Track reconciliation contributions by the current chore, owner and continuous-work identity. Keep board history separate, require actual recipient work during the repair window, and capture witnesses before cleanup removes its source records. Historical source adoption must be explicit; current readers must reject missing behavioral ownership.
+
+**Verification:** Exercise real board-disabled cleaning, repeat same-day work, a fresh dish load with an old contribution leader, helper completion, declined-then-natural cleanup, and save/load through partial work. Prove that canceled, zero-unit, expired and unrelated work supplies no repair bonus.
+
+
+## [L-fixture-failure-attribution] Name the exact fixture that failed
+
+**What happened:** A failing multi-fixture save test was attributed to its first input, even though the assertion did not identify which iteration failed. Separate execution proved that the first input loaded and the later running-fight input failed.
+
+**Root cause:** A shared assertion location identified the test, while the report treated it as evidence about a particular fixture.
+
+**Prevention:** Label each fixture assertion with the input name or use separate parameterized cases. Run public loading on a fresh untouched instance; use another instance for lower-level diagnostic admission so setup cannot mask the public behavior.
+
+**Verification:** Retain independent positive and negative controls for the exact original bytes. Report a failing test separately from an observed failing input until the evidence identifies that input.
+
+
+### Keep historical producer policy consistent at every writer
+
+A partial dish-washing batch recorded a new scoped receipt under published reference rules, while that policy's loader rejected the receipt. The fight event recorder already had the policy guard; the physical-work recorder did not. Guard every writer of policy-specific state, and verify both a partial-work round-trip under historical content and a positive current-content control. Completing the whole duty can erase the conflicting state and hide the defect.
+
+
+### Keep running measurements outside Cargo output directories
+
+A workspace test build failed with `LNK1104` because it tried to replace an example executable used by a long-running measurement. Cargo builds ordinary examples during workspace testing, even when they contain no tests. Before starting a measurement, copy its validated executable to an ignored task directory and record the original digest. Run the copy so later builds can replace Cargo artifacts. Verify that the copied executable is outside `target/` and that every intended library, integration, migration and documentation test target runs. A failed combined build must remain recorded as failed, even when later explicit targets supply complete validation.

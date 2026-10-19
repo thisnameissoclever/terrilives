@@ -1,0 +1,12 @@
+{
+  "seeds": 31,
+  "daysPerSeed": 20,
+  "initialPeople": 93,
+  "survivors": 93,
+  "deaths": 0,
+  "completedFights": 7,
+  "dailyStrictRoundtrips": 620,
+  "meanMood": -31.063701032258066,
+  "meanSocial": 78.73865312903226,
+  "maximumDeprivation": 1646
+}

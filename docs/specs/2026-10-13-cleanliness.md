@@ -87,7 +87,13 @@ Schema nineteen wraps the complete frozen schema-eighteen payload with sorted
 source and duty timers plus the IDs of unsettled episodes observed beyond grace.
 The world hash includes that state. Loading validates
 source references, assigned owners, ordering and timestamps before adoption.
-Older saves begin a fresh grace period; loading cannot invent historical neglect.
+Saves from before schema nineteen begin a fresh grace period; loading cannot invent historical neglect.
 Build commits, cancellation and ordinary native transactions carry the complete
 current envelope. Land growth translates floor timer indexes with the grime
 they describe.
+
+## Appreciation and argued duties
+
+Completed physical cleaning raises each other living housemate's opinion of its actual cleaner by `0.006 + 0.006 * cleanliness`. This applies with the board off and to repeat work. Dish washing pays once per completed batch; board settlement does not duplicate it. Canceled and zero-unit work earn none.
+
+A completed argument about an overdue current duty can produce a saved willingness decision and a four-hour relationship repair window. The [fight contract](2026-10-16-fights.md) owns its centered 80% response formula, actual contribution evidence and scope rules. Remaining original dishes preserve partial-washing continuity. Fresh dirt and reassigned duties cannot inherit the old reward. Schema twenty carries this state around the frozen schema-nineteen neglect records. Saves from before schema nineteen begin fresh grace; loading schema nineteen preserves its recorded grace.

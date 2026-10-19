@@ -312,7 +312,9 @@ fn a_housemate_saves_loads_and_plays_on() {
         sim.tick();
     }
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+    loaded
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(loaded.world().get::<SimName>(ann).unwrap().0, "Ann");
     assert_eq!(household_size(loaded.world()), 4);
     for _ in 0..300 {

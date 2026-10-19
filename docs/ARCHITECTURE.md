@@ -668,6 +668,8 @@ imports that intent as an explicitly unattributed waiting request; it does not
 invent admission or alter the physical target, path, clock or random streams.
 Current readers still reject orphaned social targets.
 
+V20 wraps the frozen V19 envelope with indexed attributable grievances, exact active fight contexts, saved chore-response decisions and contribution receipts for the continuous dish duty. Every running fight and pending autonomous fight requires a separate exact context, retained in separate runtime indexes; queued player fights choose at contact. Only historical source adoption creates explicit legacy contexts. Current loading rejects missing contexts and malformed ownership. Chore repair follows actual physical completion, with positive appreciation separate from board settlement. All behavioral fields enter the hash, and complete current state survives native transactions. Current compiled content selects attributable fight rules even when loading an older save. Authenticated historical reference content explicitly selects its published rules to preserve original random draws; save version and cell layout never select that policy. See the [fight contract](specs/2026-10-16-fights.md).
+
 During Build, the native transaction owns a validated baseline, accepted-command
 journal, pending names, and at most one prepared candidate. Current-schema save
 capture returns the baseline while a draft or review is active. Final geometry and
@@ -707,8 +709,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-18. A V18 primary therefore receives `terri-save-1.v18-backup.bin` before the first
-V19 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+19. A V19 primary therefore receives `terri-save-1.v19-backup.bin` before the first
+V20 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -722,8 +724,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V18 workers also refuse a newer primary; the published V18 fixture refuses
-a V19 primary instead of discarding household neglect timing. The storage writer and load-status controller share the current
+Frozen V10 through V19 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -1872,8 +1873,7 @@ rejects unsupported work variants and contacts before world adoption.
 
 Weekly assignments balance estimated work and sample chore preferences. Saved
 daily opportunities separate willingness from enjoyment. Actual work completion
-identifies its performer, updates commitment history and publishes bounded,
-directional relationship effects once per episode. Active work crossing midnight
+identifies its performer and updates commitment history once per episode. Physical completion separately earns housemate appreciation, including board-disabled and repeat work. Argument repair uses scoped current-duty evidence rather than older episode totals. Active work crossing midnight
 retains its original episode. The browser receives owned board/history arrays
 and aligned grime columns. `grime-decals.ts` adds transparent stain sprites in a
 separate atlas page, behind props on floors and at supporting surface depth.

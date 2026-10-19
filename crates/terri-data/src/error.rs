@@ -2238,7 +2238,10 @@ impl fmt::Display for ContentError {
                  fight_chance_per_tick finite, from 0 to 1; \
                  fight_relationship_loss finite, from 0 to 2; \
                  fight_mood_penalty finite and not negative; \
-                 fight_mood_ticks from 1 to 10080"
+                 fight_mood_ticks from 1 to 10080; grievance, history, repeat and response \
+                 ticks from 1 to 100800, with history at least grievance duration; \
+                 bad-mood multiplier from 1 to 10; severity reference above 0 \
+                 and at most 2; other purposeful-fight weights finite from 0 to 1"
             ),
             ContentError::AffinityTuningOutOfRange { key } => write!(
                 f,

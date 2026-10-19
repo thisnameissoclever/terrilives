@@ -1442,7 +1442,10 @@ describe('SimBridge', () => {
     // Independently measured in native and release WASM before updating either.
     // Current rooms remove whole-lot Outside friendship and append room hash state.
     // Independently measured native and normal release Wasm on 2026-10-17.
-    expect(bridge.worldHash()).toBe(7530373376785939268n);
+    // Current grievance memory begins at tick 5. Its additional argument
+    // eligibility draw at tick 63 changes later choices without starting a
+    // fight. Measured independently on native and rebuilt release WASM.
+    expect(bridge.worldHash()).toBe(4733362429942472337n);
   });
 
   // ---- Player commands -------------------------------------------------

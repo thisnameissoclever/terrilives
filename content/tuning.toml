@@ -583,29 +583,37 @@ burn_chance_master = 0.002
 burnt_meal_mood_penalty = 10.0
 burnt_meal_mood_ticks = 240
 
-# FIGHTS - issue 248. A person starts a fight on their own only with
-# someone they feel fight_affinity_threshold or worse about (-0.9 is the
-# bottom five percent of the -1 to 1 scale) and only with a reason: a chore
-# the other person was assigned, missed, and left undone. On a tick where
-# the person is idle (nothing chosen, no order, no activity), each such
-# grudge with a reason gets one roll against fight_chance_per_tick, and
-# the first roll that passes starts the fight; 0.01 means about a hundred
-# idle ticks before it starts when one such grudge is held. An order the
-# roll made up is withdrawn if the other person leaves the lot (for work
-# or a commute) before it is served. A finished fight
-# lowers each side's feeling for the other by fight_relationship_loss and
-# leaves a Had a fight moodlet scoring minus fight_mood_penalty for
-# fight_mood_ticks ticks (480 is eight game hours); the moodlet also holds
-# off another autonomous fight by the same person. The threshold must be
-# finite from -1 to 1, the chance finite from 0 to 1, the loss finite from
-# 0 to 2, the penalty finite and not negative, the duration from 1 to a
-# week. Appended to the compiled tuning after burnt_meal_mood_ticks, so
-# packs published before them reconstruct these shipped values.
+# FIGHTS - attributable arguments and chore responses, issue 314.
+# Fights use one probability draw per eligible idle person, after selecting
+# an attributable current grievance. Mood, opinion and incident severity scale
+# the neutral chance. Both participants must be outside the fight cooldown.
+# The historical affinity threshold remains in the compiled record for old packs;
+# current grievance admission uses the opinion modifier below instead.
+# A completed argument lowers opinion and leaves an eight-hour moodlet.
 fight_affinity_threshold = -0.9
-fight_chance_per_tick = 0.01
+fight_chance_per_tick = 0.001
 fight_relationship_loss = 0.1
 fight_mood_penalty = 12.0
 fight_mood_ticks = 480
+
+# Attributable fights remember recent incidents and allow one saved chore response.
+fight_grievance_ticks = 360
+fight_history_ticks = 10080
+fight_repeat_grievance_ticks = 1440
+fight_mood_bad_multiplier = 2.0
+fight_mood_good_multiplier = 0.25
+fight_opinion_strength = 0.5
+fight_severity_reference = 0.25
+chore_fight_response_base = 0.80
+chore_fight_response_ticks = 240
+chore_fight_response_cleanliness = 0.20
+chore_fight_response_responsibility = 0.10
+chore_fight_response_commitment = 0.05
+chore_fight_response_preference = 0.05
+chore_fight_response_affinity = 0.05
+chore_fight_response_mood = 0.05
+chore_repair_base = 0.08
+chore_repair_cleanliness = 0.04
 
 # LAND EXPANSION - issue 254 (docs/specs/2026-10-17-land-expansion.md). A
 # strip of bought land is land_strip_depth tiles deep along the whole of

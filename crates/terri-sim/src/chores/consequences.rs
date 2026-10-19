@@ -21,13 +21,14 @@ pub(crate) fn dish_washed(world: &mut World, person: u32, units: u32) {
     let actor = crate::dining::entity(world, person)
         .and_then(|e| world.get::<terri_core::SimId>(e))
         .map(|id| id.0);
+    crate::chore_repair::appreciate(world, person, units);
     if let (Some(actor), Some(episode)) = (
         actor,
         state
             .episodes
             .iter()
             .rev()
-            .find(|e| e.key == key && e.day == day)
+            .find(|e| e.key == key && e.day == day && e.completed_at.is_none())
             .map(|e| e.id),
     ) {
         if let Some(entry) = state
@@ -73,6 +74,9 @@ pub(crate) fn dish_washed(world: &mut World, person: u32, units: u32) {
         state.feelings.sort_by_key(|f| f.person);
     }
     state.dish_started.retain(|r| r.0 != person);
+    if let Some(actor) = crate::dining::entity(world, person) {
+        crate::chore_repair::canceled(world, actor);
+    }
     world.insert_resource(state);
 }
 
