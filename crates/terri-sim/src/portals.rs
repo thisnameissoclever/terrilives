@@ -671,6 +671,9 @@ mod tests {
                 social_demand: 0.0,
                 skill_tag: None,
                 trait_fit: Vec::new(),
+                standard_kind: terri_data::SHIFT_DAY,
+                standard_weight: 1,
+                shifts: Vec::new(),
             }],
             ..base.clone()
         }))

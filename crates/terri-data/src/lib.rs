@@ -33,6 +33,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
 };
+pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};
 pub use pack::{ModelMetadata, PhysicalSeat};
@@ -41,7 +42,7 @@ pub use schema::{
     FrontDoorDef, FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile,
     NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef,
     SkillDef, SkillsFile, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile,
-    WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS, WEEKDAY_NAMES,
+    WallDef, MAX_HOUSEHOLD_SIZE, SHIFT_KIND_NAMES, STANDARD_SHIFT_ID, TRAIT_KINDS, WEEKDAY_NAMES,
 };
 
 use std::sync::OnceLock;

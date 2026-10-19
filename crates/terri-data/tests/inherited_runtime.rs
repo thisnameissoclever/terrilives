@@ -102,32 +102,20 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 275: encoding-only movement, 23008 -> 23012 bytes.
-            // SHA-256 before: d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5
-            // SHA-256 after: 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5
-            // Removing the new tuning float
-            // must recover every byte of the previous runtime fixture.
-            let prefix = postcard::to_allocvec(&(
-                &pack.decay_per_tick,
-                &pack.objects,
-                pack.sim_sprite,
-                &pack.lot,
-                &pack.tuning,
-            ))
-            .unwrap();
-            assert!(encoded.starts_with(&prefix));
-            let end = prefix.len();
+            // Issue 296 (shifts): the shift tuning appended to `Tuning`, the
+            // shift fields appended to every `CompiledCareer`, and the new
+            // career rows and paths. The proof always runs against the
+            // fixture as it was before issue 296 (23012 bytes, SHA-256
+            // 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5):
+            // restore that file before regenerating.
             assert_eq!(
-                &encoded[end - 4..end],
-                &pack.tuning.meal_appreciation_gain.to_le_bytes()
+                previous_without_shifts(&pack),
+                old_bytes,
+                "only the shift tuning, the shift fields and the new careers may change the current fixture"
             );
-            let mut previous = encoded.clone();
-            previous.drain(end - 4..end);
-            assert_eq!(
-                previous, old_bytes,
-                "only meal appreciation tuning may change the current fixture"
+            eprintln!(
+                "Shift fixture proof: removing the shift tuning, the career shift fields and the new careers recovers every byte of the previous fixture"
             );
-            eprintln!("Meal appreciation fixture proof: four appended tuning bytes, all other bytes unchanged");
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;
@@ -142,6 +130,91 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
             "regenerate the compiled runtime fixture through this test"
         );
     }
+}
+
+/// The fixture's bytes as they were before issue 296 (shifts), rebuilt
+/// from the current pack: the five shift knobs left off the end of the
+/// tuning, the three shift fields left off each career row, and only the
+/// twelve rows and three paths that existed then. Postcard writes a struct
+/// as its fields in order, so a tuple of the old fields encodes exactly as
+/// the old struct did.
+fn previous_without_shifts(pack: &terri_data::ContentPack) -> Vec<u8> {
+    const SHIFT_TUNING_BYTES: usize = 10;
+    const OLD_ROWS: usize = 12;
+    const OLD_PATHS: usize = 3;
+    let mut bytes = postcard::to_allocvec(&(
+        &pack.decay_per_tick,
+        &pack.objects,
+        pack.sim_sprite,
+        &pack.lot,
+    ))
+    .unwrap();
+    let tuning = postcard::to_allocvec(&pack.tuning).unwrap();
+    assert_eq!(
+        &tuning[tuning.len() - SHIFT_TUNING_BYTES..],
+        postcard::to_allocvec(&(
+            pack.tuning.shift_sleep_offset_day,
+            pack.tuning.shift_sleep_offset_early,
+            pack.tuning.shift_sleep_offset_late,
+            pack.tuning.shift_sleep_offset_night,
+            pack.tuning.career_search_temperature,
+        ))
+        .unwrap(),
+        "the shift knobs are the tuning's last bytes"
+    );
+    bytes.extend_from_slice(&tuning[..tuning.len() - SHIFT_TUNING_BYTES]);
+    bytes.extend(
+        postcard::to_allocvec(&(
+            &pack.personalities,
+            &pack.household,
+            &pack.social,
+            &pack.traits,
+        ))
+        .unwrap(),
+    );
+    let rows: Vec<_> = pack.careers[..OLD_ROWS]
+        .iter()
+        .map(|c| {
+            (
+                &c.id,
+                &c.label,
+                c.shift_start,
+                c.shift_ticks,
+                c.pay,
+                c.energy_cost,
+                c.satisfaction,
+                c.working_days,
+                c.path,
+                c.level,
+                c.pay_max,
+                c.advance_weeks,
+                c.social_demand,
+                &c.skill_tag,
+                &c.trait_fit,
+            )
+        })
+        .collect();
+    bytes.extend(postcard::to_allocvec(&rows).unwrap());
+    bytes.extend(
+        postcard::to_allocvec(&(
+            &pack.roles,
+            &pack.item_kinds,
+            &pack.chains,
+            &pack.circadian,
+            &pack.sleep_tag,
+            &pack.voice_clips,
+            &pack.portals,
+            &pack.colourways,
+            &pack.coverings,
+            &pack.skills,
+            &pack.affinities,
+            &pack.books,
+            &pack.reading,
+            &pack.career_paths[..OLD_PATHS],
+        ))
+        .unwrap(),
+    );
+    bytes
 }
 
 #[test]
