@@ -141,6 +141,8 @@ Sources that are not logged, and why:
 2. Chain steps, which would repeat one meal four times. The chain is logged once.
 3. Need decay, relationship decay, proximity contact, shared-activity contact counted per minute, and incompatibility friction. All are continuous; they change every tick for many pairs and are summarized only where an action carries them [AL-capture].
 4. Moodlets starting or ending, needs turning critical, money and purchases. These would need the Mood or Money filters the owner did not choose.
+5. Chats and fights withdrawn or given up before they start (pull request 302): a chosen chat a housemate gives up once Hunger or Energy turns critical, a waiting request withdrawn for another conversation, and a chore fight called off before it begins. Each ends a conversation that never ran, so the log records nothing, as it records nothing for an interrupted chat.
+6. Changes to a housemate's own job search setting (pull request 303). Turning it on or off is a setting, not something the household did, so it logs nothing, as the old household-wide setting logged nothing. A hire by job search still logs its Career line.
 
 No source turned out to be impossible. Two are costlier than the others: the Social total per action needs an accumulator, and a skill level-up needs `practise` to report what it crossed, which changes that function's signature and its five call sites.
 

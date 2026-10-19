@@ -355,10 +355,12 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// merge 2b15dcfea (pull request 295). Measured on 2026-10-18 by running
 /// the loop of `run_household(false, false, 2880)` (a tick, a command drain
 /// after every 97th tick, then `world_hash`) through `fold` in a detached
-/// checkout of that commit, in a release build. Comparing the log on with
-/// the log off cannot see code that runs in both modes; this pin can. A
-/// deliberate change to simulated behavior on main moves it: re-measure
-/// on the new main the same way and record the commit here.
+/// checkout of that commit, in a release build. A reviewer measured the
+/// same value on main at merge 7b45ac301 (pull request 303), the main this
+/// branch last merged. Comparing the log on with the log off cannot see
+/// code that runs in both modes; this pin can. A deliberate change to
+/// simulated behavior on main moves it: re-measure on the new main the same
+/// way and record the commit here.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xc1d9_089d_be8b_13eb;
 
 /// Two game days, which a debug build runs in about a minute. The
