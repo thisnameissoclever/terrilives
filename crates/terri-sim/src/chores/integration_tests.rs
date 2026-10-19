@@ -73,6 +73,8 @@ fn daily_fixture() -> (Sim, Entity, ChoreKey, u32) {
         }
     }
     sim.world_mut().insert_resource(state);
+    // Give this fixture its normal bed ownership before isolating chore mood.
+    crate::beds::automatic::assign(sim.world_mut());
     (sim, person, key, room)
 }
 

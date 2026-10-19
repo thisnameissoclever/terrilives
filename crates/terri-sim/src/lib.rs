@@ -1920,7 +1920,7 @@ impl Sim {
                 // `a_use_object_command_is_served_on_the_tick_it_arrives`
                 // is what fails if this line moves.
                 systems::command::drain_commands,
-                (mortality::cleanup, waiting::clear).chain(),
+                (mortality::cleanup, waiting::clear, beds::automatic::assign).chain(),
                 advance_clock,
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy

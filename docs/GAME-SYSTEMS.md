@@ -425,11 +425,7 @@ house has a bunk and a double bed.
 See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
 `docs/assets/review-evidence/bed-assignment/navigation.md`.
 
-A separate shipped household capacity rule gives
-every living member a -20 Not enough beds moodlet when sleep places are fewer
-than people. The double bed counts as two places and the supported lower bunk
-as one. This affects the shared sustained-mood satisfaction mechanism, without
-assigning ownership or adding a separate drain.
+An unassigned living Sim automatically claims a reachable unassigned sleeping place on a simulation tick. Existing assignments remain in place. A double bed provides two places and the supported lower bunk one. Only a Sim without an assigned bed receives the -20 No assigned bed mood condition. The condition subtracts mood points; it does not directly change Comfort or life satisfaction. Sustained mood contributes to life satisfaction through the existing mechanism.
 
 **Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
 
@@ -445,7 +441,7 @@ assigning ownership or adding a separate drain.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, missing bed assignments, death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 Future facial expressions and unique animations should reflect both current mood and overall life satisfaction. The owner requested this direction on 2026-10-01; expression states remain unbuilt. [Life satisfaction](specs/2026-10-01-life-satisfaction.md) defines the implemented score and meter.
 

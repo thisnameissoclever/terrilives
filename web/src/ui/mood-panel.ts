@@ -1,3 +1,4 @@
+import { createMoodHelp } from './mood-help.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
 export interface MoodPanelSource {
@@ -31,6 +32,7 @@ export type MoodPanelState =
 
 export interface MoodPanelSurface {
   render(state: MoodPanelState): void;
+  dismissHelp?(): void;
 }
 
 interface MoodDescription {
@@ -75,8 +77,17 @@ function formatScore(score: number): string {
   return rounded > 0 ? `+${rounded}` : String(rounded);
 }
 
-export function moodPanelState(source: MoodPanelSource): MoodPanelState {
-  const selected = source.selectedIndex();
+export function moodImpactText(score: number): string {
+  const value = roundToTenth(score);
+  const points = Math.abs(value);
+  const unit = points === 1 ? 'point' : 'points';
+  const effect = value < 0 ? `Subtracts ${points} ${unit} from overall mood.`
+    : value > 0 ? `Adds ${points} ${unit} to overall mood.`
+    : 'The mood contribution rounds to 0 points.';
+  return `${effect} Overall mood ranges from -100 to +100 and affects life satisfaction over time.`;
+}
+
+export function moodPanelState(source: MoodPanelSource, selected = source.selectedIndex()): MoodPanelState {
   if (selected === null) {
     return { kind: 'unselected' };
   }
@@ -138,6 +149,7 @@ export function moodPanelState(source: MoodPanelSource): MoodPanelState {
 
 export class MoodPanel {
   private lastRenderMs: number | null = null;
+  private selected: number | null = null;
 
   constructor(
     private readonly source: MoodPanelSource,
@@ -158,7 +170,10 @@ export class MoodPanel {
       return false;
     }
 
-    this.surface.render(moodPanelState(this.source));
+    const selected = this.source.selectedIndex();
+    if (selected !== this.selected) this.surface.dismissHelp?.();
+    this.selected = selected;
+    this.surface.render(moodPanelState(this.source, selected));
     this.lastRenderMs = nowMs;
     return true;
   }
@@ -173,6 +188,7 @@ function createMoodletRow(doc: Document): MoodletRow {
 
   const score = doc.createElement('span');
   score.className = 'moodlet-score';
+  score.setAttribute('tabindex', '0');
 
   root.append(label, score);
   return { root, label, score };
@@ -183,6 +199,9 @@ function updateMoodletRow(row: MoodletRow, moodlet: MoodletView): void {
   row.root.setAttribute('aria-label', `${moodlet.label}: ${formatScore(moodlet.score)}`);
   setTextIfChanged(row.label, moodlet.label);
   setTextIfChanged(row.score, formatScore(moodlet.score));
+  const help = moodImpactText(moodlet.score);
+  row.score.setAttribute('data-help', help);
+  row.score.setAttribute('aria-label', `${moodlet.label}: ${help}`);
 }
 
 function resetOverallMeter(
@@ -207,6 +226,7 @@ export function createMoodPanelSurface(
   list: HTMLElement,
 ): MoodPanelSurface {
   const rowByKey = new Map<string, MoodletRow>();
+  const help = createMoodHelp(doc, list);
   const noMoodlets = doc.createElement('li');
   noMoodlets.className = 'moodlet-empty';
   setTextIfChanged(noMoodlets, 'No active moodlets.');
@@ -218,6 +238,7 @@ export function createMoodPanelSurface(
   resetOverallMeter(overallLabel, overallMeter, marker);
 
   function clearRows(): void {
+    help.clear();
     for (const row of rowByKey.values()) {
       row.root.remove();
     }
@@ -226,6 +247,7 @@ export function createMoodPanelSurface(
   }
 
   return {
+    dismissHelp: help.clear,
     render(state: MoodPanelState): void {
       if (state.kind !== 'ready') {
         clearRows();
@@ -274,6 +296,7 @@ export function createMoodPanelSurface(
       }
 
       list.hidden = false;
+      help.refresh();
       if (view.moodlets.length === 0) {
         list.append(noMoodlets);
       }

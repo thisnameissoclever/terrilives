@@ -110,7 +110,7 @@ replacement before it ships.
 ## Gameplay UI additions (2026-09-30)
 
 Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
-Not enough beds. Action cards combine existing interaction labels with object
+No assigned bed. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
 ## Commute label added on 2026-10-06
@@ -172,3 +172,5 @@ remaining grime amount during cleaning.
 Active cleaning labels are Mopping floor, Wiping surface and Emptying bin in
 `web/src/ui/game-hud.ts`. They describe the current work stage; queued orders
 retain their existing action labels.
+
+Condition number help describes additions or subtractions of points from overall mood, the -100 to +100 bounds, and the gradual connection to life satisfaction. The zero explanation states that the current rounded change is zero. Only each number is the hover and keyboard-focus target.

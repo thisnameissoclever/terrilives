@@ -37,16 +37,8 @@ and remaining owner visual approval are recorded below.
    display query transfers only that prefix. The stored queue remains unlimited.
    The complete query stays available for inspection. Recipe labels use the same row indices
    as the action menu. A suspended recipe cannot mask an active target or commute.
-4. Every living household member receives a -20 Not enough beds moodlet while
-   usable sleeping places are fewer than people. Occupied beds still count;
-   people at work still count. Each placed object's capacity is the largest slot
-   count among its sleep-tagged interactions, avoiding duplicate capacity from
-   alternate sleep actions. The double bed counts as two; the current bunk
-   supports only its lower bed and counts as one. Sofas do not count. The penalty
-   clears as soon as there are enough places. Mood remains a read-only projection,
-   so there is no new save field or separate clock. After integrating the current
-   main branch, this moodlet participates in its existing sustained-mood effect
-   on life satisfaction; there is no separate bed-shortage drain.
+4. Each living Sim without an assigned bed receives a -20 No assigned bed mood condition. Unassigned Sims claim reachable unassigned sleeping places automatically on simulation ticks. Existing assignments are preserved. A double bed offers two places and the supported lower bunk one. The penalty clears for a person when they have an assigned place. It subtracts mood points, and sustained mood can affect life satisfaction through the existing shared mechanism. It does not directly change Comfort or add a separate life satisfaction drain.
+
 5. The bookcase's back touches one edge of its tile and rotates around the tile's
    center in quarter turns. Four corrected sprites append to the atlas and the
    bookshelf content selects them. Existing atlas records and gameplay footprints
