@@ -946,9 +946,47 @@ pub(crate) fn best_path(
     best.map(|(index, _)| index)
 }
 
+/// The path an applicant tries ([WS-search] in
+/// `docs/specs/2026-10-18-shifts-and-careers.md`): at a search temperature
+/// of 0, the best fit with no draw, as before issue 296; above 0, one draw
+/// on the careers stream through the softmax over every path's first-level
+/// fit, so a better fit is likelier but not certain.
+pub(crate) fn search_path(
+    world: &World,
+    pack: &ContentPack,
+    entity: Entity,
+    careers: &mut Careers,
+) -> Option<u32> {
+    let temperature = pack.tuning.career_search_temperature;
+    if temperature <= 0.0 {
+        return best_path(world, pack, entity, None, f32::NEG_INFINITY);
+    }
+    let candidates: Vec<(u32, f32)> = pack
+        .career_paths
+        .iter()
+        .enumerate()
+        .filter_map(|(index, path)| {
+            let row = *path.levels.first()?;
+            Some((
+                index as u32,
+                fit(world, pack, &pack.careers[row as usize], entity),
+            ))
+        })
+        .collect();
+    if candidates.is_empty() {
+        return None;
+    }
+    let scores: Vec<f32> = candidates.iter().map(|(_, fit)| *fit).collect();
+    careers.draws += 1;
+    let chosen = crate::systems::action::sample_softmax(&scores, temperature, &mut careers.rng);
+    Some(candidates[chosen].0)
+}
+
 /// Rule 13: an unemployed person whose search is on looks for work on a
 /// working day. A person whose search is off is passed over before any
-/// draw, so the stream sees exactly the people who look.
+/// draw, so the stream sees exactly the people who look. An applicant
+/// draws apply, then the path ([WS-search]), then hire, all on the careers
+/// stream.
 pub(crate) fn search(world: &mut World) {
     let pack = world.resource::<Content>().0;
     let tuning = &pack.tuning;
@@ -964,7 +1002,7 @@ pub(crate) fn search(world: &mut World) {
         if careers.draw() >= tuning.career_search_chance {
             continue;
         }
-        let Some(path) = best_path(world, pack, entity, None, f32::NEG_INFINITY) else {
+        let Some(path) = search_path(world, pack, entity, &mut careers) else {
             continue;
         };
         let row = pack.career_paths[path as usize].levels[0];
@@ -1292,6 +1330,10 @@ pub fn history(world: &World, entity: Entity) -> Vec<f32> {
 #[cfg(test)]
 #[path = "job_search_tests.rs"]
 mod job_search_tests;
+
+#[cfg(test)]
+#[path = "search_tests.rs"]
+mod search_tests;
 
 #[cfg(test)]
 mod tests {
@@ -1950,7 +1992,12 @@ mod tests {
 
     #[test]
     fn the_search_hires_the_unemployed_only_while_the_setting_is_on() {
-        let mut sim = shipped_with(|t| t.career_search_chance = 1.0);
+        // At search temperature 0, the best-fit rule from before issue 296:
+        // this test's subject is the setting, not the choice of path.
+        let mut sim = shipped_with(|t| {
+            t.career_search_chance = 1.0;
+            t.career_search_temperature = 0.0;
+        });
         let (id, entity) = worker(&mut sim);
         sim.world_mut().entity_mut(entity).remove::<Career>();
         sim.world_mut()
