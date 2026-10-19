@@ -1720,10 +1720,16 @@ fn privacy_incidents_log_victim_and_intruder() {
     super::apply(sim.world_mut());
     let effects = sim.relationship_effects().to_vec();
     let records: Vec<_> = sim.activity_log().records().copied().collect();
-    let fixture_label = sim
-        .activity_log()
-        .label(pack, &pack.object(pack.find("toilet").unwrap()).name);
+    // The line names the object's type, never its model name.
+    let definition = pack.object(pack.find("toilet").unwrap());
+    assert_ne!(definition.display_name(), definition.name);
+    let fixture_label = sim.activity_log().label(pack, definition.display_name());
     assert_ne!(fixture_label, crate::activity_log::NONE);
+    assert_eq!(
+        sim.activity_log().label(pack, &definition.name),
+        crate::activity_log::NONE,
+        "the label table holds no model names"
+    );
     for (cause, victim, responsible) in [
         (RelationshipCause::PrivacyStart, watcher, user),
         (RelationshipCause::PrivacyEntry, user, intruder),

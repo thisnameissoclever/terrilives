@@ -3,8 +3,9 @@
  * the owner's review beside a running build ([AL-strings] in
  * docs/specs/2026-10-18-activity-log.md, lesson L58). These are proposals,
  * not approved copy. Existing labels (actions, chains, social interactions,
- * skills, career titles, chore duties, room names and the affinity kinds)
- * come from the simulation's label table unchanged; nothing else in the
+ * skills, career titles, chore duties, room names, object types and the
+ * affinity kinds) come from the simulation's label table, unchanged except
+ * that an object's type is lowercased inside a sentence; nothing else in the
  * shell defines wording for the log.
  */
 
@@ -89,18 +90,35 @@ export function appreciates(name: string, other: string): string { return `${nam
 export function resents(name: string, other: string): string { return `${name} resents ${other}`; }
 export function likeEachOtherLess(name: string, other: string): string { return `${name} and ${other} like each other less`; }
 
-/** Annoyance lines, by the cause label the simulation records. */
+/**
+ * An object's type label, such as Bathroom sink, as it reads after "the" in
+ * a sentence: bathroom sink. A label that starts with an acronym, such as
+ * TV stand, keeps its capitals. Lines name objects by type, never by model.
+ */
+export function objectInSentence(type: string): string {
+  const second = type.charAt(1);
+  return second !== '' && second === second.toUpperCase() && second !== second.toLowerCase()
+    ? type
+    : type.charAt(0).toLowerCase() + type.slice(1);
+}
+
+/**
+ * Annoyance lines, by the cause label the simulation records. `object` is
+ * the object's type label, or the affinity kind for a nuisance.
+ */
 export function annoyance(cause: string, other: string, object: string | null): string {
   switch (cause) {
     case 'cause:household-mess': return `Annoyed by ${other}'s dishes`;
     case 'cause:dirty-setting': return `Annoyed by ${other}'s dirty place setting`;
     case 'cause:privacy-entry': return `Annoyed that ${other} walked in`;
     case 'cause:privacy-start':
-      return object === null ? `Annoyed that ${other} used something nearby` : `Annoyed that ${other} used the ${object} nearby`;
+      return object === null
+        ? `Annoyed that ${other} used something nearby`
+        : `Annoyed that ${other} used the ${objectInSentence(object)} nearby`;
     case 'cause:low-need-interruption':
     case 'cause:critical-need-interruption': return `Annoyed that ${other} interrupted`;
     // Reused from the mood panel's moodlet.
-    case 'cause:nuisance': return `Bothered by ${other} using the ${object ?? SOMETHING}`;
+    case 'cause:nuisance': return `Bothered by ${other} using the ${object === null ? SOMETHING : objectInSentence(object)}`;
     default: return `Annoyed by ${other}`;
   }
 }

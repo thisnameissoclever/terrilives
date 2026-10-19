@@ -20,7 +20,7 @@ const LABELS = [
   'Chat', 'cooking', 'Read a book', 'Reading', 'Do dishes', 'cause:chore-fulfilled', 'cause:household-mess',
   'cause:privacy-entry', 'cause:nuisance', 'television', 'Cooking', 'Senior clerk', 'Office clerk', 'Fight',
   'fight-dishes', 'Clean floor', 'radio', 'Join meal', 'cause:meal-shared', 'cause:chore-neglected', 'smalltalk',
-  'Watch TV', 'cause:privacy-start', 'Shower',
+  'Watch TV', 'cause:privacy-start', 'Shower', 'Toilet', 'Bathroom sink', 'TV stand',
 ] as const;
 const L = Object.fromEntries(LABELS.map((label, index) => [label, index])) as Record<(typeof LABELS)[number], number>;
 
@@ -200,8 +200,14 @@ describe('activity log lines', () => {
       record({ seq: 2, tick: 5, kind: KIND.feeling, triggers: S, actor: CASEY, other: TIM, label: L['cause:chore-neglected'], parent: 1, values: [0, 0, -200] }),
     );
     expect(lines(missed, S | D)).toEqual(['Tim: Missed chore: Do dishes; Casey resents Tim (-2 opinion of Tim)']);
-    const start = record({ seq: 1, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:privacy-start'], label2: L.Shower });
-    expect(lines(storeOf(start), S)).toEqual(['Bill: Annoyed that Casey used the Shower nearby']);
+    // The simulation records the object's type label, never its model name;
+    // the line lowercases it mid-sentence unless it starts with an acronym.
+    const start = (object: number) => record({
+      seq: 1, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:privacy-start'], label2: object,
+    });
+    expect(lines(storeOf(start(L.Toilet)), S)).toEqual(['Bill: Annoyed that Casey used the toilet nearby']);
+    expect(lines(storeOf(start(L['Bathroom sink'])), S)).toEqual(['Bill: Annoyed that Casey used the bathroom sink nearby']);
+    expect(lines(storeOf(start(L['TV stand'])), S)).toEqual(['Bill: Annoyed that Casey used the TV stand nearby']);
   });
 
   it('rounds halves away from zero for both signs', () => {

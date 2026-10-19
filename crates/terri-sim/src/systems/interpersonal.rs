@@ -690,7 +690,7 @@ pub(crate) fn apply(world: &mut World) {
         let fixture = effect
             .fixture
             .and_then(|fixture| world.get::<SmartObject>(fixture))
-            .map(|object| pack.object(object.0).name.as_str());
+            .map(|object| pack.object(object.0).display_name());
         crate::relationship_effects::record_about(
             world,
             RelationshipEffect {

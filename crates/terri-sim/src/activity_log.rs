@@ -295,8 +295,10 @@ impl Labels {
         for kind in terri_core::chores::ChoreKind::ALL {
             labels.add(kind.label());
         }
+        // A line names an object by its type, such as Toilet, never by its
+        // model name.
         for object in &pack.objects {
-            labels.add(&object.name);
+            labels.add(object.display_name());
         }
         for kind in &pack.affinities {
             labels.add(&kind.label);
