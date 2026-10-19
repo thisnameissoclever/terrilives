@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
+  moodImpactText,
   MoodPanel,
   createMoodPanelSurface,
   moodPanelState,
@@ -35,6 +36,7 @@ class MutableMoodSource implements MoodPanelSource {
 }
 
 class FakeElement {
+  addEventListener(): void {}
   className = '';
   dataset: Record<string, string> = {};
   hidden = false;
@@ -127,6 +129,7 @@ class FakeElement {
 }
 
 class FakeDocument {
+  addEventListener(): void {}
   createElement(): FakeElement {
     return new FakeElement();
   }
@@ -529,4 +532,39 @@ describe('createMoodPanelSurface', () => {
     fixture.surface.render({ kind: 'unavailable' });
     expect(fixture.empty.textContent).toBe('Mood unavailable');
   });
+});
+
+describe('condition number help', () => {
+  it('explains signed mood points, including rounded zero', () => {
+    expect(moodImpactText(-20)).toContain('Subtracts 20 points from overall mood');
+    expect(moodImpactText(0.6)).toContain('Adds 0.6 points to overall mood');
+    expect(moodImpactText(-0.01)).toContain('The mood contribution rounds to 0 points');
+    expect(moodImpactText(-20)).toContain('Overall mood ranges from -100 to +100');
+    expect(moodImpactText(-20)).toContain('life satisfaction');
+  });
+  it('attaches help and keyboard access only to each number and updates its text', () => {
+    const fixture = createFixture();
+    fixture.surface.render(ready('Low', -20, [{ key:'bed', label:'No assigned bed', score:-20 }]));
+    const row = fixture.list.nodes[0], number = row.find('moodlet-score')!;
+    expect(number.getAttribute('tabindex')).toBe('0');
+    expect(number.getAttribute('data-help')).toBe(moodImpactText(-20));
+    expect(number.getAttribute('aria-label')).toContain('Subtracts 20');
+    expect(row.getAttribute('data-help')).toBeNull();
+    expect(row.find('moodlet-label')!.getAttribute('data-help')).toBeNull();
+    fixture.surface.render(ready('Content', 1, [{ key:'bed', label:'No assigned bed', score:1 }]));
+    expect(number.getAttribute('data-help')).toBe(moodImpactText(1));
+  });
+});
+
+it('dismisses number help when selected identity changes even if conditions match', () => {
+  const source = new MutableMoodSource();
+  let dismissed = 0;
+  const panel = new MoodPanel(source, { render() {}, dismissHelp() { dismissed++; } }, 50);
+  panel.update(0, true);
+  const first = dismissed;
+  panel.update(100, true);
+  expect(dismissed).toBe(first);
+  source.selected = 2;
+  panel.update(200, true);
+  expect(dismissed).toBe(first + 1);
 });

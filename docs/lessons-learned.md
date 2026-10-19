@@ -12673,6 +12673,35 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
 4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.
 
+## [L-explicit-utf8-for-source-edits] Preserve Unicode during scripted edits
+
+**What happened.** A scripted interface edit changed the existing zoom-out symbol into corrupted text. Review caught the unrelated change before delivery.
+
+**Root cause.** Python read UTF-8 source using the Windows locale encoding, then wrote that misdecoded text as UTF-8.
+
+**Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
+
+**Verification.** Compare pre-existing non-ASCII text with the base revision and check the zoom-out control in the browser.
+
+## [L-condition-help-states-the-effect] Explain the value directly
+
+**What happened.** Condition tooltips used a forbidden contrast formula and repeated explanations that made a short hover panel cumbersome.
+
+**Root cause.** The copy added imagined misunderstandings instead of answering the player's immediate question about the number.
+
+**Prevention.** State the affected value, direction and amount first. Add only the context needed to interpret that value. Apply the writing-style skill before putting prose into the interface.
+
+**Verification.** Read every tooltip variant in the rendered panel and run the prose checks on its final text.
+
+## [L-window-validation-after-owned-reading] Validate complete restored state
+
+**What happened.** Installing a window while a Sim fetched a book failed final transaction validation with InvalidGrid.
+
+**Root cause.** Window validation invoked the full grid validator inside architectural restoration, before the newer save reader restored owned reading journeys. The validator saw the saved target with its required journey still absent.
+
+**Prevention.** Keep structural validation in the architectural layer. Run validation that depends on activity ownership after that ownership has been restored, and before adopting the candidate world.
+
+**Verification.** Install a window during owned reading, require a successful transaction, and round-trip the current save with an identical world hash. Retain malformed-window rejection checks.
 ## [L-historical-architecture-versus-approved-catalogue-append] Verify an approved append separately from frozen history
 
 1. What happened: the sprite CI step failed its historical architecture descriptor assertion after Outdoor patio appended four reviewed catalogue entries. This failure did not demonstrate changed atlas pixels or nonreproducible generated files.
@@ -12768,3 +12797,63 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: tool lookup, source verification and final aggregation checked different representations of the intended computation. A version string, clean original checkout or valid historical result did not establish the actual executable and current input bytes.
 3. Prevention: resolve and hash one executable, then invoke that absolute path throughout. Prevent lockfile updates and check owned inputs at each evidence boundary, allowing only the verified active mutation. Revalidate current computation inputs before final acceptance even when all outcomes came from earlier attempts. Do not reset unexpected changes and accept the results they produced.
 4. Verification: use divergent PATH and Cargo-home tools, a child that changes the owned lockfile or another tracked input, and complete predecessor coverage followed by changed current inputs. Require each corresponding guard-removal control to fail its intended assertion. Keep a documentation-only continuation as a passing control, and distinguish fixture-process evidence from a real Rust campaign.
+## [L-seasonal-tints-preserve-material] Preserve the material's identity through seasonal changes
+
+1. What happened: the seasonal grass settings turned Autumn grass brown and Winter grass pale enough to resemble permanent snow cover. The owner requested recognizable green grass throughout the year.
+2. Root cause: chosen hue and saturation changes replaced the grass's identity instead of adding a slight tint. The visual acceptance criteria required only a readable pattern.
+3. Prevention: state the required material color explicitly and compare every seasonal treatment against it. Use temporary weather effects to communicate brief conditions instead of applying them to the whole season's ground color.
+4. Verification: compare matching defective and corrected Autumn and Winter captures in the real game. A fresh reviewer must reject the defective treatment before accepting the repair. Test the tint bounds and verify weather ends and grounded leaves expire in game time.
+
+## [L-weather-identity-frame] Give decorative fields a stable coordinate frame
+
+1. What happened: index-based particles moved during edits; ranked candidate limits removed existing leaves early; lot-local hashes rerolled leaves when west or north purchases translated the lot.
+2. Root cause: a changing list and then a changing coordinate frame were treated as physical tile identity.
+3. Prevention: normalize to the saved original lot frame once at the presentation boundary. Use that frame for eligibility, lifetime and appearance. Translate only for projection and keep clipping in current lot coordinates.
+4. Verification: compare exact sampled fields through additions, removals, west/north translations and negative relative coordinates. Remove normalization and require the translated-field test to fail. Recheck actual purchase, cancellation and save/load paths.
+
+## [L-first-animation-timestamp] Do not subtract setup time from the first animation timestamp without a lower bound
+
+1. What happened: weather validation stopped the first rendered frame because its interpolated tick was negative.
+2. Root cause: the browser's first animation timestamp preceded the performance.now sample recorded during setup, producing negative elapsed time and interpolation.
+3. Prevention: calculate elapsed frame time at a single boundary and bound it below by zero before simulation and visual consumers receive it.
+4. Verification: feed an earlier first timestamp through the actual fixed-step driver, then a normal interval. Require zero initial interpolation and the expected next tick. Restore raw subtraction and require failure.
+
+## [L-default-catalogue-mock-order] Resolve shared module mocks before loading their dependents
+
+1. What happened: a full web run intermittently saw a floor material's fixture catalogue while finish preparation reported the fixture as unknown. The same test passed in isolation.
+2. Root cause: the setup loaded several modules concurrently while each captured a shared mocked catalogue as its default.
+3. Prevention: resolve and assert the shared mocked module first, then load its dependent modules in a defined order. Keep the production default-argument assertions and functional deadline.
+4. Verification: run the palette and pattern additions together and in the full suite. Both floor selection and finish preparation must resolve the same fixture through their default catalogue.
+
+## [L-merge-head-does-not-prove-reuse] A merge commit does not establish worktree history
+
+1. What happened: a startup warning treated a detached checkout at a merged commit as evidence that previous work in that checkout had already shipped. The evidence did not establish that history.
+2. Root cause: commit ancestry was used as a substitute for worktree and task ownership. Fresh worktrees commonly start at merge commits on the remote default branch.
+3. Prevention: inspect working-tree status, the current reference, remote ancestry and task-owned artifacts separately. Apply a merged-work confirmation rule to the task's work, rather than to any merge commit in its ancestry.
+4. Verification: a clean new worktree based on remote main must not be classified as reused solely because its first commit is a merge. A branch whose own task changes have merged still requires the prescribed confirmation.
+
+## [L-generated-artifact-test-order] Finish rebuilding generated interfaces before running their integration tests
+
+1. What happened: browser save and career tests ran against the previous compiled simulation after a main-branch merge changed the save version and exported methods.
+2. Root cause: the integration tests started while the WebAssembly rebuild was still running, so source and generated artifacts described different interfaces.
+3. Prevention: finish the generated-artifact build successfully before launching tests that import it. Only independent source tests may run alongside that build.
+4. Verification: confirm the build exits successfully, then run the browser save, bridge and career tests against the generated package. Preserve failures from stale artifacts as verification-ordering evidence rather than changing expected behavior.
+## [L-keep-workspace-test-inputs-stable] Reuse the established Cargo build context
+
+**What happened.** A package-only retest rebuilt dependencies after a workspace build had finished.
+
+**Root cause.** Changing package selection changed Cargo's dependency build inputs and matched a different set of cached artifacts.
+
+**Prevention.** Keep workspace package selection for focused retries. Use `cargo test --workspace --no-run --message-format=json` to obtain current test executable paths, then execute the remaining targets. Include test-enabled examples and documentation tests when a failed library interrupted the workspace run.
+
+**Verification.** Inspect Cargo's artifact records for freshness and target names. Require the corrected tests, remaining examples and documentation tests to pass. Retain the earlier passing results only when their source and build inputs remain unchanged.
+
+## [L-logo-aspect-ratio-header-layout] Review the whole header when replacing a logo
+
+**What happened.** A tall logo made the changelog's navigation band taller while its separate title and toolbar kept their own vertical space. The result had a small-looking logo inside a large empty header.
+
+**Root cause.** The asset replacement preserved a layout designed for a shorter text brand. Reviewing the logo alone missed the total distance to the first update.
+
+**Prevention.** Compose the logo, page title and controls together. Check the complete route in both themes and at desktop, tablet and narrow phone widths before publishing an asset change.
+
+**Verification.** Compare the known defective capture with the repair at matching viewport sizes. Require an independent reviewer to reject the defective layout. Measure the displayed logo and the first update's position, then check control wrapping and horizontal overflow across breakpoints.

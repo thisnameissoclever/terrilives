@@ -19,7 +19,7 @@ Routine interface copy must add information the player cannot already see. Omit 
 
 | Surface | Current strings | Source |
 | --- | --- | --- |
-| Household status | Time; Funds; Day {n}, {Weekday} and {Season}, {hh}:{mm}, on two lines; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday; Spring; Summer; Autumn; Winter; Day and time unavailable | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Household status | Time; Funds; Day {n}, {Weekday}; {hh}:{mm}; {Season}: {condition}, on three lines; mild; hot; breezy; snowing; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday; Spring; Summer; Autumn; Winter; Day and time unavailable | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Sim details; Overview; Queue; Queue mode; Clear orders; People; Traits; Collapse; Expand; Close; Edit; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Contextual Build actions | Confirm; Buy with price; Sell with payout; Cancel; Wall; Doorway; Window; Remove; Clear; Build room; Corners; covering names; Rotate clockwise; Rotate counterclockwise | `web/src/ui/placement-actions.ts` |
 | Options flyout | Version {n}, the first line, with the number from `web/package.json`; Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the world controls; compact Build places Options beside zoom; Allow sims to change careers autonomously | `web/index.html`, `web/src/ui/options-menu.ts`, `web/src/ui/game-version.ts`, `web/src/ui/career-autonomy-controls.ts` |
@@ -112,7 +112,7 @@ replacement before it ships.
 ## Gameplay UI additions (2026-09-30)
 
 Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
-Not enough beds. Action cards combine existing interaction labels with object
+No assigned bed. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
 ## Commute label added on 2026-10-06
@@ -174,3 +174,5 @@ remaining grime amount during cleaning.
 Active cleaning labels are Mopping floor, Wiping surface and Emptying bin in
 `web/src/ui/game-hud.ts`. They describe the current work stage; queued orders
 retain their existing action labels.
+
+Condition number help describes additions or subtractions of points from overall mood, the -100 to +100 bounds, and the gradual connection to life satisfaction. The zero explanation states that the current rounded change is zero. Only each number is the hover and keyboard-focus target.

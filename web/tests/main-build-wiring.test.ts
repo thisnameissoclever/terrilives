@@ -16,6 +16,7 @@ import { FloorTool } from '../src/ui/floor-tool.js';
 import { LandTool } from '../src/ui/land-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { OrderDiagnostics } from '../src/ui/player-orders.js';
+import { frameElapsedMs } from '../src/frame.js';
 import type { BuildReview } from '../src/rooms/codec.js';
 
 const main = readFileSync(process.env.BUILD_MAIN_SOURCE ?? new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -95,7 +96,7 @@ function fixture(source = main) {
     windowTool: { handleKey() {} }, choresBoard: { update() {} }, refreshBuildArchitecture() {},
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
-    previousFrameMs: 0, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
+    previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
     orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },

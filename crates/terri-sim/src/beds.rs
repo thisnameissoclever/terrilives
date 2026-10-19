@@ -6,6 +6,7 @@ use bevy_ecs::prelude::*;
 use terri_core::{SimId, SleepPlace, SmartObject, Target};
 use terri_data::{CompiledObject, ContentPack};
 
+pub(crate) mod automatic;
 pub(crate) mod navigation;
 
 /// A physical place on a live bed. The full entity identity prevents reuse.

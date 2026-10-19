@@ -753,6 +753,29 @@ impl SimHandle {
             .collect()
     }
 
+    /// Content for visual weather: seed, four daily chances, event hours,
+    /// earliest/latest start hours, grounded leaf hours and falling minutes.
+    /// Historical packs without weather return an empty list.
+    pub fn weather_tuning(&self) -> Vec<f64> {
+        let Some(weather) = self.sim.world().resource::<Content>().0.tuning.weather else {
+            return Vec::new();
+        };
+        std::iter::once(f64::from(weather.seed))
+            .chain(weather.event_day_chance.into_iter().map(f64::from))
+            .chain(
+                [
+                    weather.event_hours,
+                    weather.earliest_hour,
+                    weather.latest_hour,
+                    weather.leaf_ground_hours,
+                    weather.fall_minutes,
+                ]
+                .into_iter()
+                .map(f64::from),
+            )
+            .collect()
+    }
+
     /// Canonical descriptors: axis, x, y, public model ID. Stride is four.
     pub fn window_placements(&self) -> Vec<u32> {
         self.sim
@@ -9261,7 +9284,7 @@ mod boundary_tests {
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
-                "Not enough beds",
+                "No assigned bed",
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");

@@ -585,6 +585,7 @@ impl From<PublishedTuning> for Tuning {
             career_mood_demoted_ticks: Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             autonomy: None,
+            weather: None,
             meal_appreciation_gain: 0.0,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
