@@ -121,7 +121,8 @@ export class ActivityLogStore {
   }
 }
 
-/** The two signed sixteen-bit halves of a packed value, low first. */
-export function unpackPair(value: number): [number, number] {
-  return [(value << 16) >> 16, value >> 16];
-}
+/** The low signed sixteen-bit half of a packed value: a number, so reading it allocates nothing. */
+export function lowHalf(value: number): number { return (value << 16) >> 16; }
+
+/** The high signed sixteen-bit half of a packed value. */
+export function highHalf(value: number): number { return value >> 16; }

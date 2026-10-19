@@ -5,6 +5,10 @@
 //   node scripts/activity-log-proof.cjs performance [--stress N] [--repetitions R] [--url U] [--output F]
 //   node scripts/activity-log-proof.cjs allocation  [--stress N] [--url U] [--sampling-interval B]
 //   node scripts/activity-log-proof.cjs memory      [--stress N] [--url U] [--fill-ticks T] [--after-ticks T]
+//   node scripts/activity-log-proof.cjs rebuild     [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
+//
+// `--everyone` clears the selected housemate after opening the panel, so
+// every record's line shows rather than only those involving one person.
 //
 // performance: the release frame-time gate of docs/ARCHITECTURE.md with the
 //   panel closed, then open with every filter on. Needs a displayed
@@ -15,6 +19,9 @@
 //   so function names and module paths survive.
 // memory: alternating enabled and disabled pairs, panel closed, sampled
 //   after the store has filled and again after more ticks.
+// rebuild: the one-off work outside the frame, with the store filled:
+//   opening the panel, each filter change and each Show earlier entries,
+//   timed as the click's script and the layout it leaves for the frame.
 //
 // Every page runs with `audio=0` and Chrome's `--mute-audio`, so a proof
 // never plays sound.
@@ -62,6 +69,7 @@ function parseArgs(argv) {
     afterTicks: 720,
     readyTimeoutMs: 600_000,
     repetitions: 3,
+    everyone: false,
   };
   const readValue = (flag, index) => {
     const value = argv[index + 1];
@@ -79,8 +87,10 @@ function parseArgs(argv) {
   };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
-    if (value === 'performance' || value === 'allocation' || value === 'memory') {
+    if (value === 'performance' || value === 'allocation' || value === 'memory' || value === 'rebuild') {
       result.mode = value;
+    } else if (value === '--everyone') {
+      result.everyone = true;
     } else if (value === '--url') {
       result.url = readValue(value, index++);
     } else if (value === '--output') {
@@ -124,8 +134,17 @@ async function openPage(browser, args, logEnabled) {
   return { context, page };
 }
 
-/** Opens the panel through its button and turns every filter on through its toggle. */
-async function openPanelWithEveryFilter(page) {
+/**
+ * Opens the panel through its button and turns every filter on through its
+ * toggle. With `everyone`, clears the selection and waits for the panel's
+ * poll to show every person's lines.
+ */
+async function openPanelWithEveryFilter(page, everyone = false) {
+  if (everyone) {
+    await page.evaluate(() => globalThis.__terriStress.sim.select(null));
+    // Let the roster's poll see the cleared selection before the panel reads it.
+    await page.waitForTimeout(500);
+  }
   await page.locator('#activity-log-toggle').click();
   const filters = page.locator('#activity-log-filters button');
   const count = await filters.count();
@@ -141,6 +160,12 @@ async function openPanelWithEveryFilter(page) {
   }));
   if (!state.open || state.pressed !== FILTER_COUNT) {
     throw new Error(`panel did not open with every filter on: ${JSON.stringify(state)}`);
+  }
+  if (everyone) {
+    await page.waitForFunction(() => document.querySelector('#activity-log-selected')?.hidden === true, undefined, {
+      polling: 100,
+      timeout: 10_000,
+    });
   }
 }
 
@@ -179,7 +204,7 @@ async function runPerformance(browser, args, logEnabled, panelOpen) {
   try {
     const calibration = summarizeCalibration(await calibrateRefresh(page));
     await closeHelpAndSetThreeTimes(page);
-    if (panelOpen) await openPanelWithEveryFilter(page);
+    if (panelOpen) await openPanelWithEveryFilter(page, args.everyone);
     const before = await logState(page);
     const result = await measureFixedTicks(page, {
       warmupTicks: WARMUP_TICKS,
@@ -285,7 +310,7 @@ async function runAllocation(browser, args, panelOpen) {
   const cdp = await context.newCDPSession(page);
   try {
     await closeHelpAndSetThreeTimes(page);
-    if (panelOpen) await openPanelWithEveryFilter(page);
+    if (panelOpen) await openPanelWithEveryFilter(page, args.everyone);
     await page.waitForTimeout(ALLOCATION_WARMUP_MS);
     // Counts frames, frames that drained records and rows appended to the
     // list, without allocating per frame beyond the counters themselves.
@@ -433,6 +458,72 @@ async function runMemory(browser, args, logEnabled, repetition) {
 }
 
 /**
+ * Clicks `selector` inside the page and times the click's script, then the
+ * style and layout it left behind, read back at once. The layout part is
+ * what the next frame's rendering would otherwise do.
+ */
+function timedClick(selector) {
+  const target = document.querySelector(selector);
+  if (!(target instanceof HTMLElement)) throw new Error(`missing ${selector}`);
+  const started = performance.now();
+  target.click();
+  const clicked = performance.now();
+  void document.body.offsetHeight;
+  return {
+    scriptMs: clicked - started,
+    layoutMs: performance.now() - clicked,
+    rows: document.querySelectorAll('#activity-log-list > li').length,
+  };
+}
+
+/** Opening, filter changes and Show earlier entries, with the store filled first. */
+async function runRebuild(browser, args) {
+  const { context, page } = await openPage(browser, args, true);
+  try {
+    await closeHelpAndSetThreeTimes(page);
+    await setSpeed(page, 0);
+    await page.evaluate(fastForward, args.fillTicks);
+    if (args.everyone) await page.evaluate(() => globalThis.__terriStress.sim.select(null));
+    // Let the roster's poll see the selection before the panel reads it.
+    await page.waitForTimeout(500);
+    const state = await logState(page);
+    const opens = [];
+    const filters = [];
+    const earlier = [];
+    for (let repetition = 0; repetition < args.repetitions; repetition += 1) {
+      opens.push(await page.evaluate(timedClick, '#activity-log-toggle'));
+      for (let index = 1; index <= FILTER_COUNT; index += 1) {
+        const selector = `#activity-log-filters button:nth-child(${index})`;
+        filters.push({ filter: index, ...(await page.evaluate(timedClick, selector)) });
+        filters.push({ filter: index, ...(await page.evaluate(timedClick, selector)) });
+      }
+      for (let more = 0; more < 10; more += 1) {
+        const visible = await page.evaluate(() => document.querySelector('#activity-log-earlier')?.hidden === false);
+        if (!visible) break;
+        earlier.push(await page.evaluate(timedClick, '#activity-log-earlier'));
+      }
+      await page.evaluate(timedClick, '#activity-log-toggle');
+    }
+    const summary = (runs) => ({
+      script: stats(runs.map((run) => run.scriptMs)),
+      layout: stats(runs.map((run) => run.layoutMs)),
+      rows: stats(runs.map((run) => run.rows)),
+    });
+    return {
+      state,
+      open: summary(opens),
+      filterChange: summary(filters),
+      showEarlier: earlier.length === 0 ? null : summary(earlier),
+      opens,
+      filters,
+      earlier,
+    };
+  } finally {
+    await context.close();
+  }
+}
+
+/**
  * Retained difference: enabled minus disabled JS heap at the first sample,
  * after the store has filled. Growth: the second sample minus the first,
  * enabled minus disabled, so growth both modes share is not charged to the log.
@@ -504,6 +595,11 @@ async function main() {
       report.open = open;
       report.analysis = analysis;
       report.pass = Object.values(analysis.checks).every(Boolean);
+    } else if (args.mode === 'rebuild') {
+      report.rebuild = await runRebuild(browser, args);
+      // Reported, not judged: [AL-perf] budgets the per-frame work, and
+      // these run once per click.
+      report.pass = report.rebuild.state.held > 0;
     } else {
       const runs = [];
       for (let repetition = 0; repetition < 3; repetition += 1) {

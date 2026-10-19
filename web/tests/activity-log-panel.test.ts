@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FILTER } from '../src/ui/activity-log-compose.js';
 import {
   ACTIVITY_LOG_WINDOW, ActivityLogNames, ActivityLogPanel, type ActivityLogRow, type ActivityLogView,
-  attachActivityLogPanel, rememberingNames,
+  attachActivityLogPanel, createActivityLogView, rememberingNames,
 } from '../src/ui/activity-log-panel.js';
 import { ActivityLogStore, KIND } from '../src/ui/activity-log-store.js';
 import { PANEL_WORDS } from '../src/ui/activity-log-words.js';
@@ -73,7 +73,6 @@ function setup() {
     dayTicks: 1_440,
     selected: () => selected,
     room: () => '',
-    refreshMs: 100,
     onOpen: () => { opened++; },
   });
   let seq = 0;
@@ -158,8 +157,8 @@ describe('the activity log panel', () => {
     const { panel, view, drain, read, labelReads } = setup();
     const before = view.calls;
     drain(read(), read());
-    panel.update(0);
-    panel.update(500);
+    panel.update();
+    panel.update();
     expect(view.calls).toBe(before);
     expect(labelReads()).toBe(0);
   });
@@ -170,18 +169,18 @@ describe('the activity log panel', () => {
     panel.open();
     expect(view.texts()).toEqual(['Tim: Read a book', 'Tim: Read a book']);
     expect(labelReads()).toBe(1);
-    panel.update(0);
+    panel.update();
     const calls = view.calls;
-    panel.update(10);
-    expect(view.calls, 'no new records and no poll due: nothing to do').toBe(calls);
+    panel.update();
+    expect(view.calls, 'no new records and no new selection: nothing to do').toBe(calls);
     drain(read(BILL));
-    panel.update(20);
+    panel.update();
     expect(view.texts()).toHaveLength(3);
     expect(view.texts()[2]).toBe('Bill: Read a book');
     expect(view.scrolled).toBe(1);
     view.bottom = false;
     drain(read());
-    panel.update(30);
+    panel.update();
     expect(view.scrolled, 'a player reading earlier lines stays where they are').toBe(1);
     panel.close();
     panel.open();
@@ -195,7 +194,7 @@ describe('the activity log panel', () => {
     drain(mess(1), read(2), read(3));
     panel.open();
     drain(mess(4));
-    panel.update(0);
+    panel.update();
     expect(view.texts()).toEqual(['Tim: Read a book', 'Tim: Read a book', "Tim: Annoyed by Bill's dishes (2 times)"]);
   });
 
@@ -205,7 +204,7 @@ describe('the activity log panel', () => {
     expect(view.empty).toBe(PANEL_WORDS.nothingYet);
     panel.toggleFilter(0);
     drain(read());
-    panel.update(0);
+    panel.update();
     expect(view.empty).toBe(PANEL_WORDS.nothingMatches);
     panel.toggleFilter(0);
     expect(view.empty).toBeNull();
@@ -225,7 +224,7 @@ describe('the activity log panel', () => {
     expect(view.empty).toBe(PANEL_WORDS.nothingYet);
     expect(view.filters).toEqual([true, true, true, false, true, false, true]);
     drain(record({ seq: 1, tick: 5, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 }));
-    panel.update(0);
+    panel.update();
     expect(view.texts()).toEqual(['D1, T00:05 Tim: Read a book']);
   });
 
@@ -242,7 +241,7 @@ describe('the activity log panel', () => {
     panel.open();
     expect(view.rows, 'reopening starts from the newest 200 again').toHaveLength(200);
     drain(read());
-    panel.update(0);
+    panel.update();
     expect(view.rows).toHaveLength(200);
   });
 
@@ -253,26 +252,53 @@ describe('the activity log panel', () => {
     for (let step = 0; step < 12; step++) panel.showEarlier();
     expect(view.rows).toHaveLength(2_000);
     drain(...Array.from({ length: 100 }, () => read()));
-    panel.update(0);
+    panel.update();
     expect(view.rows).toHaveLength(2_000);
   });
 
-  it('polls the selected housemate at the refresh cadence and narrows the lines', () => {
+  it('follows the housemate the roster reports as selected and narrows the lines', () => {
     const { panel, view, drain, read, select } = setup();
     drain(read(TIM), read(BILL));
     panel.open();
-    panel.update(0);
+    panel.update();
     expect(view.selected).toBeNull();
-    select(BILL);
-    panel.update(50);
     expect(view.texts()).toHaveLength(2);
-    panel.update(100);
+    select(BILL);
+    panel.update();
     expect(view.texts()).toEqual(['Bill: Read a book']);
     expect(view.selected).toBe('Only entries involving Bill.');
     select(null);
-    panel.update(200);
+    panel.update();
     expect(view.texts()).toHaveLength(2);
     expect(view.selected).toBeNull();
+  });
+
+  it('fits above the dock when it opens, and its frames read no layout', () => {
+    const { panel, view, drain, read } = setup();
+    panel.open();
+    expect(view.fits).toBe(1);
+    for (let frame = 0; frame < 20; frame++) {
+      if (frame % 4 === 0) drain(read());
+      panel.update();
+    }
+    expect(view.fits, 'the view follows the dock by itself').toBe(1);
+  });
+
+  it('shows what arrived when the staging ring dropped records', () => {
+    // [R12]: records 3 and 4 were overwritten before a drain. Record 5 was
+    // staged as a child of record 3, so it has no line to join and stays
+    // hidden; the lines around the gap compose as usual.
+    const { panel, view, drain } = setup();
+    const at = (seq: number, actor: number, parent = 0) => record({
+      seq, tick: 10, kind: parent === 0 ? KIND.actionDone : KIND.skillLevel,
+      triggers: parent === 0 ? FILTER.actions : FILTER.skills, actor, label: 0, parent,
+    });
+    drain(at(1, TIM), at(2, BILL));
+    panel.open();
+    drain(at(5, TIM, 3), at(6, BILL));
+    panel.update();
+    panel.toggleFilter(3);
+    expect(view.texts()).toEqual(['Tim: Read a book', 'Bill: Read a book', 'Bill: Read a book']);
   });
 
   it('remembers names from the roster for people who have left', () => {
@@ -294,6 +320,102 @@ describe('the activity log panel', () => {
     expect(names.selected()).toBe(9);
     surface.render([{ simId: 9, entity: 3, name: 'Ann' }], null, () => {});
     expect(names.selected()).toBeNull();
+  });
+});
+
+/** A stand-in for the panel's elements, counting every layout read. */
+function fakePage() {
+  let layoutReads = 0;
+  let scrollTop = 0;
+  const content = { height: 100 };
+  const listeners: Record<string, () => void> = {};
+  let observed: (() => void) | null = null;
+  const element = () => ({
+    hidden: false,
+    textContent: '',
+    style: { setProperty() {}, removeProperty() {} },
+    setAttribute() {},
+    addEventListener(type: string, listener: () => void) { listeners[type] = listener; },
+    focus() {},
+  });
+  const items: { textContent: string; remove(): void }[] = [];
+  const list = {
+    ...element(),
+    firstElementChild: null,
+    append(item: { textContent: string; remove(): void }) {
+      items.push(item);
+      content.height += 20;
+    },
+    replaceChildren(...next: { textContent: string; remove(): void }[]) {
+      items.splice(0, items.length, ...next);
+      content.height = 100 + 20 * next.length;
+    },
+  };
+  const scroller = {
+    ...element(),
+    get scrollHeight() { layoutReads++; return content.height; },
+    get clientHeight() { layoutReads++; return 100; },
+    get scrollTop() { layoutReads++; return scrollTop; },
+    set scrollTop(value: number) { scrollTop = Math.min(value, content.height - 100); },
+  };
+  const dock = { ...element(), get offsetTop() { layoutReads++; return 700; } };
+  class Observer {
+    constructor(callback: () => void) { observed = callback; }
+    observe() {}
+    disconnect() {}
+  }
+  const page = { ResizeObserver: Observer, innerHeight: 900, addEventListener() {} };
+  const doc = {
+    defaultView: page,
+    createElement: () => {
+      const item = { textContent: '', remove: () => { items.splice(items.indexOf(item), 1); } };
+      return item;
+    },
+  };
+  const elements = {
+    toggle: element(), panel: element(), close: element(), filters: [], selected: element(), scroller,
+    earlier: element(), list, empty: element(), dock,
+  };
+  const view = createActivityLogView(doc as never, elements as never);
+  return {
+    view,
+    items,
+    reads: () => layoutReads,
+    scrollTop: () => scrollTop,
+    scroll: (to: number) => { scrollTop = to; listeners.scroll?.(); },
+    afterLayout: () => observed?.(),
+  };
+}
+
+describe('the activity log view', () => {
+  it('reads layout only after layout, never while a frame appends', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    page.afterLayout();
+    const reads = page.reads();
+    const following = page.view.atBottom();
+    page.view.appendRow('Tim: Read a book');
+    if (following) page.view.scrollToBottom();
+    expect(page.reads(), 'the frame read no layout').toBe(reads);
+    expect(page.scrollTop()).toBe(0);
+    page.afterLayout();
+    expect(page.scrollTop(), 'the waiting scroll lands after layout').toBe(20);
+    expect(page.items.map(item => item.textContent)).toEqual(['Tim: Read a book']);
+  });
+
+  it('stays where a player scrolled up to, and rows are their list items', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    const rows = page.view.replaceRows(['a', 'b', 'c'], null);
+    page.afterLayout();
+    expect(page.scrollTop()).toBe(60);
+    page.scroll(10);
+    expect(page.view.atBottom()).toBe(false);
+    page.view.appendRow('d');
+    page.afterLayout();
+    expect(page.scrollTop(), 'reading earlier lines is left alone').toBe(10);
+    page.view.removeRow(rows[0]);
+    expect(page.items.map(item => item.textContent)).toEqual(['b', 'c', 'd']);
   });
 });
 

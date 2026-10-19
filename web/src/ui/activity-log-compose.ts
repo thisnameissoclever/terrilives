@@ -9,10 +9,12 @@
  * comes from `activity-log-words.ts` or the simulation's label table.
  *
  * Text is built only on request, which the panel makes only while it is
- * open.
+ * open. Deciding whether a record makes a line allocates nothing, so records
+ * whose lines stay hidden leave no garbage; only a visible line builds a
+ * `LogLine` and its text ([AL-perf]).
  */
 
-import { type ActivityLogStore, KIND, NONE, OTHER_PARTIAL, PARTIAL, unpackPair } from './activity-log-store.js';
+import { type ActivityLogStore, KIND, NONE, OTHER_PARTIAL, PARTIAL, highHalf, lowHalf } from './activity-log-store.js';
 import * as words from './activity-log-words.js';
 
 /** Filter bits. The first five match the record's trigger mask. */
@@ -79,6 +81,8 @@ export interface LogLine {
 export class LogLines {
   readonly lines: LogLine[] = [];
   private readonly groups = new Map<string, LogLine>();
+  /** Reused by every `add`, so a call that finds nothing visible allocates nothing. */
+  private readonly changed: LogLine[] = [];
 
   reset(): void {
     this.lines.length = 0;
@@ -88,9 +92,11 @@ export class LogLines {
   /**
    * Adds the visible lines of records `from` onward and returns the lines
    * that are new or moved to the end. A merged line leaves its old place.
+   * The returned list is reused by the next call.
    */
-  add(store: ActivityLogStore, from: number, context: ComposeContext): LogLine[] {
-    const changed: LogLine[] = [];
+  add(store: ActivityLogStore, from: number, context: ComposeContext): readonly LogLine[] {
+    const changed = this.changed;
+    changed.length = 0;
     for (let index = Math.max(0, from); index < store.length; index++) {
       if (store.parent(index) !== 0 || !visible(store, index, context)) continue;
       const seq = store.seq(index);
@@ -108,8 +114,7 @@ export class LogLines {
         group.tick = tick;
         group.count += 1;
         group.change += store.value(index, 2);
-        this.lines.splice(this.lines.indexOf(group), 1);
-        this.lines.push(group);
+        this.moveToEnd(group);
         if (!changed.includes(group)) changed.push(group);
         continue;
       }
@@ -125,9 +130,20 @@ export class LogLines {
   trim(limit: number): void {
     const excess = this.lines.length - limit;
     if (excess <= 0) return;
-    for (const line of this.lines.splice(0, excess)) {
+    for (let index = 0; index < excess; index++) {
+      const line = this.lines[index];
       if (line.key !== null && this.groups.get(line.key) === line) this.groups.delete(line.key);
     }
+    this.lines.copyWithin(0, excess);
+    this.lines.length = limit;
+  }
+
+  /** Moves a merged line to the newest position without building an array of removed lines. */
+  private moveToEnd(line: LogLine): void {
+    const lines = this.lines;
+    const last = lines.length - 1;
+    for (let index = lines.lastIndexOf(line); index < last; index++) lines[index] = lines[index + 1];
+    lines[last] = line;
   }
 }
 
@@ -147,25 +163,53 @@ export function composeAll(store: ActivityLogStore, context: ComposeContext): st
   return lines.lines.map(line => lineText(store, line, context));
 }
 
-/** Children of the record at `index`, and their children, in sequence order. */
-function family(store: ActivityLogStore, index: number): number[] {
-  const members: number[] = [];
-  collectChildren(store, index, members);
-  for (let at = 0; at < members.length; at++) collectChildren(store, members[at], members);
-  return members.sort((left, right) => left - right);
+/**
+ * The children of one record, and their children, as store indexes in
+ * sequence order. One instance is refilled for every record it is asked
+ * about, so collecting a family allocates nothing once its array has grown
+ * to the largest family seen.
+ */
+class Family {
+  readonly members: number[] = [];
+  length = 0;
+
+  collect(store: ActivityLogStore, index: number): this {
+    this.length = 0;
+    this.collectChildren(store, index);
+    for (let at = 0; at < this.length; at++) this.collectChildren(store, this.members[at]);
+    this.sort();
+    return this;
+  }
+
+  /** Children share their parent's tick: the link pass only links records staged together. */
+  private collectChildren(store: ActivityLogStore, index: number): void {
+    const seq = store.seq(index);
+    const tick = store.tick(index);
+    for (let at = index - 1; at >= 0 && store.tick(at) === tick; at--) {
+      if (store.parent(at) === seq) this.members[this.length++] = at;
+    }
+    for (let at = index + 1; at < store.length && store.tick(at) === tick; at++) {
+      if (store.parent(at) === seq) this.members[this.length++] = at;
+    }
+  }
+
+  /** Insertion sort: a family is a handful of records, and `Array.prototype.sort` may allocate. */
+  private sort(): void {
+    const members = this.members;
+    for (let at = 1; at < this.length; at++) {
+      const value = members[at];
+      let to = at - 1;
+      while (to >= 0 && members[to] > value) {
+        members[to + 1] = members[to];
+        to--;
+      }
+      members[to + 1] = value;
+    }
+  }
 }
 
-/** Children share their parent's tick: the link pass only links records staged together. */
-function collectChildren(store: ActivityLogStore, index: number, into: number[]): void {
-  const seq = store.seq(index);
-  const tick = store.tick(index);
-  for (let at = index - 1; at >= 0 && store.tick(at) === tick; at--) {
-    if (store.parent(at) === seq) into.push(at);
-  }
-  for (let at = index + 1; at < store.length && store.tick(at) === tick; at++) {
-    if (store.parent(at) === seq) into.push(at);
-  }
-}
+/** The family `visible` inspects. Composition keeps its own, so the two never overlap. */
+const VISIBILITY = new Family();
 
 /** Whether a child's clause shows under the current filters. */
 function childShown(store: ActivityLogStore, child: number, filters: number): boolean {
@@ -185,25 +229,30 @@ function involves(store: ActivityLogStore, index: number, person: number): boole
 /**
  * Whether the parent at `index` makes a line: a trigger of it or of a child
  * is enabled, and with a housemate selected, the head or a shown child
- * involves them ([AL-selected]).
+ * involves them ([AL-selected]). Allocates nothing, so a record whose line
+ * stays hidden leaves no garbage.
  */
 export function visible(store: ActivityLogStore, index: number, context: ComposeContext): boolean {
   const enabled = context.filters & TRIGGER_FILTERS;
-  const children = family(store, index);
+  const family = VISIBILITY.collect(store, index);
+  const children = family.members;
   let triggers = store.triggers(index);
-  for (const child of children) triggers |= store.triggers(child);
+  for (let at = 0; at < family.length; at++) triggers |= store.triggers(children[at]);
   if ((triggers & enabled) === 0) return false;
   const selected = context.selected;
   if (selected === null || involves(store, index, selected)) return true;
-  return children.some(child => childShown(store, child, context.filters) && involves(store, child, selected));
+  for (let at = 0; at < family.length; at++) {
+    const child = children[at];
+    if (childShown(store, child, context.filters) && involves(store, child, selected)) return true;
+  }
+  return false;
 }
 
 /** The line's text under the current filters, or an empty string once its record has left the store. */
 export function lineText(store: ActivityLogStore, line: LogLine, context: ComposeContext): string {
   const index = store.indexOfSeq(line.seq);
   if (index < 0) return '';
-  const text = new LineText(store, index, context);
-  const body = text.compose(line);
+  const body = TEXT.compose(store, index, context, line);
   return (context.filters & FILTER.time) !== 0 ? stamp(line.tick, context.dayTicks) + body : body;
 }
 
@@ -224,18 +273,24 @@ function rounded(value: number, unit: number): number | null {
   return result === 0 ? null : result;
 }
 
-class LineText {
-  private readonly details: boolean;
-  private readonly children: number[];
+/** `list` with `part` added after `separator`; a null or empty part leaves it unchanged. */
+function joined(list: string, part: string | null, separator: string): string {
+  if (part === null || part === '') return list;
+  return list === '' ? part : list + separator + part;
+}
 
-  constructor(
-    private readonly store: ActivityLogStore,
-    private readonly index: number,
-    private readonly context: ComposeContext,
-  ) {
-    this.details = (context.filters & FILTER.details) !== 0;
-    this.children = family(store, index);
-  }
+/**
+ * Builds one line's text. A single instance serves every line in turn, and
+ * clauses are joined as they are found rather than gathered into arrays, so
+ * a line allocates little beyond its own strings. Details numbers are built
+ * only while Details is on.
+ */
+class LineText {
+  private store!: ActivityLogStore;
+  private index = 0;
+  private context!: ComposeContext;
+  private details = false;
+  private readonly family = new Family();
 
   private on(filter: number): boolean { return (this.context.filters & filter) !== 0; }
   private name(simId: number): string { return this.context.name(simId) ?? words.SOMEONE; }
@@ -255,10 +310,11 @@ class LineText {
   }
 
   /** ` (a, b)` from the Details numbers that survived rounding, or an empty string. */
-  private numbers(parts: readonly (string | null)[]): string {
+  private numbers(a: string | null, b: string | null = null, c: string | null = null, d: string | null = null): string {
     if (!this.details) return '';
-    const kept = parts.filter((part): part is string => part !== null);
-    return kept.length === 0 ? '' : words.parenthesized(kept);
+    const separator = words.LIST_SEPARATOR;
+    const list = joined(joined(joined(joined('', a, separator), b, separator), c, separator), d, separator);
+    return list === '' ? '' : words.inParentheses(list);
   }
 
   private reaction(name: string, hundredths: number): string {
@@ -270,8 +326,12 @@ class LineText {
     return words.reaction(name, kind);
   }
 
-  compose(line: LogLine): string {
-    const { store, index } = this;
+  compose(store: ActivityLogStore, index: number, context: ComposeContext, line: LogLine): string {
+    this.store = store;
+    this.index = index;
+    this.context = context;
+    this.details = (context.filters & FILTER.details) !== 0;
+    this.family.collect(store, index);
     const actor = this.name(store.actor(index));
     switch (store.kind(index)) {
       case KIND.actionDone: return this.action(actor);
@@ -280,7 +340,8 @@ class LineText {
       case KIND.annoyed: return this.annoyed(actor, line);
       case KIND.choresThisWeek: return this.week(actor);
       case KIND.choreOutcome: return this.outcome(actor);
-      case KIND.feeling: return this.feeling(index);
+      // A feeling with no line to attach to: the feeling alone.
+      case KIND.feeling: return this.feelingText(index);
       case KIND.skillLevel: return words.head(actor, this.levelText(index));
       case KIND.weeklyReview: return this.review(actor);
       case KIND.careerChange: return this.change(actor);
@@ -290,13 +351,10 @@ class LineText {
   }
 
   /** Clauses in the fixed order chore, social, skill, career, after the head. */
-  private join(head: string, clauses: readonly (string | null)[]): string {
-    let text = head;
-    for (const clause of clauses) if (clause !== null && clause !== '') text += words.CLAUSE_SEPARATOR + clause;
-    return text;
+  private join(head: string, a: string | null, b: string | null = null, c: string | null = null): string {
+    const separator = words.CLAUSE_SEPARATOR;
+    return joined(joined(joined(head, a, separator), b, separator), c, separator);
   }
-
-  private kids(kind: number): number[] { return this.children.filter(child => this.store.kind(child) === kind); }
 
   private feelingText(child: number): string {
     const { store } = this;
@@ -304,22 +362,32 @@ class LineText {
     const other = this.name(store.other(child));
     const sentence = this.label(store.label(child)) === 'cause:chore-neglected'
       ? words.resents(actor, other) : words.appreciates(actor, other);
-    return sentence + this.numbers([this.opinion(store.value(child, 2), store.other(child))]);
+    return this.details ? sentence + this.numbers(this.opinion(store.value(child, 2), store.other(child))) : sentence;
   }
 
   /** The Social clause from feelings attached anywhere below this line. */
   private feelings(): string | null {
     if (!this.on(FILTER.social)) return null;
-    const parts = this.kids(KIND.feeling).map(child => this.feelingText(child));
-    return parts.length === 0 ? null : parts.join(words.LIST_SEPARATOR);
+    const { store, family } = this;
+    let list = '';
+    for (let at = 0; at < family.length; at++) {
+      const child = family.members[at];
+      if (store.kind(child) === KIND.feeling) list = joined(list, this.feelingText(child), words.LIST_SEPARATOR);
+    }
+    return list === '' ? null : list;
   }
 
   private choreClause(): string | null {
     if (!this.on(FILTER.chores)) return null;
-    const parts = this.kids(KIND.choreOutcome)
-      .filter(child => this.store.value(child, 0) === OUTCOME.covered && this.store.other(child) !== NONE)
-      .map(child => words.coveredChore(this.name(this.store.other(child))));
-    return parts.length === 0 ? null : parts.join(words.LIST_SEPARATOR);
+    const { store, family } = this;
+    let list = '';
+    for (let at = 0; at < family.length; at++) {
+      const child = family.members[at];
+      if (store.kind(child) !== KIND.choreOutcome) continue;
+      if (store.value(child, 0) !== OUTCOME.covered || store.other(child) === NONE) continue;
+      list = joined(list, words.coveredChore(this.name(store.other(child))), words.LIST_SEPARATOR);
+    }
+    return list === '' ? null : list;
   }
 
   private levelText(level: number): string {
@@ -334,36 +402,39 @@ class LineText {
   }
 
   private action(actor: string): string {
-    const { store, index } = this;
+    const { store, index, family } = this;
     let head = words.head(actor, this.label(store.label(index)));
     const other = store.other(index);
     if (other !== NONE) head += words.withPerson(this.name(other));
-    if (this.on(FILTER.social)) {
-      head += this.numbers([
+    if (this.details && this.on(FILTER.social)) {
+      head += this.numbers(
         this.social(store.value(index, 0), (store.flags(index) & PARTIAL) !== 0),
         other === NONE ? null : this.opinion(store.value(index, 3), other),
-      ]);
+      );
     }
     let skill: string | null = null;
     if (this.on(FILTER.skills)) {
       const practiced = store.label2(index);
-      const progress = this.numbers([store.value(index, 2) === 0 ? null : words.percent(store.value(index, 2))]);
-      const parts: string[] = [];
+      const percent = store.value(index, 2);
+      const progress = this.details && percent !== 0 ? this.numbers(words.percent(percent)) : '';
+      let list = '';
       let crossed = false;
-      for (const level of this.kids(KIND.skillLevel)) {
+      for (let at = 0; at < family.length; at++) {
+        const level = family.members[at];
+        if (store.kind(level) !== KIND.skillLevel) continue;
         let text = this.levelClause(level);
         if (practiced !== NONE && store.label(level) === practiced && store.actor(level) === store.actor(index)) {
           text += progress;
           crossed = true;
         }
-        parts.push(text);
+        list = joined(list, text, words.LIST_SEPARATOR);
       }
       if (practiced !== NONE && !crossed) {
-        parts.unshift(words.skillLevel(this.label(practiced), store.value(index, 1)) + progress);
+        list = joined(words.skillLevel(this.label(practiced), store.value(index, 1)) + progress, list, words.LIST_SEPARATOR);
       }
-      skill = parts.length === 0 ? null : parts.join(words.LIST_SEPARATOR);
+      skill = list === '' ? null : list;
     }
-    return this.join(head, [this.choreClause(), this.feelings(), skill]);
+    return this.join(head, this.choreClause(), this.feelings(), skill);
   }
 
   private conversationHead(actor: string): string {
@@ -374,48 +445,63 @@ class LineText {
     return head;
   }
 
+  /** One person's part of a chat's Social clause: a reaction to the topic, or their numbers alone. */
+  private side(name: string, preference: number, topic: boolean, numbers: string): string | null {
+    if (topic) return this.reaction(name, preference) + numbers;
+    return numbers === '' ? null : name + numbers;
+  }
+
   private chat(actor: string): string {
     const { store, index } = this;
     const other = store.other(index);
-    const otherName = this.name(other);
     let social: string | null = null;
     if (this.on(FILTER.social)) {
       const topic = store.label2(index) !== NONE;
-      const [mine, theirs] = unpackPair(store.value(index, 0));
-      const [gained, heard] = unpackPair(store.value(index, 1));
+      const preferences = store.value(index, 0);
+      const gains = store.value(index, 1);
       const flags = store.flags(index);
-      const sides: string[] = [];
-      const side = (name: string, preference: number, numbers: string) => {
-        if (topic) sides.push(this.reaction(name, preference) + numbers);
-        else if (numbers !== '') sides.push(name + numbers);
-      };
-      side(actor, mine, this.numbers([
-        this.social(gained, (flags & PARTIAL) !== 0), this.opinion(store.value(index, 2), other),
-      ]));
-      side(otherName, theirs, this.numbers([
-        this.social(heard, (flags & OTHER_PARTIAL) !== 0), this.opinion(store.value(index, 3), store.actor(index)),
-      ]));
-      social = sides.length === 0 ? null : sides.join(words.LIST_SEPARATOR);
+      const mine = this.details ? this.numbers(
+        this.social(lowHalf(gains), (flags & PARTIAL) !== 0), this.opinion(store.value(index, 2), other),
+      ) : '';
+      const theirs = this.details ? this.numbers(
+        this.social(highHalf(gains), (flags & OTHER_PARTIAL) !== 0), this.opinion(store.value(index, 3), store.actor(index)),
+      ) : '';
+      const separator = words.LIST_SEPARATOR;
+      const sides = joined(
+        joined('', this.side(actor, lowHalf(preferences), topic, mine), separator),
+        this.side(this.name(other), highHalf(preferences), topic, theirs),
+        separator,
+      );
+      social = sides === '' ? null : sides;
     }
     const skill = this.on(FILTER.skills) ? this.levels() : null;
-    return this.join(this.conversationHead(actor), [social, skill]);
+    return this.join(this.conversationHead(actor), social, skill);
   }
 
   private levels(): string | null {
-    const parts = this.kids(KIND.skillLevel).map(level => this.levelClause(level));
-    return parts.length === 0 ? null : parts.join(words.LIST_SEPARATOR);
+    const { store, family } = this;
+    let list = '';
+    for (let at = 0; at < family.length; at++) {
+      const level = family.members[at];
+      if (store.kind(level) === KIND.skillLevel) list = joined(list, this.levelClause(level), words.LIST_SEPARATOR);
+    }
+    return list === '' ? null : list;
   }
 
   private fight(actor: string): string {
     const { store, index } = this;
     const other = store.other(index);
-    const social = this.on(FILTER.social)
-      ? words.likeEachOtherLess(actor, this.name(other)) + this.numbers([
-        this.opinion(store.value(index, 2), other),
-        this.opinion(store.value(index, 3), store.actor(index)),
-      ])
-      : null;
-    return this.join(this.conversationHead(actor), [social]);
+    let social: string | null = null;
+    if (this.on(FILTER.social)) {
+      social = words.likeEachOtherLess(actor, this.name(other));
+      if (this.details) {
+        social += this.numbers(
+          this.opinion(store.value(index, 2), other),
+          this.opinion(store.value(index, 3), store.actor(index)),
+        );
+      }
+    }
+    return this.join(this.conversationHead(actor), social);
   }
 
   private annoyed(actor: string, line: LogLine): string {
@@ -426,19 +512,22 @@ class LineText {
       this.name(store.other(index)),
       object === NONE ? null : this.label(object),
     );
-    const parts = [line.count > 1 ? words.times(line.count) : null];
-    if (this.details) parts.push(this.opinion(line.change, store.other(index)));
-    const kept = parts.filter((part): part is string => part !== null);
-    return words.head(actor, sentence + (kept.length === 0 ? '' : words.parenthesized(kept)));
+    let list = line.count > 1 ? words.times(line.count) : '';
+    if (this.details) list = joined(list, this.opinion(line.change, store.other(index)), words.LIST_SEPARATOR);
+    return words.head(actor, list === '' ? sentence : sentence + words.inParentheses(list));
   }
 
   private week(actor: string): string {
-    const duties = this.kids(KIND.duty).map(duty => {
-      const label = this.label(this.store.label(duty));
-      const room = this.context.room(this.store.value(duty, 0), this.store.value(duty, 1));
-      return room === '' ? label : words.dutyInRoom(label, room);
-    });
-    return words.head(actor, words.choresThisWeek(duties));
+    const { store, family } = this;
+    let list = '';
+    for (let at = 0; at < family.length; at++) {
+      const duty = family.members[at];
+      if (store.kind(duty) !== KIND.duty) continue;
+      const label = this.label(store.label(duty));
+      const room = this.context.room(store.value(duty, 0), store.value(duty, 1));
+      list = joined(list, room === '' ? label : words.dutyInRoom(label, room), words.LIST_SEPARATOR);
+    }
+    return words.head(actor, words.choresThisWeek(list));
   }
 
   private outcome(actor: string): string {
@@ -449,28 +538,29 @@ class LineText {
       : code === OUTCOME.skipped ? words.skippedChore(duty) : duty);
     const covered = code === OUTCOME.covered && store.other(index) !== NONE && this.on(FILTER.chores)
       ? words.coveredChore(this.name(store.other(index))) : null;
-    return this.join(head, [covered, this.feelings()]);
+    return this.join(head, covered, this.feelings());
   }
-
-  /** A feeling with no line to attach to: the feeling alone. */
-  private feeling(index: number): string { return this.feelingText(index); }
 
   private review(actor: string): string {
     const { store, index } = this;
     const code = store.value(index, 0);
     const title = this.label(store.label(index));
     let head = words.head(actor, words.weeklyReview(words.reviewOutcome(code & 0xff, title)));
-    const [mastery, mood] = unpackPair(store.value(index, 3));
-    const factor = (value: number, format: (value: number) => string) => value === 0 ? null : format(value);
-    head += this.numbers([
-      factor(store.value(index, 1), words.performanceOutOf100),
-      factor(store.value(index, 2), words.fitFactor),
-      factor(mastery, words.skillFactor),
-      factor(mood, words.moodFactor),
-    ]);
+    if (this.details) {
+      const performance = store.value(index, 1);
+      const fit = store.value(index, 2);
+      const mastery = lowHalf(store.value(index, 3));
+      const mood = highHalf(store.value(index, 3));
+      head += this.numbers(
+        performance === 0 ? null : words.performanceOutOf100(performance),
+        fit === 0 ? null : words.fitFactor(fit),
+        mastery === 0 ? null : words.skillFactor(mastery),
+        mood === 0 ? null : words.moodFactor(mood),
+      );
+    }
     // A dismissal also carries the warning bit; the line says Fired alone.
     const warned = (code & REVIEW_WARNED) !== 0 && (code & 0xff) !== REVIEW_FIRED;
-    return this.join(head, [warned ? words.WARNED_AT_WORK : null]);
+    return this.join(head, warned ? words.WARNED_AT_WORK : null);
   }
 
   private change(actor: string): string {
@@ -484,3 +574,6 @@ class LineText {
     }
   }
 }
+
+/** The one line builder `lineText` reuses. */
+const TEXT = new LineText();

@@ -30,7 +30,8 @@ export const SOMETHING = 'something';
 /** Punctuation that joins a line's parts. */
 export const CLAUSE_SEPARATOR = '; ';
 export const LIST_SEPARATOR = ', ';
-export function parenthesized(parts: readonly string[]): string { return ` (${parts.join(LIST_SEPARATOR)})`; }
+/** ` (a, b)` around a list already joined with `LIST_SEPARATOR`. */
+export function inParentheses(list: string): string { return ` (${list})`; }
 
 /** The head: `Name: label`, with the other person and the topic ([AL-compose]). */
 export function head(name: string, label: string): string { return `${name}: ${label}`; }
@@ -106,7 +107,8 @@ export function annoyance(cause: string, other: string, object: string | null): 
 export function times(count: number): string { return `${count} times`; }
 
 /** Chores. */
-export function choresThisWeek(duties: readonly string[]): string { return `Chores this week: ${duties.join(LIST_SEPARATOR)}`; }
+/** `duties` is already joined with `LIST_SEPARATOR`. */
+export function choresThisWeek(duties: string): string { return `Chores this week: ${duties}`; }
 export function dutyInRoom(duty: string, room: string): string { return `${duty} (${room})`; }
 export function coveredChore(owner: string): string { return `covered ${owner}'s chore`; }
 export function missedChore(duty: string): string { return `Missed chore: ${duty}`; }

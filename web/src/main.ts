@@ -963,7 +963,6 @@ async function main(): Promise<void> {
     // The roster's own read, at the same cadence: no steady simIdOf call.
     selected: () => activityLogNames.selected(),
     room: (kind, target) => sim.choreLocation(kind, target),
-    refreshMs: sim.needBarRefreshMs(),
     onOpen: () => { optionsMenu.close(); compactHud.close(); },
   });
   attachActivityLogPanel(
@@ -2553,10 +2552,10 @@ async function main(): Promise<void> {
     bedAssignmentPanel.update(nowMs);
     careerPanel.update(nowMs);
     if (activityLogSamplerTimer === null) {
-      activityLogPanel.update(nowMs);
+      activityLogPanel.update();
     } else {
       const panelStartedMs = performance.now();
-      activityLogPanel.update(nowMs);
+      activityLogPanel.update();
       activityLogSamplerTimer.sample(activityLogDrainMs + performance.now() - panelStartedMs);
     }
     if (needsUpdated) syncDockSummary();

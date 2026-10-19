@@ -117,3 +117,9 @@ test('every page is muted and the baseline turns the log off', () => {
   expect(proof.parseArgs(['memory', '--stress', '100']).stress).toBe(100);
   expect(() => proof.parseArgs(['--stress', '-1'])).toThrow();
 });
+
+test('the rebuild mode and the everyone flag parse', () => {
+  const args = proof.parseArgs(['rebuild', '--stress', '100', '--everyone', '--fill-ticks', '2160']);
+  expect(args).toMatchObject({ mode: 'rebuild', stress: 100, everyone: true, fillTicks: 2160 });
+  expect(proof.parseArgs(['allocation']).everyone).toBe(false);
+});

@@ -7,8 +7,10 @@
  * The store fills every frame whether or not the panel is open. While the
  * panel is closed, `update` returns at once: no text, no DOM, no
  * allocation. While it is open, only new records are composed and only new
- * or merged lines touch the DOM. Filter choices last for the page session,
- * across Loads.
+ * or merged lines touch the DOM, and the frame's work never reads layout:
+ * the view learns its scroll position and the dock's height after layout,
+ * from scroll events and a ResizeObserver ([AL-perf]). Filter choices last
+ * for the page session, across Loads.
  */
 
 import {
@@ -43,10 +45,15 @@ export interface ActivityLogView {
   replaceRows(texts: readonly string[], anchor: number | null): ActivityLogRow[];
   appendRow(text: string): ActivityLogRow;
   removeRow(row: ActivityLogRow): void;
+  /** Whether the newest line is in view. Must not read layout while a frame runs. */
   atBottom(): boolean;
+  /** Brings the newest line into view, after the frame's layout rather than during it. */
   scrollToBottom(): void;
   focusToggle(): void;
-  /** Keeps the panel above the Sim dock, whose height changes. */
+  /**
+   * Places the panel above the Sim dock now. Called when the panel opens;
+   * while it stays open the view follows the dock's height by itself.
+   */
   fitAboveDock(): void;
 }
 
@@ -103,11 +110,12 @@ export interface ActivityLogPanelOptions {
   /** The Likes and dislikes band edges, from -1 to 1. */
   bands(): { loves: number; likes: number };
   readonly dayTicks: number;
-  /** The selected housemate's `SimId`, or null. */
+  /**
+   * The selected housemate's `SimId`, or null: a stored value the roster
+   * refreshes at the HUD cadence, so the panel reads it every frame.
+   */
   selected(): number | null;
   room(kind: number, target: number): string;
-  /** The HUD refresh cadence for the selection poll, in milliseconds. */
-  readonly refreshMs: number;
   /** Closes the Options flyout and the Sim details sheet: one right-side surface at a time. */
   onOpen(): void;
 }
@@ -133,15 +141,11 @@ export class ActivityLogPanel {
   private prepared = false;
   private limit = ACTIVITY_LOG_WINDOW;
   private seen = 0;
-  private lastPollMs: number | null = null;
   private readonly lines = new LogLines();
   private readonly rows = new Map<LogLine, ActivityLogRow>();
   private readonly context: PanelContext;
 
   constructor(private readonly options: ActivityLogPanelOptions) {
-    if (!Number.isFinite(options.refreshMs) || options.refreshMs <= 0) {
-      throw new Error('activity log refresh interval must be positive');
-    }
     this.context = new PanelContext(options.dayTicks, options.names, options.room);
     FILTER_ORDER.forEach((filter, index) => options.view.reflectFilter(index, (this.context.filters & filter) !== 0));
     options.view.reflectOpen(false);
@@ -163,7 +167,6 @@ export class ActivityLogPanel {
     this.options.view.reflectOpen(true);
     this.options.view.fitAboveDock();
     this.context.selected = this.options.selected();
-    this.lastPollMs = null;
     this.limit = ACTIVITY_LOG_WINDOW;
     this.rebuild(false);
   }
@@ -221,18 +224,19 @@ export class ActivityLogPanel {
     if (this.open_) this.rebuild(false);
   }
 
-  /** Once a frame, after the store's drain. Returns at once while closed. */
-  update(nowMs: number): void {
+  /**
+   * Once a frame, after the store's drain. Returns at once while closed.
+   * Takes no clock: the selection is a stored value and the rest is integer
+   * counts, so a frame without new lines does no arithmetic that could
+   * allocate a boxed number before the engine optimizes this method.
+   */
+  update(): void {
     if (!this.open_) return;
-    if (this.lastPollMs === null || nowMs - this.lastPollMs >= this.options.refreshMs) {
-      this.lastPollMs = nowMs;
-      this.options.view.fitAboveDock();
-      const selected = this.options.selected();
-      if (selected !== this.context.selected) {
-        this.context.selected = selected;
-        this.rebuild(false);
-        return;
-      }
+    const selected = this.options.selected();
+    if (selected !== this.context.selected) {
+      this.context.selected = selected;
+      this.rebuild(false);
+      return;
     }
     const fresh = this.options.store.total - this.seen;
     if (fresh <= 0) return;
@@ -272,7 +276,8 @@ export class ActivityLogPanel {
       return;
     }
     const follow = view.atBottom();
-    for (const line of changed) {
+    for (let index = 0; index < changed.length; index++) {
+      const line = changed[index];
       const old = this.rows.get(line);
       if (old) view.removeRow(old);
       this.rows.set(line, view.appendRow(lineText(store, line, this.context)));
@@ -291,7 +296,7 @@ export class ActivityLogPanel {
     let evicted = 0;
     while (evicted < this.lines.lines.length && this.lines.lines[evicted].seq < oldest) evicted++;
     if (evicted === 0) return;
-    for (const line of this.lines.lines.slice(0, evicted)) this.dropRow(line);
+    for (let index = 0; index < evicted; index++) this.dropRow(this.lines.lines[index]);
     this.lines.trim(this.lines.lines.length - evicted);
   }
 
@@ -371,22 +376,80 @@ export function activityLogElements(doc: Document): ActivityLogElements {
   };
 }
 
-/** The DOM view over `index.html`'s panel. */
+/**
+ * The DOM view over `index.html`'s panel.
+ *
+ * A row is its `li` element. Layout is read only where it is already
+ * current: in a scroll event, in a ResizeObserver callback, which runs after
+ * the frame's layout, and in the click handlers that open the panel or show
+ * earlier entries. The once-a-frame append therefore never forces a
+ * synchronous layout behind the HUD's own writes. Without ResizeObserver,
+ * as in a test DOM, the view reads and scrolls at once instead.
+ */
 export function createActivityLogView(doc: Document, elements: ActivityLogElements): ActivityLogView {
   const { toggle, panel, filters, selected, scroller, earlier, list, empty, dock } = elements;
-  const rowElements = new Map<ActivityLogRow, HTMLLIElement>();
+  const page = doc.defaultView;
+  const Observer = page?.ResizeObserver;
   let lastBottom = -1;
-  const row = (text: string): [ActivityLogRow, HTMLLIElement] => {
+  /** Whether the newest line was in view when layout was last current. */
+  let pinned = true;
+  /** A scroll to the newest line waiting for the next layout. */
+  let follow = false;
+  const row = (text: string): HTMLLIElement => {
     const item = doc.createElement('li');
     item.textContent = text;
-    const handle = { __row: true } as const;
-    rowElements.set(handle, item);
-    return [handle, item];
+    return item;
+  };
+  const measurePinned = () => {
+    pinned = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <= 4;
+  };
+  const toBottom = () => {
+    scroller.scrollTop = scroller.scrollHeight;
+    pinned = true;
+  };
+  const fit = () => {
+    // Numbers only: the dock is fixed, so its offsetTop is its distance
+    // from the top of the window.
+    if (!page) return;
+    const bottom = dock.hidden ? 0 : Math.max(8, Math.round(page.innerHeight - dock.offsetTop + 6));
+    if (bottom === lastBottom) return;
+    lastBottom = bottom;
+    if (bottom === 0) panel.style.removeProperty('--activity-log-bottom');
+    else panel.style.setProperty('--activity-log-bottom', `${bottom}px`);
+  };
+  // After layout: follow the dock, then either finish a waiting scroll to
+  // the newest line or note whether the player is at the bottom.
+  const observer = Observer === undefined ? null : new Observer(() => {
+    fit();
+    if (follow) {
+      follow = false;
+      toBottom();
+    } else {
+      measurePinned();
+    }
+  });
+  scroller.addEventListener('scroll', () => {
+    measurePinned();
+    if (!pinned) follow = false;
+  }, { passive: true });
+  page?.addEventListener('resize', () => { if (!panel.hidden) fit(); });
+  const scrollToBottom = () => {
+    if (observer) follow = true;
+    else toBottom();
   };
   return {
     reflectOpen(open) {
       panel.hidden = !open;
       toggle.setAttribute('aria-expanded', String(open));
+      if (!observer) return;
+      if (open) {
+        observer.observe(list);
+        observer.observe(scroller);
+        observer.observe(dock);
+      } else {
+        observer.disconnect();
+        follow = false;
+      }
     },
     reflectToggleHidden(hidden) { toggle.hidden = hidden; },
     reflectFilter(index, on) { filters[index]?.setAttribute('aria-pressed', String(on)); },
@@ -400,44 +463,30 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
     },
     reflectShowEarlier(visible) { earlier.hidden = !visible; },
     replaceRows(texts, anchor) {
+      // An anchor comes from Show earlier entries, a click, where layout is
+      // current, so reading the old first row's place forces nothing.
       const first = anchor === null ? null : list.firstElementChild;
       const top = first ? first.getBoundingClientRect().top : 0;
-      rowElements.clear();
-      const handles: ActivityLogRow[] = [];
-      const items = texts.map(text => {
-        const [handle, item] = row(text);
-        handles.push(handle);
-        return item;
-      });
+      const items = texts.map(row);
       list.replaceChildren(...items);
       const kept = anchor === null ? undefined : items[anchor];
       if (first && kept) scroller.scrollTop += kept.getBoundingClientRect().top - top;
-      else if (anchor === null) scroller.scrollTop = scroller.scrollHeight;
-      return handles;
+      else if (anchor === null) scrollToBottom();
+      return items as unknown as ActivityLogRow[];
     },
     appendRow(text) {
-      const [handle, item] = row(text);
+      const item = row(text);
       list.append(item);
-      return handle;
+      return item as unknown as ActivityLogRow;
     },
-    removeRow(handle) {
-      rowElements.get(handle)?.remove();
-      rowElements.delete(handle);
+    removeRow(handle) { (handle as unknown as HTMLLIElement).remove(); },
+    atBottom() {
+      if (!observer) measurePinned();
+      return pinned;
     },
-    atBottom() { return scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <= 4; },
-    scrollToBottom() { scroller.scrollTop = scroller.scrollHeight; },
+    scrollToBottom,
     focusToggle() { toggle.focus(); },
-    fitAboveDock() {
-      // Numbers only, so the poll allocates nothing: the dock is fixed, so
-      // its offsetTop is its distance from the top of the window.
-      const view = doc.defaultView;
-      if (!view) return;
-      const bottom = dock.hidden ? 0 : Math.max(8, Math.round(view.innerHeight - dock.offsetTop + 6));
-      if (bottom === lastBottom) return;
-      lastBottom = bottom;
-      if (bottom === 0) panel.style.removeProperty('--activity-log-bottom');
-      else panel.style.setProperty('--activity-log-bottom', `${bottom}px`);
-    },
+    fitAboveDock: fit,
   };
 }
 
