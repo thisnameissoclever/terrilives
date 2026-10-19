@@ -85,6 +85,11 @@ variants follow the page's selected theme. The tab and home-screen icons share
 the same flower. Export sources and commands are documented in
 [the branding guide](../assets/branding/README.md).
 
+On desktop, the logo, page title and grouped Play and theme controls share one
+row. Expand all sits beneath that row, above the updates. On narrow screens,
+the logo sits beside the controls, with the title and Expand all underneath.
+The header and updates use the same content width.
+
 The owner approved the compact accordion design with both themes. Dark is the default, regardless of the device theme. The theme control saves a light or dark preference when browser storage is available. A blocked preference store does not prevent reading or switching themes. Only the newest update starts expanded. Older rows show their date and title; Expand all and Collapse all control the full history.
 
 Each update has a stable `#update-YYYY-MM-DD` link. Opening a link expands the relevant entry. `web/changelog/legacy-anchors.json` preserves the original links from before same-day consolidation; retain those aliases when changing titles or filenames. Each current filename also gets an alias automatically. New entries do not need a legacy-list addition unless an already-published filename changes.
