@@ -605,9 +605,71 @@ pub(crate) fn snapshot(world: &World) -> ConversationRequests {
 
 pub(crate) fn migrate_legacy(world: &mut World) {
     recover_legacy_approaches(world);
-    let state = snapshot(world);
+    let mut state = snapshot(world);
+    recover_legacy_waiters(world, &mut state);
     world.insert_resource(state);
     refresh_markers(world);
+}
+
+/// Preserve historical intent without claiming another person's reservation.
+fn recover_legacy_waiters(world: &World, state: &mut ConversationRequests) {
+    let Some(mut query) = world.try_query::<(Entity, &terri_core::SimId, &Target)>() else {
+        return;
+    };
+    let pack = world.resource::<crate::Content>().0;
+    let active: BTreeSet<_> = state
+        .requests
+        .values()
+        .filter(|request| request.phase != RequestPhase::Suspended)
+        .map(|request| request.initiator)
+        .collect();
+    let represented: BTreeSet<_> = state
+        .requests
+        .values()
+        .map(|request| (request.initiator, request.recipient, request.interaction))
+        .collect();
+    let mut missing: Vec<_> = query
+        .iter(world)
+        .filter(|(person, _, target)| {
+            world.get::<Agent>(*person).is_some()
+                && *person != target.object
+                && world.get::<Agent>(target.object).is_some()
+                && world.get::<terri_core::SimId>(target.object).is_some()
+                && pack
+                    .social
+                    .get(target.interaction as usize)
+                    .is_some_and(|action| !crate::fights::is_fight(action))
+                && !world
+                    .resource::<super::SocialEpisodes>()
+                    .executions
+                    .contains_key(person)
+                && !active.contains(person)
+                && !represented.contains(&(*person, target.object, target.interaction))
+        })
+        .map(|(person, id, target)| (id.0, person, *target))
+        .collect();
+    missing.sort_by_key(|(id, _, _)| *id);
+    let created = world.resource::<SimClock>().tick;
+    for (_, initiator, target) in missing {
+        let id = state.next_id;
+        let Some(next) = id.checked_add(1) else {
+            break;
+        };
+        state.next_id = next;
+        state.requests.insert(
+            id,
+            ConversationRequest {
+                id,
+                initiator,
+                recipient: target.object,
+                interaction: target.interaction,
+                origin: ConversationOrigin::LegacyUnattributed,
+                created,
+                phase: RequestPhase::Waiting,
+                waiting_tile: None,
+            },
+        );
+    }
 }
 
 /// Older envelopes retain the physical reservation but omit rendezvous metadata.

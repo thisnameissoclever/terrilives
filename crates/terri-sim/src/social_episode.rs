@@ -41,7 +41,19 @@ pub(crate) struct CommunalEpisode {
 
 /// Family adds value independently of affinity; dislike never removes company.
 pub(crate) fn benefit(affinity: f32, strength: f32, family: bool) -> f32 {
-    (1. + affinity * strength).max(0.25) + if family { 0.1 } else { 0. }
+    (1. + affinity * strength).max(0.25) + family_bonus(family)
+}
+
+pub(crate) fn family_bonus(related: bool) -> f32 {
+    if related {
+        0.25
+    } else {
+        0.
+    }
+}
+
+pub(crate) fn shared_interest(topic: &Topic) -> bool {
+    topic.initiator_preference > 0. && topic.listener_preference > 0.
 }
 pub(crate) fn urgent(world: &World, person: Entity) -> bool {
     world.get::<terri_core::AtWork>(person).is_some()

@@ -51,7 +51,7 @@ fn a_legacy_approach_without_episode_metadata_resaves_before_another_tick() {
     );
     let mut replay = crate::test_content::sim_with(12, 8, pack);
     replay
-        .load_snapshot_v17(migrated.save_snapshot_v17())
+        .load_current_v17_view(migrated.current_v17_view())
         .unwrap();
     assert_eq!(replay.world_hash(), migrated.world_hash());
     for _ in 0..100 {
@@ -85,7 +85,9 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
     let a = people.iter().find(|(id, _)| *id == 0).unwrap().1;
     let b = people.iter().find(|(id, _)| *id == 1).unwrap().1;
     let c = people.iter().find(|(id, _)| *id == 2).unwrap().1;
-    // Hold the third housemate during setup to isolate private-care routing.
+    // Hold the initiator and third housemate while private care starts,
+    // so the initiator cannot choose another chat before the player's order.
+    sim.world_mut().entity_mut(a).insert(Reserved);
     sim.world_mut().entity_mut(c).insert(Reserved);
     let pack = sim.world().resource::<Content>().0;
     let toilet = sim
@@ -103,6 +105,7 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
             interaction: 0,
         });
     sim.tick();
+    sim.world_mut().entity_mut(a).remove::<Reserved>();
     talk(&mut sim, a, b);
     sim.tick();
     sim.world_mut().entity_mut(c).remove::<Reserved>();
@@ -127,7 +130,9 @@ fn private_care_wait_stages_outside_before_use_and_keeps_its_explanation_on_relo
         terri_core::Blocked,
     ));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    loaded
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     assert_eq!(loaded.activity_status_of(a.index_u32()).unwrap().code, 4);
 }
 
@@ -194,7 +199,7 @@ fn current_save_replays_a_suspended_request_cycle_through_talking_and_completion
     let mut saw_talking = false;
     for _ in 0..100 {
         sim.tick();
-        let snapshot = sim.save_snapshot_v17();
+        let snapshot = sim.current_v17_view();
         saw_suspended |= snapshot
             .legacy
             .legacy
@@ -210,7 +215,7 @@ fn current_save_replays_a_suspended_request_cycle_through_talking_and_completion
             .iter()
             .any(|r| r.phase == terri_core::save_v15::SavedConversationPhase::Talking);
         let mut loaded = test_content::sim_with(12, 8, pack);
-        loaded.load_snapshot_v17(snapshot).unwrap();
+        loaded.load_current_v17_view(snapshot).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         loaded.tick();
         sim.tick();
@@ -227,7 +232,9 @@ fn conversation_fun_relief_matches_actual_disliked_company_delivery() {
     pack.social[0].duration_ticks = 67;
     pack.tuning.duration_variance = 0.;
     let mut personality = Personality::default();
-    personality.satisfaction[NeedId::Fun.index()] = 0.5;
+    // Disliked delivery stays below the new Fun drain; neutral delivery
+    // would exceed it, so the actual relationship multiplier matters.
+    personality.satisfaction[NeedId::Fun.index()] = 0.25;
     let mut needs = Needs::all_at(90.);
     needs.set(NeedId::Fun, 10.);
     let bid = *sim.world().get::<SimId>(b).unwrap();
@@ -283,6 +290,9 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
         .collect();
     let a = people.iter().find(|(id, _)| *id == 0).unwrap().1;
     let b = people.iter().find(|(id, _)| *id == 1).unwrap().1;
+    let c = people.iter().find(|(id, _)| *id == 2).unwrap().1;
+    // Keep the third housemate from starting a competing chat during setup.
+    sim.world_mut().entity_mut(c).insert(Reserved);
     let door = sim.world().resource::<Content>().0.lot.front_door.unwrap();
     sim.world_mut().entity_mut(b).insert((
         terri_core::Career(0),
@@ -303,9 +313,12 @@ fn paused_current_reload_reconstructs_a_work_wait_without_mutating_the_world() {
     )
     .unwrap();
     sim.tick();
+    sim.world_mut().entity_mut(c).remove::<Reserved>();
     assert_eq!(sim.activity_status_of(a.index_u32()).unwrap().code, 3);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    loaded
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     let hash = loaded.world_hash();
     assert_eq!(loaded.activity_status_of(a.index_u32()).unwrap().code, 3);
     assert_eq!(
@@ -733,7 +746,9 @@ fn current_save_preserves_the_exact_order_completed_by_a_chat() {
     talk(&mut sim, a, b);
     sim.tick();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    restored
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     for _ in 0..100 {
         sim.tick();
         restored.tick();
@@ -888,9 +903,9 @@ fn current_save_keeps_an_arrived_waiter_without_reserving_the_busy_recipient() {
     }
     assert!(sim.world().get::<Path>(a).is_none());
     let hash = sim.world_hash();
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     let mut restored = test_content::sim_with(12, 8, pack);
-    restored.load_snapshot_v17(saved).unwrap();
+    restored.load_current_v17_view(saved).unwrap();
     assert_eq!(restored.world_hash(), hash);
     assert!(restored.world().get::<Reserved>(b).is_none());
     assert_eq!(restored.activity_status_of(a.index_u32()).unwrap().code, 2);
@@ -910,11 +925,12 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
         .insert_resource(Content(Box::leak(Box::new(pack))));
     talk(&mut sim, a, b);
     sim.tick();
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     assert_eq!(saved.legacy.legacy.conversation_requests.requests.len(), 1);
     for case in 0..10 {
         let mut bad = saved.clone();
-        let row = &mut bad.legacy.legacy.conversation_requests.requests[0];
+        let payload = &mut *bad;
+        let row = &mut payload.legacy.legacy.conversation_requests.requests[0];
         let duplicate = row.clone();
         match case {
             0 => row.recipient = u32::MAX,
@@ -925,15 +941,16 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
             }
             4 => row.created = sim.world().resource::<terri_core::SimClock>().tick + 1,
             5 => row.waiting_tile = Some((99, 99)),
-            6 => bad.legacy.legacy.conversation_requests.next_id = 0,
-            7 => bad
+            6 => payload.legacy.legacy.conversation_requests.next_id = 0,
+            7 => payload
                 .legacy
                 .legacy
                 .conversation_requests
                 .requests
                 .push(duplicate),
             8 => {
-                bad.legacy
+                payload
+                    .legacy
                     .legacy
                     .legacy
                     .legacy
@@ -947,7 +964,8 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
                 row.target_owned = false;
             }
             _ => {
-                bad.legacy
+                payload
+                    .legacy
                     .legacy
                     .legacy
                     .legacy
@@ -957,11 +975,11 @@ fn invalid_current_request_records_refuse_without_replacing_the_live_world() {
                     .social
                     .rendezvous
                     .clear();
-                bad.legacy.legacy.conversation_requests.requests.clear();
+                payload.legacy.legacy.conversation_requests.requests.clear();
             }
         }
         let hash = sim.world_hash();
-        assert!(sim.load_snapshot_v17(bad).is_err(), "case {case}");
+        assert!(sim.load_current_v17_view(bad).is_err(), "case {case}");
         assert_eq!(
             sim.world_hash(),
             hash,

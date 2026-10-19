@@ -311,7 +311,13 @@ pub(crate) fn bother(world: &mut World) {
         ) else {
             continue;
         };
-        let requested = -nuisance.value.abs() * per_tick;
+        let requested = crate::relationship_effects::scaled_opinion_delta(
+            world,
+            affected,
+            responsible,
+            RelationshipCause::Nuisance,
+            -nuisance.value.abs() * per_tick,
+        );
         if requested == 0.0 {
             continue;
         }

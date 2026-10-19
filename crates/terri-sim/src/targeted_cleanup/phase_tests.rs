@@ -131,7 +131,7 @@ fn round_trip(sim: &Sim) -> Sim {
     let mut restored =
         Sim::new_with_lot_and_content(24, 16, Content(sim.world().resource::<Content>().0));
     restored
-        .load_snapshot_v17(sim.save_snapshot_v17())
+        .load_current_v17_view(sim.current_v17_view())
         .expect("cleanup ownership and phase must restore");
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored
@@ -594,7 +594,7 @@ fn prepared_food_approach_does_not_claim_station_work_started() {
         "claiming a meal is not physical work: {history:#?}"
     );
     let before = sim.world_hash();
-    let mut impossible = sim.save_snapshot_v17();
+    let mut impossible = sim.current_v17_view();
     let owned = impossible
         .player_orders
         .orders
@@ -607,7 +607,7 @@ fn prepared_food_approach_does_not_claim_station_work_started() {
     assert!(!owned.started);
     owned.phase = 3;
     assert!(
-        sim.load_snapshot_v17(impossible).is_err(),
+        sim.load_current_v17_view(impossible).is_err(),
         "running work still requires a recorded physical start"
     );
     assert_eq!(sim.world_hash(), before);

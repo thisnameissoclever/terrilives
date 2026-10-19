@@ -90,18 +90,18 @@ fn until(sim: &mut Sim, description: &str, budget: usize, predicate: impl Fn(&Si
 }
 fn continue_roundtrip(sim: &mut Sim, ticks: usize) {
     // The current save, which also carries each person's job search.
-    let saved = sim.save_snapshot_v18();
+    let saved = sim.save_snapshot_v19();
     let content = sim.world().resource::<Content>().0;
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(content));
     loaded
-        .load_snapshot_v18(saved.clone())
+        .load_snapshot_v19(saved.clone())
         .expect("valid attendance continuation loads");
     assert_eq!(
         loaded.world_hash(),
         sim.world_hash(),
         "restoration preserves gameplay ownership"
     );
-    assert_eq!(loaded.save_snapshot_v18(), saved);
+    assert_eq!(loaded.save_snapshot_v19(), saved);
     for step in 0..ticks {
         sim.tick();
         loaded.tick();
@@ -1382,15 +1382,15 @@ fn attendance_recipe_activity_v17_rejects_contradictory_current_owners_atomicall
         s.world().get::<terri_core::StepWork>(actor).is_some()
     });
     let identity = SavedOrderActor::Sim(sim.world().get::<SimId>(actor).unwrap().0);
-    let foreground = sim.save_snapshot_v17();
+    let foreground = sim.current_v17_view();
     assert!(foreground.background_recipes.is_empty());
     let mut impossible_background = foreground.clone();
     impossible_background.background_recipes.push(identity);
     assert!(matches!(
-        sim.load_snapshot_v17(impossible_background),
+        sim.load_current_v17_view(impossible_background),
         Err(crate::SaveError::InvalidValue)
     ));
-    assert_eq!(sim.save_snapshot_v17(), foreground);
+    assert_eq!(sim.current_v17_view(), foreground);
 
     let pack = sim.world().resource::<Content>().0;
     let object = sim.spawn_object(
@@ -1411,15 +1411,15 @@ fn attendance_recipe_activity_v17_rejects_contradictory_current_owners_atomicall
             .is_some_and(|target| target.object == object)
             && s.world().get::<terri_core::Eating>(actor).is_some()
     });
-    let suspended = sim.save_snapshot_v17();
+    let suspended = sim.current_v17_view();
     assert_eq!(suspended.background_recipes, vec![identity]);
     let mut impossible_foreground = suspended.clone();
     impossible_foreground.background_recipes.clear();
     assert!(matches!(
-        sim.load_snapshot_v17(impossible_foreground),
+        sim.load_current_v17_view(impossible_foreground),
         Err(crate::SaveError::InvalidValue)
     ));
-    assert_eq!(sim.save_snapshot_v17(), suspended);
+    assert_eq!(sim.current_v17_view(), suspended);
     continue_roundtrip(&mut sim, 2);
 }
 
@@ -1594,13 +1594,13 @@ fn attendance_background_recipe_boundary_roundtrips_before_incoming_chat_arrives
                 .save_snapshot_v17()
                 .background_recipes
                 .contains(&identity));
-            let saved = sim.save_snapshot_v18();
+            let saved = sim.save_snapshot_v19();
             let content = sim.world().resource::<Content>().0;
             let mut restored = Sim::new_with_lot_and_content(20, 20, Content(content));
             restored
-                .load_snapshot_v18(saved.clone())
+                .load_snapshot_v19(saved.clone())
                 .expect("the targetless suspended counter loads with authoritative activity state");
-            assert_eq!(restored.save_snapshot_v18(), saved);
+            assert_eq!(restored.save_snapshot_v19(), saved);
             assert_eq!(restored.world_hash(), sim.world_hash());
             continuation = Some(restored);
             boundary_seen = true;

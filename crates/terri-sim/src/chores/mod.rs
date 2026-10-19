@@ -37,6 +37,10 @@ mod room_change_tests;
 #[cfg(test)]
 mod tests;
 
+pub(crate) fn neglect_surface_key(world: &World, surface: u32) -> Option<ChoreKey> {
+    crate::dining::entity(world, surface).and_then(|e| groups::key_for(world, e))
+}
+
 pub(crate) fn tick(world: &mut World) {
     let pack = world.resource::<crate::Content>().0;
     if std::ptr::eq(pack, terri_data::pre_books_pack())
@@ -68,6 +72,7 @@ pub(crate) fn tick(world: &mut World) {
     work::advance(world, &mut state);
     redistribute(world, &mut state);
     state.feelings.retain(|f| f.expires > now);
+    crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     patches::reconcile(world);
 }
@@ -299,6 +304,7 @@ pub(crate) fn prune(world: &mut World) {
     }
     prune_references(world, &mut state);
     board::reconcile(world, &mut state);
+    crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     patches::reconcile(world);
 }

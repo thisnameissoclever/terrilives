@@ -6,6 +6,9 @@ it when changing an interaction, its advertised effects, seating, or need
 delivery. The content files hold balance values; this document explains their
 meaning. Dated verification belongs in `docs/evidence/`.
 
+Base need drain rates are two thirds of the previous balance. Existing
+personality, sleep and work multipliers still apply to those rates.
+
 ## What each meter represents
 
 | Need | Meaning | Activities that help | Exclusions |
@@ -14,7 +17,7 @@ meaning. Dated verification belongs in `docs/evidence/`.
 | Energy | Alertness and physical reserves | Sleeping; a small amount from reclining | Sitting upright, entertainment and company do not replace sleep. |
 | Hygiene | General cleanliness, including body odor | Bathing; partial improvement from washing hands | Hand washing cannot clean the whole body or remove the body-odor penalty. |
 | Bladder | Relief from needing the toilet | Using a toilet | Sinks, bathing and food do not provide toilet relief. |
-| Social | Company, with affinity and family scaling its benefit | Conversation and eligible concurrent shared activities | Solo entertainment, solo food, empty tables, travel and passive proximity provide no Social. |
+| Social | Company, with affinity and family scaling its benefit | Conversation and eligible concurrent shared activities | Correspondence provides Social while alone. Solo media, solo food, empty tables, travel and passive proximity provide no Social. |
 | Fun | Active entertainment or an engaging pastime | Media, reading, exercise, correspondence, aquarium watching and conversation | Plain sitting or lying down restores physical comfort rather than entertainment. |
 | Comfort | Physical ease and relaxation | Restful furniture, beds, bathing and watching fish | Washing hands has no Comfort cost. Standing eating has a small physical cost. |
 
@@ -51,9 +54,9 @@ only during active eating or shared use.
 | Bookshelf: read | 34 minutes | Fun +26; conditional shared-activity Social | Reading is an engaging pastime. Eligible simultaneous reading supplies mild company. |
 | Reading chair: read | 46 minutes | Comfort +15, Fun +19; conditional shared-activity Social | The chair provides comfort while the book provides entertainment. |
 | Exercise bike: exercise | 83 minutes | Fun +28, Energy -8, Hygiene -5; conditional shared-activity Social | Exercise is an active pastime. Exertion costs Energy, and sweat reduces cleanliness. |
-| Desk: correspondence | 58 minutes | Fun +36, Energy -7 | The game treats correspondence as engaging desk work with a small effort cost. It is not a conversation with another household Sim and provides no Social. |
+| Desk: correspondence | 58 minutes | Social +24, Fun +36, Energy -7 | Writing letters provides social contact while the writer works alone. It retains the existing effort cost. |
 | Aquarium: watch fish | 67 minutes | Fun +25, Comfort +21; conditional shared-activity Social | Watching fish entertains and relaxes the viewer. Eligible shared watching also provides mild company. |
-| Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +50.25 and Fun +10.05 over 67 minutes; Social scales with affinity and family | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
+| Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +100.5 and Fun +10.05 over 67 minutes; Social scales with affinity and the 0.25 family bonus | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
 | Clean dishes, including a targeted pile or surface | Collection and washing work, plus travel | No direct need reward | Cleaning removes dishes and their environmental mood consequences. It does not wash the Sim's body or refill a need. |
 | Clean floor | 24 work minutes per patch, plus travel | No direct need reward or additional need cost | Work removes actual grime and its mood effect; normal need decay accounts for time spent working. |
 | Wipe surface | 45 work minutes, plus travel | No direct need reward or additional need cost | Wiping cleans furniture rather than the Sim. Grime, mood and commitment credit change separately. |
@@ -114,11 +117,11 @@ hand washing alone cannot remove them. Bathing has no partial-wash ceiling
 and can restore Hygiene toward 100. Both hand-washing actions leave Comfort
 unchanged apart from normal decay.
 
-## Social requires actual company
+## Social from company and correspondence
 
 Relationship affinity is a directional feeling between -1 and +1. Company
 provides a positive Social benefit even at maximum dislike. Its multiplier is
-`max(0.25, 1 + affinity * relationship_delta_scale)`, with another 0.1 for
+`max(0.25, 1 + affinity * relationship_delta_scale)`, with another 0.25 for
 family. The shipped relationship scale is 0.5. A group uses the strongest
 eligible affinity multiplier and adds the family bonus once if any eligible
 participant is family. More participants do not multiply the rate.
@@ -202,13 +205,13 @@ Every need also decays throughout ordinary life:
 
 | Need | Points lost per game minute before modifiers |
 | --- | --- |
-| Hunger | 0.062 |
-| Energy | 0.051 |
-| Hygiene | 0.072 |
-| Bladder | 0.102 |
-| Social | 0.026 |
-| Fun | 0.048 |
-| Comfort | 0.032 |
+| Hunger | 0.0413333333 |
+| Energy | 0.034 |
+| Hygiene | 0.048 |
+| Bladder | 0.068 |
+| Social | 0.0173333333 |
+| Fun | 0.032 |
+| Comfort | 0.0213333333 |
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
 being at work multiplies it by 0.5. Commuting uses normal decay. Work provides

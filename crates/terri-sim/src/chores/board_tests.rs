@@ -166,7 +166,7 @@ fn daily_choices_are_saved_once_and_do_not_reroll_after_personality_edits_or_loa
     sim.world_mut().insert_resource(state);
     let before = sim.world_hash();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
     assert_eq!(loaded.world_hash(), before);
 }
 
@@ -191,6 +191,7 @@ fn neglected_duties_reduce_other_housemates_affinity_once_without_self_resentmen
         .world()
         .get::<Relationships>(observer)
         .map_or(0.0, |r| r.feeling(SimId(owner)));
+    crate::neglect::refresh_in(sim.world_mut(), &state);
     sim.world_mut().resource_mut::<SimClock>().tick =
         u64::from(sim.world().resource::<crate::Content>().0.tuning.day_ticks);
     board::tick(sim.world_mut(), &mut state);
@@ -286,6 +287,286 @@ fn weekly_assignments_persist_and_new_weeks_use_the_saved_chore_stream() {
     assert_ne!(state.rng, stream);
     sim.world_mut().insert_resource(state);
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
+}
+
+#[test]
+fn balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment() {
+    let (mut sim, mut state, key) = fixture();
+    let day_ticks = u64::from(sim.world().resource::<crate::Content>().0.tuning.day_ticks);
+    sim.world_mut().resource_mut::<SimClock>().tick = day_ticks - 1;
+    board::reconcile(sim.world(), &mut state);
+    let episode = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+    episode.needed = true;
+    episode.decision = Some(false);
+    episode.outcome = DutyOutcome::Skipped;
+    let owner = episode.owner;
+    let history = state
+        .profiles
+        .iter()
+        .find(|p| p.sim_id == owner)
+        .unwrap()
+        .commitment;
+    let effects = sim
+        .world()
+        .resource::<crate::relationship_effects::RelationshipDiagnostics>()
+        .effects
+        .len();
+    board::tick(sim.world_mut(), &mut state);
+    sim.world_mut().resource_mut::<SimClock>().tick = day_ticks;
+    board::tick(sim.world_mut(), &mut state);
+    assert_eq!(
+        state
+            .profiles
+            .iter()
+            .find(|p| p.sim_id == owner)
+            .unwrap()
+            .commitment,
+        history
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<crate::relationship_effects::RelationshipDiagnostics>()
+            .effects
+            .len(),
+        effects
+    );
+}
+
+#[test]
+fn balance_household_grace_helper_resentment_uses_the_same_boundary() {
+    for elapsed in [119, 120] {
+        let (mut sim, mut state, key) = fixture();
+        board::reconcile(sim.world(), &mut state);
+        let episode = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+        episode.needed = true;
+        episode.decision = Some(false);
+        episode.outcome = DutyOutcome::Skipped;
+        let owner = episode.owner;
+        let helper = sim
+            .world_mut()
+            .query::<(Entity, &SimId)>()
+            .iter(sim.world())
+            .find(|(_, id)| id.0 != owner)
+            .unwrap()
+            .0;
+        crate::neglect::refresh_in(sim.world_mut(), &state);
+        sim.world_mut().resource_mut::<SimClock>().tick += elapsed;
+        crate::neglect::refresh_in(sim.world_mut(), &state);
+        // Normal work clears physical dirt before completion credit is awarded.
+        state.surfaces.clear();
+        board::credit(
+            sim.world_mut(),
+            &mut state,
+            helper.index_u32(),
+            key,
+            0,
+            1000,
+        );
+        assert_eq!(
+            sim.relationship_effects().iter().any(|effect| effect.cause
+                == crate::relationship_effects::RelationshipCause::ChoreNeglected),
+            elapsed == 120
+        );
+        assert!(sim
+            .relationship_effects()
+            .iter()
+            .any(|effect| effect.cause
+                == crate::relationship_effects::RelationshipCause::ChoreFulfilled));
+    }
+}
+
+#[test]
+fn balance_household_grace_real_gradual_wipe_retains_its_admitted_boundary() {
+    for elapsed in [119, 120] {
+        let (mut sim, mut state, key) = fixture();
+        board::reconcile(sim.world(), &mut state);
+        let episode = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+        episode.needed = true;
+        episode.decision = Some(false);
+        episode.outcome = DutyOutcome::Skipped;
+        let owner = episode.owner;
+        let helper = sim
+            .world_mut()
+            .query::<(Entity, &SimId)>()
+            .iter(sim.world())
+            .find(|(_, id)| id.0 != owner)
+            .unwrap()
+            .0;
+        crate::neglect::refresh_in(sim.world_mut(), &state);
+        sim.world_mut().resource_mut::<SimClock>().tick += elapsed;
+        let counter = state.surfaces[0].0;
+        let object_entity = crate::dining::entity(sim.world(), counter).unwrap();
+        let pos = *sim
+            .world()
+            .get::<terri_core::Position>(object_entity)
+            .unwrap();
+        let pack = sim.world().resource::<crate::Content>().0;
+        let object = sim.world().get::<SmartObject>(object_entity).unwrap();
+        let footprint = crate::placed_footprint(
+            pack,
+            object.0,
+            sim.world().get::<terri_core::ObjectFacing>(object_entity),
+        );
+        let from = *sim.world().get::<terri_core::Position>(helper).unwrap();
+        let path = sim
+            .world()
+            .resource::<terri_core::TileGrid>()
+            .find_path_adjacent(
+                (from.x.round() as i32, from.y.round() as i32),
+                (pos.x.round() as i32, pos.y.round() as i32),
+                footprint,
+            )
+            .unwrap();
+        let endpoint = path
+            .last()
+            .copied()
+            .unwrap_or((from.x.round() as i32, from.y.round() as i32));
+        sim.world_mut()
+            .entity_mut(helper)
+            .insert(terri_core::Position {
+                x: endpoint.0 as f32,
+                y: endpoint.1 as f32,
+            });
+        assert!(work::start(sim.world_mut(), &mut state, helper, key, true));
+        let mut ticks = 0;
+        while !state.tasks.is_empty() && ticks < 100 {
+            crate::neglect::refresh_in(sim.world_mut(), &state);
+            work::advance(sim.world_mut(), &mut state);
+            crate::neglect::refresh_in(sim.world_mut(), &state);
+            sim.world_mut().resource_mut::<SimClock>().tick += 1;
+            ticks += 1;
+            if ticks == 20 {
+                sim.world_mut().insert_resource(state.clone());
+                let saved = sim.save_snapshot_v19();
+                assert_eq!(!saved.neglect.matured_episodes.is_empty(), elapsed == 120);
+                let mut loaded =
+                    crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+                loaded.load_snapshot_v19(saved.clone()).expect(
+                    "gradual cleaning must preserve its observed episode through a current save",
+                );
+                assert_eq!(loaded.save_snapshot_v19(), saved);
+                assert_eq!(loaded.world_hash(), sim.world_hash());
+                if elapsed == 120 {
+                    let mut changed = saved.clone();
+                    changed.neglect.matured_episodes.clear();
+                    loaded.load_snapshot_v19(changed).unwrap();
+                    assert_ne!(
+                        loaded.world_hash(),
+                        sim.world_hash(),
+                        "observed overdue episodes affect future coverage reactions"
+                    );
+                }
+                sim.world_mut().remove_resource::<SavedChores>();
+            }
+        }
+        assert_eq!(ticks, 45, "the actual wiping work must fade over 45 ticks");
+        assert!(state.surfaces.is_empty());
+        assert_eq!(
+            sim.relationship_effects().iter().any(|effect| effect.cause
+                == crate::relationship_effects::RelationshipCause::ChoreNeglected),
+            elapsed == 120
+        );
+    }
+}
+
+#[test]
+fn balance_household_grace_removed_dirty_member_does_not_age_reused_duty() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let episode = state
+        .episodes
+        .iter_mut()
+        .find(|episode| episode.key == key)
+        .unwrap();
+    episode.needed = true;
+    episode.decision = Some(false);
+    episode.outcome = DutyOutcome::Skipped;
+    let episode_id = episode.id;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    sim.world_mut().resource_mut::<SimClock>().tick += 120;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(crate::neglect::episode_matured(sim.world(), episode_id));
+    let dirty = state.surfaces[0].0;
+    let object = crate::dining::entity(sim.world(), dirty).unwrap();
+    assert!(sim.world_mut().despawn(object));
+    state.surfaces.clear();
+    board::refresh_grouped_need(sim.world(), &mut state);
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(!crate::neglect::episode_matured(sim.world(), episode_id));
+    let remaining = groups::members(sim.world(), key)[0];
+    add(&mut state.surfaces, remaining, 1000);
+    state
+        .episodes
+        .iter_mut()
+        .find(|episode| episode.id == episode_id)
+        .unwrap()
+        .needed = true;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(
+        !crate::neglect::episode_matured(sim.world(), episode_id),
+        "fresh work on the same daily duty gets fresh grace"
+    );
+}
+
+#[test]
+fn balance_household_grace_cancel_below_tolerance_clears_prior_maturity() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let episode = state
+        .episodes
+        .iter_mut()
+        .find(|episode| episode.key == key)
+        .unwrap();
+    episode.needed = true;
+    episode.decision = Some(false);
+    episode.outcome = DutyOutcome::Skipped;
+    let (owner, episode_id) = (episode.owner, episode.id);
+    let helper = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .find(|(_, id)| id.0 != owner)
+        .unwrap()
+        .0;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    sim.world_mut().resource_mut::<SimClock>().tick += 120;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(work::start(sim.world_mut(), &mut state, helper, key, true));
+    work::advance(sim.world_mut(), &mut state);
+    let endpoint = state.tasks[0].endpoint.unwrap();
+    let width = sim.world().resource::<terri_core::TileGrid>().width() as u32;
+    sim.world_mut()
+        .entity_mut(helper)
+        .remove::<terri_core::Path>()
+        .insert(terri_core::Position {
+            x: (endpoint % width) as f32,
+            y: (endpoint / width) as f32,
+        });
+    for _ in 0..43 {
+        work::advance(sim.world_mut(), &mut state);
+        crate::neglect::refresh_in(sim.world_mut(), &state);
+        sim.world_mut().resource_mut::<SimClock>().tick += 1;
+    }
+    assert!(!board::work_needed(sim.world(), &state, key, owner));
+    assert!(
+        crate::neglect::episode_matured(sim.world(), episode_id),
+        "genuine unfinished cleaning retains its observed episode"
+    );
+    sim.world_mut().insert_resource(state);
+    cancel(sim.world_mut(), helper);
+    crate::neglect::refresh(sim.world_mut());
+    assert!(!crate::neglect::episode_matured(sim.world(), episode_id));
+    let mut invalid = sim.save_snapshot_v19();
+    invalid.neglect.matured_episodes.push(episode_id);
+    assert!(
+        sim.load_snapshot_v19(invalid).is_err(),
+        "load rejects maturity after the work was discharged"
+    );
+    let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
+    let surface = state.surfaces[0].0;
+    add(&mut state.surfaces, surface, 1000);
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(!crate::neglect::episode_matured(sim.world(), episode_id));
 }

@@ -119,6 +119,7 @@ pub(crate) mod v15;
 pub(crate) mod v16;
 pub(crate) mod v17;
 pub(crate) mod v18;
+pub(crate) mod v19;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -2426,12 +2427,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v16();
+        let state = uninterrupted.save_snapshot_v19();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v16(state.clone())
+            .load_snapshot_v19(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v16(), state);
+        assert_eq!(resumed.save_snapshot_v19(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -2443,8 +2444,8 @@ mod tests {
             );
         }
         assert_eq!(
-            resumed.save_snapshot(),
-            uninterrupted.save_snapshot(),
+            resumed.save_snapshot_v19(),
+            uninterrupted.save_snapshot_v19(),
             "unhashed RNG, queues, and transient action state diverged"
         );
     }

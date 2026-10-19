@@ -1,6 +1,8 @@
 use super::*;
 use terri_core::{Hobbies, Position, SimId, SmartObject};
 
+mod correspondence_balance_tests;
+
 fn shared_fixture(first_kind: &str, second_kind: &str) -> (crate::Sim, Entity, Entity) {
     let mut sim = crate::Sim::new_with_lot(16, 16);
     let pack = sim.world().resource::<Content>().0;

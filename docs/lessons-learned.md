@@ -12809,3 +12809,38 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Compose the logo, page title and controls together. Check the complete route in both themes and at desktop, tablet and narrow phone widths before publishing an asset change.
 
 **Verification.** Compare the known defective capture with the repair at matching viewport sizes. Require an independent reviewer to reject the defective layout. Measure the displayed logo and the first update's position, then check control wrapping and horizontal overflow across breakpoints.
+
+## [L-native-pause-uses-command-flush] Test pause through the paused entry point
+
+1. What happened: a household grace regression sent `SetSpeed(0)` and then called `Sim::tick()` repeatedly. It reported clock and grace advancement as a pause defect.
+2. Root cause: `Sim::tick()` is an explicit simulation step. The browser pauses by withholding ticks and applying queued input through `flush_commands()`.
+3. Prevention: exercise pause through command flushes or the real browser frame loop. Use direct ticks only when the test intends elapsed game time.
+4. Verification: capture the clock and neglect timers, apply repeated paused command flushes and require identical values. Keep a separate test for the browser pause boundary.
+
+## [L-current-timer-inventory-bounds] Inherit timing limits from the sources they describe
+
+1. What happened: review found that a 100000-row cap on household neglect timers was lower than the combined legal floor, surface, bin and dish inventories in the wrapped save.
+2. Root cause: one underlying collection's limit was copied to an aggregate of several independently bounded collections.
+3. Prevention: validate sorted unique timer references against the actual validated active source inventory. Bound duty timers by their assignment inventory. Keep published nested record limits unchanged.
+4. Verification: load a legal schema-eighteen world with 100000 floor sources and an additional dirty surface, initialize timing and require an exact schema-nineteen round trip.
+
+
+## [L-neglect-maturity-and-current-state] Preserve historical obligation facts separately from current quantities
+
+**What happened.** A grace-period implementation forgot that a chore was overdue while gradual cleaning lowered its current grime. A proposed per-helper admission record would also have added an exemption that the requirements did not request.
+
+**Root cause.** Current dirt levels and historical obligation maturity answer different questions. Recomputing the latter from the former erased valid completion evidence; attaching it to a worker changed contribution-leader semantics.
+
+**Prevention.** Preserve the historical fact on the existing obligation identity. Reconcile physical clocks after mutations, retain maturity only through genuine unfinished continuation, and clear it when the old obligation is discharged. Derive validation limits from admitted underlying inventories and index identity lookups once.
+
+**Verify.** Use actual gradual work with a mid-work save. Exercise the grace boundary, multiple dish contributors, cancellation, removal followed by fresh dirt, late dish pickup and washing, and a valid inventory larger than any single source category. Confirm current continuation includes the full envelope while historical fixtures retain their original bytes.
+
+## [L-historical-waiters-need-current-ownership] Accepted historical state must produce a valid current save
+
+**What happened.** A historical household loaded successfully, then produced a current save that could not reload. Two people targeted the same chat recipient, but migration recovered only the admitted person's conversation ownership. The other person's waiting target remained unowned.
+
+**Root cause.** Legacy recovery covered reserved approaches and running conversations while omitting unreserved waits. Repeated version-level probes also obscured the failure because the restore call graph skips some intermediate schema wrappers.
+
+**Prevention.** Normalize all supported historical activity ownership during historical adoption. Preserve explicit legacy provenance, paths, reservations, clocks and random streams. Keep current capture and current validation strict. Index existing ownership once when processing large saved households. Map the actual restore calls before tracing failures; use a source breakpoint on the failing guard when matching debug symbols are available.
+
+**Verify.** Load a historical household with two chat initiators and one busy recipient. Require separate admitted and waiting ownership, an identical current-save reload, and rejection of an orphaned target inserted directly into a current payload. Compare paths, the Blocked marker, the admitted reservation, the clock, and both simulation and chore random streams. Keep the stale room-history trigger as a separate regression.

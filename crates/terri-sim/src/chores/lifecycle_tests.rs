@@ -44,53 +44,13 @@ fn fixture(kind: ChoreKind) -> (Sim, Entity, ChoreKey) {
     (sim, person, key)
 }
 
-pub(super) fn assert_v17_projection(
-    before: &terri_core::SaveSnapshotV17,
-    after: &terri_core::SaveSnapshotV17,
-) {
-    assert_eq!(
-        after.player_orders, before.player_orders,
-        "V17 player-order projection changed during restoration"
-    );
-    assert_eq!(
-        after.social_executions, before.social_executions,
-        "V17 execution projection changed during restoration"
-    );
-    assert_eq!(
-        after.system_social_orders, before.system_social_orders,
-        "V17 system-order projection changed during restoration"
-    );
-    assert_eq!(
-        after.attendance, before.attendance,
-        "V17 attendance projection changed during restoration"
-    );
-    assert_eq!(after.confirmed_commands, before.confirmed_commands);
-    if after.legacy != before.legacy {
-        let original = format!("{:#?}", before.legacy);
-        let restored = format!("{:#?}", after.legacy);
-        let original: Vec<_> = original.lines().collect();
-        let restored: Vec<_> = restored.lines().collect();
-        let at = original
-            .iter()
-            .zip(&restored)
-            .position(|(a, b)| a != b)
-            .unwrap_or(original.len().min(restored.len()));
-        let start = at.saturating_sub(4);
-        panic!(
-            "V17 legacy projection first differs at line {at}; original={:?}; restored={:?}",
-            &original[start..(at + 5).min(original.len())],
-            &restored[start..(at + 5).min(restored.len())]
-        );
-    }
-}
-
 fn reload(sim: &Sim) {
     let mut loaded = Sim::new_from_shipped_lot();
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.save_snapshot_v19();
     loaded
-        .load_snapshot_v17(sim.save_snapshot_v17())
+        .load_snapshot_v19(sim.save_snapshot_v19())
         .expect("ordinary lifecycle state must reload");
-    assert_v17_projection(&saved, &loaded.save_snapshot_v17());
+    assert_eq!(saved, loaded.save_snapshot_v19());
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 

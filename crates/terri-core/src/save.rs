@@ -12,7 +12,7 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 18;
+pub const SAVE_SCHEMA_VERSION: u16 = 19;
 
 /// Frozen V5 envelope - [RC-save] in `docs/specs/2026-09-22-colourways.md`: the
 /// V4 envelope with each placed object's colourway appended, for the objects
