@@ -46,7 +46,7 @@ function wiring(source: string): string {
     ${declaration('roomsTool')}\n${declaration('finishReview')}\n${declaration('roomReview')}
     ${assignment('hasRetainedReviewChoices')}\n${assignment('requestRoomReview')}
     ${declaration('buildTools')}\n${functionBody('confirmBuildBatch')}\n${declaration('buildExit')}\n${assignment('replaceBuildLocalState')}\n${assignment('toolSwitch')}\n${listener.getText(file)}
-    function blockedFrame(nowMs: number) { ${frame.statements.slice(0, end + 1).map(node => node.getText(file)).join('\n')} }
+    function blockedFrame(nowMs: number, presenting = true) { ${frame.statements.slice(0, end + 1).map(node => node.getText(file)).join('\n')} }
     return { roomsTool, roomReview, buildTools, buildExit, toolSwitch, confirmBuildBatch, blockedFrame, hasRetainedReviewChoices, requestRoomReview, replaceBuildLocalState };`, { target: ts.ScriptTarget.ES2022 });
 }
 
@@ -97,6 +97,7 @@ function fixture(source = main) {
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
     previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
+    MAX_TICKS_PER_FRAME: 5, BACKGROUND_MAX_TICKS: 300,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
     orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },

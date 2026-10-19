@@ -68,6 +68,8 @@ import {
   advanceSimulationFrame,
   buildInstanceBatch,
 } from './frame.js';
+import { FrameClock } from './frame-clock.js';
+import { BackgroundTicker } from './background-ticker.js';
 import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT, cameraOrigin } from './render/iso.js';
 import { landExtent, clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { CreatorSession } from './ui/character-creator/session.js';
@@ -170,6 +172,28 @@ const TICK_HZ = 10;
  * more than the frame that fell behind.
  */
 const MAX_TICKS_PER_FRAME = 5;
+
+/**
+ * How often the background timer checks for missing animation frames: once
+ * per 10 Hz tick. Its steps are not drawn, so a faster beat would only cost
+ * battery.
+ */
+const BACKGROUND_STEP_MS = 100;
+
+/**
+ * How long animation frames may be absent before the timer steps instead. A
+ * hidden tab gets none; an unselected or covered one may get about one a
+ * second. Several times a 60 Hz frame, so an ordinary slow frame is left alone.
+ */
+const FRAME_STALL_MS = 250;
+
+/**
+ * The tick budget of one background step: ten seconds of play at 3x. The
+ * browser can deliver a background timer late, and its steps draw nothing, so
+ * it catches up on gaps a frame would drop. A longer stall, such as a tab the
+ * browser froze, still drops the rest rather than stalling the page to replay it.
+ */
+const BACKGROUND_MAX_TICKS = TICK_HZ * 3 * 10;
 
 /**
  * The speed the page opens at: real time. Not paused, because a game that
@@ -339,15 +363,15 @@ async function main(): Promise<void> {
   // New game prevents a save from writing the old household during reload.
   let graphicsRecovering = false;
   let startingNewGame = false;
-  void audio.setBackgrounded(document.visibilityState === 'hidden');
   armAudioUnlock(document, audio);
-  // Registered here rather than with the save-on-hide handler below, and for
-  // the same reason as the arming: the reading above is a snapshot taken
-  // before the awaits, so the listener that corrects it has to exist before
-  // them too. A tab that loads hidden and is shown during the load would
-  // otherwise stay marked backgrounded, and refuse every gesture, for good.
+  // A hidden tab keeps playing, sound included, so hiding changes nothing
+  // here. Some browsers suspend the audio context themselves while the page
+  // is hidden; showing it resumes that context without resetting the
+  // schedulers, which are still describing the sound that kept playing.
+  // Registered before the awaits, like the arming, so a tab shown during the
+  // load is reconciled too. Graphics recovery owns silence itself.
   document.addEventListener('visibilitychange', () => {
-    void audio.setBackgrounded(document.visibilityState === 'hidden' || graphicsRecovering);
+    if (document.visibilityState === 'visible' && !graphicsRecovering) void audio.resumeIfInterrupted();
   });
 
   // init() resolves to the instance exports, whose `memory` is the
@@ -2352,7 +2376,7 @@ async function main(): Promise<void> {
       if(creatorSession&&housemateDialog.open)housemateView=new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,creatorSession,gpu.device,gpu.format,()=>housemateDialog.close('cancel'));
       graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
       previousFrameMs=performance.now();cameraDirty=true;overlayPause.resume('graphics');
-      void audio.setBackgrounded(document.visibilityState === 'hidden');
+      void audio.setBackgrounded(false);
     }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart. Your game is still available to save. Try again.';graphicsRetry.hidden=false;}
     finally{recoveryPending=false;}
   };
@@ -2365,13 +2389,18 @@ async function main(): Promise<void> {
    * `frameEntered` records when this callback actually starts. Measurements
    * retain callback delay separately from simulation, bridge reads, instance
    * packing, and draw submission.
+   *
+   * `presenting` is false for a background step, taken while the browser
+   * sends no animation frames: the simulation, saves, sound and panels
+   * advance, and the scene is not drawn.
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
-  function frame(nowMs: number): void {
+  function frame(nowMs: number, presenting = true): void {
     const frameEntered=performance.now();
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
     previousFrameMs = nowMs;
+    const tickBudget = presenting ? MAX_TICKS_PER_FRAME : BACKGROUND_MAX_TICKS;
 
     // Chromium's media-query event is not reliable under every embedding and
     // emulation path. The value is already read each frame for animation, so
@@ -2383,7 +2412,7 @@ async function main(): Promise<void> {
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
     const alpha = advanceFrameWithCommandFeedback(
-      () => advanceSimulationFrame(driver, deltaMs, frameSimulation),
+      () => advanceSimulationFrame(driver, deltaMs, frameSimulation, tickBudget),
       () => {
         if (!startingNewGame) persistence.updateAutosave();
       },
@@ -2436,7 +2465,7 @@ async function main(): Promise<void> {
     if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (floorScene.visible&&!graphicsRecovering) {
+    if (presenting&&floorScene.visible&&!graphicsRecovering) {
       if (cameraDirty) applyCamera();
       renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
 
@@ -2521,14 +2550,16 @@ async function main(): Promise<void> {
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.
-    if (floorScene.visible && !firstSceneDrawn) {
+    if (presenting && floorScene.visible && !firstSceneDrawn) {
       firstSceneDrawn = true;
       void gpu.device.queue.onSubmittedWorkDone()
         .then(() => requestAnimationFrame(() => loading.finish()), () => loading.finish());
     }
 
-    timer.sample(performance.now() - nowMs);
-    characterMeasurement?.frame(nowMs,frameEntered,performance.now());
+    if (presenting) {
+      timer.sample(performance.now() - nowMs);
+      characterMeasurement?.frame(nowMs,frameEntered,performance.now());
+    }
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {
       lastReportMs = nowMs;
       console.log(`entities ${sim.count}  ${timer.report()}`);
@@ -2672,23 +2703,33 @@ async function main(): Promise<void> {
     };
   }
 
-  function loop(nowMs: number): void {
-    if (graphicsClosed) return;
+  // A background tab keeps playing on a worker-paced timer. Under `?stress=N`
+  // the harness steps the frame itself from a hidden tab ([L14]), so a second
+  // clock there would advance the game between its fabricated timestamps.
+  const backgroundTicker = new BackgroundTicker(BACKGROUND_STEP_MS);
+  const clock = new FrameClock({
+    now: () => performance.now(),
+    requestFrame: callback => { requestAnimationFrame(callback); },
+    startTimer: callback => backgroundTicker.start(callback),
+  }, (nowMs, presenting) => {
+    if (graphicsClosed) {
+      clock.stop();
+      return;
+    }
     try {
-      frame(nowMs);
+      frame(nowMs, presenting);
     } catch (error) {
       // A throw here already ended the loop before the cover existed; the
       // cover must not then hide the frozen game for good.
       loading.finish();
       throw error;
     }
-    requestAnimationFrame(loop);
-  }
+  }, stressParam === null ? FRAME_STALL_MS : null);
 
   // A startup that fell back to loading floor materials separately is still
   // waiting on them, and the cover already says so.
   if (floorScene.visible) loading.step('Drawing the house');
-  requestAnimationFrame(loop);
+  clock.start();
 }
 
 // Surfaced rather than swallowed, ON SCREEN as well as in the console:

@@ -1,6 +1,6 @@
-# More rewarding company and slower need drain
+# More rewarding company, grounded arguments and background play
 
-Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, and fresh household mess gets a grace period. Build controls are clearer, and clipped Sim status can be opened in full.
+Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background. Build controls are clearer, and clipped Sim status can be opened in full.
 
 ## Improved
 
@@ -23,6 +23,8 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - Sim dock buttons take up less vertical space while keeping their widths and readable labels.
 - Build controls omit repetitive selection and ready messages while keeping useful feedback.
 
+- The game keeps running at the selected speed when you switch to another tab or minimize the browser, so the household carries on while you are away. A browser that suspends background tabs to save power can still pause it, and long pauses are not made up afterward.
+
 ## Fixed
 
 - Loading an older saved game preserves chats that are waiting for a busy Sim, so the upgraded game can be saved and loaded again.
@@ -32,3 +34,7 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - Saved games from the previous version load correctly during a player-started argument.
 - The Build zoom-out control displays a proper minus icon.
 - Keep building uses a normal button in the exit dialog, and Confirm appears directly below Discard changes.
+
+## Sound
+
+- Game sound keeps playing while the tab is in the background. Choose **Sound: off** to silence it.

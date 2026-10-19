@@ -696,6 +696,40 @@ export class AudioController implements GameAudioEventSink {
   }
 
   /**
+   * Resumes a context the browser suspended on its own, such as a hidden page
+   * on iOS. A context that is still running is left untouched: resetting the
+   * schedulers there forgets a conversation that never stopped, and the next
+   * tick starts a second copy over the one still playing.
+   */
+  resumeIfInterrupted(): Promise<boolean> {
+    if (this.backgrounded) return Promise.resolve(false);
+    const context = this.context;
+    if (context === null || context.state === 'running') {
+      return Promise.resolve(context !== null);
+    }
+    const revision = this.contextStateRevision + 1;
+    this.contextStateRevision = revision;
+    const transition = this.contextStateTail.then(async () => {
+      if (revision !== this.contextStateRevision || this.backgrounded) return false;
+      const current = this.context;
+      if (current === null || current.state === 'running') return current !== null;
+      try {
+        await current.resume();
+      } catch {
+        return false;
+      }
+      // resume() changes the state, which the narrowed type cannot see.
+      const state: string = current.state;
+      return !this.backgrounded && state === 'running';
+    });
+    this.contextStateTail = transition.then(
+      () => undefined,
+      () => undefined,
+    );
+    return transition;
+  }
+
+  /**
    * Drops active voices and movement history at discontinuities. The next
    * footstep update only anchors positions, so Load and tab restoration cannot
    * replay distance travelled while audio was inactive.
