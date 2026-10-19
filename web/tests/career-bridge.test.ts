@@ -14,7 +14,7 @@ describe('career release bridge', () => {
       const people = Array.from(bridge.ids()).filter((_, index) => bridge.kinds()[index] === 0);
       const worker = people.find(person => bridge.careerOf(person) !== null)!;
       expect(worker).toBeDefined();
-      expect(bridge.careerPathLabels()).toEqual(['Office', 'Cafe', 'Night watch']);
+      expect(bridge.careerPathLabels()).toEqual(['Office', 'Cafe', 'Night watch', 'Hospital', 'Warehouse', 'Library', 'Restaurant kitchen', 'Buses']);
       const report = bridge.careerReport(worker)!;
       expect(report).toMatchObject({ path: 0, level: 0, levels: 4, shifts: 0, mean: null, last: null, poor: 0, good: 0,
         warned: false, trend: 0, jobSatisfaction: 50, poorThreshold: 40, goodThreshold: 65 });
