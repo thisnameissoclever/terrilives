@@ -12944,3 +12944,16 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the adapter validated the caller's policy shape without comparing its immutable fields to the authenticated original policy.
 3. Prevention: compare start, expiry, attempt limits and retention immediately after original-plan authentication, before tool or work admission. Permit only the explicitly allowed ordered run-chain extension. A missing optional checkpoint must never remove the original policy boundary.
 4. Verification: authenticate a valid original plan and producer, then alter each immutable field independently with no snapshot available. Require every altered continuation to refuse while a valid append-only extension succeeds. Remove the policy binding in an isolated copy and require the named regression assertion to fail.
+## [L-native-measurement-before-worker-release] Put measurement review before expensive fan-out
+
+1. What happened: the mutation workflow could start all production workers after planning, before the required native measurements had been inspected.
+2. Root cause: baseline-plus-one-mutation arithmetic and a tiny qualification fixture were treated as sufficient admission for a full native campaign. The workflow had no deliberate review boundary for actual throughput, cleanup, upload and recovery capacity.
+3. Prevention: freeze the full plan first. Run representative diagnostics inside the existing shared slot, authenticate completed producer and upload evidence, and require a separate admission action before releasing production workers. Keep diagnostic outcomes outside production coverage and retain failed decisions.
+4. Verification: prove that the first review-required attempt cannot reach preparation, workers or production aggregation. Require exact original plan and measurement bindings on the later admission and all recovery paths. Establish actual platform measurements before using the gate to admit production.
+
+## [L-full-manifest-transport-sizing] Size serialized artifacts with the complete inventory
+
+1. What happened: a plan containing the full native inventory exceeded the fixed archive-member limit when pretty-printed. Result bundles repeated the same large manifest and had the same risk before any outcomes existed.
+2. Root cause: small fixtures exercised the format but not its serialized capacity. Repeated manifest bytes and whitespace counted toward the transport limit even though the logical data was valid.
+3. Prevention: measure the actual emitted representation with the full inventory. Compact only the transport representation while preserving every value, canonical digest, raw outcome and existing bound. Include accumulated history and producer logs in capacity forecasts; enforce a conservative finite history limit rather than assuming every theoretical recovery path will fit.
+4. Verification: send a representative full-size plan and result bundle through the actual archive reader and validators. Require an over-limit member to fail. Keep sizing shapes explicitly separate from executed outcomes and remeasure after format or inventory changes.

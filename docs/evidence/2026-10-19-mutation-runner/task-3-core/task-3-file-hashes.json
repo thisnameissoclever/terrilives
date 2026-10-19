@@ -1,0 +1,25 @@
+{
+  "base_head": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+  "frozen_at": "2026-10-19T21:02:13.507462+00:00",
+  "files": {
+    ".github/workflows/ci.yml": "9109c1b829181299f8dc24f156461d7b260b5c77f9f9dfdf0faf31f336c5bfd5",
+    ".github/cargo-mutants-27.1.0-struct-filter.patch": "6693b7a61b4c7cb398e199c4e33675f9267bc50559790e069341be377f32ba6f",
+    ".github/scripts/mutation_artifacts.py": "8584d4771decc7dd57cdab8b0198a33dfd35b0542cc5cfd4fdccc896c454aac6",
+    ".github/scripts/mutation_runner.py": "d41f227ece1065b91faf8310c906d849872fe95f4664827b0d8877905aef6c4d",
+    ".github/scripts/mutation_tool.py": "b0f6a2beed1c741637f1de5e3df63598714f00e46c78c6fb8e6aac27942f461e",
+    ".github/scripts/mutation_qualification.py": "b5f35141c3744cdd2dc62bb016a8f36c3c4cc6daadd25f8730b5a03e0cd25870",
+    ".github/scripts/mutation_recovery.py": "27ff835ef8cf5782a8569ac1473e82651d7d3893cf8d7bb500fd8eb940632185",
+    ".github/scripts/mutation_workflow.py": "d97b9152c6d431f49478d6db331aa2ff25e91c25cc3db74f1f4de1fcde7b6ea5",
+    ".github/scripts/test_mutation_artifacts.py": "d60d2bba018d05c160fccfd2e554eef2975ee7fb8771e87f80e60489aeffe01f",
+    ".github/scripts/test_mutation_runner.py": "69f1921a8956b2a06fa1635d3596d70ad0036aaec52b01c12e3f06654f7b32c4",
+    ".github/scripts/test_mutation_tool.py": "e14566399d0b4444ef0129658dd8b8f0f49d3c0316ae16b7d15ee1e3da819e70",
+    ".github/scripts/test_mutation_qualification.py": "7f74d60925cd3a07d31783e461bc6aacec45f7284a969a69a3c59198906b8ff8",
+    ".github/scripts/test_mutation_recovery.py": "18813900ce85dbc7aa216cc6c64520e882dc768e255bb688d7cbdf8cb03056dd",
+    ".github/scripts/test_mutation_workflow.py": "712cb0839e2cad4f15e0b5c0449d1c0f5cdd49317b0ef285b7e305938c3904f3",
+    ".github/scripts/test_workflow_concurrency.py": "d745c0990db8d5c8c1984985cf945985571ee3c04c35d9b8054bb7e6a0e769ce",
+    "docs/mutation-baseline.md": "854e4d4d4fbd7a29c8d627b2af1c390d34893ee71d0373c1f9a77fb2ec165cd2",
+    "docs/testing-protocol.md": "4c1f390a180acc684f14617f676dffe6091720c1e406e86ad66564871c595735",
+    "docs/mutation-campaign.md": "1fd9d8a3cc1a3cee924282108ea12bec66eddbde6be10010dd449c49dd9b33f5"
+  },
+  "diff_sha256": "b1036193ba11b06f2e986e54298a669ad0a079192a459b2a4fec80dfd892e813"
+}

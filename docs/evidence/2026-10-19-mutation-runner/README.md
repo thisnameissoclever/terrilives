@@ -9,3 +9,5 @@ The final focused suite passed 99 tests, including 15 isolated checks that delib
 The text log uses LF line endings and omits trailing whitespace and blank final lines. The receipt records both original and retained byte digests. The original local log remains unchanged.
 
 The fixtures use disposable Git repositories, Python child processes and simulated GitHub API responses. They do not establish real Linux process cleanup, authenticated GitHub interruption and recovery, production artifact capacity or complete game mutation coverage. No patched tool was built or executed for this earlier Task 2 record. The owner's later approval and the subsequent [isolated Windows tool qualification](isolated-tool/README.md) are separate evidence. Workflow integration and real Linux qualification remain distinct gates.
+
+The [V20 Windows inventory comparison](isolated-tool/v20/README.md) follows the native source integration. The [workflow recovery implementation record](task-3-core/README.md) covers its later committed source and independent reviews. Each record states its own revision and proof limits.

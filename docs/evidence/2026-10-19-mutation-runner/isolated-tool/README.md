@@ -9,3 +9,5 @@ Candidate selectors pass all 22 assertions; stock reproduces 14 failures and pas
 The receipt comparison correction normalizes Python tuples and JSON arrays before equality. Its controls accept equivalent serialized representations and reject a changed scoped blob or generation-byte hash. The original stock output was preserved and reused after the false alarm; it was not rerun to replace the evidence. The broader asset representation uses indexed Git blobs and clean-checkout guards, not a repeated actual-byte audit. The independent review explicitly records the initial junction-check and negative-control limits.
 
 No global binary, dependency or compiler upgrade occurred. No public changelog note is needed for this internal tool qualification. Linux executable identity, actual Linux child-process cleanup, interrupted GitHub recovery and complete production mutation coverage still require separate evidence.
+
+The later [V20 comparison](v20/README.md) repeats complete inventory parity against the newly integrated native source while preserving these original V19 records.
