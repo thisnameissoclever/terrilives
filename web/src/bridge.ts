@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import type { WeatherTuning } from './render/weather.js';
 import type { ActionQueueRow, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
 import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
@@ -878,6 +879,18 @@ export class SimBridge {
    */
   seasonYardLooks(): Float32Array {
     return Float32Array.from(this.handle.season_yard_looks());
+  }
+
+  private weatherConfig: WeatherTuning | null | undefined;
+  weatherTuning(): WeatherTuning | null {
+    if (this.weatherConfig !== undefined) return this.weatherConfig;
+    const row = this.handle.weather_tuning();
+    if (!row.length) return this.weatherConfig = null;
+    if (row.length !== 10 || row.some(value => !Number.isFinite(value))) {
+      throw new Error('Malformed weather content.');
+    }
+    return this.weatherConfig = { seed: row[0], chance: Array.from(row.slice(1, 5)), eventHours: row[5],
+      earliestHour: row[6], latestHour: row[7], leafHours: row[8], fallMinutes: row[9] };
   }
 
   /** Versioned simulation bytes for browser-owned storage. */

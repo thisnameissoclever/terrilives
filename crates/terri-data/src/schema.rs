@@ -440,6 +440,9 @@ pub struct TuningFile {
     /// ranges.
     #[serde(deserialize_with = "read_season_yard_looks")]
     pub season_yard_looks: [[f32; 3]; 4],
+    /// Absent from historical content sources, which have no weather effects.
+    #[serde(default)]
+    pub weather: Option<crate::WeatherTuning>,
 }
 
 /// The seasons as `season_yard_looks` names them in `tuning.toml`, in the

@@ -397,8 +397,8 @@ describe('SimBridge', () => {
     expect(bridge.seasonIndex()).toBe(0);
     const looks = bridge.seasonYardLooks();
     expect(looks).toBeInstanceOf(Float32Array);
-    expect(Array.from(looks, (value) => Math.round(value * 100) / 100)).toEqual([
-      0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14,
+    expect(Array.from(looks, (value) => Math.round(value * 1000) / 1000)).toEqual([
+      0, 1, 0, -3, 0.98, 0.015, -6, 0.97, -0.005, 3, 0.92, 0.025,
     ]);
     // An empty room runs the same clock and content quickly: the last minute
     // of day 7 is still Spring, and the next tick begins Summer.

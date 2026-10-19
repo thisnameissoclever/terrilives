@@ -1654,3 +1654,8 @@ function placementReplacedRow(source: RenderSource, selected: number | null,
   const row = findSelectedRow(source, selected);
   return row !== null && source.kinds()[row] === 1 ? row : null;
 }
+
+/** The first animation timestamp can precede setup's performance.now() sample. */
+export function frameElapsedMs(nowMs: number, previousMs: number): number {
+  return Math.max(0, nowMs - previousMs);
+}

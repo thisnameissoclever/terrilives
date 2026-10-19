@@ -5,6 +5,8 @@ Sims keep your orders through urgent needs, explain failures, and confirm new or
 
 ## New
 
+- Winter has occasional brief snowfall, Autumn has falling leaves that fade from the ground, and Summer has occasional hot periods. The clock shows the season and current weather below the time.
+
 - Housemates appreciate a living cook after eating a portion of a shared meal.
 - Build > Rooms lets you select and name enclosed rooms or the shared Outside area. Room boundaries update when you Confirm.
 - Splitting, merging or opening an existing room shows a review of the resulting names and cleaning duties. Back to build keeps your edits.
@@ -22,6 +24,8 @@ Sims keep your orders through urgent needs, explain failures, and confirm new or
 - Saving while you edit or review a build keeps the last confirmed arrangement. Older saved games retain their room labels and unfinished work, with recovery copies kept when their save format changes.
 
 ## Fixed
+
+- Grass stays green in every season, with only a subtle seasonal tint.
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.
