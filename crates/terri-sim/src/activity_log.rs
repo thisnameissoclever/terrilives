@@ -984,16 +984,14 @@ impl ActivityLog {
 
     fn close_nuisances(&mut self, pack: &'static ContentPack, tick: u64, day_ticks: u32) {
         let day_ends = (tick + 1).is_multiple_of(u64::from(day_ticks.max(1)));
-        let closed: Vec<_> = self
-            .scratch
-            .nuisances
-            .iter()
-            .filter(|(_, episode)| day_ends || episode.last_tick < tick)
-            .map(|(&pair, &episode)| (pair, episode))
-            .collect();
         let cause = labels(pack).index(RelationshipCause::Nuisance.log_label());
-        for ((affected, responsible), episode) in closed {
-            self.scratch.nuisances.remove(&(affected, responsible));
+        // Closed in key order, as before, without collecting them into a
+        // vector first: the pass runs every tick an episode is open.
+        let mut open = std::mem::take(&mut self.scratch.nuisances);
+        open.retain(|&(affected, responsible), episode| {
+            if !day_ends && episode.last_tick >= tick {
+                return true;
+            }
             self.push(
                 LogRecord::new(LogKind::Annoyed, SOCIAL, episode.last_tick, affected)
                     .with_other(responsible)
@@ -1001,7 +999,9 @@ impl ActivityLog {
                     .with_label2(episode.object)
                     .with_value(2, opinion_units(episode.change)),
             );
-        }
+            false
+        });
+        self.scratch.nuisances = open;
     }
 
     /// Children name their parent's `seq`; a child with no parent in its
