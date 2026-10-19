@@ -1,6 +1,6 @@
-# More rewarding company and slower need drain
+# More rewarding company, grounded arguments and background play
 
-Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, and fresh household mess gets a grace period.
+Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background.
 
 ## Improved
 
@@ -18,6 +18,8 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - Player-started arguments use relevant recent history, or an ordinary subject when none applies.
 - Saving preserves argument causes, chore follow-through and partial dish contributions. New saves require this version or newer; the original older save remains available as a recovery copy.
 
+- The game keeps running at the selected speed when you switch to another tab or minimize the browser, so the household carries on while you are away. A browser that suspends background tabs to save power can still pause it, and long pauses are not made up afterward.
+
 ## Fixed
 
 - Loading an older saved game preserves chats that are waiting for a busy Sim, so the upgraded game can be saved and loaded again.
@@ -25,3 +27,7 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - Resolving or reassigning a chore stops an autonomous argument about its former owner. Older washing records cannot give a Sim credit for somebody else's fresh cleanup.
 
 - Saved games from the previous version load correctly during a player-started argument.
+
+## Sound
+
+- Game sound keeps playing while the tab is in the background. Choose **Sound: off** to silence it.

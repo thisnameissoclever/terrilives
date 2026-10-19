@@ -491,6 +491,30 @@ describe('FixedStepDriver', () => {
     expect(ticks).toBe(2);
   });
 
+  it('spends a per-call budget for a hidden step without changing the step or the default', () => {
+    // A hidden tab's timer may arrive a second late. At 3x that second is
+    // thirty steps, which the frame budget of five would mostly discard.
+    const driver = new FixedStepDriver(10, 5);
+    driver.setSpeed(3);
+    let ticks = 0;
+    expect(driver.advance(1000, () => ticks++, 300)).toBe(0);
+    expect(ticks).toBe(30);
+    expect(driver.stepDurationMs).toBe(100);
+
+    // The override lasts one call; the next frame is back on the five-step budget.
+    ticks = 0;
+    driver.advance(1000, () => ticks++);
+    expect(ticks).toBe(5);
+
+    // An override still discards the backlog it could not spend.
+    ticks = 0;
+    driver.advance(60_000, () => ticks++, 300);
+    expect(ticks).toBe(300);
+    ticks = 0;
+    expect(driver.advance(0, () => ticks++, 300)).toBe(0);
+    expect(ticks).toBe(0);
+  });
+
   it('advances the same number of ticks however the elapsed time is chopped up', () => {
     // [D2] restated as something observable: simulated time is a function
     // of elapsed wall time alone, never of frame pacing. Two drivers see
@@ -630,6 +654,10 @@ describe('FixedStepDriver', () => {
     driver.setSpeed(1);
     expect(advanceSimulationFrame(driver, 100, sim)).toBe(0);
     expect(calls).toEqual(['tick']);
+
+    calls.length = 0;
+    advanceSimulationFrame(driver, 1000, sim, 20);
+    expect(calls).toHaveLength(10);
   });
 
   it('rejects a speed that is not a whole number of steps', () => {
