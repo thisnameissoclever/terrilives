@@ -81,6 +81,10 @@ pub struct Record {
     /// The week whose review waits for the person to come home: a person
     /// at work or commuting when a week ends is reviewed on their return.
     pub review_due: Option<u64>,
+    /// The shift the person holds, as an index into their level's shifts:
+    /// 0 is the level's standard shift (issue 296, [WS-choose] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`).
+    pub shift: u32,
 }
 
 impl Record {
@@ -95,6 +99,7 @@ impl Record {
             shifts: Vec::new(),
             history: Vec::new(),
             review_due: None,
+            shift: 0,
         }
     }
 
@@ -127,6 +132,11 @@ pub struct Careers {
     pub commands: u64,
     /// What the drain did with the last career command. Not saved.
     pub last_result: Option<CareerResult>,
+    /// The shift stream (issue 296, [WS-determinism]): drawn only for a
+    /// shift, so a player's shift choices never move a search or a review.
+    pub shift_rng: SimRng,
+    /// How often the shift stream was drawn.
+    pub shift_draws: u64,
 }
 
 impl Default for Careers {
@@ -143,6 +153,8 @@ impl Default for Careers {
             fired: MoodletTimers::default(),
             commands: 0,
             last_result: None,
+            shift_rng: SimRng::from_seed(crate::shifts::SHIFTS_SEED),
+            shift_draws: 0,
         }
     }
 }
@@ -154,6 +166,7 @@ impl Careers {
         self.autonomous_change
             && self.search_off.is_empty()
             && self.draws == 0
+            && self.shift_draws == 0
             && self.commands == 0
             && self.records.is_empty()
             && self.promoted.entries().is_empty()
@@ -304,6 +317,7 @@ impl Careers {
                         })
                         .collect(),
                     review_due: record.review_due,
+                    shift: 0,
                 },
             );
         }
@@ -730,7 +744,7 @@ fn raised_pay(job: &CompiledCareer, pay: u32) -> u32 {
 /// reviewed when they come home instead (`complete_shift` at the shift's
 /// end, or `settle_due_review` at the end of the walk), so no outcome
 /// changes a job while its shift is being worked.
-fn review(world: &mut World, ended_week: u64, tick: u64) {
+pub(crate) fn review(world: &mut World, ended_week: u64, tick: u64) {
     let pack = world.resource::<Content>().0;
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
     for (sim, entity) in people(world) {
@@ -819,6 +833,9 @@ fn review_person(
             record.pay = next.pay.max(record.pay.saturating_add(1)).min(next.pay_max);
             record.consecutive_good = 0;
             record.consecutive_poor = 0;
+            let held = record.shift;
+            let shift = crate::shifts::keep_or_draw(careers, job, held, next);
+            careers.records.get_mut(&sim).expect("present above").shift = shift;
             world.entity_mut(entity).insert(Career(row));
             careers.promoted.record(
                 sim,
@@ -838,6 +855,9 @@ fn review_person(
             record.pay = record.pay.clamp(below.pay, below.pay_max);
             record.consecutive_good = 0;
             record.consecutive_poor = 0;
+            let held = record.shift;
+            let shift = crate::shifts::keep_or_draw(careers, job, held, below);
+            careers.records.get_mut(&sim).expect("present above").shift = shift;
             world.entity_mut(entity).insert(Career(row));
             careers.demoted.record(
                 sim,
@@ -867,11 +887,13 @@ fn review_person(
                             event = EVENT_CHANGED_PATH;
                             let row = pack.career_paths[path_index as usize].levels[0];
                             let first = &pack.careers[row as usize];
+                            let shift = crate::shifts::draw(careers, first);
                             let record = careers.records.get_mut(&sim).expect("present above");
                             record.pay = first.pay;
                             record.consecutive_good = 0;
                             record.consecutive_poor = 0;
                             record.job_satisfaction = 50.0;
+                            record.shift = shift;
                             world.entity_mut(entity).insert(Career(row));
                         }
                     }
@@ -898,7 +920,7 @@ fn review_person(
 
 /// The path whose first level fits the person best among those with fit
 /// at least `floor`, leaving out `except`; ties go to the lower index.
-fn best_path(
+pub(crate) fn best_path(
     world: &World,
     pack: &ContentPack,
     entity: Entity,
@@ -927,7 +949,7 @@ fn best_path(
 /// Rule 13: an unemployed person whose search is on looks for work on a
 /// working day. A person whose search is off is passed over before any
 /// draw, so the stream sees exactly the people who look.
-fn search(world: &mut World) {
+pub(crate) fn search(world: &mut World) {
     let pack = world.resource::<Content>().0;
     let tuning = &pack.tuning;
     let mut careers = world.remove_resource::<Careers>().unwrap_or_default();
@@ -950,7 +972,14 @@ fn search(world: &mut World) {
         let hired = (0.5 + 0.5 * fit).clamp(0.1, 0.95);
         if careers.draw() < hired {
             let job = &pack.careers[row as usize];
-            careers.records.insert(sim, Record::new(job));
+            let shift = crate::shifts::draw(&mut careers, job);
+            careers.records.insert(
+                sim,
+                Record {
+                    shift,
+                    ..Record::new(job)
+                },
+            );
             world.entity_mut(entity).insert(Career(row));
         }
     }
@@ -1027,10 +1056,15 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
             };
             let job = &pack.careers[row as usize];
             crate::attendance::close_for_career_change(world, entity);
-            world
-                .resource_mut::<Careers>()
-                .records
-                .insert(sim, Record::new(job));
+            let mut careers = world.resource_mut::<Careers>();
+            let shift = crate::shifts::draw(&mut careers, job);
+            careers.records.insert(
+                sim,
+                Record {
+                    shift,
+                    ..Record::new(job)
+                },
+            );
             world
                 .entity_mut(entity)
                 .insert(Career(row))

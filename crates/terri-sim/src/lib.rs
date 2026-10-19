@@ -14,6 +14,7 @@ pub use burnt_meals::BurntMeals;
 pub mod attendance;
 pub mod careers;
 pub mod player_actions;
+pub mod shifts;
 pub use careers::Careers;
 pub mod fights;
 pub use fights::Fights;

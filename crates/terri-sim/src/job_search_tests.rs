@@ -63,10 +63,14 @@ fn search_of(sim: &Sim, entity: Entity) -> Option<bool> {
 
 /// Rule 3 of the spec: with every person's search on, as a new game
 /// leaves it, the household plays out as it did under the global setting,
-/// draw for draw.
+/// draw for draw. Issue 296 changed the shipped careers and the search, so
+/// this runs under the career content and search from before it
+/// (`test_content::pre_shift_careers`), which main's values still describe.
 #[test]
 fn every_search_on_plays_out_exactly_as_the_global_setting_did() {
     let mut sim = Sim::new_from_shipped_lot();
+    let pack = crate::test_content::pre_shift_careers(terri_data::pack());
+    sim.world_mut().insert_resource(Content(pack));
     let before = employed(&mut sim);
     for _ in 0..THROUGH_THURSDAY {
         sim.tick();
