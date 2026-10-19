@@ -378,3 +378,8 @@ shipped and neither meant anything to a reader:
 7. **Functional text stays plain** (buttons, diagnostics, labels). The
    game's dark comedy lives in object names and, later, authored voice
    text - never in a control the player needs to understand.
+
+## Condition values and automatic beds
+
+1. **Mood points:** Signed contributions from the conditions in Sim details > Overview. Positive values add to overall mood and negative values subtract from it. Overall mood is bounded from -100 to +100. Sustained mood affects life satisfaction over time.
+2. **No assigned bed:** A -20 mood condition for a living Sim without permanent ownership of a sleeping place. Unassigned Sims automatically claim reachable, unassigned places on simulation ticks. Current occupancy is separate from permanent assignment.

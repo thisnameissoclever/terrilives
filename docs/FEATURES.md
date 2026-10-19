@@ -477,10 +477,10 @@ and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
-The bed-assignment extension is implemented locally within that disclosure,
-with explicit Assign and Clear controls. It remains unpublished until the
-occupied-bed visual checks pass. Place-specific routing is implemented locally; see
-`docs/specs/2026-10-01-bed-assignment.md`.
+The disclosure includes Assign and Clear controls for physical sleeping places.
+Unassigned Sims automatically claim reachable, unassigned places on simulation
+ticks. Existing assignments are preserved. A Sim without an assigned place
+receives a -20 mood condition. See `docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -1452,7 +1452,7 @@ the upper-left world group ([CUI-world]). Moving furniture displays one preview;
 Confirm commits and deselects, and Cancel restores and deselects. Selected-person
 action cards now appear in the bounded Queue panel ([CUI-details]); the earlier
 top-right presentation faded between 33% and 55% of viewport
-height. Bed shortages apply a shared household mood penalty. Bookcases rotate
+height. Sims without an assigned bed receive a -20 mood condition. Unassigned Sims automatically claim reachable, unassigned sleeping places. Bookcases rotate
 against their tile edges, and scrolling sidebars retain their content width.
 See `docs/specs/2026-09-30-gameplay-ui.md` for scope and verification.
 

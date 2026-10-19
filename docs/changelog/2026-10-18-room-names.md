@@ -1,7 +1,7 @@
 # Shared meals, room names and outdoor cleaning
 
 Shared meals earn the cook some goodwill, and the game has a new logo. Name rooms across the whole lot, review boundary changes before keeping them, and clean paved areas outside.
-Sims keep your orders through urgent needs, explain failures, confirm new orders that interrupt work, and no longer wait on each other until they starve. Each housemate now has their own setting for looking for work.
+Sims keep your orders through urgent needs, explain failures, confirm new orders that interrupt work, and no longer wait on each other until they starve. Each housemate now has their own setting for looking for work. Sims claim available beds, and condition numbers explain their mood effects.
 
 ## New
 
@@ -15,6 +15,9 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 
 ## Improved
 
+- Sims without an assigned bed automatically claim a reachable, unassigned sleeping place. Existing bed assignments are preserved.
+- Sim details explains each condition's mood points when you hover over or focus its number.
+
 - Sims keep your orders when their needs become urgent. Busy housemates finish their current activity before taking incoming conversations, which appear in their queue. Needs continue to fall.
 - Your orders take priority over work. New orders that delay or interrupt a shift ask for confirmation. Pay and energy use reflect time worked; missing more than two hours lowers performance, and missing the whole shift scores zero.
 - A failed order gives a reason and briefly shows a frustrated squiggle above the Sim.
@@ -27,6 +30,9 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 ## Fixed
 
 - Grass stays green in every season, with only a subtle seasonal tint.
+- The missing-bed mood penalty applies only to Sims without an assigned bed.
+- Windows can be installed while a Sim is fetching or reading a book.
+- Saves preserve book fetching and reading when windows are installed.
 
 - A room name entered in review remains protected by the exit confirmation even after you reverse every wall edit.
 - Trying to sell furniture that is in use keeps the refusal visible.

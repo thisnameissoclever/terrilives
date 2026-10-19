@@ -116,8 +116,4 @@ not a blank box.
 
 ## Bed capacity addition (2026-09-30)
 
-Mood now also reads live household size and usable sleep capacity. When living
-members outnumber sleeping places, each receives a -20 Not enough beds moodlet.
-The moodlet lasts only while the shortage exists and has no saved state of its
-own. It contributes to the existing sustained-mood effect on life satisfaction.
-See `2026-09-30-gameplay-ui.md` for capacity counting and tests.
+As of 2026-10-18, a living Sim without an assigned bed receives a -20 No assigned bed mood condition. Sims automatically claim reachable unassigned sleeping places on simulation ticks while preserving existing assignments. The condition clears once the person has an assigned place. It contributes to overall mood and the existing sustained-mood effect on life satisfaction; it has no independent saved state or direct Comfort effect. See `2026-10-01-bed-assignment.md` for ownership and physical-place rules.
