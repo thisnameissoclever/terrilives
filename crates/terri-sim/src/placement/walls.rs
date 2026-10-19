@@ -149,6 +149,26 @@ pub(super) fn check_new_walls(
     })
 }
 
+/// An opened line removes a barrier, yet it can still give furniture an
+/// approach from floor nobody reaches: a doorway from a sealed pocket straight
+/// onto a sofa. The usability proof refuses that, and so does a windowed
+/// house's loader. Only what this edit breaks is refused, so a house that is
+/// already cut in two can still be mended by opening it.
+fn keep_usable(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+) -> Result<(), PlacementRefusal> {
+    match prove_lot_usable(world, grid, rectangles) {
+        Err(refusal)
+            if prove_lot_usable(world, world.resource::<TileGrid>(), rectangles).is_ok() =>
+        {
+            Err(refusal)
+        }
+        _ => Ok(()),
+    }
+}
+
 /// Produces a complete owned transaction; no mutation and no random draws.
 ///
 /// The checks run in the order [WT-rules] lists, so the reason a player reads
@@ -282,6 +302,8 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     }
     if !barriers.is_empty() {
         check_new_walls(world, &rectangles, &grid, &barriers)?;
+    } else if candidate != *layout {
+        keep_usable(world, &rectangles, &grid)?;
     }
     Ok(WallPlan {
         changed: candidate != *layout,

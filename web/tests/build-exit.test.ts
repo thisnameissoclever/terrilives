@@ -979,9 +979,10 @@ describe('dismissing the dialog', () => {
 });
 
 describe('the refused Confirm message', () => {
-  it('points at the furniture when a move is shown, and says to try again otherwise', () => {
+  it('points at the furniture when a move is shown, and otherwise at the tool and Cancel, never promising a retry works', () => {
     expect(confirmRefusal(true)).toBe(REFUSED);
-    expect(confirmRefusal(false)).toBe('The changes could not be confirmed. Try Confirm again.');
+    expect(confirmRefusal(false)).toBe('The changes could not be confirmed. Fix what the tool reports, or choose Cancel to undo the pending changes.');
+    expect(confirmRefusal(false)).not.toMatch(/try confirm again/i);
     for (const text of [confirmRefusal(true), confirmRefusal(false)]) expect(text).not.toMatch(/cancel the/i);
   });
 });

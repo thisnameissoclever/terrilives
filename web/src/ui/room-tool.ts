@@ -8,6 +8,7 @@
 import { DOORWAY_MENDS, type EdgeLine, type RoomPreview, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { nearestLine } from './wall-tool.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type RoomSource = Pick<SimBridge, 'roomEditPreview' | 'buildRoom' | 'lastRoomResult' | 'lotRevision'>;
 
@@ -218,6 +219,7 @@ export class RoomTool {
         if (result.reason === null) this.clear();
         else this.refresh();
         this.status = result.reason === null ? BUILT : this.refusal(result.reason, result.code);
+        if (result.reason !== null) logWarning('Rooms', 'Room build refused.', { ...result });
         this.hooks.changed();
         return;
       }

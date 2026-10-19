@@ -9,6 +9,7 @@
 import { floorReason, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
+import { logWarning } from '../diagnostics/log.js';
 
 /** No covering: the tile is drawn by where it is ([OS-yard]). */
 export const BARE = 0;
@@ -282,6 +283,7 @@ export class FloorTool {
         this.refresh();
         this.status = this.isArea ? this.areaOutcome(done, sent)
           : result.reason === 0 ? this.describe() : this.refusal(result.reason);
+        if (result.reason !== 0) logWarning('Floors', 'Floor change refused.', { ...result, code: result.reason });
         this.hooks.changed();
         return;
       }

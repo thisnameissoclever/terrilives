@@ -388,6 +388,24 @@ impl SimHandle {
     pub fn discard_build_review(&mut self) -> Vec<u8> {
         unit(self.sim.discard_build_review())
     }
+    /// The rule behind the latest refused Build entry or preparation, as JSON
+    /// for the console and the status line: `{"rule":null}` when it is not
+    /// one the simulation can name, else the rule and, for lot usability,
+    /// the refusal's stable code.
+    pub fn build_failure_report(&self) -> String {
+        use terri_sim::build_transaction::ValidationProblem::*;
+        let rule = match self.sim.build_diagnosis() {
+            None => return r#"{"rule":null}"#.to_owned(),
+            Some(LotUsability(refusal)) => {
+                return format!(r#"{{"rule":"lot_usability","refusal":{}}}"#, refusal as u32)
+            }
+            Some(EdgeWorld) => "edge_world",
+            Some(PortalReturn) => "portal_return",
+            Some(Seating) => "seating",
+            Some(Reading) => "reading",
+        };
+        format!(r#"{{"rule":"{rule}"}}"#)
+    }
     pub fn take_build_error(&mut self) -> Vec<u8> {
         let failure = self.sim.take_build_error().map(error);
         response(|w| w.option(failure, Writer::failure))

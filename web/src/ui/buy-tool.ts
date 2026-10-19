@@ -6,6 +6,7 @@
 // what the drain did with it.
 
 import type { CatalogueItem, PlacementPreview, SimBridge } from '../bridge.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type BuySource = Pick<SimBridge, 'catalogue' | 'purchasePreview' | 'buyObject' |
   'lastPurchaseResult' | 'lotRevision' | 'funds' | 'colourwayNames' | 'buyObjectInColourway'>;
@@ -240,6 +241,7 @@ export class BuyTool {
         }
         if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${this.chosen?.name ?? 'Furniture'} bought.`;
+        if (result.reason !== null) logWarning('Buy', 'Purchase refused.', { ...result });
         this.hooks.changed();
         return;
       }

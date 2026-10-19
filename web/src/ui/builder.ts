@@ -1,6 +1,7 @@
 import type { PlacementPreview, SimBridge } from '../bridge.js';
 import type { OverlayPauseController } from './overlay-pause.js';
 import { furnitureLabel } from './furniture-label.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
@@ -264,6 +265,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${name || 'Furniture'} sold.`;
+        if (result.reason !== null) logWarning('Furniture', 'Sale refused.', { ...result });
         saleStatus = this.status;
         this.hooks.changed();
       }
@@ -290,6 +292,7 @@ export class FurnitureBuilder {
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
+        if (result.reason !== null) logWarning('Furniture', 'Colour change refused.', { ...result });
         const next = this.nextColourway;
         this.nextColourway = null;
         if (next !== null) this.recolour(next);
@@ -308,6 +311,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
+        if (result.reason !== null) logWarning('Furniture', 'Move refused.', { ...result });
         if (next !== null) {
           this.selectNow(next);
           if (result.reason !== null) this.status = `Previous move cancelled: ${result.reason}`;

@@ -10,6 +10,7 @@ import { WALL_OUT_OF_BOUNDS, type SimBridge, type WallEditPreview } from '../bri
 import { lineMarks, type TileHighlight } from '../render/placement-preview.js';
 import type { WindowTool } from './window-tool.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
+import { logWarning } from '../diagnostics/log.js';
 
 export const OPEN = 0;
 export const WALL = 1;
@@ -397,6 +398,7 @@ export class WallTool {
         }
         this.refresh();
         this.status = this.isRun ? this.runOutcome(done, sent) : result.reason ?? DONE[done];
+        if (result.reason) logWarning('Walls', 'Wall edit refused.', { ...result });
         this.hooks.changed();
         return;
       }
