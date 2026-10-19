@@ -286,7 +286,7 @@ describe('sampleSimAudioAfterTick', () => {
       /const frameSimulation = \{[\s\S]*?tick\(\): void \{\s*sim\.tick\(\);[\s\S]*?sampleSimAudioAfterTick\(sim, audio\);[\s\S]*?flushCommands\(\): void \{\s*sim\.flushCommands\(\);/,
     );
     expect(MAIN).toMatch(
-      /advanceSimulationFrame\(driver, deltaMs, frameSimulation\)/,
+      /advanceSimulationFrame\(driver, deltaMs, frameSimulation, tickBudget\)/,
     );
     expect(MAIN).not.toMatch(
       /flushCommands\(\): void \{[\s\S]{0,120}sampleSimAudioAfterTick/,
@@ -339,7 +339,7 @@ describe('sampleSimAudioAfterTick', () => {
     );
   });
 
-  it('resets at Load while reconciling both visibility states', () => {
+  it('resets at Load and keeps sound playing in a hidden tab', () => {
     expect(MAIN).not.toMatch(/audio\.reset\('pause'\)/);
     expect(MAIN).toMatch(
       /if \(loaded\) \{[\s\S]*?audio\.reset\('load'\)/,
@@ -349,11 +349,14 @@ describe('sampleSimAudioAfterTick', () => {
     // sitting anywhere below, including outside the listener entirely.
     const handler = MAIN.slice(
       MAIN.indexOf("addEventListener('visibilitychange'"),
-      MAIN.indexOf("addEventListener('visibilitychange'") + 240,
+      MAIN.indexOf("addEventListener('visibilitychange'") + 400,
     );
+    // Showing the tab resumes a context the browser suspended. It does not
+    // background the audio, which would reset schedulers that never stopped.
     expect(handler).toMatch(
-      /audio\.setBackgrounded\(\s*document\.visibilityState === 'hidden'/,
+      /if \(document\.visibilityState === 'visible' && !graphicsRecovering\) void audio\.resumeIfInterrupted\(\)/,
     );
+    expect(MAIN).not.toMatch(/setBackgrounded\([^)]*'hidden'/);
   });
 
   it('routes pointer rejection and roster selection through semantic audio', () => {
@@ -482,8 +485,8 @@ describe('sampleSimAudioAfterTick', () => {
         armedFirst: true,
       });
     }
-    // The visibility reading up there is a snapshot, correct only while a
-    // listener exists to correct it, so that listener is armed there too.
+    // A tab shown during the load must resume an unlocked context, so the
+    // listener that reconciles it is armed there too.
     // Anchored on the registration, not on the bare word: a comment
     // mentioning visibilitychange above the awaits would satisfy a substring
     // search while the listener itself sat back down below them.
