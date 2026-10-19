@@ -394,15 +394,15 @@ The delivery also updates: the careers spec's rules 1, 2 and 8 to point here for
 
 ## [WB-rulings] Rulings for confirmation
 
-Each ruling was taken during design on 2026-10-18 without the owner and is marked **For confirmation**. The owner's earlier decision that issue 298 decides any shift premium is the reason ruling 6 exists.
+Each ruling was taken during design on 2026-10-18 without the owner and is marked **For confirmation**, except rulings 1, 2 and 7, which the owner confirmed the same day. The owner's earlier decision that issue 298 decides any shift premium is the reason ruling 6 exists.
 
-1. **For confirmation:** a month is seven days (`bills.days_per_month = 7`), so bills arrive every Monday. Cost if wrong: one tuning number, plus recalibrating every monthly amount by the same factor.
-2. **For confirmation:** the calibration target of [WB-numbers]: bills of about a fifth of a three-earner household's income and about 44 percent of the shipped worker's pay alone, with rent about two thirds of the total. Cost if wrong: tuning numbers only.
+1. **Confirmed by the owner on 2026-10-18:** a month is seven days (`bills.days_per_month = 7`), so bills arrive every Monday. Cost if wrong: one tuning number, plus recalibrating every monthly amount by the same factor.
+2. **Confirmed by the owner on 2026-10-18:** the calibration target of [WB-numbers]: bills of about a fifth of a three-earner household's income and about 44 percent of the shipped worker's pay alone, with rent about two thirds of the total. Cost if wrong: tuning numbers only.
 3. **For confirmation:** wages are multiplied by 1.5 in `content/careers.toml` and rounded half up to the whole dollar, and older saves' pay is migrated the same way. Cost if wrong: content edits and the migration rule.
 4. **For confirmation:** bills are paid automatically, oldest first, never in part and never below zero, with no Pay button. Cost if wrong: a new command and panel control.
 5. **For confirmation:** a late fee is 5 percent of the bill per day after five days' grace, capped at 50 percent. Cost if wrong: tuning numbers.
 6. **For confirmation:** night shifts pay 15 percent more; early and late shifts pay no premium; the premium is applied to each shift's pay, not to the saved pay or range. Cost if wrong: one tuning number, or a premium per kind.
-7. **For confirmation:** overdue bills give every housemate Behind on bills at minus 8 mood, and nothing is shut off or repossessed. Cost if wrong: one tuning number, or later work for shut-offs.
+7. **Confirmed by the owner on 2026-10-18:** overdue bills give every housemate Behind on bills at minus 8 mood, and nothing is shut off or repossessed. Cost if wrong: one tuning number, or later work for shut-offs.
 8. **For confirmation:** usage is charged per use at the start of physical work, per viewer for the television, and lamps are charged per day placed until a light switch exists. Cost if wrong: the counting site or the kind type.
 9. **For confirmation:** the shower and the bath also cost electricity for hot water. Cost if wrong: two tuning numbers.
 10. **For confirmation:** rent counts outdoor tiles excluding the street, bought land included, and is measured once a day from the confirmed layout. Cost if wrong: the counting rule.
