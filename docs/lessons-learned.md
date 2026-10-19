@@ -1,5 +1,12 @@
 # Lessons Learned
 
+## [L-only-waiting-is-not-busy] Let every admission path recognize a person who only waits
+
+1. What happened: after player-order execution merged, the shipped household run headless starved on day 15 at seed 20260728, and two housemates died at seed 120. Tim waited to chat with Bill, Bill held a game-made fight order against Tim, and Casey held one against Bill. Each waited for a partner who was only waiting in turn.
+2. Root cause: the order path treated any partner with a target or path as busy, and the chat path treated any order holder as busy. Each path broke cycles of its own kind but did not recognize the other path's waiting state. Game-made fight orders also inherited the player-order protection from critical needs, so hunger never released them.
+3. Prevention: when two admission paths share participants, define "only waiting" once and accept it in both, with an explicit rule for who yields. Give each kind of game-made commitment an explicit ruling on whether critical needs override it instead of inheriting the player's protection.
+4. Verification: construct cycles that mix a pending chat with chained and opposite orders and require every conversation to run; the cycle test must fail on the defective code. Run the shipped household headless for 20 game days across at least 31 seeds in release and report each death with its cause.
+
 ## [L-world-feedback-overlay-bounds] Measure the controls around world feedback
 
 1. What happened: independent phone review found the failure bubble partly behind Build controls. A full diagnostic history also extended below the viewport and behind the household dock.

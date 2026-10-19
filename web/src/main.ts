@@ -789,6 +789,7 @@ async function main(): Promise<void> {
     choose: path => careerPanel.choose(path),
     assign: () => careerPanel.assign(),
     quit: () => careerPanel.quit(),
+    setJobSearch: search => careerPanel.setJobSearch(search),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
@@ -907,15 +908,13 @@ async function main(): Promise<void> {
   const deathControls = new DeathControls(sim, deathInput);
   deathControls.update();
   deathInput.addEventListener('change', () => { if (!buildSession.active) deathControls.change(); });
-  // Rule 15 of the careers spec: two settings the drain applies as one command.
+  // Rule 15 of the careers spec: the household setting for changing path.
+  // Job search is each person's setting, in the Career tab.
   const careerChangeInput = document.querySelector<HTMLInputElement>('#career-autonomous-change');
-  const careerSearchInput = document.querySelector<HTMLInputElement>('#career-autonomous-search');
-  if (!careerChangeInput || !careerSearchInput) throw new Error('missing career settings');
-  const careerAutonomy = new CareerAutonomyControls(sim, careerChangeInput, careerSearchInput);
+  if (!careerChangeInput) throw new Error('missing career setting');
+  const careerAutonomy = new CareerAutonomyControls(sim, careerChangeInput);
   careerAutonomy.update();
-  for (const input of [careerChangeInput, careerSearchInput]) {
-    input.addEventListener('change', () => { if (!buildSession.active) careerAutonomy.change(); });
-  }
+  careerChangeInput.addEventListener('change', () => { if (!buildSession.active) careerAutonomy.change(); });
 
   attachOptionsMenu(
     document as unknown as OptionsDocument,

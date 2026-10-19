@@ -2342,15 +2342,31 @@ export class SimBridge {
     return { sequence, agent, reason: refusal === 0 ? null : CAREER_REASONS[refusal] };
   }
 
-  /** Whether people change path and look for work on their own. */
-  careerAutonomy(): { change: boolean; search: boolean } | null {
-    const values = this.handle.career_autonomy();
-    if (values.length !== 2 || values.some(value => value !== 0 && value !== 1)) return null;
-    return { change: values[0] === 1, search: values[1] === 1 };
+  /** Whether people change path on their own: one household setting. */
+  careerChangeAutonomy(): boolean | null {
+    const change: unknown = this.handle.career_change_autonomy();
+    return typeof change === 'boolean' ? change : null;
   }
 
-  setCareerAutonomy(change: boolean, search: boolean): boolean {
-    return this.handle.set_career_autonomy(change, search);
+  setCareerChangeAutonomy(change: boolean): boolean {
+    return this.handle.set_career_change_autonomy(change);
+  }
+
+  /**
+   * Whether the person looks for work on their own while unemployed, or
+   * null for anything but a living person.
+   */
+  jobSearchOf(entityIndex: number): boolean | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.job_search_of(entityIndex);
+    if (values.length !== 1 || (values[0] !== 0 && values[0] !== 1)) return null;
+    return values[0] === 1;
+  }
+
+  /** Stages one person's job search setting; the drain applies it. */
+  setJobSearch(entityIndex: number, search: boolean): boolean {
+    if (!isU32(entityIndex)) return false;
+    return this.handle.set_job_search(entityIndex, search);
   }
 
   /**
