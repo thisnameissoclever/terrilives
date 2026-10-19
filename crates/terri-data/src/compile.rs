@@ -5568,7 +5568,9 @@ mod tests {
             shift_sleep_offset_early: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_EARLY,
             shift_sleep_offset_late: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
             shift_sleep_offset_night: crate::Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
-            career_search_temperature: crate::Tuning::SHIPPED_CAREER_SEARCH_TEMPERATURE,
+            // The best-fit search of the published witnesses the golden
+            // vector converts, which predate issue 296's temperature.
+            career_search_temperature: crate::Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             autonomy: None,
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
