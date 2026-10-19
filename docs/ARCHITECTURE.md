@@ -648,7 +648,11 @@ they do not repair an inconsistent registry. Historical writers refuse a current
 target whose complete membership cannot be represented by the old map.
 V17 wraps the complete V16 payload with player-order ownership, activity
 continuations, incoming acceptance order, work attendance and confirmed input.
-The published V15 and V16 readers retain their original wire shapes.
+V18 wraps the complete V17 payload with the living people whose job search is
+off and the queued job search settings with their queue positions, leaving the
+frozen command records unchanged ([job search for each
+housemate](specs/2026-10-18-job-search-per-person.md)).
+The published V15, V16 and V17 readers retain their original wire shapes.
 
 During Build, the native transaction owns a validated baseline, accepted-command
 journal, pending names, and at most one prepared candidate. Current-schema save
@@ -689,8 +693,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-16. A V16 primary therefore receives `terri-save-1.v16-backup.bin` before the first
-V17 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+17. A V17 primary therefore receives `terri-save-1.v17-backup.bin` before the first
+V18 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -704,8 +708,8 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V16 workers also refuse a newer primary; the published V16 fixture refuses
-V17 before writing player-order ownership. The storage writer and load-status controller share the current
+Frozen V10 through V17 workers also refuse a newer primary; the published V17 fixture refuses
+a V18 primary instead of overwriting each person's job search. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;

@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV17,
+    SaveSnapshotV18,
 };
 
 #[cfg(test)]
@@ -92,12 +92,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV17,
+    draft: SaveSnapshotV18,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV17,
+    baseline: SaveSnapshotV18,
     request_runtime: crate::social_episode::requests::runtime::Runtime,
     journal: Vec<BuildJournalEntry>,
     names: BTreeMap<RoomSelection, String>,
@@ -109,7 +109,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV17,
+        baseline: SaveSnapshotV18,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
     ) -> Self {
@@ -174,7 +174,7 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV17> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV18> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
@@ -194,15 +194,16 @@ impl Sim {
             .iter()
             .any(ordinary::construction)
             || build.names.iter().any(|(selection, name)| match selection {
-                RoomSelection::Outside => *name != build.baseline.legacy.rooms.outside_name,
+                RoomSelection::Outside => *name != build.baseline.legacy.legacy.rooms.outside_name,
                 RoomSelection::Room(id) => build
                     .baseline
+                    .legacy
                     .legacy
                     .rooms
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v17::capture(self))
+            || !same_authored(&build.baseline, &save::v18::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -236,8 +237,8 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v17::capture(self);
-        save::v17::restore(
+        let baseline = save::v18::capture(self);
+        save::v18::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -265,6 +266,7 @@ impl Sim {
         if let RoomSelection::Room(id) = selection {
             if b.baseline
                 .legacy
+                .legacy
                 .rooms
                 .record(id)
                 .is_none_or(|r| r.anchor.is_none())
@@ -291,7 +293,7 @@ impl Sim {
             map,
             self.world.resource::<SavedRooms>(),
             map,
-            &b.baseline.legacy.rooms,
+            &b.baseline.legacy.legacy.rooms,
         );
         for row in &mut rows {
             if let Some(name) = b.names.get(&row.selection) {
@@ -317,8 +319,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v17::restore(
-                    save::v17::capture(candidate),
+                save::v18::restore(
+                    save::v18::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -368,7 +370,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v17::restore(
+        let mut candidate = save::v18::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -392,13 +394,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v17::capture(self);
-        if save::v17::capture(&candidate) != draft {
+        let draft = save::v18::capture(self);
+        if save::v18::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v17::restore(
+            candidate = save::v18::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -412,7 +414,7 @@ impl Sim {
         );
         let topology = RoomTopology::from_world(&candidate.world)?;
         let proposal = match_rooms(&context.map, &topology, offset);
-        let mut saved = b.baseline.legacy.rooms.clone();
+        let mut saved = b.baseline.legacy.legacy.rooms.clone();
         for (selection, name) in &b.names {
             match selection {
                 RoomSelection::Outside => saved.outside_name = name.clone(),
@@ -437,7 +439,7 @@ impl Sim {
             &resolved.map,
             &resolved.saved,
             &context.map,
-            &b.baseline.legacy.rooms,
+            &b.baseline.legacy.legacy.rooms,
         );
         let retired_names = resolved
             .retired_ids
@@ -487,7 +489,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v17::capture(self) != prepared.draft {
+        if save::v18::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -565,7 +567,7 @@ impl Sim {
         // shell may have drained records since; installing that copy would
         // hand them over a second time.
         ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
-        let baseline = save::v17::capture(&prepared.candidate);
+        let baseline = save::v18::capture(&prepared.candidate);
         let request_runtime =
             crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
         match ordinary::runtime::install(self, *prepared.candidate) {
@@ -608,7 +610,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v17::restore(
+        let mut restored = save::v18::restore(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -631,7 +633,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v17::restore(
+            save::v18::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -668,9 +670,9 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV17, b: &SaveSnapshotV17) -> bool {
-    let a = &a.legacy;
-    let b = &b.legacy;
+fn same_authored(a: &SaveSnapshotV18, b: &SaveSnapshotV18) -> bool {
+    let a = &a.legacy.legacy;
+    let b = &b.legacy.legacy;
     let av = &a.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
     let bv = &b.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
     let edges = |layout: &terri_core::layout::SavedLayout| {

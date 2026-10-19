@@ -23,7 +23,8 @@ describe('career release bridge', () => {
       const factors = bridge.careerFactors(worker)!;
       expect(Object.keys(factors)).toEqual(['fit', 'traitFit', 'socialCapacity', 'socialDemand', 'mastery', 'mood']);
       expect(bridge.careerReport(people.find(person => person !== worker)!)).toBeNull();
-      expect(bridge.careerAutonomy()).toEqual({ change: true, search: true });
+      expect(bridge.careerChangeAutonomy()).toBe(true);
+      for (const person of people) expect(bridge.jobSearchOf(person)).toBe(true);
       expect(bridge.lastCareerResult()).toBeNull();
 
       expect(bridge.assignCareer(worker, 1)).toBe(true);
@@ -42,12 +43,16 @@ describe('career release bridge', () => {
       handle.flush_commands();
       expect(bridge.lastCareerResult()).toEqual({ sequence: 4n, agent: worker, reason: null });
       expect(bridge.careerReport(worker)).toBeNull();
-      expect(bridge.setCareerAutonomy(false, true)).toBe(true);
+      expect(bridge.setCareerChangeAutonomy(false)).toBe(true);
+      expect(bridge.setJobSearch(people[1], false)).toBe(true);
       handle.flush_commands();
-      expect(bridge.careerAutonomy()).toEqual({ change: false, search: true });
+      expect(bridge.careerChangeAutonomy()).toBe(false);
+      expect(people.map(person => bridge.jobSearchOf(person))).toEqual(people.map((_, row) => row !== 1));
+      expect(bridge.jobSearchOf(furniture)).toBeNull();
       const saved = handle.save_bytes();
       expect(handle.load_bytes(saved)).toBe(true);
-      expect(bridge.careerAutonomy()).toEqual({ change: false, search: true });
+      expect(bridge.careerChangeAutonomy()).toBe(false);
+      expect(people.map(person => bridge.jobSearchOf(person))).toEqual(people.map((_, row) => row !== 1));
     } finally { handle.free(); }
   });
 });
@@ -63,8 +68,10 @@ function fake(overrides: Partial<Record<string, unknown>> = {}) {
     quit_career: (...args: unknown[]) => { calls.push(['quit', ...args]); return true; },
     career_result_sequence: () => 4n,
     last_career_result: () => new Float64Array([7, 2]),
-    career_autonomy: () => new Uint8Array([1, 0]),
-    set_career_autonomy: (...args: unknown[]) => { calls.push(['autonomy', ...args]); return true; },
+    career_change_autonomy: () => true,
+    set_career_change_autonomy: (...args: unknown[]) => { calls.push(['change', ...args]); return true; },
+    job_search_of: () => new Uint8Array([0]),
+    set_job_search: (...args: unknown[]) => { calls.push(['search', ...args]); return true; },
     ...overrides,
   } as unknown as SimHandle;
   return { bridge: new SimBridge(handle, memory), calls };
@@ -79,7 +86,8 @@ describe('career bridge validation', () => {
     expect(bridge.careerHistory(3)).toEqual([{ week: 0, performance: 70, event: 0 }, { week: 1, performance: 82, event: 2 }]);
     expect(bridge.careerFactors(3)).toEqual({ fit: 0.4, traitFit: 0.4, socialCapacity: 0.7, socialDemand: 0.3, mastery: 0.25, mood: -0.1 });
     expect(bridge.lastCareerResult()).toEqual({ sequence: 4n, agent: 7, reason: 'Not while they are at work or on the way.' });
-    expect(bridge.careerAutonomy()).toEqual({ change: true, search: false });
+    expect(bridge.careerChangeAutonomy()).toBe(true);
+    expect(bridge.jobSearchOf(3)).toBe(false);
   });
 
   it('preserves full u32 identities and bigint sequences without aliasing', () => {
@@ -92,7 +100,9 @@ describe('career bridge validation', () => {
     expect(wide.bridge.lastCareerResult()).toEqual({ sequence: 9007199254740993n, agent: 4000000002, reason: 'That person is no longer here.' });
     const { calls } = wide;
     expect(wide.bridge.assignCareer(4000000002, 4000000001)).toBe(true);
-    expect(calls).toEqual([['assign', 4000000002, 4000000001]]);
+    expect(wide.bridge.setJobSearch(4000000002, true)).toBe(true);
+    expect(wide.bridge.setCareerChangeAutonomy(false)).toBe(true);
+    expect(calls).toEqual([['assign', 4000000002, 4000000001], ['search', 4000000002, true], ['change', false]]);
   });
 
   it('refuses malformed runtime values and invalid indices before narrowing them', () => {
@@ -104,6 +114,8 @@ describe('career bridge validation', () => {
       expect(bridge.assignCareer(bad, 0)).toBe(false);
       expect(bridge.assignCareer(0, bad)).toBe(false);
       expect(bridge.quitCareer(bad)).toBe(false);
+      expect(bridge.jobSearchOf(bad)).toBeNull();
+      expect(bridge.setJobSearch(bad, false)).toBe(false);
     }
     expect(calls).toEqual([]);
     const short = fake({ career_report: () => new Float64Array([1, 2]) });
@@ -134,7 +146,11 @@ describe('career bridge validation', () => {
     expect(noResult.bridge.lastCareerResult()).toBeNull();
     const unknownReason = fake({ last_career_result: () => new Float64Array([7, 9]) });
     expect(unknownReason.bridge.lastCareerResult()).toBeNull();
-    const badSettings = fake({ career_autonomy: () => new Uint8Array([2, 0]) });
-    expect(badSettings.bridge.careerAutonomy()).toBeNull();
+    const badChange = fake({ career_change_autonomy: () => 1 });
+    expect(badChange.bridge.careerChangeAutonomy()).toBeNull();
+    for (const values of [[], [2], [1, 1]]) {
+      const badSearch = fake({ job_search_of: () => new Uint8Array(values) });
+      expect(badSearch.bridge.jobSearchOf(3)).toBeNull();
+    }
   });
 });

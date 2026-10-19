@@ -46,6 +46,7 @@ class Source implements CareerPanelSource {
   factors: CareerFactors | null = FACTORS;
   paths = ['Office', 'Cafe', 'Night watch'];
   result: CareerResult | null = null;
+  search: boolean | null = true;
   accept = true;
   readonly sent: unknown[][] = [];
   selectedIndex(): number | null { return this.selected; }
@@ -59,6 +60,8 @@ class Source implements CareerPanelSource {
   assignCareer(entity: number, path: number): boolean { this.sent.push(['assign', entity, path]); return this.accept; }
   quitCareer(entity: number): boolean { this.sent.push(['quit', entity]); return this.accept; }
   lastCareerResult(): CareerResult | null { return this.result; }
+  jobSearchOf(): boolean | null { return this.search; }
+  setJobSearch(entity: number, search: boolean): boolean { this.sent.push(['search', entity, search]); return this.accept; }
 }
 
 /**
@@ -74,6 +77,7 @@ class Node_ {
   type = '';
   tabIndex = 0;
   disabled = false;
+  checked = false;
   parent: Node_ | null = null;
   nodes: Node_[] = [];
   attributes = new Map<string, string>();
@@ -296,6 +300,35 @@ describe('CareerPanel', () => {
     expect(last().pending).toBe(false);
   });
 
+  it("reads and sets the person's job search, employed or not", () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().jobSearch).toBe(true);
+    controller.setJobSearch(false);
+    expect(source.sent).toEqual([['search', 7, false]]);
+    expect(last().jobSearch, 'shown as sent until the drain runs').toBe(false);
+    controller.update(200);
+    expect(last().jobSearch, 'a read before the drain keeps the sent value').toBe(false);
+    source.search = false;
+    controller.afterCommands();
+    expect(last().jobSearch).toBe(false);
+    source.title = null;
+    source.search = true;
+    controller.update(400);
+    expect(last().job).toBeNull();
+    expect(last().jobSearch, 'read for the unemployed too').toBe(true);
+    source.accept = false;
+    controller.setJobSearch(false);
+    expect(last().status).toBe('The setting could not be sent.');
+    expect(last().jobSearch).toBe(true);
+    source.selected = null;
+    controller.update(600);
+    expect(last().jobSearch).toBeNull();
+    controller.setJobSearch(true);
+    expect(source.sent).toHaveLength(2);
+  });
+
   it('forgets everything after a load', () => {
     const source = new Source();
     const { controller, last } = panel(source);
@@ -319,17 +352,18 @@ describe('career panel surface', () => {
     const rowGraph = document.createElement('div');
     section.append(empty, content);
     document.body.append(section, rowTitle, rowInfo, rowGraph);
-    const actions = { chosen: [] as (number | null)[], assigned: 0, quit: 0 };
+    const actions = { chosen: [] as (number | null)[], assigned: 0, quit: 0, search: [] as boolean[] };
     const render = createCareerPanelSurface(document as unknown as Document, {
       section: section as unknown as HTMLElement, empty: empty as unknown as HTMLElement, content: content as unknown as HTMLElement,
       rowTitle: rowTitle as unknown as HTMLElement, rowInfo: rowInfo as unknown as HTMLButtonElement,
       rowGraph: rowGraph as unknown as HTMLElement,
-    }, { choose: path => actions.chosen.push(path), assign: () => { actions.assigned += 1; }, quit: () => { actions.quit += 1; } });
+    }, { choose: path => actions.chosen.push(path), assign: () => { actions.assigned += 1; }, quit: () => { actions.quit += 1; },
+      setJobSearch: search => actions.search.push(search) });
     return { section, empty, content, rowTitle, rowInfo, rowGraph, render, actions, document };
   }
 
   const employed = (overrides: Partial<CareerPanelState> = {}): CareerPanelState => ({
-    agent: 7, unavailable: false, paths: ['Office', 'Cafe'], choice: null, pending: false, status: '',
+    agent: 7, unavailable: false, paths: ['Office', 'Cafe'], choice: null, pending: false, status: '', jobSearch: true,
     job: careerJobView('Senior clerk', 'Office', 'Senior clerk, Monday to Friday, 06:00 to 14:00', report({ trend: 1 }), FACTORS, WEEKS),
     ...overrides,
   });
@@ -405,6 +439,32 @@ describe('career panel surface', () => {
     expect(content.querySelector('select')!.value).toBe('1');
   });
 
+  it("offers the job search box for any selected person and sends the player's choice", () => {
+    const { content, document, render, actions } = build();
+    render(employed());
+    const box = content.querySelector('.career-search input')!;
+    expect(box.type).toBe('checkbox');
+    const label = box.parent!;
+    expect(label.tagName).toBe('label');
+    expect(label.querySelector('span')?.textContent).toBe('Look for work automatically when unemployed');
+    expect(label.hidden).toBe(false);
+    expect(box.checked).toBe(true);
+    expect(box.disabled).toBe(false);
+    box.checked = false;
+    box.dispatch('change');
+    expect(actions.search).toEqual([false]);
+    render(employed({ job: null, jobSearch: false }));
+    expect(box.checked).toBe(false);
+    expect(label.hidden).toBe(false);
+    box.focus();
+    render(employed({ job: null, jobSearch: false, pending: true, status: 'Assigning the career…', choice: 1 }));
+    expect(box.disabled, 'a pending assignment leaves the setting alone').toBe(false);
+    expect(document.activeElement, 'and keeps its focus').toBe(box);
+    render(employed({ agent: null, job: null, jobSearch: null }));
+    expect(label.hidden).toBe(true);
+    expect(box.disabled).toBe(true);
+  });
+
   it('takes focus back to the path list once a command settles', () => {
     const { section, content, document, render } = build();
     render(employed({ choice: 1 }));
@@ -422,7 +482,7 @@ describe('career panel surface', () => {
     expect(INDEX_HTML).toContain('id="career-info"');
     expect(INDEX_HTML).toContain('id="career-row-graph"');
     expect(INDEX_HTML).toContain('id="career-autonomous-change"');
-    expect(INDEX_HTML).toContain('id="career-autonomous-search"');
+    expect(INDEX_HTML, 'job search is set for each person in the Career tab').not.toContain('career-autonomous-search');
     expect(MAIN_TS).toContain('createCareerPanelSurface(');
     expect(MAIN_TS).toContain('careerPanel.afterCommands()');
     expect(MAIN_TS).toContain('careerPanel.resetAfterLoad()');

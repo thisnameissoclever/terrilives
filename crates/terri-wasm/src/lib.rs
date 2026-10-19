@@ -2659,8 +2659,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v17())
-            .expect("SaveSnapshotV17 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v18())
+            .expect("SaveSnapshotV18 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2689,6 +2689,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 18 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV18>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v18(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 17 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV17>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v17(snapshot).is_ok(),
@@ -3144,16 +3150,37 @@ impl SimHandle {
         self.sim.career_command_count()
     }
 
-    /// `[change, search]`: whether people change path and look for work
-    /// on their own.
-    pub fn career_autonomy(&self) -> Vec<u8> {
-        let (change, search) = self.sim.career_autonomy();
-        vec![u8::from(change), u8::from(search)]
+    /// Whether people change path on their own: the household setting.
+    pub fn career_change_autonomy(&self) -> bool {
+        self.sim.career_change_autonomy()
     }
 
-    pub fn set_career_autonomy(&mut self, change: bool, search: bool) -> bool {
-        let bytes = postcard::to_allocvec(&SimCommand::SetCareerAutonomy { change, search })
-            .expect("the career settings serialize");
+    /// Stages the household setting for changing path. Queue acceptance
+    /// only; the drain applies it.
+    pub fn set_career_change_autonomy(&mut self, change: bool) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::SetCareerChange { change })
+            .expect("the career change setting serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[search]`, 1 when the person carrying `entity_index` looks for work
+    /// on their own while unemployed and 0 when not; empty for anything
+    /// but a living person.
+    pub fn job_search_of(&self, entity_index: u32) -> Vec<u8> {
+        self.sim
+            .job_search_of(entity_index)
+            .map_or_else(Vec::new, |search| vec![u8::from(search)])
+    }
+
+    /// Stages turning one person's job search on or off. Queue acceptance
+    /// only; the drain applies it, and ignores an index that names no
+    /// living person.
+    pub fn set_job_search(&mut self, entity_index: u32, search: bool) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::SetJobSearch {
+            agent: entity_index,
+            search,
+        })
+        .expect("the job search setting serializes");
         self.enqueue_command(&bytes)
     }
 
@@ -4406,7 +4433,18 @@ mod boundary_tests {
             // The test watches the one saved worker: the careers' search
             // (issue 249) would otherwise hire a housemate on the first
             // weekday morning and `worker_state` could find them first.
-            assert!(handle.set_career_autonomy(false, false));
+            let people: Vec<u32> = handle
+                .sim
+                .world()
+                .try_query::<(terri_core::Entity, &terri_core::Agent, &terri_core::SimId)>()
+                .expect("registered")
+                .iter(handle.sim.world())
+                .map(|(person, _, _)| person.index_u32())
+                .collect();
+            assert!(handle.set_career_change_autonomy(false));
+            for person in people {
+                assert!(handle.set_job_search(person, false));
+            }
             handle.flush_commands();
             let attendance = handle.sim.save_snapshot_v17().attendance;
             let shift = attendance.shifts.first().cloned();
@@ -4787,8 +4825,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            17,
-            "the public writer must emit the schema-17 envelope"
+            18,
+            "the public writer must emit the schema-18 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -10926,6 +10964,8 @@ mod social_boundary_regressions {
     }
 }
 
+#[cfg(test)]
+mod job_search_tests;
 #[cfg(test)]
 mod published_v15_tests;
 #[cfg(test)]

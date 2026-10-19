@@ -317,8 +317,11 @@ pub enum SimCommand {
     QuitCareer {
         agent: u32,
     },
-    /// Careers: whether people change path and look for work on their own.
-    /// Code 34.
+    /// Careers: whether people change path, and whether every living
+    /// person looks for work, on their own. Code 34. The shell no longer
+    /// sends it; an older save can still hold it queued, and the drain then
+    /// sets the change setting and each living person's job search
+    /// (`docs/specs/2026-10-18-job-search-per-person.md`, [JS-commands]).
     SetCareerAutonomy {
         change: bool,
         search: bool,
@@ -328,6 +331,17 @@ pub enum SimCommand {
     ConfirmedOrder {
         fingerprint: u64,
         command: PlayerOrder,
+    },
+    /// Careers (issue 297): whether `agent` looks for work on their own
+    /// while unemployed. A setting, applied by the drain. Code 36.
+    SetJobSearch {
+        agent: u32,
+        search: bool,
+    },
+    /// Careers: whether people change path on their own. A household
+    /// setting, applied by the drain. Code 37.
+    SetCareerChange {
+        change: bool,
     },
 }
 
@@ -1307,6 +1321,14 @@ mod window_wire_tests {
                 },
                 vec![34, 1, 0],
             ),
+            (
+                SimCommand::SetJobSearch {
+                    agent: 300,
+                    search: false,
+                },
+                vec![36, 172, 2, 0],
+            ),
+            (SimCommand::SetCareerChange { change: true }, vec![37, 1]),
         ];
         for (command, bytes) in cases {
             assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
@@ -1340,6 +1362,11 @@ mod window_wire_tests {
                 command
             );
         }
+        // The published saved command records stay frozen: the two job
+        // search settings ride schema eighteen beside their queue
+        // positions instead (`docs/specs/2026-10-18-job-search-per-person.md`).
+        assert!(postcard::from_bytes::<SavedCommand>(&[33, 172, 2, 1]).is_err());
+        assert!(postcard::from_bytes::<SavedCommand>(&[34, 0]).is_err());
     }
 }
 

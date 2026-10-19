@@ -130,6 +130,8 @@ impl Placement {
             | SimCommand::AssignCareer { .. }
             | SimCommand::QuitCareer { .. }
             | SimCommand::SetCareerAutonomy { .. }
+            | SimCommand::SetJobSearch { .. }
+            | SimCommand::SetCareerChange { .. }
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
@@ -585,7 +587,9 @@ pub(crate) fn drain_ordinary_commands(
             }
             SimCommand::AssignCareer { .. }
             | SimCommand::QuitCareer { .. }
-            | SimCommand::SetCareerAutonomy { .. } => {
+            | SimCommand::SetCareerAutonomy { .. }
+            | SimCommand::SetJobSearch { .. }
+            | SimCommand::SetCareerChange { .. } => {
                 unreachable!("a career command is applied by the drain itself")
             }
             SimCommand::CleanDishes {

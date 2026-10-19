@@ -10,7 +10,9 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 // counters and the graph of reviewed weeks, and offers the paths to
 // assign and a Quit control: the same commands the simulation defines,
 // nothing else. One pending command at a time; the simulation stays the
-// authority on what a command does.
+// authority on what a command does. A box sets whether the person looks
+// for work on their own while unemployed - their own setting
+// (docs/specs/2026-10-18-job-search-per-person.md).
 
 export interface CareerPanelSource {
   selectedIndex(): number | null;
@@ -25,6 +27,8 @@ export interface CareerPanelSource {
   assignCareer(entity: number, path: number): boolean;
   quitCareer(entity: number): boolean;
   lastCareerResult(): CareerResult | null;
+  jobSearchOf(entity: number): boolean | null;
+  setJobSearch(entity: number, search: boolean): boolean;
 }
 
 /** What the section says about a held job, every line already worded. */
@@ -56,7 +60,12 @@ export interface CareerPanelState {
   readonly choice: number | null;
   readonly pending: boolean;
   readonly status: string;
+  /** The person's job search setting, or null when it cannot be read. */
+  readonly jobSearch: boolean | null;
 }
+
+/** The job search box's label. Functional text, for the owner's review. */
+export const JOB_SEARCH_LABEL = 'Look for work automatically when unemployed';
 
 export const CAREER_WARNING = 'Warned at work: dismissal becomes possible from the third poor week in a row.';
 
@@ -150,6 +159,9 @@ export class CareerPanel {
   private status = '';
   private pending: { agent: number; path: number | null; after: bigint } | null = null;
   private lastRead: number | null = null;
+  private jobSearch: boolean | null = null;
+  /** A setting sent and not yet applied: reads keep the sent value. */
+  private searchSent = false;
 
   constructor(
     private readonly source: CareerPanelSource,
@@ -162,7 +174,7 @@ export class CareerPanel {
 
   private show(): void {
     this.render({ agent: this.agent, job: this.job, unavailable: this.unavailable, paths: this.paths,
-      choice: this.choice, pending: this.pending !== null, status: this.status });
+      choice: this.choice, pending: this.pending !== null, status: this.status, jobSearch: this.jobSearch });
   }
 
   private syncSelection(): boolean {
@@ -175,6 +187,8 @@ export class CareerPanel {
     this.pending = null;
     this.status = '';
     this.lastRead = null;
+    this.jobSearch = null;
+    this.searchSent = false;
     this.show();
     return true;
   }
@@ -189,6 +203,7 @@ export class CareerPanel {
 
   private read(): void {
     this.paths = this.source.careerPathLabels();
+    if (!this.searchSent) this.jobSearch = this.agent === null ? null : this.source.jobSearchOf(this.agent);
     if (this.agent === null) {
       this.job = null;
       this.unavailable = false;
@@ -227,6 +242,18 @@ export class CareerPanel {
 
   quit(): void { this.stage(null); }
 
+  /** Sends the person's job search setting; shown as sent until applied. */
+  setJobSearch(search: boolean): void {
+    if (this.syncSelection() || this.agent === null) return;
+    if (this.source.setJobSearch(this.agent, search)) {
+      this.jobSearch = search;
+      this.searchSent = true;
+    } else {
+      this.status = 'The setting could not be sent.';
+    }
+    this.show();
+  }
+
   private stage(path: number | null): void {
     if (this.syncSelection() || this.pending || this.agent === null) return;
     this.read();
@@ -247,7 +274,13 @@ export class CareerPanel {
   }
 
   afterCommands(): void {
-    if (this.syncSelection() || !this.pending) return;
+    if (this.syncSelection()) return;
+    if (this.searchSent) {
+      this.searchSent = false;
+      this.read();
+      this.show();
+    }
+    if (!this.pending) return;
     const result = this.source.lastCareerResult();
     if (!result || result.sequence <= this.pending.after) return;
     const matches = result.agent === this.pending.agent;
@@ -268,6 +301,8 @@ export class CareerPanel {
     this.pending = null;
     this.status = '';
     this.lastRead = null;
+    this.jobSearch = null;
+    this.searchSent = false;
     this.show();
   }
 }
@@ -298,7 +333,7 @@ function line(doc: Document, className: string): HTMLParagraphElement {
 export function createCareerPanelSurface(
   doc: Document,
   roots: CareerPanelRoots,
-  actions: { choose(path: number | null): void; assign(): void; quit(): void },
+  actions: { choose(path: number | null): void; assign(): void; quit(): void; setJobSearch(search: boolean): void },
 ): (state: CareerPanelState) => void {
   const { section, empty, content } = roots;
   const heading = doc.createElement('div');
@@ -371,12 +406,22 @@ export function createCareerPanelSurface(
   setActionIntent(quit, 'destructive');
   buttons.append(assign, quit);
   fieldset.append(legend, label, buttons);
+  // The person's own setting, outside the assignment controls: it stays
+  // usable while an assignment is pending and for the employed, for when
+  // they are next out of work.
+  const searchLabel = doc.createElement('label');
+  searchLabel.className = 'career-search';
+  const searchBox = doc.createElement('input');
+  searchBox.type = 'checkbox';
+  const searchText = doc.createElement('span');
+  searchText.textContent = JOB_SEARCH_LABEL;
+  searchLabel.append(searchBox, searchText);
   const status = doc.createElement('p');
   status.setAttribute('role', 'status');
   // The miniature sits under the heading its control belongs to, so
   // pressing i changes what is on screen wherever the tab is scrolled.
   content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, attendance, factorsHeading, factors,
-    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, status);
+    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, searchLabel, status);
 
   const options: HTMLOptionElement[] = [];
   let drawn = '';
@@ -407,9 +452,10 @@ export function createCareerPanelSurface(
   select.addEventListener('change', () => actions.choose(select.value === '' ? null : Number(select.value)));
   assign.addEventListener('click', () => actions.assign());
   quit.addEventListener('click', () => actions.quit());
+  searchBox.addEventListener('change', () => actions.setJobSearch(searchBox.checked));
 
   return state => {
-    const focusedHere = content.contains(doc.activeElement);
+    const focusedHere = fieldset.contains(doc.activeElement);
     const job = state.job;
     section.dataset.state = state.agent === null ? 'unselected' : state.unavailable ? 'unavailable' : job ? 'employed' : 'unemployed';
     setTextIfChanged(empty, state.agent === null ? 'Select a person to see their career.'
@@ -502,6 +548,9 @@ export function createCareerPanelSurface(
     select.disabled = state.paths.length === 0;
     assign.disabled = state.choice === null;
     quit.disabled = job === null;
+    searchLabel.hidden = state.jobSearch === null;
+    searchBox.disabled = state.jobSearch === null;
+    searchBox.checked = state.jobSearch === true;
     setTextIfChanged(status, state.status);
     status.hidden = state.status === '';
     if (wasPending && !state.pending && doc.activeElement === section && !disabled && state.paths.length > 0) {
