@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "2b15dcfea9b6a147eec87b11607118f3c3349e1d",
+  "producer": "SimHandle::save_bytes from a native release build of terri-wasm at the source revision, through a scratch example that was not committed",
+  "records": [
+    {
+      "name": "shipped-household.sav",
+      "schema": 17,
+      "length": 6907,
+      "sha256": "137ccd5547de8173e060eaa3ba00ce6e06e822583c10ed1f7f0399de77159ba1",
+      "tick": "4920",
+      "householdJobSearch": true
+    },
+    {
+      "name": "job-search-off.sav",
+      "schema": 17,
+      "length": 6904,
+      "sha256": "823f63aa95d5827b0a7f21aea2da2dc798a4d972ed74c63559d747f8805356d3",
+      "tick": "4920",
+      "householdJobSearch": false
+    }
+  ]
+}

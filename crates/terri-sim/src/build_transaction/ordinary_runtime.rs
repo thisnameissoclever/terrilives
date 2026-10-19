@@ -1,5 +1,5 @@
 //! Runtime state has a different lifetime from an external save/load.
-//! Durable state comes from V17. Receipts and last-tick observations survive
+//! Durable state comes from V18. Receipts and last-tick observations survive
 //! native transactions; geometry-dependent caches are rebuilt without ticking.
 use crate::{SaveError, Sim};
 use bevy_ecs::prelude::*;

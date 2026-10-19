@@ -741,6 +741,17 @@ pub(crate) fn maintain(world: &mut World) {
             cancel_request(world, r.id);
             continue;
         }
+        if r.origin == ConversationOrigin::Autonomous
+            && r.phase != RequestPhase::Talking
+            && world
+                .get::<terri_core::Needs>(r.initiator)
+                .is_some_and(|needs| {
+                    gives_up_chosen_chat(needs, &world.resource::<crate::Content>().0.tuning)
+                })
+        {
+            cancel_request(world, r.id);
+            continue;
+        }
     }
     refresh_markers(world);
     let marked: Vec<_> = world
@@ -757,6 +768,17 @@ pub(crate) fn maintain(world: &mut World) {
             world.entity_mut(person).remove::<CommittedConversation>();
         }
     }
+}
+
+/// A chat a housemate chose for themselves gives up while their own Hunger or
+/// Energy is at or below the critical level (the owner's decision of
+/// 2026-10-18). Selection also does not choose one then, even for critical
+/// Social; the implementer proposed that exclusion and the owner confirmed
+/// it on 2026-10-18. Player-ordered and `LegacyUnattributed` chats stay.
+pub(crate) fn gives_up_chosen_chat(needs: &terri_core::Needs, tuning: &terri_data::Tuning) -> bool {
+    [terri_core::NeedId::Hunger, terri_core::NeedId::Energy]
+        .into_iter()
+        .any(|need| needs.get(need) <= tuning.mood_critical_need_level)
 }
 
 fn busy(world: &World, person: Entity) -> bool {
@@ -850,6 +872,38 @@ fn suspend(world: &mut World, r: &ConversationRequest) {
     {
         live.phase = RequestPhase::Suspended;
     }
+}
+
+/// The autonomous chat a person is doing nothing but wait for: it owns their
+/// target, the recipient has not admitted it, and no meal, journey, chain,
+/// chore or conversation of theirs is under way.
+pub(crate) fn only_waiting(world: &World, person: Entity) -> Option<u64> {
+    let request = world
+        .get_resource::<ConversationRequests>()?
+        .outgoing(person)?;
+    (request.phase == RequestPhase::Waiting
+        && !managed_player(world, request)
+        && own_target(world, request)
+        && world.get::<Eating>(person).is_none()
+        && world.get::<ChainState>(person).is_none()
+        && world
+            .get::<crate::reading::ReadingJourney>(person)
+            .is_none()
+        && world.get::<terri_core::chores::ChoreWork>(person).is_none()
+        && !is_talking(world, person))
+    .then_some(request.id)
+}
+
+/// Issue 301: a pending chat must not hold its own initiator hostage. An
+/// order admitted to that person suspends the chat, which keeps its age and
+/// resumes once the order's conversation releases them.
+pub(crate) fn yield_waiting(world: &mut World, person: Entity) -> bool {
+    let Some(id) = only_waiting(world, person) else {
+        return false;
+    };
+    let request = world.resource::<ConversationRequests>().requests[&id].clone();
+    suspend(world, &request);
+    true
 }
 
 pub(crate) fn before_choices(world: &mut World) {

@@ -226,6 +226,14 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::careers::set_autonomy(world, change, search);
             }
+            SimCommand::SetJobSearch { agent, search } => {
+                flush_ordinary(world);
+                crate::careers::set_search(world, agent, search);
+            }
+            SimCommand::SetCareerChange { change } => {
+                flush_ordinary(world);
+                crate::careers::set_change(world, change);
+            }
             SimCommand::AddHousemate {
                 name,
                 personality,

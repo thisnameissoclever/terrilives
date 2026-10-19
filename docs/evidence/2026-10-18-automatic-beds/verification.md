@@ -44,3 +44,10 @@ The integrated workspace run passed 1,731 simulation tests and the core, data an
 After that test-only correction, `cargo test --workspace --no-run --message-format=json` rebuilt the workspace test artifacts. The exact executable paths returned by Cargo were used to run the remaining targets: all 321 bridge tests passed; the migration example passed four tests and skipped its existing opt-in private-save test. That skipped test requires an explicitly supplied private save path. Workspace documentation tests also passed. These results combine the unchanged simulation suites with the rebuilt bridge and example targets; the original broad invocation itself exited with the old fixture failure.
 
 Rust lint with warnings denied, formatting, 24 CI script tests and documentation identifiers passed. Full web coverage remains the earlier 3,734 passing tests plus one repaired failure; the final integrated browser build passed the 281 affected tests described above.
+
+
+## Final integration with current main
+
+Before delivery, main advanced to `7b45ac301`, adding bounded social waiting and individual job-search settings with save format V18. The merge preserved both changes. Its only manual conflict was the dated changelog summary. A fresh independent review found no actionable integration issues in the schedule, V18 restoration, deferred window validation or historical save assertions.
+
+The rebuilt release WebAssembly simulation passed 291 affected browser tests in 16 files, type checking and the production build. The native workspace build passed all six automatic-assignment tests, the window tests and the historical bed-era save test. Formatting and the 12 changelog tests and build passed. Interface layout and tooltip wording were unchanged from the independently reviewed captures above. The earlier branch remote Rust, web and changelog checks passed; its remote mutation-testing jobs were canceled and provide no passing result.

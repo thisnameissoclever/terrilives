@@ -18,6 +18,8 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV17 {
             .resource::<terri_core::CommandQueue>()
             .as_slice()
             .iter()
+            // Schema eighteen places its settings among these positions.
+            .filter(|command| !super::v18::is_queued_setting(command))
             .enumerate()
             .filter_map(|(position, command)| match command {
                 terri_core::SimCommand::ConfirmedOrder {
@@ -76,9 +78,7 @@ pub(crate) fn restore(
     attendance::validate_saved(candidate.world(), &snapshot.attendance)?;
     attendance::restore(candidate.world_mut(), snapshot.attendance);
     crate::careers::validate_saved(candidate.world(), &careers)?;
-    candidate
-        .world_mut()
-        .insert_resource(crate::careers::Careers::from_saved(careers));
+    crate::careers::install_saved(candidate.world_mut(), careers);
     crate::recipe_actions::restore_activity(candidate.world_mut(), snapshot.background_recipes)?;
     let mut system_owners = std::collections::BTreeSet::new();
     for (actor, id) in snapshot.system_social_orders {
