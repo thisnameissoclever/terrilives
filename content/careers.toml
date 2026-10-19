@@ -37,8 +37,24 @@
 # docs/specs/2026-10-06-calendar.md. On any other day the worker stays
 # home.
 #
+# SHIFTS (issue 296, docs/specs/2026-10-18-shifts-and-careers.md). A
+# level's own shift_start, shift_ticks and working_days are its STANDARD
+# shift, whose kind is the path's standard_shift: day, early, late or night
+# (default day). A path may declare other shifts in [[career.shift]], each
+# with an id unique within the path (never "standard"), a kind, a
+# shift_start, a shift_ticks and working_days, checked as a level's are.
+# A level's shift_weights gives each shift a whole-number weight from 0 to
+# 1000, naming the level's own shift "standard"; no table means
+# { standard = 1 }, and at least one weight must be above 0. A hire draws a
+# shift by those weights. A weight of 0 is never drawn or offered but can
+# still be held, so a save can name it: NEVER delete a shipped shift id;
+# set its weight to 0 instead. The kind names the shift in the interface
+# and moves the holder's sleep rhythm (tuning.toml's shift_sleep_offset_*).
+#
 # Titles are plain per [L58] and provisional: the owner reviews them
-# before release.
+# before release. The labels and titles of the hospital, warehouse,
+# library, restaurant kitchen and buses paths are owner-approved
+# (2026-10-18).
 
 [[career]]
 id = "office"
@@ -47,6 +63,16 @@ label = "Office"
 social_demand = 0.3
 skill = "reading"
 traits = { bookworm = 0.4, private_person = 0.2, chatterbox = -0.1, slow_reader = -0.2 }
+# Almost always weekday days: the standard shift 19 times in 20.
+standard_shift = "day"
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 12:00 to 20:00, Monday to Friday.
+shift_start = 720
+shift_ticks = 480
+working_days = ["mon", "tue", "wed", "thu", "fri"]
 
 [[career.level]]
 # The level id the shipped worker's save names; it must keep this id.
@@ -75,6 +101,7 @@ satisfaction = 1.0
 # Monday to Friday, so the household gets a weekend together.
 working_days = ["mon", "tue", "wed", "thu", "fri"]
 advance_weeks = 2
+shift_weights = { standard = 19, late = 1 }
 
 [[career.level]]
 id = "office_senior_clerk"
@@ -87,6 +114,7 @@ energy_cost = 16.0
 satisfaction = 1.0
 working_days = ["mon", "tue", "wed", "thu", "fri"]
 advance_weeks = 3
+shift_weights = { standard = 19, late = 1 }
 
 [[career.level]]
 id = "office_manager"
@@ -99,6 +127,7 @@ energy_cost = 18.0
 satisfaction = 1.5
 working_days = ["mon", "tue", "wed", "thu", "fri"]
 advance_weeks = 3
+shift_weights = { standard = 19, late = 1 }
 
 [[career.level]]
 id = "office_director"
@@ -111,6 +140,7 @@ energy_cost = 20.0
 satisfaction = 2.0
 working_days = ["mon", "tue", "wed", "thu", "fri"]
 advance_weeks = 4
+shift_weights = { standard = 19, late = 1 }
 
 [[career]]
 id = "cafe"
@@ -119,6 +149,24 @@ label = "Cafe"
 social_demand = 0.9
 skill = "cooking"
 traits = { chatterbox = 0.6, private_person = -0.5, cannot_cook = -0.4, isolated = -0.3 }
+# The standard shift opens the cafe.
+standard_shift = "early"
+
+[[career.shift]]
+id = "day"
+kind = "day"
+# 09:00 to 16:00, Wednesday to Sunday.
+shift_start = 540
+shift_ticks = 420
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 13:00 to 20:00, Thursday to Monday.
+shift_start = 780
+shift_ticks = 420
+working_days = ["thu", "fri", "sat", "sun", "mon"]
 
 [[career.level]]
 id = "cafe_lowly_barista"
@@ -133,6 +181,7 @@ energy_cost = 18.0
 satisfaction = 1.5
 working_days = ["tue", "wed", "thu", "fri", "sat"]
 advance_weeks = 2
+shift_weights = { standard = 5, day = 3, late = 2 }
 
 [[career.level]]
 id = "cafe_barista"
@@ -145,6 +194,7 @@ energy_cost = 18.0
 satisfaction = 1.5
 working_days = ["tue", "wed", "thu", "fri", "sat"]
 advance_weeks = 2
+shift_weights = { standard = 5, day = 3, late = 2 }
 
 [[career.level]]
 id = "cafe_shift_lead"
@@ -157,6 +207,7 @@ energy_cost = 20.0
 satisfaction = 1.5
 working_days = ["tue", "wed", "thu", "fri", "sat"]
 advance_weeks = 3
+shift_weights = { standard = 5, day = 3, late = 2 }
 
 [[career.level]]
 id = "cafe_espresso_sorcerer"
@@ -169,6 +220,7 @@ energy_cost = 22.0
 satisfaction = 2.0
 working_days = ["tue", "wed", "thu", "fri", "sat"]
 advance_weeks = 4
+shift_weights = { standard = 5, day = 3, late = 2 }
 
 [[career]]
 id = "night_watch"
@@ -178,6 +230,23 @@ label = "Night watch"
 social_demand = 0.1
 skill = "exercise"
 traits = { private_person = 0.3, keen_cyclist = 0.3, exercise_averse = -0.3, out_of_shape = -0.3, chatterbox = -0.2 }
+standard_shift = "night"
+
+[[career.shift]]
+id = "weekend_nights"
+kind = "night"
+# 22:00 to 06:00, Wednesday night to Sunday night.
+shift_start = 1320
+shift_ticks = 480
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+
+[[career.shift]]
+id = "evening"
+kind = "late"
+# 14:00 to 22:00, Monday to Friday.
+shift_start = 840
+shift_ticks = 480
+working_days = ["mon", "tue", "wed", "thu", "fri"]
 
 [[career.level]]
 id = "night_watch_guard"
@@ -192,6 +261,7 @@ energy_cost = 20.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
 advance_weeks = 2
+shift_weights = { standard = 2, weekend_nights = 2, evening = 1 }
 
 [[career.level]]
 id = "night_watch_senior"
@@ -204,6 +274,7 @@ energy_cost = 20.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
 advance_weeks = 3
+shift_weights = { standard = 2, weekend_nights = 2, evening = 1 }
 
 [[career.level]]
 id = "night_watch_supervisor"
@@ -216,6 +287,7 @@ energy_cost = 22.0
 satisfaction = 0.5
 working_days = ["sun", "mon", "tue", "wed", "thu"]
 advance_weeks = 3
+shift_weights = { standard = 2, weekend_nights = 2, evening = 1 }
 
 [[career.level]]
 id = "night_watch_keeper"
@@ -228,3 +300,383 @@ energy_cost = 24.0
 satisfaction = 1.0
 working_days = ["sun", "mon", "tue", "wed", "thu"]
 advance_weeks = 4
+shift_weights = { standard = 2, weekend_nights = 2, evening = 1 }
+
+# Shifts (issue 296): the five paths below were added with shifts. Their
+# labels and titles are owner-approved (2026-10-18). Pay and pay_max are
+# whole dollars per shift in today's units; issue 298 scales them with
+# every other wage.
+
+[[career]]
+id = "hospital"
+label = "Hospital"
+# Patients and their visitors all shift long.
+social_demand = 0.6
+traits = { chatterbox = 0.2, private_person = -0.2, out_of_shape = -0.2, isolated = -0.3 }
+# 07:00 to 15:00, Monday to Friday.
+standard_shift = "day"
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 15:00 to 23:00, Wednesday to Sunday.
+shift_start = 900
+shift_ticks = 480
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+
+[[career.shift]]
+id = "night"
+kind = "night"
+# 23:00 to 07:00, Friday night to Tuesday night.
+shift_start = 1380
+shift_ticks = 480
+working_days = ["fri", "sat", "sun", "mon", "tue"]
+
+[[career.level]]
+id = "hospital_orderly"
+title = "Ward orderly"
+shift_start = 420
+shift_ticks = 480
+pay = 95
+pay_max = 120
+energy_cost = 20.0
+satisfaction = 1.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 2
+shift_weights = { standard = 4, late = 3, night = 3 }
+
+[[career.level]]
+id = "hospital_nursing_assistant"
+title = "Nursing assistant"
+shift_start = 420
+shift_ticks = 480
+pay = 125
+pay_max = 160
+energy_cost = 21.0
+satisfaction = 1.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 3, night = 3 }
+
+[[career.level]]
+id = "hospital_ward_nurse"
+title = "Ward nurse"
+shift_start = 420
+shift_ticks = 480
+pay = 170
+pay_max = 220
+energy_cost = 22.0
+satisfaction = 2.0
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 3, night = 3 }
+
+[[career.level]]
+id = "hospital_charge_nurse"
+title = "Charge nurse"
+shift_start = 420
+shift_ticks = 480
+pay = 235
+pay_max = 300
+energy_cost = 24.0
+satisfaction = 2.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 4
+shift_weights = { standard = 4, late = 3, night = 3 }
+
+[[career]]
+id = "warehouse"
+label = "Warehouse"
+# Lifting and walking, with few people to talk to.
+social_demand = 0.2
+skill = "exercise"
+traits = { keen_cyclist = 0.2, private_person = 0.1, out_of_shape = -0.3, exercise_averse = -0.3 }
+# 05:00 to 13:00, Monday to Friday.
+standard_shift = "early"
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 13:00 to 21:00, Monday to Friday.
+shift_start = 780
+shift_ticks = 480
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+
+[[career.shift]]
+id = "night"
+kind = "night"
+# 21:00 to 05:00, Sunday night to Thursday night.
+shift_start = 1260
+shift_ticks = 480
+working_days = ["sun", "mon", "tue", "wed", "thu"]
+
+[[career.level]]
+id = "warehouse_picker"
+title = "Warehouse picker"
+shift_start = 300
+shift_ticks = 480
+pay = 90
+pay_max = 110
+energy_cost = 22.0
+satisfaction = 0.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 2
+shift_weights = { standard = 4, late = 4, night = 2 }
+
+[[career.level]]
+id = "warehouse_forklift_driver"
+title = "Forklift driver"
+shift_start = 300
+shift_ticks = 480
+pay = 110
+pay_max = 140
+energy_cost = 22.0
+satisfaction = 0.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 2
+shift_weights = { standard = 4, late = 4, night = 2 }
+
+[[career.level]]
+id = "warehouse_team_leader"
+title = "Team leader"
+shift_start = 300
+shift_ticks = 480
+pay = 150
+pay_max = 190
+energy_cost = 20.0
+satisfaction = 1.0
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 4, night = 2 }
+
+[[career.level]]
+id = "warehouse_manager"
+title = "Warehouse manager"
+shift_start = 300
+shift_ticks = 480
+pay = 210
+pay_max = 270
+energy_cost = 18.0
+satisfaction = 1.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 4
+shift_weights = { standard = 4, late = 4, night = 2 }
+
+[[career]]
+id = "library"
+label = "Library"
+# Quiet, with readers to help now and then.
+social_demand = 0.4
+skill = "reading"
+traits = { bookworm = 0.6, private_person = 0.2, chatterbox = -0.2, slow_reader = -0.4 }
+# 09:00 to 17:00, Tuesday to Saturday.
+standard_shift = "day"
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 12:00 to 20:00, Monday to Friday: the same schedule as the office's
+# late shift.
+shift_start = 720
+shift_ticks = 480
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+
+[[career.level]]
+id = "library_assistant"
+title = "Library assistant"
+shift_start = 540
+shift_ticks = 480
+pay = 85
+pay_max = 105
+energy_cost = 12.0
+satisfaction = 1.5
+working_days = ["tue", "wed", "thu", "fri", "sat"]
+advance_weeks = 2
+shift_weights = { standard = 4, late = 1 }
+
+[[career.level]]
+id = "library_librarian"
+title = "Librarian"
+shift_start = 540
+shift_ticks = 480
+pay = 105
+pay_max = 130
+energy_cost = 13.0
+satisfaction = 1.5
+working_days = ["tue", "wed", "thu", "fri", "sat"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 1 }
+
+[[career.level]]
+id = "library_senior_librarian"
+title = "Senior librarian"
+shift_start = 540
+shift_ticks = 480
+pay = 140
+pay_max = 175
+energy_cost = 14.0
+satisfaction = 2.0
+working_days = ["tue", "wed", "thu", "fri", "sat"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 1 }
+
+[[career.level]]
+id = "library_head_librarian"
+title = "Head librarian"
+shift_start = 540
+shift_ticks = 480
+pay = 190
+pay_max = 240
+energy_cost = 15.0
+satisfaction = 2.5
+working_days = ["tue", "wed", "thu", "fri", "sat"]
+advance_weeks = 4
+shift_weights = { standard = 4, late = 1 }
+
+[[career]]
+id = "restaurant_kitchen"
+# Not plain Kitchen, which is a room's name.
+label = "Restaurant kitchen"
+# Hot, loud and busy, with the talking done by the waiters.
+social_demand = 0.2
+skill = "cooking"
+traits = { private_person = 0.1, chatterbox = -0.1, cannot_cook = -0.7 }
+# 14:00 to 23:00, Wednesday to Sunday.
+standard_shift = "late"
+
+[[career.shift]]
+id = "day"
+kind = "day"
+# 10:00 to 18:00, Tuesday to Saturday.
+shift_start = 600
+shift_ticks = 480
+working_days = ["tue", "wed", "thu", "fri", "sat"]
+
+[[career.level]]
+id = "kitchen_porter"
+title = "Kitchen porter"
+shift_start = 840
+shift_ticks = 540
+pay = 75
+pay_max = 95
+energy_cost = 20.0
+satisfaction = 1.0
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+advance_weeks = 2
+shift_weights = { standard = 7, day = 3 }
+
+[[career.level]]
+id = "kitchen_line_cook"
+title = "Line cook"
+shift_start = 840
+shift_ticks = 540
+pay = 100
+pay_max = 130
+energy_cost = 22.0
+satisfaction = 1.5
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+advance_weeks = 2
+shift_weights = { standard = 7, day = 3 }
+
+[[career.level]]
+id = "kitchen_sous_chef"
+title = "Sous chef"
+shift_start = 840
+shift_ticks = 540
+pay = 150
+pay_max = 195
+energy_cost = 22.0
+satisfaction = 2.0
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+advance_weeks = 3
+shift_weights = { standard = 7, day = 3 }
+
+[[career.level]]
+id = "kitchen_head_chef"
+title = "Head chef"
+shift_start = 840
+shift_ticks = 540
+pay = 230
+pay_max = 300
+energy_cost = 24.0
+satisfaction = 2.5
+working_days = ["wed", "thu", "fri", "sat", "sun"]
+advance_weeks = 4
+shift_weights = { standard = 7, day = 3 }
+
+[[career]]
+id = "buses"
+label = "Buses"
+# Passengers all day, though most only want a ticket.
+social_demand = 0.5
+traits = { chatterbox = 0.2, private_person = -0.2, isolated = -0.2, low_spirits = -0.1 }
+# 05:30 to 13:30, Monday to Friday.
+standard_shift = "early"
+
+[[career.shift]]
+id = "late"
+kind = "late"
+# 13:30 to 21:30, Monday to Friday.
+shift_start = 810
+shift_ticks = 480
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+
+[[career.shift]]
+id = "weekend"
+kind = "early"
+# 05:30 to 13:30, Thursday to Monday.
+shift_start = 330
+shift_ticks = 480
+working_days = ["thu", "fri", "sat", "sun", "mon"]
+
+[[career.level]]
+id = "buses_relief_driver"
+title = "Relief bus driver"
+shift_start = 330
+shift_ticks = 480
+pay = 110
+pay_max = 135
+energy_cost = 18.0
+satisfaction = 0.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 2
+shift_weights = { standard = 4, late = 4, weekend = 2 }
+
+[[career.level]]
+id = "buses_driver"
+title = "Bus driver"
+shift_start = 330
+shift_ticks = 480
+pay = 130
+pay_max = 165
+energy_cost = 18.0
+satisfaction = 1.0
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 4, weekend = 2 }
+
+[[career.level]]
+id = "buses_senior_driver"
+title = "Senior bus driver"
+shift_start = 330
+shift_ticks = 480
+pay = 165
+pay_max = 205
+energy_cost = 19.0
+satisfaction = 1.0
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 3
+shift_weights = { standard = 4, late = 4, weekend = 2 }
+
+[[career.level]]
+id = "buses_route_supervisor"
+title = "Route supervisor"
+shift_start = 330
+shift_ticks = 480
+pay = 205
+pay_max = 255
+energy_cost = 20.0
+satisfaction = 1.5
+working_days = ["mon", "tue", "wed", "thu", "fri"]
+advance_weeks = 4
+shift_weights = { standard = 4, late = 4, weekend = 2 }

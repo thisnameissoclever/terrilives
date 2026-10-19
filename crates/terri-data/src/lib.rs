@@ -867,6 +867,331 @@ mod tests {
         assert_eq!(office.working_days, 0b0011111);
     }
 
+    /// Shifts (issue 296, [WS-content]): eight paths in the shipped order,
+    /// 32 rows, and rows 0 to 11 exactly as they were before shifts, so the
+    /// shipped worker's save and every older save still name the same jobs.
+    #[test]
+    fn the_shipped_careers_hold_eight_paths_with_the_first_twelve_rows_unchanged() {
+        let pack = pack();
+        let paths: Vec<&str> = pack.career_paths.iter().map(|p| p.id.as_str()).collect();
+        assert_eq!(
+            paths,
+            [
+                "office",
+                "cafe",
+                "night_watch",
+                "hospital",
+                "warehouse",
+                "library",
+                "restaurant_kitchen",
+                "buses"
+            ]
+        );
+        assert_eq!(pack.careers.len(), 32);
+        let mf = 0b0011111;
+        let tue_sat = 0b0111110;
+        let sun_thu = 0b1001111;
+        let before: [(&str, &str, u32, u32, u8, u32, u32); 12] = [
+            ("office_job", "Office clerk", 360, 480, mf, 120, 150),
+            (
+                "office_senior_clerk",
+                "Senior clerk",
+                360,
+                480,
+                mf,
+                160,
+                200,
+            ),
+            ("office_manager", "Office manager", 420, 540, mf, 220, 280),
+            (
+                "office_director",
+                "Director of paperwork",
+                480,
+                540,
+                mf,
+                320,
+                400,
+            ),
+            (
+                "cafe_lowly_barista",
+                "Lowly barista",
+                330,
+                420,
+                tue_sat,
+                80,
+                100,
+            ),
+            ("cafe_barista", "Barista", 330, 420, tue_sat, 90, 120),
+            ("cafe_shift_lead", "Shift lead", 360, 480, tue_sat, 130, 170),
+            (
+                "cafe_espresso_sorcerer",
+                "Senior espresso sorcerer",
+                360,
+                480,
+                tue_sat,
+                200,
+                260,
+            ),
+            (
+                "night_watch_guard",
+                "Night watch",
+                1320,
+                480,
+                sun_thu,
+                70,
+                85,
+            ),
+            (
+                "night_watch_senior",
+                "Senior night watch",
+                1320,
+                480,
+                sun_thu,
+                85,
+                105,
+            ),
+            (
+                "night_watch_supervisor",
+                "Night supervisor",
+                1320,
+                480,
+                sun_thu,
+                105,
+                130,
+            ),
+            (
+                "night_watch_keeper",
+                "Keeper of the keys",
+                1320,
+                480,
+                sun_thu,
+                130,
+                160,
+            ),
+        ];
+        for (row, expected) in before.iter().enumerate() {
+            let job = &pack.careers[row];
+            assert_eq!(
+                (
+                    job.id.as_str(),
+                    job.label.as_str(),
+                    job.shift_start,
+                    job.shift_ticks,
+                    job.working_days,
+                    job.pay,
+                    job.pay_max
+                ),
+                *expected,
+                "row {row}"
+            );
+            assert_eq!((job.path, job.level), (row as u32 / 4, row as u32 % 4));
+        }
+    }
+
+    /// [WS-content]: each path's standard kind and every level's offered
+    /// shifts, in the table's order with its times, days and weights. Every
+    /// level of a path uses the same weights.
+    #[test]
+    fn the_shipped_shift_weights_match_the_spec() {
+        const MON_FRI: u8 = 0b0011111;
+        const WED_SUN: u8 = 0b1111100;
+        const THU_MON: u8 = 0b1111001;
+        const SUN_THU: u8 = 0b1001111;
+        const FRI_TUE: u8 = 0b1110011;
+        const TUE_SAT: u8 = 0b0111110;
+        type Shift = (&'static str, u8, u32, u32, u8, u32);
+        let expected: [(&str, u8, u32, &[Shift]); 8] = [
+            (
+                "office",
+                SHIFT_DAY,
+                19,
+                &[("late", SHIFT_LATE, 720, 480, MON_FRI, 1)],
+            ),
+            (
+                "cafe",
+                SHIFT_EARLY,
+                5,
+                &[
+                    ("day", SHIFT_DAY, 540, 420, WED_SUN, 3),
+                    ("late", SHIFT_LATE, 780, 420, THU_MON, 2),
+                ],
+            ),
+            (
+                "night_watch",
+                SHIFT_NIGHT,
+                2,
+                &[
+                    ("weekend_nights", SHIFT_NIGHT, 1320, 480, WED_SUN, 2),
+                    ("evening", SHIFT_LATE, 840, 480, MON_FRI, 1),
+                ],
+            ),
+            (
+                "hospital",
+                SHIFT_DAY,
+                4,
+                &[
+                    ("late", SHIFT_LATE, 900, 480, WED_SUN, 3),
+                    ("night", SHIFT_NIGHT, 1380, 480, FRI_TUE, 3),
+                ],
+            ),
+            (
+                "warehouse",
+                SHIFT_EARLY,
+                4,
+                &[
+                    ("late", SHIFT_LATE, 780, 480, MON_FRI, 4),
+                    ("night", SHIFT_NIGHT, 1260, 480, SUN_THU, 2),
+                ],
+            ),
+            (
+                "library",
+                SHIFT_DAY,
+                4,
+                &[("late", SHIFT_LATE, 720, 480, MON_FRI, 1)],
+            ),
+            (
+                "restaurant_kitchen",
+                SHIFT_LATE,
+                7,
+                &[("day", SHIFT_DAY, 600, 480, TUE_SAT, 3)],
+            ),
+            (
+                "buses",
+                SHIFT_EARLY,
+                4,
+                &[
+                    ("late", SHIFT_LATE, 810, 480, MON_FRI, 4),
+                    ("weekend", SHIFT_EARLY, 330, 480, THU_MON, 2),
+                ],
+            ),
+        ];
+        let pack = pack();
+        for (path, (id, kind, standard, shifts)) in pack.career_paths.iter().zip(expected) {
+            assert_eq!(path.id, id);
+            assert_eq!(path.levels.len(), 4, "{id}");
+            for row in &path.levels {
+                let job = &pack.careers[*row as usize];
+                assert_eq!(
+                    (job.standard_kind, job.standard_weight),
+                    (kind, standard),
+                    "{}",
+                    job.id
+                );
+                let compiled: Vec<Shift> = job
+                    .shifts
+                    .iter()
+                    .map(|s| {
+                        (
+                            s.id.as_str(),
+                            s.kind,
+                            s.shift_start,
+                            s.shift_ticks,
+                            s.working_days,
+                            s.weight,
+                        )
+                    })
+                    .collect();
+                assert_eq!(compiled, shifts, "{}", job.id);
+            }
+        }
+        // The new paths' standard shifts, from [WS-content]'s path lines.
+        let first = |path: &str| {
+            let path = pack
+                .career_paths
+                .iter()
+                .find(|p| p.id == path)
+                .expect("shipped");
+            let job = &pack.careers[path.levels[0] as usize];
+            (job.shift_start, job.shift_ticks, job.working_days)
+        };
+        assert_eq!(first("hospital"), (420, 480, MON_FRI));
+        assert_eq!(first("warehouse"), (300, 480, MON_FRI));
+        assert_eq!(first("library"), (540, 480, TUE_SAT));
+        assert_eq!(first("restaurant_kitchen"), (840, 540, WED_SUN));
+        assert_eq!(first("buses"), (330, 480, MON_FRI));
+    }
+
+    /// [WS-sleep] and [WS-search]: the shipped shift sleep offsets and the
+    /// search temperature.
+    #[test]
+    fn the_shipped_shift_and_search_tuning_matches_the_spec() {
+        let tuning = &pack().tuning;
+        assert_eq!(
+            [
+                tuning.shift_sleep_offset_day,
+                tuning.shift_sleep_offset_early,
+                tuning.shift_sleep_offset_late,
+                tuning.shift_sleep_offset_night
+            ],
+            [0, -60, 120, 660]
+        );
+        assert_eq!(tuning.career_search_temperature, 0.25);
+    }
+
+    /// An exact fraction, enough for the household figure below.
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    struct Ratio(u128, u128);
+
+    impl Ratio {
+        fn new(numerator: u128, denominator: u128) -> Self {
+            fn gcd(a: u128, b: u128) -> u128 {
+                if b == 0 {
+                    a
+                } else {
+                    gcd(b, a % b)
+                }
+            }
+            let divisor = gcd(numerator, denominator).max(1);
+            Ratio(numerator / divisor, denominator / divisor)
+        }
+        fn add(self, other: Ratio) -> Ratio {
+            Ratio::new(self.0 * other.1 + other.0 * self.1, self.1 * other.1)
+        }
+        fn mul(self, other: Ratio) -> Ratio {
+            Ratio::new(self.0 * other.0, self.1 * other.1)
+        }
+    }
+
+    /// [WS-household]: three housemates each given a uniformly random path
+    /// at its first level, each drawing a shift by that level's weights, all
+    /// hold the same schedule (start, length and days, merged across paths)
+    /// with probability 2441/512000, about 0.48 percent, and never above
+    /// 1 percent, so a later content change cannot quietly undo issue 296.
+    #[test]
+    fn three_random_housemates_rarely_share_a_schedule() {
+        let pack = pack();
+        let paths = pack.career_paths.len() as u128;
+        let mut schedules: Vec<((u32, u32, u8), Ratio)> = Vec::new();
+        for path in &pack.career_paths {
+            let job = &pack.careers[path.levels[0] as usize];
+            let offered: Vec<_> = (0..job.shift_count())
+                .filter_map(|index| job.shift(index))
+                .filter(|shift| shift.weight > 0)
+                .collect();
+            let total: u128 = offered.iter().map(|shift| u128::from(shift.weight)).sum();
+            for shift in offered {
+                let key = (shift.shift_start, shift.shift_ticks, shift.working_days);
+                let chance = Ratio::new(u128::from(shift.weight), total * paths);
+                match schedules.iter_mut().find(|(known, _)| *known == key) {
+                    Some((_, sum)) => *sum = sum.add(chance),
+                    None => schedules.push((key, chance)),
+                }
+            }
+        }
+        let shared = schedules
+            .iter()
+            .fold(Ratio(0, 1), |sum, (_, p)| sum.add(p.mul(*p).mul(*p)));
+        eprintln!(
+            "three random housemates share a schedule with chance {}/{} over {} schedules",
+            shared.0,
+            shared.1,
+            schedules.len()
+        );
+        assert_eq!(schedules.len(), 20);
+        assert_eq!(shared, Ratio(2441, 512_000));
+        assert!(shared.0 * 100 <= shared.1, "at most 1 percent");
+    }
+
     /// [SEA-year] and [SEA-yard] in `docs/specs/2026-10-17-seasons.md`: a
     /// new game starts in Spring, each season lasts seven days, and Spring
     /// draws the grass as authored. The live tuning is not compared with

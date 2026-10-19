@@ -2171,9 +2171,19 @@ fn schema_fourteen_round_trips_the_careers_and_the_exports_direct_them() {
     source.flush_commands();
     assert!(!source.career_change_autonomy());
     assert_eq!(source.job_search_of(worker), vec![1]);
+    // Issue 296 added five paths after the first three.
     assert_eq!(
         source.career_path_labels(),
-        vec!["Office", "Cafe", "Night watch"]
+        vec![
+            "Office",
+            "Cafe",
+            "Night watch",
+            "Hospital",
+            "Warehouse",
+            "Library",
+            "Restaurant kitchen",
+            "Buses"
+        ]
     );
     assert_eq!(source.career_level_titles(1)[0], "Lowly barista");
     assert!(source.career_level_titles(9).is_empty());
