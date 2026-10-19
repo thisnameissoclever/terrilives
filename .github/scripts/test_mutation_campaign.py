@@ -458,6 +458,36 @@ class CampaignTest(unittest.TestCase):
             with self.subTest(window=window), self.assertRaises(ValueError):
                 campaign.admit_work(window, **options)
 
+    def test_locked_option_is_preserved_and_duplicate_missing_or_extra_is_rejected(self):
+        listing = inventory(1)
+        for declared, actual, valid in ((True, True, True), (True, False, False), (False, True, False)):
+            ctx = context()
+            if declared:
+                ctx["inputs"]["build_argv"].append("--locked")
+                ctx["inputs"]["test_argv"].append("--locked")
+            manifest = campaign.build_manifest(listing, ctx)
+            report = raw_report(listing)
+            if actual:
+                for result in report["outcomes"]:
+                    for step in result["phase_results"]:
+                        step["argv"].append("--locked")
+            provenance = dict(self.delta()["provenance"], input_fingerprint=manifest["input_fingerprint"])
+            def validate():
+                return campaign.validate_report(manifest, 0, campaign.slot_ids(manifest, 0), report,
+                    provenance=provenance, raw_report_ref=report_ref(report), exit_kind="completed")
+            if valid:
+                self.assertEqual(validate()["records"][0]["outcome"]["phase_results"][1]["argv"][-1], "--locked")
+                report["outcomes"][0]["phase_results"][0]["argv"].append("--locked")
+                with self.assertRaisesRegex(ValueError, "duplicate Cargo option"):
+                    validate()
+            else:
+                with self.assertRaisesRegex(ValueError, "command"):
+                    validate()
+        ctx = context()
+        ctx["inputs"]["test_argv"].extend(["--locked", "--locked"])
+        with self.assertRaisesRegex(ValueError, "duplicate Cargo option"):
+            campaign.build_manifest(listing, ctx)
+
 
 if __name__ == "__main__":
     unittest.main()

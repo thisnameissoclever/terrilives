@@ -138,7 +138,7 @@ def _command(argv, phase, packages):
             else:
                 package = arg.split("=", 1)[1]
             _require(package.split("@", 1)[0] in packages, "foreign Cargo package selector")
-        elif arg in {"--workspace", "--verbose", "-v", "--no-run", "--all-features", "--no-default-features"}:
+        elif arg in {"--workspace", "--verbose", "-v", "--no-run", "--all-features", "--no-default-features", "--locked"}:
             result.append(arg)
         elif arg in {"--profile", "--target", "--features"}:
             index += 1
@@ -153,7 +153,7 @@ def _command(argv, phase, packages):
         index += 1
     _require(result.count("--workspace") == 1, "Cargo command must select the complete workspace once")
     _require(result.count("--no-run") == (1 if phase == "Build" else 0), "invalid build/test phase selection")
-    for option in ("--profile", "--target", "--features", "--all-features", "--no-default-features"):
+    for option in ("--profile", "--target", "--features", "--all-features", "--no-default-features", "--locked"):
         _require(result.count(option) <= 1, "duplicate Cargo option")
     return result
 
