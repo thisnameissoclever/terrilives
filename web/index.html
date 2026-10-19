@@ -286,6 +286,8 @@
       .career-controls { display: grid; gap: 6px; }
       .career-controls select { width: 100%; }
       .career-actions { display: flex; gap: 8px; }
+      .career-search { display: flex; align-items: center; gap: 6px; }
+      .career-search[hidden] { display: none; }
       #sim-career p { margin: 2px 0; }
       #lighting-mode {
         width: 100%;
@@ -1228,7 +1230,6 @@
         >Light: auto</button>
         <label><input id="death-enabled" type="checkbox" /> Sims can die if hunger or energy stays empty</label>
         <label><input id="career-autonomous-change" type="checkbox" /> Allow sims to change careers autonomously</label>
-        <label><input id="career-autonomous-search" type="checkbox" /> Allow autonomous job search for unemployed sims</label>
         <section id="audio-controls" aria-label="Audio controls">
         <button
           id="audio-mute"

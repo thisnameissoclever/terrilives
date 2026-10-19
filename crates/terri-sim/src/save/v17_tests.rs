@@ -487,3 +487,107 @@ fn confirmed_chore_room_references_are_validated_transactionally() {
         }
     }
 }
+
+/// The two job search settings (issue 297), which schema eighteen carries
+/// beside their queue positions instead of in the frozen command records.
+fn settings(sim: &Sim) -> [SimCommand; 2] {
+    let (agent, ..) = references(sim);
+    [
+        SimCommand::SetJobSearch {
+            agent,
+            search: false,
+        },
+        SimCommand::SetCareerChange { change: false },
+    ]
+}
+
+/// The staged stream with the two settings at positions `first` and
+/// `second` of the combined queue.
+fn with_settings(
+    commands: &[SimCommand],
+    settings: &[SimCommand; 2],
+    first: usize,
+    second: usize,
+) -> Vec<SimCommand> {
+    let mut others = commands.iter().cloned();
+    (0..commands.len() + 2)
+        .map(|position| match position {
+            p if p == first => settings[0].clone(),
+            p if p == second => settings[1].clone(),
+            _ => others
+                .next()
+                .expect("one ordinary command per other position"),
+        })
+        .collect()
+}
+
+#[test]
+fn queued_settings_at_every_position_leave_the_older_writers_and_round_trip() {
+    let mut plain = Sim::new_from_shipped_lot();
+    let commands = staged_commands(&plain);
+    stage(&mut plain, &commands);
+    let pair = settings(&plain);
+    let total = commands.len() + 2;
+    let mut cases = 0;
+    for first in 0..total {
+        for second in first + 1..total {
+            let combined = with_settings(&commands, &pair, first, second);
+            let mut source = Sim::new_from_shipped_lot();
+            stage(&mut source, &combined);
+            let case = format!("settings at {first} and {second}");
+            assert_eq!(
+                source.save_snapshot_v17(),
+                plain.save_snapshot_v17(),
+                "{case}"
+            );
+            assert_eq!(source.save_snapshot(), plain.save_snapshot(), "{case}");
+            let _ = source.save_snapshot_v6();
+            let _ = source.save_snapshot_v10();
+            let saved = source.save_snapshot_v18();
+            assert_eq!(
+                saved
+                    .queued_settings
+                    .iter()
+                    .map(|row| row.0 as usize)
+                    .collect::<Vec<_>>(),
+                vec![first, second],
+                "{case}"
+            );
+            let mut restored = Sim::new_from_shipped_lot();
+            restored.load_snapshot_v18(saved.clone()).unwrap();
+            assert_eq!(
+                restored.world().resource::<CommandQueue>().as_slice(),
+                combined,
+                "{case}"
+            );
+            assert_eq!(restored.save_snapshot_v18(), saved, "{case}");
+            assert_eq!(restored.world_hash(), source.world_hash(), "{case}");
+            source.flush_commands();
+            restored.flush_commands();
+            assert_eq!(restored.world_hash(), source.world_hash(), "{case}");
+            cases += 1;
+        }
+    }
+    assert_eq!(cases, total * (total - 1) / 2);
+}
+
+#[test]
+fn queued_settings_count_toward_the_shared_command_limit() {
+    let mut source = Sim::new_from_shipped_lot();
+    let commands = staged_commands(&source);
+    let pair = settings(&source);
+    let combined = with_settings(&commands, &pair, 0, commands.len() + 1);
+    stage(&mut source, &combined);
+    let saved = source.save_snapshot_v18();
+    let mut content = terri_data::pack().clone();
+    // The ordinary commands fit; with the two settings the queue is one over.
+    content.tuning.max_queued_commands = combined.len() as u32 - 1;
+    let mut live = Sim::new_from_shipped_lot_with_seed(574);
+    live.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(content))));
+    let before = live.save_snapshot_v18();
+    let hash = live.world_hash();
+    assert!(live.load_snapshot_v18(saved).is_err());
+    assert_eq!(live.save_snapshot_v18(), before);
+    assert_eq!(live.world_hash(), hash);
+}

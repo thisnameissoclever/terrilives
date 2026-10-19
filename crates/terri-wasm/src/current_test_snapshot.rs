@@ -16,17 +16,21 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
     *captured = source;
 }
 
+/// The schema-seventeen envelope of a current save. The tests that read it
+/// never turn anyone's job search off, which is all schema eighteen adds;
+/// the decode checks that.
 pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV17 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &17u16.to_le_bytes()
+        &18u16.to_le_bytes()
     );
     let (snapshot, remaining) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV17>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV18>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(remaining.is_empty());
-    snapshot
+    assert!(snapshot.job_search_off.is_empty());
+    snapshot.legacy
 }
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {

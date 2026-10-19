@@ -51,7 +51,7 @@ fn main() {
             sim.world_mut()
                 .entity_mut(person)
                 .insert(Position { x: pos.0, y: pos.1 });
-            let mut household = sim.save_snapshot_v17();
+            let mut household = sim.save_snapshot_v18();
             let saved = support::v5_mut(&mut household);
             let chores = saved.chores.as_mut().unwrap();
             chores.board_enabled = false;
@@ -60,7 +60,7 @@ fn main() {
             } else {
                 chores.surfaces = vec![(object.index_u32(), 1000)];
             }
-            sim.load_snapshot_v17(household).unwrap();
+            sim.load_snapshot_v18(household).unwrap();
             let bytes = support::encode(&sim);
             std::fs::write(
                 directory.join(format!("cleaning-{name}-{facing}.sav")),
