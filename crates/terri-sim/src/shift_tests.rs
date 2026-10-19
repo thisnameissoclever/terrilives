@@ -1,10 +1,10 @@
 //! Drawing and holding a shift: issue 296,
 //! `docs/specs/2026-10-18-shifts-and-careers.md`, [WS-choose].
 use super::*;
-use crate::careers::Record;
+use crate::careers::{CareerRefusal, Record};
 use crate::{Content, Sim};
 use std::collections::BTreeMap;
-use terri_core::{Agent, Career, CommandQueue, SimCommand, SimRng};
+use terri_core::{Agent, Career, CommandQueue, SimClock, SimCommand, SimRng};
 use terri_data::{CompiledShift, Tuning};
 
 /// The shipped lot with its pack changed by `edit`, the search at
@@ -427,4 +427,429 @@ fn a_death_drops_the_held_shift() {
     crate::mortality::remove_person(sim.world_mut(), entity);
     sim.world_mut().despawn(entity);
     assert!(sim.world().resource::<Careers>().record(id).is_none());
+}
+
+// Choosing and changing a shift by command: [WS-select].
+
+fn result(sim: &Sim) -> Option<crate::careers::CareerResult> {
+    sim.world().resource::<Careers>().last_result
+}
+
+fn reason(sim: &Sim) -> Option<Option<CareerRefusal>> {
+    result(sim).map(|result| result.reason)
+}
+
+/// [WS-select] item 1: `AssignCareerShift` assigns the path as
+/// `AssignCareer` does and holds the chosen shift, drawing nothing.
+#[test]
+fn assigning_with_a_shift_holds_it_without_a_draw() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let (id, entity) = worker(&mut sim);
+    let pack = pack(&sim);
+    let cafe = path_index(pack, "cafe");
+    let first = row(pack, "cafe", 0);
+    let late = pack.careers[first].shift_index("late").expect("listed") as u32;
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: cafe,
+            shift: late,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        sim.world().get::<Career>(entity).map(|c| c.0 as usize),
+        Some(first)
+    );
+    let record = sim
+        .world()
+        .resource::<Careers>()
+        .record(id)
+        .cloned()
+        .unwrap();
+    assert_eq!(
+        record,
+        Record {
+            shift: late,
+            ..Record::new(&pack.careers[first])
+        }
+    );
+    assert_eq!(draws(&sim), (0, 0));
+    let shift = shift_of(sim.world(), pack, entity).unwrap();
+    assert_eq!(
+        (shift.id, shift.shift_start, shift.shift_ticks),
+        ("late", 780, 420)
+    );
+}
+
+/// [WS-select] item 3: a change of shift resets the good-week streak and
+/// changes nothing else: pay, level, job satisfaction, the poor-week streak,
+/// the week's scores and the history stay.
+#[test]
+fn changing_shift_costs_only_the_good_week_streak() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let (id, entity) = worker(&mut sim);
+    let before = Record {
+        pay: 140,
+        job_satisfaction: 71.5,
+        consecutive_poor: 1,
+        consecutive_good: 2,
+        shifts: vec![61.0, 64.5],
+        history: vec![crate::careers::Week {
+            week: 0,
+            performance: 66.0,
+            event: crate::careers::EVENT_RAISE,
+        }],
+        ..Record::new(&pack(&sim).careers[0])
+    };
+    sim.world_mut()
+        .resource_mut::<Careers>()
+        .records
+        .insert(id, before.clone());
+    let job = sim.world().get::<Career>(entity).copied();
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: entity.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        sim.world().resource::<Careers>().record(id),
+        Some(&Record {
+            consecutive_good: 0,
+            shift: 1,
+            ..before
+        })
+    );
+    assert_eq!(sim.world().get::<Career>(entity).copied(), job);
+    assert_eq!(draws(&sim), (0, 0));
+}
+
+/// A worker at home during their scheduled shift, kept there by a player
+/// order, as `attendance`'s own tests build one: the one job starts at tick
+/// 60 and offers its standard shift and a late one.
+fn kept_home() -> (Sim, Entity) {
+    use terri_core::{IntentQueue, NeedId, Needs, Position, Satisfaction, SmartObject};
+    let base = crate::test_content::pack(vec![crate::test_content::object(
+        "long_action",
+        &[(NeedId::Fun, 10.0)],
+        1000,
+    )]);
+    let mut job = terri_data::pack().careers[0].clone();
+    job.shift_start = 60;
+    job.shift_ticks = 480;
+    job.pay = 130;
+    job.pay_max = 200;
+    job.working_days = 0b1111111;
+    job.standard_weight = 1;
+    job.shifts = vec![CompiledShift {
+        id: "late".to_string(),
+        kind: terri_data::SHIFT_LATE,
+        shift_start: 900,
+        shift_ticks: 300,
+        working_days: 0b1111111,
+        weight: 1,
+    }];
+    let pack = Box::leak(Box::new(ContentPack {
+        careers: vec![job],
+        portals: vec![terri_data::CompiledPortal {
+            position: (15, 2),
+            inward: (15, 3),
+            facing: terri_data::CompiledSocketFacing::PositiveX,
+            hinge: terri_data::CompiledPortalHinge::Left,
+            frame_sprite: 41,
+            closed_sprite: 42,
+            ajar_sprite: 43,
+            open_sprite: 44,
+        }],
+        ..base.clone()
+    }));
+    let mut sim = crate::test_content::sim_with(16, 12, pack);
+    let actor = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            SimId(1),
+            Position { x: 15.0, y: 2.0 },
+            Needs::all_at(80.0),
+            Career(0),
+            IntentQueue::default(),
+            Satisfaction::from_value(0.0),
+        ))
+        .id();
+    let object = sim
+        .world_mut()
+        .spawn((
+            SmartObject(terri_core::ObjectDefId(0)),
+            Position { x: 14.0, y: 2.0 },
+        ))
+        .id();
+    issue(
+        &mut sim,
+        SimCommand::UseObject {
+            agent: actor.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        },
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = 60;
+    crate::attendance::start_tick(sim.world_mut());
+    assert!(crate::attendance::has_open_shift(sim.world(), actor));
+    assert!(sim.world().get::<terri_core::Commuting>(actor).is_none());
+    (sim, actor)
+}
+
+/// [WS-select] item 3: a scheduled shift still open while the person is at
+/// home settles, as a career change settles it, before the change.
+#[test]
+fn changing_shift_settles_an_open_shift_at_home() {
+    let (mut sim, actor) = kept_home();
+    sim.world_mut().resource_mut::<SimClock>().tick = 120;
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert!(!crate::attendance::has_open_shift(sim.world(), actor));
+    let attendance = sim.world().resource::<crate::attendance::Attendance>();
+    assert_eq!(attendance.outcomes.len(), 1, "settled once");
+    assert_eq!(attendance.outcomes[0].worked_minutes, 0.0);
+    assert_eq!(held(&sim, SimId(1)), 1);
+    let shift = shift_of(sim.world(), pack(&sim), actor).unwrap();
+    assert_eq!((shift.id, shift.shift_start), ("late", 900));
+}
+
+/// [WS-select] item 4: each refusal leaves the world as it was apart from
+/// the command count, and reports its number.
+#[test]
+fn the_shift_commands_refuse_each_case_without_changing_the_world() {
+    let refused = |sim: &mut Sim, command: SimCommand, expected: CareerRefusal| {
+        let before = sim.world_hash();
+        let commands = sim.world().resource::<Careers>().commands;
+        issue(sim, command.clone());
+        assert_eq!(reason(sim), Some(Some(expected)), "{command:?}");
+        {
+            let mut careers = sim.world_mut().resource_mut::<Careers>();
+            assert_eq!(careers.commands, commands + 1, "{command:?} is counted");
+            careers.commands = commands;
+        }
+        assert_eq!(sim.world_hash(), before, "{command:?} changes nothing");
+    };
+    // The numbers the shell reads continue the career refusals.
+    assert_eq!(
+        [
+            CareerRefusal::ShiftNotOffered as u8,
+            CareerRefusal::NotEmployed as u8,
+            CareerRefusal::SameShift as u8
+        ],
+        [4, 5, 6]
+    );
+    let mut sim = shipped_with(|pack| {
+        let office = row(pack, "office", 0);
+        weigh(pack, office, &[("standard", 19), ("late", 0)]);
+    });
+    let (_, tim) = worker(&mut sim);
+    let people = household(&mut sim);
+    let bill = people
+        .iter()
+        .find(|(_, entity)| sim.world().get::<Career>(*entity).is_none())
+        .expect("an unemployed housemate")
+        .1;
+    let furniture = sim
+        .world_mut()
+        .query_filtered::<Entity, Without<Agent>>()
+        .iter(sim.world())
+        .next()
+        .expect("the lot has furniture")
+        .index_u32();
+    let agent = tim.index_u32();
+    let cafe = path_index(pack(&sim), "cafe");
+    for command in [
+        SimCommand::AssignCareerShift {
+            agent: furniture,
+            path: cafe,
+            shift: 0,
+        },
+        SimCommand::ChangeShift {
+            agent: 99_999,
+            shift: 0,
+        },
+    ] {
+        refused(&mut sim, command, CareerRefusal::NotAPerson);
+    }
+    refused(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent,
+            path: 99,
+            shift: 0,
+        },
+        CareerRefusal::UnknownPath,
+    );
+    for command in [
+        SimCommand::AssignCareerShift {
+            agent,
+            path: cafe,
+            shift: 3,
+        },
+        SimCommand::ChangeShift { agent, shift: 2 },
+        // The office's late shift is listed with weight 0 here: held by
+        // nobody new, offered to nobody.
+        SimCommand::ChangeShift { agent, shift: 1 },
+        SimCommand::AssignCareerShift {
+            agent,
+            path: 0,
+            shift: 1,
+        },
+    ] {
+        refused(&mut sim, command, CareerRefusal::ShiftNotOffered);
+    }
+    refused(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: bill.index_u32(),
+            shift: 0,
+        },
+        CareerRefusal::NotEmployed,
+    );
+    refused(
+        &mut sim,
+        SimCommand::ChangeShift { agent, shift: 0 },
+        CareerRefusal::SameShift,
+    );
+    for away in [0, 1] {
+        if away == 0 {
+            sim.world_mut().entity_mut(tim).insert(terri_core::AtWork {
+                remaining_ticks: 100,
+            });
+        } else {
+            sim.world_mut()
+                .entity_mut(tim)
+                .remove::<terri_core::AtWork>()
+                .insert(terri_core::Commuting::Outbound);
+        }
+        for command in [
+            SimCommand::AssignCareerShift {
+                agent,
+                path: cafe,
+                shift: 1,
+            },
+            SimCommand::ChangeShift { agent, shift: 0 },
+        ] {
+            refused(&mut sim, command, CareerRefusal::AtWork);
+        }
+    }
+}
+
+/// [WS-select] item 5: both commands are career commands, applied or
+/// refused: each handled one adds one to the count and sets the result.
+#[test]
+fn the_shift_commands_count_as_career_commands() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let (_, entity) = worker(&mut sim);
+    let agent = entity.index_u32();
+    let count = |sim: &Sim| sim.world().resource::<Careers>().commands;
+    issue(&mut sim, SimCommand::ChangeShift { agent, shift: 1 });
+    assert_eq!(count(&sim), 1);
+    assert_eq!(
+        result(&sim),
+        Some(crate::careers::CareerResult {
+            agent,
+            reason: None
+        })
+    );
+    issue(&mut sim, SimCommand::ChangeShift { agent, shift: 1 });
+    assert_eq!(count(&sim), 2);
+    assert_eq!(reason(&sim), Some(Some(CareerRefusal::SameShift)));
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent,
+            path: 1,
+            shift: 0,
+        },
+    );
+    assert_eq!(count(&sim), 3);
+    assert_eq!(reason(&sim), Some(None));
+}
+
+/// [WS-choose] step 3 after [WS-select] item 1: a chosen shift is kept by a
+/// promotion to a level that offers it, with no draw.
+#[test]
+fn a_promotion_after_a_chosen_shift_keeps_it_when_offered() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_promote_base = 1.0;
+    });
+    let (id, entity) = worker(&mut sim);
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: 0,
+            shift: 1,
+        },
+    );
+    {
+        let mut careers = sim.world_mut().resource_mut::<Careers>();
+        let record = careers.records.get_mut(&id).unwrap();
+        record.consecutive_good = 10;
+        record.shifts = vec![100.0; 5];
+    }
+    crate::careers::review(sim.world_mut(), 0, 1440 * 7);
+    let pack = pack(&sim);
+    assert_eq!(
+        sim.world().get::<Career>(entity).map(|c| c.0 as usize),
+        Some(row(pack, "office", 1))
+    );
+    let shift = shift_of(sim.world(), pack, entity).unwrap();
+    assert_eq!((shift.id, shift.shift_start), ("late", 720));
+    assert_eq!(draws(&sim).1, 0);
+}
+
+/// Until schema nineteen carries them (plan Task 9), the current
+/// schema-eighteen writer leaves queued shift commands out, and every other
+/// queued command, a setting placed by position among them, loads in order.
+#[test]
+fn schema_eighteen_leaves_queued_shift_commands_out_until_schema_nineteen() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let (_, entity) = worker(&mut sim);
+    let agent = entity.index_u32();
+    for command in [
+        SimCommand::SetSpeed(2),
+        SimCommand::ChangeShift { agent, shift: 1 },
+        SimCommand::SetJobSearch {
+            agent,
+            search: false,
+        },
+        SimCommand::AssignCareerShift {
+            agent,
+            path: 1,
+            shift: 0,
+        },
+        SimCommand::SetSpeed(1),
+    ] {
+        sim.world_mut().resource_mut::<CommandQueue>().push(command);
+    }
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded
+        .load_snapshot_v18(sim.save_snapshot_v18())
+        .expect("loads");
+    assert_eq!(
+        loaded.world().resource::<CommandQueue>().as_slice(),
+        [
+            SimCommand::SetSpeed(2),
+            SimCommand::SetJobSearch {
+                agent,
+                search: false
+            },
+            SimCommand::SetSpeed(1),
+        ]
+    );
 }

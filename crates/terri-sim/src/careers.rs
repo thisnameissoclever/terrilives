@@ -49,6 +49,12 @@ pub enum CareerRefusal {
     NotAPerson = 1,
     AtWork = 2,
     UnknownPath = 3,
+    /// Issue 296, [WS-select]: the level does not offer that shift.
+    ShiftNotOffered = 4,
+    /// The person has no job whose shift could change.
+    NotEmployed = 5,
+    /// The person already holds that shift.
+    SameShift = 6,
 }
 
 /// What the drain did with the last career command: the person it named
@@ -1053,36 +1059,102 @@ pub(crate) fn tick(world: &mut World) {
     }
 }
 
-/// Rule 12: the player puts `agent` on `path`.
+/// Rule 12: the player puts `agent` on `path`, drawing the shift.
 pub(crate) fn assign(world: &mut World, agent: u32, path: u32) {
-    let reason = assign_or_refuse(world, agent, Some(path));
-    let mut careers = world.resource_mut::<Careers>();
-    careers.commands += 1;
-    careers.last_result = Some(CareerResult { agent, reason });
+    let reason = assign_or_refuse(world, agent, Some(path), None);
+    record_command(world, agent, reason);
+}
+
+/// [WS-select] item 1: the player puts `agent` on `path` holding shift
+/// index `shift` of its first level, with no draw.
+pub(crate) fn assign_with_shift(world: &mut World, agent: u32, path: u32, shift: u32) {
+    let reason = assign_or_refuse(world, agent, Some(path), Some(shift));
+    record_command(world, agent, reason);
 }
 
 /// Rule 12: the player makes `agent` unemployed.
 pub(crate) fn quit(world: &mut World, agent: u32) {
-    let reason = assign_or_refuse(world, agent, None);
+    let reason = assign_or_refuse(world, agent, None, None);
+    record_command(world, agent, reason);
+}
+
+/// [WS-select] items 2 and 3: the employed `agent` holds shift index
+/// `shift` of their level from now on. Any scheduled shift still open at
+/// home settles first, as a career change settles it, and the good-week
+/// streak starts again; nothing else about the job changes.
+pub(crate) fn change_shift(world: &mut World, agent: u32, shift: u32) {
+    let reason = change_shift_or_refuse(world, agent, shift);
+    record_command(world, agent, reason);
+}
+
+/// Every career command, applied or refused, is counted and reported.
+fn record_command(world: &mut World, agent: u32, reason: Option<CareerRefusal>) {
     let mut careers = world.resource_mut::<Careers>();
     careers.commands += 1;
     careers.last_result = Some(CareerResult { agent, reason });
 }
 
-fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<CareerRefusal> {
-    let pack = world.resource::<Content>().0;
+/// The living person at entity index `agent` who is at home, or why not.
+fn person_at_home(world: &World, agent: u32) -> Result<(Entity, SimId), CareerRefusal> {
     // `agent` is an entity index, as every per-person command names one.
-    let Some(entity) = crate::family::sim_id_at(world, agent)
+    let entity = crate::family::sim_id_at(world, agent)
         .and_then(|sim| crate::edit::living_entity(world, sim))
-    else {
-        return Some(CareerRefusal::NotAPerson);
-    };
+        .ok_or(CareerRefusal::NotAPerson)?;
     if world.get::<AtWork>(entity).is_some() || world.get::<Commuting>(entity).is_some() {
-        return Some(CareerRefusal::AtWork);
+        return Err(CareerRefusal::AtWork);
     }
     let sim = *world
         .get::<SimId>(entity)
         .expect("a living person has an id");
+    Ok((entity, sim))
+}
+
+fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let (entity, sim) = match person_at_home(world, agent) {
+        Ok(person) => person,
+        Err(reason) => return Some(reason),
+    };
+    let Some(job) = job_of(world, pack, entity) else {
+        return Some(CareerRefusal::NotEmployed);
+    };
+    if !job.offers(shift as usize) {
+        return Some(CareerRefusal::ShiftNotOffered);
+    }
+    let held = world
+        .resource::<Careers>()
+        .record(sim)
+        .map_or(0, |record| record.shift);
+    if held == shift {
+        return Some(CareerRefusal::SameShift);
+    }
+    crate::attendance::close_for_career_change(world, entity);
+    // A departure a reading order deferred belongs to the old shift, as an
+    // assignment drops it for the old job.
+    world
+        .entity_mut(entity)
+        .remove::<crate::reading::PendingShift>();
+    let mut careers = world.resource_mut::<Careers>();
+    let record = careers
+        .records
+        .entry(sim)
+        .or_insert_with(|| Record::new(job));
+    record.consecutive_good = 0;
+    record.shift = shift;
+    None
+}
+
+fn assign_or_refuse(
+    world: &mut World,
+    agent: u32,
+    path: Option<u32>,
+    chosen: Option<u32>,
+) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let (entity, sim) = match person_at_home(world, agent) {
+        Ok(person) => person,
+        Err(reason) => return Some(reason),
+    };
     match path {
         Some(path) => {
             let Some(&row) = pack
@@ -1093,9 +1165,15 @@ fn assign_or_refuse(world: &mut World, agent: u32, path: Option<u32>) -> Option<
                 return Some(CareerRefusal::UnknownPath);
             };
             let job = &pack.careers[row as usize];
+            if chosen.is_some_and(|shift| !job.offers(shift as usize)) {
+                return Some(CareerRefusal::ShiftNotOffered);
+            }
             crate::attendance::close_for_career_change(world, entity);
             let mut careers = world.resource_mut::<Careers>();
-            let shift = crate::shifts::draw(&mut careers, job);
+            let shift = match chosen {
+                Some(shift) => shift,
+                None => crate::shifts::draw(&mut careers, job),
+            };
             careers.records.insert(
                 sim,
                 Record {

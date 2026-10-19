@@ -14,6 +14,24 @@ pub(crate) fn is_queued_setting(command: &SimCommand) -> bool {
     )
 }
 
+/// Whether `command` is a shift command (issue 296), which no schema up to
+/// eighteen can record. Until schema nineteen carries them, every writer
+/// leaves them out of the queue it saves and out of the positions it
+/// counts, so the rest of the queue still loads in order.
+pub(crate) fn is_shift_command(command: &SimCommand) -> bool {
+    matches!(
+        command,
+        SimCommand::AssignCareerShift { .. } | SimCommand::ChangeShift { .. }
+    )
+}
+
+/// Whether the schema-seventeen envelope leaves `command` out of its
+/// command records: a queued setting, which schema eighteen places by
+/// position, or a shift command.
+pub(crate) fn left_out_of_records(command: &SimCommand) -> bool {
+    is_queued_setting(command) || is_shift_command(command)
+}
+
 fn saved_setting(command: &SimCommand) -> Option<SavedQueuedSetting> {
     match *command {
         SimCommand::SetJobSearch { agent, search } => {
@@ -39,6 +57,7 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV18 {
         .resource::<CommandQueue>()
         .as_slice()
         .iter()
+        .filter(|command| !is_shift_command(command))
         .enumerate()
         .filter_map(|(position, command)| {
             saved_setting(command).map(|setting| (position as u32, setting))

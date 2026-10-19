@@ -4586,6 +4586,12 @@ impl Sim {
                         vec![36, u64::from(*agent), u64::from(*search)]
                     }
                     SetCareerChange { change } => vec![37, u64::from(*change)],
+                    AssignCareerShift { agent, path, shift } => {
+                        vec![38, u64::from(*agent), u64::from(*path), u64::from(*shift)]
+                    }
+                    ChangeShift { agent, shift } => {
+                        vec![39, u64::from(*agent), u64::from(*shift)]
+                    }
                     ConfirmedOrder {
                         fingerprint,
                         command,

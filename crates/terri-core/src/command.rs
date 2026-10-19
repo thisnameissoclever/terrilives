@@ -343,6 +343,21 @@ pub enum SimCommand {
     SetCareerChange {
         change: bool,
     },
+    /// Shifts (issue 296, [WS-select] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`): put `agent` on the
+    /// first level of path `path`, as `AssignCareer` does, holding shift
+    /// index `shift` of that level with no draw. Code 38.
+    AssignCareerShift {
+        agent: u32,
+        path: u32,
+        shift: u32,
+    },
+    /// Shifts: make the employed `agent` hold shift index `shift` of their
+    /// current level. Code 39.
+    ChangeShift {
+        agent: u32,
+        shift: u32,
+    },
 }
 
 /// The finite set of commands that can require a work confirmation.
@@ -1367,6 +1382,34 @@ mod window_wire_tests {
         // positions instead (`docs/specs/2026-10-18-job-search-per-person.md`).
         assert!(postcard::from_bytes::<SavedCommand>(&[33, 172, 2, 1]).is_err());
         assert!(postcard::from_bytes::<SavedCommand>(&[34, 0]).is_err());
+    }
+
+    /// Shifts (issue 296, [WS-select]): the two shift commands append codes
+    /// 38 and 39 after every earlier command, field by field. The published
+    /// saved command records stay frozen, so neither has a saved code.
+    #[test]
+    fn the_new_commands_keep_their_wire_codes() {
+        for (command, bytes) in [
+            (
+                SimCommand::AssignCareerShift {
+                    agent: 34,
+                    path: 1,
+                    shift: 2,
+                },
+                vec![38, 34, 1, 2],
+            ),
+            (
+                SimCommand::ChangeShift {
+                    agent: 300,
+                    shift: 1,
+                },
+                vec![39, 172, 2, 1],
+            ),
+        ] {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
+            assert!(postcard::from_bytes::<SavedCommand>(&bytes).is_err());
+        }
     }
 }
 
