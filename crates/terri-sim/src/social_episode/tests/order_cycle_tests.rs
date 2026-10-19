@@ -1,9 +1,8 @@
 //! Issue 301: a person who only waits for their own conversation or fight is
 //! not busy, so orders and pending chats cannot wait on each other forever.
 use super::*;
-use crate::fights::{Fights, FIGHT_TAG};
+use crate::fights::FIGHT_TAG;
 use std::collections::BTreeSet;
-use terri_core::Intent;
 
 const CHAT: u32 = 0;
 const FIGHT: u32 = 1;
@@ -40,23 +39,7 @@ fn three_people() -> (Sim, Entity, Entity, Entity) {
 
 /// The chore-fight trigger's order: pushed to the front and owned by the game.
 fn game_fight(sim: &mut Sim, person: Entity, partner: Entity) -> u64 {
-    let intent = Intent {
-        cleanup: None,
-        chore: None,
-        object: partner,
-        interaction: FIGHT,
-    };
-    let world = sim.world_mut();
-    if world.get::<IntentQueue>(person).is_none() {
-        world.entity_mut(person).insert(IntentQueue::default());
-    }
-    let id = world
-        .get_mut::<IntentQueue>(person)
-        .unwrap()
-        .insert_order(intent, None, true)
-        .expect("the queue has room");
-    world.resource_mut::<Fights>().restore_order(person, id);
-    id
+    attributed_system_fight(sim, person, partner)
 }
 
 fn player_fight(sim: &mut Sim, person: Entity, partner: Entity) {
@@ -137,9 +120,30 @@ fn a_pending_chat_and_chained_fight_orders_cannot_wait_on_each_other() {
             game_fight(&mut sim, bill, tim);
         }
         game_fight(&mut sim, casey, bill);
-        let expected = [(bill, tim, FIGHT), (casey, bill, FIGHT), (tim, bill, CHAT)];
+        let expected = if player_ordered {
+            vec![(bill, tim, FIGHT), (tim, bill, CHAT)]
+        } else {
+            vec![(tim, bill, CHAT)]
+        };
         let mut recorder = Recorder::default();
-        recorder.until(&mut sim, &expected);
+        for _ in 0..1500 {
+            recorder.tick(&mut sim);
+            if expected.iter().all(|talk| recorder.seen.contains(talk))
+                && [bill, casey].into_iter().all(|person| {
+                    sim.world()
+                        .get::<IntentQueue>(person)
+                        .is_none_or(IntentQueue::is_empty)
+                })
+                && sim
+                    .world()
+                    .resource::<requests::ConversationRequests>()
+                    .requests
+                    .get(&chat)
+                    .is_some_and(|r| r.phase == requests::RequestPhase::Talking)
+            {
+                break;
+            }
+        }
         let seen = recorder.seen.clone();
         for (initiator, partner, interaction) in expected {
             assert!(
@@ -162,10 +166,20 @@ fn a_pending_chat_and_chained_fight_orders_cannot_wait_on_each_other() {
             recorder.tick(&mut sim);
         }
         for fight in [(bill, tim, FIGHT), (casey, bill, FIGHT)] {
-            assert_eq!(
-                recorder.starts.get(&fight),
-                Some(&1),
-                "player_ordered={player_ordered}: {fight:?} is served once"
+            assert!(
+                recorder.starts.get(&fight).is_none_or(|count| *count == 1),
+                "player_ordered={player_ordered}: {fight:?} is never duplicated"
+            );
+        }
+        let served = [(bill, tim, FIGHT), (casey, bill, FIGHT)]
+            .into_iter()
+            .filter(|fight| recorder.seen.contains(fight))
+            .count();
+        assert_eq!(served,1,"the first completed argument puts Bill on cooldown and withdraws the other automatic order");
+        if player_ordered {
+            assert!(
+                !recorder.seen.contains(&(casey, bill, FIGHT)),
+                "the protected player fight completes; Casey's automatic request is withdrawn"
             );
         }
         for person in [tim, bill, casey] {
@@ -184,8 +198,8 @@ fn a_pending_chat_and_chained_fight_orders_cannot_wait_on_each_other() {
 #[test]
 fn mutual_fight_orders_beside_a_pending_chat_all_finish() {
     let (mut sim, tim, bill, casey) = three_people();
-    game_fight(&mut sim, tim, bill);
-    game_fight(&mut sim, bill, tim);
+    player_fight(&mut sim, tim, bill);
+    player_fight(&mut sim, bill, tim);
     pending_chat(&mut sim, casey, tim);
     let expected = [(tim, bill, FIGHT), (bill, tim, FIGHT), (casey, tim, CHAT)];
     let seen = run(&mut sim, &expected);
@@ -200,8 +214,8 @@ fn mutual_fight_orders_beside_a_pending_chat_all_finish() {
 fn a_three_person_cycle_mixing_a_chat_and_fights_breaks() {
     let (mut sim, tim, bill, casey) = three_people();
     pending_chat(&mut sim, tim, casey);
-    game_fight(&mut sim, casey, bill);
-    game_fight(&mut sim, bill, tim);
+    player_fight(&mut sim, casey, bill);
+    player_fight(&mut sim, bill, tim);
     let expected = [(bill, tim, FIGHT), (casey, bill, FIGHT), (tim, casey, CHAT)];
     let seen = run(&mut sim, &expected);
     for e in expected {
@@ -217,11 +231,12 @@ fn a_game_made_fight_yields_to_a_crisis_but_a_player_fight_does_not() {
     for player_ordered in [false, true] {
         for critical_recipient in [false, true] {
             let (mut sim, tim, bill, _casey) = three_people();
-            if player_ordered {
+            let automatic = if player_ordered {
                 player_fight(&mut sim, bill, tim);
+                None
             } else {
-                game_fight(&mut sim, bill, tim);
-            }
+                Some(game_fight(&mut sim, bill, tim))
+            };
             sim.tick();
             let critical = if critical_recipient { tim } else { bill };
             sim.world_mut()
@@ -243,13 +258,47 @@ fn a_game_made_fight_yields_to_a_crisis_but_a_player_fight_does_not() {
                 assert!(
                     sim.world()
                         .get::<Target>(bill)
-                        .is_none_or(|t| t.object != tim),
+                        .is_none_or(|t| t.object != tim || t.interaction != FIGHT),
                     "{case}: the withdrawn fight releases its approach"
                 );
+                let automatic = automatic.unwrap();
                 assert!(
-                    sim.world().get::<Reserved>(tim).is_none(),
-                    "{case}: the partner is free to look after themselves"
+                    !sim.world()
+                        .resource::<crate::fights::Fights>()
+                        .owns_order(bill, automatic),
+                    "{case}: the exact system identity is retired"
                 );
+                let conflicts = sim.world().resource::<crate::social_conflicts::State>();
+                assert!(
+                    conflicts
+                        .pending_fights
+                        .get(&bill)
+                        .is_none_or(|row| row.order_id != Some(automatic)),
+                    "{case}: the exact pending cause is retired"
+                );
+                assert!(
+                    conflicts
+                        .fights
+                        .get(&bill)
+                        .is_none_or(|row| !row.autonomous || row.order_id != Some(automatic)),
+                    "{case}: the exact running cause is retired"
+                );
+                let episodes = sim.world().resource::<SocialEpisodes>();
+                assert!(episodes.executions.get(&bill).is_none_or(|execution|!matches!(execution.owner,ExecutionOwner::System(Some(id)) if id==automatic)),"{case}: the exact system fight owns no execution");
+                if sim.world().get::<Reserved>(tim).is_some() {
+                    let replacement = episodes.rendezvous.get(&tim).is_some_and(|owner| {
+                        sim.world().get::<Target>(*owner).is_some_and(|target| {
+                            target.object == tim && (*owner != bill || target.interaction != FIGHT)
+                        })
+                    }) || sim
+                        .world_mut()
+                        .query::<(Entity, &Socialising)>()
+                        .iter(sim.world())
+                        .any(|(owner, talk)| {
+                            talk.partner == tim && (owner != bill || talk.interaction != FIGHT)
+                        });
+                    assert!(replacement,"{case}: a retained reservation must belong to another actual conversation, not the withdrawn fight");
+                }
             }
         }
     }

@@ -383,3 +383,12 @@ shipped and neither meant anything to a reader:
 
 1. **Mood points:** Signed contributions from the conditions in Sim details > Overview. Positive values add to overall mood and negative values subtract from it. Overall mood is bounded from -100 to +100. Sustained mood affects life satisfaction over time.
 2. **No assigned bed:** A -20 mood condition for a living Sim without permanent ownership of a sleeping place. Unassigned Sims automatically claim reachable, unassigned places on simulation ticks. Current occupancy is separate from permanent assignment.
+
+## Attributable arguments
+
+| Term | Meaning |
+| --- | --- |
+| **grievance** | A saved actual interpersonal incident with an affected Sim, responsible Sim, subject and time. It can supply an argument topic without inventing a new event. |
+| **continuous chore duty** | A specific assigned chore, owner and continuous unfinished-work start. Replacement dirt and reassignment create a different responsibility. |
+| **chore repair window** | Four game hours after a completed argument about a current duty, during which real matching completion can improve the participants' feelings and the proven observers' opinion of its cleaner. |
+| **scoped dish contribution** | Actual washed units credited to one continuous duty and cleaner, separate from older board totals. It identifies the largest contributor for relationship repair. |

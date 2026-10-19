@@ -56,6 +56,8 @@ pub(crate) struct Carried {
     pub room_mode: crate::rooms::RoomReferenceMode,
     /// The schema selects its actor references before any source validation.
     pub actor_references: ActorReferences,
+    /// Selected only by the outer schema-twenty reader.
+    pub current_fight_topics: bool,
 }
 
 impl Carried {
@@ -68,6 +70,7 @@ impl Carried {
             rooms: None,
             room_mode: crate::rooms::RoomReferenceMode::Legacy,
             actor_references: ActorReferences::Household,
+            current_fight_topics: false,
         }
     }
 
@@ -85,6 +88,7 @@ impl Carried {
                 .copied()
                 .unwrap_or_default(),
             actor_references: ActorReferences::Household,
+            current_fight_topics: false,
         }
     }
 }
@@ -120,6 +124,7 @@ pub(crate) mod v16;
 pub(crate) mod v17;
 pub(crate) mod v18;
 pub(crate) mod v19;
+pub(crate) mod v20;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -2427,12 +2432,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v19();
+        let state = uninterrupted.current_v19_view();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v19(state.clone())
+            .load_current_v19_view(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v19(), state);
+        assert_eq!(resumed.current_v19_view(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -2444,8 +2449,8 @@ mod tests {
             );
         }
         assert_eq!(
-            resumed.save_snapshot_v19(),
-            uninterrupted.save_snapshot_v19(),
+            resumed.current_v19_view(),
+            uninterrupted.current_v19_view(),
             "unhashed RNG, queues, and transient action state diverged"
         );
     }

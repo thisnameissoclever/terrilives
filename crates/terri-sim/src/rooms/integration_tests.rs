@@ -458,10 +458,10 @@ fn review_stale_legacy_visit_and_duty_seeds_remain_separate_retired_history() {
     assert_eq!(migrated.world().resource::<terri_core::SimRng>(), &rng);
     assert_eq!(chores.rng, chore_rng);
     assert!(migrated.try_save_snapshot_v14().is_err());
-    let current = migrated.save_snapshot_v19();
+    let current = migrated.current_v19_view();
     let mut resumed = Sim::new_from_shipped_lot();
-    resumed.load_snapshot_v19(current.clone()).unwrap();
-    assert_eq!(resumed.save_snapshot_v19(), current);
+    resumed.load_current_v19_view(current.clone()).unwrap();
+    assert_eq!(resumed.current_v19_view(), current);
     let before = crate::chores::RoomChangeContext::capture(resumed.world()).unwrap();
     let mut choices = RoomChoices::default();
     choices.names.insert(

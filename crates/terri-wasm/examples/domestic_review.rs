@@ -1,6 +1,7 @@
 //! Reproducible saved household for reviewing a four-person shared meal.
 #[path = "support/mod.rs"]
 mod support;
+use support::CurrentSnapshotViews;
 use terri_core::{CommandQueue, NeedId, SimCommand};
 use terri_sim::Sim;
 
@@ -48,7 +49,7 @@ fn main() {
             person.wander_pause_ticks = Some(10_000);
         }
     }
-    sim.load_snapshot_v19(household).unwrap();
+    sim.load_current_snapshot(household).unwrap();
     let pack = sim.world().resource::<terri_sim::Content>().0;
     let fridge_model = pack.find("fridge").unwrap();
     let fridge = sim
@@ -74,7 +75,7 @@ fn main() {
     let mut reached = false;
     for _ in 0..1500 {
         sim.tick();
-        let state = sim.save_snapshot_v19();
+        let state = sim.current_snapshot();
         let five = &state
             .legacy
             .legacy
@@ -106,7 +107,7 @@ fn main() {
     {
         person.needs.as_mut().unwrap()[NeedId::Hunger.index()] = 30.;
     }
-    sim.load_snapshot_v19(household).unwrap();
+    sim.load_current_snapshot(household).unwrap();
     sim.tick();
     let snapshot = support::capture(&sim);
     let mut expected_guests: Vec<_> = people.iter().skip(1).map(|(_, id)| *id).collect();
@@ -135,11 +136,11 @@ fn main() {
     let meal_tick = meal.tick;
     // Retain the just-plated scene; independently prove its invited friends collect food.
     let mut continuation = Sim::new_from_shipped_lot();
-    continuation.load_snapshot_v19(snapshot).unwrap();
+    continuation.load_current_snapshot(snapshot).unwrap();
     let mut collected = std::collections::BTreeSet::new();
     for _ in 0..300 {
         continuation.tick();
-        let state = continuation.save_snapshot_v19();
+        let state = continuation.current_snapshot();
         let five = &state
             .legacy
             .legacy

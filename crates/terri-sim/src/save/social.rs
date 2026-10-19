@@ -83,6 +83,7 @@ pub(super) fn restore_into(
         saved_people,
         source_targets,
         super::ActorReferences::Household,
+        false,
     )
 }
 
@@ -93,6 +94,7 @@ pub(super) fn restore_into_current(
     social: SavedSocialEpisodes,
     saved_people: BTreeMap<u32, u32>,
     source_targets: BTreeMap<u32, SavedTarget>,
+    current_fight_topics: bool,
 ) -> Result<(), SaveError> {
     restore_into_mode(
         candidate,
@@ -100,6 +102,7 @@ pub(super) fn restore_into_current(
         saved_people,
         source_targets,
         super::ActorReferences::SavedAgents,
+        current_fight_topics,
     )
 }
 
@@ -109,6 +112,7 @@ fn restore_into_mode(
     saved_people: BTreeMap<u32, u32>,
     source_targets: BTreeMap<u32, SavedTarget>,
     references: super::ActorReferences,
+    current_fight_topics: bool,
 ) -> Result<(), SaveError> {
     let content = candidate.world.resource::<Content>().0;
     let identities: BTreeMap<_, _> = candidate
@@ -197,7 +201,11 @@ fn restore_into_mode(
             .get::<Socialising>(i)
             .and_then(|s| content.social.get(s.interaction as usize))
             .is_some_and(crate::fights::is_fight);
-        let fight_topic = crate::fights::Reason::from_tag(&t.tag);
+        let fight_topic = if current_fight_topics {
+            crate::fights::Reason::from_tag_current(&t.tag)
+        } else {
+            crate::fights::Reason::from_tag(&t.tag)
+        };
         if fighting != fight_topic.is_some() {
             return Err(SaveError::InvalidValue);
         }

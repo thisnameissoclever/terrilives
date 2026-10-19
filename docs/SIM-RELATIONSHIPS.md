@@ -108,14 +108,18 @@ average cleanliness, increasing or decreasing with cleanliness. Urgent needs
 reduce it. This is separate from cleaning the eater's own dishes; resuming an
 interrupted meal does not repeat the same complaint.
 
-Cleaning someone else's dishes currently removes the environmental nuisance.
-It does not automatically grant gratitude, a permanent friendship bonus, or
-credit toward the cook's hobby. Those would be separate authored interactions.
+Completed cleaning raises other living housemates' opinions of the cleaner, including when the board is off. Cleaner observers appreciate it more; messy observers still gain some goodwill. Physical completion pays once, separately from board accounting. Successful dish washing pays once per batch. Cancellation and zero completed work provide no appreciation. The [fight specification](specs/2026-10-16-fights.md) defines the additional temporary repair window after an argument about a current duty.
 
 Collection transfers visibility from furniture to a plate held by the cleaner.
 Taking another activity puts the dishes back and restores the nuisance until
 cleanup resumes. The claim remains exclusive while interrupted, so two Sims
 cannot claim the same cleanup. Cancellation releases that claim.
+
+## Arguments and follow-through
+
+Autonomous arguments require a recorded grievance against the other Sim: an actual privacy incident, a current overdue assigned chore, a nearby hated activity or a real unmet-need interruption. Worse mood increases their likelihood; better mood and positive opinion reduce it. Both Sims' cooldowns and urgent needs constrain autonomous arguments. Player arguments choose relevant recent history, with an ordinary random subject when none applies. See the [fight specification](specs/2026-10-16-fights.md) for probabilities, exact source ownership and save rules.
+
+After a completed argument about an unfinished assigned duty, the recipient makes one saved willingness decision with a neutral 80% chance of following through. Needs, work and player orders retain priority. Completing that duty within four game hours repairs opinions between the participants and toward the cleaner from housemates who actually complained. A declined response can still earn the bonus through later natural work. Old dirt, another duty or another person's work cannot claim that repair.
 
 ## Conversation topics and waiting
 

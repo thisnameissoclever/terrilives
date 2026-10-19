@@ -18,7 +18,7 @@ it('loads the captured historical save through release WASM and preserves contin
     expect(loaded.load_bytes(bytes.slice(0, -1))).toBe(false);
     expect(loaded.save_bytes()).toEqual(before);
     const current = loaded.save_bytes();
-    expect([...current.slice(8, 10)]).toEqual([19, 0]);
+    expect([...current.slice(8, 10)]).toEqual([20, 0]);
     expect(resumed.load_bytes(current)).toBe(true);
     for (let tick = 0; tick < 300; tick += 1) { loaded.tick(); resumed.tick(); }
     expect(loaded.sim_tick()).toBe(457n);
@@ -40,12 +40,33 @@ it.each(['local-character-0', 'local-character-400', 'local-character-1200',
       expect([...bytes.slice(8, 10)]).toEqual([9, 0]);
       expect(loaded.load_bytes(bytes)).toBe(true);
       const current = loaded.save_bytes();
-      expect([...current.slice(8, 10)]).toEqual([19, 0]);
+      expect([...current.slice(8, 10)]).toEqual([20, 0]);
       expect(resumed.load_bytes(current)).toBe(true);
       expect(resumed.save_bytes()).toEqual(current);
       for (let tick = 0; tick < 100; tick += 1) { loaded.tick(); resumed.tick(); }
       expect(loaded.save_bytes()).toEqual(resumed.save_bytes());
       expect(loaded.appearance_hash()).toBe(resumed.appearance_hash());
     } finally { loaded.free(); resumed.free(); }
+  },
+);
+
+it.each(['initial', 'running-fight'])(
+  'continues authentic published V19 %s through the release V20 reader', async (name) => {
+    await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+    const original = new Uint8Array(readFileSync(new URL(
+      `../../crates/terri-wasm/tests/fixtures/published-v19/${name}.sav`, import.meta.url)));
+    expect([...original.slice(8, 10)]).toEqual([19, 0]);
+    const migrated = SimHandle.from_lot();
+    const resumed = SimHandle.from_lot();
+    try {
+      expect(migrated.load_bytes(original)).toBe(true);
+      const current = migrated.save_bytes();
+      expect([...current.slice(8, 10)]).toEqual([20, 0]);
+      expect(resumed.load_bytes(current)).toBe(true);
+      expect(resumed.save_bytes()).toEqual(current);
+      for (let tick = 0; tick < 100; tick += 1) { migrated.tick(); resumed.tick(); }
+      expect(resumed.world_hash()).toBe(migrated.world_hash());
+      expect(resumed.save_bytes()).toEqual(migrated.save_bytes());
+    } finally { migrated.free(); resumed.free(); }
   },
 );

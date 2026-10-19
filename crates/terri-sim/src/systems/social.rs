@@ -109,6 +109,10 @@ pub fn tick_social(
             Err(_) => true,
         };
         if disturbed {
+            commands.queue(move |world: &mut World| {
+                let order = crate::social_episode::request_order_id(world, initiator);
+                crate::social_conflicts::cancel_execution(world, initiator, order)
+            });
             let mut initiator_commands = commands.entity(initiator);
             initiator_commands
                 .remove::<Socialising>()
@@ -185,6 +189,9 @@ pub fn tick_social(
         // moodlet; a second fight restarts the moodlet. The order pop and
         // the release below are the chat's.
         if fighting {
+            commands.queue(move |world: &mut World| {
+                crate::fights::completed(world, initiator, partner)
+            });
             for (me, other) in [(initiator, partner), (partner, initiator)] {
                 let (Ok(&my_id), Some(other_id)) = (sim_ids.get(me), other_sim_id(&sim_ids, other))
                 else {

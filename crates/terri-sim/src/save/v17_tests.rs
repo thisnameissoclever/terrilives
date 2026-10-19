@@ -674,14 +674,15 @@ fn v14_bare_waiter_is_adopted_before_a_current_save_without_claiming_admission()
             .rng,
         chore_rng
     );
-    let current = migrated.save_snapshot_v19();
+    let current = migrated.current_v19_view();
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v19(current.clone()).unwrap();
-    assert_eq!(restored.save_snapshot_v19(), current);
+    restored.load_current_v19_view(current.clone()).unwrap();
+    assert_eq!(restored.current_v19_view(), current);
     assert_eq!(restored.world_hash(), migrated.world_hash());
     let mut orphan = migrated.current_v5_view();
     orphan
         .0
+        .legacy
         .legacy
         .legacy
         .legacy

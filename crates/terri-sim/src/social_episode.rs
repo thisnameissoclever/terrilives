@@ -9,7 +9,7 @@ mod execution;
 mod execution_persistence;
 pub(crate) use execution::{
     commit_autonomous, complete_execution, execution_order, release_order, request_order_id,
-    Execution, ExecutionPhase,
+    Execution, ExecutionOwner, ExecutionPhase,
 };
 pub(crate) use execution_persistence::{
     adopt_legacy, adopt_published_player_requests, restore_executions, save_executions,
@@ -254,19 +254,12 @@ pub(crate) fn begin_topics(world: &mut World) {
             .get(interaction as usize)
             .is_some_and(crate::fights::is_fight)
         {
-            let reason = world
-                .get::<terri_core::SimId>(listener)
-                .copied()
-                .and_then(|id| crate::fights::reason_against(world, id));
-            world.resource_mut::<SocialEpisodes>().topics.insert(
-                initiator,
-                Topic {
-                    code: crate::fights::Reason::code(reason),
-                    tag: crate::fights::Reason::tag(reason).into(),
-                    initiator_preference: -1.,
-                    listener_preference: -1.,
-                },
-            );
+            if let Some(topic) = crate::fights::begin_topic(world, initiator, listener) {
+                world
+                    .resource_mut::<SocialEpisodes>()
+                    .topics
+                    .insert(initiator, topic);
+            }
             continue;
         }
         let prefs = |person| {

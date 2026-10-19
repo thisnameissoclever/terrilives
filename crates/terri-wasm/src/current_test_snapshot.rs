@@ -17,14 +17,14 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
 }
 
 /// Decode the complete current envelope without projecting away saved state.
-pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV19 {
+pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV20 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &19u16.to_le_bytes()
+        &20u16.to_le_bytes()
     );
     let (snapshot, remaining) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV19>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV20>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(remaining.is_empty());
     snapshot
@@ -32,13 +32,13 @@ pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV19 {
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub terri_core::SaveSnapshotV19);
+        pub(crate) struct $view(pub terri_core::SaveSnapshotV20);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.$($field).+ }
         }
     };
 }
@@ -95,24 +95,24 @@ pub(crate) trait CurrentSnapshotViews {
 }
 impl CurrentSnapshotViews for Sim {
     fn current_v17_view(&self) -> CurrentV17View {
-        CurrentV17View(self.save_snapshot_v19())
+        CurrentV17View(self.save_snapshot_v20())
     }
     fn load_current_v17_view(
         &mut self,
         snapshot: CurrentV17View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v19(snapshot.0)
+        self.load_snapshot_v20(snapshot.0)
     }
     fn current_v5_view(&self) -> CurrentV5View {
-        CurrentV5View(self.save_snapshot_v19())
+        CurrentV5View(self.save_snapshot_v20())
     }
     fn current_v6_view(&self) -> CurrentV6View {
-        CurrentV6View(self.save_snapshot_v19())
+        CurrentV6View(self.save_snapshot_v20())
     }
     fn load_current_v6_view(
         &mut self,
         snapshot: CurrentV6View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v19(snapshot.0)
+        self.load_snapshot_v20(snapshot.0)
     }
 }
