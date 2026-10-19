@@ -29,6 +29,8 @@ class FakeView implements ActivityLogView {
   calls = 0;
   bottom = true;
   scrolled = 0;
+  jumped = 0;
+  replaced = 0;
   focused = 0;
   fits = 0;
 
@@ -40,8 +42,15 @@ class FakeView implements ActivityLogView {
   reflectShowEarlier(visible: boolean) { this.calls++; this.earlier = visible; }
   replaceRows(texts: readonly string[]) {
     this.calls++;
+    this.replaced++;
     this.rows = texts.map(text => ({ row: { __row: true } as const, text }));
     return this.rows.map(entry => entry.row);
+  }
+  prependRows(texts: readonly string[]) {
+    this.calls++;
+    const added = texts.map(text => ({ row: { __row: true } as const, text }));
+    this.rows = [...added, ...this.rows];
+    return added.map(entry => entry.row);
   }
   appendRow(text: string) {
     this.calls++;
@@ -52,6 +61,7 @@ class FakeView implements ActivityLogView {
   removeRow(row: ActivityLogRow) { this.calls++; this.rows = this.rows.filter(entry => entry.row !== row); }
   atBottom() { this.calls++; return this.bottom; }
   scrollToBottom() { this.calls++; this.scrolled++; }
+  jumpToBottom() { this.calls++; this.jumped++; }
   focusToggle() { this.calls++; this.focused++; }
   fitAboveDock() { this.calls++; this.fits++; }
   texts() { return this.rows.map(entry => entry.text); }
@@ -256,6 +266,46 @@ describe('the activity log panel', () => {
     expect(view.rows).toHaveLength(2_000);
   });
 
+  it('shows earlier entries by composing and inserting only the lines it reveals', () => {
+    const { panel, view, names, drain, read } = setup();
+    // Time makes every line distinct, so the order can be checked.
+    panel.toggleFilter(6);
+    for (let batch = 0; batch < 2; batch++) drain(...Array.from({ length: 125 }, () => read()));
+    panel.open();
+    const kept = view.rows.map(entry => entry.row);
+    const replaced = view.replaced;
+    let composed = 0;
+    const name = names.name.bind(names);
+    names.name = simId => { composed++; return name(simId); };
+    panel.showEarlier();
+    expect(composed, 'only the 50 revealed lines are composed').toBe(50);
+    expect(view.replaced, 'the rendered lines are kept, not replaced').toBe(replaced);
+    expect(view.rows.slice(50).map(entry => entry.row)).toEqual(kept);
+    view.rows.slice(50).forEach((entry, index) => expect(entry.row).toBe(kept[index]));
+    expect(view.texts()).toEqual(Array.from({ length: 250 }, (_, index) => `D1, T${
+      String(Math.floor((index + 1) / 60)).padStart(2, '0')}:${String((index + 1) % 60).padStart(2, '0')} Tim: Read a book`));
+    expect(view.focused, 'focus stays on Show earlier entries').toBe(0);
+    expect(view.jumped, 'the old first line stays in place rather than jumping to the newest').toBe(1);
+    drain(read());
+    panel.update();
+    expect(view.rows).toHaveLength(251);
+    expect(view.texts()[250]).toBe('D1, T04:11 Tim: Read a book');
+  });
+
+  it('jumps to the newest line at once when a click rebuilds the list', () => {
+    const { panel, view, drain, read, select } = setup();
+    drain(read(TIM), read(BILL));
+    panel.open();
+    expect(view.jumped, 'opening is a click: the newest line shows at once').toBe(1);
+    view.bottom = false;
+    panel.toggleFilter(1);
+    expect(view.jumped, 'a filter change jumps even when the list keeps its height').toBe(2);
+    select(BILL);
+    panel.update();
+    expect(view.jumped, 'a selection seen in a frame reads no layout').toBe(2);
+    expect(view.replaced).toBe(3);
+  });
+
   it('follows the housemate the roster reports as selected and narrows the lines', () => {
     const { panel, view, drain, read, select } = setup();
     drain(read(TIM), read(BILL));
@@ -287,18 +337,25 @@ describe('the activity log panel', () => {
   it('shows what arrived when the staging ring dropped records', () => {
     // [R12]: records 3 and 4 were overwritten before a drain. Record 5 was
     // staged as a child of record 3, so it has no line to join and stays
-    // hidden; the lines around the gap compose as usual.
+    // hidden. Record 9's children, records 7 and 8, were overwritten too, so
+    // its line shows without their clauses, beside record 11, whose child
+    // arrived. The lines around the gaps compose as usual.
     const { panel, view, drain } = setup();
     const at = (seq: number, actor: number, parent = 0) => record({
       seq, tick: 10, kind: parent === 0 ? KIND.actionDone : KIND.skillLevel,
-      triggers: parent === 0 ? FILTER.actions : FILTER.skills, actor, label: 0, parent,
+      triggers: parent === 0 ? FILTER.actions : FILTER.skills, actor, label: 0, parent, values: [0, 2],
     });
     drain(at(1, TIM), at(2, BILL));
     panel.open();
     drain(at(5, TIM, 3), at(6, BILL));
     panel.update();
+    drain(at(9, TIM), at(10, BILL, 11), at(11, BILL));
+    panel.update();
     panel.toggleFilter(3);
-    expect(view.texts()).toEqual(['Tim: Read a book', 'Bill: Read a book', 'Bill: Read a book']);
+    expect(view.texts()).toEqual([
+      'Tim: Read a book', 'Bill: Read a book', 'Bill: Read a book',
+      'Tim: Read a book', 'Bill: Read a book; Read a book reached level 2',
+    ]);
   });
 
   it('remembers names from the roster for people who have left', () => {
@@ -323,13 +380,21 @@ describe('the activity log panel', () => {
   });
 });
 
-/** A stand-in for the panel's elements, counting every layout read. */
+/**
+ * A stand-in for the panel's elements, counting every layout read. Rows are
+ * 20 pixels tall in a 100-pixel scroller. Like a browser's ResizeObserver,
+ * the fake reports after layout only when an observed size changed or a
+ * target was newly observed.
+ */
 function fakePage() {
   let layoutReads = 0;
   let scrollTop = 0;
   const content = { height: 100 };
   const listeners: Record<string, () => void> = {};
   let observed: (() => void) | null = null;
+  let observing = false;
+  let fresh = false;
+  let reported = -1;
   const element = () => ({
     hidden: false,
     textContent: '',
@@ -338,15 +403,20 @@ function fakePage() {
     addEventListener(type: string, listener: () => void) { listeners[type] = listener; },
     focus() {},
   });
-  const items: { textContent: string; remove(): void }[] = [];
+  interface Item { textContent: string; remove(): void; getBoundingClientRect(): { top: number } }
+  const items: Item[] = [];
   const list = {
     ...element(),
-    firstElementChild: null,
-    append(item: { textContent: string; remove(): void }) {
+    get firstElementChild() { return items[0] ?? null; },
+    append(item: Item) {
       items.push(item);
       content.height += 20;
     },
-    replaceChildren(...next: { textContent: string; remove(): void }[]) {
+    prepend(...next: Item[]) {
+      items.unshift(...next);
+      content.height += 20 * next.length;
+    },
+    replaceChildren(...next: Item[]) {
       items.splice(0, items.length, ...next);
       content.height = 100 + 20 * next.length;
     },
@@ -361,14 +431,19 @@ function fakePage() {
   const dock = { ...element(), get offsetTop() { layoutReads++; return 700; } };
   class Observer {
     constructor(callback: () => void) { observed = callback; }
-    observe() {}
-    disconnect() {}
+    observe() { observing = true; fresh = true; }
+    unobserve() {}
+    disconnect() { observing = false; }
   }
   const page = { ResizeObserver: Observer, innerHeight: 900, addEventListener() {} };
   const doc = {
     defaultView: page,
     createElement: () => {
-      const item = { textContent: '', remove: () => { items.splice(items.indexOf(item), 1); } };
+      const item: Item = {
+        textContent: '',
+        remove: () => { items.splice(items.indexOf(item), 1); },
+        getBoundingClientRect: () => { layoutReads++; return { top: 20 * items.indexOf(item) - scrollTop }; },
+      };
       return item;
     },
   };
@@ -380,10 +455,16 @@ function fakePage() {
   return {
     view,
     items,
+    texts: () => items.map(item => item.textContent),
     reads: () => layoutReads,
     scrollTop: () => scrollTop,
     scroll: (to: number) => { scrollTop = to; listeners.scroll?.(); },
-    afterLayout: () => observed?.(),
+    afterLayout: () => {
+      if (!observing || (!fresh && reported === content.height)) return;
+      fresh = false;
+      reported = content.height;
+      observed?.();
+    },
   };
 }
 
@@ -406,7 +487,7 @@ describe('the activity log view', () => {
   it('stays where a player scrolled up to, and rows are their list items', () => {
     const page = fakePage();
     page.view.reflectOpen(true);
-    const rows = page.view.replaceRows(['a', 'b', 'c'], null);
+    const rows = page.view.replaceRows(['a', 'b', 'c']);
     page.afterLayout();
     expect(page.scrollTop()).toBe(60);
     page.scroll(10);
@@ -415,7 +496,48 @@ describe('the activity log view', () => {
     page.afterLayout();
     expect(page.scrollTop(), 'reading earlier lines is left alone').toBe(10);
     page.view.removeRow(rows[0]);
-    expect(page.items.map(item => item.textContent)).toEqual(['b', 'c', 'd']);
+    expect(page.texts()).toEqual(['b', 'c', 'd']);
+  });
+
+  it('reaches the newest line after a replacement that keeps the list height', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    page.view.replaceRows(['a', 'b', 'c']);
+    page.afterLayout();
+    page.scroll(10);
+    const reads = page.reads();
+    page.view.replaceRows(['d', 'e', 'f']);
+    expect(page.reads(), 'a replacement in a frame reads no layout').toBe(reads);
+    page.afterLayout();
+    expect(page.scrollTop(), 'the same height still reports, so the scroll lands').toBe(60);
+  });
+
+  it('jumps to the newest line at once on a click', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    page.view.replaceRows(['a', 'b', 'c']);
+    page.afterLayout();
+    page.scroll(10);
+    page.view.replaceRows(['d', 'e', 'f']);
+    page.view.jumpToBottom();
+    expect(page.scrollTop()).toBe(60);
+    page.afterLayout();
+    expect(page.view.atBottom()).toBe(true);
+  });
+
+  it('puts earlier lines above the kept ones and holds the old first line in place', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    page.view.replaceRows(['c', 'd', 'e', 'f', 'g', 'h']);
+    page.afterLayout();
+    page.scroll(0);
+    const kept = [...page.items];
+    const added = page.view.prependRows(['a', 'b']);
+    expect(page.texts()).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+    expect(page.items.slice(2), 'the rendered rows are the same elements').toEqual(kept);
+    page.items.slice(2).forEach((item, index) => expect(item).toBe(kept[index]));
+    expect(added).toEqual(page.items.slice(0, 2));
+    expect(page.scrollTop(), 'the old first line is where it was').toBe(40);
   });
 });
 

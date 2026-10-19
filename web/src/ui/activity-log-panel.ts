@@ -38,17 +38,23 @@ export interface ActivityLogView {
   reflectEmpty(text: string | null): void;
   reflectShowEarlier(visible: boolean): void;
   /**
-   * Replaces every row. With `anchor`, the row at that index of the new list
-   * takes the place on screen of the old first row; with null, the list
-   * scrolls to the bottom.
+   * Replaces every row and brings the newest line into view after the next
+   * layout, even when the new list has the old one's height. Reads no layout.
    */
-  replaceRows(texts: readonly string[], anchor: number | null): ActivityLogRow[];
+  replaceRows(texts: readonly string[]): ActivityLogRow[];
+  /**
+   * Show earlier entries: puts rows above the first one, keeps every rendered
+   * row as it is, and holds the old first row in its place on screen.
+   */
+  prependRows(texts: readonly string[]): ActivityLogRow[];
   appendRow(text: string): ActivityLogRow;
   removeRow(row: ActivityLogRow): void;
   /** Whether the newest line is in view. Must not read layout while a frame runs. */
   atBottom(): boolean;
   /** Brings the newest line into view, after the frame's layout rather than during it. */
   scrollToBottom(): void;
+  /** Brings the newest line into view at once. Only for a click, where reading layout is allowed. */
+  jumpToBottom(): void;
   focusToggle(): void;
   /**
    * Places the panel above the Sim dock now. Called when the panel opens;
@@ -168,7 +174,7 @@ export class ActivityLogPanel {
     this.options.view.fitAboveDock();
     this.context.selected = this.options.selected();
     this.limit = ACTIVITY_LOG_WINDOW;
-    this.rebuild(false);
+    this.rebuild(true);
   }
 
   /** Closes the panel; true when it was open, so the caller can move focus. */
@@ -179,7 +185,7 @@ export class ActivityLogPanel {
     // Nothing is composed while closed; the next open recomposes from the store.
     this.lines.reset();
     this.rows.clear();
-    this.options.view.replaceRows([], null);
+    this.options.view.replaceRows([]);
     return true;
   }
 
@@ -209,13 +215,28 @@ export class ActivityLogPanel {
     if (filter === undefined) return;
     this.context.filters ^= filter;
     this.options.view.reflectFilter(index, (this.context.filters & filter) !== 0);
-    if (this.open_) this.rebuild(false);
+    if (this.open_) this.rebuild(true);
   }
 
+  /**
+   * Composes only the lines this click reveals and puts them above the
+   * rendered ones, so its cost depends on the 200-line batch rather than on
+   * how many lines are already shown. The lines themselves are current: every
+   * frame that drains records appends and evicts them.
+   */
   showEarlier(): void {
     if (!this.open_) return;
+    const { store, view } = this.options;
+    const lines = this.lines.lines;
+    const shownBefore = Math.min(lines.length, this.limit);
     this.limit = Math.min(ACTIVITY_LOG_CAPACITY, this.limit + ACTIVITY_LOG_WINDOW);
-    this.rebuild(true);
+    const from = lines.length - Math.min(lines.length, this.limit);
+    const to = lines.length - shownBefore;
+    const texts: string[] = [];
+    for (let index = from; index < to; index++) texts.push(lineText(store, lines[index], this.context));
+    const rows = view.prependRows(texts);
+    for (let index = from; index < to; index++) this.rows.set(lines[index], rows[index - from]);
+    this.reflectState();
   }
 
   /** After a successful Load has emptied the store. Filters stay as they were. */
@@ -248,20 +269,26 @@ export class ActivityLogPanel {
     this.options.view.reflectSelected(selected === null ? null : onlyInvolving(this.context.name(selected) ?? SOMEONE));
   }
 
-  /** Recomposes every line from the store and renders the newest `limit`. */
-  private rebuild(anchor: boolean): void {
+  /**
+   * Recomposes every line from the store, renders the newest `limit` and
+   * shows the newest line. `click` is true when a click asked for it: the
+   * view then scrolls at once, since a list that keeps its height reports no
+   * resize. From a frame the view scrolls after layout instead.
+   */
+  private rebuild(click: boolean): void {
     const { store, view } = this.options;
-    const first = anchor ? this.lines.lines.find(line => this.rows.has(line))?.seq ?? null : null;
     this.lines.reset();
     this.rows.clear();
     this.lines.add(store, 0, this.context);
     this.seen = store.total;
     const shown = this.lines.lines.slice(-this.limit);
-    const kept = first === null ? -1 : shown.findIndex(line => line.seq === first);
-    const rows = view.replaceRows(shown.map(line => lineText(store, line, this.context)), kept < 0 ? null : kept);
+    const rows = view.replaceRows(shown.map(line => lineText(store, line, this.context)));
     shown.forEach((line, index) => this.rows.set(line, rows[index]));
     this.reflectSelected();
     this.reflectState();
+    // Last, so the selected-person line and Show earlier entries have
+    // already taken their space.
+    if (click) view.jumpToBottom();
   }
 
   /** Composes the `fresh` newest records and appends their lines. */
@@ -380,17 +407,20 @@ export function activityLogElements(doc: Document): ActivityLogElements {
  * The DOM view over `index.html`'s panel.
  *
  * A row is its `li` element. Layout is read only where it is already
- * current: in a scroll event, in a ResizeObserver callback, which runs after
- * the frame's layout, and in the click handlers that open the panel or show
- * earlier entries. The once-a-frame append therefore never forces a
- * synchronous layout behind the HUD's own writes. Without ResizeObserver,
- * as in a test DOM, the view reads and scrolls at once instead.
+ * current or where a click may pay for it: in a scroll event, in a
+ * ResizeObserver callback, which runs after the frame's layout, and in the
+ * click handlers that open the panel, change a filter or show earlier
+ * entries. The once-a-frame append therefore never forces a synchronous
+ * layout behind the HUD's own writes. Without ResizeObserver, as in a test
+ * DOM, the view reads and scrolls at once instead.
  */
 export function createActivityLogView(doc: Document, elements: ActivityLogElements): ActivityLogView {
   const { toggle, panel, filters, selected, scroller, earlier, list, empty, dock } = elements;
   const page = doc.defaultView;
   const Observer = page?.ResizeObserver;
   let lastBottom = -1;
+  /** Whether the observer watches the list, which it does only while the panel is open. */
+  let observing = false;
   /** Whether the newest line was in view when layout was last current. */
   let pinned = true;
   /** A scroll to the newest line waiting for the next layout. */
@@ -442,6 +472,7 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       panel.hidden = !open;
       toggle.setAttribute('aria-expanded', String(open));
       if (!observer) return;
+      observing = open;
       if (open) {
         observer.observe(list);
         observer.observe(scroller);
@@ -462,16 +493,28 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       setTextIfChanged(empty, text ?? '');
     },
     reflectShowEarlier(visible) { earlier.hidden = !visible; },
-    replaceRows(texts, anchor) {
-      // An anchor comes from Show earlier entries, a click, where layout is
-      // current, so reading the old first row's place forces nothing.
-      const first = anchor === null ? null : list.firstElementChild;
-      const top = first ? first.getBoundingClientRect().top : 0;
+    replaceRows(texts) {
       const items = texts.map(row);
       list.replaceChildren(...items);
-      const kept = anchor === null ? undefined : items[anchor];
-      if (first && kept) scroller.scrollTop += kept.getBoundingClientRect().top - top;
-      else if (anchor === null) scrollToBottom();
+      scrollToBottom();
+      // A list replaced at its old height reports no resize, and the waiting
+      // scroll would never land. Observing the list afresh makes the
+      // observer report it after the next layout, without reading layout now.
+      if (observer && observing) {
+        observer.unobserve(list);
+        observer.observe(list);
+      }
+      return items as unknown as ActivityLogRow[];
+    },
+    prependRows(texts) {
+      // Show earlier entries is a click, where layout is current, so reading
+      // the old first row's place forces nothing; reading it again after the
+      // insert lays out the list once, in the click.
+      const first = list.firstElementChild;
+      const top = first ? first.getBoundingClientRect().top : 0;
+      const items = texts.map(row);
+      list.prepend(...items);
+      if (first) scroller.scrollTop += first.getBoundingClientRect().top - top;
       return items as unknown as ActivityLogRow[];
     },
     appendRow(text) {
@@ -485,6 +528,10 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       return pinned;
     },
     scrollToBottom,
+    jumpToBottom() {
+      follow = false;
+      toBottom();
+    },
     focusToggle() { toggle.focus(); },
     fitAboveDock: fit,
   };
