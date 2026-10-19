@@ -1,0 +1,48 @@
+{
+  "requested_names": [
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 0.0",
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 1.0",
+    "crates/terri-core/src/appearance.rs:20:26: replace && with || in F32Bits::in_range"
+  ],
+  "stock_selected": [
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 0.0",
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 1.0",
+    "crates/terri-core/src/appearance.rs:20:26: replace && with || in F32Bits::in_range",
+    "crates/terri-core/src/windows.rs:76:45: delete field y from struct WallLine expression in WindowPlacement::checked_lines",
+    "crates/terri-core/src/windows.rs:84:45: delete field x from struct WallLine expression in WindowPlacement::checked_lines",
+    "crates/terri-data/src/hierarchy.rs:404:21: delete field id from struct ActionState expression in ObjectState::actions",
+    "crates/terri-data/src/hierarchy.rs:636:13: delete field id from struct ActionState expression in resolve",
+    "crates/terri-sim/src/lib.rs:1773:13: delete field enabled from struct terri_core::save::SavedMortality expression in Sim::new_with_content",
+    "crates/terri-sim/src/build_transaction.rs:660:9: delete field duties from struct DutyChangeReport expression in unchanged_duties",
+    "crates/terri-sim/src/careers.rs:282:13: delete field autonomous_change from struct Self expression in Careers::from_saved",
+    "crates/terri-sim/src/careers.rs:283:13: delete field rng from struct Self expression in Careers::from_saved",
+    "crates/terri-sim/src/careers.rs:284:13: delete field draws from struct Self expression in Careers::from_saved",
+    "crates/terri-sim/src/careers.rs:285:13: delete field commands from struct Self expression in Careers::from_saved",
+    "crates/terri-sim/src/chores/mod.rs:65:13: delete field last_age_tick from struct SavedChores expression in tick",
+    "crates/terri-sim/src/chores/mod.rs:66:13: delete field board_enabled from struct SavedChores expression in tick",
+    "crates/terri-sim/src/chores/mod.rs:176:13: delete field last_age_tick from struct SavedChores expression in ensure",
+    "crates/terri-sim/src/chores/mod.rs:177:13: delete field board_enabled from struct SavedChores expression in ensure",
+    "crates/terri-sim/src/edit.rs:200:48: delete field handled from struct EditResult expression in commit",
+    "crates/terri-sim/src/household.rs:372:58: delete field handled from struct HousemateResult expression in commit_with_instinct",
+    "crates/terri-sim/src/social_company.rs:416:13: delete field participants from struct SocialCompany expression in refresh",
+    "crates/terri-sim/src/social_company.rs:417:13: delete field strength from struct SocialCompany expression in refresh",
+    "crates/terri-sim/src/social_company.rs:418:13: delete field identities from struct SocialCompany expression in refresh",
+    "crates/terri-sim/src/social_company.rs:422:13: delete field family from struct SocialCompany expression in refresh",
+    "crates/terri-sim/src/targeted_cleanup.rs:776:21: delete field id from struct SavedDishes expression in split_legacy_piles",
+    "crates/terri-sim/src/targeted_cleanup.rs:777:21: delete field units from struct SavedDishes expression in split_legacy_piles",
+    "crates/terri-sim/src/chores/room_changes.rs:185:17: delete field key from struct ChoreAssignment expression in reconcile_committed_world",
+    "crates/terri-sim/src/save/v13.rs:64:13: delete field lot_frame from struct super::Carried expression in restore",
+    "crates/terri-sim/src/save/v15.rs:169:9: delete field next_id from struct ConversationRequests expression in restore_requests_with_executions",
+    "crates/terri-sim/src/save/v16.rs:51:13: delete field rooms from struct Carried expression in restore",
+    "crates/terri-sim/src/save/v16.rs:52:13: delete field room_mode from struct Carried expression in restore",
+    "crates/terri-sim/src/save/v17.rs:72:13: delete field rooms from struct super::Carried expression in restore",
+    "crates/terri-sim/src/save/v17.rs:73:13: delete field room_mode from struct super::Carried expression in restore",
+    "crates/terri-sim/src/save/v17.rs:74:13: delete field actor_references from struct super::Carried expression in restore",
+    "crates/terri-sim/src/systems/chain.rs:235:21: delete field step from struct ChainState expression in advance_chains"
+  ],
+  "candidate_selected": [
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 0.0",
+    "crates/terri-core/src/appearance.rs:14:9: replace F32Bits::value -> f32 with 1.0",
+    "crates/terri-core/src/appearance.rs:20:26: replace && with || in F32Bits::in_range"
+  ]
+}

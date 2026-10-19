@@ -12892,3 +12892,10 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Normalize all supported historical activity ownership during historical adoption. Preserve explicit legacy provenance, paths, reservations, clocks and random streams. Keep current capture and current validation strict. Index existing ownership once when processing large saved households. Map the actual restore calls before tracing failures; use a source breakpoint on the failing guard when matching debug symbols are available.
 
 **Verify.** Load a historical household with two chat initiators and one busy recipient. Require separate admitted and waiting ownership, an identical current-save reload, and rejection of an orphaned target inserted directly into a current payload. Compare paths, the Blocked marker, the admitted reservation, the clock, and both simulation and chore random streams. Keep the stale room-history trigger as a separate regression.
+
+## [L-compare-serialized-receipts-canonically] Compare receipts in their persisted representation
+
+1. What happened: an inventory checker rejected unchanged source receipts because an in-memory scope used tuples while its JSON-loaded predecessor used arrays.
+2. Root cause: the checker compared language-specific container types across a serialization boundary. The persisted receipts were identical.
+3. Prevention: normalize both sides through the declared serialization format before comparing evidence. Preserve the original outputs and repair the checker separately; do not rerun valid completed work to hide the false alarm.
+4. Verification: require equivalent tuple and array representations to compare equal. Require an altered scoped blob or actual source-byte hash to compare unequal. Retain the correction and its controls with the dated qualification evidence.

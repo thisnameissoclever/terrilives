@@ -4010,3 +4010,9 @@ The initiator remains committed while waiting and needs continue to decay. Long 
 The desktop production build was played through a desk-writing session and a complete shared-interest conversation between partners. Casey's Social rose during writing. Both conversation participants gained Social and positive feelings. The activity labels, desk seating, conversation bubbles and People panel were inspected directly and reviewed independently from selected captures.
 
 The exact measurements, captures, browser settings and review limits are in [the dated evidence](evidence/2026-10-19-social-balance/verification.md). Household grace and family forgiveness also have simulation regression checks. This focused pass does not establish every animation phase, phone performance or long-term population balance.
+
+## [A-build-controls-current-chrome] Build controls on the current save format, 2026-10-19
+
+The displayed Chrome game exercised footer Confirm and Cancel, keyboard Keep building, Land confirmation and discard, a real doorway merge review and Back, and Save/Load of the confirmed room name. The clock stayed paused. Actual phone-width captures show the neutral, red and green decision stack, readable dock controls with complete keyboard focus outlines, and Walls after review cancellation without a false failure message.
+
+The root reviewer and a fresh independent reviewer inspected the selected original images. Matching raster dimensions, measurements, application hashes, executed checks and limits are in [the version-19 evidence](evidence/2026-10-19-build-ui/v19/README.md). The task tab and preview server are closed. Physical touch, operating-system held-key repeat and exhaustive gameplay remain outside this focused pass.

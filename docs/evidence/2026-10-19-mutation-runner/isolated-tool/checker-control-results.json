@@ -1,0 +1,16 @@
+[
+  {
+    "case": "tuple_json_array_equivalence",
+    "pass": true
+  },
+  {
+    "case": "changed_scoped_blob",
+    "pass": true,
+    "rejected": true
+  },
+  {
+    "case": "changed_generation_byte_hash",
+    "pass": true,
+    "rejected": true
+  }
+]

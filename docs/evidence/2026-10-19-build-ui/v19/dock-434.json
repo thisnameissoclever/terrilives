@@ -1,0 +1,144 @@
+{
+  "capturedAt": "2026-10-19T20:40:29.689Z",
+  "measurements": {
+    "box": {
+      "bottom": 675,
+      "height": 145.1875,
+      "left": 8,
+      "right": 426,
+      "top": 529.8125,
+      "width": 418,
+      "x": 8,
+      "y": 529.8125
+    },
+    "buttons": [
+      {
+        "font": "11px",
+        "outline": "rgb(154, 163, 173) none 3px",
+        "rect": {
+          "bottom": 556.203125,
+          "height": 15.390625,
+          "left": 55.15625,
+          "right": 419,
+          "top": 540.8125,
+          "width": 363.84375,
+          "x": 55.15625,
+          "y": 540.8125
+        },
+        "text": "Walking"
+      },
+      {
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 598.203125,
+          "height": 36,
+          "left": 15,
+          "right": 52.796875,
+          "top": 562.203125,
+          "width": 37.796875,
+          "x": 15,
+          "y": 562.203125
+        },
+        "text": "Edit"
+      },
+      {
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 598.203125,
+          "height": 36,
+          "left": 56.796875,
+          "right": 134.90625,
+          "top": 562.203125,
+          "width": 78.109375,
+          "x": 56.796875,
+          "y": 562.203125
+        },
+        "text": "Sim details"
+      },
+      {
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) solid 2px",
+        "rect": {
+          "bottom": 598.203125,
+          "height": 36,
+          "left": 138.90625,
+          "right": 194.765625,
+          "top": 562.203125,
+          "width": 55.859375,
+          "x": 138.90625,
+          "y": 562.203125
+        },
+        "text": "Chores"
+      },
+      {
+        "font": "11px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 598.203125,
+          "height": 36,
+          "left": 198.765625,
+          "right": 255.84375,
+          "top": 562.203125,
+          "width": 57.078125,
+          "x": 198.765625,
+          "y": 562.203125
+        },
+        "text": "Collapse"
+      },
+      {
+        "font": "15px",
+        "outline": "rgb(16, 19, 26) none 3px",
+        "rect": {
+          "bottom": 668,
+          "height": 36,
+          "left": 17,
+          "right": 77,
+          "top": 632,
+          "width": 60,
+          "x": 17,
+          "y": 632
+        },
+        "text": "Tim"
+      },
+      {
+        "font": "15px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 668,
+          "height": 36,
+          "left": 81,
+          "right": 141,
+          "top": 632,
+          "width": 60,
+          "x": 81,
+          "y": 632
+        },
+        "text": "Bill"
+      },
+      {
+        "font": "15px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 668,
+          "height": 36,
+          "left": 145,
+          "right": 205,
+          "top": 632,
+          "width": 60,
+          "x": 145,
+          "y": 632
+        },
+        "text": "Casey"
+      }
+    ],
+    "clientWidth": 416,
+    "scrollWidth": 416,
+    "viewport": {
+      "dpr": 1,
+      "height": 683,
+      "width": 434
+    }
+  }
+}
