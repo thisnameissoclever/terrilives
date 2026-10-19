@@ -15,6 +15,7 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 
 ## Improved
 
+- The changelog has a larger logo and a compact header that brings the latest changes closer to the top.
 - Sims without an assigned bed automatically claim a reachable, unassigned sleeping place. Existing bed assignments are preserved.
 - Sim details explains each condition's mood points when you hover over or focus its number.
 

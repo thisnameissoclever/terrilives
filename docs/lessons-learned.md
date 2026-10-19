@@ -12799,3 +12799,13 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Keep workspace package selection for focused retries. Use `cargo test --workspace --no-run --message-format=json` to obtain current test executable paths, then execute the remaining targets. Include test-enabled examples and documentation tests when a failed library interrupted the workspace run.
 
 **Verification.** Inspect Cargo's artifact records for freshness and target names. Require the corrected tests, remaining examples and documentation tests to pass. Retain the earlier passing results only when their source and build inputs remain unchanged.
+
+## [L-logo-aspect-ratio-header-layout] Review the whole header when replacing a logo
+
+**What happened.** A tall logo made the changelog's navigation band taller while its separate title and toolbar kept their own vertical space. The result had a small-looking logo inside a large empty header.
+
+**Root cause.** The asset replacement preserved a layout designed for a shorter text brand. Reviewing the logo alone missed the total distance to the first update.
+
+**Prevention.** Compose the logo, page title and controls together. Check the complete route in both themes and at desktop, tablet and narrow phone widths before publishing an asset change.
+
+**Verification.** Compare the known defective capture with the repair at matching viewport sizes. Require an independent reviewer to reject the defective layout. Measure the displayed logo and the first update's position, then check control wrapping and horizontal overflow across breakpoints.
