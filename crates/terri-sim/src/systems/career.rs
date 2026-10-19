@@ -16,8 +16,9 @@ pub fn start_shift(world: &mut World) {
     crate::attendance::start_tick(world);
 }
 
-/// Whether `career` works on the day `clock` is in ([CAL-careers] in
-/// `docs/specs/2026-10-06-calendar.md`).
+/// Whether `shift`, a person's held shift, works on the day `clock` is in
+/// ([CAL-careers] in `docs/specs/2026-10-06-calendar.md`; the held shift is
+/// issue 296's [WS-systems]).
 ///
 /// `start_shift` asks this only on a shift-start tick, so it decides
 /// whether a shift STARTS and nothing else: a shift already running when
@@ -25,11 +26,11 @@ pub fn start_shift(world: &mut World) {
 /// current tick falls in, which `start_shift` reads after `advance_clock`,
 /// so a shift starting at day-tick 0 follows the day that tick begins.
 pub(crate) fn works_today(
-    career: &terri_data::CompiledCareer,
+    shift: &terri_data::ShiftView<'_>,
     clock: &SimClock,
     tuning: &terri_data::Tuning,
 ) -> bool {
-    career.works_on(terri_core::clock::weekday(
+    shift.works_on(terri_core::clock::weekday(
         clock.tick,
         tuning.day_ticks,
         tuning.first_weekday,

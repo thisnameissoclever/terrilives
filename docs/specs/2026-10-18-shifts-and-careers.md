@@ -166,10 +166,10 @@ Every reader of a job's start, length or working days reads the person's held sh
 
 1. `attendance::start_tick`, which registers a due shift and its end tick;
 2. `attendance::work_conflicts`, the preflight behind the Proceed and Cancel prompt, so the prompt shows the held shift's remaining and total hours;
-3. the saved-attendance validator, which accepts a scheduled shift whose start time of day, weekday and length match any shift the row lists, because a promotion or a shift change can move the held shift after a scheduled shift was recorded under the old one;
+3. the saved-attendance validator, which accepts a scheduled shift whose start time of day, weekday and length match any one shift the row lists, including a weight-0 shift, because a promotion or a shift change can move the held shift after a scheduled shift was recorded under the old one; a settled outcome may last as long as the row's longest listed shift;
 4. the reading system's `PendingShift` validator, which checks against the held shift;
 5. `portals.rs`, whose door opening window reads the shift length;
-6. `Sim::career_definition_of` and the boundary exports in [WS-shell].
+6. `Sim::career_shift_of`, which the boundary's `career_schedule_of` reads, and the other boundary exports in [WS-shell]. `Sim::career_definition_of` still returns the level, whose own hours are the standard shift's.
 
 Commuting, `AtWork`, deferral by player orders, interruption, resumption, proration of pay, energy and rewards, the two-hour grace and the deduction behave as [player orders and attendance](2026-10-17-player-orders.md) says. A shift that starts before midnight and ends after it already exists in the shipped night watch: it starts only on a working day, finishes on the next day and is attributed to the week of its scheduled start. A shift starting on Sunday night therefore belongs to the ending week, and its worker is reviewed on return through careers rule 6's waiting review.
 

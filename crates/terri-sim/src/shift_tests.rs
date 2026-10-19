@@ -853,3 +853,97 @@ fn schema_eighteen_leaves_queued_shift_commands_out_until_schema_nineteen() {
         ]
     );
 }
+
+// Reading the held shift wherever hours are read: [WS-systems].
+
+/// [WS-systems]: the search runs at 09:00 before shifts start in that tick,
+/// so a person hired then onto a shift starting at 09:00 starts it at once.
+/// The hired path's first level here offers one shift, `morning`, from
+/// 09:00 every day, so the hire draws nothing and holds it.
+#[test]
+fn a_hire_at_the_search_tick_starts_a_shift_due_that_tick() {
+    let mut probe = shipped_with(|_| {});
+    let (bill_id, bill) = household(&mut probe)
+        .into_iter()
+        .find(|(_, entity)| probe.world().get::<Career>(*entity).is_none())
+        .expect("an unemployed housemate");
+    let path =
+        crate::careers::best_path(probe.world(), pack(&probe), bill, None, f32::NEG_INFINITY)
+            .expect("a path fits");
+    let mut sim = shipped_with(|pack| {
+        pack.tuning.career_search_chance = 1.0;
+        let start = pack.tuning.career_search_tick;
+        let first = pack.career_paths[path as usize].levels[0] as usize;
+        let job = &mut pack.careers[first];
+        job.standard_weight = 0;
+        job.shifts = vec![CompiledShift {
+            id: "morning".to_string(),
+            kind: terri_data::SHIFT_DAY,
+            shift_start: start,
+            shift_ticks: 480,
+            working_days: 0b1111111,
+            weight: 1,
+        }];
+    });
+    for (other, _) in household(&mut sim) {
+        if other != bill_id {
+            sim.world_mut()
+                .resource_mut::<Careers>()
+                .set_search(other, false);
+        }
+    }
+    let mut ticks = 0;
+    while sim.world().get::<Career>(bill).is_none() {
+        sim.tick();
+        ticks += 1;
+        assert!(ticks < 1440 * 14, "hired within two weeks");
+    }
+    let now = sim.world().resource::<SimClock>().tick;
+    assert_eq!(now % 1440, 540, "hired by the 09:00 search");
+    assert_eq!(held(&sim, bill_id), 1);
+    assert_eq!(draws(&sim).1, 0, "one offered shift draws nothing");
+    let shift = sim
+        .world()
+        .resource::<crate::attendance::Attendance>()
+        .shifts
+        .get(&bill_id)
+        .cloned()
+        .expect("the 09:00 shift registered in the hiring tick");
+    assert_eq!((shift.start_tick, shift.end_tick), (now, now + 480));
+}
+
+/// [WS-systems] item 4: a departure that a reading order deferred is
+/// validated against the held shift's start, not the standard shift's.
+#[test]
+fn a_pending_shift_is_validated_against_the_held_shift() {
+    let (mut sim, actor) = kept_home();
+    sim.world_mut().resource_mut::<SimClock>().tick = 1000;
+    let valid = |sim: &mut Sim, scheduled_tick: u64| {
+        sim.world_mut()
+            .entity_mut(actor)
+            .insert(crate::reading::PendingShift {
+                scheduled_tick,
+                career: 0,
+            });
+        let world = sim.world();
+        let valid =
+            crate::reading::persistence::validate(world, world.resource::<terri_core::TileGrid>())
+                .is_ok();
+        sim.world_mut()
+            .entity_mut(actor)
+            .remove::<crate::reading::PendingShift>();
+        valid
+    };
+    assert!(valid(&mut sim, 60), "the standard shift starts at 60");
+    assert!(!valid(&mut sim, 900));
+    let job = pack(&sim).careers[0].clone();
+    sim.world_mut().resource_mut::<Careers>().records.insert(
+        SimId(1),
+        Record {
+            shift: 1,
+            ..Record::new(&job)
+        },
+    );
+    assert!(!valid(&mut sim, 60), "the held late shift starts at 900");
+    assert!(valid(&mut sim, 900));
+}

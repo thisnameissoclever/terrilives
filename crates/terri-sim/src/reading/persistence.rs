@@ -451,13 +451,14 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
     }
     if let Some(mut q) = world.try_query::<(Entity, &PendingShift)>() {
         for (e, p) in q.iter(world) {
-            let career = pack.careers.get(p.career as usize).ok_or_else(bad)?;
+            // Issue 296, [WS-systems] item 4: against the held shift.
+            let shift = crate::shifts::shift_at(world, pack, e, p.career).ok_or_else(bad)?;
             if world.get::<Career>(e).is_none_or(|c| c.0 != p.career)
                 || p.scheduled_tick > world.resource::<SimClock>().tick
                 || p.scheduled_tick % u64::from(pack.tuning.day_ticks)
-                    != u64::from(career.shift_start)
+                    != u64::from(shift.shift_start)
                 || !crate::systems::career::works_today(
-                    career,
+                    &shift,
                     &SimClock {
                         tick: p.scheduled_tick,
                     },

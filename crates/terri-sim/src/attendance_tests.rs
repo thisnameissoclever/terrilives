@@ -1705,3 +1705,263 @@ fn attendance_arriving_chat_waits_for_the_recipients_foreground_recipe() {
     );
     assert!(started && completed);
 }
+
+// Issue 296, [WS-systems] in `docs/specs/2026-10-18-shifts-and-careers.md`:
+// every reader of a job's hours reads the person's held shift.
+
+/// `full_fixture`'s job, standard from 60 for 480 ticks every day, with a
+/// second shift `late` from `late_start` for `late_ticks` on `late_days`,
+/// and the person holding shift index `held` (0 standard, 1 late).
+fn held_fixture(late_start: u32, late_ticks: u32, late_days: u8, held: u32) -> (Sim, Entity) {
+    let (mut sim, actor, _) = full_fixture(60, 480, 1440);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.careers[0].standard_weight = 1;
+    pack.careers[0].shifts = vec![terri_data::CompiledShift {
+        id: "late".to_string(),
+        kind: terri_data::SHIFT_LATE,
+        shift_start: late_start,
+        shift_ticks: late_ticks,
+        working_days: late_days,
+        weight: 1,
+    }];
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    sim.world_mut().resource_mut::<Careers>().records.insert(
+        sim_id,
+        crate::careers::Record {
+            shift: held,
+            ..crate::careers::Record::new(&pack.careers[0])
+        },
+    );
+    (sim, actor)
+}
+
+fn scheduled(sim: &Sim, actor: Entity) -> Option<SavedScheduledShift> {
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    sim.world()
+        .resource::<Attendance>()
+        .shifts
+        .get(&sim_id)
+        .cloned()
+}
+
+/// [WS-systems] item 1: a held late shift registers at its own start, runs
+/// its own length and settles at its own end; the standard shift's start
+/// at 60 registers nothing.
+#[test]
+fn a_held_late_shift_starts_registers_and_ends_on_its_own_times() {
+    let (mut sim, actor) = held_fixture(600, 540, 0b1111111, 1);
+    until(&mut sim, "the late shift registers", 700, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(sim.world().resource::<SimClock>().tick, 600);
+    let shift = scheduled(&sim, actor).expect("registered");
+    assert_eq!((shift.start_tick, shift.end_tick), (600, 1140));
+    until(&mut sim, "the late shift settles", 700, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    let outcome = sim.world().resource::<Attendance>().outcomes[0].clone();
+    assert_eq!(
+        (
+            outcome.start_tick,
+            outcome.end_tick,
+            outcome.scheduled_minutes
+        ),
+        (600, 1140, 540.0)
+    );
+    assert!(outcome.worked_minutes > 0.0, "the worker went to work");
+    assert_eq!(
+        validate_saved(sim.world(), &to_saved(sim.world())),
+        Ok(()),
+        "an outcome longer than the standard shift validates"
+    );
+}
+
+/// [WS-systems] item 2: the Proceed and Cancel preflight reports the held
+/// shift's start and hours, and nothing at the standard shift's start.
+#[test]
+fn the_preflight_reports_the_held_shifts_hours() {
+    let (mut sim, actor) = held_fixture(600, 540, 0b1111111, 1);
+    let agent = actor.index_u32();
+    sim.world_mut().resource_mut::<SimClock>().tick = 60;
+    assert!(work_conflicts(sim.world(), &[agent]).conflicts.is_empty());
+    sim.world_mut().resource_mut::<SimClock>().tick = 600;
+    let preflight = work_conflicts(sim.world(), &[agent]);
+    let conflict = preflight.conflicts.first().expect("due now");
+    assert_eq!(
+        (
+            conflict.phase,
+            conflict.start_tick,
+            conflict.end_tick,
+            conflict.remaining_minutes,
+            conflict.total_minutes
+        ),
+        (1, 600, 1140, 540.0, 540.0)
+    );
+}
+
+/// [WS-systems] item 3: a scheduled shift recorded under the standard shift
+/// still validates after the person changes to the late shift, and a
+/// scheduled shift validates when its start, weekday and length match one
+/// shift the row lists, never a mix of two.
+#[test]
+fn a_saved_scheduled_shift_under_a_previous_shift_still_validates() {
+    // The late shift runs Monday to Friday; the standard every day.
+    let (mut sim, actor) = held_fixture(600, 540, 0b0011111, 0);
+    until(&mut sim, "the standard shift settles", 700, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    until(&mut sim, "the worker is home", 200, |sim| {
+        sim.world().get::<Commuting>(actor).is_none() && sim.world().get::<AtWork>(actor).is_none()
+    });
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .record(sim_id)
+            .map(|r| r.shift),
+        Some(1)
+    );
+    let shift = scheduled(&sim, actor).expect("the standard shift stays recorded");
+    assert_eq!((shift.start_tick, shift.settled), (60, true));
+    assert_eq!(validate_saved(sim.world(), &to_saved(sim.world())), Ok(()));
+
+    // Open scheduled shifts written by hand, each checked alone at the
+    // tick before it ends.
+    let pay =
+        i64::from(sim.world().resource::<Content>().0.careers[0].pay) * Funds::CENTS_PER_DOLLAR;
+    let saturday: u64 = 5 * 1440;
+    for (start, ticks, valid) in [
+        (600, 540, true),
+        (60, 480, true),
+        (saturday + 60, 480, true),
+        (600, 480, false),
+        (60, 540, false),
+        (61, 480, false),
+        (saturday + 600, 540, false),
+    ] {
+        let start: u64 = start;
+        sim.world_mut().resource_mut::<SimClock>().tick = start + ticks - 1;
+        let saved = SavedAttendance {
+            shifts: vec![SavedScheduledShift {
+                sim: sim_id.0,
+                career: 0,
+                start_tick: start,
+                end_tick: start + ticks,
+                worked_ticks: 0,
+                accounted_tick: start,
+                pay_cents: pay,
+                settled: false,
+                legacy: false,
+            }],
+            outcomes: Vec::new(),
+        };
+        assert_eq!(
+            validate_saved(sim.world(), &saved).is_ok(),
+            valid,
+            "start {start}, {ticks} ticks"
+        );
+    }
+}
+
+/// [WS-systems] and careers rule 6: a night shift starting late on Sunday
+/// belongs to the week it starts in; the week's review waits while the
+/// person works it and runs when it settles.
+#[test]
+fn a_sunday_night_shift_counts_in_the_ending_week_and_its_review_waits() {
+    let sunday: u64 = 6 * 1440;
+    let (mut sim, actor) = held_fixture(1320, 480, 0b1000000, 1);
+    let sim_id = *sim.world().get::<SimId>(actor).expect("an id");
+    sim.world_mut().resource_mut::<SimClock>().tick = sunday + 1260;
+    until(&mut sim, "the night shift registers", 120, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    let shift = scheduled(&sim, actor).expect("registered");
+    assert_eq!(
+        (shift.start_tick, shift.end_tick),
+        (sunday + 1320, sunday + 1800)
+    );
+    until(&mut sim, "the week ends", 200, |sim| {
+        sim.world().resource::<SimClock>().tick > 7 * 1440
+    });
+    let record = |sim: &Sim| {
+        sim.world()
+            .resource::<Careers>()
+            .record(sim_id)
+            .cloned()
+            .expect("a record")
+    };
+    assert_eq!(record(&sim).review_due, Some(0), "the review waits");
+    assert!(record(&sim).history.is_empty());
+    until(&mut sim, "the night shift settles", 600, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    let outcome = sim.world().resource::<Attendance>().outcomes[0].clone();
+    assert_eq!(
+        crate::careers::week_of(outcome.start_tick, 1440),
+        0,
+        "attributed to the week it started in"
+    );
+    let record = record(&sim);
+    assert_eq!(record.review_due, None);
+    assert_eq!(
+        record
+            .history
+            .iter()
+            .map(|week| week.week)
+            .collect::<Vec<_>>(),
+        vec![0],
+        "the ending week's review ran on the return"
+    );
+}
+
+/// [WS-systems]: a shift change at home takes effect at the new shift's
+/// next start, later the same day, and the old start registers nothing.
+#[test]
+fn a_shift_change_takes_effect_at_the_new_shifts_next_start() {
+    let (mut sim, actor) = held_fixture(900, 300, 0b1111111, 0);
+    for _ in 0..30 {
+        sim.tick();
+    }
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .map(|r| r.reason),
+        Some(None)
+    );
+    until(&mut sim, "the late shift registers", 1000, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(sim.world().resource::<SimClock>().tick, 900);
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.end_tick)),
+        Some((900, 1200))
+    );
+    until(
+        &mut sim,
+        "the next day's standard start passes",
+        700,
+        |sim| sim.world().resource::<SimClock>().tick > 1440 + 60,
+    );
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| s.start_tick),
+        Some(900),
+        "nothing registers at the standard start"
+    );
+}

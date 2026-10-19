@@ -3807,10 +3807,25 @@ impl Sim {
             .map(|career| career.label.as_str())
     }
 
-    /// The compiled career held by the sim carrying `index`, or `None`
+    /// The shift the sim carrying `index` holds at their level, or `None`
     /// for the unemployed and everything else. The Career row reads its
     /// working days and shift hours from it ([CAL-hud] in
-    /// `docs/specs/2026-10-06-calendar.md`).
+    /// `docs/specs/2026-10-06-calendar.md`, as issue 296's [WS-systems]
+    /// amends it: the held shift, not the level's standard one).
+    pub fn career_shift_of(&self, index: u32) -> Option<terri_data::ShiftView<'static>> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Career>>()?;
+        let entity = state
+            .iter(&self.world)
+            .find(|entity| entity.index_u32() == index)?;
+        shifts::shift_of(&self.world, pack, entity)
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. Its hours are the level's
+    /// standard shift; a person's own hours are [`Sim::career_shift_of`].
     pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;

@@ -6,7 +6,7 @@
 //! change keeps it when the new level offers it. Every reader of a job's
 //! hours asks [`shift_of`].
 use bevy_ecs::prelude::*;
-use terri_core::SimId;
+use terri_core::{Career, SimId};
 use terri_data::{CompiledCareer, ContentPack, ShiftView};
 
 use crate::careers::{job_of, Careers};
@@ -71,11 +71,40 @@ pub fn keep_or_draw(
 /// household worker before their first shift). `None` for the unemployed.
 pub fn shift_of<'a>(world: &World, pack: &'a ContentPack, entity: Entity) -> Option<ShiftView<'a>> {
     let job = job_of(world, pack, entity)?;
+    Some(held_at(world, job, entity))
+}
+
+/// The shift `entity` works at `row`: their held shift when `row` is the
+/// level they hold, and otherwise `row`'s standard shift. For a reader
+/// whose record names a row of its own, such as a departure a reading
+/// order deferred; `None` for a row the pack does not have.
+pub(crate) fn shift_at<'a>(
+    world: &World,
+    pack: &'a ContentPack,
+    entity: Entity,
+    row: u32,
+) -> Option<ShiftView<'a>> {
+    let job = pack.careers.get(row as usize)?;
+    if world
+        .get::<Career>(entity)
+        .is_some_and(|career| career.0 == row)
+    {
+        Some(held_at(world, job, entity))
+    } else {
+        job.shift(0)
+    }
+}
+
+/// The shift `entity` holds at `job`, their own level: the record's index,
+/// or the standard shift without a record or past the level's list.
+fn held_at<'a>(world: &World, job: &'a CompiledCareer, entity: Entity) -> ShiftView<'a> {
     let held = world
         .get::<SimId>(entity)
         .and_then(|sim| world.get_resource::<Careers>()?.record(*sim))
         .map_or(0, |record| record.shift);
-    job.shift(held as usize).or_else(|| job.shift(0))
+    job.shift(held as usize)
+        .or_else(|| job.shift(0))
+        .expect("every level has its standard shift")
 }
 
 #[cfg(test)]

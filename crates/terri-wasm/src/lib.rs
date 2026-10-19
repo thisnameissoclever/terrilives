@@ -2995,20 +2995,21 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
-    /// The schedule of the career held by the sim carrying `entity_index`,
-    /// as `[working_days, shift_start, shift_ticks]` - [CAL-hud]. The mask
+    /// The schedule of the shift held by the sim carrying `entity_index`,
+    /// as `[working_days, shift_start, shift_ticks]` - [CAL-hud], with the
+    /// held shift of issue 296's [WS-systems]. The mask
     /// has bit 0 for Monday through bit 6 for Sunday; the two times are
     /// ticks of the day clock. Empty for the unemployed and for anything
     /// that is not a living person: an object, a retired index, or a
     /// number past the last entity.
     pub fn career_schedule_of(&self, entity_index: u32) -> Vec<u32> {
         self.sim
-            .career_definition_of(entity_index)
-            .map(|career| {
+            .career_shift_of(entity_index)
+            .map(|shift| {
                 vec![
-                    u32::from(career.working_days),
-                    career.shift_start,
-                    career.shift_ticks,
+                    u32::from(shift.working_days),
+                    shift.shift_start,
+                    shift.shift_ticks,
                 ]
             })
             .unwrap_or_default()

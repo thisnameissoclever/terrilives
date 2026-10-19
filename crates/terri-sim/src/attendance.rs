@@ -74,19 +74,25 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
         };
         hash.write_u64(u64::from(career.0));
         let job = &pack.careers[career.0 as usize];
+        // [WS-systems] item 2: the hours are the held shift's.
+        let shift = crate::shifts::shift_of(world, pack, actor).expect("employed");
         let saved = world
             .get_resource::<Attendance>()
             .and_then(|a| a.shifts.get(&sim))
             .filter(|s| !s.settled && s.end_tick > now);
-        let due_now = now % u64::from(pack.tuning.day_ticks) == u64::from(job.shift_start)
-            && super::systems::career::works_today(job, world.resource::<SimClock>(), &pack.tuning);
+        let due_now = now % u64::from(pack.tuning.day_ticks) == u64::from(shift.shift_start)
+            && super::systems::career::works_today(
+                &shift,
+                world.resource::<SimClock>(),
+                &pack.tuning,
+            );
         let away = world.get::<AtWork>(actor).is_some()
             || world.get::<Commuting>(actor) == Some(&Commuting::Outbound);
         if saved.is_none() && !due_now && !away {
             continue;
         }
         let start_tick = saved.map_or(now, |s| s.start_tick);
-        let end_tick = saved.map_or(now + u64::from(job.shift_ticks), |s| s.end_tick);
+        let end_tick = saved.map_or(now + u64::from(shift.shift_ticks), |s| s.end_tick);
         let phase = if world.get::<AtWork>(actor).is_some() {
             3
         } else {
@@ -297,8 +303,14 @@ pub(crate) fn start_tick(world: &mut World) {
         let sim = identity(world, actor);
         let career = world.get::<Career>(actor).unwrap().0;
         let job = &pack.careers[career as usize];
-        let starts = now % u64::from(pack.tuning.day_ticks) == u64::from(job.shift_start)
-            && crate::systems::career::works_today(job, world.resource::<SimClock>(), &pack.tuning);
+        // [WS-systems] item 1: a due shift is the held shift.
+        let shift = crate::shifts::shift_of(world, pack, actor).expect("employed");
+        let starts = now % u64::from(pack.tuning.day_ticks) == u64::from(shift.shift_start)
+            && crate::systems::career::works_today(
+                &shift,
+                world.resource::<SimClock>(),
+                &pack.tuning,
+            );
         let untracked_legacy_work = world.get::<AtWork>(actor).is_some()
             && !world.resource::<Attendance>().shifts.contains_key(&sim);
         if starts
@@ -319,7 +331,7 @@ pub(crate) fn start_tick(world: &mut World) {
                     sim: sim.0,
                     career,
                     start_tick: now,
-                    end_tick: now + u64::from(job.shift_ticks),
+                    end_tick: now + u64::from(shift.shift_ticks),
                     worked_ticks: 0,
                     accounted_tick: now,
                     pay_cents: i64::from(pay) * Funds::CENTS_PER_DOLLAR,
@@ -456,8 +468,8 @@ pub(crate) fn finish_tick(world: &mut World) {
         } else if world.get::<Commuting>(actor) == Some(&Commuting::Outbound)
             && world.get::<Path>(actor).is_none()
         {
-            let ticks = world.resource::<Content>().0.careers
-                [world.get::<Career>(actor).unwrap().0 as usize]
+            let ticks = crate::shifts::shift_of(world, world.resource::<Content>().0, actor)
+                .expect("employed")
                 .shift_ticks;
             world
                 .entity_mut(actor)
@@ -1086,6 +1098,37 @@ fn matching_settlement(shift: &SavedScheduledShift, outcome: Option<&SavedShiftO
         && (outcome.score - score).abs() < 0.001
 }
 
+/// Whether a scheduled shift from `start` for `ticks` matches one shift
+/// `job` lists, its start time of day, weekday and length together
+/// (issue 296, [WS-systems] item 3): a promotion or a shift change can move
+/// the held shift after a scheduled shift was recorded under the old one,
+/// so the record is checked against the row, not the held shift.
+fn matches_a_listed_shift(
+    job: &terri_data::CompiledCareer,
+    tuning: &terri_data::Tuning,
+    start: u64,
+    ticks: u64,
+) -> bool {
+    let weekday = terri_core::clock::weekday(start, tuning.day_ticks, tuning.first_weekday);
+    (0..job.shift_count())
+        .filter_map(|index| job.shift(index))
+        .any(|listed| {
+            u64::from(listed.shift_ticks) == ticks
+                && start % u64::from(tuning.day_ticks) == u64::from(listed.shift_start)
+                && listed.works_on(weekday)
+        })
+}
+
+/// The longest shift `job` lists: no scheduled shift or outcome at that
+/// row can run longer.
+fn longest_listed_shift(job: &terri_data::CompiledCareer) -> u32 {
+    (0..job.shift_count())
+        .filter_map(|index| job.shift(index))
+        .map(|listed| listed.shift_ticks)
+        .max()
+        .unwrap_or(job.shift_ticks)
+}
+
 /// Refuse inconsistent accounting before changing the live world.
 pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crate::SaveError> {
     use crate::SaveError::InvalidValue;
@@ -1108,8 +1151,8 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
         let duration = shift.end_tick.checked_sub(start);
         if duration.is_none_or(|d| {
             d == 0
-                || d > u64::from(job.shift_ticks)
-                || (!shift.legacy && d != u64::from(job.shift_ticks))
+                || d > u64::from(longest_listed_shift(job))
+                || (!shift.legacy && !matches_a_listed_shift(job, &pack.tuning, start, d))
         }) || start > now
             || shift.accounted_tick < start
             || shift.accounted_tick > now.min(shift.end_tick)
@@ -1124,13 +1167,6 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
                 && world
                     .get::<Career>(actor)
                     .is_none_or(|c| c.0 != shift.career))
-            || (!shift.legacy
-                && (start % u64::from(pack.tuning.day_ticks) != u64::from(job.shift_start)
-                    || !job.works_on(terri_core::clock::weekday(
-                        start,
-                        pack.tuning.day_ticks,
-                        pack.tuning.first_weekday,
-                    ))))
         {
             return Err(InvalidValue);
         }
@@ -1156,7 +1192,7 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
             || outcome
                 .end_tick
                 .checked_sub(outcome.start_tick)
-                .is_none_or(|d| d == 0 || d > u64::from(job.shift_ticks))
+                .is_none_or(|d| d == 0 || d > u64::from(longest_listed_shift(job)))
             || outcome.start_tick > now
             || outcome.worked_minutes > now.saturating_sub(outcome.start_tick) as f32 + 0.01
             || seen
@@ -1220,21 +1256,20 @@ pub(crate) fn migrate_legacy(world: &mut World) {
         let pending = world.get::<crate::reading::PendingShift>(actor).cloned();
         let career = pending.as_ref().map_or(career, |p| p.career);
         let job = &pack.careers[career as usize];
+        let length = crate::shifts::shift_at(world, pack, actor, career)
+            .map_or(job.shift_ticks, |shift| shift.shift_ticks);
         let (start_tick, end_tick, worked, accounted_tick) = if let Some(pending) = pending {
-            let end = pending.scheduled_tick + u64::from(job.shift_ticks);
+            let end = pending.scheduled_tick + u64::from(length);
             (pending.scheduled_tick, end, 0, now.min(end))
         } else {
             let (worked, remaining) = if let Some(work) = world.get::<AtWork>(actor) {
-                let remaining = work.remaining_ticks.min(job.shift_ticks);
+                let remaining = work.remaining_ticks.min(length);
                 if remaining == 0 {
                     continue;
                 }
-                (
-                    u64::from(job.shift_ticks - remaining).min(now),
-                    u64::from(remaining),
-                )
+                (u64::from(length - remaining).min(now), u64::from(remaining))
             } else if world.get::<Commuting>(actor) == Some(&Commuting::Outbound) {
-                (0, u64::from(job.shift_ticks))
+                (0, u64::from(length))
             } else {
                 continue;
             };
