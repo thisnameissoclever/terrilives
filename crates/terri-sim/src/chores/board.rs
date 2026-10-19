@@ -26,6 +26,29 @@ pub(crate) fn work_needed(world: &World, state: &SavedChores, key: ChoreKey, own
         .map_or(0.5, |(_, person)| {
             crate::domestic::cleanliness(world, person)
         });
+    work_needed_at_cleanliness(world, state, key, clean)
+}
+
+pub(crate) fn work_needed_for(
+    world: &World,
+    state: &SavedChores,
+    key: ChoreKey,
+    owner: Entity,
+) -> bool {
+    work_needed_at_cleanliness(
+        world,
+        state,
+        key,
+        crate::domestic::cleanliness(world, owner),
+    )
+}
+
+fn work_needed_at_cleanliness(
+    world: &World,
+    state: &SavedChores,
+    key: ChoreKey,
+    clean: f32,
+) -> bool {
     match key.kind {
         ChoreKind::Bins => dirt_in(world, state, key) >= 600,
         ChoreKind::Dishes => {
@@ -327,21 +350,28 @@ pub(crate) fn credit(
     {
         history(state, owner, 50);
     }
-    for (_, observer) in people(world) {
-        let cleanliness = crate::domestic::cleanliness(world, observer);
-        effect(
-            world,
-            actor.0,
-            observer,
-            0.006 + 0.006 * cleanliness,
-            crate::relationship_effects::RelationshipCause::ChoreFulfilled,
-        );
-    }
     if covered
         && state.episodes[index].decision == Some(false)
         && crate::neglect::episode_matured(world, state.episodes[index].id)
     {
         if let Some(helper) = crate::dining::entity(world, person) {
+            if let Some(affected) = world.get::<SimId>(helper).copied() {
+                let delta = crate::relationship_effects::scaled_opinion_delta(
+                    world,
+                    affected,
+                    SimId(owner),
+                    crate::relationship_effects::RelationshipCause::ChoreNeglected,
+                    -0.004,
+                );
+                crate::chore_repair::record_annoyance_in(
+                    world,
+                    state,
+                    affected,
+                    SimId(owner),
+                    key,
+                    -delta,
+                );
+            }
             effect(
                 world,
                 owner,
@@ -355,6 +385,7 @@ pub(crate) fn credit(
 pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
     reconcile(world, state);
     crate::neglect::refresh_in(world, state);
+    crate::chore_repair::tick_in(world, state);
     if !state.board_enabled {
         return;
     }
@@ -409,11 +440,29 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
                 history(state, owner, 0);
                 for (_, observer) in &live {
                     let cleanliness = crate::domestic::cleanliness(world, *observer);
+                    let loss = -(0.008 + 0.012 * cleanliness);
+                    if let Some(affected) = world.get::<SimId>(*observer).copied() {
+                        let scaled = crate::relationship_effects::scaled_opinion_delta(
+                            world,
+                            affected,
+                            SimId(owner),
+                            crate::relationship_effects::RelationshipCause::ChoreNeglected,
+                            loss,
+                        );
+                        crate::chore_repair::record_annoyance_in(
+                            world,
+                            state,
+                            affected,
+                            SimId(owner),
+                            key,
+                            -scaled,
+                        );
+                    }
                     effect(
                         world,
                         owner,
                         *observer,
-                        -(0.008 + 0.012 * cleanliness),
+                        loss,
                         crate::relationship_effects::RelationshipCause::ChoreNeglected,
                     );
                 }

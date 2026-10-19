@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "b6078ea472c6b596a7aa7491a3d1b0f491fd24c7",
+  "sourceReceipt": "docs/evidence/2026-10-19-social-balance/verification.md",
+  "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7",
+  "javascriptSha256": "198cbcb69c931d0f4ac16b7c0a29e4b2a60ece39bf3fd149d144d25b525a9ec3",
+  "commandBytes": [
+    4,
+    34,
+    35,
+    1
+  ],
+  "fixtures": [
+    {
+      "name": "initial.sav",
+      "length": 5380,
+      "sha256": "71b40659bdad1946f7f5d79d55362a555133481e1161940cc2ccb92d1f4b6ed2",
+      "tick": "0",
+      "worldHash": "13445957274366895863",
+      "fightTopics": [],
+      "sourceReaderAccepts": true
+    },
+    {
+      "name": "running-fight.sav",
+      "length": 6020,
+      "sha256": "0193fbfcfe7c0934f47dfa2db8e0e82fd7d0d11369a5820bee12748bf04a4c45",
+      "tick": "49",
+      "worldHash": "2477795595609042810",
+      "fightTopics": [
+        26,
+        26
+      ],
+      "sourceReaderAccepts": false
+    }
+  ]
+}

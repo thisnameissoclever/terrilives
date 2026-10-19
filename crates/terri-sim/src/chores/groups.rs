@@ -418,7 +418,9 @@ mod tests {
         }
         let mut loaded =
             crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-        loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+        loaded
+            .load_current_v19_view(sim.current_v19_view())
+            .unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
 
@@ -467,7 +469,9 @@ mod tests {
         );
         let mut loaded =
             crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-        loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+        loaded
+            .load_current_v19_view(sim.current_v19_view())
+            .unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
 
@@ -490,10 +494,10 @@ mod tests {
         let prior = state.clone();
         let rng = sim.world().resource::<terri_core::SimRng>().clone();
         sim.world_mut().insert_resource(state);
-        let baseline = sim.save_snapshot_v19();
-        sim.load_snapshot_v19(baseline.clone())
+        let baseline = sim.current_v19_view();
+        sim.load_current_v19_view(baseline.clone())
             .expect("constructed dirty group is valid current state");
-        assert_eq!(sim.save_snapshot_v19(), baseline);
+        assert_eq!(sim.current_v19_view(), baseline);
         sim.world_mut()
             .resource_mut::<terri_core::CommandQueue>()
             .push(terri_core::SimCommand::SellObject { object });
@@ -567,11 +571,11 @@ mod tests {
         let mut complete = false;
         for _ in 0..1600 {
             sim.tick();
-            let saved = sim.save_snapshot_v19();
+            let saved = sim.current_v19_view();
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
             loaded
-                .load_snapshot_v19(saved)
+                .load_current_v19_view(saved)
                 .expect("group work saves between surfaces");
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if sim.world().resource::<SavedChores>().tasks.is_empty() {
@@ -644,9 +648,9 @@ mod tests {
             sim.flush_commands();
             let mut loaded =
                 crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
-            let saved = sim.save_snapshot_v19();
-            loaded.load_snapshot_v19(saved.clone()).unwrap();
-            assert_eq!(saved, loaded.save_snapshot_v19());
+            let saved = sim.current_v19_view();
+            loaded.load_current_v19_view(saved.clone()).unwrap();
+            assert_eq!(saved, loaded.current_v19_view());
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         assert!(!super::super::keys(sim.world()).contains(&key));

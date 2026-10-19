@@ -122,7 +122,7 @@ History uses (4 previous + outcome)/5. On-time completion counts as 100;
 late completion counts as 50; a helper covering a consciously skipped duty
 counts as 50 only after its neglect grace expires;
 avoidable missed work counts as zero. Other housemates gain 0.006 + 0.006
-cleanliness affinity toward a real performer. Avoidable neglect begins only after two game hours at maximum dirt or one full
+cleanliness affinity toward a real performer at successful physical completion, including board-disabled and repeat work. Dish washing pays once per completed batch; board accounting does not duplicate the reward. A completed relevant chore argument can create the four-hour [repair window](2026-10-16-fights.md), with a separate scoped dish-contribution record. Avoidable neglect begins only after two game hours at maximum dirt or one full
 game day of unfinished actionable work. The same gate applies to helper
 resentment and midnight settlement; fresh work stays eligible for cleaning.
 Avoidable neglect loses 0.008 +

@@ -170,6 +170,7 @@ fn restore_inner_social(
     social: Option<terri_core::save_v9::SavedSocialEpisodes>,
 ) -> Result<Sim, SaveError> {
     let actor_references = portals.actor_references;
+    let current_fight_topics = portals.current_fight_topics;
     let saved_people = snapshot
         .legacy
         .world
@@ -393,6 +394,7 @@ fn restore_inner_social(
                 social,
                 saved_people,
                 social_targets,
+                current_fight_topics,
             )?;
         } else {
             super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;

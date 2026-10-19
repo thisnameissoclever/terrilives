@@ -13,6 +13,39 @@ mod native_build_tests;
 mod order_cycle_tests;
 mod reward_balance_tests;
 
+fn attributed_system_fight(sim: &mut Sim, initiator: Entity, recipient: Entity) -> u64 {
+    let affected = *sim.world().get::<SimId>(initiator).unwrap();
+    let responsible = *sim.world().get::<SimId>(recipient).unwrap();
+    crate::social_conflicts::remember(
+        sim.world_mut(),
+        affected,
+        responsible,
+        terri_core::save_v20::GrievanceKind::PrivacyStart,
+        terri_core::save_v20::GrievanceSubject::None,
+        0.25,
+    );
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_chance_per_tick = 1.;
+    let fight = crate::fights::fight_index(&pack).unwrap();
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    crate::fights::provoke(sim.world_mut());
+    let id = sim
+        .world()
+        .get::<IntentQueue>(initiator)
+        .unwrap()
+        .entries()
+        .iter()
+        .find(|entry| entry.intent.object == recipient && entry.intent.interaction == fight)
+        .unwrap()
+        .id;
+    assert!(sim
+        .world()
+        .resource::<crate::fights::Fights>()
+        .owns_order(initiator, id));
+    id
+}
+
 #[test]
 fn current_save_rejects_shared_physical_conversation_participants() {
     for approaching in [false, true] {
@@ -1638,23 +1671,7 @@ fn pending_and_running_system_fights_keep_provenance_through_current_save() {
     pack.social.push(fight);
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
-    let mut queue = IntentQueue::default();
-    let id = queue
-        .insert_order(
-            terri_core::Intent {
-                object: b,
-                interaction: 1,
-                cleanup: None,
-                chore: None,
-            },
-            None,
-            false,
-        )
-        .unwrap();
-    sim.world_mut().entity_mut(a).insert(queue);
-    sim.world_mut()
-        .resource_mut::<crate::fights::Fights>()
-        .restore_order(a, id);
+    let id = attributed_system_fight(&mut sim, a, b);
     let pending = sim.current_v17_view();
     assert!(pending.player_orders.orders.is_empty());
     assert!(pending.social_executions.is_empty());
@@ -1741,23 +1758,7 @@ fn system_cancel_at_ordinary_command_boundary_removes_exact_execution() {
     pack.social.push(fight);
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
-    let mut queue = IntentQueue::default();
-    let id = queue
-        .insert_order(
-            terri_core::Intent {
-                object: b,
-                interaction: 1,
-                cleanup: None,
-                chore: None,
-            },
-            None,
-            false,
-        )
-        .unwrap();
-    sim.world_mut().entity_mut(a).insert(queue);
-    sim.world_mut()
-        .resource_mut::<crate::fights::Fights>()
-        .restore_order(a, id);
+    attributed_system_fight(&mut sim, a, b);
     sim.flush_commands();
     assert!(sim
         .world()

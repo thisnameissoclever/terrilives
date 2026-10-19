@@ -1,0 +1,7 @@
+{
+  ".local-build\\purposeful-review-play.exe": "3db17195a1e8fbe1a8d6503d7b1540ab492e8710eb8d90622ffb2ea21277a520",
+  "crates\\terri-wasm\\examples\\purposeful_fights_review.rs": "7b5c7fd5684fa6c48755307acccbd417fb3fee22e0e66b26629a8b73c485b104",
+  "target\\release\\deps\\libterri_sim-12488a763ea0a6fd.rlib": "7a67040bbf77089e191416057b91bb21498bee92cd830348db7f1cfb853febe6",
+  "target\\release\\deps\\libterri_core-3c2e081923cb5edc.rlib": "ef94ddb5625394a660f441c740e67ff0adea28b69216f760ee344eb9a87be87c",
+  "target\\release\\deps\\libpostcard-991128892bcd72d3.rlib": "69ea43469139a71b740a37e115399f2573f4e913f208019821b8fc71be56d5b8"
+}

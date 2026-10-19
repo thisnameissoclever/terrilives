@@ -77,16 +77,16 @@ fn balance_household_grace_unfinished_work_requires_a_full_day() {
 fn balance_household_grace_save_continues_and_legacy_starts_fresh() {
     let (mut sim, counter) = dirty();
     sim.world_mut().resource_mut::<SimClock>().tick += 119;
-    let saved = sim.save_snapshot_v19();
+    let saved = sim.current_v19_view();
     let hash = sim.world_hash();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v19(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v19(), saved);
+    loaded.load_current_v19_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v19_view(), saved);
     assert_eq!(loaded.world_hash(), hash);
     assert!(!source_due(loaded.world(), NeglectSource::Surface(counter)));
     loaded.world_mut().resource_mut::<SimClock>().tick += 1;
     assert!(source_due(loaded.world(), NeglectSource::Surface(counter)));
-    loaded.load_snapshot_v18(saved.legacy).unwrap();
+    loaded.load_snapshot_v18(saved.legacy.clone()).unwrap();
     assert!(!source_due(loaded.world(), NeglectSource::Surface(counter)));
 }
 
@@ -94,17 +94,17 @@ fn balance_household_grace_save_continues_and_legacy_starts_fresh() {
 fn balance_household_grace_hash_validation_and_pause() {
     let (mut sim, _) = dirty();
     let hash = sim.world_hash();
-    let saved = sim.save_snapshot_v19();
+    let saved = sim.current_v19_view();
     let mut invalid = saved.clone();
     invalid.neglect.sources[0].maximum_since = Some(now(sim.world()) + 1);
-    assert!(sim.load_snapshot_v19(invalid).is_err());
+    assert!(sim.load_current_v19_view(invalid).is_err());
     assert_eq!(sim.world_hash(), hash);
     let mut changed = saved.clone();
     sim.world_mut().resource_mut::<SimClock>().tick += 1;
     changed.neglect.sources[0].maximum_since = Some(now(sim.world()));
     changed.legacy = sim.save_snapshot_v18();
     let unchanged_at_same_tick = sim.world_hash();
-    sim.load_snapshot_v19(changed).unwrap();
+    sim.load_current_v19_view(changed).unwrap();
     assert_ne!(sim.world_hash(), unchanged_at_same_tick);
     sim.world_mut()
         .resource_mut::<terri_core::CommandQueue>()
@@ -189,12 +189,12 @@ fn balance_household_grace_legal_combined_source_inventory_round_trips() {
         .expect("the published source inventories are legal");
     refresh(sim.world_mut());
     assert_eq!(snapshot(sim.world()).sources.len(), 100_001);
-    let saved = sim.save_snapshot_v19();
+    let saved = sim.current_v19_view();
     let mut loaded = Sim::new_with_lot(1, 1);
     loaded
-        .load_snapshot_v19(saved.clone())
+        .load_current_v19_view(saved.clone())
         .expect("combined legal source inventories must not exceed an unrelated timing cap");
-    assert_eq!(loaded.save_snapshot_v19(), saved);
+    assert_eq!(loaded.current_v19_view(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 

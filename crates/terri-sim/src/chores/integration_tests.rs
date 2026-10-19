@@ -270,6 +270,8 @@ fn personality_edit_preserves_profile_and_active_chore_but_changes_cleanliness()
     assert!(sim.world().get::<ChoreWork>(person).is_some());
     assert!(sim.world().get::<Agent>(person).is_some());
     let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    restored.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+    restored
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }

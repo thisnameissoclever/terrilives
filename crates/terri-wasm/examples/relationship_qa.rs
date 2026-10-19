@@ -1,6 +1,7 @@
 //! Write controlled current worlds for checking the real browser/WASM build.
 #[path = "support/mod.rs"]
 mod support;
+use support::CurrentSnapshotViews;
 use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
 use terri_core::*;
 use terri_sim::{Content, Sim};
@@ -64,12 +65,12 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
             .unwrap()
             .id
             .clone();
-        let before = sim.save_snapshot_v19();
+        let before = sim.current_snapshot();
         let before_hash = sim.world_hash();
         let available =
             sim.reading_available_titles(person.index_u32(), target.index_u32(), &action);
         assert_eq!(
-            sim.save_snapshot_v19(),
+            sim.current_snapshot(),
             before,
             "availability observation must preserve complete state"
         );
@@ -219,20 +220,20 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
     assert!((pa.x - pb.x).hypot(pa.y - pb.y) <= pack.tuning.relationships.contact_radius);
     let scene = support::capture(sim);
     let mut restored = Sim::new_with_lot(6, 4);
-    restored.load_snapshot_v19(scene.clone()).unwrap();
+    restored.load_current_snapshot(scene.clone()).unwrap();
     let mut overlap = 1;
     for tick in 0..120 {
         sim.tick();
         restored.tick();
         assert_eq!(
-            sim.save_snapshot_v19(),
-            restored.save_snapshot_v19(),
+            sim.current_snapshot(),
+            restored.current_snapshot(),
             "reading replay tick {tick}"
         );
         assert_eq!(sim.world_hash(), restored.world_hash());
         overlap += usize::from(reading(sim, standing, shelf) && reading(sim, seated, chair));
     }
-    sim.load_snapshot_v19(scene).unwrap();
+    sim.load_current_snapshot(scene).unwrap();
     println!("reading admitted B at {seated_tick}, A at {elapsed}; observed overlap {overlap} ticks including 120 replay updates");
 }
 
@@ -428,7 +429,7 @@ fn main() {
             .resource_mut::<CommandQueue>()
             .push(SimCommand::SetSpeed(0));
         sim.flush_commands();
-        let mut snapshot = sim.save_snapshot_v19();
+        let mut snapshot = sim.current_snapshot();
         if scenario == "wait" {
             support::v5_mut(&mut snapshot)
                 .boundaries
@@ -443,7 +444,7 @@ fn main() {
         }
         // Validate the fixture through the production loader before publishing it.
         let mut restored = Sim::new();
-        restored.load_snapshot_v19(snapshot.clone()).unwrap();
+        restored.load_current_snapshot(snapshot.clone()).unwrap();
         let bytes = support::encode(&restored);
         std::fs::write(
             std::path::Path::new(&output).join(format!("{scenario}.save")),

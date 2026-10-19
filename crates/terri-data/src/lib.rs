@@ -33,7 +33,7 @@ pub use pack::{
     CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSkill,
     CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
+    ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};

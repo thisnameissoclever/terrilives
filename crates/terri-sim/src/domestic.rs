@@ -83,12 +83,11 @@ fn entity(world: &World, index: u32) -> Option<Entity> {
 
 pub fn cleanliness(world: &World, person: Entity) -> f32 {
     if let Some(state) = world.get_resource::<SavedDomestic>() {
-        if let Some((_, score)) = state
+        if let Ok(index) = state
             .cleanliness
-            .iter()
-            .find(|(index, _)| *index == person.index_u32())
+            .binary_search_by_key(&person.index_u32(), |row| row.0)
         {
-            return *score;
+            return state.cleanliness[index].1;
         }
     }
     let Some(personality) = world.get::<Personality>(person) else {
@@ -360,6 +359,16 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
             .get_mut::<Relationships>(person)
             .unwrap()
             .bump(SimId(owner), -penalty);
+        crate::chore_repair::record_annoyance(
+            world,
+            own,
+            SimId(owner),
+            terri_core::chores::ChoreKey {
+                kind: terri_core::chores::ChoreKind::Dishes,
+                target: 0,
+            },
+            penalty,
+        );
     }
 }
 
@@ -408,6 +417,14 @@ fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: 
         .sort_by_key(|task| task.person);
     let progress = crate::recipe_actions::internal(world.resource::<Content>().0, chain);
     world.entity_mut(person).remove::<Path>().insert(progress);
+    crate::chore_repair::started(
+        world,
+        person,
+        terri_core::chores::ChoreKey {
+            kind: terri_core::chores::ChoreKind::Dishes,
+            target: 0,
+        },
+    );
     true
 }
 
@@ -597,6 +614,16 @@ pub(crate) fn tick(world: &mut World) {
                 SimId(owner),
                 crate::relationship_effects::RelationshipCause::HouseholdMess,
                 -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response,
+            );
+            crate::chore_repair::record_annoyance(
+                world,
+                id,
+                SimId(owner),
+                terri_core::chores::ChoreKey {
+                    kind: terri_core::chores::ChoreKind::Dishes,
+                    target: 0,
+                },
+                -requested,
             );
             let before = world
                 .get::<Relationships>(person)
@@ -1046,20 +1073,24 @@ pub(crate) fn completed(
                 }
             }
         } else {
-            let mut washed_units = 0;
-            let mut state = world.resource_mut::<SavedDomestic>();
-            if let Some(task) = state
+            let task = world
+                .resource::<SavedDomestic>()
                 .cleanup
                 .iter()
                 .find(|task| task.person == person.index_u32())
-                .cloned()
-            {
-                washed_units = state
+                .cloned();
+            let washed_units = task.as_ref().map_or(0, |task| {
+                world
+                    .resource::<SavedDomestic>()
                     .dishes
                     .iter()
-                    .filter(|d| task.dishes.contains(&d.id))
-                    .map(|d| d.units)
-                    .sum();
+                    .filter(|dish| task.dishes.contains(&dish.id))
+                    .map(|dish| dish.units)
+                    .sum()
+            });
+            let scopes = crate::chore_repair::before_dishes_washed(world, person, washed_units);
+            let mut state = world.resource_mut::<SavedDomestic>();
+            if let Some(task) = task {
                 state.dishes.retain(|dish| !task.dishes.contains(&dish.id));
                 for visit in &mut state.visits {
                     visit.seen.retain(|id| !task.dishes.contains(id));
@@ -1071,6 +1102,7 @@ pub(crate) fn completed(
             crate::dining::maintain(world);
             crate::targeted_cleanup::washed(world, person);
             crate::chores::dish_washed(world, person.index_u32(), washed_units);
+            crate::chore_repair::dishes_finished(world, washed_units, &scopes);
         }
         crate::neglect::refresh(world);
         return;

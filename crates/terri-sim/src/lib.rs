@@ -15,7 +15,10 @@ pub mod attendance;
 pub mod careers;
 pub mod player_actions;
 pub use careers::Careers;
+pub(crate) mod chore_repair;
 pub mod fights;
+pub use terri_data::FightRules;
+pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
 pub mod lot_frame;
@@ -1461,22 +1464,41 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
-    /// The complete current save, including continuous household neglect.
+    /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
+    }
+
+    /// Complete current persistence, including pending fights and repair decisions.
+    pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v20::capture(self))
+    }
+
+    pub fn load_snapshot_v20(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV20,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v20::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v19(
@@ -1674,17 +1696,18 @@ impl Sim {
     }
 
     fn adopt_current(&mut self, restored: Sim) -> Result<(), SaveError> {
-        self.adopt_restored(restored, true)
+        self.adopt_restored(restored, true, true)
     }
 
     fn adopt_current_with_saved_state(&mut self, restored: Sim) -> Result<(), SaveError> {
-        self.adopt_restored(restored, false)
+        self.adopt_restored(restored, false, true)
     }
 
     fn adopt_restored(
         &mut self,
         mut restored: Sim,
         infer_legacy_state: bool,
+        adopt_legacy_conflicts: bool,
     ) -> Result<(), SaveError> {
         rooms::migration::migrate(&mut restored)?;
         player_actions::continue_session(&self.world, &mut restored.world);
@@ -1699,6 +1722,9 @@ impl Sim {
             social_episode::requests::migrate_legacy(&mut restored.world);
         }
 
+        if adopt_legacy_conflicts {
+            social_conflicts::adopt_legacy(&mut restored.world);
+        }
         character_draft::ensure_appearance_components(&mut restored.world);
         restored.sync_render_buffer_after_commands();
         restored
@@ -1764,6 +1790,7 @@ impl Sim {
         world.register_component::<social_episode::requests::CommittedConversation>();
         world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(fights::Fights::default());
+        world.insert_resource(social_conflicts::State::default());
         world.insert_resource(careers::Careers::default());
         world.insert_resource(attendance::Attendance::default());
         world.insert_resource(player_actions::PlayerActions::default());
@@ -1994,6 +2021,7 @@ impl Sim {
                     // After the board has settled today's duties and before
                     // selection, so a fight it starts is an order selection
                     // sees on the next tick, served as a player's would be.
+                    social_conflicts::tick,
                     fights::provoke,
                     social_company::refresh,
                     relationship_dynamics::refresh_profiles,
@@ -2413,6 +2441,8 @@ impl Sim {
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
         neglect::refresh(&mut self.world);
+        chore_repair::reconcile(&mut self.world);
+        social_conflicts::tick(&mut self.world);
         player_actions::observe(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
@@ -2446,6 +2476,8 @@ impl Sim {
         media::maintain(&mut self.world);
         social_episode::maintain(&mut self.world);
         neglect::refresh(&mut self.world);
+        chore_repair::reconcile(&mut self.world);
+        social_conflicts::tick(&mut self.world);
         player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
@@ -5078,6 +5110,7 @@ impl Sim {
         save::social::hash(&self.world, &mut hasher);
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
+        social_conflicts::hash(&self.world, &mut hasher);
         careers::hash(&self.world, &mut hasher);
         attendance::hash(&self.world, &mut hasher);
         player_actions::hash(&self.world, &mut hasher);
@@ -6345,6 +6378,8 @@ mod determinism_tests {
         let mut pack = terri_data::pack().clone();
         pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
         pack.tuning.relationship_gain_per_talk = 0.17;
+        pack.tuning.fight_rules = FightRules::Published;
+        pack.tuning.fight_chance_per_tick = 0.01;
         let chat = pack
             .social
             .iter_mut()
@@ -7217,10 +7252,12 @@ mod determinism_tests {
         // The immutable published-V15 control reconstructs pre-balance inputs
         // and checks the original producer state. The live vector below checks
         // the current balance independently.
-        // Release-Wasm agreement must still be measured independently.
-        // The 2026-10-19 balance changes the live vector. Native and rebuilt
-        // release WebAssembly agree on the same nine-entity, 100-tick state.
-        const GOLDEN: u64 = 7530373376785939268;
+        // Attributable arguments record a real need-interruption grievance at
+        // tick 5 and spend an additional eligibility draw at tick 63. Later
+        // conversation choices change even though no argument starts. Native
+        // and rebuilt release WebAssembly independently measured this state.
+        // The immutable published control above retains its original value.
+        const GOLDEN: u64 = 4733362429942472337;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(
