@@ -5,6 +5,8 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 
 ## New
 
+- Winter has occasional brief snowfall, Autumn has falling leaves that fade from the ground, and Summer has occasional hot periods. The clock shows the season and current weather below the time.
+
 - Housemates appreciate a living cook after eating a portion of a shared meal.
 - Build > Rooms lets you select and name enclosed rooms or the shared Outside area. Room boundaries update when you Confirm.
 - Splitting, merging or opening an existing room shows a review of the resulting names and cleaning duties. Back to build keeps your edits.
@@ -27,6 +29,7 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 
 ## Fixed
 
+- Grass stays green in every season, with only a subtle seasonal tint.
 - The missing-bed mood penalty applies only to Sims without an assigned bed.
 - Windows can be installed while a Sim is fetching or reading a book.
 - Saves preserve book fetching and reading when windows are installed.

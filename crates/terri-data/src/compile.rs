@@ -3199,6 +3199,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.autonomy.is_some_and(|policy| !policy.valid()) {
         return Err(ContentError::InvalidAutonomyTuning);
     }
+    if tuning.weather.is_some_and(|weather| !weather.valid()) {
+        return Err(ContentError::InvalidWeatherTuning);
+    }
     let land_rules = [
         (
             "land_strip_depth",
@@ -3941,6 +3944,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
+            weather: tuning.weather,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -5408,6 +5412,7 @@ mod tests {
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             autonomy: None,
+            weather: None,
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
@@ -9823,6 +9828,43 @@ mod tests {
         let compiled =
             compile_tuned(tuning_where(|t| t.days_per_season = u32::MAX)).expect("any length");
         assert_eq!(compiled.tuning.days_per_season, u32::MAX);
+    }
+
+    #[test]
+    fn rejects_weather_that_cannot_finish_before_midnight() {
+        let good = crate::pack().tuning.weather.unwrap();
+        assert_eq!(good.event_day_chance, [0.0, 0.35, 0.4, 0.2]);
+        assert_eq!(good.event_hours, 2.0);
+        assert_eq!(good.leaf_ground_hours, 2.0);
+        type Change = Box<dyn Fn(&mut crate::WeatherTuning)>;
+        let cases: Vec<Change> = vec![
+            Box::new(|w| w.event_day_chance[3] = 1.01),
+            Box::new(|w| w.event_day_chance[2] = -0.01),
+            Box::new(|w| w.event_day_chance[1] = f32::NAN),
+            Box::new(|w| w.event_day_chance[0] = 0.1),
+            Box::new(|w| w.event_hours = 0.0),
+            Box::new(|w| w.earliest_hour = -1.0),
+            Box::new(|w| w.latest_hour = 6.0),
+            Box::new(|w| w.latest_hour = 22.0),
+            Box::new(|w| w.leaf_ground_hours = f32::INFINITY),
+            Box::new(|w| w.leaf_ground_hours = 0.0),
+            Box::new(|w| w.fall_minutes = 0.0),
+            Box::new(|w| w.fall_minutes = 121.0),
+        ];
+        for change in cases {
+            let mut weather = good;
+            change(&mut weather);
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.weather = Some(weather))).unwrap_err(),
+                ContentError::InvalidWeatherTuning
+            );
+        }
+        for probability in [0.0, 1.0] {
+            let mut weather = good;
+            weather.event_day_chance[3] = probability;
+            assert!(compile_tuned(tuning_where(|t| t.weather = Some(weather))).is_ok());
+        }
+        assert!(compile_tuned(tuning_where(|t| t.weather = None)).is_ok());
     }
 
     /// [SEA-year]: `first_season` names a season, 0 (Spring) to 3 (Winter).

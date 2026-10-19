@@ -102,32 +102,26 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 275: encoding-only movement, 23008 -> 23012 bytes.
-            // SHA-256 before: d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5
-            // SHA-256 after: 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5
-            // Removing the new tuning float
-            // must recover every byte of the previous runtime fixture.
+            // Restore the previous grass values and remove only the appended weather
+            // field. Every other byte must match the pre-weather runtime fixture.
+            let mut previous_pack = pack.clone();
+            previous_pack.tuning.season_yard_looks = terri_data::Tuning::SHIPPED_SEASON_YARD_LOOKS;
             let prefix = postcard::to_allocvec(&(
-                &pack.decay_per_tick,
-                &pack.objects,
-                pack.sim_sprite,
-                &pack.lot,
-                &pack.tuning,
+                &previous_pack.decay_per_tick,
+                &previous_pack.objects,
+                previous_pack.sim_sprite,
+                &previous_pack.lot,
+                &previous_pack.tuning,
             ))
             .unwrap();
-            assert!(encoded.starts_with(&prefix));
-            let end = prefix.len();
-            assert_eq!(
-                &encoded[end - 4..end],
-                &pack.tuning.meal_appreciation_gain.to_le_bytes()
-            );
-            let mut previous = encoded.clone();
-            previous.drain(end - 4..end);
+            let weather_bytes = postcard::to_allocvec(&previous_pack.tuning.weather).unwrap();
+            let mut previous = postcard::to_allocvec(&previous_pack).unwrap();
+            previous.drain(prefix.len() - weather_bytes.len()..prefix.len());
             assert_eq!(
                 previous, old_bytes,
-                "only meal appreciation tuning may change the current fixture"
+                "only grass tuning and the appended weather field may change the fixture"
             );
-            eprintln!("Meal appreciation fixture proof: four appended tuning bytes, all other bytes unchanged");
+            eprintln!("Weather fixture proof: restored grass and removed weather recover every previous byte");
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;

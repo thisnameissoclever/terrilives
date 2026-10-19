@@ -1175,6 +1175,9 @@ pub struct Tuning {
     pub autonomy: Option<crate::AutonomyTuning>,
     /// Appreciation after a shared portion; appended for issue 275.
     pub meal_appreciation_gain: f32,
+    /// Presentation-only extension after the historical tuning fields.
+    #[serde(default)]
+    pub weather: Option<crate::WeatherTuning>,
 }
 
 impl Tuning {
@@ -2085,6 +2088,7 @@ mod tests {
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
             autonomy: None,
+            weather: None,
             meal_appreciation_gain: 0.0,
             days_per_season: 5,
             first_season: 2,
@@ -2869,15 +2873,19 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Optional autonomy adds a None marker; appreciation follows with four bytes.
-        let historical_end = before.len() - 5;
-        assert_eq!(&before[before.len() - 4..], &0.0f32.to_le_bytes());
+        // Autonomy, appreciation and weather follow the original season fields.
+        let historical_end = before.len() - 6;
+        assert_eq!(before[before.len() - 1], 0);
+        assert_eq!(
+            &before[before.len() - 5..before.len() - 1],
+            &0.0f32.to_le_bytes()
+        );
         assert_eq!(
             changed(Tuning {
                 meal_appreciation_gain: 0.1875,
                 ..a_tuning()
             }),
-            vec![before.len() - 2, before.len() - 1]
+            vec![before.len() - 3, before.len() - 2]
         );
         assert_eq!(before[historical_end], 0);
         // Seasons (issue 251): the three season knobs are the preceding fifty
@@ -2943,6 +2951,7 @@ mod tests {
             changed(Tuning {
                 career_mood_fired_ticks: 5801,
                 autonomy: None,
+                weather: None,
                 ..a_tuning()
             }),
             vec![season - 2],

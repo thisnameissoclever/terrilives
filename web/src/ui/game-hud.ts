@@ -2,6 +2,7 @@
 import { setTextIfChanged } from './set-text-if-changed.js';
 import type { SatisfactionSurface } from './satisfaction-meter.js';
 import { activityStatusLabel, type ActivityStatus } from '../activity-status.js';
+import { weatherAt, type WeatherTuning } from '../render/weather.js';
 
 /**
  * A job's working days and shift hours as the simulation reports them:
@@ -32,6 +33,7 @@ export interface GameHudSource {
   dayTicks(): number;
   weekdayIndex(): number;
   seasonIndex(): number;
+  weatherTuning(): WeatherTuning | null;
 }
 
 export interface TextTarget {
@@ -136,16 +138,13 @@ function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
 
 /**
  * Formats the simulation clock without borrowing the player's wall clock,
- * as two lines: `Day {n}, {Weekday}`, a newline, then `{Season}, {hh}:{mm}`
- * ([CAL-hud], [SEA-hud]). The clock element keeps the newline
- * (`white-space: pre-line`), so the HUD panel is two lines tall on every
- * day rather than growing on days with longer names; every season name has
- * six letters, so the second line keeps one character count all year. `weekday`
+ * as three lines: day and weekday, time, then season and current weather
+ * ([CAL-hud], [SEA-hud]). The clock element preserves newlines. `weekday`
  * and `season` are the simulation's own answers for the current tick; the
  * shell never works either out from the day number, because only the
  * simulation knows which weekday and season day 1 is.
  */
-export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number): string {
+export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number, weather = 'mild'): string {
   const name = weekdayName(weekday);
   const seasonLabel = seasonName(season);
   if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null
@@ -156,7 +155,7 @@ export function formatSimTime(tick: number, dayTicks: number, weekday: number, s
   const safeDayTicks = Math.max(1, Math.floor(dayTicks));
   const day = Math.floor(safeTick / safeDayTicks) + 1;
   const time = formatTimeOfDay(safeTick % safeDayTicks, safeDayTicks);
-  return `Day ${day}, ${name}\n${seasonLabel}, ${time}`;
+  return `Day ${day}, ${name}\n${time}\n${seasonLabel}: ${weather}`;
 }
 
 const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
@@ -235,11 +234,18 @@ export class GameHud {
     this.lastReadMs = nowMs;
 
     const dayTicks = source.dayTicks();
+    const tick = source.clockTick();
+    const season = source.seasonIndex();
+    const tuning = source.weatherTuning();
+    const condition = tuning && Number.isFinite(tick) && tick >= 0 && dayTicks > 0
+      && Number.isFinite(dayTicks) && Number.isInteger(season) && season >= 0 && season <= 3
+      ? weatherAt(tick, dayTicks, season, tuning).condition : 'mild';
     setTextIfChanged(this.roots.clock, formatSimTime(
-      source.clockTick(),
+      tick,
       dayTicks,
       source.weekdayIndex(),
-      source.seasonIndex(),
+      season,
+      condition,
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 

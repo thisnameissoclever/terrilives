@@ -1,6 +1,7 @@
 import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
+import { WeatherScene } from './render/weather-scene.js';
 import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
@@ -63,6 +64,7 @@ import { drawFloorSwatch } from './ui/floor-swatches.js';
 import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
+  frameElapsedMs,
   advanceSimulationFrame,
   buildInstanceBatch,
 } from './frame.js';
@@ -472,7 +474,13 @@ async function main(): Promise<void> {
   loading.note('Loading character models');
   await afterPaint();
   let characterWorld=await CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
-  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();contactRoster.dispose();}});
+  let weatherScene = new WeatherScene(gpu.device);
+  const weatherTuning = sim.weatherTuning();
+  const drawWorldEffects = (encoder: GPUCommandEncoder, target: import('./render/scene-target.js').SceneTarget): void => {
+    characterWorld.drawEffects(encoder, target);
+    weatherScene.draw(encoder, target);
+  };
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
   // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
@@ -1542,6 +1550,9 @@ async function main(): Promise<void> {
   let cameraInitialised = false;
   const wallFade = new WallFade();
   function applyCamera(): void {
+    const outside = sim.roomTiles(0);
+    if (!outside.ok) throw new Error('Outdoor weather tiles are unavailable.');
+    weatherScene.setOutside(outside.value, lotWidth, lotHeight, ...lot.houseOrigin);
     if (lightingDirty) {
       lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
       sky = buildSky();
@@ -2314,16 +2325,17 @@ async function main(): Promise<void> {
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();
+    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
       Object.assign(gpu,await initDevice(stage));
       watchGraphics(gpu.device);
+      weatherScene = new WeatherScene(gpu.device);
       const replacement=CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
       try{await floorResources.invalidate();characterWorld=await replacement;characterWorld.prepareFixtures(sim);}
       catch(error){void replacement.then(world=>world.destroy(),()=>{});throw error;}
-      if(graphicsClosed){characterWorld.destroy();return;}
+      if(graphicsClosed){characterWorld.destroy();weatherScene.destroy();return;}
       deviceLifetime.assertAvailable(gpu.device);
       if(creatorSession&&housemateDialog.open)housemateView=new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,creatorSession,gpu.device,gpu.format,()=>housemateDialog.close('cancel'));
       graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
@@ -2346,7 +2358,7 @@ async function main(): Promise<void> {
   let firstSceneDrawn = false;
   function frame(nowMs: number): void {
     const frameEntered=performance.now();
-    const deltaMs = nowMs - previousFrameMs;
+    const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
     previousFrameMs = nowMs;
 
     // Chromium's media-query event is not reliable under every embedding and
@@ -2451,6 +2463,8 @@ async function main(): Promise<void> {
       // state governs ambient light, pools, and the button without rewriting
       // the player's preference.
       wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
+      weatherScene.prepare(sim.clockTick() + alpha, sim.dayTicks(), sim.seasonIndex(), weatherTuning,
+        camera.originX, camera.originY, camera.scale, depthScale, ambient, reducedMotion.matches);
       renderer.draw(
         batch.instances,
         batch.count,
@@ -2461,7 +2475,7 @@ async function main(): Promise<void> {
         characterWorld.draw,
         batch.owners,
         batch.annotations,
-        characterWorld?.drawEffects,
+        drawWorldEffects,
       );
     }
 

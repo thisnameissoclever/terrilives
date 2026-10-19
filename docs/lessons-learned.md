@@ -12749,6 +12749,47 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.
 
+## [L-seasonal-tints-preserve-material] Preserve the material's identity through seasonal changes
+
+1. What happened: the seasonal grass settings turned Autumn grass brown and Winter grass pale enough to resemble permanent snow cover. The owner requested recognizable green grass throughout the year.
+2. Root cause: chosen hue and saturation changes replaced the grass's identity instead of adding a slight tint. The visual acceptance criteria required only a readable pattern.
+3. Prevention: state the required material color explicitly and compare every seasonal treatment against it. Use temporary weather effects to communicate brief conditions instead of applying them to the whole season's ground color.
+4. Verification: compare matching defective and corrected Autumn and Winter captures in the real game. A fresh reviewer must reject the defective treatment before accepting the repair. Test the tint bounds and verify weather ends and grounded leaves expire in game time.
+
+## [L-weather-identity-frame] Give decorative fields a stable coordinate frame
+
+1. What happened: index-based particles moved during edits; ranked candidate limits removed existing leaves early; lot-local hashes rerolled leaves when west or north purchases translated the lot.
+2. Root cause: a changing list and then a changing coordinate frame were treated as physical tile identity.
+3. Prevention: normalize to the saved original lot frame once at the presentation boundary. Use that frame for eligibility, lifetime and appearance. Translate only for projection and keep clipping in current lot coordinates.
+4. Verification: compare exact sampled fields through additions, removals, west/north translations and negative relative coordinates. Remove normalization and require the translated-field test to fail. Recheck actual purchase, cancellation and save/load paths.
+
+## [L-first-animation-timestamp] Do not subtract setup time from the first animation timestamp without a lower bound
+
+1. What happened: weather validation stopped the first rendered frame because its interpolated tick was negative.
+2. Root cause: the browser's first animation timestamp preceded the performance.now sample recorded during setup, producing negative elapsed time and interpolation.
+3. Prevention: calculate elapsed frame time at a single boundary and bound it below by zero before simulation and visual consumers receive it.
+4. Verification: feed an earlier first timestamp through the actual fixed-step driver, then a normal interval. Require zero initial interpolation and the expected next tick. Restore raw subtraction and require failure.
+
+## [L-default-catalogue-mock-order] Resolve shared module mocks before loading their dependents
+
+1. What happened: a full web run intermittently saw a floor material's fixture catalogue while finish preparation reported the fixture as unknown. The same test passed in isolation.
+2. Root cause: the setup loaded several modules concurrently while each captured a shared mocked catalogue as its default.
+3. Prevention: resolve and assert the shared mocked module first, then load its dependent modules in a defined order. Keep the production default-argument assertions and functional deadline.
+4. Verification: run the palette and pattern additions together and in the full suite. Both floor selection and finish preparation must resolve the same fixture through their default catalogue.
+
+## [L-merge-head-does-not-prove-reuse] A merge commit does not establish worktree history
+
+1. What happened: a startup warning treated a detached checkout at a merged commit as evidence that previous work in that checkout had already shipped. The evidence did not establish that history.
+2. Root cause: commit ancestry was used as a substitute for worktree and task ownership. Fresh worktrees commonly start at merge commits on the remote default branch.
+3. Prevention: inspect working-tree status, the current reference, remote ancestry and task-owned artifacts separately. Apply a merged-work confirmation rule to the task's work, rather than to any merge commit in its ancestry.
+4. Verification: a clean new worktree based on remote main must not be classified as reused solely because its first commit is a merge. A branch whose own task changes have merged still requires the prescribed confirmation.
+
+## [L-generated-artifact-test-order] Finish rebuilding generated interfaces before running their integration tests
+
+1. What happened: browser save and career tests ran against the previous compiled simulation after a main-branch merge changed the save version and exported methods.
+2. Root cause: the integration tests started while the WebAssembly rebuild was still running, so source and generated artifacts described different interfaces.
+3. Prevention: finish the generated-artifact build successfully before launching tests that import it. Only independent source tests may run alongside that build.
+4. Verification: confirm the build exits successfully, then run the browser save, bridge and career tests against the generated package. Preserve failures from stale artifacts as verification-ordering evidence rather than changing expected behavior.
 ## [L-keep-workspace-test-inputs-stable] Reuse the established Cargo build context
 
 **What happened.** A package-only retest rebuilt dependencies after a workspace build had finished.
