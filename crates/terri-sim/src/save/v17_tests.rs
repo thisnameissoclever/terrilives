@@ -591,3 +591,118 @@ fn queued_settings_count_toward_the_shared_command_limit() {
     assert_eq!(live.save_snapshot_v18(), before);
     assert_eq!(live.world_hash(), hash);
 }
+
+#[test]
+fn v14_bare_waiter_is_adopted_before_a_current_save_without_claiming_admission() {
+    use crate::social_episode::requests::{ConversationOrigin, ConversationRequests, RequestPhase};
+    use terri_core::{Agent, Blocked, Path, Reserved, SimClock, SimId, SimRng, Target};
+    let mut source = Sim::new_from_shipped_lot();
+    source.tick();
+    let people: std::collections::BTreeMap<_, _> = source
+        .world_mut()
+        .query::<(terri_core::Entity, &Agent, &SimId)>()
+        .iter(source.world())
+        .map(|(entity, _, id)| (id.0, entity))
+        .collect();
+    let (admitted, recipient, waiter) = (people[&0], people[&1], people[&2]);
+    let target = *source
+        .world()
+        .get::<Target>(waiter)
+        .expect("the frozen projection must contain the waiting Target");
+    assert_eq!(target.object, recipient);
+    assert_eq!(
+        source.world().get::<Target>(admitted).unwrap().object,
+        recipient
+    );
+    let path = source
+        .world()
+        .get::<Path>(waiter)
+        .map(|path| (path.steps.clone(), path.cursor));
+    let blocked = source.world().get::<Blocked>(waiter).is_some();
+    let clock = source.world().resource::<SimClock>().tick;
+    let rng = source.world().resource::<SimRng>().clone();
+    let chore_rng = source
+        .world()
+        .resource::<terri_core::chores::SavedChores>()
+        .rng
+        .clone();
+    let historical = source.try_save_snapshot_v14().unwrap();
+    let mut migrated = Sim::new_from_shipped_lot();
+    migrated.load_snapshot_v14(historical).unwrap();
+    let requests = migrated.world().resource::<ConversationRequests>();
+    let owner = requests
+        .requests
+        .values()
+        .find(|request| request.initiator == admitted)
+        .unwrap();
+    assert_eq!(owner.phase, RequestPhase::Approaching);
+    let waiting = requests
+        .requests
+        .values()
+        .find(|request| request.initiator == waiter)
+        .expect(
+            "historical bare social Targets need explicit waiting ownership before current capture",
+        );
+    assert_eq!(waiting.recipient, recipient);
+    assert_eq!(waiting.interaction, target.interaction);
+    assert_eq!(waiting.origin, ConversationOrigin::LegacyUnattributed);
+    assert_eq!(waiting.phase, RequestPhase::Waiting);
+    assert_eq!(migrated.world().get::<Target>(waiter), Some(&target));
+    assert_eq!(
+        migrated
+            .world()
+            .get::<Path>(waiter)
+            .map(|path| (path.steps.clone(), path.cursor)),
+        path
+    );
+    assert_eq!(migrated.world().get::<Blocked>(waiter).is_some(), blocked);
+    assert!(migrated.world().get::<Reserved>(recipient).is_some());
+    assert_eq!(
+        migrated
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .rendezvous
+            .get(&recipient),
+        Some(&admitted)
+    );
+    assert_eq!(migrated.world().resource::<SimClock>().tick, clock);
+    assert_eq!(migrated.world().resource::<SimRng>(), &rng);
+    assert_eq!(
+        migrated
+            .world()
+            .resource::<terri_core::chores::SavedChores>()
+            .rng,
+        chore_rng
+    );
+    let current = migrated.save_snapshot_v19();
+    let mut restored = Sim::new_from_shipped_lot();
+    restored.load_snapshot_v19(current.clone()).unwrap();
+    assert_eq!(restored.save_snapshot_v19(), current);
+    assert_eq!(restored.world_hash(), migrated.world_hash());
+    let mut orphan = migrated.current_v5_view();
+    orphan
+        .0
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .conversation_requests
+        .requests
+        .retain(|request| request.initiator != 2);
+    orphan
+        .world
+        .entities
+        .iter_mut()
+        .find(|entity| entity.index == waiter.index_u32())
+        .unwrap()
+        .target = Some(terri_core::SavedTarget {
+        object: recipient.index_u32(),
+        interaction: target.interaction,
+    });
+    let before = restored.world_hash();
+    assert!(
+        restored.load_current_v5_view(orphan).is_err(),
+        "current saves still require exact ownership for a bare social Target"
+    );
+    assert_eq!(restored.world_hash(), before);
+}

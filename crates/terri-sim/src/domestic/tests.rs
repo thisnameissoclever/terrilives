@@ -968,6 +968,7 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
         ..Default::default()
     });
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    crate::neglect::tests::age(&mut sim);
     tick(sim.world_mut());
     let first = sim
         .world()
@@ -1042,6 +1043,7 @@ fn cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap() {
             if units > 0 {
                 add_dishes(sim.world_mut(), counter.index_u32(), 0, units);
             }
+            crate::neglect::tests::age(&mut sim);
             let actual = mood_penalty(sim.world(), person).unwrap_or(0.0);
             assert!(
                 (actual - expected).abs() < 0.00001,
@@ -1167,6 +1169,7 @@ fn cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_own
     );
     // Own dishes lift the room above the threshold without creating self-blame.
     add_dishes(sim.world_mut(), counter.index_u32(), 1, 1);
+    crate::neglect::tests::age(&mut sim);
     tick(sim.world_mut());
     let feelings = sim.world().get::<Relationships>(observer).unwrap();
     for owner in [0, 2] {
@@ -1246,6 +1249,7 @@ fn cleanliness_same_pile_crossing_and_visit_memory_survive_save_load() {
         ..Default::default()
     });
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    crate::neglect::tests::age(&mut sim);
     tick(sim.world_mut());
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
@@ -2642,6 +2646,7 @@ fn mess_diagnostics_survive_full_tick_and_report_clamping() {
         ..Default::default()
     });
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    crate::neglect::tests::age(&mut sim);
     sim.tick();
     let effect = sim
         .relationship_effects()
@@ -2773,6 +2778,7 @@ fn own_old_dishes_lower_mood_without_self_resentment() {
             .insert(ChainState::begin(0));
     }
     add_dishes(sim.world_mut(), counter.index_u32(), owner, 3);
+    crate::neglect::tests::age(&mut sim);
     tick(sim.world_mut());
     assert!(mood_penalty(sim.world(), observer).unwrap() > 0.0);
     assert_eq!(
@@ -3579,4 +3585,77 @@ fn meal_appreciation_skips_dead_cooks_without_discarding_the_portion() {
             |effect| effect.cause == crate::relationship_effects::RelationshipCause::MealShared
         ));
     }
+}
+
+#[test]
+fn balance_household_grace_fresh_dishes_have_no_ordinary_annoyance() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
+        *sim.world().get::<Position>(counter).unwrap();
+    for person in &people {
+        sim.world_mut()
+            .entity_mut(*person)
+            .insert(ChainState::begin(0));
+    }
+    sim.world_mut().insert_resource(SavedDomestic {
+        cleanliness: vec![(observer.index_u32(), 1.0)],
+        ..Default::default()
+    });
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 6);
+    tick(sim.world_mut());
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(observer)
+            .map_or(0.0, |r| r.feeling(SimId(0))),
+        0.0
+    );
+    assert_eq!(mood_penalty(sim.world(), observer), None);
+    assert!(sim
+        .world()
+        .resource::<SavedDomestic>()
+        .visits
+        .iter()
+        .find(|v| v.person == observer.index_u32())
+        .unwrap()
+        .seen
+        .is_empty());
+}
+
+#[test]
+fn balance_household_grace_cleanup_boundaries_clear_stale_timing() {
+    let (mut sim, people, _, counter, _) = household();
+    let person = people[0];
+    add_dishes(sim.world_mut(), counter.index_u32(), 1, 6);
+    sim.world_mut()
+        .resource_mut::<SavedDomestic>()
+        .cleanup
+        .push(terri_core::save::SavedCleanup {
+            person: person.index_u32(),
+            dishes: vec![0],
+            collected: vec![],
+            directed: true,
+        });
+    crate::neglect::refresh(sim.world_mut());
+    assert!(crate::neglect::snapshot(sim.world())
+        .sources
+        .iter()
+        .any(|timer| timer.maximum_since.is_some()));
+    let chain = chain_index(sim.world(), CLEANUP).unwrap();
+    completed(sim.world_mut(), person, chain, 0, Some(counter), None);
+    assert!(
+        crate::neglect::snapshot(sim.world())
+            .sources
+            .iter()
+            .all(|timer| timer.maximum_since.is_none()),
+        "collecting hides visible maximum dirt before a save"
+    );
+    completed(sim.world_mut(), person, chain, 1, Some(counter), None);
+    assert!(
+        crate::neglect::snapshot(sim.world())
+            .sources
+            .iter()
+            .all(|timer| !matches!(timer.source, terri_core::save_v19::NeglectSource::Dish(_))),
+        "washing removes source timing before a save"
+    );
 }

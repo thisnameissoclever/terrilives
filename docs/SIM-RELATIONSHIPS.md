@@ -12,7 +12,9 @@ liking another does not guarantee the feeling is mutual. Completed chats, pleasa
 nearby time and recognized shared activities add affinity. Opposing authored
 preferences create friction; time gradually moves living relationships toward neutral. Affinity
 toward dead Sims remains available for grief. Family ties are a separate
-relationship classification and do not replace affinity.
+relationship classification. Positive opinion events between partners, parents,
+children and siblings are multiplied by 1.5; negative opinion events are halved.
+Neutral drift, restored values and explicit relationship edits remain unchanged.
 
 ## Personality, needs and emotional consequences
 
@@ -36,8 +38,9 @@ and its creator, not to an omniscient account of why it was left.
 
 ## Domestic support and friction
 
-Social refill requires simultaneous participation with another Sim. Each
-receiver gets a positive benefit even from disliked company. Directional
+Chats and shared activities provide Social through actual participation.
+Correspondence also supplies Social while the writer works alone. Each chat
+participant gets a positive benefit even from disliked company. Directional
 affinity scales the benefit, and family adds an independent bonus. Watching TV or listening to the radio counts
 only while another Sim actively uses the same device.
 Travelling toward it, standing nearby or using another device does not count.
@@ -57,8 +60,9 @@ by personality. Food quality affects the food rewards rather than the value of
 the company. Rewards stop when eligible participation stops
 and do not multiply with the number of other diners.
 
-Chats restore Social at every affinity level. The multiplier is
-`max(0.25, 1 + affinity * relationship_delta_scale)`, plus 0.1 for family.
+Chats restore twice their previous authored Social at every affinity level,
+up to the meter limit of 100. Fights supply no Social. The multiplier is
+`max(0.25, 1 + affinity * relationship_delta_scale)`, plus 0.25 for family.
 Personality satisfaction then scales the positive reward. Selection values
 that same immediate benefit, so low Social encourages contact even with a
 disliked relative or housemate. A group uses its strongest eligible affinity multiplier and adds the family

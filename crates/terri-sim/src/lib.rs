@@ -48,6 +48,7 @@ mod media;
 mod mood;
 pub mod mortality;
 mod need_interactions;
+pub(crate) mod neglect;
 pub mod placement;
 pub mod portals;
 mod privacy;
@@ -1460,15 +1461,34 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(save::v18::project_v17)
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
-    /// The current save: schema eighteen.
+    /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
+    }
+
+    /// The complete current save, including continuous household neglect.
+    pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v19::capture(self))
+    }
+
+    pub fn load_snapshot_v19(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV19,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v19::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_current_with_saved_state(candidate)
     }
 
     pub fn load_snapshot_v18(
@@ -2392,6 +2412,7 @@ impl Sim {
         }
         self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
+        neglect::refresh(&mut self.world);
         player_actions::observe(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
@@ -2424,6 +2445,7 @@ impl Sim {
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
         social_episode::maintain(&mut self.world);
+        neglect::refresh(&mut self.world);
         player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
@@ -5043,6 +5065,7 @@ impl Sim {
             }
         }
         domestic::hash(&self.world, &mut hasher);
+        neglect::hash(&self.world, &mut hasher);
         dining::hash(&self.world, &mut hasher);
         targeted_cleanup::hash(&self.world, &mut hasher);
         if let Some(grime) = self.world.get_resource::<terri_core::grime::SavedGrime>() {
@@ -6283,13 +6306,14 @@ mod determinism_tests {
     use terri_core::{Agent, Eating, NeedId, Needs, Position};
 
     fn build_scenario() -> Sim {
-        build_scenario_with_historical_layout(None)
+        build_scenario_with_historical_layout(None, Content(terri_data::pack()))
     }
 
     fn build_scenario_with_historical_layout(
         layout: Option<terri_core::layout::SavedLayout>,
+        content: Content,
     ) -> Sim {
-        let mut sim = Sim::new_with_lot(24, 24);
+        let mut sim = Sim::new_with_lot_and_content(24, 24, content);
         if let Some(layout) = layout {
             sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
             sim.world.remove_resource::<rooms::RoomMap>();
@@ -6313,6 +6337,43 @@ mod determinism_tests {
             );
         }
         sim
+    }
+
+    fn pre_balance_content() -> Content {
+        // Restore the exact authored inputs changed by this balance pass.
+        // The historical control receives them before public person creation.
+        let mut pack = terri_data::pack().clone();
+        pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+        pack.tuning.relationship_gain_per_talk = 0.17;
+        let chat = pack
+            .social
+            .iter_mut()
+            .find(|action| action.id == "chat")
+            .unwrap();
+        let social = chat
+            .advertises
+            .iter_mut()
+            .find(|(need, _)| usize::from(*need) == NeedId::Social.index())
+            .unwrap();
+        assert_eq!(social.1, 100.5);
+        social.1 = 50.25;
+        for object in &mut pack.objects {
+            for action in &mut object.interactions {
+                if action.id == "attend_correspondence" {
+                    assert!(action
+                        .advertises
+                        .iter()
+                        .any(
+                            |(need, amount)| usize::from(*need) == NeedId::Social.index()
+                                && *amount == 24.0
+                        ));
+                    action
+                        .advertises
+                        .retain(|(need, _)| usize::from(*need) != NeedId::Social.index());
+                }
+            }
+        }
+        Content(Box::leak(Box::new(pack)))
     }
 
     /// The entity indices `world_hash`'s query yields in raw ECS order,
@@ -7153,16 +7214,19 @@ mod determinism_tests {
         // release WASM independently measured the same result.
         // Current blank lots add the room prefix and explicit empty edge architecture.
         // Outside no longer grants indoor proximity friendship across the whole lot.
-        // The immutable published-V15 boundary control proves that only those
-        // relationship rows and layout representation differ after the same ticks;
-        // requests, orders, needs, positions and every random stream remain equal.
+        // The immutable published-V15 control reconstructs pre-balance inputs
+        // and checks the original producer state. The live vector below checks
+        // the current balance independently.
         // Release-Wasm agreement must still be measured independently.
-        const GOLDEN: u64 = 4661132544113609906;
+        // The 2026-10-19 balance changes the live vector. Native and rebuilt
+        // release WebAssembly agree on the same nine-entity, 100-tick state.
+        const GOLDEN: u64 = 7530373376785939268;
 
         let mut sim = build_scenario();
-        let mut published = build_scenario_with_historical_layout(Some(
-            terri_core::layout::SavedLayout::LegacyCells { walls: vec![] },
-        ));
+        let mut published = build_scenario_with_historical_layout(
+            Some(terri_core::layout::SavedLayout::LegacyCells { walls: vec![] }),
+            pre_balance_content(),
+        );
         for _ in 0..TICKS {
             sim.tick();
             published.tick();
@@ -7176,6 +7240,18 @@ mod determinism_tests {
             .unwrap();
         let without_registry = sim.world_hash();
         sim.world.insert_resource(registry);
+        // The old digest predates only the independent neglect metadata.
+        // Keep every physical, social, random and historical save field intact.
+        let published_before = published.save_snapshot_v15();
+        published
+            .world
+            .insert_resource(terri_core::save_v19::SavedNeglect::default());
+        assert_eq!(
+            published.save_snapshot_v15(),
+            published_before,
+            "historical hash inspection preserves every published V15 field"
+        );
+
         assert_eq!(
             published.world_hash(),
             4676206450852028819,

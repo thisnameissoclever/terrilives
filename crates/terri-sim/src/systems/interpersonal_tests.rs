@@ -1432,7 +1432,7 @@ fn interpersonal_completion_and_cancellation_preserve_the_start_impression() {
         -0.20,
         "a still-critical bladder prevents a positive completion reward"
     );
-    assert_eq!(feeling(&sim, a, b), 0.17);
+    assert_eq!(feeling(&sim, a, b), 0.34);
     sim.load_snapshot_v5(snapshot).unwrap();
     // Redirecting the partner disturbs the conversation; cleanup must not
     // erase the impression from when it began or add a completion gain.

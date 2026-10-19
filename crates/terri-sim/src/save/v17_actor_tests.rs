@@ -22,12 +22,12 @@ fn empty_fixture(content: &terri_data::ContentPack) -> Sim {
     assert!(content.books.is_empty());
     let content = Box::leak(Box::new(content));
     let sim = test_content::sim_with(12, 8, content);
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     let mut loaded = test_content::sim_with(12, 8, content);
     loaded
-        .load_snapshot_v17(saved.clone())
+        .load_current_v17_view(saved.clone())
         .expect("the empty custom fixture must satisfy the current save contract");
-    assert_eq!(loaded.save_snapshot_v17(), saved);
+    assert_eq!(loaded.current_v17_view(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
     sim
 }
@@ -55,10 +55,10 @@ fn enqueue(sim: &mut Sim, command: SimCommand) {
 }
 
 fn checkpoint(sim: &Sim) -> Sim {
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     let mut loaded = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    loaded.load_snapshot_v17(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v17(), saved);
+    loaded.load_current_v17_view(saved.clone()).unwrap();
+    assert_eq!(loaded.current_v17_view(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
     loaded
 }
@@ -86,7 +86,7 @@ fn bare_actor_queued_and_served_orders_round_trip_with_exact_completion() {
         );
     }
     sim.flush_commands();
-    let queued = sim.save_snapshot_v17();
+    let queued = sim.current_v17_view();
     assert_eq!(queued.player_orders.orders.len(), 2);
     assert!(queued
         .player_orders
@@ -107,7 +107,7 @@ fn bare_actor_queued_and_served_orders_round_trip_with_exact_completion() {
         Some(0)
     );
     assert!(sim
-        .save_snapshot_v17()
+        .current_v17_view()
         .player_orders
         .orders
         .iter()
@@ -266,7 +266,7 @@ fn bare_actor_social_order_keeps_player_provenance_with_named_recipient() {
         crate::social_episode::execution_order(sim.world(), actor),
         Some(0)
     );
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     assert!(saved
         .player_orders
         .orders
@@ -288,7 +288,7 @@ fn bare_actor_social_order_keeps_player_provenance_with_named_recipient() {
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if !checked_frozen_boundary
             && sim
-                .save_snapshot_v17()
+                .current_v17_view()
                 .social_executions
                 .iter()
                 .any(|row| row.initiator == actor.index_u32() && row.admitted)
@@ -348,7 +348,7 @@ fn current_actor_tags_are_unambiguous_and_malformed_aliases_are_atomic() {
         );
     }
     sim.flush_commands();
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v17_view();
     assert_eq!(saved.player_orders.orders.len(), 2);
     assert!(saved
         .player_orders
@@ -377,11 +377,11 @@ fn current_actor_tags_are_unambiguous_and_malformed_aliases_are_atomic() {
             .unwrap()
             .actor = invalid;
         assert!(
-            loaded.load_snapshot_v17(malformed).is_err(),
+            loaded.load_current_v17_view(malformed).is_err(),
             "accepted {invalid:?}"
         );
         assert_eq!(loaded.world_hash(), before);
-        assert_eq!(loaded.save_snapshot_v17(), saved);
+        assert_eq!(loaded.current_v17_view(), saved);
     }
 }
 
@@ -420,7 +420,7 @@ fn bare_recipients_and_pairs_restore_with_strict_entity_reference_checks() {
             sim.tick();
             if sim.world().get::<terri_core::Socialising>(actor).is_some() {
                 checkpoint(&sim);
-                let before = sim.save_snapshot_v17();
+                let before = sim.current_v17_view();
                 let before_hash = sim.world_hash();
                 let mut invalid = before.clone();
                 let social = &mut invalid
@@ -437,8 +437,8 @@ fn bare_recipients_and_pairs_restore_with_strict_entity_reference_checks() {
                     .first_mut()
                     .expect("running conversation has its topic");
                 topic.initiator = u32::MAX;
-                assert!(sim.load_snapshot_v17(invalid).is_err());
-                assert_eq!(sim.save_snapshot_v17(), before);
+                assert!(sim.load_current_v17_view(invalid).is_err());
+                assert_eq!(sim.current_v17_view(), before);
                 assert_eq!(sim.world_hash(), before_hash);
                 running = true;
                 break;
@@ -489,7 +489,7 @@ fn current_bare_social_references_require_existing_agents_at_every_boundary() {
             assert!(sim.world().get::<terri_core::Socialising>(actor).is_some());
         }
         checkpoint(&sim);
-        let before = sim.save_snapshot_v17();
+        let before = sim.current_v17_view();
         let before_hash = sim.world_hash();
         for victim in [actor.index_u32(), recipient.index_u32()] {
             for missing in [false, true] {
@@ -516,10 +516,10 @@ fn current_bare_social_references_require_existing_agents_at_every_boundary() {
                         .agent = false;
                 }
                 assert!(
-                    sim.load_snapshot_v17(invalid).is_err(),
+                    sim.load_current_v17_view(invalid).is_err(),
                     "{boundary}: actor={victim}, missing={missing}"
                 );
-                assert_eq!(sim.save_snapshot_v17(), before);
+                assert_eq!(sim.current_v17_view(), before);
                 assert_eq!(sim.world_hash(), before_hash);
             }
         }
@@ -538,7 +538,7 @@ fn legacy_paused_order_phase(sim: &Sim, actor: Entity, expected: &str) {
     loaded
         .load_snapshot_v14(sim.save_snapshot_v14())
         .expect("real active legacy order restores");
-    let before = loaded.save_snapshot_v17();
+    let before = loaded.current_v17_view();
     let rows = loaded.action_queue_rows_of(actor.index_u32(), 20);
     assert_eq!(
         rows.first().and_then(|row| row.order_id),
@@ -551,10 +551,10 @@ fn legacy_paused_order_phase(sim: &Sim, actor: Entity, expected: &str) {
     assert_eq!(loaded.world().resource::<terri_core::SimClock>().tick, tick);
     assert_eq!(loaded.world().resource::<terri_core::SimRng>(), &random);
     assert!(loaded.action_events_since(0).events.is_empty());
-    assert_eq!(loaded.save_snapshot_v17(), before);
-    loaded.load_snapshot_v17(before.clone()).unwrap();
+    assert_eq!(loaded.current_v17_view(), before);
+    loaded.load_current_v17_view(before.clone()).unwrap();
     assert_eq!(
-        loaded.save_snapshot_v17(),
+        loaded.current_v17_view(),
         before,
         "current owner metadata remains authoritative"
     );

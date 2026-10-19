@@ -64,12 +64,12 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
             .unwrap()
             .id
             .clone();
-        let before = sim.save_snapshot_v18();
+        let before = sim.save_snapshot_v19();
         let before_hash = sim.world_hash();
         let available =
             sim.reading_available_titles(person.index_u32(), target.index_u32(), &action);
         assert_eq!(
-            sim.save_snapshot_v18(),
+            sim.save_snapshot_v19(),
             before,
             "availability observation must preserve complete state"
         );
@@ -79,6 +79,7 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
             "availability observation must preserve hash and randomness"
         );
         let six = &before
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -126,6 +127,7 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
     let seated_tick = elapsed;
     let seated_state = support::capture(sim);
     let six = &seated_state
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -217,20 +219,20 @@ fn start_reading(sim: &mut Sim, targets: &[(Entity, Entity)]) {
     assert!((pa.x - pb.x).hypot(pa.y - pb.y) <= pack.tuning.relationships.contact_radius);
     let scene = support::capture(sim);
     let mut restored = Sim::new_with_lot(6, 4);
-    restored.load_snapshot_v18(scene.clone()).unwrap();
+    restored.load_snapshot_v19(scene.clone()).unwrap();
     let mut overlap = 1;
     for tick in 0..120 {
         sim.tick();
         restored.tick();
         assert_eq!(
-            sim.save_snapshot_v18(),
-            restored.save_snapshot_v18(),
+            sim.save_snapshot_v19(),
+            restored.save_snapshot_v19(),
             "reading replay tick {tick}"
         );
         assert_eq!(sim.world_hash(), restored.world_hash());
         overlap += usize::from(reading(sim, standing, shelf) && reading(sim, seated, chair));
     }
-    sim.load_snapshot_v18(scene).unwrap();
+    sim.load_snapshot_v19(scene).unwrap();
     println!("reading admitted B at {seated_tick}, A at {elapsed}; observed overlap {overlap} ticks including 120 replay updates");
 }
 
@@ -426,7 +428,7 @@ fn main() {
             .resource_mut::<CommandQueue>()
             .push(SimCommand::SetSpeed(0));
         sim.flush_commands();
-        let mut snapshot = sim.save_snapshot_v18();
+        let mut snapshot = sim.save_snapshot_v19();
         if scenario == "wait" {
             support::v5_mut(&mut snapshot)
                 .boundaries
@@ -441,7 +443,7 @@ fn main() {
         }
         // Validate the fixture through the production loader before publishing it.
         let mut restored = Sim::new();
-        restored.load_snapshot_v18(snapshot.clone()).unwrap();
+        restored.load_snapshot_v19(snapshot.clone()).unwrap();
         let bytes = support::encode(&restored);
         std::fs::write(
             std::path::Path::new(&output).join(format!("{scenario}.save")),

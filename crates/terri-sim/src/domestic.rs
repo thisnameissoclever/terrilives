@@ -171,7 +171,7 @@ fn roll(world: &mut World, probability: f32) -> bool {
 }
 
 /// Room boundaries include doorways; furniture occupancy does not split a room.
-fn rooms(world: &World) -> (usize, Vec<u32>) {
+pub(crate) fn rooms(world: &World) -> (usize, Vec<u32>) {
     if crate::rooms::stable(world) {
         let map = world.resource::<crate::rooms::RoomMap>();
         let width = map.topology.width as usize;
@@ -232,7 +232,7 @@ pub(crate) fn legacy_rooms(world: &World) -> (usize, Vec<u32>) {
     (width, labels)
 }
 
-fn room_at(width: usize, labels: &[u32], position: &Position) -> Option<u32> {
+pub(crate) fn room_at(width: usize, labels: &[u32], position: &Position) -> Option<u32> {
     let (x, y) = (position.x.round() as i32, position.y.round() as i32);
     if x < 0 || y < 0 || x as usize >= width {
         return None;
@@ -303,7 +303,13 @@ pub(crate) fn mood_penalty(world: &World, person: Entity) -> Option<f32> {
     if piles.is_empty() && !obstructed {
         return None;
     }
-    let units: u32 = piles.iter().map(|dish| dish.units).sum();
+    let units: u32 = piles
+        .iter()
+        .filter(|dish| {
+            crate::neglect::source_due(world, terri_core::save_v19::NeglectSource::Dish(dish.id))
+        })
+        .map(|dish| dish.units)
+        .sum();
     let clean = cleanliness(world, person).clamp(0.0, 1.0);
     let response = terri_core::cleanliness::dish_response(clean, units);
     let penalty = (tuning.mood_penalty_min + tuning.mood_penalty_bonus * clean)
@@ -343,6 +349,13 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
         world.entity_mut(person).insert(Relationships::default());
     }
     for owner in owners {
+        let penalty = -crate::relationship_effects::scaled_opinion_delta(
+            world,
+            own,
+            SimId(owner),
+            crate::relationship_effects::RelationshipCause::HouseholdMess,
+            -penalty,
+        );
         world
             .get_mut::<Relationships>(person)
             .unwrap()
@@ -522,6 +535,7 @@ pub(crate) fn tick(world: &mut World) {
     state.cleanliness.sort_by_key(|(index, _)| *index);
     world.insert_resource(state);
     crate::dining::maintain(world);
+    crate::neglect::refresh(world);
     let (width, labels) = rooms(world);
     let critical = world
         .resource::<Content>()
@@ -541,6 +555,12 @@ pub(crate) fn tick(world: &mut World) {
         let clean = cleanliness(world, person).clamp(0.0, 1.0);
         let units = room_piles(world, person, state, width, &labels)
             .iter()
+            .filter(|pile| {
+                crate::neglect::source_due(
+                    world,
+                    terri_core::save_v19::NeglectSource::Dish(pile.id),
+                )
+            })
             .map(|pile| pile.units)
             .sum();
         let response = terri_core::cleanliness::dish_response(clean, units);
@@ -557,7 +577,10 @@ pub(crate) fn tick(world: &mut World) {
         let mut seen_now = seen.clone();
         let mut owners = BTreeSet::new();
         for pile in &piles {
-            if response > 0.0 && !seen.contains(&pile.id) {
+            if crate::neglect::source_due(world, terri_core::save_v19::NeglectSource::Dish(pile.id))
+                && response > 0.0
+                && !seen.contains(&pile.id)
+            {
                 owners.insert(pile.owner);
                 seen_now.push(pile.id);
             }
@@ -568,8 +591,13 @@ pub(crate) fn tick(world: &mut World) {
             if world.get::<Relationships>(person).is_none() {
                 world.entity_mut(person).insert(Relationships::default());
             }
-            let requested =
-                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response;
+            let requested = crate::relationship_effects::scaled_opinion_delta(
+                world,
+                id,
+                SimId(owner),
+                crate::relationship_effects::RelationshipCause::HouseholdMess,
+                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response,
+            );
             let before = world
                 .get::<Relationships>(person)
                 .unwrap()
@@ -1044,6 +1072,7 @@ pub(crate) fn completed(
             crate::targeted_cleanup::washed(world, person);
             crate::chores::dish_washed(world, person.index_u32(), washed_units);
         }
+        crate::neglect::refresh(world);
         return;
     }
     if (def.id == "cook_dinner" || def.id == SNACK) && step == 1 {

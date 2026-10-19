@@ -1,0 +1,82 @@
+{
+  "total_mutants": 6,
+  "missed": 0,
+  "caught": 6,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "cargo_mutants_version": "27.1.0",
+  "cases": [
+    {
+      "case": "Unmodified baseline",
+      "result": "Success",
+      "test_results": [
+        "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.44s"
+      ],
+      "failed_tests": []
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:97:9: replace || with && in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 31 passed; 4 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 3.23s"
+      ],
+      "failed_tests": [
+        "relationship_dynamics::tests::a_refused_minute_pays_proximity_and_keeps_friction_suspended",
+        "relationship_dynamics::tests::shared_activity_suspends_friction_but_failed_or_disliked_activity_does_not",
+        "relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity",
+        "relationship_dynamics::tests::watching_one_television_together_pays_the_shared_activity_rate"
+      ]
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:96:14: replace == with != in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 34 passed; 1 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.50s"
+      ],
+      "failed_tests": [
+        "social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions"
+      ]
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:101:11: replace * with + in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 34 passed; 1 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.56s"
+      ],
+      "failed_tests": [
+        "social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions"
+      ]
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:101:11: replace * with / in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 34 passed; 1 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.50s"
+      ],
+      "failed_tests": [
+        "social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions"
+      ]
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:101:22: replace > with == in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 34 passed; 1 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.43s"
+      ],
+      "failed_tests": [
+        "social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions"
+      ]
+    },
+    {
+      "case": "crates/terri-sim/src/relationship_effects.rs:101:22: replace > with < in opinion_delta",
+      "result": "CaughtMutant",
+      "test_results": [
+        "test result: FAILED. 34 passed; 1 failed; 0 ignored; 0 measured; 1751 filtered out; finished in 2.46s"
+      ],
+      "failed_tests": [
+        "social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions"
+      ]
+    }
+  ]
+}

@@ -927,27 +927,29 @@ does not mean both households are allies.
 
 ### [B-family-relationships] Family relationships are explicit
 
-**Status: Partial: SimId ties and labels complete; tree and family-specific behaviour remain.**
+**Status: Partial: saved ties, labels and family social effects are implemented; the family tree and broader family behaviour remain.**
 
 Saved family ties now distinguish partner, parent, child and sibling independently
 of affinity. Family-tree UI, extended and non-household relatives, inheritance,
-age-valid relationship creation, and family-specific autonomy and social
-consequences remain. Bereavement already reads affinity at death, while family
+age-valid relationship creation and family-specific autonomous choices remain.
+Family and partners strengthen positive opinion effects, soften negative ones
+and add a Social bonus during eligible company. Bereavement reads affinity at death, while family
 ties survive the loss; no separate family-specific grief effect has shipped.
 
-The completed first slice ships the tie itself. A newcomer arrives as somebody: the New
+A newcomer arrives as somebody: the New
 housemate form asks who they are to the household, choosing from partner,
 parent, child and sibling and naming the member it is to, and the
 relationship list then says it beside the feeling, from the row's side:
 "Bill, their parent" means Bill is the parent. A
 tie is one stored fact between two people, read from either end so a parent
 one way is a child the other, saved sparsely and appended, and in the world
-hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. Since PR 134 at
+hash. Family now increases positive social effects and reduces negative opinion
+changes. The saved tie first shipped in PR 131 at merge `2f87db7`. Since PR 134 at
 merge `e1ce54e`, a tie names each person by SimId rather than entity index, so
 it stays with them once somebody can leave or die. The design is
 `docs/specs/2026-09-22-family.md`, which names the three later slices, and the
 played check is [A-family]. The item stays open: the tree, relatives outside
-the household, inheritance and family-specific consequences are still to build.
+the household, inheritance and broader family-specific choices are still to build.
 
 ### [A-audio-voices] The game has sound and Sim voices
 

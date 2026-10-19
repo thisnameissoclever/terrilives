@@ -230,7 +230,7 @@ id = "attend_correspondence"
 [action_template.properties]
 activity = { set = "correspondence" }
 label = { set = "Handle correspondence" }
-advertises = { set = { fun = 36.0, energy = -7.0 } }
+advertises = { set = { social = 24.0, fun = 36.0, energy = -7.0 } }
 duration_ticks = { set = 58 }
 slots = { set = 1 }
 tags = { set = ["correspondence"] }

@@ -1442,7 +1442,7 @@ describe('SimBridge', () => {
     // Independently measured in native and release WASM before updating either.
     // Current rooms remove whole-lot Outside friendship and append room hash state.
     // Independently measured native and normal release Wasm on 2026-10-17.
-    expect(bridge.worldHash()).toBe(4661132544113609906n);
+    expect(bridge.worldHash()).toBe(7530373376785939268n);
   });
 
   // ---- Player commands -------------------------------------------------

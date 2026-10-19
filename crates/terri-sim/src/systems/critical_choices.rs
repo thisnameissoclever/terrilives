@@ -167,20 +167,20 @@ mod tests {
             &Personality::neutral(),
             &[(0, 21.)],
             None,
-            400,
+            600,
             0.,
             0,
             false,
             true,
         );
         let mut executed = needs;
-        for _ in 0..400 {
+        for _ in 0..600 {
             executed.drain(NeedId::Hunger, pack.decay_per_tick[0]);
         }
         assert_eq!(executed.get(NeedId::Hunger), 0.);
         executed.fill(NeedId::Hunger, 21.);
         assert!((predicted.net_change[0] - (executed.get(NeedId::Hunger) - 20.)).abs() < 0.0001);
-        assert_eq!(predicted.first_relief_ticks[0], Some(400));
+        assert_eq!(predicted.first_relief_ticks[0], Some(600));
     }
     #[test]
     fn unrelated_mass_is_bounded_without_erasing_random_choices() {

@@ -1427,6 +1427,12 @@ mod tests {
             });
         }
 
+        // The ordering fixture needs overdue dishes, not a fresh pile.
+        crate::neglect::refresh(sim.world_mut());
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick +=
+            crate::neglect::UNFINISHED_WORK_GRACE_TICKS;
+        crate::neglect::refresh(sim.world_mut());
+
         // Set in the reverse of habituation order.
         set_habituation(
             &mut sim,

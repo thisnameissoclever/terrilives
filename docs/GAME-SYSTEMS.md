@@ -55,7 +55,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-moods] | Moods and moodlets | Substantial | Derived moodlets, grief, waiting and satisfaction feedback |
 | [S-chains] | Multi-step activities | Partial | Cooking dinner and resumable chain engine |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | Directional feelings, chat and living-person decay |
-| [S-family] | Family relationships and kinship | Partial | Saved SimId ties and People labels; ties survive death |
+| [S-family] | Family relationships and kinship | Partial | Saved ties, People labels, stronger positive family effects and reduced negative effects; ties survive death |
 | [S-careers] | Jobs and careers, with player-directed career paths | Partial | One scheduled office job with wages |
 | [S-create-a-sim] | Create-a-sim and appearance | Partial | New housemate: name, personality, traits and family tie |
 | [S-life-stages] | Life stages and aging | Not started | None |
@@ -452,7 +452,7 @@ Future facial expressions and unique animations should reflect both current mood
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social even with disliked partners; affinity scales the benefit and family adds a small bonus. Topics follow the initiator's interests, with enjoyment of socializing favoring shared interests. Busy recipients can be approached and waited for. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with actual company; solo activities and empty-table sitting cannot. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social even with disliked partners; affinity scales the benefit and family adds a small bonus. Topics follow the initiator's interests, with enjoyment of socializing favoring shared interests. Busy recipients can be approached and waited for. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with actual company; letter writing provides Social while alone, while solo media and empty-table sitting do not. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
 - `[H13]` Implemented: slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
@@ -463,7 +463,7 @@ Also missing: more direct social actions than chat, group conversations, and a r
 
 ### [S-family] Family relationships and kinship
 
-**Status: Partial.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Nothing in the simulation behaves differently for family yet, and there is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Ties survive death, and affinity-based bereavement is shipped under [S-death]. Genetics, inheritance and additional family-specific consequences remain open.
+**Status: Partial.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Family and partners receive stronger positive opinion changes, reduced negative changes and an independent Social bonus during eligible company. There is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Ties survive death, and affinity-based bereavement is shipped under [S-death]. Genetics, inheritance and additional family-specific consequences remain open.
 
 ### [S-careers] Jobs and careers, with player-directed career paths
 

@@ -652,7 +652,21 @@ V18 wraps the complete V17 payload with the living people whose job search is
 off and the queued job search settings with their queue positions, leaving the
 frozen command records unchanged ([job search for each
 housemate](specs/2026-10-18-job-search-per-person.md)).
-The published V15, V16 and V17 readers retain their original wire shapes.
+V19 wraps the complete V18 payload with independent household neglect timers.
+Source timers track continuous actionable dirt and maximum dirt; duty timers
+track the assigned owner's unfinished work. Environmental mood, ordinary dish
+annoyance, midnight neglect and helper resentment wait for 120 game minutes at
+maximum dirt or 1440 game minutes of unfinished actionable work. Actual blocked
+seating remains immediate. Cleaning and removed sources clear timing. Pause
+freezes it. The timers are hashed, validated and carried by native build and
+ordinary-command transactions. Unsettled episode IDs retain an observed overdue
+fact through gradual cleaning. Discharged or removed work clears that fact when
+no genuine cleanup remains; settlement also prunes it. Older saves begin fresh grace. Published V15
+through V18 readers retain their original wire shapes. Earlier social saves can
+retain a target without owning the recipient's reservation. Legacy adoption
+imports that intent as an explicitly unattributed waiting request; it does not
+invent admission or alter the physical target, path, clock or random streams.
+Current readers still reject orphaned social targets.
 
 During Build, the native transaction owns a validated baseline, accepted-command
 journal, pending names, and at most one prepared candidate. Current-schema save
@@ -693,8 +707,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-17. A V17 primary therefore receives `terri-save-1.v17-backup.bin` before the first
-V18 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+18. A V18 primary therefore receives `terri-save-1.v18-backup.bin` before the first
+V19 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -708,8 +722,8 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V17 workers also refuse a newer primary; the published V17 fixture refuses
-a V18 primary instead of overwriting each person's job search. The storage writer and load-status controller share the current
+Frozen V10 through V18 workers also refuse a newer primary; the published V18 fixture refuses
+a V19 primary instead of discarding household neglect timing. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;

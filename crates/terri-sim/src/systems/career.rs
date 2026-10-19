@@ -1542,7 +1542,7 @@ mod tests {
         assert_eq!(today(&source), 5, "the walk home is on Saturday");
         let funds_at_save = source.funds();
 
-        let snapshot = source.save_snapshot_v17();
+        let snapshot = source.current_v17_view();
         assert_eq!(
             source.world().get::<terri_core::SimId>(worker),
             Some(&identity)
@@ -1559,7 +1559,7 @@ mod tests {
             Ok(())
         );
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v17(snapshot), Ok(()));
+        assert_eq!(restored.load_current_v17_view(snapshot), Ok(()));
         assert!(restored.world().get::<Commuting>(worker).is_some());
         assert_eq!(clock(&restored), saved_at);
 

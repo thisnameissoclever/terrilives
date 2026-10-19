@@ -1,11 +1,12 @@
 //! Complete current save ownership for scene-authoring tools.
-use terri_core::{SaveSnapshotV18, SaveSnapshotV5, SAVE_MAGIC, SAVE_SCHEMA_VERSION};
+use terri_core::{SaveSnapshotV19, SaveSnapshotV5, SAVE_MAGIC, SAVE_SCHEMA_VERSION};
 use terri_sim::{Content, Sim};
 
-const _: () = assert!(SAVE_SCHEMA_VERSION == 18);
+const _: () = assert!(SAVE_SCHEMA_VERSION == 19);
 
-pub fn v5_mut(snapshot: &mut SaveSnapshotV18) -> &mut SaveSnapshotV5 {
+pub fn v5_mut(snapshot: &mut SaveSnapshotV19) -> &mut SaveSnapshotV5 {
     &mut snapshot
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -18,14 +19,14 @@ pub fn v5_mut(snapshot: &mut SaveSnapshotV18) -> &mut SaveSnapshotV5 {
         .legacy
 }
 
-pub fn capture(sim: &Sim) -> SaveSnapshotV18 {
-    let snapshot = sim.save_snapshot_v18();
+pub fn capture(sim: &Sim) -> SaveSnapshotV19 {
+    let snapshot = sim.save_snapshot_v19();
     let mut restored = Sim::new_with_lot_and_content(1, 1, *sim.world().resource::<Content>());
     restored
-        .load_snapshot_v18(snapshot.clone())
+        .load_snapshot_v19(snapshot.clone())
         .expect("review scene must pass complete current validation");
     assert_eq!(
-        restored.save_snapshot_v18(),
+        restored.save_snapshot_v19(),
         snapshot,
         "review scene must round-trip completely"
     );

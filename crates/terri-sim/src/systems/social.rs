@@ -121,13 +121,17 @@ pub fn tick_social(
         }
 
         let act = &content.0.social[socialising.interaction as usize];
+        let fighting = crate::fights::is_fight(act);
 
         // Delivery, both directions. `delta / duration` per tick against
         // the CONTENT duration, exactly as `tick_interactions` does and
         // for the reason its doc gives: the advert's promise is the
         // content number, so the per-tick rate comes from it even though
         // the sampled length decides how long the delivery runs.
-        for (me, other) in [(initiator, partner), (partner, initiator)] {
+        for (me, other) in [(initiator, partner), (partner, initiator)]
+            .into_iter()
+            .filter(|_| !fighting)
+        {
             let Ok(mut my_needs) = needs.get_mut(me) else {
                 // A participant without Needs cannot receive; the talk
                 // still runs its course so the reservation still ends.
@@ -180,13 +184,19 @@ pub fn tick_social(
         // other falls by the tuned loss and each records a Had a fight
         // moodlet; a second fight restarts the moodlet. The order pop and
         // the release below are the chat's.
-        if crate::fights::is_fight(act) {
+        if fighting {
             for (me, other) in [(initiator, partner), (partner, initiator)] {
                 let (Ok(&my_id), Some(other_id)) = (sim_ids.get(me), other_sim_id(&sim_ids, other))
                 else {
                     continue;
                 };
-                let loss = -tuning.fight_relationship_loss;
+                let loss = crate::relationship_effects::opinion_delta(
+                    family.as_deref(),
+                    my_id,
+                    other_id,
+                    RelationshipCause::Fight,
+                    -tuning.fight_relationship_loss,
+                );
                 let before = relationships.get(me).map_or(0.0, |r| r.feeling(other_id));
                 match relationships.get_mut(me) {
                     Ok(mut mine) => mine.bump(other_id, loss),
@@ -259,6 +269,10 @@ pub fn tick_social(
                 crate::skills::practise(&mut skills, content.0, &act.tags);
             }
         }
+        let mutual = episodes
+            .topics
+            .get(&initiator)
+            .is_some_and(crate::social_episode::shared_interest);
         for (me, other) in [(initiator, partner), (partner, initiator)] {
             let Some(other_id) = other_sim_id(&sim_ids, other) else {
                 continue;
@@ -290,12 +304,21 @@ pub fn tick_social(
             };
             let gain = if dislike < 0. {
                 0.02 * dislike
-            } else if allowed {
+            } else if allowed || mutual {
                 tuning.relationship_gain_per_talk
                     * crate::relationship_dynamics::positive_scale(score)
             } else {
                 0.0
             };
+            let gain = sim_ids.get(me).map_or(gain, |&affected| {
+                crate::relationship_effects::opinion_delta(
+                    family.as_deref(),
+                    affected,
+                    other_id,
+                    RelationshipCause::Conversation,
+                    gain,
+                )
+            });
             let before = relationships.get(me).map_or(0.0, |r| r.feeling(other_id));
             if let Ok(&affected) = sim_ids.get(me) {
                 diagnostics.effects.push(RelationshipEffect {

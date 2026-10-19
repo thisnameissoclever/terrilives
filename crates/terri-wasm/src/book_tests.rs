@@ -402,7 +402,7 @@ fn book_fix1_inflated_positive_midread_earnings_reject_with_bytes_hash_rng_uncha
     assert!(bad.reading[0].work > 0.0 && bad.reading[0].earned_satisfaction > 0.0);
     bad.reading[0].earned_satisfaction *= 100.0;
     let mut corrupted = SAVE_MAGIC.to_vec();
-    corrupted.extend_from_slice(&17u16.to_le_bytes());
+    corrupted.extend_from_slice(&19u16.to_le_bytes());
     corrupted.extend(postcard::to_allocvec(&bad.0).unwrap());
     assert!(!handle.load_bytes(&corrupted));
     assert_eq!(handle.save_bytes(), bytes);
