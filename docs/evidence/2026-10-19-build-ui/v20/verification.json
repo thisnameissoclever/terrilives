@@ -1,0 +1,84 @@
+{
+  "application_revision": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+  "merged_main": "96b14aa45fc20a0e92f9e8f3de7501110ec16359",
+  "source_sha256": {
+    "web/index.html": "f536e1a1d3f5b265d9a705b2da9a3ab84303f3e06c10c65016a26ec74ccd677f",
+    "web/src/main.ts": "2a8ba8ce99206a00ff515d9616eb6fb6ed2154c3769adb2f85b6e3a6a7b61183",
+    "web/src/ui/build-exit.ts": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+    "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908",
+    "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+    "web/src/storage/save-header.ts": "d77ef11ae75958328cf23abfa637f869663c51e3bd5896fbba78165424328949",
+    "web/src/storage/save-worker.ts": "fbfe7e570919dde5620a36268aa86c8212139a285406d6b8f047a7b5f56d1108",
+    "web/src/wasm/terri_wasm_bg.wasm": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+  },
+  "logs": {
+    "v20-wasm-build.log": {
+      "original_sha256": "785c7189e515418f98285b1487e888324d0a1b78eb06b8f3e36a51772497b4ab",
+      "retained_sha256": "3fc0a700159243e11d8d965c2e96e903a043e623259f93c6f31bdf4962d682a1"
+    },
+    "v20-typecheck.log": {
+      "original_sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
+      "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad"
+    },
+    "v20-full-web-tests.log": {
+      "original_sha256": "b9ac7c78e9720dda544ff5a07bc41acb479c4b429caee29c6098582d7e666526",
+      "retained_sha256": "a95b65f0db6836286746be73e19d497963f2c25f0285c65539d6502bd45fb2a9"
+    },
+    "v20-production-build.log": {
+      "original_sha256": "970a2d17a5f02fd7ba3191293761fa7e5eef348f94c0a7200357c6b8a7af8d4c",
+      "retained_sha256": "9ee82fc9d6f0d57eae96be6bcc20ec8c3e12d61847e5c88c723da01ab0404e47"
+    }
+  },
+  "original_capture_sha256": {
+    "dock-390.jpg": "d1d73118ca8a63b9e89b30c28c7cb18f9c50e184d95a805c36f89b4a3dd44c62",
+    "dock-390.json": "6a1e2a76bbee610e8c4ba35517deb76358c3769dd6b4dbc4c1eca3ec9b27ea57",
+    "dock-434.jpg": "d7846e66aaef6292fd7ae20c208ff313373918c3f5672994e1337ea7993a9529",
+    "dock-434.json": "59e11bfcf6dd1d882f4a88b02ce97c90af2c9157ac2d7e907048c6dfa86849b3",
+    "exit-dialog-390-keyboard.jpg": "b3d5ec68cb6f464d52ecf7e7bbf68052be2d17b50ea9e029eaff9ddb12f02dca",
+    "exit-dialog-390-keyboard.json": "ea5de11f0eb7ab5e86d4b93f08671145215f4e30089eb874ad8f5802bf348f53",
+    "walls-land-review-back-390.jpg": "4b7b533cdc239b5973f33349dc389976567c2321fb0cfd465a479a07f58ecdf0",
+    "walls-land-review-back-390.json": "795d5f90dc7330e51dfca2ca49d3b6bbaf31725ad9c817ddfd78c8f36235d394",
+    "loaded-v19-room.txt": "961c43dcc26bcde1831d127649bae549b0b45216552955f494fd3f75a0cc8498",
+    "loaded-v20-room.txt": "f3091caf59c55f2ba9aaa1e0e9d90b55bf4db527a0b5a3d0050d536cf0cfc4a1",
+    "merge-review.txt": "5eb92821e000133cd1eb91538a673dece764aca49fa8083deeac05b1c202ebcd",
+    "final-loaded-game.jpg": "0a2a7dad8633f211d4121f30b4ff42d91ec559c039e201bd7dac9a5b2657ad18",
+    "cleanup.json": "6a9fedfb1d0c7f5af101e460062d96f9b59c603508dfcd7400a1077ba95bd567",
+    "independent-visual-review.md": "111d61d8437471814c42b39d9223e30a31600e9fb7dd5a21253d5ce9ce91b5d4"
+  },
+  "retained_capture_sha256": {
+    "dock-390.jpg": "d1d73118ca8a63b9e89b30c28c7cb18f9c50e184d95a805c36f89b4a3dd44c62",
+    "dock-390.json": "6a1e2a76bbee610e8c4ba35517deb76358c3769dd6b4dbc4c1eca3ec9b27ea57",
+    "dock-434.jpg": "d7846e66aaef6292fd7ae20c208ff313373918c3f5672994e1337ea7993a9529",
+    "dock-434.json": "59e11bfcf6dd1d882f4a88b02ce97c90af2c9157ac2d7e907048c6dfa86849b3",
+    "exit-dialog-390-keyboard.jpg": "b3d5ec68cb6f464d52ecf7e7bbf68052be2d17b50ea9e029eaff9ddb12f02dca",
+    "exit-dialog-390-keyboard.json": "ea5de11f0eb7ab5e86d4b93f08671145215f4e30089eb874ad8f5802bf348f53",
+    "walls-land-review-back-390.jpg": "4b7b533cdc239b5973f33349dc389976567c2321fb0cfd465a479a07f58ecdf0",
+    "walls-land-review-back-390.json": "795d5f90dc7330e51dfca2ca49d3b6bbaf31725ad9c817ddfd78c8f36235d394",
+    "loaded-v19-room.txt": "961c43dcc26bcde1831d127649bae549b0b45216552955f494fd3f75a0cc8498",
+    "loaded-v20-room.txt": "f3091caf59c55f2ba9aaa1e0e9d90b55bf4db527a0b5a3d0050d536cf0cfc4a1",
+    "merge-review.txt": "5eb92821e000133cd1eb91538a673dece764aca49fa8083deeac05b1c202ebcd",
+    "final-loaded-game.jpg": "0a2a7dad8633f211d4121f30b4ff42d91ec559c039e201bd7dac9a5b2657ad18",
+    "cleanup.json": "6a9fedfb1d0c7f5af101e460062d96f9b59c603508dfcd7400a1077ba95bd567",
+    "independent-visual-review.md": "111d61d8437471814c42b39d9223e30a31600e9fb7dd5a21253d5ce9ce91b5d4"
+  },
+  "checks": {
+    "normal_release_wasm": "passed",
+    "typecheck": "passed",
+    "full_web_suite": {
+      "files": 279,
+      "tests": 3860,
+      "result": "passed",
+      "workers": 1,
+      "node_heap_mib": 3072
+    },
+    "production_build": "passed",
+    "source_integration_review": "approved",
+    "independent_visual_review": "approved"
+  },
+  "proof_limits": [
+    "Startup advanced at1x before manualPause; later Build checks stayed paused",
+    "No physical touch or operating-system held-repeat proof",
+    "No Linux mutation cleanup/recovery or complete production mutation campaign",
+    "No PR merge, deployment or live-game claim"
+  ]
+}

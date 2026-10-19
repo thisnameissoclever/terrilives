@@ -8,4 +8,6 @@ The text logs use LF line endings and omit trailing whitespace and blank final l
 
 This is historical version-18 source and automated-test evidence. The [subsequent version-19 record](v19/README.md) contains the rebuilt application checks, actual Chrome captures of the 390px dialog, 390px dock, 434px dock and Back-returned Walls state, and fresh independent visual acceptance. The earlier in-app browser captures with distorted geometry remain rejected. Physical touch and operating-system key repeat remain unverified. No PR 300 merge, deployment or live-game verification is claimed here.
 
+The [version-20 record](v20/README.md) covers the later current-main merge, complete web suite, refreshed played pass and fresh independent visual review. It preserves the preceding records at their original source boundaries.
+
 [annotation-closeout.md](annotation-closeout.md) answers the five earlier room-review questions from current source and retained room-feature evidence. It is a read-only audit with explicit historical-save and test-maintenance limits, not a new historical-save test run.

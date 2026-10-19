@@ -181,7 +181,8 @@ def authenticate_producer(api, repository, entry, artifact, receipt, *, now, sco
     require(timestamp(job["started_at"]) <= created <= now
             and (not job.get("completed_at") or created <= timestamp(job["completed_at"])),
             "artifact outside producer job lifetime")
-    log = api.bytes(f"repos/{repository}/actions/jobs/{job['id']}/logs").decode("utf-8")
+    raw_log = api.bytes(f"repos/{repository}/actions/jobs/{job['id']}/logs")
+    log = raw_log.decode("utf-8")
     receipts = []
     for line in log.splitlines():
         prefix = marker + " "
@@ -193,6 +194,28 @@ def authenticate_producer(api, repository, entry, artifact, receipt, *, now, sco
     require(receipt in receipts, "producer receipt absent from authenticated job log")
     require(re.search(rf"^(?:\S+ )?MUTATION_ARTIFACT_ID={artifact['id']}\s*$", log, re.MULTILINE) is not None,
             "artifact ID absent from producer upload log")
+    return {"job": job, "log_bytes": raw_log, "log_sha256": sha(raw_log)}
+
+
+class AuthenticatedRecovery(dict):
+    """In-process capability issued after the workflow adapter authenticates evidence.
+
+    Plain decoded JSON is never accepted at the runner seam. This is not a
+    cryptographic object; the pinned local adapter owns its creation.
+    """
+    def __init__(self, recovered, manifest, run_id, attempt, include_current):
+        super().__init__(recovered)
+        self.binding = (manifest["input_fingerprint"], run_id, attempt, include_current)
+
+
+def checked_recovery(value, manifest, *, run_id, attempt, include_current):
+    require(isinstance(value, AuthenticatedRecovery) and value.binding ==
+            (manifest["input_fingerprint"], run_id, attempt, include_current),
+            "unverified or stale prepared recovery input")
+    records = model.merge_deltas(manifest, value["deltas"], allowed_run_ids=set(value["allowed_run_ids"]),
+        current_run_id=run_id, current_attempt=attempt, include_current=include_current)
+    require(records == value["records"], "prepared records differ from reconstructed deltas")
+    return value
 
 
 def validate_bundle(files, manifest, entry, artifact, *, repository, workflow):

@@ -43,26 +43,21 @@ surviving mutant is, by definition, behaviour that nothing constrains.
 - It mutates **production** code, so it finds untested production behaviour. A
   test vacuous in a way not tied to a production mutation can still slip
   through. It is a backstop, not a replacement for rule 1.
-- **A mutant that HANGS is invisible to the gate, and no production loop may
-  be unbounded.** The gate compares `missed.txt`; a hang lands in
-  `timeout.txt` and is neither caught nor a survivor, so nothing mechanical
-  sees it. Worse, a hang **suppresses the assertions that did fire**: the test
-  process never exits, so failures elsewhere in the same run are never
-  reported, and the mutant looks detected only by the hang. [L50] is the
-  recorded instance - three `SimRng` mutants each failed real assertions and
-  all three reported TIMEOUT for a whole milestone. Every loop in production
-  code therefore gets a bound whose overrun panics, however unreachable that
-  bound is: `SimRng::draw_below_bound` and `roll_wander_path` are the two
-  worked examples. CI now fails on a non-empty `timeout.txt`; the fix for one
-  is a bound, never a longer cap. Two cases are not hangs and must not be
-  answered with a bound. A mutant nothing kills runs the whole workspace
-  suite to the end, so it costs a full suite and lands near the cap rather
-  than at it. And a cap below the UNMUTATED run is worse and silent: that run
-  fails first, no mutants are tested at all, and every file the gates read is
-  empty and green. CI's cap is therefore the larger of 120 seconds and four
-  times the unmutated run, which here are two different commands, and a
-  separate step fails a shard whose sweep tested nothing
-  ([L-mutant-cap-must-scale]).
+- **Every real tool timeout fails policy.** A timeout is a recorded build or
+  test phase failure; it does not prove an infinite loop. A controller stop at
+  the job budget is unfinished work and cannot become a timeout or a caught
+  mutant. Preserve the last validated report before signaling the owned process.
+  The baseline and each mutant use the same complete `cargo test --workspace
+  --locked` command. Planning freezes the test cap at the larger of 120 seconds
+  and four times that measured baseline, with a 600-second build cap. A failed
+  baseline supplies no mutation coverage. Exact planned/completed identity
+  equality replaces the former positive-count check. A resumed slot with no
+  pending identities may pass from authenticated evidence; a partially tested
+  manifest may not. See [campaign operations](mutation-campaign.md).
+  Production loops still need bounds whose violation fails an assertion. [L50]
+  records why a hung test can conceal assertions that already failed. Distinguish
+  a real loop defect from a test workload whose legitimate runtime exceeds its
+  calibrated cap before deciding which code to repair.
 - **It does not emit statement-deletion mutants.** It rewrites expressions and
   return values, so a whole statement whose only effect is on state - `swap`,
   `clear`, `sort`, `push`, `insert` - is outside its grammar. A clean report
@@ -95,13 +90,18 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   A cancelled sweep is not a passed sweep. The outer workflow still cancels
   obsolete heads of the same PR. Its groups also separate events so a manual
   sweep on main cannot block push CI while it waits for mutation slots.
-  Rust, web and Pages jobs do not use these groups, so mutation sweeps cannot
-  consume more than eight runners between
-  them. This is a mutation budget, not a guarantee of available account-wide
+  Rust, web and Pages jobs do not use these groups. Tool builds, calibration
+  and mutation execution share the eight slots; lightweight aggregation uses
+  a separate job after its workers finish. This budget does not guarantee available account-wide
   runners. Previously dispatched workflows retain their old configuration.
   See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
   `.github/scripts/test_workflow_concurrency.py` pins the shared group, queue,
   shard count and CI invocation; it does not emulate GitHub's scheduler.
+  Tool preparation, calibration and current-attempt recovery preparation acquire
+  slot zero sequentially, before the workers. Every mutation job has a 120-minute cap. The distinct fixture checks
+  prove interruption and recovery; they never establish production coverage.
+  Read-only jobs cannot dispatch themselves. An authorized external controller
+  owns finite reruns and explicitly selected predecessor chains.
 
 ## 3. Prefer causal assertions to equality assertions
 

@@ -53,6 +53,9 @@ def selected_workspace(root, scope):
             (path / "Cargo.toml").write_text(FIXTURE_CARGO, encoding="utf-8")
             (path / "Cargo.lock").write_text(FIXTURE_LOCK, encoding="utf-8")
             (path / "src/lib.rs").write_text(FIXTURE_SOURCE, encoding="utf-8")
+            pin = Path(root) / "rust-toolchain.toml"
+            require(pin.is_file(), "fixture requires the committed toolchain pin")
+            (path / "rust-toolchain.toml").write_bytes(pin.read_bytes())
             yield path
 
 
@@ -191,7 +194,10 @@ def generation_argv(scope, tool=None):
 
 
 def tool_identity(tool):
-    return {key: tool[key] for key in ("version", "binary_sha256")}
+    result = {key: tool[key] for key in ("version", "binary_sha256")}
+    if "authenticated_contract" in tool:
+        result["authenticated_contract"] = tool["authenticated_contract"]
+    return result
 
 
 def tool_argv(tool):
@@ -211,7 +217,22 @@ def execution_argv(settings, calibration, tool, config, output_parent):
             "--in-place", "--output", str(output_parent)]
 
 
-def installed_tool(root, env):
+def installed_tool(root, env, settings=None):
+    settings = settings or {}
+    if settings.get("require_authenticated_tool") or "tool_executable" in settings:
+        binary = Path(settings["tool_executable"])
+        require(binary.is_absolute() and binary.is_file() and not binary.is_symlink(), "invalid explicit tool path")
+        expected = settings["tool_sha256"]
+        require(re.fullmatch(r"[0-9a-f]{64}", expected) is not None
+                and artifacts.sha(binary.read_bytes()) == expected, "explicit tool byte digest mismatch")
+        contract = settings["tool_contract"]
+        require(contract["reference"]["executable_sha256"] == expected and contract["runtime"],
+                "authenticated tool contract mismatch")
+        tool = {"version": model.TOOL_VERSION, "binary_sha256": expected, "executable": str(binary),
+                "authenticated_contract": contract}
+        require(command(tool_argv(tool) + ["--version"], root, env) == "cargo-mutants 27.1.0", "wrong cargo-mutants version")
+        tool_argv(tool)
+        return tool
     paths = env.get("PATH", "").split(os.pathsep)
     cargo_bin = Path(env.get("CARGO_HOME", str(Path.home() / ".cargo"))).resolve() / "bin"
     if cargo_bin not in {Path(path).resolve() for path in paths if path}:
@@ -316,7 +337,7 @@ def collect_context(root, settings, calibration, *, tool=None):
     checkout, inventory = checkout_inventory(root, settings["repository"])
     require(FILES[-1] in {row["path"] for row in inventory["entries"]}, "published V15 fixture is not tracked")
     env, contract_env = execution_environment(settings)
-    tool = tool or installed_tool(root, env)
+    tool = tool or installed_tool(root, env, settings)
     toolchain = {tool: command([tool, "--version", "--verbose"], root, env) for tool in ("rustc", "cargo")}
     require(calibration["scope"] == settings["scope"] and calibration["inventory_digest"] == model.digest(inventory)
             and calibration["environment"] == contract_env and calibration["toolchain"] == toolchain
@@ -351,7 +372,8 @@ def collect_context(root, settings, calibration, *, tool=None):
     inputs["cargo_mutants_settings"] = {"cap_lints": True, "shuffle": False, "test_workspace": False,
                                        "cargo_args": ["--workspace", "--locked"], "jobs": 1, "baseline": "run"}
     if settings["scope"] == "fixture":
-        inputs["fixture_digest"] = model.digest({"Cargo.toml": FIXTURE_CARGO, "Cargo.lock": FIXTURE_LOCK, "src/lib.rs": FIXTURE_SOURCE})
+        inputs["fixture_digest"] = model.digest({"Cargo.toml": FIXTURE_CARGO, "Cargo.lock": FIXTURE_LOCK,
+            "src/lib.rs": FIXTURE_SOURCE, "rust-toolchain.toml": (Path(root) / "rust-toolchain.toml").read_text(encoding="utf-8")})
     return {"inputs": inputs, "checkout": checkout,
             "run": {"run_id": settings["run_id"], "workflow": workflow}}, env, listing
 
@@ -642,7 +664,7 @@ def calibrate(root, settings, output):
     checkout, inventory = checkout_inventory(root, settings["repository"])
     env, contract_env = execution_environment(settings)
     env["CARGO_ENCODED_RUSTFLAGS"] = "--cap-lints=warn"
-    tool = installed_tool(root, env)
+    tool = installed_tool(root, env, settings)
     started = artifacts.timestamp(settings["job_started_at"]).timestamp()
     reserve = settings["shutdown_seconds"] + settings["upload_seconds"] + settings["validation_seconds"]
     deadline = started + 7200 - reserve
@@ -704,24 +726,27 @@ def plan(root, settings, calibration, output):
                 "run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"], "slot": 0,
                 "scope": settings["scope"], "checkout": context["checkout"], "input_fingerprint": manifest["input_fingerprint"],
                 "campaign_id": manifest["campaign_id"]}
+    if "log_retention_days" in settings:
+        producer["log_retention_days"] = settings["log_retention_days"]
     write_json(output, {"version": 1, "manifest": manifest, "calibration": calibration, "capacity": decision, "producer": producer})
     print("MUTATION_PLAN " + json.dumps(dict(producer, plan_digest=artifacts.sha(Path(output).read_bytes())),
                                        sort_keys=True, separators=(",", ":")), flush=True)
     return manifest
 
 
-def execute_slot(root, settings, planned, chain, output, api=None):
+def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=None):
     bound_setup(settings)
     manifest, calibration = planned["manifest"], planned["calibration"]
     require(settings.get("fixture_stop_after_records") is None or settings["scope"] == "fixture",
             "deliberate fixture interruption is forbidden in production")
-    tool = installed_tool(root, execution_environment(settings)[0])
+    tool = installed_tool(root, execution_environment(settings)[0], settings)
     context, env, _ = collect_context(root, settings, calibration, tool=tool)
     require(model.digest({"schema_version": model.SCHEMA_VERSION, "inputs": context["inputs"]}) == manifest["input_fingerprint"],
             "source or execution contract changed")
     slot = settings["slot"]
-    recovered = artifacts.recover(api or artifacts.GitHub(), manifest, chain, current_run_id=settings["run_id"],
-                                  current_attempt=settings["attempt"])
+    recovered = (artifacts.recover(api or artifacts.GitHub(), manifest, chain, current_run_id=settings["run_id"],
+                                  current_attempt=settings["attempt"]) if recovered is None else
+        artifacts.checked_recovery(recovered, manifest, run_id=settings["run_id"], attempt=settings["attempt"], include_current=False))
     records = recovered["records"]
     baseline = (Path(root) / "docs/mutants-baseline.txt").read_text(encoding="utf-8").splitlines() if settings["scope"] == "production" else []
     summary = model.summarize(manifest, records, baseline, slot=slot)
@@ -733,6 +758,8 @@ def execute_slot(root, settings, planned, chain, output, api=None):
                "workflow_sha": settings["workflow_sha"], "run_id": settings["run_id"], "attempt": settings["attempt"],
                "job_id": settings["job_id"], "slot": slot, "checkout": context["checkout"],
                "input_fingerprint": manifest["input_fingerprint"], "campaign_id": manifest["campaign_id"]}
+    if "log_retention_days" in settings:
+        receipt["log_retention_days"] = settings["log_retention_days"]
     if state in {"complete", "policy_failure", "baseline_failure", "infrastructure_failure", "capacity_failure"}:
         return retain_bundle(output, manifest, receipt, {"state": state, "reason": reason}, summary=summary)
     decision = capacity(settings, calibration)
@@ -813,15 +840,16 @@ def validate_current_plan(root, planned, settings):
     return context
 
 
-def aggregate(root, planned, chain, settings, output, api=None):
+def aggregate(root, planned, chain, settings, output, api=None, *, recovered=None):
     manifest = planned["manifest"]
     current_context = validate_current_plan(root, planned, settings)
     entry = next((entry for entry in chain["runs"] if str(entry["run_id"]) == settings["run_id"]), None)
     require(entry is not None and all(current_context["checkout"][key] == entry[key] for key in ("commit", "tree", "ref")),
             "current checkout differs from authenticated chain entry")
     api = api or artifacts.GitHub()
-    recovered = artifacts.recover(api, manifest, chain, current_run_id=settings["run_id"],
-        current_attempt=settings["attempt"], include_current=True)
+    recovered = (artifacts.recover(api, manifest, chain, current_run_id=settings["run_id"],
+        current_attempt=settings["attempt"], include_current=True) if recovered is None else
+        artifacts.checked_recovery(recovered, manifest, run_id=settings["run_id"], attempt=settings["attempt"], include_current=True))
     baseline_bytes = Path(settings["survivor_baseline"]).read_bytes()
     require(artifacts.sha(baseline_bytes) == manifest["context"]["inputs"]["survivor_baseline_file_digest"],
             "survivor baseline changed since planning")

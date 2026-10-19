@@ -12930,3 +12930,17 @@ A partial dish-washing batch recorded a new scoped receipt under published refer
 ### Keep running measurements outside Cargo output directories
 
 A workspace test build failed with `LNK1104` because it tried to replace an example executable used by a long-running measurement. Cargo builds ordinary examples during workspace testing, even when they contain no tests. Before starting a measurement, copy its validated executable to an ignored task directory and record the original digest. Run the copy so later builds can replace Cargo artifacts. Verify that the copied executable is outside `target/` and that every intended library, integration, migration and documentation test target runs. A failed combined build must remain recorded as failed, even when later explicit targets supply complete validation.
+
+## [L-recovery-retains-failed-aggregate-jobs] Recover failed stages even when they produced no artifact
+
+1. What happened: a recovery adapter retained preparation and worker jobs but omitted aggregate jobs. A failed aggregate with no snapshot disappeared from the next attempt, which could pass using earlier complete results.
+2. Root cause: artifact discovery was mistaken for a complete inventory of started work. A stage that fails before upload has no artifact to announce its failure.
+3. Prevention: inventory every started stage that can invalidate acceptance. Require authenticated verdict evidence for a failed historical stage when continuation is permitted; otherwise retain the terminal failure. Keep the current in-progress producer distinct from historical producers.
+4. Verification: start with complete valid history, insert a failed aggregate without a snapshot, and require a later aggregate-only attempt to refuse. Preserve explicit terminal verdicts through resealing. Separately accept authenticated incomplete continuation and a clean aggregate-only refresh. Remove the guard in an isolated copy and require the intended assertion to fail.
+
+## [L-recovery-binds-original-plan-policy] Bind continuation policy to the authenticated original plan
+
+1. What happened: an externally supplied continuation extended a seven-day campaign to fourteen days while retaining its original plan and results. An optional snapshot comparison caught the change only when a snapshot existed.
+2. Root cause: the adapter validated the caller's policy shape without comparing its immutable fields to the authenticated original policy.
+3. Prevention: compare start, expiry, attempt limits and retention immediately after original-plan authentication, before tool or work admission. Permit only the explicitly allowed ordered run-chain extension. A missing optional checkpoint must never remove the original policy boundary.
+4. Verification: authenticate a valid original plan and producer, then alter each immutable field independently with no snapshot available. Require every altered continuation to refuse while a valid append-only extension succeeds. Remove the policy binding in an isolated copy and require the named regression assertion to fail.

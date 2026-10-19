@@ -39,6 +39,10 @@ class FixtureAPI:
         self.calls.append(path)
         return self.blobs[path]
 
+    def rate_status(self, required=0):
+        self.calls.append("rate_limit")
+        return {"resources": {"core": {"limit": 1000, "remaining": 1000, "reset": 2_000_000_000}}}
+
 
 class ArtifactTests(unittest.TestCase):
     def setUp(self):

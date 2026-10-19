@@ -66,7 +66,7 @@ mutation verification recorded in the front-door release evidence.
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: the `SimRng::range` timeout fix, 2026-07-29**, full, run to
+**Historical sweep: the `SimRng::range` timeout fix, 2026-07-29**, full, run to
 completion on the finished tree, CI's package list and CI's exact single-job
 invocation:
 
@@ -312,7 +312,7 @@ minutes single-machine at `--jobs 4`, and should compare against the unchanged
 
 ---
 
-**Latest sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
+**Historical sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
 finished Task 6 tree, with the package list CI uses and **CI's exact
 invocation** - single-job, unlike the two sweeps below:
 
@@ -1640,11 +1640,12 @@ panics.
 
 ## 2026-09-22: the test cap became a floor plus a multiple
 
-Every sweep recorded above ran with `--timeout 60`, one fixed cap. It is now
+Every sweep recorded above ran with `--timeout 60`, one fixed cap. At that date it changed to
 `--timeout-multiplier 4 --minimum-test-timeout 120`, with a 120 minute bound on
 the job and a step that fails a shard whose sweep tested zero mutants. The
 commands above are kept as the records of the sweeps that produced each baseline
-entry rather than as the current invocation.
+entry rather than as the current invocation. Current execution and continuation
+are described in [campaign operations](mutation-campaign.md).
 
 The reason is in [L-mutant-cap-must-scale] in `docs/lessons-learned.md`. The cap
 was timing two different commands: a mutant is tested with `cargo test --workspace`,
@@ -1656,7 +1657,7 @@ hangs, including the two equivalent `rect_distance` clamps and the equivalent
 holding a `terri-sim` mutant, which then tested nothing and passed.
 
 Nothing about which mutants survive changed, and no baseline entry moved. What
-did change is that a shard now has to test something to pass, and that a
+changed at that date was that a shard had to test something to pass, and that a
 `Timeout` line means the cap was hit rather than that a loop ran away.
 
 ## 2026-10-16: communal affinity, one accepted comparison
@@ -1737,17 +1738,16 @@ room's lowest cell moves to the moved cell of its old id.
 name the moved rooms. The two answers could differ only for an id that
 names no room. No test shows whether such an id can reach `grow`.
 
-The gate strips line and column before comparing, so this entry has the
-same text as `replace % with + in grow` at 336:69, the same operator in the
-cell remap two lines above, which `a_move_keeps_ids_and_moves_only_tiles`
-kills today. The gate sorts both lists and compares them with `comm -23`,
-which pairs equal lines one to one, so if both survived in one shard the
-second copy would still be reported as new. CI runs eight shards with
-cargo-mutants' default slice sharding, which gives each shard a run of
-consecutive mutants, so two mutants a few positions apart usually share a
-shard. The entry hides a surviving 336:69 only when a shard boundary falls
-between the two, or when 338:26 stops surviving while its entry stays in
-the baseline.
+The gate strips line and column only when allocating survivor allowances,
+so this entry has the same normalized name as `replace % with + in grow`
+at 336:69, the operator in the cell remap two lines above. The
+`a_move_keeps_ids_and_moves_only_tiles` test catches that mutation today.
+The current campaign model allocates each baseline line once across all merged
+results, before projecting a worker's slot. If both mutations survive, one
+allowance cannot excuse both, even when they belong to different slots. Their
+full source spans remain distinct mutation identities. If the accepted mutant
+stops surviving, its stale allowance could still excuse the other mutation;
+reviewing stale entries therefore requires a complete campaign.
 
 The sweep that recorded this ran `cargo mutants --in-place --iterate
 --in-diff` locally on the fights and land diff, with `cargo test

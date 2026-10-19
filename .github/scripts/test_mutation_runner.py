@@ -605,6 +605,7 @@ for n in range(1000):
             model.validate_selection(self.manifest, 0, selected, self.ids)
 
     def test_invalid_selection_never_launches_mutation_process(self):
+        (self.root / "rust-toolchain.toml").write_text('[toolchain]\nchannel = "1.94.1"\n', encoding="utf-8")
         ctx = context()
         ctx["inputs"]["input_inventory"] = {"entries": []}
         manifest = model.build_manifest(self.items, ctx)
