@@ -594,7 +594,7 @@ impl From<PublishedTuning> for Tuning {
             shift_sleep_offset_early: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_EARLY,
             shift_sleep_offset_late: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
             shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
-            career_search_temperature: Tuning::SHIPPED_CAREER_SEARCH_TEMPERATURE,
+            career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -999,6 +999,25 @@ fn authentic_2f_pack_decodes_and_reencodes_exactly() {
     assert_eq!(
         postcard::to_allocvec(&old).unwrap(),
         postcard::to_allocvec(compiled).unwrap()
+    );
+}
+
+/// Issue 296, [WS-search]: a pack published before the search drew its
+/// path keeps the best-fit search, temperature 0, and the frozen pre-books
+/// source compiles to the same value.
+#[test]
+fn a_published_pack_keeps_the_best_fit_search() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(old.tuning.career_search_temperature, 0.0);
+    assert_eq!(
+        crate::contextual_pre_books_pack()
+            .tuning
+            .career_search_temperature,
+        0.0
     );
 }
 

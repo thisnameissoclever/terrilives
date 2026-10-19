@@ -148,13 +148,14 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("career_mood_promoted_ticks", toml::Value::Integer(1440)),
         ("career_mood_demoted_ticks", toml::Value::Integer(2880)),
         ("career_mood_fired_ticks", toml::Value::Integer(5760)),
-        // Shifts (issue 296): the shipped values, reconstructed by the
-        // published-pack conversions too.
+        // Shifts (issue 296): the shipped offsets, reconstructed by the
+        // published-pack conversions too, and the search temperature 0,
+        // the best-fit search every pack before issue 296 ran.
         ("shift_sleep_offset_day", toml::Value::Integer(0)),
         ("shift_sleep_offset_early", toml::Value::Integer(-60)),
         ("shift_sleep_offset_late", toml::Value::Integer(120)),
         ("shift_sleep_offset_night", toml::Value::Integer(660)),
-        ("career_search_temperature", toml::Value::Float(0.25)),
+        ("career_search_temperature", toml::Value::Float(0.0)),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),

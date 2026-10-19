@@ -625,12 +625,67 @@ fn changing_shift_settles_an_open_shift_at_home() {
     assert_eq!((shift.id, shift.shift_start), ("late", 900));
 }
 
+/// The career state a refusal must leave alone beyond what the world hash
+/// covers: every record, held shifts included, and the shift stream with
+/// its draw count.
+fn career_state(sim: &Sim) -> (BTreeMap<SimId, Record>, SimRng, u64) {
+    let careers = sim.world().resource::<Careers>();
+    (
+        careers.records.clone(),
+        careers.shift_rng.clone(),
+        careers.shift_draws,
+    )
+}
+
+/// [WS-select] item 3: the open shift a change settles is forfeited, not
+/// scored, so the week's scores stay exactly as they were. An assignment
+/// starts a new record and is not affected.
+#[test]
+fn a_shift_change_leaves_the_weeks_scores_unchanged() {
+    let (mut sim, actor) = kept_home();
+    let job = pack(&sim).careers[0].clone();
+    sim.world_mut().resource_mut::<Careers>().records.insert(
+        SimId(1),
+        Record {
+            shifts: vec![61.0, 64.5],
+            ..Record::new(&job)
+        },
+    );
+    sim.world_mut().resource_mut::<SimClock>().tick = 120;
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        sim.world()
+            .resource::<crate::attendance::Attendance>()
+            .outcomes
+            .len(),
+        1,
+        "the open shift settled"
+    );
+    let record = sim
+        .world()
+        .resource::<Careers>()
+        .record(SimId(1))
+        .cloned()
+        .expect("a record");
+    assert_eq!(record.shifts, vec![61.0, 64.5], "the forfeit is not scored");
+    assert_eq!(record.shift, 1);
+}
+
 /// [WS-select] item 4: each refusal leaves the world as it was apart from
-/// the command count, and reports its number.
+/// the command count, and reports its number. The held shifts and the
+/// shift stream are compared directly as well as through the world hash.
 #[test]
 fn the_shift_commands_refuse_each_case_without_changing_the_world() {
     let refused = |sim: &mut Sim, command: SimCommand, expected: CareerRefusal| {
         let before = sim.world_hash();
+        let careers_before = career_state(sim);
         let commands = sim.world().resource::<Careers>().commands;
         issue(sim, command.clone());
         assert_eq!(reason(sim), Some(Some(expected)), "{command:?}");
@@ -640,6 +695,11 @@ fn the_shift_commands_refuse_each_case_without_changing_the_world() {
             careers.commands = commands;
         }
         assert_eq!(sim.world_hash(), before, "{command:?} changes nothing");
+        assert_eq!(
+            career_state(sim),
+            careers_before,
+            "{command:?} changes no record or shift stream"
+        );
     };
     // The numbers the shell reads continue the career refusals.
     assert_eq!(

@@ -209,12 +209,31 @@ pub(crate) fn account_and_settle(world: &mut World) {
             now >= shift.end_tick
         };
         if expired {
-            settle(world, actor, sim);
+            settle(world, actor, sim, Scoring::Week);
         }
     }
 }
+/// Whether a settled shift's score joins the week the person is reviewed
+/// on.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Scoring {
+    Week,
+    /// Issue 296, [WS-select] item 3: a shift a shift change cuts short is
+    /// forfeited. Pay, energy and reward follow the minutes worked, but the
+    /// score stays out of the week, because the change costs only the
+    /// good-week streak.
+    Forfeit,
+}
 /// A successful job change settles the old scheduled obligation before replacing it.
 pub(crate) fn close_for_career_change(world: &mut World, actor: Entity) {
+    close_open_shift(world, actor, Scoring::Week);
+}
+/// A successful shift change settles the open scheduled shift as a job
+/// change does, without scoring it into the week.
+pub(crate) fn close_for_shift_change(world: &mut World, actor: Entity) {
+    close_open_shift(world, actor, Scoring::Forfeit);
+}
+fn close_open_shift(world: &mut World, actor: Entity, scoring: Scoring) {
     account_and_settle(world);
     let sim = identity(world, actor);
     if world
@@ -222,10 +241,10 @@ pub(crate) fn close_for_career_change(world: &mut World, actor: Entity) {
         .and_then(|a| a.shifts.get(&sim))
         .is_some_and(|s| !s.settled)
     {
-        settle(world, actor, sim);
+        settle(world, actor, sim, scoring);
     }
 }
-fn settle(world: &mut World, actor: Entity, sim: SimId) {
+fn settle(world: &mut World, actor: Entity, sim: SimId, scoring: Scoring) {
     let shift = {
         let mut attendance = world.resource_mut::<Attendance>();
         let shift = attendance.shifts.get_mut(&sim).unwrap();
@@ -282,7 +301,7 @@ fn settle(world: &mut World, actor: Entity, sim: SimId) {
         shift.career,
         pay,
         ratio,
-        score,
+        (scoring == Scoring::Week).then_some(score),
         crate::careers::week_of(shift.start_tick, pack.tuning.day_ticks),
     );
     world

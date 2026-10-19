@@ -600,14 +600,16 @@ pub(crate) fn complete_shift(world: &mut World, worker: Entity) {
     }
 }
 
-/// Settle a scheduled shift once, with its captured pay and actual attendance.
+/// Settle a scheduled shift once, with its captured pay and actual
+/// attendance. `score` joins the week's scores; `None` is a shift a shift
+/// change forfeited, which pays and rewards its minutes but is not scored.
 pub(crate) fn complete_attended_shift(
     world: &mut World,
     worker: Entity,
     career: u32,
     pay_cents: i64,
     ratio: f32,
-    score: f32,
+    score: Option<f32>,
     scheduled_week: u64,
 ) {
     let pack = world.resource::<Content>().0;
@@ -626,7 +628,7 @@ pub(crate) fn complete_attended_shift(
             .records
             .entry(sim)
             .or_insert_with(|| Record::new(job));
-        record.shifts.push(score);
+        record.shifts.extend(score);
         let target = 50.0 + 40.0 * fit;
         let step = pack.tuning.career_satisfaction_rate * ratio;
         record.job_satisfaction = if record.job_satisfaction < target {
@@ -1128,7 +1130,7 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
     if held == shift {
         return Some(CareerRefusal::SameShift);
     }
-    crate::attendance::close_for_career_change(world, entity);
+    crate::attendance::close_for_shift_change(world, entity);
     // A departure a reading order deferred belongs to the old shift, as an
     // assignment drops it for the old job.
     world
