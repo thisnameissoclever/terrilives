@@ -1,0 +1,15 @@
+seed 20260728; 100 filler agents; 2880 ticks in chunks of 360; a take every 5 ticks
+chunk  first      on ms     off ms   ratio      on cycles     off cycles   ratio  records   frame dropped  company nuisances  feelings
+    1     on     4619.0     4630.4  0.9975    15621989475    15655874230  0.9978      314     106       0      103         0         4
+    2    off     3151.9     3164.0  0.9962    10689737889    10685147851  1.0004      570     106       0      103         0         4
+    3     on    11891.5    11808.3  1.0070    40014429171    39791488217  1.0056      848     106       0      103         0         4
+    4    off    13027.1    13875.6  0.9388    43948736303    46595954695  0.9432     1577     256      53      103         0         4
+    5     on     8526.0     8783.7  0.9707    28773915473    29440970390  0.9773     2009     256      53      103         0         4
+    6    off    11207.8    11320.8  0.9900    37509974538    37835889426  0.9914     2451     256      53      103         0         4
+    7     on    11539.7    11513.1  1.0023    39145722727    39121199576  1.0006     2863     256      53      103         0         4
+    8    off    10937.5    11048.7  0.9899    36681616396    37460001633  0.9792     3289     256      53      103         0         4
+records 3289; largest frame 256; dropped 53; the worlds hashed the same after every chunk
+largest frame ended at tick 1440: ChoreOutcome 2, Feeling 254
+wall time ms: totals on 74900.5 off 76144.5; log cost -1.63% of the totals; median chunk -0.69% (95% interval -2.93% to +0.23%); quartiles -1.01% to -0.25%
+thread cycles: totals on 252386121972.0 off 256586526018.0; log cost -1.64% of the totals; median chunk -0.54% (95% interval -2.27% to +0.06%); quartiles -2.08% to +0.04%
+exit 0
