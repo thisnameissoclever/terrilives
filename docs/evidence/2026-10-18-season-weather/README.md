@@ -66,3 +66,15 @@ No review video, animation loop or trace archive was retained. Task-owned browse
 6. Changelog generation tests: 12 passed. Documentation ID and whitespace checks passed.
 
 The production-code extraction fixtures now supply the weather and elapsed-time dependencies used by the shipped frame code. The catalogue fixture resolves its shared module mock before importing dependents. Their original behavior assertions remain intact, and an independent reviewer found no lost coverage. These fixture changes have no separate player-visible release note; the public notes cover the grass, weather and clock changes.
+
+## Main integration
+
+The reviewed implementation was committed as `19dc007a0`, then merged with main `7b45ac301` in `ce6e55351`. Main added social waiting fixes and per-person job search with save schema 18. A fresh read-only merge review found both intents intact. The captures and `final-file-hashes.json` above describe the verified implementation before that integration; they are not fingerprints of the combined release.
+
+An initial browser integration run started before the rebuilt WebAssembly package was ready. It rejected the stale schema-17 artifact against current schema-18 expectations. No assertions or production save behavior were changed to accommodate that artifact. The corrected integration run followed the completed package build.
+
+The combined branch rebuilt WebAssembly successfully and passed web type checking plus all 294 tests in the nine focused save, bridge, career, clock, weather and frame suites. The rebuilt package SHA-256 is `310d3706de4201a2bc9247d2f9306c99d12d7b64b1bf9200be1906eb16c0a2ea`. No stale-artifact failure remained in that run.
+
+The combined production build passed after integration. Its notices concern the existing mixed static/dynamic import, bundle size and asset-plugin timing; they did not prevent output.
+
+The combined native calendar and save-boundary check passed all 11 selected tests, including the unchanged save bytes, world hash and random-state check after weather reads.

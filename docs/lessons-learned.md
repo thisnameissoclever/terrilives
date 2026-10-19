@@ -12754,3 +12754,10 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: commit ancestry was used as a substitute for worktree and task ownership. Fresh worktrees commonly start at merge commits on the remote default branch.
 3. Prevention: inspect working-tree status, the current reference, remote ancestry and task-owned artifacts separately. Apply a merged-work confirmation rule to the task's work, rather than to any merge commit in its ancestry.
 4. Verification: a clean new worktree based on remote main must not be classified as reused solely because its first commit is a merge. A branch whose own task changes have merged still requires the prescribed confirmation.
+
+## [L-generated-artifact-test-order] Finish rebuilding generated interfaces before running their integration tests
+
+1. What happened: browser save and career tests ran against the previous compiled simulation after a main-branch merge changed the save version and exported methods.
+2. Root cause: the integration tests started while the WebAssembly rebuild was still running, so source and generated artifacts described different interfaces.
+3. Prevention: finish the generated-artifact build successfully before launching tests that import it. Only independent source tests may run alongside that build.
+4. Verification: confirm the build exits successfully, then run the browser save, bridge and career tests against the generated package. Preserve failures from stale artifacts as verification-ordering evidence rather than changing expected behavior.
