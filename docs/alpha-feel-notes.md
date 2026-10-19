@@ -4004,3 +4004,9 @@ The screenshots, source bindings, executed checks, review coverage, and desktop 
 The displayed game reproduced the reported cancellation loop with an idle pose and repeated sideways movement. The repaired build was played through approach, protected bathroom use, waiting outside, and conversation. Named activity and queue text were checked at desktop and 390-pixel phone widths. A clipped partner name was repaired, and active chores retain their actual activity instead of Idle.
 
 The initiator remains committed while waiting and needs continue to decay. Long work shifts, blocked routes, and chosen waits can still delay care. Selected images, live-state measurements, independent review limits, and executed regression checks are recorded in [the dated evidence](evidence/2026-10-17-urgent-needs-conversations/README.md). This focused pass does not claim inspection of every object or every animation frame.
+
+## [A-social-household-balance] Rewarding company and household grace, 2026-10-19
+
+The desktop production build was played through a desk-writing session and a complete shared-interest conversation between partners. Casey's Social rose during writing. Both conversation participants gained Social and positive feelings. The activity labels, desk seating, conversation bubbles and People panel were inspected directly and reviewed independently from selected captures.
+
+The exact measurements, captures, browser settings and review limits are in [the dated evidence](evidence/2026-10-19-social-balance/verification.md). Household grace and family forgiveness also have simulation regression checks. This focused pass does not establish every animation phase, phone performance or long-term population balance.

@@ -48,7 +48,7 @@ fn main() {
             person.wander_pause_ticks = Some(10_000);
         }
     }
-    sim.load_snapshot_v18(household).unwrap();
+    sim.load_snapshot_v19(household).unwrap();
     let pack = sim.world().resource::<terri_sim::Content>().0;
     let fridge_model = pack.find("fridge").unwrap();
     let fridge = sim
@@ -74,8 +74,9 @@ fn main() {
     let mut reached = false;
     for _ in 0..1500 {
         sim.tick();
-        let state = sim.save_snapshot_v18();
+        let state = sim.save_snapshot_v19();
         let five = &state
+            .legacy
             .legacy
             .legacy
             .legacy
@@ -105,12 +106,13 @@ fn main() {
     {
         person.needs.as_mut().unwrap()[NeedId::Hunger.index()] = 30.;
     }
-    sim.load_snapshot_v18(household).unwrap();
+    sim.load_snapshot_v19(household).unwrap();
     sim.tick();
     let snapshot = support::capture(&sim);
     let mut expected_guests: Vec<_> = people.iter().skip(1).map(|(_, id)| *id).collect();
     expected_guests.sort_unstable();
     let five = &snapshot
+        .legacy
         .legacy
         .legacy
         .legacy
@@ -133,12 +135,13 @@ fn main() {
     let meal_tick = meal.tick;
     // Retain the just-plated scene; independently prove its invited friends collect food.
     let mut continuation = Sim::new_from_shipped_lot();
-    continuation.load_snapshot_v18(snapshot).unwrap();
+    continuation.load_snapshot_v19(snapshot).unwrap();
     let mut collected = std::collections::BTreeSet::new();
     for _ in 0..300 {
         continuation.tick();
-        let state = continuation.save_snapshot_v18();
+        let state = continuation.save_snapshot_v19();
         let five = &state
+            .legacy
             .legacy
             .legacy
             .legacy

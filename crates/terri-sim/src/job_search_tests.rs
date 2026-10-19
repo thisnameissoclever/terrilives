@@ -9,10 +9,11 @@ use terri_core::{CommandQueue, SimCommand};
 /// Wednesday and Thursday, and anyone hired has started a shift.
 const THROUGH_THURSDAY: u64 = 1440 * 3 + 600;
 
-/// What main computed for that run at commit 2b15dcfea, while job search
-/// was one global setting that a new game left on: the world hash and how
-/// often the careers stream was drawn.
-const MAIN_HASH: u64 = 0xABCB_AD06_F384_DDFF;
+/// The retained schema-seventeen fixture from main at 2b15dcfea records
+/// this career stream after 4,920 ticks. Its former whole-world hash was
+/// 0xABCB_AD06_F384_DDFF; approved need and social balance changes now alter
+/// that broader state. Keep exact hiring, schedules and stream state here.
+/// See crates/terri-wasm/tests/fixtures/job-search-v17/README.md.
 const MAIN_DRAWS: u64 = 6;
 
 fn employed(sim: &mut Sim) -> usize {
@@ -61,22 +62,125 @@ fn search_of(sim: &Sim, entity: Entity) -> Option<bool> {
     sim.job_search_of(entity.index_u32())
 }
 
-/// Rule 3 of the spec: with every person's search on, as a new game
-/// leaves it, the household plays out as it did under the global setting,
-/// draw for draw.
+/// Rule 3: leaving everyone's search on preserves the published hires,
+/// career assignments, schedules and career random stream. Mood, need and
+/// attendance performance are independently affected by gameplay balance.
 #[test]
-fn every_search_on_plays_out_exactly_as_the_global_setting_did() {
+fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
     let mut sim = Sim::new_from_shipped_lot();
     let before = employed(&mut sim);
     for _ in 0..THROUGH_THURSDAY {
         sim.tick();
     }
-    assert!(
-        employed(&mut sim) > before,
-        "the run hires someone, so it exercises the search"
+    assert!(employed(&mut sim) > before, "the run must hire someone");
+    let people = household(&mut sim);
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(careers.draws, MAIN_DRAWS);
+    let mut expected_rng = SimRng::from_seed(0x4341_5245_4552_5331);
+    for _ in 0..MAIN_DRAWS {
+        expected_rng.next_u32();
+    }
+    assert_eq!(careers.rng, expected_rng, "exact published career stream");
+    let outcomes: Vec<_> = people
+        .iter()
+        .map(|(id, person)| {
+            let job = sim
+                .world()
+                .get::<Career>(*person)
+                .expect("the published household is employed");
+            let definition = &sim.world().resource::<Content>().0.careers[job.0 as usize];
+            let record = careers.records.get(id).expect("every hire owns a record");
+            assert_eq!(
+                (
+                    record.consecutive_poor,
+                    record.consecutive_good,
+                    record.review_due
+                ),
+                (0, 0, None)
+            );
+            assert!(
+                record.history.is_empty(),
+                "no weekly review before Thursday"
+            );
+            (
+                id.0,
+                job.0,
+                definition.id.as_str(),
+                definition.working_days,
+                definition.shift_start,
+                definition.shift_ticks,
+                record.pay,
+                sim.world()
+                    .get::<AtWork>(*person)
+                    .map(|work| work.remaining_ticks),
+                sim.world().get::<Commuting>(*person).is_some(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        outcomes,
+        vec![
+            (0, 0, "office_job", 31, 360, 480, 120, Some(240), false),
+            (1, 0, "office_job", 31, 360, 480, 120, Some(240), false),
+            (
+                2,
+                4,
+                "cafe_lowly_barista",
+                62,
+                330,
+                420,
+                80,
+                Some(150),
+                false
+            ),
+        ]
     );
-    let draws = sim.world().resource::<Careers>().draws;
-    assert_eq!((sim.world_hash(), draws), (MAIN_HASH, MAIN_DRAWS));
+    assert_eq!(
+        careers.records.len(),
+        3,
+        "no missing or invented career records"
+    );
+    let attendance = crate::attendance::to_saved(sim.world());
+    let completed: Vec<_> = attendance
+        .outcomes
+        .iter()
+        .map(|row| (row.sim, row.career, row.start_tick, row.end_tick))
+        .collect();
+    assert_eq!(
+        completed,
+        vec![
+            (0, 0, 360, 840),
+            (2, 4, 1770, 2190),
+            (0, 0, 1800, 2280),
+            (2, 4, 3210, 3630),
+            (0, 0, 3240, 3720),
+            (1, 0, 3240, 3720),
+        ],
+        "the published hires start the same scheduled shifts"
+    );
+    let ongoing: Vec<_> = attendance
+        .shifts
+        .iter()
+        .map(|row| {
+            (
+                row.sim,
+                row.career,
+                row.start_tick,
+                row.end_tick,
+                row.pay_cents,
+                row.settled,
+                row.legacy,
+            )
+        })
+        .collect();
+    assert_eq!(
+        ongoing,
+        vec![
+            (0, 0, 4680, 5160, 12000, false, false),
+            (1, 0, 4680, 5160, 12000, false, false),
+            (2, 4, 4650, 5070, 8000, false, false),
+        ]
+    );
 }
 
 /// Rule 1: every person in a new game, and every newcomer, looks for work.

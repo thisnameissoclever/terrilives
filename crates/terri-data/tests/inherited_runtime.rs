@@ -26,6 +26,43 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
         pack.voice_clips.iter().map(|v| v.duration_ticks).collect(),
         toml::from_str(include_str!("../../../content/skills.toml")).unwrap(),
     )?;
+    // Keep this retained runtime pack on its published balance. Live balance
+    // has separate content and delivery regressions.
+    assert_eq!(
+        result.decay_per_tick,
+        [
+            0.041333333,
+            0.034,
+            0.048,
+            0.068,
+            0.017333333,
+            0.032,
+            0.021333333
+        ]
+    );
+    result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+    assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
+    result.tuning.relationship_gain_per_talk = 0.17;
+    for action in &mut result.social {
+        if action.id == "chat" {
+            let social = action
+                .advertises
+                .iter_mut()
+                .find(|(need, _)| *need == 4)
+                .unwrap();
+            assert_eq!(social.1, 100.5, "live Chat Social changed");
+            social.1 = 50.25;
+        }
+    }
+    for object in &mut result.objects {
+        for action in &mut object.interactions {
+            if action.id == "attend_correspondence" {
+                let social = action.advertises.iter().find(|(need, _)| *need == 4);
+                assert_eq!(social.map(|(_, amount)| *amount), Some(24.0));
+                action.advertises.retain(|(need, _)| *need != 4);
+            }
+        }
+    }
     result.books = pack.books.clone();
     Ok(result)
 }

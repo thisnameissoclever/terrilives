@@ -256,6 +256,21 @@ pub(crate) fn reconcile_committed_world(
             });
         }
     }
+    if let Some(mut neglect) = world.get_resource_mut::<terri_core::save_v19::SavedNeglect>() {
+        neglect.duties.retain_mut(|timer| {
+            if let Some(key) = mapping.get(&timer.key) {
+                timer.key = *key;
+                true
+            } else {
+                false
+            }
+        });
+        neglect.duties.sort_by_key(|timer| (timer.key, timer.owner));
+        neglect
+            .duties
+            .dedup_by_key(|timer| (timer.key, timer.owner));
+    }
+    crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     super::patches::reconcile(world);
     crate::rooms::refresh_visits(world, &before.person_rooms);

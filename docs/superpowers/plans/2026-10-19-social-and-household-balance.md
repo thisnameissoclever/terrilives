@@ -1,0 +1,18 @@
+# Social and household balance implementation plan
+
+> Execute each change with a failing behavior test, then obtain fresh adversarial review before delivery.
+
+**Goal:** Resolve conversation issue 310 and the owner's related request for less need pressure, stronger family support and delayed household resentment.
+
+**Architecture:** Keep decisions, needs and relationship effects in Rust. Share letter-writing eligibility between scoring, delivery and forecasts. Preserve all published save records; wrap the current format with independent neglect timing. Keep chat voice duration and playback unchanged.
+
+**Owner requirements:** Every completed ordinary chat should provide positive Social to both participants, with twice the previous authored Social reward and a 100-point cap. Fights provide no Social. Letter writing provides Social. Shared-interest chats improve both opinions. Family and partners increase positive relationship effects and reduce negative effects. Household mess receives a grace period. Reduce all base need drain rates by one third. Run relevant checks locally, resolve fresh adversarial review findings, merge and deploy without waiting for duplicate remote checks.
+
+**Implementation choices:** Double the ordinary chat relationship reward from 0.17 to 0.34. Family and partner opinion events use 1.5 times positive change and 0.5 times negative change; neutral drift remains unchanged. Increase the independent family Social bonus from 0.1 to 0.25. Correspondence supplies 24 Social over its existing 58-minute action, with its existing personality scaling and no nearby-person requirement. Shared-interest chats waive their own unmet-need start complaint and receive positive completion rewards despite other unmet needs; independent privacy incidents remain separate. For household mess, use two continuous game hours at maximum dirt or one full game day of unfinished actionable work as the initial grace policy. Actual blocked seating remains an immediate obstruction. Record an overdue obligation against its existing episode identity until settlement; physical cleanup may reset current dirt clocks without erasing that history. No work-admission immunity is added.
+
+1. Add failing regressions for both chat participants, shared interests under low needs, family positive/negative events, correspondence while alone, base drain rates, fresh mess, midnight boundaries, cleaning resets and save continuation.
+2. Implement chat and correspondence reward changes with matching forecasts and selection. Apply the family opinion helper at every production event writer, excluding neutral decay and explicit restored/edited values.
+3. Add independent neglect timing, gate mood and ordinary dish/chore complaints consistently, and preserve cleaning eligibility. Save, hash and validate timing through a new envelope; older saves start a fresh grace period.
+4. Update the needs, relationship, cleanliness and save documentation. Add truthful player notes for the delivery date. Keep the existing activity-log work in PR 291 compatible; it is a separate general logging feature.
+5. Run relevant native, browser, content, save, formatting, lint, type and build checks locally. Prove the new assertions reject removed mechanisms. Play actual conversations and inspect the visible need/opinion changes. Obtain a fresh adversarial code review and independent visual review where layout changes occur.
+6. Resolve valid findings, push and attach the pull request, merge, synchronize with remote main and verify Pages publication. Record unrelated skipped gates and any remaining proof limits.

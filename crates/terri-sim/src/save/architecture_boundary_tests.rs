@@ -461,9 +461,46 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
 #[test]
 fn a_window_edit_with_owned_reading_restores_the_complete_runtime_before_validation() {
     let mut sim = Sim::new_from_shipped_lot();
-    for _ in 0..2 {
-        sim.tick();
-    }
+    let actor = sim
+        .world_mut()
+        .query_filtered::<bevy_ecs::entity::Entity, bevy_ecs::query::With<Agent>>()
+        .iter(sim.world())
+        .next()
+        .unwrap();
+    let pack = sim.world().resource::<crate::Content>().0;
+    let (seat, action) = sim
+        .world_mut()
+        .query::<(bevy_ecs::entity::Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find_map(|(entity, object)| {
+            pack.object(object.0)
+                .interactions
+                .iter()
+                .find(|action| action.book_reading)
+                .map(|action| (entity, action.id.clone()))
+        })
+        .expect("the shipped lot has a reading place");
+    let title = sim
+        .world()
+        .resource::<crate::books::BookLibrary>()
+        .state()
+        .copies
+        .first()
+        .expect("the shipped household owns a book")
+        .title_id
+        .clone();
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::Book(
+            terri_core::command::BookCommand::Read {
+                agent: actor.index_u32(),
+                object: seat.index_u32(),
+                action,
+                title,
+                front: true,
+            },
+        ));
+    sim.tick();
     assert!(sim
         .world_mut()
         .query::<&crate::reading::ReadingJourney>()

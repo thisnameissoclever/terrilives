@@ -39,6 +39,18 @@ pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> b
     delta <= 0. || need as usize != NeedId::Social.index() || social_available
 }
 
+pub(crate) fn solo_social(action: &terri_data::CompiledInteraction) -> bool {
+    action.activity == Some(terri_data::CompiledActivity::Correspondence)
+}
+
+pub(crate) fn social_scale(action: &terri_data::CompiledInteraction, company: f32) -> f32 {
+    if solo_social(action) {
+        1.
+    } else {
+        company
+    }
+}
+
 impl SocialCompany {
     pub(crate) fn active_scale(&self, owner: Entity, feelings: &Relationships) -> f32 {
         let Some(me) = self.participants.iter().find(|p| p.entity == owner) else {
@@ -101,7 +113,7 @@ impl SocialCompany {
                 false,
             ));
         }
-        value + if related { 0.1 } else { 0. }
+        value + crate::social_episode::family_bonus(related)
     }
     pub(crate) fn proposed_scale(
         &self,

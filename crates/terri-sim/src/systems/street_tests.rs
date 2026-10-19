@@ -254,7 +254,7 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
     let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     historical.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    loaded.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
     assert_eq!(historical.save_snapshot_v5(), sim.save_snapshot_v5());
     for _ in 0..600 {
         sim.tick();

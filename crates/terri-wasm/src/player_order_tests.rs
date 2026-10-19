@@ -20,7 +20,7 @@ fn current_save_preserves_confirmed_orders_before_the_command_drain() {
     let token = handle.work_conflicts_of(&[actor])[0].clone();
     assert!(handle.enqueue_confirmed_order(&bytes, &token));
     let saved = handle.save_bytes();
-    assert_eq!(u16::from_le_bytes([saved[8], saved[9]]), 18);
+    assert_eq!(u16::from_le_bytes([saved[8], saved[9]]), 19);
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&saved));
     assert_eq!(saved, restored.save_bytes());
@@ -164,7 +164,7 @@ fn malformed_confirmed_save_references_refuse_without_replacing_the_live_world()
     .unwrap();
     let token = handle.work_conflicts_of(&[actor])[0].clone();
     assert!(handle.enqueue_confirmed_order(&command, &token));
-    let original = handle.sim.save_snapshot_v17();
+    let original = handle.sim.current_v17_view();
     let hash = handle.sim.world_hash();
     for malformed in [
         PlayerOrder::UseObject {
@@ -202,11 +202,11 @@ fn malformed_confirmed_save_references_refuse_without_replacing_the_live_world()
         let mut corrupted = original.clone();
         corrupted.confirmed_commands[0].2 = malformed;
         assert!(
-            handle.sim.load_snapshot_v17(corrupted).is_err(),
+            handle.sim.load_current_v17_view(corrupted).is_err(),
             "invalid pending references must refuse Load"
         );
         assert_eq!(handle.sim.world_hash(), hash);
-        assert_eq!(handle.sim.save_snapshot_v17(), original);
+        assert_eq!(handle.sim.current_v17_view(), original);
     }
 }
 

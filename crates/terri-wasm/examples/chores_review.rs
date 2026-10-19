@@ -36,7 +36,8 @@ fn main() {
         .day_ticks;
     sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::from(day) * 5 + 660;
     sim.tick();
-    let mut household = sim.save_snapshot_v18();
+    let mut household = sim.save_snapshot_v19();
+    household.neglect = Default::default();
     let saved = support::v5_mut(&mut household);
     let people: Vec<_> = saved
         .world
@@ -75,7 +76,7 @@ fn main() {
     };
     chores.surfaces = vec![(counter, 850)];
     chores.bins = vec![(bin, 850)];
-    sim.load_snapshot_v18(household)
+    sim.load_snapshot_v19(household)
         .expect("played fixture must be valid");
     if let Some(identity) = review_sim {
         let person = sim

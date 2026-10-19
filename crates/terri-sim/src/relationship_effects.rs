@@ -84,6 +84,39 @@ pub(crate) fn reset(world: &mut World) {
     diagnostics.waits.clear();
 }
 
+/// Family and partners strengthen support and soften interpersonal harm.
+/// Neutral drift and explicit saved or edited values retain their own rules.
+pub(crate) fn opinion_delta(
+    family: Option<&terri_core::layout::FamilyTies>,
+    affected: SimId,
+    responsible: SimId,
+    cause: RelationshipCause,
+    delta: f32,
+) -> f32 {
+    if cause == RelationshipCause::Decay
+        || family.is_none_or(|ties| ties.relation(affected.0, responsible.0).is_none())
+    {
+        return delta;
+    }
+    delta * if delta > 0. { 1.5 } else { 0.5 }
+}
+
+pub(crate) fn scaled_opinion_delta(
+    world: &World,
+    affected: SimId,
+    responsible: SimId,
+    cause: RelationshipCause,
+    delta: f32,
+) -> f32 {
+    opinion_delta(
+        world.get_resource::<terri_core::layout::FamilyTies>(),
+        affected,
+        responsible,
+        cause,
+        delta,
+    )
+}
+
 /// Apply one directional opinion change and record its clamped result.
 pub(crate) fn record_opinion_change(
     world: &mut World,
@@ -98,6 +131,7 @@ pub(crate) fn record_opinion_change(
     if subject.0 == responsible {
         return;
     }
+    let delta = scaled_opinion_delta(world, subject, SimId(responsible), cause, delta);
     if world.get::<Relationships>(affected).is_none() {
         world.entity_mut(affected).insert(Relationships::default());
     }

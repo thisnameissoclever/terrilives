@@ -322,7 +322,9 @@ pub(crate) fn credit(
     }
     if !covered {
         history(state, owner, if day == today { 100 } else { 50 });
-    } else if state.episodes[index].decision == Some(false) {
+    } else if state.episodes[index].decision == Some(false)
+        && crate::neglect::episode_matured(world, state.episodes[index].id)
+    {
         history(state, owner, 50);
     }
     for (_, observer) in people(world) {
@@ -335,7 +337,10 @@ pub(crate) fn credit(
             crate::relationship_effects::RelationshipCause::ChoreFulfilled,
         );
     }
-    if covered && state.episodes[index].decision == Some(false) {
+    if covered
+        && state.episodes[index].decision == Some(false)
+        && crate::neglect::episode_matured(world, state.episodes[index].id)
+    {
         if let Some(helper) = crate::dining::entity(world, person) {
             effect(
                 world,
@@ -349,6 +354,7 @@ pub(crate) fn credit(
 }
 pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
     reconcile(world, state);
+    crate::neglect::refresh_in(world, state);
     if !state.board_enabled {
         return;
     }
@@ -377,8 +383,20 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             {
                 continue;
             }
-            let missed =
-                state.episodes[i].needed && !state.episodes[i].unavailable && person.is_some();
+            let needed = work_needed(world, state, key, owner);
+            if needed
+                && state.episodes[i].needed
+                && !state.episodes[i].unavailable
+                && person.is_some()
+                && !crate::neglect::duty_due(world, state, key, owner)
+            {
+                continue;
+            }
+            let missed = needed
+                && crate::neglect::duty_due(world, state, key, owner)
+                && state.episodes[i].needed
+                && !state.episodes[i].unavailable
+                && person.is_some();
             state.episodes[i].outcome = if missed {
                 DutyOutcome::Missed
             } else if state.episodes[i].needed {
