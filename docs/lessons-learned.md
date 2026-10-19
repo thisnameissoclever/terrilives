@@ -12876,3 +12876,72 @@ A partial dish-washing batch recorded a new scoped receipt under published refer
 ### Keep running measurements outside Cargo output directories
 
 A workspace test build failed with `LNK1104` because it tried to replace an example executable used by a long-running measurement. Cargo builds ordinary examples during workspace testing, even when they contain no tests. Before starting a measurement, copy its validated executable to an ignored task directory and record the original digest. Run the copy so later builds can replace Cargo artifacts. Verify that the copied executable is outside `target/` and that every intended library, integration, migration and documentation test target runs. A failed combined build must remain recorded as failed, even when later explicit targets supply complete validation.
+## [L-reference-navigation-every-layout] Preserve reference navigation on every page and screen size
+
+**What happened.** The issue #313 documentation proposal promised search and links to the game and changelog on every page. The first mock-up placed search only on its home page and hid both destination links on phones. An independent novice-perspective review caught both gaps before approval.
+
+**Root cause.** The layout review treated narrow-screen space and individual article templates separately from the navigation contract. The pages fit their viewports while losing required routes.
+
+**Prevention.** Define shared navigation before styling individual templates. Put search in the shared page shell. Reflow essential destination links on phones instead of hiding them without another visible route.
+
+**Verification.** Enter directly on an article at desktop and phone widths. Find another topic through search, return to the game, and reach the changelog without relying on browser history. Inspect captures as well as overflow measurements; fitting the screen does not prove that navigation remains available.
+
+## [L-player-guide-prototypes-need-real-instructions] Review player-facing mock-ups as instructions
+
+**What happened.** The owner rejected issue #313's first guide mock-up because vague descriptions and reviewer instructions appeared inside the player-facing cards. The mock-up also replaced the changelog's existing theme toggle with a different control despite the intended shared appearance.
+
+**Root cause.** The preview mixed explanations about the proposal with instructions for playing. Review checked broad concepts and layout without requiring each passage to identify a concrete game control, action or consequence. Similar colors were treated as sufficient reuse of the existing visual design.
+
+**Prevention.** Keep proposal notes outside the player-facing preview. Use meaningful draft instructions even in a mock-up, and reuse the existing styles and controls when continuity is required. A reviewer must explain what a novice can actually do after reading each entry; recognizing the general topic is insufficient.
+
+**Verification.** Ask a fresh reviewer to follow a concrete task such as Options > New housemate and identify the exact controls and outcome. Compare the header, theme control, typography and page treatments with the current reference. Owner rejection overrides an earlier review's acceptance.
+
+## [L-generated-help-and-frozen-captures] Validate generated Help before recording a stable game build
+
+**What happened.** The player-guide screenshot pass was interrupted by development-server reloads while documentation and its imported generator changed. A fresh reviewer also found a real startup error: short Help linked to a subsection whose anchor had not been authored, causing the root HTML transform to return an error.
+
+**Root cause.** Capture state depended on a mutable development process, and fixture tests did not establish that the current authored Help could render. The initial loading screen and zero Funds were symptoms of incomplete startup, not evidence of a save defect.
+
+**Prevention.** Render the actual authored Help and guide before starting capture. Build through the normal production configuration, then serve that frozen output while documentation work continues. Preserve the real Help transform and its validation; removing a plugin would hide the bad link. Refresh captures where later UI changes alter the pictured control.
+
+**Verification.** Require the root page and authored Help links to load without errors, record the output hash, and wait for visible game readiness before operating controls. Exercise a cross-page Help fragment and require its destination to exist. Keep actual failed URLs or errors before diagnosing storage. Use paired defective/corrected captures when fixing a visible defect.
+
+## [L-form-reset-applied-search] Clear the applied search along with the form field
+
+**What happened.** The guide's Clear control emptied its input while leaving the applied query in the URL and the previous results visible. A novice-player browser review found it after both a matching search and an empty result.
+
+**Root cause.** The reset handler queued work that read the old input around the browser's native reset behavior. Clearing the field and clearing application state were treated as the same operation.
+
+**Prevention.** Handle reset as an explicit application action: prevent the native reset, clear the input, remove the applied query, hide the results and restore focus together.
+
+**Verification.** Submit a successful query and a query with no results. For each, activate Clear and require an empty field, no result panel, no query parameter and focus on the search field. A screenshot of an empty input alone does not prove that the applied search was cleared.
+
+## [L-expanded-menu-identity-measurement] Measure expanded descriptions before placing radial actions
+
+**What happened.** The guide screenshot pass exposed object descriptions clipped inside the menu's compact identity width. Giving the paragraph a wider box alone left the action positions based on the old width and could place text beneath nearby buttons.
+
+**Root cause.** The radial layout treated the identity as a fixed-width label even after it became an expanded reading area. With three or five actions, the side buttons also needed their horizontal distance checked against the actual angular placement.
+
+**Prevention.** Measure the expanded identity and pass that width through placement, overlap and fallback calculations. Keep its background behind the entire title and description. Preserve the compact default for existing callers.
+
+**Verification.** Inspect a real expanded description at desktop and phone widths. Check text visibility against the dock, world controls and action buttons. Test three and five actions with the measured width; a roomy desktop layout must remain radial, while a constrained viewport must retain a usable fallback. Require a fresh reviewer to reject the defective capture before accepting the repaired capture.
+
+## [L-approved-outline-acceptance] Check the approved outline as well as the issue
+
+**What happened.** The player-guide implementation initially included topic navigation and search but omitted the approved outline's common-task shortcuts and activity filters. Reconciling the outline before presentation exposed the missing controls.
+
+**Root cause.** Implementation checks concentrated on the issue's original prose requirements and the mechanics reference. They did not treat accepted design details as delivery requirements.
+
+**Prevention.** Turn the approved outline and later owner corrections into a concrete acceptance list before implementation. Check each promised visible control and behavior against the working result before requesting final review.
+
+**Verification.** Exercise each promised control, including its empty, reset and no-script states where relevant. Have the independent reviewer inspect the actual additions; a passing article-link check cannot establish that a missing filter was implemented.
+
+## [L-cleanup-credit-versus-final-washer] Trace the credited contributor before explaining cleanup rewards
+
+**What happened.** The guide first described chore repair as a reward for the person finishing the work, then described dishes as using the largest contributor. A novice reviewer correctly found that the two rules gave conflicting answers when a helper washed the final plate.
+
+**Root cause.** The prose named the last visible worker without tracing which person the dish-completion caller passes into reward calculation. Dish contributions span the current continuous duty and can identify somebody else.
+
+**Prevention.** Trace both the completion event and the credited person's identity. Explain different credit rules separately instead of extending a generic completion sentence to every kind of work.
+
+**Verification.** Check opposite cases: the assigned person does most washing and a helper finishes; the helper does most washing and the assigned person finishes. The first can award repair to the assigned person, subject to the window and in-window contribution requirements; the second cannot. Source routing establishes this explanation. Do not claim a new played scenario or executed regression unless it was actually run.

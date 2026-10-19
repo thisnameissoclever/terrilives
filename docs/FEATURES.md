@@ -35,6 +35,12 @@ their original save versions, sprite counts and measurements describe those rele
 Completed slices are complete even when their larger system remains partial.
 The system inventory and remaining dependencies are in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 
+### Requested future work: weather and creative hobbies
+
+The owner requested [weather preferences and longer-term variation](GAME-SYSTEMS.md#s-weather-preferences-weather-preferences-and-longer-term-variation) on October 19, 2026. Sims should prefer warmer or cooler weather, with a small overall mood change when the weather suits or displeases them. Weather should vary more across months and years; months require a calendar design because the current game has seasons but no months. These additions are not implemented.
+
+The owner also requested [creative hobbies and their products](GAME-SYSTEMS.md#s-creative-hobbies-creative-hobbies-progression-and-things-made-at-home), including gardening, knitting and painting. Leveling up should provide personal satisfaction and eventually produce things to display or use, such as paintings, flowers and throw blankets. Possible economic benefits include selling creations and growing food to reduce food spending. These are future features, with no committed release date or change to the existing build order.
+
 ### Varied autonomy delivery (2026-09-30)
 
 New games take fresh browser randomness. Autonomous targets and their interactions

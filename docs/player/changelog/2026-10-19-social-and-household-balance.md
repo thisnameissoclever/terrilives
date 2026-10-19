@@ -1,6 +1,10 @@
-# More rewarding company and slower need drain
+# Player guide and household balance
 
-Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, and fresh household mess gets a grace period.
+The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, and fresh household mess gets a grace period.
+
+## New
+
+- Open Player guide from Options or Help for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
 
 ## Improved
 
@@ -19,6 +23,8 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - Saving preserves argument causes, chore follow-through and partial dish contributions. New saves require this version or newer; the original older save remains available as a recovery copy.
 
 ## Fixed
+
+- Object names stay readable against light scenery, and expanded descriptions use a readable line width. The Build camera's zoom-out button shows a clear minus sign.
 
 - Loading an older saved game preserves chats that are waiting for a busy Sim, so the upgraded game can be saved and loaded again.
 

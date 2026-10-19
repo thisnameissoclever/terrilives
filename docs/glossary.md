@@ -1,22 +1,6 @@
-# Glossary: every term this game uses, in plain language
+# Engineering glossary
 
-**Read this first if a word in the game, the debug overlay, a spec or a
-commit message did not explain itself.** Everything here is defined for
-a reader rather than for the person who wrote it, and every entry says
-where the authoritative version lives if you want the argument behind
-the rule.
-
-This file exists because the project had the opposite problem: 59
-lessons and 13 design specs recording every DECISION in detail, keyed by
-IDs like [S4] and [K1], and nowhere at all defining what the words
-meant. Written 2026-08-01 after the owner asked what "wears" and
-"drains" were supposed to mean - which was a fair question, because
-nothing answered it.
-
-Names in `code font` are what you will see in the debug overlay
-(`?debug=1`), in content files, or in code.
-
----
+The maintained player glossary lives in [the player guide](player/glossary.md). This internal reference records implementation terminology and source contracts. Public explanations and screenshots are authored only under `docs/player/`.
 
 ## The game's name
 
@@ -43,7 +27,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 
 | Term | Means |
 | --- | --- |
-| **decay** | Every need falls a fixed amount per tick, per need. Shipped rates: bladder 0.102 (fastest), hygiene 0.072, hunger 0.062, energy 0.051, fun 0.048, comfort 0.032, social 0.026 (slowest). Authored in `content/tuning.toml`. |
+| **decay** | Every need falls a fixed amount per tick, per need. Current rates are exported from compiled tuning in `docs/player/generated/reference.json`; do not copy balance values here. |
 | **deficit** | How empty a need is, as 0.0 (full) to 1.0 (empty). A sim at hunger 30 has a hunger deficit of 0.7. |
 | **urgency** | The deficit **cubed**. This is why sims have priorities instead of a checklist: at deficit 0.9 a need is 13x more pressing than at 0.4, not 2x. |
 
@@ -71,7 +55,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **reservation** (`Reserved`) | A claim on an object or a person. One sim per slot; whoever gets there first in a tick holds it until finished. |
 | **contested** | Something that is worth wanting but reserved by somebody else. It still counts toward "is anything here worth it", at 75% weight, which is why an outbid sim waits rather than wandering off. |
 | `stalled reason:` | The overlay line naming why a sim is not acting. Exactly two reasons: **waiting on something in use** (the best thing it saw is someone else's - the `Blocked` marker) and **found nothing worth doing** (nothing cleared the idle threshold - the `Restless` marker). Both can be true at once. |
-| `player orders waiting:` | How many of YOUR clicks the sim still has queued. Not a stall reason - it is work about to happen. Cap 10. |
+| `player orders waiting:` | How many of YOUR clicks the sim still has queued. Not a stall reason; it is work about to happen. The current per-person queue is unlimited; command admission has separate burst limits. |
 | **intent** / **order** | One player instruction ("use that fridge"). Player orders always beat the sim's own choice and are served in the order given. |
 
 ## Player controls and saves
@@ -87,13 +71,13 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **autosave** | The same complete save, written once when a new simulated day begins. It waits while Save, Load, or New game owns the persistence boundary, so snapshot capture and storage cannot race. |
 | **New game** | Deletes the browser-local save after confirmation and reloads the authored move-in household. It does not delete content or files outside this game's private browser storage. |
 | **OPFS** | Origin Private File System: private storage owned by this website. The game uses one `terri-save-1.bin` file there instead of squeezing binary state into `localStorage`. |
-| **Queue** | A visible mode that adds each new order after the ones already waiting, for objects and for talking alike. On desktop, holding Ctrl or Cmd while clicking does the same thing. With Queue off, a new order goes FIRST: the person drops what they are doing for it and then carries on with the orders that were waiting. Neither empties the queue; only Clear orders and the action menu's cancel row do. A new first order on a full queue pushes out the order that would have run last, and the game says so. |
+| **Queue** | A visible mode that adds each new order after the ones already waiting, for objects and for talking alike. On desktop, holding Ctrl or Cmd while clicking does the same thing. With Queue off, a new order goes FIRST: the person drops what they are doing for it and then carries on with the orders that were waiting. Neither empties the queue; only Clear orders and the action menu's cancel row do. The current queue has no per-person capacity limit. Separate command-admission limits can refuse a burst; they do not remove existing orders. |
 | **Clear orders** | Cancels the selected person's current player-directed commitment and every waiting order. It and the action menu's cancel row are the only controls that empty the queue. Autonomous needs can make them choose something new immediately afterward. |
 | **action menu** | The list opened by long-press, right-click, or keyboard Enter. It contains the target's authored interactions and **Never mind**. |
 | **keyboard target** | The world person or object chosen with arrow keys while the game view is focused. Space selects a person; Enter opens that target's action menu. |
 | **Help** | The persistent copy of the first-run control guide. Closing it is remembered in browser preferences, separately from the game save. |
 | **needs panel** | The collapsible panel named for the selected person. On a narrow screen it starts folded so controls do not cover most of the house. |
-| **Options flyout** | The panel under the gear at the window's top right. It holds Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help ([OF3]). Opening it pauses nothing; Escape or a press outside closes it. |
+| **Options flyout** | The panel opened by Options beside Build beneath the top-left time controls. It holds Light, the death and career settings, sound controls, New housemate, Save, Load, New game, Help, Player guide and Changelog. Queue controls are in Sim details, not Options. Opening it pauses nothing; Escape or a press outside closes it. |
 | **sky exposure** | How much open sky a tile sees, from 1 in the yard down to 0 deep inside the house ([OS-daylight]). It falls by `daylight_reach_per_tile` for each step in from the yard, passes every doorway, whether or not a door stands in it, and stops at walls. By day the shader dims a tile by `interior_daylight_shade` times what it lacks, scaled by how strong the sun is; at night and in flat light it changes nothing. It is drawing only and never enters the simulation or the save. |
 | **Light: auto / Light: flat** | In the Options flyout. Auto follows the simulation clock and shows local lamp and television pools. Flat uses neutral daylight and removes local pools. The choice is a browser preference rather than game state. Reduced motion temporarily forces Flat without overwriting the saved choice. |
 

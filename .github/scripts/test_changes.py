@@ -11,6 +11,16 @@ import changes
 
 
 class ClassifyPaths(unittest.TestCase):
+    def test_player_pages_and_images_publish_without_rebuilding_the_game(self):
+        for path in ("docs/player/needs.md", "docs/player/navigation.json", "docs/player/effects.json", "docs/player/images/options-mobile.png"):
+            self.assertFalse(changes.affects_game([path]), path)
+            self.assertTrue(changes.affects_site([path]), path)
+
+    def test_generated_data_and_short_help_require_game_checks(self):
+        for path in ("docs/player/generated/reference.json", "docs/player/reviewed-sources.json", "docs/player/quick-help.md"):
+            self.assertTrue(changes.affects_game([path]), path)
+            self.assertTrue(changes.affects_site([path]), path)
+
     def test_markdown_outside_the_skill_folders_is_documentation(self):
         for path in ("docs/FEATURES.md", "README.md", "assets/models/bathroom/README.md", "docs/specs/x.MD"):
             self.assertTrue(changes.is_documentation(path), path)
@@ -33,10 +43,10 @@ class ClassifyPaths(unittest.TestCase):
         self.assertTrue(changes.affects_site([]))
 
     def test_published_markdown_redeploys_without_running_game_checks(self):
-        paths = ["docs/changelog/2026-10-01-controls.md"]
+        paths = ["docs/player/changelog/2026-10-01-controls.md"]
         self.assertFalse(changes.affects_game(paths))
         self.assertTrue(changes.affects_site(paths))
-        self.assertTrue(changes.affects_site(["docs/changelog/deleted-entry.md"]))
+        self.assertTrue(changes.affects_site(["docs/player/changelog/deleted-entry.md"]))
         self.assertFalse(changes.affects_site(["docs/changelog.md", "docs/FEATURES.md"]))
 
 
@@ -106,9 +116,9 @@ class DecideFromGit(unittest.TestCase):
         self.assertFalse(changes.decide("compare", self.base, self.git("rev-parse", "HEAD")))
 
     def test_note_addition_edit_and_deletion_each_require_publication(self):
-        added = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
-        edited = self.commit({"docs/changelog/2026-10-01-controls.md": "second"})
-        os.remove("docs/changelog/2026-10-01-controls.md")
+        added = self.commit({"docs/player/changelog/2026-10-01-controls.md": "first"})
+        edited = self.commit({"docs/player/changelog/2026-10-01-controls.md": "second"})
+        os.remove("docs/player/changelog/2026-10-01-controls.md")
         self.git("add", "-A")
         self.git("commit", "-q", "-m", "remove note")
         removed = self.git("rev-parse", "HEAD")
@@ -119,13 +129,13 @@ class DecideFromGit(unittest.TestCase):
 
     def test_new_notes_cannot_hide_untested_game_changes(self):
         code = self.commit({"web/main.ts": "untested"})
-        notes = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
+        notes = self.commit({"docs/player/changelog/2026-10-01-controls.md": "first"})
         self.assertFalse(changes.decide("push", code, notes))
         self.assertTrue(changes.decide("push", self.base, notes), "compare from the last tested game, not the previous push")
         self.assertTrue(changes.decide_site("push", self.base, notes))
 
     def test_unpublished_docs_after_tested_notes_do_not_keep_redeploying(self):
-        notes = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
+        notes = self.commit({"docs/player/changelog/2026-10-01-controls.md": "first"})
         docs = self.commit({"README.md": "later documentation"})
         with contextlib.redirect_stdout(io.StringIO()) as output:
             changes.main(["push", self.base, docs, notes])
