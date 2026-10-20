@@ -1,0 +1,43 @@
+{
+  "original_sha256": {
+    "report.md": "ff479d83638feb817a918cbba1910e4f8a4c4db8e07775a931bef4b05bcffbbb",
+    "independent-review.md": "21a025b8d4b8dcefff3892f7ba6c776a75ff9075b81e8429277b434dbffcf447",
+    "input-proof.py": "770a792857a4d95b663b3e585db874d44311358f2875a0f27411b98f3e182e6a",
+    "qualify.py": "961414bed258049cd4d66406dfb3720580460976b68e99e6200043f22e69be1b",
+    "receipt_compare.py": "538c788a9291e659fda808fb3220382c011f2ad0674d40fc85d99f21b3747f37",
+    "prepare-helpers.py": "1ea8c96afa123de4b591847763f348fb6e1329cbc7e85c71512c3e54611b444c",
+    "helper-provenance.py": "daf531fc6f4707b90ac11509d3f38616396607738206614751fcb6f0a223e911",
+    "reports/comparison.json": "1288f7adc810f5c79e3f931b5fba20366ede9970976b6abeacb93603f1dd415e",
+    "reports/provenance.json": "8ecf41dee0e7760b775637d72734d73af87735627ad2f4344070d9fd37fdaf0d",
+    "reports/helper-provenance.json": "9032352da811a9591167da2cae1afc228851c65e061b18a9eb4be949e92d5396",
+    "reports/commands.json": "64df3feae13bf0dcaf8e5b2650ae3a833d1f5437aa8f96da351585b09c671892",
+    "reports/capacity.json": "d3ef1c2bb7d619c9c6c2a1cb6bb702db94d51a51857e59b9179f4f22c2ceb803",
+    "reports/toolchain.json": "05c0fddae22c9c3c78dcd9574e3d1b55979da04eda2acf7f29561e376f572b33"
+  },
+  "retained_sha256": {
+    "report.md": "eee1f9f608602a4a9ffdf2916ef434c7bc46f5e4ebdf7e9ae1dd1bc16bf2263b",
+    "independent-review.md": "21a025b8d4b8dcefff3892f7ba6c776a75ff9075b81e8429277b434dbffcf447",
+    "input-proof.py": "db6eee5959947405fb11b128bcc74f19ff4cf56aec83257ff6b2be50209e8c66",
+    "qualify.py": "961414bed258049cd4d66406dfb3720580460976b68e99e6200043f22e69be1b",
+    "receipt_compare.py": "538c788a9291e659fda808fb3220382c011f2ad0674d40fc85d99f21b3747f37",
+    "prepare-helpers.py": "1ea8c96afa123de4b591847763f348fb6e1329cbc7e85c71512c3e54611b444c",
+    "helper-provenance.py": "daf531fc6f4707b90ac11509d3f38616396607738206614751fcb6f0a223e911",
+    "reports/comparison.json": "570689b39625bb427ea17aef990aa6aa7953cd1d3db03c4b3627e6d904ec6080",
+    "reports/provenance.json": "52402994be39d840f3a233763fff92146fe45c71737338bcc3695b3f712b8aef",
+    "reports/helper-provenance.json": "6e529aebcb96947b5b1939c13caec46c689027a5e31b3b259c28f71f1fd00bb1",
+    "reports/commands.json": "2f19d4ad74f50ef2030328d7846d4c97b8dd000465c399c86a23244a5ff3d2ba",
+    "reports/capacity.json": "3b8eb6fb8c469f0b98f85a3ace34573f68e7e910092f78e2704dd6882fae4090",
+    "reports/toolchain.json": "5204a2a0bf9dcd4423486c335e171956acbbc13ba28fa075d479cca8df1f2b47"
+  },
+  "omitted_bulk_sha256": {
+    "candidate-inventory.stdout": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b",
+    "freeze-after-candidate.json": "66886032bef61bb8f5c56e5f7d57383499d402c6d4d447856e1693b5119d51ab",
+    "freeze-after-stock.json": "66886032bef61bb8f5c56e5f7d57383499d402c6d4d447856e1693b5119d51ab",
+    "freeze-before-candidate.json": "66886032bef61bb8f5c56e5f7d57383499d402c6d4d447856e1693b5119d51ab",
+    "freeze-before-stock.json": "66886032bef61bb8f5c56e5f7d57383499d402c6d4d447856e1693b5119d51ab",
+    "stock-inventory.stdout": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b"
+  },
+  "normalization": "Retained text changes CRLF to LF only; raw local files remain unchanged.",
+  "bulk_location": ".local-build/build-ui-followup/isolated-tool/v20/reports/",
+  "scope": "Windows V20 native listing parity only; not final workflow fingerprint, Linux capacity or mutation outcomes."
+}

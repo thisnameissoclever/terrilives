@@ -1,0 +1,36 @@
+{
+  "original_sha256": {
+    "task-3-native-admission-fix1-report.md": "58a287cf55685bcd4d7bb3ca2c1d908109b376e59543a5a07be88abfdb3cb162",
+    "task-3-native-admission-fix1-package.diff": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+    "task-3-native-admission-fix1-hashes.json": "59e633dca95385031c56b64cc75559611fee7870489bf6782b3a4c570d20557f",
+    "task-3-native-admission-fix1-red.txt": "6a4a8b96ac92b42721f0e59e4fe16b8928fb26e873cdc1f93c0a32903c37bbe5",
+    "task-3-native-admission-fix1-focused-tests.txt": "9525633b5c842b6ae0cf93819941f5ef8c1132b082a5d94116668c6a4c91320c",
+    "task-3-native-admission-fix1-covering-tests.txt": "d08902aa49d8eff5e9f4e0036a3ecedbeb7dc674c260d80021eca45bd46a2de9",
+    "task-3-native-admission-fix1-projections.json": "cacc78df25c62a1c0ec5dd084ade3e5d9778b1a0e1eb1c0ce1215d6cf96e6428",
+    "task-3-native-admission-fix1-api-costs.json": "b380d3f3d7f5b36e74fdc6ab2726089f8c04bc9996263af6eca989681a970ac7",
+    "task-3-native-admission-fix1-gate-api-costs.json": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+    "task-3-native-admission-fix1-plan-api-costs.json": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a",
+    "task-3-native-admission-fix1-evidence-hashes.json": "886dd1006a9bef521c52e5766b195772b8a11c35bcbefc63856cd98b211fc9e9",
+    "task-3-native-admission-spec-rereview1.md": "5d5bb4a1c56ccaea4190e0daf192650a8ac827bbc2aeeeaf6b235ed958d4cb48",
+    "task-3-native-admission-quality-rereview1.md": "daec8f7ca042991dc07f070412f6ba1bb981b359a1f115d52bdc9ec095298d02",
+    "task-3-native-admission-raw-sizing-preflight.md": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9"
+  },
+  "retained_sha256": {
+    "task-3-native-admission-fix1-report.md": "58a287cf55685bcd4d7bb3ca2c1d908109b376e59543a5a07be88abfdb3cb162",
+    "task-3-native-admission-fix1-package.diff": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+    "task-3-native-admission-fix1-hashes.json": "d5b0f30cc146118b82f35244edb2034c3a11e1deffc56f9ee8ea64250389abe5",
+    "task-3-native-admission-fix1-red.txt": "d618b02873b287d8f3d108c69e3e75d78608ae1b02a656f335155b31842e5364",
+    "task-3-native-admission-fix1-focused-tests.txt": "9f016075c54643618dfb80a558d6b3bcbff522dcbee462b6c54dcf5d9ae61449",
+    "task-3-native-admission-fix1-covering-tests.txt": "71c0e733b8c9fdc1b9725972cbf8726e1b899fe7017fcbdf0cc9fa8180b5d2ee",
+    "task-3-native-admission-fix1-projections.json": "da707ea2e70ce0fe5df293a999219228bb26948b2a68d3d6bedc410beb0711f8",
+    "task-3-native-admission-fix1-api-costs.json": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+    "task-3-native-admission-fix1-gate-api-costs.json": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+    "task-3-native-admission-fix1-plan-api-costs.json": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+    "task-3-native-admission-fix1-evidence-hashes.json": "d93639ff68577480c0c88fddce6525166895c079ab6587b0bf3e30cb8f6b9cf6",
+    "task-3-native-admission-spec-rereview1.md": "5d5bb4a1c56ccaea4190e0daf192650a8ac827bbc2aeeeaf6b235ed958d4cb48",
+    "task-3-native-admission-quality-rereview1.md": "daec8f7ca042991dc07f070412f6ba1bb981b359a1f115d52bdc9ec095298d02",
+    "task-3-native-admission-raw-sizing-preflight.md": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9"
+  },
+  "normalization": "Retained text changes CRLF to LF only. Raw local files remain unchanged; patch context spaces remain exact.",
+  "scope": "Reviewed capped-forecast repair and subsequent raw-sizing preflight; not actual Linux qualification or game coverage."
+}

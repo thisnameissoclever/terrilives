@@ -1,0 +1,135 @@
+[
+  {
+    "file": "main-834-integration-review.md",
+    "original_sha256": "cb64638524c81aafc144ad412be4fdaa6b321f3a86e5e5922631e0b1a1191924",
+    "published_sha256": "8ed179e9a4818556ce87734fc4d82a287d218461910cf51a9f333a55df4e15cb",
+    "bytes": 5611,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-wasm-build.log",
+    "original_sha256": "ab156f44a5a7f7b088d8c8f74e75ca8795672af70c4b493401ce74340f6c84a8",
+    "published_sha256": "872e1df24531c21214d6277ffeac4a44cd4775a498f6f1d9cb6e987e471f05b4",
+    "bytes": 789,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-reference.log",
+    "original_sha256": "d76bea43100bbe3d6f940e6e48534150b3df9313610c3359afd1a499de3516c8",
+    "published_sha256": "aa457385fc881ef074132f097e1a20ec0f0be01cb6b53f887b9394ee46c4978a",
+    "bytes": 107,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-typecheck.log",
+    "original_sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
+    "published_sha256": "c184521b2f3cb4852b5bf332bf4d7e9aba6039d098b11da6a2e2b1748b653ddd",
+    "bytes": 50,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-web-tests.log",
+    "original_sha256": "36c7ef0029734429af78474576fac158308f48fc4aadb27009ece99571b00b3e",
+    "published_sha256": "8a0eea2e3893295b18a813c8b9a08765e51b17cd0be262209b85ba0b3598f7a8",
+    "bytes": 726,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-guide-tests.log",
+    "original_sha256": "a30fb146b4b598bec3237c230cee3c6c49d6ed6a6d48373f0245c34752be84a3",
+    "published_sha256": "65cf56790001c83faf9b7ee2ec7f5efa733cc2c8b0be2e46b65071c3cf1e68eb",
+    "bytes": 2699,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-834-production-build.log",
+    "original_sha256": "c627d279b09836cc6c7e35096255cd47314c680a955df1d6e937123be59e342f",
+    "published_sha256": "ab648b877e499de2a3e6021c30d1ada9db9f78aaea76bcde3ebeeae7cd7c7aa1",
+    "bytes": 44622,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main834-independent-visual-review.md",
+    "original_sha256": "a89b56ad80d82fc5bd1943f2d397252b3c58ae405f161729fc514d8cb4cd02aa",
+    "published_sha256": "d4a0113866f6f1511cc3173845c8e936a82e18a01f412ebbd4a33bdaea18b5bb",
+    "bytes": 5412,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main834-game-attempt1.json",
+    "original_sha256": "9f20b7877d4e02d91338a44c787e8b218cd02f35ba0d2c8d85672210fa8e8354",
+    "published_sha256": "9f20b7877d4e02d91338a44c787e8b218cd02f35ba0d2c8d85672210fa8e8354",
+    "bytes": 593,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main834-game-success.json",
+    "original_sha256": "4a0daa32b06a269e9b87c8e11e1bc8c1cb4699ef1e32c926e3854a72a9d2e7b9",
+    "published_sha256": "4a0daa32b06a269e9b87c8e11e1bc8c1cb4699ef1e32c926e3854a72a9d2e7b9",
+    "bytes": 807,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main834-no-script.json",
+    "original_sha256": "c1063cc2423a9e67c34e15b047aa5ca86ac5fdb4d4588bd2630182335873dc61",
+    "published_sha256": "c1063cc2423a9e67c34e15b047aa5ca86ac5fdb4d4588bd2630182335873dc61",
+    "bytes": 374,
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main834-guide-desktop-light.png",
+    "original_sha256": "4e14e8b918a6cda0239206c439d31a57aca20bbd14848b22d6c28cb31334c9f1",
+    "published_sha256": "4e14e8b918a6cda0239206c439d31a57aca20bbd14848b22d6c28cb31334c9f1",
+    "bytes": 118338,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-guide-desktop-dark.png",
+    "original_sha256": "f0e5515dcd893cc368793b8e34e269a12b1408f2506d6cad3d3b02f713822073",
+    "published_sha256": "f0e5515dcd893cc368793b8e34e269a12b1408f2506d6cad3d3b02f713822073",
+    "bytes": 119314,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-guide-mobile-light.png",
+    "original_sha256": "fa253e2840f76dfc88721bebf6d83bac16c05876b9525b0f9208af4bf1c6cd6c",
+    "published_sha256": "fa253e2840f76dfc88721bebf6d83bac16c05876b9525b0f9208af4bf1c6cd6c",
+    "bytes": 39423,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-guide-mobile-dark.png",
+    "original_sha256": "f6264270b7d3a8ca03d00a314121c3fe95f6d3fa4d6959780ca76f0226c971bf",
+    "published_sha256": "f6264270b7d3a8ca03d00a314121c3fe95f6d3fa4d6959780ca76f0226c971bf",
+    "bytes": 40190,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-walls-desktop.png",
+    "original_sha256": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a",
+    "published_sha256": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a",
+    "bytes": 419961,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-walls-mobile.png",
+    "original_sha256": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9",
+    "published_sha256": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9",
+    "bytes": 137922,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-switch-land-mobile.png",
+    "original_sha256": "c365b4981c9a5c91dac9536ba5f27fb551e21b4a8306adaa4b8cb7f2db7a131a",
+    "published_sha256": "c365b4981c9a5c91dac9536ba5f27fb551e21b4a8306adaa4b8cb7f2db7a131a",
+    "bytes": 51545,
+    "normalization": "none"
+  },
+  {
+    "file": "main834-dock-mobile.png",
+    "original_sha256": "a48ebf4d28ac7d182eee614301963f06f5da9675a85a9a3bd121e3f27ef65a99",
+    "published_sha256": "a48ebf4d28ac7d182eee614301963f06f5da9675a85a9a3bd121e3f27ef65a99",
+    "bytes": 175427,
+    "normalization": "none"
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 10,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 26,
+    "workers": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "aggregate": 41,
+    "total": 195
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 30,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 28,
+    "workers": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "aggregate": 43,
+    "total": 199
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 30,
+    "workers": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "aggregate": 45,
+    "total": 203
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 8,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 79,
+    "workers": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "aggregate": 94,
+    "total": 301
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 8,
+    "gap": 3,
+    "padded_to_sixteen_pages": true,
+    "external_proof_runs": 2,
+    "preparation": 227,
+    "workers": [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "aggregate": 188,
+    "total": 543
+  }
+]

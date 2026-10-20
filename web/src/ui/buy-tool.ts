@@ -11,8 +11,8 @@ import { logWarning } from '../diagnostics/log.js';
 type BuySource = Pick<SimBridge, 'catalogue' | 'purchasePreview' | 'buyObject' |
   'lastPurchaseResult' | 'lotRevision' | 'funds' | 'colourwayNames' | 'buyObjectInColourway'>;
 
-export const CHOOSE_ITEM = 'Choose something to buy.';
-const READY = 'Ready to buy.';
+export const CHOOSE_ITEM = '';
+const READY = '';
 const BUYING = 'Buying…';
 const NOT_SENT = 'The purchase could not be sent.';
 const UNAVAILABLE = 'This position is unavailable.';

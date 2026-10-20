@@ -1,4 +1,4 @@
-// Footer Confirm and Cancel keep paused Build open. Explicit exit asks first
+// Footer Confirm and Cancel finish and leave Build. Explicit exit asks first
 // while changes are not confirmed.
 // See docs/specs/2026-10-13-build-confirmation.md.
 
@@ -87,6 +87,11 @@ class FakeDocument {
     for (const listener of this.keydowns) listener(event);
     return event.defaultPrevented;
   }
+  /** Enter activates a focused button only after an uncancelled keydown. */
+  enter(repeat = false): void {
+    const target = this.activeElement;
+    if (target && !this.keydown(target, 'Enter', repeat)) this.click(target, 0);
+  }
 }
 
 /** Only what the controller and the test touch; the listeners are the real ones. */
@@ -144,6 +149,7 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
   const confirmButton = element('build-batch-confirm');
   const cancelButton = element('build-batch-cancel');
   const dialog = element('build-exit-dialog', new FakeDialog(doc)) as FakeDialog;
+  element('build-exit-title');
   const keep = element('build-exit-keep');
   keep.container = dialog;
   const exitButton = new FakeElement(doc);
@@ -186,7 +192,6 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
       if (confirmed) { builder.cancel(); buy.cancel(); }
       return confirmed;
     },
-    cancel: () => { const cancelled = session.cancel(); if (!cancelled) status.textContent = ROLLBACK_FAILED; return cancelled; },
     discard: () => {
       clock.time += work.ms;
       const cancelled = session.end();
@@ -222,7 +227,35 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
 }
 
 describe('the footer', () => {
-  it('Confirm applies the pending changes and keeps Build mode open', () => {
+  it.each(['exit', 'land'])('guards native held Enter across %s opening and a deliberate Keep focus restoration', destination => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.keep.defaultAction = () => f.dialog.close('keep');
+      const target = destination === 'exit' ? f.exitButton : new FakeElement(f.doc);
+      if (destination === 'land') target.addEventListener('click', () => f.exit.requestDestination(() => true));
+      target.focus(); f.doc.enter();
+      expect(f.dialog.open).toBe(true); expect(f.doc.activeElement).toBe(f.keep);
+      f.doc.enter(true);
+      expect(f.dialog.open).toBe(true); expect(f.doc.activeElement).toBe(f.keep);
+      f.doc.enter();
+      expect(f.dialog.open).toBe(false); expect(f.doc.activeElement).toBe(target);
+      f.doc.enter(true);
+      expect(f.dialog.open).toBe(false);
+      f.doc.enter(); expect(f.dialog.open).toBe(true);
+    } finally { f.handle.free(); }
+  });
+  it.each(['Enter', ' '])('drops held %s activation after a footer action moves focus', key => {
+    const f = fixture();
+    try {
+      f.enterWithMove(); f.doc.click(f.confirmButton, 0);
+      expect(f.builder.active).toBe(false);
+      expect(f.doc.keydown(f.exitButton, key, true)).toBe(true);
+      expect(f.doc.keydown(f.exitButton, key)).toBe(false);
+      expect(f.doc.keydown(f.exitButton, key, true)).toBe(false);
+    } finally { f.handle.free(); }
+  });
+  it('Confirm applies the pending changes and leaves Build mode', () => {
     const f = fixture();
     try {
       const before = f.sim.saveBytes();
@@ -230,36 +263,36 @@ describe('the footer', () => {
       const moved = f.sim.saveBytes();
       expect(moved).toEqual(before);
       f.confirmButton.click();
-      expect(f.builder.active).toBe(true);
-      expect(f.session.active).toBe(true);
+      expect(f.builder.active).toBe(false);
+      expect(f.session.active).toBe(false);
       expect(f.dialog.open).toBe(false);
       expect(f.sim.saveBytes()).not.toEqual(moved);
       expect(f.status.textContent).toBe('Changes confirmed.');
     } finally { f.handle.free(); }
   });
 
-  it('Cancel discards the pending changes and keeps Build mode open', () => {
+  it('Cancel discards the pending changes and leaves Build mode', () => {
     const f = fixture();
     try {
       const before = f.sim.saveBytes();
       f.enterWithMove();
       f.cancelButton.click();
-      expect(f.builder.active).toBe(true);
-      expect(f.session.active).toBe(true);
+      expect(f.builder.active).toBe(false);
+      expect(f.session.active).toBe(false);
       expect(f.dialog.open).toBe(false);
       expect(f.sim.saveBytes()).toEqual(before);
     } finally { f.handle.free(); }
   });
 
-  it('keeps Build open for empty footer batches', () => {
+  it('leaves Build for empty footer batches', () => {
     const f = fixture();
     try {
       f.builder.enter();
       f.confirmButton.click();
-      expect(f.builder.active).toBe(true);
+      expect(f.builder.active).toBe(false);
       f.builder.enter();
       f.cancelButton.click();
-      expect(f.builder.active).toBe(true);
+      expect(f.builder.active).toBe(false);
       expect(f.dialog.open).toBe(false);
     } finally { f.handle.free(); }
   });
@@ -285,7 +318,7 @@ describe('the footer', () => {
     const f = fixture();
     try {
       f.enterWithMove();
-      vi.spyOn(f.sim, 'cancelBuild').mockReturnValue({ ok: false, error: { code: 10, detail: 7n } });
+      vi.spyOn(f.sim, 'endBuild').mockReturnValue({ ok: false, error: { code: 10, detail: 7n } });
       f.cancelButton.click();
       expect(f.builder.active).toBe(true);
       expect(f.session.active).toBe(true);
@@ -300,7 +333,7 @@ it.each(['adopt', 'back', 'dismiss', 'load'] as const)('defers explicit exit unt
   const f = fixture(new SimHandle(10, 8), review => new Promise<boolean>(resolve => { finish = resolve; controller.open(review); }));
   controller = new RoomReviewController(f.sim, {
     completed: adopted => { if (!adopted) f.exit.clearExitIntent(); finish?.(adopted); },
-    refused: () => f.exit.clearExitIntent(),
+    refused: () => f.exit.cancelDestination(),
   });
   let operation: boolean | Promise<boolean> = false;
   try {
@@ -756,7 +789,7 @@ describe('a double-click that closes the dialog or leaves', () => {
     try {
       f.enterWithMove();
       expect(f.doc.click(f.confirmButton, 1)).toBe(true);
-      expect(f.builder.active).toBe(true);
+      expect(f.builder.active).toBe(false);
       f.clock.time += 100;
       expect(f.doc.click(f.stage, 2)).toBe(false);
       expect(f.gameClicks).toBe(0);
@@ -830,7 +863,7 @@ describe('a double-click that closes the dialog or leaves', () => {
       f.clock.time += 150;
       expect(f.doc.click(f.stage, 2)).toBe(true);
       expect(f.doc.click(f.confirmButton, 1)).toBe(true);
-      expect(f.builder.active).toBe(true);
+      expect(f.builder.active).toBe(false);
       // The same after leaving, on zoom or speed.
       f.clock.time += 400;
       expect(f.doc.click(f.stage, 1)).toBe(true);
@@ -847,7 +880,7 @@ describe('a double-click that closes the dialog or leaves', () => {
       // The footer: a slow confirm, then a slow discard on the way out.
       f.enterWithMove();
       expect(f.doc.click(f.confirmButton, 1)).toBe(true);
-      expect(f.builder.active).toBe(true);
+      expect(f.builder.active).toBe(false);
       f.clock.time += 100;
       expect(f.doc.click(f.stage, 2)).toBe(false);
       // The dialog: the close arms first, and the slow discard must not clear it.
@@ -1006,8 +1039,8 @@ describe('the page', () => {
         id: /id="([^"]*)"/.exec(attributes)?.[1] }));
     expect(buttons).toEqual([
       { label: 'Keep building', value: 'keep', id: 'build-exit-keep' },
-      { label: 'Confirm changes', value: 'confirm', id: 'build-exit-confirm' },
       { label: 'Discard changes', value: 'discard', id: 'build-exit-discard' },
+      { label: 'Confirm changes', value: 'confirm', id: 'build-exit-confirm' },
     ]);
   });
 
@@ -1039,7 +1072,7 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('return buildCommandsIdle(buildDraft);');
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
-    expect(MAIN_TS).toContain('confirmRefusalReason(roomSelection.error, buildSession.error, builder.hasPlacementChange)');
+    expect(MAIN_TS).toContain('roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange)');
     expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
   });
 

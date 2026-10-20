@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_long_unviable_identity_cannot_hide_short_two_phase_payload (test_mutation_batch_budget.MixedPayloadEnvelopeTests.test_long_unviable_identity_cannot_hide_short_two_phase_payload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_batch_budget.py", line 612, in test_long_unviable_identity_cannot_hide_short_two_phase_payload
+    self.exercise(True)
+    ~~~~~~~~~~~~~^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_batch_budget.py", line 595, in exercise
+    self.assertGreaterEqual(shapes["record_compact_bytes"], expected_record)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 7914 not greater than or equal to 8071
+
+----------------------------------------------------------------------
+Ran 1 test in 0.178s
+
+FAILED (failures=1)

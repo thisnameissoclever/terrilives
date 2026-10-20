@@ -1,0 +1,13 @@
+# Isolated Windows selector qualification
+
+The owner approved an isolated patched copy of cargo-mutants 27.1.0. The [qualification report](report.md) records its pinned source, exact patch, locked build, absolute executable and selector assertions. A [fresh independent review](independent-review.md) verified the narrow Windows claims without rerunning the tool.
+
+Candidate selectors pass all 22 assertions; stock reproduces 14 failures and passes eight controls. Stock and candidate generate byte-identical ordered inventories of the frozen game at `ac25b9b2f40aa2d48d97f02afbaa4e1223ca200d`. The current full-scope three-name request selects exactly three with the candidate and 34 with stock. [inventory-comparison.json](inventory-comparison.json) and [full-scope-three-selection.json](full-scope-three-selection.json) retain the comparison results and identities. These are listing checks, not mutation outcomes.
+
+[retention.json](retention.json) records original and retained copied-file hashes and the hashes of six complete source snapshots. Retained text uses LF line endings to match Git's published representation; raw local files are unchanged. Selected small fixture outputs, commands, provenance and checker sources are retained here. The complete inventories, full scoped-path snapshots, SDK source and Windows executable remain in ignored local scratch under `.local-build/build-ui-followup/isolated-tool/`; they are not copied into this evidence selection. Paths in the original reports and helper sources describe that execution layout. The retained helpers document the checker rather than forming a supported command to execute from this evidence folder.
+
+The receipt comparison correction normalizes Python tuples and JSON arrays before equality. Its controls accept equivalent serialized representations and reject a changed scoped blob or generation-byte hash. The original stock output was preserved and reused after the false alarm; it was not rerun to replace the evidence. The broader asset representation uses indexed Git blobs and clean-checkout guards, not a repeated actual-byte audit. The independent review explicitly records the initial junction-check and negative-control limits.
+
+No global binary, dependency or compiler upgrade occurred. No public changelog note is needed for this internal tool qualification. Linux executable identity, actual Linux child-process cleanup, interrupted GitHub recovery and complete production mutation coverage still require separate evidence.
+
+The later [V20 comparison](v20/README.md) repeats complete inventory parity against the newly integrated native source while preserving these original V19 records.

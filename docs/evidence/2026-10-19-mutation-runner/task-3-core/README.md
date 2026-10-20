@@ -1,0 +1,9 @@
+# Recovery implementation review at ad67b0b59
+
+These records describe the workflow and authenticated recovery implementation committed as `ad67b0b5995276a34c7434b9370042c6d6016dbd`. The [implementation report](task-3-report.md), [fix report](task-3-fix1-report.md), and fresh [specification](task-3-spec-rereview1.md) and [quality](task-3-quality-rereview1.md) approvals preserve the reviewed source boundary. [verification.json](verification.json) records hashes checked against committed Git blobs and the original and retained evidence bytes.
+
+The repair retains failed historical aggregate decisions and binds recovery to the authenticated original plan's lifetime and limits. The focused mutation suites passed 148 tests. The complete simulated GitHub request fixture measured at most 513 requests for the tested bounded history, including wrapper calls. These are local fixture results; they do not establish actual GitHub authentication, Linux cleanup, native artifact capacity or game mutation coverage.
+
+The later [size probe](native-plan-size-probe.json) uses the complete V20 Windows inventory solely to measure a lower-bound plan shape. Pretty-printed JSON is 34,234,770 bytes, above the unchanged 33,554,432-byte member limit; compact JSON is 22,720,322 bytes. The shape omits other plan context and contains zero executed outcomes. It is not an authenticated production plan or recovery history. Its [helper](native-plan-size-probe.py) retains the exact computation.
+
+The native measurement and admission follow-up changes the implementation after this reviewed revision. Its independent review and actual Linux qualification require separate evidence. Text copies here use the normalization declared in the verification receipt; raw local reports remain unchanged. The retained patch files preserve their structural context-line spaces and exact digests; those spaces are excluded from the authored-prose whitespace check.

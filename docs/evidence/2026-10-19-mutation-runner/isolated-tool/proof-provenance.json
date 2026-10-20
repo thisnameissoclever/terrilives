@@ -1,0 +1,80 @@
+{
+  "completed_utc": "2026-10-19T20:38:55.426823+00:00",
+  "qualification_passed": true,
+  "snapshots": [
+    "freeze-after-candidate-three.json",
+    "freeze-after-candidate.json",
+    "freeze-after-stock-three.json",
+    "freeze-after-stock.json",
+    "freeze-before-candidate.json",
+    "freeze-before-stock.json"
+  ],
+  "snapshots_identical": true,
+  "representation": "clean-git-blob-sha1",
+  "before_stock_link_guard": "regular Git modes and individual Path.is_symlink on every tracked conservative file; no initial directory-junction traversal",
+  "later_link_guard": "batched os.scandir rejects symlinks and junctions in every conservative root and explicit fixture",
+  "source_code_sha256": {
+    "freeze-proof.py": "105f2c91f656bbd77a62fd8890051c9a5f26dfe2242dee39637d7498995bf27a",
+    "receipt_compare.py": "538c788a9291e659fda808fb3220382c011f2ad0674d40fc85d99f21b3747f37",
+    "paired-inventory.py": "431d8a8895eaf6b15573b0a41b43e535846446fe40fc83c23486519d2c3c83af",
+    "checker-controls.py": "ec53471f0b87edbcbfdfaa6d0240ad4992cc746f37c984b357346d0c5017c0d4"
+  },
+  "original_comparison_false_alarm": "In-memory scope tuples compared unequal to JSON-loaded arrays; persisted receipts are identical. Original stock result retained.",
+  "checker_controls": [
+    {
+      "case": "tuple_json_array_equivalence",
+      "pass": true
+    },
+    {
+      "case": "changed_scoped_blob",
+      "pass": true,
+      "rejected": true
+    },
+    {
+      "case": "changed_generation_byte_hash",
+      "pass": true,
+      "rejected": true
+    }
+  ],
+  "candidate_sha256": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6",
+  "stock_sha256_after": "b4173bae5c104a37e72c1944b5f7ef79b6f235e09f5e6a7bcc5e6771bb75c406",
+  "inventory": {
+    "stock_count": 17749,
+    "candidate_count": 17749,
+    "raw_bytes_identical": true,
+    "complete_ordered_entries_equal": true,
+    "ordered_names_equal": true,
+    "identity_sets_equal": true,
+    "duplicate_names": [
+      0,
+      0
+    ],
+    "duplicate_composite_identities": [
+      0,
+      0
+    ],
+    "stock_sha256": "f14592d335fdd0000ed317c1f123315751bb906a4fd7b23ff1a8c2fafa494f44",
+    "candidate_sha256": "f14592d335fdd0000ed317c1f123315751bb906a4fd7b23ff1a8c2fafa494f44",
+    "package_counts": {
+      "terri-core": 1153,
+      "terri-data": 1634,
+      "terri-sim": 13790,
+      "terri-wasm": 1172
+    },
+    "all_fields_compared": [
+      "diff",
+      "file",
+      "function",
+      "genre",
+      "name",
+      "package",
+      "replacement",
+      "span"
+    ]
+  },
+  "full_scope_three_counts": {
+    "requested_names": 3,
+    "stock_selected": 34,
+    "candidate_selected": 3
+  }
+}

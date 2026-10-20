@@ -1,0 +1,18 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_recovery.JobLogTransportTests",
+    "test_mutation_recovery.AnchorLifecycleTests",
+    "test_mutation_recovery.RecoveryTests",
+    "test_mutation_recovery.AggregateVerdictRegressionTests",
+    "test_mutation_workflow",
+    "test_mutation_batch_budget.HistoryBudgetTests",
+    "test_mutation_native.NativeSizingTests"
+  ],
+  "exit_code": 0,
+  "seconds": 6.556,
+  "output": "..............................................\n----------------------------------------------------------------------\nRan 46 tests in 6.296s\n\nOK\n"
+}

@@ -1307,7 +1307,7 @@
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
-        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span><span id="dock-critical"></span></div>
+        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><button id="dock-activity" type="button"></button><span id="dock-critical"></span></div>
         <button id="edit-housemate" class="hud-button" type="button" disabled>Edit</button>
         <div id="dock-wellbeing">
           <section id="mood-block" aria-label="Mood">
@@ -1382,7 +1382,7 @@
           type="button"
           aria-pressed="true"
         >Queue mode</button><button data-action-intent="destructive" id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
-            <p id="queue-preview-note">Upcoming actions. The preview shows as many as fit; all waiting orders remain queued.</p>
+            <p id="queue-preview-note">All waiting orders remain queued, including those that do not fit in the preview.</p>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
           </section>
@@ -1431,7 +1431,7 @@
           <p id="builder-touch-help" class="builder-note builder-help" hidden>Select furniture, then a destination tile. Use the nearby buttons to turn or place it.</p>
         </div>
         <div class="builder-actions">
-          <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
+          <p id="builder-status" role="status" aria-live="polite"></p>
 
 
           <p id="builder-sale-note" class="builder-note" hidden></p>
@@ -1476,7 +1476,7 @@
 
           </div>
           <div class="builder-actions">
-            <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
+            <p id="floor-status" role="status" aria-live="polite"></p>
           </div>
         </div>
         <div id="land-tool" class="builder-tool" hidden>
@@ -1487,10 +1487,10 @@
               <button id="land-side-1" class="hud-button" type="button" aria-pressed="false">Left side</button>
               <button id="land-side-2" class="hud-button" type="button" aria-pressed="false">Right side</button>
             </div>
-            <p id="land-touch-help" class="builder-note builder-help" hidden>Choose a strip beside the lot, read its price, then use Buy land.</p>
+            <p id="land-touch-help" class="builder-note builder-help" hidden></p>
           </div>
           <div class="builder-actions">
-            <p id="land-status" role="status" aria-live="polite">Choose a strip of land.</p>
+            <p id="land-status" role="status" aria-live="polite"></p>
             <button data-action-intent="affirmative" id="land-buy" class="hud-button" type="button" disabled>Buy land</button>
           </div>
         </div>
@@ -1543,7 +1543,7 @@
             <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose an item, then its destination tile. Use the nearby buttons to turn or buy it.</p>
           </div>
           <div class="builder-actions">
-            <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
+            <p id="buy-status" role="status" aria-live="polite"></p>
 
           </div>
         </div>
@@ -1559,7 +1559,7 @@
             <button id="room-review-confirm" class="hud-button" type="button" data-action-intent="affirmative">Confirm changes</button>
           </div>
         </section>
-        <p id="build-batch-status" role="status" aria-live="polite">Changes remain pending until Confirm.</p>
+        <p id="build-batch-status" role="status" aria-live="polite"></p>
         <div id="build-batch-actions">
           <button data-action-intent="negative" id="build-batch-cancel" class="hud-button" type="button">Cancel</button>
           <button data-action-intent="affirmative" id="build-batch-confirm" class="hud-button" type="button">Confirm</button>
@@ -1620,13 +1620,13 @@
          reads the button values; Escape closes the dialog with none. -->
     <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text build-exit-status">
       <h2 id="build-exit-title">Leave Build mode?</h2>
-      <p id="build-exit-text">You have changes that are not confirmed. Discarding them undoes every change since the last Confirm, including purchases and sales.</p>
+      <p id="build-exit-text">Discarding changes undoes this batch, including purchases and sales.</p>
       <p id="build-exit-status" role="alert"></p>
       <form method="dialog">
         <menu>
-          <button id="build-exit-keep" class="hud-button" data-action-intent="negative" value="keep" autofocus>Keep building</button>
-          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
+          <button id="build-exit-keep" class="hud-button" value="keep" autofocus>Keep building</button>
           <button id="build-exit-discard" class="hud-button" data-action-intent="negative" value="discard">Discard changes</button>
+          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
         </menu>
       </form>
     </dialog>
@@ -1661,7 +1661,7 @@
     <!-- Contextual Build actions follow the active selection in client pixels.
          Short screens can place them in a grid beside a bounded tool panel.
          Empty space passes input to the game; only buttons consume it. -->
-    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out">-</button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
+    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="2" /></svg></button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
     <div id="placement-actions" hidden aria-label="Build actions for the current selection">
 
     </div>

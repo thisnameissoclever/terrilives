@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_mutation_subtotal_fits_but_capped_campaign_overhead_does_not (test_mutation_native.NativeCappedForecastTests.test_mutation_subtotal_fits_but_capped_campaign_overhead_does_not)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 753, in test_mutation_subtotal_fits_but_capped_campaign_overhead_does_not
+    self.assertFalse(result["pessimistic_cap_bound_fits_remaining"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.747s
+
+FAILED (failures=1)

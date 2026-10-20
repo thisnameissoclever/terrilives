@@ -1,0 +1,1632 @@
+--- a/.github/scripts/mutation_native.py
++++ b/.github/scripts/mutation_native.py
+@@ -387,7 +387,7 @@
+     return records
+ 
+ 
+-def capped_campaign_projection(counts, settings, calibration, setup, remaining):
++def capped_campaign_projection(counts, settings, calibration, setup, remaining, *, batch_limit=None):
+     """Project capped phases with explicit repeated setup, reserve and queue allowances."""
+     cap_unit = settings["build_cap_seconds"] + calibration["test_cap_seconds"]
+     baseline_cap = cap_unit
+@@ -395,6 +395,8 @@
+     queue = 1800
+     usable = 7200 - baseline_cap - setup - sum(reserves.values())
+     per_wave = max(0, math.floor(usable / cap_unit))
++    if batch_limit is not None:
++        per_wave = min(batch_limit, per_wave)
+     waves = [math.ceil(count / per_wave) if per_wave else (None if count else 0) for count in counts]
+     overhead = baseline_cap + setup + sum(reserves.values()) + queue
+     per_slot = [None if wave is None else count * cap_unit + wave * overhead for count, wave in zip(counts, waves)]
+@@ -410,7 +412,7 @@
+         "is_guarantee": False}
+ 
+ 
+-def forecast(planned, chain, settings, records, metrics):
++def forecast(planned, chain, settings, records, metrics, *, batch_limit=None):
+     counts = [len(model.slot_ids(planned["manifest"], slot)) for slot in range(8)]
+     sampled = [sum(phase["duration"] for phase in record["outcome"]["phase_results"]) for record in records]
+     require(sampled and all(value > 0 and math.isfinite(value) for value in sampled), "invalid measured native phase cost")
+@@ -420,6 +422,8 @@
+     reserves = settings["shutdown_seconds"] + settings["validation_seconds"] + settings["upload_seconds"]
+     usable = 7200 - reserves - setup - baseline
+     per_wave = math.floor(usable / unit)
++    if batch_limit is not None:
++        per_wave = min(batch_limit, per_wave)
+     if per_wave < 1:
+         raise runner.CapacityFailure("measured native baseline and one conservative mutation cannot fit")
+     waves = [math.ceil(count / per_wave) for count in counts]
+@@ -431,7 +435,7 @@
+     envelope_wall = (ceiling - elapsed_attempts) * (7200 + 1800)
+     if ceiling > 8 * chain["max_attempts"] or wall > remaining or envelope_wall > remaining:
+         raise runner.CapacityFailure("conservative native forecast/history envelope exceeds original finite campaign")
+-    capped = capped_campaign_projection(counts, settings, planned["calibration"], setup, remaining)
++    capped = capped_campaign_projection(counts, settings, planned["calibration"], setup, remaining, batch_limit=batch_limit)
+     return {"per_slot_counts": counts, "sample_seconds": sampled, "conservative_seconds_per_mutation": unit,
+         "cost_assumption": "1.5 times the slowest sampled build plus test; future costs remain unproven",
+         "baseline_seconds_per_wave": baseline, "setup_seconds_per_wave": setup, "queue_seconds_per_wave": 1800,
+@@ -446,80 +450,243 @@
+         "is_guarantee": False}
+ 
+ 
+-def sizing_probe(planned, records, projected, producer_logs, diagnostic_files):
++def json_size(value, *, pretty=False):
++    return len(json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False,
++                          **({"indent": 2} if pretty else {"separators": (",", ":")})).encode())
++
++
++def identity_record_shape(sample, identity, manifest_count):
++    shaped = copy.deepcopy(sample)
++    shaped.update(mutation_id=identity["id"], slot=identity["slot"])
++    shaped["outcome"]["scenario"]["Mutant"] = {key: identity[key] for key in model.IDENTITY_KEYS}
++    # Pinned 27.1.0 mutant.rs/output.rs: cleaned source path, location and an
++    # optional collision counter. A full-manifest counter covers any bounded prefix.
++    filename = identity["file"].replace("/", "__")
++    filename = "".join("_" if character in '\\ :<>?*|"' else character for character in filename)
++    basename = f"{filename}_line_{identity['span']['start']['line']}_col_{identity['span']['start']['column']}_{manifest_count:03}"
++    for field, prefix, extension in (("log_path", "log/", ".log"), ("diff_path", "diff/", ".diff")):
++        path = prefix + basename + extension
++        observed = shaped["outcome"].get(field)
++        shaped["outcome"][field] = path if observed is None or len(path.encode()) >= len(observed.encode()) else observed
++    return shaped
++
++
++def raw_shape_budget(planned, records, batches, files):
++    """Separate actual member classes, then cover every full-manifest identity row."""
++    require(records and batches, "raw sizing requires actual diagnostic record shapes")
++    sample = max(records, key=json_size)
++    manifest = planned["manifest"]
++    record_bytes = outcome_bytes = 0
++    for identity in manifest["mutations"]:
++        shaped = identity_record_shape(sample, identity, len(manifest["mutations"]))
++        record_bytes = max(record_bytes, json_size(shaped) + 1)
++        pretty = json.dumps(shaped["outcome"], indent=2, ensure_ascii=False, allow_nan=False)
++        outcome_bytes = max(outcome_bytes, len(pretty.encode()) + 4 * len(pretty.splitlines()) + 2)
++    baseline_logs, mutant_logs, diffs, process = [], [], [], []
++    report_fixed = 0
++    serialization_ratio = 1.0
++    for batch in batches:
++        prefix = f"batch-{batch['logical_slot']}/"
++        raw = files[prefix + "frozen-outcomes.json"]
++        parsed = artifacts.strict_json(raw)
++        serialization_ratio = max(serialization_ratio, len(raw) / max(1, json_size(parsed, pretty=True)))
++        baseline = batch["delta"]["baseline"]["outcome"]
++        baseline_logs.append(len(files[prefix + "mutants.out/" + str(artifacts.safe_path(baseline["log_path"]))]))
++        for record in batch["delta"]["records"]:
++            outcome = record["outcome"]
++            mutant_logs.append(len(files[prefix + "mutants.out/" + str(artifacts.safe_path(outcome["log_path"]))]))
++            if outcome["diff_path"] is not None:
++                diffs.append(len(files[prefix + "mutants.out/" + str(artifacts.safe_path(outcome["diff_path"]))]))
++        process.append(len(files[prefix + "process.log"]))
++        parsed["outcomes"] = [parsed["outcomes"][0]]
++        report_fixed = max(report_fixed, json_size(parsed, pretty=True) + 256)
++    maximum_remaining = max((model.slot_ids(manifest, slot) for slot in range(8)), key=lambda ids: json_size(ids))
++    delta = copy.deepcopy(max((batch["delta"] for batch in batches), key=json_size))
++    delta.update(records=[], batch_ids=[])
++    receipt = dict(planned["producer"], execution_id="x" * 64, batch_id="x" * 64,
++        batch_policy_digest="x" * 64, job_id="9" * 20, run_id="9" * 20, attempt=51)
++    bundle = {"version": 1, "manifest": manifest, "receipt": receipt, "delta": delta,
++        "status": {"state": "incomplete_with_progress", "reason": "bounded_batch_complete", "returncode": 0,
++            "remaining": maximum_remaining, "recorded_at": "2099-12-31T23:59:59.999999+00:00"}}
++    return {"bundle_fixed_bytes": json_size(bundle) + 1024, "record_compact_bytes": record_bytes,
++        "outcome_pretty_bytes": math.ceil(outcome_bytes * serialization_ratio),
++        "outcomes_fixed_bytes": math.ceil(report_fixed * serialization_ratio),
++        "baseline_log_bytes": max(baseline_logs), "mutant_log_bytes": max(mutant_logs), "mutant_diff_bytes": max(diffs, default=0),
++        "mutant_diff_present": bool(diffs),
++        "process_fixed_bytes": max(process), "process_per_mutation_bytes": max(process),
++        "full_manifest_digest": model.digest(manifest), "sample_records_digest": model.digest(records),
++        "raw_serialization_ratio": serialization_ratio,
++        "assumptions": "Full-manifest longest record/outcome rows cover every future prefix. Individual log/diff maxima stay separate. Paths follow the pinned tool source-path/location/collision naming with a full-manifest collision suffix allowance. Whole largest observed process output is charged once and once per future mutation; report whitespace uses the larger of measured serialization and pretty JSON. Future output growth still faces exact outgoing limits."}
++
++
++def raw_projection(shapes, count):
++    members = {"bundle.json": shapes["bundle_fixed_bytes"] + count * (shapes["record_compact_bytes"] + 67),
++        "raw/outcomes.json": shapes["outcomes_fixed_bytes"] + count * shapes["outcome_pretty_bytes"],
++        "diagnostic/post-shutdown-outcomes.json": shapes["outcomes_fixed_bytes"] + count * shapes["outcome_pretty_bytes"],
++        "process.log": shapes["process_fixed_bytes"] + count * shapes["process_per_mutation_bytes"],
++        "baseline_log": shapes["baseline_log_bytes"]}
++    # The retained filesystem deduplicates actual repeated paths. Unique future
++    # scenario paths maximize the two distinct per-mutation member classes.
++    largest = max(*members.values(), shapes["mutant_log_bytes"], shapes["mutant_diff_bytes"])
++    expanded = sum(members.values()) + count * (shapes["mutant_log_bytes"] + shapes["mutant_diff_bytes"])
++    member_count = len(members) + count * (1 + shapes["mutant_diff_present"])
++    fits = largest <= artifacts.MAX_MEMBER * .8 and expanded <= artifacts.MAX_ARCHIVE * .8 and member_count <= math.floor(artifacts.MAX_MEMBERS * .8)
++    return {"selection_count": count, "fixed_and_aggregate_members": members,
++        "individual_mutant_log_bytes": shapes["mutant_log_bytes"], "individual_mutant_diff_bytes": shapes["mutant_diff_bytes"],
++        "maximum_member_bytes": largest, "expanded_bytes": expanded, "member_count": member_count,
++        "fits_projected_headroom": fits, "compressed_bytes": None,
++        "compression_note": "Uploader ZIP bytes are unknown here and remain checked from completed artifact metadata/download."}
++
++
++def choose_batch_policy(planned, chain, records, batches, files):
++    shapes = raw_shape_budget(planned, records, batches, files)
++    largest_slot = max(len(model.slot_ids(planned["manifest"], slot)) for slot in range(8))
++    if not raw_projection(shapes, 1)["fits_projected_headroom"]:
++        raise runner.CapacityFailure("one production identity cannot fit typed raw artifact headroom")
++    low, high = 1, largest_slot
++    while low < high:
++        middle = (low + high + 1) // 2
++        if raw_projection(shapes, middle)["fits_projected_headroom"]:
++            low = middle
++        else:
++            high = middle - 1
++    return {"algorithm": runner.BATCH_ALGORITHM, "max_mutations": low,
++        "manifest_digest": model.digest(planned["manifest"]), "binding_digest": model.digest(binding(planned, chain)),
++        "shapes": shapes, "projection": raw_projection(shapes, low),
++        "whole_slot_projection": raw_projection(shapes, largest_slot),
++        "limits": {"member_bytes": artifacts.MAX_MEMBER, "expanded_bytes": artifacts.MAX_ARCHIVE,
++                   "member_count": artifacts.MAX_MEMBERS, "headroom_fraction": .8}}
++
++
++def projected_history(planned, seed, records, projected, policy, producer_logs):
++    """Size the retained schema, not an execution claim or an acceptable snapshot."""
++    require(seed is not None and seed["planned"] == planned, "history sizing lacks authenticated original proof shapes")
++    value = copy.deepcopy(seed)
++    manifest = planned["manifest"]
++    value.update(diagnostic_sizing_only=True, accepted_production_outcomes=0, bundles=[], frontier={},
++        job_inventories={}, phase_inventories={}, aggregate_verdicts={})
++    sample = max(records, key=json_size)
++    by_slot = [[item for item in manifest["mutations"] if item["slot"] == slot] for slot in range(8)]
++    pending = [model.slot_ids(manifest, slot) for slot in range(8)]
++    largest_log = max(producer_logs, key=len)
++    now = planned["producer"]["checkout"]
++    root_run = planned["producer"]["run_id"]
++    instant = value["chain"]["started_at"]
++    expiry = (artifacts.timestamp(instant) + dt.timedelta(days=30)).isoformat()
++    job_shape = value.pop("projection_job_shape", {})
++    policy_digest = model.digest(policy)
++    def job_and_log(job_id, run_id, attempt, name, receipt, marker):
++        job = dict(job_shape, id=job_id, run_id=int(run_id), run_attempt=attempt, name=name,
++            status="completed", conclusion="failure", started_at=instant, completed_at=instant)
++        path = f"repos/{planned['producer']['repository']}/actions/jobs/{job_id}/logs"
++        raw = largest_log + b"\n" + (marker + " " + json.dumps(receipt, sort_keys=True) + f"\nMUTATION_ARTIFACT_ID={job_id}\n").encode()
++        value["logs"][path] = {"bytes": base64.b64encode(raw).decode(), "sha256": artifacts.sha(raw),
++            "run_id": run_id, "attempt": attempt, "job_id": str(job_id), "observed_at": instant,
++            "original_retention_days": 30, "expires_at": expiry}
++        value["originals"][str(job_id)] = {"metadata": {"id": job_id, "name": name + str(job_id), "digest": "sha256:" + "f" * 64,
++            "created_at": instant, "expires_at": expiry, "workflow_run": {"id": int(run_id), "head_sha": planned["producer"]["checkout"]["commit"]}}, "producer_log": path}
++        return job, path
++    for ordinal in range(projected["admitted_total_history_attempts"]):
++        run_id = str(int(root_run) + ordinal // 51)
++        attempt = ordinal % 51 + 1
++        value["frontier"][run_id] = attempt
++        entry = dict(value["chain"]["runs"][0], run_id=run_id)
++        value["source_runs"][run_id] = entry
++        key = f"{run_id}/{attempt}"
++        value["job_inventories"][key], value["phase_inventories"][key] = [], []
++        for slot in range(8):
++            job_id = 1000000000000000000 + ordinal * 10 + slot
++            selected = by_slot[slot][ordinal * policy["max_mutations"]:(ordinal + 1) * policy["max_mutations"]]
++            batch_ids = pending[slot][:policy["max_mutations"]]
++            provenance = dict(sample["provenance"], run_id=run_id, attempt=attempt, batch_id=model.digest(batch_ids), execution_id=str(job_id))
++            baseline = copy.deepcopy(sample["baseline"])
++            baseline["provenance"] = provenance
++            baseline["baseline_id"] = model.digest({k: v for k, v in baseline.items() if k != "baseline_id"})
++            shaped_records = []
++            for identity in selected:
++                shaped = identity_record_shape(sample, identity, len(manifest["mutations"]))
++                shaped.update(provenance=provenance, baseline=baseline)
++                shaped["record_id"] = model.digest({k: v for k, v in shaped.items() if k != "record_id"})
++                shaped_records.append(shaped)
++            delta = {"schema_version": model.SCHEMA_VERSION, "campaign_id": manifest["campaign_id"], "slot": slot,
++                "provenance": provenance, "batch_ids": batch_ids, "raw_report_ref": sample["raw_report_ref"],
++                "baseline": baseline, "records": shaped_records, "exit_kind": "interrupted", "delta_id": "f" * 64}
++            receipt = dict(planned["producer"], **{k: provenance[k] for k in ("run_id", "attempt", "batch_id", "execution_id")},
++                job_id=str(job_id), slot=slot, batch_policy_digest=policy_digest)
++            bundle = {"version": 1, "receipt": receipt, "delta": delta,
++                "status": {"state": "incomplete_with_progress" if selected else "incomplete_without_progress",
++                    "reason": "controller_deadline", "returncode": -15, "recorded_at": instant, "remaining": pending[slot]}}
++            value["bundles"].append({"artifact_id": job_id, "bundle": bundle, "bundle_digest": model.digest(bundle)})
++            job, _ = job_and_log(job_id, run_id, attempt, f"mutation-slot-{slot}", receipt, "MUTATION_PRODUCER")
++            value["job_inventories"][key].append(job)
++        for phase, offset in (("prepared", 8), ("aggregate", 9)):
++            job_id = 1000000000000000000 + ordinal * 10 + offset
++            receipt = dict(planned["producer"], kind=phase, run_id=run_id, attempt=attempt, job_id=str(job_id),
++                head_sha=entry["head_sha"], contract=value["contract"], plan=value["chain"]["plan"],
++                frontier=dict(value["frontier"]), verdict={"state": "incomplete_with_progress", "reason": "remaining_work", "remaining": len(manifest["mutations"])},
++                chunks=[{"name": f"chunk-{i:04d}.bin", "size": 32 * 1024 * 1024, "sha256": "f" * 64} for i in range(4)],
++                data_sha256="f" * 64, payload_digest="f" * 64)
++            job, path = job_and_log(job_id, run_id, attempt, "mutation-prepare" if phase == "prepared" else "mutation-production-aggregate", receipt, "MUTATION_RECOVERY")
++            value["phase_inventories"][key].append(job)
++            if phase == "aggregate":
++                value["aggregate_verdicts"][str(job_id)] = {"job": job, "receipt": receipt, "artifact_id": job_id, "producer_log": path}
++    # Four bounded native payloads remain separate proofs, as in real retained admission.
++    proofs = {}
++    for index, kind in enumerate(("pilot", "report", "admission", "admission")):
++        job_id = 9000000000000000000 + index
++        receipt = dict(planned["producer"], kind=kind, job_id=str(job_id), contract=value["contract"], payload_sha256="f" * 64,
++            binding_digest=model.digest(binding(planned, seed["chain"])), state="admitted" if index == 3 else "complete")
++        job, path = job_and_log(job_id, root_run, 2 if index < 3 else 3, JOBS[kind], receipt, MARKERS[kind])
++        proofs[str(job_id)] = {"reference": {"artifact_id": job_id, "archive_digest": "sha256:" + "f" * 64},
++            "receipt": receipt, "payload": {"maximum_bounded_payload_shape": "x" * PAYLOAD_LIMIT},
++            "job": job, "artifact": value["originals"][str(job_id)]["metadata"],
++            "producer_log": dict(value["logs"][path], path=path), "download": {"bytes": PAYLOAD_LIMIT, "seconds": 60}}
++        value["phase_inventories"].setdefault(f"{root_run}/{2 if index < 3 else 3}", []).append(job)
++    value["native_admission"] = {"reference": proofs[str(job_id)]["reference"], "binding": binding(planned, seed["chain"]),
++        "proofs": proofs, "batch_policy": policy, "batch_policy_digest": policy_digest,
++        "admitted_total_history_attempts": projected["admitted_total_history_attempts"]}
++    value["consumer"] = {"run_id": run_id, "attempt": attempt}
++    return value
++
++
++def sizing_probe(planned, records, projected, producer_logs, diagnostic_files, *, batch_policy=None, history_seed=None):
+     from mutation_recovery import encode, decode
+-    require(records and producer_logs, "native sizing requires measured record and producer-log shapes")
+-    sample = max(records, key=lambda value: len(json.dumps(value, sort_keys=True)))
+-    largest_log = max(producer_logs, key=len)
+-    log = base64.b64encode(largest_log).decode("ascii")
+-    manifest = planned["manifest"]
+-    shaped_records = []
+-    for mutation in manifest["mutations"]:
+-        shaped = copy.deepcopy(sample)
+-        shaped["mutation_id"] = mutation["id"]
+-        shaped["name"] = mutation["name"]
+-        shaped["outcome"]["scenario"]["Mutant"] = {key: mutation[key] for key in
+-            ("name", "package", "file", "function", "span", "replacement", "genre")}
+-        shaped_records.append(shaped)
+-    ceiling = projected["admitted_total_history_attempts"]
+-    pending = [model.slot_ids(manifest, slot) for slot in range(8)]
+-    value = {"diagnostic_sizing_only": True, "accepted_production_outcomes": 0, "manifest": manifest,
+-        "measured_record_shapes": shaped_records, "full_pending_batches_each_attempt": [pending] * ceiling,
+-        "retained_producer_log_shapes": [log] * (ceiling * 10 + 12),
+-        "native_proof_overhead": "x" * (4 * PAYLOAD_LIMIT),
+-        "history_metadata_headroom": ["x" * 16384] * (ceiling * 10 + 12)}
++    require(batch_policy is not None and records and producer_logs, "history sizing requires the authenticated raw batch envelope")
++    value = projected_history(planned, history_seed, records, projected, batch_policy, producer_logs)
+     started = time.monotonic()
+     raw = encode(value)
+     encoded_seconds = time.monotonic() - started
+     started = time.monotonic()
+     logical = decode(raw, materialize=False)
+-    decoded = decode(raw)
+-    require(model.digest(decoded) == model.digest(value), "full native sizing shape failed lossless reconstruction")
++    require(model.digest(decode(raw)) == model.digest(value), "actual-schema history failed lossless reconstruction")
+     decode_seconds = time.monotonic() - started
+     chunks = [raw[index:index + 32 * 1024 * 1024] for index in range(0, len(raw), 32 * 1024 * 1024)]
+     zipped = io.BytesIO()
+     with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as archive:
+         for index, chunk in enumerate(chunks):
+             archive.writestr(f"chunk-{index:04d}.bin", chunk)
+-    require(len(raw) <= artifacts.MAX_ARCHIVE and len(zipped.getvalue()) <= artifacts.MAX_ARCHIVE
+-            and all(len(chunk) <= artifacts.MAX_MEMBER for chunk in chunks), "full native sizing shape exceeds existing archive/member bounds")
+-    # Each raw delta keeps the complete manifest. Snapshots alone remove that repetition.
+-    slot = max(range(8), key=lambda index: len(pending[index]))
+-    slot_records = [record for record, mutation in zip(shaped_records, manifest["mutations"]) if mutation["slot"] == slot]
+-    raw_bundle = {"manifest": manifest, "delta": {"records": slot_records, "batch_ids": pending[slot]},
+-        "receipt_and_status_headroom": "x" * 16384}
+-    raw_bundle_bytes = len(json.dumps(raw_bundle, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()) + 1
+-    largest_raw = max([len(raw) for raw in diagnostic_files.values()] or [0])
+-    # Preserve room for an outcomes member plus separate build/test logs and diffs.
+-    raw_member_projection = max(raw_bundle_bytes, largest_raw * len(pending[slot]))
+-    raw_archive_projection = raw_bundle_bytes + largest_raw * len(pending[slot]) * 4
+-    headroom_fraction = .8
+-    require(raw_member_projection <= artifacts.MAX_MEMBER * headroom_fraction
+-            and raw_archive_projection <= artifacts.MAX_ARCHIVE * headroom_fraction
+-            and logical <= artifacts.MAX_ARCHIVE * headroom_fraction
+-            and len(raw) <= artifacts.MAX_ARCHIVE * headroom_fraction
+-            and len(zipped.getvalue()) <= artifacts.MAX_ARCHIVE * headroom_fraction,
++    require(logical <= artifacts.MAX_ARCHIVE * .8 and len(raw) <= artifacts.MAX_ARCHIVE * .8
++            and len(zipped.getvalue()) <= artifacts.MAX_ARCHIVE * .8
++            and all(len(chunk) <= artifacts.MAX_MEMBER for chunk in chunks),
+             "native sizing lacks twenty percent headroom inside unchanged raw/snapshot bounds")
+-    per_history = sum(len(json.dumps(ids, separators=(",", ":"))) for ids in pending) + ((len(log.encode()) + 16384) * 10)
+-    maximum_projection = logical + max(0, projected["original_total_attempt_stop"] - ceiling) * per_history
+-    return {"diagnostic_sizing_only": True, "accepted_production_outcomes": 0, "mutation_count": len(shaped_records),
+-        "admitted_total_history_attempts": ceiling, "logical_bytes": logical, "expanded_chunk_bytes": len(raw),
+-        "compressed_bytes": len(zipped.getvalue()), "maximum_member_bytes": max(map(len, chunks)),
+-        "encode_seconds": encoded_seconds, "decode_and_digest_seconds": decode_seconds,
+-        "raw_bundle_member_bytes": raw_bundle_bytes, "raw_member_projection_bytes": raw_member_projection,
+-        "raw_archive_projection_bytes": raw_archive_projection, "admitted_bound_fraction": headroom_fraction,
+-        "largest_sample_raw_member_bytes": largest_raw, "raw_slot_count": len(pending[slot]),
+-        "raw_assumption": "Largest sampled raw member for every slot identity, four members per identity; twenty percent bound headroom",
+-        "history_metadata_bytes_per_producer": 16384,
+-        "measured_producer_log_shape_bytes": len(largest_log), "retained_log_base64_shape_bytes": len(log), "producer_log_shape_count": ceiling * 10 + 12,
+-        "record_shape_digest": model.digest(sample), "shape_digest": model.digest(value),
+-        "history_assumption": "Full pending-ID arrays repeated for every admitted attempt; no ideal shrinkage assumed",
+-        "log_assumption": "Largest observed authenticated producer log repeated; later log growth remains subject to runtime bounds",
++    raw_envelope = batch_policy["projection"]
++    ceiling = projected["admitted_total_history_attempts"]
++    maximum_projection = math.ceil(logical * projected["original_total_attempt_stop"] / ceiling)
++    return {"diagnostic_sizing_only": True, "accepted_production_outcomes": 0,
++        "mutation_count": len(planned["manifest"]["mutations"]), "admitted_total_history_attempts": ceiling,
++        "logical_bytes": logical, "expanded_chunk_bytes": len(raw), "compressed_bytes": len(zipped.getvalue()),
++        "maximum_member_bytes": max(map(len, chunks)), "encode_seconds": encoded_seconds, "decode_and_digest_seconds": decode_seconds,
++        "raw_bundle_member_bytes": raw_envelope["fixed_and_aggregate_members"]["bundle.json"],
++        "raw_member_projection_bytes": raw_envelope["maximum_member_bytes"], "raw_archive_projection_bytes": raw_envelope["expanded_bytes"],
++        "admitted_bound_fraction": .8, "batch_policy_digest": model.digest(batch_policy), "shape_digest": model.digest(value),
++        "producer_log_shape_count": ceiling * 10 + 4, "measured_producer_log_shape_bytes": max(map(len, producer_logs)),
++        "history_assumption": "Actual retained schema: complete plan, all records and repeated baselines, bounded batch IDs, full slot remaining arrays every attempt, distinct producer logs/metadata, started phases/verdicts and four maximum bounded native payload shapes. These are capacity shapes, never accepted execution evidence.",
++        "log_assumption": "Existing authenticated logs stay exact; each future job adds the largest observed log plus its distinct full receipt. Future growth remains subject to unchanged logical/archive limits.",
+         "maximum_history_logical_projection_bytes": maximum_projection,
+         "maximum_history_projection_fits": maximum_projection <= artifacts.MAX_ARCHIVE}
+ 
+ 
+-def run_pilot(root, settings, planned, chain, output, producer_logs, authentication_seconds):
++def run_pilot(root, settings, planned, chain, output, producer_logs, authentication_seconds, history_seed):
+     require(sys.platform.startswith("linux") and settings["scope"] == "production" and settings["slot"] == 0,
+             "native pilot requires Linux production physical slot zero")
+     import resource
+@@ -548,9 +715,11 @@
+         probe = diagnostic_batch(root, settings, planned, directory, source, env, control["slot"], [control["id"]],
+             output / "shutdown-probe", metrics, interrupt=True)
+     post_started = time.monotonic()
+-    projected = forecast(planned, chain, settings, records, metrics)
+-    sizing = sizing_probe(planned, records, projected, producer_logs,
+-        {path.relative_to(output).as_posix(): path.read_bytes() for path in output.rglob("*") if path.is_file()})
++    diagnostic_files = {path.relative_to(output).as_posix(): path.read_bytes() for path in output.rglob("*") if path.is_file()}
++    batch_policy = choose_batch_policy(planned, chain, records, batches, diagnostic_files)
++    projected = forecast(planned, chain, settings, records, metrics, batch_limit=batch_policy["max_mutations"])
++    batch_policy["history_attempt_ceiling"] = projected["admitted_total_history_attempts"]
++    sizing = sizing_probe(planned, records, projected, producer_logs, diagnostic_files, batch_policy=batch_policy, history_seed=history_seed)
+     require(runner.validate_current_plan(root, planned, settings) == original
+             and model.digest(planned["manifest"]) == manifest_digest, "native diagnostic changed protected inputs or full manifest")
+     final_validation_seconds = time.monotonic() - post_started + model_validation_seconds + max(metrics["owned_cleanup_seconds"])
+@@ -558,6 +727,7 @@
+         raise runner.CapacityFailure("native shutdown or validation exceeds original frozen reserve")
+     usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+     return {"state": "complete", "selection": selected, "batches": batches, "shutdown_probe": probe,
++        "batch_policy": batch_policy, "batch_policy_digest": model.digest(batch_policy),
+         "forecast": projected, "sizing": sizing, "measurements": dict(metrics,
+             model_validation_seconds=model_validation_seconds, final_validation_seconds=final_validation_seconds,
+             children_user_seconds=usage.ru_utime, children_system_seconds=usage.ru_stime, children_max_rss_kib=usage.ru_maxrss,
+@@ -593,6 +763,12 @@
+     records = validate_samples(planned, payload["selection"], payload["batches"], baseline)
+     require(payload["shutdown_probe"]["reason"] == "controller_deadline"
+             and payload["shutdown_probe"]["accepted_production_outcomes"] == 0, "native shutdown probe is not separate controlled interruption")
++    policy = payload["batch_policy"]
++    validate_batch_policy(policy, planned, payload["binding"], payload["forecast"], payload["sizing"])
++    require(payload["batch_policy_digest"] == model.digest(policy)
++            and policy["shapes"]["sample_records_digest"] == model.digest(records)
++            and policy["shapes"]["mutant_diff_present"] is any(record["outcome"]["diff_path"] is not None for record in records),
++            "native raw batch policy changed")
+     measurements, reserves = payload["measurements"], payload["reserves"]
+     require(reserves == {"shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}, "native measurement changed frozen reserves")
+     require(measurements["shutdown_seconds"] and max(measurements["shutdown_seconds"]) <= reserves["shutdown_seconds"]
+@@ -613,7 +789,7 @@
+     unit = max(samples) * 1.5
+     setup = max(measurements["clone_setup_seconds"]) + measurements["job_initial_setup_seconds"]
+     baseline_seconds = planned["calibration"]["build_seconds"] + planned["calibration"]["test_seconds"]
+-    per_wave = math.floor((7200 - sum(reserves.values()) - setup - baseline_seconds) / unit)
++    per_wave = min(policy["max_mutations"], math.floor((7200 - sum(reserves.values()) - setup - baseline_seconds) / unit))
+     require(per_wave > 0, "measured native wave cannot fit")
+     waves = [math.ceil(len(model.slot_ids(planned["manifest"], slot)) / per_wave) for slot in range(8)]
+     expected_ceiling = evidence["receipt"]["attempt"] + 1 + math.ceil(max(waves) * 1.5) + 2
+@@ -634,7 +810,7 @@
+             "native forecast/history envelope does not fit the original full plan")
+     capped = capped_campaign_projection(forecasted["per_slot_counts"], dict(reserves,
+         build_cap_seconds=planned["manifest"]["context"]["inputs"]["timeout_policy"]["build_seconds"]),
+-        planned["calibration"], setup, forecasted["remaining_wall_seconds"])
++        planned["calibration"], setup, forecasted["remaining_wall_seconds"], batch_limit=policy["max_mutations"])
+     require(forecasted["pessimistic_capped_campaign"] == capped
+             and forecasted["pessimistic_cap_bound_fits_remaining"] == capped["fits_remaining"]
+             and forecasted["pessimistic_mutation_cap_seconds_per_slot"] ==
+@@ -651,6 +827,7 @@
+         "pilot_payload_sha256": pilot["receipt"]["payload_sha256"], "upload": uploaded,
+         "selection": payload["selection"], "measurements": payload["measurements"],
+         "forecast": payload["forecast"], "sizing": payload["sizing"], "reserves": payload["reserves"],
++        "batch_policy": payload["batch_policy"], "batch_policy_digest": payload["batch_policy_digest"],
+         "review_instruction": "Read the actual native cases, costs, sizing assumptions and finite forecast. Rerun only the admission job if the experiment is justified.",
+         "coverage": "Diagnostics and sizing contribute zero accepted production outcomes."}
+ 
+@@ -724,6 +901,7 @@
+     ceiling = report["payload"]["forecast"]["admitted_total_history_attempts"]
+     require(settings["attempt"] <= ceiling, "native admission already exceeds its finite history envelope")
+     return {"state": state, "report_reference": report["reference"], "pilot_reference": pilot["reference"],
++        "batch_policy": report["payload"]["batch_policy"], "batch_policy_digest": report["payload"]["batch_policy_digest"],
+         "review_reference": review, "admitted_total_history_attempts": ceiling, "report_upload": report_upload,
+         "operational_boundary": "Root reviews the report and deliberately reruns this numeric admission job. A later attempt proves a separate action, not that a machine verified human reading.",
+         "history": [{"kind": item["receipt"]["kind"], "reference": item["reference"]} for item in history]}
+@@ -737,7 +915,8 @@
+     for key in ("pilot_reference", "report_reference", "review_reference"):
+         require(str(selected[key]["artifact_id"]) in proofs, "native admission omitted original evidence")
+     data["native_admission"] = {"reference": admitted["reference"], "binding": admitted["payload"]["binding"],
+-        "proofs": proofs, "admitted_total_history_attempts": selected["admitted_total_history_attempts"]}
++        "proofs": proofs, "admitted_total_history_attempts": selected["admitted_total_history_attempts"],
++        "batch_policy": selected["batch_policy"], "batch_policy_digest": selected["batch_policy_digest"]}
+     for evidence in evidences:
+         artifact, log = evidence["artifact"], evidence["producer_log"]
+         path = log["path"]
+@@ -774,8 +953,13 @@
+     require(type(native["admitted_total_history_attempts"]) is int and 1 <= native["admitted_total_history_attempts"] <= 408
+             and report["payload"]["forecast"]["admitted_total_history_attempts"] == native["admitted_total_history_attempts"],
+             "native history ceiling differs from admitted sizing")
++    policy = native["batch_policy"]
++    validate_batch_policy(policy, data["planned"], native["binding"], report["payload"]["forecast"], report["payload"]["sizing"])
++    require(native["batch_policy_digest"] == model.digest(policy), "admitted batch policy digest changed")
+     for candidate in native["proofs"].values():
+         receipt, payload = candidate["receipt"], candidate["payload"]
++        require(payload["batch_policy"] == policy and payload["batch_policy_digest"] == native["batch_policy_digest"],
++                "admitted batch policy was substituted")
+         require(payload["binding"] == native["binding"] and receipt["binding_digest"] == model.digest(native["binding"])
+                 and payload["accepted_production_outcomes"] == 0, "retained native proof binding changed")
+         raw = (json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n").encode()
+@@ -786,11 +970,62 @@
+         original = data["originals"].get(str(candidate["reference"]["artifact_id"]))
+         require(original is not None and original["metadata"]["digest"] == candidate["reference"]["archive_digest"]
+                 and original["producer_log"] == candidate["producer_log"]["path"], "native original evidence disappeared")
++    validate_batch_history(data, policy)
+     if settings is not None:
+         consumed = sum(entry["sealed_attempt"] if entry["run_id"] != settings["run_id"] else settings["attempt"]
+                        for entry in data["chain"]["runs"])
+         if consumed > native["admitted_total_history_attempts"]:
+             raise runner.CapacityFailure("native admitted total-history ceiling exhausted")
++
++
++def validate_batch_history(data, policy):
++    manifest = data["planned"]["manifest"]
++    order = {entry["run_id"]: index for index, entry in enumerate(data["chain"]["runs"])}
++    pending = [runner.ordered_remaining(manifest, [], slot) for slot in range(8)]
++    completed = [set() for _ in range(8)]
++    bundles = sorted(data.get("bundles", []), key=lambda item: (order[item["bundle"]["receipt"]["run_id"]],
++        item["bundle"]["receipt"]["attempt"], item["bundle"]["receipt"]["slot"]))
++    for item in bundles:
++        bundle = item["bundle"]
++        receipt, delta = bundle["receipt"], bundle["delta"]
++        require(receipt.get("batch_policy_digest") == model.digest(policy), "historical worker batch policy changed or missing")
++        if delta is None:
++            continue
++        slot = receipt["slot"]
++        prefix = [mid for mid in pending[slot] if mid not in completed[slot]][:policy["max_mutations"]]
++        require(delta["batch_ids"] == prefix and receipt["batch_id"] == model.digest(prefix),
++                "historical worker exceeded or changed admitted ordered prefix")
++        completed[slot].update(record["mutation_id"] for record in delta["records"])
++
++
++def validate_batch_policy(policy, planned, expected_binding, forecasted, sizing):
++    require(set(policy) == {"algorithm", "max_mutations", "manifest_digest", "binding_digest", "shapes", "projection",
++                           "whole_slot_projection", "limits", "history_attempt_ceiling"}, "unexpected batch policy fields")
++    require(policy["algorithm"] == runner.BATCH_ALGORITHM
++            and planned["orchestration"]["contract"]["batch_algorithm"] == runner.BATCH_ALGORITHM
++            and policy["manifest_digest"] == policy["shapes"]["full_manifest_digest"] == model.digest(planned["manifest"])
++            and policy["binding_digest"] == model.digest(expected_binding), "batch policy computation binding changed")
++    require(policy["limits"] == {"member_bytes": artifacts.MAX_MEMBER, "expanded_bytes": artifacts.MAX_ARCHIVE,
++        "member_count": artifacts.MAX_MEMBERS, "headroom_fraction": .8}, "batch policy changed fixed byte bounds")
++    count = policy["max_mutations"]
++    largest = max(len(model.slot_ids(planned["manifest"], slot)) for slot in range(8))
++    require(type(count) is int and 1 <= count <= largest, "invalid admitted batch count")
++    for key, value in policy["shapes"].items():
++        if key.endswith("_bytes"):
++            require(type(value) is int and value >= 0, "invalid raw member shape")
++    projection = raw_projection(policy["shapes"], count)
++    require(projection == policy["projection"] and projection["fits_projected_headroom"]
++            and (count == largest or not raw_projection(policy["shapes"], count + 1)["fits_projected_headroom"])
++            and policy["whole_slot_projection"] == raw_projection(policy["shapes"], largest),
++            "admitted batch is not the largest fitting typed raw envelope")
++    require(policy["history_attempt_ceiling"] == forecasted["admitted_total_history_attempts"] == sizing["admitted_total_history_attempts"]
++            and sizing["batch_policy_digest"] == model.digest(policy), "batch/history admission binding changed")
++
++
++def admitted_batch_policy(data, settings):
++    validate_admitted(data, settings)
++    require(settings["scope"] == "production", "fixture cannot consume a native batch policy")
++    return runner.AuthenticatedBatchPolicy(data["native_admission"]["batch_policy"], data["planned"], data["chain"], settings)
+ 
+ 
+ def validate_native_phase(data, job):
+@@ -809,6 +1044,6 @@
+     review = authenticate(api, admitted["payload"]["review_reference"], "admission", planned, chain, repository)
+     expected = admission_decision({"run_id": admitted["receipt"]["run_id"], "attempt": admitted["receipt"]["attempt"]},
+                                  planned, chain, report, pilot, [pilot, report, review])
+-    for key in ("state", "report_reference", "pilot_reference", "review_reference", "admitted_total_history_attempts", "report_upload"):
++    for key in ("state", "report_reference", "pilot_reference", "review_reference", "admitted_total_history_attempts", "report_upload", "batch_policy", "batch_policy_digest"):
+         require(admitted["payload"][key] == expected[key], "native admitted verdict changed its original measurement")
+     return [pilot, report, review, admitted]
+--- a/.github/scripts/mutation_runner.py
++++ b/.github/scripts/mutation_runner.py
+@@ -734,9 +734,53 @@
+     return manifest
+ 
+ 
+-def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=None):
++BATCH_ALGORITHM = "ordered-remaining-prefix-v1"
++
++
++class AuthenticatedBatchPolicy:
++    """Immutable in-process capability issued by the authenticated native adapter.
++
++    Like AuthenticatedRecovery, this is not a cryptographic object. Decoded
++    caller JSON cannot enter the runner seam; the pinned adapter owns issuance.
++    """
++    __slots__ = ("_raw", "_binding", "_digest")
++
++    def __init__(self, policy, planned, chain, settings):
++        raw = json.dumps(policy, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++        object.__setattr__(self, "_raw", raw)
++        object.__setattr__(self, "_digest", artifacts.sha(raw))
++        object.__setattr__(self, "_binding", self.binding(planned, chain, settings))
++
++    def __setattr__(self, name, value):
++        raise AttributeError("authenticated batch policy is immutable")
++
++    @staticmethod
++    def binding(planned, chain, settings):
++        return (model.digest(planned["manifest"]), model.digest(planned["calibration"]),
++            model.digest({key: chain[key] for key in ("started_at", "expires_at", "max_attempts", "retention_days")}),
++            settings["run_id"], settings["attempt"])
++
++    def checked(self, planned, chain, settings):
++        require(self._binding == self.binding(planned, chain, settings) and artifacts.sha(self._raw) == self._digest,
++                "unverified or stale production batch policy")
++        policy = artifacts.strict_json(self._raw)
++        require(policy["algorithm"] == BATCH_ALGORITHM and type(policy["max_mutations"]) is int
++                and 1 <= policy["max_mutations"] <= max(len(model.slot_ids(planned["manifest"], slot)) for slot in range(8)),
++                "invalid authenticated production batch count")
++        require(policy["manifest_digest"] == model.digest(planned["manifest"]), "batch policy manifest changed")
++        return policy
++
++
++def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=None, batch_policy=None):
+     bound_setup(settings)
+     manifest, calibration = planned["manifest"], planned["calibration"]
++    requires_budget = settings["scope"] == "production" and "batch_algorithm" in planned.get("orchestration", {}).get("contract", {})
++    if batch_policy is not None or requires_budget:
++        require(settings["scope"] == "production" and isinstance(batch_policy, AuthenticatedBatchPolicy),
++                "production execution requires authenticated batch policy")
++        checked_budget = batch_policy.checked(planned, chain, settings)
++    else:
++        checked_budget = None
+     require(settings.get("fixture_stop_after_records") is None or settings["scope"] == "fixture",
+             "deliberate fixture interruption is forbidden in production")
+     tool = installed_tool(root, execution_environment(settings)[0], settings)
+@@ -760,6 +804,8 @@
+                "input_fingerprint": manifest["input_fingerprint"], "campaign_id": manifest["campaign_id"]}
+     if "log_retention_days" in settings:
+         receipt["log_retention_days"] = settings["log_retention_days"]
++    if checked_budget is not None:
++        receipt["batch_policy_digest"] = model.digest(checked_budget)
+     if state in {"complete", "policy_failure", "baseline_failure", "infrastructure_failure", "capacity_failure"}:
+         return retain_bundle(output, manifest, receipt, {"state": state, "reason": reason}, summary=summary)
+     decision = capacity(settings, calibration)
+@@ -767,6 +813,8 @@
+         return retain_bundle(output, manifest, receipt, {"state": "capacity_failure", "reason": "fresh_attempt_cannot_fit",
+                              "capacity": decision}, summary=summary)
+     ids = ordered_remaining(manifest, records, slot)
++    if checked_budget is not None:
++        ids = ids[:checked_budget["max_mutations"]]
+     execution_id = uuid.uuid4().hex
+     provenance = {key: receipt[key] for key in ("repository", "workflow", "run_id", "attempt", "checkout", "input_fingerprint")}
+     provenance.update(batch_id=model.digest(ids), execution_id=execution_id)
+@@ -821,6 +869,8 @@
+                 result.update(state="policy_failure", reason="timeout_or_unaccepted_survivor")
+             elif summary["complete"]:
+                 result.update(state="complete", reason="exact_coverage")
++            elif result["state"] == "complete":
++                result.update(state="incomplete_with_progress", reason="bounded_batch_complete")
+         bundle = retain_bundle(output, manifest, receipt, result, report_parent=report_parent, summary=summary)
+         shutil.copyfile(scratch / "process.log", Path(output) / "process.log")
+         if (report_parent / "outcomes.json").is_file():
+--- a/.github/scripts/mutation_artifacts.py
++++ b/.github/scripts/mutation_artifacts.py
+@@ -9,7 +9,7 @@
+ import stat
+ import subprocess
+ import zipfile
+-from pathlib import PurePosixPath
++from pathlib import Path, PurePosixPath
+ 
+ import mutation_campaign as model
+ 
+@@ -43,6 +43,156 @@
+             and "\x00" not in name and not name.startswith("/")
+             and all(part not in ("", ".", "..") for part in name.split("/")), "unsafe archive path")
+     return PurePosixPath(name)
++
++
++def outgoing_inventory(directory):
++    """Inventory complete retained files; report capacity separately from unsafe paths."""
++    root = Path(directory).resolve(strict=True)
++    require(root.is_dir() and not Path(directory).is_symlink() and not getattr(Path(directory), "is_junction", lambda: False)(),
++            "unsafe outgoing artifact root")
++    members = []
++    for path in sorted(root.rglob("*")):
++        require(not path.is_symlink() and not getattr(path, "is_junction", lambda: False)()
++                and path.resolve().is_relative_to(root), "unsafe outgoing artifact path")
++        if path.is_dir():
++            continue
++        before = path.stat()
++        require(stat.S_ISREG(before.st_mode), "outgoing artifact contains nonregular member")
++        name = path.relative_to(root).as_posix()
++        safe_path(name)
++        digest, length = hashlib.sha256(), 0
++        with path.open("rb") as stream:
++            while block := stream.read(1024 * 1024):
++                length += len(block)
++                digest.update(block)
++        after = path.stat()
++        require(length == before.st_size == after.st_size and before.st_mtime_ns == after.st_mtime_ns,
++                "outgoing artifact changed during inventory")
++        members.append({"path": name, "size": length, "sha256": digest.hexdigest()})
++    total = sum(row["size"] for row in members)
++    largest = max((row["size"] for row in members), default=0)
++    violations = []
++    if len(members) > MAX_MEMBERS:
++        violations.append("member_count")
++    if largest > MAX_MEMBER:
++        violations.append("member_bytes")
++    if total > MAX_ARCHIVE:
++        violations.append("expanded_bytes")
++    return {"members": members, "member_count": len(members), "expanded_bytes": total,
++            "maximum_member_bytes": largest, "violations": violations,
++            "inventory_digest": model.digest(members)}
++
++
++def validate_outgoing_inventory(value):
++    members = value["members"]
++    require(isinstance(members, list) and members == sorted(members, key=lambda row: row["path"]), "capacity inventory order changed")
++    names = set()
++    for row in members:
++        require(set(row) == {"path", "size", "sha256"}, "invalid capacity member declaration")
++        safe_path(row["path"])
++        require(row["path"] not in names and type(row["size"]) is int and row["size"] >= 0
++                and re.fullmatch(r"[0-9a-f]{64}", row["sha256"]), "invalid capacity inventory member")
++        names.add(row["path"])
++    total, largest = sum(row["size"] for row in members), max((row["size"] for row in members), default=0)
++    violations = (["member_count"] if len(members) > MAX_MEMBERS else []) + (["member_bytes"] if largest > MAX_MEMBER else []) + (["expanded_bytes"] if total > MAX_ARCHIVE else [])
++    require(value == {"members": members, "member_count": len(members), "expanded_bytes": total,
++        "maximum_member_bytes": largest, "violations": violations, "inventory_digest": model.digest(members)},
++        "capacity inventory totals or digest changed")
++    return violations
++
++
++def emit_capacity_failure(bundle, inventory):
++    require(validate_outgoing_inventory(inventory), "capacity marker has no actual overflow")
++    receipt = bundle["receipt"]
++    payload = {"version": 1, "state": "capacity_failure", "reason": "outgoing_artifact_capacity", "receipt": receipt,
++        "manifest_digest": model.digest(bundle["manifest"]), "batch_policy_digest": receipt.get("batch_policy_digest"),
++        "inventory": inventory, "prior_status": bundle["status"], "accepted_production_outcomes": 0,
++        "raw_retention": "Complete oversized bytes remain local; no raw result artifact was uploaded or accepted."}
++    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++    require(len(raw) <= MAX_MEMBER, "complete capacity marker exceeds existing member bound")
++    encoded = base64.b64encode(raw).decode()
++    chunks = [encoded[index:index + 3072] for index in range(0, len(encoded), 3072)]
++    identity = {"job_id": receipt["job_id"], "sha256": sha(raw), "bytes": len(raw), "chunks": len(chunks)}
++    print("MUTATION_CAPACITY_START " + json.dumps(identity, separators=(",", ":")), flush=True)
++    for index, content in enumerate(chunks):
++        print("MUTATION_CAPACITY_CHUNK " + json.dumps({"job_id": receipt["job_id"], "index": index, "data": content}, separators=(",", ":")), flush=True)
++    print("MUTATION_CAPACITY_END " + json.dumps(identity, separators=(",", ":")), flush=True)
++    return payload
++
++
++def capacity_marker(raw_log):
++    rows = []
++    for line in raw_log.decode("utf-8").splitlines():
++        match = re.fullmatch(r"(?:\S+ )?MUTATION_CAPACITY_(START|CHUNK|END) (.*)", line)
++        if match:
++            require(len(line.encode()) <= 4096, "capacity marker line exceeds bounded encoding")
++            rows.append((match[1], strict_json(match[2])))
++    if not rows:
++        return None
++    require(len(raw_log) <= MAX_ARCHIVE, "capacity producer log exceeds retained bound")
++    require(len(rows) >= 3 and rows[0][0] == "START" and rows[-1][0] == "END" and rows[0][1] == rows[-1][1],
++            "incomplete or conflicting capacity marker")
++    header = rows[0][1]
++    require(set(header) == {"job_id", "sha256", "bytes", "chunks"} and type(header["chunks"]) is int
++            and header["chunks"] == len(rows) - 2 and 0 < header["bytes"] <= MAX_MEMBER, "invalid capacity marker header")
++    parts = []
++    for index, (kind, row) in enumerate(rows[1:-1]):
++        require(kind == "CHUNK" and set(row) == {"job_id", "index", "data"} and row["job_id"] == header["job_id"]
++                and row["index"] == index and isinstance(row["data"], str) and len(row["data"]) <= 3072, "capacity marker chunk changed")
++        parts.append(row["data"])
++    raw = base64.b64decode("".join(parts), validate=True)
++    require(len(raw) == header["bytes"] and sha(raw) == header["sha256"], "capacity marker bytes changed")
++    value = strict_json(raw)
++    require(value["receipt"]["job_id"] == header["job_id"] and value["version"] == 1 and value["state"] == "capacity_failure"
++            and value["reason"] == "outgoing_artifact_capacity" and value["accepted_production_outcomes"] == 0 and validate_outgoing_inventory(value["inventory"]), "invalid terminal capacity evidence")
++    require(not re.search(r"(?:^|\n)(?:\S+ )?MUTATION_ARTIFACT_ID=", raw_log.decode()), "capacity marker contradicts uploaded result")
++    return value
++
++
++def validate_capacity_receipt(value, manifest, entry, job, policy_digest, repository, workflow):
++    receipt = value["receipt"]
++    scope = manifest["context"]["inputs"]["computation_scope"]
++    require(type(receipt["attempt"]) is int and receipt["attempt"] > 0 and type(receipt["slot"]) is int and 0 <= receipt["slot"] < 8
++            and job["status"] == "completed" and job["conclusion"] == "failure"
++            and job["run_id"] == int(entry["run_id"]) and job["run_attempt"] == receipt["attempt"]
++            and str(job["id"]) == receipt["job_id"]
++            and job["name"] == f"mutation-{'fixture-' if scope == 'fixture' else ''}slot-{receipt['slot']}",
++            "capacity producer job or verdict changed")
++    require(receipt["repository"] == repository and receipt["workflow"] == workflow
++            and receipt["workflow_sha"] == entry["workflow_sha"] and receipt["run_id"] == entry["run_id"]
++            and all(receipt["checkout"][key] == entry[key] for key in ("commit", "tree", "ref"))
++            and receipt["checkout"]["repository"] == repository and receipt["checkout"]["clean"] is True
++            and receipt["campaign_id"] == manifest["campaign_id"] and receipt["input_fingerprint"] == manifest["input_fingerprint"]
++            and value["manifest_digest"] == model.digest(manifest)
++            and value["batch_policy_digest"] == receipt.get("batch_policy_digest") == policy_digest,
++            "capacity evidence computation binding changed")
++    require(type(receipt["log_retention_days"]) is int and receipt["log_retention_days"] > 0,
++            "capacity producer omitted original retention")
++
++
++def authenticate_capacity_failure(api, manifest, entry, job, policy_digest, *, repository, workflow, required_until):
++    run = authenticate_run(api, repository, workflow, entry, manifest["context"]["inputs"]["workflow_file_digest"])
++    attempt = api.json(f"repos/{repository}/actions/runs/{entry['run_id']}/attempts/{job['run_attempt']}")
++    require(attempt["id"] == int(entry["run_id"]) and attempt["run_attempt"] == job["run_attempt"]
++            and attempt["head_sha"] == entry["head_sha"], "capacity producer attempt changed")
++    jobs = list(pages(api, f"repos/{repository}/actions/runs/{entry['run_id']}/attempts/{job['run_attempt']}/jobs", "jobs"))
++    require([row for row in jobs if row["id"] == job["id"]] == [job], "capacity producer job differs from authenticated metadata")
++    path = f"repos/{repository}/actions/jobs/{job['id']}/logs"
++    try:
++        raw = api.bytes(path)
++    except (KeyError, subprocess.SubprocessError) as error:
++        raise ValueError("started worker is missing its immutable result and capacity evidence") from error
++    value = capacity_marker(raw)
++    require(value is not None, "started worker is missing its immutable result and capacity evidence")
++    validate_capacity_receipt(value, manifest, entry, job, policy_digest, repository, workflow)
++    now = dt.datetime.now(dt.timezone.utc)
++    require(timestamp(job["started_at"]) <= timestamp(job["completed_at"]) <= now, "capacity job lifetime changed")
++    expires = timestamp(run["created_at"]) + dt.timedelta(days=value["receipt"]["log_retention_days"])
++    require(expires > required_until, "capacity producer log retention is insufficient")
++    log = {"bytes": base64.b64encode(raw).decode(), "sha256": sha(raw), "run_id": entry["run_id"],
++        "attempt": job["run_attempt"], "job_id": str(job["id"]), "observed_at": now.isoformat(),
++        "original_retention_days": value["receipt"]["log_retention_days"], "expires_at": expires.isoformat()}
++    return {"job": job, "payload": value, "producer_log": path}, log
+ 
+ 
+ def unpack(raw):
+@@ -182,6 +332,7 @@
+             and (not job.get("completed_at") or created <= timestamp(job["completed_at"])),
+             "artifact outside producer job lifetime")
+     raw_log = api.bytes(f"repos/{repository}/actions/jobs/{job['id']}/logs")
++    require(capacity_marker(raw_log) is None, "capacity failure contradicts result artifact")
+     log = raw_log.decode("utf-8")
+     receipts = []
+     for line in log.splitlines():
+--- a/.github/scripts/mutation_workflow.py
++++ b/.github/scripts/mutation_workflow.py
+@@ -338,6 +338,8 @@
+     summary = model.summarize(data["planned"]["manifest"], recovered["records"], baseline)
+     state, reason = runner.continuation_status(summary, recovered["bundles"],
+         max_attempts=data["chain"]["max_attempts"], attempt=settings["attempt"] - 1)
++    if state == "capacity_failure":
++        raise runner.CapacityFailure("terminal prior mutation capacity failure: " + reason)
+     require(state in {"complete", "incomplete_with_progress", "incomplete_without_progress"}, "terminal prior mutation failure: " + reason)
+     data["api_rate"] = api.rate_status()
+     receipt = recovery.seal(data, settings, "prepared", {"state": "complete", "reason": "authenticated_preparation"}, scratch / "prepared")
+@@ -366,7 +368,8 @@
+     if command == "slot":
+         if settings["scope"] == "fixture" and settings["attempt"] == 1:
+             settings["fixture_stop_after_records"] = 1
+-        result = runner.execute_slot(root, settings, planned, chain, scratch / "result", api, recovered=recovered)
++        result = runner.execute_slot(root, settings, planned, chain, scratch / "result", api, recovered=recovered,
++            batch_policy=native.admitted_batch_policy(data, settings) if settings["scope"] == "production" else None)
+         status = result["status"]
+     else:
+         status = runner.aggregate(root, planned, chain, settings, scratch / "aggregate.json", api, recovered=recovered)
+@@ -414,9 +417,15 @@
+     try:
+         history = native.initial_history(api, settings, planned, chain, inventory, current_kind=kind)
+         if kind == "pilot":
+-            check_qualification(recording, settings, planned["orchestration"], chain)
++            qualification_proof = check_qualification(recording, settings, planned["orchestration"], chain)
+             bind_tool(recording, root, settings, planned["orchestration"]["tool"], planned["orchestration"]["contract"], scratch, chain)
+-            payload = native.run_pilot(root, settings, planned, chain, output_directory, list(recording.logs.values()), time.monotonic() - before)
++            seed = {"version": 1, "planned": planned, "chain": chain, "contract": planned["orchestration"]["contract"],
++                "originals": {}, "logs": {}, "source_runs": {}, "current_checkout": checkout,
++                "qualification": qualification_proof, "tool_receipt": recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]}
++            recovery.retain_recording(recording, seed)
++            jobs = list(artifacts.pages(api, f"repos/{settings['repository']}/actions/runs/{settings['run_id']}/attempts/{settings['attempt']}/jobs", "jobs"))
++            seed["projection_job_shape"] = next(job for job in jobs if str(job["id"]) == settings["job_id"])
++            payload = native.run_pilot(root, settings, planned, chain, output_directory, list(recording.logs.values()), time.monotonic() - before, seed)
+         elif kind == "report":
+             pilot_ref = native.reference(api, settings["repository"], os.environ["NATIVE_PILOT_ARTIFACT_ID"])
+             pilot = native.authenticate(api, pilot_ref, "pilot", planned, chain, settings["repository"])
+@@ -456,6 +465,7 @@
+     scratch.mkdir(exist_ok=True)
+     require(not scratch.resolve().is_relative_to(root), "workflow scratch overlaps checkout")
+     api = recovery.WorkflowAPI()
++    result_code = 0
+     try:
+         settings = current_settings(api, root, args.scope, os.environ["MUTATION_JOB_NAME"], args.slot)
+         runner.bound_setup(settings)
+@@ -466,27 +476,41 @@
+         elif args.command == "prepare":
+             prepare_recovery(api, root, settings, scratch)
+         elif args.command.startswith("native-"):
+-            return native_stage(api, root, settings, scratch, args.command.removeprefix("native-"))
++            result_code = native_stage(api, root, settings, scratch, args.command.removeprefix("native-"))
+         else:
+-            return execute(api, root, settings, scratch, args.command)
+-        return 0
++            result_code = execute(api, root, settings, scratch, args.command)
+     except runner.CapacityFailure as error:
+         status = {"state": "capacity_failure", "reason": str(error)}
+         if hasattr(api, "last_rate_observation"):
+             status["api_rate"] = api.last_rate_observation
+         runner.write_json(scratch / "status.json", status)
+         print(json.dumps(status, sort_keys=True))
+-        return runner.STATES[status["state"]]
++        result_code = runner.STATES[status["state"]]
+     except (ValueError, KeyError, OSError, TypeError, subprocess.SubprocessError, zipfile.BadZipFile, zlib.error) as error:
+         status = {"state": "infrastructure_failure", "reason": str(error)}
+         runner.write_json(scratch / "status.json", status)
+         print(json.dumps(status, sort_keys=True))
+-        return runner.STATES[status["state"]]
++        result_code = runner.STATES[status["state"]]
+     finally:
+         bundle = scratch / "result/bundle.json"
+         if args.command == "slot" and bundle.is_file():
+-            native.compact_json(bundle)
+-            output("bundle_ready", "true")
++            try:
++                native.compact_json(bundle)
++            except runner.CapacityFailure:
++                pass
++            inventory = artifacts.outgoing_inventory(bundle.parent)
++            if inventory["violations"]:
++                payload = runner.read_json(bundle)
++                if not {"manifest", "receipt", "status"} <= set(payload):
++                    raise runner.CapacityFailure("complete compact JSON exceeds its unchanged member bound")
++                artifacts.emit_capacity_failure(payload, inventory)
++                status = {"state": "capacity_failure", "reason": "outgoing_artifact_capacity", "accepted_production_outcomes": 0,
++                    "inventory_digest": inventory["inventory_digest"]}
++                runner.write_json(scratch / "status.json", status)
++                result_code = runner.STATES["capacity_failure"]
++            else:
++                output("bundle_ready", "true")
++    return result_code
+ 
+ 
+ if __name__ == "__main__":
+--- a/.github/scripts/mutation_recovery.py
++++ b/.github/scripts/mutation_recovery.py
+@@ -326,10 +326,27 @@
+         require(len(matching) == 1 and matching[0]["status"] == "completed" and matching[0]["conclusion"] ==
+                 ("success" if item["bundle"]["status"]["state"] == "complete" else "failure"),
+                 "retained worker inventory or verdict mismatch")
++    capacity_failures = data.get("capacity_failures", {})
++    for job_id, evidence in capacity_failures.items():
++        job, payload, path = evidence["job"], evidence["payload"], evidence["producer_log"]
++        require(job_id == str(job["id"]) and path in data["logs"], "capacity failure lost producer identity or original log")
++        require(artifacts.capacity_marker(base64.b64decode(data["logs"][path]["bytes"])) == payload,
++                "retained capacity failure differs from original producer bytes")
++        entry = next(entry for entry in data["chain"]["runs"] if entry["run_id"] == str(job["run_id"]))
++        policy_digest = data.get("native_admission", {}).get("batch_policy_digest")
++        artifacts.validate_capacity_receipt(payload, data["planned"]["manifest"], entry, job, policy_digest,
++            data["planned"]["producer"]["repository"], tool.WORKFLOW)
++        key = f"{job['run_id']}/{job['run_attempt']}"
++        require(job in data["job_inventories"].get(key, []) and job["run_attempt"] <= data["frontier"].get(str(job["run_id"]), 0),
++                "retained capacity failure lost executed worker history")
++        require(not any(item["bundle"]["receipt"]["job_id"] == job_id for item in data["bundles"]),
++                "capacity failure contradicts retained result artifact")
+     for key, jobs in data["job_inventories"].items():
+         require(len(jobs) <= 8 and len({job["id"] for job in jobs}) == len(jobs), "invalid retained worker inventory")
+         evidenced = {item["bundle"]["receipt"]["job_id"] for item in data["bundles"] if
+                      f"{item['bundle']['receipt']['run_id']}/{item['bundle']['receipt']['attempt']}" == key}
++        evidenced.update(job_id for job_id, evidence in capacity_failures.items()
++            if f"{evidence['job']['run_id']}/{evidence['job']['run_attempt']}" == key)
+         require(evidenced == {str(job["id"]) for job in jobs}, "retained started worker has no original result")
+     phases = data.get("phase_inventories", {})
+     require(set(data["job_inventories"]) <= set(phases), "retained attempt is missing its phase inventory")
+@@ -371,6 +388,10 @@
+     validate_retained(data, pending_aggregate=aggregate_identity(settings) if include_current else None)
+     manifest = data["planned"]["manifest"]
+     bundles = [dict(item["bundle"], manifest=manifest) for item in data["bundles"]]
++    for evidence in data.get("capacity_failures", {}).values():
++        bundles.append({"version": 1, "manifest": manifest, "receipt": evidence["payload"]["receipt"], "delta": None,
++            "status": {"state": "capacity_failure", "reason": "outgoing_artifact_capacity",
++                "recorded_at": evidence["job"]["completed_at"], "remaining": model.slot_ids(manifest, evidence["payload"]["receipt"]["slot"])}})
+     deltas = [bundle["delta"] for bundle in bundles if bundle["delta"] is not None]
+     allowed = [entry["run_id"] for entry in data["chain"]["runs"]]
+     records = model.merge_deltas(manifest, deltas, allowed_run_ids=set(allowed), current_run_id=settings["run_id"],
+@@ -502,7 +523,19 @@
+             data["job_inventories"][f"{run_id}/{attempt}"] = workers
+             expected_names = {artifacts.artifact_name(manifest["campaign_id"], run_id, attempt, int(job["name"][-1])) for job in workers}
+             actual = [item for item in originals if item["name"] in expected_names]
+-            require({item["name"] for item in actual} == expected_names, "started worker is missing its immutable result")
++            actual_names = {item["name"] for item in actual}
++            for job in workers:
++                name = artifacts.artifact_name(manifest["campaign_id"], run_id, attempt, int(job["name"][-1]))
++                if name in actual_names:
++                    continue
++                evidence, log = artifacts.authenticate_capacity_failure(api, manifest, entry, job,
++                    data.get("native_admission", {}).get("batch_policy_digest"), repository=repository, workflow=tool.WORKFLOW,
++                    required_until=artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN)
++                data.setdefault("capacity_failures", {})[str(job["id"])] = evidence
++                data["logs"][evidence["producer_log"]] = log
++                data["source_runs"][run_id] = entry
++                actual_names.add(name)
++            require(actual_names == expected_names, "started worker is missing its immutable result")
+             for item in actual:
+                 require(item["id"] not in known, "original artifact repeated beyond frontier")
+                 require(not item["expired"], "expired original delta")
+--- a/.github/scripts/mutation_tool.py
++++ b/.github/scripts/mutation_tool.py
+@@ -41,7 +41,7 @@
+     blobs = {path: hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+              for path, raw in contents.items()}
+     require(paths[PATCH] == PATCH_SHA, "reviewed patch changed")
+-    return {"version": 1, "files": paths, "git_blobs": blobs, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
++    return {"version": 1, "batch_algorithm": runner.BATCH_ALGORITHM, "files": paths, "git_blobs": blobs, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
+             "fixture_digest": model.digest({"Cargo.toml": runner.FIXTURE_CARGO,
+                 "Cargo.lock": runner.FIXTURE_LOCK, "src/lib.rs": runner.FIXTURE_SOURCE,
+                 "rust-toolchain.toml": (Path(root) / "rust-toolchain.toml").read_text(encoding="utf-8")})}
+--- a/.github/scripts/test_mutation_native.py
++++ b/.github/scripts/test_mutation_native.py
+@@ -158,18 +158,25 @@
+             delta = model.validate_report(self.manifest, slot, ids, report, provenance=provenance,
+                 raw_report_ref={"path": "raw/outcomes.json", "digest": artifacts.sha(raw), "content_digest": model.digest(report)}, exit_kind="completed")
+             files[f"batch-{slot}/frozen-outcomes.json"] = raw
++            files[f"batch-{slot}/process.log"] = b"measured diagnostic process output"
+             for relative, content in {"log/baseline.log": b"baseline", "log/mutant.log": b"mutant", "diff/mutant.diff": b"diff"}.items():
+                 files[f"batch-{slot}/mutants.out/{relative}"] = content
+             batches.append({"logical_slot": slot, "physical_slot": 0, "batch_ids": ids, "delta": delta, "state": "complete"})
+         records = native.validate_samples(self.planned, selected, batches, self.baseline.splitlines())
+         metrics = {"clone_setup_seconds": [1], "source_validation_seconds": [.1], "process_start_seconds": [.1],
+             "shutdown_seconds": [.1], "owned_cleanup_seconds": [.1], "authentication_setup_seconds": 1, "job_initial_setup_seconds": 1, "final_validation_seconds": 1}
+-        forecasted = native.forecast(self.planned, self.chain, self.settings, records, metrics)
++        policy = native.choose_batch_policy(self.planned, self.chain, records, batches, files)
++        forecasted = native.forecast(self.planned, self.chain, self.settings, records, metrics, batch_limit=policy["max_mutations"])
++        policy["history_attempt_ceiling"] = forecasted["admitted_total_history_attempts"]
+         size = {"diagnostic_sizing_only": True, "accepted_production_outcomes": 0, "mutation_count": len(self.items),
+             "admitted_total_history_attempts": forecasted["admitted_total_history_attempts"],
+             "logical_bytes": 100000, "expanded_chunk_bytes": 50000, "compressed_bytes": 20000, "maximum_member_bytes": 50000,
+-            "raw_bundle_member_bytes": 10000, "raw_member_projection_bytes": 10000, "raw_archive_projection_bytes": 100000, "admitted_bound_fraction": .8}
++            "raw_bundle_member_bytes": policy["projection"]["fixed_and_aggregate_members"]["bundle.json"],
++            "raw_member_projection_bytes": policy["projection"]["maximum_member_bytes"],
++            "raw_archive_projection_bytes": policy["projection"]["expanded_bytes"], "admitted_bound_fraction": .8,
++            "batch_policy_digest": model.digest(policy)}
+         payload = {"state": "complete", "selection": selected, "batches": batches,
++            "batch_policy": policy, "batch_policy_digest": model.digest(policy),
+             "shutdown_probe": {"reason": "controller_deadline", "accepted_production_outcomes": 0},
+             "measurements": metrics, "forecast": forecasted, "sizing": size,
+             "reserves": {"shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}, "full_manifest_unchanged": True}
+@@ -555,17 +562,19 @@
+             opt_level=2, cargo_jobs=2)
+         by_name = {item["name"]: item for item in n.items}
+         for slot in range(8):
+-            ids = model.slot_ids(n.manifest, slot)
+-            selected = [by_name[item["name"]] for item in n.manifest["mutations"] if item["id"] in ids]
++            ids = runner.ordered_remaining(n.manifest, [], slot)
++            by_id = {item["id"]: item for item in n.manifest["mutations"]}
++            selected = [by_name[by_id[mid]["name"]] for mid in ids]
+             report = raw_report(selected)
+             raw = json.dumps(report).encode()
+             provenance = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "run_id": "300", "attempt": 3,
+-                "batch_id": f"full-{slot}", "execution_id": f"execution-{slot}",
++                "batch_id": model.digest(ids), "execution_id": f"execution-{slot}",
+                 "checkout": n.manifest["context"]["checkout"], "input_fingerprint": n.manifest["input_fingerprint"]}
+             delta = model.validate_report(n.manifest, slot, ids, report, provenance=provenance,
+                 raw_report_ref={"path": "raw/outcomes.json", "digest": artifacts.sha(raw), "content_digest": model.digest(report)}, exit_kind="completed")
+             receipt = dict(provenance, workflow_sha="e" * 40, job_id=str(4000 + slot), slot=slot,
+-                campaign_id=n.manifest["campaign_id"], log_retention_days=30)
++                campaign_id=n.manifest["campaign_id"], log_retention_days=30,
++                batch_policy_digest=self.data["native_admission"]["batch_policy_digest"])
+             compact = {"version": 1, "receipt": receipt, "delta": delta,
+                 "status": {"state": "complete", "reason": "exact_coverage", "recorded_at": n.base.artifact["created_at"]}}
+             files = {"bundle.json": json.dumps(dict(compact, manifest=n.manifest)).encode(), "raw/outcomes.json": raw,
+@@ -815,14 +824,17 @@
+         f = NativeFixture(self)
+         pilot = f.passing_pilot()
+         records = native.validate_samples(f.planned, pilot["payload"]["selection"], pilot["payload"]["batches"], f.baseline.splitlines())
+-        result = native.sizing_probe(f.planned, records, pilot["payload"]["forecast"], [b"authenticated producer log"], {"log": b"raw log"})
++        seed = {"version": 1, "planned": f.planned, "chain": f.chain, "contract": f.base.contract,
++            "originals": {}, "logs": {}, "source_runs": {}, "qualification": {"fixture_shape": True},
++            "tool_receipt": f.base.receipt, "current_checkout": f.manifest["context"]["checkout"]}
++        result = native.sizing_probe(f.planned, records, pilot["payload"]["forecast"], [b"authenticated producer log"], {"log": b"raw log"}, batch_policy=pilot["payload"]["batch_policy"], history_seed=seed)
+         self.assertEqual(result["mutation_count"], 40)
+         self.assertGreater(result["raw_bundle_member_bytes"], len(json.dumps(f.manifest)))
+         self.assertEqual(result["admitted_bound_fraction"], .8)
+-        self.assertEqual(result["producer_log_shape_count"], result["admitted_total_history_attempts"] * 10 + 12)
++        self.assertEqual(result["producer_log_shape_count"], result["admitted_total_history_attempts"] * 10 + 4)
+         with mock.patch.object(artifacts, "MAX_ARCHIVE", int(result["logical_bytes"] * 1.1)):
+             with self.assertRaisesRegex(ValueError, "twenty percent headroom"):
+-                native.sizing_probe(f.planned, records, pilot["payload"]["forecast"], [b"authenticated producer log"], {"log": b"raw log"})
++                native.sizing_probe(f.planned, records, pilot["payload"]["forecast"], [b"authenticated producer log"], {"log": b"raw log"}, batch_policy=pilot["payload"]["batch_policy"], history_seed=seed)
+ 
+ 
+ class NativeFaultControls(unittest.TestCase):
+--- a/.github/scripts/test_mutation_recovery.py
++++ b/.github/scripts/test_mutation_recovery.py
+@@ -103,6 +103,8 @@
+         for slot in range(8):
+             artifact_id = int(run_id) * 10000 + attempt * 10 + slot
+             receipt = dict(self.plan["producer"], run_id=run_id, attempt=attempt, job_id=str(artifact_id), slot=slot)
++            if "native_admission" in self.data:
++                receipt["batch_policy_digest"] = self.data["native_admission"]["batch_policy_digest"]
+             compact = {"version": 1, "receipt": receipt, "delta": None,
+                 "status": {"state": "complete", "reason": "exact_coverage", "recorded_at": self.q.fixture.artifact["created_at"]}}
+             raw = archive({"bundle.json": json.dumps(dict(compact, manifest=self.q.manifest)).encode()})
+--- a/docs/mutation-campaign.md
++++ b/docs/mutation-campaign.md
+@@ -90,17 +90,50 @@
+ ceiling stops the campaign even if the outer 8-run/51-attempt limits would permit
+ more work.
+ 
+-Full-manifest sizing retains every actual identity and projects the largest
+-measured record shape across all identities. It repeats full pending-ID arrays
+-for every admitted attempt, retains base64 producer-log shapes and explicit
+-metadata allowances, and measures lossless snapshot reconstruction. Raw bundles
+-keep the full manifest; snapshots still remove that repetition. Compact JSON
+-changes only the transport encoding of final plans and raw bundles. The capacity
+-probe requires 20% headroom inside unchanged raw and snapshot bounds. Its raw
+-archive projection uses the largest sampled raw member for every identity in the
+-largest slot, with four members per identity. These are disclosed shape/log-growth
+-assumptions, not promises about future output. Actual evidence remains bounded;
+-capacity failure never drops records, logs or history to make an archive fit.
++Native measurement computes the largest production batch count B that fits a
++typed raw-artifact projection with 20% headroom. The full original manifest stays
++in every raw bundle. Individual baseline logs, mutant logs and diffs remain
++separate members; frozen outcomes, post-shutdown outcomes and process output have
++their own aggregate growth estimates. The projection considers the longest
++record/outcome rows across every full-manifest identity, including shorter slots.
++Paths follow the pinned tool's source-path/location/collision naming. Measured
++record/log shapes and future process-output growth remain explicit assumptions.
++Largest member, expanded total and member count have separate unchanged limits;
++one identity that cannot fit refuses the campaign.
++
++The algorithm/version belongs to the committed recipe. B, its byte assumptions,
++full computation binding and digest belong to authenticated native admission.
++Every production worker requires the resulting typed in-process policy before
++launch or complete-history return. It selects the first at most B identities in
++its original remaining order, before configuration, enumeration, source guards
++and provenance. A normal completed prefix stays incomplete progress while slot
++identities remain. Only validated terminal records leave the remaining set; an
++interrupted active identity remains first on resume. Fixture record stops remain
++fixture-only. No CLI, environment or workflow input can choose B.
++
++Both measured and all-at-caps forecasts use the smaller of B and time-derived
++throughput. Smaller B repeats more baselines/setup/reserves and can make the
++original finite campaign impossible; it cannot be chosen to disguise that result.
++The separate whole-slot raw projection remains visible even when it does not fit.
++History sizing uses the retained schema through lossless encode/decode: full
++plan, all records and repeated baseline references, bounded batch IDs, full slot
++remaining arrays every admitted attempt, original artifact metadata, distinct
++base64 producer logs, started jobs/phases, aggregate verdicts and native proofs.
++The logical reconstruction limit remains authoritative even when compressed or
++interned bytes are tiny. A projected fit is conditional, never game coverage.
++
++After lossless compaction and final retention, every outgoing worker directory
++receives an exact safe path/size/hash inventory. Oversized members, expanded total
++or member count disable result upload and produce a failed capacity verdict in
++bounded authenticated job-log chunks. The complete inventory, digest, source,
++manifest, policy and producer identities remain bound together. Oversized raw
++bytes stay intact locally; the marker does not claim they were durably uploaded
++and supplies no accepted records. Recovery authenticates that failed job and
++original log before missing-result handling, retains the terminal verdict and
++its original expiry, and refuses a later favorable retry. Missing, malformed,
++conflicting or too-large marker evidence also refuses; nothing is truncated.
++Uploader ZIP bytes remain unknown locally and are checked from completed artifact
++metadata/download. These checks bound accepted evidence, not temporary disk writes.
+ 
+ A started native phase with missing evidence, failed authentication, bad measurement
+ or a terminal verdict blocks the campaign. Another run cannot replace it with a
+--- /dev/null
++++ b/.github/scripts/test_mutation_batch_budget.py
+@@ -0,0 +1,537 @@
++"""Enforced production prefixes and typed retained-artifact capacity."""
++import base64
++import contextlib
++import copy
++import datetime as dt
++import hashlib
++import io
++import json
++import os
++from pathlib import Path
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++import tomllib
++import unittest
++from unittest import mock
++
++import mutation_artifacts as artifacts
++import mutation_campaign as model
++import mutation_native as native
++import mutation_runner as runner
++import mutation_workflow as workflow
++import mutation_recovery as recovery
++import mutation_tool as tool
++from test_mutation_artifacts import archive
++from test_mutation_campaign import raw_report
++from test_mutation_native import NativeFixture
++import test_mutation_native as native_tests
++import test_mutation_recovery as recovery_tests
++
++
++class OutgoingInventoryTests(unittest.TestCase):
++    def test_separate_members_are_not_summed_into_one_member(self):
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            for index in range(3):
++                (root / f"member-{index}.log").write_bytes(bytes([index]) * 800)
++            with mock.patch.object(artifacts, "MAX_MEMBER", 1000), mock.patch.object(artifacts, "MAX_ARCHIVE", 2500):
++                self.assertTrue(hasattr(artifacts, "outgoing_inventory"), "outgoing artifact inventory is missing")
++                actual = artifacts.outgoing_inventory(root)
++                self.assertEqual(actual["expanded_bytes"], 2400)
++                self.assertEqual(actual["maximum_member_bytes"], 800)
++                self.assertEqual(actual["violations"], [])
++                accepted = artifacts.unpack(archive({p.name: p.read_bytes() for p in root.iterdir()}))
++                self.assertEqual(len(accepted), 3)
++
++
++    def test_member_total_and_count_bounds_fail_independently(self):
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            for index in range(3):
++                (root / str(index)).write_bytes(b"x" * 800)
++            for member, total, count, expected in ((700, 10000, 10, "member_bytes"), (1000, 2000, 10, "expanded_bytes"), (1000, 10000, 2, "member_count")):
++                with self.subTest(expected=expected), mock.patch.object(artifacts, "MAX_MEMBER", member), \
++                    mock.patch.object(artifacts, "MAX_ARCHIVE", total), mock.patch.object(artifacts, "MAX_MEMBERS", count):
++                    inventory = artifacts.outgoing_inventory(root)
++                    self.assertEqual(inventory["violations"], [expected])
++                    self.assertEqual(artifacts.validate_outgoing_inventory(inventory), [expected])
++                    with self.assertRaises(ValueError):
++                        artifacts.unpack(archive({p.name: p.read_bytes() for p in root.iterdir()}))
++
++
++    def test_isolated_member_limit_control_rejects_the_expected_assertion(self):
++        source = Path(artifacts.__file__)
++        original = source.read_bytes()
++        old = '    if largest > MAX_MEMBER:\n        violations.append("member_bytes")'
++        self.assertEqual(original.decode().count(old), 1)
++        with tempfile.TemporaryDirectory() as temporary:
++            Path(temporary, source.name).write_bytes(original.decode().replace(old, '    if False:\n        violations.append("member_bytes")').encode())
++            script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");sys.path.insert(0," + repr(temporary) + ");"
++                "s=unittest.defaultTestLoader.loadTestsFromNames(["
++                "'test_mutation_batch_budget.OutgoingInventoryTests.test_separate_members_are_not_summed_into_one_member',"
++                "'test_mutation_batch_budget.OutgoingInventoryTests.test_member_total_and_count_bounds_fail_independently']);"
++                "r=unittest.TextTestRunner().run(s);sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++            result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
++
++class CapacityFailureHistoryTests(unittest.TestCase):
++    def setUp(self):
++        self.f = recovery_tests.SnapshotFixture(self)
++        f = self.f
++        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 3
++        self.job = dict(f.q.fixture.job, id=50001, run_id=100, run_attempt=3, name="mutation-fixture-slot-0", conclusion="failure")
++        f.api.responses["repos/owner/repo/actions/runs/100/attempts/3"] = {"id": 100, "run_attempt": 3, "head_sha": "d" * 40}
++        f.api.responses["repos/owner/repo/actions/runs/100/attempts/3/jobs?per_page=100&page=1"] = {"jobs": [self.job]}
++        self.receipt = dict(f.plan["producer"], job_id="50001", attempt=3, slot=0)
++        self.directory = Path(f.q.fixture.temp.name) / "overflow"
++        self.directory.mkdir()
++        self.bundle = {"manifest": f.q.manifest, "receipt": self.receipt, "status": {"state": "complete", "reason": "tool_completed"}}
++        with (self.directory / "raw.log").open("wb") as stream:
++            block = b"x" * (1024 * 1024)
++            for _ in range(33):
++                stream.write(block)
++        self.inventory = artifacts.outgoing_inventory(self.directory)
++        self.log_path = "repos/owner/repo/actions/jobs/50001/logs"
++        self.publish(self.bundle, self.inventory)
++
++    def publish(self, bundle, inventory):
++        stream = io.StringIO()
++        with contextlib.redirect_stdout(stream):
++            artifacts.emit_capacity_failure(bundle, inventory)
++        self.f.api.blobs[self.log_path] = stream.getvalue().encode()
++
++    def ingest(self, data=None):
++        f = self.f
++        data = copy.deepcopy(data or f.data)
++        settings = dict(f.settings, attempt=3, job_id="60000")
++        api = recovery.WorkflowAPI(f.api)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=True)
++        recovered = recovery.ingest(api, data, settings, inventory, runs, include_current=True)
++        return data, settings, recovered
++
++    def test_authenticated_capacity_failure_never_imports_records_or_disappears_on_complete_history(self):
++        original = artifacts.outgoing_inventory(self.directory)["members"][0]["sha256"]
++        runner_temp = Path(self.f.q.fixture.temp.name) / "capacity-runner"
++        runner_temp.mkdir()
++        outputs, captured = [], io.StringIO()
++        def overflowing(*args):
++            destination = runner_temp / "mutation-job/result"
++            shutil.copytree(self.directory, destination)
++            runner.write_json(destination / "bundle.json", self.bundle)
++            return 0
++        with mock.patch.dict(os.environ, {"RUNNER_TEMP": str(runner_temp), "MUTATION_JOB_NAME": "mutation-fixture-slot-0"}), \
++            mock.patch.object(workflow, "current_settings", return_value=dict(self.f.settings, attempt=3)), \
++            mock.patch.object(workflow, "execute", side_effect=overflowing), \
++            mock.patch.object(workflow, "output", side_effect=lambda *args: outputs.append(args)), contextlib.redirect_stdout(captured):
++            self.assertEqual(workflow.main(["slot", "--root", str(self.f.root), "--scope", "fixture"]), 23)
++        self.assertNotIn(("bundle_ready", "true"), outputs)
++        self.f.api.blobs[self.log_path] = captured.getvalue().encode()
++        data, settings, recovered = self.ingest()
++        self.assertEqual(len(recovered["records"]), 24)
++        self.assertIn("50001", data["capacity_failures"])
++        summary = model.summarize(self.f.q.manifest, recovered["records"], [])
++        self.assertTrue(summary["complete"])
++        self.assertEqual(runner.continuation_status(summary, recovered["bundles"])[0], "capacity_failure")
++        self.assertEqual(artifacts.outgoing_inventory(self.directory)["members"][0]["sha256"], original)
++        self.f.api.responses["repos/owner/repo/actions/runs/100/attempts/3/jobs?per_page=100&page=1"]["jobs"].append(
++            dict(self.job, id=60000, name="mutation-fixture-aggregate", status="in_progress", conclusion=None))
++        with mock.patch.object(runner, "validate_current_plan", return_value=self.f.q.manifest["context"]):
++            result = runner.aggregate(self.f.root, self.f.plan, self.f.q.chain, settings,
++                self.directory / "aggregate.json", self.f.api, recovered=recovered)
++        self.assertEqual(result["state"], "capacity_failure")
++        destination = self.directory / "snapshot"
++        with contextlib.redirect_stdout(io.StringIO()):
++            recovery.seal(data, settings, "aggregate", result, destination)
++        retained = recovery.decode(b"".join(path.read_bytes() for path in sorted(destination.glob("chunk-*.bin"))))
++        self.assertEqual(retained["capacity_failures"], data["capacity_failures"])
++        recovery.validate_retained(retained, pending_aggregate={"run_id": "100", "attempt": 3, "job_id": "60000"})
++        self.assertEqual(runner.continuation_status(summary, recovery.recovered(retained, settings, include_current=True)["bundles"])[0], "capacity_failure")
++
++    def test_wrong_binding_missing_tampered_inventory_and_upload_contradiction_fail(self):
++        f = self.f
++        payload = artifacts.capacity_marker(f.api.blobs[self.log_path])
++        bad = copy.deepcopy(self.bundle)
++        bad["receipt"]["input_fingerprint"] = "f" * 64
++        self.publish(bad, self.inventory)
++        with self.assertRaisesRegex(ValueError, "computation binding"):
++            self.ingest()
++        self.publish(self.bundle, self.inventory)
++        f.api.blobs[self.log_path] += b"MUTATION_ARTIFACT_ID=1234\n"
++        with self.assertRaisesRegex(ValueError, "contradicts uploaded"):
++            self.ingest()
++        bad_inventory = copy.deepcopy(self.inventory)
++        bad_inventory["members"][0]["sha256"] = "f" * 64
++        with self.assertRaisesRegex(ValueError, "digest changed"):
++            self.publish(self.bundle, bad_inventory)
++        for field in ("missing_inventory", "inventory_digest", "batch_policy"):
++            changed = copy.deepcopy(payload)
++            if field == "missing_inventory":
++                del changed["inventory"]
++            elif field == "inventory_digest":
++                changed["inventory"]["inventory_digest"] = "f" * 64
++            else:
++                changed["batch_policy_digest"] = changed["receipt"]["batch_policy_digest"] = "f" * 64
++            raw = json.dumps(changed, separators=(",", ":")).encode()
++            encoded = base64.b64encode(raw).decode()
++            chunks = [encoded[i:i + 3072] for i in range(0, len(encoded), 3072)]
++            header = {"job_id": "50001", "sha256": artifacts.sha(raw), "bytes": len(raw), "chunks": len(chunks)}
++            lines = ["MUTATION_CAPACITY_START " + json.dumps(header)]
++            lines += ["MUTATION_CAPACITY_CHUNK " + json.dumps({"job_id": "50001", "index": index, "data": part}) for index, part in enumerate(chunks)]
++            lines.append("MUTATION_CAPACITY_END " + json.dumps(header))
++            f.api.blobs[self.log_path] = ("\n".join(lines) + "\n").encode()
++            with self.subTest(field=field), self.assertRaises((ValueError, KeyError)):
++                self.ingest()
++        self.publish(self.bundle, self.inventory)
++        f.api.blobs[self.log_path] = b"\n".join(f.api.blobs[self.log_path].splitlines()[:-1])
++        with self.assertRaisesRegex(ValueError, "incomplete or conflicting"):
++            self.ingest()
++
++
++class BoundedExecutionTests(unittest.TestCase):
++    def setUp(self):
++        self.f = NativeFixture(self, count=40)
++        self.ctx = copy.deepcopy(self.f.manifest["context"])
++        self.ctx["inputs"]["input_inventory"] = {"entries": []}
++        self.manifest = model.build_manifest(self.f.items, self.ctx)
++        self.planned = dict(self.f.planned, manifest=self.manifest)
++        self.settings = dict(self.f.settings, attempt=1)
++        self.slot = self.manifest["mutations"][0]["slot"]
++        self.settings["slot"] = self.slot
++        self.ids = runner.ordered_remaining(self.manifest, [], self.slot)
++        self.assertGreater(len(self.ids), 2)
++        self.selected_calls = []
++        self.launches = []
++        for item in self.f.items:
++            path = self.f.root / item["file"]
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes((b"        " + b"x" * 80 + b"\n") * 100)
++        (self.f.root / "Cargo.lock").write_bytes(b"version = 4\n")
++        self.binary = Path(self.f.base.temp.name) / "only-tool"
++        self.binary.write_bytes(b"fixed executable bytes")
++        self.executable = {"version": "27.1.0", "binary_sha256": artifacts.sha(self.binary.read_bytes()), "executable": str(self.binary)}
++        self.by_name = {item["name"]: item for item in self.f.items}
++
++    def policy(self, settings):
++        return runner.AuthenticatedBatchPolicy({"algorithm": runner.BATCH_ALGORITHM, "max_mutations": 2,
++            "manifest_digest": model.digest(self.manifest)}, self.planned, self.f.chain, settings)
++
++    def run_batch(self, attempt, deltas, *, interrupted=False):
++        settings = dict(self.settings, attempt=attempt)
++        records = model.merge_deltas(self.manifest, deltas, allowed_run_ids={"300"}, current_run_id="300", current_attempt=attempt)
++        recovered = artifacts.AuthenticatedRecovery({"records": records, "deltas": deltas, "bundles": [], "allowed_run_ids": ["300"]},
++            self.manifest, "300", attempt, False)
++        def command(argv, cwd, env=None):
++            if argv[:2] == ["git", "clone"]:
++                shutil.copytree(self.f.root, Path(argv[-1]))
++            if "--list" in argv:
++                patterns = tomllib.loads(Path(argv[argv.index("--config") + 1]).read_text())["examine_re"]
++                selected = [item for item in self.f.items if any(re.fullmatch(pattern, item["name"]) for pattern in patterns)]
++                self.selected_calls.append([item["name"] for item in selected])
++                return json.dumps(selected)
++            return ""
++        real_controller = runner.run_controller
++        def completed(argv, **kwargs):
++            batch_ids = kwargs["batch_ids"]
++            self.launches.append(list(batch_ids))
++            by_id = {item["id"]: item for item in self.manifest["mutations"]}
++            selected = [self.by_name[by_id[mid]["name"]] for mid in batch_ids]
++            report = raw_report(selected)
++            raw = json.dumps(report).encode()
++            report_path = Path(kwargs["report_path"])
++            report_path.parent.mkdir(parents=True)
++            if not interrupted:
++                report_path.write_bytes(raw)
++            for name, contents in {"log/baseline.log": b"baseline", "log/mutant.log": b"mutant", "diff/mutant.diff": b"diff"}.items():
++                path = report_path.parent / name
++                path.parent.mkdir(parents=True, exist_ok=True)
++                path.write_bytes(contents)
++            if interrupted:
++                initial = json.dumps(raw_report(selected[:1], interrupted=True)).encode()
++                class Process:
++                    def __init__(self, *args, **unused):
++                        self.stopped = False
++                        report_path.write_bytes(initial)
++                    def poll(self):
++                        return 101 if self.stopped else None
++                    def stop(self, seconds):
++                        self.stopped = True
++                        report_path.write_bytes(raw)
++                self.assertIsNone(kwargs["stop_after_records"])
++                return real_controller(argv, **dict(kwargs, deadline=0, process_factory=Process))
++            Path(kwargs["log_path"]).write_bytes(b"process output")
++            delta = model.validate_report(self.manifest, self.slot, batch_ids, report, provenance=kwargs["provenance"],
++                raw_report_ref={"path": "raw/outcomes.json", "digest": artifacts.sha(raw), "content_digest": model.digest(report)}, exit_kind="completed")
++            return {"state": "complete", "reason": "tool_completed", "returncode": 0, "snapshot": (raw, delta)}
++        output = Path(self.f.base.temp.name) / f"result-{attempt}"
++        with mock.patch.object(runner, "installed_tool", return_value=self.executable), \
++            mock.patch.object(runner, "execution_environment", return_value=({}, {})), \
++            mock.patch.object(runner, "collect_context", return_value=(self.ctx, {}, self.f.items)), \
++            mock.patch.object(runner, "checkout_inventory", return_value=(self.ctx["checkout"], self.ctx["inputs"]["input_inventory"])), \
++            mock.patch.object(runner, "command", side_effect=command), mock.patch.object(runner, "capacity", return_value={"admit": True}), \
++            mock.patch.object(runner, "run_controller", side_effect=completed), contextlib.redirect_stdout(io.StringIO()):
++            return runner.execute_slot(self.f.root, settings, self.planned, self.f.chain, output,
++                recovered=recovered, batch_policy=self.policy(settings))
++
++    def test_fast_normal_prefix_is_incomplete_then_resumes_without_loss_or_duplication(self):
++        deltas = []
++        while sum(len(delta["records"]) for delta in deltas) < len(self.ids):
++            before = sum(len(delta["records"]) for delta in deltas)
++            bundle = self.run_batch(len(deltas) + 1, deltas)
++            self.assertEqual(self.launches[-1], self.ids[before:before + 2])
++            self.assertEqual(len(self.selected_calls[-1]), min(2, len(self.ids) - before))
++            deltas.append(bundle["delta"])
++            complete = sum(len(delta["records"]) for delta in deltas) == len(self.ids)
++            self.assertEqual(bundle["status"]["state"], "complete" if complete else "incomplete_with_progress")
++            self.assertEqual(bundle["status"]["remaining"], sorted(self.ids[before + 2:]))
++        self.assertEqual([mid for batch in self.launches for mid in batch], self.ids)
++
++    def test_bounded_interruption_keeps_active_identity_first_and_ignores_post_signal_claim(self):
++        first = self.run_batch(1, [], interrupted=True)
++        self.assertEqual(first["status"]["state"], "incomplete_with_progress")
++        self.assertEqual([record["mutation_id"] for record in first["delta"]["records"]], self.ids[:1])
++        self.run_batch(2, [first["delta"]])
++        self.assertEqual(self.launches[1], self.ids[1:3])
++        retained = Path(self.f.base.temp.name) / "result-1"
++        self.assertEqual(len(runner.read_json(retained / "raw/outcomes.json")["outcomes"]), 2)
++        self.assertEqual(len(runner.read_json(retained / "diagnostic/post-shutdown-outcomes.json")["outcomes"]), 3)
++
++    def test_isolated_prefix_and_truthful_status_guards(self):
++        source = Path(runner.__file__)
++        original = source.read_bytes()
++        controls = [('ids = ids[:checked_budget["max_mutations"]]', 'ids = ids'),
++                    ('result.update(state="incomplete_with_progress", reason="bounded_batch_complete")', 'pass')]
++        for old, new in controls:
++            with self.subTest(guard=old), tempfile.TemporaryDirectory() as temporary:
++                self.assertEqual(original.decode().count(old), 1)
++                Path(temporary, source.name).write_bytes(original.decode().replace(old, new).encode())
++                script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");"
++                    "sys.path.insert(0," + repr(temporary) + ");"
++                    "s=unittest.defaultTestLoader.loadTestsFromNames(["
++                    "'test_mutation_batch_budget.BoundedExecutionTests.test_optional_typed_batch_interface_exists_without_a_cli_count',"
++                    "'test_mutation_batch_budget.BoundedExecutionTests.test_fast_normal_prefix_is_incomplete_then_resumes_without_loss_or_duplication']);"
++                    "r=unittest.TextTestRunner().run(s);sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++                result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
++    def test_optional_typed_batch_interface_exists_without_a_cli_count(self):
++        import inspect
++        self.assertIn("batch_policy", inspect.signature(runner.execute_slot).parameters)
++        self.assertEqual(inspect.signature(runner.execute_slot).parameters["batch_policy"].kind, inspect.Parameter.KEYWORD_ONLY)
++        self.assertNotIn("--batch-count", Path(runner.__file__).read_text())
++
++
++class TypedRawBudgetTests(unittest.TestCase):
++    def test_actual_separate_log_bundle_fits_and_process_growth_limits_batch(self):
++        f = NativeFixture(self, count=800)
++        slot = 0
++        ids = runner.ordered_remaining(f.manifest, [], slot)
++        by_id = {item["id"]: item for item in f.manifest["mutations"]}
++        by_name = {item["name"]: item for item in f.items}
++        selected = [by_name[by_id[mid]["name"]] for mid in ids]
++        report = raw_report(selected)
++        for index, outcome in enumerate(report["outcomes"]):
++            outcome["log_path"] = f"log/scenario-{index}.log"
++            if index:
++                outcome["diff_path"] = f"diff/scenario-{index}.diff"
++        raw = json.dumps(report, indent=2).encode()
++        provenance = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "run_id": "300", "attempt": 2,
++            "batch_id": model.digest(ids), "execution_id": "full-synthetic-slot", "checkout": f.manifest["context"]["checkout"],
++            "input_fingerprint": f.manifest["input_fingerprint"]}
++        delta = model.validate_report(f.manifest, slot, ids, report, provenance=provenance,
++            raw_report_ref={"path": "raw/outcomes.json", "digest": artifacts.sha(raw), "content_digest": model.digest(report)}, exit_kind="completed")
++        source = Path(f.base.temp.name) / "producer-raw"
++        source.mkdir()
++        diagnostic = {"batch-0/frozen-outcomes.json": raw, "batch-0/process.log": b"process output"}
++        log = b"x" * 300000
++        for outcome in report["outcomes"]:
++            for field, contents in (("log_path", log), ("diff_path", b"diff")):
++                if outcome[field] is None:
++                    continue
++                path = source / outcome[field]
++                path.parent.mkdir(parents=True, exist_ok=True)
++                path.write_bytes(contents)
++                diagnostic["batch-0/mutants.out/" + outcome[field]] = contents
++        receipt = dict(f.planned["producer"], **{k: provenance[k] for k in ("batch_id", "execution_id")})
++        destination = Path(f.base.temp.name) / "raw-bundle"
++        with contextlib.redirect_stdout(io.StringIO()):
++            runner.retain_bundle(destination, f.manifest, receipt,
++                {"state": "complete", "reason": "exact_coverage", "snapshot": (raw, delta)}, report_parent=source)
++        (destination / "process.log").write_bytes(b"process output")
++        (destination / "diagnostic").mkdir()
++        (destination / "diagnostic/post-shutdown-outcomes.json").write_bytes(raw)
++        native.compact_json(destination / "bundle.json")
++        inventory = artifacts.outgoing_inventory(destination)
++        self.assertEqual(inventory["member_count"], 205)
++        self.assertEqual(inventory["violations"], [])
++        self.assertLess(inventory["expanded_bytes"], artifacts.MAX_ARCHIVE * .8)
++        files = artifacts.unpack(archive({p.relative_to(destination).as_posix(): p.read_bytes() for p in destination.rglob("*") if p.is_file()}))
++        metadata = dict(f.base.artifact, name=artifacts.artifact_name(f.manifest["campaign_id"], "300", 2, 0), workflow_run={"id": 300, "head_sha": "d" * 40})
++        validated = artifacts.validate_bundle(files, f.manifest, f.chain["runs"][0], metadata, repository="owner/repo", workflow=tool.WORKFLOW)
++        self.assertEqual(len(validated["delta"]["records"]), 100)
++        batches = [{"logical_slot": 0, "delta": delta}]
++        policy = native.choose_batch_policy(f.planned, f.chain, delta["records"], batches, diagnostic)
++        self.assertEqual(policy["max_mutations"], 100)
++        self.assertGreater(300000 * 100, artifacts.MAX_MEMBER * .8, "the old scalar member estimate falsely refused this layout")
++        diagnostic["batch-0/process.log"] = log
++        limited = native.choose_batch_policy(f.planned, f.chain, delta["records"], batches, diagnostic)
++        self.assertLess(limited["max_mutations"], 100)
++        self.assertTrue(limited["projection"]["fits_projected_headroom"])
++        self.assertFalse(native.raw_projection(limited["shapes"], limited["max_mutations"] + 1)["fits_projected_headroom"])
++        metrics = {"clone_setup_seconds": [1], "job_initial_setup_seconds": 1}
++        now = dt.datetime.now(dt.timezone.utc)
++        chain = dict(f.chain, expires_at=(now + dt.timedelta(seconds=50000)).isoformat())
++        native.forecast(f.planned, chain, f.settings, delta["records"], metrics)
++        with self.assertRaisesRegex(runner.CapacityFailure, "finite campaign"):
++            native.forecast(f.planned, chain, f.settings, delta["records"], metrics, batch_limit=limited["max_mutations"])
++        changed = copy.deepcopy(policy["shapes"])
++        changed["outcome_pretty_bytes"] = artifacts.MAX_MEMBER
++        self.assertFalse(native.raw_projection(changed, 1)["fits_projected_headroom"])
++        with mock.patch.object(native, "raw_shape_budget", return_value=changed):
++            with self.assertRaisesRegex(runner.CapacityFailure, "one production identity"):
++                native.choose_batch_policy(f.planned, f.chain, delta["records"], batches, diagnostic)
++
++    def test_full_manifest_maximum_includes_longer_row_in_a_smaller_slot(self):
++        f = NativeFixture(self, count=41)
++        pilot = f.passing_pilot()
++        records = native.validate_samples(f.planned, pilot["payload"]["selection"], pilot["payload"]["batches"], f.baseline.splitlines())
++        original = native.raw_shape_budget(f.planned, records, pilot["payload"]["batches"], pilot["files"])
++        # Identity descriptors remain actual full-manifest inputs; only this disposable fixture is rebuilt.
++        listing = copy.deepcopy(f.items)
++        listing[20]["replacement"] = "x" * 5000
++        manifest = model.build_manifest(listing, f.manifest["context"])
++        large = next(item for item in manifest["mutations"] if item["replacement"] == "x" * 5000)
++        self.assertLess(len(model.slot_ids(manifest, large["slot"])), max(len(model.slot_ids(manifest, slot)) for slot in range(8)))
++        shape = native.raw_shape_budget(dict(f.planned, manifest=manifest), records, pilot["payload"]["batches"], pilot["files"])
++        self.assertGreater(shape["record_compact_bytes"], original["record_compact_bytes"] + 4000)
++        self.assertGreater(shape["outcome_pretty_bytes"], original["outcome_pretty_bytes"] + 4000)
++
++
++class BatchPolicyBindingTests(unittest.TestCase):
++    def test_missing_plain_stale_and_substituted_policy_refuse_before_execution(self):
++        owner = native_tests.NativeAuthenticationTests()
++        owner.setUp()
++        self.addCleanup(owner.doCleanups)
++        f = owner.f
++        proofs = owner.admitted_proofs()
++        data = {"planned": f.planned, "chain": f.chain, "logs": {}, "originals": {}, "source_runs": {}}
++        native.install_admission(data, proofs)
++        settings = dict(f.settings, attempt=3)
++        token = native.admitted_batch_policy(data, settings)
++        with self.assertRaises(AttributeError):
++            token._raw = b"changed"
++        with mock.patch.object(runner, "installed_tool") as launch:
++            for supplied in (None, data["native_admission"]["batch_policy"]):
++                with self.subTest(supplied=type(supplied).__name__), self.assertRaisesRegex(ValueError, "authenticated batch policy"):
++                    runner.execute_slot(f.root, settings, f.planned, f.chain, f.root / "never", batch_policy=supplied)
++            with self.assertRaisesRegex(ValueError, "stale production batch policy"):
++                runner.execute_slot(f.root, dict(settings, attempt=4), f.planned, f.chain, f.root / "never", batch_policy=token)
++            launch.assert_not_called()
++        for key, value in (("batch_policy_digest", "f" * 64), ("batch_policy", dict(data["native_admission"]["batch_policy"], max_mutations=1))):
++            changed = copy.deepcopy(data)
++            changed["native_admission"][key] = value
++            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "batch"):
++                native.admitted_batch_policy(changed, settings)
++        del data["native_admission"]["batch_policy"]
++        with self.assertRaises(KeyError):
++            workflow.ensure_native_admission(f.api, data, settings)
++
++
++class HistoryBudgetTests(unittest.TestCase):
++    def shape(self):
++        f = NativeFixture(self)
++        pilot = f.passing_pilot()
++        records = native.validate_samples(f.planned, pilot["payload"]["selection"], pilot["payload"]["batches"], f.baseline.splitlines())
++        seed = {"version": 1, "planned": f.planned, "chain": f.chain, "contract": f.base.contract, "originals": {},
++            "logs": {}, "source_runs": {}, "qualification": {"fixture_shape": True}, "tool_receipt": f.base.receipt,
++            "current_checkout": f.manifest["context"]["checkout"]}
++        value = native.projected_history(f.planned, seed, records, pilot["payload"]["forecast"], pilot["payload"]["batch_policy"], [b"original log bytes"])
++        return f, pilot, value
++
++    def test_actual_retained_schema_preserves_full_remaining_and_logical_limit(self):
++        f, pilot, value = self.shape()
++        raw = recovery.encode(value)
++        logical = recovery.decode(raw, materialize=False)
++        restored = recovery.decode(raw)
++        self.assertEqual(model.digest(restored), model.digest(value))
++        self.assertEqual(sum(len(item["bundle"]["delta"]["records"]) for item in restored["bundles"]), len(f.items))
++        for item in restored["bundles"]:
++            bundle = item["bundle"]
++            self.assertLessEqual(len(bundle["delta"]["batch_ids"]), pilot["payload"]["batch_policy"]["max_mutations"])
++            self.assertEqual(bundle["status"]["remaining"], model.slot_ids(f.manifest, bundle["receipt"]["slot"]))
++        self.assertTrue(any(not item["bundle"]["delta"]["records"] for item in restored["bundles"]))
++        self.assertEqual(len({row["sha256"] for row in restored["logs"].values()}), len(restored["logs"]))
++        self.assertTrue(restored["phase_inventories"] and restored["aggregate_verdicts"] and restored["native_admission"]["proofs"])
++        self.assertLess(len(archive({"chunk.bin": raw})), logical // 20)
++        with mock.patch.object(recovery, "MAX_RECONSTRUCTED_BYTES", logical - 1):
++            with self.assertRaisesRegex(runner.CapacityFailure, "reconstruction capacity"):
++                recovery.encode(value)
++
++    def test_isolated_logical_limit_control_fails_capacity_assertion(self):
++        source = Path(recovery.__file__)
++        original = source.read_bytes()
++        old = 'cost <= MAX_RECONSTRUCTED_BYTES, "snapshot reconstruction capacity exceeded"'
++        self.assertEqual(original.decode().count(old), 1)
++        with tempfile.TemporaryDirectory() as temporary:
++            Path(temporary, source.name).write_bytes(original.decode().replace(old, 'True, "snapshot reconstruction capacity exceeded"').encode())
++            script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");sys.path.insert(0," + repr(temporary) + ");"
++                "r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName("
++                "'test_mutation_batch_budget.HistoryBudgetTests.test_actual_retained_schema_preserves_full_remaining_and_logical_limit'));"
++                "sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++            result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
++
++class PreparedBudgetTests(unittest.TestCase):
++    def test_qualification_from_before_batch_recipe_is_not_transferable(self):
++        q = native_tests.qualification_tests.QualificationAuthenticationTests()
++        q.setUp()
++        self.addCleanup(q.doCleanups)
++        q.verify()
++        proof = copy.deepcopy(q.proof)
++        del proof["contract"]["batch_algorithm"]
++        raw = archive({"qualification.json": json.dumps(proof).encode()})
++        q.api.responses["repos/owner/repo/actions/artifacts/79"]["digest"] = "sha256:" + artifacts.sha(raw)
++        q.api.blobs["repos/owner/repo/actions/artifacts/79/zip"] = raw
++        q.api.blobs["repos/owner/repo/actions/jobs/999/logs"] = ("MUTATION_QUALIFICATION " + json.dumps(proof) + "\nMUTATION_ARTIFACT_ID=79\n").encode()
++        with self.assertRaisesRegex(ValueError, "qualification computation contract mismatch"):
++            q.verify()
++
++
++    def test_preparation_seal_worker_and_complete_aggregate_cannot_use_substituted_policy(self):
++        f = native_tests.NativeSnapshotFixture(self)
++        settings = dict(f.settings, attempt=4, job_id="70001")
++        f.api.responses["repos/owner/repo/actions/runs/300"]["run_attempt"] = 4
++        changed = copy.deepcopy(f.data)
++        changed["native_admission"]["batch_policy_digest"] = "f" * 64
++        with self.assertRaisesRegex(ValueError, "batch policy digest"):
++            recovery.seal(changed, settings, "prepared", {"state": "complete"}, Path(f.q.fixture.temp.name) / "refused")
++        with mock.patch.object(native, "validate_admitted"):
++            selected, _ = f.upload_snapshot(data=changed, settings=settings, kind="prepared")
++        metadata = f.api.responses[f"repos/owner/repo/actions/artifacts/{selected['artifact_id']}"]
++        metadata["workflow_run"] = {"id": 300, "head_sha": "d" * 40}
++        f.paginate()
++        with self.assertRaisesRegex(ValueError, "batch policy digest"):
++            recovery.load(recovery.WorkflowAPI(f.api), selected, "owner/repo", f.contract, consumer={"run_id": "300", "attempt": 4})
++        env = {"PREPARED_ARTIFACT_ID": str(selected["artifact_id"]), "PLAN_ARTIFACT_ID": "3000",
++               "MUTATION_CHAIN": json.dumps(f.data["chain"]), "NATIVE_ADMISSION_ARTIFACT_ID": ""}
++        with mock.patch.dict(os.environ, env), mock.patch.object(tool, "committed_contract", return_value=f.contract), \
++            mock.patch.object(runner, "checkout_inventory", return_value=(f.q.manifest["context"]["checkout"], {})), \
++            mock.patch.object(runner, "execute_slot") as worker, mock.patch.object(runner, "aggregate") as aggregate:
++            for command in ("slot", "aggregate"):
++                scratch = Path(f.q.fixture.temp.name) / ("bad-policy-" + command)
++                scratch.mkdir()
++                with self.subTest(command=command), self.assertRaisesRegex(ValueError, "batch policy digest"):
++                    workflow.execute(recovery.WorkflowAPI(f.api), f.root, settings, scratch, command)
++            worker.assert_not_called()
++            aggregate.assert_not_called()
++
++
++if __name__ == "__main__":
++    unittest.main()

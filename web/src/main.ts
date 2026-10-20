@@ -22,7 +22,7 @@ import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
-import { BuildExit, buildCommandsIdle, confirmRefusalReason, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
+import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
 import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
@@ -1785,7 +1785,7 @@ async function main(): Promise<void> {
   const roomSelection = new RoomSelection(sim, () => {
     selectionControls?.render(); cameraDirty = true;
     if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
-      setBuildStatus(roomSelection.error || 'Changes remain pending until Confirm.', !!roomSelection.error);
+      setBuildStatus(roomSelection.error, roomSelection.error !== '');
     }
   });
   const roomsTool = new RoomsTool(roomSelection, roomTool, () => {
@@ -1794,10 +1794,10 @@ async function main(): Promise<void> {
   const roomReview = new RoomReviewController(sim, {
     changed: () => { reviewControls?.render(); placementActions?.invalidate(); cameraDirty = true; },
     completed: adopted => {
-      if (!adopted) buildExit.clearExitIntent();
+      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.clearExitIntent(); }
       const finish = finishReview; finishReview = null; finish?.(adopted);
     },
-    refused: () => buildExit.clearExitIntent(),
+    refused: () => buildExit.cancelDestination(),
   });
   hasRetainedReviewChoices = () => roomReview.hasChoices;
   requestRoomReview = review => new Promise<boolean>(resolve => {
@@ -1942,7 +1942,7 @@ async function main(): Promise<void> {
     enter() {
       optionsMenu.close();
       syncBuildIsolation();
-      setBuildStatus('Changes remain pending until Confirm.');
+      setBuildStatus('');
       document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
@@ -2015,7 +2015,7 @@ async function main(): Promise<void> {
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('Changes remain pending until Confirm.');
+    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -2064,32 +2064,25 @@ async function main(): Promise<void> {
   }
   async function confirmBuildBatch(): Promise<boolean> {
     const confirmed = await buildSession.confirm();
-    const reason = confirmed ? '' : confirmRefusalReason(roomSelection.error, buildSession.error, builder.hasPlacementChange);
-    if (confirmed) setBuildStatus('Changes confirmed.');
-    else if (reason) setBuildStatus(reason, true);
-    else setBuildStatus('Changes remain pending until Confirm.');
+    const reason = confirmed || buildSession.confirmationCancelled ? ''
+      : roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange);
+    setBuildStatus(reason, reason !== '');
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
       roomSelection.reset(); choresBoard.update(); refreshBuildArchitecture();
-      setBuildStatus('Changes confirmed.');
+      setBuildStatus('');
     }
     return confirmed;
   }
-  // Only explicit exit confirmation continues through the builder's exit gate.
+  // Both footer actions leave after success; Land starts a fresh paused batch.
   const buildExit: BuildExit = new BuildExit(document, {
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
     confirm: confirmBuildBatch,
-    cancel: () => {
-      const cancelled = buildSession.cancel();
-      if (cancelled) setBuildStatus('Pending changes cancelled. Build mode remains open.');
-      else setBuildStatus(buildSession.error, true);
-      return cancelled;
-    },
     discard: () => {
       const cancelled = buildSession.end();
-      if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be discarded. Build mode remains open.', true);
+      if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be cancelled. Try Cancel again.', true);
       return cancelled;
     },
     refusal: () => buildBatchStatus.getAttribute('data-kind') === 'error' ? buildBatchStatus.textContent ?? '' : '',
@@ -2190,6 +2183,22 @@ async function main(): Promise<void> {
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
     { tool: landTool, button: 'build-tool-land', panel: 'land-tool' },
   ], {
+    beforeSelect(button, activate) {
+      if (roomReview.active || buildExit.resolving) return false;
+      if (button === 'build-tool-land' && landTool.active) { canvas.focus(); return true; }
+      if (landTool.pending) return false;
+      if (button !== 'build-tool-land') {
+        buildExit.clearExitIntent();
+        return activate();
+      }
+      return buildExit.requestDestination(() => {
+        if (!buildSession.begin()) {
+          buildBatchStatus.textContent = buildSession.error || 'Land could not be opened. Try again.';
+          return false;
+        }
+        return activate();
+      }, 'Switch to Land?');
+    },
     leaveFurniture() {
       builder.cancel();
       return builder.selected === null && !builder.pending;

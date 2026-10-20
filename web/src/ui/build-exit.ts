@@ -1,5 +1,5 @@
 // Leaving Build mode - docs/specs/2026-10-13-build-confirmation.md. The
-// footer's Confirm and Cancel finish the batch and keep paused Build open. Every way
+// footer's Confirm and Cancel finish the batch and leave Build. Every way
 // out (Exit build, the Build button, Escape with nothing selected) reaches the
 // furniture builder's exit, whose beforeExit is `gate`: while a change is not
 // confirmed, it opens a dialog instead of leaving. Escape anywhere on the page
@@ -13,8 +13,6 @@ export interface BuildExitHooks {
   hasUnconfirmedChanges(): boolean;
   /** Applies the batch; false when it was refused, after the page says why. */
   confirm(): boolean | Promise<boolean>;
-  /** Restores the latest confirmed batch while keeping Build open. */
-  cancel(): boolean;
   /** Discards what is not confirmed and ends the batch; false when it could not, after saying so. */
   discard(): boolean;
   /** Leaves Build mode through the builder, which calls `gate`; true once Build mode is closed. */
@@ -62,15 +60,6 @@ export function confirmRefusal(furnitureMoveShown: boolean): string {
     : 'The changes could not be confirmed. Fix what the tool reports, or choose Cancel to undo the pending changes.';
 }
 
-/**
- * Why an unconfirmed batch was refused, or empty when nothing refused it:
- * Back in a room review, or a second Confirm while one is running, leaves the
- * batch pending without anything being wrong.
- */
-export function confirmRefusalReason(roomError: string, sessionError: string, furnitureMoveShown: boolean): string {
-  return roomError || sessionError || (furnitureMoveShown ? confirmRefusal(true) : '');
-}
-
 /** The values of the dialog's buttons. Escape closes it with neither. */
 const CONFIRM = 'confirm';
 const DISCARD = 'discard';
@@ -95,6 +84,7 @@ interface PointerClick { readonly at: number; readonly detail: number }
 
 export class BuildExit {
   private readonly dialog: HTMLDialogElement;
+  private readonly heading: HTMLElement;
   private readonly keep: HTMLButtonElement;
   /** The dialog's line for a refused Confirm changes, so Discard is offered beside the reason. */
   private readonly status: HTMLElement | null;
@@ -112,6 +102,11 @@ export class BuildExit {
   private guardClick: PointerClick | null = null;
   private continuation = 0;
   private confirming = false;
+  private guardActivationKey = false;
+  /** A tool destination that needs a fresh transaction while Build stays paused. */
+  private destination: (() => boolean) | null = null;
+
+  get resolving(): boolean { return this.dialog.open || this.confirming; }
 
   constructor(private readonly document: Document, private readonly hooks: BuildExitHooks,
     private readonly now: () => number = () => performance.now()) {
@@ -120,12 +115,17 @@ export class BuildExit {
       if (!element) throw new Error(`Missing build exit controls: ${id}`);
       return element;
     };
-    required('build-batch-confirm').addEventListener('click', () => { void this.confirmBatch(false, this.recentPointerClick()); });
+    required('build-batch-confirm').addEventListener('click', () => {
+      if (this.confirming) return;
+      this.clearExitIntent();
+      void this.confirmBatch(this.recentPointerClick());
+    });
     required('build-batch-cancel').addEventListener('click', () => {
       if (this.confirming) return;
-      this.clearExitIntent(); this.hooks.cancel(); this.armAgainstTheRestOf(this.recentPointerClick());
+      this.clearExitIntent(); this.discardAndLeave();
     });
     this.dialog = required<HTMLDialogElement>('build-exit-dialog');
+    this.heading = required('build-exit-title');
     this.keep = required<HTMLButtonElement>('build-exit-keep');
     this.status = document.querySelector<HTMLElement>('#build-exit-status');
     // The form's method is dialog, so each button closes it with its value;
@@ -149,7 +149,23 @@ export class BuildExit {
     this.clearExitIntent();
     if (this.dialog.open) this.dialog.close(KEEP);
   }
-  clearExitIntent(): void { this.continuation++; }
+  clearExitIntent(): void { this.continuation++; this.destination = null; }
+
+  /** A refused review cancels a tool switch, while an ordinary exit can finish after correction. */
+  cancelDestination(): void { if (this.destination) this.clearExitIntent(); }
+
+  /** Resolves the current batch before opening a tool in a fresh paused batch. */
+  requestDestination(activate: () => boolean, title = 'Switch Build tools?'): boolean {
+    if (this.dialog.open || this.confirming) return false;
+    this.clearExitIntent();
+    this.destination = activate;
+    const cause = this.recentPointerClick();
+    if (this.hooks.hasUnconfirmedChanges()) {
+      this.ask(title); this.armAgainstTheRestOf(cause);
+      return false;
+    }
+    return this.leaveAsChosen(cause);
+  }
 
   /**
    * Escape in Build mode, from the game view or anywhere else on the page.
@@ -163,6 +179,10 @@ export class BuildExit {
   }
 
   private onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      if (event.repeat && this.guardActivationKey) { event.preventDefault(); return; }
+      if (!event.repeat) this.guardActivationKey = false;
+    }
     if (event.key !== 'Escape' || event.defaultPrevented || !this.hooks.escapeAllowed()) return;
     if (!this.dialog.open) {
       // Another dialog or a text field keeps its own Escape.
@@ -221,6 +241,7 @@ export class BuildExit {
   /** The builder's beforeExit: true lets Build mode close now. */
   gate(): boolean {
     if (this.dialog.open || (this.confirming && !this.chosen)) return false;
+    if (!this.chosen) this.clearExitIntent();
     const cause = this.chosen ? this.chosenCause : this.recentPointerClick();
     if (!this.chosen && this.hooks.hasUnconfirmedChanges()) {
       this.ask();
@@ -229,24 +250,27 @@ export class BuildExit {
       return false;
     }
     const discarded = this.hooks.discard();
-    if (discarded) this.armAgainstTheRestOf(cause);
+    if (discarded) { this.armAgainstTheRestOf(cause); this.guardActivationKey = cause === null; }
     return discarded;
   }
 
   /** Explicit exit confirmation may wait for native room adoption. */
   confirmAndLeave(): boolean | Promise<boolean> {
+    if (this.confirming) return false;
+    this.clearExitIntent();
     return this.confirmAndLeaveFor(this.recentPointerClick());
   }
 
   /** Explicit Discard restores the baseline while leaving. */
   discardAndLeave(): boolean {
+    if (this.confirming) return false;
     return this.leaveAsChosen(this.recentPointerClick());
   }
 
-  private confirmAndLeaveFor(cause: PointerClick | null): boolean | Promise<boolean> {
-    return this.confirmBatch(true, cause);
+  private confirmAndLeaveFor(cause: PointerClick | null, fromDialog = false): boolean | Promise<boolean> {
+    return this.confirmBatch(cause, fromDialog);
   }
-  private confirmBatch(leave: boolean, cause: PointerClick | null): boolean | Promise<boolean> {
+  private confirmBatch(cause: PointerClick | null, fromDialog = false): boolean | Promise<boolean> {
     if (this.confirming) return false;
     this.confirming = true;
     const generation = ++this.continuation;
@@ -254,13 +278,14 @@ export class BuildExit {
       this.confirming = false;
       const opener = this.reaskOpener;
       this.reaskOpener = null;
-      if (generation !== this.continuation) return false;
-      if (!adopted) {
-        if (leave) this.askAgain(opener);
-        return false;
+      const current = generation === this.continuation;
+      if (adopted && current) {
+        this.armAgainstTheRestOf(cause);
+        return this.leaveAsChosen(cause);
       }
-      this.armAgainstTheRestOf(cause);
-      return leave ? this.leaveAsChosen(cause) : true;
+      // A refused Confirm changes asks again, keeping any tool switch it was for.
+      if (!(current && fromDialog && this.askAgain(opener))) this.clearExitIntent();
+      return false;
     };
     const failed = (error: unknown) => {
       logError('Build', 'Confirm threw instead of answering.', { error });
@@ -276,30 +301,45 @@ export class BuildExit {
    * A refused Confirm changes asks again with the reason, so the player who
    * wanted to leave sees why and can still Discard changes or Keep building.
    */
-  private askAgain(opener: Element | null): void {
+  private askAgain(opener: Element | null): boolean {
     const reason = this.hooks.refusal?.() ?? '';
-    if (!reason || this.dialog.open) return;
-    this.ask(reason);
+    if (!reason || this.dialog.open) return false;
+    this.ask(this.heading.textContent || undefined, reason);
     if (opener) this.opener = opener;
+    return true;
   }
 
   private leaveAsChosen(cause: PointerClick | null): boolean {
+    const destination = this.destination;
+    this.destination = null;
+    if (destination) {
+      // End and begin run synchronously under the builder's existing pause.
+      // Ending replaces local state, so retain this one-shot callback first.
+      if (!this.hooks.discard()) { this.clearExitIntent(); return false; }
+      this.armAgainstTheRestOf(cause);
+      this.guardActivationKey = cause === null;
+      return destination();
+    }
     this.chosen = true;
     this.chosenCause = cause;
     try {
-      return this.hooks.leave();
+      const left = this.hooks.leave();
+      if (left) this.guardActivationKey = cause === null;
+      return left;
     } finally {
       this.chosen = false;
       this.chosenCause = null;
     }
   }
 
-  private ask(reason = ''): void {
+  private ask(title = 'Leave Build mode?', reason = ''): void {
     this.hooks.beforeAsk?.();
     this.opener = this.document.activeElement;
+    this.heading.textContent = title;
     this.dialog.returnValue = '';
     if (this.status) this.status.textContent = reason;
     this.dialog.showModal();
+    this.guardActivationKey = true;
     // The choice that changes nothing, so an accidental Enter is harmless.
     this.keep.focus();
   }
@@ -307,13 +347,16 @@ export class BuildExit {
   private answer(value: string, cause: PointerClick | null): void {
     const opener = this.opener;
     this.opener = null;
-    if (value !== CONFIRM) this.clearExitIntent();
+    if (value !== CONFIRM && value !== DISCARD) this.clearExitIntent();
     this.reaskOpener = value === CONFIRM ? opener : null;
-    const left = value === CONFIRM ? this.confirmAndLeaveFor(cause)
+    const left = value === CONFIRM ? this.confirmAndLeaveFor(cause, true)
       : value === DISCARD ? this.leaveAsChosen(cause) : false;
     // Leaving moves focus to the Build button; staying returns it, unless a
     // refused Confirm changes asked again and the dialog holds focus.
-    if (typeof left === 'boolean' && !left && !this.dialog.open) this.restoreFocus(opener);
+    if (typeof left === 'boolean' && !left && !this.dialog.open) {
+      this.guardActivationKey = true;
+      this.restoreFocus(opener);
+    }
   }
 
   private restoreFocus(opener: Element | null): void {

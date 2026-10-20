@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, wallReason } from '../src/bridge.js';
-import { BuildExit, confirmRefusalReason, type BuildExitHooks } from '../src/ui/build-exit.js';
+import { BuildExit, type BuildExitHooks } from '../src/ui/build-exit.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { RoomFailureLog } from '../src/ui/room-selection.js';
 import { confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
@@ -45,14 +45,6 @@ describe('the failure text', () => {
       expect(enterFailure(VALIDATION, report)).not.toMatch(/\bwould\b(?! not load)/);
     }
   });
-
-  it('reports no refusal when a Confirm was backed out of rather than refused', () => {
-    expect(confirmRefusalReason('', '', false)).toBe('');
-    expect(confirmRefusalReason('', '', true)).toMatch(/^Move the furniture/);
-    expect(confirmRefusalReason('Use 1 to 48 characters for the room name.', 'other', true)).toBe('Use 1 to 48 characters for the room name.');
-    expect(confirmRefusalReason('', 'Session reason.', true)).toBe('Session reason.');
-  });
-
   it('reads only the rules it knows from the report', () => {
     expect(parseBuildFailureReport('{"rule":"lot_usability","refusal":11}')).toEqual({ rule: 'lot_usability', refusal: 11 });
     expect(parseBuildFailureReport('{"rule":"edge_world"}')).toEqual({ rule: 'edge_world' });
@@ -136,17 +128,18 @@ function exitFixture(refusal: string, confirmed = false) {
     return { textContent: '', disabled: false, isConnected: true, addEventListener: (t: string, f: () => void) => { own.set(t, f); },
       fire: (t: string) => own.get(t)?.(), focus() { doc.activeElement = this; } };
   };
-  const nodes = { confirm: element(), cancel: element(), keep: element(), status: element(),
+  const nodes = { confirm: element(), cancel: element(), keep: element(), status: element(), title: element(),
     dialog: { ...element(), open: false, returnValue: '', showModal() { this.open = true; },
       close(value?: string) { this.open = false; if (value !== undefined) this.returnValue = value; this.fire('close'); } } };
   const doc = {
     activeElement: null as unknown, body: {},
     querySelector: (selector: string) => ({ '#build-batch-confirm': nodes.confirm, '#build-batch-cancel': nodes.cancel,
-      '#build-exit-dialog': nodes.dialog, '#build-exit-keep': nodes.keep, '#build-exit-status': nodes.status } as Record<string, unknown>)[selector] ?? null,
+      '#build-exit-dialog': nodes.dialog, '#build-exit-keep': nodes.keep, '#build-exit-status': nodes.status,
+      '#build-exit-title': nodes.title } as Record<string, unknown>)[selector] ?? null,
     addEventListener: (type: string, listener: (event: unknown) => void) => { listeners.set(type, listener); },
   };
   const hooks: BuildExitHooks = {
-    hasUnconfirmedChanges: () => true, confirm: vi.fn(() => confirmed), cancel: () => true,
+    hasUnconfirmedChanges: () => true, confirm: vi.fn(() => confirmed),
     discard: vi.fn(() => true), leave: vi.fn(() => true), focusView() {}, escapeBuild() {}, escapeAllowed: () => true,
     refusal: () => refusal,
   };
@@ -176,6 +169,19 @@ describe('leaving when Confirm changes is refused', () => {
     exit.gate();
     nodes.dialog.close('confirm');
     expect(nodes.dialog.open).toBe(false);
+  });
+
+  it('keeps the heading and the tool switch it was asked for when it asks again', () => {
+    const { exit, hooks, nodes } = exitFixture('A reason.');
+    const activate = vi.fn(() => true);
+    expect(exit.requestDestination(activate, 'Switch to Land?')).toBe(false);
+    nodes.dialog.close('confirm');
+    expect(nodes.dialog.open).toBe(true);
+    expect(nodes.title.textContent).toBe('Switch to Land?');
+    expect(nodes.status.textContent).toBe('A reason.');
+    nodes.dialog.close('discard');
+    expect(hooks.discard).toHaveBeenCalledOnce();
+    expect(activate).toHaveBeenCalledOnce();
   });
 
   it('never opens the dialog from the footer Confirm', () => {

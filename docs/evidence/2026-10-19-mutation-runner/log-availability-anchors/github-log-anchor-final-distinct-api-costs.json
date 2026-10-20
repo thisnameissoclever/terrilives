@@ -1,0 +1,24 @@
+{
+  "scope": "production",
+  "historical_attempts_last_run": 6,
+  "run_count": 8,
+  "gap": 3,
+  "padded_to_sixteen_pages": true,
+  "external_proof_runs": 1,
+  "preparation": 240,
+  "workers": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "aggregate": 202,
+  "total": 602,
+  "distinct_recipe_root_count": 3,
+  "shared_subtree_count": 2,
+  "admitted_total_history_attempts": 56
+}

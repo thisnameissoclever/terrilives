@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_actual_retained_schema_preserves_full_remaining_and_logical_limit (test_mutation_batch_budget.HistoryBudgetTests.test_actual_retained_schema_preserves_full_remaining_and_logical_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_batch_budget.py", line 462, in test_actual_retained_schema_preserves_full_remaining_and_logical_limit
+    self.assertEqual(set(restored["log_availability_anchors"]),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        {row["run_id"] for row in restored["chain"]["runs"]} | set(restored["source_runs"]))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Items in the second set but not the first:
+'300'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.307s
+
+FAILED (failures=1)

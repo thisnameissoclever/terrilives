@@ -1,0 +1,16 @@
+# Bounded batch budget quality re-review 1
+
+Approved for the scoped correction. The P2 from the first quality review is closed; no introduced actionable defect was found.
+
+1. `mutation_native.py:478-486` now compares every observed payload after substituting each full-manifest identity. Compact-record and pretty raw-outcome maxima are independent, so a long one-phase identity cannot hide an observed two-phase payload. Fixed delta headers are compared after removing their variable record and batch arrays.
+2. `mutation_native.py:609-627` normalizes future provenance/reference/baseline shapes before choosing each history record. It retains the largest observed normalized baseline and selects the record payload after common identity substitution. The 32-character future execution ID matches the existing runner shape. This closes the same underprojection in retained-history sizing without changing the admitted policy, interfaces or limits.
+3. `test_mutation_batch_budget.py:565-635` supplies the mixed long-identity Unviable/two-phase Caught regression, separate raw-outcome coverage, complete history-record count and explicit two-phase history assertions. The homogeneous case is a positive control. Each isolated restoration of the old raw or history selector must produce exactly one assertion failure and no errors while the positive control passes; neither control edits production bytes.
+4. The recovery fixture supplement adds only the missing authenticated attempt-3 API response. It preserves the intended missing-worker rejection and three-attempt-gap assertions.
+
+Verified package SHA-256: `bf70a4aa13e1ece073e388814475ac7780bdee953e4fd87adc063781e6143d8b`. Verified hash-map SHA-256: `1ec6635882b1e3f83c783f8394bccede10dc6c434c3587fc80e377648eb13a69`. Both preserved before-file hashes matched. Both changed working files and all eight companion files matched the recorded final hashes, including recovery-test override `f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20`. The fixture supplement itself matched `995b788bd2bd4ea449f82c7fe17c35f7ca67d8c0c52e889bf8de03a2fd208c89`.
+
+I read the retained test outputs: the red mixed case failed with 7,914 projected versus 8,071 required bytes; the final focused group passed 3 tests in 2.345 seconds; the covering group passed 21 in 30.627 seconds. The separate fixture repair passed its original case in 0.158 seconds and its 34-test covering group in 26.347 seconds. These are verified retained outputs, not newly executed tests. The original full run remains 225 passing and one fixture error out of 226; it has not been relabeled fully green.
+
+This approval covers the identified defect and the two-file correction plus fixture supplement. It does not establish actual Linux capacity, timing, upload behavior or exhaustive campaign coverage. The unchanged 20% projected headroom and exact outgoing refusal remain separate controls; no real Linux overflow was observed or claimed. No suite, diagnostic, native build, browser, network, Git operation, source edit or nested agent ran during this re-review. Only this ignored report was written.
+
+**Next steps**: Root can close the quality finding and continue the authorized delivery and actual Linux/full-campaign gates. No owner answer is needed.

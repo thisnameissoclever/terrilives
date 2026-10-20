@@ -1,0 +1,12 @@
+{
+  "job_id": "118443493879",
+  "observed_at": "2026-10-20T04:12:40.342023+00:00",
+  "credential_scope": "Host gh profile; not the Actions job token",
+  "status": 302,
+  "location_present": true,
+  "valid_https_location": true,
+  "http_requests": 1,
+  "redirect_followed": false,
+  "response_body_read": false,
+  "credentials_or_signed_locations_retained": false
+}

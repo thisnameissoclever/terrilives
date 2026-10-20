@@ -1,0 +1,12 @@
+{
+  "task-3-native-admission-fix1-report.md": "58a287cf55685bcd4d7bb3ca2c1d908109b376e59543a5a07be88abfdb3cb162",
+  "task-3-native-admission-fix1-package.diff": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+  "task-3-native-admission-fix1-hashes.json": "59e633dca95385031c56b64cc75559611fee7870489bf6782b3a4c570d20557f",
+  "task-3-native-admission-fix1-red.txt": "6a4a8b96ac92b42721f0e59e4fe16b8928fb26e873cdc1f93c0a32903c37bbe5",
+  "task-3-native-admission-fix1-focused-tests.txt": "9525633b5c842b6ae0cf93819941f5ef8c1132b082a5d94116668c6a4c91320c",
+  "task-3-native-admission-fix1-covering-tests.txt": "d08902aa49d8eff5e9f4e0036a3ecedbeb7dc674c260d80021eca45bd46a2de9",
+  "task-3-native-admission-fix1-projections.json": "cacc78df25c62a1c0ec5dd084ade3e5d9778b1a0e1eb1c0ce1215d6cf96e6428",
+  "task-3-native-admission-fix1-api-costs.json": "b380d3f3d7f5b36e74fdc6ab2726089f8c04bc9996263af6eca989681a970ac7",
+  "task-3-native-admission-fix1-gate-api-costs.json": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+  "task-3-native-admission-fix1-plan-api-costs.json": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a"
+}

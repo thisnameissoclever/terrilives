@@ -1,0 +1,252 @@
+{
+  "started_utc": "2026-10-19T20:07:05.377211+00:00",
+  "argv": [
+    "rustup",
+    "run",
+    "1.94.1",
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "--bin",
+    "cargo-mutants",
+    "--jobs",
+    "2"
+  ],
+  "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\source",
+  "source_commit": "8ab1dc786a1f61a4e370416cc6c68b81a704e917",
+  "source_tree": "f0c566bf42550891af092fb1247d2de83e010dbf",
+  "patch_sha256": "6693b7a61b4c7cb398e199c4e33675f9267bc50559790e069341be377f32ba6f",
+  "visit_sha256": "15c1d1606b518f1fbb5ea0e08b76cd88a36cf93dccf69161b468ef34ae657b3d",
+  "lock_sha256_before": "0d2699c31955d28f429731eda2972dc4faced07747320b074bc774c3334f75c0",
+  "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+  "rustc_version": "rustc 1.94.1 (e408947bf 2026-03-25)\nbinary: rustc\ncommit-hash: e408947bfd200af42db322daf0fadfe7e26d3bd1\ncommit-date: 2026-03-25\nhost: x86_64-pc-windows-msvc\nrelease: 1.94.1\nLLVM version: 21.1.8\n",
+  "limits": {
+    "cargo_jobs": 2,
+    "wall_seconds": 1800
+  },
+  "capacity_samples": [
+    {
+      "elapsed_seconds": 3.026,
+      "FreePhysicalMemory": 9925084,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 14.624,
+      "FreePhysicalMemory": 9310996,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 26.288,
+      "FreePhysicalMemory": 8216392,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 41.401,
+      "FreePhysicalMemory": 8723612,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 56.505,
+      "FreePhysicalMemory": 7361840,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 70.629,
+      "FreePhysicalMemory": 7981536,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 82.875,
+      "FreePhysicalMemory": 8971992,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 95.754,
+      "FreePhysicalMemory": 6727984,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 107.43,
+      "FreePhysicalMemory": 5707692,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 119.22,
+      "FreePhysicalMemory": 5755876,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 133.785,
+      "FreePhysicalMemory": 6520288,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 145.449,
+      "FreePhysicalMemory": 6487952,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 156.96,
+      "FreePhysicalMemory": 6684040,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 175.336,
+      "FreePhysicalMemory": 7618480,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 187.955,
+      "FreePhysicalMemory": 7743420,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 199.603,
+      "FreePhysicalMemory": 9622872,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 211.278,
+      "FreePhysicalMemory": 9239320,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 222.725,
+      "FreePhysicalMemory": 9382424,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 234.222,
+      "FreePhysicalMemory": 9634604,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 246.167,
+      "FreePhysicalMemory": 8845160,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 257.617,
+      "FreePhysicalMemory": 8987624,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 269.143,
+      "FreePhysicalMemory": 9094404,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 280.966,
+      "FreePhysicalMemory": 9194588,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 294.452,
+      "FreePhysicalMemory": 9178784,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 305.905,
+      "FreePhysicalMemory": 8737360,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 317.42,
+      "FreePhysicalMemory": 7784240,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 328.86,
+      "FreePhysicalMemory": 7916412,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 358.337,
+      "FreePhysicalMemory": 8098764,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 369.887,
+      "FreePhysicalMemory": 10133916,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 381.393,
+      "FreePhysicalMemory": 10174012,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 392.882,
+      "FreePhysicalMemory": 10141256,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 404.377,
+      "FreePhysicalMemory": 9789676,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 415.788,
+      "FreePhysicalMemory": 9611652,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 427.247,
+      "FreePhysicalMemory": 9348808,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 443.03,
+      "FreePhysicalMemory": 8915452,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 454.438,
+      "FreePhysicalMemory": 9547152,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 465.939,
+      "FreePhysicalMemory": 9294080,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 477.457,
+      "FreePhysicalMemory": 8944432,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 489.013,
+      "FreePhysicalMemory": 9856956,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 500.461,
+      "FreePhysicalMemory": 9949520,
+      "TotalVisibleMemorySize": 66859092
+    },
+    {
+      "elapsed_seconds": 514.029,
+      "FreePhysicalMemory": 9874204,
+      "TotalVisibleMemorySize": 66859092
+    }
+  ],
+  "task_owned_paths": {
+    "target": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target",
+    "logs": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\logs",
+    "tmp": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\tmp"
+  },
+  "pid": 91120,
+  "exit_code": 0,
+  "finished_utc": "2026-10-19T20:15:49.786826+00:00",
+  "wall_seconds": 524.165,
+  "lock_sha256_after": "0d2699c31955d28f429731eda2972dc4faced07747320b074bc774c3334f75c0",
+  "locked_lockfile_unchanged": true,
+  "changed_files": [
+    "src/visit.rs"
+  ],
+  "candidate": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+  "candidate_sha256": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6",
+  "candidate_version": "cargo-mutants 27.1.0"
+}

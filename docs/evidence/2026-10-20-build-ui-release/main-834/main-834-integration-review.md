@@ -1,0 +1,28 @@
+# Main834 integration source review
+
+**Approved for the scoped merge. No actionable integration defect found.** Reviewed the merged working-tree source from local parent `c2518b7f7147fa7c51b07be40668c5c0d826d00e` and incoming main `834227d882e60885654646742951976d91928880`. This is source approval before reference-fingerprint refresh, not approval of an unexecuted merged build or current pixels.
+
+1. **Native and content contributions match incoming main exactly.** `git diff --quiet 834227d8 -- crates content` returned0. The new boundary/window/save/portal rules are upstream's already reviewed implementation. This integration does not alter them. Read upstream `docs/evidence/2026-10-19-build-walls/verification.md`, including its test results, capture method, open screenshot-refresh list and physical-input limits. Those upstream results are attributed historical evidence, not new merged-artifact execution.
+2. **The browser companions are also preserved.** Comparison against834 is empty for input handling, placement actions, wall/window tools, wall picking, wall view, command batching, shortcuts and the renderer subtree. In `floor-tool.ts`, the sole difference from834 is `CHOOSE_TILE = ''`, retaining the reviewed suppression of generic initial feedback. Upstream's area corners, preview arrays, eligible-tile filtering, 32-edits-per-drain progression, receipts, failures and resource restrictions are intact.
+3. **Main retains both sets of behavior.** Relative to the local parent, the added imports, wall-face picking, hover, Low/Full height controls, T shortcut, selected-line raising and ranged floor preview are upstream's contributions. Relative to834, the differences retain the reviewed footer exit, status cancellation, Land destination gate and corrected room-review refusal hook. Room review still blocks canvas edits; ordinary review refusal uses `cancelDestination()`, Back uses full invalidation, and Load/End/graphics still dismiss the exit owner. No second exit or room-review owner was introduced.
+4. **Pending area edits remain visible to the exit owner.** Floor and wall controllers keep their existing non-null pending contract through their batched queues. Main still drains controllers and checks `buildCommandsIdle()` before preparing native confirmation. A pending area cannot silently count as clean. End/Load refresh still resets both controllers and their pending queues. A large selection can require further frame drains; the existing bounded settle failure remains a refusal rather than adopting unsettled edits.
+5. **Markup preserves both contributions.** Wall and Room Low/Full height buttons, wall run hint and floor opposite-corner hint are present alongside the activity button, blank routine statuses, neutral Keep building, Discard then Confirm ordering and repaired SVG zoom icon. No upstream control ID or our exit control was removed by the automatic merge.
+6. **Resolved guide prose covers the combined behavior before metadata refresh.** Home controls, UI elements and Quick help preserve incoming wall-face/floor-edge picking, run selection, Low/Full height and T, lot-edge windows/doorways, wide-window fit and floor rectangle selection/refused tiles. The three conflicting floor paragraphs retain both area selection and the bottom Confirm exit. Existing footer Cancel/Confirm consequences, Land's fresh-batch decision, separate Buy land purchase, retained room naming and review Back/current-tool behavior remain. The changed native boundary effects therefore have corresponding prose; no numerical rule in this merge requires a new reference value.
+7. **Screenshot limitations remain explicit.** The merged metadata retains the eight upstream `pendingRefresh` groups: build-walls, build-windows, window-models, build-floors, floor-actions, build-room-outline, help and help-shortcuts. Prior release captures remain evidence of their recorded source. They do not prove the new wall height/range controls or merged layout. Keep this inherited refresh boundary visible in delivery evidence and obtain whatever new combined played/visual checks the parent assigns; source equality and refreshed hashes cannot approve pixels.
+
+## Reviewed source hashes
+
+SHA-256 of the six integration/prose files at this review:
+
+| File | SHA-256 |
+| --- | --- |
+| web/src/main.ts | 2338EBE6E9D6A1A386D87D4FE5EE1BF98CEE2F0FF313CFA1943BD70F88A4FDA4 |
+| web/src/ui/floor-tool.ts | DDF5D0DAF3797989A0A6D4383BDC98440FD01675195705B8E1A956EBD08E4D47 |
+| web/index.html | C6C17E326F294D16B73D16335A9367FD85E437D9C51647DEBD7DC90762E7F3F5 |
+| docs/player/home-and-controls.md | C6DA7C532E34EC9EE5EAFDF2482E174E836B0EDCBD03F6FF0CBBCE39913F759E |
+| docs/player/quick-help.md | 34408A446D149B1EB9D1FF3E016413E50CC736B7A6DD393C2DF204B40C1897AA |
+| docs/player/ui-elements.md | C2CE274D54344459194A05BDFD1C4679230BF094EB0FDCF99481D2B2BC7E5BFE |
+
+No product files, Git state, source fingerprints, tests, browser state or processes were changed by this reviewer. Only this ignored report was written. No duplicate full review, full CI run or upstream native re-review was performed. Parent owns final merge resolution/staging, current Wasm rebuild, overlapping web checks, typecheck/build/reference checks and any new visual acceptance. Hosted Linux qualification and exhaustive mutation coverage remain unestablished under the previously recorded delivery boundary.
+
+**Next steps**: Parent may refresh reviewed-source fingerprints after confirming these source hashes remain current, finish applicable merged-artifact checks and visible acceptance, then complete authorized delivery.

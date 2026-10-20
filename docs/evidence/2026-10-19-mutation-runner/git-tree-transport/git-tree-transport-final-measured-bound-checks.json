@@ -1,0 +1,23 @@
+{
+  "bound_checks": [
+    {
+      "report": "git-tree-transport-initial-fixture-api-costs.json",
+      "cases": 5
+    },
+    {
+      "report": "git-tree-transport-initial-native-api-costs.json",
+      "cases": 4
+    },
+    {
+      "report": "git-tree-transport-final-distinct-api-costs.json",
+      "cases": 1
+    }
+  ],
+  "component_bounds": {
+    "worker": 20,
+    "aggregate": 192,
+    "measurement": 135
+  },
+  "all_passed": true,
+  "new_http_requests": 0
+}

@@ -1,0 +1,11 @@
+--- a/.github/scripts/test_mutation_recovery.py
++++ b/.github/scripts/test_mutation_recovery.py
+@@ -219,6 +219,8 @@
+         inventory, runs = recovery.fresh_inventory(api, self.f.data, settings)
+         job = dict(self.f.q.fixture.job, id=888, run_attempt=3, name="mutation-fixture-slot-0", conclusion="failure")
+         self.f.api.responses["repos/owner/repo/actions/runs/100/attempts/3/jobs?per_page=100&page=1"] = {"jobs": [job]}
++        self.f.api.responses["repos/owner/repo/actions/runs/100/attempts/3"] = {
++            "id": 100, "run_attempt": 3, "head_sha": "d" * 40}
+         with self.assertRaisesRegex(ValueError, "started worker is missing"):
+             recovery.ingest(api, self.f.data, settings, inventory, runs, include_current=True)
+         with self.assertRaisesRegex(runner.CapacityFailure, "three attempts"):

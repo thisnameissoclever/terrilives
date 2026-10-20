@@ -1,0 +1,98 @@
+{
+  "qualification_passed": true,
+  "completed_utc": "2026-10-19T21:37:48.831437+00:00",
+  "boundary": "Committed V20 native source; not final workflow input fingerprint",
+  "final_workflow_input_fingerprint": false,
+  "linux_final_source_enumeration_required": true,
+  "binary_hashes_before": {
+    "C:\\Users\\myema\\.cargo\\bin\\cargo-mutants.exe": "b4173bae5c104a37e72c1944b5f7ef79b6f235e09f5e6a7bcc5e6771bb75c406",
+    "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6"
+  },
+  "binary_hashes_after": {
+    "C:\\Users\\myema\\.cargo\\bin\\cargo-mutants.exe": "b4173bae5c104a37e72c1944b5f7ef79b6f235e09f5e6a7bcc5e6771bb75c406",
+    "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6"
+  },
+  "binaries_unchanged": true,
+  "limits": {
+    "checkout_seconds": 1800,
+    "listing_seconds": 120,
+    "input_proof_seconds": 180,
+    "overall_seconds": 2400,
+    "max_task_rss_bytes": 4294967296,
+    "min_host_free_bytes": 2147483648,
+    "cargo_jobs": 2
+  },
+  "wall_seconds": 719.936,
+  "toolchain": {
+    "cargo": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)\nbinary: rustc\ncommit-hash: e408947bfd200af42db322daf0fadfe7e26d3bd1\ncommit-date: 2026-03-25\nhost: x86_64-pc-windows-msvc\nrelease: 1.94.1\nLLVM version: 21.1.8",
+    "committed_toolchain": {
+      "channel": "1.94.1",
+      "components": [
+        "clippy",
+        "rustfmt"
+      ],
+      "targets": [
+        "wasm32-unknown-unknown"
+      ],
+      "profile": "minimal"
+    },
+    "toolchain_sha256": "350e50f9118f1f6ca7df6bb8b48f8f4cdf05b80b30cd3ed7a16465b313aa43a7",
+    "metadata_context": {
+      "RUSTUP_TOOLCHAIN": "1.94.1",
+      "CARGO_BUILD_JOBS": "2",
+      "CARGO_TARGET_DIR": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\v20\\target",
+      "CARGO_NET_OFFLINE": "true"
+    }
+  },
+  "input_commit": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+  "input_tree": "967d1c6da38253ee60848001e9f85589a923cfef",
+  "input_sha256": "0f92e79d83fc6c278cf160475613a5ec5190db976d0c9b62b9062456dd6a7655",
+  "input_count": 52895,
+  "generation_actual_file_count": 358,
+  "snapshots_identical": true,
+  "comparison": {
+    "boundary": "Committed V20 native source; not final workflow input fingerprint",
+    "commit": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+    "stock_count": 18543,
+    "candidate_count": 18543,
+    "raw_bytes_identical": true,
+    "complete_ordered_entries_equal": true,
+    "ordered_names_equal": true,
+    "identity_sets_equal": true,
+    "duplicate_names": [
+      0,
+      0
+    ],
+    "duplicate_composite_identities": [
+      0,
+      0
+    ],
+    "stock_sha256": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b",
+    "candidate_sha256": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b",
+    "package_counts": {
+      "terri-core": 1153,
+      "terri-data": 1644,
+      "terri-sim": 14572,
+      "terri-wasm": 1174
+    },
+    "all_fields_compared": [
+      "diff",
+      "file",
+      "function",
+      "genre",
+      "name",
+      "package",
+      "replacement",
+      "span"
+    ]
+  },
+  "no_tool_rebuild_or_selector_fixture_rerun": true,
+  "only_mutants_listing": true,
+  "no_compilation_artifacts_in_owned_target": true,
+  "checker_sha256": {
+    "qualify.py": "961414bed258049cd4d66406dfb3720580460976b68e99e6200043f22e69be1b",
+    "input-proof.py": "770a792857a4d95b663b3e585db874d44311358f2875a0f27411b98f3e182e6a",
+    "receipt_compare.py": "538c788a9291e659fda808fb3220382c011f2ad0674d40fc85d99f21b3747f37"
+  }
+}

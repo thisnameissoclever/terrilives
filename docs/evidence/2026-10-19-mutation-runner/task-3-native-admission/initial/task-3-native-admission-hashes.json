@@ -1,0 +1,84 @@
+{
+  "base_commit": "ad67b0b5995276a34c7434b9370042c6d6016dbd",
+  "package_sha256": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "before_sha256": "9109c1b829181299f8dc24f156461d7b260b5c77f9f9dfdf0faf31f336c5bfd5",
+      "sha256": "57313ed033b3c85fed7ca4e9a6a2aa9db9821eeedb9a20ae8cf70e9c3895246b",
+      "bytes": 30747
+    },
+    {
+      "path": ".github/scripts/mutation_workflow.py",
+      "before_sha256": "2991a3588ee57ed6e2ff6f9b59ad8db238bbe7c82f08ce9a57645cb4d63ed880",
+      "sha256": "def444ac2407cc3fbb2350b649065a77611b47f89d1c24226f58e38835151dbd",
+      "bytes": 30037
+    },
+    {
+      "path": ".github/scripts/mutation_tool.py",
+      "before_sha256": "b0f6a2beed1c741637f1de5e3df63598714f00e46c78c6fb8e6aac27942f461e",
+      "sha256": "2524b4689123df8e25b4f8c5c01baa0a15c4e1b0257e39cf156da41c89259048",
+      "bytes": 19524
+    },
+    {
+      "path": ".github/scripts/mutation_qualification.py",
+      "before_sha256": "b5f35141c3744cdd2dc62bb016a8f36c3c4cc6daadd25f8730b5a03e0cd25870",
+      "sha256": "a942c23bded1fe1bf79e8268d3ec56043b33572bcbc0e04196da08040770fbcd",
+      "bytes": 9293
+    },
+    {
+      "path": ".github/scripts/mutation_recovery.py",
+      "before_sha256": "acba3d4be65769eecb6dc1214ff98ede90bc84bb85f1d5f6180a2d028e77ee64",
+      "sha256": "7370097e186d0f07dd859db42dda1d1fd69179cb7cb632059a94d17bfc8df562",
+      "bytes": 38782
+    },
+    {
+      "path": ".github/scripts/test_workflow_concurrency.py",
+      "before_sha256": "d745c0990db8d5c8c1984985cf945985571ee3c04c35d9b8054bb7e6a0e769ce",
+      "sha256": "4ebfd13921d07595858ba5cdf778d8301f9c8bb7c4242e525060663368f85813",
+      "bytes": 7988
+    },
+    {
+      "path": ".github/scripts/test_mutation_recovery.py",
+      "before_sha256": "67f9c17e8c5de4dd91b0c69a338d717300c46fa6de56f7d48efe063693ba68b5",
+      "sha256": "44eb950f9871d79f3fd9b67af35b0f9946ad5152dc5f38cd0ac98784b47ceada",
+      "bytes": 40653
+    },
+    {
+      "path": ".github/scripts/test_mutation_workflow.py",
+      "before_sha256": "3ec17ab0df035b2683b5a5e3f7b70af49239a95a21d105f4436b3e84a4fc88b5",
+      "sha256": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+      "bytes": 18675
+    },
+    {
+      "path": ".github/scripts/test_mutation_qualification.py",
+      "before_sha256": "db58919543ccf30a742d1dcc3740e3e992ba2da2ff256f7385fdd06714a84981",
+      "sha256": "9e05da6a208a971913caafc06b57c9408f2a2a34b2e9ec5d2f4288806c339788",
+      "bytes": 9928
+    },
+    {
+      "path": "docs/mutation-campaign.md",
+      "before_sha256": "1fd9d8a3cc1a3cee924282108ea12bec66eddbde6be10010dd449c49dd9b33f5",
+      "sha256": "aa7daac3b72faa310357a850c10d04df0b2a6fefd1397217687efa5e6a8993ac",
+      "bytes": 16540
+    },
+    {
+      "path": "docs/testing-protocol.md",
+      "before_sha256": "4c1f390a180acc684f14617f676dffe6091720c1e406e86ad66564871c595735",
+      "sha256": "50862d6438823f449dd108a1ae68bfe48dbe4229a478cc3869d08886e43ea8b6",
+      "bytes": 16814
+    },
+    {
+      "path": ".github/scripts/mutation_native.py",
+      "before_sha256": null,
+      "sha256": "024006d0bdfd5e5085c1735661213c97492783e7b2332df6046ed6942b08f355",
+      "bytes": 54374
+    },
+    {
+      "path": ".github/scripts/test_mutation_native.py",
+      "before_sha256": null,
+      "sha256": "36250c5c7c05ccccb04b7a510a53967a49ba09d983ce7103c9c2b6adf5537996",
+      "bytes": 56094
+    }
+  ]
+}

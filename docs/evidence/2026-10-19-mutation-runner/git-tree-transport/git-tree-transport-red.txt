@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_tree_request_failure_propagates_without_fallback (test_mutation_tool.ToolAuthenticationTests.test_tree_request_failure_propagates_without_fallback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_tool.py", line 246, in test_tree_request_failure_propagates_without_fallback
+    self.assertEqual(fetch.call_args_list, [mock.call("repos/owner/repo/git/commits/" + "b" * 40),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        mock.call("repos/owner/repo/git/trees/" + "c" * 40)])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [call[69 chars]bb'),
+ call('repos/owner/repo/git/trees/cccccc[44 chars]=1')] != [call[69 chars]bb'), call('repos/owner/repo/git/trees/ccccccc[31 chars]cc')]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+FAILED (failures=1)

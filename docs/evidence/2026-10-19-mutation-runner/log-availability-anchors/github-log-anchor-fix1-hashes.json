@@ -1,0 +1,18 @@
+{
+  "baseline_package": "3e53b0ee8b52389f14c8de6604d67df5e6679dc643cad1ab789b827d67cfb221",
+  "files": {
+    "mutation_recovery.py": {
+      "before_sha256": "d56f47ffe9213835615846b8f14ac4cfefcf642cb01c282e9d816429413b1871",
+      "before_bytes": 50013,
+      "after_sha256": "f8b4898824f704d570ce5daad035fda62003605d7d663342e869771726f4f72a",
+      "after_bytes": 50059
+    },
+    "test_mutation_recovery.py": {
+      "before_sha256": "14f96e2e80bf517c38a2ad550f31a16ade1427a705d20a22ad4b6889c14ba968",
+      "before_bytes": 52875,
+      "after_sha256": "9dcbaf0af0411a494ed3e7fc65a68cca58bced35a98c4912534eb0f93c0cc9e9",
+      "after_bytes": 56079
+    }
+  },
+  "package_sha256": "7574ea70e4f5bf830180cc33854a0ff4c80cc0f5a896e34ae3caf25dc69463bc"
+}

@@ -14,6 +14,8 @@ Desktop: choose a name under Household in the bottom dock. Phone: use the Househ
 
 Edit sits beside the selected name. It opens that person's character draft. It is unavailable without a selected living person. A warning near a household name helps you spot a person who needs attention without assuming the selected person is the only one in trouble.
 
+If the activity beside the selected name is clipped, hover over it, focus it with the keyboard, or click or tap it to read the full text. Escape or a press outside closes the popup. Reading it does not issue an order.
+
 :::illustration household
 
 ## Clock, speed and camera {#clock-and-speed}
@@ -132,7 +134,7 @@ Choose Build in the top world controls, or Enter build mode from an object menu.
 
 :::illustration build-furniture
 
-Furniture selects a placed item. Choose a destination, use curved arrows to rotate, and Place. Colour changes its appearance. Sell shows its payout. A nearby Cancel clears the selection. The bottom Confirm keeps the batch; bottom Cancel discards changes since the last confirmation. Exit build leaves, asking about an unconfirmed draft when needed. See [Build rules](home-and-controls/#build).
+Furniture selects a placed item. Choose a destination, use curved arrows to rotate, and Place. Colour changes its appearance. Sell shows its payout. A nearby Cancel clears the selection. The bottom Confirm keeps the batch and exits Build; bottom Cancel discards the batch and exits Build. Exit build leaves, asking about an unconfirmed draft when needed. See [Build rules](home-and-controls/#build).
 
 :::illustration build-placement
 
@@ -158,7 +160,7 @@ The status explains refusals. A window must fit entirely within a solid wall. Wi
 
 ## Floors {#floors}
 
-Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
+Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
 
 :::illustration floor-actions
 
@@ -168,14 +170,15 @@ Choose Build, then Rooms. Select rooms lets you click a floor or choose a room f
 
 :::illustration build-rooms
 
-Room names remain pending across tool changes. Enter in the name field does not confirm them. A boundary change may open a room review at Confirm. See [rooms and land](home-and-controls/#rooms-and-land).
+Room names remain pending across tool changes. Enter in the name field does not confirm them. A boundary change may open a room review at Confirm. Back to build preserves the draft and current tool, including Walls when a switch to Land opened the review. See [rooms and land](home-and-controls/#rooms-and-land).
 
 :::illustration room-review
 
 ## Land {#land}
 
-Choose Build, then Land. Choose Behind the house, Left side or Right side and inspect dimensions, price and remaining Funds. **Buy** opens a land-purchase confirmation. Choose **Buy** there to add it to the draft; the bottom Build **Confirm** keeps it. Read the status when an expansion is unavailable.
+Choose Build, then Land. With pending changes, Switch to Land? offers Confirm changes, Discard changes or Keep building. Confirm changes keeps the current batch and opens a fresh Land batch; Discard changes undoes it and opens a fresh Land batch. Keep building preserves the current tool and draft.
 
+Choose Behind the house, Left side or Right side and inspect dimensions, price and remaining Funds. **Buy land** opens a separate land-purchase confirmation. Choose **Buy** there to add it to the draft; the bottom Build **Confirm** keeps it and exits Build. Read the status when an expansion is unavailable.
 :::illustration build-land
 
 ## Options {#options}

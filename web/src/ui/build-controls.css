@@ -193,6 +193,9 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
+#build-batch-status:empty, #builder-status:empty, #buy-status:empty, #floor-status:empty,
+#land-status:empty, #land-touch-help:empty, #room-status:empty { display: none; }
+#build-zoom-out svg { display: block; margin: auto; }
 /* A refusal must not read like routine status: danger colour and a rule
    beside it, which forced colours keep as a visible border. */
 #build-batch-status[data-kind='error'], #build-exit-status:not(:empty) {

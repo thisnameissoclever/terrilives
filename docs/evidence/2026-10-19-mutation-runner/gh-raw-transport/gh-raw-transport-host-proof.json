@@ -1,0 +1,24 @@
+{
+  "source_head": "0a7ee7b2ceef3a7737d9ad41844f88326e1b837e",
+  "endpoint": "repos/thisnameissoclever/terrilives/actions/jobs/118400450625/logs",
+  "bytes": 21136,
+  "sha256": "c7f36f5fa1b6376a455c5a44d13c8de76220ae2aca5b92f5fa844fcb8eeddc9b",
+  "known_sha_matches": true,
+  "known_length_matches": true,
+  "offline_probes": 1,
+  "http_requests": 1,
+  "calls": [
+    [
+      "gh",
+      "api",
+      "--help"
+    ],
+    [
+      "gh",
+      "api",
+      "repos/thisnameissoclever/terrilives/actions/jobs/118400450625/logs",
+      "--allow-escape-sequences"
+    ]
+  ],
+  "raw_rendered": false
+}

@@ -1,0 +1,349 @@
+{
+  "provenance": {
+    "started_utc": "2026-10-19T20:17:16.249416+00:00",
+    "executable": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+    "executable_sha256": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6",
+    "version": "cargo-mutants 27.1.0",
+    "label": "candidate_fixture",
+    "only_mutants_listing_commands": true,
+    "candidate_run_authorization": "Owner approved isolated build and listing qualification.",
+    "scoped_rustup_toolchain": "1.94.1",
+    "fixture_cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "fixture_rustc_version": "rustc 1.94.1 (e408947bf 2026-03-25)\nbinary: rustc\ncommit-hash: e408947bfd200af42db322daf0fadfe7e26d3bd1\ncommit-date: 2026-03-25\nhost: x86_64-pc-windows-msvc\nrelease: 1.94.1\nLLVM version: 21.1.8",
+    "baseline": "This fresh stock listing establishes the frozen-source reference.",
+    "fixture_sha256": {
+      "Cargo.toml": "32a40095141cde01cc34d3152aad0e2bcad61b1b4abedcfd41ea4ddaab339704",
+      "src/lib.rs": "5877ddbec9523129eac0b36cf02c297644ed94a80a68d9566deb7d122b8651c2",
+      "rust-toolchain.toml": "350e50f9118f1f6ca7df6bb8b48f8f4cdf05b80b30cd3ed7a16465b313aa43a7"
+    }
+  },
+  "fixture_unfiltered_count": 8,
+  "field_names": [
+    "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+    "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+  ],
+  "same_line_field_span": [
+    {
+      "end": {
+        "column": 22,
+        "line": 8
+      },
+      "start": {
+        "column": 12,
+        "line": 8
+      }
+    },
+    {
+      "end": {
+        "column": 34,
+        "line": 8
+      },
+      "start": {
+        "column": 23,
+        "line": 8
+      }
+    }
+  ],
+  "ordinary_count": 5,
+  "specification_assertions": 22,
+  "specification_passed": 22,
+  "specification_failed": 0,
+  "cases": [
+    {
+      "case": "cli_include_nothing",
+      "expected_names": [],
+      "actual_names": [],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_include_nothing",
+      "expected_names": [],
+      "actual_names": [],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_exact_A",
+      "expected_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_exact_A",
+      "expected_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_exclude_A",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+        "src/lib.rs:8:5: replace configured -> Pair with Default::default()"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:5: replace configured -> Pair with Default::default()",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_exclude_A",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+        "src/lib.rs:8:5: replace configured -> Pair with Default::default()"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:5: replace configured -> Pair with Default::default()",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_ordinary_only",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1"
+      ],
+      "actual_names": [
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_ordinary_only",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1"
+      ],
+      "actual_names": [
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_OR_A_B",
+      "expected_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_OR_A_B",
+      "expected_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_OR_A_ordinary",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_OR_A_ordinary",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "mixed_config_A_cli_ordinary",
+      "expected_names": [
+        "src/lib.rs:12:10: replace + with * in ordinary",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+        "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+        "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+        "src/lib.rs:12:10: replace + with - in ordinary",
+        "src/lib.rs:12:10: replace + with * in ordinary"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "cli_include_A_exclude_A",
+      "expected_names": [],
+      "actual_names": [],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "mixed_include_A_B_exclude_A",
+      "expected_names": [
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "actual_names": [
+        "src/lib.rs:8:23: delete field second from struct Pair expression in configured"
+      ],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "config_include_A_exclude_A",
+      "expected_names": [],
+      "actual_names": [],
+      "missing": [],
+      "unexpected": [],
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_include_nothing",
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_exact_A",
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_exclude_A",
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_ordinary_only",
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_OR_A_B",
+      "status": "PASS",
+      "assertion_error": null
+    },
+    {
+      "case": "parity_OR_A_ordinary",
+      "status": "PASS",
+      "assertion_error": null
+    }
+  ]
+}
