@@ -152,7 +152,10 @@ fn idle(world: &World, person: Entity) -> bool {
     let Ok(e) = world.get_entity(person) else {
         return false;
     };
-    !e.contains::<crate::reading::ReadingJourney>()
+    // A reserved person is waiting for someone walking over to talk or argue.
+    // The loader refuses a reserved recipient with work of their own.
+    !e.contains::<terri_core::Reserved>()
+        && !e.contains::<crate::reading::ReadingJourney>()
         && !e.contains::<crate::reading::PendingShift>()
         && !e.contains::<Target>()
         && !e.contains::<terri_core::chores::ChoreWork>()
