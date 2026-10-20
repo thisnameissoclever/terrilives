@@ -120,7 +120,7 @@
     "crates/terri-sim/src/books/lifecycle.rs": "1bb01762d46f91121c8a6ed0e9b5d59bb4c2264cf257027ca5274a10223a3871",
     "crates/terri-sim/src/books/tests.rs": "2c55437b95d8d97e703fc0b45f233e278dff4065167fa1f1eb5656f99e85a882",
     "crates/terri-sim/src/build_transaction.rs": "6a4dcd2e23a0bb68d101467cfeeffeb3aea1b686f173d9e19c6e5126346bf9ed",
-    "crates/terri-sim/src/build_transaction/cases.rs": "7c2f7cd5eaab46952133c711451a5d045a4c160a75f0f832ab46ccf8c6e83386",
+    "crates/terri-sim/src/build_transaction/cases.rs": "fff58cc82ffe35984c6ee351509e99c8e7c3b1c8552bacb994bb9e173033aa88",
     "crates/terri-sim/src/build_transaction/commands.rs": "ff0786a47131b531cdda6ac2d60063f975cd1b2a0892e1e57f772933dd49091c",
     "crates/terri-sim/src/build_transaction/ordinary.rs": "a8a065bd34b7fe6ec1517204bbbb8ea6ae5b07e5e348097fdbaa852f52b68f6a",
     "crates/terri-sim/src/build_transaction/ordinary_runtime.rs": "e034c219b4c41d9341cbf8f0f5bedcc4c0c38586ddfbb46f265f9dcd093b808b",

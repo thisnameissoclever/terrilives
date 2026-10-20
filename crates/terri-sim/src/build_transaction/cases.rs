@@ -123,6 +123,75 @@ fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
     panic!("no furniture in the shipped house has a pocket to seal beside it");
 }
 
+/// Someone walking round to furniture just behind a window is not using it
+/// through the glass. The whole load must accept that, so Build mode opens.
+#[test]
+fn build_opens_with_someone_walking_past_a_window_to_furniture_behind_it() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let content = sim.world().resource::<Content>().0;
+    let objects: Vec<_> = {
+        let world = sim.world_mut();
+        let mut query = world.query::<(
+            Entity,
+            &terri_core::Position,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>();
+        query
+            .iter(world)
+            .map(|(e, p, object, facing)| {
+                let footprint = crate::placed_footprint(content, object.0, facing);
+                (e, p.x as i32, p.y as i32, footprint)
+            })
+            .collect()
+    };
+    let found = objects.into_iter().find_map(|(object, x, y, footprint)| {
+        let beyond = (x, y + footprint.depth as i32);
+        issue(
+            &mut sim,
+            SimCommand::FitWindow {
+                axis: EdgeAxis::Horizontal,
+                x: beyond.0 as u32,
+                y: beyond.1 as u32,
+                model: terri_core::windows::WindowModel::Sash,
+            },
+        );
+        let fitted = sim
+            .world()
+            .resource::<crate::placement::LotEditState>()
+            .last_window_result
+            .is_some_and(|r| r.reason.is_none());
+        if !fitted {
+            return None;
+        }
+        let grid = sim.world().resource::<terri_core::TileGrid>();
+        let path = grid.find_path_adjacent(beyond, (x, y), footprint)?;
+        (grid.is_walkable(beyond.0, beyond.1) && path.len() > 1).then_some((object, beyond, path))
+    });
+    let (object, beyond, path) = found.expect("a window fits between furniture and open floor");
+    confirm(&mut sim);
+    sim.end_build().unwrap();
+    let walker = sim.spawn_agent(
+        terri_core::Position {
+            x: beyond.0 as f32,
+            y: beyond.1 as f32,
+        },
+        100.0,
+    );
+    sim.world_mut().entity_mut(walker).insert((
+        terri_core::Target {
+            object,
+            interaction: 0,
+        },
+        terri_core::Path {
+            steps: path,
+            cursor: 0,
+        },
+    ));
+    assert_eq!(sim.begin_build(), Ok(()), "{:?}", sim.build_diagnosis());
+}
+
 /// The Room tool drawn over an already walled pocket adds no wall, only the
 /// doorway; it is held to the same rule as an opened single line.
 #[test]
