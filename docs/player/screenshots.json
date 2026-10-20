@@ -3,9 +3,9 @@
   "build": {
     "status": "complete",
     "capturedAt": "2026-10-19",
-    "url": "http://127.0.0.1:8324/",
-    "bundle": "index-y9q1-SyJ.js",
-    "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+    "url": "http://127.0.0.1:5191/",
+    "bundle": "index-K6DwJp0C.js",
+    "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
     "desktopViewport": {
       "width": 1440,
       "height": 960
@@ -74,6 +74,40 @@
         "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
         "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
         "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "build-release-guide-integration",
+        "url": "http://127.0.0.1:5191/",
+        "sourceCommit": "c47f806e9",
+        "sourceChanges": "Reviewed working-tree player-guide changes, identified by exact file hashes; not a committed snapshot.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "070716aa98e4ce4d245e2d295bc74be1362316591999a122ce258c1c09d2f0b1",
+          "docs/player/home-and-controls.md": "d07b1e9fa763943287f53b2f0e5739547aeffc13c7f6b354fcfab9ba3e7a584d",
+          "docs/player/ui-elements.md": "a784bdf60d211248734d51c9b8fcc1e6fe2ebfa3542cb5733dda087e37e4bd33",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "35cf2ff0c1d5d2c65a5c10b7ea9d6f0cbec24c847c79528892951c86ebc8ddf6"
+        },
+        "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+        "bundle": "index-K6DwJp0C.js",
+        "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+        "gameSourceFileSha256": {
+          "web/index.html": "5c76a6864fb790ebc47e1148097a6dd6d410ec0ad7eec448058b1533a47c91aa",
+          "web/src/main.ts": "b3695936f87bb2dd73c715fc10904c8c728fd8ccd50014a2d46b8bea474bb836",
+          "web/src/ui/build-exit.ts": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "5d93982b2587edc48b9f69dd53abd0412bbd7c9fe0bd0cb8acab3561e7f0045c",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        }
       }
     ],
     "weatherSetup": {
@@ -92,7 +126,7 @@
         "snowRealSeconds": 2.5
       }
     },
-    "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+    "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
     "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
     "phoneMode": "Chrome phone viewport and touch emulation; not a physical phone",
     "viewportReuse": "Final identity and condition passes reused one isolated game context across viewports.",
@@ -104,9 +138,9 @@
       "mobileParagraphWidth": 182.203125,
       "input": "Actual mouse right-click; Chrome touch long-press input at the phone viewport."
     },
-    "sourceCommit": "d59d004",
+    "sourceCommit": "c47f806e9",
     "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
-    "unchangedControlsImpact": "Main d59d004 adds background-tab play. The delivery build adds the direct Player guide HUD link. Overview and guide-link states were refreshed; older screenshots retain their original per-entry snapshots and hashes for controls unchanged by these additions.",
+    "unchangedControlsImpact": "Build release screenshots refresh the changed exit and Land decisions, room-review return, dock layout and Build Help. Other tool states and close-ups retain their original per-entry or per-image snapshots. Unchanged close-ups show the same functional controls; their historical whole-page surroundings are not current-build evidence.",
     "helpVerification": {
       "source": "current-main-help",
       "desktopGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
@@ -115,7 +149,7 @@
       "inspected": "Opening Help, both Company & chores scroll positions, player guide link and shortcuts at both viewports. Native dialog closeups included.",
       "cleanup": "All task-owned game contexts, guide popups and Chrome closed."
     },
-    "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+    "sourceChanges": "Reviewed working-tree player-guide changes, identified by exact file hashes; not a committed snapshot.",
     "guideShortcutVerification": {
       "source": "delivery-guide-shortcut",
       "desktop": {
@@ -141,27 +175,77 @@
       "browserErrors": [],
       "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
       "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
+    },
+    "buildReleaseVerification": {
+      "source": "build-release-guide-integration",
+      "capture": "Original Chrome compositor PNGs copied byte-for-byte; no raster edits.",
+      "viewports": {
+        "desktop": {
+          "width": 1440,
+          "height": 960
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      "devicePixelRatio": 1,
+      "activityPopup": "The captured Bathing activity is not clipped. These screenshots do not verify the clipped-activity popup.",
+      "returnedWalls": "The Walls selection is established by visible selected styling and the played ARIA receipt. activeElement remains the Land launcher and does not identify the selected tool.",
+      "independentReview": "Current game image states independently inspected; rendered guide acceptance and executed interaction receipts are retained separately."
     }
   },
   "entries": [
     {
       "id": "overview",
       "section": "overview",
-      "desktop": "images/ui-guide-shortcut-desktop.png",
-      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "desktop": "images/ui-build-release-overview-desktop.png",
+      "mobile": "images/ui-build-release-overview-mobile.png",
       "description": "The game view with the clock, funds, save status, speed controls, Build, Options, Player guide and selected-person dock.",
       "access": "Open the game. Select a name at the bottom of the screen.",
       "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
-      "sourceSnapshot": "delivery-guide-shortcut",
-      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
-      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
       "imageSha256": {
-        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
-        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktop": "0fd6dde669dc871249cb80f30abe0eb9f66a389b330137940d53be08690567d8",
+        "mobile": "cdeedd57781e4d424615b39ccf94d3c995ff7d37d472008bdd488332409765e9",
         "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
         "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
       },
-      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png"
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
+      "imageSourceSnapshots": {
+        "desktopDetail": "delivery-guide-shortcut",
+        "mobileDetail": "delivery-guide-shortcut",
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "0fd6dde669dc871249cb80f30abe0eb9f66a389b330137940d53be08690567d8"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "cdeedd57781e4d424615b39ccf94d3c995ff7d37d472008bdd488332409765e9"
+        }
+      }
     },
     {
       "id": "options",
@@ -185,16 +269,46 @@
     {
       "id": "dock-collapsed",
       "section": "household",
-      "desktop": "images/ui-dock-collapsed-desktop.png",
-      "mobile": "images/ui-dock-collapsed-mobile.png",
+      "desktop": "images/ui-build-release-dock-collapsed-desktop.png",
+      "mobile": "images/ui-build-release-dock-collapsed-mobile.png",
       "description": "The dock after Collapse; choose Expand to show the household again.",
       "access": "Choose Collapse in the selected-person dock.",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
       "imageSha256": {
-        "desktop": "3dd4f8b3f52d61cc8b616cd9f44f79092b844bcbf66da047836c90c5b65e7b3e",
-        "mobile": "47c3596d112b8aba3f809ed4a33f5ad21af000fd7cc36ec5a484fcb0bbe4eecc"
+        "desktop": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9",
+        "mobile": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+      },
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+        }
       }
     },
     {
@@ -383,16 +497,56 @@
     {
       "id": "build-exit-confirm",
       "section": "build",
-      "desktop": "images/ui-build-exit-confirm-desktop.png",
-      "mobile": "images/ui-build-exit-confirm-mobile.png",
-      "description": "The choice to keep building, confirm changes or discard changes.",
+      "desktop": "images/ui-build-release-build-exit-confirm-desktop.png",
+      "mobile": "images/ui-build-release-build-exit-confirm-mobile.png",
+      "description": "Leave Build mode? with Keep building, Discard changes and Confirm changes.",
       "access": "Change a room name in Build, then choose Exit build before confirming.",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
       "imageSha256": {
-        "desktop": "c5054cd91a9571d489d21ad77dd91beabd15006ec934fceb3bdb0aa69cf95b55",
-        "mobile": "0d94e50040ac3f1ddd8b5f6559301fd0449c43849e6d931430ee6c7de460b34a"
+        "desktop": "a722c1e0e1bbd29640412bcdbe6372d250b46dce9a4e117b1a9ba5b3e9720ed2",
+        "mobile": "9423ebd7ae03f01f70e4c831e80f3f2f8a21388482750955426d43fb867d9dce"
+      },
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Leave Build mode?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "a722c1e0e1bbd29640412bcdbe6372d250b46dce9a4e117b1a9ba5b3e9720ed2"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Leave Build mode?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "9423ebd7ae03f01f70e4c831e80f3f2f8a21388482750955426d43fb867d9dce"
+        }
       }
     },
     {
@@ -496,18 +650,49 @@
     {
       "id": "build-walls",
       "section": "walls",
-      "desktop": "images/ui-build-walls-desktop.png",
-      "mobile": "images/ui-build-walls-mobile.png",
-      "description": "Wall, Doorway, Windows, rotation, Remove and Cancel controls beside a selected edge.",
-      "access": "Choose Build > Walls, then select an edge between two tiles.",
+      "desktop": "images/ui-build-release-build-walls-desktop.png",
+      "mobile": "images/ui-build-release-build-walls-mobile.png",
+      "description": "Walls after Back to build, with the removed boundary and its contextual controls still in the draft.",
+      "access": "From a Walls draft that changes a room boundary, choose Land, Confirm changes, then Back to build in Review room changes.",
       "desktopDetail": "images/ui-build-walls-detail-desktop.png",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
       "imageSha256": {
-        "desktop": "adc89c061d4a5b2ad5cc9262c02a79e321f2c9201b4b66fcf0e8f1d61a182f52",
-        "mobile": "2d167490ece5c377c42496235a69f2327298537ef54c499eca245b65fd17ef24",
+        "desktop": "6979d0d2983fc05890445e5d6cd4a5216e5bf077d68d41ec35bd0b00e6aaa180",
+        "mobile": "c54dfc88bc22a811bebab8adf8d9f0a6519e2bb3e16b60972edf7dd87a81171e",
         "desktopDetail": "f135ea97a8b29e3726cc38198a6937f0a6fa0425f8e3e1e8823b11223fc4403e"
+      },
+      "imageSourceSnapshots": {
+        "desktopDetail": "minus-fix",
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "6979d0d2983fc05890445e5d6cd4a5216e5bf077d68d41ec35bd0b00e6aaa180"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "c54dfc88bc22a811bebab8adf8d9f0a6519e2bb3e16b60972edf7dd87a81171e"
+        }
       }
     },
     {
@@ -890,21 +1075,57 @@
     {
       "id": "help",
       "section": "help",
-      "desktop": "images/ui-help-desktop.png",
-      "mobile": "images/ui-help-mobile.png",
-      "description": "The short in-game Help dialog.",
-      "access": "Choose Options > Help.",
-      "sourceSnapshot": "current-main-help",
-      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
-      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "desktop": "images/ui-build-release-help-desktop.png",
+      "mobile": "images/ui-build-release-help-mobile.png",
+      "description": "Build & place in the short in-game Help dialog.",
+      "access": "Choose Options > Help, then expand Build & place. Scroll inside Help for the remaining instructions.",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
       "imageSha256": {
-        "desktop": "92a425a88d38367616849da445256e550b01a9feb094775d480465562491a44c",
-        "mobile": "adf87610bf18dd4517bb70d54b173f34a8fe1790ff9fe407b5b9b8486905eb75",
-        "desktopDetail": "25d519dbcb8a4615dddc80ab2abe16ba440b54ec7b9ecf522a893dffc7201493",
-        "mobileDetail": "6fe55426f5aa74558c2d3a5eef88f02dd64d4f25a1ce8ee6ef378e13be0c70d4"
+        "desktop": "a5ec1e15422803788786d8c7793c6ad7178a8c1b83ca0285e6ffde609aa2a308",
+        "mobile": "bed63d4441a8b58bfd72094410a1ab2b046c42f7c05a9b8a91e1d603554c8e0d"
       },
-      "desktopDetail": "images/ui-help-detail-desktop.png",
-      "mobileDetail": "images/ui-help-detail-mobile.png"
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "help-panel",
+              "text": "How to play\n\nGame time is paused while this guide is open.\n\nBuild & place\nBuild pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Confirm at the bottom keeps this batch and exits Build. Cancel there discards this batch and exits Build. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.\nWalls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.\nRooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits and the current tool. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm at the bottom keeps the batch and exits Build.\nBuy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.\nFloors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.\nLand starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See rooms and land.\nPeople & actions\nCompany & chores\nCamera\nOptions & saves\nFull player guide\nShortcuts\nGot it"
+            }
+          ],
+          "sourceImageSha256": "a5ec1e15422803788786d8c7793c6ad7178a8c1b83ca0285e6ffde609aa2a308"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "help-panel",
+              "text": "How to play\n\nGame time is paused while this guide is open.\n\nBuild & place\nBuild pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Confirm at the bottom keeps this batch and exits Build. Cancel there discards this batch and exits Build. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.\nWalls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.\nRooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits and the current tool. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm at the bottom keeps the batch and exits Build.\nBuy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.\nFloors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.\nLand starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See rooms and land.\nPeople & actions\nCompany & chores\nCamera\nOptions & saves\nFull player guide\nShortcuts\nGot it"
+            }
+          ],
+          "sourceImageSha256": "bed63d4441a8b58bfd72094410a1ab2b046c42f7c05a9b8a91e1d603554c8e0d"
+        }
+      }
     },
     {
       "id": "load-confirm",
@@ -1491,6 +1712,151 @@
         "desktopDetail": "1f2dd3108ed7ef66fdff3c94b7d4ae5b2c72a6647b9ab4709ca98e2e3fb8cc81",
         "mobileDetail": "4ae6668de7c90be9f1d540cf647f6cb1cdd50e194d4520ce514a64202966e568"
       }
+    },
+    {
+      "id": "build-switch-land",
+      "section": "land",
+      "description": "Switch to Land? with Keep building, Discard changes and Confirm changes.",
+      "access": "With pending Build changes, choose Land. Resolve the current batch before starting Land.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "afa8637fd4d75614605db4ec2254c68e376da4eecacff218497decac4c8b762f",
+        "mobile": "c341c8a99f2bb5d5399b7229a2988913a1b34f31e6a0940dcbb624a34067f925"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Switch to Land?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "afa8637fd4d75614605db4ec2254c68e376da4eecacff218497decac4c8b762f"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Switch to Land?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "c341c8a99f2bb5d5399b7229a2988913a1b34f31e6a0940dcbb624a34067f925"
+        }
+      },
+      "desktop": "images/ui-build-release-build-switch-land-desktop.png",
+      "mobile": "images/ui-build-release-build-switch-land-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "build-land-fresh",
+      "section": "land",
+      "description": "A fresh Land batch with Land selected and the Build footer available.",
+      "access": "Choose Land, resolving any pending changes first. Scroll inside the phone panel for the other strips and purchase controls.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "531c044e765f179d68d719b601b431dca2f3810541bc92fda7edd0efe06acadb",
+        "mobile": "0c36cec310cb4689be35ccacb7433a79c0f1bf4fc0c025191918d7e0af309292"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "531c044e765f179d68d719b601b431dca2f3810541bc92fda7edd0efe06acadb"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "0c36cec310cb4689be35ccacb7433a79c0f1bf4fc0c025191918d7e0af309292"
+        }
+      },
+      "desktop": "images/ui-build-release-build-land-fresh-desktop.png",
+      "mobile": "images/ui-build-release-build-land-fresh-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "room-review-land",
+      "section": "rooms",
+      "description": "Review room changes after a removed wall merges two rooms.",
+      "access": "Remove a boundary in Walls, choose Land, then Confirm changes. Back to build returns to Walls with the draft retained.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "060f6a6c60c2d45650d0071a514804e113ad3a4d2d458957caa58f3e1963e713",
+        "mobile": "8dc51540ee66d3b48b7812e4efaa4fc3eb39826ea5ef76fcc9df77c3f0ee42f2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "060f6a6c60c2d45650d0071a514804e113ad3a4d2d458957caa58f3e1963e713"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "8dc51540ee66d3b48b7812e4efaa4fc3eb39826ea5ef76fcc9df77c3f0ee42f2"
+        }
+      },
+      "desktop": "images/ui-build-release-room-review-land-desktop.png",
+      "mobile": "images/ui-build-release-room-review-land-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
     }
   ],
   "uiSections": {

@@ -12,6 +12,8 @@ Desktop: choose a name under Household in the bottom dock. Phone: use the Househ
 
 Edit sits beside the selected name. It opens that person's character draft. It is unavailable without a selected living person. A warning near a household name helps you spot a person who needs attention without assuming the selected person is the only one in trouble.
 
+If the activity beside the selected name is clipped, hover over it, focus it with the keyboard, or click or tap it to read the full text. Escape or a press outside closes the popup. Reading it does not issue an order.
+
 ## Clock, speed and camera {#clock-and-speed}
 
 Desktop and phone: read the top world panel for Funds and the three-line clock: day and weekday, time, then season and weather. The nearby speed controls pause or change the rate of play. These controls act on the whole household.
@@ -90,7 +92,7 @@ Enter build mode selects that exact object in Furniture, including objects witho
 
 Desktop and phone: choose Build in the top world controls, or Enter build mode from an object menu. The household pauses. The Build dock replaces normal activity controls with a tool strip, status and Confirm/Cancel controls.
 
-Furniture selects a placed item. Choose a destination, use curved arrows to rotate, and Place. Colour changes its appearance. Sell shows its payout. A nearby Cancel clears the selection. The bottom Confirm keeps the batch; bottom Cancel discards changes since the last confirmation. Exit build leaves, asking about an unconfirmed draft when needed. See [Build rules](home-and-controls/#build).
+Furniture selects a placed item. Choose a destination, use curved arrows to rotate, and Place. Colour changes its appearance. Sell shows its payout. A nearby Cancel clears the selection. The bottom Confirm keeps the batch and exits Build; bottom Cancel discards the batch and exits Build. Exit build leaves, asking about an unconfirmed draft when needed. See [Build rules](home-and-controls/#build).
 
 Selecting a bookcase also shows its Books count and **Buy book** and **Sell book** controls. Those controls change the books, while the furniture's **Sell** control sells the bookcase itself. Book choices are automatic; see [books and reading](activities/#reading).
 
@@ -108,17 +110,19 @@ The status explains refusals. Windows block travel while admitting daylight. Doo
 
 ## Floors {#floors}
 
-Desktop and phone: Build, then Floors, then select a tile. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
+Desktop and phone: Build, then Floors, then select a tile. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
 
 ## Rooms {#rooms}
 
 Desktop and phone: Build, then Rooms. Select rooms lets you click a floor or choose a room from the list, then change its name. Build room changes to rectangle construction using opposite corners and an optional doorway.
 
-Room names remain pending across tool changes. Enter in the name field does not confirm them. A boundary change may open a room review at Confirm. See [rooms and land](home-and-controls/#rooms-and-land).
+Room names remain pending across tool changes. Enter in the name field does not confirm them. A boundary change may open a room review at Confirm. Back to build preserves the draft and current tool, including Walls when a switch to Land opened the review. See [rooms and land](home-and-controls/#rooms-and-land).
 
 ## Land {#land}
 
-Desktop and phone: Build, then Land. Choose Behind the house, Left side or Right side and inspect dimensions, price and remaining Funds. **Buy** opens a land-purchase confirmation. Choose **Buy** there to add it to the draft; the bottom Build **Confirm** keeps it. Read the status when an expansion is unavailable.
+Desktop and phone: Build, then Land. With pending changes, Switch to Land? offers Confirm changes, Discard changes or Keep building. Confirm changes keeps the current batch and opens a fresh Land batch; Discard changes undoes it and opens a fresh Land batch. Keep building preserves the current tool and draft.
+
+Choose Behind the house, Left side or Right side and inspect dimensions, price and remaining Funds. **Buy land** opens a separate land-purchase confirmation. Choose **Buy** there to add it to the draft; the bottom Build **Confirm** keeps it and exits Build. Read the status when an expansion is unavailable.
 
 ## Options {#options}
 

@@ -30,7 +30,7 @@ The household keeps running at the selected speed when you switch tabs or minimi
 
 Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land.
 
-Edits form a draft. Confirm at the bottom keeps the current batch and leaves Build open. Cancel at the bottom discards changes since the last Confirm and keeps Build open. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch.
+Edits form a draft. Confirm at the bottom keeps the current batch and exits Build. Cancel at the bottom discards the current batch and exits Build. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch.
 
 Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states.
 
@@ -50,15 +50,17 @@ Walls selects the edge between floor tiles. Use the contextual controls to add a
 
 The game refuses edits that cut off required access or conflict with furniture, people or active use. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
-Floors selects a tile. Choose Boards, Tiles, Carpet or Outdoor patio to change its covering, or Remove to restore its original floor in the draft. Confirm keeps the changes. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
+Floors selects a tile. Choose Boards, Tiles, Carpet or Outdoor patio to change its covering, or Remove to restore its original floor in the draft. Confirm at the bottom keeps the changes and exits Build. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
 
 ## Rooms and land {#rooms-and-land}
 
 Rooms opens Select rooms. Click the floor or choose a room from the list, then edit its name. Outside is one named room. A name stays pending across tool changes, and Enter in the name field does not confirm the batch.
 
-Confirmed boundaries determine room identity. Splits, merges and lost enclosures can open a review before confirmation; Back to build keeps the draft available to adjust. Build room chooses a rectangle using opposite corners, with a doorway if needed. Detected rooms can have more complicated shapes than those rectangles.
+Confirmed boundaries determine room identity. Splits, merges and lost enclosures can open a review before confirmation; Back to build keeps the draft and current tool available to adjust. If you reached the review while switching from Walls to Land, Back to build returns to Walls. Build room chooses a rectangle using opposite corners, with a doorway if needed. Detected rooms can have more complicated shapes than those rectangles.
 
-Land offers Behind the house, Left side and Right side, measured from the street looking at the house. Choose a strip to inspect its dimensions, price and remaining Funds. Buy opens a second land-purchase confirmation; choose **Buy** there to add the purchase to the Build draft. The bottom Build **Confirm** keeps it, while discarding that draft restores the previous land and Funds. Confirmed room and plot changes affect usable destinations and outdoor presentation.
+Choosing Land starts a fresh batch while Build stays paused. If the current batch has changes, Switch to Land? asks you to Confirm changes, Discard changes or Keep building. Confirm changes keeps that batch and opens Land; Discard changes undoes that batch and opens Land. Keep building retains the current tool and draft. Room review can still be required before confirmation finishes.
+
+Land offers Behind the house, Left side and Right side, measured from the street looking at the house. Choose a strip to inspect its dimensions, price and remaining Funds. **Buy land** opens a separate land-purchase confirmation; choose **Buy** there to add the purchase to the Build draft. The bottom Build **Confirm** keeps it and exits Build, while discarding that draft restores the previous land and Funds. Confirmed room and plot changes affect usable destinations and outdoor presentation.
 
 ## Household chores {#chores}
 
