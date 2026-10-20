@@ -9,6 +9,7 @@ import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_qualification as qualification
 import mutation_tool as tool
+import mutation_native as native
 from test_mutation_artifacts import archive
 from test_mutation_campaign import context, inventory, raw_report
 import test_mutation_tool as tool_tests
@@ -42,8 +43,10 @@ class QualificationAuthenticationTests(unittest.TestCase):
             "input_fingerprint": self.manifest["input_fingerprint"], "campaign_id": self.manifest["campaign_id"], "log_retention_days": 30}
         plan = {"version": 1, "manifest": self.manifest, "calibration": {}, "producer": producer,
                 "orchestration": {"tool": self.fixture.reference, "contract": self.contract, "log_retention_days": 30, "chain": self.chain}}
+        calibration_logs = {"calibration/build.log": b"original cold build", "calibration/test.log": b"original workspace tests"}
+        plan["calibration_evidence"] = {name: {"size": len(raw), "sha256": artifacts.sha(raw)} for name, raw in calibration_logs.items()}
         raw = json.dumps(plan).encode()
-        self.add_artifact(78, artifacts.plan_artifact_name("fixture", "100", 1), {"plan.json": raw},
+        self.add_artifact(78, artifacts.plan_artifact_name("fixture", "100", 1), {"plan.json": raw, **calibration_logs},
             dict(producer, plan_digest=artifacts.sha(raw)), "MUTATION_PLAN", "mutation-fixture-plan")
         deltas = []
         by_name = {item["name"]: item for item in items}

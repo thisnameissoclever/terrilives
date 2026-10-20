@@ -17,6 +17,7 @@ import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_runner as runner
 import mutation_tool as tool
+import mutation_native as native
 
 require = artifacts.require
 MAX_BYTES = 128 * 1024 * 1024
@@ -189,6 +190,7 @@ def artifact_name(scope, campaign, kind, run_id, attempt):
 
 
 def seal(data, settings, kind, verdict, destination):
+    native.validate_admitted(data, settings)
     data = dict(data, consumer={"run_id": settings["run_id"], "attempt": settings["attempt"]})
     if kind == "aggregate":
         key = f"{settings['run_id']}/{settings['attempt']}"
@@ -274,6 +276,7 @@ def load(api, reference, repository, contract, *, consumer=None):
     if receipt["kind"] == "aggregate":
         retain_aggregate_verdict(data, receipt, proof, item, run)
     validate_retained(data)
+    native.validate_admitted(data, {"run_id": receipt["run_id"], "attempt": receipt["attempt"]})
     return data, receipt
 
 
@@ -303,6 +306,8 @@ def retain_aggregate_verdict(data, receipt, proof, item, run):
 
 
 def validate_retained(data, *, pending_aggregate=None):
+    if "native_admission" in data:
+        native.validate_admitted(data)
     required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
     for path, log in data["logs"].items():
         raw = base64.b64decode(log["bytes"], validate=True)
@@ -321,16 +326,36 @@ def validate_retained(data, *, pending_aggregate=None):
         require(len(matching) == 1 and matching[0]["status"] == "completed" and matching[0]["conclusion"] ==
                 ("success" if item["bundle"]["status"]["state"] == "complete" else "failure"),
                 "retained worker inventory or verdict mismatch")
+    capacity_failures = data.get("capacity_failures", {})
+    for job_id, evidence in capacity_failures.items():
+        job, payload, path = evidence["job"], evidence["payload"], evidence["producer_log"]
+        require(job_id == str(job["id"]) and path in data["logs"], "capacity failure lost producer identity or original log")
+        require(artifacts.capacity_marker(base64.b64decode(data["logs"][path]["bytes"])) == payload,
+                "retained capacity failure differs from original producer bytes")
+        entry = next(entry for entry in data["chain"]["runs"] if entry["run_id"] == str(job["run_id"]))
+        policy_digest = data.get("native_admission", {}).get("batch_policy_digest")
+        artifacts.validate_capacity_receipt(payload, data["planned"]["manifest"], entry, job, policy_digest,
+            data["planned"]["producer"]["repository"], tool.WORKFLOW)
+        key = f"{job['run_id']}/{job['run_attempt']}"
+        require(job in data["job_inventories"].get(key, []) and job["run_attempt"] <= data["frontier"].get(str(job["run_id"]), 0),
+                "retained capacity failure lost executed worker history")
+        require(not any(item["bundle"]["receipt"]["job_id"] == job_id for item in data["bundles"]),
+                "capacity failure contradicts retained result artifact")
     for key, jobs in data["job_inventories"].items():
         require(len(jobs) <= 8 and len({job["id"] for job in jobs}) == len(jobs), "invalid retained worker inventory")
         evidenced = {item["bundle"]["receipt"]["job_id"] for item in data["bundles"] if
                      f"{item['bundle']['receipt']['run_id']}/{item['bundle']['receipt']['attempt']}" == key}
+        evidenced.update(job_id for job_id, evidence in capacity_failures.items()
+            if f"{evidence['job']['run_id']}/{evidence['job']['run_attempt']}" == key)
         require(evidenced == {str(job["id"]) for job in jobs}, "retained started worker has no original result")
     phases = data.get("phase_inventories", {})
     require(set(data["job_inventories"]) <= set(phases), "retained attempt is missing its phase inventory")
     scope = data["planned"]["manifest"]["context"]["inputs"]["computation_scope"]
     for key, jobs in phases.items():
         for job in jobs:
+            if job["name"] in native.JOBS.values():
+                native.validate_native_phase(data, job)
+                continue
             if job["name"] != aggregate_job_name(scope):
                 require(job["status"] == "completed" and job["conclusion"] == "success",
                         "retained preparation failure stops continuation")
@@ -359,9 +384,14 @@ def validate_aggregate_phase(data, key, job, pending_aggregate=None):
 
 
 def recovered(data, settings, *, include_current):
+    native.validate_admitted(data, settings)
     validate_retained(data, pending_aggregate=aggregate_identity(settings) if include_current else None)
     manifest = data["planned"]["manifest"]
     bundles = [dict(item["bundle"], manifest=manifest) for item in data["bundles"]]
+    for evidence in data.get("capacity_failures", {}).values():
+        bundles.append({"version": 1, "manifest": manifest, "receipt": evidence["payload"]["receipt"], "delta": None,
+            "status": {"state": "capacity_failure", "reason": "outgoing_artifact_capacity",
+                "recorded_at": evidence["job"]["completed_at"], "remaining": model.slot_ids(manifest, evidence["payload"]["receipt"]["slot"])}})
     deltas = [bundle["delta"] for bundle in bundles if bundle["delta"] is not None]
     allowed = [entry["run_id"] for entry in data["chain"]["runs"]]
     records = model.merge_deltas(manifest, deltas, allowed_run_ids=set(allowed), current_run_id=settings["run_id"],
@@ -458,11 +488,26 @@ def ingest(api, data, settings, inventory, runs, *, include_current):
         for attempt in range(first, last + 1):
             jobs = list(artifacts.pages(api, f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs"))
             prepare_name = "mutation-fixture-prepare" if settings["scope"] == "fixture" else "mutation-prepare"
-            preparations = [job for job in jobs if job["name"] == prepare_name and job.get("started_at")]
+            decision_names = {prepare_name, aggregate_job_name(settings["scope"]), *native.JOBS.values()}
+            for job in jobs:
+                if job["name"] in decision_names and job["conclusion"] == "skipped":
+                    if job["name"] in native.JOBS.values():
+                        kind = next(kind for kind, name in native.JOBS.items() if name == job["name"])
+                        expected = native.artifact_name(kind, manifest["campaign_id"], run_id, attempt)
+                    else:
+                        kind = "prepared" if job["name"] == prepare_name else "aggregate"
+                        expected = artifact_name(settings["scope"], manifest["campaign_id"], kind, run_id, attempt)
+                    require(not any(item["name"] == expected for item in inventory.values())
+                            and f"repos/{repository}/actions/jobs/{job['id']}/logs" not in data["logs"],
+                            "skipped decision phase has executed receipt/upload evidence")
+            preparations = [job for job in jobs if job["name"] == prepare_name and job.get("started_at") and job["conclusion"] != "skipped"]
             require(all(job["status"] == "completed" and job["conclusion"] == "success" for job in preparations),
                     "started preparation failed; terminal infrastructure failure")
-            aggregates = [job for job in jobs if job["name"] == aggregate_job_name(settings["scope"]) and job.get("started_at")]
-            data.setdefault("phase_inventories", {})[f"{run_id}/{attempt}"] = preparations + aggregates
+            aggregates = [job for job in jobs if job["name"] == aggregate_job_name(settings["scope"]) and job.get("started_at") and job["conclusion"] != "skipped"]
+            native_jobs = [job for job in jobs if job["name"] in native.JOBS.values() and job.get("started_at") and job["conclusion"] != "skipped"]
+            data.setdefault("phase_inventories", {})[f"{run_id}/{attempt}"] = preparations + aggregates + native_jobs
+            for job in native_jobs:
+                native.validate_native_phase(data, job)
             for job in aggregates:
                 require(str(job["run_id"]) == run_id and job["run_attempt"] == attempt, "aggregate job attempt mismatch")
                 current = (include_current and run_id == settings["run_id"] and attempt == settings["attempt"]
@@ -478,7 +523,19 @@ def ingest(api, data, settings, inventory, runs, *, include_current):
             data["job_inventories"][f"{run_id}/{attempt}"] = workers
             expected_names = {artifacts.artifact_name(manifest["campaign_id"], run_id, attempt, int(job["name"][-1])) for job in workers}
             actual = [item for item in originals if item["name"] in expected_names]
-            require({item["name"] for item in actual} == expected_names, "started worker is missing its immutable result")
+            actual_names = {item["name"] for item in actual}
+            for job in workers:
+                name = artifacts.artifact_name(manifest["campaign_id"], run_id, attempt, int(job["name"][-1]))
+                if name in actual_names:
+                    continue
+                evidence, log = artifacts.authenticate_capacity_failure(api, manifest, entry, job,
+                    data.get("native_admission", {}).get("batch_policy_digest"), repository=repository, workflow=tool.WORKFLOW,
+                    required_until=artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN)
+                data.setdefault("capacity_failures", {})[str(job["id"])] = evidence
+                data["logs"][evidence["producer_log"]] = log
+                data["source_runs"][run_id] = entry
+                actual_names.add(name)
+            require(actual_names == expected_names, "started worker is missing its immutable result")
             for item in actual:
                 require(item["id"] not in known, "original artifact repeated beyond frontier")
                 require(not item["expired"], "expired original delta")

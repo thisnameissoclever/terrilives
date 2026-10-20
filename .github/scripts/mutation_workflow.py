@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 import zipfile
 import zlib
 
@@ -15,6 +16,7 @@ import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_qualification as qualification
 import mutation_recovery as recovery
+import mutation_native as native
 import mutation_runner as runner
 import mutation_tool as tool
 
@@ -105,7 +107,10 @@ def read_plan_envelope(api, repository, reference):
     artifact = api.json(f"repos/{repository}/actions/artifacts/{reference['artifact_id']}")
     raw = api.bytes(f"repos/{repository}/actions/artifacts/{reference['artifact_id']}/zip")
     require(artifact["digest"] == "sha256:" + artifacts.sha(raw), "plan archive digest mismatch")
-    return artifacts.strict_json(artifacts.unpack(raw)["plan.json"])
+    files = artifacts.unpack(raw)
+    planned = artifacts.strict_json(files["plan.json"])
+    native.validate_plan_files(files, planned)
+    return planned
 
 
 def bind_chain_to_plan(planned, chain):
@@ -253,7 +258,8 @@ def prepare_plan(api, root, settings, scratch):
     runner.plan(root, settings, calibration, destination)
     planned = runner.read_json(destination)
     planned["orchestration"] = orchestration
-    runner.write_json(destination, planned)
+    native.retain_calibration_logs(scratch, planned)
+    native.compact_json(destination, planned)
     print("MUTATION_PLAN " + json.dumps(dict(planned["producer"], plan_digest=artifacts.sha(destination.read_bytes())),
                                         sort_keys=True, separators=(",", ":")), flush=True)
     output("chain", chain)
@@ -317,6 +323,7 @@ def refresh_recovery(api, root, settings, scratch, *, include_current):
         data["tool_receipt"] = recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]
         recovery.retain_recording(recording, data)
         inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+    ensure_native_admission(api, data, settings)
     runner.validate_current_plan(root, planned, settings)
     recovered = recovery.ingest(api, data, settings, inventory, runs, include_current=include_current)
     # Newly ingested originals must satisfy the same original lifetime immediately.
@@ -331,6 +338,8 @@ def prepare_recovery(api, root, settings, scratch):
     summary = model.summarize(data["planned"]["manifest"], recovered["records"], baseline)
     state, reason = runner.continuation_status(summary, recovered["bundles"],
         max_attempts=data["chain"]["max_attempts"], attempt=settings["attempt"] - 1)
+    if state == "capacity_failure":
+        raise runner.CapacityFailure("terminal prior mutation capacity failure: " + reason)
     require(state in {"complete", "incomplete_with_progress", "incomplete_without_progress"}, "terminal prior mutation failure: " + reason)
     data["api_rate"] = api.rate_status()
     receipt = recovery.seal(data, settings, "prepared", {"state": "complete", "reason": "authenticated_preparation"}, scratch / "prepared")
@@ -348,6 +357,7 @@ def execute(api, root, settings, scratch, command):
         require(data["planned"]["manifest"]["context"]["inputs"]["computation_scope"] == settings["scope"], "prepared recovery scope mismatch")
         bind_prepared_tool(api, root, settings, data, scratch)
         runner.validate_current_plan(root, data["planned"], settings)
+        native.validate_admitted(data, settings)
         recovered = recovery.recovered(data, settings, include_current=False)
     else:
         data, recovered = refresh_recovery(api, root, settings, scratch, include_current=True)
@@ -358,7 +368,8 @@ def execute(api, root, settings, scratch, command):
     if command == "slot":
         if settings["scope"] == "fixture" and settings["attempt"] == 1:
             settings["fixture_stop_after_records"] = 1
-        result = runner.execute_slot(root, settings, planned, chain, scratch / "result", api, recovered=recovered)
+        result = runner.execute_slot(root, settings, planned, chain, scratch / "result", api, recovered=recovered,
+            batch_policy=native.admitted_batch_policy(data, settings) if settings["scope"] == "production" else None)
         status = result["status"]
     else:
         status = runner.aggregate(root, planned, chain, settings, scratch / "aggregate.json", api, recovered=recovered)
@@ -376,9 +387,75 @@ def execute(api, root, settings, scratch, command):
     return runner.STATES[status["state"]]
 
 
+def ensure_native_admission(api, data, settings):
+    if settings["scope"] == "fixture":
+        native.validate_admitted(data, settings)
+        return
+    supplied = os.environ.get("NATIVE_ADMISSION_ARTIFACT_ID", "")
+    if "native_admission" in data:
+        if supplied:
+            require(data["native_admission"]["reference"]["artifact_id"] == int(supplied), "native admission reference changed")
+    else:
+        require(supplied, "production has no fixed native admission reference")
+        selected = native.reference(api, settings["repository"], supplied)
+        proofs = native.load_admission(api, selected, data["planned"], data["chain"], settings["repository"])
+        native.install_admission(data, proofs)
+    native.validate_admitted(data, settings)
+
+
+def native_stage(api, root, settings, scratch, kind):
+    require(settings["scope"] == "production", "fixture cannot produce native spending admission")
+    api.rate_status(400)
+    before = time.monotonic()
+    recording = recovery.RecordingAPI(api)
+    plan_ref, chain = selected_plan_input(api, root, settings)
+    planned, chain = load_plan(recording, root, settings, plan_ref, chain)
+    inventory = recovery.artifact_inventory(api, settings["repository"], settings["run_id"])
+    checkout, _ = runner.checkout_inventory(root, settings["repository"])
+    output_directory = scratch / "native"
+    output("native_name", native.artifact_name(kind, planned["manifest"]["campaign_id"], settings["run_id"], settings["attempt"]))
+    try:
+        history = native.initial_history(api, settings, planned, chain, inventory, current_kind=kind)
+        if kind == "pilot":
+            qualification_proof = check_qualification(recording, settings, planned["orchestration"], chain)
+            bind_tool(recording, root, settings, planned["orchestration"]["tool"], planned["orchestration"]["contract"], scratch, chain)
+            seed = {"version": 1, "planned": planned, "chain": chain, "contract": planned["orchestration"]["contract"],
+                "originals": {}, "logs": {}, "source_runs": {}, "current_checkout": checkout,
+                "qualification": qualification_proof, "tool_receipt": recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]}
+            recovery.retain_recording(recording, seed)
+            jobs = list(artifacts.pages(api, f"repos/{settings['repository']}/actions/runs/{settings['run_id']}/attempts/{settings['attempt']}/jobs", "jobs"))
+            seed["projection_job_shape"] = next(job for job in jobs if str(job["id"]) == settings["job_id"])
+            payload = native.run_pilot(root, settings, planned, chain, output_directory, list(recording.logs.values()), time.monotonic() - before, seed)
+        elif kind == "report":
+            pilot_ref = native.reference(api, settings["repository"], os.environ["NATIVE_PILOT_ARTIFACT_ID"])
+            pilot = native.authenticate(api, pilot_ref, "pilot", planned, chain, settings["repository"])
+            payload = native.finished_report(pilot, planned)
+        else:
+            report_ref = native.reference(api, settings["repository"], os.environ["NATIVE_REPORT_ARTIFACT_ID"])
+            report = native.authenticate(api, report_ref, "report", planned, chain, settings["repository"])
+            pilot = native.authenticate(api, report["payload"]["pilot_reference"], "pilot", planned, chain, settings["repository"])
+            if settings["attempt"] > report["receipt"]["attempt"]:
+                api.rate_status(850)
+            bind_tool(recording, root, settings, planned["orchestration"]["tool"], planned["orchestration"]["contract"], scratch, chain)
+            checkout = native.current_binding(root, settings, planned)
+            payload = native.admission_decision(settings, planned, chain, report, pilot, history)
+    except native.NativeFailure as error:
+        payload = {"state": error.state, "reason": str(error)}
+    except runner.CapacityFailure as error:
+        payload = {"state": "capacity_failure", "reason": str(error)}
+    except (ValueError, KeyError, OSError, TypeError, subprocess.SubprocessError) as error:
+        payload = {"state": "infrastructure_failure", "reason": str(error)}
+    payload["api_rate"] = api.rate_status()
+    native.emit(output_directory, kind, payload, settings, planned, chain, checkout)
+    runner.write_json(scratch / "status.json", {"state": payload["state"], "accepted_production_outcomes": 0})
+    if payload["state"] == native.REVIEW_REQUIRED:
+        return native.REVIEW_EXIT
+    return 0 if payload["state"] in ("complete", "admitted") else runner.STATES[payload["state"]]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("tool", "plan", "prepare", "slot", "aggregate"))
+    parser.add_argument("command", choices=("tool", "plan", "prepare", "slot", "aggregate", "native-pilot", "native-report", "native-admission"))
     parser.add_argument("--root", default=".")
     parser.add_argument("--scope", required=True, choices=("fixture", "production"))
     parser.add_argument("--slot", type=int, default=0)
@@ -388,6 +465,7 @@ def main(argv=None):
     scratch.mkdir(exist_ok=True)
     require(not scratch.resolve().is_relative_to(root), "workflow scratch overlaps checkout")
     api = recovery.WorkflowAPI()
+    result_code = 0
     try:
         settings = current_settings(api, root, args.scope, os.environ["MUTATION_JOB_NAME"], args.slot)
         runner.bound_setup(settings)
@@ -397,21 +475,42 @@ def main(argv=None):
             prepare_plan(api, root, settings, scratch)
         elif args.command == "prepare":
             prepare_recovery(api, root, settings, scratch)
+        elif args.command.startswith("native-"):
+            result_code = native_stage(api, root, settings, scratch, args.command.removeprefix("native-"))
         else:
-            return execute(api, root, settings, scratch, args.command)
-        return 0
+            result_code = execute(api, root, settings, scratch, args.command)
     except runner.CapacityFailure as error:
         status = {"state": "capacity_failure", "reason": str(error)}
         if hasattr(api, "last_rate_observation"):
             status["api_rate"] = api.last_rate_observation
         runner.write_json(scratch / "status.json", status)
         print(json.dumps(status, sort_keys=True))
-        return runner.STATES[status["state"]]
+        result_code = runner.STATES[status["state"]]
     except (ValueError, KeyError, OSError, TypeError, subprocess.SubprocessError, zipfile.BadZipFile, zlib.error) as error:
         status = {"state": "infrastructure_failure", "reason": str(error)}
         runner.write_json(scratch / "status.json", status)
         print(json.dumps(status, sort_keys=True))
-        return runner.STATES[status["state"]]
+        result_code = runner.STATES[status["state"]]
+    finally:
+        bundle = scratch / "result/bundle.json"
+        if args.command == "slot" and bundle.is_file():
+            try:
+                native.compact_json(bundle)
+            except runner.CapacityFailure:
+                pass
+            inventory = artifacts.outgoing_inventory(bundle.parent)
+            if inventory["violations"]:
+                payload = runner.read_json(bundle)
+                if not {"manifest", "receipt", "status"} <= set(payload):
+                    raise runner.CapacityFailure("complete compact JSON exceeds its unchanged member bound")
+                artifacts.emit_capacity_failure(payload, inventory)
+                status = {"state": "capacity_failure", "reason": "outgoing_artifact_capacity", "accepted_production_outcomes": 0,
+                    "inventory_digest": inventory["inventory_digest"]}
+                runner.write_json(scratch / "status.json", status)
+                result_code = runner.STATES["capacity_failure"]
+            else:
+                output("bundle_ready", "true")
+    return result_code
 
 
 if __name__ == "__main__":

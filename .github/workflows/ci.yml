@@ -268,12 +268,6 @@ jobs:
   # incremental rebuild while a mutant in a leaf test file costs a second,
   # and the deterministic hash happened to pile the expensive cluster into
   # one shard. Eight ways splits that cluster and keeps every shard inside
-  # the window the runner reliably survives; a reclaimed shard costs an
-  # eighth of the sweep to retry rather than all of it.
-  #
-  # cargo-mutants assigns mutants to shards by a deterministic hash, so the
-  # union of the eight shards is exactly the full sweep and nothing is
-  # tested twice.
   # Preparation and workers share the original eight global slots.
   # Each prerequisite releases slot zero before its dependants can acquire it.
   mutation-tool:
@@ -361,10 +355,121 @@ jobs:
           ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
         run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
 
+  mutation-native-pilot:
+    name: mutation-native-pilot
+    needs: mutation-plan
+    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned toolchain
+        run: rustup show
+      - name: Measure native work without production coverage
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-native-pilot
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-pilot --scope production
+      - name: Upload native diagnostic evidence
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-native-pilot-report:
+    name: mutation-native-pilot-report
+    needs: [mutation-plan, mutation-native-pilot]
+    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate finished native measurements
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-native-pilot-report
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_PILOT_ARTIFACT_ID: ${{ needs.mutation-native-pilot.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-report --scope production
+      - name: Upload finished native report
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-admission:
+    name: mutation-admission
+    needs: [mutation-plan, mutation-native-pilot-report]
+    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned toolchain
+        run: rustup show
+      - name: Require separate external native review and admission
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-admission
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_REPORT_ARTIFACT_ID: ${{ needs.mutation-native-pilot-report.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-admission --scope production
+      - name: Upload native admission verdict
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
   mutation-prepare:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-prepare' || 'mutation-prepare' }}
-    needs: mutation-plan
-    if: ${{ !cancelled() && needs.mutation-plan.result == 'success' }}
+    needs: [mutation-plan, mutation-admission]
+    if: >-
+      always() && !cancelled() && needs.mutation-plan.result == 'success' &&
+      (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     concurrency:
@@ -385,6 +490,7 @@ jobs:
           MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
           PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
           MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_ADMISSION_ARTIFACT_ID: ${{ needs.mutation-admission.outputs.artifact_id }}
         run: python3 -B .github/scripts/mutation_workflow.py prepare --scope "$MUTATION_SCOPE"
       - name: Upload immutable current preparation
         id: upload
@@ -428,7 +534,7 @@ jobs:
         run: python3 -B .github/scripts/mutation_workflow.py slot --scope "$MUTATION_SCOPE" --slot "$MUTATION_SLOT"
       - name: Retain completed evidence even when unfinished work fails
         id: upload
-        if: always() && steps.execute.outputs.artifact_name != ''
+        if: always() && steps.execute.outputs.artifact_name != '' && steps.execute.outputs.bundle_ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.execute.outputs.artifact_name }}
@@ -443,8 +549,10 @@ jobs:
 
   mutation-aggregate:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-aggregate' || 'mutation-production-aggregate' }}
-    needs: [mutation-plan, mutation-prepare, mutants]
-    if: always() && !cancelled() && needs.mutation-plan.result == 'success'
+    needs: [mutation-plan, mutation-admission, mutation-prepare, mutants]
+    if: >-
+      always() && !cancelled() && needs.mutation-plan.result == 'success' &&
+      (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -459,6 +567,7 @@ jobs:
           MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
           PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
           MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_ADMISSION_ARTIFACT_ID: ${{ needs.mutation-admission.outputs.artifact_id }}
         run: python3 -B .github/scripts/mutation_workflow.py aggregate --scope "$MUTATION_SCOPE"
       - name: Upload immutable aggregate recovery snapshot
         id: snapshot

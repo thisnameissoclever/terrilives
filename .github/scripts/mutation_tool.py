@@ -30,6 +30,7 @@ WORKFLOW = ".github/workflows/ci.yml"
 CONTRACT_PATHS = (WORKFLOW, PATCH, "rust-toolchain.toml",
     ".github/scripts/mutation_tool.py", ".github/scripts/mutation_workflow.py",
     ".github/scripts/mutation_qualification.py", ".github/scripts/mutation_recovery.py", ".github/scripts/mutation_runner.py",
+    ".github/scripts/mutation_native.py",
     ".github/scripts/mutation_artifacts.py", ".github/scripts/mutation_campaign.py")
 MARGIN = dt.timedelta(days=2)
 
@@ -40,7 +41,7 @@ def committed_contract(root):
     blobs = {path: hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
              for path, raw in contents.items()}
     require(paths[PATCH] == PATCH_SHA, "reviewed patch changed")
-    return {"version": 1, "files": paths, "git_blobs": blobs, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
+    return {"version": 1, "batch_algorithm": runner.BATCH_ALGORITHM, "files": paths, "git_blobs": blobs, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
             "fixture_digest": model.digest({"Cargo.toml": runner.FIXTURE_CARGO,
                 "Cargo.lock": runner.FIXTURE_LOCK, "src/lib.rs": runner.FIXTURE_SOURCE,
                 "rust-toolchain.toml": (Path(root) / "rust-toolchain.toml").read_text(encoding="utf-8")})}

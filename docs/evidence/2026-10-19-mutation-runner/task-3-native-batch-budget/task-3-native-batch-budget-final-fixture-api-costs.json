@@ -1,0 +1,107 @@
+[
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 10,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 23,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 38,
+    "total": 165
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 30,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 25,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 40,
+    "total": 169
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 27,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 42,
+    "total": 173
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 8,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 76,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 91,
+    "total": 271
+  },
+  {
+    "scope": "fixture",
+    "historical_attempts_last_run": 50,
+    "run_count": 8,
+    "gap": 3,
+    "padded_to_sixteen_pages": true,
+    "external_proof_runs": 2,
+    "preparation": 224,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 185,
+    "total": 513
+  }
+]

@@ -10,4 +10,6 @@ This is historical version-18 source and automated-test evidence. The [subsequen
 
 The [version-20 record](v20/README.md) covers the later current-main merge, complete web suite, refreshed played pass and fresh independent visual review. It preserves the preceding records at their original source boundaries.
 
+The [background-play integration record](d59d/README.md) covers the subsequent web-only main contribution, refreshed complete web checks, played pass and matching compositor captures. Earlier evidence retains its original source and execution boundary.
+
 [annotation-closeout.md](annotation-closeout.md) answers the five earlier room-review questions from current source and retained room-feature evidence. It is a read-only audit with explicit historical-save and test-maintenance limits, not a new historical-save test run.

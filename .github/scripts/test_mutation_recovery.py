@@ -82,7 +82,7 @@ class SnapshotFixture:
         self.api.responses[f"repos/owner/repo/actions/artifacts/{artifact_id}"] = metadata
         self.api.blobs[f"repos/owner/repo/actions/artifacts/{artifact_id}/zip"] = raw
         self.q.artifacts.append(metadata)
-        job_name = "mutation-fixture-prepare" if kind == "prepared" else "mutation-fixture-aggregate"
+        job_name = ("mutation-fixture-prepare" if kind == "prepared" else "mutation-fixture-aggregate") if settings["scope"] == "fixture" else ("mutation-prepare" if kind == "prepared" else "mutation-production-aggregate")
         jobs_path = f"repos/owner/repo/actions/runs/{settings['run_id']}/attempts/{settings['attempt']}/jobs?per_page=100&page=1"
         jobs = self.api.responses.setdefault(jobs_path, {"jobs": []})["jobs"]
         existing = next((job for job in jobs if str(job["id"]) == settings["job_id"]), None)
@@ -103,6 +103,8 @@ class SnapshotFixture:
         for slot in range(8):
             artifact_id = int(run_id) * 10000 + attempt * 10 + slot
             receipt = dict(self.plan["producer"], run_id=run_id, attempt=attempt, job_id=str(artifact_id), slot=slot)
+            if "native_admission" in self.data:
+                receipt["batch_policy_digest"] = self.data["native_admission"]["batch_policy_digest"]
             compact = {"version": 1, "receipt": receipt, "delta": None,
                 "status": {"state": "complete", "reason": "exact_coverage", "recorded_at": self.q.fixture.artifact["created_at"]}}
             raw = archive({"bundle.json": json.dumps(dict(compact, manifest=self.q.manifest)).encode()})
@@ -120,7 +122,7 @@ class SnapshotFixture:
                 "original_retention_days": 30, "expires_at": (self.q.now + dt.timedelta(days=29)).isoformat()}
             self.data["originals"][str(artifact_id)] = {"metadata": recovery.original_metadata(metadata), "producer_log": path}
             self.data["bundles"].append({"artifact_id": artifact_id, "bundle": compact, "bundle_digest": model.digest(compact)})
-            jobs.append(dict(self.q.fixture.job, id=artifact_id, run_id=int(run_id), run_attempt=attempt, name=f"mutation-fixture-slot-{slot}"))
+            jobs.append(dict(self.q.fixture.job, id=artifact_id, run_id=int(run_id), run_attempt=attempt, name=f"mutation-{'fixture-' if self.settings['scope'] == 'fixture' else ''}slot-{slot}"))
         self.data["job_inventories"][f"{run_id}/{attempt}"] = jobs
         self.data["phase_inventories"][f"{run_id}/{attempt}"] = []
         self.data["frontier"][run_id] = attempt
@@ -147,7 +149,7 @@ class SnapshotFixture:
         self.q.artifacts.append(metadata)
         self.api.responses[f"repos/owner/repo/actions/artifacts/{artifact_id}"] = metadata
         self.api.blobs[f"repos/owner/repo/actions/artifacts/{artifact_id}/zip"] = raw
-        job_name = "mutation-fixture-prepare" if kind == "prepared" else "mutation-fixture-aggregate"
+        job_name = ("mutation-fixture-prepare" if kind == "prepared" else "mutation-fixture-aggregate") if settings["scope"] == "fixture" else ("mutation-prepare" if kind == "prepared" else "mutation-production-aggregate")
         job = dict(self.q.fixture.job, id=int(settings["job_id"]), run_id=int(settings["run_id"]),
                    run_attempt=settings["attempt"], name=job_name, conclusion="success" if state == "complete" else "failure")
         path = f"repos/owner/repo/actions/runs/{settings['run_id']}/attempts/{settings['attempt']}/jobs?per_page=100&page=1"
@@ -217,6 +219,8 @@ class RecoveryTests(unittest.TestCase):
         inventory, runs = recovery.fresh_inventory(api, self.f.data, settings)
         job = dict(self.f.q.fixture.job, id=888, run_attempt=3, name="mutation-fixture-slot-0", conclusion="failure")
         self.f.api.responses["repos/owner/repo/actions/runs/100/attempts/3/jobs?per_page=100&page=1"] = {"jobs": [job]}
+        self.f.api.responses["repos/owner/repo/actions/runs/100/attempts/3"] = {
+            "id": 100, "run_attempt": 3, "head_sha": "d" * 40}
         with self.assertRaisesRegex(ValueError, "started worker is missing"):
             recovery.ingest(api, self.f.data, settings, inventory, runs, include_current=True)
         with self.assertRaisesRegex(runner.CapacityFailure, "three attempts"):
@@ -297,23 +301,26 @@ class RecoveryTests(unittest.TestCase):
 
 
 class FullWrapperBudgetTests(unittest.TestCase):
-    def exercise(self, history, run_count=1, *, gap=0, padded=False, extra_sources=0):
-        f = SnapshotFixture(self)
-        base_run = f.api.responses["repos/owner/repo/actions/runs/100"]
+    def exercise(self, history, run_count=1, *, gap=0, padded=False, extra_sources=0, fixture=None, prior_history=51):
+        f = fixture or SnapshotFixture(self)
+        first_run = int(f.settings["run_id"])
+        base_run = f.api.responses[f"repos/owner/repo/actions/runs/{first_run}"]
+        scope = f.settings["scope"]
+        prefix = "mutation-fixture" if scope == "fixture" else "mutation"
         chain = copy.deepcopy(f.data["chain"])
         for index in range(run_count):
-            run_id = str((index + 1) * 100)
-            attempts = history if index == run_count - 1 else 51
+            run_id = str(first_run + index * 100)
+            attempts = history if index == run_count - 1 else prior_history
             if index:
-                chain["runs"][-1]["sealed_attempt"] = 51
-                chain["runs"].append(dict(chain["runs"][0], run_id=run_id, predecessor=str(index * 100)))
+                chain["runs"][-1]["sealed_attempt"] = prior_history
+                chain["runs"].append(dict(chain["runs"][0], run_id=run_id, predecessor=str(first_run + (index - 1) * 100)))
                 chain["runs"][-1].pop("sealed_attempt", None)
             f.api.responses[f"repos/owner/repo/actions/runs/{run_id}"] = dict(base_run, id=int(run_id), run_attempt=attempts + (index == run_count - 1))
-            for attempt in range(3 if index == 0 else 1, attempts + 1):
+            for attempt in range(f.data["frontier"][str(first_run)] + 1 if index == 0 else 1, attempts + 1):
                 f.add_completed_history(run_id, attempt)
             f.data["source_runs"][run_id] = dict(chain["runs"][-1])
         f.data["chain"] = chain
-        current_run = str(run_count * 100)
+        current_run = str(first_run + (run_count - 1) * 100)
         if gap:
             cutoff = history - gap
             removed = [item for item in f.data["bundles"] if item["bundle"]["receipt"]["run_id"] == current_run
@@ -326,7 +333,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
                 if not (key.split("/")[0] == current_run and int(key.split("/")[1]) > cutoff)}
             f.data["frontier"][current_run] = cutoff
         for index in range(extra_sources):
-            run_id = str(900 + index)
+            run_id = str(1900 + index)
             f.api.responses[f"repos/owner/repo/actions/runs/{run_id}"] = dict(base_run, id=int(run_id), run_attempt=2)
             f.data["source_runs"][run_id] = dict(chain["runs"][0], run_id=run_id)
             artifact_id = 50_000_000 + index
@@ -353,7 +360,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
         snapshot_meta["workflow_run"] = {"id": int(current_run), "head_sha": "d" * 40}
         f.paginate()
         source = Path(__file__).resolve().parents[2]
-        (f.root / tool.WORKFLOW).parent.mkdir(parents=True)
+        (f.root / tool.WORKFLOW).parent.mkdir(parents=True, exist_ok=True)
         (f.root / tool.WORKFLOW).write_bytes((source / tool.WORKFLOW).read_bytes())
         current = history + 1
         current_jobs = f"repos/owner/repo/actions/runs/{current_run}/attempts/{current}/jobs?per_page=100&page=1"
@@ -363,7 +370,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
         environment = {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_RUN_ID": current_run,
             "GITHUB_RUN_ATTEMPT": str(current), "GITHUB_WORKFLOW_SHA": "e" * 40,
             "GITHUB_RETENTION_DAYS": "30", "ImageOS": "ubuntu24", "ImageVersion": "fixture-image",
-            "MUTATION_CHAIN": json.dumps(chain), "PLAN_ARTIFACT_ID": "78"}
+            "MUTATION_CHAIN": json.dumps(chain), "PLAN_ARTIFACT_ID": str(chain["plan"]["artifact_id"])}
         context_value = f.q.manifest["context"]
         actual_consume = tool.consume_prepared
         def consume(*args, **kwargs):
@@ -374,7 +381,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
                        name=name, status="in_progress", conclusion=None)
             f.api.responses[current_jobs]["jobs"].append(job)
             api = recovery.WorkflowAPI(f.api)
-            settings = workflow.current_settings(api, f.root, "fixture", name, 0)
+            settings = workflow.current_settings(api, f.root, scope, name, 0)
             return api, settings, job
         with mock.patch.dict(os.environ, environment), contextlib.redirect_stdout(io.StringIO()), \
             mock.patch.object(tool, "committed_contract", return_value=f.contract), \
@@ -384,7 +391,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
             mock.patch.object(runner, "collect_context", return_value=(context_value, {}, [])), \
             mock.patch.object(runner, "execution_environment", return_value=({}, {})), \
             mock.patch.object(runner, "installed_tool", return_value={}), mock.patch.object(workflow, "output"):
-            api, prepared_settings, job = client(90000, "mutation-fixture-prepare")
+            api, prepared_settings, job = client(90000, prefix + "-prepare")
             scratch = Path(f.q.fixture.temp.name) / "preparation-client"
             scratch.mkdir()
             workflow.prepare_recovery(api, f.root, prepared_settings, scratch)
@@ -395,7 +402,7 @@ class FullWrapperBudgetTests(unittest.TestCase):
             f.api.responses[current_jobs]["jobs"].pop()
             os.environ["PREPARED_ARTIFACT_ID"] = str(prepared_id)
             for slot in range(8):
-                api, worker_settings, job = client(90010 + slot, f"mutation-fixture-slot-{slot}")
+                api, worker_settings, job = client(90010 + slot, f"{prefix}-slot-{slot}")
                 worker_settings["slot"] = slot
                 scratch = Path(f.q.fixture.temp.name) / f"worker-{slot}"
                 scratch.mkdir()
@@ -415,13 +422,13 @@ class FullWrapperBudgetTests(unittest.TestCase):
                 f.api.blobs[f"repos/owner/repo/actions/jobs/{job['id']}/logs"] = (
                     "MUTATION_PRODUCER " + json.dumps(bundle["receipt"]) + f"\nMUTATION_ARTIFACT_ID={artifact_id}\n").encode()
             f.paginate()
-            api, aggregate_settings, job = client(90030, "mutation-fixture-aggregate")
+            api, aggregate_settings, job = client(90030, "mutation-fixture-aggregate" if scope == "fixture" else "mutation-production-aggregate")
             scratch = Path(f.q.fixture.temp.name) / "aggregate-client"
             scratch.mkdir()
             self.assertEqual(workflow.execute(api, f.root, aggregate_settings, scratch, "aggregate"), 0)
             counts.append(api.requests)
         self.assertLessEqual(sum(counts), 800)
-        return {"historical_attempts_last_run": history, "run_count": run_count, "gap": gap,
+        return {"scope": scope, "historical_attempts_last_run": history, "run_count": run_count, "gap": gap,
                 "padded_to_sixteen_pages": padded, "external_proof_runs": extra_sources,
                 "preparation": counts[0], "workers": counts[1:9], "aggregate": counts[9], "total": sum(counts)}
 

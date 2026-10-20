@@ -8,6 +8,7 @@ import re
 import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_tool as tool
+import mutation_native as native
 
 require = artifacts.require
 MAX_CANDIDATES = 30
@@ -75,6 +76,8 @@ def verify(api, repository, artifact_id, contract, required_until):
                 for job in jobs), "qualification producer did not pass")
     planned = artifacts.recover_plan(api, proof["chain"], current_run_id=proof["run_id"], current_attempt=proof["attempt"],
         repository=repository, workflow=tool.WORKFLOW, workflow_digest=contract["files"][tool.WORKFLOW], scope="fixture")
+    plan_files = artifacts.unpack(api.bytes(f"repos/{repository}/actions/artifacts/{proof['chain']['plan']['artifact_id']}/zip"))
+    native.validate_plan_files(plan_files, planned)
     require(planned["orchestration"]["tool"] == proof["tool"], "qualification tool differs from original plan")
     identity = planned["manifest"]["context"]["inputs"]["cargo_mutants_identity"]
     require(identity["binary_sha256"] == proof["tool"]["executable_sha256"] and

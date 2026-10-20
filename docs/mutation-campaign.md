@@ -34,7 +34,29 @@ it supplies no production mutation coverage.
 5. Production planning freezes a complete native manifest and the measured
    matching workspace baseline. All workers and later attempts use that original
    plan, calibration, timeout contract, executable artifact and eight-slot
-   assignment. Changes to computation inputs require a new campaign.
+   assignment. The original plan also declares the exact byte lengths and SHA-256
+   digests of its retained cold calibration build/test logs. Changes to computation
+   inputs require a new campaign.
+6. The same run's `mutation-native-pilot` acquires global slot zero and measures a
+   small explicit native selection against the full original manifest. The caught
+   control must actually be caught; a compilation failure does not qualify it.
+   Ordinary samples keep their original logical slots and whole-workspace test
+   commands. A separate intentional shutdown probe retains only pre-signal
+   outcomes. Every diagnostic outcome contributes zero production coverage.
+7. `mutation-native-pilot-report` waits for the pilot's completed upload and
+   authenticates its raw evidence, producer log, upload step and artifact bytes.
+   `mutation-admission` then authenticates the finished report's own completed
+   upload. Its first successful measurement decision is deliberately
+   `native_review_required` (exit 24). Preparation, workers and production
+   aggregation do not start at that boundary.
+8. Read the finished report before making the spending decision. If its sample,
+   capacity assumptions and finite forecast justify proceeding, rerun only the
+   authenticated numeric admission job:
+   `gh run rerun RUN_ID --job ADMISSION_JOB_ID`. That later attempt must prove
+   the exact previous review-required verdict, unchanged plan and original
+   measurement references. It then releases preparation and its eight workers.
+   This explicit external action records a separate decision; a later attempt
+   cannot mathematically prove that a person read the report.
 
 Before a full campaign, retain actual Linux measurements for cold preparation,
 workspace tests, representative mutant builds/tests, shutdown, report validation,
@@ -42,7 +64,81 @@ artifact size/upload and API request demand. Per-attempt admission proves only
 that a baseline and one full mutation fit inside the job window. It does not
 prove that the full manifest fits the finite campaign. The initial 30-second
 shutdown, 120-second validation and 240-second upload reserves are conservative
-capacity inputs; measured evidence must establish that they suffice.
+capacity inputs; measured evidence must establish that they suffice. The pilot
+compares those reserves with measured shutdown/reaping, owned-directory cleanup, full-plan validation and
+lossless snapshot reconstruction; the two completed producer uploads are checked
+separately. The report includes measured child resource use, but a child's maximum
+RSS is not simultaneous process-group memory and does not guarantee future use.
+
+Admission freezes an additional total-history ceiling across every linked run and
+attempt, including orchestration. Its forecast uses 1.5 times the slowest sampled
+build/test cost, the original baseline, observed setup, a 30-minute queue allowance
+per wave, 1.5 times the forecast waves, a separate admission attempt and two extra
+attempts. The ceiling must fit the original remaining seven-day lifetime and
+attempt budget. Review delay consumes that same lifetime. The report separately
+retains the per-slot mutation-cap subtotal and a capped campaign projection.
+The latter uses both phase caps for every baseline and mutation, computes capped
+throughput inside each 7,200-second job after setup and all reserves, then adds
+that repeated overhead and the declared queue allowance for every required wave.
+Its fit verdict compares the complete per-slot projection with the original
+remaining lifetime. If a baseline plus one capped mutation cannot fit, the
+projection reports explicit nonfit and null wave/duration values, never infinity.
+Observed setup and queue allowances remain assumptions; externally imposed delays
+can exceed them. This pessimistic evidence can be unfavorable without changing
+the independent sample-based admission decision. Sampling supports a finite
+experiment; only exhaustive completion proves coverage. Reaching the admitted
+ceiling stops the campaign even if the outer 8-run/51-attempt limits would permit
+more work.
+
+Native measurement computes the largest production batch count B that fits a
+typed raw-artifact projection with 20% headroom. The full original manifest stays
+in every raw bundle. Individual baseline logs, mutant logs and diffs remain
+separate members; frozen outcomes, post-shutdown outcomes and process output have
+their own aggregate growth estimates. The projection considers the longest
+record/outcome rows across every full-manifest identity, including shorter slots.
+Paths follow the pinned tool's source-path/location/collision naming. Measured
+record/log shapes and future process-output growth remain explicit assumptions.
+Largest member, expanded total and member count have separate unchanged limits;
+one identity that cannot fit refuses the campaign.
+
+The algorithm/version belongs to the committed recipe. B, its byte assumptions,
+full computation binding and digest belong to authenticated native admission.
+Every production worker requires the resulting typed in-process policy before
+launch or complete-history return. It selects the first at most B identities in
+its original remaining order, before configuration, enumeration, source guards
+and provenance. A normal completed prefix stays incomplete progress while slot
+identities remain. Only validated terminal records leave the remaining set; an
+interrupted active identity remains first on resume. Fixture record stops remain
+fixture-only. No CLI, environment or workflow input can choose B.
+
+Both measured and all-at-caps forecasts use the smaller of B and time-derived
+throughput. Smaller B repeats more baselines/setup/reserves and can make the
+original finite campaign impossible; it cannot be chosen to disguise that result.
+The separate whole-slot raw projection remains visible even when it does not fit.
+History sizing uses the retained schema through lossless encode/decode: full
+plan, all records and repeated baseline references, bounded batch IDs, full slot
+remaining arrays every admitted attempt, original artifact metadata, distinct
+base64 producer logs, started jobs/phases, aggregate verdicts and native proofs.
+The logical reconstruction limit remains authoritative even when compressed or
+interned bytes are tiny. A projected fit is conditional, never game coverage.
+
+After lossless compaction and final retention, every outgoing worker directory
+receives an exact safe path/size/hash inventory. Oversized members, expanded total
+or member count disable result upload and produce a failed capacity verdict in
+bounded authenticated job-log chunks. The complete inventory, digest, source,
+manifest, policy and producer identities remain bound together. Oversized raw
+bytes stay intact locally; the marker does not claim they were durably uploaded
+and supplies no accepted records. Recovery authenticates that failed job and
+original log before missing-result handling, retains the terminal verdict and
+its original expiry, and refuses a later favorable retry. Missing, malformed,
+conflicting or too-large marker evidence also refuses; nothing is truncated.
+Uploader ZIP bytes remain unknown locally and are checked from completed artifact
+metadata/download. These checks bound accepted evidence, not temporary disk writes.
+
+A started native phase with missing evidence, failed authentication, bad measurement
+or a terminal verdict blocks the campaign. Another run cannot replace it with a
+favorable sample. Authenticated skipped jobs do not count as execution, even when
+GitHub supplies a start timestamp; contradictory upload evidence still fails.
 
 The executable archive has a separate 256 MiB binary capacity limit and a 1 MiB
 receipt limit. These are safety bounds, not measured sizes. Result evidence keeps
@@ -55,7 +151,10 @@ absolute path; PATH and Cargo-home alternatives cannot replace it.
 After the full attempt finishes with a resumable incomplete verdict, authenticate
 its numeric `mutation-prepare` job ID (`mutation-fixture-prepare` for fixtures)
 and run `gh run rerun RUN_ID --job PREPARATION_JOB_ID`. This reruns preparation
-and its mutation dependents without rerunning Rust or web checks. Completed slots
+and its mutation dependents without rerunning Rust, web, native measurement or
+admission jobs. The original admitted reference remains fixed in every prepared
+input and retained snapshot, including aggregate-only and cross-run recovery.
+Completed slots
 validate the current inputs and prior results, then perform zero mutations.
 
 Do not use `--failed` for this workflow's mutation continuation. It skips successful
@@ -137,7 +236,11 @@ its sealed final attempt also fails.
 The full wrapper request fixture covers preparation, eight consumers and aggregation
 at 10, 30 and 50 historical attempts, the eight-run ceiling, and a three-attempt gap
 with maximal inventory pages. The nominal sum must remain at or below 800 REST
-requests per attempt. Keep measured request counts in dated evidence, not this guide.
+requests per attempt. The native tests also count original planning, the pilot,
+finished report, review-required decision, later admission and first preparation
+without a production snapshot. Native history tests use a finite admitted envelope;
+the fixture transport test still covers the outer eight-run history ceiling.
+Keep measured request counts in dated evidence, not this guide.
 GitHub's ordinary repository GITHUB_TOKEN budget is 1,000 requests per hour; separate
 jobs share it. Object-store transfers and artifact-service uploads also need byte
 and time measurement even when they use a different request quota.
@@ -145,7 +248,9 @@ and time measurement even when they use a different request quota.
 Each job checks its actual token's remaining/reset values before work. Preparation
 requires 800 requests available, a worker requires 50, and aggregation requires
 400. Tool preparation and original planning require 100 and 400 respectively.
-Preparation and aggregation retain another observation with its timestamp. The
+Each native stage requires 400; the later admission additionally requires 850
+remaining before releasing preparation. Preparation, aggregation and native
+verdicts retain another observation with its timestamp. The
 external controller inspects those observations and waits outside runner slots
 when necessary. A local `gh api rate_limit` call describes that local credential,
 not a completed job's GITHUB_TOKEN bucket. Waiting past an observed reset is

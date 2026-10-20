@@ -596,13 +596,24 @@ def batch_config(manifest, ids, path):
     Path(path).write_text("examine_re = " + json.dumps(expressions, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def ordered_remaining(manifest, records, slot):
+def ordered_remaining_by_slot(manifest, records):
+    """Validate once, then derive all eight lists in the frozen generation order."""
+    model.validate_manifest(manifest)
     completed = {record["mutation_id"] for record in records}
-    assigned = set(model.slot_ids(manifest, slot))
-    by_name = {item["name"]: item["id"] for item in manifest["mutations"]}
+    by_name = {item["name"]: item for item in manifest["mutations"]}
     order = manifest["context"]["inputs"].get("generation_order", list(by_name))
     require(len(order) == len(by_name) and set(order) == set(by_name), "invalid generation order")
-    return [by_name[name] for name in order if by_name[name] in assigned and by_name[name] not in completed]
+    remaining = [[] for _ in range(model.SLOT_COUNT)]
+    for name in order:
+        item = by_name[name]
+        if item["id"] not in completed:
+            remaining[item["slot"]].append(item["id"])
+    return remaining
+
+
+def ordered_remaining(manifest, records, slot):
+    require(type(slot) is int and 0 <= slot < model.SLOT_COUNT, "invalid slot")
+    return ordered_remaining_by_slot(manifest, records)[slot]
 
 
 def continuation_status(summary, bundles, *, slot=None, max_attempts=51, attempt=1):
@@ -734,9 +745,53 @@ def plan(root, settings, calibration, output):
     return manifest
 
 
-def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=None):
+BATCH_ALGORITHM = "ordered-remaining-prefix-v1"
+
+
+class AuthenticatedBatchPolicy:
+    """Immutable in-process capability issued by the authenticated native adapter.
+
+    Like AuthenticatedRecovery, this is not a cryptographic object. Decoded
+    caller JSON cannot enter the runner seam; the pinned adapter owns issuance.
+    """
+    __slots__ = ("_raw", "_binding", "_digest")
+
+    def __init__(self, policy, planned, chain, settings):
+        raw = json.dumps(policy, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+        object.__setattr__(self, "_raw", raw)
+        object.__setattr__(self, "_digest", artifacts.sha(raw))
+        object.__setattr__(self, "_binding", self.binding(planned, chain, settings))
+
+    def __setattr__(self, name, value):
+        raise AttributeError("authenticated batch policy is immutable")
+
+    @staticmethod
+    def binding(planned, chain, settings):
+        return (model.digest(planned["manifest"]), model.digest(planned["calibration"]),
+            model.digest({key: chain[key] for key in ("started_at", "expires_at", "max_attempts", "retention_days")}),
+            settings["run_id"], settings["attempt"])
+
+    def checked(self, planned, chain, settings):
+        require(self._binding == self.binding(planned, chain, settings) and artifacts.sha(self._raw) == self._digest,
+                "unverified or stale production batch policy")
+        policy = artifacts.strict_json(self._raw)
+        require(policy["algorithm"] == BATCH_ALGORITHM and type(policy["max_mutations"]) is int
+                and 1 <= policy["max_mutations"] <= max(map(len, ordered_remaining_by_slot(planned["manifest"], []))),
+                "invalid authenticated production batch count")
+        require(policy["manifest_digest"] == model.digest(planned["manifest"]), "batch policy manifest changed")
+        return policy
+
+
+def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=None, batch_policy=None):
     bound_setup(settings)
     manifest, calibration = planned["manifest"], planned["calibration"]
+    requires_budget = settings["scope"] == "production" and "batch_algorithm" in planned.get("orchestration", {}).get("contract", {})
+    if batch_policy is not None or requires_budget:
+        require(settings["scope"] == "production" and isinstance(batch_policy, AuthenticatedBatchPolicy),
+                "production execution requires authenticated batch policy")
+        checked_budget = batch_policy.checked(planned, chain, settings)
+    else:
+        checked_budget = None
     require(settings.get("fixture_stop_after_records") is None or settings["scope"] == "fixture",
             "deliberate fixture interruption is forbidden in production")
     tool = installed_tool(root, execution_environment(settings)[0], settings)
@@ -760,6 +815,8 @@ def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=
                "input_fingerprint": manifest["input_fingerprint"], "campaign_id": manifest["campaign_id"]}
     if "log_retention_days" in settings:
         receipt["log_retention_days"] = settings["log_retention_days"]
+    if checked_budget is not None:
+        receipt["batch_policy_digest"] = model.digest(checked_budget)
     if state in {"complete", "policy_failure", "baseline_failure", "infrastructure_failure", "capacity_failure"}:
         return retain_bundle(output, manifest, receipt, {"state": state, "reason": reason}, summary=summary)
     decision = capacity(settings, calibration)
@@ -767,6 +824,8 @@ def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=
         return retain_bundle(output, manifest, receipt, {"state": "capacity_failure", "reason": "fresh_attempt_cannot_fit",
                              "capacity": decision}, summary=summary)
     ids = ordered_remaining(manifest, records, slot)
+    if checked_budget is not None:
+        ids = ids[:checked_budget["max_mutations"]]
     execution_id = uuid.uuid4().hex
     provenance = {key: receipt[key] for key in ("repository", "workflow", "run_id", "attempt", "checkout", "input_fingerprint")}
     provenance.update(batch_id=model.digest(ids), execution_id=execution_id)
@@ -821,6 +880,8 @@ def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=
                 result.update(state="policy_failure", reason="timeout_or_unaccepted_survivor")
             elif summary["complete"]:
                 result.update(state="complete", reason="exact_coverage")
+            elif result["state"] == "complete":
+                result.update(state="incomplete_with_progress", reason="bounded_batch_complete")
         bundle = retain_bundle(output, manifest, receipt, result, report_parent=report_parent, summary=summary)
         shutil.copyfile(scratch / "process.log", Path(output) / "process.log")
         if (report_parent / "outcomes.json").is_file():

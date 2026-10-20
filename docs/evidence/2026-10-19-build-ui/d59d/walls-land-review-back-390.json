@@ -1,0 +1,100 @@
+{
+  "source": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "before": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "after": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "raster": {
+    "width": 390,
+    "height": 844
+  },
+  "dom": "- generic \"Isometric household. Use Help for controls and accessible status.\"\n- region \"Household status\":\n  - generic: Time\n  - strong: \"Day 1, Monday 03:14 Spring: mild\"\n  - generic: Funds\n  - strong: \"0\"\n  - status: Saved game loaded\n  - status\n- region \"Build mode\":\n  - heading \"Build mode\" [level=2]\n  - button \"Exit build\"\n  - group \"Build tool\":\n    - button \"Furniture\"\n    - button \"Walls\" [pressed]\n    - button \"Rooms\"\n    - button \"Buy\"\n    - button \"Floors\"\n    - button \"Land\" [active]\n  - generic \"Shortcuts\"\n  - status: Wall removed.\n  - button \"Cancel\"\n  - button \"Confirm\"\n- generic \"Camera zoom\":\n  - button \"Zoom out\":\n  - button \"Zoom in\": +\n  - button \"Options\"\n- generic \"Build actions for the current selection\":\n  - button \"Wall\":\n    - generic: Wall\n  - button \"Doorway\":\n    - generic: Doorway\n  - button \"Windows\":\n    - generic: Windows\n  - button \"Rotate counterclockwise\":\n    - generic: Rotate counterclockwise\n  - button \"Rotate clockwise\":\n    - generic: Rotate clockwise\n  - button \"Remove\" [disabled]:\n    - generic: Remove\n  - button \"Cancel\":\n    - generic: Cancel\n- status: 1Password menu is available. Press down arrow to select."
+}

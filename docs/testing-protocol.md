@@ -97,8 +97,15 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
   `.github/scripts/test_workflow_concurrency.py` pins the shared group, queue,
   shard count and CI invocation; it does not emulate GitHub's scheduler.
-  Tool preparation, calibration and current-attempt recovery preparation acquire
-  slot zero sequentially, before the workers. Every mutation job has a 120-minute cap. The distinct fixture checks
+  Tool preparation, calibration, native diagnostics and current-attempt recovery
+  preparation acquire slot zero sequentially, before the workers. The same-run
+  native report authenticates completed uploads, then admission deliberately
+  stops with `native_review_required`. Only the external owner's later numeric
+  admission-job rerun releases production preparation after report review.
+  Native samples contribute no production coverage; their fixed admission,
+  original lifetime and additional total-history ceiling remain mandatory on
+  continuation and aggregate-only recovery. See [campaign operations](mutation-campaign.md).
+  Every mutation job has a 120-minute cap. The distinct fixture checks
   prove interruption and recovery; they never establish production coverage.
   Read-only jobs cannot dispatch themselves. An authorized external controller
   owns finite reruns and explicitly selected predecessor chains.

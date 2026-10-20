@@ -264,10 +264,11 @@ class OriginalPlanPolicyTests(unittest.TestCase):
     def test_isolated_original_policy_guard_removal_fails_expiry_assertion(self):
         source = Path(workflow.__file__)
         original = source.read_bytes()
+        text = original.decode().replace("\r\n", "\n")
         old = "    bind_chain_to_plan(planned, chain)\n"
-        self.assertEqual(original.decode().count(old), 1)
+        self.assertEqual(text.count(old), 1)
         with tempfile.TemporaryDirectory() as temporary:
-            Path(temporary, source.name).write_text(original.decode().replace(old, ""), encoding="utf-8")
+            Path(temporary, source.name).write_text(text.replace(old, ""), encoding="utf-8")
             script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");"
                 "sys.path.insert(0," + repr(temporary) + ");"
                 "r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName("

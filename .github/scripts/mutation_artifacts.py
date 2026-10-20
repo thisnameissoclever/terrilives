@@ -9,7 +9,7 @@ import re
 import stat
 import subprocess
 import zipfile
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 import mutation_campaign as model
 
@@ -43,6 +43,156 @@ def safe_path(name):
             and "\x00" not in name and not name.startswith("/")
             and all(part not in ("", ".", "..") for part in name.split("/")), "unsafe archive path")
     return PurePosixPath(name)
+
+
+def outgoing_inventory(directory):
+    """Inventory complete retained files; report capacity separately from unsafe paths."""
+    root = Path(directory).resolve(strict=True)
+    require(root.is_dir() and not Path(directory).is_symlink() and not getattr(Path(directory), "is_junction", lambda: False)(),
+            "unsafe outgoing artifact root")
+    members = []
+    for path in sorted(root.rglob("*")):
+        require(not path.is_symlink() and not getattr(path, "is_junction", lambda: False)()
+                and path.resolve().is_relative_to(root), "unsafe outgoing artifact path")
+        if path.is_dir():
+            continue
+        before = path.stat()
+        require(stat.S_ISREG(before.st_mode), "outgoing artifact contains nonregular member")
+        name = path.relative_to(root).as_posix()
+        safe_path(name)
+        digest, length = hashlib.sha256(), 0
+        with path.open("rb") as stream:
+            while block := stream.read(1024 * 1024):
+                length += len(block)
+                digest.update(block)
+        after = path.stat()
+        require(length == before.st_size == after.st_size and before.st_mtime_ns == after.st_mtime_ns,
+                "outgoing artifact changed during inventory")
+        members.append({"path": name, "size": length, "sha256": digest.hexdigest()})
+    total = sum(row["size"] for row in members)
+    largest = max((row["size"] for row in members), default=0)
+    violations = []
+    if len(members) > MAX_MEMBERS:
+        violations.append("member_count")
+    if largest > MAX_MEMBER:
+        violations.append("member_bytes")
+    if total > MAX_ARCHIVE:
+        violations.append("expanded_bytes")
+    return {"members": members, "member_count": len(members), "expanded_bytes": total,
+            "maximum_member_bytes": largest, "violations": violations,
+            "inventory_digest": model.digest(members)}
+
+
+def validate_outgoing_inventory(value):
+    members = value["members"]
+    require(isinstance(members, list) and members == sorted(members, key=lambda row: row["path"]), "capacity inventory order changed")
+    names = set()
+    for row in members:
+        require(set(row) == {"path", "size", "sha256"}, "invalid capacity member declaration")
+        safe_path(row["path"])
+        require(row["path"] not in names and type(row["size"]) is int and row["size"] >= 0
+                and re.fullmatch(r"[0-9a-f]{64}", row["sha256"]), "invalid capacity inventory member")
+        names.add(row["path"])
+    total, largest = sum(row["size"] for row in members), max((row["size"] for row in members), default=0)
+    violations = (["member_count"] if len(members) > MAX_MEMBERS else []) + (["member_bytes"] if largest > MAX_MEMBER else []) + (["expanded_bytes"] if total > MAX_ARCHIVE else [])
+    require(value == {"members": members, "member_count": len(members), "expanded_bytes": total,
+        "maximum_member_bytes": largest, "violations": violations, "inventory_digest": model.digest(members)},
+        "capacity inventory totals or digest changed")
+    return violations
+
+
+def emit_capacity_failure(bundle, inventory):
+    require(validate_outgoing_inventory(inventory), "capacity marker has no actual overflow")
+    receipt = bundle["receipt"]
+    payload = {"version": 1, "state": "capacity_failure", "reason": "outgoing_artifact_capacity", "receipt": receipt,
+        "manifest_digest": model.digest(bundle["manifest"]), "batch_policy_digest": receipt.get("batch_policy_digest"),
+        "inventory": inventory, "prior_status": bundle["status"], "accepted_production_outcomes": 0,
+        "raw_retention": "Complete oversized bytes remain local; no raw result artifact was uploaded or accepted."}
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    require(len(raw) <= MAX_MEMBER, "complete capacity marker exceeds existing member bound")
+    encoded = base64.b64encode(raw).decode()
+    chunks = [encoded[index:index + 3072] for index in range(0, len(encoded), 3072)]
+    identity = {"job_id": receipt["job_id"], "sha256": sha(raw), "bytes": len(raw), "chunks": len(chunks)}
+    print("MUTATION_CAPACITY_START " + json.dumps(identity, separators=(",", ":")), flush=True)
+    for index, content in enumerate(chunks):
+        print("MUTATION_CAPACITY_CHUNK " + json.dumps({"job_id": receipt["job_id"], "index": index, "data": content}, separators=(",", ":")), flush=True)
+    print("MUTATION_CAPACITY_END " + json.dumps(identity, separators=(",", ":")), flush=True)
+    return payload
+
+
+def capacity_marker(raw_log):
+    rows = []
+    for line in raw_log.decode("utf-8").splitlines():
+        match = re.fullmatch(r"(?:\S+ )?MUTATION_CAPACITY_(START|CHUNK|END) (.*)", line)
+        if match:
+            require(len(line.encode()) <= 4096, "capacity marker line exceeds bounded encoding")
+            rows.append((match[1], strict_json(match[2])))
+    if not rows:
+        return None
+    require(len(raw_log) <= MAX_ARCHIVE, "capacity producer log exceeds retained bound")
+    require(len(rows) >= 3 and rows[0][0] == "START" and rows[-1][0] == "END" and rows[0][1] == rows[-1][1],
+            "incomplete or conflicting capacity marker")
+    header = rows[0][1]
+    require(set(header) == {"job_id", "sha256", "bytes", "chunks"} and type(header["chunks"]) is int
+            and header["chunks"] == len(rows) - 2 and 0 < header["bytes"] <= MAX_MEMBER, "invalid capacity marker header")
+    parts = []
+    for index, (kind, row) in enumerate(rows[1:-1]):
+        require(kind == "CHUNK" and set(row) == {"job_id", "index", "data"} and row["job_id"] == header["job_id"]
+                and row["index"] == index and isinstance(row["data"], str) and len(row["data"]) <= 3072, "capacity marker chunk changed")
+        parts.append(row["data"])
+    raw = base64.b64decode("".join(parts), validate=True)
+    require(len(raw) == header["bytes"] and sha(raw) == header["sha256"], "capacity marker bytes changed")
+    value = strict_json(raw)
+    require(value["receipt"]["job_id"] == header["job_id"] and value["version"] == 1 and value["state"] == "capacity_failure"
+            and value["reason"] == "outgoing_artifact_capacity" and value["accepted_production_outcomes"] == 0 and validate_outgoing_inventory(value["inventory"]), "invalid terminal capacity evidence")
+    require(not re.search(r"(?:^|\n)(?:\S+ )?MUTATION_ARTIFACT_ID=", raw_log.decode()), "capacity marker contradicts uploaded result")
+    return value
+
+
+def validate_capacity_receipt(value, manifest, entry, job, policy_digest, repository, workflow):
+    receipt = value["receipt"]
+    scope = manifest["context"]["inputs"]["computation_scope"]
+    require(type(receipt["attempt"]) is int and receipt["attempt"] > 0 and type(receipt["slot"]) is int and 0 <= receipt["slot"] < 8
+            and job["status"] == "completed" and job["conclusion"] == "failure"
+            and job["run_id"] == int(entry["run_id"]) and job["run_attempt"] == receipt["attempt"]
+            and str(job["id"]) == receipt["job_id"]
+            and job["name"] == f"mutation-{'fixture-' if scope == 'fixture' else ''}slot-{receipt['slot']}",
+            "capacity producer job or verdict changed")
+    require(receipt["repository"] == repository and receipt["workflow"] == workflow
+            and receipt["workflow_sha"] == entry["workflow_sha"] and receipt["run_id"] == entry["run_id"]
+            and all(receipt["checkout"][key] == entry[key] for key in ("commit", "tree", "ref"))
+            and receipt["checkout"]["repository"] == repository and receipt["checkout"]["clean"] is True
+            and receipt["campaign_id"] == manifest["campaign_id"] and receipt["input_fingerprint"] == manifest["input_fingerprint"]
+            and value["manifest_digest"] == model.digest(manifest)
+            and value["batch_policy_digest"] == receipt.get("batch_policy_digest") == policy_digest,
+            "capacity evidence computation binding changed")
+    require(type(receipt["log_retention_days"]) is int and receipt["log_retention_days"] > 0,
+            "capacity producer omitted original retention")
+
+
+def authenticate_capacity_failure(api, manifest, entry, job, policy_digest, *, repository, workflow, required_until):
+    run = authenticate_run(api, repository, workflow, entry, manifest["context"]["inputs"]["workflow_file_digest"])
+    attempt = api.json(f"repos/{repository}/actions/runs/{entry['run_id']}/attempts/{job['run_attempt']}")
+    require(attempt["id"] == int(entry["run_id"]) and attempt["run_attempt"] == job["run_attempt"]
+            and attempt["head_sha"] == entry["head_sha"], "capacity producer attempt changed")
+    jobs = list(pages(api, f"repos/{repository}/actions/runs/{entry['run_id']}/attempts/{job['run_attempt']}/jobs", "jobs"))
+    require([row for row in jobs if row["id"] == job["id"]] == [job], "capacity producer job differs from authenticated metadata")
+    path = f"repos/{repository}/actions/jobs/{job['id']}/logs"
+    try:
+        raw = api.bytes(path)
+    except (KeyError, subprocess.SubprocessError) as error:
+        raise ValueError("started worker is missing its immutable result and capacity evidence") from error
+    value = capacity_marker(raw)
+    require(value is not None, "started worker is missing its immutable result and capacity evidence")
+    validate_capacity_receipt(value, manifest, entry, job, policy_digest, repository, workflow)
+    now = dt.datetime.now(dt.timezone.utc)
+    require(timestamp(job["started_at"]) <= timestamp(job["completed_at"]) <= now, "capacity job lifetime changed")
+    expires = timestamp(run["created_at"]) + dt.timedelta(days=value["receipt"]["log_retention_days"])
+    require(expires > required_until, "capacity producer log retention is insufficient")
+    log = {"bytes": base64.b64encode(raw).decode(), "sha256": sha(raw), "run_id": entry["run_id"],
+        "attempt": job["run_attempt"], "job_id": str(job["id"]), "observed_at": now.isoformat(),
+        "original_retention_days": value["receipt"]["log_retention_days"], "expires_at": expires.isoformat()}
+    return {"job": job, "payload": value, "producer_log": path}, log
 
 
 def unpack(raw):
@@ -182,6 +332,7 @@ def authenticate_producer(api, repository, entry, artifact, receipt, *, now, sco
             and (not job.get("completed_at") or created <= timestamp(job["completed_at"])),
             "artifact outside producer job lifetime")
     raw_log = api.bytes(f"repos/{repository}/actions/jobs/{job['id']}/logs")
+    require(capacity_marker(raw_log) is None, "capacity failure contradicts result artifact")
     log = raw_log.decode("utf-8")
     receipts = []
     for line in log.splitlines():

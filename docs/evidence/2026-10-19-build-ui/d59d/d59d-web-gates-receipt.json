@@ -1,0 +1,50 @@
+{
+  "commit": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "wasm_sha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+  "typecheck": {
+    "state": "passed",
+    "command": "npm --prefix web run typecheck",
+    "root_session": 44011,
+    "boundary": "Same merged web source; passed before merge commit and pending-work restore."
+  },
+  "phases": [
+    {
+      "name": "full-web-tests",
+      "argv": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=1",
+        "--reporter=dot"
+      ],
+      "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web",
+      "started_at": "2026-10-19T23:25:42.657588+00:00",
+      "heap_mib": 3072,
+      "minimum_host_available_bytes": 777052160,
+      "pid": 47716,
+      "exit_code": 0,
+      "seconds": 1055.5063735999865,
+      "finished_at": "2026-10-19T23:43:18.164201+00:00",
+      "log": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\d59d-full-web-tests.log",
+      "log_sha256": "a8561f01fcf8ac129457be0f1f688953a55ad8cddd5af828df59f98f9a9edaf7"
+    },
+    {
+      "name": "production-build",
+      "argv": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\node_modules\\vite\\bin\\vite.js",
+        "build"
+      ],
+      "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web",
+      "started_at": "2026-10-19T23:43:18.183100+00:00",
+      "heap_mib": 3072,
+      "minimum_host_available_bytes": 11306745856,
+      "pid": 22824,
+      "exit_code": 0,
+      "seconds": 30.031289700011257,
+      "finished_at": "2026-10-19T23:43:48.214424+00:00",
+      "log": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\d59d-production-build.log",
+      "log_sha256": "efe2871dc3c8228309587179b526c482b907d4c3ffc2005c8bb1ffb3317bb949"
+    }
+  ]
+}
