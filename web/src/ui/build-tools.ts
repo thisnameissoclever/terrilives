@@ -1,5 +1,5 @@
 // Build mode's tool switch - [WT-shell], [BM-shell] and [RT-shell]. Furniture,
-// Walls, Room, Buy and Floors each keep their own controller; this decides which one
+// Walls, Rooms, Buy, Floors and Land each keep their own controller; this decides which one
 // is showing and makes sure only one of them ever holds a preview.
 
 /** A Build mode tool other than Furniture. */
@@ -11,6 +11,8 @@ export interface BuildTool {
 }
 
 export interface BuildToolHooks {
+  /** Resolves a batch before switching, without clearing the current preview first. */
+  beforeSelect?(button: string, activate: () => boolean): boolean;
   /**
    * Drops any furniture preview so only one tool's preview is ever drawn, and
    * says whether it could: a move waiting on the drain cannot be dropped.
@@ -71,8 +73,7 @@ export class BuildToolSwitch {
     this.buttons = [required('build-tool-furniture'), ...tools.map(entry => required(entry.button))];
     this.panels = [required('furniture-tool'), ...tools.map(entry => required(entry.panel))];
     this.buttons[0].addEventListener('click', () => {
-      for (const entry of tools) entry.tool.exit();
-      hooks.focusView();
+      this.select('build-tool-furniture');
     });
     tools.forEach((entry, index) => {
       this.buttons[index + 1].addEventListener('click', () => {
@@ -85,7 +86,18 @@ export class BuildToolSwitch {
   /** Keyboard shortcuts use the same cancellation and focus rules as a click. */
   select(button: string): boolean {
     const entry = this.tools.find(candidate => candidate.button === button);
-    if (!entry || !this.hooks.leaveFurniture()) return false;
+    if (!entry && button !== 'build-tool-furniture') return false;
+    const activate = () => {
+      if (entry) return this.activate(entry);
+      for (const other of this.tools) other.tool.exit();
+      this.hooks.focusView();
+      return true;
+    };
+    return this.hooks.beforeSelect ? this.hooks.beforeSelect(button, activate) : activate();
+  }
+
+  private activate(entry: SwitchedTool): boolean {
+    if (!this.hooks.leaveFurniture()) return false;
     for (const other of this.tools) if (other !== entry) other.tool.exit();
     entry.tool.enter();
     this.hooks.focusView();

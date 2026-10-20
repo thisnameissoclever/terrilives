@@ -1,0 +1,62 @@
+{
+  "results": [
+    {
+      "control": "direct-executable",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin (test_mutation_runner.RunnerTests.test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-z3vagfi1\\test_mutation_runner.py\", line 123, in test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin\n    self.assertEqual(calls, [[str(intended.resolve()), \"mutants\", \"--version\"]])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [['cargo', 'mutants', '--version']] != [['C:\\\\Users\\\\myema\\\\AppData\\\\Local\\\\Temp\\\\m[86 chars]on']]\n\nFirst differing element 0:\n['cargo', 'mutants', '--version']\n['C:\\\\Users\\\\myema\\\\AppData\\\\Local\\\\Temp\\\\m[85 chars]ion']\n\n- [['cargo', 'mutants', '--version']]\n+ [['C:\\\\Users\\\\myema\\\\AppData\\\\Local\\\\Temp\\\\mutation-runner-test-z73pji5f\\\\cargo-home\\\\bin\\\\cargo-mutants.exe',\n+   'mutants',\n+   '--version']]\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin"
+    },
+    {
+      "control": "executable-byte-binding",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin (test_mutation_runner.RunnerTests.test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-3kujyb7z\\test_mutation_runner.py\", line 133, in test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin\n    with self.assertRaisesRegex(ValueError, \"executable changed\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_tool_resolution_hash_and_every_invocation_use_same_absolute_plugin"
+    },
+    {
+      "control": "calibration-phase-boundary",
+      "returncode": 1,
+      "stderr": "FF\n======================================================================\nFAIL: test_calibration_rejects_owned_lock_and_native_drift_after_each_phase (test_mutation_runner.RunnerTests.test_calibration_rejects_owned_lock_and_native_drift_after_each_phase) (changed='Cargo.lock')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-z7rfr76w\\test_mutation_runner.py\", line 163, in test_calibration_rejects_owned_lock_and_native_drift_after_each_phase\n    self.assertEqual(len(phases), 1, \"the changed build input must be rejected before testing\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 2 != 1 : the changed build input must be rejected before testing\n\n======================================================================\nFAIL: test_calibration_rejects_owned_lock_and_native_drift_after_each_phase (test_mutation_runner.RunnerTests.test_calibration_rejects_owned_lock_and_native_drift_after_each_phase) (changed='crates/native.rs')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-z7rfr76w\\test_mutation_runner.py\", line 163, in test_calibration_rejects_owned_lock_and_native_drift_after_each_phase\n    self.assertEqual(len(phases), 1, \"the changed build input must be rejected before testing\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 2 != 1 : the changed build input must be rejected before testing\n\n----------------------------------------------------------------------\nRan 1 test in 2.467s\n\nFAILED (failures=2)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_calibration_rejects_owned_lock_and_native_drift_after_each_phase"
+    },
+    {
+      "control": "owned-result-bytes",
+      "returncode": 1,
+      "stderr": "FF\n======================================================================\nFAIL: test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report (test_mutation_runner.RunnerTests.test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report) (changed='Cargo.lock')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-mwugsr9j\\test_mutation_runner.py\", line 177, in test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report\n    self.assertEqual(result[\"state\"], \"infrastructure_failure\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'complete' != 'infrastructure_failure'\n- complete\n+ infrastructure_failure\n\n\n======================================================================\nFAIL: test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report (test_mutation_runner.RunnerTests.test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report) (changed='crates/other.rs')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-mwugsr9j\\test_mutation_runner.py\", line 177, in test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report\n    self.assertEqual(result[\"state\"], \"infrastructure_failure\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'complete' != 'infrastructure_failure'\n- complete\n+ infrastructure_failure\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.141s\n\nFAILED (failures=2)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_controller_rejects_owned_lock_or_other_input_drift_with_valid_report"
+    },
+    {
+      "control": "current-source-binding",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_aggregate_rejects_changed_native_inputs_despite_complete_authenticated_history (test_mutation_runner.RunnerTests.test_aggregate_rejects_changed_native_inputs_despite_complete_authenticated_history)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-gp1nxal3\\test_mutation_runner.py\", line 308, in test_aggregate_rejects_changed_native_inputs_despite_complete_authenticated_history\n    with self.assertRaisesRegex(ValueError, \"calibration does not match|current source or execution contract changed\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 1.174s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_aggregate_rejects_changed_native_inputs_despite_complete_authenticated_history"
+    },
+    {
+      "control": "current-job-failure",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_aggregate_rejects_failed_current_validation_even_with_complete_history (test_mutation_runner.RunnerTests.test_aggregate_rejects_failed_current_validation_even_with_complete_history)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-dmd9547t\\test_mutation_runner.py\", line 332, in test_aggregate_rejects_failed_current_validation_even_with_complete_history\n    self.assertEqual(result[\"state\"], \"infrastructure_failure\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'complete' != 'infrastructure_failure'\n- complete\n+ infrastructure_failure\n\n\n----------------------------------------------------------------------\nRan 1 test in 1.221s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_mutation_runner.RunnerTests.test_aggregate_rejects_failed_current_validation_even_with_complete_history"
+    },
+    {
+      "control": "locked-duplicate",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_locked_option_is_preserved_and_duplicate_missing_or_extra_is_rejected (test_mutation_campaign.CampaignTest.test_locked_option_is_preserved_and_duplicate_missing_or_extra_is_rejected)\n----------------------------------------------------------------------\nValueError: phase command differs from approved complete workspace command\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-review-fix-control-55i30wf8\\test_mutation_campaign.py\", line 481, in test_locked_option_is_preserved_and_duplicate_missing_or_extra_is_rejected\n    with self.assertRaisesRegex(ValueError, \"duplicate Cargo option\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"duplicate Cargo option\" does not match \"phase command differs from approved complete workspace command\"\n\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_mutation_campaign.CampaignTest.test_locked_option_is_preserved_and_duplicate_missing_or_extra_is_rejected"
+    }
+  ],
+  "source_hashes": {
+    "mutation_artifacts.py": "ca2a65a9e045255a509fb51df77dc13a467acd6f5a9348ea2107050e107bbded",
+    "mutation_campaign.py": "c929edbd45d8e0bca0afb5d23a4e8ac45bc8d266881df38e88baacc793a54895",
+    "mutation_runner.py": "7aea3b593a2fa5907eb2fa380aa38cae47d4cb9a8db6f70db867644597ec3c05",
+    "test_mutation_artifacts.py": "a92aa57faa496f96c331b7e298f08975496ac2c0ac1319d466285ecc91890420",
+    "test_mutation_campaign.py": "67285350a74a3d34296ac980f882f9448a3eea8798d98fed710cc90b9f45bce6",
+    "test_mutation_runner.py": "39a0a09f8eea81c3a68e15de821086091b060e5061abf36c6173dcf7ec2aee1f"
+  },
+  "source_unchanged": true
+}

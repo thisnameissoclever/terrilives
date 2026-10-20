@@ -193,6 +193,9 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 }
 
 #build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }
+#build-batch-status:empty, #builder-status:empty, #buy-status:empty, #floor-status:empty,
+#land-status:empty, #land-touch-help:empty, #room-status:empty { display: none; }
+#build-zoom-out svg { display: block; margin: auto; }
 /* The side panel keeps no bottom padding of its own; its footer, always its
    last child, carries that space instead. So the stuck footer meets the
    panel's bottom edge and nothing scrolls into view beneath it, and the

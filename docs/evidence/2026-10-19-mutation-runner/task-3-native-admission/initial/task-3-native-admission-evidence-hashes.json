@@ -1,0 +1,11 @@
+{
+  "task-3-native-admission-report.md": "ad3f4abe96c859d6ccd64035615330b0a233771cda31482380931af645415085",
+  "task-3-native-admission-package.diff": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+  "task-3-native-admission-hashes.json": "7f12263e32d4553f847e0e65c372d584db109c507153f0502791e9a8afbf6889",
+  "task-3-native-final-all-tests.txt": "aa110e5a69390c910969fa63696f421dc5c9df52a7a5ee6a18524e7b2d4ed3de",
+  "task-3-native-workflow-tests.txt": "69ec61638b861ac08d6c2687e0b19052e329225bd8d28bf7a8557220d816aca7",
+  "task-3-native-api-costs.json": "b380d3f3d7f5b36e74fdc6ab2726089f8c04bc9996263af6eca989681a970ac7",
+  "task-3-native-gate-api-costs.json": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+  "task-3-native-plan-api-costs.json": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a",
+  "task-3-native-fixture-api-costs.json": "7a1237854705d7776f4cc9aa22f70965035529d56de3713ab9dc7f5ce118e6ae"
+}

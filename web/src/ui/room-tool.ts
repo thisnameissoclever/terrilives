@@ -13,8 +13,8 @@ type RoomSource = Pick<SimBridge, 'roomEditPreview' | 'buildRoom' | 'lastRoomRes
 
 export const CHOOSE_CORNER = 'Choose a corner tile of the room.';
 const CHOOSE_OPPOSITE = 'Choose the opposite corner.';
-const READY = 'Ready to build. Choose a line of the outline for a doorway.';
-const READY_WITH_DOORWAY = 'Ready to build, with a doorway.';
+const READY = 'Choose a line of the outline for a doorway.';
+const READY_WITH_DOORWAY = '';
 const ALREADY_BUILT = 'This room is already built.';
 const BUILDING = 'Building the room…';
 const BUILT = 'Room built.';

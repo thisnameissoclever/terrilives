@@ -1,0 +1,19 @@
+{
+  "package_sha256": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+  "base_commit": "ad67b0b5995276a34c7434b9370042c6d6016dbd",
+  "verified_working_and_index_files": {
+    ".github/workflows/ci.yml": "57313ed033b3c85fed7ca4e9a6a2aa9db9821eeedb9a20ae8cf70e9c3895246b",
+    ".github/scripts/mutation_workflow.py": "def444ac2407cc3fbb2350b649065a77611b47f89d1c24226f58e38835151dbd",
+    ".github/scripts/mutation_tool.py": "2524b4689123df8e25b4f8c5c01baa0a15c4e1b0257e39cf156da41c89259048",
+    ".github/scripts/mutation_qualification.py": "a942c23bded1fe1bf79e8268d3ec56043b33572bcbc0e04196da08040770fbcd",
+    ".github/scripts/mutation_recovery.py": "7370097e186d0f07dd859db42dda1d1fd69179cb7cb632059a94d17bfc8df562",
+    ".github/scripts/test_workflow_concurrency.py": "4ebfd13921d07595858ba5cdf778d8301f9c8bb7c4242e525060663368f85813",
+    ".github/scripts/test_mutation_recovery.py": "44eb950f9871d79f3fd9b67af35b0f9946ad5152dc5f38cd0ac98784b47ceada",
+    ".github/scripts/test_mutation_workflow.py": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+    ".github/scripts/test_mutation_qualification.py": "9e05da6a208a971913caafc06b57c9408f2a2a34b2e9ec5d2f4288806c339788",
+    "docs/mutation-campaign.md": "aa7daac3b72faa310357a850c10d04df0b2a6fefd1397217687efa5e6a8993ac",
+    "docs/testing-protocol.md": "50862d6438823f449dd108a1ae68bfe48dbe4229a478cc3869d08886e43ea8b6",
+    ".github/scripts/mutation_native.py": "024006d0bdfd5e5085c1735661213c97492783e7b2332df6046ed6942b08f355",
+    ".github/scripts/test_mutation_native.py": "36250c5c7c05ccccb04b7a510a53967a49ba09d983ce7103c9c2b6adf5537996"
+  }
+}

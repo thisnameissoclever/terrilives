@@ -1,0 +1,101 @@
+[
+  {
+    "original": "browser/panel-41.png",
+    "retained": "panel-41.jpg",
+    "format": "JPEG",
+    "size": [
+      434,
+      683
+    ],
+    "sha256": "e609bf00914375da5528bb3f9361846eb1a0b1d2190e3eae496d2e734d4df091",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "browser/panel-62.png",
+    "retained": "panel-62.jpg",
+    "format": "JPEG",
+    "size": [
+      434,
+      683
+    ],
+    "sha256": "80aa8fd2fa4b5e77b6d600ab1d7b14ef0dab6df362aed779152fa1a76b8a2702",
+    "condition": "known defective control"
+  },
+  {
+    "original": "browser/panel-87.png",
+    "retained": "panel-87.jpg",
+    "format": "JPEG",
+    "size": [
+      434,
+      683
+    ],
+    "sha256": "e609bf00914375da5528bb3f9361846eb1a0b1d2190e3eae496d2e734d4df091",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "browser/final-desktop-dock.png",
+    "retained": "final-desktop-dock.jpg",
+    "format": "JPEG",
+    "size": [
+      1440,
+      1000
+    ],
+    "sha256": "bc57572cbb399e3d447e47cbf9cf90467b4bfe6880dbb7e4d95eb3b0b7d860b0",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "browser/final-dock740.png",
+    "retained": "final-dock740.jpg",
+    "format": "JPEG",
+    "size": [
+      740,
+      390
+    ],
+    "sha256": "75a4c33c3df678c486d3937fe1f2e5c157c5b04f068087365ed88260eaaa5ad7",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "parent-played-dock.png",
+    "retained": "parent-played-dock.jpg",
+    "format": "JPEG",
+    "size": [
+      1280,
+      720
+    ],
+    "sha256": "c36c4c5a838124fa7aaedf4deb27410d866ef90ae2077de61f4811460f79af17",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "parent-played-activity.png",
+    "retained": "parent-played-activity.jpg",
+    "format": "JPEG",
+    "size": [
+      1280,
+      720
+    ],
+    "sha256": "adb8d2bb9a6fcb3b2e942f6b88377fa53a545aa52a3ba6ce34db3ae5740c057e",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "parent-played-dialog.png",
+    "retained": "parent-played-dialog.jpg",
+    "format": "JPEG",
+    "size": [
+      1280,
+      720
+    ],
+    "sha256": "223a66244845466aac46db307a0f1209a88f53aacc58c21d118d91ef8a9dcda5",
+    "condition": "inspected image; scope in visual review"
+  },
+  {
+    "original": "root-replacement-dialog390.jpg",
+    "retained": "root-replacement-dialog390.jpg",
+    "format": "JPEG",
+    "size": [
+      390,
+      844
+    ],
+    "sha256": "9dec379bbb3d7fb30d25b1e53dc47a9fc33dbf1e8793a5dc71daa7a3f1a5073b",
+    "condition": "rejected capture"
+  }
+]

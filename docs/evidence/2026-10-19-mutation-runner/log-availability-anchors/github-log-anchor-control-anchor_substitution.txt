@@ -1,0 +1,15 @@
+F
+======================================================================
+FAIL: test_planning_anchor_survives_new_original_and_lossless_reload (test_mutation_recovery.AnchorLifecycleTests.test_planning_anchor_survives_new_original_and_lossless_reload)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_recovery.py", line 449, in test_planning_anchor_survives_new_original_and_lossless_reload
+    self.assertEqual(restored["log_availability_anchors"]["200"], selected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'ver[43 chars]s': 'original_producer', 'job': {'run_id': 200[545 chars]00'}} != {'ver[43 chars]s': 'planning', 'job': {'run_id': 200, 'conclu[355 chars]None}
+Diff is 1184 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.216s
+
+FAILED (failures=1)

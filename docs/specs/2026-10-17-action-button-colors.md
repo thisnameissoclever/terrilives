@@ -10,7 +10,9 @@ Use explicit action intent where each control is defined. Color must not be infe
 | --- | --- | --- |
 | `affirmative` | Muted green | Confirm, Confirm changes, Continue, Next, Move in, Apply changes, Place, Build room, Buy, Assign, Apply preferences, Save, Retry, Got it |
 | `negative` | Muted red | Cancel, Never mind, Back, Keep playing when it cancels a dialog, Close, Exit build, Clear selection, return to item selection |
-| `neutral` | Existing ordinary style | Tool tabs, zoom, rotation, filters, toggles, Randomize, Undo, Reset defaults, ordinary gameplay choices |
+| `neutral` | Existing ordinary style | Keep building in the Build exit dialog, tool tabs, zoom, rotation, filters, toggles, Randomize, Undo, Reset defaults, ordinary gameplay choices |
+
+Keep building is an explicit neutral exception: it continues the current edit rather than discarding it. The Build decision dialog places Discard changes above Confirm changes, with Confirm last. Its behavior is defined by the [Build confirmation contract](2026-10-13-build-confirmation.md).
 
 The convention describes direction through an operation, not whether an operation is harmless. A final Start over or Load game confirmation is green under the owner's requested rule. Preserve its existing replacement warning, specific action label, cancellation option, and focus behavior. Do not silently exempt destructive confirmations from the requested convention.
 

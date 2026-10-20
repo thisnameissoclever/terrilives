@@ -1,0 +1,23 @@
+FF
+======================================================================
+FAIL: test_malformed_http_response_errors_are_sanitized_at_opener_boundary (test_mutation_recovery.JobLogTransportTests.test_malformed_http_response_errors_are_sanitized_at_opener_boundary) (error='BadStatusLine')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_recovery.py", line 48, in test_malformed_http_response_errors_are_sanitized_at_opener_boundary
+    self.assertIsInstance(caught, ValueError)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: BadStatusLine('private-server-text\x1b[31m') is not an instance of <class 'ValueError'>
+
+======================================================================
+FAIL: test_malformed_http_response_errors_are_sanitized_at_opener_boundary (test_mutation_recovery.JobLogTransportTests.test_malformed_http_response_errors_are_sanitized_at_opener_boundary) (error='LineTooLong')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_recovery.py", line 48, in test_malformed_http_response_errors_are_sanitized_at_opener_boundary
+    self.assertIsInstance(caught, ValueError)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: LineTooLong('got more than 65536 bytes when reading private-server-text\x1b[31m') is not an instance of <class 'ValueError'>
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (failures=2)

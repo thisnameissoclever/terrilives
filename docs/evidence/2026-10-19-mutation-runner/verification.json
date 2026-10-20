@@ -1,0 +1,41 @@
+{
+  "application_test_revision": "ce0637d7185be4dab9b148ded60d8ccf5f03dce2",
+  "checks": {
+    "changelog_build": "passed",
+    "changelog_tests": 12,
+    "doc_ids": "passed",
+    "focused_python_tests": 99,
+    "production_build": "passed",
+    "release_wasm": "passed",
+    "typecheck": "passed",
+    "web_files": 279,
+    "web_tests": 3843
+  },
+  "evidence_logs": {
+    "focused-tests.txt": {
+      "original_sha256": "2eef60eb17af63def393852a7bfa97890efcc633ce303c0c1b52834af615b636",
+      "retained_sha256": "f20e7db4c0341797b78abcc7e4879876beab1a63fce091ffb81aa9f7d329bc10"
+    }
+  },
+  "executor_revision": "7e042f78c4edfdfacaa2e8de4d2bea197dd9a180",
+  "integrated_main": "a15d543d6f3077c9760e16b5b695514550c781e7",
+  "limits": [
+    "No patched tool built or executed",
+    "No real Rust mutation campaign",
+    "No GitHub interrupted/resumed qualification",
+    "Final visual acceptance remains pending",
+    "No merge, deployment or live verification for PR 300"
+  ],
+  "log_normalization": "UTF-8, LF line endings, trailing whitespace and blank final lines removed; original local logs preserved outside tracked evidence.",
+  "node_version": "v24.14.1",
+  "source_sha256": {
+    ".github/scripts/mutation_artifacts.py": "ca2a65a9e045255a509fb51df77dc13a467acd6f5a9348ea2107050e107bbded",
+    ".github/scripts/mutation_campaign.py": "c929edbd45d8e0bca0afb5d23a4e8ac45bc8d266881df38e88baacc793a54895",
+    ".github/scripts/mutation_runner.py": "bf2d8d292bdc68ac7ca1bfd63b803c364b7c124ee0de7175955b4eaf0f969982",
+    ".github/scripts/test_mutation_artifacts.py": "a92aa57faa496f96c331b7e298f08975496ac2c0ac1319d466285ecc91890420",
+    ".github/scripts/test_mutation_campaign.py": "67285350a74a3d34296ac980f882f9448a3eea8798d98fed710cc90b9f45bce6",
+    ".github/scripts/test_mutation_runner.py": "9e1095cad1da92f7fa5a7f0c010e7fd3512768fe38402e0af514532b9f60f25e"
+  },
+  "version": 1,
+  "wasm_sha256": "2be6bf56c25d73228d02fb8244cc0d096932137e1a8c45be1f07fde2b5788fa9"
+}

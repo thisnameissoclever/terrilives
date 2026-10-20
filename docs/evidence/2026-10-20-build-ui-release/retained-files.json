@@ -1,0 +1,186 @@
+[
+  {
+    "file": "guide-land-desktop-light.png",
+    "bytes": 116154,
+    "sha256": "977e594137b9a6191e8ff593dc093e5ac214bfc6535aabee27b43f673a55a3cd",
+    "original_bytes": 116154,
+    "original_sha256": "977e594137b9a6191e8ff593dc093e5ac214bfc6535aabee27b43f673a55a3cd",
+    "copy": "byte-identical PNG"
+  },
+  {
+    "file": "guide-land-mobile-light.png",
+    "bytes": 39869,
+    "sha256": "caf9f7cbd12106095f770f52698245d4180727781ff5fbd745293b401e83081d",
+    "original_bytes": 39869,
+    "original_sha256": "caf9f7cbd12106095f770f52698245d4180727781ff5fbd745293b401e83081d",
+    "copy": "byte-identical PNG"
+  },
+  {
+    "file": "guide-land-mobile-dark.png",
+    "bytes": 40622,
+    "sha256": "80905edd7734b89215fdfe110e684e001070a5c28cb77f4554d0fb16159befcf",
+    "original_bytes": 40622,
+    "original_sha256": "80905edd7734b89215fdfe110e684e001070a5c28cb77f4554d0fb16159befcf",
+    "copy": "byte-identical PNG"
+  },
+  {
+    "file": "guide-land-desktop-dark.png",
+    "bytes": 116956,
+    "sha256": "5fcdfec8a5ced1a22115c6857d7f5be51934302f4070b6c067736b1836f05566",
+    "original_bytes": 116956,
+    "original_sha256": "5fcdfec8a5ced1a22115c6857d7f5be51934302f4070b6c067736b1836f05566",
+    "copy": "byte-identical PNG"
+  },
+  {
+    "file": "final-guide-receipt.json",
+    "bytes": 1717,
+    "sha256": "ba18db521901649053348488e14cd5f282a1b5021d7e2787d7b12906c0b00ec3",
+    "original_bytes": 1771,
+    "original_sha256": "71e35cdf83ea216f4e2946e19e8e84c0cf24ed1c3f7d0da003e441c8f0362fa8",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "guide-interactions.json",
+    "bytes": 1318,
+    "sha256": "6108e29c0de9c76fcd8b161d380a6bcaacbd1faac72c9890bf1e2131a3c07e3e",
+    "original_bytes": 1318,
+    "original_sha256": "6108e29c0de9c76fcd8b161d380a6bcaacbd1faac72c9890bf1e2131a3c07e3e",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-independent-guide-review.md",
+    "bytes": 4888,
+    "sha256": "33e9482ae6d290647a4c77e89f87d7d04dd19830cd802697a0dc58b3b9121e03",
+    "original_bytes": 4889,
+    "original_sha256": "49afbc58c526f8c1cf8830522919e1450904aafabf4809a0a5169535b40301fb",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "release-adversarial-fresh.md",
+    "bytes": 5301,
+    "sha256": "0ee506fda2098a0cc77b3690139caf15a0c659a0b2e1a27603bd4588d7445f01",
+    "original_bytes": 5304,
+    "original_sha256": "ce58b3087c9819f7b5b06bbcd3177b355a1b9abaf3c58f7ff90018be7a0335b3",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "release-adversarial-rereview.md",
+    "bytes": 4004,
+    "sha256": "b905d2ed4feb7fc32bb68a77d9684468e42709f8e24eb1e917e90f7c2d2683f2",
+    "original_bytes": 4006,
+    "original_sha256": "4597fa0f18c022afb96b58123f98ec7e4c64475ccbb9f5add7eb1fda4bbb4413",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-local-delivery-review.md",
+    "bytes": 4844,
+    "sha256": "a1999af3f54d53566f225d0280dde1bf7e409376219f3ff222a150339be6d68c",
+    "original_bytes": 4844,
+    "original_sha256": "a1999af3f54d53566f225d0280dde1bf7e409376219f3ff222a150339be6d68c",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "review-exit-repair-report.md",
+    "bytes": 2889,
+    "sha256": "2ec101c11f1fcaf1d2a802400cfdb67f60e8b9fbd87100e4f2560286e6d99a45",
+    "original_bytes": 2889,
+    "original_sha256": "2ec101c11f1fcaf1d2a802400cfdb67f60e8b9fbd87100e4f2560286e6d99a45",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-guide-changelog-tests.log",
+    "bytes": 2701,
+    "sha256": "b1a3d827ba18b4e0df11f39a39295483e9aa1b744912e7285ff2be98b0e9fd0d",
+    "original_bytes": 2740,
+    "original_sha256": "77c250c7defd81c5ce1acc0be03bac6e8c3505c35814e137e6dca0fd3bd9203a",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-local-script-tests.log",
+    "bytes": 2668,
+    "sha256": "53f802c1b82fc580f01129e1d1a9e9a395c2256cd2b6ba720d128de19d7647ff",
+    "original_bytes": 2714,
+    "original_sha256": "6f987af8e78497926731d0d25be159a0cea32617a007d6c8db59c309b2c403e3",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-production-build.log",
+    "bytes": 44682,
+    "sha256": "a88d9204b59c914c2081134160ffc5f0a303c62ea9fe8d212d3638776b3a4130",
+    "original_bytes": 45090,
+    "original_sha256": "f0c979d6cff80a7ca2226f1c235a194d5544e0f947cd71d76a1ba6521c7a4def",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-player-reference-check.log",
+    "bytes": 45,
+    "sha256": "dc22b21e4251a9fcce331bea8ee590d2c3025e54d33c9e6d931f72ed26d3b78f",
+    "original_bytes": 46,
+    "original_sha256": "855f8f3578147d96da522e79a44583c22c988348fc7faf70b943ac6f953a5399",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-fixture-clock-report.md",
+    "bytes": 3493,
+    "sha256": "966168186eecad2c5ee07e94de728e01c6cad269500061acfc410fbf0e51e70b",
+    "original_bytes": 3493,
+    "original_sha256": "966168186eecad2c5ee07e94de728e01c6cad269500061acfc410fbf0e51e70b",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-fixture-clock.diff",
+    "bytes": 7782,
+    "sha256": "569840f694f112c1c6c0f15a9e639b76f38e19f1530eb14c25e439eb7c54efec",
+    "original_bytes": 7782,
+    "original_sha256": "569840f694f112c1c6c0f15a9e639b76f38e19f1530eb14c25e439eb7c54efec",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-fixture-clock-hashes.json",
+    "bytes": 1166,
+    "sha256": "bec1db9e601c18aa138e2fd89edba5f2f2a6fd1315dbc6c249fa8a693819a262",
+    "original_bytes": 1195,
+    "original_sha256": "75b112329b542b5c472a799f452c724bb37e4486b6bd4ee262c238a754fa8da2",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-fixture-independent-review.md",
+    "bytes": 4701,
+    "sha256": "b10c12ab67fb921a5acab56e11b05dff9f5de729c356ce4cc625003225509682",
+    "original_bytes": 4702,
+    "original_sha256": "58c55570f5b63ee175bd9f24b259855b0633dbb8885635ab4f8186b23700fe51",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-startup-trace-before.txt",
+    "bytes": 2941,
+    "sha256": "574953b95d4f96ff54a3d1c72415a351ebe440ba20aa1e6a44d354f8accf316f",
+    "original_bytes": 2987,
+    "original_sha256": "76faa1916d7422e2edd826985f90e01f0231f8fad20f62dead43686576db1342",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-startup-trace-after.txt",
+    "bytes": 601,
+    "sha256": "b4bd92a884c8f3d43341752963b01c7b90e5312becc698fb4238cf5b7ea5396a",
+    "original_bytes": 609,
+    "original_sha256": "0c50b3b4c50d175ce936f6480bf34717abdbf0a1dc88e2aba9b56d9777a8c389",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "runner-startup-trace-1.1.json",
+    "bytes": 4523,
+    "sha256": "5b52d8c3076f3e39023cc77240462f8633c7f8f68ab9d73e5c840034b3596526",
+    "original_bytes": 4704,
+    "original_sha256": "2c9c82789d38aa567c280b33e90ff385e0ef8e601fe0c1d8cccd4d140bf07ed4",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  },
+  {
+    "file": "final-runner-fixture-tests.txt",
+    "bytes": 140,
+    "sha256": "bdad68d646fa7be4c6afef98556505829ace62f450996318e2f745944c6525d5",
+    "original_bytes": 145,
+    "original_sha256": "505c9f7862bc59915d0b4192aea9bb73c28f561f0c95f148d7a2f56fe7be471d",
+    "copy": "CRLF normalized to LF; raw local file unchanged"
+  }
+]

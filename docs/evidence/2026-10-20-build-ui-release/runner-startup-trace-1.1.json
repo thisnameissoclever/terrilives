@@ -1,0 +1,182 @@
+{
+  "construction_delay_seconds": 1.1,
+  "success": true,
+  "events": [
+    {
+      "event": "child_created",
+      "at": 1792508790.119813,
+      "construction_seconds": 1.1169047355651855
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508789.0025678,
+      "at": 1792508790.2042816,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 3
+    },
+    {
+      "event": "child_created",
+      "at": 1792508791.3263578,
+      "construction_seconds": 1.1069397926330566
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508790.219223,
+      "at": 1792508792.4181917,
+      "deadline": 1,
+      "ready": false,
+      "partial_ready": true,
+      "state": "incomplete_with_progress",
+      "reason": "controller_deadline",
+      "returncode": null
+    },
+    {
+      "event": "child_created",
+      "at": 1792508793.543003,
+      "construction_seconds": 1.1138098239898682
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508792.4288511,
+      "at": 1792508794.4588072,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "incomplete_with_progress",
+      "reason": "controller_deadline",
+      "returncode": null
+    },
+    {
+      "event": "child_created",
+      "at": 1792508795.5726824,
+      "construction_seconds": 1.1083135604858398
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508794.4640594,
+      "at": 1792508795.6741195,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508796.7913227,
+      "construction_seconds": 1.1081788539886475
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508795.682896,
+      "at": 1792508796.9211595,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508798.058384,
+      "construction_seconds": 1.1323966979980469
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508796.9257438,
+      "at": 1792508798.1855702,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508799.311674,
+      "construction_seconds": 1.1204698085784912
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508798.1909428,
+      "at": 1792508799.4866853,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508800.6240332,
+      "construction_seconds": 1.1309318542480469
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508799.4924521,
+      "at": 1792508800.7554934,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508801.881856,
+      "construction_seconds": 1.1150004863739014
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508800.76469,
+      "at": 1792508802.0216243,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508803.1478274,
+      "construction_seconds": 1.1210401058197021
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508802.0264978,
+      "at": 1792508803.2967713,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    },
+    {
+      "event": "child_created",
+      "at": 1792508804.4255726,
+      "construction_seconds": 1.1239564418792725
+    },
+    {
+      "event": "controller_return",
+      "started": 1792508803.3013387,
+      "at": 1792508804.565078,
+      "deadline": 0.8,
+      "ready": true,
+      "partial_ready": false,
+      "state": "complete",
+      "reason": "tool_completed",
+      "returncode": 0
+    }
+  ]
+}

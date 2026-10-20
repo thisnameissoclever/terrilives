@@ -1,0 +1,54 @@
+{
+  "source_head": "6f75d367d99a026bccf69aae58753164541a480c",
+  "files": {
+    "mutation_recovery.py": {
+      "before_sha256": "115f9d0105265d17a417a20554bb7c93c9f8c390b2ec7f7fd9e13a8ad099064f",
+      "before_bytes": 41498,
+      "after_sha256": "d56f47ffe9213835615846b8f14ac4cfefcf642cb01c282e9d816429413b1871",
+      "after_bytes": 50013
+    },
+    "mutation_workflow.py": {
+      "before_sha256": "036ecaa3c0290fc5af4d2855608ee0a5bf507bf379c78ed17556f04c4727b663",
+      "before_bytes": 31900,
+      "after_sha256": "6eca22b2d936f5dd84dfca9b6d396398f2595cf00a0d85efd19a77a9041df3cf",
+      "after_bytes": 34630
+    },
+    "mutation_native.py": {
+      "before_sha256": "7daadc50acece5e39ed4811141728b971ded09f0b7ab41600698b6b1961d4a54",
+      "before_bytes": 76559,
+      "after_sha256": "6a6fdc53304f61bc37acd5e852fcf383fe244bda75f7487d299061049807e68c",
+      "after_bytes": 77752
+    },
+    "test_mutation_recovery.py": {
+      "before_sha256": "f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20",
+      "before_bytes": 40947,
+      "after_sha256": "14f96e2e80bf517c38a2ad550f31a16ade1427a705d20a22ad4b6889c14ba968",
+      "after_bytes": 52875
+    },
+    "test_mutation_workflow.py": {
+      "before_sha256": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+      "before_bytes": 18675,
+      "after_sha256": "5120261e12c17886cca229d9a4d9b88b976fb0f5ebbec847cc25e26e4026f9b9",
+      "after_bytes": 24191
+    },
+    "test_mutation_native.py": {
+      "before_sha256": "3e8156826a01e75ccff1f9c877aa15847169c183a85a977751c9b9d5aa7bf7aa",
+      "before_bytes": 66214,
+      "after_sha256": "d1b9acbbe5852f4a58db244e342ded3a9e85f8810db0c3ef1ea8a96f3290e8ea",
+      "after_bytes": 66235
+    },
+    "test_mutation_batch_budget.py": {
+      "before_sha256": "01dafc27298afbf11d9456a0074a67578acf7dfce422ce476b49a3ad7f6c6a45",
+      "before_bytes": 42875,
+      "after_sha256": "01944c2e4efe5434eb44c283fa4ae198b101c8682a9dd8ed7d259326e3922552",
+      "after_bytes": 44024
+    },
+    "test_mutation_artifacts.py": {
+      "before_sha256": "f983814c816f81f2b60e3c3e9bf6b477c9fb4cb4b3be23b1b118d5784b0bb10d",
+      "before_bytes": 24280,
+      "after_sha256": "12ef694166055da7d04b275a2d044b9eeced1fe6bfd4ad0d38aa2c6a92e97f07",
+      "after_bytes": 24759
+    }
+  },
+  "package_sha256": "3e53b0ee8b52389f14c8de6604d67df5e6679dc643cad1ab789b827d67cfb221"
+}

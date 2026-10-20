@@ -1,0 +1,557 @@
+diff --git a/.github/scripts/mutation_recovery.py b/.github/scripts/mutation_recovery.py
+--- a/.github/scripts/mutation_recovery.py
++++ b/.github/scripts/mutation_recovery.py
+@@ -25,6 +25,15 @@
+ MAX_GAP = 3
+ MAX_NODES = 2_000_000
+ MAX_RECONSTRUCTED_BYTES = MAX_BYTES
++ALLOWED_AGGREGATE_STATES = {"complete", "incomplete_with_progress", "incomplete_without_progress"}
++
++
++def aggregate_job_name(scope):
++    return "mutation-fixture-aggregate" if scope == "fixture" else "mutation-production-aggregate"
++
++
++def aggregate_identity(settings):
++    return {"run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"]}
+ 
+ 
+ class RecordingAPI:
+@@ -181,6 +190,18 @@
+ 
+ def seal(data, settings, kind, verdict, destination):
+     data = dict(data, consumer={"run_id": settings["run_id"], "attempt": settings["attempt"]})
++    if kind == "aggregate":
++        key = f"{settings['run_id']}/{settings['attempt']}"
++        phases = {key: list(jobs) for key, jobs in data.get("phase_inventories", {}).items()}
++        jobs = phases.setdefault(key, [])
++        existing = [job for job in jobs if str(job["id"]) == settings["job_id"]]
++        require(len(existing) <= 1, "duplicate current aggregate identity")
++        if not existing:
++            jobs.append({"id": int(settings["job_id"]), "run_id": int(settings["run_id"]), "run_attempt": settings["attempt"],
++                "name": aggregate_job_name(settings["scope"]), "status": "in_progress", "conclusion": None,
++                "started_at": settings["job_started_at"]})
++        data.update(phase_inventories=phases, pending_aggregate=aggregate_identity(settings))
++    validate_retained(data, pending_aggregate=aggregate_identity(settings) if kind == "aggregate" else None)
+     raw = encode(data)
+     destination = Path(destination)
+     destination.mkdir(parents=True, exist_ok=False)
+@@ -250,11 +271,38 @@
+     require(proof["job"]["conclusion"] == expected, "snapshot producer verdict disagrees with job")
+     tool.retained_until(api, repository, item, run, artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN,
+                         receipt["log_retention_days"])
++    if receipt["kind"] == "aggregate":
++        retain_aggregate_verdict(data, receipt, proof, item, run)
+     validate_retained(data)
+     return data, receipt
+ 
+ 
+-def validate_retained(data):
++def retain_aggregate_verdict(data, receipt, proof, item, run):
++    """Resolve the producer's pending identity only from its authenticated final log."""
++    identity = {key: receipt[key] for key in ("run_id", "attempt", "job_id")}
++    require(data.get("pending_aggregate") == identity, "snapshot omitted its pending aggregate identity")
++    key = f"{receipt['run_id']}/{receipt['attempt']}"
++    phases = data["phase_inventories"][key]
++    matches = [index for index, job in enumerate(phases) if str(job["id"]) == receipt["job_id"]]
++    require(len(matches) == 1, "snapshot omitted its started aggregate")
++    phases[matches[0]] = proof["job"]
++    path = f"repos/{receipt['repository']}/actions/jobs/{receipt['job_id']}/logs"
++    raw = proof["log_bytes"]
++    log = {"bytes": base64.b64encode(raw).decode(), "sha256": proof["log_sha256"], "run_id": receipt["run_id"],
++        "attempt": receipt["attempt"], "job_id": receipt["job_id"], "observed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
++        "original_retention_days": receipt["log_retention_days"],
++        "expires_at": (artifacts.timestamp(run["created_at"]) + dt.timedelta(days=receipt["log_retention_days"])).isoformat()}
++    if path in data["logs"]:
++        require(data["logs"][path]["sha256"] == log["sha256"], "original aggregate log bytes changed")
++    data["logs"][path] = log
++    data["originals"][str(item["id"])] = {"metadata": original_metadata(item), "producer_log": path}
++    data["source_runs"][receipt["run_id"]] = tool.entry_from_receipt(receipt)
++    data.setdefault("aggregate_verdicts", {})[receipt["job_id"]] = {
++        "receipt": receipt, "artifact_id": item["id"], "producer_log": path, "job": proof["job"]}
++    data.pop("pending_aggregate")
++
++
++def validate_retained(data, *, pending_aggregate=None):
+     required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
+     for path, log in data["logs"].items():
+         raw = base64.b64decode(log["bytes"], validate=True)
+@@ -278,13 +326,40 @@
+         evidenced = {item["bundle"]["receipt"]["job_id"] for item in data["bundles"] if
+                      f"{item['bundle']['receipt']['run_id']}/{item['bundle']['receipt']['attempt']}" == key}
+         require(evidenced == {str(job["id"]) for job in jobs}, "retained started worker has no original result")
+-    for jobs in data.get("phase_inventories", {}).values():
+-        require(all(job["status"] == "completed" and job["conclusion"] == "success" for job in jobs),
+-                "retained preparation failure stops continuation")
++    phases = data.get("phase_inventories", {})
++    require(set(data["job_inventories"]) <= set(phases), "retained attempt is missing its phase inventory")
++    scope = data["planned"]["manifest"]["context"]["inputs"]["computation_scope"]
++    for key, jobs in phases.items():
++        for job in jobs:
++            if job["name"] != aggregate_job_name(scope):
++                require(job["status"] == "completed" and job["conclusion"] == "success",
++                        "retained preparation failure stops continuation")
++                continue
++            validate_aggregate_phase(data, key, job, pending_aggregate)
++
++
++def validate_aggregate_phase(data, key, job, pending_aggregate=None):
++    scope = data["planned"]["manifest"]["context"]["inputs"]["computation_scope"]
++    identity = {"run_id": str(job["run_id"]), "attempt": job["run_attempt"], "job_id": str(job["id"])}
++    require(key == f"{identity['run_id']}/{identity['attempt']}", "retained aggregate attempt mismatch")
++    if pending_aggregate == identity and job["status"] == "in_progress" and job["conclusion"] is None:
++        return
++    verdict = data.get("aggregate_verdicts", {}).get(str(job["id"]))
++    require(verdict is not None and verdict["job"] == job, "historical aggregate lacks authenticated verdict evidence")
++    receipt = verdict["receipt"]
++    require({key: receipt[key] for key in identity} == identity and receipt["kind"] == "aggregate"
++            and receipt["scope"] == scope and receipt["campaign_id"] == data["planned"]["manifest"]["campaign_id"]
++            and receipt["plan"] == data["chain"]["plan"], "retained aggregate verdict binding mismatch")
++    require(receipt["verdict"]["state"] in ALLOWED_AGGREGATE_STATES, "terminal historical aggregate verdict stops continuation")
++    require(job["status"] == "completed" and job["conclusion"] ==
++            ("success" if receipt["verdict"]["state"] == "complete" else "failure"), "retained aggregate verdict disagrees with job")
++    original = data["originals"].get(str(verdict["artifact_id"]))
++    require(original is not None and original["producer_log"] == verdict["producer_log"]
++            and verdict["producer_log"] in data["logs"], "retained aggregate lost original verdict evidence")
+ 
+ 
+ def recovered(data, settings, *, include_current):
+-    validate_retained(data)
++    validate_retained(data, pending_aggregate=aggregate_identity(settings) if include_current else None)
+     manifest = data["planned"]["manifest"]
+     bundles = [dict(item["bundle"], manifest=manifest) for item in data["bundles"]]
+     deltas = [bundle["delta"] for bundle in bundles if bundle["delta"] is not None]
+@@ -306,7 +381,7 @@
+     raise runner.CapacityFailure("original artifact inventory exceeds bounded page capacity")
+ 
+ 
+-def fresh_inventory(api, data, settings, *, probe=True):
++def fresh_inventory(api, data, settings, *, probe=True, allow_current_aggregate=False):
+     now = dt.datetime.now(dt.timezone.utc)
+     chain = data["chain"]
+     artifacts.validate_chain(chain, current_run_id=settings["run_id"], now=now)
+@@ -335,8 +410,31 @@
+         log = data["logs"][original["producer_log"]]
+         tool.retained_until(api, settings["repository"], inventory[artifact_id], runs[log["run_id"]], required_until,
+                             log["original_retention_days"])
+-    validate_retained(data)
++    validate_retained(data, pending_aggregate=aggregate_identity(settings) if allow_current_aggregate else None)
+     return inventory, runs
++
++
++def ingest_aggregate_verdict(api, data, settings, inventory, job):
++    expected = artifact_name(settings["scope"], data["planned"]["manifest"]["campaign_id"], "aggregate",
++                             str(job["run_id"]), job["run_attempt"])
++    candidates = [item for item in inventory.values() if item["name"] == expected]
++    require(len(candidates) <= 1, "duplicate historical aggregate verdict artifacts")
++    if not candidates:
++        # Keep the started job in phase_inventories. The shared final gate refuses
++        # its missing proof, including when this history is loaded from a snapshot.
++        return
++    item = candidates[0]
++    verified, receipt = load(api, {"artifact_id": item["id"], "archive_digest": item["digest"]},
++                             settings["repository"], data["contract"])
++    require(receipt["job_id"] == str(job["id"]) and receipt["run_id"] == str(job["run_id"])
++            and receipt["attempt"] == job["run_attempt"] and receipt["plan"] == data["chain"]["plan"],
++            "historical aggregate verdict producer mismatch")
++    proof = verified["aggregate_verdicts"][str(job["id"])]
++    require(proof["job"] == job, "historical aggregate job changed during authentication")
++    data.setdefault("aggregate_verdicts", {})[str(job["id"])] = proof
++    data["originals"][str(item["id"])] = verified["originals"][str(item["id"])]
++    data["logs"][proof["producer_log"]] = verified["logs"][proof["producer_log"]]
++    data["source_runs"][str(job["run_id"])] = verified["source_runs"][str(job["run_id"])]
+ 
+ 
+ def ingest(api, data, settings, inventory, runs, *, include_current):
+@@ -363,7 +461,16 @@
+             preparations = [job for job in jobs if job["name"] == prepare_name and job.get("started_at")]
+             require(all(job["status"] == "completed" and job["conclusion"] == "success" for job in preparations),
+                     "started preparation failed; terminal infrastructure failure")
+-            data.setdefault("phase_inventories", {})[f"{run_id}/{attempt}"] = preparations
++            aggregates = [job for job in jobs if job["name"] == aggregate_job_name(settings["scope"]) and job.get("started_at")]
++            data.setdefault("phase_inventories", {})[f"{run_id}/{attempt}"] = preparations + aggregates
++            for job in aggregates:
++                require(str(job["run_id"]) == run_id and job["run_attempt"] == attempt, "aggregate job attempt mismatch")
++                current = (include_current and run_id == settings["run_id"] and attempt == settings["attempt"]
++                           and str(job["id"]) == settings["job_id"] and job["status"] == "in_progress"
++                           and job["conclusion"] is None)
++                if not current:
++                    require(job["status"] == "completed", "historical aggregate did not complete")
++                    ingest_aggregate_verdict(api, data, settings, inventory, job)
+             slot_prefix = "mutation-fixture-slot-" if settings["scope"] == "fixture" else "mutation-slot-"
+             workers = [job for job in jobs if re.fullmatch(re.escape(slot_prefix) + r"[0-7]", job["name"])
+                        and job.get("started_at") and job.get("conclusion") != "skipped"]
+diff --git a/.github/scripts/mutation_workflow.py b/.github/scripts/mutation_workflow.py
+--- a/.github/scripts/mutation_workflow.py
++++ b/.github/scripts/mutation_workflow.py
+@@ -108,6 +108,34 @@
+     return artifacts.strict_json(artifacts.unpack(raw)["plan.json"])
+ 
+ 
++def bind_chain_to_plan(planned, chain):
++    """Only the run list may grow; campaign policy belongs to the original plan."""
++    original = planned["orchestration"]["chain"]
++    require(type(original["version"]) is int and original["version"] == 1
++            and type(original["max_attempts"]) is int and original["max_attempts"] == 51
++            and type(original["retention_days"]) is int and original["retention_days"] == RETENTION_DAYS
++            and artifacts.timestamp(original["expires_at"]) - artifacts.timestamp(original["started_at"])
++                == dt.timedelta(days=CAMPAIGN_DAYS), "original plan violates fixed campaign policy")
++    for key in ("version", "started_at", "expires_at", "max_attempts", "retention_days"):
++        require(type(chain[key]) is type(original[key]) and chain[key] == original[key],
++                "campaign policy differs from original plan: " + key)
++    frozen, supplied = original["runs"], chain["runs"]
++    require(1 <= len(frozen) <= len(supplied) <= MAX_CHAIN_RUNS, "invalid append-only run-chain length")
++    fields = {"run_id", "predecessor", "head_sha", "workflow_sha", "commit", "tree", "ref"}
++    for index, entry in enumerate(supplied):
++        require(set(entry) <= fields | {"sealed_attempt"} and fields <= set(entry), "unexpected run-chain fields")
++        require(entry["predecessor"] == (None if index == 0 else supplied[index - 1]["run_id"]),
++                "run chain is not an ordered append-only extension")
++        require(entry["head_sha"] == frozen[0]["head_sha"], "changed head stops continuation")
++        if index < len(frozen):
++            require(all(entry[key] == value for key, value in frozen[index].items()), "original run-chain entry changed")
++        if index < len(supplied) - 1:
++            require(type(entry.get("sealed_attempt")) is int and 1 <= entry["sealed_attempt"] <= 51,
++                    "predecessor requires a bounded sealed attempt")
++        else:
++            require("sealed_attempt" not in entry, "current run cannot be pre-sealed")
++
++
+ def load_plan(api, root, settings, reference, chain=None):
+     envelope = read_plan_envelope(api, settings["repository"], reference)
+     chain = chain or dict(envelope["orchestration"]["chain"], plan=reference)
+@@ -115,6 +143,7 @@
+     planned = artifacts.recover_plan(api, chain, current_run_id=settings["run_id"], current_attempt=settings["attempt"],
+         repository=settings["repository"], workflow=tool.WORKFLOW,
+         workflow_digest=artifacts.sha((root / tool.WORKFLOW).read_bytes()), scope=settings["scope"])
++    bind_chain_to_plan(planned, chain)
+     require(planned["orchestration"]["contract"] == tool.committed_contract(root), "plan orchestration inputs changed")
+     entry = current_entry(root, settings)
+     selected = next(item for item in chain["runs"] if item["run_id"] == settings["run_id"])
+@@ -264,7 +293,7 @@
+     data = {"version": 1, "planned": planned, "chain": chain, "contract": contract,
+         "originals": {}, "logs": {}, "source_runs": {}, "bundles": [], "frontier": {},
+         "job_inventories": {}, "current_checkout": checkout, "qualification": None}
+-    inventory, runs = recovery.fresh_inventory(api, data, settings)
++    inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+     selected = recovery.latest_snapshot(inventory, data, settings, allow_prepared=include_current)
+     if selected:
+         restored, receipt = recovery.load(api, selected, settings["repository"], contract)
+@@ -276,7 +305,7 @@
+         require(receipt["verdict"]["state"] in {"complete", "incomplete_with_progress", "incomplete_without_progress"},
+                 "terminal recovery verdict stops continuation")
+         recovery.retain_recording(recording, data)
+-        inventory, runs = recovery.fresh_inventory(api, data, settings)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+         if settings["scope"] == "production":
+             proof = data["qualification"]
+             require(proof is not None and proof["contract"] == contract and proof["tool"] == planned["orchestration"]["tool"],
+@@ -287,11 +316,11 @@
+         bind_tool(recording, root, settings, planned["orchestration"]["tool"], contract, scratch, chain)
+         data["tool_receipt"] = recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]
+         recovery.retain_recording(recording, data)
+-        inventory, runs = recovery.fresh_inventory(api, data, settings)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+     runner.validate_current_plan(root, planned, settings)
+     recovered = recovery.ingest(api, data, settings, inventory, runs, include_current=include_current)
+     # Newly ingested originals must satisfy the same original lifetime immediately.
+-    recovery.fresh_inventory(api, data, settings)
++    recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+     return data, recovered
+ 
+ 
+diff --git a/.github/scripts/test_mutation_recovery.py b/.github/scripts/test_mutation_recovery.py
+--- a/.github/scripts/test_mutation_recovery.py
++++ b/.github/scripts/test_mutation_recovery.py
+@@ -44,7 +44,7 @@
+         self.plan = artifacts.strict_json(artifacts.unpack(self.api.blobs["repos/owner/repo/actions/artifacts/78/zip"])["plan.json"])
+         self.data = {"version": 1, "planned": self.plan, "chain": self.q.chain, "contract": self.contract,
+             "originals": {}, "logs": {}, "source_runs": {}, "bundles": [], "frontier": {"100": 2},
+-            "job_inventories": {}, "current_checkout": self.q.proof["checkout"], "qualification": proof,
++            "job_inventories": {}, "phase_inventories": {}, "current_checkout": self.q.proof["checkout"], "qualification": proof,
+             "tool_receipt": self.q.fixture.receipt}
+         recovered = artifacts.recover(recorder, self.q.manifest, self.q.chain, current_run_id="100", current_attempt=2,
+                                       include_current=True)
+@@ -55,6 +55,7 @@
+             self.data["bundles"].append({"artifact_id": artifact_id, "bundle": compact, "bundle_digest": model.digest(compact)})
+         for attempt in (1, 2):
+             self.data["job_inventories"][f"100/{attempt}"] = [job for job in self.q.jobs[attempt] if "slot-" in job["name"]]
++            self.data["phase_inventories"][f"100/{attempt}"] = []
+         recovery.retain_recording(recorder, self.data)
+         # A fixture aggregate seals before publishing its own qualification.
+         self.data["originals"].pop("79")
+@@ -88,6 +89,8 @@
+         if existing is None:
+             jobs.append(dict(self.q.fixture.job, id=int(settings["job_id"]), run_id=int(settings["run_id"]),
+                              run_attempt=settings["attempt"], name=job_name, conclusion="success" if state == "complete" else "failure"))
++        else:
++            existing.update(status="completed", conclusion="success" if state == "complete" else "failure")
+         self.api.responses[f"repos/owner/repo/actions/runs/{settings['run_id']}/attempts/{settings['attempt']}"] = {
+             "id": int(settings["run_id"]), "run_attempt": settings["attempt"], "head_sha": "d" * 40}
+         path = f"repos/owner/repo/actions/jobs/{settings['job_id']}/logs"
+@@ -119,6 +122,7 @@
+             self.data["bundles"].append({"artifact_id": artifact_id, "bundle": compact, "bundle_digest": model.digest(compact)})
+             jobs.append(dict(self.q.fixture.job, id=artifact_id, run_id=int(run_id), run_attempt=attempt, name=f"mutation-fixture-slot-{slot}"))
+         self.data["job_inventories"][f"{run_id}/{attempt}"] = jobs
++        self.data["phase_inventories"][f"{run_id}/{attempt}"] = []
+         self.data["frontier"][run_id] = attempt
+         self.api.responses[f"repos/owner/repo/actions/runs/{run_id}/attempts/{attempt}"] = {
+             "id": int(run_id), "run_attempt": attempt, "head_sha": "d" * 40}
+@@ -219,11 +223,14 @@
+             recovery.ingest(api, self.f.data, dict(settings, attempt=7), inventory, runs, include_current=False)
+ 
+     def test_malformed_newest_snapshot_is_not_replaced_by_an_older_favorable_one(self):
+-        old, _ = self.f.upload_snapshot(settings=dict(self.f.settings, attempt=1, job_id="888"))
+-        newest, _ = self.f.upload_snapshot()
++        old, _ = self.f.upload_snapshot()
++        advanced = copy.deepcopy(self.f.data)
++        advanced["frontier"]["100"] = 3
++        advanced["job_inventories"]["100/3"] = []
++        newest, _ = self.f.upload_snapshot(data=advanced, settings=dict(self.f.settings, attempt=3, job_id="888"))
+         self.f.api.blobs[f"repos/owner/repo/actions/artifacts/{newest['artifact_id']}/zip"] += b"changed"
+         inventory = {str(item["id"]): item for item in self.f.q.artifacts}
+-        selected = recovery.latest_snapshot(inventory, self.f.data, dict(self.f.settings, attempt=3))
++        selected = recovery.latest_snapshot(inventory, self.f.data, dict(self.f.settings, attempt=4))
+         self.assertEqual(selected, newest)
+         with self.assertRaisesRegex(ValueError, "archive digest"):
+             recovery.load(recovery.WorkflowAPI(self.f.api), selected, "owner/repo", self.f.contract)
+@@ -428,6 +435,97 @@
+             Path(destination).write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+ 
+ 
++class AggregateVerdictRegressionTests(unittest.TestCase):
++    def setUp(self):
++        self.f = SnapshotFixture(self)
++        self.reference, _ = self.f.upload_snapshot()
++
++    def aggregate_only(self, *, bad_predecessor):
++        f = self.f
++        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 4
++        failed = dict(f.q.fixture.job, id=333, run_attempt=3, name="mutation-fixture-aggregate", conclusion="failure")
++        current = dict(f.q.fixture.job, id=444, run_attempt=4, name="mutation-fixture-aggregate", status="in_progress", conclusion=None)
++        f.api.responses["repos/owner/repo/actions/runs/100/attempts/3/jobs?per_page=100&page=1"] = {"jobs": [failed] if bad_predecessor else []}
++        f.api.responses["repos/owner/repo/actions/runs/100/attempts/4/jobs?per_page=100&page=1"] = {"jobs": [current]}
++        settings = dict(f.settings, attempt=4, job_id="444")
++        api = recovery.WorkflowAPI(f.api)
++        data, _ = recovery.load(api, self.reference, "owner/repo", f.contract)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=True)
++        verified = recovery.ingest(api, data, settings, inventory, runs, include_current=True)
++        with mock.patch.object(runner, "validate_current_plan", return_value=f.q.manifest["context"]):
++            return runner.aggregate(f.root, data["planned"], data["chain"], settings,
++                Path(f.q.fixture.temp.name) / f"aggregate-only-{bad_predecessor}.json", api, recovered=verified)
++
++    def test_failed_historical_aggregate_without_snapshot_cannot_disappear(self):
++        self.assertEqual(self.aggregate_only(bad_predecessor=False)["state"], "complete")
++        with self.assertRaisesRegex(ValueError, "historical aggregate lacks authenticated verdict evidence"):
++            self.aggregate_only(bad_predecessor=True)
++
++    def test_authenticated_terminal_aggregate_cannot_be_laundered_through_another_snapshot(self):
++        f = self.f
++        data, _ = recovery.load(recovery.WorkflowAPI(f.api), self.reference, "owner/repo", f.contract)
++        data["frontier"]["100"] = 3
++        data["job_inventories"]["100/3"] = []
++        bad_settings = dict(f.settings, attempt=3, job_id="333")
++        reference, receipt = f.upload_snapshot(data=data, settings=bad_settings, state="infrastructure_failure")
++        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 4
++        with self.assertRaisesRegex(ValueError, "terminal historical aggregate verdict"):
++            recovery.load(recovery.WorkflowAPI(f.api), reference, "owner/repo", f.contract)
++        artifact = f.api.responses[f"repos/owner/repo/actions/artifacts/{reference['artifact_id']}"]
++        files = artifacts.unpack(f.api.blobs[f"repos/owner/repo/actions/artifacts/{reference['artifact_id']}/zip"])
++        decoded = recovery.decode(b"".join(files[chunk["name"]] for chunk in receipt["chunks"]))
++        proof = artifacts.authenticate_producer(f.api, "owner/repo", tool.entry_from_receipt(receipt), artifact, receipt,
++            now=dt.datetime.now(dt.timezone.utc), job_name="mutation-fixture-aggregate", marker="MUTATION_RECOVERY")
++        recovery.retain_aggregate_verdict(decoded, receipt, proof, artifact, f.api.responses["repos/owner/repo/actions/runs/100"])
++        decoded["frontier"]["100"] = 4
++        decoded["job_inventories"]["100/4"] = []
++        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(ValueError, "terminal historical aggregate verdict"):
++            recovery.seal(decoded, dict(f.settings, attempt=4, job_id="444"), "aggregate", {"state": "complete"},
++                          Path(f.q.fixture.temp.name) / "laundered")
++
++    def test_authenticated_allowed_incomplete_aggregate_permits_continuation(self):
++        f = self.f
++        partial = copy.deepcopy(f.data)
++        partial["bundles"] = [item for item in partial["bundles"] if item["bundle"]["receipt"]["attempt"] == 1]
++        for artifact_id in [str(1020 + slot) for slot in range(8)]:
++            original = partial["originals"].pop(artifact_id)
++            partial["logs"].pop(original["producer_log"])
++        partial["frontier"]["100"] = 1
++        partial["job_inventories"].pop("100/2")
++        partial["phase_inventories"].pop("100/2")
++        reference, _ = f.upload_snapshot(data=partial, settings=dict(f.settings, attempt=1, job_id="111"), state="incomplete_with_progress")
++        restored, receipt = recovery.load(recovery.WorkflowAPI(f.api), reference, "owner/repo", f.contract)
++        verified = recovery.recovered(restored, dict(f.settings, attempt=2), include_current=False)
++        summary = model.summarize(f.q.manifest, verified["records"], [])
++        state, _ = runner.continuation_status(summary, verified["bundles"], attempt=1)
++        self.assertEqual(state, "incomplete_with_progress")
++        self.assertEqual(len(summary["completed"]), 8)
++        self.assertEqual(len(summary["remaining"]), 16)
++        self.assertEqual(receipt["verdict"]["state"], "incomplete_with_progress")
++        recovery.validate_retained(restored)
++        # Exercise bounded tail ingestion too, using an older empty frontier.
++        before = copy.deepcopy(partial)
++        before.update(bundles=[], frontier={"100": 0}, job_inventories={}, phase_inventories={})
++        for artifact_id in [str(1010 + slot) for slot in range(8)]:
++            original = before["originals"].pop(artifact_id)
++            before["logs"].pop(original["producer_log"])
++        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 2
++        jobs_path = "repos/owner/repo/actions/runs/100/attempts/2/jobs?per_page=100&page=1"
++        f.api.responses[jobs_path]["jobs"] = [job for job in f.api.responses[jobs_path]["jobs"] if job["name"] != "mutation-fixture-aggregate"]
++        f.api.responses[jobs_path]["jobs"].append(dict(f.q.fixture.job, id=222, run_attempt=2,
++            name="mutation-fixture-aggregate", status="in_progress", conclusion=None))
++        settings = dict(f.settings, attempt=2, job_id="222")
++        api = recovery.WorkflowAPI(f.api)
++        inventory, runs = recovery.fresh_inventory(api, before, settings, allow_current_aggregate=True)
++        continued = recovery.ingest(api, before, settings, inventory, runs, include_current=True)
++        self.assertEqual(len(continued["records"]), 24)
++        self.assertEqual(before["aggregate_verdicts"]["111"]["receipt"]["verdict"]["state"], "incomplete_with_progress")
++        with mock.patch.object(runner, "validate_current_plan", return_value=f.q.manifest["context"]):
++            status = runner.aggregate(f.root, before["planned"], before["chain"], settings,
++                Path(f.q.fixture.temp.name) / "allowed-incomplete-continuation.json", api, recovered=continued)
++        self.assertEqual(status["state"], "complete")
++
++
+ class RecoveryFaultControls(unittest.TestCase):
+     def test_isolated_snapshot_guard_removals_fail_named_assertions(self):
+         controls = [(recovery, 'artifacts.sha(raw) == log["sha256"]', 'True',
+@@ -453,6 +551,22 @@
+                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+             self.assertEqual(source.read_bytes(), original)
+ 
++    def test_historical_aggregate_gate_control_keeps_valid_case_and_rejects_bad_case(self):
++        source = Path(recovery.__file__)
++        original = source.read_bytes()
++        old = "validate_aggregate_phase(data, key, job, pending_aggregate)"
++        self.assertEqual(original.decode().count(old), 1)
++        with tempfile.TemporaryDirectory() as temporary:
++            Path(temporary, source.name).write_text(original.decode().replace(old, "None"), encoding="utf-8")
++            script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");"
++                "sys.path.insert(0," + repr(temporary) + ");"
++                "r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName("
++                "'test_mutation_recovery.AggregateVerdictRegressionTests.test_failed_historical_aggregate_without_snapshot_cannot_disappear'));"
++                "sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++            result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/.github/scripts/test_mutation_workflow.py b/.github/scripts/test_mutation_workflow.py
+--- a/.github/scripts/test_mutation_workflow.py
++++ b/.github/scripts/test_mutation_workflow.py
+@@ -19,6 +19,7 @@
+ import mutation_workflow as workflow
+ from test_mutation_artifacts import FixtureAPI
+ from test_mutation_campaign import context, inventory, raw_report, report_ref
++import test_mutation_qualification as qualification_tests
+ 
+ 
+ def recovery_fixture():
+@@ -194,5 +195,88 @@
+             self.assertEqual(source.read_bytes(), original)
+ 
+ 
++class OriginalPlanPolicyTests(unittest.TestCase):
++    def setUp(self):
++        self.q = qualification_tests.QualificationAuthenticationTests()
++        self.q.setUp()
++        self.addCleanup(self.q.doCleanups)
++        self.root = self.q.fixture.root
++        path = self.root / tool.WORKFLOW
++        path.parent.mkdir(parents=True)
++        path.write_bytes((Path(__file__).resolve().parents[2] / tool.WORKFLOW).read_bytes())
++        self.settings = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "scope": "fixture",
++                         "run_id": "100", "attempt": 2}
++        self.chain = copy.deepcopy(self.q.chain)
++
++    def load(self, chain=None, *, settings=None):
++        chain = copy.deepcopy(self.chain if chain is None else chain)
++        settings = settings or self.settings
++        current = next(item for item in chain["runs"] if item["run_id"] == settings["run_id"])
++        with mock.patch.object(tool, "committed_contract", return_value=self.q.contract), \
++             mock.patch.object(workflow, "current_entry", return_value=current):
++            return workflow.load_plan(self.q.api, self.root, settings, chain["plan"], chain)
++
++    def test_authenticated_plan_rejects_extended_expiry_without_any_snapshot(self):
++        planned, chain = self.load()
++        self.assertEqual(chain["expires_at"], planned["orchestration"]["chain"]["expires_at"])
++        changed = copy.deepcopy(self.chain)
++        changed["expires_at"] = (artifacts.timestamp(changed["expires_at"]) + dt.timedelta(days=7)).isoformat()
++        with self.assertRaisesRegex(ValueError, "campaign policy differs from original plan: expires_at"):
++            self.load(changed)
++        self.assertIn("repos/owner/repo/actions/jobs/902/logs", self.q.api.calls)
++        self.assertIn("repos/owner/repo/actions/artifacts/78/zip", self.q.api.calls)
++
++    def test_authenticated_plan_rejects_changed_start_attempts_and_retention(self):
++        values = {"started_at": (artifacts.timestamp(self.chain["started_at"]) - dt.timedelta(hours=1)).isoformat(),
++                  "max_attempts": 50, "retention_days": 31}
++        for key, value in values.items():
++            changed = copy.deepcopy(self.chain)
++            changed[key] = value
++            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "campaign policy differs from original plan: " + key):
++                self.load(changed)
++
++    def test_authenticated_plan_permits_only_ordered_append_with_original_limits(self):
++        changed = copy.deepcopy(self.chain)
++        changed["runs"][0]["sealed_attempt"] = 2
++        changed["runs"].append(dict(self.chain["runs"][0], run_id="200", predecessor="100"))
++        self.q.api.responses["repos/owner/repo/actions/runs/200"] = dict(
++            self.q.api.responses["repos/owner/repo/actions/runs/100"], id=200, run_attempt=1)
++        self.q.api.responses["repos/owner/repo/actions/runs/200/artifacts?per_page=100&page=1"] = {"artifacts": []}
++        planned, loaded = self.load(changed, settings=dict(self.settings, run_id="200", attempt=1))
++        self.assertEqual(len(loaded["runs"]), 2)
++        for key in ("started_at", "expires_at", "max_attempts", "retention_days"):
++            self.assertEqual(loaded[key], planned["orchestration"]["chain"][key])
++        for changed_field in ("commit", "tree", "ref"):
++            bad = copy.deepcopy(loaded)
++            bad["runs"][0][changed_field] += "changed"
++            with self.subTest(changed_field=changed_field), self.assertRaisesRegex(ValueError, "original run-chain entry changed"):
++                workflow.bind_chain_to_plan(planned, bad)
++
++    def test_fixed_policy_is_checked_even_when_original_and_supplied_are_equally_wrong(self):
++        planned, chain = self.load()
++        for key, value in (("max_attempts", 50), ("retention_days", 31),
++                           ("expires_at", (artifacts.timestamp(chain["expires_at"]) + dt.timedelta(days=1)).isoformat())):
++            altered_plan, altered_chain = copy.deepcopy(planned), copy.deepcopy(chain)
++            altered_plan["orchestration"]["chain"][key] = altered_chain[key] = value
++            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "original plan violates fixed campaign policy"):
++                workflow.bind_chain_to_plan(altered_plan, altered_chain)
++
++    def test_isolated_original_policy_guard_removal_fails_expiry_assertion(self):
++        source = Path(workflow.__file__)
++        original = source.read_bytes()
++        old = "    bind_chain_to_plan(planned, chain)\n"
++        self.assertEqual(original.decode().count(old), 1)
++        with tempfile.TemporaryDirectory() as temporary:
++            Path(temporary, source.name).write_text(original.decode().replace(old, ""), encoding="utf-8")
++            script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");"
++                "sys.path.insert(0," + repr(temporary) + ");"
++                "r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName("
++                "'test_mutation_workflow.OriginalPlanPolicyTests.test_authenticated_plan_rejects_extended_expiry_without_any_snapshot'));"
++                "sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++            result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
++
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/.github/scripts/test_mutation_qualification.py b/.github/scripts/test_mutation_qualification.py
+--- a/.github/scripts/test_mutation_qualification.py
++++ b/.github/scripts/test_mutation_qualification.py
+@@ -34,13 +34,14 @@
+         self.artifacts = [self.fixture.artifact]
+         self.jobs = {1: [self.fixture.job], 2: []}
+         self.chain = {"version": 1, "max_attempts": 51, "retention_days": 30,
+-            "started_at": (self.now - dt.timedelta(hours=1)).isoformat(), "expires_at": (self.now + dt.timedelta(days=7)).isoformat(),
++            "started_at": (self.now - dt.timedelta(hours=1)).isoformat(),
++            "expires_at": (self.now - dt.timedelta(hours=1) + dt.timedelta(days=7)).isoformat(),
+             "runs": [tool.entry_from_receipt(self.fixture.receipt)], "plan": {"run_id": "100", "attempt": 1, "artifact_id": 78}}
+         producer = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "workflow_sha": "e" * 40,
+             "run_id": "100", "attempt": 1, "job_id": "902", "slot": 0, "scope": "fixture", "checkout": ctx["checkout"],
+             "input_fingerprint": self.manifest["input_fingerprint"], "campaign_id": self.manifest["campaign_id"], "log_retention_days": 30}
+         plan = {"version": 1, "manifest": self.manifest, "calibration": {}, "producer": producer,
+-                "orchestration": {"tool": self.fixture.reference, "contract": self.contract, "log_retention_days": 30}}
++                "orchestration": {"tool": self.fixture.reference, "contract": self.contract, "log_retention_days": 30, "chain": self.chain}}
+         raw = json.dumps(plan).encode()
+         self.add_artifact(78, artifacts.plan_artifact_name("fixture", "100", 1), {"plan.json": raw},
+             dict(producer, plan_digest=artifacts.sha(raw)), "MUTATION_PLAN", "mutation-fixture-plan")

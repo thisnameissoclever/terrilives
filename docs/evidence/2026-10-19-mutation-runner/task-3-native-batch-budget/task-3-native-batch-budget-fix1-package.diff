@@ -1,0 +1,169 @@
+--- a/.github/scripts/mutation_native.py
++++ b/.github/scripts/mutation_native.py
+@@ -474,14 +474,16 @@
+ def raw_shape_budget(planned, records, batches, files):
+     """Separate actual member classes, then cover every full-manifest identity row."""
+     require(records and batches, "raw sizing requires actual diagnostic record shapes")
+-    sample = max(records, key=json_size)
+     manifest = planned["manifest"]
+     record_bytes = outcome_bytes = 0
+     for identity in manifest["mutations"]:
+-        shaped = identity_record_shape(sample, identity, len(manifest["mutations"]))
+-        record_bytes = max(record_bytes, json_size(shaped) + 1)
+-        pretty = json.dumps(shaped["outcome"], indent=2, ensure_ascii=False, allow_nan=False)
+-        outcome_bytes = max(outcome_bytes, len(pretty.encode()) + 4 * len(pretty.splitlines()) + 2)
++        # Compare every measured payload after substituting the same identity.
++        # Compact records and pretty raw outcomes can have different maxima.
++        for sample in records:
++            shaped = identity_record_shape(sample, identity, len(manifest["mutations"]))
++            record_bytes = max(record_bytes, json_size(shaped) + 1)
++            pretty = json.dumps(shaped["outcome"], indent=2, ensure_ascii=False, allow_nan=False)
++            outcome_bytes = max(outcome_bytes, len(pretty.encode()) + 4 * len(pretty.splitlines()) + 2)
+     baseline_logs, mutant_logs, diffs, process = [], [], [], []
+     report_fixed = 0
+     serialization_ratio = 1.0
+@@ -501,8 +503,8 @@
+         parsed["outcomes"] = [parsed["outcomes"][0]]
+         report_fixed = max(report_fixed, json_size(parsed, pretty=True) + 256)
+     maximum_remaining = max((model.slot_ids(manifest, slot) for slot in range(8)), key=lambda ids: json_size(ids))
+-    delta = copy.deepcopy(max((batch["delta"] for batch in batches), key=json_size))
+-    delta.update(records=[], batch_ids=[])
++    headers = [dict(batch["delta"], records=[], batch_ids=[]) for batch in batches]
++    delta = copy.deepcopy(max(headers, key=json_size))
+     receipt = dict(planned["producer"], execution_id="x" * 64, batch_id="x" * 64,
+         batch_policy_digest="x" * 64, job_id="9" * 20, run_id="9" * 20, attempt=51)
+     bundle = {"version": 1, "manifest": manifest, "receipt": receipt, "delta": delta,
+@@ -516,7 +518,7 @@
+         "process_fixed_bytes": max(process), "process_per_mutation_bytes": max(process),
+         "full_manifest_digest": model.digest(manifest), "sample_records_digest": model.digest(records),
+         "raw_serialization_ratio": serialization_ratio,
+-        "assumptions": "Full-manifest longest record/outcome rows cover every future prefix. Individual log/diff maxima stay separate. Paths follow the pinned tool source-path/location/collision naming with a full-manifest collision suffix allowance. Whole largest observed process output is charged once and once per future mutation; report whitespace uses the larger of measured serialization and pretty JSON. Future output growth still faces exact outgoing limits."}
++        "assumptions": "Independent measured record/outcome payload envelopes after common identity substitution cover every full-manifest future prefix. Individual log/diff maxima stay separate. Paths follow the pinned tool source-path/location/collision naming with a full-manifest collision suffix allowance. Whole largest observed process output is charged once and once per future mutation; report whitespace uses the larger of measured serialization and pretty JSON. Future output growth still faces exact outgoing limits."}
+ 
+ 
+ def raw_projection(shapes, count):
+@@ -566,7 +568,7 @@
+     manifest = planned["manifest"]
+     value.update(diagnostic_sizing_only=True, accepted_production_outcomes=0, bundles=[], frontier={},
+         job_inventories={}, phase_inventories={}, aggregate_verdicts={})
+-    sample = max(records, key=json_size)
++    sample = records[0]
+     by_slot = [[item for item in manifest["mutations"] if item["slot"] == slot] for slot in range(8)]
+     pending = [model.slot_ids(manifest, slot) for slot in range(8)]
+     largest_log = max(producer_logs, key=len)
+@@ -605,18 +607,27 @@
+             job_id = 1000000000000000000 + ordinal * 10 + slot
+             selected = by_slot[slot][ordinal * policy["max_mutations"]:(ordinal + 1) * policy["max_mutations"]]
+             batch_ids = pending[slot][:policy["max_mutations"]]
+-            provenance = dict(sample["provenance"], run_id=run_id, attempt=attempt, batch_id=model.digest(batch_ids), execution_id=str(job_id))
+-            baseline = copy.deepcopy(sample["baseline"])
+-            baseline["provenance"] = provenance
+-            baseline["baseline_id"] = model.digest({k: v for k, v in baseline.items() if k != "baseline_id"})
++            provenance = dict(sample["provenance"], run_id=run_id, attempt=attempt, batch_id=model.digest(batch_ids), execution_id=f"{job_id:032x}")
++            reference = max((record["raw_report_ref"] for record in records), key=json_size)
++            baselines = []
++            for observed in records:
++                baseline_shape = copy.deepcopy(observed["baseline"])
++                baseline_shape.update(provenance=provenance, raw_report_ref=reference)
++                baseline_shape["baseline_id"] = model.digest({k: v for k, v in baseline_shape.items() if k != "baseline_id"})
++                baselines.append(baseline_shape)
++            baseline = max(baselines, key=json_size)
+             shaped_records = []
+             for identity in selected:
+-                shaped = identity_record_shape(sample, identity, len(manifest["mutations"]))
+-                shaped.update(provenance=provenance, baseline=baseline)
++                candidates = []
++                for observed in records:
++                    shaped = identity_record_shape(observed, identity, len(manifest["mutations"]))
++                    shaped.update(provenance=provenance, baseline=baseline, raw_report_ref=reference)
++                    candidates.append(shaped)
++                shaped = max(candidates, key=json_size)
+                 shaped["record_id"] = model.digest({k: v for k, v in shaped.items() if k != "record_id"})
+                 shaped_records.append(shaped)
+             delta = {"schema_version": model.SCHEMA_VERSION, "campaign_id": manifest["campaign_id"], "slot": slot,
+-                "provenance": provenance, "batch_ids": batch_ids, "raw_report_ref": sample["raw_report_ref"],
++                "provenance": provenance, "batch_ids": batch_ids, "raw_report_ref": reference,
+                 "baseline": baseline, "records": shaped_records, "exit_kind": "interrupted", "delta_id": "f" * 64}
+             receipt = dict(planned["producer"], **{k: provenance[k] for k in ("run_id", "attempt", "batch_id", "execution_id")},
+                 job_id=str(job_id), slot=slot, batch_policy_digest=policy_digest)
+--- a/.github/scripts/test_mutation_batch_budget.py
++++ b/.github/scripts/test_mutation_batch_budget.py
+@@ -562,5 +562,78 @@
+             runner.ordered_remaining(f.manifest, records, 0)
+ 
+ 
++class MixedPayloadEnvelopeTests(unittest.TestCase):
++    def exercise(self, mixed):
++        f = NativeFixture(self, count=16)
++        f.items[-1]["replacement"] = "x" * 5000
++        f.items[-1]["diff"] = "-old\n+" + "x" * 5000 + "\n"
++        manifest = model.build_manifest(f.items, f.manifest["context"])
++        planned = dict(f.planned, manifest=manifest, producer=dict(f.planned["producer"], campaign_id=manifest["campaign_id"]))
++        by_name = {item["name"]: item for item in f.items}
++        records, batches, files = [], [], {}
++        for slot in range(8):
++            ids = runner.ordered_remaining(manifest, [], slot)
++            selected = [by_name[item["name"]] for item in manifest["mutations"] if item["id"] in ids]
++            summaries = ["Unviable" if mixed and item["replacement"] == "x" * 5000 else "CaughtMutant" for item in selected]
++            report = raw_report(selected, summaries)
++            raw = json.dumps(report, indent=2).encode()
++            provenance = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "run_id": "300", "attempt": 2,
++                "batch_id": model.digest(ids), "execution_id": f"observed-{slot}", "checkout": manifest["context"]["checkout"],
++                "input_fingerprint": manifest["input_fingerprint"]}
++            delta = model.validate_report(manifest, slot, ids, report, provenance=provenance,
++                raw_report_ref={"path": "raw/outcomes.json", "digest": artifacts.sha(raw), "content_digest": model.digest(report)}, exit_kind="completed")
++            records.extend(delta["records"])
++            batches.append({"logical_slot": slot, "delta": delta})
++            files.update({f"batch-{slot}/frozen-outcomes.json": raw, f"batch-{slot}/process.log": b"process",
++                f"batch-{slot}/mutants.out/log/baseline.log": b"baseline", f"batch-{slot}/mutants.out/log/mutant.log": b"mutant",
++                f"batch-{slot}/mutants.out/diff/mutant.diff": b"diff"})
++        candidates = [native.identity_record_shape(record, identity, len(f.items)) for record in records for identity in manifest["mutations"]]
++        expected_record = max(native.json_size(candidate) + 1 for candidate in candidates)
++        expected_outcome = max(len(json.dumps(candidate["outcome"], indent=2, ensure_ascii=False).encode()) +
++            4 * len(json.dumps(candidate["outcome"], indent=2, ensure_ascii=False).splitlines()) + 2 for candidate in candidates)
++        shapes = native.raw_shape_budget(planned, records, batches, files)
++        self.assertGreaterEqual(shapes["record_compact_bytes"], expected_record)
++        self.assertGreaterEqual(shapes["outcome_pretty_bytes"], expected_outcome)
++        policy = native.choose_batch_policy(planned, f.chain, records, batches, files)
++        metrics = {"clone_setup_seconds": [1], "job_initial_setup_seconds": 1}
++        projected = native.forecast(planned, f.chain, f.settings, records, metrics, batch_limit=policy["max_mutations"])
++        policy["history_attempt_ceiling"] = projected["admitted_total_history_attempts"]
++        seed = {"version": 1, "planned": planned, "chain": f.chain, "contract": f.base.contract,
++            "originals": {}, "logs": {}, "source_runs": {}, "qualification": {"fixture_shape": True},
++            "tool_receipt": f.base.receipt, "current_checkout": manifest["context"]["checkout"]}
++        history = native.projected_history(planned, seed, records, projected, policy, [b"original producer"])
++        shaped = [record for item in history["bundles"] for record in item["bundle"]["delta"]["records"]]
++        self.assertEqual(len(shaped), 16)
++        self.assertTrue(all(len(record["outcome"]["phase_results"]) == 2 for record in shaped))
++        self.assertTrue(all(record["outcome"]["summary"] == "CaughtMutant" for record in shaped))
++        return shapes, expected_record, expected_outcome
++
++    def test_long_unviable_identity_cannot_hide_short_two_phase_payload(self):
++        self.exercise(True)
++
++    def test_homogeneous_two_phase_payload_remains_covered(self):
++        self.exercise(False)
++
++    def test_isolated_old_shape_selection_fails_mixed_case_but_preserves_valid_control(self):
++        source = Path(native.__file__)
++        original = source.read_bytes()
++        controls = [('        for sample in records:', '        for sample in [max(records, key=json_size)]:'),
++                    ('                for observed in records:\n                    shaped = identity_record_shape',
++                     '                for observed in [max(records, key=json_size)]:\n                    shaped = identity_record_shape')]
++        for old, new in controls:
++            with self.subTest(guard=old), tempfile.TemporaryDirectory() as temporary:
++                self.assertEqual(original.decode().count(old), 1)
++                Path(temporary, source.name).write_bytes(original.decode().replace(old, new).encode())
++                script = ("import sys,unittest;sys.path.insert(0," + repr(str(source.parent)) + ");sys.path.insert(0," + repr(temporary) + ");"
++                    "s=unittest.defaultTestLoader.loadTestsFromNames(["
++                    "'test_mutation_batch_budget.MixedPayloadEnvelopeTests.test_homogeneous_two_phase_payload_remains_covered',"
++                    "'test_mutation_batch_budget.MixedPayloadEnvelopeTests.test_long_unviable_identity_cannot_hide_short_two_phase_payload']);"
++                    "r=unittest.TextTestRunner().run(s);sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
++                result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
++                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++        self.assertEqual(source.read_bytes(), original)
++
++
++
+ if __name__ == "__main__":
+     unittest.main()

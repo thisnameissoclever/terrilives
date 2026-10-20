@@ -1,0 +1,21 @@
+{
+  "source": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "gameTab": "365218544",
+  "auxiliaryTabClosed": true,
+  "serverSession": 39857,
+  "initialObservedClock": "Day 1 Monday 01:07",
+  "buildPauseClock": "Day 1 Monday 03:09",
+  "manualPauseClock": "Day 1 Monday 03:14",
+  "visibilityLimit": "Actual hidden-tab behavior was not established; no visibility or page state was emulated.",
+  "gameWarningsAndErrors": [],
+  "finalDom": "- generic \"Isometric household. Use Help for controls and accessible status.\"\n- region \"Household status\":\n  - generic: Time\n  - strong: \"Day 1, Monday 03:14 Spring: mild\"\n  - generic: Funds\n  - strong: \"0\"\n  - status: Saved game loaded\n  - status\n- region \"Simulation speed\":\n  - radio \"Pause\" [checked]\n  - generic: Pause\n  - radio \"1x\"\n  - generic: 1x\n  - radio \"2x\"\n  - generic: 2x\n  - radio \"3x\"\n  - generic: 3x\n- button \"Build\" [active]\n- button \"Options\"\n- region \"Selected Sim and household\":\n  - strong: Tim\n  - button \"Waiting\"\n  - button \"Edit\"\n  - region \"Mood\":\n    - generic: Mood\n    - strong: Low\n    - meter \"Overall mood\"\n  - 'group \"Life satisfaction: Content, 46.0 out of 100\"':\n    - generic: Life satisfaction\n    - strong: Content\n    - meter \"Life satisfaction\"\n  - button \"Sim details\"\n  - button \"Chores\"\n  - button \"Collapse Sim dock\" [expanded]: Collapse\n  - status\n  - region \"Household\":\n    - button \"Tim\" [pressed]\n    - button \"Bill\"\n    - button \"Casey\"\n- status: 1Password menu is available. Press down arrow to select.",
+  "viewportReset": true,
+  "gameTabClosed": true,
+  "serverStopped": true,
+  "serverStop": {
+    "session": 39857,
+    "method": "Ctrl-C in the task-owned PTY",
+    "exit_code": 1,
+    "reason": "intentional preview cleanup"
+  }
+}

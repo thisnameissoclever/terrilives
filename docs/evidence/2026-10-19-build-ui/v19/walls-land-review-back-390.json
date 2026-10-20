@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-10-19T20:41:43.535Z",
+  "measurements": {
+    "active": "Land",
+    "box": {
+      "bottom": 836,
+      "height": 271.1875,
+      "left": 8,
+      "right": 382,
+      "top": 564.8125,
+      "width": 374,
+      "x": 8,
+      "y": 564.8125
+    },
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "width": 390
+    },
+    "visibleText": "Build mode\nExit build\nFurniture\nWalls\nRooms\nBuy\nFloors\nLand\nShortcuts\n\nWall removed.\n\nCancel\nConfirm"
+  }
+}

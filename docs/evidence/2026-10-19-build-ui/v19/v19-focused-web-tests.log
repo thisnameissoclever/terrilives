@@ -1,0 +1,12 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/activity-tooltip.test.ts tests/builder.test.ts tests/build-session.test.ts tests/build-session-state.test.ts tests/build-exit.test.ts tests/build-exit-destination.test.ts tests/save-worker.test.ts tests/room-tool.test.ts tests/room-selection.test.ts tests/room-review.test.ts tests/room-codec.test.ts tests/room-bridge.test.ts tests/main-build-wiring.test.ts tests/legacy-save.test.ts tests/housemate-form.test.ts tests/game-hud.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  16 passed (16)
+      Tests  479 passed (479)
+   Start at  13:36:12
+   Duration  34.35s (transform 10.17s, setup 2.36s, import 9.88s, tests 18.18s, environment 1ms)

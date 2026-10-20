@@ -1,0 +1,39 @@
+✔ newest notes come first and only the latest date starts open (136.7276ms)
+✔ legacy anchors reject malformed collections and unsafe identifiers (7.064ms)
+✔ editing, adding and deleting source notes changes the generated page (7.3934ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (5.1899ms)
+✔ literal template markers in a note cannot expand into presentation code (5.695ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (4.7249ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.1525ms)
+✔ public notes reject development references instead of publishing them (0.1942ms)
+✔ same-day notes must be consolidated and former links reach the dated update (4.833ms)
+✔ dark is the default even on a light system; theme choices persist and blocked storage stays usable (1.9916ms)
+✔ expand and collapse switch controls and keep keyboard focus; old links open the right update (1.2981ms)
+✔ the repository history renders and the CLI writes the same standalone page (480.4284ms)
+✔ renders portable cross-page anchors and keeps Changelog outside topic navigation (55.4082ms)
+✔ rejects missing fragments, duplicate anchors and unknown numeric references (9.821ms)
+✔ rejects unsafe links, missing images and executable markup (8.8571ms)
+✔ quick Help is authored once and uses the same validated Markdown parser (7.8036ms)
+✔ search indexes words after the displayed excerpt without leaking markup (5.797ms)
+✔ UI screenshot coverage requires a complete desktop and phone pair (8.1704ms)
+✔ reviewed source and snapshot pass without invoking Rust (8.4835ms)
+✔ browser-boundary Rust and HTML changes require guide review (11.4152ms)
+✔ generated WASM declarations are build products rather than reviewed sources (8.2739ms)
+✔ editing a nested gameplay helper requires review (6.7788ms)
+✔ new gameplay files cannot bypass source inventory (6.252ms)
+✔ changing only a generated numeric value fails snapshot integrity (7.1152ms)
+✔ deleting a reviewed source requires review (5.6158ms)
+✔ line ending differences are portable across checkouts (5.6343ms)
+✔ missing review and malformed reference fail with useful messages (7.9207ms)
+✔ CLI rejects unknown arguments even when invoked from another directory (47.9816ms)
+✔ all authored activity rows have reviewed need and outcome tags (7938.4453ms)
+✔ edited rows and invalid need tags require an explicit filter review (1.1438ms)
+✔ removed activity mapping, new relationship cause and broken evidence each fail (6.2228ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8128.4867

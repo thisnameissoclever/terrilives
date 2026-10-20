@@ -21,8 +21,12 @@ export interface BuildSessionHooks {
 export class BuildSession implements PersistableSim {
   error = '';
   private confirming = false;
+  private reviewWasCancelled = false;
   constructor(private readonly source: BuildSource, private readonly hooks: BuildSessionHooks) {}
   get active(): boolean { return this.source.buildActive(); }
+  /** Explicit Back or dismissal of the review, distinct from a refused confirmation. */
+  get confirmationCancelled(): boolean { return this.reviewWasCancelled; }
+  noteReviewCancellation(): void { if (this.confirming) this.reviewWasCancelled = true; }
   clockTick(): number { return this.source.clockTick(); }
   dayTicks(): number { return this.source.dayTicks(); }
   saveBytes(): Uint8Array { return this.source.saveBytes(); }
@@ -51,7 +55,7 @@ export class BuildSession implements PersistableSim {
 
   confirm(): boolean | Promise<boolean> {
     if (this.confirming || !this.active) return false;
-    this.error = ''; this.confirming = true;
+    this.error = ''; this.reviewWasCancelled = false; this.confirming = true;
     try {
       if (!this.settle() || !this.hooks.prepare() || !this.settle()) { this.confirming = false; return false; }
       const prepared = this.source.prepareBuildCommit();

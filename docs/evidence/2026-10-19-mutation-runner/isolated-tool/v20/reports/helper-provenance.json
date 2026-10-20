@@ -1,0 +1,15 @@
+{
+  "canonical_receipt_comparison_identical_to_reviewed_helper": true,
+  "canonical_helper_sha256": "538c788a9291e659fda808fb3220382c011f2ad0674d40fc85d99f21b3747f37",
+  "reviewed_guard_source_sha256": "105f2c91f656bbd77a62fd8890051c9a5f26dfe2242dee39637d7498995bf27a",
+  "adapted_input_proof_sha256": "770a792857a4d95b663b3e585db874d44311358f2875a0f27411b98f3e182e6a",
+  "preparation_script_sha256": "1ea8c96afa123de4b591847763f348fb6e1329cbc7e85c71512c3e54611b444c",
+  "report_generator_sha256": "f7d6ef013cc3dd313335779b6b465991f4c7cae3abaeb80464584ac8692407d1",
+  "adaptations": [
+    "V20 exact commit and separate source directory",
+    "Proof reports under new reports directory",
+    "Reject links at clone root and along explicit fixture ancestors"
+  ],
+  "scope": "All conservative roots and explicit files from the reviewed helper retained",
+  "preparation_note": "An initial shell helper-copy command failed to parse; the saved preparation script succeeded before any proof or listing."
+}

@@ -23,7 +23,7 @@ const SIDE_PLACES: Readonly<Record<Side, string>> = {
   0: 'behind the house', 1: 'on the left side', 2: 'on the right side',
 };
 
-export const CHOOSE_STRIP = 'Choose a strip of land.';
+export const CHOOSE_STRIP = '';
 const BUYING = 'Buying land…';
 const NOT_SENT = 'The purchase could not be sent.';
 

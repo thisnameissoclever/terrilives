@@ -11888,7 +11888,7 @@ Load the production atlas during test collection and prepare mocked module depen
 
 **Root cause.** The file writer inherited the Windows locale encoding rather than specifying UTF-8.
 
-**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults.
+**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults. For a garbled glyph, compare source codepoints and actual response bytes: a correct UTF-8 header cannot repair text already stored incorrectly. Structural icons can use ASCII SVG markup while retaining their accessible names.
 
 **How to verify.** Strictly decode the saved file as UTF-8 and assert the rendered label's exact characters. Review the diff for unrelated byte changes before continuing.
 
@@ -12716,6 +12716,41 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
 4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
 
+## [L-activation-across-focus-transfer] Guard the complete native activation sequence
+
+1. What happened: holding Enter on Land could open its decision, activate the newly focused Keep button and reopen the decision after focus returned.
+2. Root cause: repeated activation was guarded after successful completion but not at dialog opening or Keep focus restoration.
+3. Prevention: preserve the activation guard across every focus transfer in the operation, while allowing a fresh deliberate press. Keep pointer click-count protection separate.
+4. Verification: model the native button default after an uncancelled keydown. Repeated Enter must neither close a new decision nor reopen it after Keep; a fresh press must work.
+
+## [L-review-back-is-an-outcome] Preserve deliberate cancellation without reporting failure
+
+1. What happened: Back from a room review preserved the draft but displayed a generic confirmation-failure message.
+2. Root cause: the page treated every false confirmation result as a refused operation, including deliberate review cancellation.
+3. Prevention: let the existing review/session owner identify cancellation explicitly. Clear pending destinations and narration for that outcome without suppressing genuine refusal messages.
+4. Verification: execute the actual page binding. Back must preserve raw input and draft state with no false error; a subsequent native refusal and invalid name must still show useful errors.
+
+## [L-intrinsic-control-height] Measure the rendered control rather than its minimum
+
+1. What happened: roster buttons remained 31px tall after their minimum was reduced to 28px.
+2. Root cause: line height, vertical padding and borders imposed a larger intrinsic size.
+3. Prevention: measure actual border boxes with their real labels and fonts. Adjust vertical padding when necessary while preserving horizontal dimensions and spacing.
+4. Verification: compare measured original and final heights, font sizes and widths in desktop, compact and coarse-pointer layouts. Inspect complete focus outlines and enlarged text.
+
+## [L-capture-bytes-and-visible-state] Validate the saved image against the claimed state
+
+1. What happened: several browser captures contained an earlier panel or a different image size from their accompanying viewport receipts. Files named PNG contained JPEG bytes. An immediate parent popup capture also lacked the visibly painted popup that its DOM already reported.
+2. Root cause: capture acceptance relied on DOM metadata, requested dimensions and filenames without consistently validating the saved bytes and their visible contents.
+3. Prevention: identify the actual image format and decoded dimensions. Match each saved image to its displayed target, stable viewport and intended visible state. A hidden child page's visibility flag does not establish a displayed browser pane.
+4. Verification: decode and inspect every accepted image. Reject wrong-state or wrong-size captures, preserve their original receipts, and obtain fresh independent review of replacements. DOM geometry and hashes do not substitute for the pictured result.
+
+## [L-timed-out-input-is-not-atomic] Observe state after a failed browser action
+
+1. What happened: a timed-out action partly changed game speed, while its paired Pause never ran. A separate mouse-to-touch experiment emitted a trusted touch start without a release and left later pointer commands timing out.
+2. Root cause: the verification assumed a failed compound action had no effect and treated restored emulation settings as proof that pending input had ended.
+3. Prevention: inspect fresh UI state after any action failure. Use finally cleanup, pause the actual household, and distinguish restored configuration from restored input state. Stop unsupported input routes rather than patching the game around tool errors.
+4. Verification: confirm the checked speed and a stable clock. Retain partial-event and restoration receipts. A fresh-target control may recover normal testing but does not prove the input provider was repaired or establish touch or held-key coverage.
+
 
 ## [L-cross-system-negative-claims] Search old exclusions when adding a social effect
 
@@ -12749,6 +12784,19 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.
 
+## [L-count-survivor-allowances] Preserve counted allowances when normalizing identities
+
+1. What happened: a replacement mutation-result model converted the reviewed survivor baseline into a set. One accepted normalized name could then excuse several distinct missed mutations.
+2. Root cause: the prior sorted-list comparison consumed matching baseline lines one for one. Set membership preserved names but discarded their multiplicity. Projecting records to one worker too early could also reuse an allowance across workers.
+3. Prevention: retain counted allowances, allocate them deterministically over the complete merged result collection, and only then project a worker's view. Keep exact mutation identities separate from the shortened names used for baseline policy.
+4. Verification: one allowance must reject a second matching miss, two allowances must accept exactly two, and a further miss must fail. Replace counted consumption with set membership in an isolated copy and require these assertions to fail. When testing a rejection guard, keep all other evidence consistent so a different guard cannot hide its removal.
+
+## [L-bind-mutation-execution] Bind acceptance to the executable and source that ran
+
+1. What happened: independent review reproduced three acceptance defects in a proposed resumable mutation runner. Cargo could execute a different binary from the one Python hashed. A child could change the owned source copy while leaving the protected checkout clean. Complete predecessor results could bypass a failed current-source check.
+2. Root cause: tool lookup, source verification and final aggregation checked different representations of the intended computation. A version string, clean original checkout or valid historical result did not establish the actual executable and current input bytes.
+3. Prevention: resolve and hash one executable, then invoke that absolute path throughout. Prevent lockfile updates and check owned inputs at each evidence boundary, allowing only the verified active mutation. Revalidate current computation inputs before final acceptance even when all outcomes came from earlier attempts. Do not reset unexpected changes and accept the results they produced.
+4. Verification: use divergent PATH and Cargo-home tools, a child that changes the owned lockfile or another tracked input, and complete predecessor coverage followed by changed current inputs. Require each corresponding guard-removal control to fail its intended assertion. Keep a documentation-only continuation as a passing control, and distinguish fixture-process evidence from a real Rust campaign.
 ## [L-seasonal-tints-preserve-material] Preserve the material's identity through seasonal changes
 
 1. What happened: the seasonal grass settings turned Autumn grass brown and Winter grass pale enough to resemble permanent snow cover. The owner requested recognizable green grass throughout the year.
@@ -12845,6 +12893,12 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Verify.** Load a historical household with two chat initiators and one busy recipient. Require separate admitted and waiting ownership, an identical current-save reload, and rejection of an orphaned target inserted directly into a current payload. Compare paths, the Blocked marker, the admitted reservation, the clock, and both simulation and chore random streams. Keep the stale room-history trigger as a separate regression.
 
+## [L-compare-serialized-receipts-canonically] Compare receipts in their persisted representation
+
+1. What happened: an inventory checker rejected unchanged source receipts because an in-memory scope used tuples while its JSON-loaded predecessor used arrays.
+2. Root cause: the checker compared language-specific container types across a serialization boundary. The persisted receipts were identical.
+3. Prevention: normalize both sides through the declared serialization format before comparing evidence. Preserve the original outputs and repair the checker separately; do not rerun valid completed work to hide the false alarm.
+4. Verification: require equivalent tuple and array representations to compare equal. Require an altered scoped blob or actual source-byte hash to compare unequal. Retain the correction and its controls with the dated qualification evidence.
 
 ## [L-physical-cleaning-credit] Keep actual cleaning credit separate from board history
 
@@ -12876,6 +12930,40 @@ A partial dish-washing batch recorded a new scoped receipt under published refer
 ### Keep running measurements outside Cargo output directories
 
 A workspace test build failed with `LNK1104` because it tried to replace an example executable used by a long-running measurement. Cargo builds ordinary examples during workspace testing, even when they contain no tests. Before starting a measurement, copy its validated executable to an ignored task directory and record the original digest. Run the copy so later builds can replace Cargo artifacts. Verify that the copied executable is outside `target/` and that every intended library, integration, migration and documentation test target runs. A failed combined build must remain recorded as failed, even when later explicit targets supply complete validation.
+
+## [L-recovery-retains-failed-aggregate-jobs] Recover failed stages even when they produced no artifact
+
+1. What happened: a recovery adapter retained preparation and worker jobs but omitted aggregate jobs. A failed aggregate with no snapshot disappeared from the next attempt, which could pass using earlier complete results.
+2. Root cause: artifact discovery was mistaken for a complete inventory of started work. A stage that fails before upload has no artifact to announce its failure.
+3. Prevention: inventory every started stage that can invalidate acceptance. Require authenticated verdict evidence for a failed historical stage when continuation is permitted; otherwise retain the terminal failure. Keep the current in-progress producer distinct from historical producers.
+4. Verification: start with complete valid history, insert a failed aggregate without a snapshot, and require a later aggregate-only attempt to refuse. Preserve explicit terminal verdicts through resealing. Separately accept authenticated incomplete continuation and a clean aggregate-only refresh. Remove the guard in an isolated copy and require the intended assertion to fail.
+
+## [L-recovery-binds-original-plan-policy] Bind continuation policy to the authenticated original plan
+
+1. What happened: an externally supplied continuation extended a seven-day campaign to fourteen days while retaining its original plan and results. An optional snapshot comparison caught the change only when a snapshot existed.
+2. Root cause: the adapter validated the caller's policy shape without comparing its immutable fields to the authenticated original policy.
+3. Prevention: compare start, expiry, attempt limits and retention immediately after original-plan authentication, before tool or work admission. Permit only the explicitly allowed ordered run-chain extension. A missing optional checkpoint must never remove the original policy boundary.
+4. Verification: authenticate a valid original plan and producer, then alter each immutable field independently with no snapshot available. Require every altered continuation to refuse while a valid append-only extension succeeds. Remove the policy binding in an isolated copy and require the named regression assertion to fail.
+## [L-native-measurement-before-worker-release] Put measurement review before expensive fan-out
+
+1. What happened: the mutation workflow could start all production workers after planning, before the required native measurements had been inspected.
+2. Root cause: baseline-plus-one-mutation arithmetic and a tiny qualification fixture were treated as sufficient admission for a full native campaign. The workflow had no deliberate review boundary for actual throughput, cleanup, upload and recovery capacity.
+3. Prevention: freeze the full plan first. Run representative diagnostics inside the existing shared slot, authenticate completed producer and upload evidence, and require a separate admission action before releasing production workers. Keep diagnostic outcomes outside production coverage and retain failed decisions. A capped campaign projection must include repeated capped baselines, setup, shutdown, validation, upload and declared queue costs; a mutation-time subtotal is not a campaign upper bound.
+4. Verification: prove that the first review-required attempt cannot reach preparation, workers or production aggregation. Require exact original plan and measurement bindings on the later admission and all recovery paths. Include a case where mutation time fits the deadline but repeated campaign costs do not. Establish actual platform measurements before using the gate to admit production.
+
+## [L-full-manifest-transport-sizing] Size serialized artifacts with the complete inventory
+
+1. What happened: a plan containing the full native inventory exceeded the fixed archive-member limit when pretty-printed. Result bundles repeated the same large manifest and had the same risk before any outcomes existed.
+2. Root cause: small fixtures exercised the format but not its serialized capacity. Repeated manifest bytes and whitespace counted toward the transport limit even though the logical data was valid. A later estimator also treated separate per-mutation logs as one member and confused whole-slot history with one attempt's artifact.
+3. Prevention: measure the actual emitted representation with the full inventory. Compact only the transport representation while preserving every value, canonical digest, raw outcome and existing bound. Keep individual members, one artifact and accumulated history as separate scopes. Derive per-attempt projections from an enforced selection bound, not sampled throughput alone. Include accumulated history and producer logs in capacity forecasts; enforce a conservative finite history limit rather than assuming every theoretical recovery path will fit. Compare observed result shapes after assigning the same identity; the largest original record can have a long identity but a smaller execution payload.
+4. Verification: send a representative full-size plan and result bundle through the actual archive reader and validators. Require an over-limit member to fail. Accept separately bounded log members when their artifact total also fits. Include a long-identity one-phase result and a shorter-identity two-phase result, then require both raw and retained-history projections to cover the larger substituted shape. Keep sizing shapes explicitly separate from executed outcomes and remeasure after format or inventory changes.
+
+## [L-test-root-is-not-process-cwd] Run tests from their required working directory
+
+1. What happened: Vitest found the requested web tests through `--root web`, but two suites could not load their relative Wasm fixture because the process still ran from the repository root.
+2. Root cause: the test discovery root was mistaken for the process working directory used by ordinary file reads.
+3. Prevention: use `web/` as the command working directory for its package scripts and direct test-runner invocations. A discovery flag does not change `process.cwd()`.
+4. Verification: retain the failed setup result separately, rerun the affected suites from `web/`, and require their actual assertions to execute. Do not rebuild an existing fixture to compensate for the wrong directory.
 ## [L-reference-navigation-every-layout] Preserve reference navigation on every page and screen size
 
 **What happened.** The issue #313 documentation proposal promised search and links to the game and changelog on every page. The first mock-up placed search only on its home page and hid both destination links on phones. An independent novice-perspective review caught both gaps before approval.
@@ -12946,6 +13034,55 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 
 **Verification.** Check opposite cases: the assigned person does most washing and a helper finishes; the helper does most washing and the assigned person finishes. The first can award repair to the assigned person, subject to the window and in-window contribution requirements; the second cannot. Source routing establishes this explanation. Do not claim a new played scenario or executed regression unless it was actually run.
 
+## [L-captured-cli-byte-transport] Check captured byte transport separately from terminal display
+
+**What happened.** A newer GitHub command-line client refused a completed job log containing terminal escape sequences, even when the caller captured stdout. Recovery therefore could not authenticate the original log bytes.
+
+**Root cause.** The adapter assumed that capturing stdout bypassed the client's terminal display guard. The client required an explicit raw-output option.
+
+**Prevention.** Probe supported options offline before the first request. Enable raw output only for captured streams when supported, preserve older client arguments, and propagate request failures without a fallback request. Never strip bytes from evidence or render the raw output into a terminal.
+
+**Verification.** Test both client contracts, unchanged log and archive bytes, strict metadata parsing, request accounting and failure propagation. Compare a captured real log's byte count and hash with the original. Keep that host transport check separate from Linux recovery qualification.
+
+## [L-recipe-tree-query-scope] Authenticate required paths through complete parent trees
+
+**What happened.** Linux fixture planning refused a truncated recursive GitHub tree response before executing any mutations. The query enumerated unrelated asset directories to locate a fixed recipe file set.
+
+**Root cause.** Authentication depended on a complete recursive listing of the whole repository. Asset growth could exceed the API response boundary even when every required recipe file was unchanged.
+
+**Prevention.** Follow only the required parent directories from the authenticated commit. Require complete immediate-tree responses and bind each child tree to its selected parent entry. Preserve exact file identities, valid object modes and duplicate-name rejection. Never accept a partial recursive listing because the desired paths happen to appear in it.
+
+**Verification.** Reject truncated, missing, duplicate and altered parent or file evidence. Exercise distinct commit and parent identities through the real request-accounting wrapper. Measure the additional requests and keep existing request limits; a smaller query does not make those calls free.
+
+## [L-provider-lifecycle-transport-contract] Test evidence transport at the producer's actual lifecycle
+
+**What happened.** Recovery preparation required a whole-run log download location while that same workflow was still running. GitHub refused the request before workers could start, although completed producer-job logs were available.
+
+**Root cause.** Successful high-level probe mocks hid the production HTTP behavior and the circular dependency on workflow completion. A host credential's successful or failed request also cannot establish behavior under the workflow's token.
+
+**Prevention.** Select an authenticated completed producer before probing its log availability. Preserve all original evidence and expiry separately; a current download location is only a limited availability signal. Do not skip an active run, substitute another producer after a failure, or treat retained bytes as proof of current availability.
+
+**Verification.** Exercise the real HTTP branch with only its network boundary injected. Include malformed status and header responses; require sanitized fatal errors without raw exception context. Test active runs, completed predecessors, same-run recovery and a new continuation without a new plan receipt. Before native work, verify the selected completed-job endpoint inside Actions with the actual workflow token, bounded requests and no retained credentials or signed download locations.
+
+## [L-review-correction-exit-intent] Preserve ordinary exit intent through editable review refusals
+
+**What happened.** A room-name validation refusal invalidated the pending Build exit. Correcting the name and confirming the review saved the changes but left Build open.
+
+**Root cause.** The refusal hook used the same cancellation method for a tool destination and an ordinary exit. That method invalidated the asynchronous continuation in both cases.
+
+**Prevention.** Cancel only the continuation whose purpose the refusal invalidates. Keep an ordinary exit pending while the player corrects review input. Back, load and interruption must still invalidate an abandoned exit.
+
+**Verification.** Exercise footer Confirm and exit-dialog Confirm through invalid input, refusal, correction, review update and adoption. Require one commit and one exit without advancing game time. Exercise the same sequence for Land and require its refused destination to remain canceled.
+
+## [L-process-fixture-readiness-clock] Separate fixture startup from the behavior under test
+
+**What happened.** Process fixtures sometimes reached their short test deadline before the child could publish its first report. Tests of completed results and partial source writes then reported no progress.
+
+**Root cause.** The fixtures assumed process construction and interpreter startup would always fit inside a subsecond observation window. A controlled startup delay reproduced the failures; the production controller correctly enforced its declared deadline.
+
+**Prevention.** Use a bounded readiness handshake and start the fixture observation clock only after the required child state exists. Clear readiness markers between invocations. Keep production deadlines and shutdown limits unchanged.
+
+**Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.
 ## [L-guide-capture-coverage-is-not-reading-quality] Curate screenshots around the reader's task
 
 **What happened.** The owner rejected the player guide's screenshot presentation: uncropped captures formed a disjointed dump, repeated desktop/phone wording and captions added noise, and images opened as raw files in new tabs. Screenshots were concentrated in the UI reference while articles discussing the same controls had no illustrations beside their instructions.

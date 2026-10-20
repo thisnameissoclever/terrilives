@@ -1,0 +1,7 @@
+{
+  "observed": {
+    "clock": "\n        \n          Time\n          Day 1, Monday\n03:09\nSpring: mild\n        \n        \n          Funds\n          0\n        \n\n        \n        \n          Saved game loaded\n          \n          \n        \n      ",
+    "visibility": "visible"
+  },
+  "limitation": "The approved browser controls continued reporting visible after bringing the separate task-owned tab forward. Actual hidden-tab behavior was not established or emulated."
+}

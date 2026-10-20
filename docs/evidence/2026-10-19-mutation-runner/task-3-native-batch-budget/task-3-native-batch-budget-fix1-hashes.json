@@ -1,0 +1,54 @@
+{
+  "status": "FROZEN_COVERING_TESTS_PASSED",
+  "base_budget_package_sha256": "d3f64f28012f46ea794bf7596547b946e61a22dbb03a0dfc13fba0efc1a8bb75",
+  "fixture_supplement_sha256": "995b788bd2bd4ea449f82c7fe17c35f7ca67d8c0c52e889bf8de03a2fd208c89",
+  "package_sha256": "bf70a4aa13e1ece073e388814475ac7780bdee953e4fd87adc063781e6143d8b",
+  "files": [
+    {
+      "path": ".github/scripts/mutation_native.py",
+      "before_sha256": "7384a7fd95fad0de0b8872ad471667392237cdeb3f1baeaf5fcb09359db1def5",
+      "sha256": "7daadc50acece5e39ed4811141728b971ded09f0b7ab41600698b6b1961d4a54",
+      "bytes": 76559
+    },
+    {
+      "path": ".github/scripts/test_mutation_batch_budget.py",
+      "before_sha256": "4f353ca416ee480091c6577253674a3ab2c7305cd4c8053aa7527dc0da38fed1",
+      "sha256": "01dafc27298afbf11d9456a0074a67578acf7dfce422ce476b49a3ad7f6c6a45",
+      "bytes": 42875
+    }
+  ],
+  "unchanged_files": [
+    {
+      "path": ".github/scripts/mutation_runner.py",
+      "sha256": "79ce1708d21970321329815a4f6c48e153ff13f4a58633d0e1a337cdc878d71f"
+    },
+    {
+      "path": ".github/scripts/mutation_artifacts.py",
+      "sha256": "b377e388941fbb842b0a8c63d5eb27018bd86dfe8f78e373068580fb67639b4b"
+    },
+    {
+      "path": ".github/scripts/mutation_workflow.py",
+      "sha256": "036ecaa3c0290fc5af4d2855608ee0a5bf507bf379c78ed17556f04c4727b663"
+    },
+    {
+      "path": ".github/scripts/mutation_recovery.py",
+      "sha256": "115f9d0105265d17a417a20554bb7c93c9f8c390b2ec7f7fd9e13a8ad099064f"
+    },
+    {
+      "path": ".github/scripts/mutation_tool.py",
+      "sha256": "4469f57deb7fdc72ff3af446c68409f024b76d8e4d30f1a52264dde286c75b84"
+    },
+    {
+      "path": ".github/scripts/test_mutation_native.py",
+      "sha256": "5ea9e4758640f829f362f6c7864cafbd37cfb04cfd0cdba1dced54270294b8f8"
+    },
+    {
+      "path": ".github/scripts/test_mutation_recovery.py",
+      "sha256": "f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20"
+    },
+    {
+      "path": "docs/mutation-campaign.md",
+      "sha256": "0da0d284f9c8143c04e81ec5cb03a3d3469080064d5fb50844b71a179d681425"
+    }
+  ]
+}

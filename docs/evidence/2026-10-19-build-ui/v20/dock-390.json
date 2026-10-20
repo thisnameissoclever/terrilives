@@ -1,0 +1,155 @@
+{
+  "capturedAt": "2026-10-19T21:07:53.564Z",
+  "url": "http://127.0.0.1:5391/",
+  "measurements": {
+    "active": "Chores",
+    "box": {
+      "bottom": 836,
+      "height": 145.1875,
+      "left": 8,
+      "right": 382,
+      "top": 690.8125,
+      "width": 374,
+      "x": 8,
+      "y": 690.8125
+    },
+    "buttons": [
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "font": "11px",
+        "outline": "rgb(154, 163, 173) none 3px",
+        "rect": {
+          "bottom": 717.203125,
+          "height": 15.390625,
+          "left": 55.15625,
+          "right": 375,
+          "top": 701.8125,
+          "width": 319.84375,
+          "x": 55.15625,
+          "y": 701.8125
+        },
+        "text": "Walking"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 759.203125,
+          "height": 36,
+          "left": 15,
+          "right": 52.796875,
+          "top": 723.203125,
+          "width": 37.796875,
+          "x": 15,
+          "y": 723.203125
+        },
+        "text": "Edit"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 759.203125,
+          "height": 36,
+          "left": 56.796875,
+          "right": 134.90625,
+          "top": 723.203125,
+          "width": 78.109375,
+          "x": 56.796875,
+          "y": 723.203125
+        },
+        "text": "Sim details"
+      },
+      {
+        "background": "rgb(41, 49, 58)",
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) solid 2px",
+        "rect": {
+          "bottom": 759.203125,
+          "height": 36,
+          "left": 138.90625,
+          "right": 194.765625,
+          "top": 723.203125,
+          "width": 55.859375,
+          "x": 138.90625,
+          "y": 723.203125
+        },
+        "text": "Chores"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "11px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 759.203125,
+          "height": 36,
+          "left": 198.765625,
+          "right": 255.84375,
+          "top": 723.203125,
+          "width": 57.078125,
+          "x": 198.765625,
+          "y": 723.203125
+        },
+        "text": "Collapse"
+      },
+      {
+        "background": "rgb(111, 178, 210)",
+        "font": "15px",
+        "outline": "rgb(16, 19, 26) none 3px",
+        "rect": {
+          "bottom": 829,
+          "height": 36,
+          "left": 17,
+          "right": 77,
+          "top": 793,
+          "width": 60,
+          "x": 17,
+          "y": 793
+        },
+        "text": "Tim"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "15px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 829,
+          "height": 36,
+          "left": 81,
+          "right": 141,
+          "top": 793,
+          "width": 60,
+          "x": 81,
+          "y": 793
+        },
+        "text": "Bill"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "15px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 829,
+          "height": 36,
+          "left": 145,
+          "right": 205,
+          "top": 793,
+          "width": 60,
+          "x": 145,
+          "y": 793
+        },
+        "text": "Casey"
+      }
+    ],
+    "clientWidth": 372,
+    "scrollWidth": 372,
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "width": 390
+    },
+    "visibleText": "Tim\nWalking\nEdit\nMood\nOkay\nLife satisfaction\nContent\nSim details\nChores\nCollapse\n\nTim\nBill\nCasey"
+  }
+}

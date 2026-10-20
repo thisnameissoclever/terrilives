@@ -1,0 +1,8 @@
+{
+  "upstream_commit": "8ab1dc786a1f61a4e370416cc6c68b81a704e917",
+  "upstream_tree": "f0c566bf42550891af092fb1247d2de83e010dbf",
+  "patched_tree": "2f083ac6d2d2e88bf99e863b0b0f74774f986005",
+  "patched_visit_git_blob": "fbf125e3892adbd852dd14047fc8767a8c1c8bd1",
+  "upstream_lock_sha256": "0d2699c31955d28f429731eda2972dc4faced07747320b074bc774c3334f75c0",
+  "patch_sha256": "6693b7a61b4c7cb398e199c4e33675f9267bc50559790e069341be377f32ba6f"
+}

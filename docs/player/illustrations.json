@@ -148,8 +148,8 @@
     },
     "help": {
       "title": "Help",
-      "desktop": "images/guide/help-desktop.png",
-      "mobile": "images/guide/help-mobile.png"
+      "desktop": "images/guide/help-build-exits-desktop.png",
+      "mobile": "images/guide/help-build-exits-mobile.png"
     },
     "creator-identity": {
       "title": "Identity",
@@ -1245,6 +1245,34 @@
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
       "sourceSha256": "bda913de672342401f4d4fa4a6a0d2be3514316dfa6e86e94fd5c27372db7918",
       "outputSha256": "daade701f403439a398c066280fdb59374bd63bcbb5426fd7db7c9ef9a24e9e6"
+    },
+    {
+      "output": "images/guide/help-build-exits-desktop.png",
+      "source": "images/ui-build-release-help-current-desktop.png",
+      "rect": {
+        "x": 380,
+        "y": 200,
+        "width": 680,
+        "height": 560
+      },
+      "sourceSnapshot": "build-release-help-e620",
+      "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
+      "sourceSha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+      "outputSha256": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123"
+    },
+    {
+      "output": "images/guide/help-build-exits-mobile.png",
+      "source": "images/ui-build-release-help-current-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 142,
+        "width": 358,
+        "height": 560
+      },
+      "sourceSnapshot": "build-release-help-e620",
+      "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
+      "sourceSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+      "outputSha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
     }
   ]
 }

@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_duplicate_immediate_names_are_rejected (test_mutation_tool.ToolAuthenticationTests.test_duplicate_immediate_names_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_tool.py", line 172, in test_duplicate_immediate_names_are_rejected
+    with self.assertRaisesRegex(ValueError, "duplicate recipe tree entry"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.015s
+
+FAILED (failures=1)

@@ -943,6 +943,35 @@
   ],
   "systems": [
     {
+      "id": "build-draft-and-land",
+      "article": "home-and-controls",
+      "section": "build",
+      "sources": [
+        "web/src/main.ts",
+        "web/src/ui/build-exit.ts",
+        "web/src/ui/build-session.ts",
+        "web/src/ui/build-tools.ts",
+        "web/src/ui/land-tool.ts",
+        "web/src/ui/room-review.ts"
+      ],
+      "review": {
+        "basis": "Footer Confirm adopts the batch and exits; footer Cancel restores the baseline and exits. Land resolves pending changes before starting a fresh paused batch. Keep building and room-review Back preserve the current draft and tool. Land's purchase confirmation adds its purchase to the draft; it does not confirm the whole batch."
+      }
+    },
+    {
+      "id": "clipped-dock-activity",
+      "article": "ui-elements",
+      "section": "household",
+      "sources": [
+        "web/src/ui/activity-tooltip.ts",
+        "web/src/ui/compact-hud.ts",
+        "web/src/ui/compact-hud.css"
+      ],
+      "review": {
+        "basis": "A clipped selected-person activity can be read by mouse hover, keyboard focus or activation. Escape and outside press dismiss it. The popup reads existing activity text and sends no simulation command. Dock sizing changes presentation only."
+      }
+    },
+    {
       "id": "need-decay",
       "article": "needs",
       "section": "timing-and-decay",
