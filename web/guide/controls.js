@@ -62,3 +62,96 @@
     filterActivities();
   }
 })();
+
+(() => {
+  const figures = [...document.querySelectorAll('.guide-illustration')];
+  if (!figures.length) return;
+  const toolbar = document.querySelector('.screenshot-layout');
+  const viewport = matchMedia('(max-width: 760px)');
+  let preference;
+  try { preference = localStorage.getItem('natural-causes-guide-layout'); } catch { /* Layout selection also works without storage. */ }
+  if (!['desktop', 'mobile'].includes(preference)) preference = null;
+  function selectLayout(preservePosition = false) {
+    const anchor = preservePosition ? [...document.querySelectorAll('.guide-article h2, .guide-article h3')]
+      .reverse().find(heading => heading.getClientRects().length && heading.getBoundingClientRect().top <= 120) : null;
+    const previousTop = anchor?.getBoundingClientRect().top;
+    const device = preference ?? (viewport.matches ? 'mobile' : 'desktop');
+    for (const figure of figures) {
+      for (const view of figure.querySelectorAll('.illustration-view')) {
+        view.hidden = view.dataset.device !== device;
+        view.open = !view.hidden;
+        if (!view.hidden) {
+          const width = Number(view.querySelector('img').getAttribute('width'));
+          const pair = figure.closest('.instruction-pair');
+          if (pair) {
+            pair.dataset.compactImage = String(width <= 440);
+            pair.style.setProperty('--illustration-width', `${width}px`);
+          }
+        }
+      }
+    }
+    toolbar.querySelectorAll('input').forEach(input => { input.checked = input.value === device; });
+    if (anchor) requestAnimationFrame(() => {
+      scrollBy(0, anchor.getBoundingClientRect().top - previousTop);
+    });
+  }
+  document.documentElement.classList.add('illustrations-ready');
+  toolbar.hidden = false;
+  selectLayout();
+  toolbar.addEventListener('change', event => {
+    preference = event.target.value;
+    try { localStorage.setItem('natural-causes-guide-layout', preference); } catch { /* Keep the current selection. */ }
+    selectLayout(true);
+  });
+  viewport.addEventListener('change', () => { if (!preference) selectLayout(true); });
+
+  const dialog = document.getElementById('guide-image-viewer');
+  const stage = dialog.querySelector('.viewer-stage');
+  const enlarged = stage.querySelector('img');
+  let opener, savedScroll, originalWidth, originalHeight, scale;
+  function zoom(nextScale) {
+    scale = Math.max(0.1, Math.min(6, nextScale));
+    enlarged.style.width = `${originalWidth * scale}px`;
+    enlarged.style.height = `${originalHeight * scale}px`;
+  }
+  function fit() {
+    zoom(Math.min((stage.clientWidth - 24) / originalWidth, (stage.clientHeight - 24) / originalHeight));
+    stage.scrollTo(0, 0);
+  }
+  function openFigure(figure, view, button) {
+    const source = view.querySelector('img');
+    opener = button;
+    savedScroll = { left: scrollX, top: scrollY };
+    originalWidth = Number(source.getAttribute('width'));
+    originalHeight = Number(source.getAttribute('height'));
+    enlarged.src = source.src;
+    enlarged.alt = source.alt;
+    dialog.querySelector('h2').textContent = figure.dataset.title;
+    dialog.querySelector('.viewer-caption').textContent = view.querySelector('figcaption')?.textContent ?? '';
+    document.documentElement.classList.add('viewer-open');
+    dialog.showModal();
+    fit();
+  }
+  for (const figure of figures) {
+    for (const view of figure.querySelectorAll('.illustration-view')) {
+      const button = view.querySelector('.image-enlarge');
+      button.hidden = false;
+      button.addEventListener('click', () => openFigure(figure, view, button));
+      view.querySelector('img').addEventListener('click', () => openFigure(figure, view, button));
+    }
+  }
+  dialog.querySelector('.viewer-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('close', () => {
+    document.documentElement.classList.remove('viewer-open');
+    opener?.focus({ preventScroll: true });
+    if (savedScroll) scrollTo(savedScroll);
+  });
+  dialog.querySelectorAll('[data-zoom]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.dataset.zoom === 'fit') fit();
+      else zoom(scale * (button.dataset.zoom === 'in' ? 1.5 : 1 / 1.5));
+    });
+  });
+  addEventListener('resize', () => { if (dialog.open) fit(); });
+})();

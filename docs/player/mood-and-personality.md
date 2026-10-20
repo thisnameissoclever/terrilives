@@ -4,6 +4,8 @@
 
 The dock shows the selected person's current mood: Miserable, Low, Okay, Good or Great. Open [Sim details](ui-elements/#sim-details), then Overview, to see its reasons. These reasons are moodlets. A positive number raises mood; a negative one lowers it.
 
+:::illustration sim-needs
+
 Needs, conditions, nearby people, grief, dirt, dishes, waiting and recent events can all contribute. A pleasant activity does not guarantee a good overall mood when several other things are wrong. Read the named reasons before trying to fix the meter by repeating one favorite action.
 
 Waiting for an occupied item lowers mood more when the activity could help a pressing need. Walking, working and talking are not the same waiting state. Removing dirt or dishes can improve mood without adding personal Hygiene, and nearby liked company can improve mood without adding Social.
@@ -47,6 +49,8 @@ The current conditions are Low spirits, Isolated and Cooped up. Choose a person,
 | Low spirits | Choose Handle correspondence at an available desk | The person must reach the desk and complete the correspondence activity; merely sitting there or starting it is insufficient |
 | Isolated | Choose Chat with another person | Both people must meet and finish the chat; waiting for them or interrupting it does not count. Fight does not manage this condition |
 | Cooped up | Choose Use the exercise bike on an available bike | The person must reach the bike and complete the exercise activity; simply going outdoors does not manage this condition |
+
+:::illustration sim-conditions
 
 Each completed matching activity reduces the condition's severity a little, toward zero. Management follows the activity, so its usual access, waiting and completion requirements still apply. Other activities can improve needs or mood without reducing this condition. Completing the matching activity does not remove the trait itself.
 

@@ -30,6 +30,8 @@ The household keeps running at the selected speed when you switch tabs or minimi
 
 Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land.
 
+:::illustration build-furniture
+
 Edits form a draft. Confirm at the bottom keeps the current batch and leaves Build open. Cancel at the bottom discards changes since the last Confirm and keeps Build open. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch.
 
 Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states.
@@ -80,15 +82,19 @@ Load asks before replacing progress with the saved household. An invalid or inco
 
 Choose **Load game** in the Load confirmation to restore the save. Choose **Start over** in the New game confirmation to delete the local save and begin again. **Keep playing** closes either confirmation without replacing the household.
 
+:::illustration load-confirm
+
 The slot belongs to the game's site in this browser. A different browser, browser profile or site address may have separate storage. Light and sound preferences are separate from household progress.
 
 ## Add or edit a housemate {#housemates}
 
-Choose Options, then New housemate to create someone. Select an existing living person and choose Edit beside their name to change them. The creator has Identity, Appearance, Personality, Needs & habits, Interests & skills, Household and Review pages.
+Exit Build before adding or editing a housemate; both controls are disabled while Build is active. Choose Options, then New housemate to create someone. Select an existing living person and choose Edit beside their name to change them. The creator has Identity, Appearance, Personality, Needs & habits, Interests & skills, Household and Review pages.
 
 All pages edit one private draft. Randomize changes unlocked values; locks protect them from randomization. Reset section restores that page's defaults, and Undo restores the previous draft operation. On a phone, Show preview opens the character preview. Review lets you inspect the combined result before applying it. Cancel discards the draft.
 
 When the draft is ready, open **Review** and choose **Move in** for a new person, or **Apply changes** when editing. Wait for the change to finish. Choosing another creator page does not add the person or apply the draft.
+
+:::illustration creator-review
 
 Editing preserves unedited needs, work, career and history. Appearance changes do not require a personality change. Household relationships identify family ties separately from current feelings. A new housemate begins without a job; automatic job search can find one, or you can assign a path in Career.
 
