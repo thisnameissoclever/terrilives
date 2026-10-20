@@ -1,6 +1,10 @@
 //! Whole-window edits. Validation owns the finished layout before anything is written.
 
-use super::{current_layout, walls::check_new_walls, LotEditState, PlacementRefusal};
+use super::{
+    current_layout,
+    walls::{check_new_walls, check_standing_barriers},
+    LotEditState, PlacementRefusal,
+};
 use crate::lot_frame::HouseRect;
 use bevy_ecs::prelude::*;
 use std::collections::BTreeSet;
@@ -175,7 +179,7 @@ pub(crate) fn validate_restored_windows(world: &World) -> Result<(), PlacementRe
         .filter(|&line| !is_rear(line, house))
         .filter_map(|line| grid_cells(line, width, height))
         .collect();
-    check_new_walls(world, &current.rectangles, grid, &walls)
+    check_standing_barriers(world, &current.rectangles, grid, &walls)
 }
 
 pub fn validate_window_edit(

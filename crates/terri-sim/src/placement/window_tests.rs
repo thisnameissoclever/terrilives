@@ -603,6 +603,39 @@ fn window_loader_refuses_front_door_without_employed_sims() {
     assert_eq!(sim.save_snapshot_v5(), before);
 }
 
+/// Someone walking past a window on their way round to what lies behind it is
+/// not using it through the glass. Refusing that at load stopped Build mode
+/// opening and Confirm succeeding; someone who has arrived and uses it across
+/// the window is still refused. The seeded Build search covers the full load.
+#[test]
+fn window_loader_lets_a_walker_pass_beside_their_target_but_not_use_it_through_glass() {
+    let mut sim = house();
+    fit(&mut sim, window(WindowModel::Cottage));
+    let first = window(WindowModel::Cottage).line;
+    let [beside, behind] = record(first, false).cells();
+    assert!(first.y > 0, "the walk goes round above the window");
+    let pack = sim.world().resource::<Content>().0;
+    let plant = sim.spawn_object(
+        Position { x: behind.0 as f32, y: behind.1 as f32 },
+        pack.find("potted_plant").unwrap(),
+    );
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(behind.0 as usize, behind.1 as usize, true);
+    let walker = sim.spawn_agent(Position { x: beside.0 as f32, y: beside.1 as f32 }, 100.0);
+    let around = vec![(beside.0, beside.1 - 1), (behind.0, behind.1 - 1)];
+    sim.world_mut().entity_mut(walker).insert((
+        terri_core::Target { object: plant, interaction: 0 },
+        terri_core::Path { steps: around, cursor: 0 },
+    ));
+    assert_eq!(validate_restored_windows(sim.world()), Ok(()));
+    sim.world_mut().entity_mut(walker).remove::<terri_core::Path>();
+    assert_eq!(
+        validate_restored_windows(sim.world()),
+        Err(PlacementRefusal::InUse)
+    );
+}
+
 #[test]
 fn window_typed_restore_preserves_identity_and_rear_grid() {
     let mut sim = house();

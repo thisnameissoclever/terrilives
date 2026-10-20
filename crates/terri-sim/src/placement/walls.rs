@@ -45,6 +45,15 @@ pub struct WallPlan {
 struct Standing {
     tiles: [(i32, i32); 4],
     target: Option<Entity>,
+    /// Still on the way, with steps left; the loader judges the contact at the walk's end.
+    walking: bool,
+}
+
+/// Whether the barriers are being built now or already stood when the world was saved.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Barriers {
+    New,
+    Standing,
 }
 
 /// The tiles a sim standing at `position` touches: one, two or four, the same
@@ -73,6 +82,29 @@ pub(super) fn check_new_walls(
     rectangles: &[Rectangle],
     grid: &TileGrid,
     walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    check_barriers(world, rectangles, grid, walls, Barriers::New)
+}
+
+/// The same rules for barriers a loaded world already has, such as its windows.
+/// Someone walking past one, round to what lies behind it, is not using that
+/// through it: live play makes that state, so refusing it would refuse a
+/// save. Someone who has arrived is held to the rule as a new wall would be.
+pub(super) fn check_standing_barriers(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    check_barriers(world, rectangles, grid, walls, Barriers::Standing)
+}
+
+fn check_barriers(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+    barriers: Barriers,
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
     // The front door's one step in, whoever lives here now: a wall there
@@ -103,6 +135,9 @@ pub(super) fn check_new_walls(
                 .map(|(entity, position)| Standing {
                     tiles: tiles_under(position),
                     target: world.get::<Target>(entity).map(|t| t.object),
+                    walking: world
+                        .get::<terri_core::Path>(entity)
+                        .is_some_and(|path| path.next_step().is_some()),
                 })
                 .collect()
         })
@@ -116,10 +151,18 @@ pub(super) fn check_new_walls(
     }
     // A wall must not come down between a sim and the thing it is using or
     // the person it is talking to: it would carry on through the wall.
-    for Standing { tiles, target, .. } in &standing {
+    for Standing {
+        tiles,
+        target,
+        walking,
+    } in &standing
+    {
         let Some(target) = *target else {
             continue;
         };
+        if *walking && barriers == Barriers::Standing {
+            continue;
+        }
         let across = |mine: (i32, i32), theirs: (i32, i32)| {
             tiles.contains(&mine)
                 && if world.get::<SmartObject>(target).is_some() {
