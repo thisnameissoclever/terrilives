@@ -1,6 +1,10 @@
-# More rewarding company, grounded arguments and background play
+# Player guide and household balance
 
-Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background. Build controls are clearer, and clipped Sim status can be opened in full.
+The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background. Build controls are clearer, and clipped Sim status can be opened in full.
+
+## New
+
+- Open Player guide below Build and Options, or from Options and Help, for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
 
 ## Improved
 
@@ -27,12 +31,13 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 
 ## Fixed
 
+- Object names stay readable against light scenery, and expanded descriptions use a readable line width. The Build camera's zoom-out button shows a clear minus sign.
+
 - Loading an older saved game preserves chats that are waiting for a busy Sim, so the upgraded game can be saved and loaded again.
 
 - Resolving or reassigning a chore stops an autonomous argument about its former owner. Older washing records cannot give a Sim credit for somebody else's fresh cleanup.
 
 - Saved games from the previous version load correctly during a player-started argument.
-- The Build zoom-out control displays a proper minus icon.
 - Keep building uses a normal button in the exit dialog, and Confirm appears directly below Discard changes.
 
 ## Sound

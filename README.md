@@ -15,7 +15,7 @@
 
 <p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
 
-<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
+<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/guide/">Player guide</a> | <a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
 
 Natural Causes is a dark-comedy life sim that runs in the browser. The current
 cast is Tim, Bill, and Casey.

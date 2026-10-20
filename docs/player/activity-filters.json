@@ -1,0 +1,324 @@
+[
+  {
+    "label": "Fridge: Grab a snack",
+    "helps": [
+      "Hunger"
+    ],
+    "costs": [
+      "Comfort"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Fridge: Cook breakfast, Cook lunch or Cook dinner",
+    "helps": [
+      "Hunger",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [
+      "Comfort"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Dining table: Eat prepared food",
+    "helps": [
+      "Hunger",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [
+      "Comfort"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Bunk bed: Sleep",
+    "helps": [
+      "Energy",
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Bed: Go to bed",
+    "helps": [
+      "Energy",
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Shower: Take a shower",
+    "helps": [
+      "Hygiene"
+    ],
+    "costs": [
+      "Energy"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Bathtub: Take a bath",
+    "helps": [
+      "Hygiene",
+      "Comfort"
+    ],
+    "costs": [
+      "Energy"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Toilet: Use the toilet",
+    "helps": [
+      "Bladder"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Bathroom sink: Wash hands",
+    "helps": [
+      "Hygiene"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Kitchen sink: Wash hands",
+    "helps": [
+      "Hygiene"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Television: Watch TV",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Radio: Listen to the radio",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Ottoman: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Long sofa: Lie down",
+    "helps": [
+      "Comfort",
+      "Energy"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Long sofa: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Armchair: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Dining chair: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Desk chair: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Pool lounger: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Dining table: Sit",
+    "helps": [
+      "Comfort"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Bookcase: Read book",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Ottoman, sofa, armchair, dining chair or desk chair: Read a book",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Reading armchair: Sit and read",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Exercise bike: Use the exercise bike",
+    "helps": [
+      "Fun",
+      "Social"
+    ],
+    "costs": [
+      "Energy",
+      "Hygiene"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Desk: Handle correspondence",
+    "helps": [
+      "Social",
+      "Fun"
+    ],
+    "costs": [
+      "Energy"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Aquarium: Watch the fish",
+    "helps": [
+      "Fun",
+      "Comfort",
+      "Social"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Person: Chat",
+    "helps": [
+      "Social",
+      "Fun"
+    ],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Person: Fight",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": true
+  },
+  {
+    "label": "Clean dishes",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Clean floor",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Wipe surface",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Empty bin",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Work",
+    "helps": [],
+    "costs": [
+      "Energy"
+    ],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Walk, wait, carry or prepare",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Buy, sell, move, rotate, recolor, recover a book or edit the home",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Stove and counter without a recipe running",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Washer-dryer and pool",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  },
+  {
+    "label": "Patio umbrella, potted plant, floor lamp, coat rack, nightstand and dresser",
+    "helps": [],
+    "costs": [],
+    "harmsFeelings": false
+  }
+]

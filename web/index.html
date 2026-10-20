@@ -593,7 +593,8 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
       }
-      #show-changelog {
+      #show-changelog,
+      #show-player-guide {
         grid-column: 1 / -1;
         display: grid;
         place-items: center;
@@ -812,6 +813,7 @@
          phone never squeezes a label onto a third line. */
       #build-exit-dialog menu { grid-template-columns: minmax(0, 1fr); }
       #build-toggle { width: 100%; }
+      #world-player-guide { display: grid; place-items: center; text-decoration: none; padding: 4px 8px; }
       #builder-desktop { display: grid; gap: 8px; }
       #builder-controls { display: grid; gap: 8px; }
       /* [B-phone-build-dock]: hidden always wins. The phone layout gives the
@@ -1069,13 +1071,14 @@
       .book-commerce { margin-top: 10px; }
       .book-commerce-actions { display: flex; gap: 6px; }
       .book-commerce-actions button { flex: 1; min-height: 44px; }
-      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; }
+      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; background: var(--hud-bg); }
+      .radial-identity:has(.object-identity[open]) { width: min(26ch, calc(100vw - 32px)); }
       .radial-identity .object-identity { padding: 0; }
       .radial-identity summary { display: flex; flex-direction: column; }
       .radial-identity .object-type { order: -1; }
       .radial-identity .object-model { justify-content: center; }
       .radial-identity .object-description-arrow { display: none; }
-      .radial-identity .object-description { max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
+      .radial-identity .object-description { max-width: none; max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
       .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: var(--action-background, transparent); color: var(--action-text, var(--hud-muted)); font: inherit; }
       #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       #object-menu.object-menu-radial .menu-entry:disabled { opacity: .5; cursor: default; }
@@ -1294,11 +1297,13 @@
           aria-controls="help-panel"
           aria-expanded="false"
         >Help</button>
+        <a id="show-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" aria-describedby="guide-time-note">Player guide<small id="guide-time-note" class="menu-secondary">Pause first to stop time</small></a>
         <a id="show-changelog" class="hud-button" href="./changelog/" target="_blank"
           rel="noopener" aria-label="Changelog (opens in a new tab)">Changelog</a>
         </section>
       </div>
     </div></div>
+    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab. Pause first if you want the household to wait.">Player guide</a>
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
@@ -1558,7 +1563,8 @@
       <h2 id="help-title" tabindex="-1">How to play</h2>
       <div id="help-body">
         <p class="dialog-note">Game time is paused while this guide is open.</p>
-<details class="help-topic" open><summary>Build &amp; place</summary><ol><li>Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Confirm at the bottom keeps this batch and leaves Build. Cancel there discards this batch and leaves Build. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.</li><li>Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.</li><li>Rooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm keeps the batch and leaves Build.</li><li>Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.</li><li>Floors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and leaves Build.</li><li>Land opens a fresh Build batch after you confirm or discard pending changes. Keep building preserves the current batch. Choose a strip to see its price and remaining funds; Buy land asks for purchase confirmation.</li></ol></details><details class="help-topic"><summary>People &amp; actions</summary><ol><li>Choose a person under Household to select them and see their needs.</li><li>Tap or click an object to give the selected person its default action.</li><li>Long-press or right-click for more actions, including talking to another person.</li><li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li><li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li><li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li><li>Choose People inside Sim details to see how the selected person feels about everyone else.</li></ol></details><details class="help-topic"><summary>Company &amp; chores</summary><p>Chats improve both Social meters, up to 100. Shared interests improve both Sims' opinions. Family and partners gain more goodwill and lose less from bad interactions. Writing letters also improves Social.</p><p>Autonomous arguments need a real grievance: a privacy violation, an overdue assigned chore, a nearby disliked activity or an unmet-need interruption. Bad mood makes arguments more likely; good mood and liking the other Sim make them less likely. Urgent hunger, energy and bladder needs take priority. Fights provide no Social.</p><p>After a chore argument, the assigned Sim may start the work. The base response chance is 80%, adjusted by cleanliness, responsibility, commitment, chore preference, feelings and mood. Completing that duty within four game hours helps repair feelings with the initiator and housemates who complained. Cleaning also earns appreciation without an argument. Cleaner housemates appreciate it more.</p><p>Fresh mess gets time before ordinary mood penalties and complaints: two game hours continuously at maximum grime, or a full game day unfinished. Dishes blocking a seat cause an immediate problem. Cleaning remains available during the grace period.</p></details><details class="help-topic"><summary>Camera</summary><ol><li>Drag to move the camera. Pinch, use the mouse wheel, or use the zoom buttons to move closer or farther away.</li></ol></details><details class="help-topic"><summary>Options &amp; saves</summary><ol><li>Open Options for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li></ol></details><details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
+<!-- PLAYER_HELP -->
+<details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
       </div>
       <div id="help-actions">
         <button data-action-intent="affirmative" id="close-help" class="hud-button" type="button">Got it</button>

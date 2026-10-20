@@ -1,0 +1,13 @@
+{
+  "pages": [
+    { "slug": "start-here", "title": "Start here", "file": "start-here.md" },
+    { "slug": "ui-elements", "title": "UI elements", "file": "ui-elements.md" },
+    { "slug": "needs", "title": "Needs", "file": "needs.md" },
+    { "slug": "activities", "title": "Activities", "file": "activities.md" },
+    { "slug": "relationships", "title": "Relationships", "file": "relationships.md" },
+    { "slug": "mood-and-personality", "title": "Mood and personality", "file": "mood-and-personality.md" },
+    { "slug": "home-and-controls", "title": "Home and controls", "file": "home-and-controls.md" },
+    { "slug": "the-world", "title": "The world", "file": "the-world.md" },
+    { "slug": "glossary", "title": "Glossary", "file": "glossary.md" }
+  ]
+}

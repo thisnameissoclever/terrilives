@@ -1,9 +1,10 @@
 """Decide whether a change can affect the game, or is documentation only.
 
 CI runs the Rust, web and mutation jobs only when this says the game could
-be affected. Published Markdown in docs/changelog also affects the site:
-CI checks the changelog and Pages redeploys it without requiring game checks
-for a notes-only edit. Other documentation runs the documentation id check.
+be affected. Published guide articles, metadata and images in docs/player
+also affect the site. CI checks them and Pages redeploys them without game
+checks. Short Help and gameplay reference inputs still require game checks.
+Other documentation runs the documentation id check.
 
 A path is documentation when it is a Markdown file outside the agent skill
 folders. Those skill files are read by `web/tests/agent-skill-mirrors.test.ts`,
@@ -39,6 +40,10 @@ SKILL_FOLDERS = (".agents/", ".claude/")
 
 def is_documentation(path: str) -> bool:
     """Whether a changed path is documentation that nothing executes."""
+    if path == "docs/player/quick-help.md" or path == "docs/player/reviewed-sources.json" or path.startswith("docs/player/generated/"):
+        return False
+    if path.startswith("docs/player/"):
+        return True
     return path.lower().endswith(".md") and not path.startswith(SKILL_FOLDERS)
 
 
@@ -51,7 +56,7 @@ def affects_game(paths: list[str]) -> bool:
 
 def affects_site(paths: list[str]) -> bool:
     """Published notes are site content even when the game is unchanged."""
-    return affects_game(paths) or any(path.startswith("docs/changelog/") for path in paths)
+    return affects_game(paths) or any(path.startswith(("docs/player/", "docs/changelog/")) for path in paths)
 
 
 def changed_paths(base: str, head: str, merge_base: bool) -> list[str]:

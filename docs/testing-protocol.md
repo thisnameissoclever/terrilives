@@ -74,7 +74,7 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   the newest main push whose `web` job passed, so a documentation push cannot
   skip code whose own run was cancelled or failed. When only documentation
   changed, the Rust, web and mutation jobs skip and the `docs` job checks
-  document ids. Public Markdown in `docs/changelog/` also runs the lightweight
+  document ids. Public Markdown in `docs/player/changelog/` also runs the lightweight
   `changelog` job and redeploys Pages; other Markdown does not redeploy.
   The classifier's `site` output includes both game changes and public notes,
   so the Pages stale-artifact check never treats newer notes as unpublished docs.

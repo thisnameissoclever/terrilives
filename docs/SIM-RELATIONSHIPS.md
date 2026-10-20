@@ -7,6 +7,8 @@ exact formulas and verification evidence.
 
 ## Directional affinity
 
+Player explanations and activity examples are maintained in [Relationships](player/relationships.md). The public guide's effect map covers every current runtime cause. A completed Fight lowers both participants' opinions and creates separate mood effects; an interrupted Fight grants no completion effects. See [the fight contract](specs/2026-10-16-fights.md) for engineering details.
+
 Each Sim has a separate affinity toward another Sim, from -1 to 1. One Sim
 liking another does not guarantee the feeling is mutual. Completed chats, pleasant
 nearby time and recognized shared activities add affinity. Opposing authored

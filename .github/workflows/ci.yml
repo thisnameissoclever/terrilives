@@ -132,9 +132,13 @@ jobs:
         with:
           node-version: 22
       - name: Test changelog generation
-        run: node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs
+        run: node --test scripts/build-changelog.test.mjs scripts/build-player-guide.test.mjs scripts/player-activity-filters.test.mjs scripts/player-coverage.test.mjs scripts/check-player-reference.test.mjs scripts/branding.test.mjs
+      - name: Validate player reference review
+        run: node scripts/check-player-reference.mjs --check
       - name: Build the published notes
-        run: node scripts/build-changelog.mjs
+        run: |
+          node scripts/build-changelog.mjs
+          node scripts/build-player-guide.mjs
 
   rust:
     needs: changes
@@ -640,6 +644,8 @@ jobs:
       - name: Install web dependencies
         working-directory: web
         run: npm ci
+      - name: Verify player values against compiled gameplay
+        run: node scripts/check-player-reference.mjs --verify-export
       - name: Type check
         working-directory: web
         run: npm run typecheck
