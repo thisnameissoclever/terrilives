@@ -216,6 +216,27 @@ describe('context actions use the active controller', () => {
   });
 });
 
+it('places the buttons clear of a whole floor area and a whole wall run, and above a chosen wall', () => {
+  const f = fixture();
+  try {
+    const surface = { render: vi.fn(), place: vi.fn() };
+    const actions = new BuildContextActions(f.tools, surface, () => ({ height: 0, offsetX: 0 }));
+    const camera = { scale: 2, originX: 400, originY: 60 };
+    const screenYOf = (x: number, y: number) => (x + y) * 21 * camera.scale + camera.originY;
+    f.floors.enter(); f.floors.choosePoint(2, 2); f.floors.choosePoint(5, 6);
+    actions.frame(camera, 800, 600);
+    // [FL-area]: the top row above the area's far corner, the bottom row below its near corner.
+    expect(surface.place.mock.calls.at(-1)![1]).toBeCloseTo(screenYOf(1.5, 1.5) - 18 * camera.scale);
+    expect(surface.place.mock.calls.at(-1)![2]).toBeCloseTo(screenYOf(5.5, 6.5) + 20 * camera.scale);
+    f.floors.exit(); f.walls.enter();
+    f.walls.chooseClicked({ axis: 1, x: 3, y: 5 }); f.walls.chooseClicked({ axis: 1, x: 8, y: 5 });
+    actions.invalidate(); actions.frame(camera, 800, 600);
+    // [WB-height]: above the run's far end at full wall height, below its near end.
+    expect(surface.place.mock.calls.at(-1)![1]).toBeCloseTo(screenYOf(2.5, 4.5) - 78 * camera.scale);
+    expect(surface.place.mock.calls.at(-1)![2]).toBeCloseTo(screenYOf(8.5, 4.5) + 20 * camera.scale);
+  } finally { f.handle.free(); }
+});
+
 it('unchanged frames neither render nor measure; camera, buffer and invalidation each place again', () => {
   const f = fixture();
   try {
@@ -268,6 +289,16 @@ it('reports intrinsic row height when the available space cannot fit the control
     keepOut: { left: 0, gearLeft: 0, gearRight: 320, gearBottom: 70 } }, 180, 80);
   expect(at.compact).toBe(true);
   expect(at.height).toBe(266);
+});
+
+it('stacks every button above a selection that reaches the bottom of the screen', () => {
+  const bounds = { width: 1000, bottom: 900, keepOut: { left: 0, gearLeft: 2000, gearBottom: 0 } };
+  const clear = contextPosition(500, 400, 560, bounds, 62, 44);
+  expect(clear.compact).toBe(false);
+  // A wall run whose near end lies at the screen's edge leaves no room below it.
+  const atEdge = contextPosition(500, 600, 890, bounds, 62, 44);
+  expect(atEdge.compact).toBe(true);
+  expect(atEdge.y + atEdge.height).toBeLessThanOrEqual(600);
 });
 
 it('typed window changes refresh cached contextual fit and removal capabilities', () => {

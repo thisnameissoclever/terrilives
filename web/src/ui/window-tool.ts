@@ -1,8 +1,8 @@
 import { windowReason, type SimBridge } from '../bridge.js';
 import { coveredWindowLines, decodeWindowPlacements, windowAt, type WindowDefinition,
   type WindowEditPreview, type WindowModelId, type WindowPlacement } from '../architecture/windows.js';
-import type { TileHighlight } from '../render/placement-preview.js';
-import { nearestLine, tilesBeside, type WallLine } from './wall-tool.js';
+import { lineMarks, type TileHighlight } from '../render/placement-preview.js';
+import { nearestLine, type WallLine } from './wall-tool.js';
 
 type WindowSource = Pick<SimBridge, 'windowCatalogue' | 'windowPlacements' | 'windowEditPreview'
   | 'windowRemovalPreview' | 'fitWindow' | 'removeWindow' | 'lastWindowEditResult' | 'lotRevision'>;
@@ -50,15 +50,37 @@ export class WindowTool {
     if (!this.active || this.pending !== null || this.blocked) return;
     this.selectedLine = line;
     this.owner = this.ownerAt(line);
-    this.line = this.owner ? { axis: this.owner.axis, x: this.owner.x, y: this.owner.y } : line;
+    this.line = this.owner ? { axis: this.owner.axis, x: this.owner.x, y: this.owner.y } : this.fittedStart(line);
     this.refresh();
     this.hooks.changed();
   }
   chooseModel(model: WindowModelId): void {
     if (!this.active || this.blocked || this.pending !== null || !this.catalogue.some(item => item.id === model)) return;
     this.chosen = model;
+    if (!this.owner && this.selectedLine) this.line = this.fittedStart(this.selectedLine);
     this.refresh();
     this.hooks.changed();
+  }
+  /**
+   * [WN-fit]: where a new window of the chosen width starts so that it covers
+   * the clicked unit. Centred on it first, then slid along the wall one unit
+   * at a time, nearest first, until the simulation accepts the span. With no
+   * accepted start, the centred one stands so its refusal can be read.
+   */
+  private fittedStart(clicked: WallLine): WallLine {
+    const width = this.catalogue.find(item => item.id === this.chosen)?.width ?? 1;
+    if (width <= 1) return clicked;
+    const centre = Math.floor((width - 1) / 2);
+    const offsets = Array.from({ length: width }, (_, offset) => offset)
+      .sort((a, b) => Math.abs(a - centre) - Math.abs(b - centre) || a - b);
+    const starts = offsets.map(offset => clicked.axis === 0
+      ? { axis: 0 as const, x: clicked.x, y: clicked.y - offset }
+      : { axis: 1 as const, x: clicked.x - offset, y: clicked.y })
+      .filter(start => start.x >= 0 && start.y >= 0);
+    for (const start of starts) {
+      if (this.source.windowEditPreview(start.axis, start.x, start.y, this.chosen).valid) return start;
+    }
+    return starts[0] ?? clicked;
   }
   setBlocked(blocked: boolean): void {
     if (this.blocked === blocked) return;
@@ -96,7 +118,9 @@ export class WindowTool {
       Record<string, [number, number] | undefined>)[key];
     const axis = key.toLowerCase() === 'v' ? 0 : key.toLowerCase() === 'h' ? 1 : null;
     if (!step && axis === null) return false;
-    const from = this.line ?? { axis: 0 as const, x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
+    // A new window steps the unit it was chosen for, since its start slides to fit ([WN-fit]).
+    const from = (this.owner ? this.line : this.selectedLine ?? this.line)
+      ?? { axis: 0 as const, x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
     // Step from the far end when moving along a selected span, so arrow navigation cannot get stuck in its owner.
     const span = this.owner ? coveredWindowLines(this.owner, this.catalogue) : [];
     const end = step && ((from.axis === 0 && step[1] > 0) || (from.axis === 1 && step[0] > 0))
@@ -128,6 +152,20 @@ export class WindowTool {
     return this.active && this.candidate?.valid && this.owner?.model !== this.chosen ? this.candidate : null;
   }
   highlight(): TileHighlight | null { return this.active ? this.shownHighlight : null; }
+  /** The lines the shown window covers: the selected one, or the one the chosen model would fit. */
+  span(): readonly WallLine[] {
+    if (!this.active || !this.line) return [];
+    return this.owner && this.owner.model === this.chosen
+      ? coveredWindowLines(this.owner, this.catalogue)
+      : coveredWindowLines({ ...this.line, model: this.chosen }, this.catalogue);
+  }
+  /** The span and whether it may hold the window, for the floor marker ([WB-mark]). */
+  selection(): { readonly lines: readonly WallLine[]; readonly valid: readonly boolean[] } | null {
+    const lines = this.span();
+    if (lines.length === 0) return null;
+    const valid = this.candidate?.valid === true || (this.owner !== null && this.owner.model === this.chosen);
+    return { lines, valid: lines.map(() => valid) };
+  }
   private clear(): void {
     this.line = null; this.selectedLine = null; this.owner = null; this.pending = null; this.candidate = null;
     this.removal = null; this.shownHighlight = null; this.status = CHOOSE; this.hooks.changed();
@@ -146,11 +184,12 @@ export class WindowTool {
     const lines = this.candidate.valid ? this.candidate.affectedLines
       : [...coveredWindowLines({ ...this.line, model: this.chosen }, this.catalogue),
         ...(this.owner ? coveredWindowLines(this.owner, this.catalogue) : [])];
-    const tiles = new Map<string, readonly [number, number]>();
-    for (const line of lines) for (const tile of tilesBeside(line)) {
-      if (tile[0] >= 0 && tile[1] >= 0 && tile[0] < this.width && tile[1] < this.height) tiles.set(tile.join('/'), tile);
-    }
-    this.shownHighlight = { tiles: [...tiles.values()], valid: this.candidate.valid };
+    const unique = new Map<string, WallLine>();
+    for (const line of lines) unique.set(`${line.axis}/${line.x}/${line.y}`, line);
+    const ordered = [...unique.values()].sort((a, b) => a.axis - b.axis || a.x - b.x || a.y - b.y);
+    // [WB-mark]: one bar along the span itself, not the tiles beside it.
+    this.shownHighlight = { tiles: [], valid: this.candidate.valid,
+      lines: lineMarks(ordered, ordered.map(() => this.candidate!.valid)) };
     const chosen = this.catalogue.find(item => item.id === this.chosen)!;
     this.status = windowReason(this.candidate.reason) ?? (this.owner
       ? `Selected window: ${this.catalogue.find(item => item.id === this.owner!.model)!.label}.`

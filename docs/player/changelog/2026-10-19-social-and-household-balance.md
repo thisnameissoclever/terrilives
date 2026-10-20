@@ -1,12 +1,22 @@
-# Player guide and household balance
+# Player guide, household balance and easier building
 
-The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background.
+The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background. In Build mode, walls are easier to click, see and build in long runs, and floors can be laid over a whole rectangle at once.
 
 ## New
 
 - Open Player guide below Build and Options, or from Options and Help, for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
 
+- In Walls, select one edge, then a second edge further along the same row, to select every edge between them. Wall, Doorway and Remove then apply to the whole run.
+- In Floors, select one tile, then the opposite corner, to select every tile in the rectangle. A covering or Remove applies to all of them, and tiles that cannot take it are marked and left alone.
+- Walls built on the edge of the lot can now hold windows and doorways, including the bottom-left and bottom-right edges. A doorway there opens onto nothing until you buy land beyond it.
+
 ## Improved
+
+- Clicking a wall in Walls selects that wall, wherever you click on it, instead of an edge somewhere behind it. With a mouse, the edge a click would select is marked before you click.
+- The selected edge is marked along the edge itself, and the selected wall is tinted: blue where a wall can stand, red where it cannot.
+- Walls and Rooms show walls low while you build, so the front walls no longer hide the floor. The selected wall stands at full height. Use **Full height**, or press T, to see every wall at full height.
+- A wide window centres on the spot you click and slides along the wall until it fits, instead of failing near the end of a wall.
+- The buttons beside a selected wall, run or floor area sit clear of it instead of covering it.
 
 - Both Sims gain twice as much Social from chatting, up to 100. Conversation length stays the same, and fights provide no Social.
 - Chats about a shared interest improve both Sims' opinions, including when other needs are low. Ordinary positive chat rewards are stronger too.

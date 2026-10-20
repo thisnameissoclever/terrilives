@@ -602,13 +602,15 @@ fn apply_layout(
                     y: window.y,
                     doorway: false,
                 };
-                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                if !edge.physical_in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((window.axis, window.x, window.y))
                 {
                     return Err(SaveError::InvalidGrid);
                 }
-                let [from, to] = edge.cells();
-                grid.set_edge_blocked(from, to, true);
+                if edge.in_bounds(grid.width() as u32, grid.height() as u32) {
+                    let [from, to] = edge.cells();
+                    grid.set_edge_blocked(from, to, true);
+                }
             }
         }
     }

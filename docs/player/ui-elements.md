@@ -148,7 +148,7 @@ The catalogue can scroll while the placement controls remain available. Scroll t
 
 ## Walls and Windows {#walls}
 
-Choose Build, then Walls, then select an edge between tiles. The actions beside that edge offer wall, doorway, removal and window choices. Windows is reached from a selected wall edge; it is not a separate tool in the main Build strip. Choose Windows, select a model, then choose Place Window or Replace window for an existing window.
+Choose Build, then Walls, then select an edge between tiles, or a second edge in the same row to select a run. The actions beside the selection offer wall, doorway, removal and window choices. Low and Full height set how tall walls are drawn while you build. Windows is reached from a selected wall edge; it is not a separate tool in the main Build strip. Choose Windows, select a model, then choose Place Window or Replace window for an existing window.
 
 :::illustration build-walls
 
@@ -158,7 +158,7 @@ The status explains refusals. A window must fit entirely within a solid wall. Wi
 
 ## Floors {#floors}
 
-Choose Build, then Floors, then select a tile. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
+Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
 
 :::illustration floor-actions
 

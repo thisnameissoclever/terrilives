@@ -188,9 +188,8 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         super::windows::is_rear(segment, house)
             && super::windows::window_line_in_bounds(segment, width, height, house)
     };
-    let perimeter_edit = matches!(edit.state, WallState::Open | WallState::Wall)
-        && line.physical_in_bounds(width, height)
-        && !rear_shell(requested_line);
+    // [WT-rules]: a wall on the lot's edge may also be a doorway or a window.
+    let perimeter_edit = line.physical_in_bounds(width, height) && !rear_shell(requested_line);
     // With bought land beyond it a shell line lies inside the grid, but
     // it is still the shell: only glazing and restoring glass may touch it.
     if rear_shell(requested_line) && !rear_restore && edit.state != WallState::Window {
@@ -308,4 +307,4 @@ pub(crate) fn commit(world: &mut World, edit: WallEdit) {
 
 #[cfg(test)]
 #[path = "wall_tests.rs"]
-mod tests;
+pub(crate) mod tests;

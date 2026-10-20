@@ -16,6 +16,8 @@ export interface EdgeWallPanel {
   readonly low?: boolean;
   /** Tiles behind this panel from the fixed southeast camera. */
   readonly farTiles?: readonly (readonly [number, number])[];
+  /** The wall lines, as `axis/x/y`, this panel draws part of. */
+  readonly lines?: readonly string[];
 }
 
 interface Vertex {
