@@ -163,8 +163,10 @@ fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
 }
 
 /// Every wall, doorway, opening, window and room the tools accept must
-/// confirm, with housemates walking, working and talking around the edits.
-/// Seeds 1 to 80 found the sealed-pocket doorway at seed 22. Run with
+/// confirm, with housemates walking, working and talking around the edits,
+/// and Build mode must open again after play. It found the sealed-pocket
+/// doorway, a reserved guest taking supper, and a walker passing a window
+/// beside their target being refused at load. Run with
 /// `cargo test -p terri-sim --release --lib accepted_architecture_edits_always_confirm -- --ignored`;
 /// `BUILD_FUZZ_FROM` and `BUILD_FUZZ_TO` choose the seeds.
 #[test]
@@ -185,11 +187,8 @@ fn accepted_architecture_edits_always_confirm() {
         for _ in 0..(200 + next(20000)) {
             sim.tick();
         }
-        // Entry after play can be refused by conversation state, not by
-        // architecture; that is reported here and searched elsewhere.
         if let Err(e) = sim.begin_build() {
-            eprintln!("seed {seed}: Build entry refused {e:?}, {:?}", sim.build_diagnosis());
-            continue;
+            panic!("seed {seed}: Build entry refused {e:?}, {:?}", sim.build_diagnosis());
         }
         let grid = sim.world().resource::<terri_core::TileGrid>();
         let (w, h) = (grid.width() as u64, grid.height() as u64);
@@ -260,8 +259,7 @@ fn accepted_architecture_edits_always_confirm() {
                         sim.tick();
                     }
                     if let Err(e) = sim.begin_build() {
-                        eprintln!("seed {seed}: Build re-entry refused {e:?}, {:?}", sim.build_diagnosis());
-                        break;
+                        panic!("seed {seed}: Build re-entry refused {e:?}, {:?}", sim.build_diagnosis());
                     }
                 }
                 Ok(_) => {}

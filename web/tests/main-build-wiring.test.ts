@@ -88,10 +88,11 @@ function fixture(source = main) {
   const commandStatus = { textContent: '', setAttribute: vi.fn() };
   const orderDiagnostics = new OrderDiagnostics(commandStatus);
   const feedbackBubbles = new Element(document);
-  const buildBatchStatus = { textContent: '' };
+  const buildBatchStatus = { textContent: '', kind: null as string | null,
+    getAttribute(name: string) { return name === 'data-kind' ? this.kind : null; } };
   const context = { RoomsTool, RoomReviewController, BuildExit, routeBuildKey, hasUnconfirmedChanges, roomSelection, roomTool, wallTool, buyTool, floorTool, landTool,
     document, canvas, builder, buildDraft, buildSession, buildBatchStatus, confirmBuildBatch: () => buildSession.confirm(),
-    setBuildStatus: (text: string) => { buildBatchStatus.textContent = text; },
+    setBuildStatus: (text: string, error = false) => { buildBatchStatus.textContent = text; buildBatchStatus.kind = error ? 'error' : null; },
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
     previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,

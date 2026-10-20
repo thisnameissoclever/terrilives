@@ -2091,7 +2091,7 @@ async function main(): Promise<void> {
       if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be discarded. Build mode remains open.', true);
       return cancelled;
     },
-    refusal: () => roomSelection.error || buildSession.error,
+    refusal: () => buildBatchStatus.getAttribute('data-kind') === 'error' ? buildBatchStatus.textContent ?? '' : '',
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
