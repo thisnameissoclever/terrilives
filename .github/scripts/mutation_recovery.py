@@ -3,6 +3,7 @@
 import base64
 import datetime as dt
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -191,6 +192,7 @@ def artifact_name(scope, campaign, kind, run_id, attempt):
 
 def seal(data, settings, kind, verdict, destination):
     native.validate_admitted(data, settings)
+    validate_log_anchors(data, complete=True)
     data = dict(data, consumer={"run_id": settings["run_id"], "attempt": settings["attempt"]})
     if kind == "aggregate":
         key = f"{settings['run_id']}/{settings['attempt']}"
@@ -277,6 +279,7 @@ def load(api, reference, repository, contract, *, consumer=None):
         retain_aggregate_verdict(data, receipt, proof, item, run)
     validate_retained(data)
     native.validate_admitted(data, {"run_id": receipt["run_id"], "attempt": receipt["attempt"]})
+    validate_log_anchors(data, complete=True)
     return data, receipt
 
 
@@ -306,6 +309,7 @@ def retain_aggregate_verdict(data, receipt, proof, item, run):
 
 
 def validate_retained(data, *, pending_aggregate=None):
+    validate_log_anchors(data)
     if "native_admission" in data:
         native.validate_admitted(data)
     required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
@@ -411,14 +415,116 @@ def artifact_inventory(api, repository, run_id):
     raise runner.CapacityFailure("original artifact inventory exceeds bounded page capacity")
 
 
+
+JOB_KEYS = {"id", "run_id", "run_attempt", "name", "status", "conclusion", "started_at", "completed_at"}
+ANCHOR_KEYS = {"version", "repository", "basis", "job", "selected_at", "original_retention_days", "expires_at", "original_log"}
+
+
+def completed_job(value, run_id=None, attempt=None, job_id=None):
+    require(isinstance(value, dict) and JOB_KEYS <= set(value), "incomplete anchor job metadata")
+    job = {key: value[key] for key in JOB_KEYS}
+    require(all(type(job[key]) is int and job[key] > 0 for key in ("id", "run_id", "run_attempt"))
+            and job["run_attempt"] <= 51 and job["status"] == "completed"
+            and isinstance(job["name"], str) and job["name"] and isinstance(job["conclusion"], str)
+            and job["conclusion"] not in ("", "skipped"), "anchor job is not completed execution")
+    require((run_id is None or str(job["run_id"]) == str(run_id))
+            and (attempt is None or job["run_attempt"] == attempt)
+            and (job_id is None or str(job["id"]) == str(job_id)), "anchor job identity mismatch")
+    require(isinstance(job["started_at"], str) and isinstance(job["completed_at"], str), "invalid anchor job timestamps")
+    require(artifacts.timestamp(job["started_at"]) <= artifacts.timestamp(job["completed_at"])
+            <= dt.datetime.now(dt.timezone.utc), "invalid anchor job timestamps")
+    return job
+
+
+def referenced_runs(data):
+    entries = dict(data["source_runs"])
+    entries.update({entry["run_id"]: entry for entry in data["chain"]["runs"]})
+    require(len(entries) <= 10, "referenced run budget exhausted")
+    return entries
+
+
+def validate_log_anchors(data, *, complete=False):
+    anchors = data.get("log_availability_anchors", {})
+    entries = referenced_runs(data)
+    require(isinstance(anchors, dict) and set(anchors) <= set(entries)
+            and (not complete or set(anchors) == set(entries)), "missing or foreign log availability anchor")
+    required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
+    for run_id, row in anchors.items():
+        require(set(row) == ANCHOR_KEYS and row["version"] == 1 and type(row["version"]) is int
+                and row["repository"] == data["planned"]["producer"]["repository"]
+                and row["basis"] in ("original_producer", "planning"), "invalid stable log anchor")
+        completed_job(row["job"], run_id)
+        require(set(row["job"]) == JOB_KEYS and type(row["original_retention_days"]) is int
+                and row["original_retention_days"] > 0
+                and artifacts.timestamp(row["selected_at"]) <= dt.datetime.now(dt.timezone.utc)
+                and artifacts.timestamp(row["expires_at"]) > required_until, "anchor original retention is insufficient")
+        if row["basis"] == "original_producer":
+            original = row["original_log"]
+            require(isinstance(original, dict) and set(original) == {"path", "sha256", "observed_at"}
+                    and original["path"] in {item["producer_log"] for item in data["originals"].values()},
+                    "anchor lost required original producer")
+            log = data["logs"][original["path"]]
+            require(original == {"path": original["path"], "sha256": log["sha256"], "observed_at": log["observed_at"]}
+                    and log["run_id"] == run_id and log["attempt"] == row["job"]["run_attempt"]
+                    and log["job_id"] == str(row["job"]["id"])
+                    and row["expires_at"] == log["expires_at"]
+                    and row["original_retention_days"] == log["original_retention_days"], "anchor original binding changed")
+        else:
+            require(row["original_log"] is None and row["job"]["conclusion"] == "success"
+                    and row["job"]["name"] == ("mutation-fixture-plan" if data["planned"]["manifest"]["context"]["inputs"]["computation_scope"] == "fixture" else "mutation-plan"),
+                    "invalid planning availability anchor")
+
+
+def ensure_log_availability(api, data, settings, runs):
+    anchors = data.setdefault("log_availability_anchors", {})
+    validate_log_anchors(data)
+    entries = referenced_runs(data)
+    now = dt.datetime.now(dt.timezone.utc)
+    for run_id in sorted(entries, key=int):
+        if run_id not in anchors:
+            candidates = [data["logs"][path] for path in {item["producer_log"] for item in data["originals"].values()}
+                          if data["logs"][path]["run_id"] == run_id]
+            if candidates:
+                log = min(candidates, key=lambda row: (row["attempt"], int(row["job_id"])))
+                job = completed_job(api.json(f"repos/{settings['repository']}/actions/jobs/{log['job_id']}"), run_id, log["attempt"], log["job_id"])
+                original = {"path": f"repos/{settings['repository']}/actions/jobs/{job['id']}/logs", "sha256": log["sha256"], "observed_at": log["observed_at"]}
+                basis, days, expiry = "original_producer", log["original_retention_days"], log["expires_at"]
+            else:
+                require(run_id == settings["run_id"] and run_id != str(data["chain"]["plan"]["run_id"]), "run lacks an original availability anchor")
+                listing = api.json(f"repos/{settings['repository']}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
+                jobs = listing["jobs"]
+                require(type(listing.get("total_count")) is int and listing["total_count"] == len(jobs) < 100, "planning anchor listing is incomplete")
+                name = "mutation-fixture-plan" if settings["scope"] == "fixture" else "mutation-plan"
+                matches = [job for job in jobs if job["name"] == name]
+                require(len(matches) == 1, "planning anchor is missing or ambiguous")
+                job = completed_job(matches[0], run_id)
+                require(job["run_attempt"] <= settings["attempt"] and job["conclusion"] == "success", "planning anchor did not succeed")
+                original, basis, days = None, "planning", settings["log_retention_days"]
+                expiry = (artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=days)).isoformat()
+            require(str(job["id"]) != settings["job_id"], "current job cannot anchor itself")
+            anchors[run_id] = {"version": 1, "repository": settings["repository"], "basis": basis, "job": job,
+                "selected_at": now.isoformat(), "original_retention_days": days, "expires_at": expiry, "original_log": original}
+        row = anchors[run_id]
+        job = completed_job(api.json(f"repos/{settings['repository']}/actions/jobs/{row['job']['id']}"), run_id,
+                            row["job"]["run_attempt"], row["job"]["id"])
+        require(job == row["job"] and str(job["id"]) != settings["job_id"], "stable anchor job metadata changed")
+        current_expiry = artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=min(settings["log_retention_days"], row["original_retention_days"]))
+        require(row["basis"] != "planning" or artifacts.timestamp(row["expires_at"])
+                == artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=row["original_retention_days"]),
+                "planning anchor original expiry changed")
+        require(min(artifacts.timestamp(row["expires_at"]), current_expiry)
+                > artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN, "anchor retention policy changed")
+        api.probe_job_logs(settings["repository"], run_id, job["run_attempt"], str(job["id"]))
+    validate_log_anchors(data, complete=True)
+
+
 def fresh_inventory(api, data, settings, *, probe=True, allow_current_aggregate=False):
     now = dt.datetime.now(dt.timezone.utc)
     chain = data["chain"]
     artifacts.validate_chain(chain, current_run_id=settings["run_id"], now=now)
     require(len(chain["runs"]) <= 8 and len(data["source_runs"]) <= 10, "referenced run budget exhausted")
     required_until = artifacts.timestamp(chain["expires_at"]) + tool.MARGIN
-    entries = dict(data["source_runs"])
-    entries.update({entry["run_id"]: entry for entry in chain["runs"]})
+    entries = referenced_runs(data)
     inventory, runs = {}, {}
     for run_id, entry in entries.items():
         run = artifacts.authenticate_run(api, settings["repository"], tool.WORKFLOW, entry, data["contract"]["files"][tool.WORKFLOW])
@@ -432,8 +538,6 @@ def fresh_inventory(api, data, settings, *, probe=True, allow_current_aggregate=
         for item in artifact_inventory(api, settings["repository"], run_id):
             require(str(item["id"]) not in inventory, "duplicate original artifact ID")
             inventory[str(item["id"])] = item
-        if probe:
-            api.probe_logs(settings["repository"], run_id)
     for artifact_id, original in data["originals"].items():
         require(artifact_id in inventory and original_metadata(inventory[artifact_id]) == original["metadata"],
                 "required original artifact missing or changed")
@@ -441,6 +545,8 @@ def fresh_inventory(api, data, settings, *, probe=True, allow_current_aggregate=
         tool.retained_until(api, settings["repository"], inventory[artifact_id], runs[log["run_id"]], required_until,
                             log["original_retention_days"])
     validate_retained(data, pending_aggregate=aggregate_identity(settings) if allow_current_aggregate else None)
+    if probe:
+        ensure_log_availability(api, data, settings, runs)
     return inventory, runs
 
 
@@ -643,24 +749,38 @@ class WorkflowAPI(artifacts.CachedMetadata):
         self.charge()
         return super().bytes(path)
 
-    def probe_logs(self, repository, run_id):
-        if (repository, run_id) in self.probed:
+    def probe_job_logs(self, repository, run_id, attempt, job_id):
+        require(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)
+                and re.fullmatch(r"[1-9][0-9]*", str(run_id)) and re.fullmatch(r"[1-9][0-9]*", str(job_id))
+                and type(attempt) is int and 1 <= attempt <= 51, "invalid job log identity")
+        identity = (repository, str(run_id), attempt, str(job_id))
+        if identity in self.probed:
             return
         self.charge()
-        if hasattr(self.api, "probe_logs"):
-            self.api.probe_logs(repository, run_id)
-            self.probed.add((repository, run_id))
+        if hasattr(self.api, "probe_job_logs"):
+            self.api.probe_job_logs(*identity)
+            self.probed.add(identity)
             return
-        token = os.environ["GH_TOKEN"]
-        request = urllib.request.Request(f"https://api.github.com/repos/{repository}/actions/runs/{run_id}/logs",
-            headers={"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json"})
+        resource = f"repository={repository} run={run_id} attempt={attempt} job={job_id}"
+        request = urllib.request.Request(f"https://api.github.com/repos/{repository}/actions/jobs/{job_id}/logs",
+            headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json"})
         try:
-            response = urllib.request.build_opener(NoRedirect).open(request, timeout=60)
-        except urllib.error.HTTPError as error:
-            response = error
-        with response:
-            location = urllib.parse.urlparse(response.headers.get("Location", ""))
-            require(response.status == 302 and location.scheme == "https" and location.hostname and not location.username,
-                    "GitHub did not issue a current run-log download location")
-        # Never retain the signed location or follow it with repository credentials.
-        self.probed.add((repository, run_id))
+            try:
+                response = urllib.request.build_opener(NoRedirect).open(request, timeout=60)
+            except urllib.error.HTTPError as error:
+                response = error
+            with response:
+                valid = False
+                try:
+                    raw_location = response.headers.get("Location", "")
+                    location = urllib.parse.urlparse(raw_location)
+                    valid = (location.scheme == "https" and bool(location.hostname)
+                             and location.username is None and location.password is None
+                             and location.port != 0 and not any(char.isspace() for char in raw_location))
+                except ValueError:
+                    pass
+                require(response.status == 302 and valid,
+                        f"job log availability failed {resource} status={response.status}")
+        except (urllib.error.URLError, OSError, http.client.HTTPException) as error:
+            raise ValueError(f"job log availability failed {resource} transport={type(error).__name__}") from None
+        self.probed.add(identity)

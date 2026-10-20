@@ -13,6 +13,11 @@ it supplies no production mutation coverage.
    builds the exact reviewed cargo-mutants 27.1.0 patch with Rust 1.94.1 and
    locked dependencies, exercises same-line field selection, and uploads one
    immutable executable and receipt. It does not install into Cargo home.
+   Before Cargo work, the same job verifies log transport with its own Actions
+   token and the completed `changes` predecessor. An optional manual
+   `transport_probe_job_id` adds a completed historical job to that diagnostic.
+   It selects no qualification, plan, recovery anchor or mutation result. Empty
+   input checks only the current predecessor and claims no historical diagnostic.
 2. Fixture planning acquires the same slot after tool preparation finishes.
    It authenticates executable bytes, committed recipe inputs, producer logs,
    artifact IDs and expiry, then calibrates and freezes the plan. A separate
@@ -270,12 +275,22 @@ images stop recovery. A rebuilt executable or a new receipt cannot renew evidenc
 The initial authenticator retains the exact original producer-log bytes, SHA-256,
 retrieval identity, observation time and that producer's own original retention
 bound. Later snapshots carry those bytes and original expiry forward. Preparation
-and aggregation also request a non-following run-log download redirect for each
-referenced run. A valid 302 establishes only that GitHub issued a current download
-location; the signed URL is never retained, logged or followed with credentials.
-This is an additional run-level deletion signal, not a fresh fetch of every old
-per-job body or proof that a latest-run archive contains older attempts. Any
-separately observed loss of required original evidence still stops recovery.
+and aggregation also check one stable completed-job log anchor for each referenced
+run, including the active current run. Selection follows authenticated original
+producers in attempt and job-ID order. A new continuation without an original
+producer uses its authenticated completed planning job solely for availability.
+The selected identity, basis, observation and original expiry remain fixed across
+snapshots and later uploads. Missing selected evidence fails; another available
+job cannot replace it.
+
+Each check authenticates completed-job metadata and requests a non-following
+job-log redirect. A valid 302 establishes only that GitHub issued a current
+download location for that selected job. The signed URL is never retained,
+logged or followed with credentials. This is a limited availability signal,
+not a fresh fetch of every historical body, proof of future durability or
+production coverage. All original evidence and its original retention remain
+required. Any separately observed loss of required evidence still stops recovery.
+The check does not require an unfinished workflow's whole-run log archive.
 
 Hosted Ubuntu 24.04 image identity, architecture, ELF interpreter, loaded-library
 hashes and verbose Rust/Cargo identities are part of the authenticated runtime.

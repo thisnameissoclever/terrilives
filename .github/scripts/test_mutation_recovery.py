@@ -4,6 +4,7 @@ import base64
 import contextlib
 import copy
 import datetime as dt
+import http.client
 import io
 import json
 import os
@@ -11,7 +12,9 @@ from pathlib import Path
 import tempfile
 import subprocess
 import sys
+import traceback
 import unittest
+import urllib.error
 from unittest import mock
 
 import mutation_artifacts as artifacts
@@ -25,13 +28,122 @@ from test_mutation_artifacts import archive
 import test_mutation_qualification as qualification_tests
 
 
+class JobLogTransportTests(unittest.TestCase):
+    def test_malformed_http_response_errors_are_sanitized_at_opener_boundary(self):
+        for error_type in (http.client.BadStatusLine, http.client.LineTooLong):
+            api = recovery.WorkflowAPI()
+            opener = mock.Mock()
+            def malformed(*args, **kwargs):
+                raise error_type("private-server-text\x1b[31m")
+            opener.open.side_effect = malformed
+            with self.subTest(error=error_type.__name__), mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
+                    mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener) as build:
+                for attempt in range(1, 3):
+                    try:
+                        api.probe_job_logs("owner/repo", "100", 1, "901")
+                    except Exception as error:
+                        caught = error
+                    else:
+                        self.fail("malformed HTTP response must fail")
+                    self.assertIsInstance(caught, ValueError)
+                    self.assertIn("repository=owner/repo run=100 attempt=1 job=901", str(caught))
+                    self.assertIn("transport=" + error_type.__name__, str(caught))
+                    self.assertTrue(caught.__suppress_context__)
+                    rendered = "".join(traceback.format_exception(caught))
+                    self.assertNotIn("private", rendered)
+                    self.assertNotIn("\x1b", rendered)
+                    self.assertEqual(api.requests, attempt)
+                    self.assertEqual(api.probed, set())
+                self.assertEqual(opener.open.call_count, 2)
+                self.assertEqual(build.call_args_list, [mock.call(recovery.NoRedirect)] * 2)
+
+    def test_malformed_http_response_remains_fatal_in_workflow(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "source"
+            root.mkdir()
+            opener = mock.Mock()
+            opener.open.side_effect = http.client.BadStatusLine("private-server-text")
+            clients, output = [], io.StringIO()
+            def preflight(api, *args):
+                clients.append(api)
+                api.probe_job_logs("owner/repo", "100", 1, "901")
+            with mock.patch.dict(os.environ, {"RUNNER_TEMP": temporary, "MUTATION_JOB_NAME": "mutation-fixture-tool", "GH_TOKEN": "token-private"}), \
+                    mock.patch.object(workflow, "current_settings", return_value={}), \
+                    mock.patch.object(runner, "bound_setup"), mock.patch.object(workflow, "prepare_tool", side_effect=preflight), \
+                    mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener), contextlib.redirect_stdout(output):
+                self.assertEqual(workflow.main(["tool", "--root", str(root), "--scope", "fixture"]), 22)
+            status = json.loads((Path(temporary) / "mutation-job/status.json").read_text())
+            self.assertEqual(status["state"], "infrastructure_failure")
+            self.assertNotIn("private", output.getvalue())
+            self.assertEqual(clients[0].requests, 1)
+            self.assertEqual(clients[0].probed, set())
+
+    def test_http_boundary_accepts_only_safe_redirect_and_never_reads_body(self):
+        api = recovery.WorkflowAPI()
+        response = mock.MagicMock(status=302, headers={"Location": "https://logs.example/download?signature=private"})
+        response.__enter__.return_value = response
+        response.read.side_effect = AssertionError("body must not be read")
+        opener = mock.Mock()
+        opener.open.return_value = response
+        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
+                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener) as build:
+            api.probe_job_logs("owner/repo", "100", 1, "901")
+            api.probe_job_logs("owner/repo", "100", 1, "901")
+        build.assert_called_once_with(recovery.NoRedirect)
+        request = opener.open.call_args.args[0]
+        self.assertEqual(request.full_url, "https://api.github.com/repos/owner/repo/actions/jobs/901/logs")
+        self.assertEqual(request.get_header("Authorization"), "Bearer token-private")
+        opener.open.assert_called_once_with(request, timeout=60)
+        response.read.assert_not_called()
+        self.assertEqual(api.requests, 1)
+        self.assertIsNone(recovery.NoRedirect().redirect_request(None, None, 302, "", {}, "https://logs.example"))
+
+    def test_http_failures_are_sanitized_and_never_cached(self):
+        cases = [(code, "https://logs.example/?secret=private") for code in (401, 403, 404, 429, 500, 503)]
+        cases += [(302, location) for location in ("", "http://logs.example", "https://user:password@logs.example", "https://@logs.example", "https://logs.example:bad")]
+        for status, location in cases:
+            api = recovery.WorkflowAPI()
+            opener = mock.Mock()
+            def fail(*args, **kwargs):
+                raise urllib.error.HTTPError("https://api.github.com/private", status, "secret-private", {"Location": location}, None)
+            opener.open.side_effect = fail
+            with self.subTest(status=status, location=location), mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
+                    mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
+                for _ in range(2):
+                    with self.assertRaisesRegex(ValueError, "job=901") as caught:
+                        api.probe_job_logs("owner/repo", "100", 1, "901")
+                    self.assertNotIn("private", str(caught.exception))
+                self.assertEqual(api.requests, 2)
+                self.assertEqual(api.probed, set())
+
+    def test_transport_error_has_no_unsanitized_message(self):
+        api = recovery.WorkflowAPI()
+        opener = mock.Mock()
+        opener.open.side_effect = urllib.error.URLError("token-private")
+        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
+                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
+            with self.assertRaisesRegex(ValueError, "URLError") as caught:
+                api.probe_job_logs("owner/repo", "100", 1, "901")
+        self.assertNotIn("private", str(caught.exception))
+
+    def test_urllib_nonfollowing_302_error_is_an_accepted_redirect(self):
+        api = recovery.WorkflowAPI()
+        opener = mock.Mock()
+        opener.open.side_effect = urllib.error.HTTPError("https://api.github.com/repos/owner/repo/actions/jobs/901/logs",
+            302, "Found", {"Location": "https://logs.example/signed?private=value"}, None)
+        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
+                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
+            api.probe_job_logs("owner/repo", "100", 1, "901")
+        self.assertEqual(api.requests, 1)
+
+
 class SnapshotFixture:
     def __init__(self, owner):
         self.q = qualification_tests.QualificationAuthenticationTests()
         self.q.setUp()
         owner.addCleanup(self.q.doCleanups)
         self.api = self.q.api
-        self.api.probe_logs = lambda repository, run_id: self.api.calls.append(f"PROBE repos/{repository}/actions/runs/{run_id}/logs")
+        self.api.probe_job_logs = lambda repository, run_id, attempt, job_id: self.api.calls.append(f"PROBE repos/{repository}/actions/jobs/{job_id}/logs")
         self.root = Path(self.q.fixture.temp.name) / "source"
         (self.root / "docs").mkdir()
         (self.root / "docs/mutants-baseline.txt").write_text("")
@@ -74,6 +186,10 @@ class SnapshotFixture:
         artifact_id = self.next_id
         self.next_id += 1
         directory = Path(self.q.fixture.temp.name) / f"snapshot-{artifact_id}"
+        api = recovery.WorkflowAPI(self.api)
+        runs = {run_id: api.json(f"repos/{settings['repository']}/actions/runs/{run_id}")
+                for run_id in recovery.referenced_runs(data)}
+        recovery.ensure_log_availability(api, data, settings, runs)
         with contextlib.redirect_stdout(io.StringIO()):
             receipt = recovery.seal(data, settings, kind, {"state": state, "reason": "fixture"}, directory)
         raw = archive({path.name: path.read_bytes() for path in directory.iterdir()})
@@ -300,6 +416,113 @@ class RecoveryTests(unittest.TestCase):
             recovery.artifact_inventory(self.f.api, "owner/repo", "100")
 
 
+class AnchorLifecycleTests(unittest.TestCase):
+    def setUp(self):
+        self.f = SnapshotFixture(self)
+        self.api = recovery.WorkflowAPI(self.f.api)
+        self.settings = dict(self.f.settings, attempt=3, job_id="9999")
+        self.runs = {"100": self.f.api.responses["repos/owner/repo/actions/runs/100"]}
+
+    def test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job(self):
+        data = self.f.data
+        recovery.ensure_log_availability(self.api, data, self.settings, self.runs)
+        selected = copy.deepcopy(data["log_availability_anchors"]["100"])
+        self.assertIn(("owner/repo", "100", selected["job"]["run_attempt"], str(selected["job"]["id"])), self.api.probed)
+        path = "repos/owner/repo/actions/jobs/99990/logs"
+        data["logs"][path] = dict(next(iter(data["logs"].values())), run_id="100", attempt=3, job_id="99990")
+        data["originals"]["99990"] = {"producer_log": path}
+        self.f.api.responses["repos/owner/repo/actions/jobs/99990"] = dict(self.f.q.fixture.job, id=99990, run_attempt=3)
+        def availability(repository, run_id, attempt, job_id):
+            if job_id == str(selected["job"]["id"]):
+                raise ValueError("selected old log unavailable")
+        self.f.api.probe_job_logs = mock.Mock(side_effect=availability)
+        api = recovery.WorkflowAPI(self.f.api)
+        with self.assertRaisesRegex(ValueError, "selected old log unavailable"):
+            recovery.ensure_log_availability(api, data, self.settings, self.runs)
+        self.assertEqual(data["log_availability_anchors"]["100"], selected)
+        self.f.api.probe_job_logs.assert_called_once_with("owner/repo", "100", selected["job"]["run_attempt"], str(selected["job"]["id"]))
+
+    def test_planning_anchor_survives_new_original_and_lossless_reload(self):
+        data = self.f.data
+        previous = dict(data["chain"]["runs"][0], sealed_attempt=3)
+        current = dict(previous, run_id="200", predecessor="100")
+        current.pop("sealed_attempt")
+        data["chain"] = dict(data["chain"], runs=[previous, current])
+        settings = dict(self.settings, run_id="200", attempt=1, job_id="2001")
+        run = dict(self.runs["100"], id=200, run_attempt=1)
+        runs = dict(self.runs, **{"200": run})
+        plan_job = dict(self.f.q.fixture.job, id=2000, run_id=200, run_attempt=1, name="mutation-fixture-plan")
+        self.f.api.responses["repos/owner/repo/actions/runs/200/jobs?filter=latest&per_page=100&page=1"] = {"total_count": 1, "jobs": [plan_job]}
+        recovery.ensure_log_availability(self.api, data, settings, runs)
+        self.assertEqual(self.api.requests, 5)
+        selected = copy.deepcopy(data["log_availability_anchors"]["200"])
+        self.assertEqual(selected["basis"], "planning")
+        listing = self.f.api.responses["repos/owner/repo/actions/runs/200/jobs?filter=latest&per_page=100&page=1"]
+        for change in ({"run_id": 300}, {"run_attempt": 2}, {"status": "in_progress"},
+                       {"conclusion": "skipped"}, {"conclusion": "failure"}, {"id": 2001}, {"name": "unrelated"}):
+            attempt_data = copy.deepcopy(data)
+            attempt_data["log_availability_anchors"].pop("200")
+            listing["jobs"] = [dict(plan_job, **change)]
+            with self.subTest(planning_change=change), self.assertRaises(ValueError):
+                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), attempt_data, settings, runs)
+        for jobs in ([], [plan_job, plan_job]):
+            attempt_data = copy.deepcopy(data)
+            attempt_data["log_availability_anchors"].pop("200")
+            listing.update(jobs=jobs, total_count=len(jobs))
+            with self.subTest(planning_count=len(jobs)), self.assertRaises(ValueError):
+                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), attempt_data, settings, runs)
+        listing.update(jobs=[plan_job], total_count=1)
+        self.f.api.responses["repos/owner/repo/actions/runs/200"] = run
+        prepared_settings = dict(settings, job_id="2100")
+        directory = Path(self.f.q.fixture.temp.name) / "planning-anchor-prepared"
+        with contextlib.redirect_stdout(io.StringIO()):
+            recovery.seal(data, prepared_settings, "prepared", {"state": "complete", "reason": "authenticated_preparation"}, directory)
+        artifact_id = self.f.upload_directory(directory, prepared_settings, "prepared")
+        recorder = recovery.RecordingAPI(recovery.WorkflowAPI(self.f.api))
+        restored, _ = recovery.load(recorder, {"artifact_id": artifact_id,
+            "archive_digest": self.f.api.responses[f"repos/owner/repo/actions/artifacts/{artifact_id}"]["digest"]},
+            "owner/repo", self.f.contract, consumer={"run_id": "200", "attempt": 1})
+        self.assertEqual(restored["log_availability_anchors"]["200"], selected)
+        self.f.data = restored
+        self.f.add_completed_history("200", 1)
+        aggregate_settings = dict(settings, job_id="2101")
+        aggregate_directory = Path(self.f.q.fixture.temp.name) / "planning-anchor-aggregate"
+        with contextlib.redirect_stdout(io.StringIO()):
+            recovery.seal(restored, aggregate_settings, "aggregate", {"state": "complete", "reason": "exact_coverage"}, aggregate_directory)
+        aggregate_id = self.f.upload_directory(aggregate_directory, aggregate_settings, "aggregate")
+        restored, _ = recovery.load(recovery.WorkflowAPI(self.f.api), {"artifact_id": aggregate_id,
+            "archive_digest": self.f.api.responses[f"repos/owner/repo/actions/artifacts/{aggregate_id}"]["digest"]},
+            "owner/repo", self.f.contract)
+        self.assertIn(str(aggregate_id), restored["originals"])
+        continued = recovery.WorkflowAPI(self.f.api)
+        recovery.ensure_log_availability(continued, restored, settings, runs)
+        self.assertEqual(continued.requests, 4)
+        self.assertEqual(restored["log_availability_anchors"]["200"], selected)
+        changed = copy.deepcopy(restored)
+        changed["log_availability_anchors"]["200"]["expires_at"] = data["chain"]["expires_at"]
+        with self.assertRaisesRegex(ValueError, "retention"):
+            recovery.validate_log_anchors(changed, complete=True)
+
+    def test_anchor_metadata_refuses_foreign_incomplete_skipped_and_self(self):
+        for key, value in (("run_id", 200), ("run_attempt", 2), ("status", "in_progress"), ("conclusion", "skipped")):
+            data = copy.deepcopy(self.f.data)
+            job = dict(self.f.q.fixture.job, **{key: value})
+            self.f.api.responses["repos/owner/repo/actions/jobs/901"] = job
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), data, self.settings, self.runs)
+        self.f.api.responses["repos/owner/repo/actions/jobs/901"] = self.f.q.fixture.job
+        with self.assertRaisesRegex(ValueError, "itself"):
+            recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), copy.deepcopy(self.f.data), dict(self.settings, job_id="901"), self.runs)
+
+    def test_final_map_cannot_omit_current_run_or_exceed_total_source_bound(self):
+        with self.assertRaisesRegex(ValueError, "missing or foreign"):
+            recovery.validate_log_anchors(self.f.data, complete=True)
+        data = copy.deepcopy(self.f.data)
+        data["source_runs"].update({str(index): dict(data["chain"]["runs"][0], run_id=str(index)) for index in range(200, 210)})
+        with self.assertRaisesRegex(ValueError, "referenced run budget"):
+            recovery.referenced_runs(data)
+
+
 class FullWrapperBudgetTests(unittest.TestCase):
     def exercise(self, history, run_count=1, *, gap=0, padded=False, extra_sources=0, fixture=None, prior_history=51):
         f = fixture or SnapshotFixture(self)
@@ -338,6 +561,8 @@ class FullWrapperBudgetTests(unittest.TestCase):
             f.data["source_runs"][run_id] = dict(chain["runs"][0], run_id=run_id)
             artifact_id = 50_000_000 + index
             path = f"repos/owner/repo/actions/jobs/{artifact_id}/logs"
+            f.api.responses[f"repos/owner/repo/actions/jobs/{artifact_id}"] = dict(f.q.fixture.job,
+                id=artifact_id, run_id=int(run_id), run_attempt=2)
             raw = b"retained authenticated qualification-source log"
             f.data["logs"][path] = {"bytes": base64.b64encode(raw).decode(), "sha256": artifacts.sha(raw),
                 "run_id": run_id, "attempt": 2, "job_id": str(artifact_id), "observed_at": f.q.now.isoformat(),

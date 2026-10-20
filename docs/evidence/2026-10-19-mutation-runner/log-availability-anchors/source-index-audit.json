@@ -1,0 +1,93 @@
+{
+  "files": [
+    {
+      "path": ".github/scripts/mutation_recovery.py",
+      "reviewed_bytes": 50059,
+      "reviewed_sha256": "f8b4898824f704d570ce5daad035fda62003605d7d663342e869771726f4f72a",
+      "index_bytes": 50059,
+      "index_sha256": "f8b4898824f704d570ce5daad035fda62003605d7d663342e869771726f4f72a",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/mutation_workflow.py",
+      "reviewed_bytes": 34630,
+      "reviewed_sha256": "6eca22b2d936f5dd84dfca9b6d396398f2595cf00a0d85efd19a77a9041df3cf",
+      "index_bytes": 34630,
+      "index_sha256": "6eca22b2d936f5dd84dfca9b6d396398f2595cf00a0d85efd19a77a9041df3cf",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/mutation_native.py",
+      "reviewed_bytes": 77752,
+      "reviewed_sha256": "6a6fdc53304f61bc37acd5e852fcf383fe244bda75f7487d299061049807e68c",
+      "index_bytes": 77752,
+      "index_sha256": "6a6fdc53304f61bc37acd5e852fcf383fe244bda75f7487d299061049807e68c",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/test_mutation_recovery.py",
+      "reviewed_bytes": 56079,
+      "reviewed_sha256": "9dcbaf0af0411a494ed3e7fc65a68cca58bced35a98c4912534eb0f93c0cc9e9",
+      "index_bytes": 56079,
+      "index_sha256": "9dcbaf0af0411a494ed3e7fc65a68cca58bced35a98c4912534eb0f93c0cc9e9",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/test_mutation_workflow.py",
+      "reviewed_bytes": 24191,
+      "reviewed_sha256": "5120261e12c17886cca229d9a4d9b88b976fb0f5ebbec847cc25e26e4026f9b9",
+      "index_bytes": 24191,
+      "index_sha256": "5120261e12c17886cca229d9a4d9b88b976fb0f5ebbec847cc25e26e4026f9b9",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/test_mutation_native.py",
+      "reviewed_bytes": 66235,
+      "reviewed_sha256": "d1b9acbbe5852f4a58db244e342ded3a9e85f8810db0c3ef1ea8a96f3290e8ea",
+      "index_bytes": 66235,
+      "index_sha256": "d1b9acbbe5852f4a58db244e342ded3a9e85f8810db0c3ef1ea8a96f3290e8ea",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/test_mutation_batch_budget.py",
+      "reviewed_bytes": 44024,
+      "reviewed_sha256": "01944c2e4efe5434eb44c283fa4ae198b101c8682a9dd8ed7d259326e3922552",
+      "index_bytes": 44024,
+      "index_sha256": "01944c2e4efe5434eb44c283fa4ae198b101c8682a9dd8ed7d259326e3922552",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/scripts/test_mutation_artifacts.py",
+      "reviewed_bytes": 24759,
+      "reviewed_sha256": "12ef694166055da7d04b275a2d044b9eeced1fe6bfd4ad0d38aa2c6a92e97f07",
+      "index_bytes": 24759,
+      "index_sha256": "12ef694166055da7d04b275a2d044b9eeced1fe6bfd4ad0d38aa2c6a92e97f07",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "reviewed_bytes": 31423,
+      "reviewed_sha256": "9cf82a6ae3dae08fd2be144056c0a8b2c9fe19b06735410f13c48b2d6500cd7c",
+      "index_bytes": 31423,
+      "index_sha256": "9cf82a6ae3dae08fd2be144056c0a8b2c9fe19b06735410f13c48b2d6500cd7c",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": "docs/mutation-campaign.md",
+      "reviewed_bytes": 20587,
+      "reviewed_sha256": "791811c3a0a166febe6a3376e945b6bf25378b519f1e7a52665489d226ddc78d",
+      "index_bytes": 20587,
+      "index_sha256": "791811c3a0a166febe6a3376e945b6bf25378b519f1e7a52665489d226ddc78d",
+      "index_matches_reviewed_LF": true
+    },
+    {
+      "path": "docs/lessons-learned.md",
+      "reviewed_bytes": 911311,
+      "reviewed_sha256": "b12713e687f1a2ad7659dbe44715137e2de1981069e4067963fee9d6a49ce066",
+      "index_bytes": 911311,
+      "index_sha256": "b12713e687f1a2ad7659dbe44715137e2de1981069e4067963fee9d6a49ce066",
+      "index_matches_reviewed_LF": true
+    }
+  ],
+  "index_verification": true
+}

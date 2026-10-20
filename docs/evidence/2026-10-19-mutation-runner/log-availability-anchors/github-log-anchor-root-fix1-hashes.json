@@ -1,0 +1,19 @@
+{
+  "baseline": "6f75d367d99a026bccf69aae58753164541a480c",
+  "package_sha256": "8f3c3e39f29812a1e0c6f247ed2d5dcf78ea4d5b87b4748bf02b5a9a241289dc",
+  "package_bytes": 6521,
+  "files": {
+    ".github/workflows/ci.yml": {
+      "bytes": 31423,
+      "sha256": "9cf82a6ae3dae08fd2be144056c0a8b2c9fe19b06735410f13c48b2d6500cd7c"
+    },
+    "docs/mutation-campaign.md": {
+      "bytes": 20587,
+      "sha256": "791811c3a0a166febe6a3376e945b6bf25378b519f1e7a52665489d226ddc78d"
+    },
+    "docs/lessons-learned.md": {
+      "bytes": 911311,
+      "sha256": "b12713e687f1a2ad7659dbe44715137e2de1981069e4067963fee9d6a49ce066"
+    }
+  }
+}

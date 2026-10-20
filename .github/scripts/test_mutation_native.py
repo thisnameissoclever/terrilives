@@ -85,7 +85,7 @@ class NativeFixture:
             "log_retention_days": 30, "runner_image": self.base.image, "job_started_at": self.now.isoformat(),
             "build_cap_seconds": 600, "shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}
         self.artifacts, self.jobs = [], {1: [], 2: [], 3: []}
-        self.api.probe_logs = lambda repository, run_id: self.api.calls.append(f"PROBE repos/{repository}/actions/runs/{run_id}/logs")
+        self.api.probe_job_logs = lambda repository, run_id, attempt, job_id: self.api.calls.append(f"PROBE repos/{repository}/actions/jobs/{job_id}/logs")
         (self.root / "docs").mkdir(exist_ok=True)
         (self.root / "docs/mutants-baseline.txt").write_bytes(self.baseline.encode())
         (self.root / tool.WORKFLOW).parent.mkdir(parents=True)
@@ -598,7 +598,7 @@ class NativeSnapshotFixture(recovery_tests.SnapshotFixture):
 
 # These component bounds cover the measured shared/distinct-root fixtures below.
 # Broader valid histories remain subject to WorkflowAPI's unchanged capacity guard.
-REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 192, "measurement": 135}
+REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 202, "measurement": 135}
 
 
 def checked_request_components(test, consumers=None, measurement=None):

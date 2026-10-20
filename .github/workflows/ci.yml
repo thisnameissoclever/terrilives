@@ -20,6 +20,9 @@ on:
       qualification_run_id:
         description: Optional explicit qualified fixture run; otherwise bounded discovery
         type: string
+      transport_probe_job_id:
+        description: Optional completed historical job for the fixture tool's log transport diagnostic only
+        type: string
       resume_run_id:
         description: Explicit production predecessor run
         type: string
@@ -295,6 +298,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MUTATION_JOB_NAME: mutation-fixture-tool
+          TRANSPORT_PROBE_JOB_ID: ${{ inputs.transport_probe_job_id }}
         run: python3 -B .github/scripts/mutation_workflow.py tool --scope fixture
       - name: Upload immutable tool
         id: upload

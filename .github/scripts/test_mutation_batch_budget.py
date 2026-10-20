@@ -459,6 +459,12 @@ class HistoryBudgetTests(unittest.TestCase):
         logical = recovery.decode(raw, materialize=False)
         restored = recovery.decode(raw)
         self.assertEqual(model.digest(restored), model.digest(value))
+        self.assertEqual(set(restored["log_availability_anchors"]),
+            {row["run_id"] for row in restored["chain"]["runs"]} | set(restored["source_runs"]))
+        for anchor in restored["log_availability_anchors"].values():
+            self.assertEqual(set(anchor), recovery.ANCHOR_KEYS)
+            self.assertEqual(set(anchor["job"]), recovery.JOB_KEYS)
+            self.assertEqual(set(anchor["original_log"]), {"path", "sha256", "observed_at"})
         self.assertEqual(sum(len(item["bundle"]["delta"]["records"]) for item in restored["bundles"]), len(f.items))
         for item in restored["bundles"]:
             bundle = item["bundle"]
@@ -471,6 +477,16 @@ class HistoryBudgetTests(unittest.TestCase):
         with mock.patch.object(recovery, "MAX_RECONSTRUCTED_BYTES", logical - 1):
             with self.assertRaisesRegex(runner.CapacityFailure, "reconstruction capacity"):
                 recovery.encode(value)
+
+    def test_projection_preserves_a_larger_retained_anchor(self):
+        f, pilot, seed = self.shape()
+        run_id = next(iter(seed["log_availability_anchors"]))
+        anchor = seed["log_availability_anchors"][run_id]
+        anchor["job"]["name"] += "-retained-shape" * 20
+        before = copy.deepcopy(anchor)
+        records = native.validate_samples(f.planned, pilot["payload"]["selection"], pilot["payload"]["batches"], f.baseline.splitlines())
+        value = native.projected_history(f.planned, seed, records, pilot["payload"]["forecast"], pilot["payload"]["batch_policy"], [b"original log bytes"])
+        self.assertEqual(value["log_availability_anchors"][run_id], before)
 
     def test_isolated_logical_limit_control_fails_capacity_assertion(self):
         source = Path(recovery.__file__)

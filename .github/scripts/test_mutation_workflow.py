@@ -1,8 +1,10 @@
 """Small integration fixtures for bounded discovery and immutable workflow recovery."""
 
 import copy
+import contextlib
 import datetime as dt
 import json
+import io
 import os
 from pathlib import Path
 import subprocess
@@ -14,12 +16,94 @@ from unittest import mock
 import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_qualification as qualification
+import mutation_recovery as recovery
 import mutation_runner as runner
 import mutation_tool as tool
 import mutation_workflow as workflow
 from test_mutation_artifacts import FixtureAPI
 from test_mutation_campaign import context, inventory, raw_report, report_ref
 import test_mutation_qualification as qualification_tests
+
+
+class ToolTransportPreflightTests(unittest.TestCase):
+    def exercise(self, historical=False, bad=False):
+        api = FixtureAPI()
+        now = dt.datetime.now(dt.timezone.utc)
+        completed = (now - dt.timedelta(minutes=2)).isoformat()
+        started = (now - dt.timedelta(minutes=3)).isoformat()
+        changes = {"id": 900, "run_id": 100, "run_attempt": 1, "name": "changes", "status": "completed",
+                   "conclusion": "success", "started_at": started, "completed_at": completed}
+        current = dict(changes, id=901, run_attempt=2, name="mutation-fixture-tool", status="in_progress",
+                       conclusion=None, started_at=now.isoformat(), completed_at=None)
+        if bad:
+            changes["status"] = "in_progress"
+        api.responses["repos/owner/repo/actions/runs/100"] = {"id": 100, "repository": {"full_name": "owner/repo"},
+            "head_repository": {"full_name": "owner/repo"}, "path": tool.WORKFLOW, "head_sha": "d" * 40}
+        api.responses["repos/owner/repo/actions/runs/100/jobs?filter=latest&per_page=100&page=1"] = {"jobs": [changes, current], "total_count": 2}
+        api.responses["repos/owner/repo/actions/jobs/902"] = dict(changes, id=902, run_id=99, status="completed",
+            url="https://api.github.com/repos/owner/repo/actions/jobs/902", run_url="https://api.github.com/repos/owner/repo/actions/runs/99")
+        env = {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_RUN_ID": "100", "GITHUB_RUN_ATTEMPT": "2",
+               "GITHUB_WORKFLOW_SHA": "e" * 40, "GITHUB_RETENTION_DAYS": "30", "ImageOS": "ubuntu24", "ImageVersion": "test",
+               "GH_TOKEN": "private-token", "TRANSPORT_PROBE_JOB_ID": "902" if historical else ""}
+        opener = mock.Mock()
+        def response(*args, **kwargs):
+            result = mock.MagicMock(status=302, headers={"Location": "https://logs.example/signed?private=value"})
+            result.__enter__.return_value = result
+            return result
+        opener.open.side_effect = response
+        wrapper = recovery.WorkflowAPI(api)
+        captured = io.StringIO()
+        with mock.patch.dict(os.environ, env), mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener), \
+                contextlib.redirect_stdout(captured), mock.patch.object(tool, "build") as build:
+            settings = workflow.current_settings(wrapper, Path.cwd(), "fixture", "mutation-fixture-tool", 0)
+            if bad:
+                with self.assertRaisesRegex(ValueError, "completed execution"):
+                    workflow.prepare_tool(wrapper, Path.cwd(), settings, Path.cwd())
+                build.assert_not_called()
+                return
+            result = workflow.tool_transport_preflight(wrapper, settings)
+        self.assertEqual(result["requests"], 7 if historical else 5)
+        self.assertEqual(result["current"]["run_attempt"], 1)
+        self.assertEqual(result["historical_coverage"], "completed_job_redirect" if historical else "absent")
+        self.assertEqual(opener.open.call_count, 2 if historical else 1)
+        self.assertNotIn("private", captured.getvalue())
+
+    def test_empty_input_records_five_calls_and_no_historical_claim(self):
+        self.exercise()
+
+    def test_historical_input_records_seven_calls_with_same_token(self):
+        self.exercise(historical=True)
+
+    def test_failed_preflight_cannot_reach_cargo(self):
+        self.exercise(bad=True)
+
+    def test_first_fixture_preparation_retains_plan_before_job_availability(self):
+        from test_mutation_recovery import SnapshotFixture
+
+        f = SnapshotFixture(self)
+        (f.root / tool.WORKFLOW).parent.mkdir(parents=True, exist_ok=True)
+        (f.root / tool.WORKFLOW).write_bytes((Path(__file__).resolve().parents[2] / tool.WORKFLOW).read_bytes())
+        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 1
+        prefix = "mutation-" + f.q.manifest["campaign_id"] + "-"
+        f.q.artifacts[:] = [row for row in f.q.artifacts if not row["name"].startswith(prefix)]
+        jobs = f.api.responses["repos/owner/repo/actions/runs/100/attempts/1/jobs?per_page=100&page=1"]["jobs"]
+        jobs[:] = [row for row in jobs if "slot-" not in row["name"]]
+        f.paginate()
+        settings = dict(f.settings, attempt=1, job_id="9900")
+        actual = tool.authenticate
+        def authenticate(*args, **kwargs):
+            return actual(*args, **kwargs, runtime=lambda *unused: f.q.fixture.runtime)
+        with mock.patch.dict(os.environ, {"MUTATION_CHAIN": json.dumps(f.data["chain"]), "PLAN_ARTIFACT_ID": "78"}), \
+                mock.patch.object(tool, "committed_contract", return_value=f.contract), \
+                mock.patch.object(tool, "authenticate", side_effect=authenticate), \
+                mock.patch.object(runner, "checkout_inventory", return_value=(f.q.manifest["context"]["checkout"], {})), \
+                mock.patch.object(runner, "validate_current_plan", return_value=f.q.manifest["context"]):
+            data, recovered = workflow.refresh_recovery(recovery.WorkflowAPI(f.api), f.root, settings,
+                Path(f.q.fixture.temp.name) / "first-preparation", include_current=False)
+        self.assertEqual(recovered["records"], [])
+        self.assertIn("78", data["originals"])
+        self.assertEqual(data["log_availability_anchors"]["100"]["job"]["id"], 901)
+        self.assertFalse(any("actions/runs/100/logs" in path for path in f.api.calls))
 
 
 def recovery_fixture():

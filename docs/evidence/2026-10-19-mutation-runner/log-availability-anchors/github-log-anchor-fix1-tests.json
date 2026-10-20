@@ -1,0 +1,14 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_recovery.JobLogTransportTests",
+    "test_mutation_workflow.ToolTransportPreflightTests",
+    "test_mutation_recovery.AnchorLifecycleTests"
+  ],
+  "exit_code": 0,
+  "seconds": 1.037,
+  "output": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.793s\n\nOK\n"
+}

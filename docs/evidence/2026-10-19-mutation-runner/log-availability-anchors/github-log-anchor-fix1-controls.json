@@ -1,0 +1,17 @@
+{
+  "target": "test_mutation_recovery.JobLogTransportTests.test_malformed_http_response_errors_are_sanitized_at_opener_boundary",
+  "positive_command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_recovery.JobLogTransportTests.test_malformed_http_response_errors_are_sanitized_at_opener_boundary"
+  ],
+  "positive_exit": 0,
+  "negative_exit": 1,
+  "ordinary_assertion_failure": true,
+  "import_or_syntax_failure": false,
+  "removed_only_new_catch": true,
+  "production_unchanged": true,
+  "production_sha256": "f8b4898824f704d570ce5daad035fda62003605d7d663342e869771726f4f72a"
+}

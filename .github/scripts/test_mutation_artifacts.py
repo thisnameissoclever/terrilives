@@ -34,6 +34,14 @@ class FixtureAPI:
 
     def json(self, path):
         self.calls.append(path)
+        if path not in self.responses and "/actions/jobs/" in path:
+            job_id = int(path.rsplit("/", 1)[-1])
+            rows = [job for value in self.responses.values() if isinstance(value, dict)
+                    for job in value.get("jobs", []) if job["id"] == job_id]
+            if rows:
+                if any(row != rows[0] for row in rows):
+                    raise ValueError("conflicting fixture job metadata")
+                return copy.deepcopy(rows[0])
         return copy.deepcopy(self.responses[path])
 
     def bytes(self, path):

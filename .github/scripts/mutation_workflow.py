@@ -37,9 +37,15 @@ def current_settings(api, root, scope, job_name, slot):
     repository, run_id, attempt = os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_RUN_ID"], int(os.environ["GITHUB_RUN_ATTEMPT"])
     require(1 <= attempt <= 51, "same-run attempt budget exhausted")
     run = api.json(f"repos/{repository}/actions/runs/{run_id}")
-    require(run["repository"]["full_name"] == repository and run["head_repository"]["full_name"] == repository
+    require(str(run["id"]) == run_id and run["repository"]["full_name"] == repository and run["head_repository"]["full_name"] == repository
             and run["path"] == tool.WORKFLOW, "foreign run or workflow")
-    jobs = list(artifacts.pages(api, f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs"))
+    if job_name == "mutation-fixture-tool":
+        listing = api.json(f"repos/{repository}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
+        jobs = listing["jobs"]
+        require(type(listing.get("total_count")) is int and listing["total_count"] == len(jobs) < 100,
+                "tool preflight job listing is incomplete")
+    else:
+        jobs = list(artifacts.pages(api, f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs"))
     matches = [job for job in jobs if job["name"] == job_name and job["status"] == "in_progress"]
     require(len(matches) == 1, "current numeric job identity is ambiguous")
     job = matches[0]
@@ -200,8 +206,41 @@ def check_qualification(api, settings, orchestration, chain):
         return proof
 
 
+def tool_transport_preflight(api, settings):
+    before = api.rate_status(100)
+    repository, run_id = settings["repository"], settings["run_id"]
+    listing = api.json(f"repos/{repository}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
+    matches = [job for job in listing["jobs"] if job["name"] == "changes"]
+    require(len(matches) == 1, "completed changes predecessor is missing or ambiguous")
+    current = recovery.completed_job(matches[0], run_id)
+    require(current["conclusion"] == "success" and current["run_attempt"] <= settings["attempt"]
+            and artifacts.timestamp(current["completed_at"]) <= artifacts.timestamp(settings["job_started_at"]),
+            "changes is not a completed successful predecessor")
+    supplied = os.environ.get("TRANSPORT_PROBE_JOB_ID", "")
+    historical = None
+    if supplied:
+        require(re.fullmatch(r"[1-9][0-9]*", supplied), "invalid historical diagnostic job ID")
+        value = api.json(f"repos/{repository}/actions/jobs/{supplied}")
+        historical = recovery.completed_job(value, job_id=supplied)
+        require(str(historical["run_id"]) != run_id
+                and value.get("url") == f"https://api.github.com/repos/{repository}/actions/jobs/{supplied}"
+                and value.get("run_url") == f"https://api.github.com/repos/{repository}/actions/runs/{historical['run_id']}",
+                "historical diagnostic job repository mismatch")
+    api.probe_job_logs(repository, run_id, current["run_attempt"], str(current["id"]))
+    if historical:
+        api.probe_job_logs(repository, str(historical["run_id"]), historical["run_attempt"], str(historical["id"]))
+    after = api.rate_status()
+    require(api.requests == (7 if historical else 5), "tool preflight request accounting mismatch")
+    result = {"version": 1, "credential": "current-job-GITHUB_TOKEN", "current": current,
+        "historical": historical, "historical_coverage": "completed_job_redirect" if historical else "absent",
+        "status": 302, "location_present": True, "https": True, "requests": api.requests,
+        "before": before, "after": after}
+    print("MUTATION_TRANSPORT_PREFLIGHT " + json.dumps(result, sort_keys=True), flush=True)
+    return result
+
+
 def prepare_tool(api, root, settings, scratch):
-    api.rate_status(100)
+    tool_transport_preflight(api, settings)
     existing = [item for item in run_artifacts(api, settings) if
                 re.fullmatch(rf"mutation-tool-run-{settings['run_id']}-attempt-[1-9][0-9]*", item["name"])]
     require(len(existing) <= 1, "ambiguous tool producer")
@@ -299,7 +338,8 @@ def refresh_recovery(api, root, settings, scratch, *, include_current):
     data = {"version": 1, "planned": planned, "chain": chain, "contract": contract,
         "originals": {}, "logs": {}, "source_runs": {}, "bundles": [], "frontier": {},
         "job_inventories": {}, "current_checkout": checkout, "qualification": None}
-    inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+    recovery.retain_recording(recording, data)
+    inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
     selected = recovery.latest_snapshot(inventory, data, settings, allow_prepared=include_current)
     if selected:
         restored, receipt = recovery.load(api, selected, settings["repository"], contract)
@@ -311,7 +351,7 @@ def refresh_recovery(api, root, settings, scratch, *, include_current):
         require(receipt["verdict"]["state"] in {"complete", "incomplete_with_progress", "incomplete_without_progress"},
                 "terminal recovery verdict stops continuation")
         recovery.retain_recording(recording, data)
-        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+        inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
         if settings["scope"] == "production":
             proof = data["qualification"]
             require(proof is not None and proof["contract"] == contract and proof["tool"] == planned["orchestration"]["tool"],
@@ -322,7 +362,7 @@ def refresh_recovery(api, root, settings, scratch, *, include_current):
         bind_tool(recording, root, settings, planned["orchestration"]["tool"], contract, scratch, chain)
         data["tool_receipt"] = recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]
         recovery.retain_recording(recording, data)
-        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
+        inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
     ensure_native_admission(api, data, settings)
     runner.validate_current_plan(root, planned, settings)
     recovered = recovery.ingest(api, data, settings, inventory, runs, include_current=include_current)

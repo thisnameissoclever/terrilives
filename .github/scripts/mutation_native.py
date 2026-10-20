@@ -663,6 +663,20 @@ def projected_history(planned, seed, records, projected, policy, producer_logs):
     value["native_admission"] = {"reference": proofs[str(job_id)]["reference"], "binding": binding(planned, seed["chain"]),
         "proofs": proofs, "batch_policy": policy, "batch_policy_digest": policy_digest,
         "admitted_total_history_attempts": projected["admitted_total_history_attempts"]}
+    # Availability-only metadata remains part of the complete retained shape.
+    anchors = value.setdefault("log_availability_anchors", {})
+    for anchor_run in {item["run_id"] for item in value["chain"]["runs"]} | set(value["source_runs"]):
+        if anchor_run in anchors:
+            continue
+        candidates = [(path, log) for path, log in value["logs"].items() if log["run_id"] == anchor_run]
+        require(candidates, "history sizing lacks original anchor shape")
+        path, log = max(candidates, key=lambda pair: json_size(pair[1]))
+        anchor_job = {"id": int(log["job_id"]), "run_id": int(anchor_run), "run_attempt": log["attempt"],
+            "name": "mutation-production-aggregate", "status": "completed", "conclusion": "success",
+            "started_at": instant, "completed_at": instant}
+        anchors[anchor_run] = {"version": 1, "repository": planned["producer"]["repository"], "basis": "original_producer",
+            "job": anchor_job, "selected_at": instant, "original_retention_days": log["original_retention_days"],
+            "expires_at": log["expires_at"], "original_log": {"path": path, "sha256": log["sha256"], "observed_at": log["observed_at"]}}
     value["consumer"] = {"run_id": run_id, "attempt": attempt}
     return value
 

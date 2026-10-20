@@ -13053,3 +13053,13 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Follow only the required parent directories from the authenticated commit. Require complete immediate-tree responses and bind each child tree to its selected parent entry. Preserve exact file identities, valid object modes and duplicate-name rejection. Never accept a partial recursive listing because the desired paths happen to appear in it.
 
 **Verification.** Reject truncated, missing, duplicate and altered parent or file evidence. Exercise distinct commit and parent identities through the real request-accounting wrapper. Measure the additional requests and keep existing request limits; a smaller query does not make those calls free.
+
+## [L-provider-lifecycle-transport-contract] Test evidence transport at the producer's actual lifecycle
+
+**What happened.** Recovery preparation required a whole-run log download location while that same workflow was still running. GitHub refused the request before workers could start, although completed producer-job logs were available.
+
+**Root cause.** Successful high-level probe mocks hid the production HTTP behavior and the circular dependency on workflow completion. A host credential's successful or failed request also cannot establish behavior under the workflow's token.
+
+**Prevention.** Select an authenticated completed producer before probing its log availability. Preserve all original evidence and expiry separately; a current download location is only a limited availability signal. Do not skip an active run, substitute another producer after a failure, or treat retained bytes as proof of current availability.
+
+**Verification.** Exercise the real HTTP branch with only its network boundary injected. Include malformed status and header responses; require sanitized fatal errors without raw exception context. Test active runs, completed predecessors, same-run recovery and a new continuation without a new plan receipt. Before native work, verify the selected completed-job endpoint inside Actions with the actual workflow token, bounded requests and no retained credentials or signed download locations.
