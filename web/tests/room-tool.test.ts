@@ -452,7 +452,7 @@ describe('the Room tool in the page', () => {
       "{ tool: roomsTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
-    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);
+    expect(MAIN_TS.split('withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)\n          ?? roomTool.highlight()')).toHaveLength(2);
   });
 });
 

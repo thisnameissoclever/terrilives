@@ -1440,7 +1440,12 @@
         <div id="wall-tool" class="builder-tool" hidden>
           <div class="builder-choices">
             <details id="wall-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="wall-shortcut-content"></div></details>
-            <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it.</p>
+            <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it. Select a second edge in the same row to select every edge between them.</p>
+            <div class="builder-row wall-height" role="group" aria-label="Wall height">
+              <span>Walls</span>
+              <button id="wall-height-low" class="hud-button" type="button" aria-pressed="true">Low</button>
+              <button id="wall-height-full" class="hud-button" type="button" aria-pressed="false">Full height</button>
+            </div>
             <div id="window-choices" hidden>
               <div class="builder-row"><strong>Windows</strong><button data-action-intent="negative" id="window-back" class="hud-button" type="button">Wall controls</button></div>
               <div id="window-models"></div>
@@ -1467,7 +1472,7 @@
             <details id="floor-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="floor-shortcut-content"></div></details>
             <div id="floor-material-samples" aria-label="Floor materials"></div>
             <button data-action-intent="affirmative" id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
-            <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, then choose its floor covering from the nearby buttons.</p>
+            <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, or two opposite corner tiles to select every tile between them, then choose a floor covering from the nearby buttons.</p>
 
           </div>
           <div class="builder-actions">
@@ -1505,6 +1510,11 @@
           <div class="builder-choices">
             <details id="room-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="room-shortcut-content"></div></details>
             <p id="room-touch-help" class="builder-note builder-help" hidden>Select two opposite corner tiles. Use Doorway to select an outline edge, then Build room. Drag to pan; pinch to zoom.</p>
+            <div class="builder-row wall-height" role="group" aria-label="Wall height">
+              <span>Walls</span>
+              <button id="room-height-low" class="hud-button" type="button" aria-pressed="true">Low</button>
+              <button id="room-height-full" class="hud-button" type="button" aria-pressed="false">Full height</button>
+            </div>
           </div>
           <div class="builder-actions">
             <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>

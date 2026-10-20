@@ -401,13 +401,13 @@ fn window_save_refuses_duplicate_overlap_conflict_bounds_and_overflow_atomically
 }
 
 #[test]
-fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinates() {
+fn perimeter_saves_accept_solids_and_outer_doors_but_not_shell_doors_or_outside_lines() {
     use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
-    for (axis, x, y) in [
-        (Vertical, 0, 1),
-        (Vertical, 4, 1),
-        (Horizontal, 1, 0),
-        (Horizontal, 1, 3),
+    for (axis, x, y, shell) in [
+        (Vertical, 0, 1, true),
+        (Vertical, 4, 1, false),
+        (Horizontal, 1, 0, true),
+        (Horizontal, 1, 3, false),
     ] {
         let edge = WallEdge {
             axis,
@@ -430,10 +430,17 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
                 ..edge
             }],
         };
-        assert_eq!(
-            apply_layout(&mut grid, &door, house(2, 2)),
-            Err(SaveError::InvalidGrid)
-        );
+        // [WT-rules]: a doorway may stand on the lot's edge, opening onto
+        // nothing, but the house's implicit shell is never opened.
+        if shell {
+            assert_eq!(
+                apply_layout(&mut grid, &door, house(2, 2)),
+                Err(SaveError::InvalidGrid)
+            );
+        } else {
+            assert_eq!(apply_layout(&mut grid, &door, house(2, 2)), Ok(()));
+            assert_eq!(grid.blocked_edges().count(), 0);
+        }
     }
     for (axis, x, y) in [
         (Vertical, 5, 1),

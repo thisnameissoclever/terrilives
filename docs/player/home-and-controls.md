@@ -46,11 +46,13 @@ Bookcases also offer automatic [book buying and selling](activities/#reading). A
 
 ## Walls, windows and floors {#walls-and-floors}
 
-Walls selects the edge between floor tiles. Use the contextual controls to add a wall, doorway or window, or remove the selected boundary. Windows stop people while letting daylight through. They are part of Walls, rather than a separate top-level tool. Doors follow doorways and open for passing people.
+Walls selects the edge between floor tiles. Click a wall to select it, or the floor near an edge; with a mouse, the edge a click would select is marked first. Select a second edge further along the same row to select every edge between them. Use the contextual controls to add a wall, doorway or window, or remove the selected boundaries. Windows stop people while letting daylight through. They are part of Walls, rather than a separate top-level tool. A wide window centres on the spot you click and slides along the wall to fit. Doors follow doorways and open for passing people.
+
+While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways; a doorway there opens onto nothing until you buy land beyond it.
 
 The game refuses edits that cut off required access or conflict with furniture, people or active use. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
-Floors selects a tile. Choose Boards, Tiles, Carpet or Outdoor patio to change its covering, or Remove to restore its original floor in the draft. Confirm keeps the changes. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
+Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering, or Remove to restore its original floor in the draft. Confirm keeps the changes. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
 
 ## Rooms and land {#rooms-and-land}
 

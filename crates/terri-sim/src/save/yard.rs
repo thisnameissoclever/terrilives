@@ -70,14 +70,16 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         if crate::placement::windows::is_rear(window, house) {
             continue;
         }
-        let [from, to] = WallEdge {
+        let edge = WallEdge {
             axis: window.axis,
             x: window.x,
             y: window.y,
             doorway: false,
+        };
+        if edge.in_bounds(lot.width, lot.height) {
+            let [from, to] = edge.cells();
+            grown.set_edge_blocked(from, to, true);
         }
-        .cells();
-        grown.set_edge_blocked(from, to, true);
     }
     let layout = crate::placement::windows::with_architecture(layout, edges, windows);
     sim.world.insert_resource(grown);

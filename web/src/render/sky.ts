@@ -80,14 +80,18 @@ export function buildSkyExposure(
   // Rear apertures have no exterior floor tile. Their adjacent indoor tile
   // is one step from virtual sky. Yard seeds stay first (distance zero),
   // then these seeds (distance one), so the first visit is always brightest.
+  // Glass on the lot's south or east edge looks out the same way, from the
+  // tile on its near side.
   for (let i = 0; i + 2 < windows.length; i += 3) {
-    const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
+    const [axis, lineX, lineY] = [windows[i], windows[i + 1], windows[i + 2]];
+    const edge = (axis === 0 && lineX === width) || (axis === 1 && lineY === height);
+    const x = edge && axis === 0 ? lineX - 1 : lineX, y = edge && axis === 1 ? lineY - 1 : lineY;
     if (!Number.isInteger(x) || !Number.isInteger(y)
       || x < 0 || y < 0 || x >= width || y >= height
       || !inHouse(x, y)) continue;
     const rear = (axis === 0 && x === houseX) || (axis === 1 && y === houseY);
     const at = y * width + x;
-    if (!rear || (walls[at] & (axis === 0 ? 1 : 2)) !== 0 || values[at] >= 0) continue;
+    if (!(rear || edge) || (!edge && (walls[at] & (axis === 0 ? 1 : 2)) !== 0) || values[at] >= 0) continue;
     values[at] = Math.max(0, 1 - reachPerTile);
     queue.push(at);
   }

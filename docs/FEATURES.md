@@ -872,6 +872,8 @@ activities such as swimming remain.
 
 Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
+Since 2026-10-19 a second click on another tile selects every tile in the rectangle between the two, and a covering applies to all of them that accept it ([FL-area] in `docs/specs/2026-09-22-floors.md`).
+
 Room-wide painting remains separate work. Floor cleaning follows eligible material and lot ownership, as defined in `docs/specs/2026-10-17-room-identities.md`. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for the original material evidence and acceptance limits.
 
 ### [B-windows] Windows admit daylight
@@ -901,6 +903,8 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 **Status: Complete.**
 
 Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
+
+Revised on 2026-10-19 at the owner's request: the tools draw interior and front walls low by default with the chosen lines full height, and Full height or T shows every wall ([WB-height]); a click chooses the wall drawn under the pointer ([WB-pick]); the chosen lines are marked along themselves ([WB-mark]); two clicks choose a run of lines ([WT-run]); a wide window slides along its wall to fit ([WN-fit]); and walls on every lot edge take windows and doorways ([WT-rules]). The played check is [A-build-walls-ux] and the evidence is `docs/evidence/2026-10-19-build-walls/verification.md`.
 
 ### [B-placement-buttons] Contextual actions surround the build selection
 
