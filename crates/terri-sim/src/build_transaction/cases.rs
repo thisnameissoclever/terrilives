@@ -30,7 +30,13 @@ fn confirm(sim: &mut Sim) -> BuildReview {
     sim.commit_build(review.token).unwrap();
     review
 }
-fn wall_refusal(sim: &mut Sim, axis: EdgeAxis, x: u32, y: u32, state: WallState) -> Option<crate::placement::PlacementRefusal> {
+fn wall_refusal(
+    sim: &mut Sim,
+    axis: EdgeAxis,
+    x: u32,
+    y: u32,
+    state: WallState,
+) -> Option<crate::placement::PlacementRefusal> {
     issue(sim, SimCommand::SetWallEdge { axis, x, y, state });
     sim.world()
         .resource::<crate::placement::LotEditState>()
@@ -85,7 +91,11 @@ fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
     };
     for (x, y, depth) in objects {
         let pocket = (x, y + depth);
-        if !sim.world().resource::<terri_core::TileGrid>().is_walkable(pocket.0 as i32, pocket.1 as i32) {
+        if !sim
+            .world()
+            .resource::<terri_core::TileGrid>()
+            .is_walkable(pocket.0 as i32, pocket.1 as i32)
+        {
             continue;
         }
         let sides = [
@@ -145,7 +155,9 @@ fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
     edge.doorway = true;
     let [a, b] = edge.cells();
     sim.world_mut()
-        .insert_resource(terri_core::layout::SavedLayout::from_window_placements(edges, windows));
+        .insert_resource(terri_core::layout::SavedLayout::from_window_placements(
+            edges, windows,
+        ));
     sim.world_mut()
         .resource_mut::<terri_core::TileGrid>()
         .set_edge_blocked(a, b, false);
@@ -173,7 +185,10 @@ fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
 #[ignore = "a seeded search that takes several seconds a seed; run it after changing lot-edit or load rules"]
 fn accepted_architecture_edits_always_confirm() {
     let seed_env = |name: &str, default: u64| {
-        std::env::var(name).ok().and_then(|s| s.parse().ok()).unwrap_or(default)
+        std::env::var(name)
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(default)
     };
     for seed in seed_env("BUILD_FUZZ_FROM", 1)..=seed_env("BUILD_FUZZ_TO", 24) {
         let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
@@ -188,13 +203,20 @@ fn accepted_architecture_edits_always_confirm() {
             sim.tick();
         }
         if let Err(e) = sim.begin_build() {
-            panic!("seed {seed}: Build entry refused {e:?}, {:?}", sim.build_diagnosis());
+            panic!(
+                "seed {seed}: Build entry refused {e:?}, {:?}",
+                sim.build_diagnosis()
+            );
         }
         let grid = sim.world().resource::<terri_core::TileGrid>();
         let (w, h) = (grid.width() as u64, grid.height() as u64);
         let mut accepted = 0;
         for step in 0..60 {
-            let axis = if next(2) == 0 { EdgeAxis::Vertical } else { EdgeAxis::Horizontal };
+            let axis = if next(2) == 0 {
+                EdgeAxis::Vertical
+            } else {
+                EdgeAxis::Horizontal
+            };
             let mut spots: Vec<(u32, u32)> = vec![];
             {
                 let world = sim.world_mut();
@@ -222,15 +244,43 @@ fn accepted_architecture_edits_always_confirm() {
                         x: x + next((x1 - x) as u64 + 1) as u32,
                         y: if next(2) == 0 { y } else { y1 + 1 },
                     });
-                    SimCommand::BuildRoom { x0: x, y0: y, x1, y1, doorway }
+                    SimCommand::BuildRoom {
+                        x0: x,
+                        y0: y,
+                        x1,
+                        y1,
+                        doorway,
+                    }
                 }
-                0 => SimCommand::SetWallEdge { axis, x, y, state: WallState::Wall },
-                1 => SimCommand::SetWallEdge { axis, x, y, state: WallState::Doorway },
-                2 => SimCommand::SetWallEdge { axis, x, y, state: WallState::Open },
-                _ => SimCommand::FitWindow { axis, x, y, model: terri_core::windows::WindowModel::Sash },
+                0 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Wall,
+                },
+                1 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Doorway,
+                },
+                2 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Open,
+                },
+                _ => SimCommand::FitWindow {
+                    axis,
+                    x,
+                    y,
+                    model: terri_core::windows::WindowModel::Sash,
+                },
             };
             {
-                let mut state = sim.world_mut().resource_mut::<crate::placement::LotEditState>();
+                let mut state = sim
+                    .world_mut()
+                    .resource_mut::<crate::placement::LotEditState>();
                 state.last_wall_result = None;
                 state.last_window_result = None;
                 state.last_room_result = None;
@@ -238,8 +288,13 @@ fn accepted_architecture_edits_always_confirm() {
             issue(&mut sim, command.clone());
             let state = sim.world().resource::<crate::placement::LotEditState>();
             let ok = match command {
-                SimCommand::FitWindow { .. } => state.last_window_result.is_some_and(|r| r.reason.is_none()),
-                SimCommand::BuildRoom { .. } => state.last_room_result.as_ref().is_some_and(|r| r.reason.is_none()),
+                SimCommand::FitWindow { .. } => {
+                    state.last_window_result.is_some_and(|r| r.reason.is_none())
+                }
+                SimCommand::BuildRoom { .. } => state
+                    .last_room_result
+                    .as_ref()
+                    .is_some_and(|r| r.reason.is_none()),
                 _ => state.last_wall_result.is_some_and(|r| r.reason.is_none()),
             };
             if !ok {
@@ -259,7 +314,10 @@ fn accepted_architecture_edits_always_confirm() {
                         sim.tick();
                     }
                     if let Err(e) = sim.begin_build() {
-                        panic!("seed {seed}: Build re-entry refused {e:?}, {:?}", sim.build_diagnosis());
+                        panic!(
+                            "seed {seed}: Build re-entry refused {e:?}, {:?}",
+                            sim.build_diagnosis()
+                        );
                     }
                 }
                 Ok(_) => {}

@@ -287,7 +287,9 @@ impl Sim {
     /// The rule that refused the latest Build entry or preparation, if it was one
     /// of the rules [`diagnose`] reads. Cleared when either is tried again.
     pub fn build_diagnosis(&self) -> Option<ValidationProblem> {
-        self.world.get_resource::<BuildDiagnosis>().and_then(|d| d.0)
+        self.world
+            .get_resource::<BuildDiagnosis>()
+            .and_then(|d| d.0)
     }
     pub fn begin_build(&mut self) -> Result<(), BuildCommitError> {
         self.world.remove_resource::<BuildDiagnosis>();
