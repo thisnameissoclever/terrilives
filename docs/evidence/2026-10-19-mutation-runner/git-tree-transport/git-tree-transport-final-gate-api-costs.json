@@ -1,0 +1,14 @@
+{
+  "pilot": 70,
+  "finished_report": 27,
+  "review_required": 38,
+  "admission_rerun": 43,
+  "measurement_attempt_total": 135,
+  "first_preparation_no_snapshot": 86,
+  "component_bounds": {
+    "worker": 20,
+    "aggregate": 192,
+    "measurement": 135
+  },
+  "first_admission_plus_preparation_consumers_padded_aggregate_bound": 481
+}

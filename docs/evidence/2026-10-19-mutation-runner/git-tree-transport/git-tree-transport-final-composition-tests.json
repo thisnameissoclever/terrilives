@@ -1,0 +1,14 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_native.NativeWrapperBudgetTests.test_composed_budget_refuses_a_measured_component_above_its_bound",
+    "test_mutation_native.NativeGateBudgetTests.test_complete_native_stage_wrappers_count_all_authentication_calls",
+    "test_mutation_native.NativePlanBudgetTests.test_original_plan_wrapper_includes_qualification_tool_and_calibration_transport"
+  ],
+  "exit_code": 0,
+  "seconds": 1.079,
+  "output": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.807s\n\nOK\n"
+}

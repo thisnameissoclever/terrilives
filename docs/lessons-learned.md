@@ -13043,3 +13043,13 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Probe supported options offline before the first request. Enable raw output only for captured streams when supported, preserve older client arguments, and propagate request failures without a fallback request. Never strip bytes from evidence or render the raw output into a terminal.
 
 **Verification.** Test both client contracts, unchanged log and archive bytes, strict metadata parsing, request accounting and failure propagation. Compare a captured real log's byte count and hash with the original. Keep that host transport check separate from Linux recovery qualification.
+
+## [L-recipe-tree-query-scope] Authenticate required paths through complete parent trees
+
+**What happened.** Linux fixture planning refused a truncated recursive GitHub tree response before executing any mutations. The query enumerated unrelated asset directories to locate a fixed recipe file set.
+
+**Root cause.** Authentication depended on a complete recursive listing of the whole repository. Asset growth could exceed the API response boundary even when every required recipe file was unchanged.
+
+**Prevention.** Follow only the required parent directories from the authenticated commit. Require complete immediate-tree responses and bind each child tree to its selected parent entry. Preserve exact file identities, valid object modes and duplicate-name rejection. Never accept a partial recursive listing because the desired paths happen to appear in it.
+
+**Verification.** Reject truncated, missing, duplicate and altered parent or file evidence. Exercise distinct commit and parent identities through the real request-accounting wrapper. Measure the additional requests and keep existing request limits; a smaller query does not make those calls free.

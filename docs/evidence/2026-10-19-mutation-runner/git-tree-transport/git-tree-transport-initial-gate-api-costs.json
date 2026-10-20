@@ -1,0 +1,9 @@
+{
+  "pilot": 66,
+  "finished_report": 23,
+  "review_required": 34,
+  "admission_rerun": 39,
+  "measurement_attempt_total": 123,
+  "first_preparation_no_snapshot": 82,
+  "first_admission_plus_preparation_consumers_padded_aggregate_bound": 407
+}

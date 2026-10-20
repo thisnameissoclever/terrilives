@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_committed_helper_is_independently_fetched_not_trusted_from_receipt (test_mutation_tool.ToolAuthenticationTests.test_committed_helper_is_independently_fetched_not_trusted_from_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_tool.py", line 141, in test_committed_helper_is_independently_fetched_not_trusted_from_receipt
+    with self.assertRaisesRegex(ValueError, "committed recipe input mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.009s
+
+FAILED (failures=1)

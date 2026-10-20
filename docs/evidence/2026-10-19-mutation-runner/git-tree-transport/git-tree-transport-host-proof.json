@@ -1,0 +1,32 @@
+{
+  "revision": "d08ddae6c1710ded44383131e2df23ff45aeddd5",
+  "fixed_leaves": 11,
+  "first_requests": 5,
+  "repeat_additional_requests": 0,
+  "tree_responses": [
+    {
+      "sha": "d4e010dac31ec2219e64b6f32a8b815c2fa35177",
+      "truncated": false,
+      "entries": 21
+    },
+    {
+      "sha": "b94e06734b891c6d94679ebfcf0c2daf82501181",
+      "truncated": false,
+      "entries": 4
+    },
+    {
+      "sha": "9940afab8576a8d29fea162e8f8b01b683e4abcc",
+      "truncated": false,
+      "entries": 2
+    },
+    {
+      "sha": "19b629329f10731d9a0f7f11f561f9e53568f957",
+      "truncated": false,
+      "entries": 21
+    }
+  ],
+  "source_bodies_downloaded": false,
+  "recursive_requests": 0,
+  "scope": "Real Windows-host metadata authentication of the failed revision. Not Linux fixture qualification.",
+  "verifier_sha256": "d42308cab14a24b604fff8884b42f6dc9db57731bedc5df999e653c81e0c51bd"
+}

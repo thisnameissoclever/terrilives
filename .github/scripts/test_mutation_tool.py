@@ -3,6 +3,7 @@
 import base64
 import copy
 import datetime as dt
+import io
 import json
 import os
 from pathlib import Path
@@ -16,6 +17,24 @@ import mutation_artifacts as artifacts
 import mutation_tool as tool
 import mutation_runner as runner
 from test_mutation_artifacts import FixtureAPI, archive
+
+
+def recipe_revision(api, contract, revision, tree_ids=None):
+    tree_ids = tree_ids or ("c" * 40, "1" * 40, "2" * 40, "3" * 40)
+    parents = dict(zip(("", ".github", ".github/scripts", ".github/workflows"), tree_ids))
+    trees = {path: {"sha": sha, "truncated": False, "tree": []} for path, sha in parents.items()}
+    for path, sha in parents.items():
+        if path:
+            parent, _, name = path.rpartition("/")
+            trees[parent]["tree"].append({"path": name, "sha": sha, "mode": "040000", "type": "tree"})
+    for path, sha in contract["git_blobs"].items():
+        parent, _, name = path.rpartition("/")
+        trees[parent]["tree"].append({"path": name, "sha": sha, "mode": "100644", "type": "blob"})
+    prefix = "repos/owner/repo/git/"
+    api.responses[prefix + "commits/" + revision] = {"sha": revision, "tree": {"sha": parents[""]}}
+    for tree in trees.values():
+        api.responses[prefix + "trees/" + tree["sha"]] = tree
+    return trees
 
 
 class ToolAuthenticationTests(unittest.TestCase):
@@ -51,11 +70,8 @@ class ToolAuthenticationTests(unittest.TestCase):
             for revision in ("e" * 40, "b" * 40):
                 self.api.responses[prefix + f"/contents/{path}?ref={revision}"] = {
                     "encoding": "base64", "content": base64.b64encode((source / path).read_bytes()).decode()}
-        self.api.responses[prefix + "/git/commits/" + "b" * 40] = {"sha": "b" * 40, "tree": {"sha": "c" * 40}}
-        self.api.responses[prefix + "/git/commits/" + "e" * 40] = {"sha": "e" * 40, "tree": {"sha": "c" * 40}}
-        self.api.responses[prefix + "/git/trees/" + "c" * 40 + "?recursive=1"] = {"truncated": False,
-            "tree": [{"path": path, "type": "blob", "mode": "100644", "sha": sha}
-                     for path, sha in self.contract["git_blobs"].items()]}
+        for revision in ("b" * 40, "e" * 40):
+            self.trees = recipe_revision(self.api, self.contract, revision)
         self.api.responses[prefix + "/actions/runs/100/attempts/1"] = {"id": 100, "run_attempt": 1, "head_sha": "d" * 40}
         self.job = {"id": 901, "run_id": 100, "run_attempt": 1, "name": "mutation-fixture-tool", "status": "completed",
             "conclusion": "success", "started_at": (self.now - dt.timedelta(hours=1)).isoformat(),
@@ -120,10 +136,148 @@ class ToolAuthenticationTests(unittest.TestCase):
             self.authenticate()
 
     def test_committed_helper_is_independently_fetched_not_trusted_from_receipt(self):
-        tree = self.api.responses["repos/owner/repo/git/trees/" + "c" * 40 + "?recursive=1"]
-        next(row for row in tree["tree"] if row["path"] == ".github/scripts/mutation_workflow.py")["sha"] = "f" * 40
+        tree = self.trees[".github/scripts"]
+        next(row for row in tree["tree"] if row["path"] == "mutation_workflow.py")["sha"] = "f" * 40
         with self.assertRaisesRegex(ValueError, "committed recipe input mismatch"):
             self.authenticate()
+
+    def verify_recipe(self, api=None):
+        tool.verify_committed_contract(api or self.api, "owner/repo", "b" * 40, self.contract)
+
+    def test_recipe_visits_only_four_complete_immediate_trees(self):
+        self.trees[""]["tree"].append({"path": "assets", "mode": "040000", "type": "tree", "sha": "a" * 40})
+        next(row for row in self.trees[""]["tree"] if row["path"] == "rust-toolchain.toml")["mode"] = "100755"
+        self.api.responses["repos/owner/repo/git/trees/" + "c" * 40 + "?recursive=1"] = {"truncated": True, "tree": []}
+        self.api.calls.clear()
+        self.verify_recipe()
+        self.assertEqual(self.api.calls, ["repos/owner/repo/git/commits/" + "b" * 40,
+            *("repos/owner/repo/git/trees/" + self.trees[parent]["sha"]
+              for parent in ("", ".github", ".github/workflows", ".github/scripts"))])
+
+    def test_subtree_header_must_match_selected_parent_sha(self):
+        self.trees[".github/scripts"]["sha"] = "f" * 40
+        with self.assertRaisesRegex(ValueError, "recipe tree identity mismatch"):
+            self.verify_recipe()
+
+    def test_selected_subtree_sha_cannot_be_replaced_by_an_unbound_response(self):
+        row = next(row for row in self.trees[".github"]["tree"] if row["path"] == "scripts")
+        row["sha"] = "f" * 40
+        self.api.responses["repos/owner/repo/git/trees/" + "f" * 40] = self.trees[".github/scripts"]
+        with self.assertRaisesRegex(ValueError, "recipe tree identity mismatch"):
+            self.verify_recipe()
+
+    def test_duplicate_immediate_names_are_rejected(self):
+        tree = self.trees[".github/scripts"]["tree"]
+        tree.append(copy.deepcopy(tree[0]))
+        with self.assertRaisesRegex(ValueError, "duplicate recipe tree entry"):
+            self.verify_recipe()
+
+    def test_selected_directory_requires_tree_type_and_mode(self):
+        row = next(row for row in self.trees[""]["tree"] if row["path"] == ".github")
+        row.update(type="blob", mode="100644")
+        with self.assertRaisesRegex(ValueError, "recipe directory mismatch"):
+            self.verify_recipe()
+
+    def test_recipe_rejects_bad_commit_root_parent_and_leaf(self):
+        cases = [
+            (self.api.responses["repos/owner/repo/git/commits/" + "b" * 40], "sha", "f" * 40, "commit mismatch"),
+            (self.api.responses["repos/owner/repo/git/commits/" + "b" * 40]["tree"], "sha", "../bad", "recipe tree SHA"),
+            (self.trees[""], "sha", "f" * 40, "tree identity mismatch"),
+        ]
+        for parent in ("", ".github"):
+            for row in self.trees[parent]["tree"]:
+                if row["type"] == "tree":
+                    cases.extend((row, key, value, message) for key, value, message in (
+                        ("type", "blob", "directory mismatch"), ("mode", "100644", "directory mismatch"),
+                        ("sha", "bad", "recipe tree SHA")))
+        for tree in self.trees.values():
+            for row in tree["tree"]:
+                if row["type"] == "blob":
+                    cases.extend((row, key, value, "committed recipe input mismatch") for key, value in (
+                        ("type", "tree"), ("mode", "120000"), ("mode", "160000"), ("sha", "f" * 40)))
+        for row, key, value, message in cases:
+            original = row[key]
+            with self.subTest(key=key, value=value, path=row.get("path")):
+                row[key] = value
+                with self.assertRaisesRegex(ValueError, message):
+                    self.verify_recipe()
+                row[key] = original
+
+    def test_all_required_trees_must_be_explicitly_complete(self):
+        for parent, tree in self.trees.items():
+            for truncated in (True, None, 0):
+                with self.subTest(parent=parent, truncated=truncated):
+                    if truncated is None:
+                        tree.pop("truncated")
+                    else:
+                        tree["truncated"] = truncated
+                    with self.assertRaisesRegex(ValueError, "tree is truncated"):
+                        self.verify_recipe()
+                    tree["truncated"] = False
+
+    def test_malformed_tree_entry_lists_are_rejected(self):
+        for parent, tree in self.trees.items():
+            original = tree["tree"]
+            for changed, message in ((None, "invalid recipe tree entries"), ([None], "unsafe recipe tree entry")):
+                with self.subTest(parent=parent, changed=changed):
+                    tree["tree"] = changed
+                    with self.assertRaisesRegex(ValueError, message):
+                        self.verify_recipe()
+                    tree["tree"] = original
+
+    def test_unsafe_immediate_names_and_missing_inputs_are_rejected(self):
+        for parent, tree in self.trees.items():
+            for name in ("", ".", "..", "a/b", "a\\b", "a:b", "a\x00b"):
+                with self.subTest(parent=parent, name=name):
+                    tree["tree"].append({"path": name})
+                    with self.assertRaisesRegex(ValueError, "unsafe recipe tree entry"):
+                        self.verify_recipe()
+                    tree["tree"].pop()
+            for index in range(len(tree["tree"])):
+                row = tree["tree"].pop(index)
+                with self.subTest(parent=parent, missing=row["path"]), self.assertRaises(ValueError):
+                    self.verify_recipe()
+                tree["tree"].insert(index, row)
+
+    def test_contract_map_and_hash_guards_precede_requests(self):
+        for field in ("files", "git_blobs"):
+            for alteration in ("missing", "extra", "hash"):
+                original = self.contract[field].copy()
+                if alteration == "missing":
+                    self.contract[field].pop(tool.WORKFLOW)
+                elif alteration == "extra":
+                    self.contract[field]["unrequested"] = "a" * 40
+                else:
+                    self.contract[field][tool.WORKFLOW] = "bad"
+                self.api.calls.clear()
+                with self.subTest(field=field, alteration=alteration), self.assertRaises(ValueError):
+                    self.verify_recipe()
+                self.assertEqual(self.api.calls, [])
+                self.contract[field] = original
+
+    def test_tree_request_failure_propagates_without_fallback(self):
+        error = subprocess.CalledProcessError(1, ["gh", "api"])
+        with mock.patch.object(self.api, "json", side_effect=[
+                self.api.responses["repos/owner/repo/git/commits/" + "b" * 40], error]) as fetch:
+            with self.assertRaises(subprocess.CalledProcessError) as caught:
+                self.verify_recipe()
+            self.assertIs(caught.exception, error)
+            self.assertEqual(fetch.call_args_list, [mock.call("repos/owner/repo/git/commits/" + "b" * 40),
+                mock.call("repos/owner/repo/git/trees/" + "c" * 40)])
+
+    def test_workflow_cache_authenticates_distinct_roots_and_reuses_shared_parents(self):
+        import mutation_recovery as recovery
+
+        recipe_revision(self.api, self.contract, "e" * 40, ("4" * 40, "5" * 40, "6" * 40, "7" * 40))
+        api = recovery.WorkflowAPI(self.api)
+        self.verify_recipe(api)
+        tool.verify_committed_contract(api, "owner/repo", "e" * 40, self.contract)
+        self.assertEqual(api.requests, 10)
+        self.verify_recipe(api)
+        self.assertEqual(api.requests, 10)
+        recipe_revision(self.api, self.contract, "8" * 40, ("9" * 40, "a" * 40, "6" * 40, "7" * 40))
+        tool.verify_committed_contract(api, "owner/repo", "8" * 40, self.contract)
+        self.assertEqual(api.requests, 13)
 
     def test_wrong_producer_failed_job_and_event_are_rejected(self):
         for key, value, message in (("name", "unrelated-tool", "producer job mismatch"),
@@ -200,8 +354,16 @@ class ToolFaultControls(unittest.TestCase):
             ('artifacts.sha(files["cargo-mutants"]) == reference["executable_sha256"] == receipt["executable_sha256"]',
              'True', 'test_modified_executable_cannot_self_attest_with_updated_archive_digest'),
             ('current_runtime == receipt["runtime"]', 'True', 'test_runtime_change_is_rejected_before_execution'),
-            ('rows[path]["sha"] == contract["git_blobs"][path]', 'True',
-             'test_committed_helper_is_independently_fetched_not_trusted_from_receipt')]
+            ('row.get("sha") == contract["git_blobs"][path]', 'True',
+             'test_committed_helper_is_independently_fetched_not_trusted_from_receipt'),
+            ('isinstance(tree, dict) and tree.get("sha") == sha', 'isinstance(tree, dict)',
+             'test_subtree_header_must_match_selected_parent_sha'),
+            ('name not in rows', 'True', 'test_duplicate_immediate_names_are_rejected'),
+            ('row.get("type") == "tree" and row.get("mode") == "040000"', 'True',
+             'test_selected_directory_requires_tree_type_and_mode')]
+        positive = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(
+            "test_mutation_tool.ToolAuthenticationTests." + test) for _, _, test in controls)
+        self.assertTrue(unittest.TextTestRunner(stream=io.StringIO()).run(positive).wasSuccessful())
         for old, new, test in controls:
             with self.subTest(test=test), tempfile.TemporaryDirectory() as temporary:
                 changed = original.decode().replace(old, new)

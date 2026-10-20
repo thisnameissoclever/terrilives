@@ -596,6 +596,20 @@ class NativeSnapshotFixture(recovery_tests.SnapshotFixture):
         self.paginate()
 
 
+# These component bounds cover the measured shared/distinct-root fixtures below.
+# Broader valid histories remain subject to WorkflowAPI's unchanged capacity guard.
+REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 192, "measurement": 135}
+
+
+def checked_request_components(test, consumers=None, measurement=None):
+    if consumers is not None:
+        test.assertLessEqual(max(consumers["workers"]), REQUEST_COMPONENT_BOUNDS["worker"], "worker request bound exceeded")
+        test.assertLessEqual(consumers["aggregate"], REQUEST_COMPONENT_BOUNDS["aggregate"], "aggregate request bound exceeded")
+    if measurement is not None:
+        test.assertLessEqual(measurement, REQUEST_COMPONENT_BOUNDS["measurement"], "measurement request bound exceeded")
+    return 8 * REQUEST_COMPONENT_BOUNDS["worker"] + REQUEST_COMPONENT_BOUNDS["aggregate"]
+
+
 class NativeWrapperBudgetTests(unittest.TestCase):
     def test_complete_production_wrapper_with_retained_native_admission(self):
         results = []
@@ -605,10 +619,50 @@ class NativeWrapperBudgetTests(unittest.TestCase):
                 fixture = NativeSnapshotFixture(self)
                 result = recovery_tests.FullWrapperBudgetTests.exercise(self, history, runs, fixture=fixture,
                     prior_history=prior, gap=gap, padded=padded, extra_sources=1 if padded else 0)
+                checked_request_components(self, result)
                 result["admitted_total_history_attempts"] = fixture.data["native_admission"]["admitted_total_history_attempts"]
                 results.append(result)
         if destination := os.environ.get("MUTATION_NATIVE_API_COST_REPORT"):
             Path(destination).write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+
+    def test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget(self):
+        fixture = NativeSnapshotFixture(self)
+        tool_tests.recipe_revision(fixture.api, fixture.contract, "e" * 40,
+            ("4" * 40, "5" * 40, "6" * 40, "7" * 40))
+        tool_tests.recipe_revision(fixture.api, fixture.contract, "8" * 40,
+            ("9" * 40, "a" * 40, "6" * 40, "7" * 40))
+        fixture.data["current_checkout"] = dict(fixture.data["current_checkout"], commit="8" * 40, tree="9" * 40)
+        fixture.api.calls.clear()
+        result = recovery_tests.FullWrapperBudgetTests.exercise(self, 6, 8, fixture=fixture,
+            prior_history=6, gap=3, padded=True, extra_sources=1)
+        checked_request_components(self, result)
+        self.assertEqual(result["workers"], [20] * 8)
+        self.assertIn("repos/owner/repo/git/commits/" + "8" * 40, fixture.api.calls)
+        tree_calls = [path for path in fixture.api.calls if "/git/trees/" in path]
+        self.assertTrue(all("?" not in path for path in tree_calls))
+        self.assertEqual({path.rsplit("/", 1)[-1] for path in tree_calls},
+            {character * 40 for character in "c12345679a"})
+        result["distinct_recipe_root_count"] = 3
+        result["shared_subtree_count"] = 2
+        result["admitted_total_history_attempts"] = fixture.data["native_admission"]["admitted_total_history_attempts"]
+        if destination := os.environ.get("MUTATION_DISTINCT_ROOT_API_COST_REPORT"):
+            Path(destination).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+
+    def test_composed_budget_refuses_a_measured_component_above_its_bound(self):
+        consumers = {"workers": [REQUEST_COMPONENT_BOUNDS["worker"]] * 8,
+                     "aggregate": REQUEST_COMPONENT_BOUNDS["aggregate"]}
+        checked_request_components(self, consumers, REQUEST_COMPONENT_BOUNDS["measurement"])
+        for component in ("worker", "aggregate", "measurement"):
+            changed = copy.deepcopy(consumers)
+            measurement = REQUEST_COMPONENT_BOUNDS["measurement"]
+            if component == "worker":
+                changed["workers"][0] += 1
+            elif component == "aggregate":
+                changed["aggregate"] += 1
+            else:
+                measurement += 1
+            with self.subTest(component=component), self.assertRaisesRegex(AssertionError, component + " request bound"):
+                checked_request_components(self, changed, measurement)
 
 
 class NativeGateBudgetTests(unittest.TestCase):
@@ -616,6 +670,8 @@ class NativeGateBudgetTests(unittest.TestCase):
         q = qualification_tests.QualificationAuthenticationTests()
         q.setUp()
         self.addCleanup(q.doCleanups)
+        tool_tests.recipe_revision(q.fixture.api, q.fixture.contract, "e" * 40,
+            ("4" * 40, "5" * 40, "6" * 40, "7" * 40))
         f = NativeFixture(self, base=q.fixture)
         f.planned["orchestration"]["qualification"] = {"artifact_id": 79,
             "archive_digest": f.api.responses["repos/owner/repo/actions/artifacts/79"]["digest"]}
@@ -691,14 +747,16 @@ class NativeGateBudgetTests(unittest.TestCase):
             receipt = runner.read_json(scratch / "prepared/receipt.json")
             self.assertEqual(receipt["verdict"]["state"], "complete")
             first_preparation = api.requests
-        self.assertLessEqual(counts[3] + first_preparation + 8 * 13 + 182, 800)
+        consumer_bound = checked_request_components(self, measurement=sum(counts[:3]))
+        self.assertLessEqual(counts[3] + first_preparation + consumer_bound, 800)
         self.assertLessEqual(sum(counts[:3]), 800)
         self.assertLessEqual(counts[3], 150)
         if destination := os.environ.get("MUTATION_NATIVE_GATE_API_COST_REPORT"):
             Path(destination).write_text(json.dumps({"pilot": counts[0], "finished_report": counts[1],
                 "review_required": counts[2], "admission_rerun": counts[3],
                 "measurement_attempt_total": sum(counts[:3]), "first_preparation_no_snapshot": first_preparation,
-                "first_admission_plus_preparation_consumers_padded_aggregate_bound": counts[3] + first_preparation + 8 * 13 + 182}, indent=2) + "\n", encoding="utf-8")
+                "component_bounds": REQUEST_COMPONENT_BOUNDS,
+                "first_admission_plus_preparation_consumers_padded_aggregate_bound": counts[3] + first_preparation + consumer_bound}, indent=2) + "\n", encoding="utf-8")
 
 
 class NativePlanBudgetTests(unittest.TestCase):
@@ -706,6 +764,8 @@ class NativePlanBudgetTests(unittest.TestCase):
         q = qualification_tests.QualificationAuthenticationTests()
         q.setUp()
         self.addCleanup(q.doCleanups)
+        tool_tests.recipe_revision(q.fixture.api, q.fixture.contract, "e" * 40,
+            ("4" * 40, "5" * 40, "6" * 40, "7" * 40))
         f = NativeFixture(self, base=q.fixture)
         f.api.responses["repos/owner/repo/actions/runs/300/artifacts?per_page=100&page=1"] = {"artifacts": []}
         job = dict(f.jobs[2][0], status="in_progress", conclusion=None)
@@ -737,9 +797,10 @@ class NativePlanBudgetTests(unittest.TestCase):
             planned = artifacts.strict_json(files["plan.json"])
             native.validate_plan_files(files, planned)
             self.assertEqual(planned["manifest"], f.manifest)
-            self.assertLessEqual(api.requests + 114, 800)
+            self.assertLessEqual(api.requests + REQUEST_COMPONENT_BOUNDS["measurement"], 800)
         if destination := os.environ.get("MUTATION_NATIVE_PLAN_API_COST_REPORT"):
-            Path(destination).write_text(json.dumps({"original_plan": api.requests, "with_native_measurement_stages": api.requests + 114}, indent=2) + "\n")
+            Path(destination).write_text(json.dumps({"original_plan": api.requests,
+                "with_native_measurement_stages": api.requests + REQUEST_COMPONENT_BOUNDS["measurement"]}, indent=2) + "\n")
 
 
 class NativeCappedForecastTests(unittest.TestCase):

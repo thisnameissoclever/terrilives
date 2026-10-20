@@ -47,17 +47,47 @@ def committed_contract(root):
                 "rust-toolchain.toml": (Path(root) / "rust-toolchain.toml").read_text(encoding="utf-8")})}
 
 
+def recipe_tree(api, repository, sha):
+    require(isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha), "invalid recipe tree SHA")
+    tree = api.json(f"repos/{repository}/git/trees/{sha}")
+    require(isinstance(tree, dict) and tree.get("sha") == sha, "recipe tree identity mismatch")
+    require(tree.get("truncated") is False, "recipe Git tree is truncated")
+    require(isinstance(tree.get("tree"), list), "invalid recipe tree entries")
+    rows = {}
+    for row in tree["tree"]:
+        name = row.get("path") if isinstance(row, dict) else None
+        require(isinstance(name, str) and name and name not in (".", "..")
+                and not any(character in name for character in ("/", "\\", ":", "\x00")),
+                "unsafe recipe tree entry")
+        require(name not in rows, "duplicate recipe tree entry")
+        rows[name] = row
+    return rows
+
+
 def verify_committed_contract(api, repository, revision, contract):
-    require(set(contract["files"]) == set(CONTRACT_PATHS), "unexpected recipe paths")
+    for field, width in (("files", 64), ("git_blobs", 40)):
+        require(isinstance(contract.get(field), dict) and set(contract[field]) == set(CONTRACT_PATHS),
+                "unexpected recipe paths")
+        require(all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{" + str(width) + r"}", value)
+                    for value in contract[field].values()), "invalid recipe input hash")
+    require(isinstance(revision, str) and re.fullmatch(r"[0-9a-f]{40}", revision), "invalid recipe revision")
     commit = api.json(f"repos/{repository}/git/commits/{revision}")
     require(commit["sha"] == revision, "recipe commit mismatch")
-    tree = api.json(f"repos/{repository}/git/trees/{commit['tree']['sha']}?recursive=1")
-    require(tree.get("truncated") is False, "recipe Git tree is truncated")
-    rows = {row["path"]: row for row in tree["tree"]}
-    for path in contract["files"]:
-        require(path in rows and rows[path]["type"] == "blob"
-                and rows[path]["mode"] in ("100644", "100755") and rows[path]["sha"] == contract["git_blobs"][path],
-                "committed recipe input mismatch: " + path)
+    trees = {"": recipe_tree(api, repository, commit["tree"]["sha"])}
+    for path in CONTRACT_PATHS:
+        parent = ""
+        parts = path.split("/")
+        for name in parts[:-1]:
+            directory = parent + "/" + name if parent else name
+            if directory not in trees:
+                row = trees[parent].get(name, {})
+                require(row.get("type") == "tree" and row.get("mode") == "040000",
+                        "recipe directory mismatch: " + directory)
+                trees[directory] = recipe_tree(api, repository, row.get("sha"))
+            parent = directory
+        row = trees[parent].get(parts[-1], {})
+        require(row.get("type") == "blob" and row.get("mode") in ("100644", "100755")
+                and row.get("sha") == contract["git_blobs"][path], "committed recipe input mismatch: " + path)
 
 
 def runtime_identity(executable, root, image):

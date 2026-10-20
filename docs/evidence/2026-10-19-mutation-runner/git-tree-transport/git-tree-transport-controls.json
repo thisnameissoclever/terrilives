@@ -1,0 +1,39 @@
+{
+  "controls": [
+    {
+      "control": "subtree_header",
+      "target": "test_mutation_tool.ToolAuthenticationTests.test_subtree_header_must_match_selected_parent_sha",
+      "positive_exit": 0,
+      "negative_exit": 1,
+      "ordinary_assertion_failure": true,
+      "import_or_syntax_error": false
+    },
+    {
+      "control": "duplicate_name",
+      "target": "test_mutation_tool.ToolAuthenticationTests.test_duplicate_immediate_names_are_rejected",
+      "positive_exit": 0,
+      "negative_exit": 1,
+      "ordinary_assertion_failure": true,
+      "import_or_syntax_error": false
+    },
+    {
+      "control": "directory_guard",
+      "target": "test_mutation_tool.ToolAuthenticationTests.test_selected_directory_requires_tree_type_and_mode",
+      "positive_exit": 0,
+      "negative_exit": 1,
+      "ordinary_assertion_failure": true,
+      "import_or_syntax_error": false
+    },
+    {
+      "control": "blob_guard",
+      "target": "test_mutation_tool.ToolAuthenticationTests.test_committed_helper_is_independently_fetched_not_trusted_from_receipt",
+      "positive_exit": 0,
+      "negative_exit": 1,
+      "ordinary_assertion_failure": true,
+      "import_or_syntax_error": false
+    }
+  ],
+  "production_unchanged": true,
+  "production_sha256": "d42308cab14a24b604fff8884b42f6dc9db57731bedc5df999e653c81e0c51bd",
+  "http_requests": 0
+}
