@@ -4,6 +4,8 @@
 
 Each person has their own opinion of every other housemate. Alex liking Sam does not mean Sam likes Alex. Select Alex and open [People](ui-elements/#people) to read Alex's feelings, then select Sam to see the other direction.
 
+:::illustration sim-people
+
 The labels run from Hostile through Dislikes, Wary and Stranger to Warm, Friendly and Close. Feelings change through contact, conversations, domestic work and incidents. Family ties are a separate classification, so a relative can still be disliked.
 
 Relationships affect how rewarding company feels and how nearby people affect mood. They are separate from the Social meter. A friend in the room can be comforting without directly relieving loneliness.
@@ -100,6 +102,8 @@ Starting work, carrying dishes, partly wiping a surface or canceling before comp
 When a helper covers an owner who deliberately skipped an overdue duty, the helper can also feel worse toward that owner. At midnight, missed work can produce neglect consequences once for that day's duty, after the [mess grace period](relationships/#mess-and-nuisance). Work must have been needed and the owner must have had an opportunity. A no-work day or unavailable owner is exempt. Settlement waits when the grace period has not ended or the original day's work is still active. A settled duty does not receive repeated settlement penalties.
 
 Liking a chore is separate from responsibility and current needs. A preferred chore can affect the worker's mood; it does not directly rewrite somebody else's opinion. Urgent Hunger, Energy or Bladder can reduce autonomous cleanup even for a meticulous person. Use [Chores](ui-elements/#chores) to inspect duties and [Do now](activities/#housework) to direct actual work.
+
+:::illustration chores-profile
 
 ### Repair after a chore argument {#chore-repair}
 

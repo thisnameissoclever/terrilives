@@ -17,12 +17,9 @@
     "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
     "audio": "Muted through saved game preferences",
     "pendingRefresh": [
-      "build-windows",
       "window-models",
       "build-floors",
-      "floor-actions",
       "build-room-outline",
-      "help",
       "help-shortcuts"
     ],
     "snapshots": [
@@ -153,6 +150,63 @@
         "nativeSourceCommit": "834227d882e60885654646742951976d91928880",
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-20"
+      },
+      {
+        "id": "guide-controls-refresh-2026-10-20",
+        "capturedAt": "2026-10-20",
+        "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+        "mergedMainCommit": "834227d882e60885654646742951976d91928880",
+        "method": "Actual game in the native browser, served by Vite in development mode after rebuilding the release WebAssembly package with wasm-pack. JavaScript was served as development modules; no production bundle was captured.",
+        "wasm": "web/src/wasm/terri_wasm_bg.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "desktopViewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "mobileViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "state": "Paused on Day 1 at 04:42; flat lighting; Sound off. A disposable interior wall was created through Wall, then selected for wall controls and the Sash window preview. Floors shows a selected tile. Help shows collapsed sections.",
+        "cleanup": "Cancelled the Build draft and closed the task-owned game and server."
+      },
+      {
+        "id": "build-release-help-e620",
+        "url": "http://127.0.0.1:5194/",
+        "sourceCommit": "7a9b6fdb2",
+        "sourceChanges": "Working-tree integration of guide main e620ff5c51acd9779246b8996af8a8f6c1f66c0b; game inputs unchanged from the reviewed 7a9b6fdb2 integration.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "34408a446d149b1eb9d1ff3e016413e50cc736b7a6dd393c2df204b40c1897aa",
+          "docs/player/home-and-controls.md": "8317beb4ac8f18235ac5b2117d058a22bbe5c34970f5b54aca5aaf7296a1a68b",
+          "docs/player/ui-elements.md": "213171d1b35bb33738f0de942be2920e2b7c4f4df4102cd080fb962b473dfad3",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "b820d304f1911e80d39818ba41fa4dec23072b30491dc98c47e6008e2428da54"
+        },
+        "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+        "bundle": "index-BS3Asst8.js",
+        "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+        "wasm": "terri_wasm_bg-CbUQR3HM.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "gameSourceFileSha256": {
+          "web/index.html": "c6c17e326f294d16b73d16335a9367fd85e437d9c51647debd7dc90762e7f3f5",
+          "web/src/main.ts": "2338ebe6e9d6a1a386d87d4fe5ee1bf98cee2f0ff313cfa1943bd70f88a4fda4",
+          "web/src/ui/build-exit.ts": "ef132e576274557752c37383d8875a95f25e4cd9f2f59d5e0b041eaca99336f3",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "ddf5d0daf3797989a0a6d4383bdc98440fd01675195705b8e1a956ebd08e4d47",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        },
+        "nativeSourceCommit": "834227d882e60885654646742951976d91928880",
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-20",
+        "method": "Displayed isolated Chrome 155 through the provided Playwright tool; one game navigation, muted process, initial Help paused at 00:00."
       }
     ],
     "weatherSetup": {
@@ -239,7 +293,7 @@
       "returnedWalls": "The Walls selection is established by visible selected styling and the played ARIA receipt. activeElement remains the Land launcher and does not identify the selected tool.",
       "independentReview": "Current game image states independently inspected; rendered guide acceptance and executed interaction receipts are retained separately."
     },
-    "pendingRefreshReason": "The 2026-10-19 walls and floors change adds the Low and Full height controls, marks wall selections with a bar along the line, draws walls low while building and moves the floating build buttons clear of the selection; these captures predate it."
+    "pendingRefreshReason": "The remaining capture-inventory entries predate the walls and floors controls update. They remain historical evidence pending refresh and are not selected by the curated guide illustrations. Walls, Windows, floor actions and Help were refreshed in guide-controls-refresh-2026-10-20."
   },
   "entries": [
     {
@@ -700,19 +754,21 @@
       "mobile": "images/ui-build-release-integrated-walls-mobile.png",
       "description": "Walls in Low view, with Full height available and the bottom Confirm and Cancel controls visible.",
       "access": "Open Build, then Walls. Low is selected by default; choose Full height to raise every wall.",
-      "desktopDetail": "images/ui-build-walls-detail-desktop.png",
+      "desktopDetail": "images/guide/build-walls-desktop.png",
       "sourceSnapshot": "build-release-main-834",
       "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
       "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
       "imageSha256": {
         "desktop": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a",
         "mobile": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9",
-        "desktopDetail": "f135ea97a8b29e3726cc38198a6937f0a6fa0425f8e3e1e8823b11223fc4403e"
+        "desktopDetail": "47e5bf9c4aa4f2c53bfa7e0b61ab92c032ee73c09413fa75c546d6cd4f6d0e71",
+        "mobileDetail": "5e2f95098471157f3e7f45975d97b572e7e6de492ef686b16217f12846f80d2f"
       },
       "imageSourceSnapshots": {
-        "desktopDetail": "minus-fix",
+        "desktopDetail": "guide-controls-refresh-2026-10-20",
         "desktop": "build-release-main-834",
-        "mobile": "build-release-main-834"
+        "mobile": "build-release-main-834",
+        "mobileDetail": "guide-controls-refresh-2026-10-20"
       },
       "captureMetadata": {
         "desktop": {
@@ -739,24 +795,29 @@
           "dialogs": [],
           "sourceImageSha256": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9"
         }
-      }
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "mobileDetail": "images/guide/build-walls-mobile.png"
     },
     {
       "id": "build-windows",
       "section": "walls",
-      "desktop": "images/ui-build-windows-desktop.png",
-      "mobile": "images/ui-build-windows-mobile.png",
-      "description": "Window models and placement controls.",
+      "desktop": "images/ui-build-windows-refresh-desktop.png",
+      "mobile": "images/ui-build-windows-refresh-mobile.png",
+      "description": "Window models and a Sash window placement preview on the selected interior wall.",
       "access": "Choose Build > Walls, select an edge, then choose Windows.",
-      "desktopDetail": "images/ui-build-windows-detail-desktop.png",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "95582e549a565896ef1667b66279dade5c030824733c1d770016a01bd680c331",
-        "mobile": "d0669fe9a875c423461921a4b60e92f534e3cca86449aceaebcfe8809e0712c6",
-        "desktopDetail": "978e8fc2612ffcd0fd93b11d502c1009158229752a7aad4afda4299786af72f4"
-      }
+        "desktop": "7e6d643ad6646ee68b07f0ffd8e698108270c4aff493fa277dab48da3c94c57a",
+        "desktopDetail": "37bdcdeb8c538205ab514c5ab902ccbe873ba4771f2a6d1af6c8b2c8f962f835",
+        "mobile": "6bddde3cac9e7f370e1567eb271de3361027da8eab5a0ecb3390157f4d7376d9",
+        "mobileDetail": "a54b8614d9c2e00acb7a473825d52b0e8767057a44be492beb2a0553d0ab62c7"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/build-windows-desktop.png",
+      "mobileDetail": "images/guide/build-windows-mobile.png"
     },
     {
       "id": "creator-appearance",
@@ -1121,20 +1182,24 @@
     {
       "id": "help",
       "section": "help",
-      "desktop": "images/ui-build-release-help-desktop.png",
-      "mobile": "images/ui-build-release-help-mobile.png",
+      "desktop": "images/ui-build-release-help-current-desktop.png",
+      "mobile": "images/ui-build-release-help-current-mobile.png",
       "description": "Build & place in the short in-game Help dialog.",
       "access": "Choose Options > Help, then expand Build & place. Scroll inside Help for the remaining instructions.",
-      "sourceSnapshot": "build-release-guide-integration",
-      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
-      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "sourceSnapshot": "build-release-help-e620",
+      "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+      "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
       "imageSha256": {
-        "desktop": "a5ec1e15422803788786d8c7793c6ad7178a8c1b83ca0285e6ffde609aa2a308",
-        "mobile": "bed63d4441a8b58bfd72094410a1ab2b046c42f7c05a9b8a91e1d603554c8e0d"
+        "desktop": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+        "mobile": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+        "desktopDetail": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123",
+        "mobileDetail": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
       },
       "imageSourceSnapshots": {
-        "desktop": "build-release-guide-integration",
-        "mobile": "build-release-guide-integration"
+        "desktop": "build-release-help-e620",
+        "mobile": "build-release-help-e620",
+        "desktopDetail": "build-release-help-e620",
+        "mobileDetail": "build-release-help-e620"
       },
       "captureMetadata": {
         "desktop": {
@@ -1145,14 +1210,11 @@
             "height": 960
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "captureMethod": "Original displayed Chrome PNG through Playwright; no raster edits",
           "dialogs": [
-            {
-              "id": "help-panel",
-              "text": "How to play\n\nGame time is paused while this guide is open.\n\nBuild & place\nBuild pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Confirm at the bottom keeps this batch and exits Build. Cancel there discards this batch and exits Build. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.\nWalls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.\nRooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits and the current tool. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm at the bottom keeps the batch and exits Build.\nBuy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.\nFloors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.\nLand starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See rooms and land.\nPeople & actions\nCompany & chores\nCamera\nOptions & saves\nFull player guide\nShortcuts\nGot it"
-            }
+            "help-panel"
           ],
-          "sourceImageSha256": "a5ec1e15422803788786d8c7793c6ad7178a8c1b83ca0285e6ffde609aa2a308"
+          "sourceImageSha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb"
         },
         "mobile": {
           "width": 390,
@@ -1162,16 +1224,17 @@
             "height": 844
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "captureMethod": "Original displayed Chrome PNG through Playwright; no raster edits",
           "dialogs": [
-            {
-              "id": "help-panel",
-              "text": "How to play\n\nGame time is paused while this guide is open.\n\nBuild & place\nBuild pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Confirm at the bottom keeps this batch and exits Build. Cancel there discards this batch and exits Build. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.\nWalls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.\nRooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits and the current tool. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm at the bottom keeps the batch and exits Build.\nBuy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.\nFloors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.\nLand starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See rooms and land.\nPeople & actions\nCompany & chores\nCamera\nOptions & saves\nFull player guide\nShortcuts\nGot it"
-            }
+            "help-panel"
           ],
-          "sourceImageSha256": "bed63d4441a8b58bfd72094410a1ab2b046c42f7c05a9b8a91e1d603554c8e0d"
+          "sourceImageSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016"
         }
-      }
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/help-build-exits-desktop.png",
+      "mobileDetail": "images/guide/help-build-exits-mobile.png"
     },
     {
       "id": "load-confirm",
@@ -1539,17 +1602,21 @@
     {
       "id": "floor-actions",
       "section": "floors",
-      "desktop": "images/ui-floor-actions-desktop.png",
-      "mobile": "images/ui-floor-actions-mobile.png",
+      "desktop": "images/ui-floor-actions-refresh-desktop.png",
+      "mobile": "images/ui-floor-actions-refresh-mobile.png",
       "description": "The floor materials and Remove and Cancel beside a selected tile.",
       "access": "Choose Build > Floors, then click or tap a visible floor tile.",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "12a92e387e8723c47437d178403d1ec80b0f0fa452f0c2c1021c100367635810",
-        "mobile": "687a3ad3449c05e39ea938988e96cc0c89b824cb28ff8bdcffbfe0f4ecb9204b"
-      }
+        "desktop": "9367e1e111a4a5a7a5fab3de7bd90163dd8feaa6ad9949c6d3c6ed7688c2ee74",
+        "desktopDetail": "dbf72732c86f0ea85097f42df6d0c1fe30ba52a3675a33cee2753e8562f25bfe",
+        "mobile": "6fdfacff5498cc4ee55c3ba433c9abecea53809de361f719b89605e7f43201f1",
+        "mobileDetail": "4121fbfb2ff9df5fbbc85a55f8dbb92efe6344992ab9d331bff110c204437aab"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/floor-actions-desktop.png",
+      "mobileDetail": "images/guide/floor-actions-mobile.png"
     },
     {
       "id": "help-shortcuts",

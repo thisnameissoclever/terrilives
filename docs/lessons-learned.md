@@ -13083,3 +13083,12 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Use a bounded readiness handshake and start the fixture observation clock only after the required child state exists. Clear readiness markers between invocations. Keep production deadlines and shutdown limits unchanged.
 
 **Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.
+## [L-guide-capture-coverage-is-not-reading-quality] Curate screenshots around the reader's task
+
+**What happened.** The owner rejected the player guide's screenshot presentation: uncropped captures formed a disjointed dump, repeated desktop/phone wording and captions added noise, and images opened as raw files in new tabs. Screenshots were concentrated in the UI reference while articles discussing the same controls had no illustrations beside their instructions.
+
+**Root cause.** Capture coverage was treated as proof of a useful reading experience. The capture inventory drove presentation instead of an author choosing the image, crop and position that explained each passage. Review checked that screenshots existed without adequately testing whether a novice could read the labels and follow the surrounding instructions.
+
+**Prevention.** Keep capture provenance separate from curated article illustrations. Place figures explicitly beside relevant instructions, including in substantive topic articles. Crop controls to readable size while preserving their location context. Use captions only when they add meaning, preserve real desktop/phone differences without repeating identical instructions, and provide a shared device choice with in-page enlargement. Keep essential instructions visible and avoid narrowing tables beside images.
+
+**Verification.** Require a fresh reviewer to reject the known defective presentation before judging the repair. Read actual rendered sections at desktop and phone widths in both themes, including an article outside the UI reference and a long flow such as the creator. Check that each image explains nearby instructions, labels are legible, device selection applies consistently, and enlargement returns the reader to the same place. Passing image-coverage tests does not prove those results.

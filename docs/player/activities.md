@@ -4,6 +4,8 @@
 
 Select a person, then click or tap an object for its default action. Right-click or long-press for a particular action. The [object menu](ui-elements/#object-menu) shows the available choices; More actions opens another page when needed.
 
+:::illustration object-menu
+
 This table lists direct need effects. [Baseline values](activities/#baseline-values) gives the current model-specific reference numbers. A blank benefit is meaningful: the action may change the home, mood, skills or long-term satisfaction while refilling no need. Ordinary need loss continues throughout.
 
 On a narrow screen, scroll a table sideways to read its remaining columns. With a keyboard, focus the table and use the arrow keys.
@@ -134,6 +136,8 @@ Completed physical cleaning improves every other living housemate's opinion of t
 Open [Chores](ui-elements/#chores) to see assignments, actual dirt, outcomes and Do now. The person selected performs Do now. Responsibilities and preferences affect future autonomous decisions; they do not guarantee every duty will be done.
 
 After a completed argument about an assigned duty, its owner may choose to start that work. Completing the same duty within four game hours can [repair feelings](relationships/#chore-repair) with the initiator and housemates who complained. The owner must earn the completion credit: for floors, surfaces and bins, they must complete the task themselves. For dishes, they must be the largest contributor to that unfinished duty and wash some dishes during the repair window. A helper washing the final plate does not prevent an eligible owner's repair; a helper doing most of the washing does. Each cleaner still earns ordinary appreciation for their own completed work. Urgent needs, work and your orders take priority over the owner's automatic response.
+
+:::illustration chores-board
 
 ## Timing, failure and interruption {#delivery}
 

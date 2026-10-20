@@ -6,6 +6,8 @@ Every housemate has Hunger, Energy, Hygiene, Bladder, Social, Fun and Comfort. A
 
 Select a person under Household. Desktop shows needs in the bottom dock; on a phone open [Sim details](ui-elements/#sim-details), then Overview. A need warning tells you what is low, while the activity row tells you what the person is actually doing.
 
+:::illustration sim-needs
+
 An activity can help one meter while another falls. Benefits also have requirements: a television needs another active viewer to supply Social, and hand washing stops at partial cleanliness. Check the [activity reference](activities/#all-actions) before repeating an action that is not solving the problem.
 
 ## Hunger {#hunger}

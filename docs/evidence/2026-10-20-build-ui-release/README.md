@@ -2,7 +2,7 @@
 
 The owner authorized relevant local CI checks and a fresh adversarial review in place of remote GitHub checks, followed by merge, deployment and live verification. This record covers the final local corrections and guide acceptance. Deployment and served-asset evidence is recorded separately after publication.
 
-The reviewed base is `1cb7b7a3dcbbac856001eac1cbd888676cfcd6fc`. The source hashes and diffs in the repair reports identify the subsequent changes. Final public notes remain in `docs/player/changelog/2026-10-20-build-controls.md`; the six unpublished bullets cover the UI behavior. The fixture clock correction is internal and needs no player-facing note.
+The reviewed base is `1cb7b7a3dcbbac856001eac1cbd888676cfcd6fc`. The source hashes and diffs in the repair reports identify the subsequent changes. Final public notes are consolidated with the published guide contribution in `docs/player/changelog/2026-10-20-guide-illustrations.md`; the six Build UI bullets are preserved. The fixture clock correction is internal and needs no player-facing note.
 
 ## Corrections and checks
 
@@ -22,6 +22,16 @@ Eight current game/guide PNGs were inspected directly and accepted by an indepen
 An earlier verification attempt used a button locator for speed controls that are radios; its failure receipt is retained separately. Cua's page attachment failed independently. The task-owned Cua tab was closed through documented tab management, and an exact-origin tab query returned no matches. The working Playwright route does not establish that Cua was repaired. The static guide remained readable without JavaScript, including the combined wall-height, floor-area and exit instructions. All task pages and the task preview server were closed afterward.
 
 The public guide's Walls image pair now shows the integrated Low/Full height controls and footer. Historical returned-Walls images remain unchanged, with their original source attribution. Other screenshot groups that incoming main marked for refresh retain that explicit status; these checks do not claim to refresh every unrelated upstream guide image. The `main-834/` records identify the current integration's captures, reviews and checks.
+
+## Guide illustration integration
+
+Main subsequently advanced to `e620ff5c51acd9779246b8996af8a8f6c1f66c0b` with inline guide illustrations. Game source, native content and dependencies are unchanged from the accepted game integration. The existing October 20 guide-illustration filename is preserved, with this release's six UI bullets consolidated into that entry. The unpublished Build-only file was removed; published history and filename anchors were preserved.
+
+The merge retains the shared Desktop/Phone selector, inline figures, image viewer and visible instructions. It also retains this release's footer exits, Land decisions, review Back and clipped-status explanation. Fresh source review found mixed per-image source identifiers after the metadata merge. Those identifiers were corrected, and the final metadata rereview verifies every recorded image hash, per-image source and retained snapshot identity.
+
+Current Help illustrations were recaptured directly from the displayed game's Help panel so the pictured text describes footer exits. Original full-viewport frames and exact panel rectangles are retained. These are original browser element screenshots, without raster edits. Both new Help pairs and the updated guide were inspected directly and accepted by an independent reviewer.
+
+All 33 relevant guide/changelog checks, the production build, guide/changelog generation, documentation IDs and source-reference check passed. The production build took 37.11 seconds. Four viewport/theme captures have no horizontal overflow. Shared screenshot layout, zoom, Fit, Close, Escape and focus return were exercised. Fit returned the picture within its stage; exact equality with the initial style is not claimed because zoom scrollbars change available stage width. Without JavaScript, instructions and the native phone-image disclosure remain usable. No guide console errors or warnings were observed. The `main-e620/` records retain these results and their source bounds.
 
 ## Evidence limits
 

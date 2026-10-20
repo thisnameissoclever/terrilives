@@ -11,6 +11,8 @@ Natural Causes is a household life sim. Your housemates choose activities for th
 5. Resume and watch the whole activity. Walking to a fridge and cooking do not relieve Hunger; eating the food does. Other benefits often arrive during use.
 6. Open Options, then Save when you want to keep this household. The game also autosaves at the start of a new game day. Load and New game ask before replacing progress.
 
+:::illustration overview
+
 The [UI elements reference](ui-elements/#overview) shows the actual desktop and phone controls. [Activities](activities/#all-actions) explains what each action changes, including actions that refill no need.
 
 ## When someone needs help {#help-a-housemate}
