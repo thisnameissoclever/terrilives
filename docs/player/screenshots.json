@@ -17,13 +17,9 @@
     "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
     "audio": "Muted through saved game preferences",
     "pendingRefresh": [
-      "build-walls",
-      "build-windows",
       "window-models",
       "build-floors",
-      "floor-actions",
       "build-room-outline",
-      "help",
       "help-shortcuts"
     ],
     "snapshots": [
@@ -83,6 +79,25 @@
         "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
         "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
         "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "guide-controls-refresh-2026-10-20",
+        "capturedAt": "2026-10-20",
+        "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+        "mergedMainCommit": "834227d882e60885654646742951976d91928880",
+        "method": "Actual game in the native browser, served by Vite in development mode after rebuilding the release WebAssembly package with wasm-pack. JavaScript was served as development modules; no production bundle was captured.",
+        "wasm": "web/src/wasm/terri_wasm_bg.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "desktopViewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "mobileViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "state": "Paused on Day 1 at 04:42; flat lighting; Sound off. A disposable interior wall was created through Wall, then selected for wall controls and the Sash window preview. Floors shows a selected tile. Help shows collapsed sections.",
+        "cleanup": "Cancelled the Build draft and closed the task-owned game and server."
       }
     ],
     "weatherSetup": {
@@ -151,7 +166,7 @@
       "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
       "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
     },
-    "pendingRefreshReason": "The 2026-10-19 walls and floors change adds the Low and Full height controls, marks wall selections with a bar along the line, draws walls low while building and moves the floating build buttons clear of the selection; these captures predate it."
+    "pendingRefreshReason": "The remaining capture-inventory entries predate the walls and floors controls update. They remain historical evidence pending refresh and are not selected by the curated guide illustrations. Walls, Windows, floor actions and Help were refreshed in guide-controls-refresh-2026-10-20."
   },
   "entries": [
     {
@@ -506,36 +521,40 @@
     {
       "id": "build-walls",
       "section": "walls",
-      "desktop": "images/ui-build-walls-desktop.png",
-      "mobile": "images/ui-build-walls-mobile.png",
+      "desktop": "images/ui-build-walls-refresh-desktop.png",
+      "mobile": "images/ui-build-walls-refresh-mobile.png",
       "description": "Wall, Doorway, Windows, rotation, Remove and Cancel controls beside a selected edge.",
       "access": "Choose Build > Walls, then select an edge between two tiles.",
-      "desktopDetail": "images/ui-build-walls-detail-desktop.png",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "adc89c061d4a5b2ad5cc9262c02a79e321f2c9201b4b66fcf0e8f1d61a182f52",
-        "mobile": "2d167490ece5c377c42496235a69f2327298537ef54c499eca245b65fd17ef24",
-        "desktopDetail": "f135ea97a8b29e3726cc38198a6937f0a6fa0425f8e3e1e8823b11223fc4403e"
-      }
+        "desktop": "f78e550f8e2dc2a995b98dca58c0e5c8d33ce72c8833269fc1b5bb675baff8b8",
+        "desktopDetail": "47e5bf9c4aa4f2c53bfa7e0b61ab92c032ee73c09413fa75c546d6cd4f6d0e71",
+        "mobile": "f78585acc024da73ce4658631304d8a5aba2b28ba30ccae63112642cebdb5c71",
+        "mobileDetail": "5e2f95098471157f3e7f45975d97b572e7e6de492ef686b16217f12846f80d2f"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/build-walls-desktop.png",
+      "mobileDetail": "images/guide/build-walls-mobile.png"
     },
     {
       "id": "build-windows",
       "section": "walls",
-      "desktop": "images/ui-build-windows-desktop.png",
-      "mobile": "images/ui-build-windows-mobile.png",
-      "description": "Window models and placement controls.",
+      "desktop": "images/ui-build-windows-refresh-desktop.png",
+      "mobile": "images/ui-build-windows-refresh-mobile.png",
+      "description": "Window models and a Sash window placement preview on the selected interior wall.",
       "access": "Choose Build > Walls, select an edge, then choose Windows.",
-      "desktopDetail": "images/ui-build-windows-detail-desktop.png",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "95582e549a565896ef1667b66279dade5c030824733c1d770016a01bd680c331",
-        "mobile": "d0669fe9a875c423461921a4b60e92f534e3cca86449aceaebcfe8809e0712c6",
-        "desktopDetail": "978e8fc2612ffcd0fd93b11d502c1009158229752a7aad4afda4299786af72f4"
-      }
+        "desktop": "7e6d643ad6646ee68b07f0ffd8e698108270c4aff493fa277dab48da3c94c57a",
+        "desktopDetail": "37bdcdeb8c538205ab514c5ab902ccbe873ba4771f2a6d1af6c8b2c8f962f835",
+        "mobile": "6bddde3cac9e7f370e1567eb271de3361027da8eab5a0ecb3390157f4d7376d9",
+        "mobileDetail": "a54b8614d9c2e00acb7a473825d52b0e8767057a44be492beb2a0553d0ab62c7"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/build-windows-desktop.png",
+      "mobileDetail": "images/guide/build-windows-mobile.png"
     },
     {
       "id": "creator-appearance",
@@ -900,21 +919,21 @@
     {
       "id": "help",
       "section": "help",
-      "desktop": "images/ui-help-desktop.png",
-      "mobile": "images/ui-help-mobile.png",
-      "description": "The short in-game Help dialog.",
+      "desktop": "images/ui-help-refresh-desktop.png",
+      "mobile": "images/ui-help-refresh-mobile.png",
+      "description": "The short in-game Help dialog with its topic sections collapsed.",
       "access": "Choose Options > Help.",
-      "sourceSnapshot": "current-main-help",
-      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
-      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "92a425a88d38367616849da445256e550b01a9feb094775d480465562491a44c",
-        "mobile": "adf87610bf18dd4517bb70d54b173f34a8fe1790ff9fe407b5b9b8486905eb75",
-        "desktopDetail": "25d519dbcb8a4615dddc80ab2abe16ba440b54ec7b9ecf522a893dffc7201493",
-        "mobileDetail": "6fe55426f5aa74558c2d3a5eef88f02dd64d4f25a1ce8ee6ef378e13be0c70d4"
+        "desktop": "79d9e8016048eb96ce27c6fc1d42d4b9da4522e39d45b7218344b55d67d6b7b0",
+        "desktopDetail": "4554ed6c9c9445a1733828140ebd4687b22f197e389c912b5ad9f90ad3e7dce9",
+        "mobile": "bda913de672342401f4d4fa4a6a0d2be3514316dfa6e86e94fd5c27372db7918",
+        "mobileDetail": "daade701f403439a398c066280fdb59374bd63bcbb5426fd7db7c9ef9a24e9e6"
       },
-      "desktopDetail": "images/ui-help-detail-desktop.png",
-      "mobileDetail": "images/ui-help-detail-mobile.png"
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/help-desktop.png",
+      "mobileDetail": "images/guide/help-mobile.png"
     },
     {
       "id": "load-confirm",
@@ -1282,17 +1301,21 @@
     {
       "id": "floor-actions",
       "section": "floors",
-      "desktop": "images/ui-floor-actions-desktop.png",
-      "mobile": "images/ui-floor-actions-mobile.png",
+      "desktop": "images/ui-floor-actions-refresh-desktop.png",
+      "mobile": "images/ui-floor-actions-refresh-mobile.png",
       "description": "The floor materials and Remove and Cancel beside a selected tile.",
       "access": "Choose Build > Floors, then click or tap a visible floor tile.",
-      "sourceSnapshot": "minus-fix",
-      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
       "imageSha256": {
-        "desktop": "12a92e387e8723c47437d178403d1ec80b0f0fa452f0c2c1021c100367635810",
-        "mobile": "687a3ad3449c05e39ea938988e96cc0c89b824cb28ff8bdcffbfe0f4ecb9204b"
-      }
+        "desktop": "9367e1e111a4a5a7a5fab3de7bd90163dd8feaa6ad9949c6d3c6ed7688c2ee74",
+        "desktopDetail": "dbf72732c86f0ea85097f42df6d0c1fe30ba52a3675a33cee2753e8562f25bfe",
+        "mobile": "6fdfacff5498cc4ee55c3ba433c9abecea53809de361f719b89605e7f43201f1",
+        "mobileDetail": "4121fbfb2ff9df5fbbc85a55f8dbb92efe6344992ab9d331bff110c204437aab"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/floor-actions-desktop.png",
+      "mobileDetail": "images/guide/floor-actions-mobile.png"
     },
     {
       "id": "help-shortcuts",
