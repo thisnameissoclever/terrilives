@@ -4010,3 +4010,11 @@ The initiator remains committed while waiting and needs continue to decay. Long 
 The desktop production build was played through a desk-writing session and a complete shared-interest conversation between partners. Casey's Social rose during writing. Both conversation participants gained Social and positive feelings. The activity labels, desk seating, conversation bubbles and People panel were inspected directly and reviewed independently from selected captures.
 
 The exact measurements, captures, browser settings and review limits are in [the dated evidence](evidence/2026-10-19-social-balance/verification.md). Household grace and family forgiveness also have simulation regression checks. This focused pass does not establish every animation phase, phone performance or long-term population balance.
+
+## [A-build-walls-ux] Walls, windows and floors in Build mode, 2026-10-19
+
+The desktop development build was played in the Walls and Floors tools with the shipped household. A click high on the face of the bottom-left front wall chose that wall and tinted it; the same click in the previous renderer chose an empty line behind the wall. The low wall view kept the rooms visible while the chosen wall stood full height. Two clicks along the lot's south edge chose a five-line run, Wall built all five, and a three-unit window fitted in them. Two corner clicks in Floors chose a four by four area that took one covering.
+
+Two findings were fixed during the pass. A first click near tile corners in the last row chose the crossing line, so the second click could not extend the run; the run now follows the direction the clicks travel. The floating buttons covered floor areas and the near end of a run reaching the screen's edge; they now clear the whole selection. Remaining findings that predate this work: the Floors panel's swatches overlap their labels, and unselected windows read only as a pale strip in the low view.
+
+Captures, review verdicts and limits are in [the dated evidence](evidence/2026-10-19-build-walls/verification.md). This pass covers the desktop layout with a mouse; touch and phone layouts were not played.

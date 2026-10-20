@@ -16,7 +16,16 @@
     },
     "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
     "audio": "Muted through saved game preferences",
-    "pendingRefresh": [],
+    "pendingRefresh": [
+      "build-walls",
+      "build-windows",
+      "window-models",
+      "build-floors",
+      "floor-actions",
+      "build-room-outline",
+      "help",
+      "help-shortcuts"
+    ],
     "snapshots": [
       {
         "id": "initial",
@@ -141,7 +150,8 @@
       "browserErrors": [],
       "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
       "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
-    }
+    },
+    "pendingRefreshReason": "The 2026-10-19 walls and floors change adds the Low and Full height controls, marks wall selections with a bar along the line, draws walls low while building and moves the floating build buttons clear of the selection; these captures predate it."
   },
   "entries": [
     {

@@ -38,26 +38,25 @@ pub(crate) fn record(line: WallLine, doorway: bool) -> WallEdge {
     }
 }
 
-/// A line nothing can be built on as a wall: the house's implicit north and
-/// west shell (`house`, which may stand away from the grid's edge once land
-/// is bought, issue 254), or the grid's own north and west edge.
+/// The house's implicit north and west shell (`house`, which may stand away
+/// from the grid's edge once land is bought, issue 254): a line that is a
+/// wall without any record and is never built on as one.
 pub(crate) fn is_rear(line: WallLine, house: HouseRect) -> bool {
     house.is_rear(line)
-        || match line.axis {
-            EdgeAxis::Vertical => line.x == 0,
-            EdgeAxis::Horizontal => line.y == 0,
-        }
 }
 
-/// Rear glazing belongs only to the house's implicit north/west shell.
+/// A window may stand on the implicit shell or on any line a wall may stand
+/// on, the lot's own edge included ([WT-rules]): glass there looks out past
+/// the lot, and the fitter still asks for a wall on every unit.
 pub fn window_line_in_bounds(line: WallLine, width: u32, height: u32, house: HouseRect) -> bool {
-    if house.is_rear(line) {
-        true
-    } else if is_rear(line, house) {
-        false
-    } else {
-        record(line, false).in_bounds(width, height)
-    }
+    is_rear(line, house) || record(line, false).physical_in_bounds(width, height)
+}
+
+/// The two tiles a window or wall line separates, when both are on the grid.
+/// A line on the lot's edge has nothing beyond it to block.
+pub(crate) fn grid_cells(line: WallLine, width: u32, height: u32) -> Option<[(i32, i32); 2]> {
+    let edge = record(line, false);
+    edge.in_bounds(width, height).then(|| edge.cells())
 }
 
 /// A perpendicular boundary meeting an internal aperture vertex cuts the window.
@@ -90,7 +89,13 @@ pub fn validate_window_layout(
     use PlacementRefusal::*;
     let mut seen = BTreeSet::new();
     for edge in layout.edges() {
-        if !edge.physical_in_bounds(width, height) {
+        let line = WallLine {
+            axis: edge.axis,
+            x: edge.x,
+            y: edge.y,
+        };
+        // The implicit shell is always a wall: it may be glazed, never opened.
+        if !edge.physical_in_bounds(width, height) || (edge.doorway && is_rear(line, house)) {
             return Err(OutOfBounds);
         }
         if !seen.insert((edge.axis, edge.x, edge.y)) {
@@ -164,10 +169,11 @@ pub(crate) fn validate_restored_windows(world: &World) -> Result<(), PlacementRe
         return Err(PlacementRefusal::BlockedDoor);
     }
     let house = crate::lot_frame::house_or_grid(world);
+    let (width, height) = (grid.width() as u32, grid.height() as u32);
     let walls: Vec<_> = lines
         .into_iter()
         .filter(|&line| !is_rear(line, house))
-        .map(|line| record(line, false).cells())
+        .filter_map(|line| grid_cells(line, width, height))
         .collect();
     check_new_walls(world, &current.rectangles, grid, &walls)
 }
@@ -255,7 +261,7 @@ pub fn validate_window_edit(
     let walls: Vec<_> = affected_lines
         .iter()
         .filter(|&&line| !is_rear(line, house))
-        .map(|&line| record(line, false).cells())
+        .filter_map(|&line| grid_cells(line, live.width() as u32, live.height() as u32))
         .collect();
     for &[a, b] in &walls {
         grid.set_edge_blocked(a, b, true);

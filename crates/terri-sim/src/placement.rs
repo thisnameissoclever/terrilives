@@ -244,13 +244,15 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                     y: window.y,
                     doorway: false,
                 };
-                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                if !edge.physical_in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((window.axis, window.x, window.y))
                 {
                     return Err(UnsupportedLayout);
                 }
-                let [a, b] = edge.cells();
-                grid.set_edge_blocked(a, b, true);
+                if edge.in_bounds(grid.width() as u32, grid.height() as u32) {
+                    let [a, b] = edge.cells();
+                    grid.set_edge_blocked(a, b, true);
+                }
             }
         }
     }

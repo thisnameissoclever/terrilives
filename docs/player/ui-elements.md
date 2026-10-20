@@ -102,13 +102,13 @@ The catalogue can scroll while the placement controls remain available. An item 
 
 ## Walls and Windows {#walls}
 
-Desktop and phone: Build, then Walls, then select an edge between tiles. The actions beside that edge offer wall, doorway, removal and window choices. Windows is reached from a selected wall edge; it is not a separate tool in the main Build strip.
+Desktop and phone: Build, then Walls, then select an edge between tiles, or a second edge in the same row to select a run. The actions beside the selection offer wall, doorway, removal and window choices. Low and Full height set how tall walls are drawn while you build. Windows is reached from a selected wall edge; it is not a separate tool in the main Build strip.
 
 The status explains refusals. Windows block travel while admitting daylight. Doorways allow travel. Changes remain in the Build draft until Confirm. See [walls and floors](home-and-controls/#walls-and-floors).
 
 ## Floors {#floors}
 
-Desktop and phone: Build, then Floors, then select a tile. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
+Desktop and phone: Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm keeps the batch.
 
 ## Rooms {#rooms}
 

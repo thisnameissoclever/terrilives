@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { BARE, CHOOSE_TILE, FloorTool, coveringOf, tileAt } from '../src/ui/floor-tool.js';
 import { FloorToolControls } from '../src/ui/floor-tool-controls.js';
+import { EDITS_PER_FRAME } from '../src/ui/command-batch.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
@@ -24,8 +25,11 @@ class FakeFloors {
     return new Uint32Array(this.tiles);
   }
 
-  floorEditPreview(_x: number, _y: number, covering: number): number {
-    return this.refusals[covering] ?? 1;
+  /** A refusal for one tile, `x,y`, whatever the covering. */
+  refusedAt = new Map<string, number>();
+
+  floorEditPreview(x: number, y: number, covering: number): number {
+    return this.refusedAt.get(`${x},${y}`) ?? this.refusals[covering] ?? 1;
   }
 
   setFloor(x: number, y: number, covering: number): boolean {
@@ -68,6 +72,94 @@ describe('coveringOf', () => {
     expect(coveringOf(tiles, 3, 2)).toBe(1);
     expect(coveringOf(tiles, 0, 0)).toBe(BARE);
     expect(coveringOf([], 0, 0)).toBe(BARE);
+  });
+});
+
+describe('an area of tiles ([FL-area])', () => {
+  it('selects every tile between two corner clicks and lays the covering on them all at once', () => {
+    const { floors, source } = tool();
+    floors.choosePoint(3, 0);
+    expect(floors.isArea).toBe(false);
+    floors.choosePoint(1, 2);
+    expect(floors.isArea).toBe(true);
+    expect(floors.tiles()).toEqual([[1, 0], [2, 0], [3, 0], [1, 1], [2, 1], [3, 1], [1, 2], [2, 2], [3, 2]]);
+    expect(floors.status).toBe('3 by 3 tiles selected.');
+    expect(floors.anchorPoint()).toEqual([2, 1]);
+    expect(floors.preview()).toEqual(floors.tiles().flatMap(([x, y]) => [x, y, 1]));
+    floors.applyCovering(2);
+    expect(source.staged).toEqual(floors.tiles().map(([x, y]) => [x, y, 2]));
+    source.tiles = floors.tiles().flatMap(([x, y]) => [x, y, 2]);
+    source.result = { x: 3, y: 2, covering: 2, reason: 0 };
+    source.revision = 1;
+    floors.afterCommands();
+    expect([floors.pending, floors.status]).toEqual([null, 'Floor laid on 9 tiles.']);
+    // The next click starts a new choice.
+    floors.choosePoint(0, 0);
+    expect([floors.isArea, floors.tile]).toEqual([false, [0, 0]]);
+  });
+
+  it('rings refused tiles apart, leaves them out, and says how many took the covering', () => {
+    const { floors, source } = tool();
+    source.refusedAt.set('1,0', 7);
+    floors.choosePoint(0, 0);
+    floors.choosePoint(1, 1);
+    expect(floors.highlight()).toEqual({ tiles: [[0, 0], [0, 1], [1, 1]], valid: true, refused: [[1, 0]] });
+    expect(floors.preview()).toEqual([0, 0, 1, 0, 1, 1, 1, 1, 1]);
+    floors.apply();
+    expect(source.staged).toEqual([[0, 0, 1], [0, 1, 1], [1, 1, 1]]);
+    source.tiles = [0, 0, 1, 1, 1, 1];
+    source.result = { x: 1, y: 1, covering: 1, reason: 0 };
+    floors.afterCommands();
+    expect(floors.status).toMatch(/^Floor laid on 2 of 3 tiles\. /);
+  });
+
+  it('skips tiles that already carry the covering, and restores an area to bare', () => {
+    const { floors, source } = tool();
+    source.tiles = [0, 0, 2];
+    floors.choosePoint(0, 0);
+    floors.choosePoint(1, 0);
+    floors.applyCovering(2);
+    expect(source.staged).toEqual([[1, 0, 2]]);
+    source.staged = [];
+    source.tiles = [0, 0, 2, 1, 0, 2];
+    source.result = { x: 1, y: 0, covering: 2, reason: 0 };
+    floors.afterCommands();
+    floors.choosePoint(0, 0);
+    floors.choosePoint(1, 0);
+    floors.applyCovering(BARE);
+    expect(source.staged).toEqual([[0, 0, 0], [1, 0, 0]]);
+    source.tiles = [];
+    source.result = { x: 1, y: 0, covering: 0, reason: 0 };
+    floors.afterCommands();
+    expect(floors.status).toBe('Floor restored on 2 tiles.');
+  });
+
+  it('stages a large area in batches the simulation queue can hold, then tallies the whole', () => {
+    const source = new FakeFloors();
+    const floors = new FloorTool(source as never, 10, 6, { changed: () => undefined });
+    floors.enter();
+    floors.choosePoint(0, 0);
+    floors.choosePoint(9, 5);
+    floors.applyCovering(1);
+    expect(source.staged).toHaveLength(EDITS_PER_FRAME);
+    let drains = 0;
+    while (floors.pending !== null && drains < 5) {
+      const last = source.staged.at(-1)!;
+      source.tiles = source.staged.flatMap(([x, y, c]) => [x, y, c]);
+      source.result = { x: last[0], y: last[1], covering: 1, reason: 0 };
+      floors.afterCommands();
+      drains += 1;
+    }
+    expect(drains).toBe(2);
+    expect(source.staged).toHaveLength(60);
+    expect(floors.status).toBe('Floor laid on 60 tiles.');
+  });
+
+  it('keeps one tile chosen when the second click lands on the same tile', () => {
+    const { floors } = tool();
+    floors.choosePoint(2, 1);
+    floors.choosePoint(2.2, 0.9);
+    expect([floors.isArea, floors.tiles()]).toEqual([false, [[2, 1]]]);
   });
 });
 

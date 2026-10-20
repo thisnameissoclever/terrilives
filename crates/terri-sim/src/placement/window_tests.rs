@@ -305,6 +305,48 @@ fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
 }
 
 #[test]
+fn wide_windows_fit_walls_on_the_lot_south_and_east_edges_and_survive_a_save() {
+    // A row of yard tiles against the south edge, and a column against the east one.
+    for (room, start) in [
+        ((17, 15, 19, 15), line(EdgeAxis::Horizontal, 17, 16)),
+        ((19, 13, 19, 15), line(EdgeAxis::Vertical, 20, 13)),
+    ] {
+        let mut sim =
+            super::super::walls::tests::shipped_lot_with_room(room.0, room.1, room.2, room.3);
+        let grid = grid_view(sim.world().resource::<TileGrid>());
+        let placed = WindowPlacement {
+            line: start,
+            model: WindowModel::Picture,
+        };
+        fit(&mut sim, placed);
+        for segment in placed.lines() {
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                WallState::Window
+            );
+        }
+        assert_eq!(grid_view(sim.world().resource::<TileGrid>()), grid);
+        let mut reader = Sim::new_from_shipped_lot();
+        reader.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+        assert_eq!(
+            reader.world().resource::<SavedLayout>().window_placements(),
+            [placed]
+        );
+        assert_eq!(
+            apply_window_edit(sim.world_mut(), WindowEdit::Remove(placed.lines()[1])).reason,
+            None
+        );
+        for segment in placed.lines() {
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                WallState::Wall,
+                "removing perimeter glass restores its wall"
+            );
+        }
+    }
+}
+
+#[test]
 fn window_new_commands_drain_in_order_and_capture_model() {
     let mut sim = house();
     sim.world_mut()

@@ -36,6 +36,8 @@ import { architectureFinishSlot, type ActiveFinishes, type FinishCatalogue } fro
 import type { WindowDefinition, WindowPlacement } from '../architecture/windows.js';
 import {
   FLOATS_PER_INSTANCE,
+  OFFSET_EMISSIVE,
+  OFFSET_TINT_R,
   OFFSET_WALL_HEIGHT,
   OFFSET_WALL_OPACITY,
   SHORT_WALL_RASTER_HEIGHT,
@@ -70,7 +72,8 @@ export interface Lot {
     readonly wallFinishSlots?: Readonly<Record<string, number>>;
     readonly floorCatalogue?: FinishCatalogue; readonly finishes?: ActiveFinishes };
   /** Transient tool selection; never written to the simulation or save. */
-  readonly floorPreview?: readonly [number, number, number] | null;
+  /** `[x, y, covering]` for every tile the Floors tool would cover, three numbers each ([FL-area]). */
+  readonly floorPreview?: readonly number[] | null;
   readonly windowPreview?: WindowEditPreview | null;
   readonly width: number;
   readonly height: number;
@@ -139,6 +142,12 @@ export interface Lot {
    * tool shows the house's front walls ([WB-draw]).
    */
   readonly frontDoors?: Uint32Array | null;
+  /**
+   * The Walls tool's chosen lines, as `axis/x/y`, and whether a barrier may
+   * stand on each ([WB-mark]). Their panels are tinted, and while the walls
+   * are low they stand full height ([WB-height]).
+   */
+  readonly selectedLines?: ReadonlyMap<string, boolean> | null;
 }
 
 /**
@@ -150,6 +159,24 @@ export function setCutAwayWalls(lot: { showCutAwayWalls?: boolean }, show: boole
   lot.showCutAwayWalls = show;
   return true;
 }
+
+/**
+ * [WB-mark]: sets the lines the Walls tool has chosen, and says whether that
+ * changed, so the static block is rebuilt on a change and not every frame.
+ */
+export function setSelectedLines(lot: { selectedLines?: ReadonlyMap<string, boolean> | null },
+  lines: ReadonlyMap<string, boolean> | null): boolean {
+  const before = lot.selectedLines ?? null;
+  const same = before === lines || (before !== null && lines !== null && before.size === lines.size
+    && [...lines].every(([key, valid]) => before.get(key) === valid));
+  if (same) return false;
+  lot.selectedLines = lines;
+  return true;
+}
+
+/** A chosen wall's tint: a clear blue where a barrier may stand, coral where it may not. sRGB multipliers. */
+export const SELECTED_WALL_TINT = [0.62, 0.86, 1.22] as const;
+export const REFUSED_WALL_TINT = [1.22, 0.66, 0.6] as const;
 
 /**
  * [SEA-yard]: sets the season the yard is drawn in, and says whether that
@@ -272,7 +299,8 @@ export function buildStaticInstances(
   const edgePanels = lot.edges == null ? null : lot.architecture
     ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, houseOrigin, edges: windowLayout!.edges,
       windows: windowLayout!.windows, catalogue: lot.architecture.catalogue,
-      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [], cutaway: lot.showCutAwayWalls !== true })
+      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [], cutaway: lot.showCutAwayWalls !== true,
+      raised: lot.selectedLines ? new Set(lot.selectedLines.keys()) : undefined })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
         [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [], false, lot.horizontalDoors ?? [], houseOrigin)
@@ -300,6 +328,11 @@ export function buildStaticInstances(
     if (covering > 0 && covering * 3 < lookShifts.length - 6) {
       painted.set(lot.floors![i] * lot.height + lot.floors![i + 1], covering + 2);
     }
+  }
+  // The Floors tool's candidate covering on each tile it would cover, keyed as `painted` is.
+  const previewed = new Map<number, number>();
+  for (let i = 0; i + 2 < (lot.floorPreview?.length ?? 0); i += 3) {
+    previewed.set(lot.floorPreview![i] * lot.height + lot.floorPreview![i + 1], lot.floorPreview![i + 2]);
   }
   const street = lot.street ?? null;
   const inHouse = (x: number, y: number): boolean => x >= houseOrigin[0] && x < houseOrigin[0] + house[0]
@@ -432,8 +465,7 @@ export function buildStaticInstances(
    */
   const writeFloor = (x: number, y: number, sprite: number): void => {
     const look = lookOf(x, y);
-    const covering = lot.floorPreview?.[0] === x && lot.floorPreview[1] === y
-      ? lot.floorPreview[2] : look >= 3 ? look - 2 : 0;
+    const covering = previewed.get(x * lot.height + y) ?? (look >= 3 ? look - 2 : 0);
     const zone = x === street ? 'street' : inHouse(x, y) ? 'house' : 'yard';
     const material = lot.architecture ? floorMaterial(covering, zone, x, y, lot.architecture.floorCatalogue) : null;
     writeInstance(
@@ -496,6 +528,12 @@ export function buildStaticInstances(
     write(panel.x, panel.y, LAYER_PROP, panel.architectureId ?? spriteIndex(panel.spriteName), emissive, mask, shade);
     if (panel.architectureId !== undefined) {
       if (panel.fadeKey === windowLayout?.ghostKey) tintWindowPreview(instances, (slot - 1) * FLOATS_PER_INSTANCE);
+      const chosen = panel.lines?.map(line => lot.selectedLines?.get(line)).find(valid => valid !== undefined);
+      if (chosen !== undefined) {
+        instances.set(chosen ? SELECTED_WALL_TINT : REFUSED_WALL_TINT, (slot - 1) * FLOATS_PER_INSTANCE + OFFSET_TINT_R);
+        // A chosen wall stays legible at night, as the floor marker does.
+        instances[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_EMISSIVE] = Math.max(emissive, 0.75);
+      }
       writeArchitectureDepth(instances, slot - 1,
         layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP),
         1, panel.low, (panel.fadeKey ? lot.architecture?.wallFinishSlots?.[panel.fadeKey] : undefined)

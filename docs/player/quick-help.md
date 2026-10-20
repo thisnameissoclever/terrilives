@@ -4,13 +4,13 @@
 
 1. Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Use Confirm at the bottom to keep this batch and continue building. Cancel there discards every change since the last Confirm and keeps Build open. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.
 
-2. Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.
+2. Walls selects the edge between two floor tiles. Click a wall to select it, or the floor near an edge. Select a second edge in the same row to select every edge between them. Choose Wall, Doorway, Window or Remove beside the selection. Rotation turns the selection without changing the house. Walls are drawn low while you build, apart from the selected ones; Full height, or T, shows them all. A window stops people and lets daylight through. The status explains refused edits.
 
 3. Rooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm keeps the batch and leaves Build open.
 
 4. Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.
 
-5. Floors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes.
+5. Floors selects a tile without changing it. Select a second tile to select every tile in the rectangle between them. Choose Boards, Tiles, Carpet or Outdoor patio beside the selection to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes.
 
 ## People & actions
 
