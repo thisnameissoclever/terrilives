@@ -13033,3 +13033,13 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Trace both the completion event and the credited person's identity. Explain different credit rules separately instead of extending a generic completion sentence to every kind of work.
 
 **Verification.** Check opposite cases: the assigned person does most washing and a helper finishes; the helper does most washing and the assigned person finishes. The first can award repair to the assigned person, subject to the window and in-window contribution requirements; the second cannot. Source routing establishes this explanation. Do not claim a new played scenario or executed regression unless it was actually run.
+
+## [L-captured-cli-byte-transport] Check captured byte transport separately from terminal display
+
+**What happened.** A newer GitHub command-line client refused a completed job log containing terminal escape sequences, even when the caller captured stdout. Recovery therefore could not authenticate the original log bytes.
+
+**Root cause.** The adapter assumed that capturing stdout bypassed the client's terminal display guard. The client required an explicit raw-output option.
+
+**Prevention.** Probe supported options offline before the first request. Enable raw output only for captured streams when supported, preserve older client arguments, and propagate request failures without a fallback request. Never strip bytes from evidence or render the raw output into a terminal.
+
+**Verification.** Test both client contracts, unchanged log and archive bytes, strict metadata parsing, request accounting and failure propagation. Compare a captured real log's byte count and hash with the original. Keep that host transport check separate from Linux recovery qualification.

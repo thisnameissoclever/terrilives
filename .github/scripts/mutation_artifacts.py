@@ -228,9 +228,18 @@ def timestamp(value):
 
 class GitHub:
     """Inject json()/bytes() in tests. gh owns authentication, never artifact data."""
+    def __init__(self):
+        self._raw_api_options = None
+
     def bytes(self, path):
         require(path.startswith("repos/"), "API request outside repository endpoints")
-        return subprocess.run(["gh", "api", path], check=True, stdout=subprocess.PIPE,
+        if self._raw_api_options is None:
+            help_bytes = subprocess.run(["gh", "api", "--help"], check=True, stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, timeout=60).stdout
+            # This offline probe permits exact captured bytes without rendering them.
+            supported = re.search(rb"(?m)^\s*--allow-escape-sequences(?:\s|$)", help_bytes)
+            self._raw_api_options = ["--allow-escape-sequences"] if supported else []
+        return subprocess.run(["gh", "api", path, *self._raw_api_options], check=True, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, timeout=60).stdout
 
     def json(self, path):

@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import warnings
 import zipfile
 
@@ -42,6 +43,107 @@ class FixtureAPI:
     def rate_status(self, required=0):
         self.calls.append("rate_limit")
         return {"resources": {"core": {"limit": 1000, "remaining": 1000, "reset": 2_000_000_000}}}
+
+
+class GitHubTransportTests(unittest.TestCase):
+    path = "repos/owner/repo/actions/jobs/901/logs"
+    captured = {"check": True, "stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "timeout": 60}
+    new_help = b"FLAGS\n      --allow-escape-sequences   Allow ANSI escape sequences in output\n"
+
+    def test_new_cli_preserves_raw_log_zip_and_metadata_with_one_offline_probe(self):
+        log = b"log\r\n\x1b[31mraw\x1b[0m\x00\xff\n"
+        zipped = archive({"log.bin": log})
+        zip_path = "repos/owner/repo/actions/artifacts/77/zip"
+        metadata_path = "repos/owner/repo/actions/artifacts/77"
+        with mock.patch.object(artifacts.subprocess, "run", side_effect=[
+                subprocess.CompletedProcess([], 0, self.new_help),
+                subprocess.CompletedProcess([], 0, log),
+                subprocess.CompletedProcess([], 0, zipped),
+                subprocess.CompletedProcess([], 0, b'{"id":77}')]) as run:
+            api = artifacts.GitHub()
+            self.assertEqual(api.bytes(self.path), log)
+            self.assertEqual(api.bytes(zip_path), zipped)
+            self.assertEqual(api.json(metadata_path), {"id": 77})
+        self.assertEqual(run.call_args_list, [
+            mock.call(["gh", "api", "--help"], **self.captured),
+            *(mock.call(["gh", "api", path, "--allow-escape-sequences"], **self.captured)
+              for path in (self.path, zip_path, metadata_path))])
+        self.assertEqual(artifacts.unpack(zipped), {"log.bin": log})
+
+    def test_old_cli_preserves_original_argv_and_raw_bytes(self):
+        raw = b"\x00\x1b[31m\xff\r\n"
+        zipped = archive({"log.bin": raw})
+        zip_path = "repos/owner/repo/actions/artifacts/77/zip"
+        with mock.patch.object(artifacts.subprocess, "run", side_effect=[
+                subprocess.CompletedProcess([], 0, b"FLAGS\n      --hostname string\n"),
+                subprocess.CompletedProcess([], 0, raw),
+                subprocess.CompletedProcess([], 0, zipped)]) as run:
+            api = artifacts.GitHub()
+            self.assertEqual(api.bytes(self.path), raw)
+            self.assertEqual(api.bytes(zip_path), zipped)
+        self.assertEqual(run.call_args_list, [
+            mock.call(["gh", "api", "--help"], **self.captured),
+            mock.call(["gh", "api", self.path], **self.captured),
+            mock.call(["gh", "api", zip_path], **self.captured)])
+        self.assertEqual(artifacts.unpack(zipped), {"log.bin": raw})
+
+    def test_repository_guard_rejects_before_capability_probe(self):
+        with mock.patch.object(artifacts.subprocess, "run") as run:
+            for path in ("rate_limit", "https://api.github.com/repos/owner/repo"):
+                with self.subTest(path=path), self.assertRaisesRegex(ValueError, "outside repository"):
+                    artifacts.GitHub().bytes(path)
+        run.assert_not_called()
+
+    def test_probe_failures_propagate_without_api_request(self):
+        for error in (subprocess.CalledProcessError(1, ["gh", "api", "--help"]),
+                      subprocess.TimeoutExpired(["gh", "api", "--help"], 60),
+                      FileNotFoundError("gh")):
+            with self.subTest(error=type(error).__name__), \
+                    mock.patch.object(artifacts.subprocess, "run", side_effect=error) as run:
+                with self.assertRaises(type(error)) as caught:
+                    artifacts.GitHub().bytes(self.path)
+                self.assertIs(caught.exception, error)
+                run.assert_called_once_with(["gh", "api", "--help"], **self.captured)
+
+    def test_http_failure_propagates_without_fallback(self):
+        error = subprocess.CalledProcessError(1, ["gh", "api", self.path])
+        with mock.patch.object(artifacts.subprocess, "run", side_effect=[
+                subprocess.CompletedProcess([], 0, self.new_help), error]) as run:
+            with self.assertRaises(subprocess.CalledProcessError) as caught:
+                artifacts.GitHub().bytes(self.path)
+            self.assertIs(caught.exception, error)
+        self.assertEqual(run.call_args_list, [
+            mock.call(["gh", "api", "--help"], **self.captured),
+            mock.call(["gh", "api", self.path, "--allow-escape-sequences"], **self.captured)])
+
+    def test_client_metadata_keeps_strict_json_guards(self):
+        for raw in (b'{"id":1,"id":2}', b'{"id":NaN}'):
+            with self.subTest(raw=raw), mock.patch.object(artifacts.subprocess, "run", side_effect=[
+                    subprocess.CompletedProcess([], 0, self.new_help),
+                    subprocess.CompletedProcess([], 0, raw)]):
+                with self.assertRaises(ValueError):
+                    artifacts.GitHub().json(self.path)
+
+    def test_workflow_request_accounting_excludes_offline_probe_and_keeps_metadata_cache(self):
+        import mutation_recovery as recovery
+
+        metadata_path = "repos/owner/repo/actions/artifacts/77"
+        raw = b"\x1b[0mraw\r\n"
+        with mock.patch.object(artifacts.subprocess, "run", side_effect=[
+                subprocess.CompletedProcess([], 0, self.new_help),
+                subprocess.CompletedProcess([], 0, b'{"id":77}'),
+                subprocess.CompletedProcess([], 0, raw),
+                subprocess.CompletedProcess([], 0, raw)]) as run:
+            api = recovery.WorkflowAPI(artifacts.GitHub())
+            self.assertEqual(api.json(metadata_path), {"id": 77})
+            self.assertEqual(api.json(metadata_path), {"id": 77})
+            self.assertEqual(api.bytes(self.path), raw)
+            self.assertEqual(api.bytes(self.path), raw)
+        self.assertEqual(api.requests, 3)
+        self.assertEqual(run.call_args_list, [
+            mock.call(["gh", "api", "--help"], **self.captured),
+            *(mock.call(["gh", "api", path, "--allow-escape-sequences"], **self.captured)
+              for path in (metadata_path, self.path, self.path))])
 
 
 class ArtifactTests(unittest.TestCase):
