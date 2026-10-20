@@ -1,6 +1,10 @@
-# More rewarding company, grounded arguments and background play
+# Player guide and household balance
 
-Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background.
+The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background.
+
+## New
+
+- Open Player guide below Build and Options, or from Options and Help, for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
 
 ## Improved
 
@@ -21,6 +25,8 @@ Chats provide more Social and stronger relationship rewards. Family and partners
 - The game keeps running at the selected speed when you switch to another tab or minimize the browser, so the household carries on while you are away. A browser that suspends background tabs to save power can still pause it, and long pauses are not made up afterward.
 
 ## Fixed
+
+- Object names stay readable against light scenery, and expanded descriptions use a readable line width. The Build camera's zoom-out button shows a clear minus sign.
 
 - Loading an older saved game preserves chats that are waiting for a busy Sim, so the upgraded game can be saved and loaded again.
 

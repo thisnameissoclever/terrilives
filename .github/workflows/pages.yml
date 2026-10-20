@@ -135,6 +135,8 @@ jobs:
           set -eu
           test -f web/dist/index.html
           test -f web/dist/changelog/index.html
+          test -f web/dist/guide/index.html
+          test -f web/dist/guide/ui-elements/index.html
           wasm=$(find web/dist -name '*.wasm' | head -1)
           test -n "$wasm"
           echo "Game, changelog and $wasm present"

@@ -14,14 +14,14 @@ const note = (title, change = 'A visible change.') => `# ${title}\n\nWhat player
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'natural-causes-changelog-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  mkdirSync(join(root, 'docs/changelog'), { recursive: true });
+  mkdirSync(join(root, 'docs/player/changelog'), { recursive: true });
   mkdirSync(join(root, 'web/changelog'), { recursive: true });
   for (const name of ['template.html', 'style.css', 'controls.js', 'legacy-anchors.json']) {
     copyFileSync(join(ROOT, 'web/changelog', name), join(root, 'web/changelog', name));
   }
   return {
     root,
-    put: (name, source) => writeFileSync(join(root, 'docs/changelog', name), source),
+    put: (name, source) => writeFileSync(join(root, 'docs/player/changelog', name), source),
   };
 }
 
@@ -59,7 +59,7 @@ test('editing, adding and deleting source notes changes the generated page', (t)
   assert.ok(!edited.includes('Before the fix.'));
   put('2026-10-01-next.md', note('New update'));
   assert.equal((buildChangelog(root).match(/<article class="entry"/g) ?? []).length, 2);
-  rmSync(join(root, 'docs/changelog', filename));
+  rmSync(join(root, 'docs/player/changelog', filename));
   const deleted = buildChangelog(root);
   assert.ok(!deleted.includes('Corrected'));
   assert.equal((deleted.match(/<article class="entry"/g) ?? []).length, 1);

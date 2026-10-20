@@ -534,6 +534,22 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 **Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
+### [S-weather-preferences] Weather preferences and longer-term variation
+
+**Status: Owner-requested future work, October 19, 2026. Not implemented.** Each Sim should prefer warmer or cooler weather. Weather that matches or conflicts with that preference should slightly raise or lower overall mood. Keep this effect small; the request does not add weather damage, need loss or survival mechanics. The preference model, numerical strength and presentation need a design before implementation.
+
+Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. Months do not exist in the current calendar, so monthly variation requires a calendar decision rather than treating the current seven-day seasons as months. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
+
+See [the calendar](#s-calendar-calendar-and-weekly-schedules) for the current season cycle. The [player guide's weather section](player/the-world.md#weather) separates current visual weather from these coming features.
+
+### [S-creative-hobbies] Creative hobbies, progression and things made at home
+
+**Status: Owner-requested future work, October 19, 2026. Not implemented.** Add gardening as a hobby, alongside creative hobbies such as knitting and painting. Sims should gain personal satisfaction from developing these hobbies and leveling up, even when an activity has no practical household benefit.
+
+Hobby progression should eventually let Sims make things the household can display or use: paintings, flowers, throw blankets and other suitable creations. Selling creations, such as paintings, is a potential source of money. Growing food is a potential way to stock the fridge and reduce food spending. These are requested future possibilities, not current inventory, sale or food-cost mechanics.
+
+Design progression, satisfaction rewards, output quality, storage, placement, ownership, selling and food consumption together. Exact level requirements, prices, crop yields, crafting materials and the choice of additional hobbies remain undecided. Link the player guide's hobby overview to Activities, home decoration, money and food where those systems become available.
+
 ### [S-communal-activities] Prefer activities with liked housemates
 
 **Status: Planned; next build, requested 2026-10-01.**

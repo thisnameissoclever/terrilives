@@ -1,0 +1,1506 @@
+{
+  "version": 1,
+  "build": {
+    "status": "complete",
+    "capturedAt": "2026-10-19",
+    "url": "http://127.0.0.1:8324/",
+    "bundle": "index-y9q1-SyJ.js",
+    "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+    "desktopViewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "mobileViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
+    "audio": "Muted through saved game preferences",
+    "pendingRefresh": [],
+    "snapshots": [
+      {
+        "id": "initial",
+        "url": "http://localhost:8315/",
+        "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+        "bundle": "index-D91PjVR4.js",
+        "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "minus-fix",
+        "url": "http://localhost:8316/",
+        "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+        "bundle": "index-D91PjVR4.js",
+        "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "help-options-final",
+        "url": "http://127.0.0.1:8318/",
+        "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+        "bundle": "index-C4DN_u1m.js",
+        "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "identity-final",
+        "url": "http://127.0.0.1:8320/",
+        "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+        "bundle": "index-C4DN_u1m.js",
+        "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "current-main-help",
+        "url": "http://127.0.0.1:8322/",
+        "sourceCommit": "96b14aa",
+        "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+        "bundle": "index-fopipe25.js",
+        "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "delivery-guide-shortcut",
+        "url": "http://127.0.0.1:8324/",
+        "sourceCommit": "d59d004",
+        "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+        "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+        "bundle": "index-y9q1-SyJ.js",
+        "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      }
+    ],
+    "weatherSetup": {
+      "method": "Actual native simulation ticks; unchanged shipped weather probabilities.",
+      "autumnFallingTick": 20722,
+      "autumnGroundedTick": 20767,
+      "mildTick": 20980,
+      "snowTick": 74015,
+      "phoneCamera": {
+        "originX": 452,
+        "originY": -3.5625,
+        "scale": 1
+      },
+      "motionWatched": {
+        "autumnRealSeconds": 4.5,
+        "snowRealSeconds": 2.5
+      }
+    },
+    "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+    "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+    "phoneMode": "Chrome phone viewport and touch emulation; not a physical phone",
+    "viewportReuse": "Final identity and condition passes reused one isolated game context across viewports.",
+    "identityVerification": {
+      "source": "identity-final",
+      "paragraphVisibleSamples": 9,
+      "hudOrActionIntersections": 0,
+      "desktopParagraphWidth": 182.203125,
+      "mobileParagraphWidth": 182.203125,
+      "input": "Actual mouse right-click; Chrome touch long-press input at the phone viewport."
+    },
+    "sourceCommit": "d59d004",
+    "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+    "unchangedControlsImpact": "Main d59d004 adds background-tab play. The delivery build adds the direct Player guide HUD link. Overview and guide-link states were refreshed; older screenshots retain their original per-entry snapshots and hashes for controls unchanged by these additions.",
+    "helpVerification": {
+      "source": "current-main-help",
+      "desktopGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
+      "mobileGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
+      "browserErrors": [],
+      "inspected": "Opening Help, both Company & chores scroll positions, player guide link and shortcuts at both viewports. Native dialog closeups included.",
+      "cleanup": "All task-owned game contexts, guide popups and Chrome closed."
+    },
+    "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+    "guideShortcutVerification": {
+      "source": "delivery-guide-shortcut",
+      "desktop": {
+        "guideY": 198.171875,
+        "buttonsBottom": 194.171875,
+        "guideWidth": 144,
+        "guideHeight": 32,
+        "buildGuideY": 840.484375,
+        "buildGuideBottom": 872.484375
+      },
+      "mobile": {
+        "guideY": 207.984375,
+        "buttonsBottom": 203.984375,
+        "guideWidth": 182,
+        "guideHeight": 44,
+        "buildGuideY": 115.984375,
+        "buildGuideBottom": 159.984375
+      },
+      "keyboard": "Tab after Options focuses world-player-guide; Enter opens its native new-tab link. Phone viewport also passed Tab focus.",
+      "navigation": "Desktop keyboard activation and phone tap opened http://127.0.0.1:8324/guide/ in actual separate tabs.",
+      "overflow": false,
+      "buildControlIntersections": [],
+      "browserErrors": [],
+      "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
+      "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
+    }
+  },
+  "entries": [
+    {
+      "id": "overview",
+      "section": "overview",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "description": "The game view with the clock, funds, save status, speed controls, Build, Options, Player guide and selected-person dock.",
+      "access": "Open the game. Select a name at the bottom of the screen.",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      },
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png"
+    },
+    {
+      "id": "options",
+      "section": "options",
+      "desktop": "images/ui-options-desktop.png",
+      "mobile": "images/ui-options-mobile.png",
+      "description": "Options open, with New housemate above Save and Load.",
+      "access": "Choose Options beside Build.",
+      "desktopDetail": "images/ui-options-detail-desktop.png",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "mobileDetail": "images/ui-options-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "9bc540af1042ceb04e5e8ca3014aae946c03105bc6231f729dca94ef379f67fc",
+        "mobile": "9c01197624aeb1d4be61a58f85b9a5266687d0f5940e7bfa3e6b0feb89a7baaf",
+        "desktopDetail": "1eb48331d7f29f9a4d9dad15e2d13915fc64de85e56a36e605108cc147b0b533",
+        "mobileDetail": "b400e0ab789298badfd9e9b99429bde1108d95e5efe324a45c763045d43bd6d2"
+      }
+    },
+    {
+      "id": "dock-collapsed",
+      "section": "household",
+      "desktop": "images/ui-dock-collapsed-desktop.png",
+      "mobile": "images/ui-dock-collapsed-mobile.png",
+      "description": "The dock after Collapse; choose Expand to show the household again.",
+      "access": "Choose Collapse in the selected-person dock.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3dd4f8b3f52d61cc8b616cd9f44f79092b844bcbf66da047836c90c5b65e7b3e",
+        "mobile": "47c3596d112b8aba3f809ed4a33f5ad21af000fd7cc36ec5a484fcb0bbe4eecc"
+      }
+    },
+    {
+      "id": "sim-needs",
+      "section": "sim-details",
+      "desktop": "images/ui-sim-needs-desktop.png",
+      "mobile": "images/ui-sim-needs-mobile.png",
+      "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
+      "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "00843cf1212005acefe4efd822c574f433c6e84c856ab4d43c3f91588ee3f09e",
+        "mobile": "5a53dd94a25d430cfb232a2906367abe2d4b338c8c0e219374b53d22789f5981",
+        "desktopDetail": "5a7da6e3d417165ade05fce5fb904e886c01bc090ff4ef52ea99c0247e2ac360"
+      }
+    },
+    {
+      "id": "sim-people",
+      "section": "people",
+      "desktop": "images/ui-sim-people-desktop.png",
+      "mobile": "images/ui-sim-people-mobile.png",
+      "description": "The selected person's feelings about the household.",
+      "access": "Select a name at the bottom of the screen, then Sim details > People.",
+      "desktopDetail": "images/ui-sim-people-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "975460f068b5939471efed4bcbba34c5894c56ea51c5db93f745c2d52dbcbf3b",
+        "mobile": "749f8fd4ec010ba131fab889383013aa7285ee21f83ba54bbfd6c63ce306f45c",
+        "desktopDetail": "634eeea137514eb3b4f57a4d4cb82f8a33e1a270da73525fc9fe4f812b6e2950"
+      }
+    },
+    {
+      "id": "sim-traits",
+      "section": "traits",
+      "desktop": "images/ui-sim-traits-desktop.png",
+      "mobile": "images/ui-sim-traits-mobile.png",
+      "description": "Trait and responsibility details for the selected person.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Traits. Scroll for the remaining traits.",
+      "desktopDetail": "images/ui-sim-traits-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "023cad73a2fb2be5b20c124dd31a5c6253abbf8f4a2dd59618d93cdb5df500e6",
+        "mobile": "477174448ef529f4c0cb15c5c29bdb3d2f80427d38be117b5377b91b8a69696f",
+        "desktopDetail": "a4fb29a8b8e30ff8f0b9b1efeadcbd950735c2fc20f3e4f80a63a534d6a28c0d"
+      }
+    },
+    {
+      "id": "sim-personality",
+      "section": "schedule",
+      "desktop": "images/ui-sim-personality-desktop.png",
+      "mobile": "images/ui-sim-personality-mobile.png",
+      "description": "Personality, habits and bed assignment.",
+      "access": "Open Sim details > Overview, then Personality, habits and bed.",
+      "desktopDetail": "images/ui-sim-personality-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3c42b42d477f17341cda0adfda30724d001e9ff73461be9106751bc04c4bbf58",
+        "mobile": "6527c44648778ac1a474ac28ee622c062e6a0e86355e78dd7fce2745e2dc97c5",
+        "desktopDetail": "ec024fa508e240c7d704f34ded97a32185e0c7b8b52c410d3e85e935e899f433"
+      }
+    },
+    {
+      "id": "sim-skills",
+      "section": "skills",
+      "desktop": "images/ui-sim-skills-desktop.png",
+      "mobile": "images/ui-sim-skills-mobile.png",
+      "description": "Skill levels and progress to the next level.",
+      "access": "Open Sim details > Overview, then Skills.",
+      "desktopDetail": "images/ui-sim-skills-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "7cd6b03fba31f16e2d8ab1df38033817f85258177e7ce385302e4a6ad4d8f034",
+        "mobile": "4d2528f53d270a3a950b3e82f0064dafa69a5d9ba17ff7fd6f8d95421ac0c3a1",
+        "desktopDetail": "1879f24615ecb7ac2d68b175c46b77ce964592d04d25d8849d09bb4d349613c3"
+      }
+    },
+    {
+      "id": "sim-likes",
+      "section": "likes-and-dislikes",
+      "desktop": "images/ui-sim-likes-desktop.png",
+      "mobile": "images/ui-sim-likes-mobile.png",
+      "description": "The selected person's likes and dislikes.",
+      "access": "Open Sim details > Overview, then Likes and dislikes.",
+      "desktopDetail": "images/ui-sim-likes-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "37e807357fde0d23028f2a39ba84e3bd9cf3139d035f607f910a9ce23c520f7e",
+        "mobile": "67558f13980a06469eb85fe65a9f75b7679ae21ed727437d7457d0ca585fd057",
+        "desktopDetail": "6f86d3c1dbbd0da257974f7cabbd7fe6b8d5d3f4f9789d2bd1a55d21ec69877b"
+      }
+    },
+    {
+      "id": "sim-career",
+      "section": "career",
+      "desktop": "images/ui-sim-career-desktop.png",
+      "mobile": "images/ui-sim-career-mobile.png",
+      "description": "The selected person's career, pay and work schedule.",
+      "access": "Open Sim details > Career.",
+      "desktopDetail": "images/ui-sim-career-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "bdf2fb33c876b9e30988d4cc3067b51dc3bd212f2af635b8c5cf27d1fc9ba9a4",
+        "mobile": "5b89eba9b5c5dcf6bc29135229608af891d58afbd388addf93fd441ece98c0b2",
+        "desktopDetail": "3950380e17c6d93132bf8e806f98294ffc68819ae1eb88e8c2fed52180e76cd3"
+      }
+    },
+    {
+      "id": "sim-queue",
+      "section": "activity-and-orders",
+      "desktop": "images/ui-sim-queue-desktop.png",
+      "mobile": "images/ui-sim-queue-mobile.png",
+      "description": "Queue mode and Clear orders beside the action queue.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Queue. Desktop also has Queue in the dock.",
+      "desktopDetail": "images/ui-sim-queue-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "43cac1419612640cfd591d10fad83a7b747dbd48a29318c108dac5c01b842f95",
+        "mobile": "b86d00266f3b5d1f44ce6e4d0ac5d10fbbdd145b1944ccb04b6553704964bbd3",
+        "desktopDetail": "aef8e77a01718d01bbcb6c7b8596738d002bba8b64d258d059a56ab70cc26994"
+      }
+    },
+    {
+      "id": "chores-board",
+      "section": "chores",
+      "desktop": "images/ui-chores-board-desktop.png",
+      "mobile": "images/ui-chores-board-mobile.png",
+      "description": "Weekly assignments and Do now controls.",
+      "access": "Choose Chores in the selected-person dock.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4957cc44f4067046089157cb8f8d634ec3a9e84de28748dda2fa9375fcac318a",
+        "mobile": "3a16386169f9ec92c80e5d3a966109ba11a60efe210ebbde5e8ea78359c2a91d"
+      }
+    },
+    {
+      "id": "chores-profile",
+      "section": "chores",
+      "desktop": "images/ui-chores-profile-desktop.png",
+      "mobile": "images/ui-chores-profile-mobile.png",
+      "description": "Responsibility and chore preference controls below the board.",
+      "access": "Open Chores, then scroll to the selected person's preferences.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4db62f25368e44da18c0a97e2003c382623a197bb4681fdefaf1fd9c4005fd34",
+        "mobile": "19db93cd3758b5a4a8b2809c5060f9892a1885fbb4869efa5eaf366865cbeb02"
+      }
+    },
+    {
+      "id": "build-buy",
+      "section": "buy",
+      "desktop": "images/ui-build-buy-desktop.png",
+      "mobile": "images/ui-build-buy-mobile.png",
+      "description": "The Buy catalogue and its room and item filters.",
+      "access": "Choose Build > Buy.",
+      "desktopDetail": "images/ui-build-buy-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6467f325d7b57f45c50cc0c62e39712f05cf65c2911f4c233ed45197e9567dc8",
+        "mobile": "ef4b5f4a296d9ba2eb50cc72b9c640d77b953be955dda95b6542e0263176a3d5",
+        "desktopDetail": "c103fbb13c8ea0a37327da7db1d5356fb9323ba6622a03e670da623a12759e4e"
+      }
+    },
+    {
+      "id": "build-exit-confirm",
+      "section": "build",
+      "desktop": "images/ui-build-exit-confirm-desktop.png",
+      "mobile": "images/ui-build-exit-confirm-mobile.png",
+      "description": "The choice to keep building, confirm changes or discard changes.",
+      "access": "Change a room name in Build, then choose Exit build before confirming.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "c5054cd91a9571d489d21ad77dd91beabd15006ec934fceb3bdb0aa69cf95b55",
+        "mobile": "0d94e50040ac3f1ddd8b5f6559301fd0449c43849e6d931430ee6c7de460b34a"
+      }
+    },
+    {
+      "id": "build-floors",
+      "section": "floors",
+      "desktop": "images/ui-build-floors-desktop.png",
+      "mobile": "images/ui-build-floors-mobile.png",
+      "description": "Floor material samples and floor controls.",
+      "access": "Choose Build > Floors.",
+      "desktopDetail": "images/ui-build-floors-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "497edd5ca1e0672599a1d77f2821d116b8e9285cacfd21abee1496eacf987f88",
+        "mobile": "692fd848a940e5cf4355f6c977b507c949f1ed91bb611578e90ed333382b88f9",
+        "desktopDetail": "cdc4b0b10d77b07e60c94bb6e3f130388cb082fddb19c5d490f75dda966d04e4"
+      }
+    },
+    {
+      "id": "build-furniture",
+      "section": "build",
+      "desktop": "images/ui-build-furniture-desktop.png",
+      "mobile": "images/ui-build-furniture-mobile.png",
+      "description": "Furniture controls in Build mode.",
+      "access": "Choose Build > Furniture.",
+      "desktopDetail": "images/ui-build-furniture-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "012f602decb2a3b489f6cdf767ca2a430dc50909e7619eaba5562ecb18cedecb",
+        "mobile": "fc63c7a4f1c3c59845d0dca763eba0b5304e5a8fb17df0df756f158a9a6d7ef5",
+        "desktopDetail": "73ac68720822b3910749775d5affa91fc04d9e23299039aa378e060c042eddb2"
+      }
+    },
+    {
+      "id": "build-land",
+      "section": "land",
+      "desktop": "images/ui-build-land-desktop.png",
+      "mobile": "images/ui-build-land-mobile.png",
+      "description": "Land strips, quote and Buy land.",
+      "access": "Choose Build > Land, then choose a strip.",
+      "desktopDetail": "images/ui-build-land-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "de1fb5bb403fe56499323f5432898423b54fc176912f049c11edd5074ce864bb",
+        "mobile": "54b2005267d2064aec5fc37d4fe4a336e15479c462288aa5adf7554f71957a36",
+        "desktopDetail": "ebd9d462fa19b0e6bab7a5c76071c76c281bd824a6105259a7d0239c4a6658e4"
+      }
+    },
+    {
+      "id": "build-placement",
+      "section": "build",
+      "desktop": "images/ui-build-placement-desktop.png",
+      "mobile": "images/ui-build-placement-mobile.png",
+      "description": "Furniture placement, rotation, Sell and Cancel controls.",
+      "access": "Choose Build > Furniture, then choose an existing object from Furniture.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b20133affdaf2234d6dc1628cded30053124a5b2c36afd5a8a3074ff4e90d0f2",
+        "mobile": "78bc276485084ee6ad0e91df5a4596aba3bba1e0833070d33090572db1b710de"
+      }
+    },
+    {
+      "id": "build-room-outline",
+      "section": "rooms",
+      "desktop": "images/ui-build-room-outline-desktop.png",
+      "mobile": "images/ui-build-room-outline-mobile.png",
+      "description": "Build room outline controls and doorway choice.",
+      "access": "Choose Build > Rooms > Build room, then choose opposite corner tiles.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "fe5f26cca3406a8e5460fb69d25ea89b59da283bc7e2258bed521ba90fe7a1dc",
+        "mobile": "d5c9dcfd9c469a3af997385f3bb461ae363bc1d3357edf109963e933f6ba034a"
+      }
+    },
+    {
+      "id": "build-rooms",
+      "section": "rooms",
+      "desktop": "images/ui-build-rooms-desktop.png",
+      "mobile": "images/ui-build-rooms-mobile.png",
+      "description": "Room selection and the Room name field.",
+      "access": "Choose Build > Rooms > Select rooms, then choose a room.",
+      "desktopDetail": "images/ui-build-rooms-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "121596831a03f8d71406ecde092e7f118f1eced514d07ed7248f5fdfe685dcbc",
+        "mobile": "120e8b2d935650345ed58ea9432aa786c7cb22b5e003cf156f2886db38ddea10",
+        "desktopDetail": "d2bba0215ff0d9adfacadde9b8146fb77648d708cfc39caf9f4837410003eabb"
+      }
+    },
+    {
+      "id": "build-walls",
+      "section": "walls",
+      "desktop": "images/ui-build-walls-desktop.png",
+      "mobile": "images/ui-build-walls-mobile.png",
+      "description": "Wall, Doorway, Windows, rotation, Remove and Cancel controls beside a selected edge.",
+      "access": "Choose Build > Walls, then select an edge between two tiles.",
+      "desktopDetail": "images/ui-build-walls-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "adc89c061d4a5b2ad5cc9262c02a79e321f2c9201b4b66fcf0e8f1d61a182f52",
+        "mobile": "2d167490ece5c377c42496235a69f2327298537ef54c499eca245b65fd17ef24",
+        "desktopDetail": "f135ea97a8b29e3726cc38198a6937f0a6fa0425f8e3e1e8823b11223fc4403e"
+      }
+    },
+    {
+      "id": "build-windows",
+      "section": "walls",
+      "desktop": "images/ui-build-windows-desktop.png",
+      "mobile": "images/ui-build-windows-mobile.png",
+      "description": "Window models and placement controls.",
+      "access": "Choose Build > Walls, select an edge, then choose Windows.",
+      "desktopDetail": "images/ui-build-windows-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "95582e549a565896ef1667b66279dade5c030824733c1d770016a01bd680c331",
+        "mobile": "d0669fe9a875c423461921a4b60e92f534e3cca86449aceaebcfe8809e0712c6",
+        "desktopDetail": "978e8fc2612ffcd0fd93b11d502c1009158229752a7aad4afda4299786af72f4"
+      }
+    },
+    {
+      "id": "creator-appearance",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-appearance-mobile.png",
+      "description": "The Appearance page in the character creator.",
+      "access": "Choose Options > New housemate, then Appearance.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "0e51ed03de85d489824b4a642c41a7399085e65a3514341d18c662331b20097c"
+      }
+    },
+    {
+      "id": "creator-appearance-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-1-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-1-mobile.png",
+      "description": "Appearance: Colors expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Colors and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "9322bb4d3075efa940307c30515f51e3f388d2ee57ce7782a9e2951716cb797b",
+        "mobile": "972409dbdcb5e5ea09143bc018f463b63c41638ad6dfdc148d250d0caf71926e"
+      }
+    },
+    {
+      "id": "creator-appearance-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-2-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-2-mobile.png",
+      "description": "Appearance: Body expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Body and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e1296eeff5a1339c04eba3d4b871502a3a1cda574fb94a8570eef409c96b9ea8",
+        "mobile": "4761ef129e46ecff7140fc96452d64bb5b1fd76cb520c627e1bc1c57002bb018"
+      }
+    },
+    {
+      "id": "creator-appearance-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-3-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-3-mobile.png",
+      "description": "Appearance: Style expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Style and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0877c951c6ea784ff11b6279bee18b90b7252086a29db6b53a5c5b157422ed29",
+        "mobile": "6bdd3349d1d18f3aa0ca7db349c14e42187e8bdb1f803a4183b69c7b08aad574"
+      }
+    },
+    {
+      "id": "creator-appearance-group-4",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-4-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-4-mobile.png",
+      "description": "Appearance: Face expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Face and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b396a749006d25caf77813ab1c3a58f1681cb7ca6a7b53812f41e50035f2d973",
+        "mobile": "4b89e3f5ce25ec30c64e01bf79164b12036fbaedf6a2a86ae7866636bdcf468d"
+      }
+    },
+    {
+      "id": "creator-appearance-group-5",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-5-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-5-mobile.png",
+      "description": "Appearance: Details expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Details and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3000bb4be24434dc6cc201a4d0bcf1be1e96cff7426bfcc4d56ed4fe5556c048",
+        "mobile": "89e04649c3bb85d040e5357dbfe04f28168f8dcbc5de153fd1d540ef9e75f41c"
+      }
+    },
+    {
+      "id": "creator-edit",
+      "section": "creator",
+      "desktop": "images/ui-creator-edit-desktop.png",
+      "mobile": "images/ui-creator-edit-mobile.png",
+      "description": "Edit the selected person.",
+      "access": "Select a name at the bottom of the screen, then choose Edit.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a756f2d51c2048438f994138a624438956816ffc4910beef0fe7e172706734cf",
+        "mobile": "a0561295123a8dcc652e9aeb97794b020afc3190d6ffdedfacdc33e20bac21a0"
+      }
+    },
+    {
+      "id": "creator-household",
+      "section": "creator",
+      "desktop": "images/ui-creator-household-desktop.png",
+      "mobile": "images/ui-creator-household-mobile.png",
+      "description": "The Household page in the character creator.",
+      "access": "Choose Options > New housemate, then Household.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "690a73d084f7745b630d99fe99f79f2200ed01a725899a777c61cdbb9bfd13e7",
+        "mobile": "6935aff992d6b0ffaf3e5ce0e9b999c88cbfd91117db5814356aaf065812ae2d"
+      }
+    },
+    {
+      "id": "creator-identity",
+      "section": "creator",
+      "desktop": "images/ui-creator-identity-desktop.png",
+      "mobile": "images/ui-creator-identity-mobile.png",
+      "description": "The Identity page in the character creator.",
+      "access": "Choose Options > New housemate, then Identity.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6b26ddb158d8f5891ac3e46f96b6f6fa30e7d09c23b9dd41ee52897fa53e7bbb",
+        "mobile": "006f528d4bee0edf343a8e2fc5216feef7cdc0883be6b9106857f1406d152bd7"
+      }
+    },
+    {
+      "id": "creator-interests",
+      "section": "creator",
+      "desktop": "images/ui-creator-interests-desktop.png",
+      "mobile": "images/ui-creator-interests-mobile.png",
+      "description": "The Interests & skills page in the character creator.",
+      "access": "Choose Options > New housemate, then Interests & skills.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0e8cfd242abb3cff5d49f6a5cd283a916a28ebc91563a8a0a9608c8e75c6c1bb",
+        "mobile": "3b550abc1fa99703ee47898f246db615951485ddf9fc41f997b6b06e1375c103"
+      }
+    },
+    {
+      "id": "creator-interests-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-interests-group-1-desktop.png",
+      "mobile": "images/ui-creator-interests-group-1-mobile.png",
+      "description": "Interests & skills: Skills expanded.",
+      "access": "Choose Options > New housemate, then Interests & skills. Open Skills and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "94a5bb3c8ee6588826bad4c5096430a357b9ae634e3f914819989b8c22fad6b4",
+        "mobile": "f1534aff275ddd44591e45d61557417e2483499bdc4b8c021be779d97b2bc7c9"
+      }
+    },
+    {
+      "id": "creator-needs",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-desktop.png",
+      "mobile": "images/ui-creator-needs-mobile.png",
+      "description": "The Needs & habits page in the character creator.",
+      "access": "Choose Options > New housemate, then Needs & habits.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "c9f767a6e325b9f9ab41e27e0bb37ac0b831e218b030ba8cb83c9ce35afecbcc",
+        "mobile": "8e79d9a9f34fb2c8d6661e92f64ea28a309f69fbf850ac6aa9c3eae9b49b95fd"
+      }
+    },
+    {
+      "id": "creator-needs-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-1-desktop.png",
+      "mobile": "images/ui-creator-needs-group-1-mobile.png",
+      "description": "Needs & habits: Presets expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Presets and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "686f015f1e25a0b32236d2b47bffc574ae9669b219bdef300a41c21f55b28dcf",
+        "mobile": "7d76a6cb51be1275e51bb589c66157737db8b0d9299d42d42455af088fab6e00"
+      }
+    },
+    {
+      "id": "creator-needs-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-2-desktop.png",
+      "mobile": "images/ui-creator-needs-group-2-mobile.png",
+      "description": "Needs & habits: Advanced need rates expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Advanced need rates and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "89af9016f776e85ee368ff0e932f87a176576aa7e9ce43c6d56d49b29231f930",
+        "mobile": "cc7e8a3fdafb460da1a1189fa4dd9ef995f5ca3901d7291a8efdb3d89116bf73"
+      }
+    },
+    {
+      "id": "creator-needs-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-3-desktop.png",
+      "mobile": "images/ui-creator-needs-group-3-mobile.png",
+      "description": "Needs & habits: Activity preferences expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Activity preferences and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6f92c1c60a40348ca4e276c2b797f154eed74300fb83d4c897a45b821876aafb",
+        "mobile": "8e79d9a9f34fb2c8d6661e92f64ea28a309f69fbf850ac6aa9c3eae9b49b95fd"
+      }
+    },
+    {
+      "id": "creator-personality",
+      "section": "creator",
+      "desktop": "images/ui-creator-personality-desktop.png",
+      "mobile": "images/ui-creator-personality-mobile.png",
+      "description": "The Personality page in the character creator.",
+      "access": "Choose Options > New housemate, then Personality.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b12983b9012eb4f64862d3c80960d1f27efc5c86f9b55b65acb5231ff2fadeca",
+        "mobile": "1c2bba2f919ca393a517332e531758495ca999619314e617c97430872fecc7b0"
+      }
+    },
+    {
+      "id": "creator-personality-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-personality-group-1-desktop.png",
+      "mobile": "images/ui-creator-personality-group-1-mobile.png",
+      "description": "Personality: Conditions expanded.",
+      "access": "Choose Options > New housemate, then Personality. Open Conditions and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a83f0015690c3fa922dde4bf5909f1e4949dbd9819f71632d652bf2eff6e3fde",
+        "mobile": "fec4c3ed939df467c2cde304494131f5cc1c3649bd9c1c54a7edf26a92bf44ea"
+      }
+    },
+    {
+      "id": "creator-review",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-desktop.png",
+      "mobile": "images/ui-creator-review-mobile.png",
+      "description": "The Review page in the character creator.",
+      "access": "Choose Options > New housemate, then Review.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "5c0b9879d63bdcf52d1d859c811b8283c8512d7e5ef1956388e34d925e91df4d",
+        "mobile": "b6dd2900eadd6146f41ea512519f8a667a4157da93e4d699a88555a6f574bc5e"
+      }
+    },
+    {
+      "id": "creator-review-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-1-desktop.png",
+      "mobile": "images/ui-creator-review-group-1-mobile.png",
+      "description": "Review: Identity expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Identity and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "bdbdf3488e4ed19e81100acc3049592ffd4f54e8f0bf5909e583a4f9ef5ecbbc",
+        "mobile": "a4595487eab01a7043f20fe093b0a2cc80fcac64d2d0945bbe952d96f110b2b8"
+      }
+    },
+    {
+      "id": "creator-review-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-2-desktop.png",
+      "mobile": "images/ui-creator-review-group-2-mobile.png",
+      "description": "Review: Appearance expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Appearance and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3ba9f12fcbce722b601fbcf7284969e190c6184d37ea97c5c891176301466b3a",
+        "mobile": "7e6672b5035db5c303ced54ea83b3feb634d74d43ffbebe87d360fe1b15dfc9d"
+      }
+    },
+    {
+      "id": "creator-review-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-3-desktop.png",
+      "mobile": "images/ui-creator-review-group-3-mobile.png",
+      "description": "Review: Personality expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Personality and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4703c412e97271b262155f3c8f05add61439ea844b8a23c9f4b09ddcfd0b9099",
+        "mobile": "51c1cbe670b29f229019848a89063fc55b8b5bb4886e18ac62c516605a0e0c76"
+      }
+    },
+    {
+      "id": "creator-review-group-4",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-4-desktop.png",
+      "mobile": "images/ui-creator-review-group-4-mobile.png",
+      "description": "Review: Needs & habits expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Needs & habits and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "7eccf39245e0c12b7e6070ee580b69068c34c11b875fa880b403909846bee346",
+        "mobile": "0ae3f5e08ee5cb9567266c6b01240ed05eb25ea7663ec45c2d195ea9d49b06fb"
+      }
+    },
+    {
+      "id": "creator-review-group-5",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-5-desktop.png",
+      "mobile": "images/ui-creator-review-group-5-mobile.png",
+      "description": "Review: Interests & skills expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Interests & skills and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "566539beeb8afb32b5789859d2f64ad807e6447c08d18c09607e7c8b76a8edb0",
+        "mobile": "4d3780bc0b448c9639f896f1873c3af19115be83fb80d7872d0ed233a0af177b"
+      }
+    },
+    {
+      "id": "creator-review-group-6",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-6-desktop.png",
+      "mobile": "images/ui-creator-review-group-6-mobile.png",
+      "description": "Review: Household expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Household and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "138a97249a658f5d29d81cd9c969c471b5bd41c333c5135d16fb64f8609163d6",
+        "mobile": "f0232a7b109882d945abd1d910519628a6c9d134ccdab7a042b46267f3a95fbe"
+      }
+    },
+    {
+      "id": "help",
+      "section": "help",
+      "desktop": "images/ui-help-desktop.png",
+      "mobile": "images/ui-help-mobile.png",
+      "description": "The short in-game Help dialog.",
+      "access": "Choose Options > Help.",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "92a425a88d38367616849da445256e550b01a9feb094775d480465562491a44c",
+        "mobile": "adf87610bf18dd4517bb70d54b173f34a8fe1790ff9fe407b5b9b8486905eb75",
+        "desktopDetail": "25d519dbcb8a4615dddc80ab2abe16ba440b54ec7b9ecf522a893dffc7201493",
+        "mobileDetail": "6fe55426f5aa74558c2d3a5eef88f02dd64d4f25a1ce8ee6ef378e13be0c70d4"
+      },
+      "desktopDetail": "images/ui-help-detail-desktop.png",
+      "mobileDetail": "images/ui-help-detail-mobile.png"
+    },
+    {
+      "id": "load-confirm",
+      "section": "saves",
+      "desktop": "images/ui-load-confirm-desktop.png",
+      "mobile": "images/ui-load-confirm-mobile.png",
+      "description": "Load confirmation and Keep playing.",
+      "access": "Choose Options > Load after saving a household.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b54b8a754f4e4ebdc7e098915f831b98138629f3b099dc9a709c170263479104",
+        "mobile": "c8cd15bbc3a3c8a0f5051405d79451c86d8387fd76008b9d86fc8ed08316f6e9"
+      }
+    },
+    {
+      "id": "new-game-confirm",
+      "section": "saves",
+      "desktop": "images/ui-new-game-confirm-desktop.png",
+      "mobile": "images/ui-new-game-confirm-mobile.png",
+      "description": "New game confirmation and Keep playing.",
+      "access": "Choose Options > New game.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "30e46ac0902856dc973a5ffbc5f84156d6844f238a5bbdd1e856ad568a44ecce",
+        "mobile": "aaa7c2639279f097453543c2a1476baefcb95324669c27374cd2457c81639ebd"
+      }
+    },
+    {
+      "id": "save-status",
+      "section": "saves",
+      "desktop": "images/ui-save-status-desktop.png",
+      "mobile": "images/ui-save-status-mobile.png",
+      "description": "Game saved status after Save.",
+      "access": "Choose Options > Save and wait for Game saved.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "66f24e093236f4cc4b08609d5fe3c82c51a89074cc1d7395e420060d1a77a5af",
+        "mobile": "a20931090b20f407f9b425055903df7cb2b14bd03f7e3a2770280087deda4d10"
+      }
+    },
+    {
+      "id": "career-assigned",
+      "section": "career",
+      "desktop": "images/ui-career-assigned-desktop.png",
+      "mobile": "images/ui-career-assigned-mobile.png",
+      "description": "Career details after assigning a path.",
+      "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "8259389a71325e545d171aa8b690f416fbaed72791ba4bd190cbad7617634ca1",
+        "mobile": "7382b4abe7a45b912cbef31f73c58b1ca3e9ee5e30e46331a221e9e7d358fe1e"
+      }
+    },
+    {
+      "id": "career-controls",
+      "section": "career",
+      "desktop": "images/ui-career-controls-desktop.png",
+      "mobile": "images/ui-career-controls-mobile.png",
+      "description": "Career assignment, Quit and automatic job search controls.",
+      "access": "Open Sim details > Career, then scroll to Assign a career.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b1c9bcc7d8410a9fbdea891f26e1238806f682006d67e34d06241318a44c8ff1",
+        "mobile": "e8213181c02dcc4bb41ae628d26143f219f10268f397358a1fbb151447a4eb92"
+      }
+    },
+    {
+      "id": "land-confirm",
+      "section": "land",
+      "desktop": "images/ui-land-confirm-desktop.png",
+      "mobile": "images/ui-land-confirm-mobile.png",
+      "description": "The land confirmation when funds are insufficient.",
+      "access": "Choose Build > Land, choose a strip, then Buy land. Read the quote; Cancel closes it.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b70a80e05a727015d2115d7dca01f8342292e497dc191108b7274a7410234504",
+        "mobile": "519e07a9c3f8d36bee0d4a154be1880063de372b14c5fcbd2ab2080361b50632"
+      }
+    },
+    {
+      "id": "object-description",
+      "section": "object-menu",
+      "desktop": "images/ui-object-description-desktop.png",
+      "mobile": "images/ui-object-description-mobile.png",
+      "description": "An expanded object description.",
+      "access": "Open an object action menu, then choose its type and model name. Scroll inside longer descriptions.",
+      "desktopDetail": "images/ui-object-description-detail-desktop.png",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "mobileDetail": "images/ui-object-description-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "f756b500df7b1272fb3376eaeee7c9422b73f5c131ffe17b9b549835eb2df6ed",
+        "mobile": "1268524baf250b909880f6c40d57da8fcf1ffa35053b3011f6764628cfa3abbe",
+        "desktopDetail": "207d6b96ba15817cf97e9ed12b9a679faae5e5ba3379f6b63be5aeeca750232b",
+        "mobileDetail": "25bac42eba4d16a930ea306b945195b30b1ca1345e40be620995b20cebdd4d30"
+      }
+    },
+    {
+      "id": "object-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-object-menu-desktop.png",
+      "mobile": "images/ui-object-menu-mobile.png",
+      "description": "An object action menu.",
+      "access": "Select a person, then right-click an object or hold a finger on it. With the game view focused, arrows choose a target and Enter opens its actions.",
+      "desktopDetail": "images/ui-object-menu-detail-desktop.png",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "mobileDetail": "images/ui-object-menu-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "ce27a310733ce78e4c7cfbef88a02add620621d7a4a89044c54382c9e255b78f",
+        "mobile": "03655913f4aed957cf314436935a0439717425b19ccad8b96654c6bd6cbfb879",
+        "desktopDetail": "3210c97eed5ce9c3dc71dbdef7e13658199bd569a01326b849d70b8a087260a1",
+        "mobileDetail": "54ae74782847253b38c13dbbb9c1087f4c99c9b3b46e7fc7d1b3e1e7d2ae5c72"
+      }
+    },
+    {
+      "id": "person-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-person-menu-desktop.png",
+      "mobile": "images/ui-person-menu-mobile.png",
+      "description": "Actions directed at another person.",
+      "access": "Select one person, then right-click or hold another person.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "cb8ad454f758b3bdf8e2aa8e2e20617a3d28782c91b6c5fba80fe7946ccb062a",
+        "mobile": "9af43b77477adc56420bf55e43cec6005f5077332d7d2744f98d9c9c81301d38"
+      }
+    },
+    {
+      "id": "room-review",
+      "section": "rooms",
+      "desktop": "images/ui-room-review-desktop.png",
+      "mobile": "images/ui-room-review-mobile.png",
+      "description": "Review of a room split, including names and retained identity.",
+      "access": "Build an outline that splits an existing room, then choose Confirm.",
+      "desktopDetail": "images/ui-room-review-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "c5e801768b39e8b7c82652874f0935c61d988b4f9b51e7d9907fa0ee306ba4f3",
+        "mobile": "a063e541ff84f4e14b3e34396ca7f9489af437d608d530563ff4a53c729af396",
+        "desktopDetail": "ef8fd178dc120d585164b6e16604fc6c122dd17a38b00a4bd29f74a1ea53dd85"
+      }
+    },
+    {
+      "id": "work-conflict",
+      "section": "activity-and-orders",
+      "desktop": "images/ui-work-conflict-desktop.png",
+      "mobile": "images/ui-work-conflict-mobile.png",
+      "description": "The warning before an order delays or interrupts a work shift.",
+      "access": "Give an explicit order to someone whose shift is underway.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "924792aaa8261add5ba14cfbfcc9fbc1a1353270fdd1692d63e2bc9ebbde42ed",
+        "mobile": "0f266ecbb95219f8236940656e370ddbe8f858250f059626261d4fd0ce50ce60"
+      }
+    },
+    {
+      "id": "weather-autumn-falling",
+      "section": "weather",
+      "desktop": "images/weather-autumn-falling-desktop.png",
+      "mobile": "images/weather-autumn-falling-mobile.png",
+      "description": "Orange leaves falling outside in autumn.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "13d0b43ab46601c8121c0ee7f295a39c7c5f11cbb85fe4c012c24b0606541a3f",
+        "mobile": "f4410ada856983ae50a3448900d18799ebca9bfa271f451089b614dfc1845593"
+      }
+    },
+    {
+      "id": "weather-autumn-grounded",
+      "section": "weather",
+      "desktop": "images/weather-autumn-grounded-desktop.png",
+      "mobile": "images/weather-autumn-grounded-mobile.png",
+      "description": "Autumn leaves resting on the lawn.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "16016d2e31d87002bb0d579e560696fb19ec8844a59e75ac8edb20eceac02e5c",
+        "mobile": "3c732d0fd199f61485ce06bf59f90d842cabef74f996a80f63809fd575862cb9"
+      }
+    },
+    {
+      "id": "weather-mild",
+      "section": "weather",
+      "desktop": "images/weather-mild-desktop.png",
+      "mobile": "images/weather-mild-mobile.png",
+      "description": "Mild weather after the autumn leaves have disappeared.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a528274775e113aa2cf7c590f627e48c5cb3798fccf6bff8ff2a8f1f301bb8a9",
+        "mobile": "52ee53a286b62a66e634029f08ff58080f27ab107b9e1bd2233c0b6b2cdd98e3"
+      }
+    },
+    {
+      "id": "weather-winter-snow",
+      "section": "weather",
+      "desktop": "images/weather-winter-snow-desktop.png",
+      "mobile": "images/weather-winter-snow-mobile.png",
+      "description": "Winter snowfall over green ground; snow does not accumulate.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "8197ef0f60702e2f128e6fae03a938f7360ae55dd7e84f37577990331b430646",
+        "mobile": "c1c9ed74d2b658167200bf310036bc73b182e3095a460525686d80bd2cbb5c28"
+      }
+    },
+    {
+      "id": "creator-preview",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-preview-mobile.png",
+      "description": "The character preview expanded on a phone.",
+      "access": "Choose Options > New housemate, then Show preview on a phone. Desktop shows the preview beside the form.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "447abd8f121522855fce536067beb29d4c086a30da1467a18e5816a2ee9d7c1e"
+      }
+    },
+    {
+      "id": "creator-preview-controls",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-preview-controls-mobile.png",
+      "description": "Animation, playback, facing and game-size preview controls.",
+      "access": "On a phone choose Show preview, then scroll within the creator to the controls below the portrait. Desktop shows them beside the form.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "2176508d57fd28eb563617a1d83c6b9f5bd77adc263ee1f41227cbe7b4ee99ba"
+      }
+    },
+    {
+      "id": "bookcase-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-bookcase-menu-desktop.png",
+      "mobile": "images/ui-bookcase-menu-mobile.png",
+      "description": "A bookcase menu with Read book, Buy book and Sell book.",
+      "access": "Select a name at the bottom of the screen, then right-click or hold a bookcase.",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "desktopDetail": "images/ui-bookcase-menu-detail-desktop.png",
+      "mobileDetail": "images/ui-bookcase-menu-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "1df3a69ddf5b87d87927001d7deb449e201d00fcc929275da95f8c3766c61f48",
+        "mobile": "af7da255e3d6c8b18e43ce1aab0ffb13d9760bf100eb93a688aa8bd3b635567d",
+        "desktopDetail": "25b96e8da3a6ff9ff8b666933dc151e72450fe16925147eb91c233536d793c9e",
+        "mobileDetail": "e3423fd18bc035c79d6fdbdbcf998611e1cdcb90572751a8a1f86c679bf003d2"
+      }
+    },
+    {
+      "id": "build-books",
+      "section": "build",
+      "desktop": "images/ui-build-books-desktop.png",
+      "mobile": "images/ui-build-books-mobile.png",
+      "description": "Book count, Buy book and Sell book for a selected bookcase.",
+      "access": "Choose Build > Furniture, choose a Bookcase from Furniture, then scroll to its book controls.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "9dc65de8d3791d4bbd424f2c59a3ae54484c4b1504188e08f86687d8eb18134e",
+        "mobile": "89f2cdfc17b297ead81baf1cb592d887a2dd6ef6e87dfabe40146f097304eebd"
+      }
+    },
+    {
+      "id": "buy-catalogue",
+      "section": "buy",
+      "desktop": "images/ui-buy-catalogue-desktop.png",
+      "mobile": "images/ui-buy-catalogue-mobile.png",
+      "description": "Visible products in the filtered Buy catalogue.",
+      "access": "Choose Build > Buy, choose a room filter, then scroll to the product cards.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4d2f451af78f50c0745fb07e8c7eab27f5a78b00ee1cb3f335990ed56bc21942",
+        "mobile": "afcf2eb6d21184cc3ded8bb01bce17ef60a9f8ccdd9f61cc0bb1f689f696ec94"
+      }
+    },
+    {
+      "id": "buy-details",
+      "section": "buy",
+      "desktop": "images/ui-buy-details-desktop.png",
+      "mobile": "images/ui-buy-details-mobile.png",
+      "description": "A purchase preview with its price, rotation, colour and cancellation controls.",
+      "access": "Choose Build > Buy, choose a product, then select a destination. Scroll the Buy panel for Colour and other details.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0bbb09c89b0c15eccab6e7af835b387c13aca391f9cb686850fd0391757532f9",
+        "mobile": "8613c9e93f80c3fe8c62112351ee998c3bb99c061cc06d1a87acbe445b513034"
+      }
+    },
+    {
+      "id": "buy-filters",
+      "section": "buy",
+      "desktop": "images/ui-buy-filters-desktop.png",
+      "mobile": "images/ui-buy-filters-mobile.png",
+      "description": "The Buy catalogue filtered to Kitchen.",
+      "access": "Choose Build > Buy, then choose Kitchen under Room type.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "2bcaebe7ed46a7d973cfc0ded75ae5147b6de6131e8ee89c5b9954e1aa81bd0b",
+        "mobile": "49ee6dc5050fc8a7753c944f1f5b6577881088b4c362dc6c37448341fd1dac42"
+      }
+    },
+    {
+      "id": "chores-history",
+      "section": "chores",
+      "desktop": "images/ui-chores-history-desktop.png",
+      "mobile": "images/ui-chores-history-mobile.png",
+      "description": "Recent daily chore outcomes.",
+      "access": "Open Chores, scroll below the assignments, then open Recent daily outcomes.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3ecb67419cb9cac1a47465419e5ef48f0e9682271faa1913af0d1b8555dcf2fa",
+        "mobile": "91ad93323467a89fff4f0dcf64309c42a72534cc9b7dcb62e255cd0a1c239e83"
+      }
+    },
+    {
+      "id": "floor-actions",
+      "section": "floors",
+      "desktop": "images/ui-floor-actions-desktop.png",
+      "mobile": "images/ui-floor-actions-mobile.png",
+      "description": "The floor materials and Remove and Cancel beside a selected tile.",
+      "access": "Choose Build > Floors, then click or tap a visible floor tile.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "12a92e387e8723c47437d178403d1ec80b0f0fa452f0c2c1021c100367635810",
+        "mobile": "687a3ad3449c05e39ea938988e96cc0c89b824cb28ff8bdcffbfe0f4ecb9204b"
+      }
+    },
+    {
+      "id": "help-shortcuts",
+      "section": "help",
+      "desktop": "images/ui-help-shortcuts-desktop.png",
+      "mobile": "images/ui-help-shortcuts-mobile.png",
+      "description": "Keyboard shortcuts in Help.",
+      "access": "Choose Options > Help, open Shortcuts, then scroll to its control groups.",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "11c58d7e354557d61671fa119a611c5ae7dca683abfab4b7b115624435f1a78a",
+        "mobile": "e90d9a39965f4504d9ca338fcb6ed0d1b94ed148b423e2c31be88817db535281",
+        "desktopDetail": "739cd9221915a1c7d71825d4a8ddc5e420c6a1e4be7cef38e4248a19eefaf154",
+        "mobileDetail": "338e4e052631b0f904c8524759d1b7a71f9ca86a0bd0ffff529fe9d0f7617313"
+      },
+      "desktopDetail": "images/ui-help-shortcuts-detail-desktop.png",
+      "mobileDetail": "images/ui-help-shortcuts-detail-mobile.png"
+    },
+    {
+      "id": "options-build-disabled",
+      "section": "options",
+      "desktop": "images/ui-options-build-disabled-desktop.png",
+      "mobile": "images/ui-options-build-disabled-mobile.png",
+      "description": "New housemate disabled while Build mode is active.",
+      "access": "Enter Build, then open Options. Exit Build before adding a housemate.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "desktopDetail": "images/ui-options-build-disabled-detail-desktop.png",
+      "mobileDetail": "images/ui-options-build-disabled-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "e95f60abcd63c41ef162bb93c7fa727ed334908afcfb7f76e5ed6c30ed7abf4e",
+        "mobile": "02cab93b398f406928568e2315698db02365f518eed84ddf9fdeb29652e62ecd",
+        "desktopDetail": "92e858a6e3a1268732381a2557c04b3f7aa3ac316f8975a9c755b6d27c391d75",
+        "mobileDetail": "d059275b91dabb66226fd80b32bdda6cc293c3249ca8e3eac679825f428e1c5d"
+      }
+    },
+    {
+      "id": "window-models",
+      "section": "walls",
+      "desktop": "images/ui-window-models-desktop.png",
+      "mobile": "images/ui-window-models-mobile.png",
+      "description": "Window models beside an eligible wall, with Place Window available.",
+      "access": "Choose Build > Walls, select a solid wall, choose Windows, then scroll to its models.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "de770f3a03ceace9d4016846048999dc4ebd0cdd5883aeef82750ef3ff919eb4",
+        "mobile": "aa043a7f30a7e13d824577a4db5c4fad2dbfd8be32bf066b1ae1d3cae78c43f4"
+      }
+    },
+    {
+      "id": "career-review",
+      "section": "career",
+      "desktop": "images/ui-career-review-desktop.png",
+      "mobile": "images/ui-career-review-mobile.png",
+      "description": "The selected person's completed work reviews.",
+      "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "fbf41374b0c2003191f633f779300eb3a0d58821152a9cfb883c5f8b5c643123",
+        "mobile": "50eda1535034f6148102aebb11d9f2b0e443897f6720f2074100b7a58f5255c8"
+      }
+    },
+    {
+      "id": "career-overview-graph",
+      "section": "career",
+      "desktop": "images/ui-career-overview-graph-desktop.png",
+      "mobile": "images/ui-career-overview-graph-mobile.png",
+      "description": "The review graph opened beside the career in Overview.",
+      "access": "Open Sim details > Overview, then choose i beside the career name.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "f5662f555bf93d0700fb7b0fcf4469561dc3da5b31e4e7e80d4f068556a4beef",
+        "mobile": "babf18f267ba0967766f49a47bba21303b61c8f3395c8db592f254139e4f90b5"
+      }
+    },
+    {
+      "id": "creator-edit-review",
+      "section": "creator",
+      "desktop": "images/ui-creator-edit-review-desktop.png",
+      "mobile": "images/ui-creator-edit-review-mobile.png",
+      "description": "Review an edit before choosing Apply changes.",
+      "access": "Select a name at the bottom of the screen, choose Edit, then Review.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "7a74cc41dc99a1fb1bae24913cabc6d85d15fcaf9b6dd4296341294cd40dc2f4",
+        "mobile": "0aa2404a286f74fc7706d8ea83dfb223f1e61607f62e62068ae3856a63f54c24"
+      }
+    },
+    {
+      "id": "help-guide-link",
+      "section": "help",
+      "desktop": "images/ui-help-guide-link-desktop.png",
+      "mobile": "images/ui-help-guide-link-mobile.png",
+      "description": "The player guide link in Help.",
+      "access": "Choose Options > Help, open Full player guide, then choose player guide. It opens in a separate tab.",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "d1e7e4a31f8451811b7ee7b9f4dba944c1f82120b9b06f1a810136f2eef16ad6",
+        "mobile": "00aaac210a052ba7a622ef6c52e68c31a8d6bf1ff842b5b6433ba0732025c9a3",
+        "desktopDetail": "be1f592ed412dd8f8c2ed3d51aad1987ca9d55dc39525b8b611be15dfa1bd465",
+        "mobileDetail": "dadc54aa1acea714000ad623c870e65bb5072a5f575eebecb34a58af14e5fc7a"
+      },
+      "desktopDetail": "images/ui-help-guide-link-detail-desktop.png",
+      "mobileDetail": "images/ui-help-guide-link-detail-mobile.png"
+    },
+    {
+      "id": "sim-conditions",
+      "section": "traits",
+      "desktop": "images/ui-sim-conditions-desktop.png",
+      "mobile": "images/ui-sim-conditions-mobile.png",
+      "description": "A named condition and its severity, with a capability trait below it.",
+      "access": "Select a name at the bottom of the screen, open Sim details > Traits, then scroll to the named conditions.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "f95d2aa2b8eb15f26a29f424b918069b289ad80b48df0d5cd647896fbaa60eb8",
+        "mobile": "fe90fb4fd8f273bb351a48ebfcf8c2df7ab0cde0702358683625d8bcd19bcb23"
+      }
+    },
+    {
+      "id": "help-company-chores",
+      "section": "help",
+      "description": "Company & chores in Help, with conversation benefits, real grievances and chore repair.",
+      "access": "Choose Options > Help. Close Build & place, then open Company & chores.",
+      "desktop": "images/ui-help-company-chores-desktop.png",
+      "desktopDetail": "images/ui-help-company-chores-detail-desktop.png",
+      "mobile": "images/ui-help-company-chores-mobile.png",
+      "mobileDetail": "images/ui-help-company-chores-detail-mobile.png",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "f1d008da41b75d703225a33631ad3718381226848fbb78118dbf8e1b98030669",
+        "mobile": "08f68db355a9ee5ce347913ed9ff1a1d2ff455eb6733d4ac0d695a55298e76c0",
+        "desktopDetail": "e69cf06fe49b0e0ded712df741fb23b858acfce6376f87c24dc18923ac3ec0f6",
+        "mobileDetail": "c3335115025250452188461d5f1779182ab2bb101b872a42ac75706354694c57"
+      }
+    },
+    {
+      "id": "help-company-chores-more",
+      "section": "help",
+      "description": "The rest of Company & chores, including completed cleaning, fresh mess grace periods and the Chores link.",
+      "access": "Choose Options > Help, open Company & chores, then scroll down to Fresh mess.",
+      "desktop": "images/ui-help-company-chores-more-desktop.png",
+      "desktopDetail": "images/ui-help-company-chores-more-detail-desktop.png",
+      "mobile": "images/ui-help-company-chores-more-mobile.png",
+      "mobileDetail": "images/ui-help-company-chores-more-detail-mobile.png",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "eb8aa0b7c82f05dc0a5b50cf387983eb2fed327b342bd6841f0f82129178a5cf",
+        "mobile": "84ee086e6159aafd2f774307bbc3dc207a571132e2b64ee333b13818f96ab561",
+        "desktopDetail": "d4aaaf569fcea16fc76639bac09aa2e06bdec924b905345afbdcdc3594720c41",
+        "mobileDetail": "96759e903f8e1920f449984366ffc18f5e7ea820e846c5fb3fac9154b6d19e32"
+      }
+    },
+    {
+      "id": "guide-shortcut",
+      "section": "clock-and-speed",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
+      "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
+      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      }
+    },
+    {
+      "id": "guide-shortcut-build",
+      "section": "build",
+      "desktop": "images/ui-guide-shortcut-build-desktop.png",
+      "mobile": "images/ui-guide-shortcut-build-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-build-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-build-detail-mobile.png",
+      "description": "The guide link stays available while Build is open, with room for the building controls.",
+      "access": "Choose Build, then choose Player guide in the HUD.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "bfc648073785f1f9007db118375c1a4823404685d26aec224684ea8c7eb193e5",
+        "mobile": "06e784b5ad587ffba08a960a1b1a777e99ab346ddb7ef7d5163ee87fa0f67dce",
+        "desktopDetail": "1f2dd3108ed7ef66fdff3c94b7d4ae5b2c72a6647b9ab4709ca98e2e3fb8cc81",
+        "mobileDetail": "4ae6668de7c90be9f1d540cf647f6cb1cdd50e194d4520ce514a64202966e568"
+      }
+    }
+  ],
+  "uiSections": {
+    "clock-and-speed": [
+      "overview",
+      "build-furniture",
+      "guide-shortcut"
+    ],
+    "work-confirmation": [
+      "work-conflict"
+    ]
+  }
+}
