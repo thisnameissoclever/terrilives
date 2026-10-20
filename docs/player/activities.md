@@ -121,7 +121,7 @@ Exercise supplies Fun and practice in Fitness while costing Energy and Hygiene. 
 
 ## Chat and Fight {#talk-and-fight}
 
-Select the speaker, then open another person's menu and choose Chat or Fight. A chat request waits for the recipient's existing activity, including its travel and longer meal or reading goal. Private bathroom use makes the initiator wait outside. The recipient does not become reserved merely because a request exists.
+Select the speaker, then open another person's menu and choose Chat or Fight. A chat request waits for the recipient's existing activity, including its travel and longer meal or reading goal. Private bathroom use makes the initiator wait outside. The recipient does not become reserved merely because a request exists. Once the speaker is on the way and the recipient has stopped to wait, the recipient does not leave for a shared meal or washing up until the conversation or argument ends.
 
 Chat supplies Social and Fun during actual talking. Each participant's own feeling affects their reward. Completion can improve feelings, but a disliked topic can instead make the listener think less of the initiator. Starting at an inconvenient moment can also leave an unmet-need penalty. See [conversations](relationships/#conversations).
 

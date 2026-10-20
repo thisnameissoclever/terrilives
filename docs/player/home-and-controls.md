@@ -28,13 +28,13 @@ The household keeps running at the selected speed when you switch tabs or minimi
 
 ## Build, confirm and discard {#build}
 
-Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land.
+Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land. If Build cannot open, the status line under the world controls says why.
 
 :::illustration build-furniture
 
-Edits form a draft. Confirm at the bottom keeps the current batch and leaves Build open. Cancel at the bottom discards changes since the last Confirm and keeps Build open. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch.
+Edits form a draft. Confirm at the bottom keeps the current batch and leaves Build open. Cancel at the bottom discards changes since the last Confirm and keeps Build open. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch. When Confirm cannot keep the batch, the status above it turns red and says what is in the way and what you can do.
 
-Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states.
+Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states. If Confirm changes is refused, the question opens again with the reason beside it, so you can still Discard changes or Keep building.
 
 ## Furniture and buying {#furniture}
 
@@ -52,7 +52,7 @@ Walls selects the edge between floor tiles. Click a wall to select it, or the fl
 
 While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways; a doorway there opens onto nothing until you buy land beyond it.
 
-The game refuses edits that cut off required access or conflict with furniture, people or active use. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
+The game refuses edits that cut off required access or conflict with furniture, people or active use. Opening a line or making a doorway can be refused too, when it would leave furniture facing a space nobody can reach; make a way into that space first. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
 Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering, or Remove to restore its original floor in the draft. Confirm keeps the changes. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
 
