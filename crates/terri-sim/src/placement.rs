@@ -283,6 +283,14 @@ pub(crate) struct CurrentLayout {
     rectangles: Vec<Rectangle>,
 }
 
+/// The usability proof over the lot as it stands, for tests that build a
+/// scenario and need it valid apart from the rule under test.
+#[cfg(test)]
+pub(crate) fn lot_usable_for_tests(world: &World) -> Result<(), PlacementRefusal> {
+    let current = current_layout(world)?;
+    prove_lot_usable(world, world.resource::<TileGrid>(), &current.rectangles)
+}
+
 pub(crate) fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
     use PlacementRefusal::UnsupportedLayout;
     let content = world.get_resource::<Content>().ok_or(UnsupportedLayout)?.0;

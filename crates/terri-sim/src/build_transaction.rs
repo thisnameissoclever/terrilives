@@ -70,6 +70,11 @@ pub enum ValidationProblem {
 /// `None` when the refusal lies outside these rules.
 pub(crate) fn diagnose(world: &World) -> Option<ValidationProblem> {
     let grid = world.resource::<terri_core::TileGrid>();
+    // `candidate_grid_loads` reports a book problem as a walls problem; it is
+    // not one, and none of these rules names it.
+    if save::v6::validate_live_books(world).is_err() {
+        return None;
+    }
     if crate::seating::validate(world, grid).is_err() {
         return Some(ValidationProblem::Seating);
     }
@@ -274,6 +279,9 @@ impl Sim {
             .map(|b| b.revision)
     }
     pub fn take_build_error(&mut self) -> Option<BuildCommitError> {
+        // A diagnosis belongs to the entry or preparation that failed, never to
+        // a later command error.
+        self.world.remove_resource::<BuildDiagnosis>();
         let active = self
             .world
             .get_resource_mut::<BuildTransaction>()
@@ -285,7 +293,8 @@ impl Sim {
         })
     }
     /// The rule that refused the latest Build entry or preparation, if it was one
-    /// of the rules [`diagnose`] reads. Cleared when either is tried again.
+    /// of the rules [`diagnose`] reads. Cleared when either is tried again, when
+    /// a build error is taken, and when Build commits, cancels or ends.
     pub fn build_diagnosis(&self) -> Option<ValidationProblem> {
         self.world
             .get_resource::<BuildDiagnosis>()
@@ -631,6 +640,7 @@ impl Sim {
             .collect())
     }
     pub fn commit_build(&mut self, token: BuildToken) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -671,6 +681,7 @@ impl Sim {
         Ok(())
     }
     fn restore_build(&mut self, end: bool) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         let baseline = self
             .world
             .get_resource::<BuildTransaction>()

@@ -45,9 +45,7 @@ fn wall_refusal(
         .reason
 }
 
-/// Fits a window, then walls in one floor tile beside a piece of furniture.
-/// Returns the line between the sealed tile and the furniture.
-fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
+fn fit_first_window(sim: &mut Sim) {
     let windowed = sim
         .world()
         .resource::<terri_core::layout::SavedLayout>()
@@ -73,6 +71,15 @@ fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
                 .is_some_and(|r| r.reason.is_none())
         });
     assert!(windowed, "the shipped house takes a window somewhere");
+}
+
+/// Fits a window, then walls in one floor tile beside a piece of furniture.
+/// Returns the line between the sealed tile and the furniture, which is
+/// `Horizontal` and named by the sealed tile. A piece of furniture whose
+/// pocket cannot be sealed is skipped with the draft cancelled, so no stray
+/// wall from it changes the next try.
+fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
+    fit_first_window(sim);
     let content = sim.world().resource::<Content>().0;
     let objects: Vec<(u32, u32, u32)> = {
         let world = sim.world_mut();
@@ -110,8 +117,45 @@ fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
         {
             return sides[0];
         }
+        sim.cancel_build().unwrap();
+        fit_first_window(sim);
     }
     panic!("no furniture in the shipped house has a pocket to seal beside it");
+}
+
+/// The Room tool drawn over an already walled pocket adds no wall, only the
+/// doorway; it is held to the same rule as an opened single line.
+#[test]
+fn a_room_doorway_into_a_sealed_pocket_beside_furniture_is_refused() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
+    issue(
+        &mut sim,
+        SimCommand::BuildRoom {
+            x0: x,
+            y0: y,
+            x1: x,
+            y1: y,
+            doorway: Some(terri_core::layout::WallLine { axis, x, y }),
+        },
+    );
+    let reason = sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_room_result
+        .as_ref()
+        .unwrap()
+        .reason;
+    if reason.is_none() {
+        let confirm = sim.prepare_build_commit(RoomChoices::default()).map(|_| ());
+        panic!("the room doorway at {x}, {y} was accepted, and Confirm gives {confirm:?}");
+    }
+    assert_eq!(
+        reason,
+        Some(crate::placement::PlacementRefusal::InaccessibleInteraction)
+    );
+    confirm(&mut sim);
 }
 
 /// A doorway between furniture and a sealed pocket of floor makes the pocket

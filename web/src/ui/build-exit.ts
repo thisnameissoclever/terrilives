@@ -62,6 +62,15 @@ export function confirmRefusal(furnitureMoveShown: boolean): string {
     : 'The changes could not be confirmed. Fix what the tool reports, or choose Cancel to undo the pending changes.';
 }
 
+/**
+ * Why an unconfirmed batch was refused, or empty when nothing refused it:
+ * Back in a room review, or a second Confirm while one is running, leaves the
+ * batch pending without anything being wrong.
+ */
+export function confirmRefusalReason(roomError: string, sessionError: string, furnitureMoveShown: boolean): string {
+  return roomError || sessionError || (furnitureMoveShown ? confirmRefusal(true) : '');
+}
+
 /** The values of the dialog's buttons. Escape closes it with neither. */
 const CONFIRM = 'confirm';
 const DISCARD = 'discard';
@@ -243,9 +252,11 @@ export class BuildExit {
     const generation = ++this.continuation;
     const finish = (adopted: boolean) => {
       this.confirming = false;
+      const opener = this.reaskOpener;
+      this.reaskOpener = null;
       if (generation !== this.continuation) return false;
       if (!adopted) {
-        if (leave) this.askAgain();
+        if (leave) this.askAgain(opener);
         return false;
       }
       this.armAgainstTheRestOf(cause);
@@ -265,10 +276,9 @@ export class BuildExit {
    * A refused Confirm changes asks again with the reason, so the player who
    * wanted to leave sees why and can still Discard changes or Keep building.
    */
-  private askAgain(): void {
+  private askAgain(opener: Element | null): void {
     const reason = this.hooks.refusal?.() ?? '';
     if (!reason || this.dialog.open) return;
-    const opener = this.reaskOpener;
     this.ask(reason);
     if (opener) this.opener = opener;
   }
@@ -298,7 +308,7 @@ export class BuildExit {
     const opener = this.opener;
     this.opener = null;
     if (value !== CONFIRM) this.clearExitIntent();
-    this.reaskOpener = opener;
+    this.reaskOpener = value === CONFIRM ? opener : null;
     const left = value === CONFIRM ? this.confirmAndLeaveFor(cause)
       : value === DISCARD ? this.leaveAsChosen(cause) : false;
     // Leaving moves focus to the Build button; staying returns it, unless a

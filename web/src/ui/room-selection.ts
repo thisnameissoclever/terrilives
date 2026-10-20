@@ -25,13 +25,13 @@ export function roomFailure(error: RoomFailure): string {
 
 /** Writes each distinct room failure to the console once, however often it is shown. */
 export class RoomFailureLog {
-  private last = '';
+  private readonly logged = new Set<string>();
   report(message: string, error: RoomFailure, details: Record<string, unknown> = {}): string {
     const text = roomFailure(error), key = `${message}|${text}`;
-    if (key !== this.last) { this.last = key; logError('Rooms', message, { ...failureDetails(error), ...details }); }
+    if (!this.logged.has(key)) { this.logged.add(key); logError('Rooms', message, { ...failureDetails(error), ...details }); }
     return text;
   }
-  clear(): void { this.last = ''; }
+  clear(): void { this.logged.clear(); }
 }
 
 /** Confirmed native membership and raw field drafts. No provisional room identities. */

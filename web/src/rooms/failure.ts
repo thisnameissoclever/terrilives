@@ -46,22 +46,26 @@ const WHAT: Readonly<Record<number, string>> = {
   14: 'The room request is too large.',
 };
 
-/** What a Build validation failure found in the way, as a clause. */
-function obstacle(report: BuildFailureReport): string | null {
+/**
+ * What a Build validation failure found in the way, as a clause: what the
+ * pending changes would do, or, when Build cannot open, what the house does now.
+ */
+function obstacle(report: BuildFailureReport, now = false): string | null {
+  const [would, is] = now ? ['', 'is'] : ['would ', 'would be'];
   switch (report.rule) {
     case 'lot_usability':
       switch (report.refusal) {
-        case 8: return 'a wall or window would come between someone and what they are using';
-        case 9: return 'someone is standing where a wall or window would go';
-        case 10: return "a wall or window would block someone's way";
-        case 11: return 'some furniture would face a space nobody can reach';
-        case 12: case 13: return 'the front door would be cut off';
+        case 8: return `a wall or window ${now ? 'stands' : 'would come'} between someone and what they are using`;
+        case 9: return `someone is standing where a wall or window ${now ? 'is' : 'would go'}`;
+        case 10: return `a wall or window ${now ? 'blocks' : 'would block'} someone's way`;
+        case 11: return `some furniture ${now ? 'faces' : 'would face'} a space nobody can reach`;
+        case 12: case 13: return `the front door ${is} cut off`;
         default: return null;
       }
-    case 'edge_world': return "a wall or window would block a housemate's walk or what they are using";
-    case 'portal_return': return 'the front door or its landing would be cut off';
-    case 'seating': return "someone's seat would no longer be usable";
-    case 'reading': return "someone's reading spot would no longer be usable";
+    case 'edge_world': return `a wall or window ${now ? 'blocks' : 'would block'} a housemate's walk or what they are using`;
+    case 'portal_return': return `the front door or its landing ${is} cut off`;
+    case 'seating': return `someone's seat ${would}${now ? 'is not' : 'no longer be'} usable`;
+    case 'reading': return `someone's reading spot ${would}${now ? 'is not' : 'no longer be'} usable`;
     case null: return null;
     default: {
       const unhandled: never = report.rule;
@@ -87,7 +91,7 @@ export function confirmFailure(error: RoomFailure, report: BuildFailureReport = 
 /** A refused entry into Build mode. */
 export function enterFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
   if (error.code !== 10) return `${failureWhat(error, report)} Build mode stays closed.`;
-  const cause = obstacle(report);
+  const cause = obstacle(report, true);
   return `Build mode can't open because the house would not load as it stands${cause ? `: ${cause}` : ''}. `
     + 'Let the game run for a moment and try again. If it keeps happening, load an earlier save.';
 }

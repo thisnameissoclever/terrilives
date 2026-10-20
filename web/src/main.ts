@@ -22,7 +22,7 @@ import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
-import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
+import { BuildExit, buildCommandsIdle, confirmRefusalReason, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
 import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
@@ -1968,11 +1968,10 @@ async function main(): Promise<void> {
     },
   });
   const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
-  /** The footer's status; a refusal is marked so it reads as an error and is announced at once. */
+  /** The footer's status; a refusal is marked so it reads as an error. */
   function setBuildStatus(text: string, error = false): void {
     buildBatchStatus.textContent = text;
     if (error) buildBatchStatus.setAttribute('data-kind', 'error'); else buildBatchStatus.removeAttribute('data-kind');
-    buildBatchStatus.setAttribute('aria-live', error ? 'assertive' : 'polite');
   }
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
@@ -2065,8 +2064,10 @@ async function main(): Promise<void> {
   }
   async function confirmBuildBatch(): Promise<boolean> {
     const confirmed = await buildSession.confirm();
+    const reason = confirmed ? '' : confirmRefusalReason(roomSelection.error, buildSession.error, builder.hasPlacementChange);
     if (confirmed) setBuildStatus('Changes confirmed.');
-    else setBuildStatus(roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange), true);
+    else if (reason) setBuildStatus(reason, true);
+    else setBuildStatus('Changes remain pending until Confirm.');
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();

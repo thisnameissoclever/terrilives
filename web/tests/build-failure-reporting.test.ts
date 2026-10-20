@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, wallReason } from '../src/bridge.js';
-import { BuildExit, type BuildExitHooks } from '../src/ui/build-exit.js';
+import { BuildExit, confirmRefusalReason, type BuildExitHooks } from '../src/ui/build-exit.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { RoomFailureLog } from '../src/ui/room-selection.js';
 import { confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
@@ -39,6 +39,18 @@ describe('the failure text', () => {
     expect(enterFailure(VALIDATION, { rule: null })).toBe("Build mode can't open because the house would not load as it stands. "
       + 'Let the game run for a moment and try again. If it keeps happening, load an earlier save.');
     expect(enterFailure({ code: 3, detail: null })).toBe('The game ran out of memory while checking the changes. Build mode stays closed.');
+    expect(enterFailure(VALIDATION, { rule: 'lot_usability', refusal: 11 })).toMatch(/: some furniture faces a space nobody can reach\./);
+    for (const report of [{ rule: 'edge_world' }, { rule: 'portal_return' }, { rule: 'seating' }, { rule: 'reading' },
+      { rule: 'lot_usability', refusal: 8 }, { rule: 'lot_usability', refusal: 9 }, { rule: 'lot_usability', refusal: 12 }] as const) {
+      expect(enterFailure(VALIDATION, report)).not.toMatch(/\bwould\b(?! not load)/);
+    }
+  });
+
+  it('reports no refusal when a Confirm was backed out of rather than refused', () => {
+    expect(confirmRefusalReason('', '', false)).toBe('');
+    expect(confirmRefusalReason('', '', true)).toMatch(/^Move the furniture/);
+    expect(confirmRefusalReason('Use 1 to 48 characters for the room name.', 'other', true)).toBe('Use 1 to 48 characters for the room name.');
+    expect(confirmRefusalReason('', 'Session reason.', true)).toBe('Session reason.');
   });
 
   it('reads only the rules it knows from the report', () => {
@@ -74,6 +86,28 @@ describe('the console', () => {
     const [message, details] = errors.mock.calls[0];
     expect(message).toBe('[Natural Causes] Build: The changes could not be prepared.');
     expect(details).toEqual({ code: 10, kind: 'Build validation failed', detail: 2n, report: { rule: 'lot_usability', refusal: 11 } });
+  });
+
+  it('words a command failure before Build opens as a closed Build, not a refused Confirm', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const source = {
+      clockTick: () => 0, dayTicks: () => 1440, saveBytes: () => new Uint8Array(), loadBytes: () => true,
+      flushCommands() {}, buildActive: () => false, buildDirty: () => false, beginBuild: vi.fn(),
+      takeBuildError: () => ({ ok: true as const, value: { code: 12, detail: null } }),
+      prepareBuildCommit: vi.fn(), commitBuild: vi.fn(), cancelBuild: vi.fn(), endBuild: vi.fn(),
+    };
+    const session = new BuildSession(source as unknown as ConstructorParameters<typeof BuildSession>[0],
+      { prepare: () => true, settled: () => true, restored() {} });
+    expect(session.begin()).toBe(false);
+    expect(session.error).toBe('That action is not available in Build mode. Build mode stays closed.');
+    expect(source.beginBuild).not.toHaveBeenCalled();
+  });
+
+  it('logs each of two failures shown on alternate redraws once', () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const log = new RoomFailureLog();
+    for (let frame = 0; frame < 6; frame++) log.report(frame % 2 ? 'Tiles failed.' : 'List failed.', { code: 5, detail: null });
+    expect(errors).toHaveBeenCalledTimes(2);
   });
 
   it('gets a failure shown on every redraw once, and again after it clears', () => {

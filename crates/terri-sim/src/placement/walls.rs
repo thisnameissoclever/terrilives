@@ -197,7 +197,7 @@ fn check_barriers(
 /// onto a sofa. The usability proof refuses that, and so does a windowed
 /// house's loader. Only what this edit breaks is refused, so a house that is
 /// already cut in two can still be mended by opening it.
-fn keep_usable(
+pub(super) fn keep_usable(
     world: &World,
     rectangles: &[Rectangle],
     grid: &TileGrid,

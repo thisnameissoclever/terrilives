@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const SRC = new URL('../src/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap(name => {

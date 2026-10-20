@@ -998,7 +998,7 @@ describe('the page', () => {
   it('has a labeled modal dialog whose buttons give the answers the controller reads', () => {
     const dialog = block('<dialog id="build-exit-dialog"', '</dialog>');
     expect(dialog).toContain('aria-labelledby="build-exit-title"');
-    expect(dialog).toContain('aria-describedby="build-exit-text"');
+    expect(dialog).toContain('aria-describedby="build-exit-text build-exit-status"');
     expect(dialog).toContain('<h2 id="build-exit-title">Leave Build mode?</h2>');
     expect(dialog).toContain('<form method="dialog">');
     const buttons = [...dialog.matchAll(/<button([^>]*)>([^<]*)<\/button>/g)]
@@ -1039,7 +1039,7 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('return buildCommandsIdle(buildDraft);');
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
-    expect(MAIN_TS).toContain('confirmRefusal(builder.hasPlacementChange)');
+    expect(MAIN_TS).toContain('confirmRefusalReason(roomSelection.error, buildSession.error, builder.hasPlacementChange)');
     expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
   });
 

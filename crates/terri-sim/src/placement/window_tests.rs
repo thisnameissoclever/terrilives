@@ -655,6 +655,94 @@ fn window_loader_lets_a_walker_pass_beside_their_target_but_not_use_it_through_g
     );
 }
 
+/// The full load and Build entry for the case above, in the shipped house: a
+/// housemate on the far side of a fresh window from a piece of furniture walks
+/// round to use it.
+#[test]
+fn shipped_house_loads_and_opens_build_with_a_walker_beside_a_window() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let objects: Vec<(Entity, (i32, i32), terri_core::Footprint)> = sim
+        .world_mut()
+        .query::<(
+            Entity,
+            &Position,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>()
+        .iter(sim.world())
+        .map(|(entity, p, object, facing)| {
+            (
+                entity,
+                (p.x as i32, p.y as i32),
+                crate::placed_footprint(pack, object.0, facing),
+            )
+        })
+        .collect();
+    for (object, origin, footprint) in objects {
+        let beside = (origin.0, origin.1 + footprint.depth as i32);
+        let placed = WindowPlacement {
+            line: line(EdgeAxis::Horizontal, beside.0 as u32, beside.1 as u32),
+            model: WindowModel::Sash,
+        };
+        let Ok(plan) = validate_window_edit(sim.world(), WindowEdit::Fit(placed)) else {
+            continue;
+        };
+        if !plan.grid.is_walkable(beside.0, beside.1) {
+            continue;
+        }
+        let Some(walk) = plan.grid.find_path_adjacent(beside, origin, footprint) else {
+            continue;
+        };
+        if walk.is_empty() {
+            continue;
+        }
+        let mut trial = Sim::new_from_shipped_lot();
+        trial.world_mut().insert_resource(plan.layout.clone());
+        trial.world_mut().insert_resource(plan.grid.clone());
+        let walker = trial
+            .world_mut()
+            .query_filtered::<Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(trial.world())
+            .next()
+            .unwrap();
+        trial.world_mut().entity_mut(walker).insert((
+            Position {
+                x: beside.0 as f32,
+                y: beside.1 as f32,
+            },
+            terri_core::Target {
+                object,
+                interaction: 0,
+            },
+            terri_core::Path {
+                steps: walk,
+                cursor: 0,
+            },
+        ));
+        if crate::placement::lot_usable_for_tests(trial.world()).is_err()
+            || crate::save::candidate_grid_loads(
+                trial.world(),
+                trial.world().resource::<TileGrid>(),
+            )
+            .is_err()
+        {
+            continue;
+        }
+        crate::save::v20::restore(
+            crate::save::v20::capture(&trial),
+            pack,
+            crate::save::Carried::for_load(trial.world()),
+        )
+        .expect("a walk past a window loads");
+        trial
+            .begin_build()
+            .expect("Build opens with a walker beside a window");
+        return;
+    }
+    panic!("no window line in the shipped house has floor on both sides");
+}
+
 #[test]
 fn window_typed_restore_preserves_identity_and_rear_grid() {
     let mut sim = house();

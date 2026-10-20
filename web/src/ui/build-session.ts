@@ -45,7 +45,7 @@ export class BuildSession implements PersistableSim {
 
   begin(): boolean {
     if (this.active) return true;
-    if (!this.settle()) return false;
+    if (!this.settle('enter')) return false;
     const result = this.source.beginBuild();
     if (result.ok) { this.error = ''; return true; }
     const report = this.report(result.error);
@@ -74,7 +74,7 @@ export class BuildSession implements PersistableSim {
       this.confirming = false;
       return committed.ok;
     } catch (error) {
-      this.error = 'The changes could not be confirmed because the game could not read its own answer. Try Confirm again, or choose Cancel to undo the pending changes.';
+      this.error = 'The changes could not be confirmed because of an unexpected error. Try Confirm again, or choose Cancel to undo the pending changes.';
       logError('Build', 'Confirm failed unexpectedly.', { error });
       this.confirming = false; return false;
     }
@@ -112,7 +112,7 @@ export class BuildSession implements PersistableSim {
     logError('Build', message, failureDetails(error));
   }
 
-  private settle(): boolean {
+  private settle(phase: 'enter' | 'confirm' = 'confirm'): boolean {
     // Recolour selection can enqueue one successor while consuming a result.
     // Never commit a checkpoint containing an unprocessed build command.
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -120,7 +120,11 @@ export class BuildSession implements PersistableSim {
       const error = this.source.takeBuildError();
       if (!error.ok || error.value !== null) {
         const failure = error.ok ? error.value! : error.error;
-        this.refuse('A pending build command failed.', failure);
+        if (phase === 'confirm') this.refuse('A pending build command failed.', failure);
+        else {
+          this.error = enterFailure(failure);
+          logError('Build', 'A command waiting before Build mode opened failed.', failureDetails(failure));
+        }
         return false;
       }
       if (this.hooks.settled()) return true;
