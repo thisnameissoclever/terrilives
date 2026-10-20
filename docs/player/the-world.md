@@ -18,7 +18,13 @@ A game day has {{number:tuning.day_ticks}} game minutes. Each season lasts {{num
 
 Most weather periods are mild. Summer can have a hot period, Autumn can have breezy falling leaves, and Winter can have snow. Spring stays mild. The clock names the current condition even when reduced motion hides particles.
 
-Autumn leaves flutter down and remain on outdoor ground for a while before fading. Snow falls during its event and does not accumulate. Grass stays green with a subtle seasonal color shift. House flooring, street surfaces and laid floor coverings keep their own colors.
+Autumn leaves flutter down and remain on outdoor ground for a while before fading.
+
+:::illustration weather-autumn-grounded
+
+Snow falls during its event and does not accumulate. Grass stays green with a subtle seasonal color shift. House flooring, street surfaces and laid floor coverings keep their own colors.
+
+:::illustration weather-winter-snow
 
 Weather is currently visual. Heat, snow and leaves do not change needs, mood, work, chores or plant growth. Leaves are not dirty dishes or floor grime and do not create a cleaning duty. The effect appears outdoors rather than over the cutaway interior.
 
@@ -29,6 +35,8 @@ Current weather events last {{number:tuning.weather.event_hours}} game hours. On
 ## Work, pay and days off {#careers}
 
 Careers have paths and levels with their own hours, pay range and working days. Open [Career](ui-elements/#career) inside Sim details to inspect the selected person's schedule, performance factors and reviews. The office, cafe and night-watch paths have different demands.
+
+:::illustration sim-career
 
 A person commutes to an off-lot job and returns after the shift. Work has an Energy cost and slows ordinary need loss while at work; it supplies no direct need refill. Commuting uses ordinary need loss. Days off use normal household rules.
 

@@ -12,7 +12,7 @@ export function playerHeadingIds(source) {
 /** A deliberately small Markdown format; author text never executes as HTML. */
 export function parsePlayerMarkdown(source, context) {
   const { filename, pages, prefix, root, numbers = {}, links = [], assets = new Map() } = context;
-  const headings = [], ids = new Set();
+  const headings = [], ids = new Set(), illustrations = [];
   function url(value, image = false) {
     if (image) {
       if (!value.startsWith('images/') || /[?#\\]/.test(value)) throw Error(`${filename}: unsupported image ${value}`);
@@ -48,7 +48,7 @@ export function parsePlayerMarkdown(source, context) {
         const value = m[1].split('.').reduce((v, k) => v?.[k], numbers);
         if (typeof value !== 'number' || !Number.isFinite(value)) throw Error(`${filename}: unknown number ${m[1]}`);
         out += `<span class="reference-number">${escapeHtml(Number(value.toPrecision(6)))}</span>`;
-      } else if (m[2] !== undefined) out += `<a href="${escapeHtml(url(m[3], true))}" target="_blank" rel="noopener"><img loading="lazy" src="${escapeHtml(url(m[3], true))}" alt="${escapeHtml(m[2])}"></a>`;
+      } else if (m[2] !== undefined) out += `<img class="guide-inline-image" loading="lazy" src="${escapeHtml(url(m[3], true))}" alt="${escapeHtml(m[2])}">`;
       else if (m[4]) out += `<a href="${escapeHtml(url(m[5]))}">${escapeHtml(m[4])}</a>`;
       else if (m[6]) out += `<strong>${escapeHtml(m[6])}</strong>`;
       else if (m[7]) out += `<code>${escapeHtml(m[7])}</code>`;
@@ -74,6 +74,14 @@ export function parsePlayerMarkdown(source, context) {
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex];
     if (/<\/?[a-zA-Z][^>]*>/.test(line)) throw Error(`${filename}: raw HTML is unsupported`);
+    const illustration = /^:::illustration ([a-z][a-z0-9-]*)$/.exec(line);
+    if (illustration) {
+      flush();
+      if (!context.renderIllustration) throw Error(`${filename}: illustrations are unavailable`);
+      illustrations.push({ id: illustration[1], heading: headings.at(-1)?.id });
+      html.push(context.renderIllustration(illustration[1], (value) => url(value, true)));
+      continue;
+    }
     const disclosureStart = /^:::(numbers|screenshots)\s+(.+)$/.exec(line);
     if (disclosureStart) { flush(); if (disclosure) throw Error(`${filename}: nested disclosures`); disclosure = true; html.push(`<details class="${disclosureStart[1]}"><summary>${inline(disclosureStart[2])}</summary><div>`); continue; }
     if (line === ':::') { flush(); if (!disclosure) throw Error(`${filename}: unmatched disclosure`); disclosure = false; html.push('</div></details>'); continue; }
@@ -81,7 +89,7 @@ export function parsePlayerMarkdown(source, context) {
     if (heading) {
       flush(); const text = heading[2], id = heading[3] ?? slug(text);
       if (!id || ids.has(id)) throw Error(`${filename}: duplicate anchor ${id}`);
-      if (['main', 'guide-query', 'search-results', 'guide-search-data', 'theme-toggle'].includes(id)) throw Error(`${filename}: reserved anchor ${id}`);
+      if (['main', 'guide-query', 'search-results', 'guide-search-data', 'theme-toggle', 'guide-image-viewer', 'guide-image-title'].includes(id)) throw Error(`${filename}: reserved anchor ${id}`);
       ids.add(id);
       if (heading[1].length === 1) { if (title) throw Error(`${filename}: more than one title`); title = text; titleId = id; continue; }
       headings.push({ id, text, level: heading[1].length });
@@ -106,5 +114,5 @@ export function parsePlayerMarkdown(source, context) {
   flush();
   if (disclosure) throw Error(`${filename}: unclosed numbers disclosure`);
   if (!title) throw Error(`${filename}: missing title`);
-  return { title, titleId, headings, ids, html: html.join('\n') };
+  return { title, titleId, headings, ids, illustrations, html: html.join('\n') };
 }

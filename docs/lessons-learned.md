@@ -12945,3 +12945,13 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Trace both the completion event and the credited person's identity. Explain different credit rules separately instead of extending a generic completion sentence to every kind of work.
 
 **Verification.** Check opposite cases: the assigned person does most washing and a helper finishes; the helper does most washing and the assigned person finishes. The first can award repair to the assigned person, subject to the window and in-window contribution requirements; the second cannot. Source routing establishes this explanation. Do not claim a new played scenario or executed regression unless it was actually run.
+
+## [L-guide-capture-coverage-is-not-reading-quality] Curate screenshots around the reader's task
+
+**What happened.** The owner rejected the player guide's screenshot presentation: uncropped captures formed a disjointed dump, repeated desktop/phone wording and captions added noise, and images opened as raw files in new tabs. Screenshots were concentrated in the UI reference while articles discussing the same controls had no illustrations beside their instructions.
+
+**Root cause.** Capture coverage was treated as proof of a useful reading experience. The capture inventory drove presentation instead of an author choosing the image, crop and position that explained each passage. Review checked that screenshots existed without adequately testing whether a novice could read the labels and follow the surrounding instructions.
+
+**Prevention.** Keep capture provenance separate from curated article illustrations. Place figures explicitly beside relevant instructions, including in substantive topic articles. Crop controls to readable size while preserving their location context. Use captions only when they add meaning, preserve real desktop/phone differences without repeating identical instructions, and provide a shared device choice with in-page enlargement. Keep essential instructions visible and avoid narrowing tables beside images.
+
+**Verification.** Require a fresh reviewer to reject the known defective presentation before judging the repair. Read actual rendered sections at desktop and phone widths in both themes, including an article outside the UI reference and a long flow such as the creator. Check that each image explains nearby instructions, labels are legible, device selection applies consistently, and enlargement returns the reader to the same place. Passing image-coverage tests does not prove those results.

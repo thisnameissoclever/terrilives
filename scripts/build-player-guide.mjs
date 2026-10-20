@@ -3,13 +3,13 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { escapeHtml, parsePlayerMarkdown, playerHeadingIds } from './player-markdown.mjs';
 import { baselineHtml, validatePlayerCoverage } from './player-coverage.mjs';
-import { addScreenshotGalleries } from './player-screenshots.mjs';
+import { loadIllustrations, validateIllustrationCoverage, pairInstructionsWithFigures, illustrationControls, imageViewer } from './player-illustrations.mjs';
 import { addActivityFilters } from './player-activity-filters.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 function searchText(html) {
   const entities = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&#39;': "'", '&quot;': '"' };
-  return html.replace(/<[^>]+>/g, ' ').replace(/&amp;|&lt;|&gt;|&#39;|&quot;/g, (entity) => entities[entity]).replace(/\s+/g, ' ').trim();
+  return html.replace(/<aside class="guide-illustration"[\s\S]*?<\/aside>/g, '').replace(/<[^>]+>/g, ' ').replace(/&amp;|&lt;|&gt;|&#39;|&quot;/g, (entity) => entities[entity]).replace(/\s+/g, ' ').trim();
 }
 function load(root) {
   const folder = join(root, 'docs/player');
@@ -35,15 +35,21 @@ function shell(root, pages, title, prefix, body, current, toc, titleId = 'player
   const nav = pages.map((p) => `<a href="${prefix}${p.slug}/"${p.slug === current ? ' aria-current="page"' : ''}>${escapeHtml(p.title)}</a>`).join('');
   const styles = readFileSync(join(root, 'web/changelog/style.css'), 'utf8') + '\n' + readFileSync(join(root, 'web/guide/style.css'), 'utf8');
   const script = readFileSync(join(root, 'web/guide/controls.js'), 'utf8');
+  const illustrated = body.includes('data-illustration=');
+  if (illustrated) { toc += illustrationControls; body += imageViewer; }
   return `<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11161d"><title>${escapeHtml(title)} | Natural Causes</title><link rel="icon" href="${game}favicon.ico"><style>${styles}</style></head><body><a class="skip-link" href="#main">Skip to guide</a>${header}<main id="main" tabindex="-1"><nav class="guide-topics" aria-label="Guide topics">${nav}</nav><form class="guide-search" role="search" action="${prefix}" data-prefix="${prefix}"><label for="guide-query">Search the player guide</label><div><input id="guide-query" name="q" type="search" autocomplete="off" placeholder="Try New housemate, snow or Social"><button type="submit">Search</button><button type="reset">Clear</button></div><section id="search-results" aria-live="polite" hidden></section><noscript><p>Browse the topics above and each page's contents to find an answer.</p></noscript></form>${toc}<article class="guide-article">${body}</article><footer><a href="${game}">Play the game</a><a href="${game}changelog/">Changelog</a></footer></main><script>${script}</script></body></html>`;
 }
 
 export function buildPlayerGuide(root = ROOT) {
   const { folder, pages, numbers } = load(root), names = new Set(pages.map((p) => p.slug));
   const links = [], assets = new Map(), rendered = new Map(), files = new Map();
+  const figures = loadIllustrations(root);
   for (const page of pages) {
-    const source = addScreenshotGalleries(root, readFileSync(join(folder, page.file), 'utf8'), page.slug, !!numbers.actions);
-    rendered.set(page.slug, parsePlayerMarkdown(source, { root, filename: page.slug, pages: names, prefix: '../', links, assets, numbers }));
+    const source = readFileSync(join(folder, page.file), 'utf8');
+    const parsed = parsePlayerMarkdown(source, { root, filename: page.slug, pages: names, prefix: '../', links, assets, numbers, renderIllustration: figures?.render });
+    validateIllustrationCoverage(page.slug, parsed, !!numbers.actions);
+    if (page.slug === 'ui-elements') parsed.html = pairInstructionsWithFigures(parsed.html);
+    rendered.set(page.slug, parsed);
   }
   const activities = rendered.get('activities');
   const activityFilters = join(folder, 'activity-filters.json');
