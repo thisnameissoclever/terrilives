@@ -1,0 +1,16 @@
+{
+  "javaScriptEnabled": false,
+  "url": "http://127.0.0.1:5194/guide/home-and-controls/#rooms-and-land",
+  "visibleRoomsHeading": true,
+  "footerExitText": true,
+  "newWallHeightText": true,
+  "newFloorAreaText": true,
+  "landDecisionText": true,
+  "nativeDisclosureOpen": true,
+  "metrics": {
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "overflow": false
+  }
+}

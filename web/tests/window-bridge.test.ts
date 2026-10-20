@@ -101,14 +101,15 @@ describe('typed windows through release WASM', () => {
       const preview = bridge.windowRemovalPreview(1,11,0);
       expect(preview).toEqual({ valid: true, reason: 0, placement: null,
         affectedLines: [{axis:1,x:10,y:0},{axis:1,x:11,y:0},{axis:1,x:12,y:0}] });
+      // The span runs off the house's shell onto the yard's open north edge, where no wall stands.
       for (let repeat = 0; repeat < 2; repeat += 1) {
         expect(bridge.fitWindow(1,15,0,7)).toBe(true);
         expect(bridge.lastWindowEditResult()).toBeNull();
         bridge.flushCommands();
-        expect(bridge.lastWindowEditResult()).toEqual({ reason: 5 });
+        expect(bridge.lastWindowEditResult()).toEqual({ reason: 18 });
       }
       expect(bridge.fitWindow(1,10,0,10)).toBe(false);
-      expect(bridge.lastWindowEditResult()).toEqual({ reason: 5 });
+      expect(bridge.lastWindowEditResult()).toEqual({ reason: 18 });
       expect(bridge.removeWindow(1,11,0)).toBe(true); bridge.flushCommands();
       expect(bridge.windowEditPreview(1,10,0,7).valid).toBe(true);
       expect(bridge.fitWindow(1,11,0,1)).toBe(true);

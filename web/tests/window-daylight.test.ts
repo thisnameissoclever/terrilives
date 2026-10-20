@@ -37,6 +37,19 @@ describe('window daylight', () => {
     }
   });
 
+  it('admits daylight through glass on the lot\'s own south and east edges', () => {
+    // A house that fills its lot: the south and east walls are the lot's edge, with nothing beyond them.
+    const edge: number[][] = [];
+    for (let i = 0; i < 6; i++) edge.push([0, 6, i, 0], [1, i, 6, 0]);
+    for (const glass of [[0, 6, 2], [1, 3, 6]]) {
+      const sealed = buildSkyExposure(6, 6, edge.flat(), [6, 6], .2, []);
+      const opened = buildSkyExposure(6, 6, edge.filter(line => key(line) !== key(glass)).flat(), [6, 6], .2, glass);
+      const inside = glass[0] === 0 ? [5, 2] : [3, 5];
+      expect(sampleSky(sealed, inside[0], inside[1])).toBe(0);
+      expect(sampleSky(opened, inside[0], inside[1])).toBeCloseTo(.8);
+    }
+  });
+
   it('attenuates each tile from the aperture and lights more floor through a three-unit span', () => {
     const single = room([[0, 0, 1]]);
     for (const [x, expected] of [.8, .6, .4, .2, 0].entries()) {

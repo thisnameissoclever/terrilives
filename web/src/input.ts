@@ -1337,9 +1337,14 @@ export interface CanvasEditInput {
   active(): boolean;
   /** Invalidates a deferred pick when tools change inside active Build. */
   mode?(): string | number;
-  /** `world` is the unrounded point, for tools that pick a line between tiles. */
+  /**
+   * `world` is the unrounded floor point, for tools that pick a line between
+   * tiles; `point` is the canvas pixel, for tools that hit what is drawn there.
+   */
   click(pick: Pick | null, tile: readonly [number, number] | null,
-    world: readonly [number, number] | null): void;
+    world: readonly [number, number] | null, point?: CanvasPoint | null): void;
+  /** A mouse moving over the canvas with no button down, or null once it leaves. */
+  hover?(point: CanvasPoint | null): void;
 }
 
 export function attachPointerInput(
@@ -1470,7 +1475,12 @@ export function attachPointerInput(
 
   canvas.addEventListener('pointermove', (event) => {
     const entry = pointers.get(event.pointerId);
-    if (!entry) return;
+    if (!entry) {
+      if (event.pointerType === 'mouse' && pointers.size === 0 && editing?.active()) {
+        editing.hover?.(canvasPoint(event));
+      }
+      return;
+    }
     if (event.pointerType === 'touch') {
       longPress.move(event.pointerId, event.clientX, event.clientY);
     }
@@ -1517,6 +1527,9 @@ export function attachPointerInput(
   };
   canvas.addEventListener('pointerup', endPointer);
   canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('pointerleave', (event) => {
+    if (event.pointerType === 'mouse') editing?.hover?.(null);
+  });
 
   canvas.addEventListener(
     'wheel',
@@ -1550,7 +1563,7 @@ export function attachPointerInput(
       clientToTile(event.clientX, event.clientY, rect,
         canvas.width, canvas.height, camera.originX, camera.originY, camera.scale),
       clientToWorld(event.clientX, event.clientY, rect,
-        canvas.width, canvas.height, camera.originX, camera.originY, camera.scale));
+        canvas.width, canvas.height, camera.originX, camera.originY, camera.scale), point);
       return;
     }
     const outcome = handleLeftClick(

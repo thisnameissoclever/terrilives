@@ -23,8 +23,11 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
 import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
-import { WallTool } from './ui/wall-tool.js';
+import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
+import { WallView, WallViewControls } from './ui/wall-view.js';
+import { withHoverLine } from './render/placement-preview.js';
 import { WindowTool } from './ui/window-tool.js';
 import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
@@ -88,6 +91,7 @@ import {
   buildStaticInstances,
   setCutAwayWalls,
   setSeason,
+  setSelectedLines,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -1491,13 +1495,14 @@ async function main(): Promise<void> {
     windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
     architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
       finishes: architectureAtlas.finishes },
-    floorPreview: null as readonly [number, number, number] | null,
+    floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
+    selectedLines: null as ReadonlyMap<string, boolean> | null,
     frontDoors: sim.frontDoorLines(),
     // [SEA-yard]: the yard's seasonal looks, content read once, and the
     // last season the frame loop saw.
@@ -1733,6 +1738,25 @@ async function main(): Promise<void> {
       placementActions?.invalidate();
     },
   }, windowTool);
+  // [WB-height]: the Walls and Room tools' wall height, Low unless the player asks for Full.
+  let wallViewControls: WallViewControls | undefined;
+  const wallView = new WallView(() => { wallViewControls?.render(); cameraDirty = true; });
+  /** The line a click would choose, drawn as a fainter bar while the Walls tool is in use ([WB-pick]). */
+  let hoverLine: WallLine | null = null;
+  /** Every barrier line at the height the static walls draw it, for picking the one under the pointer. */
+  const wallFacesNow = () => wallFaces({
+    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin,
+    edges: lot.edges ?? [], windowLines: lot.windows ?? [],
+    hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [],
+    low: lot.showCutAwayWalls !== true, raised: new Set(lot.selectedLines?.keys() ?? []),
+  });
+  /** The line under a canvas point, and the floor point that chose it when no drawn wall did. */
+  const pickWallAt = (point: { x: number; y: number }): { line: WallLine | null; floor: [number, number] | null } => {
+    const face = pickWallFace(point.x, point.y, camera, wallFacesNow());
+    if (face) return { line: face, floor: null };
+    const floor = floorPoint(point.x, point.y, camera, lot.width, lot.height);
+    return { line: floor ? nearestLine(floor[0], floor[1], lot.width, lot.height) : null, floor };
+  };
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
     changed: () => {
       buyControls?.render();
@@ -2103,6 +2127,7 @@ async function main(): Promise<void> {
   wallControls.setCompact(compactBuildQuery.matches);
   windowControls = new WindowToolControls(document, windowTool, wallTool);
   windowControls.setCompact(compactBuildQuery.matches);
+  wallViewControls = new WallViewControls(document, wallView, ['wall', 'room']);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames(), cards => {
     drawCataloguePreviews(cards).catch(error => console.warn('The catalogue pictures were not drawn.', error));
   });
@@ -2179,6 +2204,12 @@ async function main(): Promise<void> {
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
         if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
+        event.preventDefault();
+        return;
+      }
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && event.key.toLowerCase() === 't' && (wallTool.active || roomTool.active)) {
+        wallView.toggle();
         event.preventDefault();
         return;
       }
@@ -2305,12 +2336,16 @@ async function main(): Promise<void> {
     {
       active: () => builder.active,
       mode: () => roomReview.active ? 'review' : roomsTool.selecting ? 'room-selection' : buildTools.findIndex(tool => tool.active),
-      click(pick, tile, world) {
+      click(pick, tile, world, point) {
         if (roomReview.active) return;
         if (roomsTool.selecting) { if (tile) roomSelection.chooseTile(tile); return; }
         if (pick?.bookCopy !== undefined) { openBookCopy(pick.bookCopy); return; }
         if (wallTool.active) {
-          if (world) wallTool.choosePoint(world[0], world[1]);
+          // [WB-pick]: the wall drawn under the pointer, then the floor beside it.
+          if (point) {
+            const { line, floor } = pickWallAt(point);
+            if (line) wallTool.chooseClicked(line, floor);
+          } else if (world) wallTool.choosePoint(world[0], world[1]);
           return;
         }
         if (roomTool.active) {
@@ -2331,6 +2366,10 @@ async function main(): Promise<void> {
         }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
+      },
+      hover(point) {
+        hoverLine = point && wallTool.active && !roomReview.active && wallTool.pending === null && !wallTool.blocked
+          ? pickWallAt(point).line : null;
       },
     },
     openBookCopy,
@@ -2455,10 +2494,17 @@ async function main(): Promise<void> {
     if (builder.afterCommands()) {
       refreshBuildArchitecture();
     }
-    // [WB-draw]: the walls the view cuts away are drawn while a wall tool
-    // is in use, so the player sees every line they can edit. The static
-    // block is rebuilt only when that changes, not on every click.
-    if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
+    // [WB-draw], [WB-height]: while a wall tool is in use the walls stand
+    // low, the chosen ones full height, or every wall full height when the
+    // player asks. The static block is rebuilt only when that changes, not
+    // on every click.
+    const wallsInUse = wallTool.active || roomTool.active;
+    if (setCutAwayWalls(lot, wallsInUse && wallView.height === 'full')) cameraDirty = true;
+    const chosenWalls = wallTool.active ? wallTool.selection() : null;
+    if (setSelectedLines(lot, chosenWalls
+      ? new Map(chosenWalls.lines.map((line, at) => [`${line.axis}/${line.x}/${line.y}`, chosenWalls.valid[at]]))
+      : null)) cameraDirty = true;
+    if (!wallTool.active) hoverLine = null;
     // [SEA-yard]: the yard's grass changes color when the season turns, or
     // when a Load lands in another season; the static block is rebuilt then
     // and not on every frame.
@@ -2493,7 +2539,9 @@ async function main(): Promise<void> {
         lightingMode.isFlat() ? null : lighting,
         undefined,
         buyTool.ghost() ?? builder.preview,
-        roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null) ?? wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
+        roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null)
+          ?? (wallTool.active ? withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)
+          ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
         buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,

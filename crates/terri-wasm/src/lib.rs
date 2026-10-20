@@ -10515,6 +10515,8 @@ mod window_boundary_tests {
             [0, 0, 1, 10, 0, 1, 11, 0, 1, 12, 0]
         );
         assert_eq!(handle.save_bytes(), before, "preview never stages work");
+        // The span runs off the house's shell onto the yard's open north
+        // edge, where no wall stands to hold it.
         for _ in 0..2 {
             assert!(handle.fit_window(1., 15., 0., 7.));
             assert!(
@@ -10522,13 +10524,13 @@ mod window_boundary_tests {
                 "old refusal must not satisfy new work"
             );
             handle.flush_commands();
-            assert_eq!(handle.last_window_edit_result(), [5]);
+            assert_eq!(handle.last_window_edit_result(), [18]);
             assert_eq!(handle.save_bytes(), before);
         }
         assert!(!handle.fit_window(1., 10., 0., 10.));
         assert_eq!(
             handle.last_window_edit_result(),
-            [5],
+            [18],
             "rejection does not clear the last applied result"
         );
         let overflow = postcard::to_allocvec(&SimCommand::FitWindow {
@@ -10540,7 +10542,7 @@ mod window_boundary_tests {
         .unwrap();
         assert!(!handle.fit_window(1., u32::MAX as f64, 0., 7.));
         assert!(!handle.enqueue_command(&overflow));
-        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.last_window_edit_result(), [18]);
         assert_eq!(handle.save_bytes(), before);
         // Queue saturation refuses staging and must preserve the prior result too.
         let select = postcard::to_allocvec(&SimCommand::Select(None)).unwrap();
@@ -10556,7 +10558,7 @@ mod window_boundary_tests {
         }
         let full = handle.save_bytes();
         assert!(!handle.fit_window(1., 10., 0., 7.));
-        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.last_window_edit_result(), [18]);
         assert_eq!(handle.save_bytes(), full);
         handle.flush_commands();
         assert!(handle.remove_window(1., 11., 0.));

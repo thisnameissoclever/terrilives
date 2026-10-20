@@ -103,13 +103,18 @@ describe('whole-window controller', () => {
       const { handle, bridge, tool, walls } = fixture();
       try {
         walls.enter(); walls.handleKey('N'); tool.chooseModel(model as 1);
-        const start = { axis, x: axis === 0 ? 0 : 10, y: axis === 0 ? 1 : 0 };
-        tool.choose(start);
+        const clicked = { axis, x: axis === 0 ? 0 : 10, y: axis === 0 ? 1 : 0 };
+        tool.choose(clicked);
+        // [WN-fit]: a wider window is centred on the clicked unit.
+        const offset = Math.floor((tool.catalogue[model - 1].width - 1) / 2);
+        const start = axis === 0 ? { ...clicked, y: clicked.y - offset } : { ...clicked, x: clicked.x - offset };
+        expect(tool.line).toEqual(start);
         const saved = bridge.saveBytes();
         expect(tool.canApply()).toBe(true);
         const preview = tool.preview()!;
         expect(preview.placement?.model).toBe(model);
-        expect(tool.highlight()?.tiles.length).toBe(tool.catalogue[model - 1].width);
+        // [WB-mark]: one bar along the whole span.
+        expect(tool.highlight()?.lines).toEqual([{ ...start, length: tool.catalogue[model - 1].width, valid: true }]);
         expect(bridge.saveBytes()).toEqual(saved);
         tool.apply(); expect(tool.pending).toBe('fit'); expect(tool.status).toBe('Applying window change.');
         tool.afterCommands(); expect(tool.pending).toBe('fit');
@@ -131,7 +136,7 @@ describe('whole-window controller', () => {
   it('keeps pending ownership across exit and re-entry, ignores stale success on queue refusal, and retains last model', () => {
     const { handle, bridge, tool, walls } = fixture();
     try {
-      walls.enter(); walls.selectWindows(); tool.chooseModel(7); tool.choose({ axis: 1, x: 10, y: 0 });
+      walls.enter(); walls.selectWindows(); tool.chooseModel(7); tool.choose({ axis: 1, x: 11, y: 0 });
       tool.apply(); walls.exit(); walls.enter();
       expect(tool.active).toBe(true); expect(tool.pending).toBe('fit');
       tool.chooseModel(1); tool.handleKey('Escape'); tool.remove();
@@ -147,7 +152,7 @@ describe('whole-window controller', () => {
       expect(tool.pending).toBeNull(); expect(tool.status).toBe('That change could not be sent.');
       expect(tool.owner?.model).toBe(1); bridge.fitWindow = fit;
       walls.exit(); walls.enter(); walls.selectWindows(); expect(tool.chosen).toBe(7);
-      tool.choose({ axis: 1, x: 10, y: 0 }); tool.apply(); walls.exit();
+      tool.choose({ axis: 1, x: 11, y: 0 }); tool.apply(); walls.exit();
       bridge.flushCommands(); tool.afterCommands();
       expect(tool.pending).toBeNull(); expect(tool.line).toBeNull();
       walls.enter(); walls.selectWindows(); expect(tool.chosen).toBe(7);
@@ -170,10 +175,15 @@ describe('whole-window controller', () => {
   it('covers the invalid third line, model switches, touch coordinates, blocking and loaded lot dimensions', () => {
     const { handle, bridge, tool, walls } = fixture();
     try {
-      walls.enter(); walls.selectWindows(); tool.chooseModel(7); tool.choosePoint(14, -.5);
+      walls.enter(); walls.selectWindows(); tool.chooseModel(7); tool.choosePoint(15, -.5);
+      // [WN-fit]: clicked on the shell's last unit, the span slides back until it fits.
+      expect(tool.line).toEqual({ axis: 1, x: 13, y: 0 }); expect(tool.canApply()).toBe(true);
+      // No start covering the yard's open edge finds a wall: the centred one shows why.
+      tool.choosePoint(17, -.5);
+      expect(tool.line).toEqual({ axis: 1, x: 16, y: 0 });
       expect(tool.canApply()).toBe(false); expect(tool.highlight()?.valid).toBe(false);
-      expect(tool.status).toBe(windowReason(5));
-      tool.chooseModel(1); expect(tool.canApply()).toBe(true);
+      expect(tool.status).toBe(windowReason(18));
+      tool.choosePoint(14, -.5); tool.chooseModel(1); expect(tool.canApply()).toBe(true);
       tool.setBlocked(true); const line = tool.line; tool.choosePoint(10, -.5); tool.chooseModel(9); tool.apply();
       expect(tool.line).toEqual(line); expect(tool.chosen).toBe(1); expect(bridge.windowPlacements()).toHaveLength(0);
       tool.setBlocked(false); tool.handleKey('V'); expect(tool.line?.axis).toBe(0);

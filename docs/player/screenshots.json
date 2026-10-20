@@ -16,7 +16,15 @@
     },
     "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
     "audio": "Muted through saved game preferences",
-    "pendingRefresh": [],
+    "pendingRefresh": [
+      "build-windows",
+      "window-models",
+      "build-floors",
+      "floor-actions",
+      "build-room-outline",
+      "help",
+      "help-shortcuts"
+    ],
     "snapshots": [
       {
         "id": "initial",
@@ -108,6 +116,43 @@
           "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
           "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
         }
+      },
+      {
+        "id": "build-release-main-834",
+        "url": "http://127.0.0.1:5194/",
+        "sourceCommit": "c2518b7f7",
+        "sourceChanges": "Working-tree integration of main 834227d882e60885654646742951976d91928880; reviewed source hashes identify the captured input.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "34408a446d149b1eb9d1ff3e016413e50cc736b7a6dd393c2df204b40c1897aa",
+          "docs/player/home-and-controls.md": "c6da7c532e34ec9ee5eafdf2482e174e836b0edcbd03f6ff0cbbce39913f759e",
+          "docs/player/ui-elements.md": "c2ce274d54344459194a05bdfd1c4679230bf094eb0fdcf99481d2b2bc7e5bfe",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "b820d304f1911e80d39818ba41fa4dec23072b30491dc98c47e6008e2428da54"
+        },
+        "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+        "bundle": "index-BS3Asst8.js",
+        "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+        "wasm": "terri_wasm_bg-CbUQR3HM.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "gameSourceFileSha256": {
+          "web/index.html": "c6c17e326f294d16b73d16335a9367fd85e437d9c51647debd7dc90762e7f3f5",
+          "web/src/main.ts": "2338ebe6e9d6a1a386d87d4fe5ee1bf98cee2f0ff313cfa1943bd70f88a4fda4",
+          "web/src/ui/build-exit.ts": "ef132e576274557752c37383d8875a95f25e4cd9f2f59d5e0b041eaca99336f3",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "ddf5d0daf3797989a0a6d4383bdc98440fd01675195705b8e1a956ebd08e4d47",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        },
+        "nativeSourceCommit": "834227d882e60885654646742951976d91928880",
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-20"
       }
     ],
     "weatherSetup": {
@@ -193,7 +238,8 @@
       "activityPopup": "The captured Bathing activity is not clipped. These screenshots do not verify the clipped-activity popup.",
       "returnedWalls": "The Walls selection is established by visible selected styling and the played ARIA receipt. activeElement remains the Land launcher and does not identify the selected tool.",
       "independentReview": "Current game image states independently inspected; rendered guide acceptance and executed interaction receipts are retained separately."
-    }
+    },
+    "pendingRefreshReason": "The 2026-10-19 walls and floors change adds the Low and Full height controls, marks wall selections with a bar along the line, draws walls low while building and moves the floating build buttons clear of the selection; these captures predate it."
   },
   "entries": [
     {
@@ -650,23 +696,23 @@
     {
       "id": "build-walls",
       "section": "walls",
-      "desktop": "images/ui-build-release-build-walls-desktop.png",
-      "mobile": "images/ui-build-release-build-walls-mobile.png",
-      "description": "Walls after Back to build, with the removed boundary and its contextual controls still in the draft.",
-      "access": "From a Walls draft that changes a room boundary, choose Land, Confirm changes, then Back to build in Review room changes.",
+      "desktop": "images/ui-build-release-integrated-walls-desktop.png",
+      "mobile": "images/ui-build-release-integrated-walls-mobile.png",
+      "description": "Walls in Low view, with Full height available and the bottom Confirm and Cancel controls visible.",
+      "access": "Open Build, then Walls. Low is selected by default; choose Full height to raise every wall.",
       "desktopDetail": "images/ui-build-walls-detail-desktop.png",
-      "sourceSnapshot": "build-release-guide-integration",
-      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
-      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "sourceSnapshot": "build-release-main-834",
+      "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+      "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
       "imageSha256": {
-        "desktop": "6979d0d2983fc05890445e5d6cd4a5216e5bf077d68d41ec35bd0b00e6aaa180",
-        "mobile": "c54dfc88bc22a811bebab8adf8d9f0a6519e2bb3e16b60972edf7dd87a81171e",
+        "desktop": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a",
+        "mobile": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9",
         "desktopDetail": "f135ea97a8b29e3726cc38198a6937f0a6fa0425f8e3e1e8823b11223fc4403e"
       },
       "imageSourceSnapshots": {
         "desktopDetail": "minus-fix",
-        "desktop": "build-release-guide-integration",
-        "mobile": "build-release-guide-integration"
+        "desktop": "build-release-main-834",
+        "mobile": "build-release-main-834"
       },
       "captureMetadata": {
         "desktop": {
@@ -677,9 +723,9 @@
             "height": 960
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "captureMethod": "Displayed Chrome 155 via existing Playwright, CSS-pixel PNG, no raster edits",
           "dialogs": [],
-          "sourceImageSha256": "6979d0d2983fc05890445e5d6cd4a5216e5bf077d68d41ec35bd0b00e6aaa180"
+          "sourceImageSha256": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a"
         },
         "mobile": {
           "width": 390,
@@ -689,9 +735,9 @@
             "height": 844
           },
           "devicePixelRatio": 1,
-          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "captureMethod": "Displayed Chrome 155 via existing Playwright, CSS-pixel PNG, no raster edits",
           "dialogs": [],
-          "sourceImageSha256": "c54dfc88bc22a811bebab8adf8d9f0a6519e2bb3e16b60972edf7dd87a81171e"
+          "sourceImageSha256": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9"
         }
       }
     },

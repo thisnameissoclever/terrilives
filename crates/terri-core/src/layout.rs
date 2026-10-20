@@ -130,12 +130,10 @@ pub struct WallEdge {
 }
 
 impl WallEdge {
-    /// A physical wall can stand on the plot perimeter; a doorway needs two tiles.
+    /// A wall or doorway can stand on the plot perimeter ([WT-rules]); a
+    /// doorway there opens onto nothing until land is bought beyond it.
     /// Grid edge writes still require `in_bounds`, including for solid walls.
     pub fn physical_in_bounds(self, width: u32, height: u32) -> bool {
-        if self.doorway {
-            return self.in_bounds(width, height);
-        }
         match self.axis {
             EdgeAxis::Vertical => width > 0 && self.x <= width && self.y < height,
             EdgeAxis::Horizontal => height > 0 && self.y <= height && self.x < width,

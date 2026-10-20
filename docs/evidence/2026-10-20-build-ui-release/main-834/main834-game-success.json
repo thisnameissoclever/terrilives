@@ -1,0 +1,35 @@
+{
+  "headed": true,
+  "browser": "155.0.8059.85",
+  "url": "http://127.0.0.1:5194/",
+  "errors": [],
+  "steps": [
+    {
+      "walls": true,
+      "fullHeightVisible": true
+    },
+    {
+      "footerConfirmExited": true
+    },
+    {
+      "footerCancelExited": true,
+      "draftDiscarded": true,
+      "paused": true
+    }
+  ],
+  "clockBefore": "Day 1, Monday\n00:03\nSpring: mild",
+  "clockPaused": "Day 1, Monday\n00:04\nSpring: mild",
+  "audio": "Sound: off",
+  "committedName": "Kitchen release verified",
+  "dialogTitle": "Switch to Land?",
+  "keptDraft": "Kitchen disposable draft",
+  "keptRooms": "true",
+  "restoredName": "Kitchen release verified",
+  "clockAfter": "Day 1, Monday\n00:04\nSpring: mild",
+  "metrics": {
+    "width": 390,
+    "height": 844,
+    "dpr": 1,
+    "overflow": false
+  }
+}
