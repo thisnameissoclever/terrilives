@@ -51,6 +51,56 @@ pub enum BuildCommitError {
     StaleToken,
     CommandNotAllowed,
 }
+/// Which load rule refused the draft when Build could not open or confirm.
+/// `BuildCommitError::Validation` names only the kind of error; this names the
+/// rule, so the player and the console can be told what is in the way.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ValidationProblem {
+    /// A windowed house is held to the usability proofs a lot edit passes.
+    LotUsability(crate::placement::PlacementRefusal),
+    /// A housemate, their walk, or their contact with what they use, against the walls.
+    EdgeWorld,
+    /// The front door, its landing, or a worker's way home from the street.
+    PortalReturn,
+    Seating,
+    Reading,
+}
+
+/// The rules a draft that will not load is checked against, first failure wins.
+/// `None` when the refusal lies outside these rules.
+pub(crate) fn diagnose(world: &World) -> Option<ValidationProblem> {
+    let grid = world.resource::<terri_core::TileGrid>();
+    // `candidate_grid_loads` reports a book problem as a walls problem; it is
+    // not one, and none of these rules names it.
+    if save::v6::validate_live_books(world).is_err() {
+        return None;
+    }
+    if crate::seating::validate(world, grid).is_err() {
+        return Some(ValidationProblem::Seating);
+    }
+    if crate::reading::persistence::validate(world, grid).is_err() {
+        return Some(ValidationProblem::Reading);
+    }
+    match save::candidate_grid_loads(world, grid) {
+        Err(save::LoadProblem::PortalReturn) => return Some(ValidationProblem::PortalReturn),
+        Err(save::LoadProblem::EdgeWorld) => return Some(ValidationProblem::EdgeWorld),
+        Ok(()) => {}
+    }
+    let windowed = matches!(
+        world.get_resource::<terri_core::layout::SavedLayout>(),
+        Some(terri_core::layout::SavedLayout::EdgeWallsV3 { .. })
+    );
+    if windowed {
+        if let Err(refusal) = crate::placement::windows::validate_restored_windows(world) {
+            return Some(ValidationProblem::LotUsability(refusal));
+        }
+    }
+    None
+}
+
+#[derive(Resource, Default)]
+struct BuildDiagnosis(Option<ValidationProblem>);
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BuildRoomReview {
     pub selection: RoomSelection,
@@ -229,6 +279,9 @@ impl Sim {
             .map(|b| b.revision)
     }
     pub fn take_build_error(&mut self) -> Option<BuildCommitError> {
+        // A diagnosis belongs to the entry or preparation that failed, never to
+        // a later command error.
+        self.world.remove_resource::<BuildDiagnosis>();
         let active = self
             .world
             .get_resource_mut::<BuildTransaction>()
@@ -239,7 +292,16 @@ impl Sim {
                 .and_then(|mut f| f.error.take())
         })
     }
+    /// The rule that refused the latest Build entry or preparation, if it was one
+    /// of the rules [`diagnose`] reads. Cleared when either is tried again, when
+    /// a build error is taken, and when Build commits, cancels or ends.
+    pub fn build_diagnosis(&self) -> Option<ValidationProblem> {
+        self.world
+            .get_resource::<BuildDiagnosis>()
+            .and_then(|d| d.0)
+    }
     pub fn begin_build(&mut self) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if self.build_active() {
             return Err(BuildCommitError::AlreadyActive);
         }
@@ -250,11 +312,15 @@ impl Sim {
             }
         }
         let baseline = save::v20::capture(self);
-        save::v20::restore(
+        if let Err(error) = save::v20::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
-        )?;
+        ) {
+            let problem = diagnose(&self.world);
+            self.world.insert_resource(BuildDiagnosis(problem));
+            return Err(error.into());
+        }
         let epoch = next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
         let session = new_session()?;
         self.world.insert_resource(BuildEpoch(epoch));
@@ -364,6 +430,7 @@ impl Sim {
         validate: impl FnOnce(&Sim) -> Result<(), SaveError>,
         project: impl FnOnce(&BuildReview) -> Result<T, BuildCommitError>,
     ) -> Result<T, BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -470,7 +537,11 @@ impl Sim {
             final_maintenance(&mut candidate.world);
         }
         ordinary::runtime::refresh_derived(&mut candidate.world);
-        validate(&candidate)?;
+        if let Err(error) = validate(&candidate) {
+            let problem = diagnose(&candidate.world);
+            self.world.insert_resource(BuildDiagnosis(problem));
+            return Err(error.into());
+        }
         let review = BuildReview {
             token,
             groups,
@@ -569,6 +640,7 @@ impl Sim {
             .collect())
     }
     pub fn commit_build(&mut self, token: BuildToken) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -609,6 +681,7 @@ impl Sim {
         Ok(())
     }
     fn restore_build(&mut self, end: bool) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         let baseline = self
             .world
             .get_resource::<BuildTransaction>()

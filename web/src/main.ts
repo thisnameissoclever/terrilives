@@ -602,7 +602,7 @@ async function main(): Promise<void> {
     // calls `sync_render_buffer`, which sorts and clones on every
     // count change, so seeding N entities from JavaScript is O(N^2 log N).
     // Printed separately so it can never be mistaken for frame cost.
-    console.log(
+    console.debug(
       `spawned ${sim.count} entities in ` +
         `${(performance.now() - spawnStartMs).toFixed(1)}ms`,
     );
@@ -1785,7 +1785,7 @@ async function main(): Promise<void> {
   const roomSelection = new RoomSelection(sim, () => {
     selectionControls?.render(); cameraDirty = true;
     if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
-      buildBatchStatus.textContent = roomSelection.error;
+      setBuildStatus(roomSelection.error, roomSelection.error !== '');
     }
   });
   const roomsTool = new RoomsTool(roomSelection, roomTool, () => {
@@ -1927,7 +1927,12 @@ async function main(): Promise<void> {
       : document.documentElement.clientHeight;
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
-    beforeEnter: () => buildSession.begin(),
+    beforeEnter: () => {
+      if (buildSession.begin()) return true;
+      commandStatus.textContent = buildSession.error || 'Build mode could not open.';
+      commandStatus.setAttribute('data-kind', 'error');
+      return false;
+    },
     // Every way out asks first while changes are not confirmed; see build-exit.ts.
     beforeExit: () => buildExit.gate(),
     changed: () => {
@@ -1937,7 +1942,7 @@ async function main(): Promise<void> {
     enter() {
       optionsMenu.close();
       syncBuildIsolation();
-      buildBatchStatus.textContent = '';
+      setBuildStatus('');
       document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
@@ -1963,6 +1968,11 @@ async function main(): Promise<void> {
     },
   });
   const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
+  /** The footer's status; a refusal is marked so it reads as an error. */
+  function setBuildStatus(text: string, error = false): void {
+    buildBatchStatus.textContent = text;
+    if (error) buildBatchStatus.setAttribute('data-kind', 'error'); else buildBatchStatus.removeAttribute('data-kind');
+  }
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
     session: buildSession, furniture: builder,
@@ -2005,7 +2015,7 @@ async function main(): Promise<void> {
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) buildBatchStatus.textContent = '';
+    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -2054,14 +2064,15 @@ async function main(): Promise<void> {
   }
   async function confirmBuildBatch(): Promise<boolean> {
     const confirmed = await buildSession.confirm();
-    buildBatchStatus.textContent = confirmed || buildSession.confirmationCancelled ? ''
+    const reason = confirmed || buildSession.confirmationCancelled ? ''
       : roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange);
+    setBuildStatus(reason, reason !== '');
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
       roomSelection.reset(); choresBoard.update(); refreshBuildArchitecture();
-      buildBatchStatus.textContent = '';
+      setBuildStatus('');
     }
     return confirmed;
   }
@@ -2071,9 +2082,10 @@ async function main(): Promise<void> {
     confirm: confirmBuildBatch,
     discard: () => {
       const cancelled = buildSession.end();
-      if (!cancelled) buildBatchStatus.textContent = buildSession.error || 'Changes could not be cancelled. Try Cancel again.';
+      if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be cancelled. Try Cancel again.', true);
       return cancelled;
     },
+    refusal: () => buildBatchStatus.getAttribute('data-kind') === 'error' ? buildBatchStatus.textContent ?? '' : '',
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
@@ -2610,7 +2622,7 @@ async function main(): Promise<void> {
     }
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {
       lastReportMs = nowMs;
-      console.log(`entities ${sim.count}  ${timer.report()}`);
+      console.debug(`entities ${sim.count}  ${timer.report()}`);
     }
   }
 

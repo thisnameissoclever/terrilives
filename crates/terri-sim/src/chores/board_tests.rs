@@ -24,6 +24,35 @@ fn fixture() -> (Sim, SavedChores, ChoreKey) {
     (sim, state, key)
 }
 
+/// A housemate held to wait for someone walking over to talk or argue does not
+/// start their duty until released: the loader refuses a reserved recipient
+/// with work of their own, so Build mode would not open.
+#[test]
+fn a_reserved_owner_starts_their_duty_only_when_released() {
+    let (mut sim, mut state, key) = fixture();
+    board::reconcile(sim.world(), &mut state);
+    let episode = state.episodes.iter_mut().find(|e| e.key == key).unwrap();
+    episode.decision = Some(true);
+    let owner = episode.owner;
+    let person = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .find(|(_, id)| id.0 == owner)
+        .unwrap()
+        .0;
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(terri_core::Reserved);
+    board::tick(sim.world_mut(), &mut state);
+    assert!(state.tasks.iter().all(|t| t.person != person.index_u32()));
+    sim.world_mut()
+        .entity_mut(person)
+        .remove::<terri_core::Reserved>();
+    board::tick(sim.world_mut(), &mut state);
+    assert!(state.tasks.iter().any(|t| t.person == person.index_u32()));
+}
+
 #[test]
 fn active_dish_duty_crossing_midnight_settles_only_at_real_completion() {
     let (mut sim, mut state, _) = fixture();

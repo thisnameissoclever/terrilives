@@ -7,6 +7,7 @@ import type { WorkConflict } from './ui/work-order-confirmation.js';
 import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
   decodeBuildError, encodeRoomChoices, encodeRoomName, checkBuildToken, RoomWireError, EMPTY_ROOM_CHOICES,
   type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
+import { parseBuildFailureReport, type BuildFailureReport } from './rooms/failure.js';
 import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
@@ -317,7 +318,12 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   20: 'Select the whole window to change it.',
 };
 
-export function wallReason(code: number): string | null {
+/** An open line or doorway that gives furniture an approach from floor nobody reaches. */
+const OPENING_OUT_OF_REACH = 'That opening would leave furniture facing a space nobody can reach. Make a way into that space first.';
+
+/** `state` is the requested wall state: 0 open, 1 wall, 2 doorway. */
+export function wallReason(code: number, state?: number): string | null {
+  if (code === 11 && (state === 0 || state === 2)) return OPENING_OUT_OF_REACH;
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
 }
 
@@ -774,7 +780,7 @@ export class SimBridge {
   /** Axis 0 vertical, 1 horizontal; state 0 open, 1 wall, 2 doorway. Never writes. */
   wallEditPreview(axis: number, x: number, y: number, state: number): WallEditPreview {
     const code = this.handle.wall_edit_preview(axis, x, y, state);
-    return { valid: code === 0, reason: wallReason(code), code };
+    return { valid: code === 0, reason: wallReason(code, state), code };
   }
 
   /** Queue acceptance only; read the outcome from `lastWallEditResult`. */
@@ -786,7 +792,7 @@ export class SimBridge {
     reason: string | null } | null {
     const values = this.handle.last_wall_edit_result();
     return values.length === 0 ? null : { axis: values[0], x: values[1], y: values[2],
-      state: values[3], reason: wallReason(values[4]) };
+      state: values[3], reason: wallReason(values[4], values[3]) };
   }
 
   /** Corners `[x0, y0, x1, y1]`, doorway or null. Never writes. */
@@ -906,6 +912,8 @@ export class SimBridge {
   endBuild() { return decodeRoomUnit(this.handle.end_build()); }
   discardBuildReview() { return decodeRoomUnit(this.handle.discard_build_review()); }
   takeBuildError() { return decodeBuildError(this.handle.take_build_error()); }
+  /** The load rule behind the latest refused Build entry or preparation. */
+  buildFailureReport(): BuildFailureReport { return parseBuildFailureReport(this.handle.build_failure_report()); }
   stageRoomName(id: number, name: string) { return decodeRoomUnit(this.handle.stage_room_name(encodeRoomName(id, name))); }
   roomSummaries() { return decodeRoomSummary(this.handle.room_summaries()); }
   private roomContext() { return {width:this.handle.lot_width(),height:this.handle.lot_height()}; }

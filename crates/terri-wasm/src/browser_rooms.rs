@@ -2,7 +2,7 @@
 use super::*;
 use terri_core::rooms::{RoomId, RoomSelection, SavedRooms, MAX_ROOM_RECORDS};
 use terri_sim::{
-    build_transaction::{BuildCommitError, BuildReview, BuildToken},
+    build_transaction::{BuildCommitError, BuildReview, BuildToken, ValidationProblem},
     rooms::{RoomChoices, RoomMap, TopologyCell},
 };
 
@@ -364,6 +364,19 @@ fn token(session: u64, revision: u64, preparation: u64) -> BuildToken {
         preparation,
     }
 }
+fn failure_report(problem: Option<ValidationProblem>) -> String {
+    let rule = match problem {
+        None => return r#"{"rule":null}"#.to_owned(),
+        Some(ValidationProblem::LotUsability(refusal)) => {
+            return format!(r#"{{"rule":"lot_usability","refusal":{}}}"#, refusal as u32)
+        }
+        Some(ValidationProblem::EdgeWorld) => "edge_world",
+        Some(ValidationProblem::PortalReturn) => "portal_return",
+        Some(ValidationProblem::Seating) => "seating",
+        Some(ValidationProblem::Reading) => "reading",
+    };
+    format!(r#"{{"rule":"{rule}"}}"#)
+}
 fn anchor(x: f64, y: f64) -> Wire<(u32, u32)> {
     placement_u32(x).zip(placement_u32(y)).ok_or(MALFORMED)
 }
@@ -387,6 +400,13 @@ impl SimHandle {
     }
     pub fn discard_build_review(&mut self) -> Vec<u8> {
         unit(self.sim.discard_build_review())
+    }
+    /// The rule behind the latest refused Build entry or preparation, as JSON
+    /// for the console and the status line: `{"rule":null}` when it is not
+    /// one the simulation can name, else the rule and, for lot usability,
+    /// the refusal's stable code.
+    pub fn build_failure_report(&self) -> String {
+        failure_report(self.sim.build_diagnosis())
     }
     pub fn take_build_error(&mut self) -> Vec<u8> {
         let failure = self.sim.take_build_error().map(error);
@@ -552,6 +572,31 @@ impl SimHandle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use terri_sim::placement::PlacementRefusal;
+    #[test]
+    fn build_failure_report_names_each_rule_as_the_page_reads_it() {
+        assert_eq!(
+            SimHandle::from_lot().build_failure_report(),
+            r#"{"rule":null}"#
+        );
+        assert_eq!(
+            failure_report(Some(ValidationProblem::LotUsability(
+                PlacementRefusal::InaccessibleInteraction
+            ))),
+            r#"{"rule":"lot_usability","refusal":11}"#
+        );
+        for (problem, rule) in [
+            (ValidationProblem::EdgeWorld, "edge_world"),
+            (ValidationProblem::PortalReturn, "portal_return"),
+            (ValidationProblem::Seating, "seating"),
+            (ValidationProblem::Reading, "reading"),
+        ] {
+            assert_eq!(
+                failure_report(Some(problem)),
+                format!(r#"{{"rule":"{rule}"}}"#)
+            );
+        }
+    }
     #[test]
     fn room_transport_chore_tags_are_not_preference_indices() {
         let mut writer = Writer(Vec::new());

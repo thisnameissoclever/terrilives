@@ -85,9 +85,12 @@ pub(crate) fn readiness(world: &World, person: Entity) -> f32 {
     ((urgent - critical) / (45.0 - critical)).clamp(0.0, 1.0)
 }
 fn idle(world: &World, state: &SavedChores, person: Entity) -> bool {
-    world
-        .get::<crate::reading::ReadingJourney>(person)
-        .is_none()
+    // A reserved person is waiting for someone walking over to talk or argue.
+    // The loader refuses a reserved recipient with work of their own.
+    world.get::<terri_core::Reserved>(person).is_none()
+        && world
+            .get::<crate::reading::ReadingJourney>(person)
+            .is_none()
         && world.get::<crate::reading::PendingShift>(person).is_none()
         && !state.tasks.iter().any(|t| t.person == person.index_u32())
         && world.get::<Path>(person).is_none()

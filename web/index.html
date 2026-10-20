@@ -1618,9 +1618,10 @@
     </dialog>
     <!-- Leaving Build mode while changes are not confirmed. build-exit.ts
          reads the button values; Escape closes the dialog with none. -->
-    <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text">
+    <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text build-exit-status">
       <h2 id="build-exit-title">Leave Build mode?</h2>
       <p id="build-exit-text">Discarding changes undoes this batch, including purchases and sales.</p>
+      <p id="build-exit-status" role="alert"></p>
       <form method="dialog">
         <menu>
           <button id="build-exit-keep" class="hud-button" value="keep" autofocus>Keep building</button>

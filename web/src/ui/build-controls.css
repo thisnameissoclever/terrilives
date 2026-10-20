@@ -196,6 +196,12 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 #build-batch-status:empty, #builder-status:empty, #buy-status:empty, #floor-status:empty,
 #land-status:empty, #land-touch-help:empty, #room-status:empty { display: none; }
 #build-zoom-out svg { display: block; margin: auto; }
+/* A refusal must not read like routine status: danger colour and a rule
+   beside it, which forced colours keep as a visible border. */
+#build-batch-status[data-kind='error'], #build-exit-status:not(:empty) {
+  color: var(--hud-danger); border-left: 3px solid var(--hud-danger); padding-left: 8px;
+}
+#build-exit-status:empty { display: none; }
 /* The side panel keeps no bottom padding of its own; its footer, always its
    last child, carries that space instead. So the stuck footer meets the
    panel's bottom edge and nothing scrolls into view beneath it, and the

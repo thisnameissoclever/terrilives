@@ -3,6 +3,7 @@ import { coveredWindowLines, decodeWindowPlacements, windowAt, type WindowDefini
   type WindowEditPreview, type WindowModelId, type WindowPlacement } from '../architecture/windows.js';
 import { lineMarks, type TileHighlight } from '../render/placement-preview.js';
 import { nearestLine, type WallLine } from './wall-tool.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type WindowSource = Pick<SimBridge, 'windowCatalogue' | 'windowPlacements' | 'windowEditPreview'
   | 'windowRemovalPreview' | 'fitWindow' | 'removeWindow' | 'lastWindowEditResult' | 'lotRevision'>;
@@ -142,6 +143,7 @@ export class WindowTool {
       if (!this.active) { this.clear(); return; }
       this.refresh();
       this.status = windowReason(result.reason) ?? (action === 'fit' ? 'Window fitted.' : 'Window removed.');
+      if (result.reason !== 0) logWarning('Windows', 'Window edit refused.', { action, code: result.reason, reason: this.status, line: this.line });
       this.hooks.changed();
     } else if (changed && this.active && this.line) { this.refresh(); this.hooks.changed(); }
   }

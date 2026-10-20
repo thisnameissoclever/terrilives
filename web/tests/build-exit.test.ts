@@ -1012,9 +1012,10 @@ describe('dismissing the dialog', () => {
 });
 
 describe('the refused Confirm message', () => {
-  it('points at the furniture when a move is shown, and says to try again otherwise', () => {
+  it('points at the furniture when a move is shown, and otherwise at the tool and Cancel, never promising a retry works', () => {
     expect(confirmRefusal(true)).toBe(REFUSED);
-    expect(confirmRefusal(false)).toBe('The changes could not be confirmed. Try Confirm again.');
+    expect(confirmRefusal(false)).toBe('The changes could not be confirmed. Fix what the tool reports, or choose Cancel to undo the pending changes.');
+    expect(confirmRefusal(false)).not.toMatch(/try confirm again/i);
     for (const text of [confirmRefusal(true), confirmRefusal(false)]) expect(text).not.toMatch(/cancel the/i);
   });
 });
@@ -1030,7 +1031,7 @@ describe('the page', () => {
   it('has a labeled modal dialog whose buttons give the answers the controller reads', () => {
     const dialog = block('<dialog id="build-exit-dialog"', '</dialog>');
     expect(dialog).toContain('aria-labelledby="build-exit-title"');
-    expect(dialog).toContain('aria-describedby="build-exit-text"');
+    expect(dialog).toContain('aria-describedby="build-exit-text build-exit-status"');
     expect(dialog).toContain('<h2 id="build-exit-title">Leave Build mode?</h2>');
     expect(dialog).toContain('<form method="dialog">');
     const buttons = [...dialog.matchAll(/<button([^>]*)>([^<]*)<\/button>/g)]
@@ -1071,7 +1072,7 @@ describe('the page', () => {
     expect(MAIN_TS).toContain('return buildCommandsIdle(buildDraft);');
     expect(MAIN_TS).toContain('clearSelection: () => clearBuildSelection(buildTools, builder),');
     expect(MAIN_TS).not.toContain('cancelBuildBatch');
-    expect(MAIN_TS).toContain('confirmRefusal(builder.hasPlacementChange)');
+    expect(MAIN_TS).toContain('roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange)');
     expect(MAIN_TS).toMatch(/overlayPause\.suspend\('graphics'\);menu\.close\(\);buildExit\.dismiss\(\);/);
   });
 

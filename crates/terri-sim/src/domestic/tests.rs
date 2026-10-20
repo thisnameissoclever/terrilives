@@ -1966,6 +1966,30 @@ fn plating_hands_idle_guests_to_shared_food_before_ordinary_autonomy() {
     assert!(sim.world().resource::<SavedDomestic>().meals.is_empty());
 }
 
+/// A guest held to wait for someone walking over to talk or argue is not
+/// free for supper. Taking the plate anyway left a reserved recipient
+/// cooking, a state the loader refuses, so Build mode could not open.
+#[test]
+fn a_guest_waiting_to_be_approached_joins_the_meal_only_when_released() {
+    let (mut sim, people, _) = plate_with_guests_finishing_their_activity();
+    sim.world_mut().entity_mut(people[1]).insert(Reserved);
+    assert!(!idle(sim.world(), people[1]));
+    sim.tick();
+    assert!(sim.world().get::<ChainState>(people[1]).is_none());
+    let joined = sim.world().get::<ChainState>(people[2]).unwrap();
+    assert_eq!(
+        sim.world().resource::<Content>().0.chains[joined.chain as usize].id,
+        SHARED
+    );
+    sim.world_mut().entity_mut(people[1]).remove::<Reserved>();
+    sim.tick();
+    let late = sim.world().get::<ChainState>(people[1]).unwrap();
+    assert_eq!(
+        sim.world().resource::<Content>().0.chains[late.chain as usize].id,
+        SHARED
+    );
+}
+
 fn gathering_household() -> (Sim, Vec<Entity>, Entity) {
     let (mut sim, people, table) = plate_with_guests_finishing_their_activity();
     for _ in 0..200 {
