@@ -8,6 +8,8 @@ Spring, Summer, Autumn and Winter follow in that order. Each currently lasts sev
 
 Pause freezes game time. Speed changes how quickly the clock advances, including activity progress and weather animation. Loading a household restores its clock and the corresponding season.
 
+Switching tabs or minimizing the browser does not itself pause the household. Browser power-saving can still suspend a background tab, and the game does not make up that lost time. See [time controls](home-and-controls/#camera-and-speed).
+
 :::numbers Numbers and limits
 A game day has {{number:tuning.day_ticks}} game minutes. Each season lasts {{number:tuning.days_per_season}} days and there are four seasons per year. At normal speed, one real second advances ten game minutes; higher speed runs more game minutes per second. Reading the guide or an open Options panel does not itself stop time.
 :::

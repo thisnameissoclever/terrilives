@@ -18,7 +18,7 @@ function section(start: string, end: string): string {
 // Execute the production wiring, including its gate and complete camera method.
 const cameraCode = section('  function applyCamera(): void {', '  // Flagged rather than applied:')
   .replace('(): void', '()');
-const drawCode = section('    if (floorScene.visible', '    // Inside the sample below');
+const drawCode = section('    if (presenting&&floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
 const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
@@ -56,7 +56,7 @@ function fixture() {
       architecture: { windows: [], catalogue: [], floorCatalogue: catalogue,
         finishes: prepareArchitectureFinishes([], limits, catalogue) } },
     floorResourceError: null as string | null,
-    graphicsRecovering:false,
+    graphicsRecovering:false, presenting: true,
     characterWorld:{beginFrame(){},plan:null,draw(){}},
     weatherScene: { setOutside() {}, prepare() {} }, weatherTuning: null, drawWorldEffects() {},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
@@ -103,6 +103,10 @@ describe('main floor scene presentation', () => {
     f.ctx.graphicsRecovering=true;f.frame();expect(f.draws).toHaveLength(1);
     f.ctx.graphicsRecovering=false;f.frame();expect(f.draws).toHaveLength(2);
     expect(f.draws[1]).toEqual(f.draws[0]);
+  });
+  it('draws nothing for a hidden tab step and resumes drawing when presenting again',()=>{
+    const f=fixture();f.ctx.presenting=false;f.frame();expect(f.draws).toHaveLength(0);
+    f.ctx.presenting=true;f.frame();expect(f.draws).toHaveLength(1);
   });
   it('keeps camera/static/dynamic rendering coherent during a delayed or rejected preview load', async () => {
     const f = fixture();

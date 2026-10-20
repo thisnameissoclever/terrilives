@@ -1374,6 +1374,29 @@ describe('AudioController object loops', () => {
     expect(context.bufferSources).toHaveLength(0);
   });
 
+  it('leaves a playing conversation alone when the tab returns with sound still running', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    controller.emit({ type: 'sim.conversation-started', simId: 4, voice: { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 } });
+    const started = context.bufferSources.length;
+
+    expect(await controller.resumeIfInterrupted()).toBe(true);
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    expect(context.bufferSources).toHaveLength(started);
+    expect(context.bufferSources.every(source => !source.disconnected)).toBe(true);
+
+    context.state = 'suspended';
+    expect(await controller.resumeIfInterrupted()).toBe(true);
+    expect(context.state).toBe('running');
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    expect(context.bufferSources).toHaveLength(started);
+  });
+
   it('does not affect a playing conversation when only object sounds pause', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, memoryStore());

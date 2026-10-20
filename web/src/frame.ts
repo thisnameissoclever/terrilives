@@ -785,8 +785,12 @@ export class FixedStepDriver {
    * Runs every tick the elapsed time has paid for, then returns the
    * interpolation alpha in `[0, 1)`: how far the display is between the
    * tick that just ran and the one that has not yet.
+   *
+   * `maxTicks` replaces the constructed budget for this call only. A hidden
+   * tab is stepped by a timer the browser may slow or delay, and nothing is
+   * drawn there, so it can afford to spend a longer gap than a frame can.
    */
-  advance(deltaMs: number, onTick: () => void): number {
+  advance(deltaMs: number, onTick: () => void, maxTicks = this.maxTicksPerFrame): number {
     // The multiplier is applied to the ELAPSED TIME, which is what buys
     // steps, and never to `stepMs`, which is what a step costs. At speed
     // 2 a frame pays for twice as many steps of exactly the same size.
@@ -799,7 +803,7 @@ export class FixedStepDriver {
     this.accumulatorMs += deltaMs * this.speed;
 
     let ticks = 0;
-    while (this.accumulatorMs >= this.stepMs && ticks < this.maxTicksPerFrame) {
+    while (this.accumulatorMs >= this.stepMs && ticks < maxTicks) {
       onTick();
       this.accumulatorMs -= this.stepMs;
       ticks++;
@@ -811,7 +815,7 @@ export class FixedStepDriver {
     // spiral - the same failure arriving one frame later. Dropping the
     // backlog makes the sim skip time it could not simulate, which is
     // visible but recoverable.
-    if (ticks >= this.maxTicksPerFrame) {
+    if (ticks >= maxTicks) {
       this.accumulatorMs = 0;
     }
 
@@ -837,9 +841,10 @@ export function advanceSimulationFrame(
   driver: FixedStepDriver,
   deltaMs: number,
   sim: FrameSimulation,
+  maxTicks?: number,
 ): number {
   if (driver.ticksPerUnitTime === 0) sim.flushCommands();
-  return driver.advance(deltaMs, () => sim.tick());
+  return driver.advance(deltaMs, () => sim.tick(), maxTicks);
 }
 
 /**

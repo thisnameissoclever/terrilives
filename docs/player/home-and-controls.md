@@ -24,6 +24,8 @@ With the game view focused, arrow keys choose a world target. Space selects a ta
 
 Opening Options does not pause the household. Build and dialogs that say the household is paused hold game time while open. Use the visible pause control whenever you want to inspect the home without time advancing.
 
+The household keeps running at the selected speed when you switch tabs or minimize the browser, and its sound can keep playing. Pause before leaving the game if you want the household to wait. Choose Sound: off in Options to silence it. A browser can still suspend background tabs to save power; the game does not make up that lost time afterward.
+
 ## Build, confirm and discard {#build}
 
 Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land.

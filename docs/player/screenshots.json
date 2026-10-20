@@ -3,9 +3,9 @@
   "build": {
     "status": "complete",
     "capturedAt": "2026-10-19",
-    "url": "http://127.0.0.1:8322/",
-    "bundle": "index-fopipe25.js",
-    "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+    "url": "http://127.0.0.1:8324/",
+    "bundle": "index-y9q1-SyJ.js",
+    "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
     "desktopViewport": {
       "width": 1440,
       "height": 960
@@ -63,6 +63,17 @@
         "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
         "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
         "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "delivery-guide-shortcut",
+        "url": "http://127.0.0.1:8324/",
+        "sourceCommit": "d59d004",
+        "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+        "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+        "bundle": "index-y9q1-SyJ.js",
+        "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
       }
     ],
     "weatherSetup": {
@@ -81,7 +92,7 @@
         "snowRealSeconds": 2.5
       }
     },
-    "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+    "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
     "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
     "phoneMode": "Chrome phone viewport and touch emulation; not a physical phone",
     "viewportReuse": "Final identity and condition passes reused one isolated game context across viewports.",
@@ -93,9 +104,9 @@
       "mobileParagraphWidth": 182.203125,
       "input": "Actual mouse right-click; Chrome touch long-press input at the phone viewport."
     },
-    "sourceCommit": "96b14aa",
+    "sourceCommit": "d59d004",
     "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
-    "unchangedControlsImpact": "Main 96b14aa changes argument and chore behavior. Existing control labels and panels remain unchanged; their screenshots retain the original snapshot and hashes. Help was refreshed for Company & chores and its contribution links.",
+    "unchangedControlsImpact": "Main d59d004 adds background-tab play. The delivery build adds the direct Player guide HUD link. Overview and guide-link states were refreshed; older screenshots retain their original per-entry snapshots and hashes for controls unchanged by these additions.",
     "helpVerification": {
       "source": "current-main-help",
       "desktopGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
@@ -103,25 +114,54 @@
       "browserErrors": [],
       "inspected": "Opening Help, both Company & chores scroll positions, player guide link and shortcuts at both viewports. Native dialog closeups included.",
       "cleanup": "All task-owned game contexts, guide popups and Chrome closed."
+    },
+    "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+    "guideShortcutVerification": {
+      "source": "delivery-guide-shortcut",
+      "desktop": {
+        "guideY": 198.171875,
+        "buttonsBottom": 194.171875,
+        "guideWidth": 144,
+        "guideHeight": 32,
+        "buildGuideY": 840.484375,
+        "buildGuideBottom": 872.484375
+      },
+      "mobile": {
+        "guideY": 207.984375,
+        "buttonsBottom": 203.984375,
+        "guideWidth": 182,
+        "guideHeight": 44,
+        "buildGuideY": 115.984375,
+        "buildGuideBottom": 159.984375
+      },
+      "keyboard": "Tab after Options focuses world-player-guide; Enter opens its native new-tab link. Phone viewport also passed Tab focus.",
+      "navigation": "Desktop keyboard activation and phone tap opened http://127.0.0.1:8324/guide/ in actual separate tabs.",
+      "overflow": false,
+      "buildControlIntersections": [],
+      "browserErrors": [],
+      "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
+      "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
     }
   },
   "entries": [
     {
       "id": "overview",
       "section": "overview",
-      "desktop": "images/ui-overview-desktop.png",
-      "mobile": "images/ui-overview-mobile.png",
-      "description": "The game view with the clock, funds, save status, speed controls, Build, Options and selected-person dock.",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "description": "The game view with the clock, funds, save status, speed controls, Build, Options, Player guide and selected-person dock.",
       "access": "Open the game. Select a name at the bottom of the screen.",
-      "desktopDetail": "images/ui-overview-detail-desktop.png",
-      "sourceSnapshot": "initial",
-      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
-      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
       "imageSha256": {
-        "desktop": "e6a45bf31f499bf13de2d7ce792f831b763d4598378fe3a8f7a5055d281a95ac",
-        "mobile": "cfecacc5ba5723b0db6774d4d9a782c4a015a6900ede59eaac40e987d7e9ff1c",
-        "desktopDetail": "c48f0972684564ca5618ed4d777190ccb708621596c797e00d1871caa0295aa7"
-      }
+        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      },
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png"
     },
     {
       "id": "options",
@@ -1413,12 +1453,51 @@
         "desktopDetail": "d4aaaf569fcea16fc76639bac09aa2e06bdec924b905345afbdcdc3594720c41",
         "mobileDetail": "96759e903f8e1920f449984366ffc18f5e7ea820e846c5fb3fac9154b6d19e32"
       }
+    },
+    {
+      "id": "guide-shortcut",
+      "section": "clock-and-speed",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
+      "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
+      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      }
+    },
+    {
+      "id": "guide-shortcut-build",
+      "section": "build",
+      "desktop": "images/ui-guide-shortcut-build-desktop.png",
+      "mobile": "images/ui-guide-shortcut-build-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-build-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-build-detail-mobile.png",
+      "description": "The guide link stays available while Build is open, with room for the building controls.",
+      "access": "Choose Build, then choose Player guide in the HUD.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "bfc648073785f1f9007db118375c1a4823404685d26aec224684ea8c7eb193e5",
+        "mobile": "06e784b5ad587ffba08a960a1b1a777e99ab346ddb7ef7d5163ee87fa0f67dce",
+        "desktopDetail": "1f2dd3108ed7ef66fdff3c94b7d4ae5b2c72a6647b9ab4709ca98e2e3fb8cc81",
+        "mobileDetail": "4ae6668de7c90be9f1d540cf647f6cb1cdd50e194d4520ce514a64202966e568"
+      }
     }
   ],
   "uiSections": {
     "clock-and-speed": [
       "overview",
-      "build-furniture"
+      "build-furniture",
+      "guide-shortcut"
     ],
     "work-confirmation": [
       "work-conflict"

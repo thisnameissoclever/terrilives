@@ -18,6 +18,10 @@ Desktop and phone: read the top world panel for Funds and the three-line clock: 
 
 Drag the game view to pan. Use the mouse wheel on desktop or pinch on touch to zoom. In [Build mode](#build), the minus and plus buttons provide another way to zoom on both layouts. Weather follows game time, so Pause freezes it too. See [calendar and weather](the-world/#calendar).
 
+### Player guide link {#player-guide}
+
+Desktop and phone: choose Player guide directly below Build and Options. The guide opens in another tab. The game keeps running in the background, so use Pause first if you want the household to wait. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
+
 ## Sim details and needs {#sim-details}
 
 Desktop: select a person to see needs in the expanded dock, then choose Sim details for the fuller sheet. Phone: select a Household name, choose Sim details, then Overview to see all seven needs. Phone needs are not hidden inside Options.

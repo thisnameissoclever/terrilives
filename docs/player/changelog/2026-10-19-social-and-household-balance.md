@@ -1,10 +1,10 @@
 # Player guide and household balance
 
-The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, and fresh household mess gets a grace period.
+The new player guide explains controls, activities and relationships. Chats provide more Social and stronger relationship rewards. Family and partners are more forgiving, arguments come from real grievances, and fresh household mess gets a grace period. The game also keeps running while its tab is in the background.
 
 ## New
 
-- Open Player guide from Options or Help for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
+- Open Player guide below Build and Options, or from Options and Help, for desktop and phone screenshots, activity requirements, relationship effects, and weather explanations. Section links take you directly to the relevant controls and details.
 
 ## Improved
 
@@ -22,6 +22,8 @@ The new player guide explains controls, activities and relationships. Chats prov
 - Player-started arguments use relevant recent history, or an ordinary subject when none applies.
 - Saving preserves argument causes, chore follow-through and partial dish contributions. New saves require this version or newer; the original older save remains available as a recovery copy.
 
+- The game keeps running at the selected speed when you switch to another tab or minimize the browser, so the household carries on while you are away. A browser that suspends background tabs to save power can still pause it, and long pauses are not made up afterward.
+
 ## Fixed
 
 - Object names stay readable against light scenery, and expanded descriptions use a readable line width. The Build camera's zoom-out button shows a clear minus sign.
@@ -31,3 +33,7 @@ The new player guide explains controls, activities and relationships. Chats prov
 - Resolving or reassigning a chore stops an autonomous argument about its former owner. Older washing records cannot give a Sim credit for somebody else's fresh cleanup.
 
 - Saved games from the previous version load correctly during a player-started argument.
+
+## Sound
+
+- Game sound keeps playing while the tab is in the background. Choose **Sound: off** to silence it.
