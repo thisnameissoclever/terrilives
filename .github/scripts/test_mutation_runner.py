@@ -20,6 +20,21 @@ import mutation_runner as runner
 from test_mutation_campaign import inventory, context, raw_report
 
 
+class FixtureClock:
+    """Measure controller execution after the real fixture child is ready."""
+    monotonic = staticmethod(time.monotonic)
+    sleep = staticmethod(time.sleep)
+
+    def __init__(self):
+        self.started = None
+
+    def start(self):
+        self.started = self.monotonic()
+
+    def time(self):
+        return 0 if self.started is None else self.monotonic() - self.started
+
+
 class RunnerTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mutation-runner-test-")
@@ -39,6 +54,7 @@ class RunnerTests(unittest.TestCase):
     def fixture(self, initial, final=None, *, mode="wait", code=0):
         (self.root / "outcomes.json").unlink(missing_ok=True)
         (self.root / "stop-request").unlink(missing_ok=True)
+        (self.root / "ready").unlink(missing_ok=True)
         runner.write_json(self.root / "initial.json", initial)
         runner.write_json(self.root / "final.json", final or initial)
         script = self.root / "process.py"
@@ -62,10 +78,44 @@ while True:
         return [sys.executable, "-B", str(script), mode, str(code)]
 
     def run_fixture(self, argv, seconds=0.8, factory=runner.OwnedProcess, slot=0, input_guard=None, cwd=None):
-        return runner.run_controller(argv, cwd=cwd or self.root, env=dict(os.environ), report_path=self.root / "outcomes.json",
-            manifest=self.manifest, slot=slot, batch_ids=self.ids, provenance=self.provenance,
-            deadline=time.time() + seconds, shutdown_seconds=3, log_path=self.root / "process.log",
-            poll_seconds=.02, process_factory=factory, input_guard=input_guard)
+        clock = FixtureClock()
+        def ready_process(*args, **kwargs):
+            process = factory(*args, **kwargs)
+            try:
+                self.wait_fixture_file("ready")
+            except Exception:
+                process.stop(3)
+                raise
+            clock.start()
+            return process
+        with mock.patch.object(runner, "time", clock):
+            return runner.run_controller(argv, cwd=cwd or self.root, env=dict(os.environ), report_path=self.root / "outcomes.json",
+                manifest=self.manifest, slot=slot, batch_ids=self.ids, provenance=self.provenance,
+                deadline=seconds, shutdown_seconds=3, log_path=self.root / "process.log",
+                poll_seconds=.02, process_factory=ready_process, input_guard=input_guard)
+
+    def wait_fixture_file(self, name):
+        until = time.monotonic() + 3
+        while not (self.root / name).exists():
+            if time.monotonic() >= until:
+                raise OSError("fixture handshake timed out: " + name)
+            time.sleep(.005)
+
+    def test_production_deadline_still_includes_child_startup(self):
+        argv = self.fixture(raw_report(self.selected[:1], interrupted=True))
+        script = Path(argv[2])
+        script.write_text(script.read_text().replace(
+            '(p / "outcomes.json").write_bytes((p / "initial.json").read_bytes())',
+            'time.sleep(1)\n(p / "outcomes.json").write_bytes((p / "initial.json").read_bytes())'))
+        deadline = time.time()
+        result = runner.run_controller(argv, cwd=self.root, env=dict(os.environ),
+            report_path=self.root / "outcomes.json", manifest=self.manifest, slot=0,
+            batch_ids=self.ids, provenance=self.provenance, deadline=deadline,
+            shutdown_seconds=3, log_path=self.root / "process.log", poll_seconds=.02)
+        self.assertEqual(result["state"], "incomplete_without_progress")
+        self.assertEqual(result["reason"], "controller_deadline")
+        self.assertIsNone(result["snapshot"])
+        self.assertFalse((self.root / "ready").exists())
 
     def native_repository(self):
         root = self.root / "protected"
@@ -235,13 +285,14 @@ while True: time.sleep(.01)
         raw_before = (self.root / "initial.json").read_bytes()
         original_read, original_verify = guard.read_state, guard.verify
         events, observations, stops = [], [], []
+        clock = FixtureClock()
         def read_state():
             state = original_read()
             partial = state[pending["file"]]["digest"] not in {runner.artifacts.sha(base), runner.artifacts.sha(mutated)}
             observations.append(partial)
             if partial:
                 if stop_during_write:
-                    while time.time() < deadline:
+                    while clock.time() < deadline:
                         time.sleep(.005)
                 (self.root / "release-write").touch()
             return state
@@ -257,33 +308,29 @@ while True: time.sleep(.01)
             return result
         guard.read_state, guard.verify = read_state, verify
         owner = self
-        def wait_file(name):
-            until = time.monotonic() + 3
-            while not (owner.root / name).exists():
-                if time.monotonic() >= until:
-                    raise OSError("fixture handshake timed out: " + name)
-                time.sleep(.005)
         class PausedWriteProcess(runner.OwnedProcess):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 try:
-                    wait_file("partial-ready")
+                    owner.wait_fixture_file("partial-ready")
                 except Exception:
                     super().stop(3)
                     raise
+                clock.start()
             def stop(self, seconds):
-                stops.append(time.time())
+                stops.append(clock.time())
                 (owner.root / "release-write").touch()
                 try:
-                    wait_file("write-finished")
+                    owner.wait_fixture_file("write-finished")
                 finally:
                     super().stop(seconds)
-        deadline = time.time() + 1
-        result = runner.run_controller([sys.executable, "-B", str(script), pending["file"],
-            "permanent" if permanent else "finish", unrelated or "none", "0" if transition == "apply" else "11"],
-            cwd=owned, env=dict(os.environ), report_path=self.root / "outcomes.json", manifest=self.manifest,
-            slot=0, batch_ids=self.ids, provenance=self.provenance, deadline=deadline, shutdown_seconds=3,
-            log_path=self.root / "active-write.log", poll_seconds=.01, process_factory=PausedWriteProcess, input_guard=guard)
+        deadline = 1
+        with mock.patch.object(runner, "time", clock):
+            result = runner.run_controller([sys.executable, "-B", str(script), pending["file"],
+                "permanent" if permanent else "finish", unrelated or "none", "0" if transition == "apply" else "11"],
+                cwd=owned, env=dict(os.environ), report_path=self.root / "outcomes.json", manifest=self.manifest,
+                slot=0, batch_ids=self.ids, provenance=self.provenance, deadline=deadline, shutdown_seconds=3,
+                log_path=self.root / "active-write.log", poll_seconds=.01, process_factory=PausedWriteProcess, input_guard=guard)
         return {"result": result, "events": events, "report_unchanged": (self.root / "outcomes.json").read_bytes() == raw_before,
                 "final_exact": (owned / pending["file"]).read_bytes() == target,
                 "stopped_before_deadline": stops[0] < deadline, "original": original, "owned": owned}

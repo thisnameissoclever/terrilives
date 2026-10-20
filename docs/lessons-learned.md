@@ -13063,3 +13063,23 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Select an authenticated completed producer before probing its log availability. Preserve all original evidence and expiry separately; a current download location is only a limited availability signal. Do not skip an active run, substitute another producer after a failure, or treat retained bytes as proof of current availability.
 
 **Verification.** Exercise the real HTTP branch with only its network boundary injected. Include malformed status and header responses; require sanitized fatal errors without raw exception context. Test active runs, completed predecessors, same-run recovery and a new continuation without a new plan receipt. Before native work, verify the selected completed-job endpoint inside Actions with the actual workflow token, bounded requests and no retained credentials or signed download locations.
+
+## [L-review-correction-exit-intent] Preserve ordinary exit intent through editable review refusals
+
+**What happened.** A room-name validation refusal invalidated the pending Build exit. Correcting the name and confirming the review saved the changes but left Build open.
+
+**Root cause.** The refusal hook used the same cancellation method for a tool destination and an ordinary exit. That method invalidated the asynchronous continuation in both cases.
+
+**Prevention.** Cancel only the continuation whose purpose the refusal invalidates. Keep an ordinary exit pending while the player corrects review input. Back, load and interruption must still invalidate an abandoned exit.
+
+**Verification.** Exercise footer Confirm and exit-dialog Confirm through invalid input, refusal, correction, review update and adoption. Require one commit and one exit without advancing game time. Exercise the same sequence for Land and require its refused destination to remain canceled.
+
+## [L-process-fixture-readiness-clock] Separate fixture startup from the behavior under test
+
+**What happened.** Process fixtures sometimes reached their short test deadline before the child could publish its first report. Tests of completed results and partial source writes then reported no progress.
+
+**Root cause.** The fixtures assumed process construction and interpreter startup would always fit inside a subsecond observation window. A controlled startup delay reproduced the failures; the production controller correctly enforced its declared deadline.
+
+**Prevention.** Use a bounded readiness handshake and start the fixture observation clock only after the required child state exists. Clear readiness markers between invocations. Keep production deadlines and shutdown limits unchanged.
+
+**Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.

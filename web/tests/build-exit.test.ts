@@ -333,7 +333,7 @@ it.each(['adopt', 'back', 'dismiss', 'load'] as const)('defers explicit exit unt
   const f = fixture(new SimHandle(10, 8), review => new Promise<boolean>(resolve => { finish = resolve; controller.open(review); }));
   controller = new RoomReviewController(f.sim, {
     completed: adopted => { if (!adopted) f.exit.clearExitIntent(); finish?.(adopted); },
-    refused: () => f.exit.clearExitIntent(),
+    refused: () => f.exit.cancelDestination(),
   });
   let operation: boolean | Promise<boolean> = false;
   try {

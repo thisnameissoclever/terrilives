@@ -1773,7 +1773,7 @@ async function main(): Promise<void> {
       if (!adopted) { buildSession.noteReviewCancellation(); buildExit.clearExitIntent(); }
       const finish = finishReview; finishReview = null; finish?.(adopted);
     },
-    refused: () => buildExit.clearExitIntent(),
+    refused: () => buildExit.cancelDestination(),
   });
   hasRetainedReviewChoices = () => roomReview.hasChoices;
   requestRoomReview = review => new Promise<boolean>(resolve => {

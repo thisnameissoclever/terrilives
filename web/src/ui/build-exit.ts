@@ -142,6 +142,9 @@ export class BuildExit {
   }
   clearExitIntent(): void { this.continuation++; this.destination = null; }
 
+  /** A refused review cancels a tool switch, while an ordinary exit can finish after correction. */
+  cancelDestination(): void { if (this.destination) this.clearExitIntent(); }
+
   /** Resolves the current batch before opening a tool in a fresh paused batch. */
   requestDestination(activate: () => boolean, title = 'Switch Build tools?'): boolean {
     if (this.dialog.open || this.confirming) return false;

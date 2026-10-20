@@ -1,0 +1,30 @@
+{
+  ".github/scripts/test_mutation_runner.py": {
+    "bytes": 56307,
+    "sha256": "5461c7e780590450211f632950a22acbb0dff0e4f96571bb549495f610faf66e"
+  },
+  ".github/scripts/mutation_runner.py": {
+    "bytes": 59444,
+    "sha256": "79ce1708d21970321329815a4f6c48e153ff13f4a58633d0e1a337cdc878d71f"
+  },
+  ".local-build/build-ui-followup/runner-fixture-clock.diff": {
+    "bytes": 7782,
+    "sha256": "569840f694f112c1c6c0f15a9e639b76f38e19f1530eb14c25e439eb7c54efec"
+  },
+  ".local-build/build-ui-followup/runner-startup-trace-before.txt": {
+    "bytes": 2987,
+    "sha256": "76faa1916d7422e2edd826985f90e01f0231f8fad20f62dead43686576db1342"
+  },
+  ".local-build/build-ui-followup/runner-startup-trace-after.txt": {
+    "bytes": 609,
+    "sha256": "0c50b3b4c50d175ce936f6480bf34717abdbf0a1dc88e2aba9b56d9777a8c389"
+  },
+  ".local-build/build-ui-followup/runner-startup-trace-1.1.json": {
+    "bytes": 4704,
+    "sha256": "2c9c82789d38aa567c280b33e90ff385e0ef8e601fe0c1d8cccd4d140bf07ed4"
+  },
+  ".local-build/build-ui-followup/final-runner-fixture-tests.txt": {
+    "bytes": 145,
+    "sha256": "505c9f7862bc59915d0b4192aea9bb73c28f561f0c95f148d7a2f56fe7be471d"
+  }
+}

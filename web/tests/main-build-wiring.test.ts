@@ -260,6 +260,38 @@ it('Land keeps an invalid raw name unchanged until an explicit decision', () => 
   } finally { f.handle.free(); }
 });
 
+it.each(['footer', 'exit', 'land'] as const)('correcting refused review input preserves an ordinary exit and cancels only a Land destination: %s', async route => {
+  const f = fixture();
+  try {
+    expect(f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 })).toBe(true); f.sim.flushCommands();
+    f.builder.enter(); const baseline = f.sim.saveBytes(), tick = f.sim.clockTick();
+    for (let y = 1; y <= 5; y++) { expect(f.sim.setWallEdge(0, 4, y, 1)).toBe(true); f.sim.flushCommands(); }
+    const commit = vi.spyOn(f.sim, 'commitBuild');
+    if (route === 'footer') f.document.nodes.get('#build-batch-confirm')!.fire('click');
+    else {
+      if (route === 'land') f.toolSwitch.select('build-tool-land');
+      else f.key('Escape');
+      expect(f.dialog.open).toBe(true); f.dialog.close('confirm');
+    }
+    expect(f.roomReview.active).toBe(true);
+    f.roomReview.setName([1, 1], '');
+    expect(await f.roomReview.confirm()).toBe(false);
+    expect(f.roomReview.error).not.toBe(''); expect(f.roomReview.name([1, 1])).toBe('');
+    expect(f.roomReview.active).toBe(true); expect(f.builder.active).toBe(true);
+    expect(f.sim.saveBytes()).toEqual(baseline); expect(commit).not.toHaveBeenCalled();
+    f.roomReview.setName([1, 1], 'Corrected room');
+    expect(await f.roomReview.confirm()).toBe(false);
+    expect(f.roomReview.active).toBe(true); expect(commit).not.toHaveBeenCalled();
+    expect(await f.roomReview.confirm()).toBe(true);
+    await vi.waitFor(() => expect(f.buildExit.resolving).toBe(false));
+    expect(commit).toHaveBeenCalledOnce(); expect(f.sim.clockTick()).toBe(tick);
+    const summaries = f.sim.roomSummaries();
+    expect(summaries.ok && summaries.value.rooms.some(room => room.name === 'Corrected room')).toBe(true);
+    expect(f.builder.active).toBe(route === 'land'); expect(f.buildSession.active).toBe(route === 'land');
+    expect(f.landTool.active).toBe(false); expect(f.left).toHaveBeenCalledTimes(route === 'land' ? 0 : 1);
+  } finally { f.buildExit.dismiss(); f.roomReview.reset(); f.handle.free(); }
+});
+
 it('actual clean Land switch starts a fresh native session without leaving Build', () => {
   const f = fixture();
   try {
