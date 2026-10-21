@@ -15,7 +15,7 @@ Build controls are clearer, clipped Sim status can be opened in full, and the pl
 
 ## Fixed
 - Keep building uses a normal button in the exit dialog, and Confirm appears directly below Discard changes.
-- A doorway or opening that would leave furniture facing a closed-off space nobody can reach is now refused when you place it, with the reason, including a doorway made with **Build room**. Before, a house with a window could get stuck on "Build validation failed (detail 2)", and no change could be confirmed.
+- A doorway or opening that would leave furniture facing a closed-off space nobody can reach is now refused when you place it, with the reason, including a doorway made with **Build room**. Before, you could place that doorway, then **Confirm** would not keep the changes, and confirming would not leave Build mode.
 - When **Confirm** cannot apply the changes, Build stays open and says what is in the way and what to do, marked as an error. If you chose **Confirm changes** in the exit dialog, the dialog opens again with the reason, so **Discard changes** stays one click away.
 - When Build mode cannot open, the game now says why instead of ignoring the **Build** button.
 - A housemate waiting for someone to come over for a chat or an argument no longer gets up for a shared meal or a chore partway through. Before, this could stop Build mode from opening and make a save taken at that moment fail to load.
