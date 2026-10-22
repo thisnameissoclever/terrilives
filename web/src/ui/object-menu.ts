@@ -502,6 +502,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       let revision = '', frame = 0, disposed = false;
       let measurementKey = '', measuredEntries: {width:number;height:number}[] = [], navigation = {width:44,height:44};
       let descriptionSize: {width: number; height: number} | undefined;
+      let railScrollbarHeight = 0;
       const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry, intent: ActionIntent = 'neutral'): HTMLButtonElement => {
         const button = doc.createElement('button'); button.type = 'button'; button.className = 'menu-entry';
         setActionIntent(button, entry ? menuActionIntent(entry.action) : intent);
@@ -536,7 +537,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         options.positioned?.(anchor);
         const maximumWidth = Math.max(44,Math.min(136,view.innerWidth-16));
         buttons.forEach(button => { button.style.maxWidth = `${maximumWidth}px`; });
-        const nextMeasurement = `${maximumWidth}:${view.innerWidth}:${view.getComputedStyle(root).fontSize}`;
+        const nextMeasurement = `${maximumWidth}:${view.innerWidth}:${view.devicePixelRatio}:${view.getComputedStyle(root).fontSize}`;
         if (measurementKey !== nextMeasurement) {
           measurementKey = nextMeasurement;
           const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}, undefined, 'affirmative'), make('Back', () => {}, undefined, 'negative')];
@@ -544,6 +545,13 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           measuredEntries = probes.slice(0,menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
           navigation = maximumActionSize(probes.slice(menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight})));
           probes.forEach(button=>button.remove());
+          const railProbe = doc.createElement('div'); railProbe.className = 'object-action-rail';
+          railProbe.setAttribute('aria-hidden', 'true');
+          Object.assign(railProbe.style, {position: 'fixed', left: '0px', top: '0px', width: '100px', height: '44px',
+            overflowX: 'scroll', visibility: 'hidden', pointerEvents: 'none'});
+          root.append(railProbe);
+          railScrollbarHeight = Math.max(0, railProbe.offsetHeight - railProbe.clientHeight);
+          railProbe.remove();
           if (menu.details) {
             const hidden = description.hidden;
             description.hidden = false; description.style.visibility = 'hidden';
@@ -555,7 +563,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         identity.style.maxHeight = ''; identity.style.overflowY = '';
         const viewport = {width:view.innerWidth,height:view.innerHeight};
         const identityWidth = identity.offsetWidth;
-        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth,descriptionSize);
+        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth,descriptionSize,railScrollbarHeight);
         if (!placement) { options.dismiss?.(); return; }
         let focusAfterPlace: HTMLButtonElement | null = null;
         if (placement.capacity !== capacity) {
@@ -571,7 +579,8 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           if (hadFocus) focusAfterPlace=buttons.find(button=>!button.disabled && button.dataset.menuIndex===index) ?? buttons.find(button=>!button.disabled) ?? close;
         }
         if (placement.rail) {
-          const region = placement.region, layout = layoutActionRail(region);
+          const region = placement.region;
+          let layout = layoutActionRail(region, placement.railHintHeight);
           root.dataset.compact = 'true'; root.dataset.rail = 'true'; root.dataset.sceneClip = 'false';
           root.style.left = `${region.left}px`; root.style.top = `${region.top}px`;
           root.style.width = `${region.right - region.left}px`; root.style.height = `${region.bottom - region.top}px`;
@@ -583,13 +592,25 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
             if (element.parentElement !== rail) rail.append(element);
             element.style.position = 'relative'; element.style.left = ''; element.style.top = '';
           }
-          const itemHeight = Math.max(44, rail.clientHeight);
+          if (rail.clientHeight < 44 && layout.hint.bottom > layout.hint.top) {
+            layout = layoutActionRail(region, 0);
+            rail.style.height = `${layout.viewport.bottom - layout.viewport.top}px`;
+          }
+          const itemHeight = rail.clientHeight;
+          if (itemHeight < 44) { options.dismiss?.(); return; }
+          rail.dataset.tight = String(itemHeight < 50);
           identity.style.maxHeight = `${itemHeight}px`; identity.style.overflowY = 'auto';
           buttons.forEach(button => {button.style.maxWidth = rail.style.width;});
           description.style.width = rail.style.width; description.style.maxHeight = `${itemHeight}px`; description.style.overflowY = 'auto';
           close.style.left = `${layout.close.x}px`; close.style.top = `${layout.close.y}px`;
-          scrollHint.style.left = '0px'; scrollHint.style.top = `${layout.hint.top - region.top}px`;
-          scrollHint.style.width = rail.style.width; scrollHint.hidden = rail.scrollWidth <= rail.clientWidth;
+          const compactHint = layout.hint.top === layout.hint.bottom, overflow = rail.scrollWidth > rail.clientWidth;
+          scrollHint.dataset.compact = String(compactHint);
+          scrollHint.textContent = compactHint ? '›' : 'Scroll sideways for actions';
+          if (compactHint) scrollHint.setAttribute('aria-hidden', 'true'); else scrollHint.removeAttribute('aria-hidden');
+          scrollHint.style.left = compactHint ? rail.style.width : '0px';
+          scrollHint.style.top = compactHint ? `${(layout.viewport.bottom - layout.viewport.top - 14) / 2}px` : `${layout.hint.top - region.top}px`;
+          scrollHint.style.width = compactHint ? '8px' : rail.style.width; scrollHint.style.height = '14px'; scrollHint.hidden = !overflow;
+          rail.setAttribute('aria-label', overflow ? 'Object actions, scroll sideways' : 'Object actions');
           if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus();
           focusAfterPlace?.focus();
           return;
@@ -625,7 +646,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus({preventScroll: true});
       };
       const toggle = () => place(); root.addEventListener('toggle', toggle, true);
-      const observer = new ResizeObserver(() => place());
+      const observer = new ResizeObserver(() => {measurementKey = ''; place();});
       for (const id of ['hud','time-controls','build-toggle','options-toggle','build-camera','sim-dock','builder-controls']) {
         const element=doc.getElementById(id);if(element) observer.observe(element);
       }

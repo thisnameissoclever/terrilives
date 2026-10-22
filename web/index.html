@@ -1085,11 +1085,15 @@
       .radial-description .object-description { max-width: none; margin: 0; }
       .object-action-rail { position: absolute; display: flex; align-items: safe center; gap: 8px; overflow: auto; box-sizing: border-box; pointer-events: auto; overscroll-behavior: contain; touch-action: pan-x pan-y; scrollbar-width: thin; scrollbar-color: var(--hud-muted) var(--hud-edge); }
       .object-action-rail > * { flex: 0 0 auto; }
+      #object-menu .object-action-rail[data-tight='true'] > .menu-entry { padding-block: 4px; }
+      #object-menu .object-action-rail[data-tight='true'] > .radial-identity:has(summary) { border: 0; }
+      #object-menu .object-action-rail[data-tight='true'] .radial-identity summary { border: 1px solid var(--hud-edge); border-radius: 9px; padding-block: 2px; }
       .object-action-rail .radial-description { padding: 8px 12px; overscroll-behavior-x: auto; }
       .object-action-rail::-webkit-scrollbar { width: 6px; height: 6px; }
       .object-action-rail::-webkit-scrollbar-track { background: var(--hud-edge); }
       .object-action-rail::-webkit-scrollbar-thumb { background: var(--hud-muted); border-radius: 3px; }
       .object-action-scroll-hint { position: absolute; font: 10px/14px system-ui, sans-serif; color: var(--hud-text); text-align: center; background: var(--hud-bg); border-radius: 3px; pointer-events: none; }
+      .object-action-scroll-hint[data-compact='true'] { background: transparent; border-radius: 0; color: var(--hud-muted); overflow: hidden; }
       .object-action-rail[hidden], .object-action-scroll-hint[hidden] { display: none !important; }
       .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: var(--action-background, transparent); color: var(--action-text, var(--hud-muted)); font: inherit; }
       #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }

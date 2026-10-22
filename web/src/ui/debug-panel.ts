@@ -36,7 +36,19 @@ export interface DebugSource {
 /** The one DOM dependency, structural like the needs panel's. */
 export interface DebugRoot {
   hidden: boolean;
+  readonly readable?: boolean;
   textContent: string | null;
+}
+
+/** Section visibility and native disclosure preference remain independent. */
+export function createDebugRoot(section: {hidden: boolean}, details: {open: boolean}, report: {textContent: string | null}): DebugRoot & {readonly readable: boolean} {
+  return {
+    get hidden() {return section.hidden;},
+    set hidden(value: boolean) {section.hidden = value;},
+    get readable() {return !section.hidden && details.open;},
+    get textContent() {return report.textContent;},
+    set textContent(value: string | null) {report.textContent = value;},
+  };
 }
 
 const KIND_AGENT = 0;
@@ -235,9 +247,9 @@ export class DebugPanel {
     this.lastReadMs = Number.NEGATIVE_INFINITY;
   }
 
-  update(nowMs: number): void {
-    if (this.root.hidden) return;
-    if (nowMs - this.lastReadMs < this.refreshMs) return;
+  update(nowMs: number, force = false): void {
+    if (this.root.hidden || this.root.readable === false) {this.lastReadMs = Number.NEGATIVE_INFINITY; return;}
+    if (!force && nowMs - this.lastReadMs < this.refreshMs) return;
     this.lastReadMs = nowMs;
     if (this.surface) this.surface.render(this.source);
     else this.root.textContent = formatDebugReport(this.source);

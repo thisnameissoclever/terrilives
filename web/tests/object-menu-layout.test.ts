@@ -1,6 +1,23 @@
 import { expect, it } from 'vitest';
 import { actionPage, actionLayoutFits, chooseActionPlacement, layoutObjectActions, maximumActionSize } from '../src/ui/object-menu-layout.js';
 
+it.each([0, 6, 10, 16])('budgets a measured %spx scrollbar at the shortest rail boundary', scrollbar => {
+  const minimum = 44 + scrollbar;
+  const place = (height: number) => chooseActionPlacement({x: 210, y: 140}, Array.from({length: 4}, () => ({width: 136, height: 50})),
+    {width: 110, height: 44}, {width: 320, height: 568}, 50,
+    [{left: 8, top: 8, right: 190, bottom: 285.578125}, {left: 8, top: 301.578125 + height, right: 312, bottom: 560}],
+    150, {width: 304, height: 140}, scrollbar);
+  const accepted = place(minimum);
+  expect(accepted?.rail).toBe(true);
+  const viewport = menuLayout.layoutActionRail(accepted!.region, accepted!.railHintHeight).viewport;
+  expect(viewport.bottom - viewport.top - scrollbar).toBe(44);
+  expect(accepted!.railHintHeight).toBe(0);
+  expect(place(minimum - .125)).toBeNull();
+  const hinted = place(minimum + 14)!;
+  expect(hinted.railHintHeight).toBe(14);
+  expect(menuLayout.layoutActionRail(hinted.region, hinted.railHintHeight).viewport.bottom - hinted.region.top - scrollbar).toBe(44);
+});
+
 it('opens a scrolling rail in the exact occupied 320x568 Bookcase state', () => {
   const viewport = {width: 320, height: 568};
   const obstacles = [{left: 8, top: 8, right: 190, bottom: 285.578125},

@@ -193,6 +193,33 @@ describe('formatDebugReport', () => {
 });
 
 describe('DebugPanel', () => {
+  it('does no projection reads while folded and refreshes fresh values on reopening', () => {
+    const reads = vi.fn(() => Uint32Array.from([0, 0, 1]));
+    const r = {hidden: false, readable: false, textContent: ''};
+    const panel = new DebugPanel(source({kinds: reads}), r, 10000);
+    panel.update(0); expect(reads).not.toHaveBeenCalled();
+    r.readable = true; panel.update(1); expect(reads).toHaveBeenCalledTimes(1);
+    r.readable = false; panel.update(2);
+    r.textContent = 'stale'; r.readable = true; panel.update(3);
+    expect(reads).toHaveBeenCalledTimes(2); expect(r.textContent).not.toBe('stale');
+  });
+
+  it('toggles actual section visibility while preserving a folded native disclosure', () => {
+    const section = {hidden: false}, details = {open: false}, report = {textContent: ''};
+    const r = debugPanel.createDebugRoot(section, details, report);
+    const reads = vi.fn(() => Uint32Array.from([0, 0, 1]));
+    const panel = new DebugPanel(source({kinds: reads}), r, 10000);
+    panel.update(0); panel.toggle(); expect(section.hidden).toBe(true); expect(details.open).toBe(false);
+    panel.update(1); panel.toggle(); expect(section.hidden).toBe(false); expect(details.open).toBe(false);
+    panel.update(2); expect(reads).not.toHaveBeenCalled();
+    details.open = true; panel.update(3, true); expect(reads).toHaveBeenCalledTimes(1);
+    details.open = false; panel.update(4, true); expect(reads).toHaveBeenCalledTimes(1);
+    report.textContent = 'old values'; details.open = true; panel.update(5, true);
+    expect(reads).toHaveBeenCalledTimes(2); expect(report.textContent).not.toBe('old values');
+    details.open = false; details.open = true;
+    report.textContent = 'changed between frames'; panel.update(6, true);
+    expect(reads).toHaveBeenCalledTimes(3); expect(report.textContent).not.toBe('changed between frames');
+  });
   it('starts people expanded and reads only open inner sections while preserving focus and text nodes', () => {
     const doc = new DisclosureDocument(), container = doc.createElement('div');
     const needsOf = vi.fn(() => Float32Array.of(12, 30, 40, 50, 60, 70, 80));

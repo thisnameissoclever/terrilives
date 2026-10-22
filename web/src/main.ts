@@ -96,7 +96,7 @@ import {
   setSelectedLines,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
-import { DebugPanel, createStructuredDebugSurface } from './ui/debug-panel.js';
+import { DebugPanel, createDebugRoot, createStructuredDebugSurface } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
@@ -1042,24 +1042,8 @@ async function main(): Promise<void> {
     // once the player has a preference, the browser's own <details>
     // state keeps it.
     debugDetails.open = window.innerWidth > 900;
-    const root = {
-      get hidden(): boolean {
-        // Folded counts as hidden for the panel's throttle, so a
-        // collapsed overlay costs no formatting per frame; the backtick
-        // toggle still owns the section's own visibility.
-        return debugSection.hidden || !debugDetails.open;
-      },
-      set hidden(value: boolean) {
-        debugSection.hidden = value;
-      },
-      get textContent(): string | null {
-        return debugReport.textContent;
-      },
-      set textContent(value: string | null) {
-        debugReport.textContent = value;
-      },
-    };
-    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs(), createStructuredDebugSurface(document, debugReport, () => !root.hidden));
+    const root = createDebugRoot(debugSection, debugDetails, debugReport);
+    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs(), createStructuredDebugSurface(document, debugReport, () => root.readable));
     debugPanel = panel;
     const filter = document.querySelector<HTMLSelectElement>('#order-history-person')!;
     const history = document.querySelector<HTMLElement>('#order-history')!;
@@ -1070,7 +1054,8 @@ async function main(): Promise<void> {
       summary: document.querySelector<HTMLElement>('#order-history-summary')!,
       notice: document.querySelector<HTMLElement>('#order-history-notice')!,
       filter, list: history, copy, status: copyStatus,
-    }, orderDiagnostics, () => !root.hidden, text => navigator.clipboard.writeText(text));
+    }, orderDiagnostics, () => root.readable, text => navigator.clipboard.writeText(text));
+    debugDetails.addEventListener('toggle', () => {panel.update(performance.now(), true); orderHistory.update(sim);});
     updateOrderHistory = () => orderHistory.update(sim);
     document.addEventListener('keydown', (event) => {
       if (event.code === 'Backquote') panel.toggle();

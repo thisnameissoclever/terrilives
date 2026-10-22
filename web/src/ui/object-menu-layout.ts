@@ -57,11 +57,11 @@ export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionS
 
 
 export interface ActionRegion { readonly left: number; readonly top: number; readonly right: number; readonly bottom: number }
-export interface ActionPlacement { readonly region: ActionRegion; readonly capacity: number; readonly identityHeight: number; readonly scroll: boolean; readonly rail?: boolean }
+export interface ActionPlacement { readonly region: ActionRegion; readonly capacity: number; readonly identityHeight: number; readonly scroll: boolean; readonly rail?: boolean; readonly railHintHeight?: 0 | 14 }
 
 /** One control row, a permanent Close target, and a small scrolling hint. */
-export function layoutActionRail(region: ActionRegion): {viewport: ActionRegion; close: ClientPoint; hint: ActionRegion} {
-  const rowBottom = region.bottom - 14, right = region.right - 52;
+export function layoutActionRail(region: ActionRegion, hintHeight = 14): {viewport: ActionRegion; close: ClientPoint; hint: ActionRegion} {
+  const rowBottom = region.bottom - hintHeight, right = region.right - 52;
   return {viewport: {left: region.left, top: region.top, right, bottom: rowBottom},
     close: {x: region.right - 44, y: region.top + (rowBottom - region.top - 44) / 2},
     hint: {left: region.left, right, top: rowBottom, bottom: region.bottom}};
@@ -111,7 +111,7 @@ export function actionLayoutFits(layout: ObjectActionLayout, sizes: readonly Act
 }
 
 export function chooseActionPlacement(anchor: ClientPoint, entries: readonly ActionSize[], navigation: ActionSize, viewport: ActionSize,
-  identityHeight: number, obstacles: readonly ActionRegion[], identityWidth = 88, descriptionSize?: ActionSize): ActionPlacement | null {
+  identityHeight: number, obstacles: readonly ActionRegion[], identityWidth = 88, descriptionSize?: ActionSize, railScrollbarHeight = 0): ActionPlacement | null {
   const maximum = maximumActionSize([...entries,navigation]);
   const regions = safeActionRegions(viewport,obstacles);
   const candidates: {placement:ActionPlacement; distance:number; compact:boolean; descriptionLoss:number}[] = [];
@@ -159,8 +159,23 @@ export function chooseActionPlacement(anchor: ClientPoint, entries: readonly Act
     if (reserve >= 44) return {region: {...fallback, top: fallback.top + reserve + 8}, capacity: 3, identityHeight: Math.min(identityHeight, 44), scroll: true};
   }
   if (fallback && !descriptionSize) return {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true};
-  const rail = regions.filter(region => region.bottom - region.top >= 58 && region.right - region.left >= 52 + Math.max(140, maximum.width))
+  const scrollbarFor = (region: ActionRegion): number => {
+    if (descriptionSize) return railScrollbarHeight;
+    for (let page = 0; page <= entries.length; page++) {
+      const part = actionPage(entries.length, 3, page);
+      const count = part.indices.length + Number(part.back) + Number(part.more);
+      const width = identityWidth + part.indices.reduce((total, index) => total + entries[index].width, 0)
+        + (Number(part.back) + Number(part.more)) * navigation.width + count * 8;
+      if (width > region.right - region.left - 52) return railScrollbarHeight;
+      if (!part.more) break;
+    }
+    return 0;
+  };
+  const rail = regions.filter(region => region.bottom - region.top >= 44 + scrollbarFor(region) && region.right - region.left >= 52 + Math.max(140, maximum.width))
     .sort((a, b) => (b.right - b.left) * (b.bottom - b.top) - (a.right - a.left) * (a.bottom - a.top))[0];
-  return rail ? {region: {...rail, bottom: Math.min(rail.bottom, rail.top + 96)}, capacity: 3,
-    identityHeight: Math.min(identityHeight, rail.bottom - rail.top - 14), scroll: true, rail: true} : null;
+  if (!rail) return null;
+  const region = {...rail, bottom: Math.min(rail.bottom, rail.top + Math.max(96, 58 + scrollbarFor(rail)))};
+  const railHintHeight = region.bottom - region.top >= 58 + scrollbarFor(rail) ? 14 : 0;
+  return {region, capacity: 3, identityHeight: Math.min(identityHeight, region.bottom - region.top - railHintHeight),
+    scroll: true, rail: true, railHintHeight};
 }
