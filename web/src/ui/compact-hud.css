@@ -269,6 +269,10 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #sim-dock-body { display: block; margin-top: 2px; }
   #household-roster-members .household-member { min-height: 36px; }
   #dock-needs { display: none; }
+  #sim-dock[data-has-selection='false'] #dock-needs { display: block; }
+  #sim-dock[data-has-selection='false'] #sim-dock-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  #sim-dock[data-has-selection='false'] #needs-content { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px 8px; }
+  #sim-dock[data-has-selection='false'] #needs-content .need-row { font-size: 11px; }
   #sim-sheet { left: -1px; right: -1px; width: auto; }
   #sim-sheet-header { gap: 4px; }
   #sim-sheet-header .hud-button { min-height: 44px; }

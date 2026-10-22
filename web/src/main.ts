@@ -915,6 +915,11 @@ async function main(): Promise<void> {
     if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
     dockCritical.title = urgent;
     const selected = sim.selectedIndex() !== null;
+    const dock = document.getElementById('sim-dock')!;
+    if (dock.dataset.hasSelection !== String(selected)) {
+      dock.dataset.hasSelection = String(selected);
+      compactHud.refresh();
+    }
     for (const id of ['sim-details', 'dock-queue']) {
       const control = document.getElementById(id) as HTMLButtonElement;
       control.disabled = !selected;
@@ -2622,7 +2627,7 @@ async function main(): Promise<void> {
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside
     // the budget is a budget that does not describe the frame ([L19]).
-    // On five frames in six this is two comparisons and a return.
+    // Value reads keep their cadence; selection changes invalidate them immediately.
     const needsUpdated = needsPanel.update(nowMs, sim);
     if (gameHud.update(nowMs, sim)) menu.refresh();
     actionQueue.update(nowMs, sim);

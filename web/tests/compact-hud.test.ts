@@ -140,6 +140,21 @@ it('keeps all meters reachable after collapse and moves the original nodes acros
   expect(needs.parentElement?.id).toBe('dock-needs');
 });
 
+it.each([{width: 320, height: 568}, {width: 390, height: 844}])('keeps empty tracks in the expanded compact dock for %s', viewport => {
+  const {hud, node} = page(); hud.setCompact(viewport.width <= 600 || viewport.height <= 480);
+  const needs = node('needs-panel');
+  node('sim-dock').dataset.hasSelection = 'false'; hud.refresh();
+  expect(needs.parentElement).toBe(node('dock-needs'));
+  expect(node('sim-dock-body').hidden).toBe(false);
+  node('sim-dock').dataset.hasSelection = 'true'; hud.refresh();
+  expect(needs.parentElement).toBe(node('overview-needs'));
+  expect(node('sim-dock-body').hidden).toBe(false);
+  node('sim-dock').dataset.hasSelection = 'false'; hud.refresh();
+  expect(needs.parentElement).toBe(node('dock-needs'));
+  hud.toggleCollapsed(); expect(node('sim-dock-body').hidden).toBe(true);
+  hud.toggleCollapsed(); expect(needs.parentElement).toBe(node('dock-needs'));
+});
+
 it('opens only the chosen section, exposes Traits on request, and refreshes queue capacity', () => {
   const { hud, node, refreshed } = page();
   expect(node('traits-block').open).toBe(false);

@@ -333,6 +333,21 @@ describe('moodPanelState', () => {
 });
 
 describe('MoodPanel', () => {
+  it('clears and restores the actual mood surface on selection changes inside the refresh interval', () => {
+    const source = new MutableMoodSource(), fixture = createFixture();
+    source.snapshot = Float32Array.of(35); source.summary = ['Content'];
+    const panel = new MoodPanel(source, fixture.surface, 100);
+    panel.update(0);
+    source.selected = null; expect(panel.update(1)).toBe(true);
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBeNull();
+    expect(fixture.marker.hidden).toBe(true);
+    source.selected = 9; source.snapshot = Float32Array.of(-30); source.summary = ['Low'];
+    expect(panel.update(2)).toBe(true);
+    expect(fixture.overallLabel.textContent).toBe('Low');
+    expect(fixture.overallMeter.getAttribute('aria-valuenow')).toBe('-30');
+    expect(panel.update(3)).toBe(false);
+    expect(source.snapshotReads).toBe(2);
+  });
   it('throttles source reads and refreshes again at the interval', () => {
     const source = new MutableMoodSource();
     const renders: MoodPanelState[] = [];
@@ -344,7 +359,7 @@ describe('MoodPanel', () => {
     expect(panel.update(100)).toBe(true);
 
     expect(renders).toHaveLength(2);
-    expect(source.selectedReads).toBe(2);
+    expect(source.selectedReads).toBe(4);
     expect(source.snapshotReads).toBe(2);
     expect(source.summaryReads).toBe(2);
   });

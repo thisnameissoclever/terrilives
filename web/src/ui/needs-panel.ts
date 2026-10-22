@@ -5,10 +5,8 @@ import { setTextIfChanged } from './set-text-if-changed.js';
  * SIMULATION says is selected.
  *
  * **This panel renders simulation state and owns none of it** ([D-5]).
- * The only state it holds is a throttle timestamp, and that is not a
- * projection of anything in the world - it is a fact about when the DOM
- * was last written. Everything else is re-read: the selection, the seven
- * levels, and the labels' order.
+ * Its timestamp and last-rendered identity invalidate presentation only.
+ * Current selection and all need levels are always read from the source.
  *
  * That is a rule about rot rather than about tidiness. The standard way a
  * project like this paints itself into a corner is that the shell caches
@@ -101,16 +99,13 @@ export class NeedsPanel {
    * When the panel last read the simulation, or null before the first
    * read.
    *
-   * **The only state this class holds**, and the only state [D-5] permits
-   * it. Note what is deliberately NOT here: the selected index, the last
-   * seven levels, and whether the panel is currently showing. All three
-   * are re-read or re-derived, because all three are things a replay must
-   * reproduce from the simulation rather than from the shell.
+   * Values remain source-owned; this timestamp only bounds DOM refreshes.
    */
   private lastReadMs: number | null = null;
+  private renderedSelection: number | null | undefined;
 
   /**
-   * @param root       hidden when there is nothing to show.
+   * @param root       retains hollow tracks without a selected person.
    * @param bars       one fill per need, in `NeedId` index order.
    * @param refreshMs  `need_bar_refresh_ms` from `content/tuning.toml`.
    * @param levelMax   the simulation's full-need level, from the bridge.
@@ -127,27 +122,24 @@ export class NeedsPanel {
 
   /**
    * Reads the simulation and redraws, if the throttle interval has
-   * elapsed. Returns whether it read.
+   * elapsed or the selected identity changed. Returns whether values refreshed.
    *
    * Called every frame; the throttle is why that is cheap. The
    * simulation advances ten times a second and the display runs at sixty
-   * or more, so without this five reads in six would return the seven
-   * numbers the previous one already returned, each one a call across the
-   * WASM boundary that allocates. **The skipped path allocates nothing at
-   * all** - it is two comparisons and a return - which is what keeps a
-   * DOM panel out of [D11]'s way.
+   * or more. Each frame checks selection; an unchanged identity skips need
+   * array reads and DOM writes until the cadence permits another refresh.
    *
    * `nowMs` is passed in rather than read from `performance.now()` here,
    * so the caller's single frame timestamp governs everything in the
    * frame and a test can drive the clock directly.
    */
   update(nowMs: number, source: NeedsSource): boolean {
-    if (this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+    const selected = source.selectedIndex();
+    if (selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;
-
-    const selected = source.selectedIndex();
+    this.renderedSelection = selected;
     if (selected === null) {
       this.showEmptyState();
       return true;

@@ -216,6 +216,7 @@ export function formatSatisfaction(value: number | null): string {
  */
 export class GameHud {
   private lastReadMs: number | null = null;
+  private renderedSelection: number | null | undefined;
 
   constructor(
     private readonly roots: GameHudRoots,
@@ -228,10 +229,12 @@ export class GameHud {
   }
 
   update(nowMs: number, source: GameHudSource): boolean {
-    if (this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
+    const selected = source.selectedIndex();
+    if (selected === this.renderedSelection && this.lastReadMs !== null && nowMs - this.lastReadMs < this.refreshMs) {
       return false;
     }
     this.lastReadMs = nowMs;
+    this.renderedSelection = selected;
 
     const dayTicks = source.dayTicks();
     const tick = source.clockTick();
@@ -249,7 +252,6 @@ export class GameHud {
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 
-    const selected = source.selectedIndex();
     const satisfaction =
       selected === null ? null : source.satisfactionOf(selected);
     setTextIfChanged(this.roots.satisfaction, formatSatisfaction(satisfaction));

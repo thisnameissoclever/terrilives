@@ -162,15 +162,16 @@ export class MoodPanel {
   }
 
   update(nowMs: number, force = false): boolean {
+    const selected = this.source.selectedIndex();
     if (
       !force &&
+      selected === this.selected &&
       this.lastRenderMs !== null &&
       nowMs - this.lastRenderMs < this.refreshMs
     ) {
       return false;
     }
 
-    const selected = this.source.selectedIndex();
     if (selected !== this.selected) this.surface.dismissHelp?.();
     this.selected = selected;
     this.surface.render(moodPanelState(this.source, selected));
