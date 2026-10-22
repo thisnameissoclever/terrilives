@@ -74,9 +74,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Test CI scripts and workflow guards
+      - name: Test the change classifier
         working-directory: .github/scripts
-        run: python3 -B -m unittest discover -p 'test_*.py'
+        run: python3 -B -m unittest test_changes.py
       - name: Find the newest tested game and site revisions
         id: tested
         if: github.event_name == 'push'
@@ -113,7 +113,16 @@ jobs:
           SITE_BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.site_sha }}
         run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD" "$SITE_BASE"
 
-  # The one check a documentation change can fail: ids it adds or moves.
+  # Full script verification runs independently, including documentation changes.
+  ci-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test CI scripts and workflow guards
+        working-directory: .github/scripts
+        run: python3 -B -m unittest discover -p 'test_*.py'
+
+  # Check the ids a documentation change adds or moves.
   docs:
     needs: changes
     if: needs.changes.outputs.code != 'true'
@@ -143,6 +152,35 @@ jobs:
           node scripts/build-changelog.mjs
           node scripts/build-player-guide.mjs
 
+  art:
+    needs: changes
+    if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The atlas used to be a committed blob nobody could verify:
+      # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
+      # it, so a hand-edited atlas.png or a manifest that had drifted from
+      # the art would have gone unnoticed. The generator that replaced it
+      # is Python, so this regenerates all four outputs and fails if any
+      # differs from what is committed. See [ML-ci].
+      - name: Sprite atlas is reproducible
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy
+          python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
+          # The action folders are not packages, so the parent discovery
+          # above never reaches them; run their contract suites directly.
+          python3 -B -m unittest discover -s assets/models/kitchen/actions -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/bathroom/actions -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/outdoor -p 'test_*.py'
+          python3 assets/sprites/gen/build.py --check
+
   rust:
     needs: changes
     if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
@@ -170,28 +208,6 @@ jobs:
       # of, silently). See docs/testing-protocol.md rule 10.
       - name: Documentation ids
         run: python3 check-doc-ids.py
-      # The atlas used to be a committed blob nobody could verify:
-      # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
-      # it, so a hand-edited atlas.png or a manifest that had drifted from
-      # the art would have gone unnoticed. The generator that replaced it
-      # is Python, so this regenerates all four outputs and fails if any
-      # differs from what is committed. See [ML-ci].
-      - name: Sprite atlas is reproducible
-        run: |
-          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy
-          python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
-          # The action folders are not packages, so the parent discovery
-          # above never reaches them; run their contract suites directly.
-          python3 -B -m unittest discover -s assets/models/kitchen/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/outdoor -p 'test_*.py'
-          python3 assets/sprites/gen/build.py --check
       # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
       # never depend on a web crate. terri-data is in the list from the
       # commit that created it, because a purity rule that a crate has to
@@ -279,8 +295,8 @@ jobs:
   # Each prerequisite releases slot zero before its dependants can acquire it.
   mutation-tool:
     name: mutation-fixture-tool
-    needs: changes
-    if: github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
+    needs: [changes, ci-guards]
+    if: needs.ci-guards.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     concurrency:
@@ -317,9 +333,10 @@ jobs:
 
   mutation-plan:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-plan' || 'mutation-plan' }}
-    needs: [changes, mutation-tool]
+    needs: [changes, ci-guards, mutation-tool]
     if: >-
       always() && !cancelled() && needs.changes.result == 'success' &&
+      needs.ci-guards.result == 'success' &&
       needs.changes.outputs.code == 'true' &&
       (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
       (inputs.mutation_mode != 'fixture' || needs.mutation-tool.result == 'success')
@@ -656,3 +673,12 @@ jobs:
       - name: Test
         working-directory: web
         run: npm test
+      - name: Record the tested WASM package
+        run: python3 -B .github/scripts/pages_artifact.py record --directory web/src/wasm --sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Upload the tested WASM package
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}
+          path: web/src/wasm
+          if-no-files-found: error
+          retention-days: 7

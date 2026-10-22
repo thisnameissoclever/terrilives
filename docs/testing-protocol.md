@@ -64,20 +64,27 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   over such a line is true and is simultaneously no evidence. Delete those by
   hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
   under a "0 survivors" report.
-- **A documentation-only change skips it, and the rest of CI.** The `changes`
-  job in `ci.yml` runs the CI script and workflow contract tests, then asks
-  it whether anything but documentation changed. Documentation means files
-  ending `.md` in any letter case, outside `.agents/` and `.claude/`, because a
-  web test reads the skill files there. Everything else counts as code,
-  including `docs/mutants-baseline.txt`, which the mutation gate reads. A pull
-  request is compared from where it branched; a push to main is compared with
+- **A documentation-only change skips game checks.** The `changes` job in
+  `ci.yml` runs the fast classifier tests, then decides whether the game could
+  be affected. The independent `ci-guards` job runs every CI script and
+  workflow contract test on every change. Mutation tooling and planning require
+  successful complete guards. After classification, Rust, web and artwork
+  checks run independently with the same code-change and fixture conditions.
+  Documentation means files ending `.md` in any letter case, outside `.agents/`
+  and `.claude/`, because a web test reads the skill files there. Published
+  articles, metadata and images under `docs/player/` also skip game checks,
+  except `quick-help.md`, `reviewed-sources.json` and `generated/`, which require
+  them. Everything else counts as code, including `docs/mutants-baseline.txt`,
+  which the mutation gate reads. A pull request is compared from where it
+  branched; a push to main is compared with
   the newest main push whose `web` job passed, so a documentation push cannot
   skip code whose own run was cancelled or failed. When only documentation
-  changed, the Rust, web and mutation jobs skip and the `docs` job checks
-  document ids. Public Markdown in `docs/player/changelog/` also runs the lightweight
-  `changelog` job and redeploys Pages; other Markdown does not redeploy.
-  The classifier's `site` output includes both game changes and public notes,
-  so the Pages stale-artifact check never treats newer notes as unpublished docs.
+  changed, the Rust, web, artwork and mutation jobs skip and the `docs` job checks
+  document ids. Changes under `docs/player/` or `docs/changelog/` also run the
+  lightweight `changelog` job and redeploy Pages; other documentation does not
+  redeploy. The classifier's `site` output includes game changes and both public
+  documentation paths, so the Pages stale-artifact check rejects an older artifact
+  when newer guide content or notes have reached main.
   Pages can still publish a tested revision whose only difference from main's
   tip is unpublished documentation. See `docs/changelog.md`.
   Anything the script cannot decide runs everything. Local gates are
@@ -90,8 +97,8 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   A cancelled sweep is not a passed sweep. The outer workflow still cancels
   obsolete heads of the same PR. Its groups also separate events so a manual
   sweep on main cannot block push CI while it waits for mutation slots.
-  Rust, web and Pages jobs do not use these groups. Tool builds, calibration
-  and mutation execution share the eight slots; lightweight aggregation uses
+  Rust, web, artwork, CI guards and Pages jobs do not use these groups. Tool
+  builds, calibration and mutation execution share the eight slots; lightweight aggregation uses
   a separate job after its workers finish. This budget does not guarantee available account-wide
   runners. Previously dispatched workflows retain their old configuration.
   See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).

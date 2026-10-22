@@ -13092,3 +13092,24 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Keep capture provenance separate from curated article illustrations. Place figures explicitly beside relevant instructions, including in substantive topic articles. Crop controls to readable size while preserving their location context. Use captions only when they add meaning, preserve real desktop/phone differences without repeating identical instructions, and provide a shared device choice with in-page enlargement. Keep essential instructions visible and avoid narrowing tables beside images.
 
 **Verification.** Require a fresh reviewer to reject the known defective presentation before judging the repair. Read actual rendered sections at desktop and phone widths in both themes, including an article outside the UI reference and a long flow such as the creator. Check that each image explains nearby instructions, labels are legible, device selection applies consistently, and enlargement returns the reader to the same place. Passing image-coverage tests does not prove those results.
+
+## [L-qualification-bootstrap-diagnostics] Give the recovery procedure when setup evidence is missing
+
+1. What happened: production test planning reported an empty qualification failure after fixture setup had not completed.
+2. Root cause: discovery found no matching proof and joined an empty rejection list, leaving no explanation of the next action.
+3. Prevention: preserve strict refusal, distinguish missing proof from rejected proof, and name the fixture setup and preparation-rerun procedure. Keep fixture validation separate from production coverage.
+4. Verification: require a missing-proof test to reject planning and include the documented recovery procedure without extra discovery requests. Require real interrupted and resumed fixture completion before accepting hosted qualification.
+
+## [L-release-artifact-reruns] Bind tested release packages to the successful producer attempt
+
+1. What happened: review found that naming a tested package only by source revision could make a healthy workflow rerun fail upload or leave duplicate artifacts that restoration rejected.
+2. Root cause: one workflow run can retain artifacts from several attempts, including an earlier successful web job when another job reruns.
+3. Prevention: include the attempt in immutable artifact names. Select the current successful producer job first, then require that job's exact artifact and receipt. Preserve earlier evidence and reject missing selected artifacts.
+4. Verification: retain both packages in a full-web-rerun test, retain the earlier web package in an unrelated-job-rerun test, and require refusal when the selected attempt's package is absent despite an older valid package.
+
+## [L-stable-verification-tree] Keep verification inputs stable while a suite runs
+
+1. What happened: a broad Python test run imported an old workflow assertion before an implementation worker changed the workflow and its test. The run later compared the old assertion with the repaired file.
+2. Root cause: integration verification overlapped edits to files that tests import and read at different times.
+3. Prevention: finish worker edits before starting final integration verification. Treat a run spanning source changes as mixed-input evidence rather than a pass for the final tree.
+4. Verification: rerun affected modules after edits stop. Require the complete hosted suite on the immutable committed revision before dependent work proceeds.

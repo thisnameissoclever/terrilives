@@ -8,6 +8,17 @@ it supplies no production mutation coverage.
 
 ## Preparation and execution
 
+When production planning reports missing fixture qualification, complete the
+fixture setup and same-run recovery below. The workflow creates the proof from
+authenticated results; an operator never creates or substitutes it manually.
+The first checkpoint attempt is intentionally incomplete. Qualification appears
+only after the resumed attempt completes its exact fixture inventory.
+
+If setup refuses `tool runtime changed`, compare the tool and consumer jobs'
+hosted image and runtime identities. Keep the refusal. Start a fresh fixture
+campaign after the hosted image rollout has settled; rerunning an immutable
+campaign cannot make a different runtime equivalent to its original tool.
+
 1. Manually dispatch the registered `ci.yml` with `mutation_mode=fixture` on the
    reviewed branch. The `mutation-fixture-tool` job acquires global slot zero,
    builds the exact reviewed cargo-mutants 27.1.0 patch with Rust 1.94.1 and

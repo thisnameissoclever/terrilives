@@ -160,6 +160,21 @@ class QualificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "terminal prior failure"):
             qualification.validate_recovery(manifest, recovered, "100", 2)
 
+    def test_missing_qualification_explains_the_real_setup_and_resume_procedure(self):
+        api = FixtureAPI()
+        runs = "repos/owner/repo/actions/workflows/ci.yml/runs?event=workflow_dispatch&per_page=30"
+        listing = "repos/owner/repo/actions/runs/100/artifacts?per_page=100&page=1"
+        api.responses[runs] = {"workflow_runs": [{"id": 100, "event": "workflow_dispatch", "path": tool.WORKFLOW}]}
+        api.responses[listing] = {"artifacts": []}
+        with self.assertRaises(ValueError) as failure:
+            qualification.discover(api, "owner/repo", {}, dt.datetime.now(dt.timezone.utc))
+        message = str(failure.exception)
+        self.assertIn("no authenticated", message)
+        self.assertIn("complete a fixture run", message)
+        self.assertIn("rerun its successful preparation job", message)
+        self.assertIn("docs/mutation-campaign.md", message)
+        self.assertEqual(api.calls, [runs, listing])
+
     def test_discovery_is_read_only_bounded_and_ignores_convincing_unrelated_names(self):
         api = FixtureAPI()
         base = "repos/owner/repo/actions/workflows/ci.yml/runs?event=workflow_dispatch&per_page=30"
