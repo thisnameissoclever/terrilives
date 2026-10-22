@@ -41,6 +41,7 @@ export class FloorToolControls {
 
   render(): void {
     this.status.textContent = this.tool.feedback?.message ?? this.tool.status;
-    if (this.retryButton) this.retryButton.hidden = !this.tool.resourceFailed;
+    // Recovery belongs beside the selected tile or in the main-scene fallback.
+    if (this.retryButton) this.retryButton.hidden = true;
   }
 }

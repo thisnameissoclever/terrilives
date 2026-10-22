@@ -14,6 +14,8 @@ class Element {
   attributes: Record<string, string> = {};
   listeners: Record<string, (event: unknown) => void> = {};
   className = ''; type = ''; textContent = ''; disabled = false; hidden = false;
+  style: Record<string, string> = {}; offsetHeight = 0;
+  getBoundingClientRect() { return { left: 0, top: 0, width: 1280, height: 900 }; }
   classList = { add: vi.fn() };
   constructor(readonly tag: string, readonly doc: { activeElement: Element | null }) {}
   get ownerDocument(): Document { return this.doc as unknown as Document; }
@@ -100,6 +102,20 @@ it('updates reused placement intent independently of labels, prices and capabili
   expect(button.attributes['data-action-intent']).toBe('negative');
   surface.render({ ...model, actions: [{ ...action, intent: 'neutral' }] });
   expect(button.attributes['data-action-intent']).toBeUndefined();
+});
+
+it('places actual rotation groups clear of the measured refusal and bottom actions', () => {
+  const {doc,root}=fixture();
+  const surface=createContextSurface(doc as never,root as never,doc.createElement('canvas') as never,
+    ()=>({width:1280,bottom:900,keepOut:{left:312,gearLeft:1400,gearBottom:0}}),()=>{});
+  const [top,left,right,bottom]=root.children;
+  top.offsetHeight=152;bottom.offsetHeight=64;
+  surface.place(700,350,400,1280,900);
+  const centre=Number.parseFloat(left.style.top);
+  expect(root.dataset.compact).toBe('false');
+  expect(centre-22).toBeGreaterThanOrEqual(20+152+8);
+  expect(centre+22+8).toBeLessThanOrEqual(Number.parseFloat(root.style.height)-64);
+  expect(right.style.top).toBe(left.style.top);
 });
 
 it('colors radial forward and back navigation while preserving ordinary gameplay choices', () => {

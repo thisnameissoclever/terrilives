@@ -6,7 +6,11 @@ export interface SceneLayout { readonly viewport:SceneRect; readonly obstacles:r
 export class SceneLayoutObserver {
   private dirty=true;
   private cached:SceneLayout|null=null;
-  constructor(private readonly viewport:()=>SceneRect,private readonly obstacles:()=>readonly HTMLElement[],elements:readonly HTMLElement[]){
+  private readonly obstacles:readonly HTMLElement[];
+  /** Every obstacle is observed, even while hidden. Extra geometry owners may affect the viewport without being obstacles. */
+  constructor(private readonly viewport:()=>SceneRect,obstacles:readonly HTMLElement[],extraGeometry:readonly HTMLElement[]=[]){
+    this.obstacles=[...obstacles];
+    const elements=[...new Set([...obstacles,...extraGeometry])];
     const invalidate=()=>this.invalidate();
     if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(invalidate);elements.forEach(element=>observer.observe(element));}
     if(typeof MutationObserver!=='undefined'){const observer=new MutationObserver(invalidate);elements.forEach(element=>observer.observe(element,{attributes:true,attributeFilter:['hidden','style','class']}));}
@@ -19,7 +23,7 @@ export class SceneLayoutObserver {
     if(!this.dirty&&this.cached)return this.cached;
     this.dirty=false;
     const viewport=this.viewport();
-    const obstacles=this.obstacles().filter(element=>!element.hidden).map(element=>element.getBoundingClientRect())
+    const obstacles=this.obstacles.filter(element=>!element.hidden).map(element=>element.getBoundingClientRect())
       .filter(row=>row.right>row.left&&row.bottom>row.top).map(({left,top,right,bottom})=>({left,top,right,bottom}));
     this.cached={viewport,obstacles};return this.cached;
   }

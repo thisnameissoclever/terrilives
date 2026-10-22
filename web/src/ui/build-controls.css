@@ -73,8 +73,8 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions .context-left button, #placement-actions .context-right button { min-width: 44px; width: 44px; border-radius: 50%; }
 #placement-actions .context-left svg, #placement-actions .context-right svg { width: 24px; height: 24px; }
 #placement-actions .context-left span, #placement-actions .context-right span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-#placement-actions .context-bottom { left: 36px; right: 36px; bottom: 0; display: flex; justify-content: center; gap: 8px; }
-#placement-actions .context-bottom button { flex: 1 1 0; flex-direction: row; }
+#placement-actions .context-bottom { left: 36px; right: 36px; bottom: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+#placement-actions .context-bottom button { flex: 1 1 auto; min-width: min-content; flex-direction: row; overflow-wrap: normal; word-break: normal; }
 #placement-actions[data-compact='true'] { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 6px; align-content: start; overflow-y: auto; }
 #placement-actions[data-compact='true'] > div { position: static; transform: none; }
 #placement-actions[data-compact='true'] .context-top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; }
@@ -83,7 +83,7 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions[data-compact='true'] .context-left { grid-column: 1; grid-row: 2; }
 #placement-actions[data-compact='true'] .context-right { grid-column: 3; grid-row: 2; }
 #placement-actions[data-compact='true'] .context-bottom { grid-column: 2; grid-row: 2; flex-wrap: wrap; }
-#placement-actions[data-compact='true'] .context-bottom button { flex: 1 1 70px; }
+#placement-actions[data-compact='true'] .context-bottom button { flex: 1 1 70px; min-width: min-content; }
 @media (max-width: 700px), (max-height: 480px) {
   body[data-building='true'] #hud { width: min(304px, calc(100vw - 136px)); }
   body[data-building='true'] #household-summary { display: block; }

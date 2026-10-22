@@ -366,7 +366,7 @@ describe('the Floors tool in the page', () => {
     expect(source.staged).toEqual([]);
   });
 
-  it('offers Retry for a failed preview without staging a paint or exposing resource details', () => {
+  it('leaves failed-preview Retry to the contextual or scene owner, never the sidebar', () => {
     const source = new FakeFloors();
     const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
     const elements = new Map<string, FakeElement>();
@@ -384,10 +384,8 @@ describe('the Floors tool in the page', () => {
     view.render();
     expect(source.staged).toEqual([]);
     expect(elements.get('floor-status')!.textContent).toBe('Boards could not load.');
-    expect(retry.hidden).toBe(false);
-    retry.listeners.click?.();
-    expect(retries).toBe(1);
     expect(retry.hidden).toBe(true);
+    expect(retries).toBe(0);
     expect(source.staged).toEqual([]);
   });
 });

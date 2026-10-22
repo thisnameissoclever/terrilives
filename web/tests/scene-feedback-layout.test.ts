@@ -1,5 +1,6 @@
 import { expect,it } from 'vitest';
 import { SceneLayoutObserver,sceneFeedbackPosition } from '../src/ui/scene-feedback-layout.js';
+import { sceneObserverHarness } from './helpers/scene-observers.js';
 it('moves a scene receipt out of the sidebar and phone review/dock without covering controls',()=>{
   const desktop=sceneFeedbackPosition(360,60,{viewport:{left:0,top:0,right:1280,bottom:720},obstacles:[{left:8,top:8,right:312,bottom:690}]},{x:100,y:450})!;
   expect(desktop.x).toBeGreaterThanOrEqual(320);
@@ -15,7 +16,20 @@ it('uses the body fallback around contextual actions and enlarged text, or hides
 it('reuses measured bounds until geometry is invalidated',()=>{
   let reads=0,top=600;
   const element={hidden:false,ownerDocument:{},getBoundingClientRect:()=>{reads++;return {left:0,top,right:390,bottom:844};}};
-  const observer=new SceneLayoutObserver(()=>({left:0,top:0,right:390,bottom:844}),()=>[element as unknown as HTMLElement],[]);
+  const observer=new SceneLayoutObserver(()=>({left:0,top:0,right:390,bottom:844}),[element as unknown as HTMLElement]);
   const first=observer.read();expect(reads).toBe(1);expect(observer.read()).toBe(first);expect(reads).toBe(1);
   top=500;observer.invalidate();expect(observer.read().obstacles[0].top).toBe(500);expect(reads).toBe(2);
+});
+
+it('automatically observes measured obstacles across resize, hide and show without redundant measurements',()=>{
+  const observers=sceneObserverHarness();let reads=0,top=770;
+  const dock={hidden:false,ownerDocument:{},getBoundingClientRect:()=>{reads++;return {left:8,top,right:382,bottom:836};}};
+  try{
+    const observer=new SceneLayoutObserver(()=>({left:0,top:0,right:390,bottom:844}),[dock as unknown as HTMLElement]);
+    expect(observer.read().obstacles[0].top).toBe(770);expect(reads).toBe(1);
+    top=430;observers.resize(dock);const expanded=observer.read();expect(expanded.obstacles[0].top).toBe(430);
+    expect(observer.read()).toBe(expanded);expect(reads).toBe(2);
+    dock.hidden=true;observers.mutation(dock);expect(observer.read().obstacles).toEqual([]);expect(reads).toBe(2);
+    top=600;dock.hidden=false;observers.mutation(dock);expect(observer.read().obstacles[0].top).toBe(600);expect(reads).toBe(3);
+  }finally{observers.restore();}
 });

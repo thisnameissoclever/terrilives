@@ -2140,16 +2140,15 @@ async function main(): Promise<void> {
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
   const buildSceneFeedback = new BuildSceneFeedback(sceneFeedback);
-  resetSceneBuildFeedback = () => buildSceneFeedback.reset();
+  resetSceneBuildFeedback = () => { buildSceneFeedback.reset(); presentFloorSceneStatus.preview(null); };
+  const simDockObstacle=document.getElementById('sim-dock');
+  const sceneObstacles=[hudRoot,menuRoot,optionsPanel,placementRoot,document.getElementById('build-camera')!,
+    ...(simDockObstacle?[simDockObstacle]:[])];
   const sceneLayout = new SceneLayoutObserver(() => {
     const viewport=stage.getBoundingClientRect();
     return {left:viewport.left,top:viewport.top,right:viewport.right,
       bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
-  },()=>[hudRoot,menuRoot,...(!optionsPanel.hidden?[optionsPanel]:[]),
-    ...(builder.active?[document.getElementById('build-camera')!]:[]),
-    ...(!placementRoot.hidden?[placementRoot]:[]),
-    ...(document.getElementById('sim-dock')?[document.getElementById('sim-dock')!]:[])],
-  [stage,hudRoot,builderDock,optionsPanel,placementRoot,menuRoot,document.getElementById('build-camera')!]);
+  },sceneObstacles,[stage,builderDock]);
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
@@ -2161,9 +2160,13 @@ async function main(): Promise<void> {
     const rect=stage.getBoundingClientRect();
     const anchor=point?{x:rect.left+screenX(point[0],point[1],camera.originX,camera.scale)*rect.width/stage.width,
       y:rect.top+screenY(point[0],point[1],camera.originY,camera.scale)*rect.height/stage.height}:null;
-    buildSceneFeedback.frame({active:builder.active,reviewing:roomReview.active,tool:active,feedback:'feedback' in active?active.feedback:null,
+    const layout=sceneLayout.read();
+    const optionalFloorRecovery=builder.active&&!roomReview.active&&floorScene.visible&&active===floorTool
+      &&point===null&&floorTool.resourceStatus!=null;
+    const recoveryBounds=presentFloorSceneStatus.preview(optionalFloorRecovery?floorTool.feedback:null,layout);
+    buildSceneFeedback.frame({active:builder.active,reviewing:roomReview.active,tool:active,feedback:optionalFloorRecovery?null:'feedback' in active?active.feedback:null,
       result:active===buyTool?buyTool.resultFeedback:active===landTool?landTool.resultFeedback:null,contextual:point!==null,anchor},now);
-    sceneFeedback.layout(sceneLayout.read());sceneFeedback.frame(now);
+    sceneFeedback.layout(recoveryBounds?{...layout,obstacles:[...layout.obstacles,recoveryBounds]}:layout);sceneFeedback.frame(now);
   };
   installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);

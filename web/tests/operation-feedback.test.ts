@@ -21,6 +21,7 @@ it('shows known waits immediately and unknown waits by 1.25 seconds, clearing on
 
 it('hides an empty scene box at startup and expiry while preserving its live region and later messages', () => {
   const clock=vi.spyOn(performance,'now').mockReturnValue(0);
+  try {
   const attributes = new Map([['role', 'status'], ['aria-live', 'polite']]);
   const element = { textContent: '', dataset: {} as Record<string,string>, style: {} as Record<string,string>,
     getAttribute: (name:string) => attributes.get(name) ?? null,
@@ -34,7 +35,7 @@ it('hides an empty scene box at startup and expiry while preserving its live reg
   clock.mockReturnValue(5000);feedback.status.textContent = 'Orders cleared'; feedback.frame(5000);
   expect(element.style.opacity).toBe(''); expect(element.textContent).toBe('Orders cleared');
   expect(element).not.toHaveProperty('hidden');
-  clock.mockRestore();
+  } finally { clock.mockRestore(); }
 });
 
 it('gives identical command events fresh lifetimes and retains an error until it is superseded',()=>{

@@ -67,6 +67,8 @@ function fixture() {
     buildStaticInstances, buildGrimeInstances:()=>({instances:new Float32Array(),count:0}), depthScale: 16, clampCamera() {},
     lightingMode: { isFlat: () => true }, renderer: renderer(),
     wallFade: { configure() {}, update() {} },
+    // Feedback ownership is covered by main-scene-feedback; this host exercises scene rendering.
+    renderBuildFeedback() {},
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
     sim: { selectedIndex: () => 0, clockTick: () => 0, dayTicks: () => 1440, seasonIndex: () => 0,
       roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, floorGrime:()=>new Uint32Array() },

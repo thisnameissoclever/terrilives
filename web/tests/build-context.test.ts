@@ -316,6 +316,19 @@ it('unchanged frames neither render nor measure; camera, buffer and invalidation
   } finally { f.handle.free(); }
 });
 
+it('keeps selected-floor Retry actionable beside the tile without staging a floor command',()=>{
+  const f=fixture(),retry=vi.fn();
+  try{
+    const stage=vi.spyOn(f.source,'setFloor');
+    f.floors.enter();f.floors.choosePoint(1,1);f.floors.setResourceStatus('offline',true);
+    const model=contextModel({...f.tools,retryFloorResources:retry})!;
+    expect(model.feedback).toMatchObject({state:'failure',recovery:'retry'});
+    const action=model.actions.find(candidate=>candidate.id==='retry-floor')!;
+    expect(action.enabled).toBe(true);action.invoke();expect(retry).toHaveBeenCalledOnce();expect(stage).not.toHaveBeenCalled();
+    expect(model.actions.find(candidate=>candidate.id==='clear')?.enabled).toBe(true);
+  }finally{f.handle.free();}
+});
+
 it.each([1440, 1280, 701, 700, 390, 320, 844])('bounds the complete controls at %ipx, respecting the sidebar or bottom dock', width => {
   const compact = width <= 700 || width === 844;
   const bounds = { width, bottom: compact ? 380 : 800,
@@ -346,6 +359,15 @@ it('reports intrinsic row height when the available space cannot fit the control
     keepOut: { left: 0, gearLeft: 0, gearRight: 320, gearBottom: 70 } }, 180, 80);
   expect(at.compact).toBe(true);
   expect(at.height).toBe(266);
+});
+
+it.each([96, 152, 224])('keeps rotation targets below a %ipx action and refusal row', topHeight => {
+  const at = contextPosition(700, 350, 400, { width: 1280, bottom: 900,
+    keepOut: { left: 312, gearLeft: 1400, gearBottom: 0 } }, topHeight, 64);
+  expect(at.compact).toBe(false);
+  const rotationTop = at.rotationTop;
+  expect(rotationTop - 22).toBeGreaterThanOrEqual(20 + topHeight + 8);
+  expect(rotationTop + 22 + 8).toBeLessThanOrEqual(at.height - 64);
 });
 
 it('stacks every button above a selection that reaches the bottom of the screen', () => {

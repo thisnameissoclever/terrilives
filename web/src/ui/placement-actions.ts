@@ -206,7 +206,7 @@ export interface ContextBounds {
 
 /** A bounded layout keeps the entire action surface clear of panels and screen edges. */
 export function contextPosition(x: number, top: number, bottom: number, bounds: ContextBounds,
-  topHeight: number, bottomHeight: number): ContextRect & { compact: boolean } {
+  topHeight: number, bottomHeight: number): ContextRect & { compact: boolean; rotationTop: number } {
   const gap = 8;
   const left = bounds.keepOut.left + gap;
   const width = Math.max(0, Math.min(320, bounds.width - left - gap));
@@ -222,7 +222,9 @@ export function contextPosition(x: number, top: number, bottom: number, bounds: 
   const minY = Math.max(overlapsControls ? bounds.keepOut.gearBottom + gap : gap,
     overlapsZoom ? bounds.topRight!.bottom + gap : gap);
   const available = Math.max(0, bounds.bottom - minY - gap);
-  const arcHeight = Math.max(208, bottom - top + topHeight + bottomHeight + 44);
+  const rotationTop = 20 + topHeight + gap + 22;
+  const arcHeight = Math.max(208, bottom - top + topHeight + bottomHeight + 44,
+    rotationTop + 22 + gap + bottomHeight);
   // An arc pushed up from the screen's bottom would lay its lower row over the
   // selection it surrounds, as a wall run reaching the edge does; stack every
   // button above the selection instead.
@@ -231,7 +233,7 @@ export function contextPosition(x: number, top: number, bottom: number, bounds: 
   const height = compact ? topHeight + Math.max(bottomHeight, 44) + 6 : arcHeight;
   const y = Math.max(minY, Math.min(compact ? top - height - gap : top - topHeight - 22,
     bounds.bottom - height - gap));
-  return { x: originX, y, width, height, compact };
+  return { x: originX, y, width, height, compact, rotationTop };
 }
 
 export interface ContextSurface {
@@ -414,6 +416,7 @@ export function createContextSurface(doc: Document, root: HTMLElement, canvas: H
       root.dataset.compact = String(at.compact);
       root.style.left = `${at.x}px`; root.style.top = `${at.y}px`;
       root.style.width = `${at.width}px`; root.style.height = `${at.height}px`;
+      for (const slot of ['left', 'right'] as const) groups.get(slot)!.style.top = `${at.rotationTop}px`;
       if (!at.compact) keepSelectionVisible(anchor.x, (anchor.y + floor.y) / 2,
         at.x + 60, at.x + at.width - 60, at.y + topHeight + 28, at.y + at.height - bottomHeight - 8);
     },
