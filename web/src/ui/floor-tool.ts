@@ -11,11 +11,11 @@ import type { TileHighlight } from '../render/placement-preview.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
 import { logWarning } from '../diagnostics/log.js';
 
-/** No covering: the tile is drawn by where it is ([OS-yard]). */
+/** No added covering. Current base surfaces are saved separately. */
 export const BARE = 0;
 
 type FloorSource = Pick<SimBridge, 'coveringNames' | 'floorTiles' | 'floorEditPreview' |
-  'setFloor' | 'lastFloorEditResult' | 'lotRevision'>;
+  'setFloor' | 'lastFloorEditResult' | 'lotRevision'> & Partial<Pick<SimBridge, 'worldSurfaces'>>;
 type Tile = [number, number];
 
 export const CHOOSE_TILE = '';
@@ -337,7 +337,9 @@ export class FloorTool {
   /** The chosen tiles `covering` would change and the simulation would accept. */
   private targets(covering: number): Tile[] {
     const codes = this.codes(covering);
-    return this.tiles().filter((_, at) => this.currents[at] !== covering && codes[at] === 0);
+    const surfaces = this.source.worldSurfaces?.();
+    return this.tiles().filter(([x,y], at) => codes[at] === 0
+      && (this.currents[at] !== covering || covering === BARE && surfaces?.[y * this.width + x] === 0));
   }
 
   private refresh(): void {

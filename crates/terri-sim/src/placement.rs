@@ -215,7 +215,7 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 layout,
                 grid.width() as u32,
                 grid.height() as u32,
-                crate::lot_frame::house_or_grid(world),
+                crate::world_geometry::historical_house(world),
             )
             .map_err(|_| UnsupportedLayout)?;
             let mut seen = std::collections::BTreeSet::new();
@@ -233,7 +233,7 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
             // [WN-rules]: a window stops a person exactly as a wall does. A
             // line that is somehow both keeps the wall's barrier, which the
             // repeated insert refuses anyway.
-            let house = crate::lot_frame::house_or_grid(world);
+            let house = crate::world_geometry::historical_house(world);
             for window in layout.window_lines() {
                 if windows::is_rear(window, house) {
                     continue;
@@ -258,7 +258,9 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
     }
     // The house's shell blocks wherever bought land lies beyond it, as a
     // purchase and a load leave the grid.
-    if let Some(house) = crate::lot_frame::house(world) {
+    if let Some(house) =
+        crate::lot_frame::house(world).filter(|_| !crate::world_geometry::current(world))
+    {
         crate::lot_frame::block_shell(&mut grid, house);
     }
     Ok(grid)
@@ -344,20 +346,29 @@ pub(crate) fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRe
     Ok(CurrentLayout { walls, rectangles })
 }
 
-/// What every lot edit must leave usable, proven on the candidate grid: the
-/// front door and its landing are clear, the yard tile beyond a front door on
-/// the house's wall is open floor the door reaches ([OS-door]), every sim
-/// stands on open floor it can
-/// walk to from the front door and can finish the walk it is on, and every
-/// object keeps a clear approach there too. On a lot with a front door, floor
-/// nobody and nothing needs may be cut off. Shared by furniture moves and wall
-/// edits so the two cannot drift - [WT-rules] and [RD-root].
+/// Current edits preserve occupied ground. Disconnected routes and targets are
+/// reviewed by Build and invalid active routes are reconciled on preparation.
+/// Historical worlds retain their original entrance and common-region rules.
 fn prove_lot_usable(
     world: &World,
     grid: &TileGrid,
     rectangles: &[Rectangle],
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
+    if crate::world_geometry::current(world) {
+        let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
+        for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
+            let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
+            for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
+                for y in [pos.y.floor() as i32, pos.y.ceil() as i32] {
+                    if !grid.is_walkable(x, y) {
+                        return Err(SimOverlap);
+                    }
+                }
+            }
+        }
+        return Ok(());
+    }
     let portals = crate::lot_frame::portals(world);
     let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     if crate::lot_frame::front_door(world)

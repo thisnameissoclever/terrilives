@@ -662,6 +662,8 @@ export class SimBridge {
    * The house's `[width, height]` from the lot's north-west corner; every
    * other tile is yard ([OS-yard] in `docs/specs/2026-09-22-the-outside.md`).
    */
+  worldSurfaces(): Uint8Array { return this.handle.world_surfaces(); }
+
   houseSize(): [number, number] {
     const [width, height] = this.handle.house_size();
     return [width, height];
@@ -923,6 +925,10 @@ export class SimBridge {
   }
   prepareBuildCommit(choices: RoomChoices = EMPTY_ROOM_CHOICES, expected: BuildToken | null = null) {
     return decodeBuildReview(this.handle.prepare_build_commit(encodeRoomChoices(choices,expected)),this.roomContext());
+  }
+  commitBuildWithAccessAck(token: BuildToken) {
+    checkBuildToken(token);
+    return decodeRoomUnit(this.handle.commit_build_with_access_ack(token.session,token.revision,token.preparation));
   }
   commitBuild(token: BuildToken) {
     checkBuildToken(token);

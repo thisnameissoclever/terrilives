@@ -1,5 +1,5 @@
 use super::*;
-use terri_core::layout::{EdgeAxis, WallState};
+use terri_core::layout::EdgeAxis;
 
 #[test]
 fn window_yard_growth_preserves_model_and_rear_shell() {
@@ -86,26 +86,28 @@ fn a_house_saved_before_the_yard_loads_standing_in_it() {
 /// among them, and the content's outside walls follow them.
 #[test]
 fn a_grown_house_keeps_the_walls_it_was_saved_with() {
-    let mut saved = Sim::new_from_pre_yard_lot();
+    let saved = Sim::new_from_pre_yard_lot();
     let before = edges(&saved);
-    saved
-        .world_mut()
-        .resource_mut::<terri_core::CommandQueue>()
-        .push(terri_core::SimCommand::SetWallEdge {
-            axis: EdgeAxis::Horizontal,
-            x: 9,
-            y: 5,
-            state: WallState::Wall,
-        });
-    saved.flush_commands();
-    let built = edges(&saved);
+    // Construct the frozen V5 input directly. Current command transactions
+    // require current geometry and do not author historical save formats.
+    let mut built = before.clone();
+    built.push(WallEdge {
+        axis: EdgeAxis::Horizontal,
+        x: 9,
+        y: 5,
+        doorway: false,
+    });
+    let mut snapshot = saved.save_snapshot_v5();
+    snapshot.layout = SavedLayout::EdgeWallsV1 {
+        edges: built.clone(),
+    };
     assert_eq!(
         built.len(),
         before.len() + 1,
         "precondition: the living room takes the wall"
     );
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(saved.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v5(snapshot).unwrap();
     let outside: Vec<WallEdge> = terri_data::pack()
         .lot
         .wall_edges
@@ -114,7 +116,21 @@ fn a_grown_house_keeps_the_walls_it_was_saved_with() {
         .copied()
         .collect();
     assert_eq!(outside.len(), 28);
-    assert_eq!(edges(&loaded), [built, outside].concat());
+    let actual = edges(&loaded);
+    let explicit: Vec<_> = [built, outside].concat();
+    assert!(explicit.iter().all(|edge| actual.contains(edge)));
+    assert_eq!(actual.len(), explicit.len() + 16 + 12);
+    assert!(actual
+        .iter()
+        .filter(|edge| !explicit.contains(edge))
+        .all(|edge| !edge.doorway
+            && match edge.axis {
+                EdgeAxis::Vertical => edge.x == 0,
+                EdgeAxis::Horizontal => edge.y == 0,
+            }));
+    let current = loaded.save_snapshot_v21();
+    loaded.load_snapshot_v21(current.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v21(), current);
 }
 
 /// [OS-migrate]: a house already at the lot's size is not grown again, so

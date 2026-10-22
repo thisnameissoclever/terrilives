@@ -1,5 +1,68 @@
 use super::*;
 
+/// The two bought-land V14 fixtures used seed 0 for visits in rooms whose
+/// implicit rear wall was absent from the old domestic component map. Making
+/// that wall explicit changes the projected seed, while retaining visit data.
+fn materialized_room_fixture(source: terri_core::SaveSnapshotV14) -> terri_core::SaveSnapshotV14 {
+    let frame = source
+        .legacy
+        .lot_frame
+        .expect("fixture has its authored frame");
+    let mut expected = current_test_snapshot::materialized_v14(source);
+    if frame.origin_x == 0 && frame.origin_y == 0 {
+        return expected;
+    }
+    assert_eq!(
+        frame.origin_x, 10,
+        "only the fixed bought-land fixtures use this delta"
+    );
+    assert!([0, 10].contains(&frame.origin_y));
+    let saved = &mut expected.legacy.legacy.legacy.legacy.legacy.legacy;
+    assert_eq!(saved.world.tick, 240);
+    assert_eq!((saved.world.grid_width, saved.world.grid_height), (30, 26));
+    for (person, local_y, anchor_y) in [(34, 1, 0), (35, 10, 6)] {
+        let entity = saved
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.index == person)
+            .unwrap();
+        let position = entity.position.unwrap();
+        assert_eq!(
+            (position.x, position.y),
+            (
+                (frame.origin_x + 4) as f32,
+                (frame.origin_y + local_y) as f32
+            )
+        );
+        let seed = frame.origin_x + (frame.origin_y + anchor_y) * 30;
+        let visit = saved
+            .domestic
+            .as_mut()
+            .unwrap()
+            .visits
+            .iter_mut()
+            .find(|visit| visit.person == person)
+            .unwrap();
+        assert_eq!(
+            visit.room, 0,
+            "historical domestic map joined this room to the yard"
+        );
+        visit.room = seed;
+        let opportunity = saved
+            .dining
+            .as_mut()
+            .unwrap()
+            .opportunities
+            .iter_mut()
+            .find(|row| row.person == person)
+            .unwrap();
+        assert_eq!(opportunity.room, 0);
+        opportunity.room = seed;
+    }
+    expected
+}
+
 #[test]
 fn published_fifteen_dispatch_and_unpublished_room_prototype_are_distinct() {
     let source = SimHandle::from_lot();
@@ -10,7 +73,7 @@ fn published_fifteen_dispatch_and_unpublished_room_prototype_are_distinct() {
     let mut live = SimHandle::from_lot();
     assert!(live.load_bytes(&fifteen));
     assert_eq!(live.sim.try_save_snapshot_v15().unwrap(), historical);
-    assert_eq!(&live.save_bytes()[8..10], &20u16.to_le_bytes());
+    assert_eq!(&live.save_bytes()[8..10], &21u16.to_le_bytes());
     let current = source.sim.save_snapshot_v16();
     let mut prototype = Vec::from(SAVE_MAGIC);
     prototype.extend(15u16.to_le_bytes());
@@ -76,7 +139,7 @@ fn invalid_current_request_room_and_byte_inputs_preserve_active_build_token() {
             bad.legacy.rooms.next_id = 0;
         }
         let mut bytes = Vec::from(SAVE_MAGIC);
-        bytes.extend(20u16.to_le_bytes());
+        bytes.extend(21u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(&bad.0).unwrap());
         malformed.push(bytes);
     }
@@ -85,7 +148,7 @@ fn invalid_current_request_room_and_byte_inputs_preserve_active_build_token() {
     trailing.push(0);
     malformed.push(trailing);
     let mut future = valid;
-    future[8..10].copy_from_slice(&21u16.to_le_bytes());
+    future[8..10].copy_from_slice(&22u16.to_le_bytes());
     malformed.push(future);
     for bytes in malformed {
         assert!(!live.load_bytes(&bytes));
@@ -219,9 +282,13 @@ fn immutable_v14_rooms_preserve_source_state_and_current_continuation() {
                 .world
                 .content_fingerprint,
         );
-        assert_eq!(projected, original, "source state changed: {name}");
+        assert_eq!(
+            projected,
+            materialized_room_fixture(original),
+            "source state changed beyond explicit walls and projected room seeds: {name}"
+        );
         let current = game.save_bytes();
-        assert_eq!(&current[8..10], &20u16.to_le_bytes());
+        assert_eq!(&current[8..10], &21u16.to_le_bytes());
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&current), "current adoption: {name}");
         assert_eq!(
@@ -267,7 +334,7 @@ fn current_room_corruption_and_bad_envelopes_do_not_replace_the_household() {
         let mut live = SimHandle::from_lot();
         let before = live.save_bytes();
         let mut bytes = Vec::from(SAVE_MAGIC);
-        bytes.extend(20u16.to_le_bytes());
+        bytes.extend(21u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(&snapshot.0).unwrap());
         assert!(!live.load_bytes(&bytes));
         assert_eq!(live.save_bytes(), before);
@@ -278,7 +345,7 @@ fn current_room_corruption_and_bad_envelopes_do_not_replace_the_household() {
     let mut truncated = current.clone();
     truncated.pop();
     let mut future = current.clone();
-    future[8..10].copy_from_slice(&21u16.to_le_bytes());
+    future[8..10].copy_from_slice(&22u16.to_le_bytes());
     for bad in [trailing, truncated, future] {
         let mut live = SimHandle::from_lot();
         let before = live.save_bytes();
@@ -408,7 +475,7 @@ fn review_queued_outside_commands_load_and_unknown_room_commands_refuse_atomical
             _ => unreachable!(),
         }
         let mut bad_bytes = Vec::from(SAVE_MAGIC);
-        bad_bytes.extend(20u16.to_le_bytes());
+        bad_bytes.extend(21u16.to_le_bytes());
         bad_bytes.extend(postcard::to_allocvec(&bad.0).unwrap());
         assert!(!live.load_bytes(&bad_bytes));
         assert_eq!(live.save_bytes(), bytes);
@@ -521,7 +588,7 @@ fn review_authentic_explicit_surface_migration_preserves_work() {
             .tasks,
         chores.tasks
     );
-    assert_eq!(projected, source);
+    assert_eq!(projected, materialized_room_fixture(source));
 }
 
 #[test]
@@ -605,7 +672,7 @@ fn review_authentic_land_careers_and_money_keep_their_actual_source_values() {
                 .world
                 .content_fingerprint,
         );
-        assert_eq!(projected, source);
+        assert_eq!(projected, materialized_room_fixture(source));
         let current = game.save_bytes();
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&current));

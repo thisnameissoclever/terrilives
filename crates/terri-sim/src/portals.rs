@@ -1,4 +1,4 @@
-//! Deterministic presentation projection for authored lot portals.
+//! Door presentation from current saved edges and frozen authored portals.
 
 use bevy_ecs::prelude::*;
 use terri_core::{Agent, AtWork, Career, Commuting, Path, Position, TileGrid};
@@ -11,14 +11,8 @@ pub const OPENING: u32 = 1;
 pub const OPEN: u32 = 2;
 pub const CLOSING: u32 = 3;
 
-/// The portal rows belonging to the lot this world actually loaded.
-///
-/// [`Content`] is a catalog and exists even in placeholder and custom-room
-/// simulations. Keeping the active slice separate prevents those worlds from
-/// drawing the shipped lot's front door merely because they share its object
-/// and tuning catalog. This resource is presentation-only. Career routing
-/// reads the fingerprinted [`Content`] portal rows so replay cannot depend on
-/// unpersisted runtime presentation state.
+/// Authored door appearance. Current placement comes from saved wall edges;
+/// this resource supplies the model art and historical portal presentation.
 #[derive(Resource, Debug, Clone, Copy)]
 pub struct ActivePortals(pub &'static [terri_data::CompiledPortal]);
 
@@ -62,7 +56,14 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     buffer.states.clear();
     buffer.far_sides.clear();
 
-    let Some(active) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
+    let art = if crate::world_geometry::current(world) {
+        world
+            .get_resource::<Content>()
+            .map(|content| content.0.portals.as_slice())
+    } else {
+        world.get_resource::<ActivePortals>().map(|active| active.0)
+    };
+    let Some(active) = art else {
         buffer.previous_openness.clear();
         return;
     };
@@ -155,7 +156,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
 
     // [DR-derived]: doors on both axes follow the front door's row, keeping
     // its index stable. The renderer selects the model's matching orientation.
-    let Some(art) = door_art(&portals) else {
+    let Some(art) = door_art(active) else {
         buffer.previous_openness.clone_from(&buffer.openness);
         buffer.revision = world
             .get_resource::<crate::placement::LotEditState>()
@@ -173,9 +174,9 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
             }));
         // Anchor on the near tile's +X or +Y edge, halfway to the far tile.
         buffer.positions.extend(if horizontal {
-            [x as f32, (y - 1) as f32]
+            [x as f32, y as f32 - 1.0]
         } else {
-            [(x - 1) as f32, y as f32]
+            [x as f32 - 1.0, y as f32]
         });
         buffer.depth_offsets.push(0.5);
         buffer.far_sides.extend([x as f32, y as f32]);
@@ -246,7 +247,9 @@ fn placed_portals(
     world: &World,
     active: &[terri_data::CompiledPortal],
 ) -> Vec<terri_data::CompiledPortal> {
-    if crate::rooms::stable(world) && crate::lot_frame::frame(world).is_none() {
+    if crate::world_geometry::current(world)
+        || (crate::rooms::stable(world) && crate::lot_frame::frame(world).is_none())
+    {
         return vec![];
     }
     let origin = crate::lot_frame::origin(world);
@@ -273,13 +276,12 @@ fn door_line(portal: &terri_data::CompiledPortal, width: u32) -> Option<(u32, u3
         .then_some((x + 1, y))
 }
 
-/// The front door's line on the lot ([OS-door]), read from the content the
-/// world was built with and matched to its portal as the loader and the
-/// other door rules match it, never from the presentation-only
-/// [`ActivePortals`], so a world built without the door's art keeps the same
-/// rules and replays alike. The Walls and Room tools keep a wall off it, a lot
-/// edit keeps the tile beyond it open, and no interior door is derived on it.
+/// Historical authored portal lines. Current worlds derive every door from
+/// saved geometry and have no designated entrance.
 pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
+    if crate::world_geometry::current(world) {
+        return vec![];
+    }
     let width = lot_width(world);
     world
         .get_resource::<Content>()
@@ -332,7 +334,7 @@ pub fn street_exit_at(
         .map(|(_, y)| (width - 1, y))
 }
 
-/// The authored +X front door supplies the interior door style. The renderer
+/// The catalogue's +X portal supplies art for every current doorway. The renderer
 /// selects the corresponding solid model orientation on each doorway axis.
 fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::CompiledPortal> {
     portals
@@ -342,8 +344,8 @@ fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::Compi
 
 /// Vertical interior doorway lines, sorted as `(x, y)` pairs. The horizontal
 /// lines have a separate accessor to preserve this boundary's existing shape.
-/// A lot without the authored door style has none. The front door's own line
-/// already has its door and is excluded ([OS-door]).
+/// Current worlds use catalogue art without requiring a starting portal instance.
+/// Only historical worlds exclude their separately projected entrance line.
 pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
     interior_lines_on_axis(world, terri_core::layout::EdgeAxis::Vertical)
 }
@@ -355,9 +357,15 @@ pub fn interior_horizontal_door_lines(world: &World) -> Vec<(u32, u32)> {
 
 fn interior_lines_on_axis(world: &World, axis: terri_core::layout::EdgeAxis) -> Vec<(u32, u32)> {
     use terri_core::layout::{EdgeAxis, SavedLayout};
-    let has_art = world
-        .get_resource::<ActivePortals>()
-        .is_some_and(|active| door_art(active.0).is_some());
+    let has_art = if crate::world_geometry::current(world) {
+        world
+            .get_resource::<Content>()
+            .is_some_and(|content| door_art(&content.0.portals).is_some())
+    } else {
+        world
+            .get_resource::<ActivePortals>()
+            .is_some_and(|active| door_art(active.0).is_some())
+    };
     let Some(layout) = world
         .get_resource::<SavedLayout>()
         .filter(|l| l.has_edges())
@@ -368,8 +376,8 @@ fn interior_lines_on_axis(world: &World, axis: terri_core::layout::EdgeAxis) -> 
         return Vec::new();
     }
     let front = front_door_lines(world);
-    // A doorway on the lot's edge opens onto nothing, so it is an opening
-    // without a door until land is bought beyond it ([WT-rules]).
+    // Historical renderers omitted perimeter door models. Current saved
+    // doorways include the perimeter and are ordinary doors there too.
     let grid = world
         .get_resource::<terri_core::TileGrid>()
         .map(|grid| (grid.width() as u32, grid.height() as u32));
@@ -377,7 +385,15 @@ fn interior_lines_on_axis(world: &World, axis: terri_core::layout::EdgeAxis) -> 
         .edges()
         .iter()
         .filter(|edge| edge.doorway && edge.axis == axis)
-        .filter(|edge| grid.is_none_or(|(width, height)| edge.in_bounds(width, height)))
+        .filter(|edge| {
+            grid.is_none_or(|(width, height)| {
+                if crate::world_geometry::current(world) {
+                    edge.physical_in_bounds(width, height)
+                } else {
+                    edge.in_bounds(width, height)
+                }
+            })
+        })
         .map(|edge| (edge.x, edge.y))
         .filter(|line| axis != EdgeAxis::Vertical || !front.contains(line))
         .collect();
@@ -876,11 +892,11 @@ mod tests {
     #[test]
     fn a_loaded_house_shows_its_doors_before_the_first_tick() {
         let sim = Sim::new_from_shipped_lot();
-        assert_eq!(interior_door_lines(sim.world()).len(), 3);
+        assert_eq!(interior_door_lines(sim.world()).len(), 4);
         let rows = |sim: &Sim| sim.portal_buffer().states.len();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.load_snapshot_v3(sim.save_snapshot_v3()).unwrap();
-        assert_eq!(rows(&loaded), 6, "the front door and five interior doors");
+        assert_eq!(rows(&loaded), 6, "all six ordinary saved doors");
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.load_snapshot_v2(sim.save_snapshot_v2()).unwrap();
         assert_eq!(rows(&loaded), 6, "after a V2 load");

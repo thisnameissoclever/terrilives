@@ -857,6 +857,8 @@ export function advanceSimulationFrame(
 export interface RenderSource {
   lotRevision?():number;
   wallEdges?():Uint32Array|undefined;
+  windowLines?():Uint32Array;
+  worldSurfaces?():Uint8Array;
   houseSize?():readonly [number,number];
   houseOrigin?():readonly [number,number];
   portals?(): PortalSource;

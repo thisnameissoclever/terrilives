@@ -84,6 +84,8 @@ fn checksum_control_compares_the_exact_original_published_state() {
         let mut sim = Sim::new_with_lot_and_content(24, 24, pre_balance_content());
         if !current {
             sim.world_mut()
+                .remove_resource::<terri_core::save_v21::WorldSurfaces>();
+            sim.world_mut()
                 .remove_resource::<terri_core::rooms::SavedRooms>();
             sim.world_mut()
                 .remove_resource::<terri_sim::rooms::RoomMap>();
@@ -132,8 +134,8 @@ fn checksum_control_compares_the_exact_original_published_state() {
                 .world
                 .content_fingerprint,
         );
-        // Historical digests predate only this new timer resource. Prove the
-        // inspection keeps every other current field before comparing hashes.
+        // Historical digests predate neglect timing and explicit surfaces.
+        // Inspect the old hash domain while preserving every published field.
         let before_hash_inspection = if current {
             sim.save_snapshot_v16().legacy
         } else {
@@ -141,6 +143,8 @@ fn checksum_control_compares_the_exact_original_published_state() {
         };
         sim.world_mut()
             .insert_resource(terri_core::save_v19::SavedNeglect::default());
+        sim.world_mut()
+            .remove_resource::<terri_core::save_v21::WorldSurfaces>();
         assert_eq!(
             if current {
                 sim.save_snapshot_v16().legacy
@@ -199,6 +203,7 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
         let migrated = decode_current(&source.save_bytes())
+            .previous
             .legacy
             .legacy
             .legacy

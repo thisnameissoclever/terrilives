@@ -87,14 +87,14 @@ fn last(sim: &Sim) -> Option<WallEditResult> {
 /// The preview refuses with `expected`, and so does the commit, and neither
 /// writes anything: not the save, not the lot revision.
 fn refused(sim: &mut Sim, request: WallEdit, expected: PlacementRefusal) {
-    let before = sim.save_snapshot_v3();
+    let before = sim.current_v3_view();
     let revision_before = revision(sim);
     assert_eq!(
         validate_wall_edit(sim.world(), request).unwrap_err(),
         expected,
         "preview of {request:?}"
     );
-    assert_eq!(sim.save_snapshot_v3(), before, "preview wrote state");
+    assert_eq!(sim.current_v3_view(), before, "preview wrote state");
     stage(sim, request);
     assert_eq!(
         last(sim),
@@ -103,7 +103,7 @@ fn refused(sim: &mut Sim, request: WallEdit, expected: PlacementRefusal) {
             reason: Some(expected)
         })
     );
-    assert_eq!(sim.save_snapshot_v3(), before, "a refused edit wrote state");
+    assert_eq!(sim.current_v3_view(), before, "a refused edit wrote state");
     assert_eq!(
         revision(sim),
         revision_before,
@@ -112,11 +112,8 @@ fn refused(sim: &mut Sim, request: WallEdit, expected: PlacementRefusal) {
 }
 
 /// Applied, with nothing refused.
-fn applied(sim: &mut Sim, request: WallEdit) {
-    assert!(
-        validate_wall_edit(sim.world(), request).is_ok(),
-        "preview of {request:?}"
-    );
+fn applied_without_review(sim: &mut Sim, request: WallEdit) {
+    assert!(validate_wall_edit(sim.world(), request).is_ok());
     stage(sim, request);
     assert_eq!(
         last(sim),
@@ -127,33 +124,57 @@ fn applied(sim: &mut Sim, request: WallEdit) {
     );
 }
 
+fn applied(sim: &mut Sim, request: WallEdit) {
+    assert!(
+        validate_wall_edit(sim.world(), request).is_ok(),
+        "preview of {request:?}"
+    );
+    let own_build = !sim.build_active();
+    if own_build {
+        sim.begin_build().unwrap();
+    }
+    stage(sim, request);
+    assert_eq!(
+        last(sim),
+        Some(WallEditResult {
+            edit: request,
+            reason: None
+        })
+    );
+    if own_build {
+        let review = sim.prepare_build_commit(Default::default()).unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+    }
+}
+
 #[test]
 fn a_wall_a_doorway_and_an_opening_each_apply_to_the_grid_and_the_saved_house() {
     let (mut sim, _) = house(vec![]);
     let (a, b) = ((2, 2), (3, 2));
     let start = revision(&sim);
 
-    applied(&mut sim, edit(Vertical, 3, 2, Wall));
+    applied_without_review(&mut sim, edit(Vertical, 3, 2, Wall));
     assert_eq!(edges(&sim), [line(Vertical, 3, 2, false)]);
     assert!(!sim.world().resource::<TileGrid>().can_cross(a, b));
     assert_eq!(revision(&sim), start + 1);
 
-    applied(&mut sim, edit(Vertical, 3, 2, Doorway));
+    applied_without_review(&mut sim, edit(Vertical, 3, 2, Doorway));
     assert_eq!(edges(&sim), [line(Vertical, 3, 2, true)]);
     assert!(sim.world().resource::<TileGrid>().can_cross(a, b));
     assert_eq!(revision(&sim), start + 2);
 
-    applied(&mut sim, edit(Vertical, 3, 2, Wall));
+    applied_without_review(&mut sim, edit(Vertical, 3, 2, Wall));
     assert_eq!(edges(&sim), [line(Vertical, 3, 2, false)]);
     assert!(!sim.world().resource::<TileGrid>().can_cross(a, b));
 
-    applied(&mut sim, edit(Vertical, 3, 2, Open));
+    applied_without_review(&mut sim, edit(Vertical, 3, 2, Open));
     assert!(edges(&sim).is_empty());
     assert!(sim.world().resource::<TileGrid>().can_cross(a, b));
     assert_eq!(revision(&sim), start + 4);
 
     // A horizontal line separates a tile from the one below it.
-    applied(&mut sim, edit(Horizontal, 4, 5, Wall));
+    applied_without_review(&mut sim, edit(Horizontal, 4, 5, Wall));
     assert!(!sim.world().resource::<TileGrid>().can_cross((4, 4), (4, 5)));
     assert!(sim.world().resource::<TileGrid>().can_cross((4, 5), (5, 5)));
 }
@@ -186,18 +207,18 @@ fn asking_for_the_state_a_line_already_has_writes_nothing() {
         edit(Vertical, 3, 4, Doorway),
         edit(Vertical, 3, 3, Open),
     ] {
-        let before = sim.save_snapshot_v3();
+        let before = sim.current_v3_view();
         let revision_before = revision(&sim);
         let plan = validate_wall_edit(sim.world(), request).unwrap();
         assert!(!plan.changed, "{request:?}");
-        applied(&mut sim, request);
-        assert_eq!(sim.save_snapshot_v3(), before, "{request:?}");
+        applied_without_review(&mut sim, request);
+        assert_eq!(sim.current_v3_view(), before, "{request:?}");
         assert_eq!(revision(&sim), revision_before, "{request:?}");
     }
 }
 
 #[test]
-fn a_legacy_house_rear_shell_and_outside_apertures_are_refused() {
+fn legacy_cell_layouts_and_out_of_bounds_edges_are_refused() {
     let (mut sim, _) = house(vec![]);
     sim.world_mut()
         .insert_resource(SavedLayout::LegacyCells { walls: vec![] });
@@ -217,10 +238,14 @@ fn a_legacy_house_rear_shell_and_outside_apertures_are_refused() {
     for request in [
         edit(Vertical, 0, 2, Wall),
         edit(Vertical, 0, 2, Doorway),
-        edit(Vertical, 8, 2, Doorway),
-        edit(Vertical, 3, 7, Wall),
         edit(Horizontal, 2, 0, Wall),
         edit(Horizontal, 2, 0, Doorway),
+    ] {
+        applied_without_review(&mut sim, request);
+    }
+    for request in [
+        edit(Vertical, 8, 2, Doorway),
+        edit(Vertical, 3, 7, Wall),
         edit(Horizontal, 2, 8, Doorway),
         edit(Horizontal, 7, 2, Wall),
         edit(Vertical, u32::MAX, 2, Doorway),
@@ -358,20 +383,22 @@ fn a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to
             *sim.world().get::<Position>(listener).unwrap(),
             Position { x: 4.0, y: 5.0 }
         );
-        let before = sim.save_snapshot_v16();
+        let before = sim.current_v16_view();
         let mut restored = Sim::new_with_lot_and_content(7, 7, *sim.world().resource::<Content>());
-        restored.load_snapshot_v16(before.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v16(), before);
+        restored.load_current_v16_view(before.clone()).unwrap();
+        assert_eq!(restored.current_v16_view(), before);
         refused(
             &mut sim,
             edit(Vertical, wall_x, 5, Wall),
             PlacementRefusal::InUse,
         );
-        assert_eq!(sim.save_snapshot_v16(), before);
+        assert_eq!(sim.current_v16_view(), before);
         // A line elsewhere is not between them.
         applied(&mut sim, edit(Vertical, 4, 2, Wall));
         assert_eq!(sim.take_build_error(), None);
-        restored.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+        restored
+            .load_current_v16_view(sim.current_v16_view())
+            .unwrap();
     }
 }
 
@@ -399,34 +426,22 @@ fn a_sim_beside_a_line_using_something_elsewhere_does_not_stop_a_wall() {
 }
 
 #[test]
-fn a_wall_is_held_to_every_proof_a_furniture_move_is() {
+fn a_wall_can_disconnect_interactions_and_routes() {
     // One gap left in a partition at x = 3; closing it cuts the fridge off
-    // from the front door ([RD-reasons]).
+    // from the opposite side; the edit is allowed for Build review.
     let mut walls = partition(3);
     walls.retain(|edge| edge.y != 3);
     let (mut sim, _) = house(walls.clone());
-    refused(
-        &mut sim,
-        edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    applied(&mut sim, edit(Vertical, 3, 3, Wall));
 
-    // With a sim on the fridge's side, the sim is what the proofs find first.
+    // The same separation is allowed with a person on the fridge side.
     let (mut sim, _) = house(walls.clone());
     sim.world_mut().spawn((Agent, Position { x: 1.0, y: 5.0 }));
-    refused(
-        &mut sim,
-        edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::BlockedRoute,
-    );
+    applied(&mut sim, edit(Vertical, 3, 3, Wall));
 
     // Walling in the fridge's last approach.
     let (mut sim, _) = house(vec![line(Vertical, 1, 0, false)]);
-    refused(
-        &mut sim,
-        edit(Horizontal, 0, 1, Wall),
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    applied(&mut sim, edit(Horizontal, 0, 1, Wall));
 }
 
 /// Swaps the house's content for a copy changed by `change`.
@@ -437,12 +452,9 @@ fn with_content(sim: &mut Sim, change: impl FnOnce(&mut terri_data::ContentPack)
     sim.world_mut().insert_resource(Content(pack));
 }
 
-/// [RD-root]: a lot whose content names no front door is judged from its
-/// first open tile in reading order, (1, 0) here, as every lot was before.
-/// Only test content has no front door; a blank custom lot keeps the shipped
-/// one.
+/// Current wall edits work without historical entrance metadata.
 #[test]
-fn a_house_with_no_front_door_is_judged_from_its_first_open_tile() {
+fn wall_edits_have_no_designated_entrance_dependency() {
     let mut walls = partition(3);
     walls.retain(|edge| edge.y != 3);
     let (mut sim, _) = house(walls.clone());
@@ -450,7 +462,7 @@ fn a_house_with_no_front_door_is_judged_from_its_first_open_tile() {
         pack.lot.front_door = None;
         pack.portals.clear();
     });
-    // Closing the gap leaves the fridge's side, where the flood starts, whole.
+    // The fridge is on one side of the new partition.
     applied(&mut sim, edit(Vertical, 3, 3, Wall));
 
     // A sim on the other side is cut off from it.
@@ -460,18 +472,12 @@ fn a_house_with_no_front_door_is_judged_from_its_first_open_tile() {
         pack.portals.clear();
     });
     sim.world_mut().spawn((Agent, Position { x: 5.0, y: 5.0 }));
-    refused(
-        &mut sim,
-        edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::BlockedRoute,
-    );
+    applied(&mut sim, edit(Vertical, 3, 3, Wall));
 }
 
-/// The wall rules guard only the line between the front door and its own
-/// landing, so the proofs keep every other portal's landing reachable from
-/// the front door.
+/// Historical portal records do not reserve ground against construction.
 #[test]
-fn a_wall_that_cuts_off_another_portals_landing_is_refused() {
+fn authored_portal_landings_receive_no_special_protection() {
     // Two walls of three around the empty corner tiles (0, 6) and (1, 6).
     let (mut sim, _) = house(vec![
         line(Horizontal, 0, 6, false),
@@ -483,11 +489,7 @@ fn a_wall_that_cuts_off_another_portals_landing_is_refused() {
         back.inward = (1, 6);
         pack.portals.push(back);
     });
-    refused(
-        &mut sim,
-        edit(Vertical, 2, 6, Wall),
-        PlacementRefusal::BlockedLanding,
-    );
+    applied(&mut sim, edit(Vertical, 2, 6, Wall));
 }
 
 /// Opening a line or making it a doorway only removes a barrier, so it is
@@ -500,13 +502,8 @@ fn an_opening_or_a_doorway_is_accepted_even_in_a_house_that_is_already_cut_in_tw
     // The door strip beyond x = 5 stays cut off whatever happens at x = 3.
     applied(&mut sim, edit(Vertical, 3, 3, Open));
     applied(&mut sim, edit(Vertical, 3, 4, Doorway));
-    // Closing a line in that same house is held to the proofs, and fails:
-    // the fridge is out of reach from the front door ([RD-reasons]).
-    refused(
-        &mut sim,
-        edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::InaccessibleInteraction,
-    );
+    // Closing another line is also allowed; access consequences belong in Build review.
+    applied(&mut sim, edit(Vertical, 3, 3, Wall));
 }
 
 /// [WT-command]: a wall edit takes its place in the stream. A cancel issued
@@ -571,14 +568,9 @@ fn a_wall_edit_sees_the_orders_issued_before_it_and_not_those_after() {
     }
 }
 
-/// [WN-state] in `docs/specs/2026-09-22-windows.md`, and review finding [F1]
-/// on PR 126: the loader's own grid check still runs once a house has a
-/// window. This is the body of
-/// `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`
-/// with one line glazed first, so every rule the wall validator owns passes
-/// and only the loader's check refuses the wall.
+/// A preview must reject an already invalid live walk through a window.
 #[test]
-fn a_glazed_house_still_runs_the_loaders_own_check() {
+fn a_glazed_house_still_rejects_an_invalid_live_walk() {
     let (mut sim, fridge) = house(vec![]);
     applied(&mut sim, edit(Vertical, 3, 0, Window));
     sim.world_mut().spawn((
@@ -600,11 +592,10 @@ fn a_glazed_house_still_runs_the_loaders_own_check() {
     );
 }
 
-/// Review finding [F1] on PR 126: the loader's own grid check is asked for a
-/// glazed house too. Asked directly, because every rule the wall validator
-/// owns runs before it and one of them refuses this candidate first.
+/// Preview permits routes that Build confirmation can reconcile, while the
+/// live world's grid remains subject to the complete load checks.
 #[test]
-fn the_loaders_grid_check_answers_for_a_glazed_house() {
+fn the_loaders_grid_check_distinguishes_a_preview_from_an_invalid_live_world() {
     let (mut sim, fridge) = house(vec![]);
     // Glazed well away from the walk below, so the window is the only thing
     // about this house that differs from the unglazed case.
@@ -626,13 +617,15 @@ fn the_loaders_grid_check_answers_for_a_glazed_house() {
     // where that walk ends and the fridge it is walking to.
     let mut candidate = sim.world().resource::<TileGrid>().clone();
     candidate.set_edge_blocked((0, 0), (1, 0), true);
+    assert!(crate::save::candidate_grid_loads(sim.world(), &candidate).is_ok());
+    // And the same house without that wall still loads.
+    let live = sim.world().resource::<TileGrid>().clone();
+    assert!(crate::save::candidate_grid_loads(sim.world(), &live).is_ok());
+    sim.world_mut().insert_resource(candidate.clone());
     assert!(matches!(
         crate::save::candidate_grid_loads(sim.world(), &candidate),
         Err(crate::save::LoadProblem::EdgeWorld)
     ));
-    // And the same house without that wall still loads.
-    let live = sim.world().resource::<TileGrid>().clone();
-    assert!(crate::save::candidate_grid_loads(sim.world(), &live).is_ok());
 }
 
 /// [WN-state], and review findings [F2], [F3] and [F6] on PR 126: a glazed
@@ -666,12 +659,12 @@ fn a_glazed_house_saves_loads_and_hashes() {
     assert!(!grid.can_step((1, 1), (1, 2)));
     assert!(!grid.can_step((1, 2), (1, 1)));
 
-    let saved = sim.save_snapshot_v3();
+    let saved = sim.current_v3_view();
     let (mut restored, _) = house(vec![]);
     restored
-        .load_snapshot_v3(saved.clone())
+        .load_current_v3_view(saved.clone())
         .expect("a glazed house loads");
-    assert_eq!(restored.save_snapshot_v3(), saved);
+    assert_eq!(restored.current_v3_view(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     let layout = restored.world().resource::<SavedLayout>();
     assert_eq!(
@@ -712,13 +705,13 @@ fn a_built_house_and_a_staged_wall_edit_survive_save_and_load() {
             y: 2,
             state: Wall,
         });
-    let saved = sim.save_snapshot_v3();
+    let saved = sim.current_v3_view();
 
     let (mut restored, _) = house(vec![]);
     restored
-        .load_snapshot_v3(saved.clone())
+        .load_current_v3_view(saved.clone())
         .expect("a built house loads");
-    assert_eq!(restored.save_snapshot_v3(), saved);
+    assert_eq!(restored.current_v3_view(), saved);
     assert_eq!(restored.world_hash(), sim.world_hash());
     restored.flush_commands();
     sim.flush_commands();
@@ -821,64 +814,36 @@ fn a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused() {
             interaction: 0,
         },
     ));
-    refused(
-        &mut sim,
-        edit(Vertical, 1, 0, Wall),
-        PlacementRefusal::BlockedRoute,
-    );
+    applied(&mut sim, edit(Vertical, 1, 0, Wall));
     // The fridge's other side is not where this walk ends.
     applied(&mut sim, edit(Horizontal, 0, 1, Wall));
 }
 
-/// Review finding [F2] on PR 95. With a worker in the house, the loader needs
-/// a straight step from the front door to its landing. A second way in kept the
-/// house connected, so the proofs passed, and the save would not load.
+/// Employment does not protect an original doorway against building changes.
 #[test]
-fn a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works() {
+fn a_wall_can_replace_the_starting_door_while_someone_works() {
     let (mut sim, _) = house(vec![]);
     let worker = sim
         .world_mut()
         .spawn((Agent, Position { x: 2.0, y: 5.0 }, terri_core::Career(0)))
         .id();
-    refused(
-        &mut sim,
-        edit(Vertical, 6, 3, Wall),
-        PlacementRefusal::BlockedLanding,
-    );
-    // With nobody working the loader would accept it, and the first person to
-    // take a job would meet a walled-off door, so the door line stays refused.
+    applied(&mut sim, edit(Vertical, 6, 3, Wall));
+    // Removing employment does not change the wall edit's validity.
     sim.world_mut()
         .entity_mut(worker)
         .remove::<terri_core::Career>();
-    refused(
-        &mut sim,
-        edit(Vertical, 6, 3, Wall),
-        PlacementRefusal::BlockedLanding,
-    );
+    applied(&mut sim, edit(Vertical, 6, 3, Wall));
     // A doorway there is still a way in, and the line beside it is not the door.
     applied(&mut sim, edit(Vertical, 6, 3, Doorway));
     applied(&mut sim, edit(Vertical, 6, 2, Wall));
 
-    // A line lists its lower tile first. The east door above is the higher
-    // tile of its line; the shipped house's door, like this north one, is the
-    // lower. The rule has to recognise the door line both ways round.
+    // The same rule applies with the historical portal facing north.
     let (mut sim, _) = house_with_door((3, 0), (3, 1), vec![]);
-    refused(
-        &mut sim,
-        edit(Horizontal, 3, 1, Wall),
-        PlacementRefusal::BlockedLanding,
-    );
+    applied(&mut sim, edit(Horizontal, 3, 1, Wall));
 }
 
-/// The invariant the first review's blockers broke, over the real household:
-/// every wall the validator accepts leaves a save that the V3 loader accepts.
-/// Opening a line or making a doorway only removes a barrier and cannot make a
-/// save unloadable, so walls are the state checked.
-///
-/// The test also proves it met the case it guards. Content changes move the
-/// household, and after the trait library the ticks this first used no longer
-/// The loader-only refusal is exercised separately with a pending route,
-/// so changing household choices cannot make that guard coverage vacuous.
+/// Every accepted wall must survive Build confirmation and current save
+/// restoration. A separate pending-route case proves reconciliation coverage.
 #[test]
 fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -902,10 +867,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             stop,
             "one tick per `Sim::tick`"
         );
-        let base = sim.save_snapshot_v16();
-        let rectangles = super::super::current_layout(sim.world())
-            .expect("the shipped house is consistent")
-            .rectangles;
+        let base = sim.current_v16_view();
         let lines = (1..width)
             .flat_map(|x| (0..height).map(move |y| (Vertical, x, y)))
             .chain((0..width).flat_map(|x| (1..height).map(move |y| (Horizontal, x, y))));
@@ -913,20 +875,6 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             let request = edit(axis, x, y, Wall);
             let plan = match validate_wall_edit(sim.world(), request) {
                 Ok(plan) => plan,
-                Err(PlacementRefusal::BlockedRoute) => {
-                    let [a, b] = line(axis, x, y, false).cells();
-                    let mut grid = sim.world().resource::<TileGrid>().clone();
-                    grid.set_edge_blocked(a, b, true);
-                    if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
-                        && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
-                    {
-                        assert_eq!(
-                            validate_wall_edit(sim.world(), request).unwrap_err(),
-                            PlacementRefusal::BlockedRoute
-                        );
-                    }
-                    continue;
-                }
                 Err(_) => continue,
             };
             if !plan.changed {
@@ -934,12 +882,12 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             }
             // The public edit also reconciles media and physical leases. A new
             // wall can end an obstructed TV seat before the next game tick.
-            builder.load_snapshot_v16(base.clone()).unwrap();
-            stage(&mut builder, request);
+            builder.load_current_v16_view(base.clone()).unwrap();
+            applied(&mut builder, request);
             assert_eq!(last(&builder).unwrap().reason, None);
-            let after = builder.save_snapshot_v16();
+            let after = builder.current_v16_view();
             assert_eq!(
-                reloaded.load_snapshot_v16(after).err(),
+                reloaded.load_current_v16_view(after).err(),
                 None,
                 "an accepted {request:?} at tick {stop} left a save that will not load"
             );
@@ -947,10 +895,10 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
         }
     }
     assert!(checked > 100, "only {checked} walls were accepted to check");
-    assert_wall_loader_guard_on_pending_route();
+    assert_wall_reconciles_pending_route();
 }
 
-fn assert_wall_loader_guard_on_pending_route() {
+fn assert_wall_reconciles_pending_route() {
     let (mut sim, fridge) = house(vec![]);
     let request = edit(Vertical, 1, 0, Wall);
     assert!(validate_wall_edit(sim.world(), request).unwrap().changed);
@@ -973,11 +921,10 @@ fn assert_wall_loader_guard_on_pending_route() {
         .unwrap()
         .rectangles;
     assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
-    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_err());
-    assert_eq!(
-        validate_wall_edit(sim.world(), request).unwrap_err(),
-        PlacementRefusal::BlockedRoute
-    );
+    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_ok());
+    applied(&mut sim, request);
+    let saved = sim.save_snapshot_v21();
+    sim.load_snapshot_v21(saved).unwrap();
 }
 
 /// [WT-hash]: an edge-wall house with no walls is a different save from a
@@ -1048,7 +995,7 @@ fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
         for _ in 0..30 {
             sim.tick();
         }
-        (sim.save_snapshot_v3(), sim.world_hash())
+        (sim.current_v3_view(), sim.world_hash())
     };
     let (joined, joined_hash) = world(false);
     let (split, split_hash) = world(true);
@@ -1058,12 +1005,9 @@ fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
     assert!(joined.layout.has_edges());
 }
 
-/// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: a wall on the front
-/// door's line would shut the door, so it is refused; the line may still be
-/// opened. The house's other outside walls, and a yard line that merely
-/// shares the door line's numbers, change as any wall does.
+/// Starting doors and adjacent wall lines follow the same edit rules.
 #[test]
-fn the_front_doors_line_is_never_walled() {
+fn the_starting_door_line_can_be_walled_or_opened() {
     let sim = Sim::new_from_shipped_lot();
     let edit = |axis, y, state| {
         validate_wall_edit(
@@ -1076,29 +1020,24 @@ fn the_front_doors_line_is_never_walled() {
             },
         )
     };
-    assert_eq!(
-        edit(Vertical, 2, Wall).err(),
-        Some(PlacementRefusal::BlockedDoor)
-    );
+    assert!(edit(Vertical, 2, Wall).unwrap().changed);
     assert!(edit(Vertical, 2, Open).unwrap().changed);
     assert!(edit(Vertical, 3, Doorway).unwrap().changed);
     assert!(edit(Horizontal, 2, Wall).unwrap().changed);
 }
 
-/// [OS-door], review finding [Y2]: the front door's line comes from the
-/// content, not from the presentation-only portal rows, so a world built
-/// without the door's art refuses the same wall and keeps the same digest.
+/// Presentation resources cannot change whether an ordinary wall edit succeeds.
 #[test]
-fn the_front_doors_line_is_kept_without_the_doors_art() {
-    let saved = Sim::new_from_shipped_lot().save_snapshot_v5();
+fn ordinary_door_edits_agree_with_and_without_the_doors_art() {
+    let saved = Sim::new_from_shipped_lot().current_v5_view();
     let mut headless = Sim::new();
-    headless.load_snapshot_v5(saved.clone()).unwrap();
+    headless.load_current_v5_view(saved.clone()).unwrap();
     assert!(headless
         .world()
         .get_resource::<crate::portals::ActivePortals>()
         .is_none());
     let mut shipped = Sim::new_from_shipped_lot();
-    shipped.load_snapshot_v5(saved).unwrap();
+    shipped.load_current_v5_view(saved).unwrap();
     for sim in [&mut headless, &mut shipped] {
         sim.world_mut()
             .resource_mut::<CommandQueue>()
@@ -1110,10 +1049,7 @@ fn the_front_doors_line_is_kept_without_the_doors_art() {
             });
         sim.flush_commands();
         let result = sim.world().resource::<LotEditState>().last_wall_result;
-        assert_eq!(
-            result.and_then(|result| result.reason),
-            Some(PlacementRefusal::BlockedDoor)
-        );
+        assert_eq!(result.and_then(|result| result.reason), None);
     }
     assert_eq!(headless.world_hash(), shipped.world_hash());
 }
@@ -1135,6 +1071,7 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt() {
             doorway: None,
         };
         assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
+        sim.begin_build().unwrap();
         sim.world_mut()
             .resource_mut::<CommandQueue>()
             .push(SimCommand::BuildRoom {
@@ -1145,16 +1082,22 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt() {
                 doorway: room.doorway,
             });
         sim.flush_commands();
+        let review = sim.prepare_build_commit(Default::default()).unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
         let boundary = line(axis, wall_x, wall_y, false);
         assert!(edges(&sim).contains(&boundary));
         applied(&mut sim, edit(axis, wall_x, wall_y, Open));
         assert!(!edges(&sim).contains(&boundary));
         let mut reader = Sim::new_from_shipped_lot();
-        reader.load_snapshot_v16(sim.save_snapshot_v16()).unwrap();
+        reader
+            .load_current_v16_view(sim.current_v16_view())
+            .unwrap();
         assert!(!edges(&reader).contains(&boundary));
         applied(&mut reader, edit(axis, wall_x, wall_y, Wall));
         assert!(edges(&reader).contains(&boundary));
-        sim.load_snapshot_v16(reader.save_snapshot_v16()).unwrap();
+        sim.load_current_v16_view(reader.current_v16_view())
+            .unwrap();
         assert!(edges(&sim).contains(&boundary));
     }
 }
@@ -1170,6 +1113,7 @@ pub(crate) fn shipped_lot_with_room(x0: u32, y0: u32, x1: u32, y1: u32) -> Sim {
         doorway: None,
     };
     assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
+    sim.begin_build().unwrap();
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::BuildRoom {
@@ -1180,6 +1124,9 @@ pub(crate) fn shipped_lot_with_room(x0: u32, y0: u32, x1: u32, y1: u32) -> Sim {
             doorway: None,
         });
     sim.flush_commands();
+    let review = sim.prepare_build_commit(Default::default()).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
     sim
 }
 
@@ -1219,7 +1166,7 @@ fn walls_on_every_lot_edge_take_doorways_and_windows_that_survive_a_save() {
 }
 
 #[test]
-fn explicit_room_records_do_not_make_the_original_rear_shell_removable() {
+fn explicit_room_records_allow_editing_the_starting_rear_wall() {
     let mut sim = Sim::new_from_shipped_lot();
     let room = super::super::rooms::RoomEdit {
         x0: 9,
@@ -1229,13 +1176,22 @@ fn explicit_room_records_do_not_make_the_original_rear_shell_removable() {
         doorway: None,
     };
     assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
-    super::super::rooms::commit(sim.world_mut(), room);
+    sim.begin_build().unwrap();
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::BuildRoom {
+            x0: room.x0,
+            y0: room.y0,
+            x1: room.x1,
+            y1: room.y1,
+            doorway: room.doorway,
+        });
+    sim.flush_commands();
+    let review = sim.prepare_build_commit(Default::default()).unwrap();
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
     assert!(edges(&sim).contains(&line(Horizontal, 9, 0, false)));
     for state in [Open, Wall, Doorway, Window] {
-        refused(
-            &mut sim,
-            edit(Horizontal, 9, 0, state),
-            PlacementRefusal::OutOfBounds,
-        );
+        applied(&mut sim, edit(Horizontal, 9, 0, state));
     }
 }

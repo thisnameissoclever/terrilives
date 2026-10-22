@@ -7,14 +7,20 @@ fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) 
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let snapshot = decode_current(current).legacy.legacy.legacy;
+    let mut snapshot = decode_current(current).previous.legacy.legacy.legacy;
+    let old = &historical.legacy.legacy;
+    assert_eq!(
+        snapshot.legacy.legacy.legacy,
+        current_test_snapshot::materialized_v14(old.clone())
+    );
+    snapshot.legacy.legacy.legacy = old.clone();
     assert_eq!(snapshot.legacy, historical);
     let mut projected = SAVE_MAGIC.to_vec();
     projected.extend(16u16.to_le_bytes());
     projected.extend(postcard::to_allocvec(&snapshot.legacy).unwrap());
     assert_eq!(
         projected, published,
-        "the complete frozen payload remains unchanged"
+        "after verifying and removing only the explicit shell delta, the frozen payload is unchanged"
     );
     let mut migrated = SimHandle::from_lot();
     assert!(migrated.load_bytes(published));
@@ -84,12 +90,14 @@ fn room_transport_wide_token_literal_is_not_rounded() {
         }],
         retired_names: vec![],
         duties: Default::default(),
+        access: Default::default(),
     };
     assert_eq!(
         super::browser_rooms::review_response(Ok(review)),
         [
             1, 0, 129, 128, 128, 128, 128, 128, 128, 16, 131, 128, 128, 128, 128, 128, 128, 16,
             255, 255, 255, 255, 255, 255, 255, 255, 255, 1, 0, 1, 0, 0, 1, 79, 0, 0, 0, 0, 0, 0, 0,
+            0, 0,
         ]
     );
 }

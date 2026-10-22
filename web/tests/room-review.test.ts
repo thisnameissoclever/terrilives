@@ -94,7 +94,7 @@ it('offers a retiring custom merge name separately from the retained identity', 
 
 it.each(['owner-zero', 'unassigned', 'no-duty'] as const)('shows the receiving Outside metadata in lost-enclosure review: %s', mode => {
   const outside = { id: 0, name: '<b>Garden</b>', anchor: null, area: 100, outside: true, previousName: 'Outside', previousArea: 80 };
-  const review: BuildReview = { token: { session: 1n, revision: 2n, preparation: 3n }, rooms: [outside], retiredNames: [{ id: 1, name: 'Former room' }],
+  const review: BuildReview = { access: { regions: [], blockedTargets: [] }, token: { session: 1n, revision: 2n, preparation: 3n }, rooms: [outside], retiredNames: [{ id: 1, name: 'Former room' }],
     groups: [{ kind: 3, oldIds: [1], finalAnchors: [], formerTiles: [[1, 1]], openings: [{ axis: 0, x: 1, y: 1 }] }],
     duties: { duties: mode === 'no-duty' ? [] : [{ key: { kind: 1, target: 0 }, previous: { kind: 1, target: 0 }, owner: mode === 'owner-zero' ? 0 : null, kind: 0 }], replannedPeople: [], unavailablePeople: [] } };
   const source: RoomBridge = { roomsRevision: () => 1n, roomSummaries: () => ({ ok: true, value: { width: 10, height: 10, rooms: [outside] } }),

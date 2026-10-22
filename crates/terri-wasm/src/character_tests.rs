@@ -43,7 +43,7 @@ fn creator_boundary_round_trips_exact_values_and_correlated_results() {
     let saved = handle.save_bytes();
     assert_eq!(
         u16::from_le_bytes([saved[SAVE_MAGIC.len()], saved[SAVE_MAGIC.len() + 1]]),
-        20
+        21
     );
     assert!(handle.load_bytes(&saved));
     assert_eq!(handle.save_bytes(), saved);
@@ -164,6 +164,14 @@ fn with_current_content(
         .legacy
         .world
         .content_fingerprint;
+    let current_layout = handle.sim.current_v5_view().layout.clone();
+    super::current_test_snapshot::assert_materialized_shell(
+        &current_layout,
+        &legacy.legacy.layout,
+        16,
+        12,
+    );
+    legacy.legacy.layout = current_layout;
     postcard::to_allocvec(&legacy).unwrap()
 }
 

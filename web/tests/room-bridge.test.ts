@@ -42,7 +42,11 @@ it('projects sparse inherited choices from the actual prepared matcher', () => {
         expect(sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 })).toBe(true);
         sim.flushCommands();
         expect(sim.lastRoomResult()?.reason).toBeNull();
+        value(sim.beginBuild());
         wall(4, 1);
+        const initial=value(sim.prepareBuildCommit());
+        expect(sim.commitBuild(initial.token)).toEqual({ok:false,error:{code:15,detail:null}});
+        value(sim.commitBuildWithAccessAck(initial.token));value(sim.endBuild());
         const before = value(sim.roomSummaries());
         const a = before.rooms.find(room => room.anchor?.[0] === 1)!.id, b = before.rooms.find(room => room.anchor?.[0] === 4)!.id;
         value(sim.beginBuild());
@@ -76,7 +80,7 @@ it.each(published.files)('migrates authentic V15 $file and retains exact current
         const source = new Uint8Array(readFileSync(new URL(`../../crates/terri-wasm/tests/fixtures/room-identities-v15/${file}`, import.meta.url)));
         expect(h.load_bytes(source)).toBe(true);
         const current = h.save_bytes();
-        expect([...current.slice(8, 10)]).toEqual([20, 0]);
+        expect([...current.slice(8, 10)]).toEqual([21, 0]);
         expect(resumed.load_bytes(current)).toBe(true);
         expect(resumed.save_bytes()).toEqual(current);
         for (let n = 0; n < 120; n++) {

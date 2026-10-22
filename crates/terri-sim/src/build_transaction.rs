@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV20,
+    SaveSnapshotV21,
 };
 
 #[cfg(test)]
@@ -50,6 +50,7 @@ pub enum BuildCommitError {
     Validation(SaveError),
     StaleToken,
     CommandNotAllowed,
+    AccessAcknowledgmentRequired,
 }
 /// Which load rule refused the draft when Build could not open or confirm.
 /// `BuildCommitError::Validation` names only the kind of error; this names the
@@ -125,6 +126,7 @@ pub struct BuildReview {
     pub rooms: Vec<BuildRoomReview>,
     pub retired_names: Vec<(RoomId, String)>,
     pub duties: DutyChangeReport,
+    pub access: crate::world_geometry::AccessReport,
 }
 #[derive(Resource, Default)]
 pub(crate) struct BuildEpoch(u64);
@@ -142,12 +144,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV20,
+    draft: SaveSnapshotV21,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV20,
+    baseline: SaveSnapshotV21,
     request_runtime: crate::social_episode::requests::runtime::Runtime,
     journal: Vec<BuildJournalEntry>,
     names: BTreeMap<RoomSelection, String>,
@@ -159,7 +161,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV20,
+        baseline: SaveSnapshotV21,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
     ) -> Self {
@@ -224,7 +226,7 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV20> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV21> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
@@ -265,7 +267,7 @@ impl Sim {
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v20::capture(self))
+            || !same_authored(&build.baseline, &save::v21::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -311,8 +313,8 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v20::capture(self);
-        if let Err(error) = save::v20::restore(
+        let baseline = save::v21::capture(self);
+        if let Err(error) = save::v21::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -399,8 +401,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v20::restore(
-                    save::v20::capture(candidate),
+                save::v21::restore(
+                    save::v21::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -451,7 +453,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v20::restore(
+        let mut candidate = save::v21::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -475,13 +477,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v20::capture(self);
-        if save::v20::capture(&candidate) != draft {
+        let draft = save::v21::capture(self);
+        if save::v21::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v20::restore(
+            candidate = save::v21::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -548,6 +550,7 @@ impl Sim {
             rooms,
             retired_names,
             duties,
+            access: crate::world_geometry::access_report(&candidate.world),
         };
         let projected = project(&review)?;
         let mut b = self.world.resource_mut::<BuildTransaction>();
@@ -574,7 +577,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v20::capture(self) != prepared.draft {
+        if save::v21::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -640,16 +643,38 @@ impl Sim {
             .collect())
     }
     pub fn commit_build(&mut self, token: BuildToken) -> Result<(), BuildCommitError> {
+        self.commit_build_reviewed(token, false)
+    }
+    pub fn commit_build_with_access_ack(
+        &mut self,
+        token: BuildToken,
+    ) -> Result<(), BuildCommitError> {
+        self.commit_build_reviewed(token, true)
+    }
+    fn commit_build_reviewed(
+        &mut self,
+        token: BuildToken,
+        acknowledged: bool,
+    ) -> Result<(), BuildCommitError> {
         self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
+        }
+        if !acknowledged
+            && self
+                .prepared_build(token)?
+                .review
+                .access
+                .requires_acknowledgment()
+        {
+            return Err(BuildCommitError::AccessAcknowledgmentRequired);
         }
         self.prepared_build(token)?;
         next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
         let session = new_session()?;
         let mut b = self.world.remove_resource::<BuildTransaction>().unwrap();
         let prepared = b.prepared.take().unwrap();
-        let baseline = save::v20::capture(&prepared.candidate);
+        let baseline = save::v21::capture(&prepared.candidate);
         let request_runtime =
             crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
         match ordinary::runtime::install(self, *prepared.candidate) {
@@ -693,7 +718,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v20::restore(
+        let mut restored = save::v21::restore(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -716,7 +741,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v20::restore(
+            save::v21::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -726,6 +751,7 @@ impl Sim {
     }
 }
 pub(crate) fn final_maintenance(world: &mut World) {
+    crate::world_geometry::revalidate_routes(world);
     crate::reading::reconcile(world);
     crate::targeted_cleanup::prune(world);
     crate::seating::maintain(world);
@@ -756,7 +782,10 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV20, b: &SaveSnapshotV20) -> bool {
+fn same_authored(a: &SaveSnapshotV21, b: &SaveSnapshotV21) -> bool {
+    if a.surfaces != b.surfaces {
+        return false;
+    }
     let a = &a.legacy.legacy.legacy.legacy;
     let b = &b.legacy.legacy.legacy.legacy;
     let av = &a.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;

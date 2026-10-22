@@ -60,7 +60,7 @@ describe('the sky wired into the page', () => {
   });
 
   it('passes expanded window lines to exposure and refreshes them after Load and lot edits', () => {
-    expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows, lot.houseOrigin)');
+    expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows, lot.houseOrigin, lot.surfaces)');
     expect(MAIN_TS.match(/lot.windows = sim.windowLines\(\);/g)).toHaveLength(2);
     expect(MAIN_TS).toMatch(/if \(loaded\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
     expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{\s*refreshBuildArchitecture\(\);/);
@@ -70,4 +70,18 @@ describe('the sky wired into the page', () => {
   it('rebuilds the sky with the lamp field whenever the lot changes', () => {
     expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lightingEdges\(\), lot\.windows\);\s*sky = buildSky\(\);/);
   });
+});
+
+
+it('uses current enclosure rather than original floor material or house coordinates', () => {
+  const surfaces = new Uint8Array(9).fill(1);
+  const walls=[0,1,1,0,0,2,1,0,1,1,1,0,1,1,2,0];
+  const closed = buildSkyExposure(3,3,walls,[1,1],.25,[],[0,0],surfaces);
+  expect(sampleSky(closed,1,1)).toBe(0);
+  expect(sampleSky(closed,0,0)).toBe(1);
+  const noHistoricalHouse = buildSkyExposure(3,3,walls,null,.25,[],[0,0],surfaces);
+  expect([...noHistoricalHouse.values]).toEqual([...closed.values]);
+  const open = buildSkyExposure(3,3,walls.slice(4),[1,1],.25,[],[0,0],surfaces);
+  expect(sampleSky(open,1,1)).toBe(1);
+  expect([...buildSkyExposure(3,3,[],[3,3],.25,[],[0,0],new Uint8Array(9)).values]).toEqual(Array(9).fill(1));
 });

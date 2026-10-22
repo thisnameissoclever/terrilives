@@ -107,14 +107,22 @@ pub fn cleaning_area_at(world: &World, tile: (i32, i32)) -> Option<CleaningArea>
     let y = u32::try_from(tile.1).ok()?;
     let map = world.get_resource::<RoomMap>()?;
     let selection = map.selection_at((x, y))?;
-    if crate::lot_frame::street_exit(world).is_some() && x + 1 == map.topology.width {
+    if !crate::world_geometry::current(world)
+        && crate::lot_frame::street_exit(world).is_some()
+        && x + 1 == map.topology.width
+    {
         return None;
     }
     let covering = world
         .get_resource::<terri_core::layout::SavedFloors>()
         .map_or(0, |floors| floors.covering(x, y));
     let cleanable = match covering {
-        0 => crate::lot_frame::house_or_grid(world).contains(x, y),
+        0 => world
+            .get_resource::<crate::world_geometry::WorldSurfaces>()
+            .map_or_else(
+                || crate::lot_frame::house_or_grid(world).contains(x, y),
+                |s| s.tiles[(y * s.width + x) as usize] == 0,
+            ),
         1..=4 => true,
         _ => false,
     };

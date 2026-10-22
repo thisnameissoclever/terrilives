@@ -282,16 +282,25 @@ pub(crate) fn personality_from(
     personality
 }
 
-/// [CS-arrival]: where the newcomer appears and the walk it starts on. The
-/// street's exit when it is open floor the landing can be reached from, else
-/// the front door's tile; a lot with no front door, the first open tile and
-/// no walk.
+/// New arrivals use the shortest current boundary-to-floor route, with stable
+/// coordinate ties. Historical worlds retain their published entrance rule.
 pub(crate) fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), HousemateRefusal> {
     let grid = world.resource::<TileGrid>();
     let at = |(x, y): (i32, i32)| Position {
         x: x as f32,
         y: y as f32,
     };
+    if crate::world_geometry::current(world) {
+        return crate::world_geometry::boundary_tiles(world, grid)
+            .into_iter()
+            .filter_map(|tile| {
+                let steps = crate::world_geometry::route_home(world, at(tile))?;
+                Some((steps.len(), tile, steps))
+            })
+            .min_by_key(|(len, tile, _)| (*len, *tile))
+            .map(|(_, tile, steps)| (at(tile), steps))
+            .ok_or(HousemateRefusal::NoWayIn);
+    }
     let portal = crate::lot_frame::front_portal(world);
     let Some(portal) = portal else {
         return (0..grid.height() as i32)

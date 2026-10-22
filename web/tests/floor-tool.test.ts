@@ -435,3 +435,15 @@ function fakeDocument(elements: Map<string, FakeElement>): {
     createElement: fakeElement,
   };
 }
+
+
+it('Remove can remove an ordinary saved starting floor with no added covering', () => {
+  const source = new FakeFloors();
+  const surfaces = new Uint8Array(12).fill(1);
+  surfaces[5] = 0;
+  const floors = new FloorTool(Object.assign(source,{worldSurfaces: () => surfaces}) as never,4,3,{changed: () => {}});
+  floors.enter(); floors.choosePoint(1,1);
+  expect(floors.canApplyCovering(BARE)).toBe(true);
+  floors.applyCovering(BARE);
+  expect(source.staged).toEqual([[1,1,BARE]]);
+});

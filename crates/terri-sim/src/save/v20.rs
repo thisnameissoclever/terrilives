@@ -31,7 +31,10 @@ mod tests {
     use super::*;
     #[test]
     fn issue314_current_envelope_round_trips_without_invented_history() {
-        let source = Sim::new_with_lot(7, 7);
+        let mut source = Sim::new_with_lot(7, 7);
+        source
+            .world_mut()
+            .remove_resource::<crate::world_geometry::WorldSurfaces>();
         let snapshot = capture(&source);
         assert_eq!(snapshot.conflicts, Default::default());
         let restored = restore(

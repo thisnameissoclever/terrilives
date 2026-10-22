@@ -1,3 +1,4 @@
+import { rearWallLines } from '../render/rear-wall-lines.js';
 // Choosing a wall line from a click on the wall the player sees - [WB-pick]
 // in docs/specs/2026-09-22-walls-in-build.md.
 //
@@ -88,6 +89,7 @@ export function pickWallLine(sx: number, sy: number, camera: PickCamera, width: 
 }
 
 export interface WallFaceSource {
+  readonly explicit?: boolean;
   readonly width: number;
   readonly height: number;
   readonly house: readonly [number, number];
@@ -109,6 +111,7 @@ export interface WallFaceSource {
 export function wallFaces(source: WallFaceSource): WallFace[] {
   const [houseX, houseY] = source.houseOrigin;
   const faces = new Map<string, WallFace>();
+  const currentRear = source.explicit ? rearWallLines(source.edges,source.windowLines) : null;
   const doors = new Set<string>();
   for (let i = 0; i + 1 < source.hinged.length; i += 2) doors.add(`0/${source.hinged[i]}/${source.hinged[i + 1]}`);
   for (let i = 0; i + 1 < source.horizontalHinged.length; i += 2) {
@@ -118,12 +121,12 @@ export function wallFaces(source: WallFaceSource): WallFace[] {
     if (axis !== 0 && axis !== 1) return;
     const line: WallLine = { axis, x, y };
     const key = lineKey(line);
-    const rear = axis === 0 ? x === houseX : y === houseY;
+    const rear = currentRear ? currentRear.has(key) : (axis === 0 ? x === houseX : y === houseY);
     const tall = !source.low || rear || doors.has(key) || source.raised.has(key);
     faces.set(key, { line, height: tall ? WALL_FACE_FULL : WALL_FACE_LOW });
   };
-  for (let y = houseY; y < Math.min(source.height, houseY + source.house[1]); y++) add(0, houseX, y);
-  for (let x = houseX; x < Math.min(source.width, houseX + source.house[0]); x++) add(1, x, houseY);
+  for (let y = houseY; !source.explicit && y < Math.min(source.height, houseY + source.house[1]); y++) add(0, houseX, y);
+  for (let x = houseX; !source.explicit && x < Math.min(source.width, houseX + source.house[0]); x++) add(1, x, houseY);
   for (let i = 0; i + 3 < source.edges.length; i += 4) add(source.edges[i], source.edges[i + 1], source.edges[i + 2]);
   for (let i = 0; i + 2 < source.windowLines.length; i += 3) {
     add(source.windowLines[i], source.windowLines[i + 1], source.windowLines[i + 2]);

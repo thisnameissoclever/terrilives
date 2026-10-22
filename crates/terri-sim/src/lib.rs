@@ -22,6 +22,7 @@ pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
 pub mod lot_frame;
+pub mod world_geometry;
 pub use lot_frame::LotFrame;
 pub mod character_draft;
 pub mod chores;
@@ -1485,8 +1486,25 @@ impl Sim {
     /// Complete current persistence, including pending fights and repair decisions.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|s| s.previous.clone())
             .unwrap_or_else(|| save::v20::capture(self))
+    }
+
+    pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v21::capture(self))
+    }
+    pub fn load_snapshot_v21(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v21::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v20(
@@ -1710,6 +1728,13 @@ impl Sim {
         adopt_legacy_conflicts: bool,
     ) -> Result<(), SaveError> {
         rooms::migration::migrate(&mut restored)?;
+        let migrated_geometry = !world_geometry::current(&restored.world)
+            && !terri_data::is_pre_books_pack(restored.world.resource::<Content>().0);
+        // Frozen producer packs remain historical controls. Every historical
+        // input adopted into the current content pack receives current geometry.
+        if !terri_data::is_pre_books_pack(restored.world.resource::<Content>().0) {
+            world_geometry::materialize(&mut restored.world)?;
+        }
         player_actions::continue_session(&self.world, &mut restored.world);
         if infer_legacy_state {
             recipe_actions::adopt_legacy_activity(&mut restored.world);
@@ -1724,6 +1749,10 @@ impl Sim {
 
         if adopt_legacy_conflicts {
             social_conflicts::adopt_legacy(&mut restored.world);
+        }
+        if migrated_geometry {
+            world_geometry::admit_legacy_people(&mut restored.world)?;
+            world_geometry::revalidate_routes(&mut restored.world);
         }
         character_draft::ensure_appearance_components(&mut restored.world);
         restored.sync_render_buffer_after_commands();
@@ -2112,6 +2141,7 @@ impl Sim {
 
         if !terri_data::is_pre_books_pack(pack) {
             rooms::initialize(&mut world).expect("empty current lot has valid rooms");
+            world_geometry::blank(&mut world);
         }
         Self {
             world,
@@ -2135,6 +2165,7 @@ impl Sim {
             .insert_resource(terri_core::TileGrid::new(width, height));
         if !terri_data::is_pre_books_pack(content.0) {
             rooms::initialize(sim.world_mut()).expect("empty current lot has valid rooms");
+            world_geometry::blank(sim.world_mut());
         }
         sim
     }
@@ -2176,19 +2207,41 @@ impl Sim {
         lot: &terri_data::CompiledLot,
         objects: &[terri_data::CompiledObject],
     ) -> Self {
-        Self::place_initial_lot(Self::new(), lot, objects)
+        Self::place_initial_lot(Self::new(), lot, objects, true)
     }
 
     pub fn new_from_lot_and_content(lot: &terri_data::CompiledLot, content: Content) -> Self {
         let objects = &content.0.objects;
-        Self::place_initial_lot(Self::new_with_content(content), lot, objects)
+        Self::place_initial_lot(Self::new_with_content(content), lot, objects, true)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn new_from_historical_lot(
+        lot: &terri_data::CompiledLot,
+        objects: &[terri_data::CompiledObject],
+    ) -> Self {
+        Self::place_initial_lot(Self::new(), lot, objects, false)
+    }
+    #[cfg(test)]
+    pub(crate) fn new_from_historical_lot_and_content(
+        lot: &terri_data::CompiledLot,
+        content: Content,
+    ) -> Self {
+        Self::place_initial_lot(
+            Self::new_with_content(content),
+            lot,
+            &content.0.objects,
+            false,
+        )
     }
 
     fn place_initial_lot(
         mut sim: Self,
         lot: &terri_data::CompiledLot,
         objects: &[terri_data::CompiledObject],
+        materialize: bool,
     ) -> Self {
+        sim.world.remove_resource::<world_geometry::WorldSurfaces>();
         let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
         for &(x, y) in &lot.walls {
             grid.set_blocked(x as usize, y as usize, true);
@@ -2256,6 +2309,10 @@ impl Sim {
 
         if !terri_data::is_pre_books_pack(sim.world.resource::<Content>().0) {
             rooms::initialize(sim.world_mut()).expect("authored current lot has valid rooms");
+            if materialize {
+                world_geometry::materialize(sim.world_mut())
+                    .expect("authored geometry can be materialized");
+            }
         }
         sim
     }
@@ -2377,7 +2434,7 @@ impl Sim {
                 .collect(),
             ..test_content::historical_lot(pack)
         };
-        let mut sim = Self::new_from_lot_and_content(&lot, content);
+        let mut sim = Self::new_from_historical_lot_and_content(&lot, content);
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -2970,6 +3027,12 @@ impl Sim {
                 };
             let activity = if !is_agent {
                 render_buffer::activity::NONE
+            } else if self
+                .world
+                .get::<world_geometry::WaitingToReturn>(entity)
+                .is_some()
+            {
+                render_buffer::activity::WAITING
             } else if at_work {
                 render_buffer::activity::AT_WORK
             } else if socially_active {
@@ -4227,6 +4290,7 @@ impl Sim {
 
         let mut hasher = terri_core::FnvHasher::default();
         rooms::hash(&self.world, &mut hasher);
+        world_geometry::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
         // (entity index, x, y, all seven need levels). Every level is
@@ -6351,6 +6415,7 @@ mod determinism_tests {
             sim.world.remove_resource::<terri_core::rooms::SavedRooms>();
             sim.world.remove_resource::<rooms::RoomMap>();
             sim.world.insert_resource(rooms::RoomReferenceMode::Legacy);
+            sim.world.remove_resource::<world_geometry::WorldSurfaces>();
             sim.world.insert_resource(layout);
         }
         // The shipped fridge, deliberately: the golden vector below is
@@ -7257,7 +7322,10 @@ mod determinism_tests {
         // conversation choices change even though no argument starts. Native
         // and rebuilt release WebAssembly independently measured this state.
         // The immutable published control above retains its original value.
-        const GOLDEN: u64 = 4733362429942472337;
+        // V21 adds explicit base surfaces and commute direction to the digest.
+        // Native and release WASM independently measured this encoding change;
+        // the published historical control above remains unchanged.
+        const GOLDEN: u64 = 3198367722301137972;
 
         let mut sim = build_scenario();
         let mut published = build_scenario_with_historical_layout(
@@ -7415,3 +7483,22 @@ mod determinism_tests {
 
 #[cfg(test)]
 mod current_test_snapshot;
+#[cfg(test)]
+mod editable_world_tests {
+    use super::*;
+    #[test]
+    fn starting_rear_wall_can_be_removed_like_any_other_wall() {
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.begin_build().unwrap();
+        let result = crate::placement::walls::validate_wall_edit(
+            sim.world(),
+            crate::placement::walls::WallEdit {
+                axis: terri_core::layout::EdgeAxis::Vertical,
+                x: 0,
+                y: 2,
+                state: terri_core::layout::WallState::Open,
+            },
+        );
+        assert!(result.is_ok(), "ordinary starting wall: {result:?}");
+    }
+}

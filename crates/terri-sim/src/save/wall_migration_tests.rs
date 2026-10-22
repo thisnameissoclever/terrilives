@@ -43,7 +43,7 @@ fn source_sim() -> Sim {
         .map(|&(x, y)| (x as u32, y as u32))
         .collect();
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+    let mut sim = Sim::new_from_historical_lot_and_content(&pack.lot, Content(pack));
     sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
     sim
 }
@@ -359,4 +359,47 @@ fn wall_migration_preserves_sampled_running_legacy_worlds_and_fractional_first_s
         paths > 10 && fractional > 10 && active > 10,
         "paths={paths}, fractional={fractional}, active={active}"
     );
+}
+
+#[test]
+fn generic_v1_public_adoption_makes_custom_collisions_editable_and_preserves_objects() {
+    let mut source = source_sim().save_snapshot();
+    source.blocked_tiles[8 * 16 + 8] = true;
+    let mut duplicate = source
+        .entities
+        .iter()
+        .find(|e| e.smart_object.is_some())
+        .unwrap()
+        .clone();
+    duplicate.index = source.entities.last().unwrap().index + 1;
+    source.entities.push(duplicate);
+    let identities: Vec<_> = source
+        .entities
+        .iter()
+        .filter_map(|e| {
+            e.smart_object
+                .as_ref()
+                .map(|model| (e.index, model.clone()))
+        })
+        .collect();
+    let mut live = Sim::new_from_shipped_lot();
+    live.load_legacy_snapshot(crate::LegacySnapshot::V1(source))
+        .unwrap();
+    assert!(live.world().resource::<SavedLayout>().has_edges());
+    let restored = live.save_snapshot();
+    assert_eq!(
+        restored
+            .entities
+            .iter()
+            .filter_map(|e| e
+                .smart_object
+                .as_ref()
+                .map(|model| (e.index, model.clone())))
+            .collect::<Vec<_>>(),
+        identities
+    );
+    let current = live.save_snapshot_v21();
+    live.load_snapshot_v21(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v21(), current);
+    live.begin_build().unwrap();
 }

@@ -650,7 +650,7 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
         0x9ac7_e41e_24d4_c921
     );
     let source_pack = Box::leak(Box::new(source_pack));
-    let mut source = Sim::new_from_lot(&source_pack.lot, &source_pack.objects);
+    let mut source = Sim::new_from_historical_lot(&source_pack.lot, &source_pack.objects);
     source.world.insert_resource(Content(source_pack));
     source.spawn_household(
         &source_pack.personalities,

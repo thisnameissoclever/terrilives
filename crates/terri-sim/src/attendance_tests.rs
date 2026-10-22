@@ -29,6 +29,19 @@ fn full_fixture(start: u32, duration: u32, day: u32) -> (Sim, Entity, Entity) {
     ));
     let content = Content(Box::leak(Box::new(pack)));
     let mut sim = Sim::new_with_lot_and_content(20, 20, content);
+    // Ordinary grass around the floor keeps inbound travel observable.
+    {
+        let mut surfaces = sim
+            .world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>();
+        for y in 0..20 {
+            for x in 0..20 {
+                if x == 0 || y == 0 || x == 19 || y == 19 {
+                    surfaces.tiles[y * 20 + x] = 1;
+                }
+            }
+        }
+    }
     let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
     let actor = sim
         .world_mut()
@@ -397,9 +410,7 @@ fn public_score_shift(indoor: bool) -> (Sim, Entity, Entity) {
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.careers[0].energy_cost = 12.0;
     let at = if indoor {
-        pack.portals.clear();
-        pack.lot.front_door = Some((5, 4));
-        (5, 4)
+        (0, 4)
     } else {
         crate::portals::street_exit_at(&pack, (0, 0), 20).expect("fixture has a street exit")
     };
@@ -407,6 +418,20 @@ fn public_score_shift(indoor: bool) -> (Sim, Entity, Entity) {
         .insert_resource(Content(Box::leak(Box::new(pack))));
     if indoor {
         crate::test_content::enclose(&mut sim);
+        let layout = sim.world().resource::<terri_core::layout::SavedLayout>();
+        let mut edges = layout.edges().to_vec();
+        edges
+            .iter_mut()
+            .find(|edge| {
+                edge.axis == terri_core::layout::EdgeAxis::Vertical && edge.x == 0 && edge.y == 4
+            })
+            .unwrap()
+            .doorway = true;
+        sim.world_mut()
+            .insert_resource(terri_core::layout::SavedLayout::EdgeWallsV1 { edges });
+        sim.world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>()
+            .tiles[4 * 20] = 0;
     }
     sim.world_mut().entity_mut(actor).insert(Position {
         x: at.0 as f32,
@@ -564,17 +589,17 @@ fn attendance_adoption_preserves_authoritative_v17_and_only_infers_older_formats
     source.world_mut().entity_mut(actor).insert(AtWork {
         remaining_ticks: 100,
     });
-    let modern = source.save_snapshot_v17();
+    let modern = source.current_v17_view();
     assert!(modern.attendance.shifts.is_empty());
     assert!(modern.attendance.outcomes.is_empty());
     let source_hash = source.world_hash();
     let content = source.world().resource::<Content>().0;
     let mut current = Sim::new_with_lot_and_content(20, 20, Content(content));
     current
-        .load_snapshot_v17(modern.clone())
+        .load_current_v17_view(modern.clone())
         .expect("modern explicit empty attendance loads");
     assert_eq!(
-        current.save_snapshot_v17(),
+        current.current_v17_view(),
         modern,
         "modern attendance is authoritative, including an empty ledger"
     );

@@ -107,15 +107,16 @@ fn check_barriers(
     barriers: Barriers,
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
-    // The front door's one step in, whoever lives here now: a wall there
-    // would meet the first person to take a job. Matched to its portal the
-    // way the loader matches it.
-    let door = crate::lot_frame::front_portal(world).map(|portal| {
-        (
-            (portal.position.0 as i32, portal.position.1 as i32),
-            (portal.inward.0 as i32, portal.inward.1 as i32),
-        )
-    });
+    // Frozen formats preserve their entrance landing rule. Current geometry
+    // reviews accessibility separately and has no protected starting door.
+    let door = crate::lot_frame::front_portal(world)
+        .filter(|_| !crate::world_geometry::current(world))
+        .map(|portal| {
+            (
+                (portal.position.0 as i32, portal.position.1 as i32),
+                (portal.inward.0 as i32, portal.inward.1 as i32),
+            )
+        });
     if walls.iter().any(|&[a, b]| {
         door.is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
     }) {
@@ -243,7 +244,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     let owner = layout.window_at(requested_line);
     // A rear window can be restored to shell, but never opened as a wall edit.
     let (width, height) = (live.width() as u32, live.height() as u32);
-    let house = crate::lot_frame::house_or_grid(world);
+    let house = crate::world_geometry::historical_house(world);
     let rear_restore = owner.is_some()
         && super::windows::is_rear(requested_line, house)
         && edit.state == WallState::Wall;
@@ -261,7 +262,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     if !rear_restore && !line.in_bounds(width, height) && !perimeter_edit {
         return Err(OutOfBounds);
     }
-    // [OS-door]: a barrier on the front door's line would shut the door.
+    // Historical [OS-door] guard; current front_door_lines is empty.
     // Opening the line or glazing nothing cuts nobody's way, so only a
     // barrier is refused, and a window is one ([WN-rules]).
     if edit.state.blocks_movement()
@@ -327,7 +328,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         &candidate,
         live.width() as u32,
         live.height() as u32,
-        crate::lot_frame::house_or_grid(world),
+        crate::world_geometry::historical_house(world),
     )?;
     let mut grid = live.clone();
     let mut barriers = Vec::new();

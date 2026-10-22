@@ -11,7 +11,8 @@ use terri_core::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ActivityStatus {
     /// 0 active, 1 approaching chat, 2 waiting chat, 3 work wait,
-    /// 4 privacy wait, 5 route blocked, 6 unavailable relief, 7 stroll pause, 8 idle.
+    /// 4 privacy wait, 5 route blocked, 6 unavailable relief, 7 stroll pause, 8 idle,
+    /// 9 waiting outside for a route home.
     pub code: u32,
     pub partner: Option<u32>,
     pub needs: u8,
@@ -31,6 +32,16 @@ impl Sim {
                 needs: 0,
             })
         };
+        if world
+            .get::<crate::world_geometry::WaitingToReturn>(person)
+            .is_some()
+        {
+            return Some(ActivityStatus {
+                code: 9,
+                partner: None,
+                needs: 0,
+            });
+        }
         if world.get::<AtWork>(person).is_some()
             || world.get::<Commuting>(person).is_some()
             || world.get::<Reserved>(person).is_some()

@@ -267,8 +267,10 @@ fn architecture(
         .checked_add(house.height)
         .filter(|&y| y <= height)
         .ok_or(RoomError::InvalidArchitecture)?;
-    for line in house.rear_lines() {
-        block(line)?;
+    if !crate::world_geometry::current(world) {
+        for line in house.rear_lines() {
+            block(line)?;
+        }
     }
     let frozen_origin = match layout {
         SavedLayout::LegacyAuthoredV1 => Some((0, 0)),

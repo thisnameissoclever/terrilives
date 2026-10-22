@@ -1243,7 +1243,7 @@ async function main(): Promise<void> {
           // previous game's floors stayed on screen, and on a lot of another
           // height they landed on unrelated tiles, because the renderer keys
           // the list by height.
-          lot.floors = sim.floorTiles();
+          lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
           lot.doors = sim.interiorDoorLines();
           lot.horizontalDoors = sim.interiorHorizontalDoorLines();
           lot.frontDoors = sim.frontDoorLines();
@@ -1498,6 +1498,7 @@ async function main(): Promise<void> {
     floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
+    surfaces: sim.worldSurfaces(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
@@ -1513,13 +1514,13 @@ async function main(): Promise<void> {
   // The house's implicit shell is a wall to the lamps and the sky once
   // bought land lies beyond it (land expansion, issue 254).
   const lightingEdges = (): Uint32Array | null =>
-    edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height, lot.windows ?? []);
+    lot.surfaces.length ? (lot.edges ?? null) : edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height, lot.windows ?? []);
   let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
   // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin);
+    buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin, lot.surfaces);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1745,7 +1746,7 @@ async function main(): Promise<void> {
   let hoverLine: WallLine | null = null;
   /** Every barrier line at the height the static walls draw it, for picking the one under the pointer. */
   const wallFacesNow = () => wallFaces({
-    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin,
+    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin, explicit: !!lot.surfaces.length,
     edges: lot.edges ?? [], windowLines: lot.windows ?? [],
     hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [],
     low: lot.showCutAwayWalls !== true, raised: new Set(lot.selectedLines?.keys() ?? []),
@@ -1846,7 +1847,7 @@ async function main(): Promise<void> {
       const previous = renderer, previousFinishes = lot.architecture.finishes;
       renderer = next.renderer;
       lot.architecture.finishes = next.finishes;
-      lot.floors = sim.floorTiles();
+      lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
       try { applyCamera(); }
       catch (error) {
         renderer = previous;
@@ -2011,7 +2012,7 @@ async function main(): Promise<void> {
     lot.walls = sim.wallTiles(); lot.edges = sim.wallEdges();
     lot.windows = sim.windowLines();
     lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
-    lot.floors = sim.floorTiles(); syncFloorResources();
+    lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); syncFloorResources();
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();

@@ -46,7 +46,7 @@ pub(crate) fn commit(world: &mut World, edit: FloorEdit) {
     let reason = validate_floor_edit(world, edit).err();
     if reason.is_none() {
         let mut floors = world.get_resource_mut::<SavedFloors>();
-        let changed = match floors.as_mut() {
+        let mut changed = match floors.as_mut() {
             Some(floors) => floors.set(edit.x, edit.y, edit.covering),
             None => {
                 let mut fresh = SavedFloors::default();
@@ -55,6 +55,17 @@ pub(crate) fn commit(world: &mut World, edit: FloorEdit) {
                 changed
             }
         };
+        if edit.covering == 0 {
+            if let Some(mut surfaces) =
+                world.get_resource_mut::<crate::world_geometry::WorldSurfaces>()
+            {
+                let index = (edit.y * surfaces.width + edit.x) as usize;
+                if surfaces.tiles[index] == 0 {
+                    surfaces.tiles[index] = 1;
+                    changed = true;
+                }
+            }
+        }
         if changed {
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);

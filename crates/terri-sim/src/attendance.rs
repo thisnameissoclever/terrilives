@@ -80,14 +80,19 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
             .filter(|s| !s.settled && s.end_tick > now);
         let due_now = now % u64::from(pack.tuning.day_ticks) == u64::from(job.shift_start)
             && super::systems::career::works_today(job, world.resource::<SimClock>(), &pack.tuning);
-        let away = world.get::<AtWork>(actor).is_some()
+        let waiting = world
+            .get::<crate::world_geometry::WaitingToReturn>(actor)
+            .is_some();
+        let away = (world.get::<AtWork>(actor).is_some() && !waiting)
             || world.get::<Commuting>(actor) == Some(&Commuting::Outbound);
         if saved.is_none() && !due_now && !away {
             continue;
         }
         let start_tick = saved.map_or(now, |s| s.start_tick);
         let end_tick = saved.map_or(now + u64::from(job.shift_ticks), |s| s.end_tick);
-        let phase = if world.get::<AtWork>(actor).is_some() {
+        let phase = if waiting {
+            4
+        } else if world.get::<AtWork>(actor).is_some() {
             3
         } else {
             match world.get::<Commuting>(actor) {
@@ -145,6 +150,34 @@ fn return_home(world: &mut World, actor: Entity) {
     let Some(position) = world.get::<Position>(actor).copied() else {
         return;
     };
+    if crate::world_geometry::current(world) {
+        let entry = if world.get::<AtWork>(actor).is_some() {
+            crate::household::arrival(world).ok()
+        } else {
+            crate::world_geometry::route_home(world, position).map(|steps| (position, steps))
+        };
+        world
+            .entity_mut(actor)
+            .remove::<AtWork>()
+            .remove::<Path>()
+            .remove::<Commuting>()
+            .remove::<crate::world_geometry::WaitingToReturn>();
+        if let Some((arrival, steps)) = entry {
+            world.entity_mut(actor).insert((
+                arrival,
+                Commuting::Inbound,
+                Path { steps, cursor: 0 },
+            ));
+        } else {
+            // AtWork keeps the outside worker out of household autonomy and rendering.
+            // WaitingToReturn owns retries and prevents another wage settlement.
+            world.entity_mut(actor).insert((
+                crate::world_geometry::WaitingToReturn,
+                AtWork { remaining_ticks: 1 },
+            ));
+        }
+        return;
+    }
     let pack = world.resource::<Content>().0;
     let origin = world
         .get_resource::<crate::lot_frame::LotFrame>()
@@ -188,7 +221,10 @@ pub(crate) fn account_and_settle(world: &mut World) {
             world.resource_mut::<Attendance>().shifts.remove(&sim);
             continue;
         };
-        let working = world.get::<AtWork>(actor).is_some();
+        let working = world.get::<AtWork>(actor).is_some()
+            && world
+                .get::<crate::world_geometry::WaitingToReturn>(actor)
+                .is_none();
         let expired = {
             let mut attendance = world.resource_mut::<Attendance>();
             let shift = attendance.shifts.get_mut(&sim).unwrap();
@@ -286,6 +322,13 @@ fn settle(world: &mut World, actor: Entity, sim: SimId) {
 
 pub(crate) fn start_tick(world: &mut World) {
     account_and_settle(world);
+    let waiting: Vec<_> = world
+        .query_filtered::<Entity, With<crate::world_geometry::WaitingToReturn>>()
+        .iter(world)
+        .collect();
+    for actor in waiting {
+        return_home(world, actor);
+    }
     let now = world.resource::<SimClock>().tick;
     let pack = world.resource::<Content>().0;
     let mut actors: Vec<Entity> = world
@@ -348,34 +391,32 @@ pub(crate) fn start_tick(world: &mut World) {
     }
 }
 fn depart(world: &mut World, actor: Entity) {
-    let pack = world.resource::<Content>().0;
-    let origin = world
-        .get_resource::<crate::lot_frame::LotFrame>()
-        .map_or((0, 0), |f| f.origin);
-    let Some(door) = pack
-        .lot
-        .front_door
-        .map(|(x, y)| (x + origin.0, y + origin.1))
-    else {
-        return;
-    };
     let Some(position) = world.get::<Position>(actor).copied() else {
         return;
     };
-    let grid = world.resource::<TileGrid>();
-    let from = if grid.blocked_edges().next().is_some() {
-        (position.x.round() as i32, position.y.round() as i32)
+    let steps = if crate::world_geometry::current(world) {
+        crate::world_geometry::route_to_boundary(world, position)
     } else {
-        (position.x as i32, position.y as i32)
+        let pack = world.resource::<Content>().0;
+        let origin = world
+            .get_resource::<crate::lot_frame::LotFrame>()
+            .map_or((0, 0), |f| f.origin);
+        let grid = world.resource::<TileGrid>();
+        let from = (position.x.round() as i32, position.y.round() as i32);
+        let route = |to: (u32, u32)| {
+            grid.find_path(from, (to.0 as i32, to.1 as i32))
+                .and_then(|p| grid.anchor_path((position.x, position.y), p))
+        };
+        crate::portals::street_exit_at(pack, origin, grid.width() as u32)
+            .and_then(route)
+            .or_else(|| {
+                pack.lot
+                    .front_door
+                    .map(|(x, y)| (x + origin.0, y + origin.1))
+                    .and_then(route)
+            })
     };
-    let route = |to: (u32, u32)| {
-        grid.find_path(from, (to.0 as i32, to.1 as i32))
-            .and_then(|p| grid.anchor_path((position.x, position.y), p))
-    };
-    let Some(steps) = crate::portals::street_exit_at(pack, origin, grid.width() as u32)
-        .and_then(route)
-        .or_else(|| route(door))
-    else {
+    let Some(steps) = steps else {
         return;
     };
     crate::recipe_actions::suspend(world, actor);
@@ -422,6 +463,12 @@ pub(crate) fn finish_tick(world: &mut World) {
         .collect();
     actors.sort_by_key(|e| identity(world, *e));
     for actor in actors {
+        if world
+            .get::<crate::world_geometry::WaitingToReturn>(actor)
+            .is_some()
+        {
+            continue;
+        }
         if world.get::<Commuting>(actor) == Some(&Commuting::Inbound) {
             if world.get::<Path>(actor).is_none() {
                 world.entity_mut(actor).remove::<Commuting>();
@@ -1118,7 +1165,10 @@ pub fn validate_saved(world: &World, saved: &SavedAttendance) -> Result<(), crat
             || shift.pay_cents > i64::from(job.pay_max) * Funds::CENTS_PER_DOLLAR
             || (!shift.settled && shift.end_tick <= now)
             || (shift.settled
-                && (world.get::<AtWork>(actor).is_some()
+                && ((world.get::<AtWork>(actor).is_some()
+                    && world
+                        .get::<crate::world_geometry::WaitingToReturn>(actor)
+                        .is_none())
                     || world.get::<Commuting>(actor) == Some(&Commuting::Outbound)))
             || (!shift.settled
                 && world
@@ -1265,3 +1315,166 @@ pub(crate) fn migrate_legacy(world: &mut World) {
 #[cfg(test)]
 #[path = "attendance_tests.rs"]
 mod continuation_tests;
+
+#[cfg(test)]
+mod editable_return_tests {
+    use super::*;
+    use crate::world_geometry::{WaitingToReturn, WorldSurfaces};
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    #[test]
+    fn a_worker_waits_outside_then_returns_through_a_new_opening_and_round_trips() {
+        let mut sim = crate::Sim::new_with_lot(5, 5);
+        sim.world_mut()
+            .resource_mut::<WorldSurfaces>()
+            .tiles
+            .fill(1);
+        sim.world_mut().resource_mut::<WorldSurfaces>().tiles[12] = 0;
+        let edges = vec![
+            WallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 2,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 3,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 3,
+                doorway: false,
+            },
+        ];
+        for edge in &edges {
+            let [a, b] = edge.cells();
+            sim.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_edge_blocked(a, b, true);
+        }
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        crate::rooms::initialize(sim.world_mut()).unwrap();
+        let actor = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Career(0),
+                Position { x: 0., y: 2. },
+                AtWork { remaining_ticks: 1 },
+            ))
+            .id();
+        return_home(sim.world_mut(), actor);
+        assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+        assert_eq!(sim.activity_status_of(actor.index_u32()).unwrap().code, 9);
+        assert!(sim.world().get::<Path>(actor).is_none());
+        let saved = sim.save_snapshot_v21();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v21(), saved);
+        let layout = sim.world().resource::<SavedLayout>();
+        let edges = layout
+            .edges()
+            .iter()
+            .copied()
+            .filter(|edge| !(edge.axis == EdgeAxis::Horizontal && edge.y == 3))
+            .collect();
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        sim.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_edge_blocked((2, 2), (2, 3), false);
+        return_home(sim.world_mut(), actor);
+        assert!(sim.world().get::<WaitingToReturn>(actor).is_none());
+        assert_eq!(
+            sim.world().get::<Commuting>(actor),
+            Some(&Commuting::Inbound)
+        );
+        assert_eq!(
+            sim.world().get::<Path>(actor).unwrap().steps.last(),
+            Some(&(2, 2))
+        );
+    }
+    #[test]
+    fn settled_shift_waiting_outside_round_trips_without_another_payment() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        let actor = (0..1440)
+            .find_map(|_| {
+                sim.tick();
+                sim.world_mut()
+                    .query_filtered::<Entity, With<AtWork>>()
+                    .iter(sim.world())
+                    .next()
+            })
+            .expect("a household worker reaches work");
+        sim.begin_build().unwrap();
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::SetWallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 16,
+                y: 2,
+                state: terri_core::layout::WallState::Wall,
+            });
+        sim.flush_commands();
+        assert_eq!(
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .last_wall_result
+                .unwrap()
+                .reason,
+            None
+        );
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+        for _ in 0..1440 {
+            sim.tick();
+            if sim.world().get::<WaitingToReturn>(actor).is_some() {
+                break;
+            }
+        }
+        assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+        let saved = sim.save_snapshot_v21();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v21(), saved);
+        let paid = sim.funds();
+        for _ in 0..20 {
+            sim.tick();
+        }
+        assert_eq!(sim.funds(), paid);
+        assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+    }
+
+    #[test]
+    fn current_direction_restores_before_attendance_checks_a_finished_shift() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        for _ in 0..1440 {
+            sim.tick();
+            if sim
+                .world_mut()
+                .query::<&Commuting>()
+                .iter(sim.world())
+                .any(|c| *c == Commuting::Inbound)
+            {
+                let saved = sim.save_snapshot_v21();
+                let hash = sim.world_hash();
+                sim.load_snapshot_v21(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v21(), saved);
+                assert_eq!(sim.world_hash(), hash);
+                return;
+            }
+        }
+        panic!("the household worker did not return within a day");
+    }
+}

@@ -44,13 +44,51 @@ fn assert_refused_unchanged(live: &mut Sim, invalid: SaveSnapshotV3) {
     assert_eq!(live.world_hash(), hash);
 }
 
+/// These historical fixtures have an implicit north and west wall. Public
+/// adoption writes those walls explicitly without changing the authored edges.
+pub(super) fn assert_materialized_rear_shell(
+    actual: &SavedLayout,
+    original: &SavedLayout,
+    width: u32,
+    height: u32,
+) {
+    let mut expected = original.edges().to_vec();
+    expected.extend((0..height).map(|y| WallEdge {
+        axis: EdgeAxis::Vertical,
+        x: 0,
+        y,
+        doorway: false,
+    }));
+    expected.extend((0..width).map(|x| WallEdge {
+        axis: EdgeAxis::Horizontal,
+        x,
+        y: 0,
+        doorway: false,
+    }));
+    expected.sort_by_key(|edge| (edge.axis, edge.x, edge.y));
+    assert_eq!(actual, &SavedLayout::EdgeWallsV1 { edges: expected });
+}
+
+pub(super) fn assert_current_roundtrip(sim: &mut Sim) {
+    let saved = sim.save_snapshot_v21();
+    let hash = sim.world_hash();
+    sim.load_snapshot_v21(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v21(), saved);
+    assert_eq!(sim.world_hash(), hash);
+}
+
 #[test]
 fn v3_restores_rotation_before_testing_rectangles_against_saved_edges() {
     let (source, tub) = rotated_tub();
     let saved = source.save_snapshot_v3();
     let mut live = Sim::new_from_shipped_lot();
     live.load_snapshot_v3(saved.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v3(), saved);
+    let adopted = live.save_snapshot_v3();
+    assert_materialized_rear_shell(&adopted.layout, &saved.layout, 8, 8);
+    let mut expected = saved.clone();
+    expected.layout = adopted.layout;
+    assert_eq!(live.save_snapshot_v3(), expected);
+    assert_current_roundtrip(&mut live);
     assert_eq!(
         live.world().get::<ObjectFacing>(tub),
         Some(&ObjectFacing(Facing::SouthEast))
@@ -113,7 +151,11 @@ fn v3_routes_and_active_contacts_use_the_restored_rectangle() {
         live.load_snapshot_v3(saved.clone()).unwrap();
         let mut expected = saved.clone();
         expected.world = super::tests::after_legacy_load_draws(expected.world);
+        let adopted = live.save_snapshot_v3();
+        assert_materialized_rear_shell(&adopted.layout, &saved.layout, 8, 8);
+        expected.layout = adopted.layout;
         assert_eq!(live.save_snapshot_v3(), expected);
+        assert_current_roundtrip(&mut live);
         let mut wrong_contact = saved;
         wrong_contact
             .world
@@ -153,17 +195,22 @@ fn v3_corrupt_architecture_and_facing_codes_do_not_replace_live_state() {
 }
 
 #[test]
-fn v3_portal_return_validation_and_scene_activation_survive_restore() {
+fn v3_portal_validation_precedes_adoption_and_current_doors_need_no_starter_scene() {
     let source = Sim::new_from_shipped_lot();
     let valid = source.save_snapshot_v3();
     let mut active = Sim::new_from_shipped_lot();
     active.load_snapshot_v3(valid.clone()).unwrap();
-    // The front door, then a door in each of the three vertical and two horizontal doorways
-    // ([DR-derived]).
+    // Every saved doorway receives the catalogue model after adoption.
     assert_eq!(active.portal_buffer().states.len(), 6);
     let mut blank = Sim::new();
     blank.load_snapshot_v3(valid.clone()).unwrap();
-    assert!(blank.portal_buffer().states.is_empty());
+    assert_eq!(blank.portal_buffer().states.len(), 6);
+    assert_eq!(
+        blank.portal_buffer().positions,
+        active.portal_buffer().positions
+    );
+    assert_current_roundtrip(&mut active);
+    assert_current_roundtrip(&mut blank);
     let mut invalid = valid;
     invalid.layout = SavedLayout::EdgeWallsV1 {
         edges: vec![WallEdge {

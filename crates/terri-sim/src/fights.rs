@@ -2036,7 +2036,7 @@ mod order_tests {
             |s| s.world().get::<Socialising>(a).is_some(),
             "the player argument",
         );
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         assert_eq!(saved.conflicts.fights.len(), 1);
         assert!(saved.conflicts.fights[0].topic_code >= 33);
         let hash = sim.world_hash();
@@ -2046,13 +2046,13 @@ mod order_tests {
             "the frozen reader refuses the extended topic"
         );
         assert_eq!(sim.world_hash(), hash, "historical rejection is atomic");
-        sim.load_snapshot_v20(saved.clone()).unwrap();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(sim.world().resource::<SimRng>(), &rng);
         let mut missing = saved;
         missing.conflicts.fights.clear();
         assert!(
-            sim.load_snapshot_v20(missing).is_err(),
+            sim.load_snapshot_v21(missing).is_err(),
             "current saves cannot erase the argument's cause and provenance"
         );
         assert_eq!(sim.world_hash(), hash);
@@ -2101,9 +2101,9 @@ mod order_tests {
         let queue = sim.world().get::<IntentQueue>(a).unwrap();
         assert!(queue.order(system).is_none());
         assert!(queue.order(player).is_some());
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         let hash = sim.world_hash();
-        sim.load_snapshot_v20(saved).unwrap();
+        sim.load_snapshot_v21(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2201,9 +2201,9 @@ mod order_tests {
             .resource::<crate::social_conflicts::State>()
             .pending_fights
             .contains_key(&a));
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         let hash = sim.world_hash();
-        sim.load_snapshot_v20(saved).unwrap();
+        sim.load_snapshot_v21(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
         tick_until(
             &mut sim,
@@ -2277,7 +2277,7 @@ mod order_tests {
                 sim.world().get::<Socialising>(a).is_some(),
                 "a sale preserves the player's running argument"
             );
-            assert_eq!(sim.save_snapshot_v20().conflicts.grievances.len(), 1);
+            assert_eq!(sim.save_snapshot_v21().conflicts.grievances.len(), 1);
             if cancel {
                 let tick = sim.world().resource::<SimClock>().tick;
                 sim.world_mut()
@@ -2298,14 +2298,14 @@ mod order_tests {
                     "actual fight completion",
                 );
             }
-            let saved = sim.save_snapshot_v20();
+            let saved = sim.save_snapshot_v21();
             assert!(saved.conflicts.fights.is_empty());
             assert!(
                 saved.conflicts.grievances.is_empty(),
                 "unpinning removes the retired physical source in the same flush/tick"
             );
             let hash = sim.world_hash();
-            sim.load_snapshot_v20(saved).unwrap();
+            sim.load_snapshot_v21(saved).unwrap();
             assert_eq!(sim.world_hash(), hash);
         }
     }
@@ -2365,10 +2365,10 @@ mod order_tests {
         assert!(sim.world().get_entity(third).is_err());
         assert_eq!(sim.death_records().len(), 1);
         assert!(sim.world().get::<Socialising>(a).is_some());
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         let hash = sim.world_hash();
         assert_eq!(saved.conflicts.grievances.len(), 1);
-        sim.load_snapshot_v20(saved).unwrap();
+        sim.load_snapshot_v21(saved).unwrap();
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2383,7 +2383,7 @@ mod order_tests {
             |s| s.world().get::<Socialising>(a).is_some(),
             "the bare actors' fight",
         );
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         let hash = sim.world_hash();
         assert_eq!(
             saved.conflicts.fights[0].initiator,
@@ -2393,11 +2393,11 @@ mod order_tests {
             saved.conflicts.fights[0].recipient,
             terri_core::save_v17::SavedOrderActor::Entity(b.index_u32())
         );
-        sim.load_snapshot_v20(saved.clone()).unwrap();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         let mut invalid = saved;
         invalid.conflicts.fights[0].initiator = terri_core::save_v17::SavedOrderActor::Sim(0);
-        assert!(sim.load_snapshot_v20(invalid).is_err());
+        assert!(sim.load_snapshot_v21(invalid).is_err());
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -2418,7 +2418,7 @@ mod order_tests {
             crate::social_episode::bubble(sim.world(), a.index_u32()),
             (Reason::NONE_CODE, -1.)
         );
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         assert!(saved.conflicts.fights[0].legacy && saved.conflicts.fights[0].grievance.is_none());
         let mut hash = FnvHasher::default();
         crate::social_conflicts::hash(sim.world(), &mut hash);
@@ -2428,7 +2428,7 @@ mod order_tests {
             "compatibility metadata changes no published-policy computation"
         );
         let before = sim.world_hash();
-        sim.load_snapshot_v20(saved).unwrap();
+        sim.load_snapshot_v21(saved).unwrap();
         assert_eq!(sim.world_hash(), before);
     }
 
@@ -2520,7 +2520,7 @@ mod order_tests {
                 .decision,
             Some(false)
         );
-        let saved = sim.save_snapshot_v20();
+        let saved = sim.save_snapshot_v21();
         let original = saved.legacy.clone();
         let hash = sim.world_hash();
         assert_eq!(saved.conflicts.fights.len(), 2);
@@ -2531,7 +2531,7 @@ mod order_tests {
             .fights
             .iter()
             .all(|row| row.legacy && row.grievance.is_none()));
-        sim.load_snapshot_v20(saved.clone()).unwrap();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
         assert_eq!(sim.world_hash(), hash);
         assert_eq!(
             sim.world()
@@ -2551,7 +2551,7 @@ mod order_tests {
             let mut missing = saved.clone();
             missing.conflicts.fights.remove(remove);
             assert!(
-                sim.load_snapshot_v20(missing).is_err(),
+                sim.load_snapshot_v21(missing).is_err(),
                 "neither exact context can stand in for the other"
             );
         }
@@ -2561,6 +2561,6 @@ mod order_tests {
             original,
             "old adoption preserves every frozen field"
         );
-        assert_eq!(sim.save_snapshot_v20().conflicts.fights.len(), 2);
+        assert_eq!(sim.save_snapshot_v21().conflicts.fights.len(), 2);
     }
 }

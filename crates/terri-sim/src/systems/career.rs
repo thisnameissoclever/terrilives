@@ -36,13 +36,13 @@ pub(crate) fn works_today(
     ))
 }
 
-/// The direction of a saved commute, read back off the saved walk's
+/// Historical commute direction (V1 through V20), read off the saved walk's
 /// destination, because a save carries the marker and not its direction
 /// (Save V1's `commuting` is one bit, and postcard writes an entity's
 /// fields back to back, so a direction field could not be appended the way
 /// a trailing snapshot field can).
 ///
-/// A walk home ends on the front door's landing and nowhere else, and no
+/// In those frozen formats a walk home ends on the authored landing, and no
 /// outbound walk ends there: the commute's end is the street's exit or the
 /// door tile ([OS-street]), both outside the landing. A saved commuter with
 /// no walk at all is outbound, the only direction that can be saved

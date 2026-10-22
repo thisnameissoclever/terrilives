@@ -361,9 +361,9 @@ fn a_staged_sale_survives_save_and_load_and_the_hash_sees_it() {
         });
     assert_ne!(other.world_hash(), staged, "the hash sees which object");
 
-    let saved = sim.save_snapshot_v4();
+    let saved = sim.current_v4_view();
     let mut loaded = house(0).0;
-    loaded.load_snapshot_v4(saved).unwrap();
+    loaded.load_current_v4_view(saved).unwrap();
     assert_eq!(loaded.world_hash(), staged);
     loaded.flush_commands();
     assert_eq!(last(&loaded).unwrap().reason, None);
@@ -424,7 +424,14 @@ fn a_v4_save_with_bad_retired_indices_is_refused() {
     assert!(house(0).0.load_snapshot_v4(edge).is_ok());
     let mut target = house(0).0;
     target.load_snapshot_v4(good).unwrap();
-    assert_eq!(target.world_hash(), sim.world_hash());
+    assert_eq!(
+        target.save_snapshot_v4().retired_indices,
+        sim.save_snapshot_v4().retired_indices
+    );
+    let migrated = target.save_snapshot_v21();
+    let mut reloaded = house(0).0;
+    reloaded.load_snapshot_v21(migrated).unwrap();
+    assert_eq!(reloaded.world_hash(), target.world_hash());
 }
 
 /// [SL-render]: a sale and a purchase in one drain keep the row count while
@@ -472,7 +479,7 @@ fn a_sold_object_above_every_saved_index_stays_retired_after_a_load() {
         .resolve_from_index(bevy_ecs::entity::EntityIndex::from_raw_u32(bought).unwrap());
     sell(&mut playing, chair);
     assert_eq!(last(&playing).unwrap().reason, None);
-    let saved = playing.save_snapshot_v4();
+    let saved = playing.current_v4_view();
     assert!(
         saved
             .world
@@ -482,7 +489,7 @@ fn a_sold_object_above_every_saved_index_stays_retired_after_a_load() {
         "the sold chair is above every saved index"
     );
     let mut loaded = house(0).0;
-    loaded.load_snapshot_v4(saved).unwrap();
+    loaded.load_current_v4_view(saved).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
     let next = buy_a_chair(&mut playing).unwrap();
     assert_eq!(buy_a_chair(&mut loaded), Some(next));
