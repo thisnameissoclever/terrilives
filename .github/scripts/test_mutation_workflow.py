@@ -54,7 +54,8 @@ class ToolTransportPreflightTests(unittest.TestCase):
         wrapper = recovery.WorkflowAPI(api)
         captured = io.StringIO()
         with mock.patch.dict(os.environ, env), mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener), \
-                contextlib.redirect_stdout(captured), mock.patch.object(tool, "build") as build:
+                contextlib.redirect_stdout(captured), mock.patch.object(tool, "build") as build, \
+                mock.patch.object(workflow.runtime, "identity", return_value={"fixture": "runtime"}):
             settings = workflow.current_settings(wrapper, Path.cwd(), "fixture", "mutation-fixture-tool", 0)
             if bad:
                 with self.assertRaisesRegex(ValueError, "completed execution"):

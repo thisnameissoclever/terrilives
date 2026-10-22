@@ -12681,7 +12681,7 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
 
-**Verification.** Compare pre-existing non-ASCII text with the base revision and check the zoom-out control in the browser.
+**Verification.** Compare pre-existing non-ASCII text with the base revision. Check affected interface symbols in the browser and run affected Unicode test fixtures. A later fixture-copy edit corrupted an accented test literal through the same implicit Windows decoding; the complete runner test module caught it before delivery.
 
 ## [L-condition-help-states-the-effect] Explain the value directly
 
@@ -13134,3 +13134,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: repository iteration order replaced the package manager's version-selection rules.
 3. Prevention: freeze the package snapshot and resolve every direct package through APT's actual candidate selection. Validate every locked candidate before installation.
 4. Verification: build against the frozen signed snapshot with a candidate audit for all locked packages. Require a mismatched lock to fail before installation.
+
+## [L-isolated-test-import-closure] Copy every required module into isolated guard tests
+
+1. What happened: adding a runtime helper caused isolated guard-removal tests to fail during import, before reaching their intended assertions.
+2. Root cause: the isolated test copies explicitly listed helper modules and omitted the new transitive import.
+3. Prevention: scan isolated-copy module lists whenever adding an import. Include the required helper without weakening the original negative assertion.
+4. Verification: run the isolated controls and require each deliberate guard removal to fail for its named assertion. Complete the integration suite against a stable source tree.

@@ -43,6 +43,14 @@ on:
 permissions:
   contents: read
   actions: read
+  packages: read
+
+env:
+  MUTATION_RUNTIME_IMAGE: &mutation-runtime-image ghcr.io/thisnameissoclever/terrilives-mutation-runtime@sha256:cfeff66d1e4710a9676e13b432915beac1c7395d776e0e9a75d4805b81a20cbe
+
+defaults:
+  run:
+    shell: bash
 
 # A new push to a pull request cancels that pull request's older runs. Without
 # this, every push left its eight-shard mutation sweep running beside the new
@@ -338,6 +346,12 @@ jobs:
     if: inputs.runtime_publish != true && needs.ci-guards.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-0
       cancel-in-progress: false
@@ -346,8 +360,8 @@ jobs:
       tool_id: ${{ steps.prepare.outputs.tool_id || steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Build or restore the pinned fixture tool
         id: prepare
         env:
@@ -382,6 +396,12 @@ jobs:
       (inputs.mutation_mode != 'fixture' || needs.mutation-tool.result == 'success')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-0
       cancel-in-progress: false
@@ -391,8 +411,8 @@ jobs:
       chain: ${{ steps.prepare.outputs.chain }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Authenticate qualification and freeze or recover the original plan
         id: prepare
         env:
@@ -426,6 +446,12 @@ jobs:
     if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-0
       cancel-in-progress: false
@@ -434,8 +460,8 @@ jobs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Measure native work without production coverage
         id: execute
         env:
@@ -465,10 +491,18 @@ jobs:
     if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Authenticate finished native measurements
         id: execute
         env:
@@ -499,12 +533,18 @@ jobs:
     if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Require separate external native review and admission
         id: execute
         env:
@@ -538,6 +578,12 @@ jobs:
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-0
       cancel-in-progress: false
@@ -546,8 +592,8 @@ jobs:
       prepared_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Authenticate incremental history for this attempt
         id: prepare
         env:
@@ -577,6 +623,12 @@ jobs:
     if: ${{ inputs.runtime_publish != true && !cancelled() && needs.mutation-prepare.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-${{ matrix.shard }}
       cancel-in-progress: false
@@ -587,8 +639,8 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Execute bounded slot from authenticated original plan
         id: execute
         env:
@@ -622,10 +674,16 @@ jobs:
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
       - name: Validate current inputs and exact complete evidence
         id: aggregate
         env:

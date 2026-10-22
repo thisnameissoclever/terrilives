@@ -28,4 +28,6 @@ Publication uses `GH_TOKEN` or `GITHUB_TOKEN` and `GITHUB_ACTOR` from that job. 
 
 Use the receipt's real image digest, inventory hash and recipe-file hashes for the committed `pin.json`. Never fill the pin with a tag or a proposed digest. The receipt also records the source revision and publication run ID. Rebuilding the image creates a new candidate; consumers continue using the reviewed digest until the pin is deliberately changed and qualified.
 
+Retain each published digest while a committed pin or an unexpired campaign references it. Deleting a referenced image prevents new jobs and recovery attempts from starting.
+
 The official input sources are [Ubuntu's container image](https://hub.docker.com/_/ubuntu), the [Ubuntu package snapshot](https://snapshot.ubuntu.com/), the [Rust 1.94.1 distribution manifest](https://static.rust-lang.org/dist/channel-rust-1.94.1.toml), [GitHub CLI's immutable release](https://github.com/cli/cli/releases/tag/v2.102.1), its [published checksums](https://github.com/cli/cli/releases/download/v2.102.1/gh_2.102.1_checksums.txt), and [BuildKit's release](https://github.com/moby/buildkit/releases/tag/v0.28.0). The lock contains the exact downloaded-byte hashes; the final image digest and embedded inventory identify what actually ran.

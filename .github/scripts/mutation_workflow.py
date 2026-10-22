@@ -19,6 +19,7 @@ import mutation_recovery as recovery
 import mutation_native as native
 import mutation_runner as runner
 import mutation_tool as tool
+import mutation_runtime as runtime
 
 require = artifacts.require
 CAMPAIGN_DAYS = 7
@@ -53,7 +54,7 @@ def current_settings(api, root, scope, job_name, slot):
     return {"repository": repository, "workflow": tool.WORKFLOW, "workflow_sha": os.environ["GITHUB_WORKFLOW_SHA"],
         "run_id": run_id, "attempt": attempt, "head_sha": run["head_sha"], "job_id": str(job["id"]),
         "slot": slot, "scope": scope, "opt_level": 2, "cargo_jobs": 2,
-        "runner_image": {key: os.environ[key] for key in ("ImageOS", "ImageVersion")},
+        "runtime": runtime.identity(root), "host_provenance": runtime.host_provenance(),
         "job_started_at": job["started_at"], "build_cap_seconds": 600,
         "log_retention_days": int(os.environ["GITHUB_RETENTION_DAYS"]),
         # Conservative initial reserves. Retained fixture and campaign timing measures them.
@@ -190,7 +191,7 @@ def require_prior_worker_evidence(api, settings, manifest, chain):
 def bind_tool(api, root, settings, reference, contract, scratch, chain):
     require(reference["repository"] == settings["repository"], "foreign tool repository")
     path, authenticated = tool.authenticate(api, reference, contract, scratch / "verified-tool", root,
-        settings["runner_image"], artifacts.timestamp(chain["expires_at"]) + tool.MARGIN)
+        settings["runtime"], artifacts.timestamp(chain["expires_at"]) + tool.MARGIN)
     settings.update(require_authenticated_tool=True, tool_executable=str(path),
                     tool_sha256=reference["executable_sha256"], tool_contract=authenticated)
 
@@ -322,7 +323,7 @@ def bind_prepared_tool(api, root, settings, data, scratch):
     reference = data["planned"]["orchestration"]["tool"]
     require(reference["repository"] == settings["repository"], "foreign prepared tool repository")
     executable, contract = tool.consume_prepared(api, reference, data["tool_receipt"], data["contract"],
-        scratch / "verified-tool", root, settings["runner_image"],
+        scratch / "verified-tool", root, settings["runtime"],
         artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN)
     settings.update(require_authenticated_tool=True, tool_executable=str(executable),
                     tool_sha256=reference["executable_sha256"], tool_contract=contract)

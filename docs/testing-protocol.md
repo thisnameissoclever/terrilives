@@ -102,6 +102,14 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   a separate job after its workers finish. This budget does not guarantee available account-wide
   runners. Previously dispatched workflows retain their old configuration.
   See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+
+  Every mutation stage uses the same committed container image and tool-inventory
+  pin. The image supplies the compiler, libraries and command-line tools;
+  hosting-machine metadata remains separate provenance. The owner-dispatched
+  runtime publisher shares slot zero and receives package-write permission only
+  for that operation. Mutation consumers remain read-only. Runtime replacement
+  requires a reviewed actual image receipt and fresh interrupted/resumed fixture
+  qualification. See `docs/mutation-campaign.md` and `.github/runtime/README.md`.
   `.github/scripts/test_workflow_concurrency.py` pins the shared group, queue,
   shard count and CI invocation; it does not emulate GitHub's scheduler.
   Tool preparation, calibration, native diagnostics and current-attempt recovery

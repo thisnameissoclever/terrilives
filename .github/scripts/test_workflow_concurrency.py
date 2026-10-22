@@ -5,6 +5,9 @@ parser. GitHub validates the workflow syntax when it accepts the workflow.
 """
 
 from pathlib import Path
+import hashlib
+import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -12,6 +15,9 @@ import unittest
 
 
 WORKFLOW = Path(__file__).resolve().parents[1] / "workflows" / "ci.yml"
+PIN = Path(__file__).resolve().parents[1] / "runtime" / "pin.json"
+MUTATION_JOBS = ("mutation-tool", "mutation-plan", "mutation-native-pilot", "mutation-native-pilot-report",
+                 "mutation-admission", "mutation-prepare", "mutants", "mutation-aggregate")
 ART_COMMANDS = [
     "python3 -m pip install --quiet --disable-pip-version-check Pillow numpy",
     "python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'",
@@ -106,7 +112,7 @@ class MutationRunnerBudget(unittest.TestCase):
         self.assertIn("steps.execute.outputs.bundle_ready == 'true'", self.mutants)
 
     def test_only_read_permissions_no_self_dispatch_no_worker_install(self):
-        self.assertEqual(self.block(self.workflow, "permissions", 0), "  contents: read\n  actions: read")
+        self.assertEqual(self.block(self.workflow, "permissions", 0), "  contents: read\n  actions: read\n  packages: read")
         publisher = self.block(self.jobs, "runtime-publish", 2)
         self.assertEqual(self.block(publisher, "permissions", 4),
                          "      contents: read\n      actions: read\n      packages: write")
@@ -229,6 +235,41 @@ class MutationRunnerBudget(unittest.TestCase):
         for key in ("changes", "ci-guards"):
             self.assertFalse(any(line.startswith("    if:") for line in self.block(self.jobs, key, 2).splitlines()))
 
+    def test_mutation_jobs_use_the_committed_immutable_runtime(self):
+        pin = json.loads(PIN.read_text())
+        self.assertRegex(pin["image"], r"^ghcr\.io/thisnameissoclever/terrilives-mutation-runtime@sha256:[0-9a-f]{64}$")
+        self.assertRegex(pin["inventory_sha256"], r"^[0-9a-f]{64}$")
+        self.assertNotEqual(pin["inventory_sha256"], "0" * 64)
+        environment = self.block(self.workflow, "env", 0)
+        self.assertEqual(environment, "  MUTATION_RUNTIME_IMAGE: &mutation-runtime-image " + pin["image"])
+        self.assertEqual(len(re.findall(r"^\s+MUTATION_RUNTIME_IMAGE:", self.workflow, re.MULTILINE)), 1)
+        self.assertEqual(set(pin["recipe_files"]), {".github/runtime/Dockerfile", ".github/runtime/.dockerignore",
+                         ".github/runtime/inputs.lock.json", ".github/runtime/inventory.py"})
+        for name, expected in pin["recipe_files"].items():
+            self.assertEqual(hashlib.sha256((PIN.parents[2] / name).read_bytes()).hexdigest(), expected, name)
+        for key in MUTATION_JOBS:
+            job = self.block(self.jobs, key, 2)
+            self.assertEqual(self.block(job, "container", 4),
+                "      image: *mutation-runtime-image\n"
+                "      credentials:\n"
+                "        username: ${{ github.actor }}\n"
+                "        password: ${{ github.token }}\n"
+                "      options: --cpus 2 --memory 6g", key)
+        self.assertEqual(self.workflow.count("image: *mutation-runtime-image"), len(MUTATION_JOBS))
+
+    def test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools(self):
+        self.assertEqual(self.block(self.block(self.workflow, "defaults", 0), "run", 2), "    shell: bash")
+        for key in MUTATION_JOBS:
+            job = self.block(self.jobs, key, 2)
+            self.assertIn("      - name: Verify the pinned mutation runtime\n"
+                          "        run: python3 -B .github/scripts/mutation_runtime.py verify --root .", job)
+            self.assertNotRegex(job, r"rustup|apt(?:-get)?\s|pip\s+install|cargo\s+install|volumes:|--volume|--mount|--read-only|--user|--tmpfs")
+            self.assertNotIn("    permissions:", job)
+            self.assertNotIn("    defaults:", job)
+        self.assertEqual(self.workflow.count("mutation_runtime.py verify --root ."), len(MUTATION_JOBS))
+        for key in ("rust", "web"):
+            self.assertIn("        run: rustup show", self.block(self.jobs, key, 2))
+
     def test_isolated_workflow_guard_removals_are_detected(self):
         controls = [
             ("needs.mutation-admission.result == 'success'", "true",
@@ -273,7 +314,27 @@ class MutationRunnerBudget(unittest.TestCase):
             ('          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]', "          true",
              "test_runtime_publisher_checks_revision_before_build_and_limits_credentials"),
             ("inputs.runtime_publish != true && needs.changes.outputs.site", "needs.changes.outputs.site",
-             "test_runtime_bootstrap_suppresses_only_ordinary_jobs")]
+             "test_runtime_bootstrap_suppresses_only_ordinary_jobs"),
+            ("    shell: bash", "    shell: sh",
+             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools"),
+            ("      options: --cpus 2 --memory 6g", "      options: --cpus 8 --memory 16g",
+             "test_mutation_jobs_use_the_committed_immutable_runtime"),
+            ("        password: ${{ github.token }}", "        password: unbound",
+             "test_mutation_jobs_use_the_committed_immutable_runtime"),
+            ("mutation_runtime.py verify --root .", "mutation_runtime.py verify --root . && rustup update",
+             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools"),
+            ("  packages: read", "  packages: write",
+             "test_only_read_permissions_no_self_dispatch_no_worker_install"),
+            ("      options: --cpus 2 --memory 6g", "      options: --cpus 2 --memory 6g\n      volumes: [/opt/rust:/opt/rust]",
+             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools")]
+        for key in MUTATION_JOBS:
+            prefix = self.workflow.split(f"  {key}:\n", 1)[1].split("      image: *mutation-runtime-image", 1)[0]
+            old = f"  {key}:\n" + prefix + "      image: *mutation-runtime-image"
+            controls.append((old, old.replace("image: *mutation-runtime-image", "image: ubuntu:24.04"),
+                             "test_mutation_jobs_use_the_committed_immutable_runtime"))
+        pin = json.loads(PIN.read_text())
+        controls.append(("&mutation-runtime-image " + pin["image"], "&mutation-runtime-image " + pin["image"][:-1] + ("0" if pin["image"][-1] != "0" else "1"),
+                         "test_mutation_jobs_use_the_committed_immutable_runtime"))
         controls.extend((command, "true", "test_art_retains_every_command_and_runs_alongside_native_and_web")
                         for command in ART_COMMANDS)
         controls.extend((f"  {key}:\n    needs: changes", f"  {key}:\n    needs: [changes, ci-guards]",

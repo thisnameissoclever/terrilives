@@ -21,6 +21,7 @@ import uuid
 sys.dont_write_bytecode = True
 import mutation_campaign as model
 import mutation_artifacts as artifacts
+import mutation_runtime as runtime
 
 ROOTS = ("crates/", "content/", "assets/", "web/", "scripts/", "tools/", ".github/", ".cargo/")
 FILES = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "rust-toolchain", ".gitignore",
@@ -153,17 +154,19 @@ def checkout_inventory(root, repository):
     return checkout, inventory
 
 
-def execution_environment(settings, environ=None):
+def execution_environment(settings, environ=None, *, root=None):
     inherited = dict(os.environ if environ is None else environ)
     forbidden = {"TERRI_WRITE_RUNTIME_FIXTURE", "TERRI_PROVE_RUNTIME_FIXTURE", "TERRI_BROWSER_FIXTURE_DIR",
                  "TERRI_PRIVATE_PREVIEW_SAVE", "RUSTFLAGS", "RUSTDOCFLAGS", "RUSTC", "RUSTDOC",
                  "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER", "CARGO_ENCODED_RUSTFLAGS", "RUSTUP_TOOLCHAIN"}
     require(not (forbidden & inherited.keys()), "undeclared compiler or fixture override")
-    require(not any(key.startswith("CARGO_") and key not in {"CARGO_HOME", "CARGO_TERM_COLOR"}
+    require(not any(key.startswith("CARGO_") and key not in {"CARGO_HOME", "CARGO_TERM_COLOR", "CARGO_BUILD_JOBS"}
                     for key in inherited), "undeclared Cargo override")
     opt = settings["opt_level"]
     require(type(opt) is int and 0 <= opt <= 3, "optimization level must be explicit")
     require(type(settings["cargo_jobs"]) is int and 1 <= settings["cargo_jobs"] <= 2, "invalid Cargo worker count")
+    require("CARGO_BUILD_JOBS" not in inherited or inherited["CARGO_BUILD_JOBS"] == str(settings["cargo_jobs"]),
+            "undeclared Cargo override: CARGO_BUILD_JOBS differs from declared worker count")
     explicit = {"CARGO_PROFILE_TEST_OPT_LEVEL": str(opt), "CARGO_PROFILE_DEV_OPT_LEVEL": str(opt),
                 "CARGO_PROFILE_TEST_DEBUG_ASSERTIONS": "true", "CARGO_PROFILE_DEV_DEBUG_ASSERTIONS": "true",
                 "CARGO_PROFILE_TEST_OVERFLOW_CHECKS": "true", "CARGO_PROFILE_DEV_OVERFLOW_CHECKS": "true",
@@ -180,9 +183,12 @@ def execution_environment(settings, environ=None):
             if path.exists():
                 # External Cargo config can redirect rustc and inject arbitrary settings.
                 raise ValueError("external Cargo config is not permitted; use tracked .cargo configuration")
+    current_runtime = settings["runtime"]
+    if root is not None:
+        require(runtime.identity(root, inherited) == current_runtime, "mutation execution runtime changed")
     return environment, {"variables": explicit, "external_cargo_config": configs,
                          "platform": sys.platform, "locale": {key: environment.get(key) for key in ("LANG", "LC_ALL")},
-                         "runner_image": settings["runner_image"], "tool_added_rustflags": "--cap-lints=warn",
+                         "runtime": current_runtime, "tool_added_rustflags": "--cap-lints=warn",
                          "owned_path_layout": {"version": 1, "CARGO_TARGET_DIR": "target", "TMPDIR": "tmp", "TMP": "tmp", "TEMP": "tmp"}}
 
 
@@ -336,7 +342,7 @@ class ChangingSnapshot(Exception):
 def collect_context(root, settings, calibration, *, tool=None):
     checkout, inventory = checkout_inventory(root, settings["repository"])
     require(FILES[-1] in {row["path"] for row in inventory["entries"]}, "published V15 fixture is not tracked")
-    env, contract_env = execution_environment(settings)
+    env, contract_env = execution_environment(settings, root=root)
     tool = tool or installed_tool(root, env, settings)
     toolchain = {tool: command([tool, "--version", "--verbose"], root, env) for tool in ("rustc", "cargo")}
     require(calibration["scope"] == settings["scope"] and calibration["inventory_digest"] == model.digest(inventory)
@@ -673,7 +679,7 @@ def calibrate(root, settings, output):
     bound_setup(settings)
     require(settings["slot"] == 0, "calibration must own shared slot zero")
     checkout, inventory = checkout_inventory(root, settings["repository"])
-    env, contract_env = execution_environment(settings)
+    env, contract_env = execution_environment(settings, root=root)
     env["CARGO_ENCODED_RUSTFLAGS"] = "--cap-lints=warn"
     tool = installed_tool(root, env, settings)
     started = artifacts.timestamp(settings["job_started_at"]).timestamp()
@@ -736,7 +742,7 @@ def plan(root, settings, calibration, output):
     producer = {"repository": settings["repository"], "workflow": settings["workflow"], "workflow_sha": settings["workflow_sha"],
                 "run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"], "slot": 0,
                 "scope": settings["scope"], "checkout": context["checkout"], "input_fingerprint": manifest["input_fingerprint"],
-                "campaign_id": manifest["campaign_id"]}
+                "campaign_id": manifest["campaign_id"], "host_provenance": settings.get("host_provenance", {})}
     if "log_retention_days" in settings:
         producer["log_retention_days"] = settings["log_retention_days"]
     write_json(output, {"version": 1, "manifest": manifest, "calibration": calibration, "capacity": decision, "producer": producer})
@@ -794,7 +800,7 @@ def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=
         checked_budget = None
     require(settings.get("fixture_stop_after_records") is None or settings["scope"] == "fixture",
             "deliberate fixture interruption is forbidden in production")
-    tool = installed_tool(root, execution_environment(settings)[0], settings)
+    tool = installed_tool(root, execution_environment(settings, root=root)[0], settings)
     context, env, _ = collect_context(root, settings, calibration, tool=tool)
     require(model.digest({"schema_version": model.SCHEMA_VERSION, "inputs": context["inputs"]}) == manifest["input_fingerprint"],
             "source or execution contract changed")
@@ -812,6 +818,7 @@ def execute_slot(root, settings, planned, chain, output, api=None, *, recovered=
     receipt = {"repository": settings["repository"], "workflow": settings["workflow"],
                "workflow_sha": settings["workflow_sha"], "run_id": settings["run_id"], "attempt": settings["attempt"],
                "job_id": settings["job_id"], "slot": slot, "checkout": context["checkout"],
+               "host_provenance": settings.get("host_provenance", {}),
                "input_fingerprint": manifest["input_fingerprint"], "campaign_id": manifest["campaign_id"]}
     if "log_retention_days" in settings:
         receipt["log_retention_days"] = settings["log_retention_days"]

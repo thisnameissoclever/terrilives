@@ -14,10 +14,30 @@ authenticated results; an operator never creates or substitutes it manually.
 The first checkpoint attempt is intentionally incomplete. Qualification appears
 only after the resumed attempt completes its exact fixture inventory.
 
-If setup refuses `tool runtime changed`, compare the tool and consumer jobs'
-hosted image and runtime identities. Keep the refusal. Start a fresh fixture
-campaign after the hosted image rollout has settled; rerunning an immutable
-campaign cannot make a different runtime equivalent to its original tool.
+All mutation stages use the image digest and inventory hash in
+`.github/runtime/pin.json`. The committed container pin selects the filesystem
+baseline. Runtime checks rehash its inventoried executables, compiler inputs,
+libraries and symlink targets. Host metadata is separate provenance.
+
+If setup refuses `tool runtime changed`, compare the pinned image, embedded
+inventory, actual loaded libraries, compiler and recipe inputs. Keep the
+refusal. Repair the mismatch before starting fresh qualification. Waiting for a
+hosted image rollout does not select a stable multi-day computation environment.
+
+To replace the runtime, review `.github/runtime/` and its source checksums.
+Dispatch `ci.yml` on that exact reviewed revision with `runtime_publish=true`
+and `runtime_build_sha` equal to the complete source SHA. Only the repository
+owner can publish. The publisher uses global slot zero, runs complete script
+guards, builds with bounded resources, and requires inventory, compilation,
+isolation, shutdown and tampering checks before registry publication. Its write
+permission is limited to packages in that publication job. Ordinary test and
+campaign jobs do not run during this explicit image operation.
+
+Read the successful publisher's actual image receipt. Commit its immutable
+registry digest, inventory hash and recipe hashes in `pin.json`. Apply that same
+digest to every mutation job. Consumer jobs use package-read permission and
+perform no package or toolchain updates. Produce fresh fixture qualification
+before accepting production planning with the replacement runtime.
 
 1. Manually dispatch the registered `ci.yml` with `mutation_mode=fixture` on the
    reviewed branch. The `mutation-fixture-tool` job acquires global slot zero,
@@ -303,10 +323,12 @@ production coverage. All original evidence and its original retention remain
 required. Any separately observed loss of required evidence still stops recovery.
 The check does not require an unfinished workflow's whole-run log archive.
 
-Hosted Ubuntu 24.04 image identity, architecture, ELF interpreter, loaded-library
-hashes and verbose Rust/Cargo identities are part of the authenticated runtime.
-A rolling image change can invalidate a campaign before its artifacts expire.
-Requalification and a new campaign are then required.
+The pinned container digest, inventory, architecture, ELF interpreter,
+loaded-library hashes and verbose Rust/Cargo identities define the authenticated
+runtime. A host image rollout changes recorded provenance while the pinned
+userspace remains the same. Changing the actual runtime requires requalification
+and a new campaign. Containers share the host kernel; this contract does not
+claim complete machine reproducibility.
 
 Run the focused local contract suites with:
 
