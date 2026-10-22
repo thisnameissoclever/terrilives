@@ -1,5 +1,6 @@
 /* Shared action alignment; descriptions and form labels retain their reading alignment. */
 .hud-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; text-align: center; white-space: normal; overflow-wrap: anywhere; min-width: 0; }
+.hud-button[hidden] { display: none !important; }
 dialog { box-sizing: border-box; overflow-wrap: anywhere; }
 dialog menu > * { min-width: 0; }
 #housemate-personality, #housemate-traits-field { min-width: 0; }
