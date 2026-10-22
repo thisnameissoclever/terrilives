@@ -8,7 +8,7 @@
 import { setActionIntent, type ActionIntent } from './action-intent.js';
 import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
-import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, type ActionRegion } from './object-menu-layout.js';
+import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, descriptionPlacement, type ActionRegion } from './object-menu-layout.js';
 import { formatFunds } from './game-hud.js';
 import { preventMenuSelection } from './menu-selection.js';
 
@@ -74,7 +74,7 @@ export interface MenuEntry {
    *
    * Set on the cancel row and nowhere else, because it is the one row that
    * is not about the thing under the pointer. Without it the flyout reads
-   * as a flat list in which "Nothing" is a fourth thing you could do to
+   * as a flat list in which "Clear orders" is another thing you could do to
    * the bookshelf.
    */
   readonly divider?: boolean;
@@ -100,22 +100,9 @@ export interface Menu {
   readonly entries: readonly MenuEntry[];
 }
 
-/**
- * The row that cancels, which right-click used to perform directly.
- *
- * Worded as a refusal of the menu rather than as an order - "Nothing"
- * rather than "Stop" - because that is what it does to a sim acting on its
- * own: nothing. `CancelIntents` releases the sim's current commitment only
- * when that commitment is the intent being cancelled, so a sim that chose
- * to sleep by itself keeps sleeping. A row labelled "Stop" would be
- * promising something the simulation deliberately does not do.
- *
- * It was "Never mind", which reads as an apology to the menu rather than
- * as an answer to the question the menu is asking. The question is what
- * this person should do, and the answer is Nothing.
- */
+/** Clears the selected person's player orders; dismissing the menu is a separate action. */
 export const NOTHING: MenuEntry = {
-  label: 'Nothing',
+  label: 'Clear orders',
   action: { kind: 'cancel' },
   divider: true,
 };
@@ -257,6 +244,7 @@ export interface MenuSurface {
     clientX: number,
     clientY: number,
     onPick: (index: number, additive: boolean) => void,
+    preserveState?: boolean,
   ): void;
   hide(): void;
 }
@@ -301,6 +289,8 @@ export class ObjectMenu {
   private entries: readonly MenuEntry[] = [];
 
   private showing = false;
+  private current: { menu: Menu; x: number; y: number } | null = null;
+  private clearable = false;
 
   /**
    * @param surface  where rows are drawn.
@@ -314,6 +304,7 @@ export class ObjectMenu {
     private readonly surface: MenuSurface,
     private readonly onAction: (action: MenuAction, additive: boolean) => void,
     private readonly canActivate: (action: MenuAction) => boolean = () => true,
+    private readonly canClearOrders: () => boolean = () => false,
   ) {}
 
   /** Whether rows are on screen. */
@@ -331,12 +322,23 @@ export class ObjectMenu {
    * the rows rather than stacking a second menu, which is what a right
    * click on a second object has to do.
    */
-  open(menu: Menu, clientX: number, clientY: number): void {
-    this.entries = menu.entries.map(entry => this.canActivate(entry.action) ? entry : { ...entry, enabled: false, secondary: undefined });
+  open(menu: Menu, clientX: number, clientY: number, preserveState = false): void {
+    this.current = {menu, x: clientX, y: clientY};
+    this.clearable = this.canClearOrders();
+    this.entries = menu.entries.filter(entry => entry.action.kind !== 'cancel' || this.clearable)
+      .map(entry => this.canActivate(entry.action) ? entry : { ...entry, enabled: false, secondary: undefined });
     this.showing = true;
     this.surface.show({ ...menu, entries: this.entries }, clientX, clientY, (index, additive) =>
       this.activate(index, additive),
+      preserveState,
     );
+  }
+
+  /** Recheck ownership when a running order ends while its menu stays open. */
+  refresh(): void {
+    if (!this.showing || !this.current || this.canClearOrders() === this.clearable) return;
+    const {menu, x, y} = this.current;
+    this.open(menu, x, y, true);
   }
 
   /**
@@ -350,6 +352,7 @@ export class ObjectMenu {
   close(): void {
     if (!this.showing) return;
     this.showing = false;
+    this.current = null;
     this.entries = [];
     this.surface.hide();
   }
@@ -403,6 +406,7 @@ export class ObjectMenu {
   private activate(index: number, additive: boolean): void {
     const entry = this.entries[index];
     if (entry?.enabled === false) return;
+    if (entry?.action.kind === 'cancel' && !this.canClearOrders()) { this.refresh(); return; }
     this.close();
     if (entry === undefined) return;
     this.onAction(entry.action, additive);
@@ -447,6 +451,8 @@ export interface MenuSurfaceOptions {
   revision?(): string;
   keepouts?(): readonly ActionRegion[];
   dismiss?(): void;
+  closed?(): void;
+  positioned?(point: {x: number; y: number}): void;
 }
 
 export function createMenuSurface(doc: Document, root: HTMLElement, options: MenuSurfaceOptions = {}): MenuSurface {
@@ -455,27 +461,40 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
   let disposeIdentity: (() => void) | undefined;
   let cleanup: (() => void) | undefined;
   return {
-    show(menu, clientX, clientY, onPick) {
+    show(menu, clientX, clientY, onPick, preserveState = false) {
+      const previousIndex = (doc.activeElement as HTMLElement | null)?.dataset?.menuIndex;
+      const wasOpen = !root.hidden;
+      const previousIdentity = root.querySelector<HTMLDetailsElement>('.object-identity');
+      const identityOpen = preserveState && previousIdentity?.open;
+      const identityFocused = preserveState && doc.activeElement === previousIdentity?.querySelector('summary');
+      const descriptionFocused = preserveState && doc.activeElement === root.querySelector('.radial-description');
       cleanup?.(); disposeIdentity?.();
-      returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
+      if (!wasOpen) returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
       root.replaceChildren(); root.classList.add('object-menu-radial');
       root.setAttribute('aria-label', menu.title ? `${menu.title} actions` : 'Actions');
       root.hidden = false;
       const identity = doc.createElement('div'); identity.className = 'radial-identity';
+      const description = doc.createElement('div'); description.className = 'radial-description'; description.hidden = true;
+      description.style.position = 'fixed';
+      description.setAttribute('tabindex', '0'); description.setAttribute('role', 'region');
+      description.setAttribute('aria-label', 'Object description');
       if (menu.details) {
-        const presentation = createObjectIdentity(doc, menu.title, menu.details);
+        const presentation = createObjectIdentity(doc, menu.title, menu.details, {descriptionHost: description, onToggle: () => place()});
         disposeIdentity = presentation.dispose; identity.append(presentation.element);
+        if (identityOpen) { (presentation.element as HTMLDetailsElement).open = true; description.hidden = false; }
       } else if (menu.title) {
         const name = doc.createElement('strong'); name.textContent = menu.title; identity.append(name);
       }
-      root.append(identity);
+      root.append(identity, description);
       const close = doc.createElement('button'); close.type = 'button'; close.className = 'radial-close';
+      close.style.position = 'fixed';
       setActionIntent(close, 'negative');
       close.textContent = '\u00d7'; close.setAttribute('aria-label', 'Close menu');
       close.addEventListener('click', () => options.dismiss?.()); root.append(close);
       let page = 0, capacity = 6, buttons: HTMLButtonElement[] = [];
       let revision = '', frame = 0, disposed = false;
       let measurementKey = '', measuredEntries: {width:number;height:number}[] = [], navigation = {width:44,height:44};
+      let descriptionSize: {width: number; height: number} | undefined;
       const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry, intent: ActionIntent = 'neutral'): HTMLButtonElement => {
         const button = doc.createElement('button'); button.type = 'button'; button.className = 'menu-entry';
         setActionIntent(button, entry ? menuActionIntent(entry.action) : intent);
@@ -506,9 +525,10 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         if (!view || root.hidden || disposed) return;
         const anchor = menu.object !== undefined && options.anchor ? options.anchor(menu) : { x: clientX, y: clientY };
         if (!anchor) { options.dismiss?.(); return; }
+        options.positioned?.(anchor);
         const maximumWidth = Math.max(44,Math.min(136,view.innerWidth-16));
         buttons.forEach(button => { button.style.maxWidth = `${maximumWidth}px`; });
-        const nextMeasurement = `${maximumWidth}:${view.getComputedStyle(root).fontSize}`;
+        const nextMeasurement = `${maximumWidth}:${view.innerWidth}:${view.getComputedStyle(root).fontSize}`;
         if (measurementKey !== nextMeasurement) {
           measurementKey = nextMeasurement;
           const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}, undefined, 'affirmative'), make('Back', () => {}, undefined, 'negative')];
@@ -516,16 +536,23 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           measuredEntries = probes.slice(0,menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
           navigation = maximumActionSize(probes.slice(menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight})));
           probes.forEach(button=>button.remove());
+          if (menu.details) {
+            const hidden = description.hidden;
+            description.hidden = false; description.style.visibility = 'hidden';
+            description.style.width = `${Math.min(320, view.innerWidth - 16)}px`; description.style.maxHeight = '';
+            descriptionSize = {width: description.offsetWidth, height: description.offsetHeight};
+            description.hidden = hidden; description.style.visibility = '';
+          }
         }
         identity.style.maxHeight = ''; identity.style.overflowY = '';
         const viewport = {width:view.innerWidth,height:view.innerHeight};
         const identityWidth = identity.offsetWidth;
-        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth);
+        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth,descriptionSize);
         if (!placement) { options.dismiss?.(); return; }
         let focusAfterPlace: HTMLButtonElement | null = null;
         if (placement.capacity !== capacity) {
-          const focused=doc.activeElement as HTMLButtonElement, hadFocus=buttons.includes(focused);
-          const index=focused?.dataset?.menuIndex;
+          const focused=doc.activeElement as HTMLButtonElement, hadFocus=buttons.includes(focused) || preserveState && previousIndex !== undefined;
+          const index=focused?.dataset?.menuIndex ?? (preserveState ? previousIndex : undefined);
           capacity=placement.capacity; page=0;
           if (index !== undefined) for (let candidate=0;candidate<=menu.entries.length;candidate++) {
             const part=actionPage(menu.entries.length,capacity,candidate);
@@ -539,12 +566,24 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         const region=placement.region, sizes=buttons.map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
         const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right,identityWidth);
         root.dataset.compact=String(layout.compact);
+        root.dataset.sceneClip = String(placement.scroll);
         root.style.left=placement.scroll ? `${region.left}px` : '0px'; root.style.top=placement.scroll ? `${region.top}px` : '0px';
         root.style.width=placement.scroll ? `${region.right-region.left}px` : '0px'; root.style.height=placement.scroll ? `${region.bottom-region.top}px` : '0px';
         root.style.overflowY=placement.scroll ? 'auto' : ''; root.style.pointerEvents=placement.scroll ? 'auto' : 'none';
         buttons.forEach((button,index)=>{button.style.position=placement.scroll ? 'absolute' : 'fixed';button.style.left=`${layout.positions[index].x-(placement.scroll?region.left:0)}px`;button.style.top=`${layout.positions[index].y-(placement.scroll?region.top:0)}px`;});
         identity.style.position=placement.scroll ? 'absolute' : 'fixed';identity.style.left=`${layout.identity.x-(placement.scroll?region.left:0)}px`;identity.style.top=`${layout.identity.y-(placement.scroll?region.top:0)}px`;
         close.style.left=`${layout.close.x}px`;close.style.top=`${layout.close.y}px`;
+        if (!description.hidden) {
+          description.style.width = `${Math.min(320, view.innerWidth - 16)}px`;
+          description.style.maxHeight = '';
+          const boxes = [...buttons, identity, close].map(element => element.getBoundingClientRect());
+          const bubble = descriptionPlacement({x: layout.identity.x + identityWidth / 2, y: layout.identity.y},
+            {width: description.offsetWidth, height: description.offsetHeight}, viewport, [...(options.keepouts?.() ?? []), ...boxes]);
+          if (bubble) {
+            description.style.width = `${bubble.width}px`; description.style.maxHeight = `${bubble.height}px`;
+            description.style.left = `${bubble.x}px`; description.style.top = `${bubble.y}px`;
+          }
+        }
         focusAfterPlace?.focus({preventScroll:!placement.scroll});
       };
       const toggle = () => place(); root.addEventListener('toggle', toggle, true);
@@ -553,6 +592,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         const element=doc.getElementById(id);if(element) observer.observe(element);
       }
       observer.observe(identity);
+      observer.observe(description);
       const navigate = (event: KeyboardEvent) => {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
         const usable = buttons.filter(button => !button.disabled), index = usable.indexOf(doc.activeElement as HTMLButtonElement);
@@ -569,13 +609,23 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       };
       frame = requestAnimationFrame(follow);
       cleanup = () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); root.removeEventListener('toggle', toggle, true); root.removeEventListener('keydown', navigate); };
+      if (preserveState && previousIndex !== undefined) {
+        for (let candidate = 0; candidate <= menu.entries.length; candidate++) {
+          const part = actionPage(menu.entries.length, capacity, candidate);
+          if (part.indices.includes(Number(previousIndex))) {page = candidate; break;}
+          if (!part.more) break;
+        }
+      }
       render(); place();
-      if (!root.hidden) (buttons.find(button => !button.disabled) ?? close).focus();
+      if (!root.hidden) (descriptionFocused ? description : identityFocused ? identity.querySelector<HTMLElement>('summary')! :
+        buttons.find(button => !button.disabled && wasOpen && button.dataset.menuIndex === previousIndex)
+        ?? buttons.find(button => !button.disabled) ?? close).focus();
     },
     hide() {
       cleanup?.(); cleanup = undefined; disposeIdentity?.(); disposeIdentity = undefined;
       const restore = root.contains(doc.activeElement);
       root.hidden = true; root.replaceChildren();
+      options.closed?.();
       if (restore) returnFocus?.focus(); returnFocus = null;
     },
   };

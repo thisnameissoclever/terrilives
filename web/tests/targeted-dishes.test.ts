@@ -53,8 +53,8 @@ describe('targeted dish input', () => {
     };
     try {
       const point={x:70+30*scale,y:40-24*scale};
-      expect(resolveRightClick(source,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Nothing']);
-      expect(resolveRightClick(overlapped,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Nothing']);
+      expect(resolveRightClick(source,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Clear orders']);
+      expect(resolveRightClick(overlapped,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Clear orders']);
       expect(pickSprite(overlapped,70+16*scale,40-5*scale,70,40,scale)).toEqual({entity:2,isAgent:true});
     } finally {setBodyCoverage(body,new Uint8Array(alpha.length).fill(255));}
   });
@@ -108,18 +108,18 @@ describe('targeted dish input', () => {
   it('offers Do dishes for a pile and dispatches the captured identities', () => {
     const { source, point } = fixture();
     const menu = resolveRightClick(source, point(2), 0, 0)!;
-    expect(menu.entries.map(e => e.label)).toEqual(['Do dishes', 'Nothing']);
+    expect(menu.entries.map(e => e.label)).toEqual(['Do dishes', 'Clear orders']);
     dispatchMenuAction(source, menu.entries[0].action);
     expect(source.cleanDishesFirst).toHaveBeenCalledWith(2, 50, [8, 9]);
   });
   it('offers only Clean up on exposed dirty table wood and restores its usual action once clean', () => {
     const { source, point } = fixture();
     const dirty = resolveRightClick(source, point(1), 0, 0)!;
-    expect(dirty.entries.map(e => e.label)).toEqual(['Clean up', 'Enter build mode', 'Nothing']);
+    expect(dirty.entries.map(e => e.label)).toEqual(['Clean up', 'Enter build mode', 'Clear orders']);
     dispatchMenuAction(source, dirty.entries[0].action, 'back');
     expect(source.cleanDishes).toHaveBeenCalledWith(2, 50, null);
     const clean = { ...source, dishPiles: () => new Uint32Array(), dirtyDishes: () => new Uint32Array([0]), dirtySettings: () => new Uint32Array([0]) };
-    expect(resolveRightClick(clean, point(1), 0, 0)!.entries.map(e => e.label)).toEqual(['Sit', 'Enter build mode', 'Nothing']);
+    expect(resolveRightClick(clean, point(1), 0, 0)!.entries.map(e => e.label)).toEqual(['Sit', 'Enter build mode', 'Clear orders']);
     handleLeftClick(source, point(1), 0, 0, false);
     expect(source.useObjectFirst).toHaveBeenCalledWith(2, 50, 0);
   });

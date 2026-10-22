@@ -1,6 +1,45 @@
 import { expect,it } from 'vitest';
 import { SceneLayoutObserver,sceneFeedbackPosition } from '../src/ui/scene-feedback-layout.js';
 import { sceneObserverHarness } from './helpers/scene-observers.js';
+it('uses the painted portion of children in a scrolling menu and invalidates when that menu scrolls', () => {
+  const events = new Map<string, () => void>();
+  const clip = {hidden: false, ownerDocument: {}, addEventListener: (name: string, callback: () => void) => events.set(name, callback),
+    getBoundingClientRect: () => ({left: 100, top: 100, right: 300, bottom: 200})};
+  let top = 180;
+  const child = {hidden: false, style: {position: 'absolute'}, closest: () => clip, getBoundingClientRect: () => ({left: 150, top, right: 350, bottom: top + 60})};
+  const observer = new SceneLayoutObserver(() => ({left: 0, top: 0, right: 390, bottom: 844}), [clip as never], [], () => [child as never]);
+  expect(observer.read().obstacles[1]).toEqual({left: 150, top: 180, right: 300, bottom: 200});
+  top = 120; events.get('scroll')?.();
+  expect(observer.read().obstacles[1].top).toBe(120);
+  child.style.position = 'fixed'; observer.invalidate();
+  expect(observer.read().obstacles[1]).toEqual({left: 150, top: 120, right: 350, bottom: 180});
+});
+it('measures and observes dynamic menu children even when their radial root has no area', () => {
+  const observers = sceneObserverHarness();
+  const menu = {hidden: false, ownerDocument: {}, getBoundingClientRect: () => ({left: 0, top: 0, right: 0, bottom: 0})};
+  let right = 300, left = 100, reads = 0;
+  const bubble = {hidden: false, ownerDocument: {}, getBoundingClientRect: () => {reads++; return {left, top: 110, right, bottom: 200};}};
+  let children = [bubble];
+  try {
+    const observer = new SceneLayoutObserver(() => ({left: 0, top: 0, right: 390, bottom: 844}),
+      [menu as never], [], () => children as never);
+    expect(observer.read().obstacles).toEqual([{left: 100, top: 110, right: 300, bottom: 200}]);
+    const unchanged = observer.read(); expect(observer.read()).toBe(unchanged); expect(reads).toBe(1);
+    right = 350; observers.resize(bubble);
+    expect(observer.read().obstacles[0].right).toBe(350);
+    left = 170; observers.mutation(bubble);
+    expect(observer.read().obstacles[0].left).toBe(170);
+    bubble.hidden = true; observers.mutation(bubble);
+    expect(observer.read().obstacles).toEqual([]);
+    bubble.hidden = false; observers.mutation(bubble);
+    expect(observer.read().obstacles).toHaveLength(1);
+    right = 320; observers.resize(menu);
+    expect(observer.read().obstacles[0].right).toBe(320);
+    children = []; expect(observer.read().obstacles).toEqual([]);
+    const closed = observer.read(); observers.mutation(bubble);
+    expect(observer.read()).toBe(closed);
+  } finally { observers.restore(); }
+});
 it('moves a scene receipt out of the sidebar and phone review/dock without covering controls',()=>{
   const desktop=sceneFeedbackPosition(360,60,{viewport:{left:0,top:0,right:1280,bottom:720},obstacles:[{left:8,top:8,right:312,bottom:690}]},{x:100,y:450})!;
   expect(desktop.x).toBeGreaterThanOrEqual(320);

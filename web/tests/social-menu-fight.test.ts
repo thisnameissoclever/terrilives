@@ -8,5 +8,5 @@ it('offers Fight as the second row over a person, sending interaction 1', () => 
     { label: 'Chat', action: { kind: 'talk', target: 8, interaction: 0 } },
     { label: 'Fight', action: { kind: 'talk', target: 8, interaction: 1 } },
   ]);
-  expect(menu.entries[2]?.label).toBe('Nothing');
+  expect(menu.entries[2]?.label).toBe('Clear orders');
 });

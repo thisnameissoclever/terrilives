@@ -344,7 +344,7 @@ describe('GameHud', () => {
     expect(view.satisfaction.textContent).toBe('unavailable');
     expect(view.careerRow.hidden).toBe(true);
     expect(view.career.textContent).toBe('');
-    expect(view.activity.textContent).toBe('Nothing selected');
+    expect(view.activity.textContent).toBe('');
     expect(view.ordersRow.hidden).toBe(true);
   });
 

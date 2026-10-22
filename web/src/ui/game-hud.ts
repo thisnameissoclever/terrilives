@@ -253,7 +253,7 @@ export class GameHud {
     const satisfaction =
       selected === null ? null : source.satisfactionOf(selected);
     setTextIfChanged(this.roots.satisfaction, formatSatisfaction(satisfaction));
-    this.satisfactionSurface?.render(satisfaction);
+    this.satisfactionSurface?.render(satisfaction, selected !== null);
 
     const career = selected === null ? null : source.careerOf(selected);
     this.roots.careerRow.hidden = career === null;
@@ -270,7 +270,7 @@ export class GameHud {
     const status = selected === null ? null : source.activityStatusOf?.(selected);
     const partner = status?.partner == null ? '' : source.simName?.(status.partner) ?? '';
     const contextual = status ? activityStatusLabel(status, partner, source.needNames?.()) : null;
-    setTextIfChanged(this.roots.activity, contextual ?? chain ?? formatActivity(activity, chain, stalled));
+    setTextIfChanged(this.roots.activity, selected === null ? '' : contextual ?? chain ?? formatActivity(activity, chain, stalled));
 
     const queued = selected === null ? 0 : source.queuedOrdersOf(selected);
     this.roots.ordersRow.hidden = queued === 0;

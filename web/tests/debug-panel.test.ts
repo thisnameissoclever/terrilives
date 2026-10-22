@@ -2,7 +2,10 @@
  * The developer overlay's formatter and throttle, over a structural
  * fake per the needs-panel pattern - no DOM, no bridge, every branch.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as debugPanel from '../src/ui/debug-panel';
+import { DisclosureDocument } from './helpers/disclosure-dom';
+import {textWriteProbe} from './helpers/text-write-probe';
 
 import {
   DebugPanel,
@@ -190,6 +193,58 @@ describe('formatDebugReport', () => {
 });
 
 describe('DebugPanel', () => {
+  it('starts people expanded and reads only open inner sections while preserving focus and text nodes', () => {
+    const doc = new DisclosureDocument(), container = doc.createElement('div');
+    const needsOf = vi.fn(() => Float32Array.of(12, 30, 40, 50, 60, 70, 80));
+    const traitsOf = vi.fn(() => Float32Array.of(1, .55));
+    const personalityOf = vi.fn(() => Float32Array.of(1.5, 1, 1, 1, 1, 1, 1, .5, 1, 1, 1, 1, 1, .75));
+    const sourceValue = source({needsOf, traitsOf, personalityOf});
+    let visible = true;
+    const surface = debugPanel.createStructuredDebugSurface(doc as unknown as Document, container as unknown as HTMLElement, () => visible);
+    const panel = new DebugPanel(sourceValue, {hidden: false, textContent: ''}, 100, surface);
+    panel.update(0);
+    const people = container.children.filter(node => node.tagName === 'details');
+    expect(people).toHaveLength(2);
+    expect(people.every(person => person.open)).toBe(true);
+    const sections = people[0].children.filter(node => node.tagName === 'details');
+    expect(sections.map(section => section.children[0].textContent)).toEqual(['Overview', 'Traits', 'Needs', 'Need rates', 'Relationships']);
+    expect(sections.every(section => !section.open)).toBe(true);
+    expect(needsOf).not.toHaveBeenCalled(); expect(traitsOf).not.toHaveBeenCalled();
+    expect(personalityOf).not.toHaveBeenCalled();
+    const needs = sections[2]; needs.open = true; needs.fire('toggle');
+    expect(needsOf).toHaveBeenCalledExactlyOnceWith(7);
+    expect(needs.textContent).toContain('hunger12.0');
+    const table = needs.children[1], hunger = table.children[0].children[0];
+    const oldText = hunger.children[1];
+    const text = textWriteProbe(oldText);
+    needs.children[0].focus();
+    panel.update(100);
+    expect(doc.activeElement).toBe(needs.children[0]);
+    expect(container.children.includes(people[0])).toBe(true);
+    expect(hunger.children[1]).toBe(oldText);
+    expect(text.writes).toBe(0);
+    expect(needs.open).toBe(true);
+    people[0].open = false; panel.update(200);
+    expect(needsOf).toHaveBeenCalledTimes(2);
+    people[0].open = true; sections[4].open = true; sections[4].fire('toggle');
+    expect(sections[4].textContent).toContain('sim#3+0.42');
+    sections[0].open = true; sections[0].fire('toggle');
+    expect(sections[0].textContent).toContain('Office clerk');
+    expect(sections[0].textContent).toContain('waiting on something in use');
+    expect(sections[0].textContent).toContain('player orders waiting2');
+    expect(people[0].textContent).toContain('entity 7, SimId 0');
+    sections[1].open = true; sections[1].fire('toggle');
+    expect(sections[1].textContent).toContain('Low spirits (condition, severity 0.55)');
+    sections[3].open = true; sections[3].fire('toggle');
+    expect(sections[3].textContent).toContain('need decayhunger x1.50');
+    expect(sections[3].textContent).toContain('comfort x0.75');
+    needsOf.mockReturnValue(Float32Array.of(17, 30, 40, 50, 60, 70, 80));
+    panel.update(300);
+    expect(hunger.children[1].textContent).toBe('17.0');
+    const reads = needsOf.mock.calls.length;
+    visible = false; needs.fire('toggle');
+    expect(needsOf).toHaveBeenCalledTimes(reads);
+  });
   function root(): DebugRoot {
     return { hidden: true, textContent: null };
   }

@@ -46,4 +46,12 @@ it('updates the native meter and exact hover/focus description without redundant
   expect(meter.value).toBe(0);
   expect(label.textContent).toBe('Unavailable');
   expect(summary.attributes.get('title')).toBe('Life satisfaction unavailable');
+  surface.render(null, false);
+  expect(label.textContent).toBe('');
+  expect(summary.attributes.get('data-empty')).toBe('true');
+  expect(summary.attributes.get('aria-label')).toBe('Life satisfaction: no person selected');
+  expect(meter.hidden).toBe(true);
+  surface.render(52, true);
+  expect(summary.attributes.get('data-empty')).toBe('false');
+  expect(meter.hidden).toBe(false);
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createObjectIdentity } from '../src/ui/object-identity.js';
 
 class Element {
+  hidden = false;
   className = '';
   textContent = '';
   open = false;
@@ -29,6 +30,19 @@ function identity() {
 }
 
 describe('object identity disclosure', () => {
+  it('toggles a separate description bubble without expanding the identity capsule', () => {
+    const doc = {createElement: (tag: string) => new Element(tag)}, bubble = new Element('div');
+    const control = createObjectIdentity(doc as unknown as Document, 'Pool', {
+      modelName: 'Backyard Square', description: 'Exact existing description.',
+    }, {descriptionHost: bubble as unknown as HTMLElement});
+    const root = control.element as unknown as Element, summary = root.children[0];
+    expect(root.children).toHaveLength(1);
+    expect(bubble.children[0].textContent).toBe('Exact existing description.');
+    expect(bubble.hidden).toBe(true);
+    summary.fire('click'); expect(bubble.hidden).toBe(false);
+    expect(root.children).toHaveLength(1);
+    summary.fire('click'); expect(bubble.hidden).toBe(true);
+  });
   it('keeps type, model and description separate and identifies the control accessibly', () => {
     const { root, summary, boundary } = identity();
     expect(root.tag).toBe('details');

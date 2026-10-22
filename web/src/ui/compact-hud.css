@@ -91,7 +91,8 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #chores-dialog .chore-row { padding: 12px; gap: 7px 10px; }
   #chores-dialog .chore-do-now { min-height: 44px; padding-inline: 12px; }
 }
-#sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
+#sim-identity { flex: 1 0 100px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-items: baseline; gap: 2px; }
+.dock-activity-line { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock-activity {
   appearance: none;
@@ -136,7 +137,11 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #dock-wellbeing .summary-label { font-size: 11px; }
 #dock-wellbeing .summary-value { font-variant-numeric: tabular-nums; }
 #mood-label { font-size: 12px; font-weight: 700; max-width: 100%; overflow-wrap: anywhere; }
-#dock-wellbeing .mood-track { height: 7px; margin: 1px 4px; }
+#dock-wellbeing .mood-track { height: 9px; margin: 1px 4px; border: 1px solid var(--hud-muted); box-sizing: border-box; background: transparent; }
+#dock-wellbeing .mood-marker { height: 100%; border: 0; border-radius: inherit; transform: translate(-100%, -50%); }
+#dock-wellbeing .mood-track[data-tone='negative'] .mood-marker { background: #bf8078; }
+#dock-wellbeing .mood-track[data-empty='true'] { background: transparent; }
+#dock-wellbeing .mood-track[data-empty='true']::after { display: none; }
 #dock-wellbeing #mood-empty { font-size: 11px; overflow-wrap: anywhere; }
 #dock-satisfaction { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; justify-content: center; }
 #satisfaction-summary { position: relative; width: 100%; min-width: 0; }
@@ -144,6 +149,9 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #dock-satisfaction .summary-label { line-height: 1.15; }
 #satisfaction-label { font-size: 11px; font-weight: 700; max-width: 100%; overflow-wrap: anywhere; }
 #satisfaction-meter { display: block; width: 100%; height: 10px; accent-color: var(--need-fill); }
+.satisfaction-empty-track { display: none; height: 8px; border: 1px solid var(--hud-muted); border-radius: 8px; box-sizing: border-box; margin-block: 2px; }
+#satisfaction-summary[data-empty='true'] .satisfaction-empty-track { display: block; }
+#satisfaction-summary[data-empty='true'] #satisfaction-score { display: none; }
 #satisfaction-score { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 4px 8px; white-space: nowrap; background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 4px; z-index: 1; font-size: 12px; }
 #satisfaction-summary:hover #satisfaction-score, #satisfaction-summary:focus #satisfaction-score { display: block; }
 #game-actions > #new-housemate { grid-column: 1 / -1; margin-top: 0; }
@@ -152,9 +160,17 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #household-roster { min-width: 0; }
 #household-roster-members { display: flex; overflow-x: auto; gap: 4px; padding: 2px; }
 #household-roster-members .household-member { min-height: 28px; min-width: 60px; max-width: 160px; flex: 0 0 auto; padding: 2px 8px; font-size: 15px; font-weight: 700; }
-#needs-content { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 12px; margin: 0; }
-#needs-content .need-row { grid-template-columns: auto minmax(20px, 1fr); gap: 5px; font-size: 11px; }
-#needs-content .need-state { font-size: 10px; }
+#needs-content { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px 12px; margin: 0; }
+#needs-content .need-row { grid-template-columns: minmax(0, 1fr) auto; gap: 3px; font-size: 11px; }
+#needs-content .need-track { grid-column: 1 / -1; border: 1px solid var(--hud-muted); background: transparent; border-radius: 8px; height: 9px; overflow: hidden; }
+#needs-content .need-fill { height: 100%; background: var(--need-fill); }
+#needs-content .need-fill[data-state='low'] { background: #b8a267; }
+#needs-content .need-fill[data-state='critical'] { background: #bf8078; }
+#needs-content .need-state { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.need-value { font-variant-numeric: tabular-nums; }
+#sim-dock-header > #sim-dock-collapse { width: 44px; min-width: 44px; min-height: 44px; padding: 0; margin-left: 6px; position: relative; background: transparent; border-color: transparent; }
+#sim-dock-collapse::before { content: ''; display: block; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin: -4px auto 0; }
+#sim-dock-collapse[aria-expanded='false']::before { transform: rotate(225deg); margin-top: 4px; }
 #needs-empty { margin: 0; }
 #sim-sheet {
   position: absolute;
@@ -257,7 +273,7 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #sim-sheet-header { gap: 4px; }
   #sim-sheet-header .hud-button { min-height: 44px; }
   #needs-content { grid-template-columns: 1fr 1fr; gap: 8px 12px; }
-  #needs-content .need-row { grid-template-columns: auto minmax(24px, 1fr); font-size: 12px; }
+  #needs-content .need-row { grid-template-columns: minmax(0, 1fr) auto; font-size: 12px; }
   body[data-building='true'] #hud { width: 182px; }
   body[data-building='true'] #world-actions { display: grid; }
   body[data-building='true'] #builder-desktop { max-height: none; overflow: visible; }
@@ -271,7 +287,8 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 body[data-building='true'] #hud #time-controls { display: none; }
 #hud:has(#options-panel:not([hidden])) { z-index: 8; }
 
-#dock-critical { grid-column: 1 / -1; color: var(--hud-danger); }
+#dock-critical { color: #ce9890; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#dock-critical:not(:empty)::before { content: '|'; color: var(--hud-muted); margin-right: 6px; }
 #dock-critical:empty { display: none; }
 
 #dock-alert { margin: 4px 0 0; color: var(--hud-danger); max-height: 4.2em; overflow-y: auto; }

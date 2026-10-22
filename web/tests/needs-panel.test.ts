@@ -27,6 +27,7 @@ function bar(): TestBar {
     setAttribute(name, value) {
       attributes[name] = value;
     },
+    removeAttribute(name) { delete attributes[name]; },
   };
 }
 
@@ -110,6 +111,30 @@ describe('levelPercent', () => {
 });
 
 describe('NeedsPanel', () => {
+  it('keeps seven hollow tracks after deselection without stale numbers or critical readings', () => {
+    const fills = Array.from({length: 7}, bar), root = {hidden: false};
+    const empty = {hidden: false}, content = {hidden: true}, title = caption();
+    const panel = new NeedsPanel(root, title, fills, 0, 100, empty, content);
+    const source = new CountingSource(7, SEVEN);
+    panel.update(0, source);
+    source.selected = null;
+    panel.update(1, source);
+    expect(root.hidden).toBe(false);
+    expect(content.hidden).toBe(false);
+    expect(empty.hidden).toBe(true);
+    expect(title.textContent).toBe('Select a person');
+    for (const fill of fills) {
+      expect(fill.style.width).toBe('0%');
+      expect(fill.attributes['aria-valuenow']).toBeUndefined();
+      expect(fill.attributes['aria-valuetext']).toBe('No person selected');
+    }
+    source.selected = 9;
+    source.levels = new Float32Array(0);
+    panel.update(2, source);
+    expect(empty.hidden).toBe(false);
+    expect(content.hidden).toBe(true);
+    expect(title.textContent).toBe('Terri');
+  });
   it('skips unchanged captions and warnings in selected and empty states', () => {
     const title = caption();
     const stateText = { textContent: '' };
@@ -223,7 +248,7 @@ describe('NeedsPanel', () => {
     expect(source.selectionReads).toBe(2);
   });
 
-  it('hides itself for a selection with no needs to show', () => {
+  it('shows hollow tracks without selection and hides unavailable needs without an error target', () => {
     // Nothing selected, a sim that despawned between the click and this
     // frame, and a click that landed on a fridge all arrive as an empty
     // array. All three draw no bars, and all three are asserted, because
@@ -234,7 +259,7 @@ describe('NeedsPanel', () => {
 
     const nothingSelected = new CountingSource(null, SEVEN);
     panel.update(0, nothingSelected);
-    expect(root.hidden).toBe(true);
+    expect(root.hidden).toBe(false);
     // And it did not ask for the needs of a sim that is not there.
     expect(nothingSelected.needsReads).toBe(0);
 
@@ -282,7 +307,7 @@ describe('NeedsPanel', () => {
     expect(fills[1].attributes['aria-valuetext']).toBe('55% full, steady');
   });
 
-  it('shows a compact selection prompt when display targets are supplied', () => {
+  it('keeps hollow tracks visible without repeating the caption selection prompt', () => {
     const root = { hidden: true };
     const empty = { hidden: true };
     const content = { hidden: false };
@@ -290,8 +315,8 @@ describe('NeedsPanel', () => {
 
     panel.update(0, new CountingSource(null, SEVEN));
     expect(root.hidden).toBe(false);
-    expect(empty.hidden).toBe(false);
-    expect(content.hidden).toBe(true);
+    expect(empty.hidden).toBe(true);
+    expect(content.hidden).toBe(false);
 
     panel.update(1, new CountingSource(4, SEVEN));
     expect(empty.hidden).toBe(true);

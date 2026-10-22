@@ -7,23 +7,46 @@ export class SceneLayoutObserver {
   private dirty=true;
   private cached:SceneLayout|null=null;
   private readonly obstacles:readonly HTMLElement[];
+  private dynamic: readonly HTMLElement[] = [];
+  private readonly resizeObserver: ResizeObserver | undefined;
+  private readonly mutationObserver: MutationObserver | undefined;
+  private readonly extraGeometry: readonly HTMLElement[];
   /** Every obstacle is observed, even while hidden. Extra geometry owners may affect the viewport without being obstacles. */
-  constructor(private readonly viewport:()=>SceneRect,obstacles:readonly HTMLElement[],extraGeometry:readonly HTMLElement[]=[]){
-    this.obstacles=[...obstacles];
+  constructor(private readonly viewport:()=>SceneRect,obstacles:readonly HTMLElement[],extraGeometry:readonly HTMLElement[]=[],
+    private readonly dynamicObstacles?: () => readonly HTMLElement[]){
+    this.obstacles=[...obstacles]; this.extraGeometry = extraGeometry;
     const elements=[...new Set([...obstacles,...extraGeometry])];
     const invalidate=()=>this.invalidate();
-    if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(invalidate);elements.forEach(element=>observer.observe(element));}
-    if(typeof MutationObserver!=='undefined'){const observer=new MutationObserver(invalidate);elements.forEach(element=>observer.observe(element,{attributes:true,attributeFilter:['hidden','style','class']}));}
+    elements.forEach(element => element.addEventListener?.('scroll', invalidate, {passive: true}));
+    if(typeof ResizeObserver!=='undefined'){this.resizeObserver=new ResizeObserver(invalidate);elements.forEach(element=>this.resizeObserver!.observe(element));}
+    if(typeof MutationObserver!=='undefined'){this.mutationObserver=new MutationObserver(invalidate);elements.forEach(element=>this.observeMutation(element));}
     const view=elements[0]?.ownerDocument.defaultView;
     view?.addEventListener('resize',invalidate);
     view?.visualViewport?.addEventListener('resize',invalidate);view?.visualViewport?.addEventListener('scroll',invalidate);
   }
+  private observeMutation(element: HTMLElement): void {
+    this.mutationObserver?.observe(element, {attributes: true, attributeFilter: ['hidden', 'style', 'class', 'data-scene-clip']});
+  }
   invalidate():void {this.dirty=true;}
   read():SceneLayout {
+    const dynamic = this.dynamicObstacles?.() ?? [];
+    if (dynamic.length !== this.dynamic.length || dynamic.some((element, index) => element !== this.dynamic[index])) {
+      this.resizeObserver?.disconnect(); this.mutationObserver?.disconnect();
+      this.dynamic = [...dynamic];
+      for (const element of new Set([...this.obstacles, ...this.extraGeometry, ...dynamic])) {
+        this.resizeObserver?.observe(element); this.observeMutation(element);
+      }
+      this.dirty = true;
+    }
     if(!this.dirty&&this.cached)return this.cached;
     this.dirty=false;
     const viewport=this.viewport();
-    const obstacles=this.obstacles.filter(element=>!element.hidden).map(element=>element.getBoundingClientRect())
+    const obstacles=[...this.obstacles, ...this.dynamic].filter(element=>!element.hidden).map(element => {
+      const rect = element.getBoundingClientRect();
+      const clip = element.style?.position === 'fixed' ? undefined : element.closest?.<HTMLElement>('[data-scene-clip="true"]')?.getBoundingClientRect();
+      return clip ? {left: Math.max(rect.left, clip.left), top: Math.max(rect.top, clip.top),
+        right: Math.min(rect.right, clip.right), bottom: Math.min(rect.bottom, clip.bottom)} : rect;
+    })
       .filter(row=>row.right>row.left&&row.bottom>row.top).map(({left,top,right,bottom})=>({left,top,right,bottom}));
     this.cached={viewport,obstacles};return this.cached;
   }

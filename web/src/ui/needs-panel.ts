@@ -51,6 +51,8 @@ export interface CaptionText {
 export interface BarFill {
   readonly style: { width: string };
   setAttribute?(name: string, value: string): void;
+  removeAttribute?(name: string): void;
+  readonly valueText?: CaptionText;
   readonly stateText?: CaptionText;
 }
 
@@ -61,6 +63,7 @@ export interface PanelRoot {
 
 export interface VisibilityTarget {
   hidden: boolean;
+  textContent?: string | null;
 }
 
 /**
@@ -144,15 +147,6 @@ export class NeedsPanel {
     }
     this.lastReadMs = nowMs;
 
-    // Read, never remembered. `selectedIndex` is the simulation's answer
-    // to "what is the player looking at", so asking it every read is what
-    // makes the panel follow a selection that changed inside a tick.
-    //
-    // Nothing selected, a sim that despawned between the click and this
-    // frame, and a click that landed on a fridge all draw no bars, and
-    // collapsing them is deliberate: the useful response to all three is
-    // identical. The null case exits before `needsOf` so a deselected
-    // panel costs no boundary call - the test counting reads pins that.
     const selected = source.selectedIndex();
     if (selected === null) {
       this.showEmptyState();
@@ -160,7 +154,8 @@ export class NeedsPanel {
     }
     const levels = source.needsOf(selected);
     if (levels.length === 0) {
-      this.showEmptyState();
+      this.showEmptyState('unavailable');
+      setTextIfChanged(this.caption, source.simName(selected));
       return true;
     }
     this.root.hidden = false;
@@ -189,6 +184,8 @@ export class NeedsPanel {
       bar.setAttribute?.('aria-valuemax', '100');
       bar.setAttribute?.('aria-valuenow', String(percent));
       const state = percent <= 20 ? 'critical' : percent <= 40 ? 'low' : 'steady';
+      bar.setAttribute?.('data-state', state);
+      if (bar.valueText) setTextIfChanged(bar.valueText, String(percent));
       bar.setAttribute?.('aria-valuetext', `${percent}% full, ${state}`);
       if (bar.stateText) {
         setTextIfChanged(bar.stateText, state === 'steady' ? '' : ` (${state})`);
@@ -197,18 +194,22 @@ export class NeedsPanel {
     return true;
   }
 
-  private showEmptyState(): void {
+  private showEmptyState(kind: 'unselected' | 'unavailable' = 'unselected'): void {
     setTextIfChanged(this.caption, 'Select a person');
     for (const bar of this.bars) {
+      bar.style.width = '0%';
+      bar.removeAttribute?.('aria-valuenow');
+      bar.setAttribute?.('aria-valuetext', kind === 'unselected' ? 'No person selected' : 'Needs unavailable');
+      bar.setAttribute?.('data-state', 'empty');
       if (bar.stateText) setTextIfChanged(bar.stateText, '');
+      if (bar.valueText) setTextIfChanged(bar.valueText, '');
     }
-    if (this.emptyState && this.content) {
-      this.root.hidden = false;
-      this.emptyState.hidden = false;
-      this.content.hidden = true;
-      return;
+    this.root.hidden = kind === 'unavailable' && !this.emptyState;
+    if (this.emptyState) {
+      this.emptyState.hidden = kind === 'unselected';
+      if ('textContent' in this.emptyState) setTextIfChanged(this.emptyState as CaptionText, kind === 'unavailable' ? 'Needs unavailable' : '');
     }
-    this.root.hidden = true;
+    if (this.content) this.content.hidden = kind === 'unavailable';
   }
 }
 
@@ -262,15 +263,20 @@ export function buildNeedBars(
     fill.setAttribute('aria-label', name);
     fill.setAttribute('aria-valuemin', '0');
     fill.setAttribute('aria-valuemax', '100');
-    fill.setAttribute('aria-valuenow', '0');
-    fill.setAttribute('aria-valuetext', '0% full, critical');
+    fill.setAttribute('aria-valuetext', 'No person selected');
+    fill.setAttribute('data-state', 'empty');
     fill.style.width = '0%';
 
     track.appendChild(fill);
     row.appendChild(label);
+    const valueText = doc.createElement('span');
+    valueText.className = 'need-value';
+    valueText.setAttribute('aria-hidden', 'true');
+    row.appendChild(valueText);
     row.appendChild(track);
     root.appendChild(row);
     Object.defineProperty(fill, 'stateText', { value: stateText });
+    Object.defineProperty(fill, 'valueText', { value: valueText });
     fills.push(fill as BarFill);
   }
   return fills;

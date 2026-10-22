@@ -59,6 +59,23 @@ export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionS
 export interface ActionRegion { readonly left: number; readonly top: number; readonly right: number; readonly bottom: number }
 export interface ActionPlacement { readonly region: ActionRegion; readonly capacity: number; readonly identityHeight: number; readonly scroll: boolean }
 
+/** A description uses free scene space without moving the identity or its actions. */
+export function descriptionPlacement(anchor: ClientPoint, size: ActionSize, viewport: ActionSize,
+  obstacles: readonly ActionRegion[]): (ClientPoint & ActionSize) | null {
+  const candidates = safeActionRegions(viewport, obstacles).filter(region => region.bottom - region.top >= 44)
+    .map(region => {
+      const width = Math.min(size.width, region.right - region.left), height = Math.min(size.height, region.bottom - region.top);
+      const x = Math.max(region.left, Math.min(region.right - width, anchor.x - width / 2));
+      const y = Math.max(region.top, Math.min(region.bottom - height, anchor.y - height - 12));
+      return {x, y, width, height, loss: (size.height - height) * 10000 + (size.width - width) * 100,
+        distance: (x + width / 2 - anchor.x) ** 2 + (y + height + 12 - anchor.y) ** 2};
+    });
+  candidates.sort((a, b) => a.loss - b.loss || a.distance - b.distance);
+  if (!candidates.length) return null;
+  const {x, y, width, height} = candidates[0];
+  return {x, y, width, height};
+}
+
 function intersects(a: ActionRegion, b: ActionRegion): boolean {
   return a.left < b.right - .25 && b.left < a.right - .25 && a.top < b.bottom - .25 && b.top < a.bottom - .25;
 }
@@ -86,10 +103,10 @@ export function actionLayoutFits(layout: ObjectActionLayout, sizes: readonly Act
 }
 
 export function chooseActionPlacement(anchor: ClientPoint, entries: readonly ActionSize[], navigation: ActionSize, viewport: ActionSize,
-  identityHeight: number, obstacles: readonly ActionRegion[], identityWidth = 88): ActionPlacement | null {
+  identityHeight: number, obstacles: readonly ActionRegion[], identityWidth = 88, descriptionSize?: ActionSize): ActionPlacement | null {
   const maximum = maximumActionSize([...entries,navigation]);
   const regions = safeActionRegions(viewport,obstacles);
-  const candidates: {placement:ActionPlacement; distance:number; compact:boolean}[] = [];
+  const candidates: {placement:ActionPlacement; distance:number; compact:boolean; descriptionLoss:number}[] = [];
   for (const capacity of [6,4,3]) {
     const pageCounts: number[] = [];
     for (let page=0;page<=entries.length;page++) {
@@ -103,20 +120,37 @@ export function chooseActionPlacement(anchor: ClientPoint, entries: readonly Act
       const columns = Math.max(1,Math.min(2,Math.floor((width+4)/(maximum.width+4))));
       const rows = Math.ceil(Math.max(...pageCounts)/columns);
       const limitedHeight = Math.min(identityHeight,Math.max(44,height-rows*(maximum.height+4)));
-      let nearest = Infinity, valid = true, compact = false;
+      let nearest = Infinity, valid = true, compact = false, descriptionLoss = 0;
       for (const count of new Set(pageCounts)) {
         const sizes = Array.from({length:count},()=>maximum);
         const layout = layoutObjectActions(anchor,sizes,viewport,region.top,region.bottom,limitedHeight,region.left,region.right,identityWidth);
         compact ||= layout.compact;
         if (!actionLayoutFits(layout,sizes,limitedHeight,region,identityWidth)) {valid=false;break;}
+        if (descriptionSize) {
+          const boxes = layout.positions.map((point, index) => ({left: point.x, top: point.y,
+            right: point.x + sizes[index].width, bottom: point.y + sizes[index].height}));
+          boxes.push({left: layout.identity.x, top: layout.identity.y, right: layout.identity.x + identityWidth, bottom: layout.identity.y + limitedHeight},
+            {left: layout.close.x, top: layout.close.y, right: layout.close.x + 44, bottom: layout.close.y + 44});
+          const description = descriptionPlacement({x: layout.identity.x + identityWidth / 2, y: layout.identity.y}, descriptionSize, viewport, [...obstacles, ...boxes]);
+          if (!description) {
+            valid = false; break;
+          }
+          descriptionLoss = Math.max(descriptionLoss, (descriptionSize.height - description.height) * 10000 + descriptionSize.width - description.width);
+        }
         nearest = Math.min(nearest,(layout.center.x-anchor.x)**2+(layout.center.y-anchor.y)**2);
       }
-      if (valid) candidates.push({placement:{region,capacity,identityHeight:limitedHeight,scroll:false},distance:nearest,compact});
+      if (valid) candidates.push({placement:{region,capacity,identityHeight:limitedHeight,scroll:false},distance:nearest,compact,descriptionLoss});
     }
   }
-  candidates.sort((a,b) => Number(a.compact)-Number(b.compact) || b.placement.capacity-a.placement.capacity || a.distance-b.distance || (b.placement.region.right-b.placement.region.left)*(b.placement.region.bottom-b.placement.region.top)-(a.placement.region.right-a.placement.region.left)*(a.placement.region.bottom-a.placement.region.top));
+  candidates.sort((a,b) => a.descriptionLoss-b.descriptionLoss || Number(a.compact)-Number(b.compact) || b.placement.capacity-a.placement.capacity || a.distance-b.distance || (b.placement.region.right-b.placement.region.left)*(b.placement.region.bottom-b.placement.region.top)-(a.placement.region.right-a.placement.region.left)*(a.placement.region.bottom-a.placement.region.top));
   if (candidates.length) return candidates[0].placement;
   // The compact scroller retains minimum targets when a complete page cannot fit.
   const fallback = regions.filter(region => region.right-region.left >= Math.max(maximum.width,identityWidth+48) && region.bottom-region.top >= 96).sort((a,b) => (b.right-b.left)*(b.bottom-b.top)-(a.right-a.left)*(a.bottom-a.top))[0];
-  return fallback ? {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true} : null;
+  if (!fallback) return null;
+  if (descriptionSize) {
+    const reserve = Math.min(descriptionSize.height, fallback.bottom - fallback.top - 104);
+    if (reserve < 44) return null;
+    return {region: {...fallback, top: fallback.top + reserve + 8}, capacity: 3, identityHeight: Math.min(identityHeight, 44), scroll: true};
+  }
+  return {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true};
 }

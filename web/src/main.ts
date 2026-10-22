@@ -33,7 +33,7 @@ import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
 import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
-import { BuildSceneFeedback, PendingIndicator, SceneFeedback } from './ui/operation-feedback.js';
+import { BuildSceneFeedback, PendingIndicator, SceneFeedback, operationFeedback } from './ui/operation-feedback.js';
 import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
 import type { BuildReview } from './rooms/codec.js';
@@ -96,7 +96,7 @@ import {
   setSelectedLines,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
-import { DebugPanel } from './ui/debug-panel.js';
+import { DebugPanel, createStructuredDebugSurface } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
@@ -120,7 +120,8 @@ import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
-import { OrderDiagnostics } from './ui/player-orders.js';
+import { OrderDiagnostics, hasClearablePlayerOrders } from './ui/player-orders.js';
+import { OrderHistoryPanel } from './ui/order-history.js';
 import { OrderFailureBubbles } from './ui/order-failure-bubbles.js';
 import { WorkOrderConfirmation, formatWorkConflict } from './ui/work-order-confirmation.js';
 import { observeHudScrollbar } from './ui/hud-scrollbar.js';
@@ -906,12 +907,19 @@ async function main(): Promise<void> {
     const critical = needsContent.hidden ? [] : needMeters
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
-    // The current activity always shows; critical needs get their own line.
+    // Critical needs share the activity line in expanded and collapsed states.
     const activity = activityValue.textContent ?? '';
     const urgent = critical.length ? `Critical: ${critical.join(', ')}` : '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
     if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
+    dockCritical.title = urgent;
+    const selected = sim.selectedIndex() !== null;
+    for (const id of ['sim-details', 'dock-queue']) {
+      const control = document.getElementById(id) as HTMLButtonElement;
+      control.disabled = !selected;
+      control.title = selected ? '' : 'Select a person';
+    }
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
     queueEmpty.hidden = !actionQueueRoot.hidden;
     const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
@@ -1046,34 +1054,19 @@ async function main(): Promise<void> {
         debugReport.textContent = value;
       },
     };
-    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs());
+    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs(), createStructuredDebugSurface(document, debugReport, () => !root.hidden));
     debugPanel = panel;
     const filter = document.querySelector<HTMLSelectElement>('#order-history-person')!;
     const history = document.querySelector<HTMLElement>('#order-history')!;
     const copy = document.querySelector<HTMLButtonElement>('#order-history-copy')!;
     const copyStatus = document.querySelector<HTMLElement>('#order-history-copy-status')!;
-    let roster = '', revision = -1, lastFilter = '';
-    updateOrderHistory = () => {
-      if (root.hidden) return;
-      const ids = sim.ids(), kinds = sim.kinds();
-      const people = Array.from(ids).filter((_, row) => kinds[row] === 0);
-      const signature = people.map(entity => `${entity}:${sim.simName(entity)}`).join('|');
-      if (signature !== roster) {
-        roster = signature;
-        const selected = filter.value;
-        filter.replaceChildren(new Option('Selected person', 'selected'), new Option('Everyone', 'all'),
-          ...people.map(entity => new Option(sim.simName(entity), String(entity))));
-        if (Array.from(filter.options).some(option => option.value === selected)) filter.value = selected;
-      }
-      const entity = filter.value === 'all' ? null : filter.value === 'selected' ? sim.selectedIndex() : Number(filter.value);
-      const selection = `${filter.value}:${entity}`;
-      if (revision === orderDiagnostics.revision && selection === lastFilter) return;
-      revision = orderDiagnostics.revision; lastFilter = selection;
-      history.textContent = entity === null && filter.value === 'selected' ? 'Select a person to see their order history.' : orderDiagnostics.history(entity);
-    };
-    copy.addEventListener('click', () => {
-      void navigator.clipboard.writeText(history.textContent ?? '').then(() => { copyStatus.textContent = 'Copied'; }, () => { copyStatus.textContent = 'Copy failed. Select the history text and copy it.'; });
-    });
+    const orderHistory = new OrderHistoryPanel(document, {
+      disclosure: document.querySelector<HTMLDetailsElement>('#order-history-details')!,
+      summary: document.querySelector<HTMLElement>('#order-history-summary')!,
+      notice: document.querySelector<HTMLElement>('#order-history-notice')!,
+      filter, list: history, copy, status: copyStatus,
+    }, orderDiagnostics, () => !root.hidden, text => navigator.clipboard.writeText(text));
+    updateOrderHistory = () => orderHistory.update(sim);
     document.addEventListener('keydown', (event) => {
       if (event.code === 'Backquote') panel.toggle();
     });
@@ -1313,6 +1306,7 @@ async function main(): Promise<void> {
     newHousemateButton.disabled = buildSession.active || graphicsRecovering || current >= limit;
   };
   const syncEditHousemateButton = (): void => {
+    editHousemateButton.hidden = sim.selectedIndex() === null;
     editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;
   };
   const openCreator = (person: number | null): void => {
@@ -1660,6 +1654,7 @@ async function main(): Promise<void> {
   // off, because every object on it offers exactly one.
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
+  let menuSceneAnchor: {x: number; y: number} | null = null;
   const menu: ObjectMenu = new ObjectMenu(createMenuSurface(document, menuRoot, {
     anchor(model) {
       if (model.object === undefined) return null;
@@ -1671,15 +1666,18 @@ async function main(): Promise<void> {
       if (!object) return null;
       const footprint = { x, y, width: object.width, depth: object.depth };
       const height = spriteFramingHeight(sprite);
-      return canvasToClient(ghostAnchorX(footprint, camera, spriteDrawOffsetX(sprite)),
+      const point = canvasToClient(ghostAnchorX(footprint, camera, spriteDrawOffsetX(sprite)),
         ghostAnchorTop(footprint, camera, height) + height * camera.scale / 2,
         stage.getBoundingClientRect(), stage.width, stage.height);
+      return point;
     },
     revision: () => [camera.originX, camera.originY, camera.scale, stage.width, stage.height, sim.clockTick()].join(','),
     keepouts: () => ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls']
       .map(id => document.getElementById(id)?.getBoundingClientRect())
       .filter((rect): rect is DOMRect => !!rect && rect.width > 0 && rect.height > 0),
     dismiss: () => menu.close(),
+    closed: () => sceneFeedback.anchor(null),
+    positioned: point => { menuSceneAnchor = point; sceneFeedback.anchor(point); },
   }), (action, additive) => {
     if (action.kind === 'build') {
       if (overlayPause.suspendedExcept('builder') || builder.pending) return;
@@ -1695,13 +1693,15 @@ async function main(): Promise<void> {
     if (builder.active) return;
     const accepted = dispatchMenuAction(sim, action, queueMode.isActive() || additive ? 'back' : 'front',
       () => clearCommandFeedback(commandStatus));
+    if (accepted && action.kind === 'cancel') sceneFeedback.present('command',
+      operationFeedback('clear-orders', 'success', 'Player orders', 'Orders cleared'), menuSceneAnchor);
     if (!accepted) { commandStatus.textContent = 'That order could not be added'; commandStatus.setAttribute('data-kind', 'error'); }
     audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
   }, action => {
     if (overlayPause.suspendedExcept('builder') || roomReview.active) return false;
     if (action.kind === 'build') return !builder.pending && !buildTools.some(tool => Boolean(tool.pending));
     return ['buy-book', 'sell-book', 'recover-book'].includes(action.kind) || !builder.active;
-  });
+  }, () => hasClearablePlayerOrders(sim));
   optionsToggle.addEventListener('click', () => menu.close());
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
@@ -2148,7 +2148,8 @@ async function main(): Promise<void> {
     const viewport=stage.getBoundingClientRect();
     return {left:viewport.left,top:viewport.top,right:viewport.right,
       bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
-  },sceneObstacles,[stage,builderDock]);
+  },sceneObstacles,[stage,builderDock], () => menuRoot.hidden ? [] :
+    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description')));
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
@@ -2623,7 +2624,7 @@ async function main(): Promise<void> {
     // the budget is a budget that does not describe the frame ([L19]).
     // On five frames in six this is two comparisons and a return.
     const needsUpdated = needsPanel.update(nowMs, sim);
-    gameHud.update(nowMs, sim);
+    if (gameHud.update(nowMs, sim)) menu.refresh();
     actionQueue.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
@@ -2644,7 +2645,7 @@ async function main(): Promise<void> {
     }
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
-    updateOrderHistory?.();
+    if (needsUpdated) updateOrderHistory?.();
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.

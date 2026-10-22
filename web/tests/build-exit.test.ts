@@ -227,6 +227,22 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
 }
 
 describe('the footer', () => {
+  it.each(['Enter', ' '])('leaves fresh %s disclosure activation to the native default after its held-key guard', key => {
+    const f = fixture();
+    try {
+      f.enterWithMove(); f.doc.click(f.confirmButton, 0);
+      const saved = f.sim.saveBytes();
+      const summary = new FakeElement(f.doc);
+      let open = false;
+      summary.within.add('summary'); summary.defaultAction = () => {open = !open;};
+      summary.focus();
+      expect(f.doc.keydown(summary, key)).toBe(false);
+      f.doc.click(summary, 0);
+      expect(open).toBe(true); expect(f.doc.activeElement).toBe(summary);
+      expect(f.builder.active).toBe(false); expect(f.gameClicks).toBe(0);
+      expect(f.sim.saveBytes()).toEqual(saved);
+    } finally {f.handle.free();}
+  });
   it('drops the rest of a double-click while asynchronous native review is open', async () => {
     let finish: ((adopted: boolean) => void) | undefined;
     const f = fixture(new SimHandle(10, 8), () => new Promise<boolean>(resolve => { finish = resolve; }));
