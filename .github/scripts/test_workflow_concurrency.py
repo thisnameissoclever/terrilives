@@ -79,7 +79,7 @@ class MutationRunnerBudget(unittest.TestCase):
         self.assertIn("    needs: [mutation-plan, mutation-admission]", self.block(self.jobs, "mutation-prepare", 2))
         self.assertIn("    needs: mutation-prepare", self.mutants)
         self.assertIn("    timeout-minutes: 120", self.mutants)
-        self.assertEqual(self.workflow.count("group: ci-mutation-shard-"), 5)
+        self.assertEqual(self.workflow.count("group: ci-mutation-shard-"), 6)
 
     def test_aggregate_runs_after_failed_workers_and_has_distinct_fixture_check(self):
         job = self.block(self.jobs, "mutation-aggregate", 2)
@@ -107,7 +107,10 @@ class MutationRunnerBudget(unittest.TestCase):
 
     def test_only_read_permissions_no_self_dispatch_no_worker_install(self):
         self.assertEqual(self.block(self.workflow, "permissions", 0), "  contents: read\n  actions: read")
-        self.assertNotIn(": write", self.workflow)
+        publisher = self.block(self.jobs, "runtime-publish", 2)
+        self.assertEqual(self.block(publisher, "permissions", 4),
+                         "      contents: read\n      actions: read\n      packages: write")
+        self.assertEqual(self.workflow.count(": write"), 1)
         self.assertNotIn("gh workflow run", self.workflow)
         self.assertNotIn("cargo install cargo-mutants", self.workflow)
         self.assertNotIn("continue-on-error", self.mutants)
@@ -152,7 +155,7 @@ class MutationRunnerBudget(unittest.TestCase):
         for key in ("rust", "web", "art"):
             job = self.block(self.jobs, key, 2)
             self.assertIn("    needs: changes\n", job + "\n")
-            self.assertIn("    if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'", job)
+            self.assertIn("inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'", job)
             self.assertNotIn("continue-on-error", job)
         self.assertNotIn("assets/sprites/gen", self.block(self.jobs, "rust", 2))
         for command in ART_COMMANDS:
@@ -181,6 +184,51 @@ class MutationRunnerBudget(unittest.TestCase):
         self.assertNotIn("continue-on-error", web)
         self.assertNotIn("overwrite:", web)
 
+    def test_runtime_publication_is_owner_dispatched_for_one_exact_revision(self):
+        dispatch = self.block(self.workflow, "workflow_dispatch", 2)
+        self.assertIn("      runtime_publish:\n        description: Publish the mutation runtime image only\n        type: boolean\n        default: false", dispatch)
+        self.assertIn("      runtime_build_sha:\n        description: Exact source revision to publish\n        type: string", dispatch)
+        publisher = self.block(self.jobs, "runtime-publish", 2)
+        self.assertIn("    needs: [changes, ci-guards]", publisher)
+        self.assertIn("      github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true &&", publisher)
+        self.assertIn("      github.actor == github.repository_owner && inputs.runtime_build_sha == github.sha &&", publisher)
+        self.assertIn("      needs.changes.result == 'success' && needs.ci-guards.result == 'success'", publisher)
+        self.assertIn("    runs-on: ubuntu-24.04\n    timeout-minutes: 120", publisher)
+        self.assertEqual(self.block(publisher, "concurrency", 4),
+                         "      group: ci-mutation-shard-0\n      cancel-in-progress: false\n      queue: max")
+        self.assertNotIn("continue-on-error", publisher)
+        self.assertNotIn("    container:", publisher)
+
+    def test_runtime_publisher_checks_revision_before_build_and_limits_credentials(self):
+        publisher = self.block(self.jobs, "runtime-publish", 2)
+        self.assertIn("          RUNTIME_BUILD_SHA: ${{ inputs.runtime_build_sha }}", publisher)
+        self.assertIn('          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]', publisher)
+        self.assertIn('          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]', publisher)
+        self.assertIn("          set -eu", publisher)
+        validation, build_and_publish = publisher.split("      - name: Build the mutation runtime image\n")
+        self.assertIn('[ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]', validation)
+        build, publish = build_and_publish.split("      - name: Publish the mutation runtime image\n")
+        command = ('python3 -B .github/scripts/mutation_runtime_image.py {} '
+                   '--tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" '
+                   '--output "$RUNNER_TEMP/mutation-runtime-build"')
+        self.assertIn("        run: " + command.format("build"), build)
+        self.assertNotIn("GH_TOKEN", build)
+        self.assertNotIn("TOKEN", validation)
+        self.assertIn("        run: " + command.format("publish"), publish)
+        self.assertIn("          GH_TOKEN: ${{ github.token }}", publish)
+        self.assertEqual(publisher.count("${{ github.token }}"), 1)
+        self.assertNotIn("if:", build_and_publish)
+
+    def test_runtime_bootstrap_suppresses_only_ordinary_jobs(self):
+        ordinary = ("docs", "changelog", "art", "rust", "web", "mutation-tool", "mutation-plan",
+                    "mutation-native-pilot", "mutation-native-pilot-report", "mutation-admission",
+                    "mutation-prepare", "mutants", "mutation-aggregate")
+        for key in ordinary:
+            job = self.block(self.jobs, key, 2)
+            self.assertIn("inputs.runtime_publish != true &&", job, key)
+        for key in ("changes", "ci-guards"):
+            self.assertFalse(any(line.startswith("    if:") for line in self.block(self.jobs, key, 2).splitlines()))
+
     def test_isolated_workflow_guard_removals_are_detected(self):
         controls = [
             ("needs.mutation-admission.result == 'success'", "true",
@@ -196,7 +244,7 @@ class MutationRunnerBudget(unittest.TestCase):
              "test_mutation_tool_and_plan_require_successful_complete_guards"),
             ("    needs: [changes, ci-guards, mutation-tool]", "    needs: [changes, mutation-tool]",
              "test_mutation_tool_and_plan_require_successful_complete_guards"),
-            ("if: needs.ci-guards.result == 'success' && github.event_name", "if: github.event_name",
+            ("needs.ci-guards.result == 'success' && github.event_name", "github.event_name",
              "test_mutation_tool_and_plan_require_successful_complete_guards"),
             ("      needs.ci-guards.result == 'success' &&", "      true &&",
              "test_mutation_tool_and_plan_require_successful_complete_guards"),
@@ -213,7 +261,19 @@ class MutationRunnerBudget(unittest.TestCase):
             ("          retention-days: 7", "          retention-days: 7\n          overwrite: true",
              "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
             ("          retention-days: 7", "          retention-days: 1",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests")]
+             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
+            ("github.actor == github.repository_owner", "true",
+             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
+            ("inputs.runtime_build_sha == github.sha", "true",
+             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
+            ("github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true", "true",
+             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
+            ('          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]', "          true",
+             "test_runtime_publisher_checks_revision_before_build_and_limits_credentials"),
+            ('          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]', "          true",
+             "test_runtime_publisher_checks_revision_before_build_and_limits_credentials"),
+            ("inputs.runtime_publish != true && needs.changes.outputs.site", "needs.changes.outputs.site",
+             "test_runtime_bootstrap_suppresses_only_ordinary_jobs")]
         controls.extend((command, "true", "test_art_retains_every_command_and_runs_alongside_native_and_web")
                         for command in ART_COMMANDS)
         controls.extend((f"  {key}:\n    needs: changes", f"  {key}:\n    needs: [changes, ci-guards]",

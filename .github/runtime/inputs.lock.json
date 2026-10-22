@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "architecture": "x86_64",
+  "buildkit_image": "moby/buildkit:v0.28.0@sha256:60bfb07e39a6e524e78e6c4723114902c6b61ee36714493e357e39861bea753b",
+  "ubuntu_image": "ubuntu:24.04@sha256:a2d43bffc46670d7108bb3c0468c67c5557c4c92e83e1e34cbff1322ad1b94dc",
+  "ubuntu_snapshot": "https://snapshot.ubuntu.com/ubuntu/20261001T000000Z",
+  "ca_bootstrap": {"url": "https://snapshot.ubuntu.com/ubuntu/20261001T000000Z/pool/main/c/ca-certificates/ca-certificates_20260601~24.04.1_all.deb", "sha256": "6bac2a01979e210d9eac1d4d56747ec709ea60654744d66705dc3c36e7629e50"},
+  "apt_packages": {
+    "binutils": "2.42-4ubuntu2.10",
+    "build-essential": "12.10ubuntu1",
+    "ca-certificates": "20260601~24.04.1",
+    "curl": "8.5.0-2ubuntu10.15",
+    "git": "1:2.43.0-1ubuntu7.3",
+    "libssl-dev": "3.0.13-0ubuntu3.16",
+    "pkg-config": "1.8.1-2build1",
+    "python3": "3.12.3-0ubuntu2.1",
+    "xz-utils": "5.6.1+really5.4.5-1ubuntu0.3"
+  },
+  "rust_version": "1.94.1",
+  "rust_manifest": "https://static.rust-lang.org/dist/channel-rust-1.94.1.toml",
+  "rust_archives": [
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/rustc-1.94.1-x86_64-unknown-linux-gnu.tar.xz", "sha256": "0a6b16ca476461c6238f48efcb74a7aa08a3983e61adf587f208ba48504d87e1"},
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/cargo-1.94.1-x86_64-unknown-linux-gnu.tar.xz", "sha256": "03595624775204f80ff3a67986f69c8918e4cd311877ced635108888013a1e39"},
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/rust-std-1.94.1-x86_64-unknown-linux-gnu.tar.xz", "sha256": "74109ee2c19098f1d7122087dd338a8f643203b3ce678c9d58169db733e17a03"},
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/rust-std-1.94.1-wasm32-unknown-unknown.tar.xz", "sha256": "26b8953083b942aeaf870de742962e4ba17c0da2095725fbf4ab5ab85a4d5fd5"},
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/clippy-1.94.1-x86_64-unknown-linux-gnu.tar.xz", "sha256": "883a8116360741aca335e12cc02c201e027473861c807027df19bb82583a8603"},
+    {"url": "https://static.rust-lang.org/dist/2026-03-26/rustfmt-1.94.1-x86_64-unknown-linux-gnu.tar.xz", "sha256": "eaff8c808a1b82261e235002fc86ad217cba194525364cfd8d3a4de21c179d0f"}
+  ],
+  "gh_version": "2.102.1",
+  "gh_archive": {"url": "https://github.com/cli/cli/releases/download/v2.102.1/gh_2.102.1_linux_amd64.tar.gz", "sha256": "77b9e297e94c50336823d0f84de7ef1be60cba704601fa0d98f129f47a94987b"},
+  "gh_checksums": "https://github.com/cli/cli/releases/download/v2.102.1/gh_2.102.1_checksums.txt"
+}

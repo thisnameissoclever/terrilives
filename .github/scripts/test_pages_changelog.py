@@ -21,7 +21,7 @@ class ChangelogPublication(unittest.TestCase):
         start = self.ci.index("  changelog:\n")
         end = self.ci.index("\n  rust:", start)
         job = self.ci[start:end]
-        self.assertIn("if: needs.changes.outputs.site == 'true'", job)
+        self.assertIn("if: inputs.runtime_publish != true && needs.changes.outputs.site == 'true'", job)
         self.assertIn("node --test scripts/build-changelog.test.mjs", job)
         self.assertIn("node scripts/build-changelog.mjs", job)
         self.assertIn("site: ${{ steps.classify.outputs.site }}", self.ci)

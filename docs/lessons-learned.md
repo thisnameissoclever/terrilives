@@ -13113,3 +13113,24 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: integration verification overlapped edits to files that tests import and read at different times.
 3. Prevention: finish worker edits before starting final integration verification. Treat a run spanning source changes as mixed-input evidence rather than a pass for the final tree.
 4. Verification: rerun affected modules after edits stop. Require the complete hosted suite on the immutable committed revision before dependent work proceeds.
+
+## [L-stable-mutation-userspace] Select the environment that the campaign requires
+
+1. What happened: separate hosted jobs received different Ubuntu image versions, so exact runtime authentication stopped fixture planning repeatedly.
+2. Root cause: a rolling runner label does not select one immutable environment across jobs or recovery attempts. Waiting for a rollout to settle cannot guarantee a stable multi-day campaign. The available failure logs established different image labels without establishing whether library bytes also differed.
+3. Prevention: select one reviewed, digest-pinned userspace for every mutation stage. Bind its compiler, executable, library and recipe identities. Retain the hosting machine as separate provenance. Update calibration, workers, native admission and recovery together.
+4. Verification: require the same pinned computation to pass across changed host metadata. Require changed image, inventory, compiler, library, helper or recipe inputs to refuse. Complete a real interrupted/resumed fixture before accepting production planning.
+
+## [L-runtime-image-consumer-contract] Test the image and its consumer together
+
+1. What happened: an image declared the intended Cargo worker count, while the consumer rejected that declaration as an unknown inherited override. Review also found that hashing a shell binary without its command alias could miss a redirected shell.
+2. Root cause: image preparation and runtime validation were checked separately. File contents, command resolution and environment declarations jointly determine the effective tools.
+3. Prevention: derive regression inputs from the actual image environment. Normalize only values that exactly match the declared computation. Verify effective helper resolutions and symlink targets as well as file bytes.
+4. Verification: run the real image environment before hosted qualification. Accept the declared worker count and refuse mismatches or unknown Cargo overrides. Redirect a shell/helper while retaining its original binary and require refusal.
+
+## [L-frozen-apt-candidates] Resolve package locks with the package manager
+
+1. What happened: package metadata enumeration selected an older security-pocket binutils version over the newer updates-pocket candidate, and the image build refused the lock.
+2. Root cause: repository iteration order replaced the package manager's version-selection rules.
+3. Prevention: freeze the package snapshot and resolve every direct package through APT's actual candidate selection. Validate every locked candidate before installation.
+4. Verification: build against the frozen signed snapshot with a candidate audit for all locked packages. Require a mismatched lock to fail before installation.

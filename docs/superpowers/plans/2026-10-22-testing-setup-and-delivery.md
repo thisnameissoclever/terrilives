@@ -4,9 +4,9 @@
 
 **Goal:** Restore authenticated mutation-test planning and reduce redundant delivery work while preserving meaningful verification.
 
-**Architecture:** Keep fixture qualification, exact runtime identity, recovery authentication and native admission intact. Run independent CI guard and artwork verification alongside normal checks. Publish automatic releases using the exact successful CI run's tested WebAssembly package; keep fresh builds for manually validated releases. Fetch only the metadata and classifier needed to reject stale publication.
+**Architecture:** Keep fixture qualification, exact computation identity, recovery authentication and native admission intact. Select one digest-pinned container for the entire mutation environment, including its compiler, libraries and command-line tools. Record the hosting machine separately as provenance. Run independent CI guard and artwork verification alongside normal checks. Publish automatic releases using the exact successful CI run's tested WebAssembly package; keep fresh builds for manually validated releases. Fetch only the metadata and classifier needed to reject stale publication.
 
-**Technology:** Existing Python standard library helpers, GitHub Actions, Git, Rust, Node and their currently selected actions. No dependency or toolchain upgrades.
+**Technology:** Existing Python standard library helpers, GitHub Actions, Git, Rust, Node, the installed Docker tools and the repository's package registry. Preserve Rust 1.94.1 and current application dependencies and action versions. Build the reviewed mutation image once, then select its immutable digest without consumer package updates.
 
 **Spec:** `docs/mutation-campaign.md`, `docs/testing-protocol.md` and the owner's October 22 repair and delivery request.
 
@@ -21,6 +21,8 @@
 5. Artifact restoration validates producer, immutable artifact identity, archive digest, complete file inventory and every file hash before writing package files.
 6. Stale-release comparison reads the current main revision immediately before publishing, fetches that exact revision and rejects unknown comparisons.
 7. Preserve other conversations' checkouts, running jobs, credentials and changes.
+8. Keep mutation consumers read-only. Image publication is a separate owner-dispatched operation with package-write permission limited to that job. It cannot run for pull requests or dispatch another workflow.
+9. Authenticate the image pin through committed workflow and recipe inputs. Require its embedded tool inventory and actual executable/library identities. An environment variable alone does not establish the computation identity.
 
 ## Independent tasks
 
@@ -51,6 +53,14 @@
 ### 3. Hosted setup and delivery
 
 **Owner:** Primary assistant. Own diagnostic and release evidence, qualification diagnostics and their integration tests, mutation-operation and lesson documentation, integration, hosted qualification and merge.
+
+Before qualification, complete the stable runtime work:
+
+1. Prepare an Ubuntu 24 image recipe containing the existing pinned Rust toolchain, Python, GitHub CLI, Git, binutils and native build prerequisites. Retain exact base-image and downloaded-tool digests and a canonical installed-tool inventory.
+2. Build and verify the image with bounded resources. Publish it through the owner-dispatched image job, then pin its actual digest and inventory hash in the committed runtime manifest.
+3. Apply the same pinned container to every mutation job. Keep host image metadata outside the computation fingerprint while retaining it in producer provenance. Update tool, calibration, native admission, worker and recovery identities together.
+4. Prove that changed host metadata with the same actual pinned computation succeeds. Prove that changed container, inventory, compiler, executable, loaded library or execution input refuses. Retain all existing tampering and interruption controls.
+5. Verify container checkout ownership, isolated Cargo directories, locale, temporary paths, process-group shutdown, cleanup and artifact permissions before producing qualification.
 
 1. Integrate the independent changes and run CI-script tests, classifier fault controls and appropriate build checks. Review changes before refreshing any source fingerprints.
 2. Obtain independent review of authenticity boundaries, skip conditions, permissions and preserved coverage.

@@ -12,6 +12,13 @@ on:
   # command instead of an evening.
   workflow_dispatch:
     inputs:
+      runtime_publish:
+        description: Publish the mutation runtime image only
+        type: boolean
+        default: false
+      runtime_build_sha:
+        description: Exact source revision to publish
+        type: string
       mutation_mode:
         description: Production campaign or interrupted/resumed orchestration fixture
         type: choice
@@ -122,10 +129,42 @@ jobs:
         working-directory: .github/scripts
         run: python3 -B -m unittest discover -p 'test_*.py'
 
+  runtime-publish:
+    needs: [changes, ci-guards]
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true &&
+      github.actor == github.repository_owner && inputs.runtime_build_sha == github.sha &&
+      needs.changes.result == 'success' && needs.ci-guards.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the exact runtime source revision
+        env:
+          RUNTIME_BUILD_SHA: ${{ inputs.runtime_build_sha }}
+        run: |
+          set -eu
+          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]
+      - name: Build the mutation runtime image
+        run: python3 -B .github/scripts/mutation_runtime_image.py build --tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" --output "$RUNNER_TEMP/mutation-runtime-build"
+      - name: Publish the mutation runtime image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/mutation_runtime_image.py publish --tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" --output "$RUNNER_TEMP/mutation-runtime-build"
+
   # Check the ids a documentation change adds or moves.
   docs:
     needs: changes
-    if: needs.changes.outputs.code != 'true'
+    if: inputs.runtime_publish != true && needs.changes.outputs.code != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -136,7 +175,7 @@ jobs:
   # correctly skip the Rust, web and mutation jobs.
   changelog:
     needs: changes
-    if: needs.changes.outputs.site == 'true'
+    if: inputs.runtime_publish != true && needs.changes.outputs.site == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -154,7 +193,7 @@ jobs:
 
   art:
     needs: changes
-    if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
+    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -183,7 +222,7 @@ jobs:
 
   rust:
     needs: changes
-    if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
+    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -296,7 +335,7 @@ jobs:
   mutation-tool:
     name: mutation-fixture-tool
     needs: [changes, ci-guards]
-    if: needs.ci-guards.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
+    if: inputs.runtime_publish != true && needs.ci-guards.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     concurrency:
@@ -335,6 +374,7 @@ jobs:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-plan' || 'mutation-plan' }}
     needs: [changes, ci-guards, mutation-tool]
     if: >-
+      inputs.runtime_publish != true &&
       always() && !cancelled() && needs.changes.result == 'success' &&
       needs.ci-guards.result == 'success' &&
       needs.changes.outputs.code == 'true' &&
@@ -383,7 +423,7 @@ jobs:
   mutation-native-pilot:
     name: mutation-native-pilot
     needs: mutation-plan
-    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     concurrency:
@@ -422,7 +462,7 @@ jobs:
   mutation-native-pilot-report:
     name: mutation-native-pilot-report
     needs: [mutation-plan, mutation-native-pilot]
-    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     outputs:
@@ -456,7 +496,7 @@ jobs:
   mutation-admission:
     name: mutation-admission
     needs: [mutation-plan, mutation-native-pilot-report]
-    if: ${{ !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     outputs:
@@ -493,6 +533,7 @@ jobs:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-prepare' || 'mutation-prepare' }}
     needs: [mutation-plan, mutation-admission]
     if: >-
+      inputs.runtime_publish != true &&
       always() && !cancelled() && needs.mutation-plan.result == 'success' &&
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
@@ -533,7 +574,7 @@ jobs:
   mutants:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-slot-' || 'mutation-slot-' }}${{ matrix.shard }}
     needs: mutation-prepare
-    if: ${{ !cancelled() && needs.mutation-prepare.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && needs.mutation-prepare.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     concurrency:
@@ -576,6 +617,7 @@ jobs:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-aggregate' || 'mutation-production-aggregate' }}
     needs: [mutation-plan, mutation-admission, mutation-prepare, mutants]
     if: >-
+      inputs.runtime_publish != true &&
       always() && !cancelled() && needs.mutation-plan.result == 'success' &&
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
@@ -635,7 +677,7 @@ jobs:
 
   web:
     needs: changes
-    if: needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
+    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
