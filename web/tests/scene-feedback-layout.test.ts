@@ -1,6 +1,23 @@
 import { expect,it } from 'vitest';
 import { SceneLayoutObserver,sceneFeedbackPosition } from '../src/ui/scene-feedback-layout.js';
 import { sceneObserverHarness } from './helpers/scene-observers.js';
+it('captures a nested action rail scroll to refresh its clipped child bounds', () => {
+  let invalidate: (() => void) | undefined, capture = false, left = 220, reads = 0;
+  const root = {hidden: false, ownerDocument: {}, getBoundingClientRect: () => ({left: 8, top: 294, right: 312, bottom: 379}),
+    addEventListener: (name: string, callback: () => void, options: {capture?: boolean}) => {
+      if (name === 'scroll') {invalidate = callback; capture = options.capture === true;}
+    }};
+  const rail = {getBoundingClientRect: () => ({left: 8, top: 294, right: 260, bottom: 365})};
+  const child = {hidden: false, style: {position: 'relative'}, closest: () => rail,
+    getBoundingClientRect: () => {reads++; return {left, top: 300, right: left + 136, bottom: 350};}};
+  const observer = new SceneLayoutObserver(() => ({left: 0, top: 0, right: 320, bottom: 568}), [root as never], [], () => [child as never]);
+  expect(observer.read().obstacles[1].right).toBe(260);
+  const cached = observer.read(); expect(observer.read()).toBe(cached); expect(reads).toBe(1);
+  left = 80;
+  // Scroll does not bubble; only the root's capture subscription receives it.
+  if (capture) invalidate?.();
+  expect(observer.read().obstacles[1]).toEqual({left: 80, top: 300, right: 216, bottom: 350});
+});
 it('uses the painted portion of children in a scrolling menu and invalidates when that menu scrolls', () => {
   const events = new Map<string, () => void>();
   const clip = {hidden: false, ownerDocument: {}, addEventListener: (name: string, callback: () => void) => events.set(name, callback),

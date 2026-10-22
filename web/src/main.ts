@@ -2154,7 +2154,7 @@ async function main(): Promise<void> {
     return {left:viewport.left,top:viewport.top,right:viewport.right,
       bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
   },sceneObstacles,[stage,builderDock], () => menuRoot.hidden ? [] :
-    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description')));
+    Array.from(menuRoot.querySelectorAll<HTMLElement>('.menu-entry, .radial-identity, .radial-close, .radial-description, .object-action-rail')));
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }

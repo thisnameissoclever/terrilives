@@ -14,6 +14,8 @@ export interface OrderEventBatch { events: OrderEvent[]; nextCursor: string; exp
 export interface OrderEventSource {
   orderEventsSince(cursor: string): OrderEventBatch;
   simName(entity: number): string;
+  ids?(): Uint32Array;
+  kinds?(): Uint32Array;
 }
 export interface ActionQueueRow {
   orderId: string | null;
@@ -60,11 +62,13 @@ export class OrderDiagnostics {
     this.expired ||= this.records.length + events.length > 2048;
     this.records = [...this.records, ...events].slice(-2048);
     this.generation++;
+    const ids = Array.from(source.ids?.() ?? []), kinds = Array.from(source.kinds?.() ?? []);
+    const people = new Set(ids.filter((_, index) => kinds[index] === 0));
     for (const event of events) {
       for (const actor of [event.actor, event.counterpart]) {
-        if (actor !== null && !this.names.has(actor)) {
-          const name = source.simName(actor);
-          if (name) this.names.set(actor, name);
+        // Actors are people. Counterparts also include furniture and chore targets.
+        if (actor !== null && (actor === event.actor || people.has(actor) || this.names.has(actor)) && !this.names.get(actor)) {
+          this.names.set(actor, source.simName(actor));
         }
       }
       if (event.phase !== 'failed' && event.phase !== 'rejected') continue;
@@ -91,6 +95,7 @@ export class OrderDiagnostics {
     return this.records.filter(event => entity === null || event.actor === entity || event.counterpart === entity);
   }
   actorName(entity: number): string {return this.names.get(entity) || `Person ${entity}`;}
+  personEntities(): readonly number[] {return Array.from(this.names.keys());}
   get historyExpired(): boolean {return this.expired;}
   copyHistory(entity: number | null): string {
     return [this.expired ? 'Earlier events have expired from this session.' : '',

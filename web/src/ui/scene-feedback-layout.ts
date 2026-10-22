@@ -17,7 +17,7 @@ export class SceneLayoutObserver {
     this.obstacles=[...obstacles]; this.extraGeometry = extraGeometry;
     const elements=[...new Set([...obstacles,...extraGeometry])];
     const invalidate=()=>this.invalidate();
-    elements.forEach(element => element.addEventListener?.('scroll', invalidate, {passive: true}));
+    elements.forEach(element => element.addEventListener?.('scroll', invalidate, {passive: true, capture: true}));
     if(typeof ResizeObserver!=='undefined'){this.resizeObserver=new ResizeObserver(invalidate);elements.forEach(element=>this.resizeObserver!.observe(element));}
     if(typeof MutationObserver!=='undefined'){this.mutationObserver=new MutationObserver(invalidate);elements.forEach(element=>this.observeMutation(element));}
     const view=elements[0]?.ownerDocument.defaultView;

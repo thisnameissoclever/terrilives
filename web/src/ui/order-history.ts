@@ -48,10 +48,8 @@ export class OrderHistoryPanel {
     if (!this.visible() || !this.elements.disclosure.open) return;
     const ids = Array.from(source.ids()), kinds = Array.from(source.kinds());
     const people = new Map(ids.flatMap((entity, index): [number, string][] => kinds[index] === 0 ? [[entity, source.simName(entity) || `Person ${entity}`]] : []));
-    for (const event of this.diagnostics.events(null)) {
-      for (const actor of [event.actor, event.counterpart]) if (actor !== null && !people.has(actor)) {
-        people.set(actor, `${this.diagnostics.actorName(actor)} (entity ${actor}, retired or unknown)`);
-      }
+    for (const actor of this.diagnostics.personEntities()) if (!people.has(actor)) {
+      people.set(actor, `${this.diagnostics.actorName(actor)} (entity ${actor}, retired or unknown)`);
     }
     const signature = JSON.stringify([...people]);
     if (signature !== this.signature) {

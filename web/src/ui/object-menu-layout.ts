@@ -57,7 +57,15 @@ export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionS
 
 
 export interface ActionRegion { readonly left: number; readonly top: number; readonly right: number; readonly bottom: number }
-export interface ActionPlacement { readonly region: ActionRegion; readonly capacity: number; readonly identityHeight: number; readonly scroll: boolean }
+export interface ActionPlacement { readonly region: ActionRegion; readonly capacity: number; readonly identityHeight: number; readonly scroll: boolean; readonly rail?: boolean }
+
+/** One control row, a permanent Close target, and a small scrolling hint. */
+export function layoutActionRail(region: ActionRegion): {viewport: ActionRegion; close: ClientPoint; hint: ActionRegion} {
+  const rowBottom = region.bottom - 14, right = region.right - 52;
+  return {viewport: {left: region.left, top: region.top, right, bottom: rowBottom},
+    close: {x: region.right - 44, y: region.top + (rowBottom - region.top - 44) / 2},
+    hint: {left: region.left, right, top: rowBottom, bottom: region.bottom}};
+}
 
 /** A description uses free scene space without moving the identity or its actions. */
 export function descriptionPlacement(anchor: ClientPoint, size: ActionSize, viewport: ActionSize,
@@ -146,11 +154,13 @@ export function chooseActionPlacement(anchor: ClientPoint, entries: readonly Act
   if (candidates.length) return candidates[0].placement;
   // The compact scroller retains minimum targets when a complete page cannot fit.
   const fallback = regions.filter(region => region.right-region.left >= Math.max(maximum.width,identityWidth+48) && region.bottom-region.top >= 96).sort((a,b) => (b.right-b.left)*(b.bottom-b.top)-(a.right-a.left)*(a.bottom-a.top))[0];
-  if (!fallback) return null;
-  if (descriptionSize) {
+  if (fallback && descriptionSize) {
     const reserve = Math.min(descriptionSize.height, fallback.bottom - fallback.top - 104);
-    if (reserve < 44) return null;
-    return {region: {...fallback, top: fallback.top + reserve + 8}, capacity: 3, identityHeight: Math.min(identityHeight, 44), scroll: true};
+    if (reserve >= 44) return {region: {...fallback, top: fallback.top + reserve + 8}, capacity: 3, identityHeight: Math.min(identityHeight, 44), scroll: true};
   }
-  return {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true};
+  if (fallback && !descriptionSize) return {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true};
+  const rail = regions.filter(region => region.bottom - region.top >= 58 && region.right - region.left >= 52 + Math.max(140, maximum.width))
+    .sort((a, b) => (b.right - b.left) * (b.bottom - b.top) - (a.right - a.left) * (a.bottom - a.top))[0];
+  return rail ? {region: {...rail, bottom: Math.min(rail.bottom, rail.top + 96)}, capacity: 3,
+    identityHeight: Math.min(identityHeight, rail.bottom - rail.top - 14), scroll: true, rail: true} : null;
 }

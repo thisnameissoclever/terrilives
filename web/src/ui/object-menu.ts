@@ -8,7 +8,7 @@
 import { setActionIntent, type ActionIntent } from './action-intent.js';
 import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
-import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, descriptionPlacement, type ActionRegion } from './object-menu-layout.js';
+import { actionPage, layoutObjectActions, layoutActionRail, maximumActionSize, chooseActionPlacement, descriptionPlacement, type ActionRegion } from './object-menu-layout.js';
 import { formatFunds } from './game-hud.js';
 import { preventMenuSelection } from './menu-selection.js';
 
@@ -473,13 +473,20 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       root.replaceChildren(); root.classList.add('object-menu-radial');
       root.setAttribute('aria-label', menu.title ? `${menu.title} actions` : 'Actions');
       root.hidden = false;
+      const rail = doc.createElement('div'); rail.className = 'object-action-rail'; rail.hidden = true;
+      rail.dataset.sceneClip = 'true'; rail.setAttribute('tabindex', '0'); rail.setAttribute('role', 'group');
+      rail.setAttribute('aria-label', 'Object actions, scroll sideways');
+      const scrollHint = doc.createElement('span'); scrollHint.className = 'object-action-scroll-hint'; scrollHint.hidden = true;
+      scrollHint.textContent = 'Scroll sideways for actions'; root.append(rail, scrollHint);
       const identity = doc.createElement('div'); identity.className = 'radial-identity';
       const description = doc.createElement('div'); description.className = 'radial-description'; description.hidden = true;
       description.style.position = 'fixed';
       description.setAttribute('tabindex', '0'); description.setAttribute('role', 'region');
       description.setAttribute('aria-label', 'Object description');
       if (menu.details) {
-        const presentation = createObjectIdentity(doc, menu.title, menu.details, {descriptionHost: description, onToggle: () => place()});
+        const presentation = createObjectIdentity(doc, menu.title, menu.details, {descriptionHost: description, onToggle: () => {
+          place(); if (root.dataset.rail === 'true' && !description.hidden) description.focus();
+        }});
         disposeIdentity = presentation.dispose; identity.append(presentation.element);
         if (identityOpen) { (presentation.element as HTMLDetailsElement).open = true; description.hidden = false; }
       } else if (menu.title) {
@@ -523,6 +530,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       const place = () => {
         const view = doc.defaultView;
         if (!view || root.hidden || disposed) return;
+        const focusedBefore = doc.activeElement as HTMLElement | null;
         const anchor = menu.object !== undefined && options.anchor ? options.anchor(menu) : { x: clientX, y: clientY };
         if (!anchor) { options.dismiss?.(); return; }
         options.positioned?.(anchor);
@@ -562,6 +570,35 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           render(); buttons.forEach(button=>{button.style.maxWidth=`${maximumWidth}px`;});
           if (hadFocus) focusAfterPlace=buttons.find(button=>!button.disabled && button.dataset.menuIndex===index) ?? buttons.find(button=>!button.disabled) ?? close;
         }
+        if (placement.rail) {
+          const region = placement.region, layout = layoutActionRail(region);
+          root.dataset.compact = 'true'; root.dataset.rail = 'true'; root.dataset.sceneClip = 'false';
+          root.style.left = `${region.left}px`; root.style.top = `${region.top}px`;
+          root.style.width = `${region.right - region.left}px`; root.style.height = `${region.bottom - region.top}px`;
+          root.style.overflowY = 'visible'; root.style.pointerEvents = 'none';
+          rail.hidden = false; rail.style.left = '0px'; rail.style.top = '0px';
+          rail.style.width = `${layout.viewport.right - layout.viewport.left}px`;
+          rail.style.height = `${layout.viewport.bottom - layout.viewport.top}px`;
+          for (const element of [identity, description, ...buttons]) {
+            if (element.parentElement !== rail) rail.append(element);
+            element.style.position = 'relative'; element.style.left = ''; element.style.top = '';
+          }
+          const itemHeight = Math.max(44, rail.clientHeight);
+          identity.style.maxHeight = `${itemHeight}px`; identity.style.overflowY = 'auto';
+          buttons.forEach(button => {button.style.maxWidth = rail.style.width;});
+          description.style.width = rail.style.width; description.style.maxHeight = `${itemHeight}px`; description.style.overflowY = 'auto';
+          close.style.left = `${layout.close.x}px`; close.style.top = `${layout.close.y}px`;
+          scrollHint.style.left = '0px'; scrollHint.style.top = `${layout.hint.top - region.top}px`;
+          scrollHint.style.width = rail.style.width; scrollHint.hidden = rail.scrollWidth <= rail.clientWidth;
+          if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus();
+          focusAfterPlace?.focus();
+          return;
+        }
+        root.dataset.rail = 'false'; rail.hidden = true; scrollHint.hidden = true;
+        if (identity.parentElement !== root) root.insertBefore(identity, close);
+        if (description.parentElement !== root) root.insertBefore(description, close);
+        buttons.forEach(button => {if (button.parentElement !== root) root.append(button);});
+        description.style.position = 'fixed'; description.style.overflowY = '';
         identity.style.maxHeight = `${placement.identityHeight}px`; identity.style.overflowY='auto';
         const region=placement.region, sizes=buttons.map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
         const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right,identityWidth);
@@ -585,6 +622,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           }
         }
         focusAfterPlace?.focus({preventScroll:!placement.scroll});
+        if (focusedBefore && root.contains(focusedBefore) && doc.activeElement !== focusedBefore) focusedBefore.focus({preventScroll: true});
       };
       const toggle = () => place(); root.addEventListener('toggle', toggle, true);
       const observer = new ResizeObserver(() => place());
@@ -593,6 +631,13 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       }
       observer.observe(identity);
       observer.observe(description);
+      observer.observe(rail);
+      const revealFocused = (event: FocusEvent) => {
+        if (root.dataset.rail === 'true' && event.target instanceof HTMLElement && rail.contains(event.target)) {
+          event.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
+        }
+      };
+      root.addEventListener('focusin', revealFocused);
       const navigate = (event: KeyboardEvent) => {
         if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
         const usable = buttons.filter(button => !button.disabled), index = usable.indexOf(doc.activeElement as HTMLButtonElement);
@@ -608,7 +653,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         frame = requestAnimationFrame(follow);
       };
       frame = requestAnimationFrame(follow);
-      cleanup = () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); root.removeEventListener('toggle', toggle, true); root.removeEventListener('keydown', navigate); };
+      cleanup = () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); root.removeEventListener('toggle', toggle, true); root.removeEventListener('keydown', navigate); root.removeEventListener('focusin', revealFocused); };
       if (preserveState && previousIndex !== undefined) {
         for (let candidate = 0; candidate <= menu.entries.length; candidate++) {
           const part = actionPage(menu.entries.length, capacity, candidate);
@@ -617,7 +662,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         }
       }
       render(); place();
-      if (!root.hidden) (descriptionFocused ? description : identityFocused ? identity.querySelector<HTMLElement>('summary')! :
+      if (!root.hidden) (descriptionFocused ? description : identityFocused || root.dataset.rail === 'true' && !preserveState ? identity.querySelector<HTMLElement>('summary') ?? close :
         buttons.find(button => !button.disabled && wasOpen && button.dataset.menuIndex === previousIndex)
         ?? buttons.find(button => !button.disabled) ?? close).focus();
     },

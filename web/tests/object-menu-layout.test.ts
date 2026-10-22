@@ -1,6 +1,23 @@
 import { expect, it } from 'vitest';
 import { actionPage, actionLayoutFits, chooseActionPlacement, layoutObjectActions, maximumActionSize } from '../src/ui/object-menu-layout.js';
 
+it('opens a scrolling rail in the exact occupied 320x568 Bookcase state', () => {
+  const viewport = {width: 320, height: 568};
+  const obstacles = [{left: 8, top: 8, right: 190, bottom: 285.578125},
+    {left: 8, top: 386.578125, right: 312, bottom: 560}];
+  const placed = chooseActionPlacement({x: 210, y: 140}, Array.from({length: 4}, () => ({width: 136, height: 50})),
+    {width: 110, height: 44}, viewport, 50, obstacles, 150, {width: 304, height: 140});
+  expect(placed).not.toBeNull();
+  expect(placed!.rail).toBe(true);
+  expect(placed!.region).toEqual({left: 8, top: 293.578125, right: 312, bottom: 378.578125});
+  expect(placed!.region.bottom - placed!.region.top).toBe(85);
+  expect(placed!.capacity).toBe(3);
+  const rail = menuLayout.layoutActionRail(placed!.region);
+  expect(rail.viewport).toEqual({left: 8, top: 293.578125, right: 260, bottom: 364.578125});
+  expect(rail.close).toEqual({x: 268, y: 307.078125});
+  expect(rail.close.y + 44).toBeLessThanOrEqual(rail.viewport.bottom);
+});
+
 it('places the separate description around measured actions and keeps long text scrollable on short screens', () => {
   const obstacles = [{left: 8, top: 8, right: 180, bottom: 180}, {left: 8, top: 650, right: 382, bottom: 836},
     {left: 200, top: 350, right: 336, bottom: 394}];
