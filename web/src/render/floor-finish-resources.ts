@@ -1,10 +1,12 @@
-/** Serial replacement keeps one active and at most one preparing renderer alive. */
+/** Serial preparation publishes only the latest requested finish binding state. */
 export class FloorFinishResources<T> {
   private desired = '';
   private current = '';
   private running = false;
   private version = 0;
   private failed = false;
+  private paused = false;
+  private destroyed = false;
   private hasRequested=false;
   private readonly waiters:{resolve:()=>void;reject:(error:Error)=>void}[]=[];
   constructor(private readonly hooks: {
@@ -20,6 +22,7 @@ export class FloorFinishResources<T> {
   }
 
   request(keys: readonly string[]): void {
+    if (this.destroyed) return;
     const desired = floorFinishSet(keys);
     if (desired === this.desired) return;
     this.desired = desired;
@@ -32,7 +35,7 @@ export class FloorFinishResources<T> {
   }
 
   retry(): void {
-    if (!this.failed) return;
+    if (!this.failed || this.destroyed) return;
     this.failed = false;
     this.version++;
     this.hooks.state(false, null);
@@ -41,14 +44,28 @@ export class FloorFinishResources<T> {
 
   /** Rebuild the same finishes when the graphics device has been replaced. */
   invalidate():Promise<void> {
+    if (this.destroyed) return Promise.reject(new Error('Floor resources were disposed'));
     if(!this.hasRequested){this.desired='[]';this.hasRequested=true;}
     this.current='';this.version++;this.failed=false;this.hooks.state(false,null);
     const ready=new Promise<void>((resolve,reject)=>this.waiters.push({resolve,reject}));
     void this.run();return ready;
   }
 
+  /** Device recovery owns rebuilding the base renderer while ordinary finishes wait. */
+  pause(): void { this.paused = true; this.version++; }
+  resume(resident: readonly string[]): void {
+    if (this.destroyed) return;
+    this.current = floorFinishSet(resident); this.paused = false; this.failed = false; this.version++;
+    if (this.current === this.desired) for (const waiter of this.waiters.splice(0)) waiter.resolve();
+    this.hooks.state(this.current === this.desired, null); void this.run();
+  }
+  destroy(): void {
+    this.destroyed = true; this.paused = true; this.version++;
+    for (const waiter of this.waiters.splice(0)) waiter.reject(new Error('Floor resources were disposed'));
+  }
+
   private async run(): Promise<void> {
-    if (this.running || this.current === this.desired || this.failed) return;
+    if (this.running || this.current === this.desired || this.failed || this.paused || this.destroyed) return;
     this.running = true;
     const version = this.version, desired = this.desired;
     try {

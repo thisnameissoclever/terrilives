@@ -3,6 +3,7 @@ import {loadIndicatorCoverage} from './indicator-coverage.js';
 import {SceneTarget} from './scene-target.js';
 import {GroundSelectionRenderer,MAX_GROUND_MARKERS,drawAroundMarkers,groundMarkerRows} from './ground-selection.js';
 import {spriteShaderSource,spriteBindGroupLayoutEntries,spritePipelineDescriptors} from './sprite-pipelines.js';
+import { SpriteFinishResources, type PreparedFloorFinishes } from './sprite-finish-resources.js';
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
 import { uploadJointAlpha } from './joint-alpha.js';
@@ -274,10 +275,11 @@ export async function loadAtlasTexture(
  * `docs/testing-protocol.md` on why a mock would be worse than nothing.
  */
 export class SpriteRenderer {
-  private readonly pipeline: GPURenderPipeline;
-  private readonly lowWallPipeline: GPURenderPipeline;
-  private readonly grimePipeline: GPURenderPipeline;
-  private readonly annotationPipeline:GPURenderPipeline;
+  private readonly finishResources: SpriteFinishResources;
+  private get pipeline(): GPURenderPipeline { return this.finishResources.state.pipelines.opaque; }
+  private get lowWallPipeline(): GPURenderPipeline { return this.finishResources.state.pipelines.lowWall; }
+  private get grimePipeline(): GPURenderPipeline { return this.finishResources.state.pipelines.grime; }
+  private get annotationPipeline(): GPURenderPipeline { return this.finishResources.state.pipelines.annotation; }
   private grimeOpacity = new Float32Array();
   private grimeOpacityBuffer: GPUBuffer | null = null;
   private grimeOpacityCapacity = 0;
@@ -286,7 +288,7 @@ export class SpriteRenderer {
   private readonly spriteBuffer: GPUBuffer;
   private readonly bedBuffer: GPUBuffer;
   private readonly diningBuffer: GPUBuffer;
-  private readonly bindGroup: GPUBindGroup;
+  private get bindGroup(): GPUBindGroup { return this.finishResources.state.bindGroup; }
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
   private ownerBuffer:GPUBuffer;
@@ -299,7 +301,7 @@ export class SpriteRenderer {
   private readonly markerSlots=new Int32Array(MAX_GROUND_MARKERS);
   private readonly ownedTextures: GPUTexture[];
   private readonly ownedBuffers: GPUBuffer[];
-  private readonly finishCount: number;
+  private get finishCount(): number { return this.finishResources.state.finishes.keys.length; }
   private destroyed = false;
 
   /**
@@ -385,6 +387,7 @@ export class SpriteRenderer {
     architecture?: ArchitectureAtlas,
     progress?: LoadProgress,
   ): Promise<SpriteRenderer> {
+    gpu = { ...gpu };
     if (architecture) {
       validateArchitectureAtlas(architecture);
       validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
@@ -420,7 +423,6 @@ export class SpriteRenderer {
   ) {
     this.ownedTextures = textures;
     this.ownedBuffers = buffers;
-    this.finishCount = architecture?.finishes?.keys.length ?? 0;
     this.uniformData[13] = SPRITES.length;
     const patternCount = architecture?.patterns?.length ?? 0;
     const joint = uploadJointAlpha(gpu.device, JOINT_SCENE_ALPHA_IDS, BED_COVERAGE);
@@ -430,10 +432,10 @@ export class SpriteRenderer {
     const bindGroupLayout = gpu.device.createBindGroupLayout({entries:spriteBindGroupLayoutEntries(patternCount)});
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
     const descriptors=spritePipelineDescriptors(module,layout);
-    this.pipeline=gpu.device.createRenderPipeline(descriptors.opaque);
-    this.lowWallPipeline=gpu.device.createRenderPipeline(descriptors.lowWall);
-    this.grimePipeline=gpu.device.createRenderPipeline(descriptors.grime);
-    this.annotationPipeline=gpu.device.createRenderPipeline(descriptors.annotation);
+    const pipelines = { opaque: gpu.device.createRenderPipeline(descriptors.opaque),
+      lowWall: gpu.device.createRenderPipeline(descriptors.lowWall),
+      grime: gpu.device.createRenderPipeline(descriptors.grime),
+      annotation: gpu.device.createRenderPipeline(descriptors.annotation), layout: bindGroupLayout };
     this.instanceBuffer = gpu.device.createBuffer({
       size: this.capacity * BYTES_PER_INSTANCE,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
@@ -477,7 +479,7 @@ export class SpriteRenderer {
       { bytesPerRow: architectureSize.width * 2 }, architectureSize);
     const architectureColor = gpu.device.createTexture({ size: { ...architectureSize,
       depthOrArrayLayers: architecture?.carrier ? 2 : 1 }, format: 'rgba8unorm',
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
     textures.push(architectureColor);
     if (architecture) gpu.device.queue.copyExternalImageToTexture({ source: architecture.color },
       { texture: architectureColor }, architectureSize);
@@ -520,9 +522,7 @@ export class SpriteRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.diningBuffer);
     gpu.device.queue.writeBuffer(this.diningBuffer, 0, diningTable);
-    this.bindGroup = gpu.device.createBindGroup({
-      layout: this.pipeline.getBindGroupLayout(0),
-      entries: [
+    const entries: GPUBindGroupEntry[] = [
         { binding: 0, resource: { buffer: this.uniformBuffer } },
         { binding: 1, resource: { buffer: this.spriteBuffer } },
         {
@@ -550,10 +550,29 @@ export class SpriteRenderer {
         { binding: 10, resource: { buffer: this.diningBuffer } },
         { binding: jointBinding, resource: joint.texture.createView({ dimension: '2d-array' }) },
         { binding: jointBinding + 1, resource: { buffer: jointRegistration } },
-      ],
-    });
+      ];
+    const bindGroup = gpu.device.createBindGroup({ layout: bindGroupLayout, entries });
     this.groundSelection=new GroundSelectionRenderer(gpu.device);
+    this.finishResources = new SpriteFinishResources({ device: gpu.device, color: architectureColor, roles,
+      table: finishes, patterns: patternTextures, finishes: architecture?.finishes ?? { keys: [], resources: [], table: new Float32Array(8), residentBytes: 6 },
+      pipelines, bindGroup, fixedEntries: entries.filter(entry => entry.binding < 11 && ![5, 6, 8].includes(entry.binding)),
+      jointEntries: entries.filter(entry => entry.binding >= jointBinding).map(({ resource }) => ({ resource })) });
+    for (const texture of [architectureColor, roles, ...patternTextures]) textures.splice(textures.indexOf(texture), 1);
+    buffers.splice(buffers.indexOf(finishes), 1);
   }
+
+  prepareFloorFinishes(keys: readonly string[], progress?: LoadProgress): Promise<PreparedFloorFinishes> {
+    return this.finishResources.prepare(keys, progress);
+  }
+
+  publishFloorFinishes(next: PreparedFloorFinishes, rebuildGeometry: () => void): void {
+    // Tile builders reuse scratch arrays. Preserve actual pixels' rows before rebuilding them.
+    const rows = this.staticInstances.slice(), walls = this.lowWalls.slice(), count = this.staticCount;
+    try { this.finishResources.publish(next, rebuildGeometry); }
+    catch (error) { this.setStaticGeometry(rows, count, walls); throw error; }
+  }
+
+  discardFloorFinishes(next: PreparedFloorFinishes): void { this.finishResources.discard(next); }
 
   /**
    * Uploads the lot's floor and walls, once per CAMERA change.
@@ -598,10 +617,11 @@ export class SpriteRenderer {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.finishResources.destroy();
     this.sceneTarget?.destroy();
     this.groundSelection.destroy();
     this.grimeOpacityBuffer?.destroy();
-    this.instanceBuffer.destroy();
+    if (!this.ownedBuffers.includes(this.instanceBuffer)) this.instanceBuffer.destroy();
     this.ownerBuffer.destroy();
     for (const resource of this.ownedTextures) resource.destroy();
     for (const resource of this.ownedBuffers) resource.destroy();
@@ -628,6 +648,8 @@ export class SpriteRenderer {
     const grown = growCapacity(this.capacity, count);
     if (grown === this.capacity) return;
     this.capacity = grown;
+    const previousIndex = this.ownedBuffers.indexOf(this.instanceBuffer);
+    if (previousIndex >= 0) this.ownedBuffers.splice(previousIndex, 1);
     this.instanceBuffer.destroy();
     this.ownerBuffer.destroy();
     this.instanceBuffer = this.gpu.device.createBuffer({

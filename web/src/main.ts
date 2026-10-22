@@ -62,9 +62,9 @@ import {StressCharacterAdmission,guardedCharacterStressSource,type StressCharact
 import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
 import { activeFloorFinishKeys } from './render/floor-materials.js';
 import { FloorFinishResources, canonicalFloorFinishKeys } from './render/floor-finish-resources.js';
+import type { PreparedFloorFinishes } from './render/sprite-finish-resources.js';
 import { FloorScenePresentation } from './render/floor-scene-presentation.js';
 import { createFloorSceneStatus } from './ui/floor-scene-status.js';
-import type { ActiveFinishes } from './render/architecture-finishes.js';
 import { drawFloorSwatch } from './ui/floor-swatches.js';
 import { decodeWindowPlacements } from './architecture/windows.js';
 import {
@@ -513,7 +513,7 @@ async function main(): Promise<void> {
     characterWorld.drawEffects(encoder, target);
     weatherScene.draw(encoder, target);
   };
-  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;renderer.destroy();characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
   // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
@@ -1827,30 +1827,26 @@ async function main(): Promise<void> {
   });
   const syncFloorScene = () => floorScene.update(activeFloorFinishKeys(sim.floorTiles(), null),
     lot.architecture.finishes?.keys ?? [], floorResourceError);
-  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
-    // Reports to the startup cover, which ignores it once lifted: on the
-    // startup fallback path this load is what the cover is waiting for.
+  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; prepared: PreparedFloorFinishes }>({
     prepare: async finishKeys => {
-      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys, progress: startupProgress });
-      try {
-        return { renderer: await SpriteRenderer.create(gpu, atlas, startupProgress), finishes: atlas.finishes };
-      }
-      finally { closeArchitectureAtlas(atlas); }
+      const owner = renderer;
+      // Publish pending feedback first, then allow a frame to paint before preparation.
+      await afterPaint();
+      if (graphicsClosed || owner !== renderer || graphicsRecovering) throw new Error('Graphics changed during floor preparation');
+      return { renderer: owner, prepared: await owner.prepareFloorFinishes(finishKeys, startupProgress) };
     },
     publish: next => {
-      const previous = renderer, previousFinishes = lot.architecture.finishes;
-      renderer = next.renderer;
-      lot.architecture.finishes = next.finishes;
-      lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
-      try { applyCamera(); }
-      catch (error) {
-        renderer = previous;
-        lot.architecture.finishes = previousFinishes;
-        throw error;
-      }
-      previous.destroy();
+      if (graphicsClosed || next.renderer !== renderer || next.prepared.device !== gpu.device) throw new Error('Floor preparation belongs to an old graphics device');
+      const previousFinishes = lot.architecture.finishes;
+      try {
+        renderer.publishFloorFinishes(next.prepared, () => {
+          lot.architecture.finishes = next.prepared.finishes;
+          lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces();
+          applyCamera();
+        });
+      } catch (error) { lot.architecture.finishes = previousFinishes; throw error; }
     },
-    dispose: next => next.renderer.destroy(),
+    dispose: next => next.renderer.discardFloorFinishes(next.prepared),
     state: (ready, error) => {
       floorResourceError = error;
       if (error) console.warn('Floor material resource failed', error);
@@ -1859,6 +1855,7 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
   }, residentFinishKeys);
+  window.addEventListener('pagehide', event => { if (!event.persisted) floorResources.destroy(); });
   syncFloorResources = () => {
     floorResources.request(activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null));
     syncFloorScene();
@@ -2439,6 +2436,7 @@ async function main(): Promise<void> {
   const deviceLifetime=new DeviceLifetime();
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
+    floorResources.pause(); floorTool.setBlocked(true); renderer.destroy();
     void audio.setBackgrounded(true);
     overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics...';graphicsPending.start();
@@ -2448,7 +2446,20 @@ async function main(): Promise<void> {
       watchGraphics(gpu.device);
       weatherScene = new WeatherScene(gpu.device);
       const replacement=CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
-      try{await floorResources.invalidate();characterWorld=await replacement;characterWorld.prepareFixtures(sim);}
+      // Observe rejection immediately while the base renderer loads; the awaited result below reports it.
+      void replacement.catch(() => {});
+      try {
+        const finishKeys = activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null);
+        const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
+        let rebuilt: SpriteRenderer;
+        try { rebuilt = await SpriteRenderer.create(gpu, atlas); }
+        finally { closeArchitectureAtlas(atlas); }
+        if (graphicsClosed) { rebuilt.destroy(); throw new Error('Graphics closed during recovery'); }
+        renderer = rebuilt; lot.architecture.finishes = atlas.finishes;
+        lot.floors = sim.floorTiles(); lot.surfaces = sim.worldSurfaces(); applyCamera();
+        floorResources.resume(finishKeys);
+        characterWorld = await replacement; characterWorld.prepareFixtures(sim);
+      }
       catch(error){void replacement.then(world=>world.destroy(),()=>{});throw error;}
       if(graphicsClosed){characterWorld.destroy();weatherScene.destroy();return;}
       deviceLifetime.assertAvailable(gpu.device);

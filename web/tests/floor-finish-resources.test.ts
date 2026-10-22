@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FloorFinishResources } from '../src/render/floor-finish-resources.js';
+import { readFileSync } from 'node:fs';
 
 function fixture() {
   const pending: { keys: readonly string[]; resolve(value: string): void; reject(error: Error): void }[] = [];
@@ -15,7 +16,27 @@ function fixture() {
 }
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
+it('routes ordinary floor changes through retained renderer preparation and keeps base loading in explicit recovery', () => {
+  const source = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  const ordinary = source.slice(source.indexOf('const floorResources ='), source.indexOf('syncFloorResources = () =>'));
+  expect(ordinary).toContain('prepareFloorFinishes'); expect(ordinary).toContain('publishFloorFinishes');
+  expect(ordinary).not.toContain('SpriteRenderer.create'); expect(ordinary).not.toContain('loadArchitectureAtlas');
+  expect(source).toContain('floorResources.pause()'); expect(source).toContain('floorResources.resume(');
+});
+
 describe('active floor resource replacement', () => {
+  it('suspends old-device work and resumes from the explicitly rebuilt base resources', async () => {
+    const f = fixture(); f.manager.request(['old']); f.manager.pause();
+    f.manager.request(['new']); f.pending[0].resolve('old candidate'); await flush();
+    expect(f.disposed).toEqual(['old candidate']); expect(f.pending).toHaveLength(1);
+    f.manager.resume(['new']); await flush(); expect(f.pending).toHaveLength(1);
+    expect(f.states.at(-1)).toEqual([true, null]);
+  });
+  it('disposes unfinished candidates on final shutdown without publishing or restarting', async () => {
+    const f = fixture(); f.manager.request(['old']); f.manager.destroy();
+    f.pending[0].resolve('late'); await flush(); f.manager.request(['another']);
+    expect(f.disposed).toEqual(['late']); expect(f.published).toEqual([]); expect(f.pending).toHaveLength(1);
+  });
   it('rebuilds unchanged starter finishes on a replacement graphics device',async()=>{
     const f=fixture(),ready=f.manager.invalidate();
     expect(f.pending[0].keys).toEqual([]);f.pending[0].resolve('new device');await ready;

@@ -20,11 +20,14 @@ const cameraCode = section('  function applyCamera(): void {', '  // Flagged rat
   .replace('(): void', '()');
 const drawCode = section('    if (presenting&&floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
-const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
+const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
 const drawMainFrame = new Function('ctx', `with(ctx) { ${drawCode} }`);
 const publishMainRenderer = new Function('ctx', 'next', `with(ctx) { ${publishCode} }`);
 const stateMainRenderer = new Function('ctx', 'ready', 'error', `with(ctx) { ${stateCode} }`);
+const recoveryCode = section('        const finishKeys = activeFloorFinishKeys', '\n      catch(error){void replacement.then')
+  .replace('let rebuilt: SpriteRenderer;', 'let rebuilt;').replace(/\}\s*$/, '');
+const recoverMainRenderer = new Function('ctx', `return (async () => { with(ctx) { ${recoveryCode} } })();`);
 
 const catalogue = { ...ARCHITECTURE.catalogue,
   palettes: { ...ARCHITECTURE.catalogue.palettes, blue: { multiply: [.2, .5, 1] } },
@@ -41,6 +44,8 @@ function fixture() {
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const renderer = () => ({ disposed: false, rows: new Float32Array(),
     setArchitectureCamera() {},
+    publishFloorFinishes(_next: unknown, rebuild: () => void) { rebuild(); },
+    discardFloorFinishes(next: { disposed: boolean }) { next.disposed = true; },
     setGrimeInstances() {},grimeSpriteBase:0,fixtureDepthBase:0,
     setStaticGeometry(rows: Float32Array, count: number) { this.rows = rows.slice(0, count * 16); },
     draw(instances: Float32Array, _count: number, scale: number) {
@@ -56,7 +61,7 @@ function fixture() {
       architecture: { windows: [], catalogue: [], floorCatalogue: catalogue,
         finishes: prepareArchitectureFinishes([], limits, catalogue) } },
     floorResourceError: null as string | null,
-    graphicsRecovering:false, presenting: true,
+    graphicsClosed:false, graphicsRecovering:false, presenting: true,
     characterWorld:{beginFrame(){},plan:null,draw(){}},
     weatherScene: { setOutside() {}, prepare() {} }, weatherTuning: null, drawWorldEffects() {},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
@@ -71,7 +76,7 @@ function fixture() {
     renderBuildFeedback() {},
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
     sim: { selectedIndex: () => 0, clockTick: () => 0, dayTicks: () => 1440, seasonIndex: () => 0,
-      roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
+      roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, worldSurfaces: () => new Uint8Array(2), floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null }, roomTool: { highlight: () => null },
     roomReview: { highlight: () => null }, roomsTool: { selecting: false }, roomSelection: { highlight: () => null },
@@ -84,22 +89,43 @@ function fixture() {
       resume: () => overlayPause.resume('floor-materials'), status: (blocked, error) => statuses.push([blocked, error]) }),
     syncFloorScene: () => ctx.floorScene.update(activeFloorFinishKeys(floors, null, catalogue), ctx.lot.architecture.finishes.keys, ctx.floorResourceError),
   };
-  const pending: { keys: readonly string[]; resolve(value: { renderer: ReturnType<typeof renderer>; finishes: ReturnType<typeof prepareArchitectureFinishes> }): void;
+  const pending: { keys: readonly string[]; resolve(value: { renderer: ReturnType<typeof renderer>; prepared: { finishes: ReturnType<typeof prepareArchitectureFinishes>; device: typeof ctx.gpu.device; disposed: boolean } }): void;
     reject(error: Error): void }[] = [];
   const resources = new FloorFinishResources({
-    prepare: (keys: readonly string[]) => new Promise<{ renderer: ReturnType<typeof renderer>; finishes: ReturnType<typeof prepareArchitectureFinishes> }>((resolve, reject) => pending.push({ keys, resolve, reject })),
-    publish: next => publishMainRenderer(ctx, next), dispose: next => next.renderer.destroy(),
+    prepare: (keys: readonly string[]) => new Promise<{ renderer: ReturnType<typeof renderer>; prepared: { finishes: ReturnType<typeof prepareArchitectureFinishes>; device: typeof ctx.gpu.device; disposed: boolean } }>((resolve, reject) => pending.push({ keys, resolve, reject })),
+    publish: next => publishMainRenderer(ctx, next), dispose: next => next.renderer.discardFloorFinishes(next.prepared),
     state: (ready, error) => stateMainRenderer(ctx, ready, error),
   });
   const request = (selected: number | null = null) => { resources.request(activeFloorFinishKeys(floors, selected, catalogue)); ctx.syncFloorScene(); };
   request();
   const load = (covering: number) => { floors = new Uint32Array([0, 0, covering]); ctx.lot.floors = floors; ctx.cameraDirty = true; request(); };
-  const settle = (index: number) => { const next = { renderer: renderer(), finishes: prepareArchitectureFinishes(pending[index].keys, limits, catalogue) }; pending[index].resolve(next); return next; };
+  const settle = (index: number) => { const next = { renderer: ctx.renderer, prepared: { finishes: prepareArchitectureFinishes(pending[index].keys, limits, catalogue), device: ctx.gpu.device, disposed: false } }; pending[index].resolve(next); return next; };
   return { ctx, overlayPause, speeds, statuses, draws, diagnostics, pending, resources, request, load, settle,
     frame: () => drawMainFrame(ctx) };
 }
 
 describe('main floor scene presentation', () => {
+  it('explicitly loads a new-device base renderer and resumes from its prepared finishes', async () => {
+    const f = fixture(), old = f.ctx.renderer, newDevice = { limits }, rebuilt = { ...old, rows: new Float32Array() };
+    const calls: string[] = [], atlas = { finishes: prepareArchitectureFinishes([], limits) };
+    const world = { prepareFixtures() { calls.push('characters-ready'); } };
+    const ctx = { ...f.ctx, gpu: { device: newDevice }, activeFloorFinishKeys: () => [],
+      loadArchitectureAtlas: async (seen: unknown) => { expect(seen).toBe(newDevice.limits); calls.push('base-load'); return atlas; },
+      SpriteRenderer: { create: async (gpu: { device: unknown }, loaded: unknown) => {
+        expect(gpu.device).toBe(newDevice); expect(loaded).toBe(atlas); calls.push('renderer-create'); return rebuilt;
+      } }, closeArchitectureAtlas: (loaded: unknown) => { expect(loaded).toBe(atlas); calls.push('atlas-close'); },
+      floorResources: { resume: (keys: string[]) => { expect(keys).toEqual([]); calls.push('resume'); } },
+      applyCamera: () => { calls.push('camera'); }, replacement: Promise.resolve(world), characterWorld: null as unknown };
+    await recoverMainRenderer(ctx);
+    expect(ctx.renderer).toBe(rebuilt); expect(ctx.renderer).not.toBe(old); expect(ctx.characterWorld).toBe(world);
+    expect(calls).toEqual(['base-load', 'renderer-create', 'atlas-close', 'camera', 'resume', 'characters-ready']);
+  });
+
+  it('rejects a stale old-device candidate before changing live finishes or geometry', () => {
+    const f = fixture(), current = f.ctx.renderer, finishes = f.ctx.lot.architecture.finishes;
+    expect(() => publishMainRenderer(f.ctx, { renderer: current, prepared: { device: {}, finishes } })).toThrow(/old graphics device/);
+    expect(f.ctx.renderer).toBe(current); expect(f.ctx.lot.architecture.finishes).toBe(finishes);
+  });
   it('retains the current scene while graphics are recovering and resumes coherent drawing',()=>{
     const f=fixture();f.frame();expect(f.draws).toHaveLength(1);
     f.ctx.graphicsRecovering=true;f.frame();expect(f.draws).toHaveLength(1);
@@ -154,13 +180,13 @@ describe('main floor scene presentation', () => {
     expect(Array.from(f.ctx.sim.floorTiles())).toEqual([0, 0, 4]);
   });
 
-  it('rejects obsolete renderer completion after a second Load and preserves that newer scene', async () => {
+  it('rejects obsolete finish completion after a second Load and preserves that newer scene', async () => {
     const f = fixture(); f.frame(); f.load(4);
     f.load(2); f.frame();
     expect(f.statuses.at(-1)).toEqual([false, null]);
     const latestSprite = f.draws.at(-1)?.[5];
     const obsolete = f.settle(0); await flush(); f.frame();
-    expect(obsolete.renderer.disposed).toBe(true);
+    expect(obsolete.prepared.disposed).toBe(true); expect(obsolete.renderer.disposed).toBe(false);
     expect(f.draws.at(-1)?.[5]).toBe(latestSprite);
     expect(Array.from(f.ctx.sim.floorTiles())).toEqual([0, 0, 2]);
   });

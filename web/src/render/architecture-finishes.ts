@@ -14,6 +14,10 @@ export interface FinishCatalogue {
   readonly coverings: Readonly<Record<string, string>>;
 }
 export interface PatternResource { readonly url: string; readonly width: number; readonly height: number }
+/** Generated URLs contain immutable content hashes; dimensions are part of the upload contract. */
+export function architecturePatternIdentity(resource: PatternResource): string {
+  return JSON.stringify([resource.url, resource.width, resource.height]);
+}
 export interface ActiveFinishes {
   /** Slot zero uses accepted pixels; active finishes are one-based. */
   readonly keys: readonly string[];
@@ -55,8 +59,9 @@ export function prepareArchitectureFinishes(keys: readonly string[],
       || palette.multiply.length !== 3 || !palette.multiply.every(value => Number.isFinite(value) && value >= 0)) {
       throw new Error(`Invalid architecture finish parameters: ${key}`);
     }
-    if (!activeResources.includes(pattern.resource)) activeResources.push(pattern.resource);
-    table.set([activeResources.indexOf(pattern.resource), pattern.role === 'wall' ? 1 : 2,
+    let slot = activeResources.findIndex(key => architecturePatternIdentity(resources[key]) === architecturePatternIdentity(resource));
+    if (slot < 0) { slot = activeResources.length; activeResources.push(pattern.resource); }
+    table.set([slot, pattern.role === 'wall' ? 1 : 2,
       ...pattern.period, ...palette.multiply, 0], index * 8);
   });
   if (activeResources.length > Math.min(MAX_ARCHITECTURE_PATTERN_COUNT,

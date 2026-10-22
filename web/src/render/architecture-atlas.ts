@@ -173,3 +173,38 @@ export function closeArchitectureAtlas(atlas: ArchitectureAtlas): void {
   atlas.color.close(); atlas.carrier?.close();
   for (const pattern of atlas.patterns ?? []) pattern.close();
 }
+
+export type ArchitectureFinishInput = { readonly kind: 'carrier'; readonly bitmap: ImageBitmap }
+  | { readonly kind: 'roles'; readonly bytes: Uint8Array<ArrayBuffer> }
+  | { readonly kind: 'pattern'; readonly key: string; readonly bitmap: ImageBitmap };
+
+/** Decode one missing image at a time; its consumer must finish uploading before it closes. */
+export async function loadArchitectureFinishInputs(active: ActiveFinishes, missing: readonly string[],
+  includeCarrier: boolean, consume: (input: ArchitectureFinishInput) => Promise<void>,
+  options: Pick<ArchitectureLoadOptions, 'baseUrl' | 'progress' | 'patternResources'> = {}): Promise<void> {
+  const resources: Readonly<Record<string, PatternResource>> = options.patternResources ?? ARCHITECTURE.patterns;
+  if (missing.some(key => !active.resources.includes(key) || !resources[key])) throw new Error('Unknown missing finish resource');
+  const base = options.baseUrl ?? import.meta.env.BASE_URL, total = missing.length + (includeCarrier ? 2 : 0);
+  let done = 0; options.progress?.files?.(done, total);
+  const fetchResource = async (file: string): Promise<Response> => {
+    const response = await fetch(new URL(file, new URL(base, location.href)));
+    if (!response.ok) throw new Error(`Architecture resource ${file} returned ${response.status}`);
+    return countResponseBytes(response, options.progress?.bytes);
+  };
+  const image = async (file: string, width: number, height: number, key?: string): Promise<void> => {
+    const bitmap = await createImageBitmap(await (await fetchResource(file)).blob(),
+      { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    try {
+      if (bitmap.width !== width || bitmap.height !== height) throw new Error(`Architecture finish dimensions differ: ${key ?? 'carrier'}`);
+      await consume(key ? { kind: 'pattern', key, bitmap } : { kind: 'carrier', bitmap });
+      options.progress?.files?.(++done, total);
+    } finally { bitmap.close(); }
+  };
+  if (includeCarrier) {
+    await image(ARCHITECTURE.resources.carrier, ARCHITECTURE.width, ARCHITECTURE.height);
+    const bytes = await unpackedBytes(new Uint8Array(await (await fetchResource(ARCHITECTURE.resources.roles)).arrayBuffer()),
+      ARCHITECTURE.width * ARCHITECTURE.height, 'Architecture roles');
+    await consume({ kind: 'roles', bytes }); options.progress?.files?.(++done, total);
+  }
+  for (const key of missing) await image(resources[key].url, resources[key].width, resources[key].height, key);
+}

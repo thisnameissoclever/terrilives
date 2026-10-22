@@ -277,11 +277,13 @@ all released door/dining modes, nonfinite values, fractions and out-of-range slo
 
 Bindings 9 and 10 hold the covered-bed and dining support tables. Architecture
 patterns start at binding 11. The combined vertex stage needs four storage buffers;
-the fragment stage needs two. Four shared sampled textures leave at most twelve
-active pattern textures on the portable sixteen-texture device, with the actual
-device limit checked before upload. Beds and dining reuse the historical atlas;
-they do not consume additional sampled textures. The complete published historical
-table now has 2,445 records; the 472 architecture records follow it in a separate
+the fragment stage needs two. Five shared sampled textures (historical atlas,
+architecture depth, architecture color, roles and joint alpha) leave eleven active
+pattern textures on the portable sixteen-texture device. The source ceiling is
+twelve patterns on a device reporting at least seventeen sampled textures; actual
+device limits are checked before fetching or upload. Beds and dining reuse the
+historical atlas. The complete published historical table has 30,939 records;
+the 472 architecture records follow it in a separate
 texture set. The original 1,700-record pixel digest remains unchanged.
 
 Floors selects a tile before a contextual covering action applies it. Its dock
