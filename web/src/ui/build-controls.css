@@ -22,6 +22,8 @@ dialog menu > * { min-width: 0; }
 }
 @keyframes operation-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { [data-pending='true']::before, [data-state='pending']::before, #startup-loading-step::before { animation: none; border-right-color: currentColor; border-style: dotted; } }
+/* Size content under each owner's width cap before placement; old offsets must not shrink it. */
+#command-feedback[data-surface='scene'], #floor-scene-status { width: max-content; }
 #command-feedback[data-surface='scene'] { position: fixed; left: 50%; bottom: max(90px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; box-sizing: border-box; max-width: min(420px, calc(100vw - 32px)); padding: 10px 14px; border: 1px solid var(--hud-edge); border-radius: 6px; background: var(--hud-bg); color: var(--hud-text); font-size: 14px; overflow-wrap: anywhere; pointer-events: none; }
 #command-feedback[data-surface='scene'][data-kind='error'] { color: var(--hud-danger); border-color: var(--hud-danger); }
 #command-feedback[data-anchored='true'] { bottom: auto; }
