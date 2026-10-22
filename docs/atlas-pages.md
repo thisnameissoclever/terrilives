@@ -41,6 +41,14 @@ page dimensions and the device's actual array-layer limit before fetching
 or allocating. Close every decoded bitmap and destroy partial allocations
 when loading fails.
 
+The loader waits for each graphics upload to finish before closing its bitmap
+or starting the next page upload. Compressed downloads can still prefetch four
+pages. Grime and fixture companion uploads use the same completion boundary.
+This bounds unfinished page uploads; the complete texture array remains
+allocated for the session. See the dated
+[startup upload comparison](evidence/2026-10-21-ios-startup-memory/README.md)
+for measured behavior and the limits of the iPhone diagnosis.
+
 Each sprite record contains twelve floats: UV bounds, logical dimensions and
 legacy pair references, then crop registration and page metadata. Shared
 layout constants define the corresponding byte count. Architecture resources

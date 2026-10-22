@@ -33,6 +33,7 @@ export async function uploadGrimePage(device:GPUDevice,texture:GPUTexture):Promi
     if(bitmap.width!==1536||bitmap.height!==1024)throw new Error('Grime artwork dimensions changed');
     device.queue.copyExternalImageToTexture({source:bitmap},{texture,origin:[0,0,GRIME_PAGE]},
       {width:bitmap.width,height:bitmap.height});
+    await device.queue.onSubmittedWorkDone();
   }finally{bitmap.close();}
 }
 
