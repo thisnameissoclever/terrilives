@@ -13083,6 +13083,28 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Use a bounded readiness handshake and start the fixture observation clock only after the required child state exists. Clear readiness markers between invocations. Keep production deadlines and shutdown limits unchanged.
 
 **Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.
+## [L-error-copy-cause-and-remedy] Explain the failure and a supported remedy
+
+**What happened.** A Build confirmation mock-up paired a generic failure with "Your pending changes are kept." The extra sentence described the visible scene and made the confirmation outcome ambiguous. It repeated a mistake already prohibited by the player-visible string rules.
+
+**Root cause.** Reassurance was drafted before inspecting the available failure reason. The copy review accepted visible-state narration as useful feedback. Subsequent review relied on a display-text mapping without tracing the condition that produced it.
+
+**Feasibility check.** Before depicting functional behavior in a mock-up, trace the required data and detection through their producers and consumers. A label or error-message mapping alone does not establish the capability. Identify any implementation work needed to support a proposal and establish a feasible approach before presenting it. Match error specificity to the actual signal: a designated front-door obstruction, a blocked landing, and a worker's return-route failure require different descriptions even if an existing display mapping groups them together. Source inspection establishes the available mechanism; a played test establishes its observed behavior.
+
+**Prevention.** Write UI errors from the reported cause and a supported next action. Keep them succinct and describe ordinary objects by their type. A technically available distinction still needs to match the intended gameplay model; the starter door must not acquire a special player-facing identity because an old detector depends on it. Log the full technical error, operation and diagnostic context in the console. Omit statements about objects remaining visible or panels staying open. Avoid vague preservation words such as "kept" that can imply a successful commit. Apply these rules to mock-ups as well as implementation.
+
+**Verification.** Compare every error example with its actual failure mapping. Check that the player can identify the obstacle and next action, that neither is invented, and that the text adds information beyond the visible scene. Reject generic reassurance that could be mistaken for success. During implementation, verify that the corresponding console entry retains the full diagnostics.
+
+## [L-starter-assets-are-ordinary-world-state] Keep starter assets interchangeable with player-built assets
+
+**What happened.** Reviewing a Build error exposed a designated starting door that affected editing, routing and saved-game validation. Further inspection found original-house boundary assumptions in wall editing, room enclosure and floor cleaning.
+
+**Root cause.** Initial content supplied permanent gameplay authority after the player could edit the world. Explaining that the implementation supported the distinction failed to question whether the distinction belonged in the game.
+
+**Prevention.** Treat the starting layout as initial world state. After initialization, use current geometry, reachable routes, object capabilities and explicit player choices. Starting assets receive the same placement, removal, replacement and interaction rules as equivalent player-built assets. Never repair this by designating another object as the special starter replacement. Support multiple doors and ordinary wall openings through shared connectivity rules. Preserve product and model names in the store and placed-object presentation. Describe an ordinary door as a door; never grant a particular placed object an assumed permanent designation such as "the front door." Individual custom names require player naming and renaming support. Internal object identifiers may preserve saves, orders and ownership; they confer no starter privilege. Keep historical save interpretation isolated from current gameplay authority.
+
+**Verification.** Compare equivalent worlds built from starting objects and player-created replacements. Delete and replace objects at different positions, add many equivalent objects, and replace doors with wall openings. Check build confirmation, travel, arrivals, interactions, room boundaries, floor behavior, rendering and save/load. A missing required capability may prevent the activity that needs it; it must not require one original asset to exist. Preserve legitimate player assignments and recoverable saved state during migration.
+
 ## [L-guide-capture-coverage-is-not-reading-quality] Curate screenshots around the reader's task
 
 **What happened.** The owner rejected the player guide's screenshot presentation: uncropped captures formed a disjointed dump, repeated desktop/phone wording and captions added noise, and images opened as raw files in new tabs. Screenshots were concentrated in the UI reference while articles discussing the same controls had no illustrations beside their instructions.
