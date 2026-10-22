@@ -617,6 +617,9 @@ alone does not establish a convincing seated pose.
 
 **Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, a recorded snore while anyone sleeps, and cues for eating, reading, and exercise are in. Footsteps use a quieter peak amplitude without changing pitch or cadence. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Door opening is silent; closing plays a filtered 0.32-second thunk. Toilet audio plays a recorded flush after completed use; cancellation does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. Continuous indoor background noise is excluded from the sound design. Outdoor ambience, music, alarms and non-conversation voices remain future work. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
 
+The [sound improvement backlog](FEATURES.md#remaining-sound-improvements) owns the
+audio implementation priorities, sound-selection constraints and deferred work.
+
 ## Proposed additional systems
 
 These began as proposals. The decisions below remain in force; they are not all approved work. Accepted items are still unbuilt except for the shipped mood-to-satisfaction and waiting slices in [P-mood-feedback].
