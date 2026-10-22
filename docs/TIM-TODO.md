@@ -472,8 +472,9 @@ quiet rejected-command feedback, fixed-tick distance footsteps, master mute,
 and Effects volume. Voices now has a separate saved volume multiplier beneath
 Effects, defaulting to the unchanged mix. Routine buttons, menus and slider releases are silent.
 Twelve recorded conversation clips play in pairs. Each conversation now starts
-and stops independently, with at most three pairs sounding at once. Sleep cues
-remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
+and stops independently, with at most three pairs sounding at once. Sleep uses
+five recorded snores with household-scoped playback; eating, reading and exercise
+cues have per-Sim cadence.
 Failed conversation downloads now have bounded, demand-driven recovery without
 refetching successful clips or reviving cancelled playback. The evidence is in
 `docs/specs/2026-10-01-voice-download-recovery.md`.
@@ -500,6 +501,78 @@ ambience, alarms, music, non-conversation voices and their controls remain unbui
 The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
+
+### [T-audio-next] Remaining sound improvements `[MINE]`
+
+Implement these improvements in the listed priority order. Start with seated
+eating, natural reading and exercise sounds, and fridge handling; follow with
+cleaning chores. Keep sound selection, technical playback verification and
+in-game listening acceptance distinct.
+
+1. **Restore seated-eating audio.** Seated meals use visual action 13, while
+   `activityForVisualAction` in `web/src/audio/frame-audio.ts` recognizes only
+   ordinary eating, action 2. Cover both with the eating scheduler and add a
+   regression test for an actual seated meal. Verify transitions between
+   standing and seated eating do not duplicate or restart its cadence.
+2. **Replace the remaining synthesized activity tones.** Evaluate natural
+   paper rustles for reading, sparse cutlery and plate contact for eating,
+   and a restrained mechanical sound for exercise-bike use. The paper candidates
+   in `assets/audio/review/paper/` are available for evaluation, not accepted
+   replacements. Avoid prominent chewing, repetitive squeaks and unexplained
+   periodic thuds. Tie sound timing to the relevant contact or motion.
+3. **Add kitchen handling sounds.** Cover fridge opening and its soft closing
+   seal, ingredient or package handling, food preparation and plating. Keep the
+   existing provisional stove simmer/sizzle texture available for listening
+   review. Drive each addition from actual action progress and contact;
+   interruption must end the appropriate sound without playing a false finish.
+4. **Add cleaning sounds.** Cover mopping, wiping counters and tables, collecting
+   dishes, and emptying bins. Dishwashing already has running water; add sparse
+   ceramic contacts to distinguish it from handwashing. Play physical work
+   sounds only during active work, not while queued, travelling or suspended.
+5. **Differentiate bathroom water.** Evaluate separate shower and sink recordings
+   instead of sharing one recording at different gains. Add occasional gentle
+   bath-water movement during actual bathing. Preserve independent source
+   ownership, clean loop transitions and interruption cleanup.
+6. **Add emotional voice categories.** Arguments currently draw from the ordinary
+   conversation library. Preserve separate disinterested, annoyed and
+   argumentative performances and select them from the actual social context.
+   Later additions can include sparse laughter, relief and disappointment.
+   Preserve deterministic clip selection and matching action duration through
+   mute and save/load; the browser must not choose gameplay outcomes.
+7. **Improve the combined mix.** Add subtle source-position stereo placement and
+   distance-based volume reduction. Evaluate lowering competing sounds while
+   conversations play. Keep important events intelligible during busy household
+   activity without raising every source. Treat audible distance as presentation;
+   do not invent new Sim reactions or nuisance rules as part of the mix change.
+8. **Make TV and radio use audible.** Evaluate quiet, varied nonverbal program
+   material or original music, owned by the exact device and active only during
+   use. Bound volume, repetition and simultaneous playback. Add appropriate
+   controls when playable music content is introduced, preserving existing
+   Effects and Voices preferences.
+9. **Reserve notification sounds for consequential events.** Consider restrained
+   cues for death warnings, job outcomes and important household events. Keep
+   visible feedback and avoid repeats for the same event. Routine menu choices,
+   successful clicks, slider releases and ordinary mood changes remain silent.
+
+**Preserve the accepted direction.** Keep footsteps quiet and retain the accepted
+flush recording unless listening identifies a specific defect. Continuous indoor
+background noise remains excluded. Door opening stays silent; closing retains
+the filtered thunk without a squeak. Review each repeated addition as an isolated
+sound, at its normal single-source cadence, and at the busiest supported overlap.
+Preserve bounded playback, cancellation, pause, load and browser-audio recovery.
+
+**Deferred with their gameplay.** Laundry, pet sounds, fire alarms and rain sounds
+wait for the corresponding systems. A placed washer-dryer does not establish a
+working laundry cycle, and current seasonal visuals do not establish rain or
+fire gameplay. Retain the selected future cat-purr asset for the pets system.
+
+**Documentation follow-through.** When implementing each item, reconcile the audio
+catalog and behavior descriptions in `FEATURES.md`, `GAME-SYSTEMS.md`,
+`ARCHITECTURE.md`, `ASSETS.md` and the affected audio specifications. Older
+specifications contain superseded background-tab silence rules; align maintained
+contracts with the current requirement to keep the game and sound running in a
+background tab. Preserve dated evidence as historical evidence. Update player
+guidance and the public changelog for delivered player-visible changes.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 
