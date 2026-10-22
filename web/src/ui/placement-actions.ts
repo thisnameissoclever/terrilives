@@ -172,9 +172,9 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     const points = floors.isArea ? [[x0, y0], [x1, y0], [x0, y1], [x1, y1]] as const : undefined;
     return { tool: 'floors', feedback: floors.feedback, x: anchor[0], y: anchor[1], points, actions: [
       ...floors.coverings().map((name, index) => action('neutral', `floor-${index + 1}`, name, 'top',
-        floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
+        floors.canRequestCovering(index + 1), () => floors.applyCovering(index + 1))),
       ...(floors.resourceFailed && tools.retryFloorResources ? [action('affirmative', 'retry-floor', 'Retry', 'bottom', true, tools.retryFloorResources)] : []),
-      action('destructive', 'remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
+      action('destructive', 'remove', 'Remove', 'bottom', floors.canRequestCovering(0), () => floors.applyCovering(0), 'remove'),
       action('negative', 'clear', 'Cancel', 'bottom', floors.pending === null, tools.clearSelection, 'clear'),
     ] };
   }

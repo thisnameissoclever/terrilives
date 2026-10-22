@@ -91,6 +91,43 @@ it('does not replay a waiting edit into a revised world when resource loading fi
   expect(floors.feedback).toMatchObject({ state: 'failure', recovery: 'edit' });
 });
 
+it('restores selected-floor assistive information after recovery cancels a waiting edit', () => {
+  const { floors, source } = tool(), elements = new Map<string, FakeElement>();
+  const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {});
+  floors.choosePoint(1, 1); const selectedStatus = floors.status;
+  floors.setResourceStatus('Arbitrary resource progress'); floors.applyCovering(2); view.render();
+  expect(elements.get('floor-status')!.textContent).toBe('Loading Tiles...');
+  floors.setBlocked(true); floors.setResourceStatus(null); floors.setBlocked(false); view.render();
+  expect(elements.get('floor-status')!.textContent).toBe(selectedStatus);
+  expect(floors.feedback).toBeNull(); expect(source.staged).toEqual([]);
+});
+
+it('keeps physical, already-current and native-pending gates when offering alternative requests', () => {
+  const { floors, source } = tool(); source.tiles = [1, 1, 1]; source.refusals[3] = 7;
+  floors.choosePoint(1, 1); floors.choose(2); floors.setResourceStatus('Unavailable', true);
+  expect(floors.canRequestCovering(1)).toBe(false); // Already Boards.
+  expect(floors.canRequestCovering(2)).toBe(false); // Retry owns the selected failure.
+  expect(floors.canRequestCovering(3)).toBe(false); // Native preflight refusal.
+  expect(floors.canRequestCovering(0)).toBe(true);
+  expect(floors.canApplyCovering(0)).toBe(false); // Readiness still gates staging.
+  floors.pending = 2; expect(floors.canRequestCovering(0)).toBe(false);
+  floors.pending = null; floors.setBlocked(true); expect(floors.canRequestCovering(0)).toBe(false);
+  expect(source.staged).toEqual([]);
+});
+
+it('preserves a native refusal when a later optional loading wait is canceled by recovery', () => {
+  const { floors, source } = tool(), elements = new Map<string, FakeElement>();
+  const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {});
+  floors.choosePoint(1, 1); floors.applyCovering(2);
+  source.result = { x: 1, y: 1, covering: 2, reason: 7 }; floors.afterCommands();
+  const refusal = floors.feedback, status = floors.status;
+  floors.setResourceStatus('Untranslated resource text'); floors.apply();
+  floors.setBlocked(true); floors.setResourceStatus(null); floors.setBlocked(false); view.render();
+  expect(floors.feedback).toEqual(refusal); expect(floors.status).toBe(status);
+  expect(elements.get('floor-status')!.textContent).toBe(refusal!.message);
+  expect(source.staged).toEqual([[1, 1, 2]]);
+});
+
 describe('tileAt', () => {
   it('rounds to the tile under a point and refuses one off the lot', () => {
     expect(tileAt(0.4, 1.6, 4, 3)).toEqual([0, 2]);

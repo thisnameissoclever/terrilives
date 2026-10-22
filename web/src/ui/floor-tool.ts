@@ -205,7 +205,8 @@ export class FloorTool {
     const tile = this.tile;
     if (tile !== null && this.resourceStatus !== null) {
       this.applyWhenReady = { covering: this.chosen, revision: this.source.lotRevision() };
-      this.status = this.resourceStatus; this.hooks.changed(); return;
+      // Resource feedback is transient; keep selection and native outcome text intact.
+      this.hooks.changed(); return;
     }
     if (tile === null || !this.canApply()) {
       if (tile !== null) this.status = this.isArea || this.chosen === this.current ? this.describe()
@@ -256,8 +257,14 @@ export class FloorTool {
   }
 
   canApplyCovering(covering: number): boolean {
+    return this.resourceStatus === null && this.canRequestCovering(covering);
+  }
+
+  /** A different valid choice may replace a waiting or failed optional request. */
+  canRequestCovering(covering: number): boolean {
     return Number.isInteger(covering) && covering >= BARE && covering <= this.coverings().length
-      && this.active && !this.blocked && this.resourceStatus === null && this.pending === null && this.tile !== null
+      && this.active && !this.blocked && this.pending === null && this.tile !== null
+      && (this.resourceStatus === null || covering !== this.chosen)
       && this.targets(covering).length > 0;
   }
 

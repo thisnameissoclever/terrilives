@@ -13,6 +13,9 @@ import { BuildContextActions, contextModel, contextPosition, type ContextTools }
 import { shortcutGroups } from '../src/ui/shortcuts.js';
 import { clearBuildSelection } from '../src/ui/build-tools.js';
 import { FeedbackLifetime } from '../src/ui/operation-feedback.js';
+import { FloorFinishResources } from '../src/render/floor-finish-resources.js';
+import { activeFloorFinishKeys } from '../src/render/floor-materials.js';
+import { coveringOf } from '../src/ui/floor-tool.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -327,6 +330,46 @@ it('keeps selected-floor Retry actionable beside the tile without staging a floo
     expect(action.enabled).toBe(true);action.invoke();expect(retry).toHaveBeenCalledOnce();expect(stage).not.toHaveBeenCalled();
     expect(model.actions.find(candidate=>candidate.id==='clear')?.enabled).toBe(true);
   }finally{f.handle.free();}
+});
+
+it.each(['pending', 'failed'] as const)('can request ready Boards through its contextual action while optional Patio is %s', async phase => {
+  const f = fixture(), stage = vi.spyOn(f.source, 'setFloor');
+  const pending: { resolve(value: string): void; reject(error: Error): void }[] = [], disposed: string[] = [];
+  let resources!: FloorFinishResources<string>;
+  const floors = new FloorTool(f.source, 16, 12, { changed: () => {
+    resources.request(activeFloorFinishKeys(f.source.floorTiles(), floors.active ? floors.chosen : null));
+  } });
+  resources = new FloorFinishResources({ prepare: () => new Promise<string>((resolve, reject) => pending.push({ resolve, reject })),
+    publish() {}, dispose: value => { disposed.push(value); },
+    state: (ready, error) => floors.setResourceStatus(ready ? null : error ?? 'Loading floor materials.', error !== null) }, []);
+  const tools = { ...f.tools, floors, retryFloorResources: () => resources.retry() };
+  const action = (id: string) => contextModel(tools)!.actions.find(action => action.id === id)!;
+  try {
+    floors.enter(); floors.choosePoint(5, 4);
+    expect(f.source.floorEditPreview(5, 4, 1)).toBe(0);
+    const before = f.source.saveBytes(); action('floor-4').invoke();
+    expect(pending).toHaveLength(1); expect(stage).not.toHaveBeenCalled();
+    expect(f.source.saveBytes()).toEqual(before);
+    if (phase === 'failed') { pending[0].reject(new Error('Patio unavailable')); await Promise.resolve(); await Promise.resolve(); }
+    expect(action('floor-4').enabled).toBe(false);
+    if (phase === 'failed') expect(action('retry-floor').enabled).toBe(true);
+    expect(action('floor-1').enabled).toBe(true);
+    action('floor-1').invoke(); expect(stage).toHaveBeenCalledExactlyOnceWith(5, 4, 1);
+    expect(pending).toHaveLength(1);
+    f.source.flushCommands(); floors.afterCommands();
+    expect(coveringOf(f.source.floorTiles(), 5, 4)).toBe(1);
+    if (phase === 'pending') {
+      pending[0].resolve('obsolete Patio'); await Promise.resolve(); await Promise.resolve();
+      expect(disposed).toEqual(['obsolete Patio']);
+    }
+    expect(stage).toHaveBeenCalledTimes(1); expect(pending).toHaveLength(1);
+    expect(action('floor-1').enabled).toBe(false);
+    // A new request for the still-unprepared covering must wait for readiness too.
+    expect(action('floor-4').enabled).toBe(true); action('floor-4').invoke();
+    expect(pending).toHaveLength(2); expect(stage).toHaveBeenCalledTimes(1);
+    pending[1].resolve('ready Patio'); await Promise.resolve(); await Promise.resolve();
+    expect(stage).toHaveBeenLastCalledWith(5, 4, 4); expect(stage).toHaveBeenCalledTimes(2);
+  } finally { resources.destroy(); stage.mockRestore(); f.handle.free(); }
 });
 
 it.each([1440, 1280, 701, 700, 390, 320, 844])('bounds the complete controls at %ipx, respecting the sidebar or bottom dock', width => {
