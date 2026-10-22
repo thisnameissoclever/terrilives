@@ -32,7 +32,7 @@
 2. Add failing guards for independent complete script verification, independent unchanged artwork verification and guarded mutation execution.
 3. Move the complete script suite into `ci-guards`, while retaining fast classifier tests in `changes`. Keep mutation tooling and planning dependent on successful guards.
 4. Move the entire existing sprite/model verification step into `art` without deleting commands or changing its code/fixture condition.
-5. After successful web tests, record and upload the tested WebAssembly package as `tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}` with the existing artifact action and seven-day retention. Select the package through the current run's latest successful web job, preserving earlier attempts' immutable artifacts.
+5. After successful web tests, record and upload the tested WebAssembly package as `tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}` with the existing artifact action and seven-day retention. Select through the latest successful web execution and authenticate its original producer, including when GitHub clones the job metadata for a partial rerun. Preserve earlier attempts' immutable artifacts.
 6. Use `python3 -B .github/scripts/pages_artifact.py record --directory web/src/wasm --sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"` to create its receipt before upload.
 7. Prove guard removals fail and run the focused policy tests. Correct the stale player-guide publication description in the testing protocol.
 

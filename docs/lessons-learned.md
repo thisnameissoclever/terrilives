@@ -13102,10 +13102,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 
 ## [L-release-artifact-reruns] Bind tested release packages to the successful producer attempt
 
-1. What happened: review found that naming a tested package only by source revision could make a healthy workflow rerun fail upload or leave duplicate artifacts that restoration rejected.
-2. Root cause: one workflow run can retain artifacts from several attempts, including an earlier successful web job when another job reruns.
-3. Prevention: include the attempt in immutable artifact names. Select the current successful producer job first, then require that job's exact artifact and receipt. Preserve earlier evidence and reject missing selected artifacts.
-4. Verification: retain both packages in a full-web-rerun test, retain the earlier web package in an unrelated-job-rerun test, and require refusal when the selected attempt's package is absent despite an older valid package.
+1. What happened: review found that source-only package names could make a healthy rerun fail upload or leave duplicate artifacts. A live API check then found that selecting packages by the latest job's attempt could also reject a healthy partial rerun.
+2. Root cause: one run can retain artifacts from several attempts. GitHub can clone an earlier successful job with a new numeric ID and attempt while preserving its original execution timestamps and steps. The latest job's attempt does not prove that its commands ran again.
+3. Prevention: include the producing attempt in immutable artifact names. Authenticate the latest successful execution, then bind its matching original producer, artifact and receipt. Preserve earlier evidence and refuse a package from a different execution.
+4. Verification: use real API-shaped cloned-job metadata in partial-rerun tests. Retain both packages in a full-web-rerun test. Require refusal when a genuinely newer execution has no package despite an older valid package, or when original and latest execution evidence differs.
 
 ## [L-stable-verification-tree] Keep verification inputs stable while a suite runs
 

@@ -75,6 +75,38 @@ def authenticate_run(run, sha_value, repository, run_id, *, require_success=True
     require(type(run["run_attempt"]) is int and run["run_attempt"] > 0, "invalid CI attempt")
 
 
+def authenticate_web(job, sha_value, run_id, maximum_attempt):
+    attempt = job["run_attempt"]
+    require(type(job["id"]) is int and job["id"] > 0
+            and type(job["run_id"]) is int and str(job["run_id"]) == run_id
+            and type(attempt) is int and 0 < attempt <= maximum_attempt
+            and job["head_sha"] == sha_value and job["name"] == "web" and job["status"] == "completed"
+            and job["conclusion"] == "success", "web producer job did not succeed")
+    return attempt
+
+
+def execution_steps(job):
+    steps = job["steps"]
+    require(isinstance(steps, list) and steps, "missing successful web execution steps")
+    fields = ("number", "name", "status", "conclusion", "started_at", "completed_at")
+    result = []
+    for step in steps:
+        require(isinstance(step, dict) and type(step["number"]) is int and step["number"] > 0
+                and isinstance(step["name"], str) and step["status"] == "completed"
+                and step["conclusion"] in ("success", "skipped"), "invalid successful web execution step")
+        dates = []
+        for field in ("started_at", "completed_at"):
+            value = step.get(field)
+            require(isinstance(value, str) or value is None and step["conclusion"] == "skipped",
+                    "invalid web step timestamp type")
+            dates.append(timestamp(value) if value is not None else None)
+        require(dates[0] is None or dates[1] is None or dates[0] <= dates[1], "reversed web step timestamps")
+        result.append(tuple(step.get(field) for field in fields))
+    numbers = [row[0] for row in result]
+    require(numbers == sorted(set(numbers)), "duplicate or unordered web execution steps")
+    return result
+
+
 def restore(api, directory, sha_value, repository, run_id, *, now=None):
     identity(sha_value, repository, run_id, 1)
     now = now or dt.datetime.now(dt.timezone.utc)
@@ -87,16 +119,22 @@ def restore(api, directory, sha_value, repository, run_id, *, now=None):
     latest = [job for job in pages(api, f"{run_path}/jobs", "jobs") if job["name"] == "web"]
     require(len(latest) == 1, "missing or duplicate latest web job")
     web = latest[0]
-    attempt = web["run_attempt"]
-    require(type(web["id"]) is int and web["id"] > 0
-            and type(web["run_id"]) is int and str(web["run_id"]) == run_id
-            and type(attempt) is int and 0 < attempt <= run["run_attempt"]
-            and web["head_sha"] == sha_value and web["status"] == "completed"
-            and web["conclusion"] == "success", "latest web producer job did not succeed")
-    matches = [row for row in pages(api, f"{run_path}/artifacts", "artifacts")
-               if row["name"] == f"tested-wasm-{sha_value}-attempt-{attempt}"]
+    latest_attempt = authenticate_web(web, sha_value, run_id, run["run_attempt"])
+    started, completed = timestamp(web["started_at"]), timestamp(web["completed_at"])
+    require(started <= completed <= now, "invalid latest web execution interval")
+    latest_steps = execution_steps(web)
+    # Failed-job reruns can clone successful jobs with new IDs and attempts,
+    # retaining their original execution times. The package must come from that
+    # exact execution, even when its original uploading attempt is older.
+    matches = []
+    for row in pages(api, f"{run_path}/artifacts", "artifacts"):
+        match = re.fullmatch(rf"tested-wasm-{sha_value}-attempt-([1-9][0-9]*)", row["name"])
+        if match and started <= timestamp(row["created_at"]) <= completed:
+            attempt = int(match[1])
+            require(attempt <= latest_attempt, "artifact exceeds latest web attempt")
+            matches.append((row, attempt))
     require(len(matches) == 1, "missing or duplicate expected tested package artifact")
-    listed = matches[0]
+    listed, attempt = matches[0]
     require(type(listed["id"]) is int and listed["id"] > 0, "invalid immutable artifact ID")
     artifact = api.json(f"{prefix}/actions/artifacts/{listed['id']}")
     fields = ("id", "name", "workflow_run", "created_at", "expires_at", "expired", "digest")
@@ -111,7 +149,7 @@ def restore(api, directory, sha_value, repository, run_id, *, now=None):
     require(RECEIPT in files, "missing package build receipt")
     receipt = strict_json(files[RECEIPT])
     rows = validate_receipt(receipt, sha_value, repository, run_id)
-    require(receipt["attempt"] == attempt, "receipt differs from latest web producer attempt")
+    require(receipt["attempt"] == attempt, "receipt differs from uploading web producer attempt")
     require(set(files) == {RECEIPT} | {row["path"] for row in rows}, "package inventory differs from archive")
     for row in rows:
         content = files[row["path"]]
@@ -122,10 +160,10 @@ def restore(api, directory, sha_value, repository, run_id, *, now=None):
     jobs = [job for job in pages(api, f"{run_path}/attempts/{attempt}/jobs", "jobs") if job["name"] == "web"]
     require(len(jobs) == 1, "missing or duplicate web producer job")
     job = jobs[0]
-    fields = ("id", "run_id", "run_attempt", "head_sha", "name", "status", "conclusion", "started_at", "completed_at")
-    require(all(job[key] == web[key] for key in fields), "attempt job differs from latest web producer")
-    require(timestamp(job["started_at"]) <= timestamp(artifact["created_at"]) <= timestamp(job["completed_at"]) <= now,
-            "artifact outside successful web job lifetime")
+    require(authenticate_web(job, sha_value, run_id, latest_attempt) == attempt, "uploading web producer attempt mismatch")
+    require((attempt < latest_attempt or job["id"] == web["id"])
+            and timestamp(job["started_at"]) == started and timestamp(job["completed_at"]) == completed
+            and execution_steps(job) == latest_steps, "uploading job differs from latest successful web execution")
 
     # Validate the complete download and destination before creating any files.
     root = Path(directory).absolute()

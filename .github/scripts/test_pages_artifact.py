@@ -46,7 +46,12 @@ class API:
                           f"repos/{REPOSITORY}/actions/runs/{RUN}/attempts/2/jobs?per_page=100&page=1": {
                               "jobs": [{"id": 77, "run_id": 123, "run_attempt": 2, "head_sha": SHA,
                                         "name": "web", "status": "completed", "conclusion": "success",
-                                        "started_at": "2026-10-21T12:00:00Z", "completed_at": "2026-10-21T12:10:00Z"}]},
+                                        "created_at": "2026-10-21T11:59:00Z",
+                                        "started_at": "2026-10-21T12:00:00Z", "completed_at": "2026-10-21T12:10:00Z",
+                                        "steps": [{"number": 1, "name": "Test", "status": "completed", "conclusion": "success",
+                                                   "started_at": "2026-10-21T12:01:00Z", "completed_at": "2026-10-21T12:04:00Z"},
+                                                  {"number": 2, "name": "Upload the tested WASM package", "status": "completed", "conclusion": "success",
+                                                   "started_at": "2026-10-21T12:05:00Z", "completed_at": "2026-10-21T12:06:00Z"}]}]},
                           f"repos/{REPOSITORY}/actions/runs/{RUN}/artifacts?per_page=100&page=1": {"artifacts": [self.artifact]},
                           f"repos/{REPOSITORY}/actions/artifacts/901": self.artifact}
         self.responses[f"repos/{REPOSITORY}/actions/runs/{RUN}/jobs?per_page=100&page=1"] = self.responses[
@@ -145,21 +150,109 @@ class PackageTests(unittest.TestCase):
         jobs.append(copy.deepcopy(jobs[0]))
         self.reject()
 
-    def test_successful_web_from_failed_earlier_attempt_survives_other_job_rerun(self):
+    def cloned_web_attempt(self):
         receipt = dict(self.receipt, attempt=1)
         self.api.artifact["name"] = f"tested-wasm-{SHA}-attempt-1"
         self.api.set_files(dict(FILES, **{"build-receipt.json": json.dumps(receipt).encode()}))
         prefix = f"repos/{REPOSITORY}/actions/runs/{RUN}"
+        self.api.responses[prefix]["run_attempt"] = 4
         attempt = self.api.responses.pop(prefix + "/attempts/2")
         attempt.update(run_attempt=1, conclusion="failure")
         self.api.responses[prefix + "/attempts/1"] = attempt
         jobs = self.api.responses.pop(prefix + "/attempts/2/jobs?per_page=100&page=1")
         jobs["jobs"][0]["run_attempt"] = 1
+        jobs["jobs"][0]["id"] = 119852835665
         self.api.responses[prefix + "/attempts/1/jobs?per_page=100&page=1"] = jobs
+        cloned = copy.deepcopy(jobs)
+        cloned["jobs"][0].update(id=119900920118, run_attempt=4, created_at="2026-10-21T15:01:25Z")
+        self.api.responses[prefix + "/jobs?per_page=100&page=1"] = cloned
+        return receipt
+
+    def test_successful_web_clone_from_failed_earlier_attempt_survives_other_job_rerun(self):
+        receipt = self.cloned_web_attempt()
         self.assertEqual(self.restore(), receipt)
+        self.assertIn(f"repos/{REPOSITORY}/actions/runs/{RUN}/attempts/1/jobs?per_page=100&page=1", self.api.calls)
+
+    def test_cloned_success_requires_original_authenticated_execution_and_steps(self):
+        self.cloned_web_attempt()
+        prefix = f"repos/{REPOSITORY}/actions/runs/{RUN}"
+        original = self.api.responses[prefix + "/attempts/1/jobs?per_page=100&page=1"]["jobs"][0]
+        for field, value in (("run_attempt", 2), ("head_sha", "b" * 40), ("conclusion", "failure"),
+                             ("started_at", "2026-10-21T12:00:01Z"), ("completed_at", "2026-10-21T12:09:59Z"),
+                             ("steps", []), ("steps", [dict(original["steps"][0], conclusion="failure"), original["steps"][1]])):
+            with self.subTest(field=field):
+                old = original[field]
+                original[field] = value
+                self.reject()
+                original[field] = old
+        step = original["steps"][0]
+        for field, value in (("number", 3), ("name", "Other work"), ("status", "in_progress"),
+                             ("conclusion", "skipped"), ("started_at", "2026-10-21T12:01:01Z"),
+                             ("completed_at", "2026-10-21T12:04:01Z")):
+            with self.subTest(step_field=field):
+                old = step[field]
+                step[field] = value
+                self.reject()
+                step[field] = old
+
+    def test_two_attempt_artifacts_in_same_execution_interval_are_ambiguous(self):
+        self.cloned_web_attempt()
+        rows = self.api.responses[f"repos/{REPOSITORY}/actions/runs/{RUN}/artifacts?per_page=100&page=1"]["artifacts"]
+        rows.append(dict(self.api.artifact, id=902, name=f"tested-wasm-{SHA}-attempt-2"))
+        self.reject()
+
+    def test_success_steps_require_valid_timezone_ordered_timestamps(self):
+        key = f"repos/{REPOSITORY}/actions/runs/{RUN}/attempts/2/jobs?per_page=100&page=1"
+        steps = self.api.responses[key]["jobs"][0]["steps"]
+        original = copy.deepcopy(steps[0])
+        cases = [("started_at", None), ("started_at", {}), ("started_at", "invalid"),
+                 ("started_at", "2026-10-21T12:01:00"), ("completed_at", None),
+                 ("completed_at", 123), ("completed_at", "2026-10-21T12:00:00Z")]
+        for index, (field, value) in enumerate(cases):
+            with self.subTest(field=field, value=value):
+                self.target = self.root / f"invalid-step-{index}"
+                steps[0] = dict(original, **{field: value})
+                with self.assertRaises(ValueError):
+                    self.restore()
+                self.assertFalse(self.target.exists())
+        steps[0] = {field: value for field, value in original.items() if field != "started_at"}
+        self.target = self.root / "missing-success-start"
+        with self.assertRaises(ValueError):
+            self.restore()
+        self.assertFalse(self.target.exists())
+
+    def test_skipped_step_timestamps_may_be_missing_null_or_valid(self):
+        key = f"repos/{REPOSITORY}/actions/runs/{RUN}/attempts/2/jobs?per_page=100&page=1"
+        steps = self.api.responses[key]["jobs"][0]["steps"]
+        skipped = {"number": 3, "name": "Skipped operation", "status": "completed", "conclusion": "skipped"}
+        cases = [{}, {"started_at": None, "completed_at": None},
+                 {"started_at": "2026-10-21T12:06:00Z"}, {"completed_at": "2026-10-21T12:07:00Z"},
+                 {"started_at": "2026-10-21T12:06:00Z", "completed_at": "2026-10-21T12:07:00Z"}]
+        steps.append(skipped)
+        for index, dates in enumerate(cases):
+            with self.subTest(dates=dates):
+                self.target = self.root / f"valid-skipped-{index}"
+                steps[-1] = dict(skipped, **dates)
+                self.assertEqual(self.restore(), self.receipt)
+
+    def test_provided_skipped_step_dates_must_parse_and_be_ordered(self):
+        key = f"repos/{REPOSITORY}/actions/runs/{RUN}/attempts/2/jobs?per_page=100&page=1"
+        steps = self.api.responses[key]["jobs"][0]["steps"]
+        skipped = {"number": 3, "name": "Skipped operation", "status": "completed", "conclusion": "skipped"}
+        cases = [{"started_at": {}}, {"completed_at": 123}, {"started_at": "invalid"},
+                 {"completed_at": "2026-10-21T12:07:00"},
+                 {"started_at": "2026-10-21T12:07:00Z", "completed_at": "2026-10-21T12:06:00Z"}]
+        steps.append(skipped)
+        for index, dates in enumerate(cases):
+            with self.subTest(dates=dates):
+                self.target = self.root / f"invalid-skipped-{index}"
+                steps[-1] = dict(skipped, **dates)
+                with self.assertRaises(ValueError):
+                    self.restore()
+                self.assertFalse(self.target.exists())
 
     def test_full_web_rerun_selects_latest_attempt_and_preserves_earlier_artifact(self):
-        old = dict(self.api.artifact, id=900, name=f"tested-wasm-{SHA}-attempt-1")
+        old = dict(self.api.artifact, id=900, name=f"tested-wasm-{SHA}-attempt-1", created_at="2026-10-21T10:05:00Z")
         rows = self.api.responses[f"repos/{REPOSITORY}/actions/runs/{RUN}/artifacts?per_page=100&page=1"]["artifacts"]
         rows.insert(0, old)
         self.assertEqual(self.restore(), self.receipt)
@@ -168,8 +261,12 @@ class PackageTests(unittest.TestCase):
 
     def test_latest_web_attempt_requires_its_own_artifact_and_receipt(self):
         rows = self.api.responses[f"repos/{REPOSITORY}/actions/runs/{RUN}/artifacts?per_page=100&page=1"]["artifacts"]
-        rows[:] = [dict(self.api.artifact, id=900, name=f"tested-wasm-{SHA}-attempt-1")]
-        self.reject()
+        rows[:] = [dict(self.api.artifact, id=900, name=f"tested-wasm-{SHA}-attempt-1", created_at="2026-10-21T10:05:00Z")]
+        with self.assertRaisesRegex(ValueError, "missing or duplicate expected tested package artifact"):
+            self.restore()
+        self.assertFalse(self.target.exists())
+        self.assertFalse(any("/actions/artifacts/" in path for path in self.api.calls),
+                         "an earlier execution's artifact was inspected as a fallback")
         rows[:] = [self.api.artifact]
         self.api.set_files(dict(FILES, **{"build-receipt.json": json.dumps(dict(self.receipt, attempt=1)).encode()}))
         self.reject()
