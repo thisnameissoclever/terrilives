@@ -16,7 +16,7 @@ The helper creates its own digest-pinned BuildKit container with two CPU equival
 
 Verification also requires two deliberate faults to fail: redirecting `/usr/bin/sh` from Dash to Bash while preserving both binaries, and shadowing the assembler through `PATH` with an identical binary copy. These controls run as root in a separate disposable container layer, with no network or host mounts. Each restores the baseline and verifies it again. A fault accepted by the runtime guard prevents publication.
 
-Only the owner-dispatched image publication job receives package-write permission. It builds the reviewed revision, then runs:
+Only the owner-dispatched image publication job receives package-write permission. Obtain approval for the hosted build before dispatch. Supply its exact locally checked `validated_sha`, local verification report reference and matching `runtime_build_sha`. The job validates the owner and source revision, builds the image, then runs:
 
 ```sh
 python3 -B .github/scripts/mutation_runtime_image.py publish \

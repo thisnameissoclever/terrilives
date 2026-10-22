@@ -31,7 +31,7 @@ Report all four. A test claiming to pin a mechanism it cannot detect is **worse
 than no test**, because it also removes the suspicion that would otherwise
 prompt someone to check.
 
-## 2. `cargo mutants` runs in CI
+## 2. Mutation testing and approved hosted campaigns
 
 Automated backstop for everything rule 1 depends on a human to notice. A
 surviving mutant is, by definition, behaviour that nothing constrains.
@@ -64,40 +64,36 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   over such a line is true and is simultaneously no evidence. Delete those by
   hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
   under a "0 survivors" report.
-- **A documentation-only change skips game checks.** The `changes` job in
-  `ci.yml` runs the fast classifier tests, then decides whether the game could
-  be affected. The independent `ci-guards` job runs every CI script and
-  workflow contract test on every change. Mutation tooling and planning require
-  successful complete guards. After classification, Rust, web and artwork
-  checks run independently with the same code-change and fixture conditions.
-  Documentation means files ending `.md` in any letter case, outside `.agents/`
-  and `.claude/`, because a web test reads the skill files there. Published
-  articles, metadata and images under `docs/player/` also skip game checks,
-  except `quick-help.md`, `reviewed-sources.json` and `generated/`, which require
-  them. Everything else counts as code, including `docs/mutants-baseline.txt`,
-  which the mutation gate reads. A pull request is compared from where it
-  branched; a push to main is compared with
-  the newest main push whose `web` job passed, so a documentation push cannot
-  skip code whose own run was cancelled or failed. When only documentation
-  changed, the Rust, web, artwork and mutation jobs skip and the `docs` job checks
-  document ids. Changes under `docs/player/` or `docs/changelog/` also run the
-  lightweight `changelog` job and redeploy Pages; other documentation does not
-  redeploy. The classifier's `site` output includes game changes and both public
-  documentation paths, so the Pages stale-artifact check rejects an older artifact
-  when newer guide content or notes have reached main.
-  Pages can still publish a tested revision whose only difference from main's
-  tip is unpublished documentation. See `docs/changelog.md`.
-  Anything the script cannot decide runs everything. Local gates are
-  unchanged: a change that touches code still runs every step before it is
-  pushed.
+- **Run routine verification locally.** Use [the local check runner](local-checks.md)
+  to retain Rust, web, artwork, published-document and testing-tool checks.
+  Record the checked revision, each command, its result and platform limits.
+  Complete independent review before merging. Pushes and pull requests do not
+  start hosted tests. The manual workflow accepts only the owner's exact locally
+  checked revision and an evidence reference; its authorization jobs do not claim
+  to rerun those tests.
+- **Approve hosted work separately.** Explain the concrete gap that local checks
+  cannot close and the expected compute before asking for approval. GitHub's real
+  job logs, artifact retention and same-run retry behavior are properties of the
+  optional hosted campaign. Their qualification does not gate local game tests.
+  Use plan-only mode when approval covers planning; that mode cannot start native
+  measurement or production workers. A general repair or merge request is not
+  approval to spend hosted compute.
+- **Publish only deployable changes.** After local verification and review,
+  relevant main pushes start Pages directly. The publication path filter and
+  stale-release classifier share the declared deployable inputs. Tests, testing
+  tools, engineering documents and unrelated metadata do not start publication.
+  Each release builds the WebAssembly package once and verifies the site artifact.
+  The deployment job fetches only the classifier and Git metadata needed to
+  compare with current main. Newer deployable inputs or unknown comparisons
+  prevent a stale artifact from publishing. Manual publication retains its
+  exact-main-revision guard. See [publication rules](changelog.md).
 - **Mutation jobs share eight runner slots across this repository.** Each
   shard uses `ci-mutation-shard-${{ matrix.shard }}` as its job concurrency
   group, without a PR number or run id. `queue: max` retains up to 100 pending
   jobs per group; GitHub cancels additional jobs when that queue is full.
-  A cancelled sweep is not a passed sweep. The outer workflow still cancels
-  obsolete heads of the same PR. Its groups also separate events so a manual
-  sweep on main cannot block push CI while it waits for mutation slots.
-  Rust, web, artwork, CI guards and Pages jobs do not use these groups. Tool
+  A cancelled sweep is not a passed sweep. Manual dispatch groups keep
+  independently approved campaigns separate. Local validation and Pages
+  publication do not use these groups. Tool
   builds, calibration and mutation execution share the eight slots; lightweight aggregation uses
   a separate job after its workers finish. This budget does not guarantee available account-wide
   runners. Previously dispatched workflows retain their old configuration.
@@ -275,7 +271,7 @@ A counter is an allocator, and branches that cannot see each other read
 it identically. Both series collided in practice: two different `[L41]`s
 on 2026-07-29, then three PRs on 2026-08-01 each appending what they
 believed was `[A-17]`. Every collision costs a renumber, a sweep of the
-cross-references and a fresh CI run, and none of it is about the code
+cross-references and fresh local verification, and none of it is about the code
 under review.
 
 - New entry: `## [L-what-it-is-about] ...`. Nothing to look up or
@@ -283,7 +279,7 @@ under review.
 - Existing numbers never move; they are cited from ~60 files. The
   series closed at `[L74]` and `[A-25]`.
 - `check-doc-ids.py` fails the build on a number past the closed series
-  or on the same id twice. It runs in the `rust` CI job.
+  or on the same id twice. Run it through the local `docs` check group.
 - Both files carry `merge=union` in `.gitattributes`, so two branches
   appending different entries merge with no conflict at all. Union keeps
   both sides of an overlapping hunk, so an edit to an OLD entry made on

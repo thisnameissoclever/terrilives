@@ -2,6 +2,7 @@
 
 import contextlib
 import datetime as dt
+import importlib.util
 import json
 import os
 import re
@@ -67,6 +68,14 @@ class RuntimeFixture:
         self.environment = {"MUTATION_RUNTIME_IMAGE": self.image, "PATH": str(self.bin), "HOME": str(self.root), "USERPROFILE": str(self.root), "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"}
         self.refresh()
 
+    def add_non_ascii_certificate(self):
+        basename = "NetLock_Arany_=Class_Gold=_F\u0151tan\u00fas\u00edtv\u00e1ny.crt"
+        path = self.bin / basename
+        path.write_bytes(b"faithful certificate fixture")
+        self.files[str(path.resolve())] = artifacts.sha(path.read_bytes())
+        self.refresh()
+        return path
+
     def refresh(self):
         self.pin["image"] = self.image
         self.installed.write_bytes(canonical(self.inventory))
@@ -92,6 +101,35 @@ class RuntimeFixture:
 class RuntimeTests(unittest.TestCase):
     def setUp(self):
         self.f = RuntimeFixture(self)
+
+    def test_published_unicode_certificate_inventory_is_canonical_and_files_remain_guarded(self):
+        f = self.f
+        certificate = f.add_non_ascii_certificate()
+        source = Path(__file__).resolve().parents[1] / "runtime/inventory.py"
+        specification = importlib.util.spec_from_file_location("published_runtime_inventory", source)
+        publisher = importlib.util.module_from_spec(specification)
+        specification.loader.exec_module(publisher)
+        raw = f.installed.read_bytes()
+        self.assertEqual(raw, publisher.canonical(f.inventory))
+        self.assertIn(b"F\\u0151tan\\u00fas\\u00edtv\\u00e1ny.crt", raw)
+        self.assertNotIn(certificate.name.encode("utf-8"), raw)
+        self.assertEqual(runtime.canonical(f.inventory), raw)
+        with f.activate():
+            self.assertEqual(runtime.identity(f.root)["inventory_sha256"], artifacts.sha(raw))
+            certificate.write_bytes(b"changed certificate bytes")
+            with self.assertRaisesRegex(ValueError, "runtime file changed"):
+                runtime.identity(f.root)
+
+    def test_matching_hash_does_not_authorize_noncanonical_utf8_inventory(self):
+        f = self.f
+        f.add_non_ascii_certificate()
+        raw = (json.dumps(f.inventory, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+        self.assertNotEqual(raw, f.installed.read_bytes())
+        f.installed.write_bytes(raw)
+        f.pin["inventory_sha256"] = artifacts.sha(raw)
+        (f.root / runtime.PIN).write_bytes(canonical(f.pin))
+        with f.activate(), self.assertRaisesRegex(ValueError, "invalid canonical mutation runtime inventory"):
+            runtime.identity(f.root)
 
     def test_actual_image_env_normalizes_only_declared_cargo_worker_count(self):
         f = self.f

@@ -13158,3 +13158,38 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the isolated test copies explicitly listed helper modules and omitted the new transitive import.
 3. Prevention: scan isolated-copy module lists whenever adding an import. Include the required helper without weakening the original negative assertion.
 4. Verification: run the isolated controls and require each deliberate guard removal to fail for its named assertion. Complete the integration suite against a stable source tree.
+
+## [L-explain-the-purpose-of-a-check] Explain the consequence before the testing mechanism
+
+1. What happened: an explanation of remote workflow recovery described job records and interrupted execution without first explaining their purpose or connection to the requested game fix.
+2. Root cause: the explanation assumed that the reader already understood why a long testing process saves progress and which checks concern the game itself.
+3. Prevention: state what the check protects, whether it affects the requested delivery, and why the proposed location is necessary. Keep optional testing infrastructure evidence separate from application test results and player-device acceptance. Obtain approval before paid hosted work.
+4. Verification: the reader can identify the concrete failure being checked and its consequence without reconstructing previous technical explanations. Local results, remote-service behavior and deployment each retain their own verified status.
+
+## [L-canonical-runtime-inventory-unicode] Test the published inventory with its actual text encoding
+
+1. What happened: local execution of the published mutation image passed its image checks, then failed the consuming runtime validator on accented certificate filenames.
+2. Root cause: the image encoded non-ASCII JSON characters as escapes while its consumer emitted raw UTF-8 during canonical comparison. ASCII-only fixtures hid the disagreement.
+3. Prevention: define the canonical encoding explicitly on both sides. Test representative non-ASCII file paths and compare retained published inventory bytes before relying on a simulated installation.
+4. Verification: accept the exact published inventory and hash. Refuse changed certificate bytes and a hash-matching alternate JSON encoding. Run the real consumer against the pinned image locally.
+
+## [L-publication-filters-follow-build-inputs] Classify files by their production consumers
+
+1. What happened: review found that a publication filter omitted external character assets and migration content compiled from directories named `tests`.
+2. Root cause: directory labels were used as substitutes for tracing production imports, asset patterns and build-script reads.
+3. Prevention: derive publication inputs from actual consumers. Include production data stored under test directories while excluding unrelated saved-game fixtures, authoring sources and test-only files. Keep the workflow filter and stale-release comparison aligned.
+4. Verification: source-derived tests enumerate literal imports, matched runtime assets and compiled fixture filenames. Require each to trigger publication and make an older release stale. Require unrelated authoring files and test observations to remain excluded.
+
+## [L-local-npm-direct-node] Execute npm without a second command parser
+
+1. What happened: independent review ran the new local runner against the installed Windows npm command. Nested command-shell quoting made the path under `Program Files` fail before npm started.
+2. Root cause: C runtime argument escaping was reused inside `cmd /c`, whose parsing rules differ. Mocked command execution did not expose the platform failure.
+3. Prevention: resolve npm's installed JavaScript entry point and run it through Node with a direct argument array. Refuse unsupported batch wrappers rather than guessing their command syntax.
+4. Verification: run the real installed npm command through the runner. Use actual Node execution to preserve paths with spaces and arguments containing shell metacharacters, quotes and environment-variable syntax literally.
+
+## [L-qualification-binds-authorization-code] Bind helpers that define campaign authorization
+
+1. What happened: a new helper performed owner and local-report checks for the hosted workflow but was missing from the smaller contract used to select prior recovery qualification.
+2. Root cause: the workflow file was bound while its newly called authorization code was treated as ordinary source inventory.
+3. Prevention: include authorization helpers in the qualification contract. Keep full computation inventory and qualification compatibility checks distinct.
+4. Verification: change the authorization helper independently and require prior qualification and substituted remote source to refuse. Update precise API accounting for any added source tree without increasing the production ceiling.

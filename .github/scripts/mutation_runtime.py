@@ -25,7 +25,8 @@ IMAGE_PATTERN = r"ghcr\.io/thisnameissoclever/terrilives-mutation-runtime@sha256
 
 
 def canonical(value):
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n").encode()
+    # The published inventory escapes Unicode paths before hashing its bytes.
+    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False) + "\n").encode()
 
 
 def file_sha(path):

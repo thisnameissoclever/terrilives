@@ -122,27 +122,25 @@ class MutationRunnerBudget(unittest.TestCase):
         self.assertNotIn("continue-on-error", self.mutants)
         self.assertIn("MUTATION_ARTIFACT_ID=$ARTIFACT_ID", self.mutants)
 
-    def test_pr_cancellation_is_scoped_and_manual_runs_do_not_hold_push_ci(self):
-        self.assertEqual(
-            self.block(self.workflow, "concurrency", 0),
-            "  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}\n"
-            "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
-        )
+    def test_only_explicit_owner_dispatch_can_start_the_workflow(self):
+        triggers = self.block(self.workflow, 'on', 0)
+        self.assertNotRegex(triggers, re.compile(r'^  (?:push|pull_request|schedule|workflow_run):', re.MULTILINE))
+        self.assertIn('  workflow_dispatch:', triggers)
+        self.assertIn('      validated_sha:\n        description: Exact owner-reviewed revision\n        required: true\n        type: string', triggers)
+        self.assertIn('      local_verification_ref:\n        description: SHA-256 reference of the owner-reviewed local report\n        required: true\n        type: string', triggers)
 
-    def test_complete_workflow_guards_run_independently_of_classification(self):
-        changes = self.block(self.jobs, "changes", 2)
-        guards = self.block(self.jobs, "ci-guards", 2)
-        self.assertIn(
-            "        working-directory: .github/scripts\n"
-            "        run: python3 -B -m unittest discover -p 'test_*.py'",
-            guards,
-        )
-        self.assertNotIn("    needs:", guards)
-        self.assertNotIn("    if:", guards)
-        self.assertNotIn("continue-on-error", guards)
-        self.assertIn("        run: python3 -B -m unittest test_changes.py", changes)
-        self.assertEqual(self.workflow.count("python3 -B -m unittest discover -p 'test_*.py'"), 1)
-        self.assertNotIn("unittest discover", changes)
+    def test_ci_guards_authorize_local_evidence_without_repeating_checks(self):
+        for key in ('changes', 'ci-guards'):
+            job = self.block(self.jobs, key, 2)
+            self.assertIn("github.event_name == 'workflow_dispatch'", job)
+            self.assertIn("github.actor == github.repository_owner", job)
+            self.assertIn("inputs.validated_sha == github.sha", job)
+            self.assertIn('scripts/check-local-ci.py authorize', job)
+            self.assertIn('LOCAL_VERIFICATION_REF: ${{ inputs.local_verification_ref }}', job)
+            self.assertNotIn('unittest', job)
+            self.assertNotIn('npm ', job)
+            self.assertNotIn('cargo ', job)
+        self.assertIn('name: Owner local-verification authorization', self.block(self.jobs, 'ci-guards', 2))
 
     def test_mutation_tool_and_plan_require_successful_complete_guards(self):
         tool = self.block(self.jobs, "mutation-tool", 2)
@@ -152,43 +150,25 @@ class MutationRunnerBudget(unittest.TestCase):
         for job in (tool, plan):
             self.assertIn("needs.ci-guards.result == 'success'", job)
 
-    def test_art_retains_every_command_and_runs_alongside_native_and_web(self):
-        art = self.block(self.jobs, "art", 2)
-        commands = [line.strip() for line in art.splitlines() if line.strip().startswith("python3 ")]
-        self.assertEqual(commands, ART_COMMANDS)
-        self.assertIn("      - name: Sprite atlas is reproducible", art)
-        self.assertIn("      - uses: actions/checkout@v4", art)
-        for key in ("rust", "web", "art"):
-            job = self.block(self.jobs, key, 2)
-            self.assertIn("    needs: changes\n", job + "\n")
-            self.assertIn("inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'", job)
-            self.assertNotIn("continue-on-error", job)
-        self.assertNotIn("assets/sprites/gen", self.block(self.jobs, "rust", 2))
-        for command in ART_COMMANDS:
-            self.assertEqual(self.workflow.count(command), 1, command)
+    def test_art_verification_is_complete_in_the_local_runner(self):
+        from test_local_ci import local
+        import shlex
+        rendered = []
+        for row in local.commands(('art',), install_dependencies=True):
+            rendered.append(shlex.join(('python3', *row.argv[1:])))
+        self.assertEqual(rendered, ART_COMMANDS)
+        for key in ('rust', 'web', 'art', 'docs', 'changelog'):
+            self.assertNotIn('  ' + key + ':', self.jobs)
 
-    def test_tested_package_receipt_and_upload_follow_successful_web_tests(self):
-        web = self.block(self.jobs, "web", 2)
-        receipt = ('python3 -B .github/scripts/pages_artifact.py record --directory web/src/wasm '
-                   '--sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY" '
-                   '--run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"')
-        expected = (
-            "      - name: Test\n"
-            "        working-directory: web\n"
-            "        run: npm test\n"
-            "      - name: Record the tested WASM package\n"
-            f"        run: {receipt}\n"
-            "      - name: Upload the tested WASM package\n"
-            "        uses: actions/upload-artifact@v4\n"
-            "        with:\n"
-            "          name: tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}\n"
-            "          path: web/src/wasm\n"
-            "          if-no-files-found: error\n"
-            "          retention-days: 7"
-        )
-        self.assertIn(expected, web)
-        self.assertNotIn("continue-on-error", web)
-        self.assertNotIn("overwrite:", web)
+    def test_local_web_verification_preserves_order_and_adds_the_release_build(self):
+        from test_local_ci import local
+        rows = local.commands(('web',))
+        commands = [' '.join(row.argv) for row in rows]
+        wasm = 'wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm'
+        self.assertLess(commands.index(wasm), commands.index('npm test -- --maxWorkers=1'))
+        self.assertLess(commands.index('npm run typecheck'), commands.index('npm test -- --maxWorkers=1'))
+        self.assertLess(commands.index('npm test -- --maxWorkers=1'), commands.index('npm run build'))
+        self.assertNotIn('tested-wasm-', self.workflow)
 
     def test_runtime_publication_is_owner_dispatched_for_one_exact_revision(self):
         dispatch = self.block(self.workflow, "workflow_dispatch", 2)
@@ -225,15 +205,11 @@ class MutationRunnerBudget(unittest.TestCase):
         self.assertEqual(publisher.count("${{ github.token }}"), 1)
         self.assertNotIn("if:", build_and_publish)
 
-    def test_runtime_bootstrap_suppresses_only_ordinary_jobs(self):
-        ordinary = ("docs", "changelog", "art", "rust", "web", "mutation-tool", "mutation-plan",
-                    "mutation-native-pilot", "mutation-native-pilot-report", "mutation-admission",
-                    "mutation-prepare", "mutants", "mutation-aggregate")
-        for key in ordinary:
-            job = self.block(self.jobs, key, 2)
-            self.assertIn("inputs.runtime_publish != true &&", job, key)
-        for key in ("changes", "ci-guards"):
-            self.assertFalse(any(line.startswith("    if:") for line in self.block(self.jobs, key, 2).splitlines()))
+    def test_runtime_bootstrap_suppresses_mutation_consumers(self):
+        for key in MUTATION_JOBS:
+            self.assertIn('inputs.runtime_publish != true &&', self.block(self.jobs, key, 2))
+        for key in ('rust', 'web', 'art', 'docs', 'changelog'):
+            self.assertNotIn('  ' + key + ':', self.jobs)
 
     def test_mutation_jobs_use_the_committed_immutable_runtime(self):
         pin = json.loads(PIN.read_text())
@@ -267,99 +243,61 @@ class MutationRunnerBudget(unittest.TestCase):
             self.assertNotIn("    permissions:", job)
             self.assertNotIn("    defaults:", job)
         self.assertEqual(self.workflow.count("mutation_runtime.py verify --root ."), len(MUTATION_JOBS))
-        for key in ("rust", "web"):
-            self.assertIn("        run: rustup show", self.block(self.jobs, key, 2))
+
+    def test_plan_only_mode_cannot_release_native_work_or_workers(self):
+        dispatch = self.block(self.workflow, 'workflow_dispatch', 2)
+        self.assertIn('        options: [plan, production, fixture]\n        default: plan', dispatch)
+        for key in ('mutation-native-pilot', 'mutation-native-pilot-report', 'mutation-admission'):
+            self.assertIn("inputs.mutation_mode == 'production'", self.block(self.jobs, key, 2))
+        for key in ('mutation-prepare', 'mutants', 'mutation-aggregate'):
+            self.assertIn("inputs.mutation_mode != 'plan' &&", self.block(self.jobs, key, 2))
+        self.assertIn("inputs.mutation_mode == 'fixture'", self.block(self.jobs, 'mutation-tool', 2))
 
     def test_isolated_workflow_guard_removals_are_detected(self):
         controls = [
-            ("needs.mutation-admission.result == 'success'", "true",
-             "test_native_admission_stops_fanout_and_keeps_review_outside_slot_zero"),
-            ("group: ci-mutation-shard-${{ matrix.shard }}", "group: ci-mutation-shard-${{ matrix.shard }}-${{ github.run_id }}",
-             "test_mutation_slots_are_shared_across_prs_and_keep_pending_jobs"),
-            ("shard: [0, 1, 2, 3, 4, 5, 6, 7]", "shard: [0, 1, 2, 3, 4, 5, 6]", "test_all_eight_shards_fit_the_shared_budget"),
-            ("always() && !cancelled() && needs.mutation-plan.result == 'success'",
-             "success() && !cancelled() && needs.mutation-plan.result == 'success'",
-             "test_aggregate_runs_after_failed_workers_and_has_distinct_fixture_check"),
-            ("  actions: read", "  actions: write", "test_only_read_permissions_no_self_dispatch_no_worker_install"),
-            ("    needs: [changes, ci-guards]", "    needs: changes",
-             "test_mutation_tool_and_plan_require_successful_complete_guards"),
-            ("    needs: [changes, ci-guards, mutation-tool]", "    needs: [changes, mutation-tool]",
-             "test_mutation_tool_and_plan_require_successful_complete_guards"),
-            ("needs.ci-guards.result == 'success' && github.event_name", "github.event_name",
-             "test_mutation_tool_and_plan_require_successful_complete_guards"),
-            ("      needs.ci-guards.result == 'success' &&", "      true &&",
-             "test_mutation_tool_and_plan_require_successful_complete_guards"),
-            ("unittest discover -p 'test_*.py'", "unittest test_changes.py",
-             "test_complete_workflow_guards_run_independently_of_classification"),
-            ("        run: npm test\n      - name: Record the tested WASM package",
-             "        run: npm test\n        if: always()\n      - name: Record the tested WASM package",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
-            ("          path: web/src/wasm", "          path: web/src/wasm/*.wasm",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
-            ("          name: tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}",
-             "          name: tested-wasm-${{ github.sha }}",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
-            ("          retention-days: 7", "          retention-days: 7\n          overwrite: true",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
-            ("          retention-days: 7", "          retention-days: 1",
-             "test_tested_package_receipt_and_upload_follow_successful_web_tests"),
-            ("github.actor == github.repository_owner", "true",
-             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
-            ("inputs.runtime_build_sha == github.sha", "true",
-             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
-            ("github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true", "true",
-             "test_runtime_publication_is_owner_dispatched_for_one_exact_revision"),
-            ('          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]', "          true",
-             "test_runtime_publisher_checks_revision_before_build_and_limits_credentials"),
-            ('          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]', "          true",
-             "test_runtime_publisher_checks_revision_before_build_and_limits_credentials"),
-            ("inputs.runtime_publish != true && needs.changes.outputs.site", "needs.changes.outputs.site",
-             "test_runtime_bootstrap_suppresses_only_ordinary_jobs"),
-            ("    shell: bash", "    shell: sh",
-             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools"),
-            ("      options: --cpus 2 --memory 6g", "      options: --cpus 8 --memory 16g",
-             "test_mutation_jobs_use_the_committed_immutable_runtime"),
-            ("        password: ${{ github.token }}", "        password: unbound",
-             "test_mutation_jobs_use_the_committed_immutable_runtime"),
-            ("mutation_runtime.py verify --root .", "mutation_runtime.py verify --root . && rustup update",
-             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools"),
-            ("  packages: read", "  packages: write",
-             "test_only_read_permissions_no_self_dispatch_no_worker_install"),
-            ("      options: --cpus 2 --memory 6g", "      options: --cpus 2 --memory 6g\n      volumes: [/opt/rust:/opt/rust]",
-             "test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools")]
+            ("needs.mutation-admission.result == 'success'", 'true', 'test_native_admission_stops_fanout_and_keeps_review_outside_slot_zero'),
+            ('group: ci-mutation-shard-${{ matrix.shard }}', 'group: ci-mutation-shard-${{ matrix.shard }}-${{ github.run_id }}', 'test_mutation_slots_are_shared_across_prs_and_keep_pending_jobs'),
+            ('shard: [0, 1, 2, 3, 4, 5, 6, 7]', 'shard: [0, 1, 2, 3, 4, 5, 6]', 'test_all_eight_shards_fit_the_shared_budget'),
+            ("always() && !cancelled() && needs.mutation-plan.result == 'success'", "success() && !cancelled() && needs.mutation-plan.result == 'success'", 'test_aggregate_runs_after_failed_workers_and_has_distinct_fixture_check'),
+            ('  actions: read', '  actions: write', 'test_only_read_permissions_no_self_dispatch_no_worker_install'),
+            ('    needs: [changes, ci-guards]', '    needs: changes', 'test_mutation_tool_and_plan_require_successful_complete_guards'),
+            ('    needs: [changes, ci-guards, mutation-tool]', '    needs: [changes, mutation-tool]', 'test_mutation_tool_and_plan_require_successful_complete_guards'),
+            ("needs.ci-guards.result == 'success' && github.event_name", 'github.event_name', 'test_mutation_tool_and_plan_require_successful_complete_guards'),
+            ("      needs.ci-guards.result == 'success' &&", '      true &&', 'test_mutation_tool_and_plan_require_successful_complete_guards'),
+            ('github.actor == github.repository_owner', 'true', 'test_ci_guards_authorize_local_evidence_without_repeating_checks'),
+            ('inputs.validated_sha == github.sha', 'true', 'test_ci_guards_authorize_local_evidence_without_repeating_checks'),
+            ('inputs.runtime_build_sha == github.sha', 'true', 'test_runtime_publication_is_owner_dispatched_for_one_exact_revision'),
+            ("github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true", 'true', 'test_runtime_publication_is_owner_dispatched_for_one_exact_revision'),
+            ('          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]', '          true', 'test_runtime_publisher_checks_revision_before_build_and_limits_credentials'),
+            ('          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]', '          true', 'test_runtime_publisher_checks_revision_before_build_and_limits_credentials'),
+            ('    shell: bash', '    shell: sh', 'test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools'),
+            ('      options: --cpus 2 --memory 6g', '      options: --cpus 8 --memory 16g', 'test_mutation_jobs_use_the_committed_immutable_runtime'),
+            ('        password: ${{ github.token }}', '        password: unbound', 'test_mutation_jobs_use_the_committed_immutable_runtime'),
+            ('mutation_runtime.py verify --root .', 'mutation_runtime.py verify --root . && rustup update', 'test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools'),
+            ('  packages: read', '  packages: write', 'test_only_read_permissions_no_self_dispatch_no_worker_install'),
+            ('      options: --cpus 2 --memory 6g', '      options: --cpus 2 --memory 6g\n      volumes: [/opt/rust:/opt/rust]', 'test_mutation_consumers_verify_runtime_without_updating_or_mounting_tools'),
+            ("inputs.mutation_mode != 'plan' &&", 'true &&', 'test_plan_only_mode_cannot_release_native_work_or_workers'),
+            ("inputs.mutation_mode == 'production'", "inputs.mutation_mode != 'fixture'", 'test_plan_only_mode_cannot_release_native_work_or_workers'),
+            ('on:\n  workflow_dispatch:', 'on:\n  push:\n  workflow_dispatch:', 'test_only_explicit_owner_dispatch_can_start_the_workflow'),
+        ]
         for key in MUTATION_JOBS:
-            prefix = self.workflow.split(f"  {key}:\n", 1)[1].split("      image: *mutation-runtime-image", 1)[0]
-            old = f"  {key}:\n" + prefix + "      image: *mutation-runtime-image"
-            controls.append((old, old.replace("image: *mutation-runtime-image", "image: ubuntu:24.04"),
-                             "test_mutation_jobs_use_the_committed_immutable_runtime"))
+            prefix = self.workflow.split(f'  {key}:\n', 1)[1].split('      image: *mutation-runtime-image', 1)[0]
+            old = f'  {key}:\n' + prefix + '      image: *mutation-runtime-image'
+            controls.append((old, old.replace('image: *mutation-runtime-image', 'image: ubuntu:24.04'), 'test_mutation_jobs_use_the_committed_immutable_runtime'))
         pin = json.loads(PIN.read_text())
-        controls.append(("&mutation-runtime-image " + pin["image"], "&mutation-runtime-image " + pin["image"][:-1] + ("0" if pin["image"][-1] != "0" else "1"),
-                         "test_mutation_jobs_use_the_committed_immutable_runtime"))
-        controls.extend((command, "true", "test_art_retains_every_command_and_runs_alongside_native_and_web")
-                        for command in ART_COMMANDS)
-        controls.extend((f"  {key}:\n    needs: changes", f"  {key}:\n    needs: [changes, ci-guards]",
-                         "test_art_retains_every_command_and_runs_alongside_native_and_web")
-                        for key in ("rust", "web", "art"))
-        receipt_step = ('      - name: Record the tested WASM package\n'
-                        '        run: python3 -B .github/scripts/pages_artifact.py record --directory web/src/wasm '
-                        '--sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY" '
-                        '--run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"\n')
-        test_step = "      - name: Test\n        working-directory: web\n        run: npm test\n"
-        controls.append((test_step + receipt_step, receipt_step + test_step,
-                         "test_tested_package_receipt_and_upload_follow_successful_web_tests"))
+        controls.append(('&mutation-runtime-image ' + pin['image'], '&mutation-runtime-image ' + pin['image'][:-1] + ('0' if pin['image'][-1] != '0' else '1'), 'test_mutation_jobs_use_the_committed_immutable_runtime'))
         original = WORKFLOW.read_bytes()
         for old, new, test in controls:
             with self.subTest(test=test), tempfile.TemporaryDirectory() as temporary:
                 changed = self.workflow.replace(old, new)
-                self.assertTrue(changed != self.workflow, f"control did not change {old!r}")
-                destination = Path(temporary) / "ci.yml"
-                destination.write_text(changed, encoding="utf-8")
-                script = ("import sys,unittest,pathlib;sys.path.insert(0," + repr(str(Path(__file__).parent)) + ");"
-                    "import test_workflow_concurrency as t;t.WORKFLOW=pathlib.Path(" + repr(str(destination)) + ");"
-                    "r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName(" +
-                    repr("test_workflow_concurrency.MutationRunnerBudget." + test) + "));"
-                    "sys.exit(0 if len(r.failures)==1 and not r.errors else 1)")
-                result = subprocess.run([sys.executable, "-B", "-c", script], capture_output=True, text=True, timeout=30)
+                self.assertTrue(changed != self.workflow, f'control did not change {old!r}')
+                destination = Path(temporary) / 'ci.yml'
+                destination.write_text(changed, encoding='utf-8')
+                script = ('import sys,unittest,pathlib;sys.path.insert(0,' + repr(str(Path(__file__).parent)) + ');'
+                    'import test_workflow_concurrency as t;t.WORKFLOW=pathlib.Path(' + repr(str(destination)) + ');'
+                    'r=unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromName(' + repr('test_workflow_concurrency.MutationRunnerBudget.' + test) + '));'
+                    'sys.exit(0 if len(r.failures)==1 and not r.errors else 1)')
+                result = subprocess.run([sys.executable, '-B', '-c', script], capture_output=True, text=True, timeout=30)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(WORKFLOW.read_bytes(), original)
 

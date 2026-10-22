@@ -28,7 +28,7 @@ LOCK_SHA = "0d2699c31955d28f429731eda2972dc4faced07747320b074bc774c3334f75c0"
 TOOL_LIMIT = 256 * 1024 * 1024
 RECEIPT_LIMIT = 1024 * 1024
 WORKFLOW = ".github/workflows/ci.yml"
-CONTRACT_PATHS = (WORKFLOW, PATCH, "rust-toolchain.toml",
+CONTRACT_PATHS = (WORKFLOW, PATCH, "rust-toolchain.toml", "scripts/check-local-ci.py",
     ".github/scripts/mutation_tool.py", ".github/scripts/mutation_workflow.py",
     ".github/scripts/mutation_qualification.py", ".github/scripts/mutation_recovery.py", ".github/scripts/mutation_runner.py",
     ".github/scripts/mutation_native.py", ".github/scripts/mutation_runtime.py", runtime.PIN, *runtime.RECIPE_PATHS,

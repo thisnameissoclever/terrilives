@@ -599,7 +599,7 @@ class NativeSnapshotFixture(recovery_tests.SnapshotFixture):
 # These component bounds cover the measured shared/distinct-root fixtures below.
 # The additional runtime recipe subtree costs one request per independent API cache.
 # Broader valid histories remain subject to WorkflowAPI's unchanged capacity guard.
-REQUEST_COMPONENT_BOUNDS = {"worker": 21, "aggregate": 203, "measurement": 138}
+REQUEST_COMPONENT_BOUNDS = {"worker": 22, "aggregate": 204, "measurement": 141}
 
 
 def checked_request_components(test, consumers=None, measurement=None):
@@ -637,14 +637,14 @@ class NativeWrapperBudgetTests(unittest.TestCase):
         result = recovery_tests.FullWrapperBudgetTests.exercise(self, 6, 8, fixture=fixture,
             prior_history=6, gap=3, padded=True, extra_sources=1)
         checked_request_components(self, result)
-        self.assertEqual(result["workers"], [21] * 8)
+        self.assertEqual(result["workers"], [22] * 8)
         self.assertIn("repos/owner/repo/git/commits/" + "8" * 40, fixture.api.calls)
         tree_calls = [path for path in fixture.api.calls if "/git/trees/" in path]
         self.assertTrue(all("?" not in path for path in tree_calls))
         self.assertEqual({path.rsplit("/", 1)[-1] for path in tree_calls},
-            {character * 40 for character in "c123456789a"})
+            {character * 40 for character in "c123456789a"} | {tool_tests.AUTHORIZATION_TREE})
         result["distinct_recipe_root_count"] = 3
-        result["shared_subtree_count"] = 3
+        result["shared_subtree_count"] = 4
         result["admitted_total_history_attempts"] = fixture.data["native_admission"]["admitted_total_history_attempts"]
         if destination := os.environ.get("MUTATION_DISTINCT_ROOT_API_COST_REPORT"):
             Path(destination).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

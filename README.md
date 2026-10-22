@@ -52,6 +52,7 @@ Then, by what you want:
 | Which UI strings are functional and which await the owner's voice pass | [docs/player-visible-strings.md](docs/player-visible-strings.md) |
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
+| How to run checks locally and retain their results | [docs/local-checks.md](docs/local-checks.md) |
 
 ### The bracketed tags in code comments and docs
 

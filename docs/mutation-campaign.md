@@ -8,6 +8,21 @@ it supplies no production mutation coverage.
 
 ## Preparation and execution
 
+Run substantive test and tooling checks locally. Record the checked revision,
+commands, results and platform limitations, and obtain independent review before
+delivery. See [local checks](local-checks.md). Hosted mutation jobs are optional
+and require explicit approval of their verification gap and expected compute
+before each dispatch or rerun. They do not run automatically on pushes or pull
+requests. Fixture recovery qualification applies to the hosted campaign; local
+test results do not require GitHub qualification.
+
+An approved manual dispatch supplies the exact locally checked revision as
+`validated_sha` and its evidence reference as `local_verification_ref`. The
+workflow checks the owner and exact revision without rerunning the local suite.
+Use `mutation_mode=plan` when approval covers production planning alone. That
+mode cannot start native measurement or the production workers. Full production
+execution retains its separate measurement and spending-admission boundary.
+
 When production planning reports missing fixture qualification, complete the
 fixture setup and same-run recovery below. The workflow creates the proof from
 authenticated results; an operator never creates or substitutes it manually.
@@ -27,8 +42,9 @@ hosted image rollout does not select a stable multi-day computation environment.
 To replace the runtime, review `.github/runtime/` and its source checksums.
 Dispatch `ci.yml` on that exact reviewed revision with `runtime_publish=true`
 and `runtime_build_sha` equal to the complete source SHA. Only the repository
-owner can publish. The publisher uses global slot zero, runs complete script
-guards, builds with bounded resources, and requires inventory, compilation,
+owner can publish. Supply the approved exact `validated_sha` and local report
+reference with the dispatch. The publisher uses global slot zero, validates that
+authorization, builds with bounded resources, and requires inventory, compilation,
 isolation, shutdown and tampering checks before registry publication. Its write
 permission is limited to packages in that publication job. Ordinary test and
 campaign jobs do not run during this explicit image operation.
@@ -61,7 +77,7 @@ before accepting production planning with the replacement runtime.
    execute pending identities, and upload immutable deltas. Exact fixture
    completion with authenticated interruption and same-run recovery produces
    `mutation-fixture-qualification-run-RUN-attempt-ATTEMPT`.
-4. A production PR or manual production dispatch selects a qualification by
+4. An approved manual production or plan-only dispatch selects a qualification by
    bounded read-only discovery, or by the optional `qualification_run_id`.
    Discovery examines at most 30 manual runs and three 100-artifact pages per
    candidate. A convincing name alone is insufficient. The resolver validates

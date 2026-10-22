@@ -1,17 +1,16 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  # Manual dispatch exists because pull_request event delivery has
-  # failed before: PR #13 was opened, closed, reopened and synchronized
-  # without one run appearing, while Copilot's internally-dispatched
-  # review ran fine - an upstream delivery fault nothing in this file
-  # can prevent. This is the lever that makes such an outage cost a
-  # command instead of an evening.
   workflow_dispatch:
     inputs:
+      validated_sha:
+        description: Exact owner-reviewed revision
+        required: true
+        type: string
+      local_verification_ref:
+        description: SHA-256 reference of the owner-reviewed local report
+        required: true
+        type: string
       runtime_publish:
         description: Publish the mutation runtime image only
         type: boolean
@@ -20,10 +19,10 @@ on:
         description: Exact source revision to publish
         type: string
       mutation_mode:
-        description: Production campaign or interrupted/resumed orchestration fixture
+        description: Production planning, complete campaign or interruption/recovery fixture
         type: choice
-        options: [production, fixture]
-        default: production
+        options: [plan, production, fixture]
+        default: plan
       qualification_run_id:
         description: Optional explicit qualified fixture run; otherwise bounded discovery
         type: string
@@ -52,90 +51,46 @@ defaults:
   run:
     shell: bash
 
-# A new push to a pull request cancels that pull request's older runs. Without
-# this, every push left its eight-shard mutation sweep running beside the new
-# one, and on PR 95 three heads' sweeps queued for the same runners, so the
-# head that could merge waited behind two that never could. An active main
-# run is not cancelled, but a newer pending main run can replace an older one.
-# Separate events so a manual mutation sweep on main cannot hold up push CI.
+# Explicit manual runs keep their existing event/ref isolation and shared mutation slots.
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Whether this change can affect the game. A change to documentation only
-  # (Markdown outside the agent skill folders, which a web test reads) skips
-  # the Rust, web and mutation jobs, which cost up to two hours of runners,
-  # and runs the `docs` job instead. The rules and their tests are in
-  # .github/scripts/changes.py; anything they are unsure of runs everything.
-  # Skipped jobs report as skipped, not failed, and main has no required
-  # checks, so a skipped pull request can merge.
-  #
-  # A push to main is compared with the newest push to main whose `web` job
-  # passed, not with the previous push: the previous push may have had its
-  # run cancelled in the queue or failed, and comparing with it would let a
-  # documentation push skip code that nothing tested. The Pages deployment
-  # record will not do either, because a deploy run that skips a stale
-  # revision still records a successful deployment of main's tip.
+  # Keep this completed predecessor for the real job-token transport probe.
   changes:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
     outputs:
-      code: ${{ steps.classify.outputs.code }}
-      site: ${{ steps.classify.outputs.site }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Test the change classifier
-        working-directory: .github/scripts
-        run: python3 -B -m unittest test_changes.py
-      - name: Find the newest tested game and site revisions
-        id: tested
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -u
-          sha=""
-          site_sha=""
-          runs=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=30" \
-            --jq '.workflow_runs[] | "\(.id) \(.head_sha)"' || true)
-          while read -r id head; do
-            [ -n "$id" ] || continue
-            jobs=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" \
-              --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | select(.conclusion == "success") | .name] | join(" ")' || true)
-            if [ -z "$site_sha" ] && [ -n "$jobs" ]; then
-              site_sha=$head
-            fi
-            if [ -z "$sha" ] && [[ " $jobs " == *" web "* ]]; then
-              sha=$head
-            fi
-            [ -z "$sha" ] || [ -z "$site_sha" ] || break
-          done <<< "$runs"
-          echo "Newest tested revision: ${sha:-none found}"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "Newest tested site revision: ${site_sha:-none found}"
-          echo "site_sha=$site_sha" >> "$GITHUB_OUTPUT"
-      - name: Decide whether anything but documentation changed
-        id: classify
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          SITE_BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.site_sha }}
-        run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD" "$SITE_BASE"
-
-  # Full script verification runs independently, including documentation changes.
-  ci-guards:
+      code: ${{ steps.authorize.outputs.code }}
+      validated_sha: ${{ steps.authorize.outputs.validated_sha }}
+      local_verification_ref: ${{ steps.authorize.outputs.local_verification_ref }}
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
+      inputs.validated_sha == github.sha
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test CI scripts and workflow guards
-        working-directory: .github/scripts
-        run: python3 -B -m unittest discover -p 'test_*.py'
+      - name: Validate owner-reviewed local evidence
+        id: authorize
+        env:
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          LOCAL_VERIFICATION_REF: ${{ inputs.local_verification_ref }}
+        run: python3 -B scripts/check-local-ci.py authorize --sha "$VALIDATED_SHA" --head "$GITHUB_SHA" --actor "$GITHUB_ACTOR" --owner "$GITHUB_REPOSITORY_OWNER" --reference "$LOCAL_VERIFICATION_REF"
+
+  ci-guards:
+    name: Owner local-verification authorization
+    needs: changes
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
+      inputs.validated_sha == github.sha
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate owner-reviewed local evidence
+        id: authorize
+        env:
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          LOCAL_VERIFICATION_REF: ${{ inputs.local_verification_ref }}
+        run: python3 -B scripts/check-local-ci.py authorize --sha "$VALIDATED_SHA" --head "$GITHUB_SHA" --actor "$GITHUB_ACTOR" --owner "$GITHUB_REPOSITORY_OWNER" --reference "$LOCAL_VERIFICATION_REF"
 
   runtime-publish:
     needs: [changes, ci-guards]
@@ -169,177 +124,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 -B .github/scripts/mutation_runtime_image.py publish --tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" --output "$RUNNER_TEMP/mutation-runtime-build"
 
-  # Check the ids a documentation change adds or moves.
-  docs:
-    needs: changes
-    if: inputs.runtime_publish != true && needs.changes.outputs.code != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Documentation ids are unique
-        run: python3 check-doc-ids.py
-
-  # Public notes are served content. Check them even when Markdown-only edits
-  # correctly skip the Rust, web and mutation jobs.
-  changelog:
-    needs: changes
-    if: inputs.runtime_publish != true && needs.changes.outputs.site == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Test changelog generation
-        run: node --test scripts/build-changelog.test.mjs scripts/build-player-guide.test.mjs scripts/player-activity-filters.test.mjs scripts/player-coverage.test.mjs scripts/check-player-reference.test.mjs scripts/branding.test.mjs
-      - name: Validate player reference review
-        run: node scripts/check-player-reference.mjs --check
-      - name: Build the published notes
-        run: |
-          node scripts/build-changelog.mjs
-          node scripts/build-player-guide.mjs
-
-  art:
-    needs: changes
-    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # The atlas used to be a committed blob nobody could verify:
-      # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
-      # it, so a hand-edited atlas.png or a manifest that had drifted from
-      # the art would have gone unnoticed. The generator that replaced it
-      # is Python, so this regenerates all four outputs and fails if any
-      # differs from what is committed. See [ML-ci].
-      - name: Sprite atlas is reproducible
-        run: |
-          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy
-          python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
-          # The action folders are not packages, so the parent discovery
-          # above never reaches them; run their contract suites directly.
-          python3 -B -m unittest discover -s assets/models/kitchen/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/outdoor -p 'test_*.py'
-          python3 assets/sprites/gen/build.py --check
-
-  rust:
-    needs: changes
-    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # rust-toolchain.toml is the single source for the channel,
-      # components and targets, and rustup installs from it on first
-      # use. Naming any of them here too would create a second copy that
-      # nothing keeps in sync.
-      - name: Install the pinned toolchain
-        run: rustup show
-      - name: Format check
-        run: cargo fmt --all -- --check
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-      - name: Test
-        run: cargo test --workspace
-      # The docs' own ids. Both accreting files used to number entries
-      # from a shared counter, which every parallel branch reads the
-      # same way - it collided four times, most recently three PRs in
-      # one afternoon. New ids are slugs; this fails the build if
-      # somebody reaches for the counter again, or if two branches pick
-      # the same slug (which `merge=union` would otherwise keep both
-      # of, silently). See docs/testing-protocol.md rule 10.
-      - name: Documentation ids
-        run: python3 check-doc-ids.py
-      # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
-      # never depend on a web crate. terri-data is in the list from the
-      # commit that created it, because a purity rule that a crate has to
-      # be remembered into is one nobody remembers.
-      # Explicit targets are load-bearing, not tidiness.
-      # Cargo.lock records unactivated optional dependencies, and under
-      # --target all there is a real-looking but inert path:
-      #   terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive
-      #     -> uuid -> js-sys -> wasm-bindgen
-      # bevy_reflect_derive is a proc-macro, so it always builds for the
-      # host, where uuid's cfg(target_arch = "wasm32") block is inactive.
-      # Nothing links into terri-core on any real target. Checking the two
-      # targets that actually get built is both correct and meaningful; a
-      # check that fails spuriously trains everyone to ignore it. See
-      # lessons-learned [L4].
-      #
-      # The tree is captured before it is grepped, on purpose. A pipeline
-      # used directly as an `if` condition is exempt from errexit, and
-      # `pipefail` does not help because grep's no-match exit 1 is the
-      # rightmost status anyway - so `if cargo tree | grep` reports "no
-      # web crates found" when cargo itself fails. A renamed crate, a
-      # crate moved out of the workspace, a bad target triple, or a
-      # registry hiccup would all make this check vacuously green.
-      # Assigning to a variable puts the failure back under errexit.
-      - name: Verify sim core has no web dependencies
-        run: |
-          set -eu
-          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
-            for crate in terri-core terri-data terri-sim; do
-              tree=$(cargo tree -p "$crate" --target "$target")
-              if printf '%s\n' "$tree" | grep -E 'wasm-bindgen|web-sys|js-sys'; then
-                echo "FAIL: $crate depends on a web crate for $target"
-                exit 1
-              fi
-            done
-          done
-
-  # Mutation testing. A surviving mutant is behaviour nothing constrains.
-  # Five separate tests in this project were permanently green while
-  # protecting nothing, and prose rules failed to prevent the recurrence
-  # three times, because the family does not look like itself. This is the
-  # mechanical backstop. See docs/testing-protocol.md.
-  #
-  # The gate is "no NEW survivors", not "zero survivors". It runs a full
-  # sweep and compares the survivor list against a committed baseline,
-  # rather than using --in-diff to restrict mutants to changed lines.
-  #
-  # --in-diff was tried first and is the wrong tool here. It implements
-  # "no new survivors" only by proxy, and that proxy breaks on the one PR
-  # that introduces the whole codebase: the diff is everything, so the run
-  # degenerates into a full sweep and fails on accepted debt. Diffing
-  # against a checked-in baseline needs no special case, and it turns the
-  # known survivors into reviewable data instead of a number in a doc that
-  # nothing enforces.
-  #
-  # --test-workspace true is load-bearing, not tidiness. By default each
-  # mutant is tested only against its own package's suite, so a mutation in
-  # terri-core is judged by terri-core's tests alone. Most of terri-core's
-  # behaviour is exercised through terri-sim, so the default produced 11
-  # false survivors on the first run, including Path::next_step -> None,
-  # which the real suite catches instantly.
-  #
-  # terri-wasm is swept too, and is the package where a survivor costs the
-  # most. Its exports are the untrusted-input boundary, so behaviour that
-  # nothing constrains there is behaviour JavaScript is the first to find.
-  # Its tests run on the host like any other, so this needs no wasm target.
-  # It was omitted until #4, which left `SimHandle::tick` free to be a
-  # no-op behind a green suite.
-  # SHARDED, and the sharding is survival rather than speed. The M2b house
-  # grew the sweep from ~250 mutants to ~650, the single job's wall time
-  # grew past an hour, and GitHub's hosted runners killed it three times in
-  # a row mid-sweep with "The runner has received a shutdown signal" - at
-  # 35, 36 and 72 minutes, so it is capacity reclaim rather than a limit a
-  # timeout setting could dodge.
-  #
-  # EIGHT shards, not the four this started with, and the count is a
-  # measurement rather than a preference. At four, shards 0, 1 and 3 ran
-  # 6 to 9 minutes while shard 2 ran 24 and then 64 minutes and was
-  # reclaimed both times: a shard's COST is lumpy even when its COUNT is
-  # even, because a mutant in a widely-depended-on file forces a large
-  # incremental rebuild while a mutant in a leaf test file costs a second,
-  # and the deterministic hash happened to pile the expensive cluster into
-  # one shard. Eight ways splits that cluster and keeps every shard inside
-  # Preparation and workers share the original eight global slots.
-  # Each prerequisite releases slot zero before its dependants can acquire it.
   mutation-tool:
     name: mutation-fixture-tool
     needs: [changes, ci-guards]
@@ -392,7 +176,7 @@ jobs:
       always() && !cancelled() && needs.changes.result == 'success' &&
       needs.ci-guards.result == 'success' &&
       needs.changes.outputs.code == 'true' &&
-      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
+      github.event_name == 'workflow_dispatch' &&
       (inputs.mutation_mode != 'fixture' || needs.mutation-tool.result == 'success')
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -443,7 +227,7 @@ jobs:
   mutation-native-pilot:
     name: mutation-native-pilot
     needs: mutation-plan
-    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     container:
@@ -488,7 +272,7 @@ jobs:
   mutation-native-pilot-report:
     name: mutation-native-pilot-report
     needs: [mutation-plan, mutation-native-pilot]
-    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     container:
@@ -530,7 +314,7 @@ jobs:
   mutation-admission:
     name: mutation-admission
     needs: [mutation-plan, mutation-native-pilot-report]
-    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode != 'fixture' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     container:
@@ -573,7 +357,7 @@ jobs:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-prepare' || 'mutation-prepare' }}
     needs: [mutation-plan, mutation-admission]
     if: >-
-      inputs.runtime_publish != true &&
+      inputs.runtime_publish != true && inputs.mutation_mode != 'plan' &&
       always() && !cancelled() && needs.mutation-plan.result == 'success' &&
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
@@ -620,7 +404,7 @@ jobs:
   mutants:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-slot-' || 'mutation-slot-' }}${{ matrix.shard }}
     needs: mutation-prepare
-    if: ${{ inputs.runtime_publish != true && !cancelled() && needs.mutation-prepare.result == 'success' }}
+    if: ${{ inputs.runtime_publish != true && inputs.mutation_mode != 'plan' && !cancelled() && needs.mutation-prepare.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     container:
@@ -669,7 +453,7 @@ jobs:
     name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-aggregate' || 'mutation-production-aggregate' }}
     needs: [mutation-plan, mutation-admission, mutation-prepare, mutants]
     if: >-
-      inputs.runtime_publish != true &&
+      inputs.runtime_publish != true && inputs.mutation_mode != 'plan' &&
       always() && !cancelled() && needs.mutation-plan.result == 'success' &&
       (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
     runs-on: ubuntu-24.04
@@ -732,53 +516,3 @@ jobs:
         env:
           ARTIFACT_ID: ${{ steps.qualification.outputs.artifact-id }}
         run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
-
-  web:
-    needs: changes
-    if: inputs.runtime_publish != true && needs.changes.outputs.code == 'true' && inputs.mutation_mode != 'fixture'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
-      # Pinned. Unpinned, this action installs whatever wasm-pack is
-      # latest, and its bundled wasm-opt then has to parse whatever the
-      # current rustc emits. That skew broke the build once already:
-      # "Fatal: error in parsing input" from wasm-opt, on a commit whose
-      # Rust changes were a dead-code deletion. 0.15.0 is the version
-      # verified working against rustc 1.94.1.
-      #
-      # Reproducibility is load-bearing in this repo rather than merely
-      # tidy: the golden world-hash vectors assert that native and wasm32
-      # agree bit for bit, and a floating toolchain would turn a genuine
-      # determinism regression and a toolchain bump into the same red.
-      - uses: jetli/wasm-pack-action@v0.4.0
-        with:
-          version: 'v0.15.0'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      # web/src/wasm/ is gitignored build output, so a fresh clone has no
-      # WASM package. It must be built before the web tests can import it.
-      - name: Build WASM package
-        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
-      - name: Install web dependencies
-        working-directory: web
-        run: npm ci
-      - name: Verify player values against compiled gameplay
-        run: node scripts/check-player-reference.mjs --verify-export
-      - name: Type check
-        working-directory: web
-        run: npm run typecheck
-      - name: Test
-        working-directory: web
-        run: npm test
-      - name: Record the tested WASM package
-        run: python3 -B .github/scripts/pages_artifact.py record --directory web/src/wasm --sha "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
-      - name: Upload the tested WASM package
-        uses: actions/upload-artifact@v4
-        with:
-          name: tested-wasm-${{ github.sha }}-attempt-${{ github.run_attempt }}
-          path: web/src/wasm
-          if-no-files-found: error
-          retention-days: 7

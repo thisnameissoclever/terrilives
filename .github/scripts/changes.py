@@ -1,41 +1,88 @@
-"""Decide whether a change can affect the game, or is documentation only.
+"""Classify local validation scope and actual Pages publication inputs.
 
-CI runs the Rust, web and mutation jobs only when this says the game could
-be affected. Published guide articles, metadata and images in docs/player
-also affect the site. CI checks them and Pages redeploys them without game
-checks. Short Help and gameplay reference inputs still require game checks.
-Other documentation runs the documentation id check.
+Local game checks deliberately treat unknown non-Markdown paths conservatively.
+Pages uses only PAGES_PATHS, whose ordered patterns must equal the workflow's
+push filter. Unknown history and failed or empty diffs require publication.
 
-A path is documentation when it is a Markdown file outside the agent skill
-folders. Those skill files are read by `web/tests/agent-skill-mirrors.test.ts`,
-so a change to one is a change the web tests must see. Every other path,
-including `docs/mutants-baseline.txt`, which the mutation gate reads, counts
-as able to affect the game.
-
-When in doubt this answers "the game could be affected": a manual run, a
-push with no previous commit to compare against, an empty or failed diff.
-Skipping checks wrongly costs a broken main; running them needlessly only
-costs time.
-
-Usage in a workflow step:
-
-    python3 .github/scripts/changes.py <event> <base> <head> [site_base]
-
-writes `code` and `site` booleans to $GITHUB_OUTPUT and stdout.
-`<event>` is `pull_request`, `push` or `compare`. A pull request is
-compared from where it branched; `push` and `compare` compare two commits
-directly. For a push to main the workflow passes the newest main revision
-whose game CI passed as the base, so everything since the last tested game
-counts. `site_base` is the newest successful main push whose changelog or game
-was checked, so unrelated documentation after a notes edit can still skip
-publication. Without a separate site base, comparisons use the game base.
+`changes.py <event> <base> <head> [site_base]` writes independent `code` and
+`site` booleans. Pull requests compare from the merge base. Push and compare
+events compare the two exact commits. An optional site base changes only the
+publication comparison.
 """
 
 import os
+import re
 import subprocess
 import sys
 
 SKILL_FOLDERS = (".agents/", ".claude/")
+
+# GitHub's ordered path-filter subset: *, **, **/ and leading ! exclusions.
+# Keep this identical to pages.yml. Tests verify equality and actual build inputs.
+PAGES_PATHS = (
+    ".github/workflows/pages.yml", ".github/scripts/changes.py",
+    "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**",
+    "crates/*/Cargo.toml", "crates/*/build.rs", "crates/*/src/**",
+    "!crates/*/src/**/tests/**", "!crates/*/src/**/tests.rs",
+    "!crates/*/src/**/*_tests.rs", "!crates/*/src/test_content.rs",
+    "crates/terri-data/build_pre_books.rs",
+    "crates/terri-data/tests/fixtures/pre-books/*.toml",
+    "crates/terri-data/tests/fixtures/pre-books/source-revision.txt",
+    "crates/terri-data/tests/fixtures/pre-books-920abaf/*.toml",
+    "crates/terri-data/tests/fixtures/pre-books-920abaf/source-revision.txt",
+    "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/*.toml",
+    "crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/source-revision.txt",
+    "crates/terri-data/tests/fixtures/pre-books-89040f82/*.toml",
+    "crates/terri-data/tests/fixtures/pre-books-89040f82/source-revision.txt",
+    "crates/terri-data/tests/fixtures/pre-books-2f319c3b/*.toml",
+    "crates/terri-data/tests/fixtures/pre-books-2f319c3b/source-revision.txt",
+    "content/*.toml", "assets/sprites/atlas.toml",
+    "assets/models/kitchen/wall-registration.json", "assets/models/architecture-depth.json",
+    "assets/models/sims/character-creator/surface-policy.json",
+    "assets/models/sims/character-creator/export/manifest.json",
+    "assets/models/sims/character-creator/export/runtime*.bin",
+    "assets/models/sims/character-creator/clips/clips.json",
+    "assets/models/sims/character-creator/clips/**/runtime*.bin",
+    "assets/models/sims/character-creator/clips/*/parts.json",
+    "assets/models/sims/character-repair/fixture-depth/manifest.json",
+    "assets/models/sims/character-repair/fixture-depth/*.rgba",
+    "assets/models/sims/character-repair/aquarium-depth/manifest.json",
+    "assets/models/sims/character-repair/aquarium-depth/*.rgba",
+    "assets/models/sims/character-repair/outdoor-depth/manifest.json",
+    "assets/models/sims/character-repair/outdoor-depth/*.rgba",
+    "assets/models/sims/character-repair/shelf-depth/manifest.json",
+    "assets/models/sims/character-repair/shelf-depth/*.rgba",
+    "assets/models/sims/character-repair/components/manifest.json",
+    "assets/models/sims/character-repair/components/*.rgba",
+    "assets/models/sims/character-repair/dropped-book/manifest.json",
+    "assets/models/sims/character-repair/dropped-book/*.rgba",
+    "web/src/**", "!web/src/**/*.test.*", "!web/src/**/*.spec.*",
+    "!web/src/**/__tests__/**", "web/public/**", "web/index.html",
+    "web/package.json", "web/package-lock.json", "web/vite.config.ts",
+    "web/tsconfig.json", "web/changelog/**", "web/guide/**",
+    "docs/player/**", "scripts/build-changelog.mjs",
+    "scripts/build-player-guide.mjs", "scripts/player-markdown.mjs",
+    "scripts/player-coverage.mjs", "scripts/player-illustrations.mjs",
+    "scripts/player-activity-filters.mjs",
+)
+
+
+def publication_pattern_matches(pattern: str, path: str) -> bool:
+    """Match the workflow's restricted path-glob syntax without shell expansion."""
+    tokens = re.split(r"(\*\*/|\*\*|\*)", pattern)
+    expression = "".join({"**/": "(?:.*/)?", "**": ".*", "*": "[^/]*"}.get(token, re.escape(token))
+                         for token in tokens)
+    return re.fullmatch(expression, path) is not None
+
+
+def is_publication_input(path: str) -> bool:
+    """Apply ordered inclusion and exclusion rules used by the Pages trigger."""
+    included = False
+    for pattern in PAGES_PATHS:
+        exclude = pattern.startswith("!")
+        if publication_pattern_matches(pattern.removeprefix("!"), path):
+            included = not exclude
+    return included
 
 
 def is_documentation(path: str) -> bool:
@@ -55,8 +102,8 @@ def affects_game(paths: list[str]) -> bool:
 
 
 def affects_site(paths: list[str]) -> bool:
-    """Published notes are site content even when the game is unchanged."""
-    return affects_game(paths) or any(path.startswith(("docs/player/", "docs/changelog/")) for path in paths)
+    """Whether changed production inputs require a new public build."""
+    return not paths or any(is_publication_input(path) for path in paths)
 
 
 def changed_paths(base: str, head: str, merge_base: bool) -> list[str]:
@@ -98,7 +145,7 @@ def main(argv: list[str]) -> int:
     event, base, head = (argv + ["", "", ""])[:3]
     site_base = argv[3] if len(argv) > 3 else base
     code = decide(event, base, head)
-    site = code or decide_site(event, site_base, head)
+    site = decide_site(event, site_base, head)
     lines = f"code={'true' if code else 'false'}\nsite={'true' if site else 'false'}"
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
