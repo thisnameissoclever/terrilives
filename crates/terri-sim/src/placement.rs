@@ -98,9 +98,11 @@ pub fn object_definition(
 ) -> Option<(Entity, &'static terri_data::CompiledObject, Facing)> {
     let content = world.get_resource::<Content>()?.0;
     let mut query = world.try_query::<EntityRef>()?;
-    let entity = query
-        .iter(world)
-        .find(|e| e.id().index_u32() == object && e.contains::<SmartObject>())?;
+    let entity = query.iter(world).find(|e| {
+        #[cfg(test)]
+        OBJECT_LOOKUP_VISITS.with(|count| count.set(count.get() + 1));
+        e.id().index_u32() == object && e.contains::<SmartObject>()
+    })?;
     let definition = content
         .objects
         .get(entity.get::<SmartObject>()?.0 .0 as usize)?;
@@ -357,7 +359,10 @@ fn prove_lot_usable(
     use PlacementRefusal::*;
     if crate::world_geometry::current(world) {
         let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
-        for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
+        for row in entities
+            .iter(world)
+            .filter(|e| e.contains::<Agent>() && !crate::world_geometry::hidden_away(world, e.id()))
+        {
             let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
             for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
                 for y in [pos.y.floor() as i32, pos.y.ceil() as i32] {
@@ -616,3 +621,8 @@ pub mod windows;
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+thread_local! { pub(crate) static OBJECT_LOOKUP_VISITS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) }; }
+#[cfg(test)]
+mod away_tests;

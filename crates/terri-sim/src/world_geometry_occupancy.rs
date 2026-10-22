@@ -16,14 +16,30 @@ impl Claim {
         })
     }
 }
+fn definition(
+    world: &World,
+    entity: Entity,
+) -> Option<(&'static terri_data::CompiledObject, Facing)> {
+    #[cfg(test)]
+    crate::placement::OBJECT_LOOKUP_VISITS.with(|count| count.set(count.get() + 1));
+    let model = world.get::<SmartObject>(entity)?.0;
+    let definition = world
+        .get_resource::<crate::Content>()?
+        .0
+        .objects
+        .get(model.0 as usize)?;
+    let facing = world
+        .get::<terri_core::ObjectFacing>(entity)
+        .map_or(definition.base_facing, |f| f.0);
+    Some((definition, facing))
+}
+
 fn rectangles(world: &World) -> Vec<Claim> {
     let grid = world.resource::<TileGrid>();
     let mut result = Vec::new();
     if let Some(mut query) = world.try_query_filtered::<(Entity, &Position), With<SmartObject>>() {
         for (entity, position) in query.iter(world) {
-            let Some((_, definition, facing)) =
-                crate::placement::object_definition(world, entity.index_u32())
-            else {
+            let Some((definition, facing)) = definition(world, entity) else {
                 continue;
             };
             if !position.x.is_finite()
@@ -173,9 +189,8 @@ pub(super) fn normalize(world: &mut World) -> Result<(), crate::SaveError> {
     world.insert_resource(next);
     let mut affected = BTreeSet::new();
     for claim in moved {
-        let (_, definition, _) =
-            crate::placement::object_definition(world, claim.entity.index_u32())
-                .ok_or(crate::SaveError::InvalidContentReference)?;
+        let (definition, _) =
+            definition(world, claim.entity).ok_or(crate::SaveError::InvalidContentReference)?;
         crate::apply_object_placement(
             world,
             claim.entity,
@@ -211,6 +226,42 @@ pub(super) fn normalize(world: &mut World) -> Result<(), crate::SaveError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn lookup_budget(occupied: bool) {
+        for count in [16, 128, 512] {
+            let mut sim = crate::Sim::new_with_lot(count + 2, 4);
+            let pack = sim.world().resource::<crate::Content>().0;
+            let model = pack.find("radio").unwrap();
+            assert_eq!(
+                pack.object(model)
+                    .footprint_at(pack.object(model).base_facing),
+                Footprint::SINGLE
+            );
+            for x in 1..=count {
+                sim.world_mut()
+                    .spawn((SmartObject(model), Position { x: x as f32, y: 1. }));
+                if occupied {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x as usize, 1, true);
+                }
+            }
+            crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.set(0));
+            validate(sim.world()).unwrap();
+            let visits = crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.get());
+            assert!(
+                visits <= count as usize * 2,
+                "{count} objects, occupied={occupied}: {visits} entity/model lookup visits"
+            );
+        }
+    }
+    #[test]
+    fn occupied_object_lookup_work_is_bounded() {
+        lookup_budget(true);
+    }
+    #[test]
+    fn unoccupied_object_lookup_work_is_bounded() {
+        lookup_budget(false);
+    }
     #[test]
     fn relocation_keeps_later_valid_objects_and_away_positions() {
         let mut sim = crate::Sim::new_with_lot(12, 12);
@@ -234,7 +285,13 @@ mod tests {
         sim.world_mut().entity_mut(away).insert(terri_core::AtWork {
             remaining_ticks: 10,
         });
+        crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.set(0));
         normalize(sim.world_mut()).unwrap();
+        let visits = crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.get());
+        assert!(
+            visits <= 9,
+            "three objects and one relocation: {visits} lookup visits"
+        );
         assert_eq!(
             sim.world().get::<Position>(first),
             Some(&Position { x: 5., y: 5. })

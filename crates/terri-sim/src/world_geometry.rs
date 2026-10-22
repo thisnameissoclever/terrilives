@@ -23,6 +23,14 @@ pub fn current(world: &World) -> bool {
     world.contains_resource::<WorldSurfaces>()
 }
 
+/// A current worker or waiting return has no physical body at its retained
+/// coordinate. A live path remains subject to physical validation.
+pub(crate) fn hidden_away(world: &World, actor: Entity) -> bool {
+    current(world)
+        && world.get::<terri_core::AtWork>(actor).is_some()
+        && world.get::<terri_core::Path>(actor).is_none()
+}
+
 pub(crate) fn admit_legacy_people(world: &mut World) -> Result<(), crate::SaveError> {
     migration::admit_people(world)
 }

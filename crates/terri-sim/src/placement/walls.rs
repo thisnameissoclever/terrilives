@@ -133,6 +133,7 @@ fn check_barriers(
         .map(|mut agents| {
             agents
                 .iter(world)
+                .filter(|(entity, _)| !crate::world_geometry::hidden_away(world, *entity))
                 .map(|(entity, position)| Standing {
                     tiles: tiles_under(position),
                     target: world.get::<Target>(entity).map(|t| t.object),
@@ -171,9 +172,10 @@ fn check_barriers(
                         .iter()
                         .any(|rect| rect.entity == Some(target) && rectangle_holds(rect, theirs))
                 } else {
-                    world
-                        .get::<Position>(target)
-                        .is_some_and(|p| tiles_under(p).contains(&theirs))
+                    !crate::world_geometry::hidden_away(world, target)
+                        && world
+                            .get::<Position>(target)
+                            .is_some_and(|p| tiles_under(p).contains(&theirs))
                 }
         };
         if walls.iter().any(|&[a, b]| across(a, b) || across(b, a)) {
