@@ -499,7 +499,108 @@ fn all_historical_loaders_migrate_one_place_without_restarting_the_walk() {
             before_reload,
             "V{version} modern re-save preserves the old-side route"
         );
+        let current = live.save_snapshot_v21();
+        live.load_snapshot_v21(current.clone()).unwrap();
+        assert_eq!(
+            live.save_snapshot_v21(),
+            current,
+            "V{version} current roundtrip"
+        );
     }
+}
+
+#[test]
+fn unrelated_build_preserves_an_admitted_old_side_sleep_walk_and_later_order() {
+    use terri_core::layout::{EdgeAxis, WallState};
+    use terri_core::{Path, TileGrid};
+    let (mut source, bed, [first, second, third]) = fixture();
+    source.world_mut().despawn(second);
+    source.world_mut().despawn(third);
+    source
+        .world_mut()
+        .entity_mut(first)
+        .insert(IntentQueue::from_intents(vec![
+            Intent {
+                cleanup: None,
+                chore: None,
+                object: bed,
+                interaction: 0,
+            },
+            Intent {
+                cleanup: None,
+                chore: None,
+                object: bed,
+                interaction: 1,
+            },
+        ]));
+    source.tick();
+    let position = *source.world().get::<Position>(first).unwrap();
+    let grid = source.world().resource::<TileGrid>();
+    let steps = grid
+        .find_path(
+            (position.x.round() as i32, position.y.round() as i32),
+            (7, 8),
+        )
+        .unwrap();
+    let mut steps = grid.anchor_path((position.x, position.y), steps).unwrap();
+    // Keep a consumed prefix so preserving the route also preserves its cursor.
+    steps.insert(0, (2, 2));
+    source
+        .world_mut()
+        .entity_mut(first)
+        .insert(Path { steps, cursor: 1 });
+    let mut historical = source.save_snapshot_v5();
+    historical.sleeping_places = None;
+    let mut live = test_content::sim_with(12, 12, source.world().resource::<crate::Content>().0);
+    live.load_snapshot_v5(historical).unwrap();
+    let current = live.save_snapshot_v21();
+    live.load_snapshot_v21(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v21(), current);
+    let path = live.world().get::<Path>(first).unwrap().clone();
+    assert_eq!(path.cursor, 1);
+    assert_eq!(path.steps.last(), Some(&(7, 8)));
+    let target = *live.world().get::<Target>(first).unwrap();
+    let queue = live.world().get::<IntentQueue>(first).unwrap().clone();
+    assert_eq!(queue.len(), 2);
+    let before = live.save_snapshot_v5();
+    live.begin_build().unwrap();
+    live.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetWallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 10,
+            y: 10,
+            state: WallState::Wall,
+        });
+    live.flush_commands();
+    assert_eq!(
+        live.world()
+            .resource::<crate::placement::LotEditState>()
+            .last_wall_result
+            .unwrap()
+            .reason,
+        None
+    );
+    let review = live
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .unwrap();
+    live.commit_build_with_access_ack(review.token).unwrap();
+    live.end_build().unwrap();
+    let after_path = live.world().get::<Path>(first).unwrap();
+    assert_eq!(after_path.steps, path.steps);
+    assert_eq!(after_path.cursor, path.cursor);
+    assert_eq!(live.world().get::<Position>(first), Some(&position));
+    assert_eq!(live.world().get::<Target>(first), Some(&target));
+    assert_eq!(live.world().get::<IntentQueue>(first), Some(&queue));
+    assert_eq!(live.world().get::<SleepPlace>(first), Some(&SleepPlace(0)));
+    assert!(live.world().get::<Reserved>(bed).is_some());
+    assert_eq!(
+        live.save_snapshot_v5().world.entities,
+        before.world.entities
+    );
+    let current = live.save_snapshot_v21();
+    live.load_snapshot_v21(current.clone()).unwrap();
+    assert_eq!(live.save_snapshot_v21(), current);
 }
 
 #[test]

@@ -254,7 +254,19 @@ pub(super) fn endpoint_valid(world: &World, actor: Entity, end: Tile) -> bool {
         return true;
     };
     if let Some(place) = world.get::<SleepPlace>(actor) {
-        return sleep_contacts(world, actor, target, *place).contains(&end);
+        let Some((at, def, facing)) = object(world, target.object) else {
+            return false;
+        };
+        // Historical whole-bed walks keep a physically valid old-side contact.
+        // Authored slot approaches govern new/replacement routes in replan,
+        // not whether an already admitted walk needs to change.
+        let pack = world.resource::<crate::Content>().0;
+        return place.0 < def.sleep_capacity(&pack.sleep_tag)
+            && world.resource::<TileGrid>().can_interact_with_rect(
+                end,
+                origin(at),
+                def.footprint_at(facing),
+            );
     }
     if let Some(claim) = world.get::<PhysicalClaim>(actor) {
         return seat_contacts(world, claim).contains(&end);
