@@ -302,8 +302,8 @@ it('unchanged frames neither render nor measure; camera, buffer and invalidation
     const art = vi.fn(() => ({ height: 40, offsetX: 3 }));
     const actions = new BuildContextActions(f.tools, surface, art);
     const camera = { scale: 1, originX: 400, originY: 60 };
-    actions.frame(camera, 800, 600);
-    for (let i = 0; i < 20; i++) actions.frame(camera, 800, 600);
+    expect(actions.frame(camera, 800, 600)).toBe(true);
+    for (let i = 0; i < 20; i++) expect(actions.frame(camera, 800, 600)).toBe(false);
     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.place).toHaveBeenCalledTimes(1); expect(art).toHaveBeenCalledTimes(1);
     camera.originX += 10; actions.frame(camera, 800, 600);
     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.place).toHaveBeenCalledTimes(2);

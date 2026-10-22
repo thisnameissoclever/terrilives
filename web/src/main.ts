@@ -33,7 +33,8 @@ import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
 import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
-import { FeedbackLifetime, PendingIndicator, SceneFeedback } from './ui/operation-feedback.js';
+import { BuildSceneFeedback, PendingIndicator, SceneFeedback } from './ui/operation-feedback.js';
+import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
 import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
@@ -409,6 +410,7 @@ async function main(): Promise<void> {
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
   let replaceBuildLocalState = (_reason: 'load' | 'cancel' | 'end'): void => {};
+  let resetSceneBuildFeedback = ():void => {};
   let hasRetainedReviewChoices = (): boolean => false;
   let requestRoomReview: (review: BuildReview) => Promise<boolean> = async () => false;
   const buildSession = new BuildSession(sim, {
@@ -438,9 +440,8 @@ async function main(): Promise<void> {
   const saveStatus: HTMLElement = saveStatusElement;
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
-  const commandStatus: HTMLElement = commandStatusElement;
-  document.body.append(commandStatus);
-  const sceneFeedback = new SceneFeedback(commandStatus);
+  const sceneFeedback = new SceneFeedback(commandStatusElement);
+  const commandStatus = sceneFeedback.status;
   const persistence = new PersistenceController(
     createSaveStore(),
     buildSession,
@@ -2099,6 +2100,7 @@ async function main(): Promise<void> {
     focusReviewReturn: () => { if (roomReview.active) document.querySelector<HTMLButtonElement>('#room-review-back')?.focus(); },
   });
   replaceBuildLocalState = reason => {
+    resetSceneBuildFeedback();
     buildExit.dismiss(); roomReview.reset(); roomSelection.reset();
     if (reason === 'load' || reason === 'end') roomSelection.select(null);
   };
@@ -2137,24 +2139,31 @@ async function main(): Promise<void> {
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
-  const toolFeedback = document.createElement('p'); toolFeedback.id = 'tool-feedback'; toolFeedback.hidden = true;
-  toolFeedback.setAttribute('aria-hidden', 'true');
-  const toolFeedbackLifetime = new FeedbackLifetime();
+  const buildSceneFeedback = new BuildSceneFeedback(sceneFeedback);
+  resetSceneBuildFeedback = () => buildSceneFeedback.reset();
+  const sceneLayout = new SceneLayoutObserver(() => {
+    const viewport=stage.getBoundingClientRect();
+    return {left:viewport.left,top:viewport.top,right:viewport.right,
+      bottom:compactBuildQuery.matches&&builder.active?Math.min(viewport.bottom,dockTop()):viewport.bottom};
+  },()=>[hudRoot,menuRoot,...(!optionsPanel.hidden?[optionsPanel]:[]),
+    ...(builder.active?[document.getElementById('build-camera')!]:[]),
+    ...(!placementRoot.hidden?[placementRoot]:[]),
+    ...(document.getElementById('sim-dock')?[document.getElementById('sim-dock')!]:[])],
+  [stage,hudRoot,builderDock,optionsPanel,placementRoot,menuRoot,document.getElementById('build-camera')!]);
   let highlightRevision = sim.lotRevision();
   const renderBuildFeedback = (now: number): void => {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
-    sceneFeedback.frame(now);
-    const active = buyTool.active ? buyTool : wallTool.active ? wallTool : roomTool.active ? roomTool : floorTool.active ? floorTool : builder;
-    const result = active === buyTool ? buyTool.resultFeedback : null;
-    const feedback = builder.active && !roomReview.active ? toolFeedbackLifetime.read(result ?? active.feedback, now) : null;
-    const anchored = active === buyTool ? !!buyTool.ghost() : active === wallTool ? !!wallTool.line
-      : active === roomTool ? !!roomTool.first : active === floorTool ? !!floorTool.tile : !!builder.preview;
-    toolFeedback.hidden = !feedback || (anchored && result === null);
-    if (toolFeedback.textContent !== (feedback?.message ?? '')) toolFeedback.textContent = feedback?.message ?? '';
-    toolFeedback.dataset.state = feedback?.state ?? '';
-    const panel = document.getElementById(active === buyTool ? 'buy-tool' : active === wallTool ? 'wall-tool'
-      : active === roomTool ? 'room-tool' : active === floorTool ? 'floor-tool' : 'furniture-tool');
-    if (panel && toolFeedback.parentElement !== panel) panel.append(toolFeedback);
+    const active = buyTool.active ? buyTool : wallTool.active ? wallTool : roomTool.active ? roomTool : floorTool.active ? floorTool : landTool.active ? landTool : builder;
+    const ghost=active===buyTool?buyTool.ghost():active===builder?builder.preview:null;
+    const point=ghost?[ghost.x+(ghost.width-1)/2,ghost.y+(ghost.depth-1)/2]:active===wallTool?wallTool.anchorPoint()
+      :active===floorTool?floorTool.anchorPoint():active===roomTool&&roomTool.first
+        ?[(roomTool.first[0]+(roomTool.second??roomTool.first)[0])/2,(roomTool.first[1]+(roomTool.second??roomTool.first)[1])/2]:null;
+    const rect=stage.getBoundingClientRect();
+    const anchor=point?{x:rect.left+screenX(point[0],point[1],camera.originX,camera.scale)*rect.width/stage.width,
+      y:rect.top+screenY(point[0],point[1],camera.originY,camera.scale)*rect.height/stage.height}:null;
+    buildSceneFeedback.frame({active:builder.active,reviewing:roomReview.active,tool:active,feedback:'feedback' in active?active.feedback:null,
+      result:active===buyTool?buyTool.resultFeedback:active===landTool?landTool.resultFeedback:null,contextual:point!==null,anchor},now);
+    sceneFeedback.layout(sceneLayout.read());sceneFeedback.frame(now);
   };
   installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);
@@ -2522,7 +2531,6 @@ async function main(): Promise<void> {
     floorTool.afterCommands();
     buyTool.afterCommands();
     landTool.afterCommands();
-    renderBuildFeedback(nowMs);
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands();
     syncCharacterContacts();
@@ -2555,7 +2563,8 @@ async function main(): Promise<void> {
 
       // [PA-place]: after the camera settles, so the buttons follow this
       // frame's pan and zoom.
-      placementButtons.frame(camera, stage.width, stage.height);
+      if(placementButtons.frame(camera, stage.width, stage.height))sceneLayout.invalidate();
+      renderBuildFeedback(nowMs);
       // Editing marks the original furniture; play mode marks the selected Sim.
       const selected = builder.active ? builder.selected : sim.selectedIndex();
       const ambient=lightingMode.isFlat()?AMBIENT_NEUTRAL:ambientFor(sim.clockTick(),sim.dayTicks());

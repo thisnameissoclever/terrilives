@@ -42,7 +42,7 @@ function wiring(source: string): string {
   const end = frame.statements.findIndex(node => ts.isExpressionStatement(node) && ts.isCallExpression(node.expression)
     && node.expression.expression.getText(file) === 'landTool.setBlocked');
   if (end < 0) throw Error('Missing complete frame blocking prefix');
-  return ts.transpile(`${declaration('replaceBuildLocalState')}\n${declaration('hasRetainedReviewChoices')}\n${declaration('requestRoomReview')}
+  return ts.transpile(`${declaration('replaceBuildLocalState')}\n${declaration('resetSceneBuildFeedback')}\n${declaration('hasRetainedReviewChoices')}\n${declaration('requestRoomReview')}
     ${declaration('roomsTool')}\n${declaration('finishReview')}\n${declaration('roomReview')}
     ${assignment('hasRetainedReviewChoices')}\n${assignment('requestRoomReview')}
     ${declaration('buildTools')}\n${functionBody('confirmBuildBatch')}\n${declaration('buildExit')}\n${assignment('replaceBuildLocalState')}\n${assignment('toolSwitch')}\n${listener.getText(file)}

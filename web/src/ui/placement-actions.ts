@@ -253,11 +253,13 @@ export class BuildContextActions {
   constructor(private readonly tools: ContextTools, private readonly surface: ContextSurface,
     private readonly artOf: (ghost: PlacementPreview) => GhostArt) {}
   invalidate(): void { this.dirty = true; }
-  frame(camera: ActionsCamera, width: number, height: number): void {
+  /** True when contextual content or placement changed, so neighboring scene surfaces can refresh their bounds. */
+  frame(camera: ActionsCamera, width: number, height: number): boolean {
     let changed = this.dirty;
     if (this.dirty) {
       this.dirty = false;
       this.model = contextModel(this.tools);
+      if(this.model?.feedback?.state==='success')this.model={...this.model,feedback:null};
     }
     const feedback = this.lifetime.read(this.model?.feedback ?? null);
     if (changed || feedback !== this.shownFeedback) {
@@ -265,9 +267,9 @@ export class BuildContextActions {
       this.surface.render(this.model ? { ...this.model, feedback } : null);
     }
     const model = this.model;
-    if (!model) return;
+    if (!model) return changed;
     if (!changed && camera.scale === this.scale && camera.originX === this.originX
-      && camera.originY === this.originY && width === this.width && height === this.height) return;
+      && camera.originY === this.originY && width === this.width && height === this.height) return false;
     this.scale = camera.scale; this.originX = camera.originX; this.originY = camera.originY;
     this.width = width; this.height = height;
     const floors = (model.points?.length ? model.points : [[model.x, model.y] as const])
@@ -277,6 +279,7 @@ export class BuildContextActions {
       : screenX(model.x, model.y, camera.originX, camera.scale),
     model.ghost ? ghostAnchorTop(model.ghost, camera, art?.height ?? 0) : Math.min(...floors) - (model.rise ?? 18) * camera.scale,
     Math.max(...floors) + 20 * camera.scale, width, height);
+    return true;
   }
 }
 
