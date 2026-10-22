@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-backlog-document-ownership] Put engineering tasks in the engineering backlog
+
+**What happened.** A detailed sound implementation backlog was added to Tim's
+personal to-do document even though Features owns engineering priorities.
+
+**Root cause.** An existing engineering summary in the personal list was treated
+as authority to add the full backlog without checking the documents' ownership rules.
+
+**Prevention.** Read each candidate document's purpose before adding work. Keep
+engineering tasks in `FEATURES.md`, link system scope from `GAME-SYSTEMS.md`, and
+use `TIM-TODO.md` for owner decisions, approvals and brief tracking pointers.
+Preserve stable item IDs and existing links when relocating work.
+
+**Verification.** Confirm that the destination retains every task and constraint,
+the former location contains only a pointer, and each cross-reference resolves.
+Document relocation must not change implementation or listening approval status.
+
 ## [L-only-waiting-is-not-busy] Let every admission path recognize a person who only waits
 
 1. What happened: after player-order execution merged, the shipped household run headless starved on day 15 at seed 20260728, and two housemates died at seed 120. Tim waited to chat with Bill, Bill held a game-made fight order against Tim, and Casey held one against Bill. Each waited for a partner who was only waiting in turn.
