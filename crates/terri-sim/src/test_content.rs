@@ -601,3 +601,23 @@ pub(crate) fn assert_current_admission(sim: &Sim) {
     assert_eq!(restored.current_v19_view(), before);
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
+
+/// Exercise a construction command with the same explicit review lifecycle as
+/// the player. Test layouts may deliberately make an object inaccessible.
+pub(crate) fn reviewed_command(sim: &mut Sim, command: terri_core::SimCommand) {
+    sim.begin_build().expect("coherent construction fixture");
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(command);
+    sim.flush_commands();
+    assert_eq!(
+        sim.take_build_error(),
+        None,
+        "construction command must be valid"
+    );
+    let review = sim
+        .prepare_build_commit(crate::rooms::RoomChoices::default())
+        .expect("reviewable construction fixture");
+    sim.commit_build_with_access_ack(review.token).unwrap();
+    sim.end_build().unwrap();
+}

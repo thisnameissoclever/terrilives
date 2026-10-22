@@ -136,6 +136,8 @@ pub(crate) mod v20;
 pub(crate) mod v21;
 #[cfg(test)]
 mod v3_tests;
+#[cfg(test)]
+pub(crate) use v3_tests::assert_materialized_rear_shell;
 pub(crate) mod v6;
 #[cfg(test)]
 mod v6_tests;

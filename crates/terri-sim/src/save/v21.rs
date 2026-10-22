@@ -88,6 +88,7 @@ pub(crate) fn restore(
     if grid.width() != s.width as usize || grid.height() != s.height as usize {
         return Err(SaveError::InvalidGrid);
     }
+    crate::world_geometry::validate_occupied_objects(sim.world())?;
     Ok(sim)
 }
 

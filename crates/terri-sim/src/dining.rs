@@ -166,7 +166,7 @@ fn chair_approaches(world: &World, chair: Entity) -> Vec<(i32, i32)> {
     ]
 }
 
-fn chair_contact(world: &World, chair: Entity, endpoint: (i32, i32)) -> bool {
+pub(crate) fn chair_contact(world: &World, chair: Entity, endpoint: (i32, i32)) -> bool {
     let pack = world.resource::<Content>().0;
     let definition = pack.object(world.get::<SmartObject>(chair).unwrap().0);
     let grid = world.resource::<TileGrid>();

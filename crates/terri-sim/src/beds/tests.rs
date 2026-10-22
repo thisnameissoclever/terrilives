@@ -591,6 +591,7 @@ fn running_sleep_migrates_without_restart_and_incompatible_states_fail_atomicall
     }
     let mut live = test_content::sim_with(12, 12, content());
     live.load_snapshot_v5(saved.clone()).unwrap();
+    let admitted = live.save_snapshot_v21();
     for corruption in 0..4 {
         let mut bad = saved.clone();
         let agent = bad
@@ -614,7 +615,7 @@ fn running_sleep_migrates_without_restart_and_incompatible_states_fail_atomicall
             live.load_snapshot_v5(bad).is_err(),
             "accepted corruption {corruption}"
         );
-        assert_eq!(live.save_snapshot_v5(), saved);
+        assert_eq!(live.save_snapshot_v21(), admitted);
     }
 }
 
@@ -636,18 +637,18 @@ fn historical_loaders_reject_assignment_commands_but_modern_saves_replay_stale_r
             .resource_mut::<CommandQueue>()
             .push(command);
     }
-    let saved = source.save_snapshot_v5();
+    let saved = source.current_v5_view();
     let mut live = test_content::sim_with(12, 12, content());
-    let before = live.save_snapshot_v5();
+    let before = live.current_v5_view();
     for version in 1..=5 {
         assert!(
             load_historical(&mut live, &source, version).is_err(),
             "V{version}"
         );
-        assert_eq!(live.save_snapshot_v5(), before);
+        assert_eq!(live.current_v5_view(), before);
     }
-    live.load_snapshot_v5(saved.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v5(), saved);
+    live.load_current_v5_view(saved.clone()).unwrap();
+    assert_eq!(live.current_v5_view(), saved);
     live.flush_commands();
     assert_eq!(
         live.world()

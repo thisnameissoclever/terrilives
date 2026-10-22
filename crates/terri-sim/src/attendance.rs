@@ -151,7 +151,8 @@ fn return_home(world: &mut World, actor: Entity) {
         return;
     };
     if crate::world_geometry::current(world) {
-        let entry = if world.get::<AtWork>(actor).is_some() {
+        let was_away = world.get::<AtWork>(actor).is_some();
+        let entry = if was_away {
             crate::household::arrival(world).ok()
         } else {
             crate::world_geometry::route_home(world, position).map(|steps| (position, steps))
@@ -163,6 +164,12 @@ fn return_home(world: &mut World, actor: Entity) {
             .remove::<Commuting>()
             .remove::<crate::world_geometry::WaitingToReturn>();
         if let Some((arrival, steps)) = entry {
+            if was_away {
+                world
+                    .resource_mut::<crate::placement::LotEditState>()
+                    .discontinuities
+                    .insert(actor);
+            }
             world.entity_mut(actor).insert((
                 arrival,
                 Commuting::Inbound,

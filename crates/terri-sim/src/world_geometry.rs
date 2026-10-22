@@ -9,6 +9,12 @@ use terri_core::{
 
 #[path = "world_geometry_migration.rs"]
 mod migration;
+#[path = "world_geometry_navigation.rs"]
+mod navigation;
+#[path = "world_geometry_occupancy.rs"]
+mod occupancy;
+#[path = "world_geometry_routes.rs"]
+mod routes;
 
 #[derive(Component, Clone, Copy, Debug)]
 pub struct WaitingToReturn;
@@ -19,6 +25,13 @@ pub fn current(world: &World) -> bool {
 
 pub(crate) fn admit_legacy_people(world: &mut World) -> Result<(), crate::SaveError> {
     migration::admit_people(world)
+}
+
+pub(crate) fn validate_occupied_objects(world: &World) -> Result<(), crate::SaveError> {
+    occupancy::validate(world)
+}
+pub(crate) fn normalize_legacy_occupied_objects(world: &mut World) -> Result<(), crate::SaveError> {
+    occupancy::normalize(world)
 }
 
 /// No historical shell exists under the current envelope.
@@ -207,17 +220,28 @@ pub fn blank(world: &mut World) {
 pub fn boundary_tiles(world: &World, grid: &TileGrid) -> Vec<(i32, i32)> {
     let layout = world.resource::<SavedLayout>();
     let (width, height) = (grid.width() as u32, grid.height() as u32);
+    let perimeter = |line: WallLine| match line.axis {
+        EdgeAxis::Vertical => line.x == 0 || line.x == width,
+        EdgeAxis::Horizontal => line.y == 0 || line.y == height,
+    };
+    let blocked: BTreeSet<_> = layout
+        .edges()
+        .iter()
+        .filter(|edge| !edge.doorway)
+        .map(|edge| WallLine {
+            axis: edge.axis,
+            x: edge.x,
+            y: edge.y,
+        })
+        .chain(layout.window_lines())
+        .filter(|line| perimeter(*line))
+        .map(|line| (line.axis, line.x, line.y))
+        .collect();
     let mut result = BTreeSet::new();
     for y in 0..height {
         for (x, line_x) in [(0, 0), (width - 1, width)] {
             if grid.is_walkable(x as i32, y as i32)
-                && !layout
-                    .state_of(WallLine {
-                        axis: EdgeAxis::Vertical,
-                        x: line_x,
-                        y,
-                    })
-                    .blocks_movement()
+                && !blocked.contains(&(EdgeAxis::Vertical, line_x, y))
             {
                 result.insert((x as i32, y as i32));
             }
@@ -226,13 +250,7 @@ pub fn boundary_tiles(world: &World, grid: &TileGrid) -> Vec<(i32, i32)> {
     for x in 0..width {
         for (y, line_y) in [(0, 0), (height - 1, height)] {
             if grid.is_walkable(x as i32, y as i32)
-                && !layout
-                    .state_of(WallLine {
-                        axis: EdgeAxis::Horizontal,
-                        x,
-                        y: line_y,
-                    })
-                    .blocks_movement()
+                && !blocked.contains(&(EdgeAxis::Horizontal, x, line_y))
             {
                 result.insert((x as i32, y as i32));
             }
@@ -294,23 +312,16 @@ pub fn route_to_boundary(world: &World, position: Position) -> Option<Vec<(i32, 
 
 /// Current floor surfaces provide arrival destinations. A bare lot uses open ground.
 pub fn route_home(world: &World, position: Position) -> Option<Vec<(i32, i32)>> {
-    let grid = world.resource::<TileGrid>();
-    let surfaces = world.get_resource::<WorldSurfaces>()?;
-    let floors = world.get_resource::<terri_core::layout::SavedFloors>();
-    let mut targets: BTreeSet<_> = (0..surfaces.height)
-        .flat_map(|y| (0..surfaces.width).map(move |x| (x, y)))
-        .filter(|&(x, y)| {
-            surfaces.tiles[(y * surfaces.width + x) as usize] == 0
-                || floors.is_some_and(|f| matches!(f.covering(x, y), 1..=4))
-        })
-        .map(|(x, y)| (x as i32, y as i32))
-        .collect();
-    if targets.is_empty() {
-        targets.extend(
-            (0..grid.height() as i32).flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y))),
-        );
-    }
-    shortest_route(grid, position, &targets)
+    navigation::route_home(world, position)
+}
+
+pub(crate) fn arrival_route(world: &World) -> Option<(Position, Vec<(i32, i32)>)> {
+    navigation::arrival(world)
+}
+
+#[cfg(test)]
+thread_local! {
+    static HOME_TARGET_VISITS: std::cell::Cell<u64> = const { std::cell::Cell::new(0) };
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -462,7 +473,7 @@ pub fn access_report(world: &World) -> AccessReport {
 
 /// Retain valid work and fail only the order whose current route was obstructed.
 pub(crate) fn revalidate_routes(world: &mut World) {
-    use terri_core::{Path, Target};
+    use terri_core::Path;
     if !current(world) {
         return;
     }
@@ -481,40 +492,11 @@ pub(crate) fn revalidate_routes(world: &mut World) {
                 previous = next;
                 valid
             });
-            let contact = world
-                .get::<Target>(entity)
-                .and_then(|target| {
-                    let (_, definition, facing) =
-                        crate::placement::object_definition(world, target.object.index_u32())?;
-                    let at = world.get::<Position>(target.object)?;
-                    let endpoint = remaining
-                        .last()
-                        .copied()
-                        .unwrap_or((pos.x.round() as i32, pos.y.round() as i32));
-                    Some(
-                        world
-                            .get::<crate::reading::ReadingJourney>(entity)
-                            .is_some()
-                            || grid.can_interact_with_rect(
-                                endpoint,
-                                (at.x as i32, at.y as i32),
-                                definition.footprint_at(facing),
-                            )
-                            || crate::save::architecture::dining_contact(
-                                world,
-                                entity.index_u32(),
-                                target.object.index_u32(),
-                                endpoint,
-                            )
-                            || crate::media::valid_standing_contact(
-                                world,
-                                entity.index_u32(),
-                                target.object.index_u32(),
-                                endpoint,
-                            ),
-                    )
-                })
-                .unwrap_or(true);
+            let endpoint = remaining
+                .last()
+                .copied()
+                .unwrap_or((pos.x.round() as i32, pos.y.round() as i32));
+            let contact = routes::endpoint_valid(world, entity, endpoint);
             let exit_valid = world.get::<terri_core::Commuting>(entity)
                 != Some(&terri_core::Commuting::Outbound)
                 || remaining
@@ -523,7 +505,7 @@ pub(crate) fn revalidate_routes(world: &mut World) {
             (!valid || !contact || !exit_valid).then_some((entity, contact))
         })
         .collect();
-    for (actor, contact) in invalid {
+    for (actor, _contact) in invalid {
         let position = *world
             .get::<Position>(actor)
             .expect("route owner has a position");
@@ -531,20 +513,8 @@ pub(crate) fn revalidate_routes(world: &mut World) {
             == Some(&terri_core::Commuting::Outbound)
         {
             route_to_boundary(world, position)
-        } else if contact {
-            world
-                .get::<Path>(actor)
-                .and_then(|path| path.steps.last())
-                .and_then(|&destination| {
-                    let grid = world.resource::<TileGrid>();
-                    grid.find_path(
-                        (position.x.round() as i32, position.y.round() as i32),
-                        destination,
-                    )
-                    .and_then(|steps| grid.anchor_path((position.x, position.y), steps))
-                })
         } else {
-            None
+            routes::replan(world, actor)
         };
         if let Some(steps) = replacement {
             world.entity_mut(actor).insert(Path { steps, cursor: 0 });
@@ -557,10 +527,30 @@ pub(crate) fn revalidate_routes(world: &mut World) {
 fn end_obstructed_work(world: &mut World, actor: Entity, reason: &str) {
     use terri_core::{Commuting, Path, Target};
     let target = world.get::<Target>(actor).copied();
+    let recipe = target
+        .filter(|target| target.interaction == crate::systems::chain::CHAIN_STEP)
+        .and_then(|_| {
+            world
+                .get::<terri_core::ChainState>(actor)
+                .map(|state| state.chain)
+        });
     if let Some(target) = target {
-        let order = world
-            .get::<crate::player_actions::ServedOrder>(actor)
-            .map(|s| s.0)
+        let recipe_order = recipe.and_then(|_| {
+            world
+                .get::<crate::recipe_actions::RecipeOrder>(actor)
+                .map(|order| order.0)
+                .or_else(|| {
+                    world
+                        .get::<crate::player_actions::DirectedMealOrder>(actor)
+                        .map(|order| order.0)
+                })
+        });
+        let order = recipe_order
+            .or_else(|| {
+                world
+                    .get::<crate::player_actions::ServedOrder>(actor)
+                    .map(|s| s.0)
+            })
             .or_else(|| {
                 world
                     .get_resource::<crate::player_actions::PlayerActions>()
@@ -580,6 +570,23 @@ fn end_obstructed_work(world: &mut World, actor: Entity, reason: &str) {
             crate::player_actions::terminal(world, actor, id, "failed", Some(reason));
         }
         crate::reservations::release_now(world, actor, target);
+    }
+    if let Some(chain) = recipe.filter(|_| world.get::<terri_core::ChainState>(actor).is_some()) {
+        // Use the same permanent-failure teardown as the recipe runtime. The
+        // initiating object may differ from the current station, so its explicit
+        // RecipeOrder owns termination; later queued orders remain untouched.
+        world
+            .entity_mut(actor)
+            .remove::<crate::recipe_actions::ActiveRecipe>()
+            .remove::<(
+                terri_core::Carrying,
+                terri_core::Fumbled,
+                terri_core::Blocked,
+                terri_core::Restless,
+            )>();
+        crate::systems::chain::fail_order(world, actor, reason);
+        crate::systems::chain::settle_order(world, actor, chain);
+        crate::domestic::abandon(world, actor);
     }
     if world.get::<crate::reading::ReadingJourney>(actor).is_some() {
         crate::reading::request_return(world, actor);
@@ -993,6 +1000,314 @@ mod route_revalidation_tests {
             .collect();
         (sim, actor, ids)
     }
+    fn sleep_fixture(alternate: bool) -> (crate::Sim, Entity, Vec<u64>) {
+        let mut bed = crate::test_content::object("bed", &[(NeedId::Energy, 20.)], 100);
+        bed.interactions[0].tags = vec![terri_data::pack().sleep_tag.clone()];
+        bed.interactions[0].slots = 2;
+        bed.sleep_places = vec![
+            terri_data::SleepPlaceAccess {
+                id: "owned".into(),
+                approaches: if alternate {
+                    vec![(-1, 0), (0, -1)]
+                } else {
+                    vec![(-1, 0)]
+                },
+            },
+            terri_data::SleepPlaceAccess {
+                id: "other".into(),
+                approaches: vec![(1, 0)],
+            },
+        ];
+        let pack = crate::test_content::pack(vec![bed]);
+        let mut sim = crate::Sim::new_with_lot_and_content(6, 6, crate::Content(pack));
+        let first = sim.spawn_object(Position { x: 4., y: 1. }, terri_data::ObjectDefId(0));
+        let second = sim.spawn_object(Position { x: 1., y: 4. }, terri_data::ObjectDefId(0));
+        for (x, y) in [(4, 1), (1, 4)] {
+            sim.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+        let actor = sim.spawn_agent(Position { x: 1., y: 1. }, 100.);
+        for object in [first, second] {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObject {
+                    agent: actor.index_u32(),
+                    object: object.index_u32(),
+                    interaction: 0,
+                });
+        }
+        sim.flush_commands();
+        sim.tick();
+        assert_eq!(
+            sim.world().get::<terri_core::SleepPlace>(actor),
+            Some(&terri_core::SleepPlace(0))
+        );
+        let ids = sim
+            .world()
+            .get::<IntentQueue>(actor)
+            .unwrap()
+            .entries()
+            .iter()
+            .map(|entry| entry.id)
+            .collect();
+        (sim, actor, ids)
+    }
+    #[test]
+    fn approach_replanning_keeps_the_owned_sleep_slot_and_never_uses_another_slots_approach() {
+        for alternate in [true, false] {
+            let (mut sim, actor, ids) = sleep_fixture(alternate);
+            let target = *sim.world().get::<terri_core::Target>(actor).unwrap();
+            let assignments = sim
+                .world()
+                .resource::<crate::beds::BedAssignments>()
+                .clone();
+            sim.begin_build().unwrap();
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::SetWallEdge {
+                    axis: EdgeAxis::Vertical,
+                    x: 4,
+                    y: 1,
+                    state: terri_core::layout::WallState::Wall,
+                });
+            sim.flush_commands();
+            let review = sim
+                .prepare_build_commit(crate::rooms::RoomChoices::default())
+                .unwrap();
+            sim.commit_build_with_access_ack(review.token).unwrap();
+            sim.end_build().unwrap();
+            assert_eq!(
+                sim.world().resource::<crate::beds::BedAssignments>(),
+                &assignments
+            );
+            if alternate {
+                assert_eq!(sim.world().get::<terri_core::Target>(actor), Some(&target));
+                assert_eq!(
+                    sim.world().get::<terri_core::SleepPlace>(actor),
+                    Some(&terri_core::SleepPlace(0))
+                );
+                assert_eq!(
+                    sim.world().get::<Path>(actor).unwrap().steps.last(),
+                    Some(&(4, 0))
+                );
+                assert_eq!(
+                    sim.world()
+                        .get::<IntentQueue>(actor)
+                        .unwrap()
+                        .entries()
+                        .iter()
+                        .map(|entry| entry.id)
+                        .collect::<Vec<_>>(),
+                    ids
+                );
+            } else {
+                assert!(sim.world().get::<terri_core::Target>(actor).is_none());
+                assert!(sim.world().get::<terri_core::SleepPlace>(actor).is_none());
+                assert_eq!(
+                    sim.world()
+                        .get::<IntentQueue>(actor)
+                        .unwrap()
+                        .entries()
+                        .iter()
+                        .map(|entry| entry.id)
+                        .collect::<Vec<_>>(),
+                    vec![ids[1]]
+                );
+                assert!(sim
+                    .action_events_since(0)
+                    .events
+                    .iter()
+                    .any(|event| event.order_id == ids[0] && event.phase == "failed"));
+            }
+            let saved = sim.save_snapshot_v21();
+            sim.load_snapshot_v21(saved.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v21(), saved);
+        }
+    }
+    #[test]
+    fn blocking_a_recipe_station_fails_its_origin_order_and_keeps_the_later_order() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        let pack = sim.world().resource::<crate::Content>().0;
+        let actors: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .collect();
+        let actor = actors[0];
+        for other in actors.into_iter().filter(|other| *other != actor) {
+            sim.world_mut()
+                .entity_mut(other)
+                .insert(terri_core::Reserved);
+        }
+        sim.world_mut()
+            .entity_mut(actor)
+            .insert(terri_core::Needs::all_at(100.));
+        let objects: Vec<_> = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .map(|(entity, model)| (entity, model.0))
+            .collect();
+        let find = |name: &str| {
+            objects
+                .iter()
+                .find(|(_, model)| pack.object(*model).id == name)
+                .unwrap()
+                .0
+        };
+        let (fridge, stove, television) = (find("fridge"), find("stove"), find("television"));
+        let model = sim.world().get::<SmartObject>(fridge).unwrap().0;
+        let cook = pack
+            .object(model)
+            .interactions
+            .iter()
+            .position(|action| action.id == "cook_dinner")
+            .unwrap() as u32;
+        for (object, interaction) in [(fridge, cook), (television, 0)] {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObject {
+                    agent: actor.index_u32(),
+                    object: object.index_u32(),
+                    interaction,
+                });
+        }
+        sim.flush_commands();
+        let ids = sim
+            .world()
+            .get::<IntentQueue>(actor)
+            .unwrap()
+            .entries()
+            .iter()
+            .map(|entry| entry.id)
+            .collect::<Vec<_>>();
+        for _ in 0..2000 {
+            sim.tick();
+            if sim
+                .world()
+                .get::<terri_core::Target>(actor)
+                .is_some_and(|target| target.object == stove)
+                && sim.world().get::<Path>(actor).is_some()
+            {
+                break;
+            }
+        }
+        assert_eq!(
+            sim.world().get::<terri_core::Target>(actor).unwrap().object,
+            stove
+        );
+        assert!(sim.world().get::<Path>(actor).is_some());
+        assert_eq!(
+            sim.world()
+                .get::<crate::recipe_actions::RecipeOrder>(actor)
+                .map(|owner| owner.0),
+            Some(ids[0])
+        );
+        let at = *sim.world().get::<Position>(stove).unwrap();
+        let model = *sim.world().get::<SmartObject>(stove).unwrap();
+        let front = crate::cooking_contact(
+            sim.world().resource::<TileGrid>(),
+            pack,
+            &model,
+            &at,
+            sim.world().get::<terri_core::ObjectFacing>(stove),
+        )
+        .unwrap();
+        let fp = crate::placed_footprint(
+            pack,
+            model.0,
+            sim.world().get::<terri_core::ObjectFacing>(stove),
+        );
+        let end = (front.x.round() as u32, front.y.round() as u32);
+        let contact = (
+            end.0.clamp(at.x as u32, at.x as u32 + fp.width - 1),
+            end.1.clamp(at.y as u32, at.y as u32 + fp.depth - 1),
+        );
+        let (axis, x, y) = if end.0 != contact.0 {
+            (EdgeAxis::Vertical, end.0.max(contact.0), end.1)
+        } else {
+            (EdgeAxis::Horizontal, end.0, end.1.max(contact.1))
+        };
+        // Represent a valid earlier point on this same owned walk, beyond any
+        // occupied-contact guard. A player can place preparation stations farther
+        // away; the original one-tile kitchen hop reaches the guarded contact too soon.
+        let from = Position { x: 4., y: 4. };
+        let route = sim
+            .world()
+            .resource::<TileGrid>()
+            .find_path((4, 4), (end.0 as i32, end.1 as i32))
+            .unwrap();
+        sim.world_mut().entity_mut(actor).insert((
+            from,
+            Path {
+                steps: route,
+                cursor: 0,
+            },
+        ));
+        let positive = sim.save_snapshot_v21();
+        sim.load_snapshot_v21(positive.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v21(), positive);
+        sim.begin_build().unwrap();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::SetWallEdge {
+                axis,
+                x,
+                y,
+                state: terri_core::layout::WallState::Wall,
+            });
+        sim.flush_commands();
+        assert_eq!(
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .last_wall_result
+                .unwrap()
+                .reason,
+            None,
+            "future contact wall must actually be accepted"
+        );
+        assert!(crate::cooking_contact(
+            sim.world().resource::<TileGrid>(),
+            pack,
+            &model,
+            &at,
+            sim.world().get::<terri_core::ObjectFacing>(stove)
+        )
+        .is_none());
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+        assert_eq!(
+            sim.world()
+                .get::<IntentQueue>(actor)
+                .unwrap()
+                .entries()
+                .iter()
+                .map(|entry| entry.id)
+                .collect::<Vec<_>>(),
+            vec![ids[1]]
+        );
+        assert_eq!(
+            sim.action_events_since(0)
+                .events
+                .iter()
+                .filter(|event| event.order_id == ids[0] && event.phase == "failed")
+                .count(),
+            1
+        );
+        assert!(!sim
+            .action_events_since(0)
+            .events
+            .iter()
+            .any(|event| event.order_id == ids[0] && event.phase == "completed"));
+        assert!(sim.world().get::<terri_core::ChainState>(actor).is_none());
+        let saved = sim.save_snapshot_v21();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v21(), saved);
+    }
     fn build_barrier(sim: &mut crate::Sim, rows: impl Iterator<Item = u32>) {
         sim.begin_build().unwrap();
         for y in rows {
@@ -1034,6 +1349,74 @@ mod route_revalidation_tests {
             .any(|event| event.phase == "failed"));
         sim.load_snapshot_v21(sim.save_snapshot_v21()).unwrap();
     }
+
+    #[test]
+    fn a_blocked_contact_uses_another_legal_approach_without_replacing_owned_orders() {
+        let (mut sim, actor, ids) = fixture();
+        let target = *sim.world().get::<terri_core::Target>(actor).unwrap();
+        assert_eq!(
+            sim.world().get::<Path>(actor).unwrap().steps.last(),
+            Some(&(3, 1))
+        );
+        sim.begin_build().unwrap();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::SetWallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 4,
+                y: 1,
+                state: terri_core::layout::WallState::Wall,
+            });
+        sim.flush_commands();
+        let grid = sim.world().resource::<TileGrid>();
+        let from = *sim.world().get::<Position>(actor).unwrap();
+        assert!(!grid.can_interact_with_rect((3, 1), (4, 1), terri_core::Footprint::SINGLE));
+        assert!(grid.can_interact_with_rect((4, 0), (4, 1), terri_core::Footprint::SINGLE));
+        assert!(grid
+            .find_path((from.x.round() as i32, from.y.round() as i32), (4, 0))
+            .is_some());
+        let review = sim
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        sim.commit_build_with_access_ack(review.token).unwrap();
+        sim.end_build().unwrap();
+        assert_eq!(sim.world().get::<terri_core::Target>(actor), Some(&target));
+        assert!(sim
+            .world()
+            .get::<terri_core::Reserved>(target.object)
+            .is_some());
+        assert_eq!(
+            sim.world()
+                .get::<IntentQueue>(actor)
+                .unwrap()
+                .entries()
+                .iter()
+                .map(|entry| entry.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        let endpoint = *sim
+            .world()
+            .get::<Path>(actor)
+            .unwrap()
+            .steps
+            .last()
+            .unwrap();
+        assert_ne!(endpoint, (3, 1));
+        assert!(sim.world().resource::<TileGrid>().can_interact_with_rect(
+            endpoint,
+            (4, 1),
+            terri_core::Footprint::SINGLE
+        ));
+        assert!(!sim
+            .action_events_since(0)
+            .events
+            .iter()
+            .any(|event| event.phase == "failed"));
+        let saved = sim.save_snapshot_v21();
+        sim.load_snapshot_v21(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v21(), saved);
+    }
     #[test]
     fn a_cut_off_current_order_fails_once_and_keeps_the_later_queue_entry() {
         let (mut sim, actor, ids) = fixture();
@@ -1068,6 +1451,359 @@ mod route_revalidation_tests {
 #[cfg(test)]
 mod current_contract_tests {
     use super::*;
+    #[test]
+    fn historical_offlot_working_actor_requires_a_positive_load_and_current_reload() {
+        let mut source = crate::Sim::new_from_shipped_lot();
+        let actor = source
+            .world_mut()
+            .query_filtered::<Entity, With<terri_core::Career>>()
+            .iter(source.world())
+            .min_by_key(|actor| actor.index_u32())
+            .expect("shipped worker");
+        let portal = source
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .lot
+            .front_door
+            .unwrap();
+        source
+            .world_mut()
+            .entity_mut(actor)
+            .insert(terri_core::AtWork {
+                remaining_ticks: 10,
+            });
+        let source = source.save_snapshot();
+        for position in [
+            terri_core::SavedPosition {
+                x: portal.0 as f32,
+                y: portal.1 as f32,
+            },
+            terri_core::SavedPosition { x: -2., y: 1. },
+        ] {
+            let mut historical = source.clone();
+            historical
+                .entities
+                .iter_mut()
+                .find(|row| row.index == actor.index_u32())
+                .unwrap()
+                .position = Some(position);
+            let mut live = crate::Sim::new_from_shipped_lot();
+            live.load_snapshot(historical).expect("positive historical worker admission with unchanged shipped content and valid career");
+            let current = live.save_snapshot_v21();
+            let mut resumed = crate::Sim::new_from_shipped_lot();
+            resumed
+                .load_snapshot_v21(current.clone())
+                .unwrap_or_else(|error| {
+                    panic!("supported historical work at {position:?} must reload: {error:?}")
+                });
+            assert_eq!(resumed.save_snapshot_v21(), current);
+            assert_eq!(
+                resumed.world().get::<Position>(actor),
+                Some(&Position {
+                    x: position.x,
+                    y: position.y
+                })
+            );
+            assert_eq!(
+                resumed.world().get::<terri_core::AtWork>(actor),
+                Some(&terri_core::AtWork {
+                    remaining_ticks: 10
+                })
+            );
+            if position.x < 0. {
+                let before = resumed.current_v5_view();
+                let mut malformed = before.clone();
+                malformed
+                    .world
+                    .entities
+                    .iter_mut()
+                    .find(|row| row.index == actor.index_u32())
+                    .unwrap()
+                    .path = Some(terri_core::save::SavedPath {
+                    steps: vec![],
+                    cursor: 0,
+                });
+                assert!(
+                    resumed.load_current_v5_view(malformed).is_err(),
+                    "off-lot work with a live path still requires physical route validation"
+                );
+                assert_eq!(resumed.current_v5_view(), before);
+            }
+        }
+    }
+
+    fn purchased_pair() -> crate::Sim {
+        purchased_pair_model("counter")
+    }
+    fn purchased_pair_model(model: &str) -> crate::Sim {
+        let pack = terri_data::pack();
+        let model = pack.find(model).unwrap();
+        let mut live = crate::Sim::new_with_lot(6, 6);
+        live.world_mut()
+            .insert_resource(terri_core::Funds::from_dollars(10_000));
+        live.begin_build().unwrap();
+        for (x, y) in [(1, 1), (4, 4)] {
+            live.world_mut()
+                .resource_mut::<terri_core::CommandQueue>()
+                .push(terri_core::SimCommand::BuyObject {
+                    definition: model.0,
+                    x,
+                    y,
+                    facing: pack.object(model).base_facing,
+                });
+        }
+        live.flush_commands();
+        let review = live
+            .prepare_build_commit(crate::rooms::RoomChoices::default())
+            .unwrap();
+        live.commit_build_with_access_ack(review.token).unwrap();
+        live.end_build().unwrap();
+        live
+    }
+
+    #[test]
+    fn supported_legacy_occupied_overlap_normalizes_before_current_resave() {
+        let source = purchased_pair();
+        let mut old = source.save_snapshot_v5();
+        assert!(
+            old.layout.has_edges(),
+            "explicit historical edge-layout source"
+        );
+        let original_ids: Vec<_> = old
+            .world
+            .entities
+            .iter()
+            .filter(|row| row.smart_object.is_some())
+            .map(|row| (row.index, row.smart_object.clone()))
+            .collect();
+        let mut objects = old
+            .world
+            .entities
+            .iter_mut()
+            .filter(|row| row.smart_object.is_some());
+        let first = objects.next().unwrap().position;
+        objects.next().unwrap().position = first;
+        let mut live = crate::Sim::new_with_lot(6, 6);
+        live.load_snapshot_v5(old)
+            .expect("positive supported historical occupied overlap");
+        let current = live.save_snapshot_v21();
+        let mut resumed = crate::Sim::new_with_lot(6, 6);
+        resumed
+            .load_snapshot_v21(current.clone())
+            .expect("historical adoption must produce reloadable current state");
+        assert_eq!(resumed.save_snapshot_v21(), current);
+        let after = live.save_snapshot();
+        let objects: Vec<_> = after
+            .entities
+            .iter()
+            .filter(|row| row.smart_object.is_some())
+            .collect();
+        assert_eq!(
+            objects
+                .iter()
+                .map(|row| (row.index, row.smart_object.clone()))
+                .collect::<Vec<_>>(),
+            original_ids
+        );
+        assert_ne!(
+            objects[0].position, objects[1].position,
+            "legacy overlap needs a legal deterministic placement before current validation"
+        );
+    }
+
+    #[test]
+    fn legacy_occupied_bed_relocation_preserves_permanent_assignment() {
+        let mut source = purchased_pair_model("double_bed");
+        let bed = source
+            .world_mut()
+            .query_filtered::<Entity, With<SmartObject>>()
+            .iter(source.world())
+            .max_by_key(|entity| entity.index_u32())
+            .unwrap();
+        let person = source.spawn_agent(Position { x: 0., y: 0. }, 100.);
+        crate::beds::commit(
+            source.world_mut(),
+            person.index_u32(),
+            Some((bed.index_u32(), 0)),
+        );
+        let assignments = source
+            .world()
+            .resource::<crate::beds::BedAssignments>()
+            .clone();
+        assert!(assignments.assigned_to(terri_core::SimId(0)).is_some());
+        let mut old = source.save_snapshot_v5();
+        let mut objects = old
+            .world
+            .entities
+            .iter_mut()
+            .filter(|row| row.smart_object.is_some());
+        let first = objects.next().unwrap().position;
+        objects.next().unwrap().position = first;
+        let mut restored = crate::Sim::new_with_lot(6, 6);
+        restored
+            .load_snapshot_v5(old)
+            .expect("supported historical occupied bed overlap");
+        assert_eq!(
+            restored.world().resource::<crate::beds::BedAssignments>(),
+            &assignments
+        );
+        assert_ne!(
+            restored.world().get::<Position>(bed),
+            Some(&Position { x: 1., y: 1. })
+        );
+        let current = restored.save_snapshot_v21();
+        restored.load_snapshot_v21(current.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v21(), current);
+        assert_eq!(
+            restored.world().resource::<crate::beds::BedAssignments>(),
+            &assignments
+        );
+    }
+
+    #[test]
+    fn coherent_purchased_overlap_is_distinct_from_unoccupied_developer_spawns() {
+        let mut developer = crate::Sim::new_with_lot(6, 6);
+        let pack = developer.world().resource::<crate::Content>().0;
+        let model = pack.find("counter").unwrap();
+        for _ in 0..2 {
+            developer.spawn_object(Position { x: 1., y: 1. }, model);
+        }
+        let positive = developer.save_snapshot_v21();
+        developer
+            .load_snapshot_v21(positive.clone())
+            .expect("supported low-level spawns do not claim grid occupancy");
+        assert_eq!(developer.save_snapshot_v21(), positive);
+
+        let mut live = purchased_pair();
+        let before = live.current_v5_view();
+        live.load_current_v5_view(before.clone())
+            .expect("coherent purchased positive control");
+        let before = live.current_v5_view();
+        let mut corrupt = before.clone();
+        let mut objects = corrupt
+            .world
+            .entities
+            .iter_mut()
+            .filter(|row| row.smart_object.is_some());
+        let first = objects.next().unwrap().position;
+        objects.next().unwrap().position = first;
+        assert!(
+            live.load_current_v5_view(corrupt).is_err(),
+            "overlapping purchased occupancy must not replace coherent current state"
+        );
+        assert_eq!(live.current_v5_view(), before);
+    }
+    #[test]
+    fn arrival_target_work_is_linear_on_open_lots_up_to_supported_size() {
+        // The first small case fails before the old algorithm can attempt the
+        // supported maximum. This is an operation budget, not a timing threshold.
+        for side in [32usize, 128, 1024] {
+            let sim = crate::Sim::new_with_lot(side, side);
+            HOME_TARGET_VISITS.with(|visits| visits.set(0));
+            let (entry, steps) = crate::household::arrival(sim.world()).unwrap();
+            assert_eq!(entry, Position { x: 0., y: 0. });
+            assert!(steps.is_empty());
+            let visits = HOME_TARGET_VISITS.with(|visits| visits.get());
+            assert!(
+                visits <= (side * side) as u64,
+                "{side}x{side} arrival inspected {visits} surface candidates"
+            );
+        }
+    }
+    #[test]
+    fn arrival_matches_independent_paths_and_ties_on_small_wall_patterns() {
+        for pattern in 0u32..16 {
+            let mut sim = crate::Sim::new_with_lot(5, 5);
+            sim.world_mut()
+                .resource_mut::<WorldSurfaces>()
+                .tiles
+                .fill(1);
+            let goals = [(1, 2), (3, 2)];
+            for &(x, y) in &goals {
+                sim.world_mut().resource_mut::<WorldSurfaces>().tiles[(y * 5 + x) as usize] = 0;
+            }
+            let mut edges = vec![];
+            for y in 0..4 {
+                if pattern & (1 << y) != 0 {
+                    edges.push(WallEdge {
+                        axis: EdgeAxis::Vertical,
+                        x: 2,
+                        y,
+                        doorway: false,
+                    });
+                    sim.world_mut().resource_mut::<TileGrid>().set_edge_blocked(
+                        (1, y as i32),
+                        (2, y as i32),
+                        true,
+                    );
+                }
+            }
+            sim.world_mut()
+                .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+            let grid = sim.world().resource::<TileGrid>();
+            let expected = boundary_tiles(sim.world(), grid)
+                .into_iter()
+                .flat_map(|entry| {
+                    goals.into_iter().filter_map(move |goal| {
+                        grid.find_path(entry, goal)
+                            .map(|steps| (steps.len(), entry, goal))
+                    })
+                })
+                .min();
+            let actual = arrival_route(sim.world()).map(|(entry, steps)| {
+                let entry = (entry.x as i32, entry.y as i32);
+                (steps.len(), entry, steps.last().copied().unwrap_or(entry))
+            });
+            assert_eq!(actual, expected, "wall pattern {pattern}");
+        }
+    }
+    #[test]
+    fn arrival_returns_none_when_existing_floor_is_sealed_from_all_entries() {
+        let mut sim = crate::Sim::new_with_lot(5, 5);
+        sim.world_mut()
+            .resource_mut::<WorldSurfaces>()
+            .tiles
+            .fill(1);
+        sim.world_mut().resource_mut::<WorldSurfaces>().tiles[12] = 0;
+        let edges = vec![
+            WallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 2,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Vertical,
+                x: 3,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 2,
+                doorway: false,
+            },
+            WallEdge {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 3,
+                doorway: false,
+            },
+        ];
+        for edge in &edges {
+            let [a, b] = edge.cells();
+            sim.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_edge_blocked(a, b, true);
+        }
+        sim.world_mut()
+            .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        HOME_TARGET_VISITS.with(|visits| visits.set(0));
+        assert!(arrival_route(sim.world()).is_none());
+        assert_eq!(HOME_TARGET_VISITS.with(|visits| visits.get()), 25);
+    }
     #[test]
     fn current_geometry_cannot_select_a_historical_implicit_layout() {
         let mut sim = crate::Sim::new_with_lot(4, 4);

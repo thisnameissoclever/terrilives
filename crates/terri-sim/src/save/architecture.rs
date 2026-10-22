@@ -409,7 +409,13 @@ pub(super) fn validate_edge_world(
         if !entity.agent {
             continue;
         }
-        if !grid.is_walkable(tile.0, tile.1) {
+        // Current office/waiting markers put the actor off the playable lot.
+        // Keep validating references, activities and paths below; only the
+        // retained hidden position is exempt from floor walkability.
+        let away = crate::world_geometry::current(world)
+            && entity.at_work_ticks.is_some()
+            && entity.path.is_none();
+        if !away && !grid.is_walkable(tile.0, tile.1) {
             return Err(SaveError::InvalidGrid);
         }
         let reader = crate::dining::entity(world, entity.index)

@@ -2555,11 +2555,17 @@ mod order_tests {
                 "neither exact context can stand in for the other"
             );
         }
+        let mut expected = crate::current_test_snapshot::CurrentV5View(saved.clone());
+        let source_layout = expected.layout.clone();
+        let (width, height) = (expected.world.grid_width, expected.world.grid_height);
         sim.load_snapshot_v19(original.clone()).unwrap();
+        let adopted_layout = sim.current_v5_view().layout.clone();
+        crate::save::assert_materialized_rear_shell(&adopted_layout, &source_layout, width, height);
+        expected.layout = adopted_layout;
         assert_eq!(
             sim.save_snapshot_v19(),
-            original,
-            "old adoption preserves every frozen field"
+            expected.0.previous.legacy,
+            "only the explicitly checked historical rear shell changes"
         );
         assert_eq!(sim.save_snapshot_v21().conflicts.fights.len(), 2);
     }

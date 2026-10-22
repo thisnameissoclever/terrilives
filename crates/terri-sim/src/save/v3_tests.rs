@@ -46,25 +46,38 @@ fn assert_refused_unchanged(live: &mut Sim, invalid: SaveSnapshotV3) {
 
 /// These historical fixtures have an implicit north and west wall. Public
 /// adoption writes those walls explicitly without changing the authored edges.
-pub(super) fn assert_materialized_rear_shell(
+pub(crate) fn assert_materialized_rear_shell(
     actual: &SavedLayout,
     original: &SavedLayout,
     width: u32,
     height: u32,
 ) {
+    assert!(
+        matches!(original, SavedLayout::EdgeWallsV1 { .. }),
+        "this helper covers explicit V1 edge fixtures only"
+    );
     let mut expected = original.edges().to_vec();
-    expected.extend((0..height).map(|y| WallEdge {
-        axis: EdgeAxis::Vertical,
-        x: 0,
-        y,
-        doorway: false,
-    }));
-    expected.extend((0..width).map(|x| WallEdge {
-        axis: EdgeAxis::Horizontal,
-        x,
-        y: 0,
-        doorway: false,
-    }));
+    for edge in (0..height)
+        .map(|y| WallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 0,
+            y,
+            doorway: false,
+        })
+        .chain((0..width).map(|x| WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x,
+            y: 0,
+            doorway: false,
+        }))
+    {
+        if !expected
+            .iter()
+            .any(|old| old.axis == edge.axis && old.x == edge.x && old.y == edge.y)
+        {
+            expected.push(edge);
+        }
+    }
     expected.sort_by_key(|edge| (edge.axis, edge.x, edge.y));
     assert_eq!(actual, &SavedLayout::EdgeWallsV1 { edges: expected });
 }

@@ -105,10 +105,10 @@ fn privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches(
         }
         assert!(!substitute_need(&mut sim, third, NeedId::Energy));
         assert!(sim.world().get::<Target>(third).is_none());
-        let saved = sim.save_snapshot_v5();
+        let saved = sim.current_v5_view();
         let pack = sim.world().resource::<Content>().0;
         let mut resumed = test_content::sim_with(12, 12, pack);
-        resumed.load_snapshot_v5(saved).unwrap();
+        resumed.load_current_v5_view(saved).unwrap();
         assert_eq!(resumed.world_hash(), sim.world_hash());
         for _ in 0..25 {
             sim.tick();

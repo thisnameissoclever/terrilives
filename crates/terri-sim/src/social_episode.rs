@@ -187,6 +187,12 @@ pub(crate) fn maintain(world: &mut World) {
         .resource_mut::<SocialEpisodes>()
         .topics
         .retain(|e, _| live.contains(e));
+    prune_inactive_company(world);
+}
+
+/// Geometry repair can turn active use into travel without advancing gameplay.
+/// Retire only company records whose activity no longer exists.
+pub(crate) fn prune_inactive_company(world: &mut World) {
     let active: BTreeSet<_> = world
         .query::<Entity>()
         .iter(world)

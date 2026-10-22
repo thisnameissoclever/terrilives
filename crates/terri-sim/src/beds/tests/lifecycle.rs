@@ -3,7 +3,32 @@ use bevy_ecs::system::RunSystemOnce;
 use terri_core::{Career, Commuting, Eating, Path, SimClock};
 
 fn sleeping_pair() -> (Sim, Entity, [Entity; 2]) {
+    sleeping_pair_with_open_boundary(false)
+}
+fn sleeping_pair_with_open_boundary(open: bool) -> (Sim, Entity, [Entity; 2]) {
     let (mut sim, bed, [first, second, third]) = fixture();
+    if open {
+        let edges = sim
+            .world()
+            .resource::<terri_core::layout::SavedLayout>()
+            .edges()
+            .iter()
+            .copied()
+            .filter(|edge| {
+                !(edge.axis == terri_core::layout::EdgeAxis::Vertical && edge.x == 0 && edge.y == 0)
+            })
+            .collect();
+        sim.world_mut()
+            .insert_resource(terri_core::layout::SavedLayout::EdgeWallsV1 { edges });
+        crate::rooms::initialize(sim.world_mut()).unwrap();
+        assert_eq!(
+            crate::world_geometry::boundary_tiles(
+                sim.world(),
+                sim.world().resource::<terri_core::TileGrid>()
+            ),
+            vec![(0, 0)]
+        );
+    }
     sim.world_mut().despawn(third);
     for person in [first, second] {
         order(&mut sim, person, bed, 0);
@@ -87,7 +112,7 @@ fn staggered_and_simultaneous_completions_release_only_active_use() {
 
 #[test]
 fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments() {
-    let (mut sim, bed, [worker, partner]) = sleeping_pair();
+    let (mut sim, bed, [worker, partner]) = sleeping_pair_with_open_boundary(true);
     // This fixture tests departure from autonomous sleep. A player-owned
     // sleep now delays departure until its order finishes.
     sim.world_mut().entity_mut(worker).remove::<IntentQueue>();
@@ -100,10 +125,6 @@ fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments(
     let mut pack = sim.world().resource::<crate::Content>().0.clone();
     pack.careers = vec![terri_data::pack().careers[0].clone()];
     pack.careers[0].shift_start = 0;
-    pack.lot.front_door = Some((0, 0));
-    pack.lot.house = (12, 12);
-    pack.lot.width = 12;
-    pack.lot.height = 12;
     sim.world_mut()
         .insert_resource(crate::Content(Box::leak(Box::new(pack))));
     sim.world_mut().resource_mut::<SimClock>().tick = 0;

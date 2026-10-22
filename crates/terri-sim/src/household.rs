@@ -291,15 +291,7 @@ pub(crate) fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), Hous
         y: y as f32,
     };
     if crate::world_geometry::current(world) {
-        return crate::world_geometry::boundary_tiles(world, grid)
-            .into_iter()
-            .filter_map(|tile| {
-                let steps = crate::world_geometry::route_home(world, at(tile))?;
-                Some((steps.len(), tile, steps))
-            })
-            .min_by_key(|(len, tile, _)| (*len, *tile))
-            .map(|(_, tile, steps)| (at(tile), steps))
-            .ok_or(HousemateRefusal::NoWayIn);
+        return crate::world_geometry::arrival_route(world).ok_or(HousemateRefusal::NoWayIn);
     }
     let portal = crate::lot_frame::front_portal(world);
     let Some(portal) = portal else {

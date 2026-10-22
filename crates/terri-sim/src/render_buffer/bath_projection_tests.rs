@@ -55,17 +55,22 @@ fn bathtub_projects_all_facings_without_changing_positions_or_saves() {
         // footprint turns around its centre, so the displayed body sits half a
         // tile along the footprint's long axis from the placed position.
         let definition = sim.world().resource::<Content>().0.find("bathtub").unwrap();
-        let socket = &terri_data::pack().object(definition).sockets_at(20.0, 20.0, turn)[0];
+        let socket = &terri_data::pack()
+            .object(definition)
+            .sockets_at(20.0, 20.0, turn)[0];
         assert_eq!((socket.x, socket.y), centre);
         let before_position = *sim.world().get::<Position>(user).unwrap();
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot_v5();
+        let before_save = sim.save_snapshot_v21();
         sim.sync_render_buffer();
         assert_eq!(
             projection_of(sim.render_buffer(), user),
             (visual_action::BATHE, direction, activity::BATHING)
         );
-        assert_eq!(displayed_position_of(sim.render_buffer(), user), (centre, centre));
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), user),
+            (centre, centre)
+        );
         let row = sim
             .render_buffer()
             .ids
@@ -78,16 +83,19 @@ fn bathtub_projects_all_facings_without_changing_positions_or_saves() {
         );
         assert_eq!(*sim.world().get::<Position>(user).unwrap(), before_position);
         assert_eq!(sim.world_hash(), before_hash);
-        assert_eq!(sim.save_snapshot_v5(), before_save);
+        assert_eq!(sim.save_snapshot_v21(), before_save);
         let mut loaded = Sim::new_with_lot(1, 1);
-        loaded.load_snapshot_v5(before_save.clone()).unwrap();
-        assert_eq!(loaded.save_snapshot_v5(), before_save);
+        loaded.load_snapshot_v21(before_save.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v21(), before_save);
         assert_eq!(loaded.world_hash(), before_hash);
         assert_eq!(
             projection_of(loaded.render_buffer(), user),
             (visual_action::BATHE, direction, activity::BATHING)
         );
-        assert_eq!(displayed_position_of(loaded.render_buffer(), user), (centre, centre));
+        assert_eq!(
+            displayed_position_of(loaded.render_buffer(), user),
+            (centre, centre)
+        );
     }
 }
 
@@ -96,14 +104,20 @@ fn mismatched_or_completed_use_does_not_keep_the_bathing_pose() {
     let mut sim = Sim::new_with_lot(48, 48);
     let (user, _) = active_bathtub(&mut sim, Facing::SouthEast);
     sim.sync_render_buffer();
-    assert_eq!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_eq!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     sim.world_mut()
         .entity_mut(user)
         .get_mut::<Target>()
         .unwrap()
         .interaction = 1;
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     sim.world_mut()
         .entity_mut(user)
         .get_mut::<Target>()
@@ -111,7 +125,10 @@ fn mismatched_or_completed_use_does_not_keep_the_bathing_pose() {
         .interaction = 0;
     sim.world_mut().entity_mut(user).remove::<Eating>();
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     assert_eq!(
         displayed_position_of(sim.render_buffer(), user),
         ((19.0, 20.0), (19.0, 20.0))
@@ -123,12 +140,18 @@ fn conflicting_work_or_wrong_object_suppresses_bathing_projection() {
     let mut sim = Sim::new_with_lot(48, 48);
     let (user, _) = active_bathtub(&mut sim, Facing::SouthEast);
     sim.sync_render_buffer();
-    assert_eq!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_eq!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     sim.world_mut()
         .entity_mut(user)
         .insert(terri_core::StepWork { remaining_ticks: 4 });
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     sim.world_mut()
         .entity_mut(user)
         .remove::<terri_core::StepWork>();
@@ -150,7 +173,10 @@ fn conflicting_work_or_wrong_object_suppresses_bathing_projection() {
         .unwrap()
         .object = wrong;
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::BATHE);
+    assert_ne!(
+        projection_of(sim.render_buffer(), user).0,
+        visual_action::BATHE
+    );
     assert_eq!(
         displayed_position_of(sim.render_buffer(), user),
         ((19.0, 20.0), (19.0, 20.0))

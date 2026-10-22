@@ -1751,6 +1751,7 @@ impl Sim {
             social_conflicts::adopt_legacy(&mut restored.world);
         }
         if migrated_geometry {
+            world_geometry::normalize_legacy_occupied_objects(&mut restored.world)?;
             world_geometry::admit_legacy_people(&mut restored.world)?;
             world_geometry::revalidate_routes(&mut restored.world);
         }
@@ -5506,11 +5507,8 @@ mod lot_tests {
         assert!(!grid.is_walkable(3, 5), "(3, 5) is outside a 6x4 lot");
     }
 
-    /// Renamed from `..._and_only_those` when footprints arrived: walls are
-    /// no longer the only blocked tiles, since [F3] blocks every footprint
-    /// tile as well. The four tiles asserted walkable below are chosen clear
-    /// of both objects, so the mutation this kills is unchanged - a
-    /// transposed or single-coordinate `set_blocked`.
+    /// Historical wall cells become ordinary editable perimeters. Their exact
+    /// coordinates still matter; transposed cells must not gain those barriers.
     #[test]
     fn new_from_lot_blocks_every_declared_wall_and_not_its_transpose() {
         let lot = a_lot();
@@ -5518,11 +5516,32 @@ mod lot_tests {
         let grid = sim.world().resource::<TileGrid>();
 
         assert!(!lot.walls.is_empty(), "a lot with no walls blocks nothing");
+        let historical = Sim::new_from_historical_lot(&lot, &one_tile_defs());
         for &(x, y) in &lot.walls {
             assert!(
-                !grid.is_walkable(x as i32, y as i32),
-                "the declared wall at ({x}, {y}) must be unwalkable"
+                !historical
+                    .world()
+                    .resource::<TileGrid>()
+                    .is_walkable(x as i32, y as i32),
+                "frozen constructor retains the old cell body"
             );
+            assert!(
+                grid.is_walkable(x as i32, y as i32),
+                "materialized cell interior at ({x}, {y}) is editable ground"
+            );
+            for (axis, ex, ey) in [
+                (terri_core::layout::EdgeAxis::Vertical, x, y),
+                (terri_core::layout::EdgeAxis::Vertical, x + 1, y),
+                (terri_core::layout::EdgeAxis::Horizontal, x, y),
+                (terri_core::layout::EdgeAxis::Horizontal, x, y + 1),
+            ] {
+                assert_eq!(
+                    sim.world()
+                        .resource::<terri_core::layout::SavedLayout>()
+                        .state_of(terri_core::layout::WallLine { axis, x: ex, y: ey }),
+                    terri_core::layout::WallState::Wall
+                );
+            }
         }
         // The transposes and the cross products of the two declared
         // walls, none of which is a wall. Without these, blocking
@@ -5534,6 +5553,17 @@ mod lot_tests {
             (1, 2, "y alone must not block a tile"),
         ] {
             assert!(grid.is_walkable(x, y), "{why}");
+        }
+        for (a, b) in [
+            ((1, 3), (2, 3)),
+            ((0, 1), (0, 2)),
+            ((2, 0), (3, 0)),
+            ((1, 1), (1, 2)),
+        ] {
+            assert!(
+                grid.can_cross(a, b),
+                "transposed coordinates and full rows/columns must not gain wall edges"
+            );
         }
     }
 
@@ -5652,10 +5682,10 @@ mod lot_tests {
             grid.is_walkable(1, 1),
             "the rectangle runs +x from the origin, not -x - [F2]"
         );
-        // The wall still blocks, so footprints did not replace walls.
+        // Materialization keeps the wall as an edge around its former cell.
         assert!(
-            !grid.is_walkable(6, 0),
-            "the declared wall must still block"
+            grid.is_walkable(6, 0) && !grid.can_cross((6, 0), (6, 1)),
+            "the declared wall's southern perimeter must still block"
         );
     }
 

@@ -161,9 +161,8 @@ fn a_kept_errand_is_not_shown_while_the_worker_is_away() {
     assert!(status.contains(" - step: "), "{status}");
 }
 
-/// Out through the front door and across the yard to the street's exit, at
-/// work there out of sight, then home along a path back through the door to
-/// the landing, paid once.
+/// Leave through the shipped opening and nearest current lot boundary, then
+/// return to reachable saved floor and settle the observed work exactly once.
 #[test]
 fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -172,7 +171,11 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
         sim.world().get::<AtWork>(tim).is_some()
     });
     let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
-    assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
+    assert_eq!(
+        at(&sim, tim),
+        (16.0, 0.0),
+        "at work at the nearest current lot boundary"
+    );
     assert!(
         out.iter().any(|&(x, y)| x > 15.0 && x < 16.0 && y == 2.0),
         "left through the front door"
@@ -181,12 +184,19 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
     let home = walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_none() && sim.world().get::<Commuting>(tim).is_none()
     });
-    assert_eq!(at(&sim, tim), (15.0, 3.0), "home on the landing");
+    assert_eq!(
+        at(&sim, tim),
+        (15.0, 2.0),
+        "home on the nearest reachable saved floor"
+    );
     assert!(
         home.iter().any(|&(x, y)| x > 15.0 && x < 16.0 && y == 2.0),
         "came in through the front door"
     );
-    assert!(home.iter().any(|&(x, _)| x > 17.0), "walked the yard");
+    assert!(
+        home.iter().any(|&(x, y)| x == 16.0 && y > 0.0 && y < 2.0),
+        "walked inward from the selected boundary across the yard"
+    );
     let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(sim.world().resource::<terri_core::Funds>().0, funds + pay);
 }
@@ -224,7 +234,11 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     });
     let arrived_at = sim.world().resource::<terri_core::SimClock>().tick;
 
-    assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
+    assert_eq!(
+        at(&sim, tim),
+        (16.0, 0.0),
+        "at work at the nearest current lot boundary"
+    );
     assert_eq!(
         sim.world().resource::<terri_core::Funds>().0,
         funds,
@@ -233,7 +247,11 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_none() && sim.world().get::<Commuting>(tim).is_none()
     });
-    assert_eq!(at(&sim, tim), (15.0, 3.0), "home on the landing");
+    assert_eq!(
+        at(&sim, tim),
+        (15.0, 2.0),
+        "home on the nearest reachable saved floor"
+    );
     let pay = first_shift_pay_for_arrival(&sim, arrived_at);
     assert_eq!(
         sim.world().resource::<terri_core::Funds>().0,
@@ -252,12 +270,16 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
         sim.world().get::<AtWork>(tim).is_some()
     });
     let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    historical.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    historical
+        .load_snapshot_v5(saved_at_work_on_the_exit(false))
+        .unwrap();
+    let migrated = historical.save_snapshot_v21();
+    historical.load_snapshot_v21(migrated.clone()).unwrap();
+    assert_eq!(historical.save_snapshot_v21(), migrated);
     let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded
         .load_current_v19_view(sim.current_v19_view())
         .unwrap();
-    assert_eq!(historical.save_snapshot_v5(), sim.save_snapshot_v5());
     for _ in 0..600 {
         sim.tick();
         loaded.tick();
@@ -279,6 +301,14 @@ fn saved_at_work_on_the_exit(shut: bool) -> terri_core::SaveSnapshotV5 {
         sim.world().get::<AtWork>(tim).is_some()
     });
     let mut saved = sim.save_snapshot_v5();
+    // This is the frozen V5 exit fixture. Current workers choose actual boundaries.
+    saved
+        .world
+        .entities
+        .iter_mut()
+        .find(|row| row.index == tim.index_u32())
+        .unwrap()
+        .position = Some(terri_core::SavedPosition { x: 19.0, y: 2.0 });
     let SavedLayout::EdgeWallsV1 { edges } = &mut saved.layout else {
         panic!("the shipped house has edge walls");
     };
@@ -402,7 +432,11 @@ fn furniture_saved_on_the_exit_sends_the_worker_by_the_door() {
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
-    assert_eq!(at(&sim, tim), (15.0, 2.0), "at work by the door");
+    assert_eq!(
+        at(&sim, tim),
+        (16.0, 0.0),
+        "a blocked old street exit does not replace current boundary routing"
+    );
 }
 
 /// Review finding [S10]: a worker saved at work a hair short of the exit

@@ -69,22 +69,12 @@ pub(super) fn unowned_collision_cells(world: &World) -> BTreeSet<(u32, u32)> {
     cells
 }
 
-/// Preserve valid placements; resolve actual overlaps by distance then coordinates.
-/// Only generic historical adoption calls this, never a current runtime constructor.
-pub(super) fn normalize_objects(
-    world: &mut World,
-    cells: &BTreeSet<(u32, u32)>,
-) -> Result<(), crate::SaveError> {
-    let (width, height) = {
-        let grid = world.resource::<TileGrid>();
-        (grid.width() as u32, grid.height() as u32)
-    };
-    let mut occupied = cells.clone();
+pub(super) fn people_tiles(world: &World, width: u32, height: u32) -> BTreeSet<(u32, u32)> {
     let mut people = BTreeSet::new();
-    for (actor, position) in world
-        .query_filtered::<(Entity, &Position), With<Agent>>()
-        .iter(world)
-    {
+    let Some(mut query) = world.try_query_filtered::<(Entity, &Position), With<Agent>>() else {
+        return people;
+    };
+    for (actor, position) in query.iter(world) {
         if world.get::<terri_core::AtWork>(actor).is_some() {
             continue;
         }
@@ -96,6 +86,21 @@ pub(super) fn normalize_objects(
             }
         }
     }
+    people
+}
+
+/// Preserve valid placements; resolve actual overlaps by distance then coordinates.
+/// Only generic historical adoption calls this, never a current runtime constructor.
+pub(super) fn normalize_objects(
+    world: &mut World,
+    cells: &BTreeSet<(u32, u32)>,
+) -> Result<(), crate::SaveError> {
+    let (width, height) = {
+        let grid = world.resource::<TileGrid>();
+        (grid.width() as u32, grid.height() as u32)
+    };
+    let mut occupied = cells.clone();
+    let people = people_tiles(world, width, height);
     let mut objects: Vec<_> = world
         .query_filtered::<(Entity, &Position), With<SmartObject>>()
         .iter(world)

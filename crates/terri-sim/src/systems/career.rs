@@ -299,14 +299,14 @@ mod tests {
             sim.world()
                 .get::<Path>(worker)
                 .and_then(|path| path.steps.last().copied()),
-            Some((15, 3)),
-            "the return crosses one authored tile into the lot"
+            None,
+            "the nearest boundary is already saved floor in this open fixture"
         );
         assert_eq!(sim.funds(), 130 * 100, "the completed shift pays once");
 
-        let snapshot = sim.save_snapshot();
+        let snapshot = sim.save_snapshot_v21();
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot(snapshot), Ok(()));
+        assert_eq!(restored.load_snapshot_v21(snapshot), Ok(()));
         assert_eq!(restored.funds(), 130 * 100);
 
         for _ in 0..20 {
@@ -319,7 +319,7 @@ mod tests {
         assert!(restored.world().get::<AtWork>(worker).is_none());
         assert!(restored.world().get::<Commuting>(worker).is_none());
         let position = restored.world().get::<Position>(worker).unwrap();
-        assert_eq!((position.x, position.y), (15.0, 3.0));
+        assert_eq!((position.x, position.y), (0.0, 11.0));
         assert_eq!(
             restored.funds(),
             130 * 100,
@@ -654,14 +654,15 @@ mod tests {
         sim.sync_render_buffer();
         assert_eq!(samples(&sim), ((15.5, 2.0), (15.5, 2.0)));
 
+        let entry = crate::household::arrival(sim.world()).unwrap().0;
         sim.tick();
         sim.sync_render_buffer();
         assert!(sim.world().get::<AtWork>(worker).is_none());
         assert!(sim.world().get::<Commuting>(worker).is_some());
         assert_eq!(
             samples(&sim),
-            ((15.5, 2.0), (15.5, 2.0)),
-            "the first visible interval must not step outward and reverse"
+            ((entry.x,entry.y),(entry.x,entry.y)),
+            "the first visible interval starts at the selected current entry without crossing the lot"
         );
     }
 
@@ -1194,6 +1195,16 @@ mod tests {
         }));
         let pack = with_front_portal(pack, (15, 2), (15, 3));
         let mut sim = test_content::sim_with_portals(16, 12, pack);
+        // A real saved interior-floor destination gives the recall a one-step
+        // return, independently of the catalogue portal's old inward tile.
+        sim.world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>()
+            .tiles
+            .fill(1);
+        sim.world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>()
+            .tiles[2 * 16 + 14] = 0;
+
         let worker = a_worker(&mut sim, 15.0, 2.0);
         sim.world_mut()
             .entity_mut(worker)
@@ -1229,8 +1240,8 @@ mod tests {
         );
         assert_eq!(
             sim.world().get::<Path>(worker).unwrap().steps.last(),
-            Some(&(15, 3)),
-            "the worker follows the authored return route"
+            Some(&(14, 2)),
+            "the worker returns to the reachable saved floor"
         );
         let mut began = false;
         let mut finished = false;
@@ -1487,6 +1498,18 @@ mod tests {
         // starts as a loaded world too. Otherwise the comparison below
         // would measure that one-time draw, not the weekend.
         let mut blank = test_content::sim_with_portals(16, 12, pack);
+        // Give the return an actual one-tile walk. A fully open-floor lot can
+        // complete a zero-step return within one tick and has no walking save point.
+        blank
+            .world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>()
+            .tiles
+            .fill(1);
+        blank
+            .world_mut()
+            .resource_mut::<crate::world_geometry::WorldSurfaces>()
+            .tiles[2 * 16 + 14] = 0;
+
         let worker = a_worker(&mut blank, 15.0, 2.0);
         let identity = blank
             .world_mut()
