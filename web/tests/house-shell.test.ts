@@ -57,6 +57,6 @@ describe('the sky with the house away from the origin', () => {
   it('is what the shell gives both the light field and the sky', () => {
     const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
     expect(MAIN_TS.split('buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows)')).toHaveLength(3);
-    expect(MAIN_TS).toContain('buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin)');
+    expect(MAIN_TS).toContain('buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin, lot.surfaces)');
   });
 });

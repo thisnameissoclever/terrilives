@@ -108,7 +108,11 @@ export class CreatorView {
     this.refreshAnimation();
   }
   private syncStatus():void {
-    this.element('.creator-status').textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError;
+    const loading=!this.appearanceReady&&!this.previewError&&!this.session.error;
+    const status=this.element('.creator-status');
+    status.textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError||(loading?'Loading character...':'');
+    if(this.session.pending||loading){status.setAttribute('data-pending','true');status.setAttribute('aria-busy','true');}
+    else {status.removeAttribute('data-pending');status.removeAttribute('aria-busy');}
     this.element<HTMLButtonElement>('[data-undo]').disabled=this.session.pending||!this.session.draft.canUndo;
     for(const selector of ['[data-global-random]','[data-reset]','[data-cancel]','[data-next]'])this.element<HTMLButtonElement>(selector).disabled=this.session.pending;
     if(this.page==='review'&&(!this.appearanceReady||this.previewError))this.element<HTMLButtonElement>('[data-next]').disabled=true;

@@ -103,6 +103,9 @@
       #startup-loading-step {
         font-size: 15px;
       }
+      #startup-loading-step::before { content: ''; display: inline-block; width: 12px; height: 12px; margin-right: 8px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: startup-spin 0.8s linear infinite; }
+      @keyframes startup-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #startup-loading-step::before { animation: none; } }
       #startup-loading-count,
       #startup-loading-bytes {
         font-size: 14px;
@@ -1552,8 +1555,8 @@
           <div id="room-review-scroll">
             <label for="room-review-group">Change</label><select id="room-review-group"></select>
             <div id="room-review-body"></div>
-            <p id="room-review-status" role="status" aria-live="polite"></p>
           </div>
+          <p id="room-review-status" role="status" aria-live="polite"></p>
           <div id="room-review-actions">
             <button id="room-review-back" class="hud-button" type="button" data-action-intent="negative">Back to build</button>
             <button id="room-review-confirm" class="hud-button" type="button" data-action-intent="affirmative">Confirm changes</button>

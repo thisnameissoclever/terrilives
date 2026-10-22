@@ -84,6 +84,24 @@ function tool() {
   return { buy, source, changes: () => changes };
 }
 
+it('returns to the catalogue while retaining filters, highlight and the current item', () => {
+  const { buy, source } = tool(); buy.enter(); buy.setFilter(FUN); buy.choose(DESK.definition);
+  expect(buy.catalogueOpen).toBe(false); expect(buy.ghost()).not.toBeNull();
+  buy.openCatalogue(); expect(buy.catalogueOpen).toBe(true); expect(buy.ghost()).toBeNull();
+  expect(buy.chosen?.definition).toBe(DESK.definition); expect(buy.filter).toBe(FUN);
+  expect(buy.canBuy).toBe(false); buy.handleKey('Enter'); expect(source.staged).toEqual([]);
+  buy.choose(DESK.definition); expect(buy.catalogueOpen).toBe(false); expect(buy.ghost()).not.toBeNull();
+});
+it('reports placement feedback from the preview and purchase outcome without reading status prose', () => {
+  const { buy, source } = tool(); buy.enter(); source.refused.set('1,1', 'This space is occupied.');
+  buy.choose(CHAIR.definition); buy.moveTo(1, 1); buy.status = 'Unrelated translation';
+  expect(buy.feedback).toMatchObject({ operation: 'buy', state: 'failure', message: 'This space is occupied.' });
+  buy.moveTo(2, 2); expect(buy.feedback).toBeNull(); buy.buy();
+  expect(buy.feedback?.state).toBe('pending');
+  source.result = { definition: CHAIR.definition, object: 42, x: 2, y: 2, facing: CHAIR.baseFacing, reason: null };
+  buy.afterCommands(); expect(buy.feedback?.state).toBe('success');
+});
+
 describe('the catalogue order', () => {
   it('lists by name, and by content order where two names match', () => {
     const twin = { ...CHAIR, definition: 3 };

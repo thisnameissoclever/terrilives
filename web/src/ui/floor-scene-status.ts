@@ -20,6 +20,7 @@ export function createFloorSceneStatus(document: Document, stage: HTMLCanvasElem
   return (blocked, error) => {
     stage.style.visibility = blocked ? 'hidden' : '';
     panel.hidden = !blocked;
+    panel.dataset.pending = String(blocked && error === null);
     text.textContent = error ? 'Floor materials could not load. Try again.' : 'Loading floor materials.';
     button.hidden = error === null;
   };

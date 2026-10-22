@@ -227,6 +227,17 @@ function fixture(handle = SimHandle.from_lot(), review?: (review: BuildReview) =
 }
 
 describe('the footer', () => {
+  it('drops the rest of a double-click while asynchronous native review is open', async () => {
+    let finish: ((adopted: boolean) => void) | undefined;
+    const f = fixture(new SimHandle(10, 8), () => new Promise<boolean>(resolve => { finish = resolve; }));
+    const nextAction = new FakeElement(f.doc), activated = vi.fn(); nextAction.addEventListener('click', activated);
+    try {
+      f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 }); f.sim.flushCommands(); f.builder.enter();
+      for (let y = 1; y <= 5; y++) { f.sim.setWallEdge(0, 4, y, 1); f.sim.flushCommands(); }
+      f.doc.click(f.confirmButton, 1); expect(f.exit.resolving).toBe(true);
+      expect(f.doc.click(nextAction, 2)).toBe(false); expect(activated).not.toHaveBeenCalled();
+    } finally { finish?.(false); await vi.waitFor(() => expect(f.exit.resolving).toBe(false)); f.handle.free(); }
+  });
   it.each(['exit', 'land'])('guards native held Enter across %s opening and a deliberate Keep focus restoration', destination => {
     const f = fixture();
     try {
@@ -303,7 +314,7 @@ describe('the footer', () => {
       f.enterWithMove();
       const moved = f.sim.saveBytes();
       // A second move to a place furniture cannot go: Confirm must not drop it.
-      f.builder.select(22); f.builder.moveTo(15, 2);
+      f.builder.select(22); f.builder.moveTo(-1, 2);
       expect(f.builder.preview?.valid).toBe(false);
       f.confirmButton.click();
       expect(f.builder.active).toBe(true);
@@ -349,6 +360,7 @@ it.each(['adopt', 'back', 'dismiss', 'load'] as const)('defers explicit exit unt
       expect(f.session.loadBytes(saved)).toBe(true); f.exit.dismiss(); controller.reset();
     } else {
       if (action === 'dismiss') f.exit.dismiss();
+      expect(await controller.confirm()).toBe(false); expect(controller.accessActive).toBe(true);
       expect(await controller.confirm()).toBe(true);
     }
     expect(await operation).toBe(action === 'adopt');
@@ -456,7 +468,7 @@ describe('leaving another way while changes are pending', () => {
     const f = fixture();
     try {
       f.builder.enter();
-      f.builder.select(15); f.builder.moveTo(15, 2);
+      f.builder.select(15); f.builder.moveTo(-1, 2);
       expect(f.builder.preview?.valid).toBe(false);
       expect(f.session.hasChanges()).toBe(false);
       f.clickExit();
@@ -534,7 +546,9 @@ describe('leaving with nothing pending', () => {
       expect([f.builder.active, f.dialog.open]).toEqual([false, false]);
       // A move the game refused changed nothing either.
       f.builder.enter();
-      expect(f.sim.placeObject(15, 15, 2, f.sim.objectFacing(15)!)).toBe(true);
+      const outside = f.handle.lot_width();
+      expect(f.sim.placementPreview(15, outside, 2, f.sim.objectFacing(15)!).valid).toBe(false);
+      expect(f.sim.placeObject(15, outside, 2, f.sim.objectFacing(15)!)).toBe(true);
       f.sim.flushCommands();
       expect(f.sim.lastPlacementResult()?.reason).not.toBeNull();
       f.clickExit();

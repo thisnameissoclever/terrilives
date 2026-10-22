@@ -33,6 +33,7 @@ import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
 import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
+import { FeedbackLifetime, PendingIndicator, SceneFeedback } from './ui/operation-feedback.js';
 import { screenX, screenY } from './render/iso.js';
 import type { BuildReview } from './rooms/codec.js';
 import { FloorTool } from './ui/floor-tool.js';
@@ -438,6 +439,8 @@ async function main(): Promise<void> {
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
   const commandStatus: HTMLElement = commandStatusElement;
+  document.body.append(commandStatus);
+  const sceneFeedback = new SceneFeedback(commandStatus);
   const persistence = new PersistenceController(
     createSaveStore(),
     buildSession,
@@ -2093,6 +2096,7 @@ async function main(): Promise<void> {
     escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
     escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
+    focusReviewReturn: () => { if (roomReview.active) document.querySelector<HTMLButtonElement>('#room-review-back')?.focus(); },
   });
   replaceBuildLocalState = reason => {
     buildExit.dismiss(); roomReview.reset(); roomSelection.reset();
@@ -2110,7 +2114,7 @@ async function main(): Promise<void> {
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
       clearSelection: () => clearBuildSelection(buildTools, builder),
       suspended: () => optionsMenu.isOpen() || roomReview.active,
-      focusCatalogue: () => buyControls?.focusCatalogue() },
+      focusCatalogue: () => buyControls?.focusCatalogue(), retryFloorResources: () => floorResources.retry() },
     createContextSurface(document, placementRoot, stage,
       () => {
         const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
@@ -2133,6 +2137,24 @@ async function main(): Promise<void> {
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
+  const toolFeedback = document.createElement('p'); toolFeedback.id = 'tool-feedback'; toolFeedback.hidden = true;
+  toolFeedback.setAttribute('aria-hidden', 'true');
+  const toolFeedbackLifetime = new FeedbackLifetime();
+  let highlightRevision = sim.lotRevision();
+  const renderBuildFeedback = (now: number): void => {
+    if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
+    sceneFeedback.frame(now);
+    const active = buyTool.active ? buyTool : wallTool.active ? wallTool : roomTool.active ? roomTool : floorTool.active ? floorTool : builder;
+    const feedback = builder.active && !roomReview.active ? toolFeedbackLifetime.read(active.feedback, now) : null;
+    const anchored = active === buyTool ? !!buyTool.ghost() : active === wallTool ? !!wallTool.line
+      : active === roomTool ? !!roomTool.first : active === floorTool ? !!floorTool.tile : !!builder.preview;
+    toolFeedback.hidden = !feedback || anchored;
+    if (toolFeedback.textContent !== (feedback?.message ?? '')) toolFeedback.textContent = feedback?.message ?? '';
+    toolFeedback.dataset.state = feedback?.state ?? '';
+    const panel = document.getElementById(active === buyTool ? 'buy-tool' : active === wallTool ? 'wall-tool'
+      : active === roomTool ? 'room-tool' : active === floorTool ? 'floor-tool' : 'furniture-tool');
+    if (panel && toolFeedback.parentElement !== panel) panel.append(toolFeedback);
+  };
   installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactBuildQuery.matches);
@@ -2408,13 +2430,14 @@ async function main(): Promise<void> {
   graphicsStatus.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:20px;background:#202630;color:white;z-index:5';
   const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';setActionIntent(graphicsRetry,'affirmative');
   graphicsStatus.append(graphicsText,graphicsRetry);document.body.append(graphicsStatus);
+  const graphicsPending = new PendingIndicator(graphicsText);
   let recoveryPending=false;
   const deviceLifetime=new DeviceLifetime();
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     void audio.setBackgrounded(true);
     overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
-    graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
+    graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics...';graphicsPending.start();
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
       Object.assign(gpu,await initDevice(stage));
@@ -2429,8 +2452,8 @@ async function main(): Promise<void> {
       graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
       previousFrameMs=performance.now();cameraDirty=true;overlayPause.resume('graphics');
       void audio.setBackgrounded(false);
-    }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart. Your game is still available to save. Try again.';graphicsRetry.hidden=false;}
-    finally{recoveryPending=false;}
+    }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart.';graphicsRetry.hidden=false;}
+    finally{recoveryPending=false;graphicsPending.stop();}
   };
   function watchGraphics(device:GPUDevice):void {deviceLifetime.watch(device,()=>{if(!graphicsClosed&&device===gpu.device)void recoverGraphics();});}
   graphicsRetry.addEventListener('click',()=>void recoverGraphics());watchGraphics(gpu.device);
@@ -2498,6 +2521,7 @@ async function main(): Promise<void> {
     floorTool.afterCommands();
     buyTool.afterCommands();
     landTool.afterCommands();
+    renderBuildFeedback(nowMs);
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands();
     syncCharacterContacts();

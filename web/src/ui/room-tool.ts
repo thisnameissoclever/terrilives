@@ -9,6 +9,7 @@ import { DOORWAY_MENDS, type EdgeLine, type RoomPreview, type SimBridge } from '
 import type { TileHighlight } from '../render/placement-preview.js';
 import { nearestLine } from './wall-tool.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
 type RoomSource = Pick<SimBridge, 'roomEditPreview' | 'buildRoom' | 'lastRoomResult' | 'lotRevision'>;
 
@@ -59,6 +60,13 @@ export class RoomTool {
   second: Tile | null = null;
   doorway: EdgeLine | null = null;
   status = CHOOSE_CORNER;
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    if (this.pending) return operationFeedback('room', 'pending', 'Room', 'Building room...');
+    if (this.outcome) return this.outcome;
+    return this.preview && !this.preview.valid ? operationFeedback('room', 'failure', 'Room',
+      this.refusal(this.preview.reason ?? 'That room is not possible.', this.preview.code), 'edit') : null;
+  }
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
   doorwayMode = false;
@@ -165,6 +173,7 @@ export class RoomTool {
       this.status = BUILDING;
     } else {
       this.status = NOT_SENT;
+      this.outcome = operationFeedback('room', 'failure', 'Room', NOT_SENT);
     }
     this.hooks.changed();
   }
@@ -219,6 +228,7 @@ export class RoomTool {
         if (result.reason === null) this.clear();
         else this.refresh();
         this.status = result.reason === null ? BUILT : this.refusal(result.reason, result.code);
+        this.outcome = operationFeedback('room', result.reason === null ? 'success' : 'failure', 'Room', this.status, result.reason === null ? undefined : 'edit');
         if (result.reason !== null) logWarning('Rooms', 'Room build refused.', { ...result });
         this.hooks.changed();
         return;
@@ -267,6 +277,7 @@ export class RoomTool {
   }
 
   private refresh(): void {
+    this.outcome = null;
     const first = this.first;
     const second = this.second;
     if (first === null) {
@@ -318,6 +329,7 @@ export class RoomTool {
   }
 
   private clear(): void {
+    this.outcome = null;
     this.doorwayMode = false;
     this.sent = null;
     this.first = null;

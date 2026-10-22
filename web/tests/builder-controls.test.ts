@@ -88,7 +88,7 @@ it('moves one live control panel between hosts and routes native control events 
   expect(node('builder-desktop').children).toEqual([]);
   expect(node('builder-dock').children).toEqual([panel]);
   expect(selector.value).toBe('15');
-  builder.moveTo(15, 2);
+  builder.moveTo(-1, 2);
   expect(!action('confirm')?.enabled).toBe(true);
   expect(node('builder-status').attributes.get('data-valid')).toBe('false');
   builder.moveTo(7, 0);

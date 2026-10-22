@@ -40,7 +40,7 @@ export class FloorToolControls {
   }
 
   render(): void {
-    this.status.textContent = this.tool.resourceStatus ?? this.tool.status;
+    this.status.textContent = this.tool.feedback?.message ?? this.tool.status;
     if (this.retryButton) this.retryButton.hidden = !this.tool.resourceFailed;
   }
 }

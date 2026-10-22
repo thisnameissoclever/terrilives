@@ -1,4 +1,5 @@
 import { windowReason, type SimBridge } from '../bridge.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 import { coveredWindowLines, decodeWindowPlacements, windowAt, type WindowDefinition,
   type WindowEditPreview, type WindowModelId, type WindowPlacement } from '../architecture/windows.js';
 import { lineMarks, type TileHighlight } from '../render/placement-preview.js';
@@ -20,6 +21,13 @@ export class WindowTool {
   chosen: WindowModelId;
   pending: 'fit' | 'remove' | null = null;
   status = CHOOSE;
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    if (this.pending !== null) return operationFeedback('window', 'pending', 'Window', 'Applying window change...');
+    if (this.outcome) return this.outcome;
+    return this.candidate && !this.candidate.valid ? operationFeedback('window', 'failure', 'Window',
+      windowReason(this.candidate.reason) ?? 'That window change is not possible.', 'edit') : null;
+  }
   readonly catalogue: readonly WindowDefinition[];
   private candidate: WindowEditPreview | null = null;
   private removal: WindowEditPreview | null = null;
@@ -103,7 +111,7 @@ export class WindowTool {
       ? this.source.fitWindow(line.axis, line.x, line.y, this.chosen)
       : this.source.removeWindow(line.axis, line.x, line.y);
     if (accepted) { this.pending = action; this.status = 'Applying window change.'; }
-    else this.status = 'That change could not be sent.';
+    else { this.status = 'That change could not be sent.'; this.outcome = operationFeedback('window', 'failure', 'Window', this.status); }
     this.hooks.changed();
   }
   handleKey(key: string): boolean {
@@ -143,6 +151,7 @@ export class WindowTool {
       if (!this.active) { this.clear(); return; }
       this.refresh();
       this.status = windowReason(result.reason) ?? (action === 'fit' ? 'Window fitted.' : 'Window removed.');
+      this.outcome = operationFeedback('window', result.reason === 0 ? 'success' : 'failure', 'Window', this.status, result.reason === 0 ? undefined : 'edit');
       if (result.reason !== 0) logWarning('Windows', 'Window edit refused.', { action, code: result.reason, reason: this.status, line: this.line });
       this.hooks.changed();
     } else if (changed && this.active && this.line) { this.refresh(); this.hooks.changed(); }
@@ -169,10 +178,12 @@ export class WindowTool {
     return { lines, valid: lines.map(() => valid) };
   }
   private clear(): void {
+    this.outcome = null;
     this.line = null; this.selectedLine = null; this.owner = null; this.pending = null; this.candidate = null;
     this.removal = null; this.shownHighlight = null; this.status = CHOOSE; this.hooks.changed();
   }
   private refresh(): void {
+    this.outcome = null;
     if (!this.line) return;
     this.owner = this.ownerAt(this.line);
     if (this.owner && !coveredWindowLines(this.owner, this.catalogue).some(line =>

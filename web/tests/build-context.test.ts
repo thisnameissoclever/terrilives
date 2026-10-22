@@ -21,6 +21,7 @@ beforeAll(async () => {
 function fixture(singleFacing = false) {
   const handle = SimHandle.from_lot();
   const source = new SimBridge(handle, memory);
+  expect(source.beginBuild().ok).toBe(true);
   if (singleFacing) {
     const catalogue = source.catalogue();
     vi.spyOn(source, 'catalogue').mockReturnValue(catalogue.map((item, index) =>
@@ -37,6 +38,15 @@ function fixture(singleFacing = false) {
   furniture.enter();
   return { handle, source, ...tools, tools };
 }
+
+it('keeps the placement refusal with Buy and exposes the real catalogue return action', () => {
+  const f = fixture();
+  try { f.buy.enter(); f.buy.choose(f.buy.items[0].definition); f.buy.moveTo(-1, -1);
+    const model = contextModel(f.tools)!;
+    expect(model.feedback).toMatchObject({ state: 'failure', message: f.buy.preview!.reason });
+    expect(model.actions.find(action => action.id === 'choose')?.label).toBe('Back to catalogue');
+  } finally { f.handle.free(); }
+});
 
 describe('context actions use the active controller', () => {
   it('shows nothing without a selection, outside Build, or while a dialog suspends it', () => {

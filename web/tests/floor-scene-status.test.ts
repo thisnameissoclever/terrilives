@@ -4,6 +4,7 @@ import { createFloorSceneStatus } from '../src/ui/floor-scene-status.js';
 interface ElementFixture {
   id: string; hidden: boolean; textContent: string; type: string; className: string;
   style: { visibility: string }; attributes: Record<string, string>;
+  dataset: Record<string, string>;
   children: ElementFixture[]; listeners: Record<string, () => void>;
   setAttribute(name: string, value: string): void;
   append(...items: ElementFixture[]): void;
@@ -11,7 +12,7 @@ interface ElementFixture {
 }
 function element(): ElementFixture {
   return { id: '', hidden: false, textContent: '', type: '', className: '', style: { visibility: '' },
-    attributes: {} as Record<string, string>, children: [] as ReturnType<typeof element>[],
+    attributes: {} as Record<string, string>, dataset: {}, children: [] as ReturnType<typeof element>[],
     listeners: {} as Record<string, () => void>,
     setAttribute(name: string, value: string) { this.attributes[name] = value; },
     append(...items: ReturnType<typeof element>[]) { this.children.push(...items); },
@@ -28,11 +29,13 @@ it('shows an explicit scene status and Retry while leaving other application con
   expect(panel.attributes.role).toBe('status');
   expect(panel.hidden).toBe(true);
   update(true, null);
+  expect(panel.dataset.pending).toBe('true');
   expect(stage.style.visibility).toBe('hidden');
   expect(panel.hidden).toBe(false);
   expect(text.textContent).toBe('Loading floor materials.');
   expect(retry.hidden).toBe(true);
   update(true, 'offline');
+  expect(panel.dataset.pending).toBe('false');
   expect(text.textContent).toBe('Floor materials could not load. Try again.');
   expect(retry.hidden).toBe(false);
   retry.listeners.click();

@@ -1,5 +1,6 @@
 import type { SaveStore } from '../storage/save-store.js';
 import { CURRENT_SAVE_VERSION, saveSchemaVersion } from '../storage/save-header.js';
+import { PendingIndicator } from './operation-feedback.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -96,6 +97,7 @@ export class PersistenceController {
   private savedGameAvailable = false;
   private savingPaused = false;
   private activeOperation: PersistenceOperation | null = null;
+  private readonly pendingIndicator: PendingIndicator;
 
   constructor(
     private readonly store: SaveStore,
@@ -103,7 +105,7 @@ export class PersistenceController {
     private readonly status: SaveStatusTarget,
     private readonly reportError: (error: unknown) => void = () => {},
     private readonly loadPrepared:(bytes:Uint8Array)=>boolean|Promise<boolean>=bytes=>this.sim.loadBytes(bytes),
-  ) {}
+  ) { this.pendingIndicator = new PendingIndicator(status); }
 
   async restoreAtStartup(): Promise<StartupRestore> {
     try {
@@ -268,11 +270,15 @@ export class PersistenceController {
   private beginOperation(operation: PersistenceOperation): boolean {
     if (this.activeOperation !== null) return false;
     this.activeOperation = operation;
+    this.pendingIndicator.start();
     return true;
   }
 
   private finishOperation(operation: PersistenceOperation): void {
-    if (this.activeOperation === operation) this.activeOperation = null;
+    if (this.activeOperation === operation) {
+      this.activeOperation = null;
+      this.pendingIndicator.stop();
+    }
   }
 
   private show(message: string, error = false): void {

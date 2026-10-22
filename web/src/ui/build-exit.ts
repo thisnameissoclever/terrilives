@@ -25,6 +25,8 @@ export interface BuildExitHooks {
   escapeAllowed(): boolean;
   /** Closes anything the dialog would otherwise leave open behind it. */
   beforeAsk?(): void;
+  /** Restores the safe choice after a suppressed continuation click touches a review. */
+  focusReviewReturn?(): void;
   /** Why the latest Confirm was refused, or empty when it was not refused with a reason. */
   refusal?(): string;
 }
@@ -211,7 +213,7 @@ export class BuildExit {
         event.preventDefault();
         event.stopPropagation();
         // Its press already moved focus to what it landed on.
-        if (this.dialog.open) this.keep.focus();
+        if (this.dialog.open) this.keep.focus(); else this.hooks.focusReviewReturn?.();
         return;
       }
     }
@@ -273,6 +275,8 @@ export class BuildExit {
   private confirmBatch(cause: PointerClick | null, fromDialog = false): boolean | Promise<boolean> {
     if (this.confirming) return false;
     this.confirming = true;
+    this.armAgainstTheRestOf(cause);
+    this.guardActivationKey = true;
     const generation = ++this.continuation;
     const finish = (adopted: boolean) => {
       this.confirming = false;

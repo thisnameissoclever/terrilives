@@ -9,6 +9,18 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
+/** Identify ordinary doors by their physical edge, independently of their exported row order. */
+function portalRows(sim: SimBridge) {
+  const near = sim.portalPositions(), far = sim.portalFarSides();
+  return new Map(Array.from({ length: sim.portalCount }, (_, index) => {
+    const position = [near[index * 2], near[index * 2 + 1]], farSide = [far[index * 2], far[index * 2 + 1]];
+    const key = position[1] === farSide[1] ? `0:${farSide[0]},${position[1]}` : `1:${position[0]},${farSide[1]}`;
+    return [key, { index, position, farSide, depth: sim.portalDepthOffsets()[index], frame: sim.portalFrames()[index],
+      leaf: sim.portalLeaves(false)[index], state: sim.portalStates()[index] }] as const;
+  }));
+}
+const DOOR_KEYS = ['0:6,9', '0:8,2', '0:12,8', '0:16,2', '1:3,6', '1:13,6'];
+
 /** Observe paid time independently of the attendance report while exercising doors. */
 function observeShiftPayment(sim: SimBridge) {
   const ids = Array.from(sim.ids()), kinds = Array.from(sim.kinds());
@@ -66,10 +78,10 @@ describe('front door through the release WASM bridge', () => {
       expect(new TextDecoder().decode(bytes.slice(0, 8))).toBe('TERRISAV');
       expect(Array.from(bytes.slice(8, 10))).toEqual([2, 0]);
       expect(sim.loadBytes(bytes)).toBe(true);
-      // The front door, then a door in each of the three vertical and two horizontal doorways
-      // ([DR-derived]).
       expect(sim.portalCount).toBe(6);
-      expect(Array.from(sim.portalPositions().slice(0, 2))).toEqual([15, 2]);
+      const doors = portalRows(sim);
+      expect([...doors.keys()].sort()).toEqual([...DOOR_KEYS].sort());
+      expect(doors.get('0:16,2')?.position).toEqual([15, 2]);
       const migrated = sim.saveBytes();
       expect(migrated).not.toEqual(bytes);
       expect(sim.loadBytes(migrated)).toBe(true);
@@ -98,10 +110,11 @@ describe('front door through the release WASM bridge', () => {
       expect(sim.loadBytes(migrated)).toBe(true);
       expect(sim.saveBytes()).toEqual(migrated);
       const payment = observeShiftPayment(sim);
+      const front = portalRows(sim).get('0:16,2')!.index;
       const seen = new Set<number>();
       for (let tick = 0; tick < 1000; tick++) {
         payment.tick();
-        seen.add(sim.portalStates()[0]);
+        seen.add(sim.portalStates()[front]);
       }
       expect([...seen].sort()).toEqual([0, 1, 2, 3]);
       payment.assertSettled();
@@ -113,18 +126,18 @@ describe('front door through the release WASM bridge', () => {
   it('reacquires each zero-copy portal column after memory growth', () => {
     const handle = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
-    // The front door, then a door in each of the shipped lot's doorways,
-    // anchored on the near tile's +X or +Y edge ([DR-derived]).
-    expect(Array.from(sim.interiorDoorLines())).toEqual([6, 9, 8, 2, 12, 8]);
+    expect(Array.from(sim.interiorDoorLines())).toEqual([6, 9, 8, 2, 12, 8, 16, 2]);
     expect(Array.from(sim.interiorHorizontalDoorLines())).toEqual([3, 6, 13, 6]);
     expect(sim.portalCount).toBe(6);
-    expect(Array.from(sim.portalPositions())).toEqual([15, 2, 5, 9, 7, 2, 11, 8, 3, 5, 13, 5]);
-    expect(Array.from(sim.portalDepthOffsets())).toEqual([0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
-    // Outside the front door, then the tile right of each door's line.
-    expect(Array.from(sim.portalFarSides())).toEqual([16, 2, 6, 9, 8, 2, 12, 8, 3, 6, 13, 6]);
-    expect(Array.from(sim.portalFrames())).toEqual(Array(6).fill(spriteIndex('frontDoorFrameSELeft')));
-    expect(Array.from(sim.portalLeaves(false))).toEqual(Array(6).fill(spriteIndex('frontDoorClosedSELeft')));
-    expect(Array.from(sim.portalStates())).toEqual([0, 0, 0, 0, 0, 0]);
+    const rows = portalRows(sim);
+    expect([...rows.keys()].sort()).toEqual([...DOOR_KEYS].sort());
+    for (const [key, position, farSide] of [
+      ['0:6,9', [5,9], [6,9]], ['0:8,2', [7,2], [8,2]], ['0:12,8', [11,8], [12,8]],
+      ['0:16,2', [15,2], [16,2]], ['1:3,6', [3,5], [3,6]], ['1:13,6', [13,5], [13,6]],
+    ] as const) {
+      expect(rows.get(key)).toMatchObject({ position, farSide, depth: 0.5, state: 0,
+        frame: spriteIndex('frontDoorFrameSELeft'), leaf: spriteIndex('frontDoorClosedSELeft') });
+    }
     const oldViews = [sim.portalPositions(), sim.portalFrames(), sim.portalLeaves(false),
       sim.portalLeaves(true), sim.portalStates(), sim.portalDepthOffsets(), sim.portalFarSides(), sim.portalOpenness(), sim.portalPreviousOpenness()];
     for (const view of oldViews) expect(view.buffer).toBe(memory.buffer);
@@ -146,16 +159,17 @@ describe('front door through the release WASM bridge', () => {
     const loadedHandle = SimHandle.from_lot();
     const loaded = new SimBridge(loadedHandle, memory);
     const seen = new Set<number>();
+    const front = portalRows(sim).get('0:16,2')!.index;
     let sawWork = false;
     let sawReturn = false;
     for (let tick = 0; tick < 1100; tick++) {
       sim.tick();
-      const state = sim.portalStates()[0];
+      const state = sim.portalStates()[front];
       seen.add(state);
       const working = sim.activities().some(activity => activity === 6);
       sawReturn ||= sawWork && !working;
       sawWork ||= working;
-      expect(sim.portalLeaves(true)[0]).toBe(spriteIndex(
+      expect(sim.portalLeaves(true)[front]).toBe(spriteIndex(
         state === 0 ? 'frontDoorClosedSELeft' : 'frontDoorOpenSELeft'));
       if (state !== 0) {
         const saved = sim.saveBytes();

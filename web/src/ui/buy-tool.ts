@@ -7,6 +7,7 @@
 
 import type { CatalogueItem, PlacementPreview, SimBridge } from '../bridge.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
 type BuySource = Pick<SimBridge, 'catalogue' | 'purchasePreview' | 'buyObject' |
   'lastPurchaseResult' | 'lotRevision' | 'funds' | 'colourwayNames' | 'buyObjectInColourway'>;
@@ -33,6 +34,8 @@ interface Sent { readonly definition: number; readonly x: number; readonly y: nu
 
 export class BuyTool {
   active = false;
+  catalogueOpen = true;
+  private outcome: OperationFeedback | null = null;
   readonly items: readonly CatalogueItem[];
   chosen: CatalogueItem | null = null;
   /** The need the list is narrowed to, by need index, or null for everything ([CB-filter]). */
@@ -65,6 +68,18 @@ export class BuyTool {
   }
 
   get pending(): boolean { return this.sent !== null; }
+  get feedback(): OperationFeedback | null {
+    if (this.catalogueOpen) return null;
+    const target = this.chosen?.name ?? 'Furniture';
+    if (this.pending) return operationFeedback('buy', 'pending', target, `Buying ${target}...`);
+    if (this.outcome) return this.outcome;
+    return this.preview && !this.preview.valid ? operationFeedback('buy', 'failure', target,
+      this.preview.reason ?? UNAVAILABLE, 'move') : null;
+  }
+  openCatalogue(): void {
+    if (!this.active || this.pending || this.blocked) return;
+    this.catalogueOpen = true; this.outcome = null; this.hooks.changed();
+  }
 
   get canRotate(): boolean {
     const mask = this.chosen?.facings ?? 0;
@@ -72,7 +87,7 @@ export class BuyTool {
   }
 
   get canBuy(): boolean {
-    return this.active && !this.blocked && !this.pending && this.chosen !== null
+    return this.active && !this.catalogueOpen && !this.blocked && !this.pending && this.chosen !== null
       && this.preview?.valid === true;
   }
 
@@ -135,9 +150,11 @@ export class BuyTool {
     if (!this.active || this.pending || this.blocked) return;
     const item = this.items.find(entry => entry.definition === definition);
     if (!item) return;
+    const facing = this.chosen === item ? this.preview?.facing ?? item.baseFacing : item.baseFacing;
     this.chosen = item;
+    this.catalogueOpen = false;
     const at = this.preview ?? { x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
-    this.query(at.x, at.y, item.baseFacing);
+    this.query(at.x, at.y, facing);
   }
 
   /**
@@ -159,12 +176,12 @@ export class BuyTool {
 
   /** A click or tap on a lot tile. */
   moveTo(x: number, y: number): void {
-    if (!this.active || this.pending || this.blocked || !this.preview) return;
+    if (!this.active || this.catalogueOpen || this.pending || this.blocked || !this.preview) return;
     this.query(x, y, this.preview.facing);
   }
 
   rotate(direction: -1 | 1 = 1): void {
-    if (!this.active || this.pending || this.blocked || !this.preview || !this.canRotate) return;
+    if (!this.active || this.catalogueOpen || this.pending || this.blocked || !this.preview || !this.canRotate) return;
     const mask = this.chosen?.facings ?? 0;
     for (let turn = 1; turn <= 4; turn += 1) {
       const facing = (this.preview.facing + direction * turn + 4) % 4;
@@ -189,6 +206,7 @@ export class BuyTool {
       this.status = BUYING;
     } else {
       this.status = NOT_SENT;
+      this.outcome = operationFeedback('buy', 'failure', chosen.name, NOT_SENT);
     }
     this.hooks.changed();
   }
@@ -241,6 +259,8 @@ export class BuyTool {
         }
         if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${this.chosen?.name ?? 'Furniture'} bought.`;
+        this.outcome = operationFeedback('buy', result.reason === null ? 'success' : 'failure', this.chosen?.name ?? 'Furniture', this.status,
+          result.reason === null ? undefined : 'move');
         if (result.reason !== null) logWarning('Buy', 'Purchase refused.', { ...result });
         this.hooks.changed();
         return;
@@ -282,12 +302,13 @@ export class BuyTool {
 
   /** The ghost to draw, while this is the tool in use. */
   ghost(): PlacementPreview | null {
-    return this.active ? this.preview : null;
+    return this.active && !this.catalogueOpen ? this.preview : null;
   }
 
   private query(x: number, y: number, facing: number): void {
     const chosen = this.chosen;
     if (chosen === null) return;
+    this.outcome = null;
     const preview = this.source.purchasePreview(chosen.definition, x, y, facing);
     // A ghost pushed off the lot still needs its size and art to be drawn
     // red, so they come from a query at a tile that always has them.
@@ -301,6 +322,7 @@ export class BuyTool {
 
   private clear(): void {
     this.sent = null;
+    this.outcome = null; this.catalogueOpen = true;
     this.chosen = null;
     this.preview = null;
     this.status = CHOOSE_ITEM;

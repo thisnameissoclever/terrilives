@@ -46,6 +46,12 @@ function tool() {
   return { room, source };
 }
 
+it('reports room preview refusal without showing ordinary corner instructions as a result', () => {
+  const { source, room } = tool(); room.enter(); expect(room.feedback).toBeNull();
+  source.code = 8; room.choosePoint(1, 1); room.choosePoint(3, 3); room.status = 'Unrelated translation';
+  expect(room.feedback).toMatchObject({ operation: 'room', state: 'failure' });
+});
+
 /** Tiles are centred on whole numbers; a click at a tile's centre. */
 function clickTile(room: RoomTool, x: number, y: number) {
   room.choosePoint(x, y);
@@ -397,6 +403,7 @@ describe('the Room tool on real wasm', () => {
     room.choosePoint(x + 0.55, y);
     expect(room.doorway).toEqual({ axis: 0, x: x + 1, y });
     const revision = bridge.lotRevision();
+    expect(bridge.beginBuild().ok).toBe(true);
     room.build();
     bridge.flushCommands();
     room.afterCommands();
@@ -452,7 +459,7 @@ describe('the Room tool in the page', () => {
       "{ tool: roomsTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
-    expect(MAIN_TS.split('withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)\n          ?? roomTool.highlight()')).toHaveLength(2);
+    expect(MAIN_TS).toMatch(/withHoverLine\(wallTool.highlight\(\), hoverLine, chosenWalls\?\.lines\)[\s\S]*?\?\? roomTool.highlight\(\)/);
   });
 });
 

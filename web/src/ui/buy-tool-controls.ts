@@ -113,6 +113,7 @@ export class BuyToolControls {
   private readonly identity: HTMLElement;
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
+  private catalogueScroll: { element: HTMLElement; left: number; top: number }[] = [];
   /** The card that last had focus, by key, click, Tab or Choose item. */
   private lastFocused: CatalogueCard | null = null;
   /** Draws the pictures the first time the tool is shown, then is dropped. */
@@ -225,7 +226,7 @@ export class BuyToolControls {
       // for, and a press on it does nothing; pressing the chosen card again
       // keeps its ghost and facing.
       button.addEventListener('click', () => {
-        if (!tool.affordable(item) || tool.chosen === item) return;
+        if (!tool.affordable(item)) return;
         tool.choose(item.definition);
         this.render();
       });
@@ -271,8 +272,9 @@ export class BuyToolControls {
 
   /** Choose item: the chosen card, grayed or not, else the first card the grid shows. */
   focusCatalogue(): void {
+    this.tool.openCatalogue(); this.render();
     const cards = this.reachable();
-    (cards.find(card => card.item === this.tool.chosen) ?? cards[0])?.button.focus();
+    (cards.find(card => card.item === this.tool.chosen) ?? cards[0])?.button.focus({ preventScroll: true });
   }
 
   /**
@@ -299,6 +301,15 @@ export class BuyToolControls {
 
   render(): void {
     const tool = this.tool;
+    const reopening = this.grid.hidden && tool.catalogueOpen;
+    if (!this.grid.hidden && !tool.catalogueOpen) {
+      const host = this.grid.ownerDocument.querySelector<HTMLElement>('#builder-controls');
+      this.catalogueScroll = [this.grid, ...(host ? [host] : [])].map(element => ({ element, left: element.scrollLeft, top: element.scrollTop }));
+    }
+    this.grid.hidden = !tool.catalogueOpen;
+    this.roomRow.parentElement?.setAttribute('data-catalogue-open', String(tool.catalogueOpen));
+    this.showRow.parentElement?.setAttribute('data-catalogue-open', String(tool.catalogueOpen));
+    this.clearFilters.hidden = !tool.catalogueOpen;
     const definition = tool.chosen?.definition ?? null;
     if (definition !== this.shownDefinition) {
       this.shownDefinition = definition;
@@ -348,5 +359,6 @@ export class BuyToolControls {
     this.price.textContent = tool.chosen ? `Price: ${formatFunds(tool.chosen.price)}` : '';
     this.status.textContent = tool.status;
     this.status.setAttribute('data-valid', String(tool.preview?.valid ?? true));
+    if (reopening) for (const { element, left, top } of this.catalogueScroll) { element.scrollLeft = left; element.scrollTop = top; }
   }
 }

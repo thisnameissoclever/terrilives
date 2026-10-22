@@ -268,7 +268,7 @@ it.each(['footer', 'exit', 'land'] as const)('correcting refused review input pr
     expect(f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 })).toBe(true); f.sim.flushCommands();
     f.builder.enter(); const baseline = f.sim.saveBytes(), tick = f.sim.clockTick();
     for (let y = 1; y <= 5; y++) { expect(f.sim.setWallEdge(0, 4, y, 1)).toBe(true); f.sim.flushCommands(); }
-    const commit = vi.spyOn(f.sim, 'commitBuild');
+    const commit = vi.spyOn(f.sim, 'commitBuildWithAccessAck');
     if (route === 'footer') f.document.nodes.get('#build-batch-confirm')!.fire('click');
     else {
       if (route === 'land') f.toolSwitch.select('build-tool-land');
@@ -284,6 +284,7 @@ it.each(['footer', 'exit', 'land'] as const)('correcting refused review input pr
     f.roomReview.setName([1, 1], 'Corrected room');
     expect(await f.roomReview.confirm()).toBe(false);
     expect(f.roomReview.active).toBe(true); expect(commit).not.toHaveBeenCalled();
+    expect(await f.roomReview.confirm()).toBe(false); expect(f.roomReview.accessActive).toBe(true);
     expect(await f.roomReview.confirm()).toBe(true);
     await vi.waitFor(() => expect(f.buildExit.resolving).toBe(false));
     expect(commit).toHaveBeenCalledOnce(); expect(f.sim.clockTick()).toBe(tick);
@@ -341,6 +342,7 @@ it.each(['back', 'load', 'graphics'] as const)('cancels native Land review conti
     else {
       f.buildExit.dismiss();
       expect(await f.roomReview.confirm()).toBe(false);
+      expect(await f.roomReview.confirm()).toBe(false); expect(f.roomReview.accessActive).toBe(true);
       expect(await f.roomReview.confirm()).toBe(true);
     }
     await vi.waitFor(() => expect(f.buildExit.resolving).toBe(false));

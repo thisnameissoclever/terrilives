@@ -10,6 +10,7 @@ import { floorReason, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { EDITS_PER_FRAME } from './command-batch.js';
 import { logWarning } from '../diagnostics/log.js';
+import { operationFeedback, type OperationFeedback } from './operation-feedback.js';
 
 /** No added covering. Current base surfaces are saved separately. */
 export const BARE = 0;
@@ -53,6 +54,16 @@ export class FloorTool {
   blocked = false;
   resourceStatus: string | null = null;
   resourceFailed = false;
+  private outcome: OperationFeedback | null = null;
+  get feedback(): OperationFeedback | null {
+    const target = this.chosen === BARE ? 'Floor covering' : this.coverings()[this.chosen - 1];
+    if (this.resourceStatus !== null) return operationFeedback('floor', this.resourceFailed ? 'failure' : 'pending', target,
+      this.resourceFailed ? `${target} could not load.` : `Loading ${target}...`, this.resourceFailed ? 'retry' : undefined);
+    if (this.pending !== null) return operationFeedback('floor', 'pending', target, `Applying ${target}...`);
+    if (this.outcome) return this.outcome;
+    const refusal = this.tile ? this.codes(this.chosen).find(code => code !== 0) : undefined;
+    return refusal !== undefined ? operationFeedback('floor', 'failure', target, floorReason(refusal), 'edit') : null;
+  }
   private revision: number;
   private shownHighlight: TileHighlight | null = null;
   /** Whether the next click may be the opposite corner of an area. */
@@ -193,6 +204,7 @@ export class FloorTool {
     } else {
       this.waiting = [];
       this.status = NOT_SENT;
+      this.outcome = operationFeedback('floor', 'failure', this.coverings()[this.chosen - 1] ?? 'Floor', NOT_SENT);
     }
     this.hooks.changed();
   }
@@ -283,6 +295,10 @@ export class FloorTool {
         this.refresh();
         this.status = this.isArea ? this.areaOutcome(done, sent)
           : result.reason === 0 ? this.describe() : this.refusal(result.reason);
+        const updated = this.source.floorTiles(), incomplete = this.isArea && sent.some(([x,y]) => coveringOf(updated, x, y) !== done);
+        const failed = result.reason !== 0 || incomplete;
+        this.outcome = operationFeedback('floor', failed ? 'failure' : 'success', this.coverings()[done - 1] ?? 'Floor',
+          failed ? this.status : 'Floor updated.', failed ? 'edit' : undefined);
         if (result.reason !== 0) logWarning('Floors', 'Floor change refused.', { ...result, code: result.reason });
         this.hooks.changed();
         return;
@@ -309,6 +325,7 @@ export class FloorTool {
   }
 
   private clear(): void {
+    this.outcome = null;
     this.tile = null;
     this.corner = null;
     this.extendable = false;
@@ -343,6 +360,7 @@ export class FloorTool {
   }
 
   private refresh(): void {
+    this.outcome = null;
     const tile = this.tile;
     if (tile === null) return;
     const floors = this.source.floorTiles();

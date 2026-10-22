@@ -49,6 +49,16 @@ function sim(load = true): PersistableSim & { tick: number } {
   };
 }
 
+it('marks storage waits immediately and clears the spinner on success and failure', async () => {
+  const wait = deferred<Uint8Array | null>(), view = status();
+  const backend = store(null); backend.load = () => wait.promise;
+  const controller = new PersistenceController(backend, sim(), view);
+  const load = controller.load(); expect(view.attributes.get('data-pending')).toBe('true');
+  wait.resolve(new Uint8Array([1])); await load; expect(view.attributes.has('data-pending')).toBe(false);
+  backend.load = async () => { throw Error('Storage unavailable'); };
+  await controller.load(); expect(view.attributes.has('data-pending')).toBe(false);
+});
+
 function store(saved: Uint8Array | null): SaveStore & {
   saves: Uint8Array[];
   cleared: number;

@@ -65,7 +65,7 @@ export class BuildSession implements PersistableSim {
       if (!this.settle() || !this.hooks.prepare() || !this.settle()) { this.confirming = false; return false; }
       const prepared = this.source.prepareBuildCommit();
       if (!prepared.ok) { this.refuse('The changes could not be prepared.', prepared.error); this.confirming = false; return false; }
-      if (prepared.value.groups.length || this.hooks.needsReview?.()) {
+      if (prepared.value.groups.length || prepared.value.access.regions.length || prepared.value.access.blockedTargets.length || this.hooks.needsReview?.()) {
         if (!this.hooks.review) { this.error = 'Review the room changes before confirming.'; this.confirming = false; return false; }
         return this.hooks.review(prepared.value).catch(error => {
           this.error = error instanceof Error ? error.message : 'The room review could not be opened.';
@@ -78,7 +78,7 @@ export class BuildSession implements PersistableSim {
       this.confirming = false;
       return committed.ok;
     } catch (error) {
-      this.error = 'The changes could not be confirmed because of an unexpected error. Try Confirm again, or choose Cancel to undo the pending changes.';
+      this.error = 'The changes could not be confirmed. See Console for details.';
       logError('Build', 'Confirm failed unexpectedly.', { error });
       this.confirming = false; return false;
     }
@@ -112,7 +112,7 @@ export class BuildSession implements PersistableSim {
   }
 
   private keepFailure(message: string, error: RoomFailure): void {
-    this.error = `${failureWhat(error)} The pending changes were kept and Build mode stays open.`;
+    this.error = failureWhat(error);
     logError('Build', message, failureDetails(error));
   }
 

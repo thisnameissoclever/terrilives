@@ -21,6 +21,8 @@ export class RoomReviewController {
   group = 0;
   error = '';
   busy = false;
+  accessActive = false;
+  private accessTiles: readonly Point[] = [];
   private edited = false;
   private readonly choices = new Map<string, Choice>();
   private eligible = new Map<string, readonly number[]>();
@@ -39,7 +41,9 @@ export class RoomReviewController {
     const snapshot = this.source.roomSummaries();
     if (snapshot.ok) { this.formerNames = new Map(snapshot.value.rooms.map(room => [room.id, room.name])); this.formerRooms = new Map(snapshot.value.rooms.map(room => [room.id, room])); }
     this.active = true; this.edited = this.choices.size > 0; this.error = '';
-    this.install(review); this.hooks.changed?.();
+    this.install(review);
+    this.accessActive = !review.groups.length && !this.edited && this.hasAccess;
+    this.hooks.changed?.();
   }
   private install(review: BuildReview): void {
     const eligible = new Map<string, readonly number[]>();
@@ -49,6 +53,7 @@ export class RoomReviewController {
       eligible.set(key(room.anchor), result.value);
     }
     this.review = review; this.eligible = eligible;
+    this.accessTiles = [...review.access.regions.flatMap(region => region.tiles), ...review.access.blockedTargets.flatMap(target => target.tiles)];
     this.group = Math.min(this.group, Math.max(0, review.groups.length - 1));
     this.refreshHighlight();
     if (this.unavailableChoices.length) this.error = 'Some retained choices no longer match this layout. Review or remove those choices before confirming.';
@@ -80,10 +85,10 @@ export class RoomReviewController {
     if (!choice) { choice = { anchor }; this.choices.set(key(anchor), choice); }
     return choice;
   }
-  setName(anchor: Point, text: string): void { this.choice(anchor).name = text; this.edited = true; this.error = roomNameError(text) ?? ''; this.hooks.changed?.(); }
+  setName(anchor: Point, text: string): void { this.choice(anchor).name = text; this.edited = true; this.accessActive = false; this.error = roomNameError(text) ?? ''; this.hooks.changed?.(); }
   setInheritance(anchor: Point, id: number | null): void {
     if (id !== null && !this.predecessors(anchor).includes(id)) { this.error = 'That room cannot supply this identity.'; this.hooks.changed?.(); return; }
-    this.choice(anchor).inheritance = id; this.edited = true; this.error = ''; this.hooks.changed?.();
+    this.choice(anchor).inheritance = id; this.edited = true; this.accessActive = false; this.error = ''; this.hooks.changed?.();
   }
   selectGroup(index: number): void {
     if (!this.review || index < 0 || index >= this.review.groups.length) return;
@@ -101,7 +106,12 @@ export class RoomReviewController {
     }
     this.tiles = tiles;
   }
-  highlight(): TileHighlight | null { return this.active ? { tiles: this.tiles, valid: true } : null; }
+  get hasAccess(): boolean { return !!this.review && (this.review.access.regions.length > 0 || this.review.access.blockedTargets.length > 0); }
+  geometryChanged(): void { if (!this.active) { this.accessTiles = []; this.review = null; } }
+  highlight(): TileHighlight | null {
+    if (this.accessTiles.length && (!this.active || this.accessActive)) return { tiles: this.accessTiles, valid: false };
+    return this.active ? { tiles: this.tiles, valid: true } : null;
+  }
   opening(): Point | null {
     const opening = this.review?.groups[this.group]?.openings[0];
     return opening ? [opening.x - (opening.axis === 0 ? 0.5 : 0), opening.y - (opening.axis === 1 ? 0.5 : 0)] : null;
@@ -113,7 +123,7 @@ export class RoomReviewController {
     if (!result.ok) { this.error = this.failures.report('The room review could not be closed.', result.error); this.hooks.refused?.(); this.hooks.changed?.(); return; }
     this.active = false; this.hooks.completed?.(false); this.hooks.changed?.();
   }
-  reset(): void { this.active = false; this.review = null; this.choices.clear(); this.eligible.clear(); this.error = ''; this.edited = false; this.hooks.completed?.(false); this.hooks.changed?.(); }
+  reset(): void { this.active = false; this.accessActive = false; this.accessTiles = []; this.review = null; this.choices.clear(); this.eligible.clear(); this.error = ''; this.edited = false; this.hooks.completed?.(false); this.hooks.changed?.(); }
   async confirm(): Promise<boolean> {
     if (!this.active || this.busy || !this.review) return false;
     if (this.unavailableChoices.length) { this.error = 'Remove or correct the unavailable retained choices first.'; this.hooks.refused?.(); this.hooks.changed?.(); return false; }
@@ -132,11 +142,13 @@ export class RoomReviewController {
         }
         const result = this.source.prepareBuildCommit({ ...choices, inheritance, names }, this.review.token);
         if (!result.ok) { this.refuseConfirm('The room choices could not be prepared.', result.error); return false; }
-        this.install(result.value); this.edited = false; this.error = 'Choices updated. Check the resulting names and duties, then Confirm changes.'; return false;
+        this.install(result.value); this.edited = false; this.error = ''; return false;
       }
-      const result = this.source.commitBuild(this.review.token);
+      if (this.hasAccess && !this.accessActive) { this.accessActive = true; this.error = ''; return false; }
+      if (this.accessActive && !this.source.commitBuildWithAccessAck) { this.error = 'Access review is unavailable. See Console for details.'; return false; }
+      const result = this.accessActive ? this.source.commitBuildWithAccessAck!(this.review.token) : this.source.commitBuild(this.review.token);
       if (!result.ok) { this.refuseConfirm('The reviewed changes could not be committed.', result.error); return false; }
-      this.active = false; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
+      this.active = false; this.accessTiles = []; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'The room review could not be read. Return to Build and try again.';
       logError('Rooms', 'The room review failed unexpectedly.', { error });
@@ -149,6 +161,7 @@ export class RoomReviewControls {
   private signature = '';
   private shown = false;
   private opener: HTMLElement | null = null;
+  private accessShown = false;
   constructor(private readonly document: Document, private readonly controller: RoomReviewController,
     private readonly showOpening: (point: Point) => void, private readonly ownerName: (id: number) => string,
     private readonly personName: (entity: number) => string, private readonly focusFallback: () => void,
@@ -156,6 +169,10 @@ export class RoomReviewControls {
     document.querySelector('#room-review-back')!.addEventListener('click', () => controller.back());
     document.querySelector('#room-review-confirm')!.addEventListener('click', () => { void controller.confirm(); });
     document.querySelector<HTMLSelectElement>('#room-review-group')!.addEventListener('change', event => controller.selectGroup(Number((event.target as HTMLSelectElement).value)));
+    document.querySelector('#room-review')!.addEventListener('keydown', event => {
+      const key = event as KeyboardEvent;
+      if (key.key === 'Escape') { key.preventDefault(); key.stopPropagation(); if (!key.repeat) controller.back(); }
+    });
   }
   render(): void {
     const doc = this.document, controller = this.controller;
@@ -169,13 +186,22 @@ export class RoomReviewControls {
     }
     if (!controller.active || !controller.review) return;
     const heading = doc.querySelector<HTMLElement>('#room-review-heading')!;
-    if (opening) heading.focus();
+    const accessOpening = controller.accessActive && (!this.accessShown || opening);
+    this.accessShown = controller.accessActive;
+    heading.textContent = controller.accessActive ? 'Review unreachable areas' : 'Review room changes';
+    const back = doc.querySelector<HTMLButtonElement>('#room-review-back')!;
+    back.textContent = controller.accessActive ? 'Return to build mode' : 'Back to build';
+    back.disabled = controller.busy;
+    if (accessOpening) back.focus(); else if (opening) heading.focus();
     const submit = doc.querySelector<HTMLButtonElement>('#room-review-confirm')!;
     if (controller.busy && doc.activeElement === submit) heading.focus();
-    submit.disabled = controller.busy; submit.textContent = controller.needsUpdate ? 'Update review' : 'Confirm changes';
+    submit.disabled = controller.busy; submit.textContent = controller.accessActive ? 'Confirm' : controller.needsUpdate ? 'Update review' : controller.hasAccess ? 'Review access' : 'Confirm changes';
     doc.querySelector<HTMLElement>('#room-review-status')!.textContent = controller.error;
     const review = controller.review, selector = doc.querySelector<HTMLSelectElement>('#room-review-group')!;
-    const signature = `${review.token.session}/${review.token.revision}/${review.token.preparation}/${controller.group}`;
+    selector.hidden = controller.accessActive;
+    const selectorLabel = doc.querySelector<HTMLElement>('label[for="room-review-group"]');
+    if (selectorLabel) selectorLabel.hidden = controller.accessActive;
+    const signature = `${review.token.session}/${review.token.revision}/${review.token.preparation}/${controller.group}/${controller.accessActive}`;
     if (signature === this.signature) return;
     this.signature = signature;
     selector.replaceChildren();
@@ -184,6 +210,16 @@ export class RoomReviewControls {
     selector.value = String(controller.group);
     const body = doc.querySelector<HTMLElement>('#room-review-body')!; body.replaceChildren();
     const paragraph = (text: string) => { const p = doc.createElement('p'); p.textContent = text; body.append(p); };
+    if (controller.accessActive) {
+      for (const region of review.access.regions) {
+        if (!region.externalAccess) paragraph(region.people.length
+          ? `${region.people.map(this.personName).join(', ')} cannot reach outside from the highlighted area.`
+          : 'The highlighted area has no external access.');
+        if (region.unreachableBy.length) paragraph(`${region.unreachableBy.map(this.personName).join(', ')} cannot reach the highlighted area.`);
+      }
+      for (const target of review.access.blockedTargets) paragraph(`${this.objectName(target.target)} has no reachable approach.`);
+      return;
+    }
     const group = review.groups[controller.group] ?? { kind: -1, oldIds: [], finalAnchors: review.rooms.flatMap(room => room.anchor ? [room.anchor] : []) };
     paragraph(`Former rooms: ${group.oldIds.map(id => controller.oldName(id)).join(', ')}`);
     if (group.kind === 3) {

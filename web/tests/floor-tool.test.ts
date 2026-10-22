@@ -55,6 +55,15 @@ function tool(): { floors: FloorTool; source: FakeFloors; renders: number } {
   return { floors, source, get renders() { return state.renders; } };
 }
 
+it('reports the selected covering and resource state without parsing the status text', () => {
+  const { floors } = tool(); floors.choose(2); floors.choosePoint(1, 1);
+  floors.setResourceStatus('Unrelated translation');
+  expect(floors.feedback).toMatchObject({ operation: 'floor', state: 'pending', target: 'Tiles' });
+  floors.setResourceStatus('Unrelated translation', true);
+  expect(floors.feedback).toMatchObject({ state: 'failure', target: 'Tiles', recovery: 'retry' });
+  floors.setResourceStatus(null); expect(floors.feedback).toBeNull();
+});
+
 describe('tileAt', () => {
   it('rounds to the tile under a point and refuses one off the lot', () => {
     expect(tileAt(0.4, 1.6, 4, 3)).toEqual([0, 2]);
@@ -374,7 +383,7 @@ describe('the Floors tool in the page', () => {
     floors.choosePoint(1, 1);
     view.render();
     expect(source.staged).toEqual([]);
-    expect(elements.get('floor-status')!.textContent).toBe('Floor materials could not load. Try again.');
+    expect(elements.get('floor-status')!.textContent).toBe('Boards could not load.');
     expect(retry.hidden).toBe(false);
     retry.listeners.click?.();
     expect(retries).toBe(1);

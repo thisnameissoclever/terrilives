@@ -168,7 +168,7 @@ it('restores funds, purchased objects, sold objects, walls and floors together',
 
 it('confirms a perimeter room and reviews enclosure loss before restoring its outer wall', async () => {
   const { handle, sim, session, hooks } = fixture();
-  hooks.review = async review => sim.commitBuild(review.token).ok;
+  hooks.review = async review => sim.commitBuildWithAccessAck(review.token).ok;
   const outerWallPresent = () => {
     const edges = Array.from(sim.wallEdges()!);
     return edges.some((value, i) => i % 4 === 0 && value === 1

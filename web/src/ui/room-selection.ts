@@ -7,7 +7,7 @@ import { logError } from '../diagnostics/log.js';
 
 export type RoomBridge = Pick<SimBridge, 'roomsRevision' | 'roomSummaries' | 'roomTiles' | 'stageRoomName'
   | 'prepareBuildCommit' | 'commitBuild' | 'discardBuildReview' | 'buildComponentTiles' | 'buildComponentPredecessors'>
-  & Partial<Pick<SimBridge, 'buildFailureReport'>>;
+  & Partial<Pick<SimBridge, 'buildFailureReport' | 'commitBuildWithAccessAck'>>;
 
 export function roomNameError(raw: string): string | null {
   if (/[\uD800-\uDFFF]/u.test(raw)) return 'The name contains an incomplete character.';

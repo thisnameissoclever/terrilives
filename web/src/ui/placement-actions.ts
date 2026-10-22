@@ -11,6 +11,7 @@ import { preventMenuSelection } from './menu-selection.js';
 import type { RoomTool } from './room-tool.js';
 import { DOORWAY, OPEN, WALL, WINDOW, type WallTool } from './wall-tool.js';
 import { WALL_FACE_FULL } from './wall-pick.js';
+import { FeedbackLifetime, type OperationFeedback } from './operation-feedback.js';
 
 /** The ghost's tile footprint: its north-west corner and its size. */
 export interface GhostFootprint {
@@ -94,6 +95,7 @@ export interface ContextModel {
   /** World points bounding a selection wider than one spot, so the buttons clear all of it: a run's ends, an area's corners. */
   readonly points?: readonly (readonly [number, number])[];
   readonly actions: readonly ContextAction[];
+  readonly feedback?: OperationFeedback | null;
 }
 export interface ContextTools {
   readonly books?: { readonly active: boolean };
@@ -103,6 +105,7 @@ export interface ContextTools {
   readonly room: RoomTool;
   readonly floors: FloorTool;
   readonly focusCatalogue: () => void;
+  readonly retryFloorResources?: () => void;
   /** The Cancel beside a selection: clears it and keeps the rest of the batch. */
   readonly clearSelection: () => void;
   readonly suspended?: () => boolean;
@@ -131,13 +134,13 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     const ready = walls.pending === null && windows?.pending == null;
     // [WB-height]: the chosen lines stand full height, so the buttons clear the wall and every line of a run.
     const points = lineEnds(windows?.active ? windows.span() : walls.lines());
-    if (windows?.active) return { tool: 'walls', x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
+    if (windows?.active) return { tool: 'walls', feedback: windows.feedback, x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
       action('affirmative', 'fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
       ...(windows.owner ? [action('destructive', 'remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
       action('negative', 'wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
       action('negative', 'clear', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
-    return { tool: 'walls', x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
+    return { tool: 'walls', feedback: walls.feedback, x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
       action('neutral', 'wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
       action('neutral', 'doorway', 'Doorway', 'top', walls.canApply(DOORWAY), () => walls.apply(DOORWAY), 'doorway'),
       action('neutral', 'window', windows ? 'Windows' : 'Window', 'top', windows ? ready : walls.canApply(WINDOW),
@@ -152,7 +155,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     if (!room.first || room.blocked) return null;
     const ready = !room.pending;
     const second = room.second ?? room.first;
-    return { tool: 'room', x: (room.first[0] + second[0]) / 2, y: (room.first[1] + second[1]) / 2, actions: [
+    return { tool: 'room', feedback: room.feedback, x: (room.first[0] + second[0]) / 2, y: (room.first[1] + second[1]) / 2, actions: [
       action('neutral', 'doorway', 'Doorway', 'top', ready && room.second !== null, () => room.chooseDoorway(), 'doorway'),
       action('affirmative', 'build', 'Build room', 'top', room.canBuild, () => room.build(), 'confirm'),
       action('neutral', 'corners', 'Corners', 'top', ready, () => room.restartCorners(), 'corners'),
@@ -167,9 +170,10 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     const xs = tiles.map(tile => tile[0]), ys = tiles.map(tile => tile[1]);
     const [x0, x1, y0, y1] = [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5, Math.min(...ys) - 0.5, Math.max(...ys) + 0.5];
     const points = floors.isArea ? [[x0, y0], [x1, y0], [x0, y1], [x1, y1]] as const : undefined;
-    return { tool: 'floors', x: anchor[0], y: anchor[1], points, actions: [
+    return { tool: 'floors', feedback: floors.feedback, x: anchor[0], y: anchor[1], points, actions: [
       ...floors.coverings().map((name, index) => action('neutral', `floor-${index + 1}`, name, 'top',
         floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
+      ...(floors.resourceFailed && tools.retryFloorResources ? [action('affirmative', 'retry-floor', 'Retry', 'bottom', true, tools.retryFloorResources)] : []),
       action('destructive', 'remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
       action('negative', 'clear', 'Cancel', 'bottom', floors.pending === null, tools.clearSelection, 'clear'),
     ] };
@@ -180,13 +184,13 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const ready = buying ? !buy.pending : !furniture.pending;
   const canRotate = ready && (buying ? buy.canRotate : furniture.canRotate);
   const rotate = (direction: -1 | 1) => buying ? buy.rotate(direction) : furniture.rotate(direction);
-  return { tool: buying ? 'buy' : 'furniture', x: ghost.x + (ghost.width - 1) / 2,
+  return { tool: buying ? 'buy' : 'furniture', feedback: buying ? buy.feedback : furniture.feedback, x: ghost.x + (ghost.width - 1) / 2,
     y: ghost.y + (ghost.depth - 1) / 2, ghost, actions: [
       action('affirmative', 'confirm', buying ? 'Buy' : 'Place', 'top',
         buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm', buying ? buy.chosen?.price : undefined),
       action('neutral', 'left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
       action('neutral', 'right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
-      action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
+      action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Back to catalogue' : 'Sell',
         'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
       action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
@@ -244,15 +248,21 @@ export class BuildContextActions {
   private originY = NaN;
   private width = 0;
   private height = 0;
+  private readonly lifetime = new FeedbackLifetime();
+  private shownFeedback: OperationFeedback | null | undefined;
   constructor(private readonly tools: ContextTools, private readonly surface: ContextSurface,
     private readonly artOf: (ghost: PlacementPreview) => GhostArt) {}
   invalidate(): void { this.dirty = true; }
   frame(camera: ActionsCamera, width: number, height: number): void {
-    const changed = this.dirty;
-    if (changed) {
+    let changed = this.dirty;
+    if (this.dirty) {
       this.dirty = false;
       this.model = contextModel(this.tools);
-      this.surface.render(this.model);
+    }
+    const feedback = this.lifetime.read(this.model?.feedback ?? null);
+    if (changed || feedback !== this.shownFeedback) {
+      this.shownFeedback = feedback; changed = true;
+      this.surface.render(this.model ? { ...this.model, feedback } : null);
     }
     const model = this.model;
     if (!model) return;
@@ -312,6 +322,7 @@ export function createContextSurface(doc: Document, root: HTMLElement, canvas: H
   const options = doc.getElementById('options-panel');
   if (options) new MutationObserver(invalidate).observe(options, { attributes: true, attributeFilter: ['hidden'] });
   const buttons = new Map<string, HTMLButtonElement>();
+  const feedback = doc.createElement('p'); feedback.className = 'context-feedback'; feedback.setAttribute('role', 'status');
   const keepSelectionVisible = (x: number, y: number, left: number, right: number, top: number, bottom: number): void => {
     const targetX = Math.max(left, Math.min(x, right));
     const targetY = Math.max(top, Math.min(y, bottom));
@@ -357,6 +368,11 @@ export function createContextSurface(doc: Document, root: HTMLElement, canvas: H
         if (action.price === undefined) price?.remove();
         else { if (!price) { price = doc.createElement('small'); price.className = 'action-price'; button.append(price); } price.textContent = `$${formatFunds(action.price)}`; }
       }
+      feedback.hidden = !model.feedback;
+      feedback.textContent = model.feedback?.message ?? '';
+      feedback.dataset.state = model.feedback?.state ?? '';
+      feedback.setAttribute('aria-busy', String(model.feedback?.state === 'pending'));
+      groups.get('top')!.append(feedback);
     },
     place(x, top, bottom, width, height) {
       const rect = canvas.getBoundingClientRect();
