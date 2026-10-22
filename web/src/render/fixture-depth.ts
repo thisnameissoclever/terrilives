@@ -127,5 +127,6 @@ export async function uploadFixtureDepth(device:GPUDevice,texture:GPUTexture):Pr
     const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),byte=>byte.toString(16).padStart(2,'0')).join('');
     if(digest!==page.sha256)throw new Error('Fixture companion checksum is invalid.');
     device.queue.writeTexture({texture,origin:[0,0,layer]},data,{bytesPerRow:page.width*4},{width:page.width,height:page.height});
+    await device.queue.onSubmittedWorkDone();
   }
 }

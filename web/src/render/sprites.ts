@@ -245,6 +245,8 @@ export async function loadAtlasTexture(
           { texture, origin: [0, 0, page] },
           { width: bitmap.width, height: bitmap.height },
         );
+        // Bound outstanding uploads independently of compressed download prefetch.
+        await device.queue.onSubmittedWorkDone();
       } finally {
         bitmap.close();
       }
