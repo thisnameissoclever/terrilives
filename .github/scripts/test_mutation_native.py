@@ -82,7 +82,7 @@ class NativeFixture:
             "calibration_evidence": {name: {"size": len(raw), "sha256": artifacts.sha(raw)} for name, raw in self.plan_logs.items()}}
         self.settings = {"repository": "owner/repo", "workflow": tool.WORKFLOW, "workflow_sha": "e" * 40,
             "head_sha": "d" * 40, "run_id": self.run_id, "attempt": 2, "job_id": "3002", "scope": "production", "slot": 0,
-            "log_retention_days": 30, "runner_image": self.base.image, "job_started_at": self.now.isoformat(),
+            "log_retention_days": 30, "runtime": self.base.image, "job_started_at": self.now.isoformat(),
             "build_cap_seconds": 600, "shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}
         self.artifacts, self.jobs = [], {1: [], 2: [], 3: []}
         self.api.probe_job_logs = lambda repository, run_id, attempt, job_id: self.api.calls.append(f"PROBE repos/{repository}/actions/jobs/{job_id}/logs")
@@ -597,8 +597,9 @@ class NativeSnapshotFixture(recovery_tests.SnapshotFixture):
 
 
 # These component bounds cover the measured shared/distinct-root fixtures below.
+# The additional runtime recipe subtree costs one request per independent API cache.
 # Broader valid histories remain subject to WorkflowAPI's unchanged capacity guard.
-REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 202, "measurement": 135}
+REQUEST_COMPONENT_BOUNDS = {"worker": 22, "aggregate": 204, "measurement": 141}
 
 
 def checked_request_components(test, consumers=None, measurement=None):
@@ -636,14 +637,14 @@ class NativeWrapperBudgetTests(unittest.TestCase):
         result = recovery_tests.FullWrapperBudgetTests.exercise(self, 6, 8, fixture=fixture,
             prior_history=6, gap=3, padded=True, extra_sources=1)
         checked_request_components(self, result)
-        self.assertEqual(result["workers"], [20] * 8)
+        self.assertEqual(result["workers"], [22] * 8)
         self.assertIn("repos/owner/repo/git/commits/" + "8" * 40, fixture.api.calls)
         tree_calls = [path for path in fixture.api.calls if "/git/trees/" in path]
         self.assertTrue(all("?" not in path for path in tree_calls))
         self.assertEqual({path.rsplit("/", 1)[-1] for path in tree_calls},
-            {character * 40 for character in "c12345679a"})
+            {character * 40 for character in "c123456789a"} | {tool_tests.AUTHORIZATION_TREE})
         result["distinct_recipe_root_count"] = 3
-        result["shared_subtree_count"] = 2
+        result["shared_subtree_count"] = 4
         result["admitted_total_history_attempts"] = fixture.data["native_admission"]["admitted_total_history_attempts"]
         if destination := os.environ.get("MUTATION_DISTINCT_ROOT_API_COST_REPORT"):
             Path(destination).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
@@ -717,6 +718,7 @@ class NativeGateBudgetTests(unittest.TestCase):
             scratch = Path(f.base.temp.name) / f"gate-client-{index}"
             scratch.mkdir()
             with mock.patch.dict(os.environ, environment), contextlib.redirect_stdout(io.StringIO()), \
+            mock.patch.object(workflow.runtime, "identity", return_value=f.base.image), \
                 mock.patch.object(tool, "committed_contract", return_value=f.base.contract), \
                 mock.patch.object(tool, "authenticate", side_effect=authenticate), \
                 mock.patch.object(runner, "checkout_inventory", return_value=(f.manifest["context"]["checkout"], {})), \
@@ -737,6 +739,7 @@ class NativeGateBudgetTests(unittest.TestCase):
         scratch = Path(f.base.temp.name) / "first-preparation-client"
         scratch.mkdir()
         with mock.patch.dict(os.environ, environment), contextlib.redirect_stdout(io.StringIO()), \
+            mock.patch.object(workflow.runtime, "identity", return_value=f.base.image), \
             mock.patch.object(tool, "committed_contract", return_value=f.base.contract), \
             mock.patch.object(tool, "authenticate", side_effect=authenticate), \
             mock.patch.object(runner, "checkout_inventory", return_value=(f.manifest["context"]["checkout"], {})), \
@@ -785,6 +788,7 @@ class NativePlanBudgetTests(unittest.TestCase):
         def plan(root, settings, calibration, path):
             runner.write_json(path, f.planned)
         with mock.patch.dict(os.environ, environment), contextlib.redirect_stdout(io.StringIO()), \
+            mock.patch.object(workflow.runtime, "identity", return_value=f.base.image), \
             mock.patch.object(tool, "committed_contract", return_value=f.base.contract), \
             mock.patch.object(tool, "authenticate", side_effect=authenticate), \
             mock.patch.object(runner, "checkout_inventory", return_value=(f.manifest["context"]["checkout"], {})), \

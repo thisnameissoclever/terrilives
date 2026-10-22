@@ -12698,7 +12698,7 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 
 **Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
 
-**Verification.** Compare pre-existing non-ASCII text with the base revision and check the zoom-out control in the browser.
+**Verification.** Compare pre-existing non-ASCII text with the base revision. Check affected interface symbols in the browser and run affected Unicode test fixtures. A later fixture-copy edit corrupted an accented test literal through the same implicit Windows decoding; the complete runner test module caught it before delivery.
 
 ## [L-condition-help-states-the-effect] Explain the value directly
 
@@ -13109,3 +13109,87 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 **Prevention.** Keep capture provenance separate from curated article illustrations. Place figures explicitly beside relevant instructions, including in substantive topic articles. Crop controls to readable size while preserving their location context. Use captions only when they add meaning, preserve real desktop/phone differences without repeating identical instructions, and provide a shared device choice with in-page enlargement. Keep essential instructions visible and avoid narrowing tables beside images.
 
 **Verification.** Require a fresh reviewer to reject the known defective presentation before judging the repair. Read actual rendered sections at desktop and phone widths in both themes, including an article outside the UI reference and a long flow such as the creator. Check that each image explains nearby instructions, labels are legible, device selection applies consistently, and enlargement returns the reader to the same place. Passing image-coverage tests does not prove those results.
+
+## [L-qualification-bootstrap-diagnostics] Give the recovery procedure when setup evidence is missing
+
+1. What happened: production test planning reported an empty qualification failure after fixture setup had not completed.
+2. Root cause: discovery found no matching proof and joined an empty rejection list, leaving no explanation of the next action.
+3. Prevention: preserve strict refusal, distinguish missing proof from rejected proof, and name the fixture setup and preparation-rerun procedure. Keep fixture validation separate from production coverage.
+4. Verification: require a missing-proof test to reject planning and include the documented recovery procedure without extra discovery requests. Require real interrupted and resumed fixture completion before accepting hosted qualification.
+
+## [L-release-artifact-reruns] Bind tested release packages to the successful producer attempt
+
+1. What happened: review found that source-only package names could make a healthy rerun fail upload or leave duplicate artifacts. A live API check then found that selecting packages by the latest job's attempt could also reject a healthy partial rerun.
+2. Root cause: one run can retain artifacts from several attempts. GitHub can clone an earlier successful job with a new numeric ID and attempt while preserving its original execution timestamps and steps. The latest job's attempt does not prove that its commands ran again.
+3. Prevention: include the producing attempt in immutable artifact names. Authenticate the latest successful execution, then bind its matching original producer, artifact and receipt. Preserve earlier evidence and refuse a package from a different execution.
+4. Verification: use real API-shaped cloned-job metadata in partial-rerun tests. Retain both packages in a full-web-rerun test. Require refusal when a genuinely newer execution has no package despite an older valid package, or when original and latest execution evidence differs.
+
+## [L-stable-verification-tree] Keep verification inputs stable while a suite runs
+
+1. What happened: a broad Python test run imported an old workflow assertion before an implementation worker changed the workflow and its test. The run later compared the old assertion with the repaired file.
+2. Root cause: integration verification overlapped edits to files that tests import and read at different times.
+3. Prevention: finish worker edits before starting final integration verification. Treat a run spanning source changes as mixed-input evidence rather than a pass for the final tree.
+4. Verification: rerun affected modules after edits stop. Require the complete hosted suite on the immutable committed revision before dependent work proceeds.
+
+## [L-stable-mutation-userspace] Select the environment that the campaign requires
+
+1. What happened: separate hosted jobs received different Ubuntu image versions, so exact runtime authentication stopped fixture planning repeatedly.
+2. Root cause: a rolling runner label does not select one immutable environment across jobs or recovery attempts. Waiting for a rollout to settle cannot guarantee a stable multi-day campaign. The available failure logs established different image labels without establishing whether library bytes also differed.
+3. Prevention: select one reviewed, digest-pinned userspace for every mutation stage. Bind its compiler, executable, library and recipe identities. Retain the hosting machine as separate provenance. Update calibration, workers, native admission and recovery together.
+4. Verification: require the same pinned computation to pass across changed host metadata. Require changed image, inventory, compiler, library, helper or recipe inputs to refuse. Complete a real interrupted/resumed fixture before accepting production planning.
+
+## [L-runtime-image-consumer-contract] Test the image and its consumer together
+
+1. What happened: an image declared the intended Cargo worker count, while the consumer rejected that declaration as an unknown inherited override. Review also found that hashing a shell binary without its command alias could miss a redirected shell.
+2. Root cause: image preparation and runtime validation were checked separately. File contents, command resolution and environment declarations jointly determine the effective tools.
+3. Prevention: derive regression inputs from the actual image environment. Normalize only values that exactly match the declared computation. Verify effective helper resolutions and symlink targets as well as file bytes.
+4. Verification: run the real image environment before hosted qualification. Accept the declared worker count and refuse mismatches or unknown Cargo overrides. Redirect a shell/helper while retaining its original binary and require refusal.
+
+## [L-frozen-apt-candidates] Resolve package locks with the package manager
+
+1. What happened: package metadata enumeration selected an older security-pocket binutils version over the newer updates-pocket candidate, and the image build refused the lock.
+2. Root cause: repository iteration order replaced the package manager's version-selection rules.
+3. Prevention: freeze the package snapshot and resolve every direct package through APT's actual candidate selection. Validate every locked candidate before installation.
+4. Verification: build against the frozen signed snapshot with a candidate audit for all locked packages. Require a mismatched lock to fail before installation.
+
+## [L-isolated-test-import-closure] Copy every required module into isolated guard tests
+
+1. What happened: adding a runtime helper caused isolated guard-removal tests to fail during import, before reaching their intended assertions.
+2. Root cause: the isolated test copies explicitly listed helper modules and omitted the new transitive import.
+3. Prevention: scan isolated-copy module lists whenever adding an import. Include the required helper without weakening the original negative assertion.
+4. Verification: run the isolated controls and require each deliberate guard removal to fail for its named assertion. Complete the integration suite against a stable source tree.
+
+## [L-explain-the-purpose-of-a-check] Explain the consequence before the testing mechanism
+
+1. What happened: an explanation of remote workflow recovery described job records and interrupted execution without first explaining their purpose or connection to the requested game fix.
+2. Root cause: the explanation assumed that the reader already understood why a long testing process saves progress and which checks concern the game itself.
+3. Prevention: state what the check protects, whether it affects the requested delivery, and why the proposed location is necessary. Keep optional testing infrastructure evidence separate from application test results and player-device acceptance. Obtain approval before paid hosted work.
+4. Verification: the reader can identify the concrete failure being checked and its consequence without reconstructing previous technical explanations. Local results, remote-service behavior and deployment each retain their own verified status.
+
+## [L-canonical-runtime-inventory-unicode] Test the published inventory with its actual text encoding
+
+1. What happened: local execution of the published mutation image passed its image checks, then failed the consuming runtime validator on accented certificate filenames.
+2. Root cause: the image encoded non-ASCII JSON characters as escapes while its consumer emitted raw UTF-8 during canonical comparison. ASCII-only fixtures hid the disagreement.
+3. Prevention: define the canonical encoding explicitly on both sides. Test representative non-ASCII file paths and compare retained published inventory bytes before relying on a simulated installation.
+4. Verification: accept the exact published inventory and hash. Refuse changed certificate bytes and a hash-matching alternate JSON encoding. Run the real consumer against the pinned image locally.
+
+## [L-publication-filters-follow-build-inputs] Classify files by their production consumers
+
+1. What happened: review found that a publication filter omitted external character assets and migration content compiled from directories named `tests`.
+2. Root cause: directory labels were used as substitutes for tracing production imports, asset patterns and build-script reads.
+3. Prevention: derive publication inputs from actual consumers. Include production data stored under test directories while excluding unrelated saved-game fixtures, authoring sources and test-only files. Keep the workflow filter and stale-release comparison aligned.
+4. Verification: source-derived tests enumerate literal imports, matched runtime assets and compiled fixture filenames. Require each to trigger publication and make an older release stale. Require unrelated authoring files and test observations to remain excluded.
+
+## [L-local-npm-direct-node] Execute npm without a second command parser
+
+1. What happened: independent review ran the new local runner against the installed Windows npm command. Nested command-shell quoting made the path under `Program Files` fail before npm started.
+2. Root cause: C runtime argument escaping was reused inside `cmd /c`, whose parsing rules differ. Mocked command execution did not expose the platform failure.
+3. Prevention: resolve npm's installed JavaScript entry point and run it through Node with a direct argument array. Refuse unsupported batch wrappers rather than guessing their command syntax.
+4. Verification: run the real installed npm command through the runner. Use actual Node execution to preserve paths with spaces and arguments containing shell metacharacters, quotes and environment-variable syntax literally.
+
+## [L-qualification-binds-authorization-code] Bind helpers that define campaign authorization
+
+1. What happened: a new helper performed owner and local-report checks for the hosted workflow but was missing from the smaller contract used to select prior recovery qualification.
+2. Root cause: the workflow file was bound while its newly called authorization code was treated as ordinary source inventory.
+3. Prevention: include authorization helpers in the qualification contract. Keep full computation inventory and qualification compatibility checks distinct.
+4. Verification: change the authorization helper independently and require prior qualification and substituted remote source to refuse. Update precise API accounting for any added source tree without increasing the production ceiling.

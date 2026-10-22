@@ -16,6 +16,7 @@ import zipfile
 import mutation_artifacts as artifacts
 import mutation_campaign as model
 import mutation_runner as runner
+import mutation_runtime as runtime
 
 require = artifacts.require
 UPSTREAM = "8ab1dc786a1f61a4e370416cc6c68b81a704e917"
@@ -27,10 +28,10 @@ LOCK_SHA = "0d2699c31955d28f429731eda2972dc4faced07747320b074bc774c3334f75c0"
 TOOL_LIMIT = 256 * 1024 * 1024
 RECEIPT_LIMIT = 1024 * 1024
 WORKFLOW = ".github/workflows/ci.yml"
-CONTRACT_PATHS = (WORKFLOW, PATCH, "rust-toolchain.toml",
+CONTRACT_PATHS = (WORKFLOW, PATCH, "rust-toolchain.toml", "scripts/check-local-ci.py",
     ".github/scripts/mutation_tool.py", ".github/scripts/mutation_workflow.py",
     ".github/scripts/mutation_qualification.py", ".github/scripts/mutation_recovery.py", ".github/scripts/mutation_runner.py",
-    ".github/scripts/mutation_native.py",
+    ".github/scripts/mutation_native.py", ".github/scripts/mutation_runtime.py", runtime.PIN, *runtime.RECIPE_PATHS,
     ".github/scripts/mutation_artifacts.py", ".github/scripts/mutation_campaign.py")
 MARGIN = dt.timedelta(days=2)
 
@@ -91,9 +92,8 @@ def verify_committed_contract(api, repository, revision, contract):
 
 
 def runtime_identity(executable, root, image):
-    require(os.name == "posix" and image.get("ImageOS") == "ubuntu24", "unsupported tool runtime")
     require(not any(key.startswith(("LD_", "DYLD_")) for key in os.environ), "loader override is forbidden")
-    env, _ = runner.execution_environment({"opt_level": 2, "cargo_jobs": 2, "runner_image": image})
+    env, _ = runner.execution_environment({"opt_level": 2, "cargo_jobs": 2, "runtime": image}, root=root)
     header = runner.command(["readelf", "-l", str(executable)], root, env)
     interpreter = re.search(r"Requesting program interpreter: ([^\]]+)", header)
     require(interpreter is not None, "missing ELF interpreter")
@@ -285,7 +285,7 @@ def build(root, settings, output):
     checkout, _ = runner.checkout_inventory(root, settings["repository"])
     output.mkdir(parents=True)
     source = output.parent / "tool-source"
-    env, _ = runner.execution_environment(settings)
+    env, _ = runner.execution_environment(settings, root=root)
     # Compiler inputs are explicit, and the API token never enters the compiler environment.
     runner.command(["git", "clone", "--quiet", "https://github.com/sourcefrog/cargo-mutants.git", str(source)], root, env)
     runner.command(["git", "checkout", "--quiet", "--detach", UPSTREAM], source, env)
@@ -298,7 +298,7 @@ def build(root, settings, output):
     require(source_tree == SOURCE_TREE and lock == LOCK_SHA, "reviewed SDK source or lock differs")
     channel = re.search(r'channel\s*=\s*"([^"]+)"', (root / "rust-toolchain.toml").read_text()).group(1)
     require(channel == "1.94.1", "unreviewed compiler change")
-    argv = ["cargo", "+" + channel, "build", "--release", "--locked"]
+    argv = ["cargo", "build", "--release", "--locked"]
     with (output.parent / "tool-build.log").open("wb") as log:
         process = runner.OwnedProcess(argv, cwd=source, env=env, log=log)
         try:
@@ -319,12 +319,12 @@ def build(root, settings, output):
     receipt = {"version": 1, "repository": settings["repository"], "workflow": WORKFLOW,
         "workflow_sha": settings["workflow_sha"], "head_sha": settings["head_sha"],
         "run_id": settings["run_id"], "attempt": settings["attempt"], "job_id": settings["job_id"],
-        "checkout": checkout, "contract": contract, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
+        "checkout": checkout, "host_provenance": settings.get("host_provenance", {}), "contract": contract, "upstream": UPSTREAM, "patch_sha256": PATCH_SHA,
         "log_retention_days": int(os.environ["GITHUB_RETENTION_DAYS"]),
         "source_tree": source_tree, "lock_sha256": lock, "build_argv": argv,
         "build_environment": {key: value for key, value in env.items() if key.startswith("CARGO_PROFILE") or key == "CARGO_BUILD_JOBS"},
         "executable_sha256": artifacts.sha(executable.read_bytes()), "executable_size": executable.stat().st_size,
-        "runtime": runtime_identity(executable, root, settings["runner_image"]), "selector_probe": probe}
+        "runtime": runtime_identity(executable, root, settings["runtime"]), "selector_probe": probe}
     runner.write_json(output / "receipt.json", receipt)
     print("MUTATION_TOOL " + json.dumps(receipt, sort_keys=True, separators=(",", ":")), flush=True)
     return receipt
