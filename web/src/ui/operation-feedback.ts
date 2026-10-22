@@ -40,7 +40,9 @@ export class PendingIndicator {
 export class SceneFeedback {
   private signature = '';
   private since = 0;
-  constructor(private readonly element: HTMLElement) { element.dataset.surface = 'scene'; }
+  constructor(private readonly element: HTMLElement) { element.dataset.surface = 'scene'; this.syncBox(); }
+  /** Opacity removes the empty painted box without removing its live region. */
+  private syncBox(): void { this.element.style.opacity = this.element.textContent?.trim() ? '' : '0'; }
   anchor(point: { x: number; y: number } | null): void {
     this.element.style.left = point ? `${point.x}px` : '';
     this.element.style.top = point ? `${point.y}px` : '';
@@ -52,5 +54,6 @@ export class SceneFeedback {
     if (this.element.getAttribute('data-kind') !== 'error' && now - this.since >= 4000 && this.element.textContent) {
       this.element.textContent = ''; this.signature = '';
     }
+    this.syncBox();
   }
 }

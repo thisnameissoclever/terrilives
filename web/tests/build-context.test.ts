@@ -12,6 +12,7 @@ import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { BuildContextActions, contextModel, contextPosition, type ContextTools } from '../src/ui/placement-actions.js';
 import { shortcutGroups } from '../src/ui/shortcuts.js';
 import { clearBuildSelection } from '../src/ui/build-tools.js';
+import { FeedbackLifetime } from '../src/ui/operation-feedback.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -38,6 +39,52 @@ function fixture(singleFacing = false) {
   furniture.enter();
   return { handle, source, ...tools, tools };
 }
+
+it('keeps the current occupied-placement reason beside disabled Buy before and after purchase success expires', () => {
+  const f = fixture(), clock = vi.spyOn(performance, 'now').mockReturnValue(0);
+  try {
+    const models = f.buy.items.filter(item => item.name === 'Trash can');
+    expect(models).toHaveLength(1); const item = models[0];
+    expect(item.price).toBe(15); expect(item.facings & (1 << item.baseFacing)).not.toBe(0);
+    const startingFunds = f.source.funds();
+    const sale = Array.from(f.source.ids()).map(id => ({ id, ...f.source.salePreview(id) }))
+      .filter(quote => quote.reason === null).sort((a,b) => b.payout - a.payout || a.id - b.id)[0];
+    expect(sale).toBeDefined();
+    expect(startingFunds + sale.payout).toBeGreaterThanOrEqual(2 * item.price);
+    expect(f.source.sellObject(sale.id)).toBe(true); f.source.flushCommands();
+    expect(f.source.lastSaleResult()).toMatchObject({ object: sale.id, reason: null, payout: sale.payout });
+    expect(f.source.funds()).toBe(startingFunds + sale.payout);
+    const funds = f.source.funds(); expect(funds).toBeGreaterThanOrEqual(2 * item.price);
+    f.buy.enter();
+    const tiles = Array.from({ length: f.handle.lot_width() * f.handle.lot_height() }, (_, index) =>
+      ({ x: index % f.handle.lot_width(), y: Math.floor(index / f.handle.lot_width()) }));
+    const candidate = tiles.map(({x,y}) => f.source.purchasePreview(item.definition, x, y, item.baseFacing)).find(preview => preview.valid)!;
+    const input = JSON.stringify({ funds, price: item.price, definition: item.definition, candidate });
+    expect(candidate, input).toMatchObject({ valid: true, reason: null, width: 1, depth: 1 });
+    f.buy.choose(item.definition); f.buy.moveTo(candidate.x, candidate.y);
+    expect(f.buy.preview, input).toMatchObject({ x: candidate.x, y: candidate.y, facing: candidate.facing, valid: true });
+    expect(f.buy.canBuy).toBe(true); f.buy.buy(); f.source.flushCommands(); f.buy.afterCommands();
+    const bought = f.source.lastPurchaseResult();
+    expect(bought, input).toMatchObject({ definition: item.definition, x: candidate.x, y: candidate.y, facing: candidate.facing, reason: null });
+    expect(bought?.object, input).not.toBeNull(); expect(bought?.object, input).toBeTypeOf('number');
+    expect(f.source.funds()).toBe(funds - item.price); expect(f.source.funds()).toBeGreaterThanOrEqual(item.price);
+    expect(f.buy.canBuy).toBe(false);
+    expect(f.source.purchasePreview(item.definition, candidate.x, candidate.y, candidate.facing), input)
+      .toMatchObject({ valid: false, reason: 'That position overlaps other furniture.' });
+    expect(f.buy.preview?.reason, input).toBe('That position overlaps other furniture.');
+    const displayed: ReturnType<typeof contextModel>[] = [];
+    const actions = new BuildContextActions(f.tools, { render: model => { displayed.push(model); }, place() {} }, () => ({ height: 32, offsetX: 0 }));
+    const camera = { scale: 1, originX: 640, originY: 100 };
+    actions.frame(camera, 1280, 720);
+    expect(displayed.at(-1)?.feedback, input).toMatchObject({ state: 'failure', message: 'That position overlaps other furniture.' });
+    const result = new FeedbackLifetime();
+    expect(result.read(f.buy.resultFeedback, 0)).toMatchObject({ state: 'success' });
+    clock.mockReturnValue(4001); actions.frame(camera, 1280, 720);
+    expect(result.read(f.buy.resultFeedback, 4001)).toBeNull();
+    expect(displayed.at(-1)?.feedback, input).toMatchObject({ state: 'failure', message: 'That position overlaps other furniture.' });
+    expect(displayed.at(-1)?.actions.find(action => action.id === 'confirm')?.enabled).toBe(false);
+  } finally { clock.mockRestore(); f.handle.free(); }
+});
 
 it('keeps the placement refusal with Buy and exposes the real catalogue return action', () => {
   const f = fixture();

@@ -68,11 +68,15 @@ export class BuyTool {
   }
 
   get pending(): boolean { return this.sent !== null; }
+  /** Purchase receipts do not replace the current placement's eligibility. */
+  get resultFeedback(): OperationFeedback | null {
+    return !this.catalogueOpen && !this.pending && this.outcome?.state === 'success' ? this.outcome : null;
+  }
   get feedback(): OperationFeedback | null {
     if (this.catalogueOpen) return null;
     const target = this.chosen?.name ?? 'Furniture';
     if (this.pending) return operationFeedback('buy', 'pending', target, `Buying ${target}...`);
-    if (this.outcome) return this.outcome;
+    if (this.outcome?.state === 'failure') return this.outcome;
     return this.preview && !this.preview.valid ? operationFeedback('buy', 'failure', target,
       this.preview.reason ?? UNAVAILABLE, 'move') : null;
   }

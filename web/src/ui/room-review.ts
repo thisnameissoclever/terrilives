@@ -14,6 +14,48 @@ export interface RoomReviewHooks {
   refused?(): void;
 }
 
+const uniquePeople = (ids: readonly number[]): number[] => [...new Set(ids)].sort((a,b) => a - b);
+const areaCount = (count: number): string => `${count} highlighted ${count === 1 ? 'area' : 'areas'}`;
+
+/** Summarize native consequences without repeating an indistinguishable paragraph for each region. */
+function accessReviewSummary(access: BuildReview['access'], personName: (id: number) => string, objectName: (id: number) => string): string[] {
+  const lines: string[] = [];
+  const names = (ids: readonly number[]) => uniquePeople(ids).map(personName).join(', ');
+  const withoutExit = access.regions.filter(region => !region.externalAccess);
+  const empty = withoutExit.filter(region => region.people.length === 0);
+  if (empty.length) lines.push(empty.length === 1 && access.regions.length === 1
+    ? 'The highlighted area has no external access.' : `${areaCount(empty.length)} ${empty.length === 1 ? 'has' : 'have'} no external access.`);
+  const occupied = withoutExit.filter(region => region.people.length > 0);
+  if (occupied.length === 1) lines.push(`${names(occupied[0].people)} cannot reach outside from the highlighted area.`);
+  else if (occupied.length > 1) lines.push(`${areaCount(occupied.length)} contain people who cannot reach outside: ${names(occupied.flatMap(region => region.people))}.`);
+
+  const unreachable = new Map<string, { people: number[]; regions: BuildReview['access']['regions'] }>();
+  for (const region of access.regions) {
+    const people = uniquePeople(region.unreachableBy);
+    if (!people.length) continue;
+    const key = people.join(',');
+    const group = unreachable.get(key) ?? { people, regions: [] };
+    group.regions.push(region); unreachable.set(key, group);
+  }
+  for (const { people, regions } of unreachable.values()) {
+    const inside = uniquePeople(regions.flatMap(region => region.people));
+    const destination = regions.length === 1
+      ? `the highlighted area${inside.length ? ` containing ${names(inside)}` : ''}` : areaCount(regions.length);
+    const occupants = regions.length > 1 && inside.length ? ` ${inside.length === 1 ? 'Person' : 'People'} inside: ${names(inside)}.` : '';
+    lines.push(`${names(people)} cannot reach ${destination}.${occupants}`);
+  }
+
+  const targets = [...new Set(access.blockedTargets.map(row => row.target))];
+  if (targets.length === 1) lines.push(`${objectName(targets[0])} has no reachable approach.`);
+  else if (targets.length > 1) {
+    const counts = new Map<string, number>();
+    for (const target of targets) { const name = objectName(target); counts.set(name, (counts.get(name) ?? 0) + 1); }
+    const objects = [...counts].map(([name, count]) => count === 1 ? name : `${name} (${count})`).join(', ');
+    lines.push(`${targets.length} objects have no reachable approach: ${objects}.`);
+  }
+  return lines;
+}
+
 /** Local choices are distinct from the native, token-bound candidate shown to the player. */
 export class RoomReviewController {
   review: BuildReview | null = null;
@@ -211,13 +253,7 @@ export class RoomReviewControls {
     const body = doc.querySelector<HTMLElement>('#room-review-body')!; body.replaceChildren();
     const paragraph = (text: string) => { const p = doc.createElement('p'); p.textContent = text; body.append(p); };
     if (controller.accessActive) {
-      for (const region of review.access.regions) {
-        if (!region.externalAccess) paragraph(region.people.length
-          ? `${region.people.map(this.personName).join(', ')} cannot reach outside from the highlighted area.`
-          : 'The highlighted area has no external access.');
-        if (region.unreachableBy.length) paragraph(`${region.unreachableBy.map(this.personName).join(', ')} cannot reach the highlighted area.`);
-      }
-      for (const target of review.access.blockedTargets) paragraph(`${this.objectName(target.target)} has no reachable approach.`);
+      accessReviewSummary(review.access, this.personName, this.objectName).forEach(paragraph);
       return;
     }
     const group = review.groups[controller.group] ?? { kind: -1, oldIds: [], finalAnchors: review.rooms.flatMap(room => room.anchor ? [room.anchor] : []) };

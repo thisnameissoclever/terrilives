@@ -22,6 +22,70 @@ function fixture(groups: BuildReview['groups'] = []) {
   const controller = new RoomReviewController(source as unknown as RoomBridge);
   return { review, source, controller };
 }
+
+function renderAccessSummary(access: BuildReview['access'], personName: (id:number) => string, objectName: (id:number) => string): string[] {
+  const f = fixture(); f.review.access = access;
+  class Element {
+    textContent = ''; value = ''; hidden = false; disabled = false; dataset: Record<string,string> = {}; nodes: Element[] = [];
+    addEventListener() {} focus() {} closest() { return null; } matches() { return false; }
+    append(...nodes: Element[]) { this.nodes.push(...nodes); } replaceChildren() { this.nodes = []; }
+  }
+  const nodes = new Map(['builder-controls','room-review','room-review-heading','room-review-group','room-review-body','room-review-status','room-review-back','room-review-confirm'].map(id=>[`#${id}`,new Element()]));
+  const doc = { activeElement: null, querySelector: (selector:string) => nodes.get(selector), createElement: () => new Element() };
+  const controls = new RoomReviewControls(doc as unknown as Document, f.controller, () => {}, () => '', personName, () => {}, objectName);
+  f.controller.open(f.review); controls.render();
+  return nodes.get('#room-review-body')!.nodes.map(node => node.textContent);
+}
+
+it('summarizes equivalent empty areas once with the actual count and deduplicated people', () => {
+  const f = fixture();
+  f.review.access.regions = [
+    { tiles: [[1,1]], people: [], targets: [], externalAccess: false, unreachableBy: [7,8] },
+    { tiles: [[3,3]], people: [], targets: [], externalAccess: false, unreachableBy: [8,7] },
+  ];
+  expect(renderAccessSummary(f.review.access, id => id === 7 ? 'Alex' : 'Robin', () => 'Chair')).toEqual([
+    '2 highlighted areas have no external access.', 'Alex, Robin cannot reach 2 highlighted areas.'
+  ]);
+});
+
+it('distinguishes different enclosed people and reachability while preserving blocked object consequences', () => {
+  const f = fixture();
+  f.review.access.regions = [
+    { tiles: [[1,1]], people: [7], targets: [], externalAccess: false, unreachableBy: [8] },
+    { tiles: [[3,3]], people: [8], targets: [], externalAccess: true, unreachableBy: [7] },
+  ];
+  f.review.access.blockedTargets = [{ target: 9, tiles: [[4,4]] }, { target: 10, tiles: [[5,5]] }];
+  expect(renderAccessSummary(f.review.access, id => id === 7 ? 'Alex' : 'Robin', () => 'Chair')).toEqual([
+    'Alex cannot reach outside from the highlighted area.',
+    'Robin cannot reach the highlighted area containing Alex.',
+    'Alex cannot reach the highlighted area containing Robin.',
+    '2 objects have no reachable approach: Chair (2).',
+  ]);
+});
+
+it('keeps a larger equivalent report concise without dropping areas or repeating the same person', () => {
+  const f = fixture();
+  f.review.access.regions = Array.from({ length: 120 }, (_, x) =>
+    ({ tiles: [[x,1]], people: [], targets: [], externalAccess: false, unreachableBy: [7] }));
+  expect(renderAccessSummary(f.review.access, () => 'Alex', () => 'Chair')).toEqual([
+    '120 highlighted areas have no external access.', 'Alex cannot reach 120 highlighted areas.',
+  ]);
+});
+
+it('counts occupied areas separately from empty areas and deduplicates people across equivalent consequences', () => {
+  const f = fixture();
+  f.review.access.regions = [
+    { tiles: [[1,1]], people: [7], targets: [], externalAccess: false, unreachableBy: [9] },
+    { tiles: [[3,3]], people: [8], targets: [], externalAccess: false, unreachableBy: [9] },
+    { tiles: [[5,5]], people: [], targets: [], externalAccess: false, unreachableBy: [9] },
+  ];
+  const names = new Map([[7,'Alex'],[8,'Robin'],[9,'Sam']]);
+  expect(renderAccessSummary(f.review.access, id => names.get(id)!, () => 'Chair')).toEqual([
+    '1 highlighted area has no external access.',
+    '2 highlighted areas contain people who cannot reach outside: Alex, Robin.',
+    'Sam cannot reach 3 highlighted areas. People inside: Alex, Robin.',
+  ]);
+});
 it('routes access-only candidates through review instead of strict adoption', async () => {
   const f = fixture(); const review = vi.fn(async () => false);
   const session = new BuildSession(f.source as never, { prepare: () => true, settled: () => true, restored() {}, review });

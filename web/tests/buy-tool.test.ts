@@ -99,7 +99,7 @@ it('reports placement feedback from the preview and purchase outcome without rea
   buy.moveTo(2, 2); expect(buy.feedback).toBeNull(); buy.buy();
   expect(buy.feedback?.state).toBe('pending');
   source.result = { definition: CHAIR.definition, object: 42, x: 2, y: 2, facing: CHAIR.baseFacing, reason: null };
-  buy.afterCommands(); expect(buy.feedback?.state).toBe('success');
+  buy.afterCommands(); expect(buy.resultFeedback?.state).toBe('success'); expect(buy.feedback).toBeNull();
 });
 
 describe('the catalogue order', () => {

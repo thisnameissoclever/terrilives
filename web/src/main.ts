@@ -2145,10 +2145,11 @@ async function main(): Promise<void> {
     if (highlightRevision !== sim.lotRevision()) { highlightRevision = sim.lotRevision(); roomReview.geometryChanged(); }
     sceneFeedback.frame(now);
     const active = buyTool.active ? buyTool : wallTool.active ? wallTool : roomTool.active ? roomTool : floorTool.active ? floorTool : builder;
-    const feedback = builder.active && !roomReview.active ? toolFeedbackLifetime.read(active.feedback, now) : null;
+    const result = active === buyTool ? buyTool.resultFeedback : null;
+    const feedback = builder.active && !roomReview.active ? toolFeedbackLifetime.read(result ?? active.feedback, now) : null;
     const anchored = active === buyTool ? !!buyTool.ghost() : active === wallTool ? !!wallTool.line
       : active === roomTool ? !!roomTool.first : active === floorTool ? !!floorTool.tile : !!builder.preview;
-    toolFeedback.hidden = !feedback || anchored;
+    toolFeedback.hidden = !feedback || (anchored && result === null);
     if (toolFeedback.textContent !== (feedback?.message ?? '')) toolFeedback.textContent = feedback?.message ?? '';
     toolFeedback.dataset.state = feedback?.state ?? '';
     const panel = document.getElementById(active === buyTool ? 'buy-tool' : active === wallTool ? 'wall-tool'
