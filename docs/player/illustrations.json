@@ -1028,8 +1028,8 @@
         "height": 178
       },
       "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
-      "sourceSha256": "57fe7a28f9b4dd653c26548bb96ca1ba8e3b6e0aa12b20d14e31ec56d466ec64",
-      "outputSha256": "6c04e10aca72f46c92e8c42dd917b7b63ad71fba65b987566d3102d584b4ae63"
+      "sourceSha256": "545eac6f6e211150905084b34990ef9454adc932c9dee73c0c98c7a4b37fd0c0",
+      "outputSha256": "bc31eb6f527d8115aa38ee3feeeeec7d2fb6304e0e52c5f16593854ca892db97"
     },
     {
       "output": "images/guide/import-confirm-mobile.png",
@@ -1041,8 +1041,8 @@
         "height": 178
       },
       "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
-      "sourceSha256": "fc014fd91f66fd7957b7c09478c1faedfcfd6b8d5129b9f66983fb4be0516067",
-      "outputSha256": "c122f5e470880913cbd14abf3e30003dd1d3310c13afc6e92f4b4f3b04b9c891"
+      "sourceSha256": "1d635066fb621a64a40d993989d61ba9b508620ae019ffbe99cc3ffc409836a4",
+      "outputSha256": "f20cefe9c66f54bf10c31a5772447827265145e3a8b9016d65c2191045bd80e9"
     },
     {
       "output": "images/guide/work-conflict-desktop.png",
