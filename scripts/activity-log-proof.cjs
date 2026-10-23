@@ -324,7 +324,10 @@ async function sampleAllocationWindow(page, cdp, args) {
     const stress = globalThis.__terriStress;
     const sampler = stress.activityLogSampler;
     const original = sampler.sample.bind(sampler);
-    const counts = { frames: 0, framesWithRecords: 0, rowsAdded: 0, drained: stress.activityLog.drained };
+    const counts = {
+      frames: 0, framesWithRecords: 0, rowsAdded: 0, drained: stress.activityLog.drained,
+      selectionRebuilds: stress.activityLog.deferredRebuilds,
+    };
     let previous = counts.drained;
     sampler.sample = (elapsedMs) => {
       counts.frames += 1;
@@ -343,6 +346,7 @@ async function sampleAllocationWindow(page, cdp, args) {
         sampler.sample = original;
         observer.disconnect();
         counts.drained = stress.activityLog.drained - counts.drained;
+        counts.selectionRebuilds = stress.activityLog.deferredRebuilds - counts.selectionRebuilds;
         return counts;
       },
     };
