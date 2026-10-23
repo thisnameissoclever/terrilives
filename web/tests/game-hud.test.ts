@@ -374,3 +374,23 @@ describe('GameHud', () => {
     expect(reads).toBe(6);
   });
 });
+
+describe('the held shift on the Career row (issue 296, [WS-shell] item 1)', () => {
+  it('names the held shift on the Career row', () => {
+    const office = { workingDays: 31, shiftStart: 360, shiftTicks: 480 };
+    const named = ['Day shift', 'Early shift', 'Late shift', 'Night shift'];
+    for (const [kind, name] of named.entries()) {
+      expect(formatCareerSchedule('Office clerk', { ...office, kind, index: 0 }, 1440)).toBe(
+        `Office clerk, ${name}, Monday to Friday, 06:00 to 14:00`,
+      );
+    }
+    expect(formatCareerSchedule('Night watch', { workingDays: 0b1001111, shiftStart: 1320, shiftTicks: 480, kind: 3, index: 0 }, 1440))
+      .toBe('Night watch, Night shift, Monday, Tuesday, Wednesday, Thursday, Sunday, 22:00 to 06:00');
+    for (const kind of [4, -1, 0.5, Number.NaN, null, undefined]) {
+      expect(formatCareerSchedule('Office clerk', { ...office, kind, index: 0 }, 1440), String(kind)).toBe(
+        'Office clerk, Monday to Friday, 06:00 to 14:00',
+      );
+    }
+    expect(formatCareerSchedule('Office clerk', { ...office, shiftTicks: -1, kind: 0 }, 1440)).toBe('Office clerk');
+  });
+});

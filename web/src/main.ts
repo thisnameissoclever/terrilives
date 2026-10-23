@@ -817,6 +817,9 @@ async function main(): Promise<void> {
     assign: () => careerPanel.assign(),
     quit: () => careerPanel.quit(),
     setJobSearch: search => careerPanel.setJobSearch(search),
+    chooseShift: shift => careerPanel.chooseShift(shift),
+    chooseChange: shift => careerPanel.chooseChange(shift),
+    changeShift: () => careerPanel.changeShift(),
   });
   const careerPanel = new CareerPanel(sim, careerSurface, sim.needBarRefreshMs(),
     () => (!careerSection.hidden || !simOverview.hidden) && !simSheet.hidden);
