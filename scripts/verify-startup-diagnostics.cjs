@@ -10,6 +10,13 @@ function within(promise,ms,message){
 }
 const stored=page=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
 const ready=page=>page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)||'null')?.attempts.at(-1)?.state==='ready',key,{timeout:120000});
+async function routeOneCharacterAsset(page,handler){
+  let selected;
+  await page.route(/\/assets\/runtime\.normalTriangles-[^/]+\.bin$/,route=>{
+    const address=route.request().url();selected??=address;
+    return address===selected?handler(route):route.continue();
+  });
+}
 async function proofContext(browser){
   const context=await browser.newContext({viewport:{width:402,height:874},deviceScaleFactor:3});
   await context.addInitScript(()=>{
@@ -73,7 +80,7 @@ try{
     const context=await proofContext(browser);
     try{
       const page=await context.newPage();let requests=0;
-      await page.route(/\/assets\/runtime\.normalTriangles-DitPThSI\.bin$/,async route=>{
+      await routeOneCharacterAsset(page,async route=>{
         requests++;await route.fulfill({status:503,headers:{'Retry-After':'60','Server':'verification-edge','X-GitHub-Request-Id':'controlled-response-42'},body:'Controlled persistent refusal'});
       });
       await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
@@ -99,7 +106,7 @@ try{
     try{
       const page=await context.newPage(),cdp=await context.newCDPSession(page);
       let reached;const blocked=new Promise(resolve=>{reached=resolve;});
-      await page.route(/\/assets\/runtime\.normalTriangles-DitPThSI\.bin$/,async route=>{
+      await routeOneCharacterAsset(page,async route=>{
         reached();await new Promise(resolve=>{release=resolve;});try{await route.abort();}catch{}
       });
       await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
