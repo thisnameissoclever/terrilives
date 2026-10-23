@@ -48,6 +48,8 @@ export interface ActivityLogView {
    */
   prependRows(texts: readonly string[]): ActivityLogRow[];
   appendRow(text: string): ActivityLogRow;
+  /** Replaces a row's text where it stands. */
+  setRowText(row: ActivityLogRow, text: string): void;
   removeRow(row: ActivityLogRow): void;
   /** Whether the newest line is in view. Must not read layout while a frame runs. */
   atBottom(): boolean;
@@ -319,16 +321,26 @@ export class ActivityLogPanel {
     if (follow) view.scrollToBottom();
   }
 
-  /** Lines rise by `seq`; drop those whose newest record has left the store. */
+  /**
+   * Lines rise by `seq`; drop those whose newest record has left the store,
+   * then recount the groups that lost older members, as a rebuild would.
+   */
   private forgetEvicted(): void {
-    const { store } = this.options;
+    const { store, view } = this.options;
     if (store.length === 0) return;
     const oldest = store.seq(0);
     let evicted = 0;
     while (evicted < this.lines.lines.length && this.lines.lines[evicted].seq < oldest) evicted++;
-    if (evicted === 0) return;
-    for (let index = 0; index < evicted; index++) this.dropRow(this.lines.lines[index]);
-    this.lines.trim(this.lines.lines.length - evicted);
+    if (evicted > 0) {
+      for (let index = 0; index < evicted; index++) this.dropRow(this.lines.lines[index]);
+      this.lines.trim(this.lines.lines.length - evicted);
+    }
+    const recounted = this.lines.recount(store);
+    for (let index = 0; index < recounted.length; index++) {
+      const line = recounted[index];
+      const row = this.rows.get(line);
+      if (row) view.setRowText(row, lineText(store, line, this.context));
+    }
   }
 
   private trimRows(): void {
@@ -526,6 +538,7 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       list.append(item);
       return item as unknown as ActivityLogRow;
     },
+    setRowText(handle, text) { (handle as unknown as HTMLLIElement).textContent = text; },
     removeRow(handle) { (handle as unknown as HTMLLIElement).remove(); },
     atBottom() {
       if (!observer) measurePinned();

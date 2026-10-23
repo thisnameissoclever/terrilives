@@ -58,6 +58,11 @@ class FakeView implements ActivityLogView {
     this.rows.push({ row, text });
     return row;
   }
+  setRowText(row: ActivityLogRow, text: string) {
+    this.calls++;
+    const entry = this.rows.find(candidate => candidate.row === row);
+    if (entry) entry.text = text;
+  }
   removeRow(row: ActivityLogRow) { this.calls++; this.rows = this.rows.filter(entry => entry.row !== row); }
   atBottom() { this.calls++; return this.bottom; }
   scrollToBottom() { this.calls++; this.scrolled++; }
@@ -206,6 +211,38 @@ describe('the activity log panel', () => {
     drain(mess(4));
     panel.update();
     expect(view.texts()).toEqual(['Tim: Read a book', 'Tim: Read a book', "Tim: Annoyed by Bill's dishes (2 times)"]);
+  });
+
+  it('orders a group merged twice in one drain as a rebuild does', () => {
+    const { panel, view, drain } = setup();
+    const mess = (seq: number) => record({ seq, tick: seq, kind: KIND.annoyed, triggers: FILTER.social, actor: TIM, other: BILL, label: 1 });
+    const read = (seq: number) => record({ seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 });
+    drain(mess(1));
+    panel.open();
+    drain(mess(2), read(3), mess(4));
+    panel.update();
+    const incremental = view.texts();
+    expect(incremental).toEqual(['Tim: Read a book', "Tim: Annoyed by Bill's dishes (3 times)"]);
+    panel.close();
+    panel.open();
+    expect(view.texts()).toEqual(incremental);
+  });
+
+  it('counts only the annoyances the store still holds, as a rebuild does', () => {
+    const { panel, view, drain } = setup();
+    const mess = (seq: number) => record({ seq, tick: 1_000 + seq % 2, kind: KIND.annoyed, triggers: FILTER.social, actor: TIM, other: BILL, label: 1 });
+    const hidden = (seq: number) => record({ seq, tick: 1_000, kind: KIND.skillLevel, triggers: FILTER.skills, actor: TIM, label: 0, values: [0, 2] });
+    drain(mess(1), ...Array.from({ length: 1_998 }, (_, index) => hidden(index + 2)), mess(2_000));
+    panel.open();
+    expect(view.texts()).toEqual(["Tim: Annoyed by Bill's dishes (2 times)"]);
+    // One more record pushes the first annoyance out of the store.
+    drain(hidden(2_001));
+    panel.update();
+    const incremental = view.texts();
+    panel.close();
+    panel.open();
+    expect(incremental).toEqual(view.texts());
+    expect(incremental).toEqual(["Tim: Annoyed by Bill's dishes"]);
   });
 
   it('shows the empty states', () => {
@@ -562,6 +599,14 @@ describe('the activity log view', () => {
     expect(page.reads(), 'a replacement in a frame reads no layout').toBe(reads);
     page.afterLayout();
     expect(page.scrollTop(), 'the same height still reports, so the scroll lands').toBe(60);
+  });
+
+  it('rewrites a row where it stands', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    const rows = page.view.replaceRows(['a', 'b (2 times)', 'c']);
+    page.view.setRowText(rows[1], 'b');
+    expect(page.texts()).toEqual(['a', 'b', 'c']);
   });
 
   it('jumps to the newest line at once on a click', () => {

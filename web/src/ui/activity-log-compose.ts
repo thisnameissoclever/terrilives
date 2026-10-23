@@ -72,6 +72,8 @@ export interface LogLine {
   count: number;
   /** Summed opinion change of a group, in record units. */
   change: number;
+  /** A group's member records by `seq`, oldest first; null for a line that never merges. */
+  readonly members: number[] | null;
 }
 
 /**
@@ -83,10 +85,15 @@ export class LogLines {
   private readonly groups = new Map<string, LogLine>();
   /** Reused by every `add`, so a call that finds nothing visible allocates nothing. */
   private readonly changed: LogLine[] = [];
+  /** Reused by every `recount`. */
+  private readonly recounted: LogLine[] = [];
+  /** The oldest `seq` the store held at the last `recount`. */
+  private oldest = 0;
 
   reset(): void {
     this.lines.length = 0;
     this.groups.clear();
+    this.oldest = 0;
   }
 
   /**
@@ -102,7 +109,7 @@ export class LogLines {
       const seq = store.seq(index);
       const tick = store.tick(index);
       if (store.kind(index) !== KIND.annoyed) {
-        const line: LogLine = { seq, tick, key: null, count: 1, change: 0 };
+        const line: LogLine = { seq, tick, key: null, count: 1, change: 0, members: null };
         this.lines.push(line);
         changed.push(line);
         continue;
@@ -114,16 +121,48 @@ export class LogLines {
         group.tick = tick;
         group.count += 1;
         group.change += store.value(index, 2);
+        group.members!.push(seq);
         this.moveToEnd(group);
-        if (!changed.includes(group)) changed.push(group);
+        // A group merged twice in one call moves past the lines between, as
+        // it does in `lines`, so rows append in the order a rebuild gives.
+        moveToEndOf(changed, group);
         continue;
       }
-      const line: LogLine = { seq, tick, key, count: 1, change: store.value(index, 2) };
+      const line: LogLine = { seq, tick, key, count: 1, change: store.value(index, 2), members: [seq] };
       this.groups.set(key, line);
       this.lines.push(line);
       changed.push(line);
     }
     return changed;
+  }
+
+  /**
+   * After records have left the store, counts each group's members the
+   * store still holds, as a rebuild would, and returns the groups that
+   * changed. Groups whose newest record left are evicted lines and are
+   * skipped. The returned list is reused by the next call.
+   */
+  recount(store: ActivityLogStore): readonly LogLine[] {
+    const recounted = this.recounted;
+    recounted.length = 0;
+    if (store.length === 0) return recounted;
+    const oldest = store.seq(0);
+    if (oldest === this.oldest) return recounted;
+    this.oldest = oldest;
+    for (let at = 0; at < this.lines.length; at++) {
+      const line = this.lines[at];
+      const members = line.members;
+      if (members === null || members[0] >= oldest || line.seq < oldest) continue;
+      while (members[0] < oldest) members.shift();
+      line.count = members.length;
+      let change = 0;
+      for (let member = 0; member < members.length; member++) {
+        change += store.value(store.indexOfSeq(members[member]), 2);
+      }
+      line.change = change;
+      recounted.push(line);
+    }
+    return recounted;
   }
 
   /** Forgets the oldest lines beyond `limit`. */
@@ -145,6 +184,17 @@ export class LogLines {
     for (let index = lines.lastIndexOf(line); index < last; index++) lines[index] = lines[index + 1];
     lines[last] = line;
   }
+}
+
+/** Moves `line` to the end of `list` when it is there already, or appends it. */
+function moveToEndOf(list: LogLine[], line: LogLine): void {
+  const at = list.indexOf(line);
+  if (at < 0) {
+    list.push(line);
+    return;
+  }
+  for (let index = at; index < list.length - 1; index++) list[index] = list[index + 1];
+  list[list.length - 1] = line;
 }
 
 /**
