@@ -4,11 +4,11 @@ The supplied screenshot is explicitly from a previous build. It reports an iPhon
 
 This records a failed HTTP download while the page can still display its own error. It does not identify the cause of the earlier browser-process failures or establish that the newly published memory repair failed. The original 503 response headers and server diagnostics are unavailable.
 
-## File identity and reproduced failure
+## File identity and injected response handling
 
 The exact public file currently returns HTTP 200. Its 147,816 bytes have SHA-256 `1922467d482252adec60f8958e3888dd1b97ae0b05d8af6c23b6344aba949c53`, matching the built file. There is no evidence that this file is missing or corrupt.
 
-The baseline browser check runs public revision `dda9ae81fa137ce971df6efbaf90d292bed00f97`, entry `index-D0anJtTF.js`, SHA-256 `11192025c6828dd0c92920ebc6fe0a6185c8f34b9e6c88bb1b7f06bf9dbd2a6e`. A browser route returns one 503 for that exact filename. The application immediately stops with the same status/path error and completes zero frames. The failure is reproducible without access to the physical phone.
+The baseline browser check runs public revision `dda9ae81fa137ce971df6efbaf90d292bed00f97`, entry `index-D0anJtTF.js`, SHA-256 `11192025c6828dd0c92920ebc6fe0a6185c8f34b9e6c88bb1b7f06bf9dbd2a6e`. A browser route returns one injected 503 for that exact filename. The application immediately stops with the same status/path error and completes zero frames. This reproduces the loader's handling of a supplied status. It does not reproduce the conditions that caused the user's response.
 
 The current loader treats any unsuccessful download as terminal. The repair gives geometry bytes, bundle manifests and clip-part manifests the same [bounded 503 recovery policy](../../character-downloads.md). Successful geometry still passes its original SHA-256 and topology validation. No asset bytes, rendering rules, save formats, dependencies or hosted test workflows change.
 
@@ -25,6 +25,12 @@ The candidate build entry is `index-DjPw67ST.js`, SHA-256 `e447662c2af92f6d167e5
 One initial browser assertion expected exactly two requests for the parts-manifest URL. The game made a later third read while startup still succeeded. The corrected assertion requires recovery of the injected read and the server delay without restricting later consumers. The exact binary retry count and final screenshot identity remain enforced.
 
 ## Guide and acceptance limits
+
+The owner reports consistent failure on every attempt. The supplied 503 screenshot remains explicitly from a previous build; there is no supplied physical-device result for revision `f7293d547974b35390b403113656868de2ad9d6e`. Describing the reported 503 as temporary was unsupported. The status code alone identifies neither duration nor producer.
+
+On October 22, Pacific time, `node .scratch/ios-resident-memory/natural-network.cjs` observed the normal public URL without request interception, injected failures or graphics constraints. The checked source revision was `f7293d547974b35390b403113656868de2ad9d6e`; the public entry was `index-DYnMdxA5.js`. Installed Windows Chrome completed cold and warm loads. A separate cold load using an iPhone Safari request header also completed in Windows Chrome. Changing the header does not emulate iOS or WebKit.
+
+Each run advanced the simulation clock, recorded no startup failure or console/page diagnostic, and verified all 217 observed character binary response bodies against the corresponding built files. No observed HTTP response failed. Page-target network records included HTTP/2; they do not establish worker-target protocol coverage. Requests used the local route through the PDX cache. These successful observations do not explain the affected user's consistent failure or prove recovery on their phone. The [compact network record](natural-network-summary.json) retains the results and exact-file response identity. Full local observations and screenshots remain in ignored `.local-build/character-causality/`. The harness closed its browser after the checks.
 
 The change affects automatic download recovery during loading. It changes no player control, interface layout or documented simulation value. Existing guide articles, effects mappings and screenshots remain accurate; source fingerprints were reviewed and refreshed for the transport change.
 
