@@ -14,6 +14,8 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 - Floors offers Outdoor patio, a rectangular paving finish that can be cleaned indoors or outdoors.
 - Five new careers: Hospital, Warehouse, Library, Restaurant kitchen and Buses, each with four levels.
 - Jobs now come with shifts. Depending on the career, a job can be a day, early, late or night shift, and a new hire is given one by chance. Office work is nearly always a weekday day shift. Housemates leave for work and come home at their own shift's times.
+- The Career tab in Sim details names each housemate's shift. When you assign a career you can pick a shift or leave it to chance, and you can change an employed housemate's shift later; changing shift resets the good weeks counted toward their next promotion.
+- Night workers sleep during the day, and early and late workers go to bed an hour earlier or two hours later.
 
 ## Improved
 
@@ -26,7 +28,7 @@ Sims keep your orders through urgent needs, explain failures, confirm new orders
 - A failed order gives a reason and briefly shows a frustrated squiggle above the Sim.
 - Housemates looking for work now try different careers by chance, still favoring the ones that suit their traits, rather than always picking the same best fit.
 - Job search is now set for each housemate: the Career tab in Sim details has a **Look for work automatically when unemployed** box, on for every new housemate. Options no longer has a job search box for the whole household; a saved game that had it off keeps job search off for everyone.
-- Older saved games keep their unfinished orders when updated. New saves require this version or newer; recovery copies preserve the original older saves.
+- Older saved games keep their unfinished orders when updated, and every job in them keeps its usual hours. New saves require this version or newer; recovery copies preserve the original older saves.
 - Confirm and Cancel at the bottom of Build keep Build open. Confirm keeps the batch; Cancel restores your latest confirmed changes. Exit build handles returning to play.
 - Affirmative actions use green controls; Back, Cancel and discard actions use red controls. Focus remains visible in compact room controls.
 - Saving while you edit or review a build keeps the last confirmed arrangement. Older saved games retain their room labels and unfinished work, with recovery copies kept when their save format changes.
