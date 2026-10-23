@@ -1,0 +1,30 @@
+{
+  "mode": "baseline",
+  "url": "https://thisnameissoclever.github.io/terrilives/?stress=0",
+  "binaryRequests": [
+    1792723133503
+  ],
+  "partsRequests": [],
+  "diagnostics": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin"
+    },
+    {
+      "type": "error",
+      "text": "Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\n    at xh (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4881339)\n    at async Sh (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4881458)\n    at async https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4881822\n    at async Promise.all (index 6)\n    at async Ch (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4881702)\n    at async https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4927842\n    at async Promise.all (index 0)\n    at async hg (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:808:4928283)\n    at async e.create (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:2388:5265)\n    at async JO (https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js:2397:66933)",
+      "url": "https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js"
+    }
+  ],
+  "binaryUrl": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+  "elapsedMs": 15508,
+  "failure": "The game failed to startCharacter asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.binWebGPU is present, so this is not the usual browser-support problem. The message above is the real error; the console has the full stack.",
+  "frames": 0,
+  "entry": {
+    "url": "https://thisnameissoclever.github.io/terrilives/assets/index-D0anJtTF.js",
+    "sha256": "11192025c6828dd0c92920ebc6fe0a6185c8f34b9e6c88bb1b7f06bf9dbd2a6e"
+  },
+  "status": "PASS",
+  "browserClosed": true
+}

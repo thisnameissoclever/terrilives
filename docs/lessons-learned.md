@@ -13221,3 +13221,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the impact scan found direct catalogue assertions and missed the independent complete-list expectation.
 3. Prevention: search for both the changed command and complete-list comparisons before extending a shared verification catalogue. Preserve every existing command and add the new local requirements to each relevant contract.
 4. Verification: the full script run identifies stale expectations. After correcting the list, run the affected complete-list and catalogue policy tests. Record the initial failure and subsequent covering pass separately.
+
+## [L-startup-http-versus-process-failure] Separate download failures from browser-process failures
+
+1. What happened: a later screenshot from an earlier build showed the game's own HTTP 503 failure card, while previous reports showed browser-level page failures.
+2. Root cause: a single temporary service response was terminal in the character loader. The original server-side cause is unknown; a current request returns the correct file successfully.
+3. Prevention: preserve the exact resource, status, build and failure layer. Reproduce the observed HTTP response at the actual loader before changing transport behavior. Keep bounded service recovery separate from memory-pressure evidence and physical-device acceptance.
+4. Verification: inject one 503 for the exact resource and require recovery with unchanged geometry validation. Persistent service failure must stop after the declared attempts; corrupted successful bytes must still fail their hash check.
