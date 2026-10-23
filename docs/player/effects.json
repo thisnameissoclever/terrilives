@@ -860,6 +860,21 @@
       }
     },
     {
+      "id": "DirtySetting",
+      "article": "relationships",
+      "section": "mess-and-nuisance",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/relationship_effects.rs"
+      ],
+      "review": {
+        "basis": "A diner whose chosen place holds someone else's dirty dishes complains once toward each dish owner with an immediate opinion loss, even during the grace period, scaled as household mess; it is the dirty-seat complaint the HouseholdMess row describes, recorded under its own cause for the activity log and kept as a dish grievance."
+      }
+    },
+    {
       "id": "ChoreFulfilled",
       "article": "relationships",
       "section": "chores",
