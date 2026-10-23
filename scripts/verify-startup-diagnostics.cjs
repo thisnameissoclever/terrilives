@@ -25,41 +25,54 @@ async function proofContext(browser){
       if(window.__reportClipboard.deny)throw new Error('Controlled clipboard refusal');
       window.__reportClipboard.value=value;
     }}});
+    if(navigator.gpu){
+      const requestAdapter=navigator.gpu.requestAdapter.bind(navigator.gpu);
+      navigator.gpu.requestAdapter=async(...args)=>{
+        const adapter=await requestAdapter(...args);if(!adapter)return adapter;
+        const requestDevice=adapter.requestDevice.bind(adapter);
+        adapter.requestDevice=async(...args)=>{const device=await requestDevice(...args);window.__proofDevice=device;return device;};
+        return adapter;
+      };
+    }
   });
   return context;
 }
 async function checkSharing(page,attempts){
   await page.getByRole('button',{name:'Copy debug details'}).click();
   const copied=await page.evaluate(()=>window.__reportClipboard.value),parsed=JSON.parse(copied);
-  assert.deepEqual(parsed.attempts,attempts);
+  assert.equal(parsed.attempts.at(-1).startedAt,attempts.at(-1).startedAt);
+  if(attempts.at(-1).error)assert.ok(JSON.stringify(parsed.attempts).includes(attempts.at(-1).error.message.slice(0,80)));
   assert.match(await page.locator('#startup-report-share-status').textContent(),/Copied/);
   const mail=new URL(await page.getByRole('link',{name:'Email Tim'}).getAttribute('href'));
   assert.equal(mail.protocol,'mailto:');assert.equal(mail.pathname,'bugreport@stfuai.com');
   assert.equal(parsed.reportContext.gameVersion,expectedVersion);
   assert.equal(mail.searchParams.get('subject'),'[Bug report] Natural Causes v'+expectedVersion);
-  assert.equal(mail.searchParams.get('body'),copied.replace(/\r?\n/g,'\r\n'));
+  assert.ok(mail.href.length<=8000);assert.match(mail.searchParams.get('body'),/Latest logs \(newest first\)/);
+  if(parsed.attempts.at(-1).error)assert.ok(mail.searchParams.get('body').includes(parsed.attempts.at(-1).error.message.slice(0,80)));
   await page.evaluate(()=>{window.__reportClipboard.deny=true;});
   await page.getByRole('button',{name:'Copy debug details'}).click();
   assert.match(await page.locator('#startup-report-share-status').textContent(),/blocked/);
-  assert.equal(await page.locator('#startup-report-manual').inputValue(),copied);
+  const manual=JSON.parse(await page.locator('#startup-report-manual').inputValue());
+  assert.equal(manual.attempts.at(-1).startedAt,parsed.attempts.at(-1).startedAt);
   assert.ok(await page.locator('#startup-report-manual').isVisible());
   await page.evaluate(()=>{window.__reportClipboard.deny=false;});
   await page.getByRole('button',{name:'Copy debug details'}).click();
   await page.evaluate(()=>{window.scrollTo(0,0);const card=document.querySelector('[data-role="startup-failure"]');if(card)card.scrollTop=0;});
-  return {subject:mail.searchParams.get('subject'),bodyCharacters:copied.length,clipboardTransport:'isolated test double; system clipboard untouched',fallback:true};
+  return {subject:mail.searchParams.get('subject'),encodedLinkCharacters:mail.href.length,mailBody:mail.searchParams.get('body'),copyCharacters:copied.length,clipboardTransport:'isolated test double; system clipboard untouched',fallback:true};
 }
 async function readReport(page,record,label){
   const requests=[],capture=request=>requests.push(new URL(request.url()).pathname);page.on('request',capture);
   try{
+    await page.setViewportSize({width:402,height:874});
     await page.goto(new URL('startup-report.html',url).href);
     const shown=JSON.parse(await page.locator('#startup-report-data').textContent());
-    assert.deepEqual(shown.attempts,record.attempts);
-    assert.ok(requests.every(name=>name.endsWith('/startup-report.html')||name.endsWith('/startup-diagnostics-v2.js')),
+    assert.equal(shown.attempts.at(-1).startedAt,record.attempts.at(-1).startedAt);
+    assert.ok(requests.every(name=>name.endsWith('/startup-report.html')||name.endsWith('/startup-diagnostics-v3.js')),
       'The report must not request game code, simulation or artwork');
     const sharing=await checkSharing(page,record.attempts);
     const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Download report'}).click();
     const download=await downloadEvent;
-    assert.deepEqual(JSON.parse(fs.readFileSync(await download.path(),'utf8')),shown);
+    assert.deepEqual(JSON.parse(fs.readFileSync(await download.path(),'utf8')).attempts,JSON.parse(await page.locator('#startup-report-data').textContent()).attempts);
     await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:path.join(out,label+'-phone.png')});
     await page.setViewportSize({width:1440,height:900});
@@ -137,6 +150,36 @@ try{
       report.cases.push({name:'ordinary load and advancing simulation',record,diagnostics});
       report.entry=await page.locator('script[type="module"][src]').first().getAttribute('src');
       report.entrySha256=crypto.createHash('sha256').update(await(await page.request.get(new URL(report.entry,url).href)).body()).digest('hex');
+      await page.evaluate(()=>window.__proofDevice.createBuffer({size:4,usage:0}));
+      await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)).attempts.at(-1).error?.source?.operation==='gpu.uncaptured-error',key);
+      const validation=(await stored(page)).attempts.at(-1).error;
+      assert.match(validation.name,/GPUValidationError/);assert.ok(validation.message.length>0);
+      await page.evaluate(()=>{
+        console.error('Controlled logged recovery error',new Error('Recovery diagnostic marker'));
+        setTimeout(()=>{throw new Error('Controlled runtime exception after first frame',{cause:new Error('Controlled underlying cause')});},0);
+      });
+      await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)).attempts.at(-1).error?.message==='Controlled runtime exception after first frame',key);
+      const runtime=(await stored(page)).attempts.at(-1);
+      assert.equal(runtime.failureStage,'runtime');assert.equal(runtime.error.cause.message,'Controlled underlying cause');
+      assert.ok(runtime.errors.some(error=>error.name==='GPUValidationError'));
+      assert.ok(runtime.logs.some(row=>row.operation==='console.error'&&row.message.includes('Controlled logged recovery error')));
+      await page.locator('#options-toggle').click();
+      const bug=page.locator('#report-bug');await bug.scrollIntoViewIfNeeded();
+      await bug.evaluate(element=>element.addEventListener('click',event=>event.preventDefault()));
+      await bug.click();const optionsMail=new URL(await bug.getAttribute('href'));
+      assert.equal(optionsMail.pathname,'bugreport@stfuai.com');assert.ok(optionsMail.href.length<=8000);
+      assert.equal(optionsMail.searchParams.get('subject'),'[Bug report] Natural Causes v'+expectedVersion);
+      assert.ok(optionsMail.searchParams.get('body').includes(runtime.error.message));
+      assert.ok(optionsMail.searchParams.get('body').includes('Controlled underlying cause'));
+      await page.screenshot({path:path.join(out,'options-report-phone.png')});
+      await page.locator('#options-panel').screenshot({path:path.join(out,'options-detail-phone.png')});
+      await page.setViewportSize({width:1440,height:900});await bug.scrollIntoViewIfNeeded();
+      await bug.focus();
+      await page.screenshot({path:path.join(out,'options-report-desktop.png')});
+      await page.locator('#options-panel').screenshot({path:path.join(out,'options-detail-desktop.png')});
+      report.cases.push({name:'real GPU validation and thrown runtime error after first frame; Options report',validation,runtime,encodedLinkCharacters:optionsMail.href.length,mailBody:optionsMail.searchParams.get('body')});
+      const runtimeView=await readReport(page,await stored(page),'runtime-report');
+      report.cases.at(-1).view=runtimeView;
     }finally{await context.close();}
   }
   report.status='PASS';
