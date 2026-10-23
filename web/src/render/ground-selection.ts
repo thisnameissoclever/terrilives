@@ -1,7 +1,7 @@
 import {spriteIndex} from './atlas.js';
 import {
  FLOATS_PER_INSTANCE,OFFSET_DEPTH,OFFSET_FOOTPRINT_SPAN,OFFSET_PROJECTION_ANCHOR_X,OFFSET_SCREEN_X,OFFSET_SCREEN_Y,
- OFFSET_TINT_B,OFFSET_TINT_G,OFFSET_TINT_R,OFFSET_WALL_MASK,VERTICES_PER_QUAD,writeInstance,
+ OFFSET_TINT_B,OFFSET_TINT_G,OFFSET_TINT_R,OFFSET_WALL_DEPTH_STEP,OFFSET_WALL_MASK,VERTICES_PER_QUAD,writeInstance,
  type InstanceArray,
 } from './instances.js';
 import {DEPTH_LAYER_STEP,FLOOR_DEPTH,TILE_HALF_HEIGHT,TILE_HALF_WIDTH} from './iso.js';
@@ -36,6 +36,18 @@ export const GROUND_MARKER_COMMAND=-(2**23);
  */
 export const OFFSET_MARKER_SEMI_AXIS_X=OFFSET_FOOTPRINT_SPAN;
 export const OFFSET_MARKER_SEMI_AXIS_Y=OFFSET_PROJECTION_ANCHOR_X;
+/** Field 9 of a marker row: its shape, one of the MARKER_* kinds. */
+export const OFFSET_MARKER_KIND=OFFSET_WALL_DEPTH_STEP;
+/** An ellipse under a housemate or a placed object. */
+export const MARKER_ELLIPSE=0;
+/** A rounded bar along a chosen wall line or run ([WB-mark]). */
+export const MARKER_SEGMENT=1;
+/** The fainter bar along the line a click would choose. */
+export const MARKER_SEGMENT_HOVER=2;
+/** A segment bar's half-width across its line, in tiles. */
+export const SEGMENT_MARKER_RADIUS=.09;
+/** How far a segment bar runs past each end of its lines, in tiles. */
+export const SEGMENT_MARKER_OVERHANG=.04;
 
 /**
  * The selection ring's atlas slot, resolved by name once at module load.
@@ -81,12 +93,25 @@ export const MARKER_RED=[.98,.34,.29] as const;
 
 /** Writes one marker row. Every marker writer goes through here, so the row layout has one owner. */
 function writeGroundMarker(out:Float32Array,slot:number,x:number,y:number,semiAxisX:number,semiAxisY:number,
- color:readonly [number,number,number]):void {
+ color:readonly [number,number,number],kind=MARKER_ELLIPSE):void {
  writeInstance(out,slot,x,y,GROUND_MARKER_DEPTH,MARKER_SPRITE,color[0],color[1],color[2],MARKER_EMISSIVE,
   GROUND_MARKER_COMMAND);
  const base=slot*FLOATS_PER_INSTANCE;
  out[base+OFFSET_MARKER_SEMI_AXIS_X]=semiAxisX;
  out[base+OFFSET_MARKER_SEMI_AXIS_Y]=semiAxisY;
+ out[base+OFFSET_MARKER_KIND]=kind;
+}
+
+/**
+ * One rounded bar on the floor along `length` wall lines that start at a
+ * line on `axis`, centred at screen position (x, y): blue where a wall may
+ * stand, coral where it may not, fainter for the line under the pointer.
+ */
+export function writeSegmentMarker(out:Float32Array,slot:number,x:number,y:number,axis:0|1,length:number,
+ valid:boolean,hover=false):void {
+ const along=length/2+SEGMENT_MARKER_OVERHANG;
+ writeGroundMarker(out,slot,x,y,axis===1?along:SEGMENT_MARKER_RADIUS,axis===1?SEGMENT_MARKER_RADIUS:along,
+  valid?MARKER_BLUE:MARKER_RED,hover?MARKER_SEGMENT_HOVER:MARKER_SEGMENT);
 }
 
 /** The ellipse under the selected housemate's feet, at screen position (x, y). */
@@ -105,8 +130,12 @@ export function writePlacementMarker(out:Float32Array,slot:number,x:number,y:num
   valid?MARKER_BLUE:MARKER_RED);
 }
 
-/** The most marker rows one frame can hold. A frame writes at most two: the housemate's and a placement's. */
-export const MAX_GROUND_MARKERS=4;
+/**
+ * The most marker rows one frame can hold: the housemate's, a placement's,
+ * and the bars of a wall selection, one per stretch of like validity, and
+ * the line under the pointer.
+ */
+export const MAX_GROUND_MARKERS=64;
 
 /**
  * Fills `rows` with the marker rows among the first `count`, in order, and
@@ -163,9 +192,10 @@ export const MARKER_UNIFORM_FLOATS=16;
  * Where each `struct Marker` member starts within a marker's block, in
  * floats: center (2), the screen box's half-extent (2), the two rows of the
  * matrix that maps screen offsets into the ellipse's unit-circle space
- * (2 each), color (4) and depth (1).
+ * (2 each), color (4), depth (1), kind (1) and the screen lengths of the two
+ * semi-axes (2), which a segment bar measures its distances in.
  */
-export const MARKER_UNIFORM_LAYOUT={center:0,extent:2,row0:4,row1:6,color:8,depth:12} as const;
+export const MARKER_UNIFORM_LAYOUT={center:0,extent:2,row0:4,row1:6,color:8,depth:12,kind:13,semi:14} as const;
 const axes=new Float64Array(4);
 
 /**
@@ -183,11 +213,16 @@ export function writeMarkerUniform(out:Float32Array|Float64Array,at:number,insta
  markerAxes(semiAxisX,semiAxisY,scale,axes);
  const ux=axes[0],uy=axes[1],vx=axes[2],vy=axes[3];
  const det=ux*vy-vx*uy;
+ const kind=instances[base+OFFSET_MARKER_KIND];
  out.fill(0,at,at+MARKER_UNIFORM_FLOATS);
  out[at+L.center]=instances[base+OFFSET_SCREEN_X];
  out[at+L.center+1]=instances[base+OFFSET_SCREEN_Y];
- out[at+L.extent]=Math.hypot(ux,vx);
- out[at+L.extent+1]=Math.hypot(uy,vy);
+ // An ellipse's screen box; a bar's square ends reach the box of its corners.
+ out[at+L.extent]=kind===MARKER_ELLIPSE?Math.hypot(ux,vx):Math.abs(ux)+Math.abs(vx);
+ out[at+L.extent+1]=kind===MARKER_ELLIPSE?Math.hypot(uy,vy):Math.abs(uy)+Math.abs(vy);
+ out[at+L.kind]=kind;
+ out[at+L.semi]=Math.hypot(ux,uy);
+ out[at+L.semi+1]=Math.hypot(vx,vy);
  out[at+L.row0]=vy/det;
  out[at+L.row0+1]=-vx/det;
  out[at+L.row1]=-uy/det;
@@ -218,6 +253,11 @@ export const MARKER_LOOK={
  centerRadius:1e-4,
  /** The least gradient length the distance divides by. */
  minSlope:1e-6,
+ /** A chosen wall line's bar: a firm body with the same border as the ellipse. */
+ segmentFillOpacity:.62,
+ /** The bar under the pointer before a click: an outline with a faint body. */
+ hoverFillOpacity:.16,
+ hoverBorderOpacity:.7,
 } as const;
 
 /** A number as a WGSL floating-point literal: 4 becomes 4.0, and 0.975 stays 0.975. */
@@ -229,7 +269,7 @@ export function wgslFloat(value:number):string {
 const look=MARKER_LOOK,float=wgslFloat;
 
 export const groundSelectionShader=`
-struct Marker { center:vec2f, extent:vec2f, row0:vec2f, row1:vec2f, color:vec4f, depth:f32 };
+struct Marker { center:vec2f, extent:vec2f, row0:vec2f, row1:vec2f, color:vec4f, depth:f32, kind:f32, semi:vec2f };
 struct Markers { canvas:vec2f, pad:vec2f, items:array<Marker,${MAX_GROUND_MARKERS}> };
 @group(0) @binding(0) var<uniform> u:Markers;
 struct Vertex { @builtin(position) position:vec4f, @location(0) unit:vec2f, @location(1) @interpolate(flat) marker:u32 };
@@ -246,8 +286,25 @@ struct Vertex { @builtin(position) position:vec4f, @location(0) unit:vec2f, @loc
 fn linear(c:vec3f)->vec3f {
  return select(pow((c+.055)/1.055,vec3f(2.4)),c/12.92,c<=vec3f(.04045));
 }
+fn segment(i:Vertex,m:Marker)->f32 {
+ // The bar is a rounded box in world space; scaling the unit space by each
+ // semi-axis's screen length measures it in pixels along both world axes.
+ let p=abs(i.unit)*m.semi;
+ let radius=min(m.semi.x,m.semi.y);
+ let q=p-m.semi+vec2f(radius);
+ let dist=length(max(q,vec2f(0)))+min(max(q.x,q.y),0.)-radius;
+ let aa=max(fwidth(dist),${float(look.minSoftening)});
+ let edge=1.-smoothstep(${float(look.borderHalfWidth)}-aa,${float(look.borderHalfWidth)}+aa,abs(dist));
+ let inside=1.-smoothstep(-aa,aa,dist);
+ let hover=m.kind>1.5;
+ let border=select(${float(look.borderOpacity)},${float(look.hoverBorderOpacity)},hover);
+ let fill=select(${float(look.segmentFillOpacity)},${float(look.hoverFillOpacity)},hover);
+ return edge*border+(1.-edge)*inside*fill;
+}
 @fragment fn fs(i:Vertex)->@location(0) vec4f {
  let m=u.items[i.marker];
+ // Both shapes are evaluated: derivatives must stay in uniform control flow.
+ let bar=segment(i,m);
  let r=length(i.unit);
  let f=r-1.;
  // slope is the length of f's screen gradient, so f / slope approximates the
@@ -262,7 +319,7 @@ fn linear(c:vec3f)->vec3f {
  let aa=max(fwidth(f)/slope,${float(look.minSoftening)});
  let edge=1.-smoothstep(${float(look.borderHalfWidth)}-aa,${float(look.borderHalfWidth)}+aa,abs(dist));
  let fill=(1.-smoothstep(-aa,aa,dist))*${float(look.fillOpacity)};
- let opacity=edge*${float(look.borderOpacity)}+(1.-edge)*fill;
+ let opacity=select(edge*${float(look.borderOpacity)}+(1.-edge)*fill,bar,m.kind>.5);
  if(opacity<${float(look.discardOpacity)}){discard;}
  return vec4f(linear(m.color.rgb)*opacity,opacity);
 }`;

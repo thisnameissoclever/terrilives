@@ -45,6 +45,15 @@ pub struct WallPlan {
 struct Standing {
     tiles: [(i32, i32); 4],
     target: Option<Entity>,
+    /// Still on the way, with steps left; the loader judges the contact at the walk's end.
+    walking: bool,
+}
+
+/// Whether the barriers are being built now or already stood when the world was saved.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Barriers {
+    New,
+    Standing,
 }
 
 /// The tiles a sim standing at `position` touches: one, two or four, the same
@@ -73,6 +82,29 @@ pub(super) fn check_new_walls(
     rectangles: &[Rectangle],
     grid: &TileGrid,
     walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    check_barriers(world, rectangles, grid, walls, Barriers::New)
+}
+
+/// The same rules for barriers a loaded world already has, such as its windows.
+/// Someone walking past one, round to what lies behind it, is not using that
+/// through it: live play makes that state, so refusing it would refuse a
+/// save. Someone who has arrived is held to the rule as a new wall would be.
+pub(super) fn check_standing_barriers(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    check_barriers(world, rectangles, grid, walls, Barriers::Standing)
+}
+
+fn check_barriers(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+    barriers: Barriers,
 ) -> Result<(), PlacementRefusal> {
     use PlacementRefusal::*;
     // The front door's one step in, whoever lives here now: a wall there
@@ -103,6 +135,9 @@ pub(super) fn check_new_walls(
                 .map(|(entity, position)| Standing {
                     tiles: tiles_under(position),
                     target: world.get::<Target>(entity).map(|t| t.object),
+                    walking: world
+                        .get::<terri_core::Path>(entity)
+                        .is_some_and(|path| path.next_step().is_some()),
                 })
                 .collect()
         })
@@ -116,10 +151,18 @@ pub(super) fn check_new_walls(
     }
     // A wall must not come down between a sim and the thing it is using or
     // the person it is talking to: it would carry on through the wall.
-    for Standing { tiles, target, .. } in &standing {
+    for Standing {
+        tiles,
+        target,
+        walking,
+    } in &standing
+    {
         let Some(target) = *target else {
             continue;
         };
+        if *walking && barriers == Barriers::Standing {
+            continue;
+        }
         let across = |mine: (i32, i32), theirs: (i32, i32)| {
             tiles.contains(&mine)
                 && if world.get::<SmartObject>(target).is_some() {
@@ -147,6 +190,26 @@ pub(super) fn check_new_walls(
         crate::save::LoadProblem::PortalReturn => BlockedLanding,
         crate::save::LoadProblem::EdgeWorld => BlockedRoute,
     })
+}
+
+/// An opened line removes a barrier, yet it can still give furniture an
+/// approach from floor nobody reaches: a doorway from a sealed pocket straight
+/// onto a sofa. The usability proof refuses that, and so does a windowed
+/// house's loader. Only what this edit breaks is refused, so a house that is
+/// already cut in two can still be mended by opening it.
+pub(super) fn keep_usable(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+) -> Result<(), PlacementRefusal> {
+    match prove_lot_usable(world, grid, rectangles) {
+        Err(refusal)
+            if prove_lot_usable(world, world.resource::<TileGrid>(), rectangles).is_ok() =>
+        {
+            Err(refusal)
+        }
+        _ => Ok(()),
+    }
 }
 
 /// Produces a complete owned transaction; no mutation and no random draws.
@@ -188,9 +251,8 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         super::windows::is_rear(segment, house)
             && super::windows::window_line_in_bounds(segment, width, height, house)
     };
-    let perimeter_edit = matches!(edit.state, WallState::Open | WallState::Wall)
-        && line.physical_in_bounds(width, height)
-        && !rear_shell(requested_line);
+    // [WT-rules]: a wall on the lot's edge may also be a doorway or a window.
+    let perimeter_edit = line.physical_in_bounds(width, height) && !rear_shell(requested_line);
     // With bought land beyond it a shell line lies inside the grid, but
     // it is still the shell: only glazing and restoring glass may touch it.
     if rear_shell(requested_line) && !rear_restore && edit.state != WallState::Window {
@@ -283,6 +345,8 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     }
     if !barriers.is_empty() {
         check_new_walls(world, &rectangles, &grid, &barriers)?;
+    } else if candidate != *layout {
+        keep_usable(world, &rectangles, &grid)?;
     }
     Ok(WallPlan {
         changed: candidate != *layout,
@@ -308,4 +372,4 @@ pub(crate) fn commit(world: &mut World, edit: WallEdit) {
 
 #[cfg(test)]
 #[path = "wall_tests.rs"]
-mod tests;
+pub(crate) mod tests;

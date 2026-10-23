@@ -6,6 +6,9 @@
 use std::path::PathBuf;
 use std::{env, fs};
 mod build_pre_books;
+#[path = "src/weather_tuning.rs"]
+mod weather_tuning;
+pub use weather_tuning::WeatherTuning;
 
 #[path = "src/books.rs"]
 mod books;

@@ -1,0 +1,23 @@
+FF
+======================================================================
+FAIL: test_optional_typed_batch_interface_exists_without_a_cli_count (test_mutation_batch_budget.BoundedExecutionTests.test_optional_typed_batch_interface_exists_without_a_cli_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_batch_budget.py", line 50, in test_optional_typed_batch_interface_exists_without_a_cli_count
+    self.assertIn("batch_policy", inspect.signature(runner.execute_slot).parameters)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'batch_policy' not found in mappingproxy(OrderedDict({'root': <Parameter "root">, 'settings': <Parameter "settings">, 'planned': <Parameter "planned">, 'chain': <Parameter "chain">, 'output': <Parameter "output">, 'api': <Parameter "api=None">, 'recovered': <Parameter "recovered=None">}))
+
+======================================================================
+FAIL: test_separate_members_are_not_summed_into_one_member (test_mutation_batch_budget.OutgoingInventoryTests.test_separate_members_are_not_summed_into_one_member)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_batch_budget.py", line 38, in test_separate_members_are_not_summed_into_one_member
+    self.assertTrue(hasattr(artifacts, "outgoing_inventory"), "outgoing artifact inventory is missing")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : outgoing artifact inventory is missing
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.004s
+
+FAILED (failures=2)

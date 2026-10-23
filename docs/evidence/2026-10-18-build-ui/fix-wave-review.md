@@ -1,0 +1,39 @@
+# Scoped Build UI fix-wave rereview
+
+Reviewed `fix-wave.diff` against the original frozen `final-source.diff`, original `fresh-code-review.md`, appended implementation report, current source integration and applicable Build, room, Land, dock, string and testing contracts. Base remains `2b15dcfea9b6a147eec87b11607118f3c3349e1d`. This review ran no tests, type checks, builds, browser sessions or servers and changed only this report.
+
+## Per-finding verdicts
+
+1. **Original issue 1: ADDRESSED.** `web/src/ui/build-exit.ts:306` arms the activation guard as the decision opens, before focusing neutral Keep building. Line 319 arms it again before restoring the opener after Keep. Existing keydown handling prevents the repeated Enter/Space default while guarded; a fresh nonrepeat press clears the guard and remains usable. The new test at `web/tests/build-exit.test.ts:230` covers Exit and Land, models a button click after an uncancelled Enter keydown, and checks opening, deliberate Keep, restored-focus repeats and fresh activation. The retained initial RED fails because a repeated Enter closes the newly opened decision. This is meaningful regression evidence for the original default-activation defect.
+2. **Original issue 2: ADDRESSED in scoped source.** Land's generic initial status is empty in `web/src/ui/land-tool.ts:26` and `web/index.html:1466`; its duplicate touch narration is also removed. `web/src/ui/room-tool.ts` keeps the doorway instruction while dropping the ready prefix and ready-with-doorway message. `web/src/ui/build-controls.css:196` collapses those empty elements. Land quotes, remaining funds, purchase progress, failures and receipts remain; room corner progress and doorway guidance remain. Canonical string documentation still needs the root-owned reconciliation described below.
+3. **Actual-browser Back finding: ADDRESSED in scoped source.** `BuildSession` owns the explicit cancellation marker at `web/src/ui/build-session.ts:24`, exposes it at line 28, and records it only during confirmation at line 29. The completed(false) callback at `web/src/main.ts:1738` records Back/reset and clears pending exit and Land destination intent before resolving the review promise. `confirmBuildBatch` at line 1999 clears the status for this outcome. It leaves raw review choices and draft geometry alone. A real review refusal does not invoke completed(false), so the review remains active with its useful error. A fresh eligible confirmation resets the marker before preparation, allowing invalid input and native refusal to remain visible.
+4. **Actual-browser roster-height finding: ADDRESSED in scoped source; rendered result not judged here.** `web/src/ui/compact-hud.css:154` reduces only vertical roster padding from 4px to 2px. This removes four pixels of intrinsic height pressure while retaining the 28px desktop minimum. The existing 36px compact and coarse-pointer overrides at lines 254 and 282 remain. Widths, fonts, line height, horizontal padding and gaps are unchanged by this wave. Actual 28px/36px border boxes and focus clearance require the separate browser measurements.
+
+## Cancellation and lifecycle assessment
+
+1. Back retains review choices because `RoomReviewController.back()` discards the prepared candidate without clearing its choices. Reset intentionally clears those choices for Load, cancellation or ending the session. Both outcomes resolve the waiting confirmation as false and invalidate its destination. Native Back refusal keeps the review active and reports its own error instead of marking cancellation.
+2. The marker survives the cancelled confirmation's asynchronous return long enough for the page to suppress its false fallback. It resets when the next eligible confirmation begins. The existing confirming guard prevents another confirmation from entering while review completion is pending; a rejected reentrant call cannot adopt or open another review. Existing BuildExit continuation checks still prevent completion of a superseded review from firing Land. This wave does not weaken those checks or change the native confirmation return shape.
+3. The actual-page harness now extracts the production `confirmBuildBatch` function. `web/tests/main-build-wiring.test.ts:318` checks blank status, exact raw text retention, unchanged committed bytes, retained native draft, active Build, and a subsequent native preparation refusal that resets the marker and remains visible. Line 339 separately checks visible refusal for an invalid raw room name. Existing native Land tests cover Back, Load and graphics dismissal without advancing time or leaving Build.
+4. Neutral Keep remains first and initially focused. Footer Cancel remains red, footer Confirm remains green, and successful Land entry still ends and begins native sessions synchronously under the builder pause. The fix wave does not change those binding decisions.
+
+## Evidence and mutation checks
+
+1. Reviewed `back-status-red.txt`: the corrected fixture executes the exact prewave page function and receives `The changes could not be confirmed. Try Confirm again.` after ordinary Back, where an empty status is expected. The earlier `confirmRefusal is not defined` fixture failure in `fix-wave-red.txt` is setup evidence, not product proof.
+2. Reviewed `fix-wave-green.txt`: 175 tests across 6 files passed. The implementation report records a subsequent 4GB-bound type check passing. These are supplied verification receipts; this reviewer did not rerun them or infer the parent's final gate results.
+3. Specific mutations that defeat the new invariants: remove the guard assignment in `ask()` to fail held-Enter opening; remove the assignment before focus restoration to fail held-Enter reopening after Keep; restore the static Land narration to fail the markup assertion; restore either Room ready string to fail its focused expected status; remove the cancellation marker condition from the production page function to fail ordinary Back status; fail to reset the marker on a fresh confirm to fail the subsequent native-refusal assertion; suppress all failed-confirmation statuses to fail the invalid-name assertion. These tests check the named behavior and include meaningful failure boundaries.
+
+## Direct new breakage
+
+No direct new source breakage found in `fix-wave.diff`. No source remedy requested.
+
+Root-owned documentation reconciliation remains necessary: `docs/player-visible-strings.md` still lists the removed Land choose status, and `docs/specs/2026-10-13-build-confirmation.md` still says keyboard opening or closing ignores nothing. The latter must describe the new held-activation guard while preserving the distinction from pointer click-count handling. Root was notified during this review.
+
+## Declined to judge
+
+1. Actual roster dimensions, text clipping, focus clearance, keyboard timing in a real browser, touch hardware behavior and visual quality. Source and test fakes cannot approve those results.
+2. Final full web, type, build, documentation and changelog gates; remote checks; publication; deployment and live behavior. The parent owns these and was still running final gates on unchanged inputs.
+3. Unchanged native reconciliation, persistence, room identity, purchase internals and unrelated earlier patch behavior. This rereview examines the bounded fixes and their direct integration, not a new repository audit.
+
+**Ready to merge on scoped code: Yes.** Both original code findings and the two assigned direct browser fixes are addressed in source, with no new scoped blocker found. This verdict does not claim completion of the remaining documentation, full verification or visual acceptance gates.
+
+**Next steps**: Root completes canonical documentation, its final gates and fresh actual-browser/independent visual acceptance, then owns delivery.

@@ -1,15 +1,18 @@
 import {spriteIndex} from './atlas.js';
 
 /**
- * Codes 24 to 26 are fights (issue 248): over the dishes, over another
- * chore, and with no reason. No broom art is authored, so a fight over
- * another chore borrows the dish-washing symbol.
+ * Fight subjects reuse the existing conversation artwork in red.
+ * Privacy uses the bathroom symbol; unfinished cleaning uses dish washing.
  */
 const TOPICS: readonly (string | null)[] = [
   null, null, null, 'Eat', 'Talk', 'Sleep', null, 'Use', 'Reading',
   'Exercise', 'WatchFish', 'Sitting', 'Shower', 'Toilet', 'TV', 'LyingDown',
   'WashHands', 'WashDishes', 'Radio', 'Correspondence', 'Bath', 'Ingredients',
   'PrepareFood', 'Cooking', 'WashDishes', 'WashDishes', 'Talk',
+  'Toilet', 'TV', 'Radio', 'Exercise', 'Use', 'Talk',
+  'Eat', 'Talk', 'Sleep', null, 'Use', 'Reading', 'Exercise', 'WatchFish',
+  'Sitting', 'Shower', 'Toilet', 'TV', 'LyingDown', 'WashHands', 'WashDishes',
+  'Radio', 'Correspondence', 'Bath', 'Ingredients', 'PrepareFood', 'Cooking',
 ];
 /** The first topic code that is a fight rather than a conversation subject. */
 export const FIRST_FIGHT_TOPIC = 24;

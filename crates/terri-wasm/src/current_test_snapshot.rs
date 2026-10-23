@@ -16,32 +16,29 @@ pub(crate) fn project_reviewed_catalogue_fingerprint(source: u64, captured: &mut
     *captured = source;
 }
 
-/// The schema-seventeen envelope of a current save. The tests that read it
-/// never turn anyone's job search off, which is all schema eighteen adds;
-/// the decode checks that.
-pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV17 {
+/// Decode the complete current envelope without projecting away saved state.
+pub(crate) fn decode_current(bytes: &[u8]) -> terri_core::SaveSnapshotV20 {
     assert_eq!(&bytes[..SAVE_MAGIC.len()], SAVE_MAGIC);
     assert_eq!(
         &bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES],
-        &18u16.to_le_bytes()
+        &20u16.to_le_bytes()
     );
     let (snapshot, remaining) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV18>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV20>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(remaining.is_empty());
-    assert!(snapshot.job_search_off.is_empty());
-    snapshot.legacy
+    snapshot
 }
 macro_rules! current_view {
     ($view:ident, $payload:ty, $capture:ident, $load:ident, $($field:ident).+) => {
         #[derive(Clone, Debug, PartialEq)]
-        pub(crate) struct $view(pub terri_core::SaveSnapshotV17);
+        pub(crate) struct $view(pub terri_core::SaveSnapshotV20);
         impl std::ops::Deref for $view {
             type Target = $payload;
-            fn deref(&self) -> &Self::Target { &self.0.$($field).+ }
+            fn deref(&self) -> &Self::Target { &self.0.legacy.$($field).+ }
         }
         impl std::ops::DerefMut for $view {
-            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.$($field).+ }
+            fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0.legacy.$($field).+ }
         }
     };
 }
@@ -59,31 +56,63 @@ current_view!(
         .legacy
         .legacy
         .legacy
+        .legacy
+        .legacy
 );
 current_view!(
     CurrentV6View,
     terri_core::SaveSnapshotV6,
     current_v6_view,
     load_current_v6_view,
-    legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy
+    legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+        .legacy
+);
+current_view!(
+    CurrentV17View,
+    terri_core::SaveSnapshotV17,
+    current_v17_view,
+    load_current_v17_view,
+    legacy.legacy
 );
 pub(crate) trait CurrentSnapshotViews {
+    fn current_v17_view(&self) -> CurrentV17View;
+    fn load_current_v17_view(
+        &mut self,
+        snapshot: CurrentV17View,
+    ) -> Result<(), terri_sim::SaveError>;
     fn current_v5_view(&self) -> CurrentV5View;
     fn current_v6_view(&self) -> CurrentV6View;
     fn load_current_v6_view(&mut self, snapshot: CurrentV6View)
         -> Result<(), terri_sim::SaveError>;
 }
 impl CurrentSnapshotViews for Sim {
+    fn current_v17_view(&self) -> CurrentV17View {
+        CurrentV17View(self.save_snapshot_v20())
+    }
+    fn load_current_v17_view(
+        &mut self,
+        snapshot: CurrentV17View,
+    ) -> Result<(), terri_sim::SaveError> {
+        self.load_snapshot_v20(snapshot.0)
+    }
     fn current_v5_view(&self) -> CurrentV5View {
-        CurrentV5View(self.save_snapshot_v17())
+        CurrentV5View(self.save_snapshot_v20())
     }
     fn current_v6_view(&self) -> CurrentV6View {
-        CurrentV6View(self.save_snapshot_v17())
+        CurrentV6View(self.save_snapshot_v20())
     }
     fn load_current_v6_view(
         &mut self,
         snapshot: CurrentV6View,
     ) -> Result<(), terri_sim::SaveError> {
-        self.load_snapshot_v17(snapshot.0)
+        self.load_snapshot_v20(snapshot.0)
     }
 }

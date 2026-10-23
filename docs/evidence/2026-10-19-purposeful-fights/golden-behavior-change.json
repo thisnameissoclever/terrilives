@@ -1,0 +1,37 @@
+{
+  "firstHashDifference": {
+    "tick": "5",
+    "oldHash": "11035303725535640576",
+    "newHash": "2969005397198363363",
+    "oldRng": "14834479919123257054",
+    "newRng": "14834479919123257054",
+    "grievances": 1,
+    "fightContexts": 0
+  },
+  "firstRngDifference": {
+    "tick": "63",
+    "oldHash": "5084325321023020567",
+    "newHash": "10006205673046354864",
+    "oldRng": "1658324504314663857",
+    "newRng": "866135002507826190",
+    "grievances": 1,
+    "fightContexts": 0
+  },
+  "firstPositionOrNeedsDifference": {
+    "tick": "63",
+    "oldHash": "5084325321023020567",
+    "newHash": "10006205673046354864",
+    "oldRng": "1658324504314663857",
+    "newRng": "866135002507826190",
+    "grievances": 1,
+    "fightContexts": 0
+  },
+  "final": {
+    "oldHash": "7530373376785939268",
+    "newHash": "4733362429942472337",
+    "oldRng": "10258756527870050672",
+    "newRng": "16515114040042717668",
+    "grievances": 2,
+    "fightContexts": 0
+  }
+}

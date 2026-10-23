@@ -1,6 +1,24 @@
 import { expect, it } from 'vitest';
 import { actionPage, actionLayoutFits, chooseActionPlacement, layoutObjectActions, maximumActionSize } from '../src/ui/object-menu-layout.js';
 
+it('allocates the real expanded-description width and keeps it separate from actions', () => {
+  const identityWidth = 210;
+  for (const count of [3,5]) for (const viewport of [{width:1440,height:960}, {width:390,height:844}, {width:320,height:568}]) {
+    const entries = Array.from({length:count},()=>({width:120,height:44}));
+    const placed = chooseActionPlacement({x:viewport.width/2,y:240},entries,{width:120,height:44},viewport,145,[],identityWidth)!;
+    expect(placed).not.toBeNull();
+    expect(placed.scroll).toBe(false);
+    expect(placed.identityHeight).toBe(145);
+    const layout = layoutObjectActions({x:viewport.width/2,y:240},entries,viewport,placed.region.top,placed.region.bottom,placed.identityHeight,placed.region.left,placed.region.right,identityWidth);
+    if (viewport.width === 1440) expect(layout.compact).toBe(false);
+    if (!layout.compact) expect(layout.identity.x).toBeCloseTo(layout.center.x-identityWidth/2);
+    const identity = {left:layout.identity.x,right:layout.identity.x+identityWidth,top:layout.identity.y,bottom:layout.identity.y+placed.identityHeight};
+    expect(identity.left).toBeGreaterThanOrEqual(placed.region.left);
+    expect(identity.right).toBeLessThanOrEqual(placed.region.right);
+    for (const at of layout.positions) expect(at.x>=identity.right||at.x+120<=identity.left||at.y>=identity.bottom||at.y+44<=identity.top).toBe(true);
+  }
+});
+
 it('places four independent buttons around the visible center', () => {
   const result = layoutObjectActions({ x: 600, y: 350 }, Array.from({ length: 4 }, () => ({ width: 120, height: 52 })), { width: 1280, height: 800 }, 8, 680);
   expect(result.positions[0].y).toBeLessThan(result.center.y);

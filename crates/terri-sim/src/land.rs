@@ -392,6 +392,19 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
             episode.key = remap_key(episode.key, room);
         }
     }
+    crate::social_conflicts::remap_chore_keys(world, |key| remap_key(key, room));
+    if let Some(mut neglect) = world.get_resource_mut::<terri_core::save_v19::SavedNeglect>() {
+        for timer in &mut neglect.sources {
+            if let terri_core::save_v19::NeglectSource::Floor(index) = &mut timer.source {
+                *index = cell(*index);
+            }
+        }
+        neglect.sources.sort_by_key(|timer| timer.source);
+        for timer in &mut neglect.duties {
+            timer.key = remap_key(timer.key, room);
+        }
+        neglect.duties.sort_by_key(|timer| (timer.key, timer.owner));
+    }
     if let Some(mut grime) = world.get_resource_mut::<SavedGrime>() {
         let grime = &mut *grime;
         for patch in &mut grime.patches {

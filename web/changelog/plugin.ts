@@ -5,7 +5,7 @@ import type { Plugin } from 'vite';
 import { buildChangelog } from '../../scripts/build-changelog.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const notes = path.join(root, 'docs/changelog');
+const notes = path.join(root, 'docs/player/changelog');
 const presentation = path.join(root, 'web/changelog');
 
 /** The same generated document is served in development and shipped by Pages. */

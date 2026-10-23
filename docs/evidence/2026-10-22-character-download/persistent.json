@@ -1,0 +1,42 @@
+{
+  "mode": "persistent",
+  "url": "http://127.0.0.1:5177/terrilives/?stress=0",
+  "binaryRequests": [
+    1792723605670,
+    1792723606682,
+    1792723607687
+  ],
+  "partsRequests": [],
+  "diagnostics": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin"
+    },
+    {
+      "type": "error",
+      "text": "Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.bin\n    at Sh (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4880315)\n    at async Th (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4881964)\n    at async http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4882328\n    at async Promise.all (index 6)\n    at async Eh (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4882208)\n    at async http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4928330\n    at async Promise.all (index 0)\n    at async vg (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:808:4928771)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:2388:5265)\n    at async ZO (http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js:2397:66934)",
+      "url": "http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js"
+    }
+  ],
+  "binaryUrl": "http://127.0.0.1:5177/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+  "elapsedMs": 6815,
+  "failure": "The game failed to startCharacter asset could not load: 503 /terrilives/assets/runtime.normalTriangles-DitPThSI.binWebGPU is present, so this is not the usual browser-support problem. The message above is the real error; the console has the full stack.",
+  "frames": 0,
+  "entry": {
+    "url": "http://127.0.0.1:5177/terrilives/assets/index-DjPw67ST.js",
+    "sha256": "e447662c2af92f6d167e52d44549fe61bcd27ae7a1c9dbd32a17943f64c4abba"
+  },
+  "status": "PASS",
+  "browserClosed": true
+}

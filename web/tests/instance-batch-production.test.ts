@@ -17,7 +17,7 @@ it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight thr
   const sim = { count: 0, positions: () => floats, prevPositions: () => floats,
     ids: () => ints, kinds: () => ints, sprites: () => ints, activities: () => ints,
     visualActions: () => ints, facings: () => ints, carrying: () => ints,
-    itemKinds: () => [], selectedIndex: () => null, clockTick: () => 37 };
+    itemKinds: () => [], selectedIndex: () => null, clockTick: () => 37, dayTicks: () => 1440, seasonIndex: () => 0 };
   const highlight = { tiles: [[2, 3], [3, 3]], valid: true };
   const draw = vi.fn<(instances: Float32Array, count: number, scale: number) => void>();
   const recount = vi.fn(frame.instanceCount);
@@ -33,6 +33,7 @@ it.each(['floor', 'selection', 'review'] as const)('uploads the %s highlight thr
     roomReview: { highlight: () => mode === 'review' ? highlight : null }, roomsTool: { selecting: mode !== 'floor' },
     roomSelection: { highlight: () => mode === 'selection' ? highlight : { tiles: [[8, 8]], valid: true } },
     sky: { width: 0, height: 0, values: floats }, AMBIENT_NEUTRAL: 1,
+    weatherScene: { prepare: vi.fn() }, weatherTuning: null, drawWorldEffects: vi.fn(),
     wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0 },
     interiorDaylightShade: 0 };
   new Function(...Object.keys(bindings), code)(...Object.values(bindings));

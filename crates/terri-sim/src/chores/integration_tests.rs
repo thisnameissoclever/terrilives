@@ -73,6 +73,8 @@ fn daily_fixture() -> (Sim, Entity, ChoreKey, u32) {
         }
     }
     sim.world_mut().insert_resource(state);
+    // Give this fixture its normal bed ownership before isolating chore mood.
+    crate::beds::automatic::assign(sim.world_mut());
     (sim, person, key, room)
 }
 
@@ -159,6 +161,15 @@ fn daily_decisions_include_floor_and_surface_grime_mood() {
                 1000,
             );
         }
+        crate::neglect::refresh(dirty.world_mut());
+        dirty
+            .world_mut()
+            .resource_mut::<terri_core::SimClock>()
+            .tick = 120;
+        clean
+            .world_mut()
+            .resource_mut::<terri_core::SimClock>()
+            .tick = 120;
         let clean_chance = chance(&clean, person, key);
         let dirty_chance = chance(&dirty, person, key);
         assert!(clean_chance > dirty_chance);
@@ -259,6 +270,8 @@ fn personality_edit_preserves_profile_and_active_chore_but_changes_cleanliness()
     assert!(sim.world().get::<ChoreWork>(person).is_some());
     assert!(sim.world().get::<Agent>(person).is_some());
     let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    restored
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }

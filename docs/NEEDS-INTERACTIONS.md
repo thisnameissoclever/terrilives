@@ -6,6 +6,9 @@ it when changing an interaction, its advertised effects, seating, or need
 delivery. The content files hold balance values; this document explains their
 meaning. Dated verification belongs in `docs/evidence/`.
 
+Base need drain rates are two thirds of the previous balance. Existing
+personality, sleep and work multipliers still apply to those rates.
+
 ## What each meter represents
 
 | Need | Meaning | Activities that help | Exclusions |
@@ -14,7 +17,7 @@ meaning. Dated verification belongs in `docs/evidence/`.
 | Energy | Alertness and physical reserves | Sleeping; a small amount from reclining | Sitting upright, entertainment and company do not replace sleep. |
 | Hygiene | General cleanliness, including body odor | Bathing; partial improvement from washing hands | Hand washing cannot clean the whole body or remove the body-odor penalty. |
 | Bladder | Relief from needing the toilet | Using a toilet | Sinks, bathing and food do not provide toilet relief. |
-| Social | Company, with affinity and family scaling its benefit | Conversation and eligible concurrent shared activities | Solo entertainment, solo food, empty tables, travel and passive proximity provide no Social. |
+| Social | Company, with affinity and family scaling its benefit | Conversation and eligible concurrent shared activities | Correspondence provides Social while alone. Solo media, solo food, empty tables, travel and passive proximity provide no Social. |
 | Fun | Active entertainment or an engaging pastime | Media, reading, exercise, correspondence, aquarium watching and conversation | Plain sitting or lying down restores physical comfort rather than entertainment. |
 | Comfort | Physical ease and relaxation | Restful furniture, beds, bathing and watching fish | Washing hands has no Comfort cost. Standing eating has a small physical cost. |
 
@@ -24,45 +27,9 @@ that the action leaves that need alone, apart from normal decay.
 
 ## Rewards and costs by action
 
-Amounts below are nominal points over the authored duration, before
-personality and the meter ceiling. One simulation tick is one game minute.
-Ordinary actions deliver a rate throughout actual use. Recipes pay Hunger
-once food is consumed at completion; contextual Comfort and Social accrue
-only during active eating or shared use.
+The complete player explanation is authored in [Activities](player/activities.md), with per-need entry points in [Needs](player/needs.md). The generated baseline table reads `docs/player/generated/reference.json`, exported from the current compiled pack. It includes resolved object-specific recipe schedules rather than substituting generic chain defaults. Do not maintain a second hand-copied numerical table here.
 
-| Object and action | Authored duration | Need effects | Reason |
-| --- | --- | --- | --- |
-| Fridge: grab a snack | 20 getting, 30 plating, 35 eating minutes, plus travel | Hunger +40 after eating; standing-eating cost during the counter eating step | The snack is real food. Preparation and travel carry no food reward. Snacks currently use a standing counter step. |
-| Cook and eat dinner | 500 working minutes across the recipe, plus travel; 90 eating minutes | Hunger +70 after eating; chair Comfort or standing-eating cost; conditional Social +11 over 90 eating minutes | Food feeds the diner. A chair supplies physical comfort; company supplies Social. Food quality does not manufacture either effect. |
-| Collect and eat a prepared shared meal | 25 collecting and 90 eating minutes, plus travel | Same meal rewards and contextual costs as dinner | The portion supplies the same food benefit, whether the diner cooked it or collected it. |
-| Bunk bed: sleep | 180 minutes | Energy +100, Comfort +5 | Sleep restores Energy. A bunk is a real resting place, with half the double bed's nominal Comfort. |
-| Double bed: sleep | 210 minutes | Energy +108, Comfort +10 | A longer sleep and a more comfortable bed provide greater total relief. |
-| Shower | 90 minutes | Hygiene +70, Energy -12 | Whole-body washing restores cleanliness. Standing and washing require effort. |
-| Bathtub: soak | 78 minutes | Hygiene +58, Comfort +31, Energy -3 | Bathing washes the body; a seated soak relaxes it with less effort than a shower. |
-| Toilet | 24 minutes | Bladder +95 | Toilet use directly relieves Bladder. It does not wash hands automatically. |
-| Bathroom sink: wash hands | 21 minutes | Hygiene +32, capped at 40; no Comfort cost | Washing hands is useful partial cleaning. It cannot substitute for bathing. |
-| Kitchen sink: wash hands | 23 minutes | Hygiene +20, capped at 40; no Comfort cost | This action washes hands, rather than dishes. Its lower cleaning rate is a furniture balance difference, not a different bodily consequence. |
-| Television: watch | 55 minutes | Fun +30; conditional Social +24; occupied-chair Comfort when seated | Television entertains. Company and the chair supply their own separate effects. |
-| Radio: listen | 38 minutes | Fun +22; conditional Social +5; occupied-chair Comfort when seated | Music entertains. Listening alone provides no Social. |
-| Ottoman: sit | 50 minutes | Comfort +34 | Sitting relieves physical discomfort without an active pastime. |
-| Long sofa: lie down | 72 minutes | Comfort +43, Energy +9 | Reclining is physically restful, with a small Energy benefit that is much weaker than sleep. Plain reclining provides no Fun. |
-| Armchair: sit | 41 minutes | Comfort +29 | Supported sitting relieves discomfort. |
-| Dining table: Sit | 62 minutes | Comfort +37; no Hunger or Social | Resting at the table requires a real chair. It creates neither food nor company. Eat is offered separately when a prepared portion is available. |
-| Bookshelf: read | 34 minutes | Fun +26; conditional shared-activity Social | Reading is an engaging pastime. Eligible simultaneous reading supplies mild company. |
-| Reading chair: read | 46 minutes | Comfort +15, Fun +19; conditional shared-activity Social | The chair provides comfort while the book provides entertainment. |
-| Exercise bike: exercise | 83 minutes | Fun +28, Energy -8, Hygiene -5; conditional shared-activity Social | Exercise is an active pastime. Exertion costs Energy, and sweat reduces cleanliness. |
-| Desk: correspondence | 58 minutes | Fun +36, Energy -7 | The game treats correspondence as engaging desk work with a small effort cost. It is not a conversation with another household Sim and provides no Social. |
-| Aquarium: watch fish | 67 minutes | Fun +25, Comfort +21; conditional shared-activity Social | Watching fish entertains and relaxes the viewer. Eligible shared watching also provides mild company. |
-| Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +50.25 and Fun +10.05 over 67 minutes; Social scales with affinity and family | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
-| Clean dishes, including a targeted pile or surface | Collection and washing work, plus travel | No direct need reward | Cleaning removes dishes and their environmental mood consequences. It does not wash the Sim's body or refill a need. |
-| Clean floor | 24 work minutes per patch, plus travel | No direct need reward or additional need cost | Work removes actual grime and its mood effect; normal need decay accounts for time spent working. |
-| Wipe surface | 45 work minutes, plus travel | No direct need reward or additional need cost | Wiping cleans furniture rather than the Sim. Grime, mood and commitment credit change separately. |
-| Empty bin | 60 work minutes, plus travel | No direct need reward or additional need cost | Waste removal changes the household environment and commitment outcomes; it does not refill a bodily need. |
-
-Objects without actions or a secondary seating role do not refill needs.
-Decoration can affect presentation or the environment without becoming a
-need interaction. A dining chair or desk chair can supply Comfort while used
-as a secondary seat, despite having no standalone action.
+The engineering contract distinguishes ordinary per-use rates, food completion payments, secondary chair Comfort and contextual Social. Preparation and travel do not grant the later food reward. Standing eating has its own Comfort cost. Cleaning the home changes grime, dishes and mood rather than bodily Hygiene. Work, sleep, personality, actual use, ceilings and interruptions remain part of physical delivery.
 
 ## Actual chair Comfort
 
@@ -71,14 +38,7 @@ action uses that action's positive Comfort divided by its authored duration.
 Chairs without a standalone action have an explicit `seat_comfort_per_tick`
 value in `content/objects.toml`.
 
-| Occupied seat | Comfort per game minute | Source |
-| --- | --- | --- |
-| Dining chair | 37 / 62, approximately 0.597 | Authored secondary-seat value, matching table sitting's baseline |
-| Desk chair | 37 / 62, approximately 0.597 | Same simple-chair baseline |
-| Ottoman | 34 / 50 = 0.68 | Its own sitting action |
-| Long sofa | 43 / 72, approximately 0.597 | Its own resting action |
-| Armchair | 29 / 41, approximately 0.707 | Its own sitting action |
-| Reading chair | 15 / 46, approximately 0.326 | Its own reading action |
+Current chair values come from the compiled object actions and `seat_comfort_per_tick` entries in the generated reference. Use the resolved rate of the chair actually occupied, not a default dining-chair value for every model.
 
 The rate applies only while actively using the claimed chair. Merely reserving
 a seat, walking toward it or standing beside it gives no secondary Comfort.
@@ -114,11 +74,11 @@ hand washing alone cannot remove them. Bathing has no partial-wash ceiling
 and can restore Hygiene toward 100. Both hand-washing actions leave Comfort
 unchanged apart from normal decay.
 
-## Social requires actual company
+## Social from company and correspondence
 
 Relationship affinity is a directional feeling between -1 and +1. Company
 provides a positive Social benefit even at maximum dislike. Its multiplier is
-`max(0.25, 1 + affinity * relationship_delta_scale)`, with another 0.1 for
+`max(0.25, 1 + affinity * relationship_delta_scale)`, with another 0.25 for
 family. The shipped relationship scale is 0.5. A group uses the strongest
 eligible affinity multiplier and adds the family bonus once if any eligible
 participant is family. More participants do not multiply the rate.
@@ -202,13 +162,13 @@ Every need also decays throughout ordinary life:
 
 | Need | Points lost per game minute before modifiers |
 | --- | --- |
-| Hunger | 0.062 |
-| Energy | 0.051 |
-| Hygiene | 0.072 |
-| Bladder | 0.102 |
-| Social | 0.026 |
-| Fun | 0.048 |
-| Comfort | 0.032 |
+| Hunger | 0.0413333333 |
+| Energy | 0.034 |
+| Hygiene | 0.048 |
+| Bladder | 0.068 |
+| Social | 0.0173333333 |
+| Fun | 0.032 |
+| Comfort | 0.0213333333 |
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
 being at work multiplies it by 0.5. Commuting uses normal decay. Work provides
@@ -232,6 +192,8 @@ Friendship changes a Sim's directional affinity toward another Sim. It does
 not convert affinity points into need points. Life satisfaction records
 completion rewards and long-term mood; it is separate from all seven meters.
 
+Fights provide no need reward. Current autonomous arguments require an attributable grievance; player orders can use relevant history or an ordinary subject. Completed physical cleaning can earn directional appreciation even with the board off. Completing an argued assigned duty can separately repair feelings. These effects change relationships rather than bodily needs; the [public relationship reference](player/relationships.md#fights) and [fight contract](specs/2026-10-16-fights.md) own the requirements and exceptions.
+
 ## Source and verification map
 
 | Responsibility | Source |
@@ -243,6 +205,7 @@ completion rewards and long-term mood; it is separate from all seven meters.
 | Personality, trait and hobby preferences | `content/personalities.toml`, `content/traits.toml`, `compatibility.rs` |
 | Contextual benefits, caps and physical Comfort delivery | `crates/terri-sim/src/need_interactions.rs` |
 | Actual participants and affinity/family company scaling | `crates/terri-sim/src/social_company.rs` |
+| Argument admission, subjects and cleanup appreciation/repair | `crates/terri-sim/src/social_conflicts.rs`, `fights.rs`, `chore_repair.rs` |
 | Ordinary, recipe and chat delivery | `crates/terri-sim/src/systems/interact.rs`, `chain.rs`, `social.rs` |
 | Physical claims and valid seating | `crates/terri-sim/src/seating.rs`, `media.rs`, `dining.rs` |
 

@@ -753,6 +753,29 @@ impl SimHandle {
             .collect()
     }
 
+    /// Content for visual weather: seed, four daily chances, event hours,
+    /// earliest/latest start hours, grounded leaf hours and falling minutes.
+    /// Historical packs without weather return an empty list.
+    pub fn weather_tuning(&self) -> Vec<f64> {
+        let Some(weather) = self.sim.world().resource::<Content>().0.tuning.weather else {
+            return Vec::new();
+        };
+        std::iter::once(f64::from(weather.seed))
+            .chain(weather.event_day_chance.into_iter().map(f64::from))
+            .chain(
+                [
+                    weather.event_hours,
+                    weather.earliest_hour,
+                    weather.latest_hour,
+                    weather.leaf_ground_hours,
+                    weather.fall_minutes,
+                ]
+                .into_iter()
+                .map(f64::from),
+            )
+            .collect()
+    }
+
     /// Canonical descriptors: axis, x, y, public model ID. Stride is four.
     pub fn window_placements(&self) -> Vec<u32> {
         self.sim
@@ -2616,8 +2639,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v18())
-            .expect("SaveSnapshotV18 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v20())
+            .expect("SaveSnapshotV20 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2646,6 +2669,18 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 20 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV20>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v20(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 19 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV19>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v19(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 18 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV18>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v18(snapshot).is_ok(),
@@ -4778,20 +4813,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v17()
+            uninterrupted.sim.save_snapshot_v20()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            18,
-            "the public writer must emit the schema-18 envelope"
+            20,
+            "the public writer must emit the schema-20 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v17(),
-            uninterrupted.sim.save_snapshot_v17()
+            resumed.sim.save_snapshot_v20(),
+            uninterrupted.sim.save_snapshot_v20()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4803,8 +4838,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v17(),
-            uninterrupted.sim.save_snapshot_v17()
+            resumed.sim.save_snapshot_v20(),
+            uninterrupted.sim.save_snapshot_v20()
         );
     }
 
@@ -9262,7 +9297,7 @@ mod boundary_tests {
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
-                "Not enough beds",
+                "No assigned bed",
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
@@ -10481,6 +10516,8 @@ mod window_boundary_tests {
             [0, 0, 1, 10, 0, 1, 11, 0, 1, 12, 0]
         );
         assert_eq!(handle.save_bytes(), before, "preview never stages work");
+        // The span runs off the house's shell onto the yard's open north
+        // edge, where no wall stands to hold it.
         for _ in 0..2 {
             assert!(handle.fit_window(1., 15., 0., 7.));
             assert!(
@@ -10488,13 +10525,13 @@ mod window_boundary_tests {
                 "old refusal must not satisfy new work"
             );
             handle.flush_commands();
-            assert_eq!(handle.last_window_edit_result(), [5]);
+            assert_eq!(handle.last_window_edit_result(), [18]);
             assert_eq!(handle.save_bytes(), before);
         }
         assert!(!handle.fit_window(1., 10., 0., 10.));
         assert_eq!(
             handle.last_window_edit_result(),
-            [5],
+            [18],
             "rejection does not clear the last applied result"
         );
         let overflow = postcard::to_allocvec(&SimCommand::FitWindow {
@@ -10506,7 +10543,7 @@ mod window_boundary_tests {
         .unwrap();
         assert!(!handle.fit_window(1., u32::MAX as f64, 0., 7.));
         assert!(!handle.enqueue_command(&overflow));
-        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.last_window_edit_result(), [18]);
         assert_eq!(handle.save_bytes(), before);
         // Queue saturation refuses staging and must preserve the prior result too.
         let select = postcard::to_allocvec(&SimCommand::Select(None)).unwrap();
@@ -10522,7 +10559,7 @@ mod window_boundary_tests {
         }
         let full = handle.save_bytes();
         assert!(!handle.fit_window(1., 10., 0., 7.));
-        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.last_window_edit_result(), [18]);
         assert_eq!(handle.save_bytes(), full);
         handle.flush_commands();
         assert!(handle.remove_window(1., 11., 0.));
@@ -10926,6 +10963,8 @@ mod social_boundary_regressions {
 mod job_search_tests;
 #[cfg(test)]
 mod published_v15_tests;
+#[cfg(test)]
+mod published_v19_tests;
 #[cfg(test)]
 mod room_save_tests;
 

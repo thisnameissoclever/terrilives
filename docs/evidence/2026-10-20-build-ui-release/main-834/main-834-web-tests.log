@@ -1,0 +1,13 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1 tests/main-build-wiring.test.ts tests/build-exit.test.ts tests/build-exit-destination.test.ts tests/room-review.test.ts tests/land-tool.test.ts tests/room-tool.test.ts tests/floor-tool.test.ts tests/wall-tool.test.ts tests/window-tool.test.ts tests/wall-pick.test.ts tests/wall-view.test.ts tests/build-context.test.ts tests/ground-markers.test.ts tests/architecture.test.ts tests/window-bridge.test.ts tests/window-daylight.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  16 passed (16)
+      Tests  413 passed (413)
+   Start at  08:20:46
+   Duration  27.76s (transform 3.99s, setup 197ms, import 10.22s, tests 15.21s, environment 1ms)
+

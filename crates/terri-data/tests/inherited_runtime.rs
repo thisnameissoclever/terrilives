@@ -26,6 +26,45 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
         pack.voice_clips.iter().map(|v| v.duration_ticks).collect(),
         toml::from_str(include_str!("../../../content/skills.toml")).unwrap(),
     )?;
+    // Keep this retained runtime pack on its published balance. Live balance
+    // has separate content and delivery regressions.
+    assert_eq!(
+        result.decay_per_tick,
+        [
+            0.041333333,
+            0.034,
+            0.048,
+            0.068,
+            0.017333333,
+            0.032,
+            0.021333333
+        ]
+    );
+    result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+    assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
+    result.tuning.relationship_gain_per_talk = 0.17;
+    result.tuning.fight_rules = terri_data::FightRules::Published;
+    result.tuning.fight_chance_per_tick = terri_data::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK;
+    for action in &mut result.social {
+        if action.id == "chat" {
+            let social = action
+                .advertises
+                .iter_mut()
+                .find(|(need, _)| *need == 4)
+                .unwrap();
+            assert_eq!(social.1, 100.5, "live Chat Social changed");
+            social.1 = 50.25;
+        }
+    }
+    for object in &mut result.objects {
+        for action in &mut object.interactions {
+            if action.id == "attend_correspondence" {
+                let social = action.advertises.iter().find(|(need, _)| *need == 4);
+                assert_eq!(social.map(|(_, amount)| *amount), Some(24.0));
+                action.advertises.retain(|(need, _)| *need != 4);
+            }
+        }
+    }
     result.books = pack.books.clone();
     Ok(result)
 }
@@ -105,9 +144,10 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
             // Issue 296 (shifts): the shift tuning appended to `Tuning`, the
             // shift fields appended to every `CompiledCareer`, and the new
             // career rows and paths. The proof always runs against the
-            // fixture as it was before issue 296 (23012 bytes, SHA-256
-            // 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5):
-            // restore that file before regenerating.
+            // fixture as it was on main before issue 296 merged (23113 bytes,
+            // SHA-256
+            // 48f32c6ffaeae3d9885f444efd8c2ca7b785bf67a00865557f711b28377a435a,
+            // main at 2fa3eac56): restore that file before regenerating.
             assert_eq!(
                 previous_without_shifts(&pack),
                 old_bytes,

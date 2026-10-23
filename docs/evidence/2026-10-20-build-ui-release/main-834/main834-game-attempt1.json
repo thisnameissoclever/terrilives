@@ -1,0 +1,9 @@
+{
+  "headed": true,
+  "browser": "155.0.8059.85",
+  "url": "http://127.0.0.1:5194/",
+  "errors": [],
+  "steps": [],
+  "failure": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '1x', exact: true })\u001b[22m\n",
+  "body": "Time\nDay 1, Monday\n05:04\nSpring: mild\nFunds\n0\n\nNo save yet\n\nPause\n1x\n2x\n3x\nBuild\nOptions\nPlayer guide\nTim\nClean floor\nEdit\nMood\nLow\nLife satisfaction\nContent\nSim details\nChores\nQueue\nCollapse\n\nTim\nBill\nCasey\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort"
+}

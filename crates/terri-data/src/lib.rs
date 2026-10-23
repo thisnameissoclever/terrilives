@@ -5,6 +5,8 @@
 //! so it has to compile for the host and for `wasm32-unknown-unknown`.
 
 mod autonomy_tuning;
+mod weather_tuning;
+pub use weather_tuning::WeatherTuning;
 pub mod books;
 pub use autonomy_tuning::{AutonomyTuning, CreationInstinctBand};
 pub mod compile;
@@ -31,7 +33,7 @@ pub use pack::{
     CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSkill,
     CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
+    ContentPack, DomesticTuning, FightRules, Footprint, ObjectDefId, Tuning,
 };
 pub use pack::{CompiledShift, ShiftView, SHIFT_DAY, SHIFT_EARLY, SHIFT_LATE, SHIFT_NIGHT};
 pub use pack::{Facing, FacingSprites};
@@ -1203,7 +1205,12 @@ mod tests {
         assert_eq!(tuning.days_per_season, 7);
         assert_eq!(tuning.first_season, 0);
         assert_eq!(tuning.season_yard_looks[0], [0.0, 1.0, 0.0]);
-        // Autumn turns the grass toward yellow and Winter pales it: a turn
+        for [hue, strength, lightness] in tuning.season_yard_looks {
+            assert!(hue.abs() <= 6.0, "seasonal grass must remain green");
+            assert!(strength >= 0.9, "seasonal grass must retain its color");
+            assert!(lightness.abs() <= 0.03, "seasonal tint must stay subtle");
+        }
+        // Autumn warms the green slightly and Winter lightens it: a turn
         // below zero, and a Winter strength below every other season's with
         // a lightness above every other season's.
         let [spring, summer, autumn, winter] = tuning.season_yard_looks;

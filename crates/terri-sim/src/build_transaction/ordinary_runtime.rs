@@ -1,5 +1,5 @@
 //! Runtime state has a different lifetime from an external save/load.
-//! Durable state comes from V18. Receipts and last-tick observations survive
+//! Durable state comes from V20. Receipts and last-tick observations survive
 //! native transactions; geometry-dependent caches are rebuilt without ticking.
 use crate::{SaveError, Sim};
 use bevy_ecs::prelude::*;
@@ -64,7 +64,7 @@ pub(crate) fn install(sim: &mut Sim, candidate: Sim) -> Result<(), SaveError> {
         .world
         .get_resource::<crate::player_actions::ActionDiagnostics>()
         .cloned();
-    let result = sim.adopt_current_with_saved_state(candidate);
+    let result = sim.adopt_restored(candidate, false, false);
     sim.render = render;
     sim.portals = portals;
     if result.is_ok() {

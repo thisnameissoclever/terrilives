@@ -1,0 +1,29 @@
+{
+  "url": "http://127.0.0.1:5194/guide/ui-elements/#build",
+  "viewports": [
+    {"width":1440,"height":960,"theme":"light","layout":"desktop","horizontalOverflow":false},
+    {"width":1440,"height":960,"theme":"dark","layout":"desktop","horizontalOverflow":false},
+    {"width":390,"height":844,"theme":"light","layout":"mobile","horizontalOverflow":false},
+    {"width":390,"height":844,"theme":"dark","layout":"mobile","horizontalOverflow":false}
+  ],
+  "viewer": {
+    "image": "../images/guide/help-build-exits-mobile.png",
+    "initialImage": {"width":352,"height":550.609375},
+    "zoomedImage": {"width":528,"height":825.90625},
+    "fittedImage": {"width":337,"height":527.140625},
+    "finalStage": {"width":376,"height":735},
+    "fitWithinStage": true,
+    "exactInitialStyleRestored": false,
+    "explanation": "Zoom introduces scrollbars and changes available stage width. Fit returned the image inside the stage; exact initial style equality is not claimed.",
+    "closeReturnedFocus": true,
+    "escapeReturnedFocus": true
+  },
+  "console": {"errors":0,"warnings":0},
+  "helpCapture": {
+    "headed":true,"browser":"155.0.8059.85","clock":"Day 1, Monday 00:00",
+    "desktopViewport":{"width":1440,"height":960},"desktopPanel":{"x":380,"y":200,"width":680,"height":560},
+    "mobileViewport":{"width":390,"height":844},"mobilePanel":{"x":16,"y":142,"width":358,"height":560},
+    "method":"Original browser element screenshots with corresponding full viewport captures; no raster edits",
+    "currentFooterExitText":true,"contextAndBrowserClosedInFinally":true
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "control": "current_run_skip",
+    "target": "test_mutation_recovery.AnchorLifecycleTests.test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job",
+    "positive_exit": 0,
+    "negative_exit": 1,
+    "ordinary_assertion_failure": true,
+    "source_unchanged": true
+  },
+  {
+    "control": "anchor_substitution",
+    "target": "test_mutation_recovery.AnchorLifecycleTests.test_planning_anchor_survives_new_original_and_lossless_reload",
+    "positive_exit": 0,
+    "negative_exit": 1,
+    "ordinary_assertion_failure": true,
+    "source_unchanged": true
+  },
+  {
+    "control": "future_anchor_omission",
+    "target": "test_mutation_batch_budget.HistoryBudgetTests.test_actual_retained_schema_preserves_full_remaining_and_logical_limit",
+    "positive_exit": 0,
+    "negative_exit": 1,
+    "ordinary_assertion_failure": true,
+    "source_unchanged": true
+  }
+]

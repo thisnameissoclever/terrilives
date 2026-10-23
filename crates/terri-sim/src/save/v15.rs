@@ -123,6 +123,7 @@ pub(crate) fn restore_requests_with_executions(
     executions: &[terri_core::save_v17::SavedSocialExecution],
 ) -> Result<(), SaveError> {
     let mut bare = BTreeMap::new();
+    let mut player_executions = BTreeMap::new();
     for row in executions {
         let actor = crate::dining::entity(world, row.initiator)
             .filter(|&e| world.get::<Agent>(e).is_some())
@@ -130,6 +131,9 @@ pub(crate) fn restore_requests_with_executions(
         let recipient = crate::dining::entity(world, row.recipient)
             .filter(|&e| world.get::<Agent>(e).is_some())
             .ok_or(SaveError::InvalidEntityReference)?;
+        if row.provenance == 1 && player_executions.insert(actor, row).is_some() {
+            return Err(SaveError::InvalidValue);
+        }
         if row.provenance == 2
             || (world.get::<SimId>(actor).is_some() && world.get::<SimId>(recipient).is_some())
         {
@@ -181,8 +185,35 @@ pub(crate) fn restore_requests_with_executions(
             .social
             .iter()
             .position(|a| a.id == r.interaction)
-            .filter(|i| !crate::fights::is_fight(&pack.social[*i]))
             .ok_or(SaveError::InvalidValue)? as u32;
+        // Published V17+ writers mirror a player's executing fight into the
+        // request table. Its exact execution proves ownership; older standalone
+        // readers have no such witness and keep refusing fight requests.
+        if crate::fights::is_fight(&pack.social[interaction as usize]) {
+            let matching = match (r.origin, player_executions.get(&initiator)) {
+                (SavedConversationOrigin::Player { order_id }, Some(execution)) => {
+                    execution.order_id == Some(order_id)
+                        && execution.recipient == recipient.index_u32()
+                        && execution.interaction == interaction
+                        && match r.phase {
+                            SavedConversationPhase::Talking => {
+                                execution.running && execution.admitted
+                            }
+                            SavedConversationPhase::Approaching => {
+                                !execution.running && execution.admitted
+                            }
+                            SavedConversationPhase::Waiting => {
+                                !execution.running && !execution.admitted
+                            }
+                            SavedConversationPhase::Suspended => false,
+                        }
+                }
+                _ => false,
+            };
+            if !matching {
+                return Err(SaveError::InvalidValue);
+            }
+        }
         if initiator == recipient || r.created > world.resource::<SimClock>().tick {
             return Err(SaveError::InvalidValue);
         }

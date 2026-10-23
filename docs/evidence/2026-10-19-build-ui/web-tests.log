@@ -1,0 +1,12 @@
+
+> terrilives-web@1.0.0 test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+
+ Test Files  279 passed (279)
+      Tests  3843 passed (3843)
+   Start at  00:27:20
+   Duration  581.86s (transform 6.36s, setup 1.41s, import 64.47s, tests 491.70s, environment 14ms)

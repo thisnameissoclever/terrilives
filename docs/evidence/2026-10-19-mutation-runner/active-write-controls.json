@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "control": "reject-transient-write",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_partial_active_apply_write_is_deferred_until_exact_bytes (test_mutation_runner.RunnerTests.test_partial_active_apply_write_is_deferred_until_exact_bytes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-active-write-control-0jb2wy2l\\test_mutation_runner.py\", line 296, in test_partial_active_apply_write_is_deferred_until_exact_bytes\n    self.assertEqual(observed[\"result\"][\"state\"], \"incomplete_with_progress\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'infrastructure_failure' != 'incomplete_with_progress'\n- infrastructure_failure\n+ incomplete_with_progress\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.084s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_partial_active_apply_write_is_deferred_until_exact_bytes"
+    },
+    {
+      "control": "accept-partial-bytes",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_shutdown_after_deferred_read_does_not_import_unaccepted_terminal_records (test_mutation_runner.RunnerTests.test_shutdown_after_deferred_read_does_not_import_unaccepted_terminal_records)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-active-write-control-10cabri_\\test_mutation_runner.py\", line 318, in test_shutdown_after_deferred_read_does_not_import_unaccepted_terminal_records\n    self.assertFalse(any(event[\"partial\"] and event[\"accepted\"] for event in observed[\"events\"]))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: True is not false\n\n----------------------------------------------------------------------\nRan 1 test in 1.025s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_shutdown_after_deferred_read_does_not_import_unaccepted_terminal_records"
+    },
+    {
+      "control": "omit-final-source-check",
+      "returncode": 1,
+      "stderr": "F\n======================================================================\nFAIL: test_permanent_corrupt_active_file_is_rejected_after_stop (test_mutation_runner.RunnerTests.test_permanent_corrupt_active_file_is_rejected_after_stop)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\myema\\AppData\\Local\\Temp\\mutation-active-write-control-7kz20y9f\\test_mutation_runner.py\", line 310, in test_permanent_corrupt_active_file_is_rejected_after_stop\n    self.assertEqual(observed[\"result\"][\"state\"], \"infrastructure_failure\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'incomplete_without_progress' != 'infrastructure_failure'\n- incomplete_without_progress\n+ infrastructure_failure\n\n\n----------------------------------------------------------------------\nRan 1 test in 1.024s\n\nFAILED (failures=1)\n",
+      "stdout": "",
+      "test": "test_permanent_corrupt_active_file_is_rejected_after_stop"
+    }
+  ],
+  "source_hashes": {
+    "mutation_artifacts.py": "ca2a65a9e045255a509fb51df77dc13a467acd6f5a9348ea2107050e107bbded",
+    "mutation_campaign.py": "c929edbd45d8e0bca0afb5d23a4e8ac45bc8d266881df38e88baacc793a54895",
+    "mutation_runner.py": "bf2d8d292bdc68ac7ca1bfd63b803c364b7c124ee0de7175955b4eaf0f969982",
+    "test_mutation_artifacts.py": "a92aa57faa496f96c331b7e298f08975496ac2c0ac1319d466285ecc91890420",
+    "test_mutation_campaign.py": "67285350a74a3d34296ac980f882f9448a3eea8798d98fed710cc90b9f45bce6",
+    "test_mutation_runner.py": "9e1095cad1da92f7fa5a7f0c010e7fd3512768fe38402e0af514532b9f60f25e"
+  },
+  "source_unchanged": true
+}

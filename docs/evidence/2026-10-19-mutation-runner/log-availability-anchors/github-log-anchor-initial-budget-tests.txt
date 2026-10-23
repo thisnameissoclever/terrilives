@@ -1,0 +1,29 @@
+.FF..
+======================================================================
+FAIL: test_complete_production_wrapper_with_retained_native_admission (test_mutation_native.NativeWrapperBudgetTests.test_complete_production_wrapper_with_retained_native_admission) (history=6, runs=8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 622, in test_complete_production_wrapper_with_retained_native_admission
+    checked_request_components(self, result)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 607, in checked_request_components
+    test.assertLessEqual(consumers["aggregate"], REQUEST_COMPONENT_BOUNDS["aggregate"], "aggregate request bound exceeded")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 198 not less than or equal to 192 : aggregate request bound exceeded
+
+======================================================================
+FAIL: test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget (test_mutation_native.NativeWrapperBudgetTests.test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 638, in test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget
+    checked_request_components(self, result)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 607, in checked_request_components
+    test.assertLessEqual(consumers["aggregate"], REQUEST_COMPONENT_BOUNDS["aggregate"], "aggregate request bound exceeded")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 202 not less than or equal to 192 : aggregate request bound exceeded
+
+----------------------------------------------------------------------
+Ran 5 tests in 304.537s
+
+FAILED (failures=2)

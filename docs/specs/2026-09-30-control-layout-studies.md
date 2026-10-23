@@ -52,8 +52,8 @@ record the intended sizes and the second pass to reduce excess space.
    Options. It ends after those controls rather than occupying a full-height
    sidebar. Options holds Save, Load, Light, Sound and Help. New housemate
    moves behind household management rather than keeping a large button.
-3. Desktop buttons target 32px height. Mobile keeps 44px tap areas in two
-   compact bottom rows, with the full needs list and other details on demand.
+3. General desktop buttons target 32px height and mobile controls 44px. The
+   Sim dock uses the smaller heights specified in [CUI-dock], with the full needs list and other details on demand.
    Phone world controls occupy a small left-edge group below a thin status
    strip. The detail sheet opens above the compact strip and closes explicitly; only
    one detail section appears at a time.
@@ -73,8 +73,7 @@ Those need measurement in the selected implementation.
    replaces play controls with its tools and retains an obvious Exit build.
 3. Reuse the existing controllers and DOM ownership where possible. Responsive
    layouts must not create separate, conflicting copies of simulation controls.
-4. Mobile controls have at least 44px touch targets, visible focus, safe-area
-   padding and a button alternative to every drag gesture. Labels stay literal.
+4. Mobile controls use 44px touch targets, except the explicitly compacted Sim dock controls in [CUI-dock]. Preserve visible focus, safe-area padding and a button alternative to every drag gesture. Labels stay literal.
 5. Open only one large mobile detail surface at a time. Keep a substantial
    uninterrupted game area in the compact state and bound expanded sheets to
    the available height. Check 320 by 568, 390 by 844, short landscape and
@@ -115,8 +114,8 @@ into its header and retain focus. The Sim dock keeps its separate breakpoint.
 The bottom dock shows the selected name, activity, mood, life satisfaction,
 household roster and,
 on desktop, all seven need meters. Household death warnings remain in a live status row even when another Sim is
-selected or the roster is collapsed. Critical needs replace the activity summary
-with an explicit warning in every layout, including a collapsed dock. Sim
+selected or the roster is collapsed. Critical needs appear on a separate warning
+line while the activity remains visible. Sim
 names are 20px on desktop and 18px on compact screens; roster names are bold.
 Mood has a bold value and meter in the main header, beside life satisfaction.
 The mood value uses 12px bold text beside its 11px label; the desktop wellbeing
@@ -128,8 +127,9 @@ visible. Sim details
 remains available. The same needs DOM moves into Overview when compact or
 collapsed, so folding never removes access to the meters. Compact mode uses
 the existing breakpoint: width at most 600px or height at most 480px. Desktop
-buttons may be 32px; touch controls remain at least 44px tall. Household members
-scroll horizontally when they do not fit.
+dock header controls are 27px tall and roster controls 28px. Compact and coarse-pointer layouts use 36px for both, preserving widths, fonts and gaps. This dock-specific compaction does not shrink other touch controls. Household members scroll horizontally when they do not fit.
+
+When the selected Sim's activity is clipped, hovering, keyboard focus or a tap reveals the complete literal text in a viewport-bounded popup. Same-Sim progress updates refresh its text without interrupting reading. Escape, an outside press, a changed selection, a hidden dock or removal of clipping dismisses it. Dismissed details do not reopen merely because the status updates. The activity remains plain text in appearance and keeps a visible keyboard focus indicator.
 
 ### [CUI-details] Complete control access
 

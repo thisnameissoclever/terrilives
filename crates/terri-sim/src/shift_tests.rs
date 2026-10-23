@@ -873,11 +873,11 @@ fn a_promotion_after_a_chosen_shift_keeps_it_when_offered() {
     assert_eq!(draws(&sim).1, 0);
 }
 
-/// Until schema nineteen carries them (plan Task 9), the current
-/// schema-eighteen writer leaves queued shift commands out, and every other
-/// queued command, a setting placed by position among them, loads in order.
+/// Until schema twenty-one carries them (plan Task 9), the schema-eighteen
+/// writer leaves queued shift commands out, and every other queued
+/// command, a setting placed by position among them, loads in order.
 #[test]
-fn schema_eighteen_leaves_queued_shift_commands_out_until_schema_nineteen() {
+fn schema_eighteen_leaves_queued_shift_commands_out_until_schema_twenty_one() {
     let mut sim = Sim::new_from_shipped_lot();
     let (_, entity) = worker(&mut sim);
     let agent = entity.index_u32();

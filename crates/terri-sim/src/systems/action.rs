@@ -1328,9 +1328,15 @@ pub fn serve_intents(
                 .copied()
                 .unwrap_or(Needs::all_at(100.));
             let feelings = feelings.cloned().unwrap_or_default();
-            let social = media_plan.as_ref().is_some_and(|_| {
-                social_company.media_allowed(agent, intent.object, intent.interaction, &feelings)
-            });
+            let social = crate::social_company::solo_social(advert)
+                || media_plan.as_ref().is_some_and(|_| {
+                    social_company.media_allowed(
+                        agent,
+                        intent.object,
+                        intent.interaction,
+                        &feelings,
+                    )
+                });
             let shared = access
                 .nearest(false)
                 .and_then(|route| route.route.path(&grid, from))
@@ -1910,9 +1916,10 @@ pub fn select_action(
                     continue;
                 }
                 let duration = advert.duration_ticks;
-                let social_available = media_plan.as_ref().is_some_and(|_| {
-                    social_company.media_allowed(agent, object, index as u32, &relationships)
-                });
+                let social_available = crate::social_company::solo_social(advert)
+                    || media_plan.as_ref().is_some_and(|_| {
+                        social_company.media_allowed(agent, object, index as u32, &relationships)
+                    });
                 let shared_available = advert.shared_activity.is_some()
                     && access
                         .nearest(false)
@@ -1982,12 +1989,15 @@ pub fn select_action(
                                         .and_then(|steps| steps.last().copied())
                                 })
                                 .unwrap_or(from);
-                            social_company.proposed_scale(
-                                agent,
-                                object,
-                                index as u32,
-                                &relationships,
-                                endpoint,
+                            crate::social_company::social_scale(
+                                advert,
+                                social_company.proposed_scale(
+                                    agent,
+                                    object,
+                                    index as u32,
+                                    &relationships,
+                                    endpoint,
+                                ),
                             )
                         } else {
                             1.

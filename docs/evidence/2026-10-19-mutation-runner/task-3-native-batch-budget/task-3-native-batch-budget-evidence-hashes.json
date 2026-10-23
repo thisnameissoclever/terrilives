@@ -1,0 +1,145 @@
+{
+  "scope": "Raw bytes of retained bounded-budget evidence; original packets, full failed run and interrupted run remain unchanged. This metadata is not a test result.",
+  "files": {
+    "task-3-native-batch-budget-brief.md": {
+      "sha256": "2c2d33a5acf6a927bbb58a568f231d0508579a585e60b2d34b2b55b3d27b041e",
+      "bytes": 10355,
+      "status": "RETAINED_EVIDENCE"
+    },
+    "task-3-native-batch-budget-final-api-costs.json": {
+      "sha256": "b380d3f3d7f5b36e74fdc6ab2726089f8c04bc9996263af6eca989681a970ac7",
+      "bytes": 1633,
+      "status": "MEASURED_IN_COMPLETED_RUN_WITH_UNRELATED_HARNESS_ERROR"
+    },
+    "task-3-native-batch-budget-final-fixture-api-costs.json": {
+      "sha256": "7a1237854705d7776f4cc9aa22f70965035529d56de3713ab9dc7f5ce118e6ae",
+      "bytes": 1806,
+      "status": "MEASURED_IN_COMPLETED_RUN_WITH_UNRELATED_HARNESS_ERROR"
+    },
+    "task-3-native-batch-budget-final-gate-api-costs.json": {
+      "sha256": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+      "bytes": 253,
+      "status": "MEASURED_IN_COMPLETED_RUN_WITH_UNRELATED_HARNESS_ERROR"
+    },
+    "task-3-native-batch-budget-final-integrated-tests.txt": {
+      "sha256": "6ed8175f19daeb6233cb629889e543099a0cf81aebdbb8d0bfd88122a698240e",
+      "bytes": 2643,
+      "status": "COMPLETED_225_PASSED_1_HARNESS_ERROR_226_TOTAL"
+    },
+    "task-3-native-batch-budget-final-plan-api-costs.json": {
+      "sha256": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a",
+      "bytes": 71,
+      "status": "MEASURED_IN_COMPLETED_RUN_WITH_UNRELATED_HARNESS_ERROR"
+    },
+    "task-3-native-batch-budget-fix1-covering-tests.txt": {
+      "sha256": "f8a8c672251fa81ea073f87f60a3aedaf5cfed9c8ce83d5a4595bc777c650cfd",
+      "bytes": 126,
+      "status": "SCOPED_SHAPE_CORRECTION_FROZEN_3_FOCUSED_AND_21_COVERING_PASSED"
+    },
+    "task-3-native-batch-budget-fix1-focused-tests.txt": {
+      "sha256": "5b7473a56a209f02c9ae80272434e7a3ef20496995c995501407bb3b260c7241",
+      "bytes": 106,
+      "status": "SCOPED_SHAPE_CORRECTION_FROZEN_3_FOCUSED_AND_21_COVERING_PASSED"
+    },
+    "task-3-native-batch-budget-fix1-hashes.json": {
+      "sha256": "1ec6635882b1e3f83c783f8394bccede10dc6c434c3587fc80e377648eb13a69",
+      "bytes": 2157,
+      "status": "SCOPED_SHAPE_CORRECTION_FROZEN_3_FOCUSED_AND_21_COVERING_PASSED"
+    },
+    "task-3-native-batch-budget-fix1-package.diff": {
+      "sha256": "bf70a4aa13e1ece073e388814475ac7780bdee953e4fd87adc063781e6143d8b",
+      "bytes": 12961,
+      "status": "SCOPED_SHAPE_CORRECTION_FROZEN_3_FOCUSED_AND_21_COVERING_PASSED"
+    },
+    "task-3-native-batch-budget-fix1-red.txt": {
+      "sha256": "18cd47e686c356c1b0938e2be019b40339dab442313ac4446bb6f80137f02c95",
+      "bytes": 1039,
+      "status": "EXPECTED_RED_ASSERTION_FAILURE"
+    },
+    "task-3-native-batch-budget-fix1-report.md": {
+      "sha256": "2c518d82b609072d0b282f217bd79ba841881abb72152808b3fff68c06faa8dc",
+      "bytes": 3308,
+      "status": "SCOPED_SHAPE_CORRECTION_FROZEN_3_FOCUSED_AND_21_COVERING_PASSED"
+    },
+    "task-3-native-batch-budget-fixture-repair-covering-tests.txt": {
+      "sha256": "60040fed68136c7ef513c0b33db84406ec4e7654df4ee129a69bd3e362335ac4",
+      "bytes": 139,
+      "status": "SEPARATE_TEST_ONLY_FIXTURE_SUPPLEMENT_PASSED_1_AND_34"
+    },
+    "task-3-native-batch-budget-fixture-repair-hashes.json": {
+      "sha256": "2eae6d2f29fc3373b3a5f4242fc121bb6bfdcd1d5c7b42de0a94d9d2fb4906df",
+      "bytes": 317,
+      "status": "SEPARATE_TEST_ONLY_FIXTURE_SUPPLEMENT_PASSED_1_AND_34"
+    },
+    "task-3-native-batch-budget-fixture-repair-test.txt": {
+      "sha256": "4c502d8bd9921e5403fb273f2caea3cd2c081a2b02ad4ab20e031422b7299610",
+      "bytes": 103,
+      "status": "SEPARATE_TEST_ONLY_FIXTURE_SUPPLEMENT_PASSED_1_AND_34"
+    },
+    "task-3-native-batch-budget-fixture-repair.diff": {
+      "sha256": "995b788bd2bd4ea449f82c7fe17c35f7ca67d8c0c52e889bf8de03a2fd208c89",
+      "bytes": 837,
+      "status": "SEPARATE_TEST_ONLY_FIXTURE_SUPPLEMENT_PASSED_1_AND_34"
+    },
+    "task-3-native-batch-budget-hashes.json": {
+      "sha256": "2281627a09ff03ef5bb37f4e69001e62dbc638bcd3d726fac0fe63e9796d185a",
+      "bytes": 2883,
+      "status": "RETAINED_EVIDENCE"
+    },
+    "task-3-native-batch-budget-interrupted-gate-api-costs.json": {
+      "sha256": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+      "bytes": 253,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-interrupted-hashes.json": {
+      "sha256": "5569a7cdba6bb3d6e5c04dc81275e2e98e699ba803a60d44e76a1916a34ea6e0",
+      "bytes": 2942,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-interrupted-integrated-tests.txt": {
+      "sha256": "0e716c7035bd8b4e5b6074bb7b78d69afed6da3b5b1504b9f7a4b4087b8244ae",
+      "bytes": 125,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-interrupted-package.diff": {
+      "sha256": "e06392180cf584443bb3e75415832765dae8d35afc466c6850e34b96329d49a0",
+      "bytes": 116388,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-interrupted-plan-api-costs.json": {
+      "sha256": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a",
+      "bytes": 71,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-interrupted-status.json": {
+      "sha256": "dd2d031bdc608ab07d65bc95b452fb538f848d0cbd7dbfd7705c86e9b2564524",
+      "bytes": 834,
+      "status": "INTERRUPTED_NOT_PASSED"
+    },
+    "task-3-native-batch-budget-package.diff": {
+      "sha256": "d3f64f28012f46ea794bf7596547b946e61a22dbb03a0dfc13fba0efc1a8bb75",
+      "bytes": 120391,
+      "status": "RETAINED_EVIDENCE"
+    },
+    "task-3-native-batch-budget-quality-review.md": {
+      "sha256": "df8ec584996a0baf705edd48cb7f9b9e067392ec9dff040acd89405607f7e218",
+      "bytes": 3984,
+      "status": "RETAINED_EVIDENCE"
+    },
+    "task-3-native-batch-budget-red.txt": {
+      "sha256": "52873e242d6fd42ee3919da11decd164d810375b3a631e36ea0c2e9094b61e32",
+      "bytes": 1926,
+      "status": "EXPECTED_RED_ASSERTION_FAILURE"
+    },
+    "task-3-native-batch-budget-report.md": {
+      "sha256": "3ef6dafbf733f2e34fca34b1b8fce714a353be260dea2b5fb8e8cc651849214a",
+      "bytes": 7594,
+      "status": "RETAINED_EVIDENCE"
+    },
+    "task-3-native-batch-budget-spec-review.md": {
+      "sha256": "58b4f67b7d1aacaf436c8c5d3ae5a41b40118109a126aa8745f7e4fc04442f0f",
+      "bytes": 5268,
+      "status": "RETAINED_EVIDENCE"
+    }
+  }
+}

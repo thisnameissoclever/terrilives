@@ -43,7 +43,6 @@ function fixture() {
 afterEach(() => vi.unstubAllGlobals());
 
 it.each([
-  ['build-exit-keep', 'negative', 'keep'],
   ['build-exit-confirm', 'affirmative', 'confirm'],
   ['build-exit-discard', 'negative', 'discard'],
 ])('gives the actual %s exit button its shared action role', (id, intent, value) => {
@@ -53,6 +52,13 @@ it.each([
   expect(tag).toBeDefined();
   expect(tag).toContain(`data-action-intent="${intent}"`);
   expect(tag).toContain(`value="${value}"`);
+});
+
+it('keeps the safe Keep building choice neutral', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const button = html.match(/<button id="build-exit-keep"[^>]*>/)![0];
+  expect(button).toContain('value="keep"'); expect(button).toContain('autofocus');
+  expect(button).not.toContain('data-action-intent');
 });
 
 it.each([

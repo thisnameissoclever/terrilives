@@ -1,0 +1,9 @@
+{
+  "wasmSha256": "70efcff180e985cf8d863ef74d0b37e7ffb1f5e4ad3a0e22b988c4e7620be499",
+  "javascriptSha256": "198cbcb69c931d0f4ac16b7c0a29e4b2a60ece39bf3fd149d144d25b525a9ec3",
+  "entityCount": 9,
+  "ticks": 100,
+  "nativeHash": "4733362429942472337",
+  "releaseWasmHash": "4733362429942472337",
+  "saveVersion": 20
+}

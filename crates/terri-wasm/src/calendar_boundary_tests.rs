@@ -7,6 +7,42 @@
 use super::*;
 use terri_core::SimClock;
 
+#[test]
+fn weather_content_reads_do_not_change_saves_hash_or_random_state() {
+    let mut handle = SimHandle::from_lot();
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    let weather = retuned.tuning.weather.as_mut().unwrap();
+    weather.seed = 91;
+    weather.event_day_chance = [0.0, 0.5, 0.75, 1.0];
+    weather.event_hours = 1.5;
+    weather.earliest_hour = 8.0;
+    weather.latest_hour = 15.0;
+    weather.leaf_ground_hours = 2.5;
+    weather.fall_minutes = 10.0;
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    let saved = handle.save_bytes();
+    let hash = handle.world_hash();
+    assert_eq!(
+        handle.weather_tuning(),
+        vec![91.0, 0.0, 0.5, 0.75, 1.0, 1.5, 8.0, 15.0, 2.5, 10.0]
+    );
+    for _ in 0..3 {
+        handle.weather_tuning();
+    }
+    assert_eq!(handle.save_bytes(), saved);
+    assert_eq!(handle.world_hash(), hash);
+    let mut restored = SimHandle::from_lot();
+    assert!(restored.load_bytes(&saved));
+    for _ in 0..20 {
+        handle.tick();
+        restored.tick();
+        assert_eq!(handle.world_hash(), restored.world_hash());
+    }
+}
+
 /// The entity index of the household member called `name`. The household
 /// spawns after the placed objects, so a short scan past them finds it.
 fn index_named(handle: &SimHandle, name: &str) -> u32 {

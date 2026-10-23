@@ -1,502 +1,518 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  # Manual dispatch exists because pull_request event delivery has
-  # failed before: PR #13 was opened, closed, reopened and synchronized
-  # without one run appearing, while Copilot's internally-dispatched
-  # review ran fine - an upstream delivery fault nothing in this file
-  # can prevent. This is the lever that makes such an outage cost a
-  # command instead of an evening.
   workflow_dispatch:
+    inputs:
+      validated_sha:
+        description: Exact owner-reviewed revision
+        required: true
+        type: string
+      local_verification_ref:
+        description: SHA-256 reference of the owner-reviewed local report
+        required: true
+        type: string
+      runtime_publish:
+        description: Publish the mutation runtime image only
+        type: boolean
+        default: false
+      runtime_build_sha:
+        description: Exact source revision to publish
+        type: string
+      mutation_mode:
+        description: Production planning, complete campaign or interruption/recovery fixture
+        type: choice
+        options: [plan, production, fixture]
+        default: plan
+      qualification_run_id:
+        description: Optional explicit qualified fixture run; otherwise bounded discovery
+        type: string
+      transport_probe_job_id:
+        description: Optional completed historical job for the fixture tool's log transport diagnostic only
+        type: string
+      resume_run_id:
+        description: Explicit production predecessor run
+        type: string
+      resume_plan_artifact_id:
+        description: Original immutable plan artifact ID
+        type: string
+      resume_chain:
+        description: Explicit authenticated predecessor chain JSON
+        type: string
 
-# A new push to a pull request cancels that pull request's older runs. Without
-# this, every push left its eight-shard mutation sweep running beside the new
-# one, and on PR 95 three heads' sweeps queued for the same runners, so the
-# head that could merge waited behind two that never could. An active main
-# run is not cancelled, but a newer pending main run can replace an older one.
-# Separate events so a manual mutation sweep on main cannot hold up push CI.
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+env:
+  MUTATION_RUNTIME_IMAGE: &mutation-runtime-image ghcr.io/thisnameissoclever/terrilives-mutation-runtime@sha256:cfeff66d1e4710a9676e13b432915beac1c7395d776e0e9a75d4805b81a20cbe
+
+defaults:
+  run:
+    shell: bash
+
+# Explicit manual runs keep their existing event/ref isolation and shared mutation slots.
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Whether this change can affect the game. A change to documentation only
-  # (Markdown outside the agent skill folders, which a web test reads) skips
-  # the Rust, web and mutation jobs, which cost up to two hours of runners,
-  # and runs the `docs` job instead. The rules and their tests are in
-  # .github/scripts/changes.py; anything they are unsure of runs everything.
-  # Skipped jobs report as skipped, not failed, and main has no required
-  # checks, so a skipped pull request can merge.
-  #
-  # A push to main is compared with the newest push to main whose `web` job
-  # passed, not with the previous push: the previous push may have had its
-  # run cancelled in the queue or failed, and comparing with it would let a
-  # documentation push skip code that nothing tested. The Pages deployment
-  # record will not do either, because a deploy run that skips a stale
-  # revision still records a successful deployment of main's tip.
+  # Keep this completed predecessor for the real job-token transport probe.
   changes:
+    outputs:
+      code: ${{ steps.authorize.outputs.code }}
+      validated_sha: ${{ steps.authorize.outputs.validated_sha }}
+      local_verification_ref: ${{ steps.authorize.outputs.local_verification_ref }}
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
+      inputs.validated_sha == github.sha
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate owner-reviewed local evidence
+        id: authorize
+        env:
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          LOCAL_VERIFICATION_REF: ${{ inputs.local_verification_ref }}
+        run: python3 -B scripts/check-local-ci.py authorize --sha "$VALIDATED_SHA" --head "$GITHUB_SHA" --actor "$GITHUB_ACTOR" --owner "$GITHUB_REPOSITORY_OWNER" --reference "$LOCAL_VERIFICATION_REF"
+
+  ci-guards:
+    name: Owner local-verification authorization
+    needs: changes
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner &&
+      inputs.validated_sha == github.sha
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate owner-reviewed local evidence
+        id: authorize
+        env:
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          LOCAL_VERIFICATION_REF: ${{ inputs.local_verification_ref }}
+        run: python3 -B scripts/check-local-ci.py authorize --sha "$VALIDATED_SHA" --head "$GITHUB_SHA" --actor "$GITHUB_ACTOR" --owner "$GITHUB_REPOSITORY_OWNER" --reference "$LOCAL_VERIFICATION_REF"
+
+  runtime-publish:
+    needs: [changes, ci-guards]
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.runtime_publish == true &&
+      github.actor == github.repository_owner && inputs.runtime_build_sha == github.sha &&
+      needs.changes.result == 'success' && needs.ci-guards.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
     permissions:
       contents: read
       actions: read
-    outputs:
-      code: ${{ steps.classify.outputs.code }}
-      site: ${{ steps.classify.outputs.site }}
+      packages: write
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Test CI scripts and workflow guards
-        working-directory: .github/scripts
-        run: python3 -B -m unittest discover -p 'test_*.py'
-      - name: Find the newest tested game and site revisions
-        id: tested
-        if: github.event_name == 'push'
+      - name: Validate the exact runtime source revision
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -u
-          sha=""
-          site_sha=""
-          runs=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=30" \
-            --jq '.workflow_runs[] | "\(.id) \(.head_sha)"' || true)
-          while read -r id head; do
-            [ -n "$id" ] || continue
-            jobs=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" \
-              --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | select(.conclusion == "success") | .name] | join(" ")' || true)
-            if [ -z "$site_sha" ] && [ -n "$jobs" ]; then
-              site_sha=$head
-            fi
-            if [ -z "$sha" ] && [[ " $jobs " == *" web "* ]]; then
-              sha=$head
-            fi
-            [ -z "$sha" ] || [ -z "$site_sha" ] || break
-          done <<< "$runs"
-          echo "Newest tested revision: ${sha:-none found}"
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "Newest tested site revision: ${site_sha:-none found}"
-          echo "site_sha=$site_sha" >> "$GITHUB_OUTPUT"
-      - name: Decide whether anything but documentation changed
-        id: classify
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          SITE_BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.site_sha }}
-        run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD" "$SITE_BASE"
-
-  # The one check a documentation change can fail: ids it adds or moves.
-  docs:
-    needs: changes
-    if: needs.changes.outputs.code != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Documentation ids are unique
-        run: python3 check-doc-ids.py
-
-  # Public notes are served content. Check them even when Markdown-only edits
-  # correctly skip the Rust, web and mutation jobs.
-  changelog:
-    needs: changes
-    if: needs.changes.outputs.site == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Test changelog generation
-        run: node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs
-      - name: Build the published notes
-        run: node scripts/build-changelog.mjs
-
-  rust:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # rust-toolchain.toml is the single source for the channel,
-      # components and targets, and rustup installs from it on first
-      # use. Naming any of them here too would create a second copy that
-      # nothing keeps in sync.
-      - name: Install the pinned toolchain
-        run: rustup show
-      - name: Format check
-        run: cargo fmt --all -- --check
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-      - name: Test
-        run: cargo test --workspace
-      # The docs' own ids. Both accreting files used to number entries
-      # from a shared counter, which every parallel branch reads the
-      # same way - it collided four times, most recently three PRs in
-      # one afternoon. New ids are slugs; this fails the build if
-      # somebody reaches for the counter again, or if two branches pick
-      # the same slug (which `merge=union` would otherwise keep both
-      # of, silently). See docs/testing-protocol.md rule 10.
-      - name: Documentation ids
-        run: python3 check-doc-ids.py
-      # The atlas used to be a committed blob nobody could verify:
-      # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
-      # it, so a hand-edited atlas.png or a manifest that had drifted from
-      # the art would have gone unnoticed. The generator that replaced it
-      # is Python, so this regenerates all four outputs and fails if any
-      # differs from what is committed. See [ML-ci].
-      - name: Sprite atlas is reproducible
-        run: |
-          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy
-          python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
-          # The action folders are not packages, so the parent discovery
-          # above never reaches them; run their contract suites directly.
-          python3 -B -m unittest discover -s assets/models/kitchen/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bathroom/actions -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'
-          python3 -B -m unittest discover -s assets/models/outdoor -p 'test_*.py'
-          python3 assets/sprites/gen/build.py --check
-      # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
-      # never depend on a web crate. terri-data is in the list from the
-      # commit that created it, because a purity rule that a crate has to
-      # be remembered into is one nobody remembers.
-      # Explicit targets are load-bearing, not tidiness.
-      # Cargo.lock records unactivated optional dependencies, and under
-      # --target all there is a real-looking but inert path:
-      #   terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive
-      #     -> uuid -> js-sys -> wasm-bindgen
-      # bevy_reflect_derive is a proc-macro, so it always builds for the
-      # host, where uuid's cfg(target_arch = "wasm32") block is inactive.
-      # Nothing links into terri-core on any real target. Checking the two
-      # targets that actually get built is both correct and meaningful; a
-      # check that fails spuriously trains everyone to ignore it. See
-      # lessons-learned [L4].
-      #
-      # The tree is captured before it is grepped, on purpose. A pipeline
-      # used directly as an `if` condition is exempt from errexit, and
-      # `pipefail` does not help because grep's no-match exit 1 is the
-      # rightmost status anyway - so `if cargo tree | grep` reports "no
-      # web crates found" when cargo itself fails. A renamed crate, a
-      # crate moved out of the workspace, a bad target triple, or a
-      # registry hiccup would all make this check vacuously green.
-      # Assigning to a variable puts the failure back under errexit.
-      - name: Verify sim core has no web dependencies
+          RUNTIME_BUILD_SHA: ${{ inputs.runtime_build_sha }}
         run: |
           set -eu
-          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
-            for crate in terri-core terri-data terri-sim; do
-              tree=$(cargo tree -p "$crate" --target "$target")
-              if printf '%s\n' "$tree" | grep -E 'wasm-bindgen|web-sys|js-sys'; then
-                echo "FAIL: $crate depends on a web crate for $target"
-                exit 1
-              fi
-            done
-          done
+          [[ "$RUNTIME_BUILD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [ "$RUNTIME_BUILD_SHA" = "$GITHUB_SHA" ]
+      - name: Build the mutation runtime image
+        run: python3 -B .github/scripts/mutation_runtime_image.py build --tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" --output "$RUNNER_TEMP/mutation-runtime-build"
+      - name: Publish the mutation runtime image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -B .github/scripts/mutation_runtime_image.py publish --tag "ghcr.io/thisnameissoclever/terrilives-mutation-runtime:source-$GITHUB_SHA" --output "$RUNNER_TEMP/mutation-runtime-build"
 
-  # Mutation testing. A surviving mutant is behaviour nothing constrains.
-  # Five separate tests in this project were permanently green while
-  # protecting nothing, and prose rules failed to prevent the recurrence
-  # three times, because the family does not look like itself. This is the
-  # mechanical backstop. See docs/testing-protocol.md.
-  #
-  # The gate is "no NEW survivors", not "zero survivors". It runs a full
-  # sweep and compares the survivor list against a committed baseline,
-  # rather than using --in-diff to restrict mutants to changed lines.
-  #
-  # --in-diff was tried first and is the wrong tool here. It implements
-  # "no new survivors" only by proxy, and that proxy breaks on the one PR
-  # that introduces the whole codebase: the diff is everything, so the run
-  # degenerates into a full sweep and fails on accepted debt. Diffing
-  # against a checked-in baseline needs no special case, and it turns the
-  # known survivors into reviewable data instead of a number in a doc that
-  # nothing enforces.
-  #
-  # --test-workspace true is load-bearing, not tidiness. By default each
-  # mutant is tested only against its own package's suite, so a mutation in
-  # terri-core is judged by terri-core's tests alone. Most of terri-core's
-  # behaviour is exercised through terri-sim, so the default produced 11
-  # false survivors on the first run, including Path::next_step -> None,
-  # which the real suite catches instantly.
-  #
-  # terri-wasm is swept too, and is the package where a survivor costs the
-  # most. Its exports are the untrusted-input boundary, so behaviour that
-  # nothing constrains there is behaviour JavaScript is the first to find.
-  # Its tests run on the host like any other, so this needs no wasm target.
-  # It was omitted until #4, which left `SimHandle::tick` free to be a
-  # no-op behind a green suite.
-  # SHARDED, and the sharding is survival rather than speed. The M2b house
-  # grew the sweep from ~250 mutants to ~650, the single job's wall time
-  # grew past an hour, and GitHub's hosted runners killed it three times in
-  # a row mid-sweep with "The runner has received a shutdown signal" - at
-  # 35, 36 and 72 minutes, so it is capacity reclaim rather than a limit a
-  # timeout setting could dodge.
-  #
-  # EIGHT shards, not the four this started with, and the count is a
-  # measurement rather than a preference. At four, shards 0, 1 and 3 ran
-  # 6 to 9 minutes while shard 2 ran 24 and then 64 minutes and was
-  # reclaimed both times: a shard's COST is lumpy even when its COUNT is
-  # even, because a mutant in a widely-depended-on file forces a large
-  # incremental rebuild while a mutant in a leaf test file costs a second,
-  # and the deterministic hash happened to pile the expensive cluster into
-  # one shard. Eight ways splits that cluster and keeps every shard inside
-  # the window the runner reliably survives; a reclaimed shard costs an
-  # eighth of the sweep to retry rather than all of it.
-  #
-  # cargo-mutants assigns mutants to shards by a deterministic hash, so the
-  # union of the eight shards is exactly the full sweep and nothing is
-  # tested twice.
+  mutation-tool:
+    name: mutation-fixture-tool
+    needs: [changes, ci-guards]
+    if: inputs.runtime_publish != true && needs.ci-guards.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.mutation_mode == 'fixture'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      tool_id: ${{ steps.prepare.outputs.tool_id || steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Build or restore the pinned fixture tool
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-fixture-tool
+          TRANSPORT_PROBE_JOB_ID: ${{ inputs.transport_probe_job_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py tool --scope fixture
+      - name: Upload immutable tool
+        id: upload
+        if: steps.prepare.outputs.reused == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-tool-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mutation-job/tool/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind tool upload to producer log
+        if: steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-plan:
+    name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-plan' || 'mutation-plan' }}
+    needs: [changes, ci-guards, mutation-tool]
+    if: >-
+      inputs.runtime_publish != true &&
+      always() && !cancelled() && needs.changes.result == 'success' &&
+      needs.ci-guards.result == 'success' &&
+      needs.changes.outputs.code == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.mutation_mode != 'fixture' || needs.mutation-tool.result == 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      plan_id: ${{ steps.prepare.outputs.plan_id || steps.upload.outputs.artifact-id }}
+      chain: ${{ steps.prepare.outputs.chain }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Authenticate qualification and freeze or recover the original plan
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-plan' || 'mutation-plan' }}
+          MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
+          TOOL_ARTIFACT_ID: ${{ needs.mutation-tool.outputs.tool_id }}
+          QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+          RESUME_PLAN_ARTIFACT_ID: ${{ inputs.resume_plan_artifact_id }}
+          RESUME_CHAIN: ${{ inputs.resume_chain }}
+        run: python3 -B .github/scripts/mutation_workflow.py plan --scope "$MUTATION_SCOPE"
+      - name: Upload immutable original plan
+        id: upload
+        if: steps.prepare.outputs.reused == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-${{ inputs.mutation_mode == 'fixture' && 'fixture-' || '' }}plan-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mutation-job/plan/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind plan upload to producer log
+        if: steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-native-pilot:
+    name: mutation-native-pilot
+    needs: mutation-plan
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Measure native work without production coverage
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-native-pilot
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-pilot --scope production
+      - name: Upload native diagnostic evidence
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-native-pilot-report:
+    name: mutation-native-pilot-report
+    needs: [mutation-plan, mutation-native-pilot]
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Authenticate finished native measurements
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-native-pilot-report
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_PILOT_ARTIFACT_ID: ${{ needs.mutation-native-pilot.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-report --scope production
+      - name: Upload finished native report
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-admission:
+    name: mutation-admission
+    needs: [mutation-plan, mutation-native-pilot-report]
+    if: ${{ inputs.runtime_publish != true && !cancelled() && inputs.mutation_mode == 'production' && inputs.resume_run_id == '' && needs.mutation-plan.result == 'success' && needs.mutation-native-pilot-report.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Require separate external native review and admission
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: mutation-admission
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_REPORT_ARTIFACT_ID: ${{ needs.mutation-native-pilot-report.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py native-admission --scope production
+      - name: Upload native admission verdict
+        id: upload
+        if: always() && steps.execute.outputs.native_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.native_name }}
+          path: ${{ runner.temp }}/mutation-job/native/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind native upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
+  mutation-prepare:
+    name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-prepare' || 'mutation-prepare' }}
+    needs: [mutation-plan, mutation-admission]
+    if: >-
+      inputs.runtime_publish != true && inputs.mutation_mode != 'plan' &&
+      always() && !cancelled() && needs.mutation-plan.result == 'success' &&
+      (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    concurrency:
+      group: ci-mutation-shard-0
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      prepared_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Authenticate incremental history for this attempt
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-prepare' || 'mutation-prepare' }}
+          MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_ADMISSION_ARTIFACT_ID: ${{ needs.mutation-admission.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py prepare --scope "$MUTATION_SCOPE"
+      - name: Upload immutable current preparation
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.artifact_name }}
+          path: ${{ runner.temp }}/mutation-job/prepared/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind preparation upload to producer log
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+
   mutants:
-    runs-on: ubuntu-latest
-    # Share eight mutation slots across PRs and manual runs. A group scoped
-    # to a PR or run would multiply the runner budget for every open PR.
-    # Keep up to 100 pending jobs per shard instead of replacing the previous
-    # pending job. Only the outer workflow cancels obsolete heads of one PR.
+    name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-slot-' || 'mutation-slot-' }}${{ matrix.shard }}
+    needs: mutation-prepare
+    if: ${{ inputs.runtime_publish != true && inputs.mutation_mode != 'plan' && !cancelled() && needs.mutation-prepare.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
     concurrency:
       group: ci-mutation-shard-${{ matrix.shard }}
       cancel-in-progress: false
       queue: max
-    # Nothing bounds the UNMUTATED run, because the cap below is measured
-    # from it: a loop introduced in a test would run until GitHub's six hour
-    # default. Shards have finished in 3 minutes and in 95, and been
-    # reclaimed at 35, 36 and 72; 120 minutes is above every real run and
-    # far below the default, so a pathological one fails by name in two
-    # hours rather than burning a runner all afternoon.
-    timeout-minutes: 120
-    needs: changes
-    if: >-
-      needs.changes.outputs.code == 'true' &&
-      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       matrix:
         shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
-      # Pinned, not merely --locked: --locked pins the dependency tree of
-      # whichever version resolves, and the cap below now rests on this
-      # tool's own auto-timeout rules (which baseline it multiplies, its 20
-      # second floor, its default multiplier). 27.1.0 is the version every
-      # sweep in docs/mutation-baseline.md was measured with; outcomes.json
-      # records the version, so a bump is checked rather than assumed.
-      - name: Install cargo-mutants
-        run: cargo install cargo-mutants --locked --version 27.1.0
-      # cargo-mutants exits 2 whenever any mutant survives, so its exit
-      # code cannot be the signal for a no-new-survivors gate. The
-      # comparison in the next step is.
-      # --build-timeout bounds the phase the test timeout does not: the test
-      # timeout caps a mutant's TEST run, and both of shard 2's reclaimed
-      # attempts died in phase=Build, where nothing bounded a compile at all.
-      # Ten minutes is far above any legitimate incremental rebuild here and
-      # far below the reclaim horizon, so a pathological build costs ten
-      # minutes and a named Timeout instead of the whole job.
-      #
-      # The test cap was a fixed 60 seconds until 2026-09-22, and two
-      # different runs were being timed by it. Each MUTANT is tested with
-      # `cargo test --workspace`, because of --test-workspace above, and that takes
-      # about 57 seconds on this runner; a mutant no test kills pays all of
-      # it, and one caught by a late test pays most of it. The unmutated
-      # BASELINE is not that command: cargo-mutants runs only the packages
-      # it will mutate, which is 1.2 seconds for terri-core, 0.4 for
-      # terri-data, and over 60 for a shard holding a terri-sim mutant.
-      #
-      # One number could not sit right for both. It was a few seconds above
-      # the workspace suite, so the three tests PR 116 added were enough to
-      # turn eight mutants into reported hangs, two of them the rect_distance
-      # clamps and one the from_seed mutant that docs/mutation-baseline.md
-      # proves equivalent. And it was below the baseline of any shard with a
-      # terri-sim mutant, which aborted the sweep before a single mutant ran:
-      # cargo-mutants still writes an empty missed.txt and timeout.txt, so
-      # four of PR 116's eight shards and six of PR 117's tested nothing and
-      # reported success.
-      #
-      # Hence a floor AND a multiplier. The floor does the work on most
-      # shards: 120 seconds is about twice the workspace suite, so a survivor
-      # finishes well inside it. The tool's own multiplier cannot do that job
-      # alone, because it is measured against the baseline, which is the
-      # smaller command: four times terri-core's 1.2 seconds resolves to the
-      # tool's 20 second minimum and every survivor would time out. The
-      # multiplier earns its place on terri-sim shards, where the baseline is
-      # over a minute and 120 seconds would be too tight. Verified on
-      # cargo-mutants 27.1.0: these flags print "Auto-set test timeout to
-      # 120s" for terri-core, where the multiplier alone prints 20s. The job
-      # bound above is the ceiling the multiplier has none of.
-      - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
-        run: |
-          cargo mutants --package terri-core --package terri-sim \
-            --package terri-data --package terri-wasm \
-            --test-workspace true --timeout-multiplier 4 \
-            --minimum-test-timeout 120 --build-timeout 600 \
-            --shard ${{ matrix.shard }}/8 || true
-      # Per shard, "no new survivors" composes: each shard's missed set
-      # must be a subset of the baseline, and a union of subsets is a
-      # subset, so eight green shards mean exactly what one green full
-      # sweep meant.
-      #
-      # What does NOT compose is the old "these baseline entries are now
-      # caught" nudge, and it is deliberately gone rather than kept per
-      # shard: a baseline entry absent from this shard's missed list is
-      # usually just a mutant HASHED INTO ANOTHER SHARD, so the nudge
-      # would nag about entries that are alive and well. Finding genuinely
-      # stale entries takes a full local sweep; docs/mutation-baseline.md
-      # says so too.
-      # **Line and column numbers are NORMALISED OUT of the comparison.**
-      # A baseline entry's identity is (file, mutation, function); its
-      # line number is an address that moves every time code is added
-      # above it, and by M2f the flood_fill pair had been re-anchored at
-      # six different addresses across five PRs - a red CI job and a
-      # baseline edit per drift, each one pure noise. The cost of
-      # normalising is real and accepted, with eyes open, in
-      # docs/mutation-baseline.md: a NEW mutation identical in file,
-      # function and operator to a baselined one (a third `+` in
-      # flood_fill, say) would be silently excused. The baseline file
-      # keeps its line numbers for human navigation; only this
-      # comparison strips them.
-      # A sweep that tested NOTHING writes an empty missed.txt and an empty
-      # timeout.txt, and both gates below then pass while proving nothing.
-      # That is not hypothetical: on PR 117, six of the eight shards timed
-      # out in the UNMUTATED baseline run against the old fixed cap and
-      # reported success with total_mutants 0. The existence checks the two
-      # gates carry cannot see it, because the files exist and are empty, so
-      # the sweep's own count is checked first.
-      - name: Fail on a sweep that tested nothing
-        run: |
-          set -eu
-          if [ ! -f mutants.out/outcomes.json ]; then
-            echo "FAIL: mutants.out/outcomes.json does not exist, so the"
-            echo "sweep did not run or its output layout changed. Fix the"
-            echo "path rather than deleting the step."
-            exit 1
-          fi
-          # python3 rather than jq: both are on the runner, and the reader
-          # below was checked against real reports before it shipped.
-          total=$(python3 -c "import json; print(json.load(open('mutants.out/outcomes.json'))['total_mutants'])")
-          if [ "$total" -le 0 ]; then
-            echo "FAIL: the sweep tested $total mutants in this shard."
-            echo "Almost always the unmutated baseline run itself failed or"
-            echo "ran past the cap, in which case cargo-mutants tests no"
-            echo "mutants at all and every gate below is vacuously green."
-            echo "The outcomes it did record:"
-            python3 -c "import json; [print(o['summary'], o['scenario']) for o in json.load(open('mutants.out/outcomes.json'))['outcomes'][:20]]"
-            exit 1
-          fi
-          echo "The sweep tested $total mutants in this shard."
-      - name: Fail on survivors not in the baseline
-        run: |
-          set -eu
-          sed 's/:[0-9]*:[0-9]*:/:/' mutants.out/missed.txt | sort > actual.txt
-          sed 's/:[0-9]*:[0-9]*:/:/' docs/mutants-baseline.txt | sort > baseline.txt
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Execute bounded slot from authenticated original plan
+        id: execute
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-slot-' || 'mutation-slot-' }}${{ matrix.shard }}
+          MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
+          PREPARED_ARTIFACT_ID: ${{ needs.mutation-prepare.outputs.prepared_id }}
+          MUTATION_SLOT: ${{ matrix.shard }}
+        run: python3 -B .github/scripts/mutation_workflow.py slot --scope "$MUTATION_SCOPE" --slot "$MUTATION_SLOT"
+      - name: Retain completed evidence even when unfinished work fails
+        id: upload
+        if: always() && steps.execute.outputs.artifact_name != '' && steps.execute.outputs.bundle_ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.execute.outputs.artifact_name }}
+          path: ${{ runner.temp }}/mutation-job/result/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind delta upload to producer log
+        if: always() && steps.upload.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
 
-          new=$(comm -23 actual.txt baseline.txt)
-          if [ -n "$new" ]; then
-            echo "NEW surviving mutants, absent from docs/mutants-baseline.txt:"
-            printf '%s\n' "$new"
-            echo ""
-            echo "Each is behaviour that nothing constrains. Either add a test"
-            echo "that kills it, or - if it is genuinely an equivalent mutant -"
-            echo "add it to the baseline with the argument written down in"
-            echo "docs/mutation-baseline.md. Do not add it silently."
-            exit 1
-          fi
-
-          echo "No new survivors in shard ${{ matrix.shard }} of 8."
-
-      # The step above reads missed.txt, so it is blind to a mutant that
-      # HANGS: a timeout is neither caught nor a survivor, it lands in
-      # timeout.txt, and the gate never looks there. Three of them lived in
-      # `SimRng::range` for the whole of M1c that way, costing 180s a run and
-      # reporting nothing, while the sweep summary said "3 timeouts" and no
-      # committed file said which.
-      #
-      # This gate is zero-tolerance rather than a second baseline, because
-      # the set is empty and expected to stay so. A hang is always a weaker
-      # signal than an assertion ([L15] rule 4), so the answer to a new one
-      # is to bound the loop, never to widen an allowance - and a baseline
-      # that can grow is an invitation to do the latter.
-      #
-      # The existence check is the load-bearing half. `[ -s missing_file ]`
-      # is simply false, so without it a renamed or relocated output file
-      # would make this step report success while checking nothing, which is
-      # the same vacuous-green trap the cargo tree step above documents.
-      - name: Fail on mutants that hang instead of failing
-        run: |
-          set -eu
-          if [ ! -f mutants.out/timeout.txt ]; then
-            echo "FAIL: mutants.out/timeout.txt does not exist."
-            echo "cargo-mutants always writes it, so this means its output"
-            echo "layout changed and this check is no longer looking at"
-            echo "anything. Fix the path rather than deleting the step."
-            exit 1
-          fi
-
-          if [ -s mutants.out/timeout.txt ]; then
-            echo "Mutants that HANG rather than fail an assertion:"
-            cat mutants.out/timeout.txt
-            echo ""
-            echo "Each burns the cap instead of printing an assertion, and"
-            echo "the survivor gate above cannot see it: a timeout lands in"
-            echo "timeout.txt, not missed.txt. Find the unbounded loop the"
-            echo "mutant spins in and give it a bound that panics, the way"
-            echo "SimRng::draw_below_bound and roll_wander_path do."
-            echo ""
-            echo "Check the timings in outcomes.json before reaching for a"
-            echo "bound. A mutant that makes real work slower rather than"
-            echo "endless finishes near the cap rather than at it, and the"
-            echo "answer there is the cap, not a bound in the simulation."
-            exit 1
-          fi
-
-          echo "No mutants timed out."
-      - name: Upload mutants report
+  mutation-aggregate:
+    name: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-aggregate' || 'mutation-production-aggregate' }}
+    needs: [mutation-plan, mutation-admission, mutation-prepare, mutants]
+    if: >-
+      inputs.runtime_publish != true && inputs.mutation_mode != 'plan' &&
+      always() && !cancelled() && needs.mutation-plan.result == 'success' &&
+      (inputs.mutation_mode == 'fixture' || needs.mutation-admission.result == 'success' || inputs.resume_run_id != '')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: *mutation-runtime-image
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --cpus 2 --memory 6g
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the pinned mutation runtime
+        run: python3 -B .github/scripts/mutation_runtime.py verify --root .
+      - name: Validate current inputs and exact complete evidence
+        id: aggregate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MUTATION_JOB_NAME: ${{ inputs.mutation_mode == 'fixture' && 'mutation-fixture-aggregate' || 'mutation-production-aggregate' }}
+          MUTATION_SCOPE: ${{ inputs.mutation_mode == 'fixture' && 'fixture' || 'production' }}
+          PLAN_ARTIFACT_ID: ${{ needs.mutation-plan.outputs.plan_id }}
+          MUTATION_CHAIN: ${{ needs.mutation-plan.outputs.chain }}
+          NATIVE_ADMISSION_ARTIFACT_ID: ${{ needs.mutation-admission.outputs.artifact_id }}
+        run: python3 -B .github/scripts/mutation_workflow.py aggregate --scope "$MUTATION_SCOPE"
+      - name: Upload immutable aggregate recovery snapshot
+        id: snapshot
+        if: always() && steps.aggregate.outputs.snapshot_name != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.aggregate.outputs.snapshot_name }}
+          path: ${{ runner.temp }}/mutation-job/snapshot/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind snapshot upload to producer log
+        if: always() && steps.snapshot.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.snapshot.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"
+      - name: Retain aggregate and continuation report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mutants-out-shard-${{ matrix.shard }}
-          path: mutants.out/
-
-  web:
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install the pinned toolchain
-        run: rustup show
-      # Pinned. Unpinned, this action installs whatever wasm-pack is
-      # latest, and its bundled wasm-opt then has to parse whatever the
-      # current rustc emits. That skew broke the build once already:
-      # "Fatal: error in parsing input" from wasm-opt, on a commit whose
-      # Rust changes were a dead-code deletion. 0.15.0 is the version
-      # verified working against rustc 1.94.1.
-      #
-      # Reproducibility is load-bearing in this repo rather than merely
-      # tidy: the golden world-hash vectors assert that native and wasm32
-      # agree bit for bit, and a floating toolchain would turn a genuine
-      # determinism regression and a toolchain bump into the same red.
-      - uses: jetli/wasm-pack-action@v0.4.0
+          name: mutation-${{ inputs.mutation_mode == 'fixture' && 'fixture-' || 'production-' }}aggregate-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/mutation-job/aggregate.json
+            ${{ runner.temp }}/mutation-job/status.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish fixture recovery qualification
+        id: qualification
+        if: steps.aggregate.outputs.qualified == 'true' && success()
+        uses: actions/upload-artifact@v4
         with:
-          version: 'v0.15.0'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      # web/src/wasm/ is gitignored build output, so a fresh clone has no
-      # WASM package. It must be built before the web tests can import it.
-      - name: Build WASM package
-        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
-      - name: Install web dependencies
-        working-directory: web
-        run: npm ci
-      - name: Type check
-        working-directory: web
-        run: npm run typecheck
-      - name: Test
-        working-directory: web
-        run: npm test
+          name: mutation-fixture-qualification-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mutation-job/qualification/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bind qualification upload to producer log
+        if: steps.qualification.outputs.artifact-id != ''
+        env:
+          ARTIFACT_ID: ${{ steps.qualification.outputs.artifact-id }}
+        run: echo "MUTATION_ARTIFACT_ID=$ARTIFACT_ID"

@@ -1,0 +1,34 @@
+{
+  "stock_count": 17749,
+  "candidate_count": 17749,
+  "raw_bytes_identical": true,
+  "complete_ordered_entries_equal": true,
+  "ordered_names_equal": true,
+  "identity_sets_equal": true,
+  "duplicate_names": [
+    0,
+    0
+  ],
+  "duplicate_composite_identities": [
+    0,
+    0
+  ],
+  "stock_sha256": "f14592d335fdd0000ed317c1f123315751bb906a4fd7b23ff1a8c2fafa494f44",
+  "candidate_sha256": "f14592d335fdd0000ed317c1f123315751bb906a4fd7b23ff1a8c2fafa494f44",
+  "package_counts": {
+    "terri-core": 1153,
+    "terri-data": 1634,
+    "terri-sim": 13790,
+    "terri-wasm": 1172
+  },
+  "all_fields_compared": [
+    "diff",
+    "file",
+    "function",
+    "genre",
+    "name",
+    "package",
+    "replacement",
+    "span"
+  ]
+}

@@ -18,7 +18,7 @@ function section(start: string, end: string): string {
 // Execute the production wiring, including its gate and complete camera method.
 const cameraCode = section('  function applyCamera(): void {', '  // Flagged rather than applied:')
   .replace('(): void', '()');
-const drawCode = section('    if (floorScene.visible', '    // Inside the sample below');
+const drawCode = section('    if (presenting&&floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
 const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
@@ -50,13 +50,15 @@ function fixture() {
   const ctx = {
     sceneFramebufferSize,gpu:{device:{limits}},
     console: { warn: (...details: unknown[]) => diagnostics.push(details) },
-    lot: { width: 2, height: 1, walls: new Uint32Array(), edges: new Uint32Array(), floors,
+    lotWidth: 2, lotHeight: 1,
+    lot: { width: 2, height: 1, houseOrigin: [0, 0] as const, walls: new Uint32Array(), edges: new Uint32Array(), floors,
       coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]),
       architecture: { windows: [], catalogue: [], floorCatalogue: catalogue,
         finishes: prepareArchitectureFinishes([], limits, catalogue) } },
     floorResourceError: null as string | null,
-    graphicsRecovering:false,
+    graphicsRecovering:false, presenting: true,
     characterWorld:{beginFrame(){},plan:null,draw(){}},
+    weatherScene: { setOutside() {}, prepare() {} }, weatherTuning: null, drawWorldEffects() {},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
     stage: { width: 500, height: 400, clientWidth: 500, clientHeight: 400,
       getBoundingClientRect() { return {left:0,top:0,width:this.clientWidth,height:this.clientHeight}; } }, window: { devicePixelRatio: 1 },
@@ -66,7 +68,8 @@ function fixture() {
     lightingMode: { isFlat: () => true }, renderer: renderer(),
     wallFade: { configure() {}, update() {} },
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
-    sim: { selectedIndex: () => 0, clockTick: () => 0, floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
+    sim: { selectedIndex: () => 0, clockTick: () => 0, dayTicks: () => 1440, seasonIndex: () => 0,
+      roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null }, roomTool: { highlight: () => null },
     roomReview: { highlight: () => null }, roomsTool: { selecting: false }, roomSelection: { highlight: () => null },
@@ -100,6 +103,10 @@ describe('main floor scene presentation', () => {
     f.ctx.graphicsRecovering=true;f.frame();expect(f.draws).toHaveLength(1);
     f.ctx.graphicsRecovering=false;f.frame();expect(f.draws).toHaveLength(2);
     expect(f.draws[1]).toEqual(f.draws[0]);
+  });
+  it('draws nothing for a hidden tab step and resumes drawing when presenting again',()=>{
+    const f=fixture();f.ctx.presenting=false;f.frame();expect(f.draws).toHaveLength(0);
+    f.ctx.presenting=true;f.frame();expect(f.draws).toHaveLength(1);
   });
   it('keeps camera/static/dynamic rendering coherent during a delayed or rejected preview load', async () => {
     const f = fixture();

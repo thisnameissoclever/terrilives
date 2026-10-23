@@ -1,0 +1,24 @@
+{
+  "original_package_sha256": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+  "package_sha256": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+  "files": [
+    {
+      "path": ".github/scripts/mutation_native.py",
+      "before_sha256": "024006d0bdfd5e5085c1735661213c97492783e7b2332df6046ed6942b08f355",
+      "sha256": "36883f5b43bf792c0f2049b4a21131e9a4b67ac6574220486ced62890e2d4ad9",
+      "bytes": 56857
+    },
+    {
+      "path": ".github/scripts/test_mutation_native.py",
+      "before_sha256": "36250c5c7c05ccccb04b7a510a53967a49ba09d983ce7103c9c2b6adf5537996",
+      "sha256": "33049978c7c357c60f82577b020821c9b36d7f43c83cbe28d0dd63ad31eb3d29",
+      "bytes": 61134
+    },
+    {
+      "path": "docs/mutation-campaign.md",
+      "before_sha256": "aa7daac3b72faa310357a850c10d04df0b2a6fefd1397217687efa5e6a8993ac",
+      "sha256": "17ee965621c232cd6c56b7b3b987b81bf71082f0170d80594dee1f4d7ef840e2",
+      "bytes": 17212
+    }
+  ]
+}

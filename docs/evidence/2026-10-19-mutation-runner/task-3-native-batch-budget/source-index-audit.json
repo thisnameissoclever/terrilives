@@ -1,0 +1,589 @@
+{
+  "base_head": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "frozen_source_sha256": {
+    ".github/workflows/ci.yml": "57313ed033b3c85fed7ca4e9a6a2aa9db9821eeedb9a20ae8cf70e9c3895246b",
+    ".github/scripts/mutation_workflow.py": "036ecaa3c0290fc5af4d2855608ee0a5bf507bf379c78ed17556f04c4727b663",
+    ".github/scripts/mutation_tool.py": "4469f57deb7fdc72ff3af446c68409f024b76d8e4d30f1a52264dde286c75b84",
+    ".github/scripts/mutation_qualification.py": "a942c23bded1fe1bf79e8268d3ec56043b33572bcbc0e04196da08040770fbcd",
+    ".github/scripts/mutation_recovery.py": "115f9d0105265d17a417a20554bb7c93c9f8c390b2ec7f7fd9e13a8ad099064f",
+    ".github/scripts/test_workflow_concurrency.py": "4ebfd13921d07595858ba5cdf778d8301f9c8bb7c4242e525060663368f85813",
+    ".github/scripts/test_mutation_recovery.py": "f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20",
+    ".github/scripts/test_mutation_workflow.py": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+    ".github/scripts/test_mutation_qualification.py": "9e05da6a208a971913caafc06b57c9408f2a2a34b2e9ec5d2f4288806c339788",
+    "docs/mutation-campaign.md": "0da0d284f9c8143c04e81ec5cb03a3d3469080064d5fb50844b71a179d681425",
+    "docs/testing-protocol.md": "50862d6438823f449dd108a1ae68bfe48dbe4229a478cc3869d08886e43ea8b6",
+    ".github/scripts/mutation_native.py": "7daadc50acece5e39ed4811141728b971ded09f0b7ab41600698b6b1961d4a54",
+    ".github/scripts/test_mutation_native.py": "5ea9e4758640f829f362f6c7864cafbd37cfb04cfd0cdba1dced54270294b8f8",
+    ".github/scripts/test_mutation_batch_budget.py": "01dafc27298afbf11d9456a0074a67578acf7dfce422ce476b49a3ad7f6c6a45",
+    ".github/scripts/mutation_runner.py": "79ce1708d21970321329815a4f6c48e153ff13f4a58633d0e1a337cdc878d71f",
+    ".github/scripts/mutation_artifacts.py": "b377e388941fbb842b0a8c63d5eb27018bd86dfe8f78e373068580fb67639b4b"
+  },
+  "staged_files": {
+    ".github/scripts/mutation_artifacts.py": {
+      "working_sha256": "b377e388941fbb842b0a8c63d5eb27018bd86dfe8f78e373068580fb67639b4b",
+      "index_sha256": "b377e388941fbb842b0a8c63d5eb27018bd86dfe8f78e373068580fb67639b4b",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_native.py": {
+      "working_sha256": "7daadc50acece5e39ed4811141728b971ded09f0b7ab41600698b6b1961d4a54",
+      "index_sha256": "7daadc50acece5e39ed4811141728b971ded09f0b7ab41600698b6b1961d4a54",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_qualification.py": {
+      "working_sha256": "a942c23bded1fe1bf79e8268d3ec56043b33572bcbc0e04196da08040770fbcd",
+      "index_sha256": "a942c23bded1fe1bf79e8268d3ec56043b33572bcbc0e04196da08040770fbcd",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_recovery.py": {
+      "working_sha256": "115f9d0105265d17a417a20554bb7c93c9f8c390b2ec7f7fd9e13a8ad099064f",
+      "index_sha256": "115f9d0105265d17a417a20554bb7c93c9f8c390b2ec7f7fd9e13a8ad099064f",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_runner.py": {
+      "working_sha256": "79ce1708d21970321329815a4f6c48e153ff13f4a58633d0e1a337cdc878d71f",
+      "index_sha256": "79ce1708d21970321329815a4f6c48e153ff13f4a58633d0e1a337cdc878d71f",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_tool.py": {
+      "working_sha256": "4469f57deb7fdc72ff3af446c68409f024b76d8e4d30f1a52264dde286c75b84",
+      "index_sha256": "4469f57deb7fdc72ff3af446c68409f024b76d8e4d30f1a52264dde286c75b84",
+      "exact_bytes": true
+    },
+    ".github/scripts/mutation_workflow.py": {
+      "working_sha256": "036ecaa3c0290fc5af4d2855608ee0a5bf507bf379c78ed17556f04c4727b663",
+      "index_sha256": "036ecaa3c0290fc5af4d2855608ee0a5bf507bf379c78ed17556f04c4727b663",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_mutation_batch_budget.py": {
+      "working_sha256": "01dafc27298afbf11d9456a0074a67578acf7dfce422ce476b49a3ad7f6c6a45",
+      "index_sha256": "01dafc27298afbf11d9456a0074a67578acf7dfce422ce476b49a3ad7f6c6a45",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_mutation_native.py": {
+      "working_sha256": "5ea9e4758640f829f362f6c7864cafbd37cfb04cfd0cdba1dced54270294b8f8",
+      "index_sha256": "5ea9e4758640f829f362f6c7864cafbd37cfb04cfd0cdba1dced54270294b8f8",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_mutation_qualification.py": {
+      "working_sha256": "9e05da6a208a971913caafc06b57c9408f2a2a34b2e9ec5d2f4288806c339788",
+      "index_sha256": "9e05da6a208a971913caafc06b57c9408f2a2a34b2e9ec5d2f4288806c339788",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_mutation_recovery.py": {
+      "working_sha256": "f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20",
+      "index_sha256": "f009ddb68a26271d2831cb2a354fe473e09fdd10d7c3d33011341ccfd026ec20",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_mutation_workflow.py": {
+      "working_sha256": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+      "index_sha256": "8f038e445555a85d6a160823b2b61fa79ab17d92bbb6cd624e8b06493fa3fecf",
+      "exact_bytes": true
+    },
+    ".github/scripts/test_workflow_concurrency.py": {
+      "working_sha256": "4ebfd13921d07595858ba5cdf778d8301f9c8bb7c4242e525060663368f85813",
+      "index_sha256": "4ebfd13921d07595858ba5cdf778d8301f9c8bb7c4242e525060663368f85813",
+      "exact_bytes": true
+    },
+    ".github/workflows/ci.yml": {
+      "working_sha256": "57313ed033b3c85fed7ca4e9a6a2aa9db9821eeedb9a20ae8cf70e9c3895246b",
+      "index_sha256": "57313ed033b3c85fed7ca4e9a6a2aa9db9821eeedb9a20ae8cf70e9c3895246b",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/README.md": {
+      "working_sha256": "2e84764410fca5aac18c8fff1f929fbcb47334354d1b7cedbc82842850a16cca",
+      "index_sha256": "2e84764410fca5aac18c8fff1f929fbcb47334354d1b7cedbc82842850a16cca",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/README.md": {
+      "working_sha256": "03958b4ddf9a813103b064ca9197ba340a70bee87d24f2753a5eafe84f4a4e06",
+      "index_sha256": "03958b4ddf9a813103b064ca9197ba340a70bee87d24f2753a5eafe84f4a4e06",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/capture-diagnostics/capture-better-way.md": {
+      "working_sha256": "b1674493a6b79d1952bf1c5c9d5bb5c8f435554b86aa6c6ea23e3c996f301551",
+      "index_sha256": "b1674493a6b79d1952bf1c5c9d5bb5c8f435554b86aa6c6ea23e3c996f301551",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/capture-diagnostics/exit-dialog-390-focused.jpg": {
+      "working_sha256": "4d6b50f31f063750cc56d566faff65be43c3b337a9e61e7673c59e477b490ea2",
+      "index_sha256": "4d6b50f31f063750cc56d566faff65be43c3b337a9e61e7673c59e477b490ea2",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/capture-diagnostics/exit-dialog-390-keyboard.jpg": {
+      "working_sha256": "30ce364732f339e394d313bd680f997c57f0386b32ca6ab1d0bc8827457d989f",
+      "index_sha256": "30ce364732f339e394d313bd680f997c57f0386b32ca6ab1d0bc8827457d989f",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/capture-diagnostics/exit-dialog-390-keyboard.json": {
+      "working_sha256": "c6284ffda75abf8bdfd24439c57095adc074fa346f197a4f085ac4ee5f55f379",
+      "index_sha256": "c6284ffda75abf8bdfd24439c57095adc074fa346f197a4f085ac4ee5f55f379",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/capture-diagnostics/visibility-observation.json": {
+      "working_sha256": "2350f3b9a095728d8cf6bd764cd7e0abb2735702bc4acffbab5bad42a44cd37c",
+      "index_sha256": "2350f3b9a095728d8cf6bd764cd7e0abb2735702bc4acffbab5bad42a44cd37c",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/cleanup.json": {
+      "working_sha256": "1537acd36fe1f3107d57fba9e124ba8608aedcb15079663faecccae26f85e196",
+      "index_sha256": "1537acd36fe1f3107d57fba9e124ba8608aedcb15079663faecccae26f85e196",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/d59d-full-web-tests.log": {
+      "working_sha256": "2dcb3e39b674058a198104c330746bca3a8b2226fa7c2f25c3c2beec2f3015a6",
+      "index_sha256": "2dcb3e39b674058a198104c330746bca3a8b2226fa7c2f25c3c2beec2f3015a6",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/d59d-integration-review.md": {
+      "working_sha256": "36ade570b053ea417e5473ccd6b5cc216f2caec07b8509273c43902b35d08711",
+      "index_sha256": "36ade570b053ea417e5473ccd6b5cc216f2caec07b8509273c43902b35d08711",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/d59d-production-build.log": {
+      "working_sha256": "87b1df938985ddab19c75ee90ec73b269ba8d838b9aa1e0a991cb6c78d5a749a",
+      "index_sha256": "87b1df938985ddab19c75ee90ec73b269ba8d838b9aa1e0a991cb6c78d5a749a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/d59d-web-gates-receipt.json": {
+      "working_sha256": "a0c9326c6f26a8b4cf178fd30de3936c04d1890b07f5e2ee23a5483414332b9f",
+      "index_sha256": "a0c9326c6f26a8b4cf178fd30de3936c04d1890b07f5e2ee23a5483414332b9f",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/dock-390.json": {
+      "working_sha256": "1b4644dff0faf20e148fe21580df6b92d2a838bcdb5d50ba5dfa0a5074f275a8",
+      "index_sha256": "1b4644dff0faf20e148fe21580df6b92d2a838bcdb5d50ba5dfa0a5074f275a8",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/dock-390.png": {
+      "working_sha256": "0a88cdba4f857e89922d756e47ff1dd8c387a858dc90e142db49bb917d4878f8",
+      "index_sha256": "0a88cdba4f857e89922d756e47ff1dd8c387a858dc90e142db49bb917d4878f8",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/dock-434.json": {
+      "working_sha256": "1b0155189ec74e025c65ec160b6e920445dd523823ecdf1207d53aaaf151fdd3",
+      "index_sha256": "1b0155189ec74e025c65ec160b6e920445dd523823ecdf1207d53aaaf151fdd3",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/dock-434.png": {
+      "working_sha256": "f3dd766f81bc5032390a77251d9e53a0a1b5e5830124713523ca85c13c79e497",
+      "index_sha256": "f3dd766f81bc5032390a77251d9e53a0a1b5e5830124713523ca85c13c79e497",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/exit-dialog-390-keyboard-surface.json": {
+      "working_sha256": "ba8eb8399c2709734a69d55b5316ee839bd23a89348112428e8f7e10232f9149",
+      "index_sha256": "ba8eb8399c2709734a69d55b5316ee839bd23a89348112428e8f7e10232f9149",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/exit-dialog-390-keyboard-surface.png": {
+      "working_sha256": "9f6e2f46bd2875b7be944f94bd996a5d0318c2b5678e5cb6d402117fd082c466",
+      "index_sha256": "9f6e2f46bd2875b7be944f94bd996a5d0318c2b5678e5cb6d402117fd082c466",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/independent-visual-review.md": {
+      "working_sha256": "f912d2b3842b4b577678484f6e36089832351132a9d77d6860b6692d9427433e",
+      "index_sha256": "f912d2b3842b4b577678484f6e36089832351132a9d77d6860b6692d9427433e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/loaded-current-room.txt": {
+      "working_sha256": "9f2a7d58dee2c854af78ad5502cab792a68b0eb98440eb2bfd84acf8dea9922e",
+      "index_sha256": "9f2a7d58dee2c854af78ad5502cab792a68b0eb98440eb2bfd84acf8dea9922e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/merge-review.txt": {
+      "working_sha256": "fa95d855b3d49ad374813eb48ba0c56f1033c7e5039f01afaf262367761a9f53",
+      "index_sha256": "fa95d855b3d49ad374813eb48ba0c56f1033c7e5039f01afaf262367761a9f53",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/played-report.md": {
+      "working_sha256": "ab23f49bc5ca940729cee23140327725a73c5148ab33b08cbfb9c285cc5a271e",
+      "index_sha256": "ab23f49bc5ca940729cee23140327725a73c5148ab33b08cbfb9c285cc5a271e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/verification.json": {
+      "working_sha256": "0cd0d8aee5b24e169ea90c0391037714da8ce78b6059b2c96988e6d09eb59cf6",
+      "index_sha256": "0cd0d8aee5b24e169ea90c0391037714da8ce78b6059b2c96988e6d09eb59cf6",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/walls-land-review-back-390.json": {
+      "working_sha256": "cadf133a995ac7aa77b756d791e07ebfe05a1c0d4e359e623f750dc6d77ada3b",
+      "index_sha256": "cadf133a995ac7aa77b756d791e07ebfe05a1c0d4e359e623f750dc6d77ada3b",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-build-ui/d59d/walls-land-review-back-390.png": {
+      "working_sha256": "97892d8cc8bd9c911dfea43706d80152a29443b73bad667de3f4259da683d26a",
+      "index_sha256": "97892d8cc8bd9c911dfea43706d80152a29443b73bad667de3f4259da683d26a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/README.md": {
+      "working_sha256": "d6c595747fa2687a9e5097dc617fec29b9c9bea485fa64bb483c879cbaffec46",
+      "index_sha256": "d6c595747fa2687a9e5097dc617fec29b9c9bea485fa64bb483c879cbaffec46",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/README.md": {
+      "working_sha256": "68f194064fb91da8c8d96b6a40f13da17f58b14a6784f6bc6042f7b0e882978b",
+      "index_sha256": "68f194064fb91da8c8d96b6a40f13da17f58b14a6784f6bc6042f7b0e882978b",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/retention.json": {
+      "working_sha256": "2ce568bdc9bc00e0ddb14722ac7915ed183309b100d8d93e56f5e714522092d3",
+      "index_sha256": "2ce568bdc9bc00e0ddb14722ac7915ed183309b100d8d93e56f5e714522092d3",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/source-index-audit.json": {
+      "working_sha256": "66572408283ff7efac519895f89fd464ebddf303fd43142078d79f2b0c731854",
+      "index_sha256": "66572408283ff7efac519895f89fd464ebddf303fd43142078d79f2b0c731854",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-api-costs.json": {
+      "working_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "index_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-covering-tests.txt": {
+      "working_sha256": "71c0e733b8c9fdc1b9725972cbf8726e1b899fe7017fcbdf0cc9fa8180b5d2ee",
+      "index_sha256": "71c0e733b8c9fdc1b9725972cbf8726e1b899fe7017fcbdf0cc9fa8180b5d2ee",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-evidence-hashes.json": {
+      "working_sha256": "d93639ff68577480c0c88fddce6525166895c079ab6587b0bf3e30cb8f6b9cf6",
+      "index_sha256": "d93639ff68577480c0c88fddce6525166895c079ab6587b0bf3e30cb8f6b9cf6",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-focused-tests.txt": {
+      "working_sha256": "9f016075c54643618dfb80a558d6b3bcbff522dcbee462b6c54dcf5d9ae61449",
+      "index_sha256": "9f016075c54643618dfb80a558d6b3bcbff522dcbee462b6c54dcf5d9ae61449",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-gate-api-costs.json": {
+      "working_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "index_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-hashes.json": {
+      "working_sha256": "d5b0f30cc146118b82f35244edb2034c3a11e1deffc56f9ee8ea64250389abe5",
+      "index_sha256": "d5b0f30cc146118b82f35244edb2034c3a11e1deffc56f9ee8ea64250389abe5",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-package.diff": {
+      "working_sha256": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+      "index_sha256": "771438246d6d05811c471551dc5dfeb3fa517b30774db9b860b8e1e368be7d1c",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-plan-api-costs.json": {
+      "working_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "index_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-projections.json": {
+      "working_sha256": "da707ea2e70ce0fe5df293a999219228bb26948b2a68d3d6bedc410beb0711f8",
+      "index_sha256": "da707ea2e70ce0fe5df293a999219228bb26948b2a68d3d6bedc410beb0711f8",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-red.txt": {
+      "working_sha256": "d618b02873b287d8f3d108c69e3e75d78608ae1b02a656f335155b31842e5364",
+      "index_sha256": "d618b02873b287d8f3d108c69e3e75d78608ae1b02a656f335155b31842e5364",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-fix1-report.md": {
+      "working_sha256": "58a287cf55685bcd4d7bb3ca2c1d908109b376e59543a5a07be88abfdb3cb162",
+      "index_sha256": "58a287cf55685bcd4d7bb3ca2c1d908109b376e59543a5a07be88abfdb3cb162",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-quality-rereview1.md": {
+      "working_sha256": "daec8f7ca042991dc07f070412f6ba1bb981b359a1f115d52bdc9ec095298d02",
+      "index_sha256": "daec8f7ca042991dc07f070412f6ba1bb981b359a1f115d52bdc9ec095298d02",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-raw-sizing-preflight.md": {
+      "working_sha256": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9",
+      "index_sha256": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/fix1/task-3-native-admission-spec-rereview1.md": {
+      "working_sha256": "5d5bb4a1c56ccaea4190e0daf192650a8ac827bbc2aeeeaf6b235ed958d4cb48",
+      "index_sha256": "5d5bb4a1c56ccaea4190e0daf192650a8ac827bbc2aeeeaf6b235ed958d4cb48",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/README.md": {
+      "working_sha256": "ebace6eb0f998693ef0e84e1a2bc010bf1a1ab1a2b93a12e7dc2388f01704870",
+      "index_sha256": "ebace6eb0f998693ef0e84e1a2bc010bf1a1ab1a2b93a12e7dc2388f01704870",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/retention.json": {
+      "working_sha256": "48c0e6fa95ba46cd8ec13663e8de03ac9aa58b6ed6ea665de5c7e780f8b87954",
+      "index_sha256": "48c0e6fa95ba46cd8ec13663e8de03ac9aa58b6ed6ea665de5c7e780f8b87954",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/source-index-audit.json": {
+      "working_sha256": "b2c006722867c1051e0f5c01a34ef494fae1b0c0540a85ce7e1bc17aa327a957",
+      "index_sha256": "b2c006722867c1051e0f5c01a34ef494fae1b0c0540a85ce7e1bc17aa327a957",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-brief.md": {
+      "working_sha256": "0ac6e1f0d76056f84ef63bbb1991bc62243c0b9ae1725542c701e31f8b642ba7",
+      "index_sha256": "0ac6e1f0d76056f84ef63bbb1991bc62243c0b9ae1725542c701e31f8b642ba7",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-evidence-hashes.json": {
+      "working_sha256": "9a012bc47d7aa2e06b8120bf1d8b56f48a7c5a2538ea70ad83a8e62fee371bb4",
+      "index_sha256": "9a012bc47d7aa2e06b8120bf1d8b56f48a7c5a2538ea70ad83a8e62fee371bb4",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-hashes.json": {
+      "working_sha256": "dc1bb3b00d556af80f3a4288c0324c67111f4c30d2e2cdd128610ada1f68c135",
+      "index_sha256": "dc1bb3b00d556af80f3a4288c0324c67111f4c30d2e2cdd128610ada1f68c135",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-package.diff": {
+      "working_sha256": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+      "index_sha256": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-preflight.md": {
+      "working_sha256": "72095bea31c71998647f1b0d9d8f4895daaddf7231d6cf00fdf9f398bdb92130",
+      "index_sha256": "72095bea31c71998647f1b0d9d8f4895daaddf7231d6cf00fdf9f398bdb92130",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-quality-review.md": {
+      "working_sha256": "1bdc861726f7d96cb2e2c6550fa4d6e5cdba94236e8899c62b6cebdf95522702",
+      "index_sha256": "1bdc861726f7d96cb2e2c6550fa4d6e5cdba94236e8899c62b6cebdf95522702",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-report.md": {
+      "working_sha256": "ad3f4abe96c859d6ccd64035615330b0a233771cda31482380931af645415085",
+      "index_sha256": "ad3f4abe96c859d6ccd64035615330b0a233771cda31482380931af645415085",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-admission-spec-review.md": {
+      "working_sha256": "986dc010dc4c68825bf412b04b375a2555ee7b1dfb60d5759963701f742e2c82",
+      "index_sha256": "986dc010dc4c68825bf412b04b375a2555ee7b1dfb60d5759963701f742e2c82",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-api-costs.json": {
+      "working_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "index_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-final-all-tests.txt": {
+      "working_sha256": "4ad1cc699c496df282cffce47aab2b8702d1db72dfc0f55d3f7370ebbb157b42",
+      "index_sha256": "4ad1cc699c496df282cffce47aab2b8702d1db72dfc0f55d3f7370ebbb157b42",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-final-tests.txt": {
+      "working_sha256": "3fe46d37565abed79bede9bfdf0292299ef18e7ded6662c1386034f5dc966a59",
+      "index_sha256": "3fe46d37565abed79bede9bfdf0292299ef18e7ded6662c1386034f5dc966a59",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-fixture-api-costs.json": {
+      "working_sha256": "079608137e84909083600321264d7b80b984032c06cd7f6ab180a98111771643",
+      "index_sha256": "079608137e84909083600321264d7b80b984032c06cd7f6ab180a98111771643",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-gate-api-costs.json": {
+      "working_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "index_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-plan-api-costs.json": {
+      "working_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "index_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-admission/initial/task-3-native-workflow-tests.txt": {
+      "working_sha256": "e5831652f929d02f7061ccd1364690e5d21ab428a819e4bbf71ddb086f2c562f",
+      "index_sha256": "e5831652f929d02f7061ccd1364690e5d21ab428a819e4bbf71ddb086f2c562f",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/README.md": {
+      "working_sha256": "059371b73611430f09762569d4226064234670294aac70dd4e84714c9bd32d87",
+      "index_sha256": "059371b73611430f09762569d4226064234670294aac70dd4e84714c9bd32d87",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/native-capacity-better-way.md": {
+      "working_sha256": "ca234e6d280d5b1527d06a1d13082c4176cdf50ac2273e645003812aca50e773",
+      "index_sha256": "ca234e6d280d5b1527d06a1d13082c4176cdf50ac2273e645003812aca50e773",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/retention.json": {
+      "working_sha256": "936fcacc1623435be04a99c9df770048f8c75c7a8ced384be7397e9f79dfdc1e",
+      "index_sha256": "936fcacc1623435be04a99c9df770048f8c75c7a8ced384be7397e9f79dfdc1e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-admission-raw-sizing-preflight.md": {
+      "working_sha256": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9",
+      "index_sha256": "fcd231722a436eab2842647172362f88106f31f607f0afb550977d7cd7b917a9",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-brief.md": {
+      "working_sha256": "2c2d33a5acf6a927bbb58a568f231d0508579a585e60b2d34b2b55b3d27b041e",
+      "index_sha256": "2c2d33a5acf6a927bbb58a568f231d0508579a585e60b2d34b2b55b3d27b041e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-evidence-hashes.json": {
+      "working_sha256": "843f3e0a4e499e67431e889bdf4b2576021c3a8c82a5cdeb563a57e990db249b",
+      "index_sha256": "843f3e0a4e499e67431e889bdf4b2576021c3a8c82a5cdeb563a57e990db249b",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-final-api-costs.json": {
+      "working_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "index_sha256": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-final-fixture-api-costs.json": {
+      "working_sha256": "079608137e84909083600321264d7b80b984032c06cd7f6ab180a98111771643",
+      "index_sha256": "079608137e84909083600321264d7b80b984032c06cd7f6ab180a98111771643",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-final-gate-api-costs.json": {
+      "working_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "index_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-final-integrated-tests.txt": {
+      "working_sha256": "27ceed0a849c2c4e49ff1f2fea26d806d271155fcc6bf4b77d0c80fd21a53fd7",
+      "index_sha256": "27ceed0a849c2c4e49ff1f2fea26d806d271155fcc6bf4b77d0c80fd21a53fd7",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-final-plan-api-costs.json": {
+      "working_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "index_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-covering-tests.txt": {
+      "working_sha256": "a7b2fc97a782f30705eb28f265976a149e83d0365e6f083372046f654faeae41",
+      "index_sha256": "a7b2fc97a782f30705eb28f265976a149e83d0365e6f083372046f654faeae41",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-focused-tests.txt": {
+      "working_sha256": "678dd5ba47c9848ef617301a45892fadc8d1ee18f98c7767192a108e93f85f3e",
+      "index_sha256": "678dd5ba47c9848ef617301a45892fadc8d1ee18f98c7767192a108e93f85f3e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-hashes.json": {
+      "working_sha256": "c97fa46193195930c270fde2c1cb252c7286eb8aabfde99b93353c5d73b04e5e",
+      "index_sha256": "c97fa46193195930c270fde2c1cb252c7286eb8aabfde99b93353c5d73b04e5e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-package.diff": {
+      "working_sha256": "bf70a4aa13e1ece073e388814475ac7780bdee953e4fd87adc063781e6143d8b",
+      "index_sha256": "bf70a4aa13e1ece073e388814475ac7780bdee953e4fd87adc063781e6143d8b",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-red.txt": {
+      "working_sha256": "e2d91e386b3e2f0648f7be870f857141339dff98c433f5b1cb13a3ff032b925d",
+      "index_sha256": "e2d91e386b3e2f0648f7be870f857141339dff98c433f5b1cb13a3ff032b925d",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fix1-report.md": {
+      "working_sha256": "da5efde1d405f9ffbc35a1fb5e90e9e5098908540521a0f7b7af749845b08790",
+      "index_sha256": "da5efde1d405f9ffbc35a1fb5e90e9e5098908540521a0f7b7af749845b08790",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fixture-repair-covering-tests.txt": {
+      "working_sha256": "2f4f6039a55b791afe87a602071e0109af81271f2f943103444f6062afccdea9",
+      "index_sha256": "2f4f6039a55b791afe87a602071e0109af81271f2f943103444f6062afccdea9",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fixture-repair-hashes.json": {
+      "working_sha256": "aebd82b5ca168aff28243b6a1040eb8c3d28b235a4d656f9f3ad7965a9196244",
+      "index_sha256": "aebd82b5ca168aff28243b6a1040eb8c3d28b235a4d656f9f3ad7965a9196244",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fixture-repair-test.txt": {
+      "working_sha256": "55d9cf79deb292f8cef766ff858b6c1ccc0a9b53f98a2206a266cf46d78b06e4",
+      "index_sha256": "55d9cf79deb292f8cef766ff858b6c1ccc0a9b53f98a2206a266cf46d78b06e4",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-fixture-repair.diff": {
+      "working_sha256": "995b788bd2bd4ea449f82c7fe17c35f7ca67d8c0c52e889bf8de03a2fd208c89",
+      "index_sha256": "995b788bd2bd4ea449f82c7fe17c35f7ca67d8c0c52e889bf8de03a2fd208c89",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-hashes.json": {
+      "working_sha256": "3ea079681d7b506f34b0fad38ea569a574b50e8dcf9aec5130f815fa9306bc2e",
+      "index_sha256": "3ea079681d7b506f34b0fad38ea569a574b50e8dcf9aec5130f815fa9306bc2e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-gate-api-costs.json": {
+      "working_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "index_sha256": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-hashes.json": {
+      "working_sha256": "5d9586a49f79c6675510f927dace255de2ed8540e1d01d80d7716e8451ad3641",
+      "index_sha256": "5d9586a49f79c6675510f927dace255de2ed8540e1d01d80d7716e8451ad3641",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-integrated-tests.txt": {
+      "working_sha256": "6682430502802a00cc09c09f95d88f898b979501bb225322d97cd7bcd134293e",
+      "index_sha256": "6682430502802a00cc09c09f95d88f898b979501bb225322d97cd7bcd134293e",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-package.diff": {
+      "working_sha256": "e06392180cf584443bb3e75415832765dae8d35afc466c6850e34b96329d49a0",
+      "index_sha256": "e06392180cf584443bb3e75415832765dae8d35afc466c6850e34b96329d49a0",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-plan-api-costs.json": {
+      "working_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "index_sha256": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-interrupted-status.json": {
+      "working_sha256": "89a2dfad89a9f64fb0d6c84c8cebe1b577d2ee9ec8342acdca52c327e059caaa",
+      "index_sha256": "89a2dfad89a9f64fb0d6c84c8cebe1b577d2ee9ec8342acdca52c327e059caaa",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-package.diff": {
+      "working_sha256": "d3f64f28012f46ea794bf7596547b946e61a22dbb03a0dfc13fba0efc1a8bb75",
+      "index_sha256": "d3f64f28012f46ea794bf7596547b946e61a22dbb03a0dfc13fba0efc1a8bb75",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-quality-rereview1.md": {
+      "working_sha256": "792e44b2d32d29f8a89f31a2b7109399fe828aa34ca484cd485ce092c7e423ed",
+      "index_sha256": "792e44b2d32d29f8a89f31a2b7109399fe828aa34ca484cd485ce092c7e423ed",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-quality-review.md": {
+      "working_sha256": "353bd83bbbea3f019518a45b1261f607d7b926f1d13863a3553e79ec9315d149",
+      "index_sha256": "353bd83bbbea3f019518a45b1261f607d7b926f1d13863a3553e79ec9315d149",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-red.txt": {
+      "working_sha256": "ebc5f7834c39aa584fee85ddb019f0e8243d741ad5e7a15775512b8af000f63c",
+      "index_sha256": "ebc5f7834c39aa584fee85ddb019f0e8243d741ad5e7a15775512b8af000f63c",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-report.md": {
+      "working_sha256": "3ef6dafbf733f2e34fca34b1b8fce714a353be260dea2b5fb8e8cc651849214a",
+      "index_sha256": "3ef6dafbf733f2e34fca34b1b8fce714a353be260dea2b5fb8e8cc651849214a",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-spec-rereview1.md": {
+      "working_sha256": "d029a1c628021607e19a5356dd7bc34e97b3ea9ff2e2484240fe7e8fb60c55ff",
+      "index_sha256": "d029a1c628021607e19a5356dd7bc34e97b3ea9ff2e2484240fe7e8fb60c55ff",
+      "exact_bytes": true
+    },
+    "docs/evidence/2026-10-19-mutation-runner/task-3-native-batch-budget/task-3-native-batch-budget-spec-review.md": {
+      "working_sha256": "58b4f67b7d1aacaf436c8c5d3ae5a41b40118109a126aa8745f7e4fc04442f0f",
+      "index_sha256": "58b4f67b7d1aacaf436c8c5d3ae5a41b40118109a126aa8745f7e4fc04442f0f",
+      "exact_bytes": true
+    },
+    "docs/lessons-learned.md": {
+      "working_sha256": "0757c23c58d01fad39cc3e0188f3d7dea620024ffc4779409368755384dca42a",
+      "index_sha256": "0757c23c58d01fad39cc3e0188f3d7dea620024ffc4779409368755384dca42a",
+      "exact_bytes": true
+    },
+    "docs/mutation-campaign.md": {
+      "working_sha256": "0da0d284f9c8143c04e81ec5cb03a3d3469080064d5fb50844b71a179d681425",
+      "index_sha256": "0da0d284f9c8143c04e81ec5cb03a3d3469080064d5fb50844b71a179d681425",
+      "exact_bytes": true
+    },
+    "docs/testing-protocol.md": {
+      "working_sha256": "50862d6438823f449dd108a1ae68bfe48dbe4229a478cc3869d08886e43ea8b6",
+      "index_sha256": "50862d6438823f449dd108a1ae68bfe48dbe4229a478cc3869d08886e43ea8b6",
+      "exact_bytes": true
+    }
+  },
+  "normalization": "Exact bytes unless Git normalizes CRLF to LF for a named text suffix; both hashes are retained."
+}

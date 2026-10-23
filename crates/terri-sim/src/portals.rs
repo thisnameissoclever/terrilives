@@ -373,10 +373,16 @@ fn interior_lines_on_axis(world: &World, axis: terri_core::layout::EdgeAxis) -> 
         return Vec::new();
     }
     let front = front_door_lines(world);
+    // A doorway on the lot's edge opens onto nothing, so it is an opening
+    // without a door until land is bought beyond it ([WT-rules]).
+    let grid = world
+        .get_resource::<terri_core::TileGrid>()
+        .map(|grid| (grid.width() as u32, grid.height() as u32));
     let mut lines: Vec<(u32, u32)> = layout
         .edges()
         .iter()
         .filter(|edge| edge.doorway && edge.axis == axis)
+        .filter(|edge| grid.is_none_or(|(width, height)| edge.in_bounds(width, height)))
         .map(|edge| (edge.x, edge.y))
         .filter(|line| axis != EdgeAxis::Vertical || !front.contains(line))
         .collect();

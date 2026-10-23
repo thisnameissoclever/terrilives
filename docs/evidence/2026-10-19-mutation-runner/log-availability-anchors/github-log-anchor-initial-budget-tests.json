@@ -1,0 +1,16 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_recovery.FullWrapperBudgetTests.test_complete_wrapper_request_budget_at_ten_thirty_fifty_and_eight_runs",
+    "test_mutation_native.NativeWrapperBudgetTests.test_complete_production_wrapper_with_retained_native_admission",
+    "test_mutation_native.NativeWrapperBudgetTests.test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget",
+    "test_mutation_native.NativeGateBudgetTests.test_complete_native_stage_wrappers_count_all_authentication_calls",
+    "test_mutation_native.NativePlanBudgetTests.test_original_plan_wrapper_includes_qualification_tool_and_calibration_transport"
+  ],
+  "exit_code": 1,
+  "seconds": 304.917,
+  "output": ".FF..\n======================================================================\nFAIL: test_complete_production_wrapper_with_retained_native_admission (test_mutation_native.NativeWrapperBudgetTests.test_complete_production_wrapper_with_retained_native_admission) (history=6, runs=8)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\f19a\\terrilives\\.github\\scripts\\test_mutation_native.py\", line 622, in test_complete_production_wrapper_with_retained_native_admission\n    checked_request_components(self, result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\f19a\\terrilives\\.github\\scripts\\test_mutation_native.py\", line 607, in checked_request_components\n    test.assertLessEqual(consumers[\"aggregate\"], REQUEST_COMPONENT_BOUNDS[\"aggregate\"], \"aggregate request bound exceeded\")\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 198 not less than or equal to 192 : aggregate request bound exceeded\n\n======================================================================\nFAIL: test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget (test_mutation_native.NativeWrapperBudgetTests.test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\f19a\\terrilives\\.github\\scripts\\test_mutation_native.py\", line 638, in test_distinct_workflow_checkout_and_snapshot_roots_keep_complete_consumer_budget\n    checked_request_components(self, result)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\f19a\\terrilives\\.github\\scripts\\test_mutation_native.py\", line 607, in checked_request_components\n    test.assertLessEqual(consumers[\"aggregate\"], REQUEST_COMPONENT_BOUNDS[\"aggregate\"], \"aggregate request bound exceeded\")\n    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 202 not less than or equal to 192 : aggregate request bound exceeded\n\n----------------------------------------------------------------------\nRan 5 tests in 304.537s\n\nFAILED (failures=2)\n"
+}

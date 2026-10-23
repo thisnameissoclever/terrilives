@@ -610,7 +610,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 17. Its suffix preserves exact player-order and social-execution
+use version 20. The envelope preserves exact player-order and social-execution
 ownership, incoming acceptance order, fixed scheduled shifts, attendance,
 pending work confirmations and suspended recipe activity. Older envelopes retain their frozen readers.
 Player-order owners use an explicit identity tag: household Sim ID or the
@@ -652,7 +652,23 @@ V18 wraps the complete V17 payload with the living people whose job search is
 off and the queued job search settings with their queue positions, leaving the
 frozen command records unchanged ([job search for each
 housemate](specs/2026-10-18-job-search-per-person.md)).
-The published V15, V16 and V17 readers retain their original wire shapes.
+V19 wraps the complete V18 payload with independent household neglect timers.
+Source timers track continuous actionable dirt and maximum dirt; duty timers
+track the assigned owner's unfinished work. Environmental mood, ordinary dish
+annoyance, midnight neglect and helper resentment wait for 120 game minutes at
+maximum dirt or 1440 game minutes of unfinished actionable work. Actual blocked
+seating remains immediate. Cleaning and removed sources clear timing. Pause
+freezes it. The timers are hashed, validated and carried by native build and
+ordinary-command transactions. Unsettled episode IDs retain an observed overdue
+fact through gradual cleaning. Discharged or removed work clears that fact when
+no genuine cleanup remains; settlement also prunes it. Older saves begin fresh grace. Published V15
+through V18 readers retain their original wire shapes. Earlier social saves can
+retain a target without owning the recipient's reservation. Legacy adoption
+imports that intent as an explicitly unattributed waiting request; it does not
+invent admission or alter the physical target, path, clock or random streams.
+Current readers still reject orphaned social targets.
+
+V20 wraps the frozen V19 envelope with indexed attributable grievances, exact active fight contexts, saved chore-response decisions and contribution receipts for the continuous dish duty. Every running fight and pending autonomous fight requires a separate exact context, retained in separate runtime indexes; queued player fights choose at contact. Only historical source adoption creates explicit legacy contexts. Current loading rejects missing contexts and malformed ownership. Chore repair follows actual physical completion, with positive appreciation separate from board settlement. All behavioral fields enter the hash, and complete current state survives native transactions. Current compiled content selects attributable fight rules even when loading an older save. Authenticated historical reference content explicitly selects its published rules to preserve original random draws; save version and cell layout never select that policy. See the [fight contract](specs/2026-10-16-fights.md).
 
 During Build, the native transaction owns a validated baseline, accepted-command
 journal, pending names, and at most one prepared candidate. Current-schema save
@@ -693,8 +709,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.vN-backup.bin`, where N is the source version from 1 through
-17. A V17 primary therefore receives `terri-save-1.v17-backup.bin` before the first
-V18 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
+19. A V19 primary therefore receives `terri-save-1.v19-backup.bin` before the first
+V20 overwrite. Earlier recovery files remain intact. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -708,8 +724,7 @@ retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
 V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header.
-Frozen V10 through V17 workers also refuse a newer primary; the published V17 fixture refuses
-a V18 primary instead of overwriting each person's job search. The storage writer and load-status controller share the current
+Frozen V10 through V19 workers also refuse a newer primary. The published V19 fixture refuses a V20 primary, preserving grievance history and chore-response decisions. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -1858,8 +1873,7 @@ rejects unsupported work variants and contacts before world adoption.
 
 Weekly assignments balance estimated work and sample chore preferences. Saved
 daily opportunities separate willingness from enjoyment. Actual work completion
-identifies its performer, updates commitment history and publishes bounded,
-directional relationship effects once per episode. Active work crossing midnight
+identifies its performer and updates commitment history once per episode. Physical completion separately earns housemate appreciation, including board-disabled and repeat work. Argument repair uses scoped current-duty evidence rather than older episode totals. Active work crossing midnight
 retains its original episode. The browser receives owned board/history arrays
 and aligned grime columns. `grime-decals.ts` adds transparent stain sprites in a
 separate atlas page, behind props on floors and at supporting surface depth.

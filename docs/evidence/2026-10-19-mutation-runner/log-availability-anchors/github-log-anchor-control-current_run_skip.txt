@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job (test_mutation_recovery.AnchorLifecycleTests.test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_recovery.py", line 379, in test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job
+    self.assertIn(("owner/repo", "100", selected["job"]["run_attempt"], str(selected["job"]["id"])), self.api.probed)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('owner/repo', '100', 1, '901') not found in set()
+
+----------------------------------------------------------------------
+Ran 1 test in 0.133s
+
+FAILED (failures=1)

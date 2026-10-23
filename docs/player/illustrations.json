@@ -1,0 +1,1278 @@
+{
+  "version": 1,
+  "figures": {
+    "overview": {
+      "title": "Overview",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png"
+    },
+    "guide-shortcut": {
+      "title": "Player guide shortcut",
+      "desktop": "images/ui-guide-shortcut-detail-desktop.png",
+      "mobile": "images/ui-guide-shortcut-detail-mobile.png"
+    },
+    "sim-needs": {
+      "title": "Needs and overview",
+      "desktop": "images/guide/sim-needs-desktop.png",
+      "mobile": "images/guide/sim-needs-mobile.png"
+    },
+    "sim-personality": {
+      "title": "Personality",
+      "desktop": "images/guide/sim-personality-desktop.png",
+      "mobile": "images/guide/sim-personality-mobile.png"
+    },
+    "sim-queue": {
+      "title": "Queue",
+      "desktop": "images/guide/sim-queue-desktop.png",
+      "mobile": "images/guide/sim-queue-mobile.png"
+    },
+    "sim-people": {
+      "title": "People",
+      "desktop": "images/guide/sim-people-desktop.png",
+      "mobile": "images/guide/sim-people-mobile.png"
+    },
+    "sim-conditions": {
+      "title": "Conditions",
+      "desktop": "images/guide/sim-conditions-desktop.png",
+      "mobile": "images/guide/sim-conditions-mobile.png"
+    },
+    "sim-skills": {
+      "title": "Skills",
+      "desktop": "images/guide/sim-skills-desktop.png",
+      "mobile": "images/guide/sim-skills-mobile.png"
+    },
+    "sim-likes": {
+      "title": "Likes and dislikes",
+      "desktop": "images/guide/sim-likes-desktop.png",
+      "mobile": "images/guide/sim-likes-mobile.png"
+    },
+    "sim-career": {
+      "title": "Career",
+      "desktop": "images/guide/sim-career-desktop.png",
+      "mobile": "images/guide/sim-career-mobile.png"
+    },
+    "career-review": {
+      "title": "Career review",
+      "desktop": "images/guide/career-review-desktop.png",
+      "mobile": "images/guide/career-review-mobile.png"
+    },
+    "chores-board": {
+      "title": "Chores board",
+      "desktop": "images/guide/chores-board-desktop.png",
+      "mobile": "images/guide/chores-board-mobile.png"
+    },
+    "chores-profile": {
+      "title": "Chores profile",
+      "desktop": "images/guide/chores-profile-desktop.png",
+      "mobile": "images/guide/chores-profile-mobile.png"
+    },
+    "object-menu": {
+      "title": "Object menu",
+      "desktop": "images/ui-object-menu-detail-desktop.png",
+      "mobile": "images/ui-object-menu-detail-mobile.png"
+    },
+    "object-description": {
+      "title": "Object description",
+      "desktop": "images/ui-object-description-detail-desktop.png",
+      "mobile": "images/ui-object-description-detail-mobile.png"
+    },
+    "person-menu": {
+      "title": "Person menu",
+      "desktop": "images/guide/person-menu-desktop.png",
+      "mobile": "images/guide/person-menu-mobile.png"
+    },
+    "build-furniture": {
+      "title": "Furniture",
+      "desktop": "images/guide/build-furniture-desktop.png",
+      "mobile": "images/guide/build-furniture-mobile.png"
+    },
+    "build-placement": {
+      "title": "Placement",
+      "desktop": "images/guide/build-placement-desktop.png",
+      "mobile": "images/guide/build-placement-mobile.png"
+    },
+    "build-buy": {
+      "title": "Buy",
+      "desktop": "images/guide/build-buy-desktop.png",
+      "mobile": "images/guide/build-buy-mobile.png"
+    },
+    "buy-details": {
+      "title": "Buy details",
+      "desktop": "images/guide/buy-details-desktop.png",
+      "mobile": "images/guide/buy-details-mobile.png"
+    },
+    "build-walls": {
+      "title": "Walls",
+      "desktop": "images/guide/build-walls-desktop.png",
+      "mobile": "images/guide/build-walls-mobile.png"
+    },
+    "build-windows": {
+      "title": "Windows",
+      "desktop": "images/guide/build-windows-desktop.png",
+      "mobile": "images/guide/build-windows-mobile.png"
+    },
+    "floor-actions": {
+      "title": "Floor actions",
+      "desktop": "images/guide/floor-actions-desktop.png",
+      "mobile": "images/guide/floor-actions-mobile.png"
+    },
+    "build-rooms": {
+      "title": "Rooms",
+      "desktop": "images/guide/build-rooms-desktop.png",
+      "mobile": "images/guide/build-rooms-mobile.png"
+    },
+    "room-review": {
+      "title": "Room review",
+      "desktop": "images/guide/room-review-desktop.png",
+      "mobile": "images/guide/room-review-mobile.png"
+    },
+    "build-land": {
+      "title": "Land",
+      "desktop": "images/guide/build-land-desktop.png",
+      "mobile": "images/guide/build-land-mobile.png"
+    },
+    "options": {
+      "title": "Options",
+      "desktop": "images/ui-options-detail-desktop.png",
+      "mobile": "images/ui-options-detail-mobile.png"
+    },
+    "load-confirm": {
+      "title": "Load game confirmation",
+      "desktop": "images/guide/load-confirm-desktop.png",
+      "mobile": "images/guide/load-confirm-mobile.png"
+    },
+    "new-game-confirm": {
+      "title": "New game confirmation",
+      "desktop": "images/guide/new-game-confirm-desktop.png",
+      "mobile": "images/guide/new-game-confirm-mobile.png"
+    },
+    "help": {
+      "title": "Help",
+      "desktop": "images/guide/help-build-exits-desktop.png",
+      "mobile": "images/guide/help-build-exits-mobile.png"
+    },
+    "creator-identity": {
+      "title": "Identity",
+      "desktop": "images/guide/creator-identity-desktop.png",
+      "mobile": "images/guide/creator-identity-mobile.png"
+    },
+    "creator-appearance": {
+      "title": "Appearance",
+      "desktop": "images/guide/creator-appearance-desktop.png",
+      "mobile": "images/guide/creator-appearance-mobile.png"
+    },
+    "creator-personality": {
+      "title": "Personality",
+      "desktop": "images/guide/creator-personality-desktop.png",
+      "mobile": "images/guide/creator-personality-mobile.png"
+    },
+    "creator-needs": {
+      "title": "Needs and habits",
+      "desktop": "images/guide/creator-needs-desktop.png",
+      "mobile": "images/guide/creator-needs-mobile.png"
+    },
+    "creator-interests": {
+      "title": "Interests and skills",
+      "desktop": "images/guide/creator-interests-desktop.png",
+      "mobile": "images/guide/creator-interests-mobile.png"
+    },
+    "creator-household": {
+      "title": "Household",
+      "desktop": "images/guide/creator-household-desktop.png",
+      "mobile": "images/guide/creator-household-mobile.png"
+    },
+    "creator-review": {
+      "title": "Review",
+      "desktop": "images/guide/creator-review-desktop.png",
+      "mobile": "images/guide/creator-review-mobile.png"
+    },
+    "creator-preview-controls": {
+      "title": "Preview controls",
+      "desktop": "images/guide/creator-preview-controls-desktop.png",
+      "mobile": "images/guide/creator-preview-controls-mobile.png"
+    },
+    "work-conflict": {
+      "title": "Work conflict",
+      "desktop": "images/guide/work-conflict-desktop.png",
+      "mobile": "images/guide/work-conflict-mobile.png"
+    },
+    "weather-autumn-falling": {
+      "title": "Falling autumn leaves",
+      "desktop": "images/guide/weather-autumn-falling-desktop.png",
+      "mobile": "images/guide/weather-autumn-falling-mobile.png"
+    },
+    "weather-autumn-grounded": {
+      "title": "Autumn leaves on the ground",
+      "desktop": "images/guide/weather-autumn-grounded-desktop.png",
+      "mobile": "images/guide/weather-autumn-grounded-mobile.png",
+      "caption": "Autumn leaves on the ground."
+    },
+    "weather-mild": {
+      "title": "Mild weather",
+      "desktop": "images/guide/weather-mild-desktop.png",
+      "mobile": "images/guide/weather-mild-mobile.png"
+    },
+    "weather-winter-snow": {
+      "title": "Falling snow",
+      "desktop": "images/guide/weather-winter-snow-desktop.png",
+      "mobile": "images/guide/weather-winter-snow-mobile.png"
+    },
+    "household": {
+      "title": "Household",
+      "desktop": "images/guide/household-desktop.png",
+      "mobile": "images/guide/household-mobile.png"
+    }
+  },
+  "crops": [
+    {
+      "output": "images/guide/creator-identity-desktop.png",
+      "source": "images/ui-creator-identity-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 140
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "6b26ddb158d8f5891ac3e46f96b6f6fa30e7d09c23b9dd41ee52897fa53e7bbb",
+      "outputSha256": "d036691c9dbd85b1a4625f3dafe7aaafc21def0ad541d304e12339fa402e6849"
+    },
+    {
+      "output": "images/guide/creator-identity-mobile.png",
+      "source": "images/ui-creator-identity-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 180
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "006f528d4bee0edf343a8e2fc5216feef7cdc0883be6b9106857f1406d152bd7",
+      "outputSha256": "4c32a10e6d4764feec82da505b4099d95593f1e47c6a7f90e99198ce3e14af1f"
+    },
+    {
+      "output": "images/guide/creator-appearance-desktop.png",
+      "source": "images/ui-creator-appearance-group-1-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 690
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "9322bb4d3075efa940307c30515f51e3f388d2ee57ce7782a9e2951716cb797b",
+      "outputSha256": "5b83dd73581277e45d0f0e0d7a10aa7a08288bea8f9a1af33c0c98d2f639503f"
+    },
+    {
+      "output": "images/guide/creator-appearance-mobile.png",
+      "source": "images/ui-creator-appearance-group-1-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 442
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "972409dbdcb5e5ea09143bc018f463b63c41638ad6dfdc148d250d0caf71926e",
+      "outputSha256": "7dfce979adbaa7235aef2459674cffe1db6e262ad20a1510dd52c366f45f8167"
+    },
+    {
+      "output": "images/guide/creator-personality-desktop.png",
+      "source": "images/ui-creator-personality-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 690
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "b12983b9012eb4f64862d3c80960d1f27efc5c86f9b55b65acb5231ff2fadeca",
+      "outputSha256": "0264c7591097d512c7afc133dc0827ce8e94c1a5e976e424758ddd52df704d1b"
+    },
+    {
+      "output": "images/guide/creator-personality-mobile.png",
+      "source": "images/ui-creator-personality-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 442
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "1c2bba2f919ca393a517332e531758495ca999619314e617c97430872fecc7b0",
+      "outputSha256": "049c046f79de1677aec1fa564e54489318bee79a2af34b92f14c5a056abee246"
+    },
+    {
+      "output": "images/guide/creator-needs-desktop.png",
+      "source": "images/ui-creator-needs-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 690
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "c9f767a6e325b9f9ab41e27e0bb37ac0b831e218b030ba8cb83c9ce35afecbcc",
+      "outputSha256": "ea2eba6cd90f46281162caafbc7cde68d44a1f7cae0639e133de8e152c7b75b3"
+    },
+    {
+      "output": "images/guide/creator-needs-mobile.png",
+      "source": "images/ui-creator-needs-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 442
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "8e79d9a9f34fb2c8d6661e92f64ea28a309f69fbf850ac6aa9c3eae9b49b95fd",
+      "outputSha256": "1725ba0540830c54ca95af2970238cf667230d14fe0f16501bc54bfa3db4b4f6"
+    },
+    {
+      "output": "images/guide/creator-interests-desktop.png",
+      "source": "images/ui-creator-interests-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 690
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "0e8cfd242abb3cff5d49f6a5cd283a916a28ebc91563a8a0a9608c8e75c6c1bb",
+      "outputSha256": "308b0317ba086f90529bb1fcc22828ccb0e3ff235ab48175c3d7dc809c85eb5a"
+    },
+    {
+      "output": "images/guide/creator-interests-mobile.png",
+      "source": "images/ui-creator-interests-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 442
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "3b550abc1fa99703ee47898f246db615951485ddf9fc41f997b6b06e1375c103",
+      "outputSha256": "4176635396d68ef3f5f509b4c63b09bc79513da0ed9739f01bfbe93b5c24b4b8"
+    },
+    {
+      "output": "images/guide/creator-household-desktop.png",
+      "source": "images/ui-creator-household-desktop.png",
+      "rect": {
+        "x": 260,
+        "y": 145,
+        "width": 645,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "690a73d084f7745b630d99fe99f79f2200ed01a725899a777c61cdbb9bfd13e7",
+      "outputSha256": "0109b80da27a37da416431bee8e9fcd6bd049e1b8ed17d8263183971c008d434"
+    },
+    {
+      "output": "images/guide/creator-household-mobile.png",
+      "source": "images/ui-creator-household-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 442
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "6935aff992d6b0ffaf3e5ce0e9b999c88cbfd91117db5814356aaf065812ae2d",
+      "outputSha256": "2fef239d4a67d927d314be3c80c4a3bfd7d6bcf432f1b02726406c6be00711b3"
+    },
+    {
+      "output": "images/guide/creator-review-desktop.png",
+      "source": "images/ui-creator-review-desktop.png",
+      "rect": {
+        "x": 99,
+        "y": 131,
+        "width": 1242,
+        "height": 792
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "5c0b9879d63bdcf52d1d859c811b8283c8512d7e5ef1956388e34d925e91df4d",
+      "outputSha256": "b8c98dd25a0b4730b9f78106eeda8e4b9994f9e0ed2e5bbf49dc47aa24d28f7c"
+    },
+    {
+      "output": "images/guide/creator-review-mobile.png",
+      "source": "images/ui-creator-review-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 243,
+        "width": 374,
+        "height": 568
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "b6dd2900eadd6146f41ea512519f8a667a4157da93e4d699a88555a6f574bc5e",
+      "outputSha256": "431f25e723c4f3a885650c133aae5a5974b9db1a88bdb50d4141956689f8f06b"
+    },
+    {
+      "output": "images/guide/creator-preview-controls-desktop.png",
+      "source": "images/ui-creator-appearance-group-1-desktop.png",
+      "rect": {
+        "x": 920,
+        "y": 145,
+        "width": 410,
+        "height": 680
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "9322bb4d3075efa940307c30515f51e3f388d2ee57ce7782a9e2951716cb797b",
+      "outputSha256": "291463850a788bddb56fb16986885c70bf98ceff3bf318d8c712bb7cadee5fd3"
+    },
+    {
+      "output": "images/guide/creator-preview-controls-mobile.png",
+      "source": "images/ui-creator-preview-controls-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 375,
+        "width": 374,
+        "height": 260
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "2176508d57fd28eb563617a1d83c6b9f5bd77adc263ee1f41227cbe7b4ee99ba",
+      "outputSha256": "93f51bd092dfff8a9a84a15f4607330bd838d7d59eb73d42bdaf1ebb58ba324c"
+    },
+    {
+      "output": "images/guide/household-desktop.png",
+      "source": "images/ui-guide-shortcut-desktop.png",
+      "rect": {
+        "x": 180,
+        "y": 863,
+        "width": 1080,
+        "height": 89
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+      "outputSha256": "c95727d01173682c2000a21f673ed24e28c0e85b6207b5aa496d008a1b16cb16"
+    },
+    {
+      "output": "images/guide/household-mobile.png",
+      "source": "images/ui-guide-shortcut-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 676,
+        "width": 374,
+        "height": 160
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+      "outputSha256": "1f65e4aeb1b8d262312184ce211fa9a9bd38a9f980c8f079facd588b0bf07c9a"
+    },
+    {
+      "output": "images/guide/sim-needs-desktop.png",
+      "source": "images/ui-sim-needs-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 512,
+        "width": 360,
+        "height": 346
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "00843cf1212005acefe4efd822c574f433c6e84c856ab4d43c3f91588ee3f09e",
+      "outputSha256": "aa167aae9911572a7b8c0660462d88875ed71333b9001f6c23be581d82ea004f"
+    },
+    {
+      "output": "images/guide/sim-needs-mobile.png",
+      "source": "images/ui-sim-needs-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "5a53dd94a25d430cfb232a2906367abe2d4b338c8c0e219374b53d22789f5981",
+      "outputSha256": "b960d252e6145a5ebb69fda636d3430ef47af06dccd94af53243c2fae2f70cac"
+    },
+    {
+      "output": "images/guide/sim-personality-desktop.png",
+      "source": "images/ui-sim-personality-desktop.png",
+      "rect": {
+        "x": 719,
+        "y": 438,
+        "width": 540,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "3c42b42d477f17341cda0adfda30724d001e9ff73461be9106751bc04c4bbf58",
+      "outputSha256": "062ea00e481c6d5a3c7faae47c840afe40af48ca59826a5a66496b5d2d614075"
+    },
+    {
+      "output": "images/guide/sim-personality-mobile.png",
+      "source": "images/ui-sim-personality-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "6527c44648778ac1a474ac28ee622c062e6a0e86355e78dd7fce2745e2dc97c5",
+      "outputSha256": "5a3deb5b9bb17fb825c8e2455f2ab031a7fcce87eff23a9c53f0b3abc5b702b7"
+    },
+    {
+      "output": "images/guide/sim-queue-desktop.png",
+      "source": "images/ui-sim-queue-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "43cac1419612640cfd591d10fad83a7b747dbd48a29318c108dac5c01b842f95",
+      "outputSha256": "13f6724fde41103b68c7fa8257ed1caf0fc661f7526bdefad3de88368eb691c7"
+    },
+    {
+      "output": "images/guide/sim-queue-mobile.png",
+      "source": "images/ui-sim-queue-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "b86d00266f3b5d1f44ce6e4d0ac5d10fbbdd145b1944ccb04b6553704964bbd3",
+      "outputSha256": "e738daedf73d833d89a4174c921eb730f3bb4657e2c804ab4cecd1bf2ef76afa"
+    },
+    {
+      "output": "images/guide/sim-people-desktop.png",
+      "source": "images/ui-sim-people-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 643,
+        "width": 360,
+        "height": 215
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "975460f068b5939471efed4bcbba34c5894c56ea51c5db93f745c2d52dbcbf3b",
+      "outputSha256": "c0dd6443523f0526d4cb0344bd9cc97ad5e355cbfa1538e2aa51494cb090ade3"
+    },
+    {
+      "output": "images/guide/sim-people-mobile.png",
+      "source": "images/ui-sim-people-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 413,
+        "width": 374,
+        "height": 257
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "749f8fd4ec010ba131fab889383013aa7285ee21f83ba54bbfd6c63ce306f45c",
+      "outputSha256": "7c8060cee0d41cac23ba04dc3b345c8b7b1500a9c52fcfc09e3a420726e2ea14"
+    },
+    {
+      "output": "images/guide/sim-conditions-desktop.png",
+      "source": "images/ui-sim-conditions-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "f95d2aa2b8eb15f26a29f424b918069b289ad80b48df0d5cd647896fbaa60eb8",
+      "outputSha256": "4cc8eb27feeff5258e7cc1487641a1db49190af0a134e39d72e292b6694bbaa5"
+    },
+    {
+      "output": "images/guide/sim-conditions-mobile.png",
+      "source": "images/ui-sim-conditions-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "fe90fb4fd8f273bb351a48ebfcf8c2df7ab0cde0702358683625d8bcd19bcb23",
+      "outputSha256": "e5a473a66460dceef5cfc0329e005edc167885faa47a936534d764cfeb9ca6e5"
+    },
+    {
+      "output": "images/guide/sim-skills-desktop.png",
+      "source": "images/ui-sim-skills-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "7cd6b03fba31f16e2d8ab1df38033817f85258177e7ce385302e4a6ad4d8f034",
+      "outputSha256": "8be6bb491a9f237bf305f745ceb7f7a228e86f327b443cc94e7f726694aa1c4e"
+    },
+    {
+      "output": "images/guide/sim-skills-mobile.png",
+      "source": "images/ui-sim-skills-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "4d2528f53d270a3a950b3e82f0064dafa69a5d9ba17ff7fd6f8d95421ac0c3a1",
+      "outputSha256": "012d2857c0dfb7fc482557b08a09ffca3a49b38e96338e37df53870a1d5e13c9"
+    },
+    {
+      "output": "images/guide/sim-likes-desktop.png",
+      "source": "images/ui-sim-likes-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "37e807357fde0d23028f2a39ba84e3bd9cf3139d035f607f910a9ce23c520f7e",
+      "outputSha256": "73e174bf9034d0ad568a9f58b046e9512ac67ca70751e841e87309e9b5419f07"
+    },
+    {
+      "output": "images/guide/sim-likes-mobile.png",
+      "source": "images/ui-sim-likes-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "67558f13980a06469eb85fe65a9f75b7679ae21ed727437d7457d0ca585fd057",
+      "outputSha256": "dab498188cf918495503a8e555aa343dd1abefd51c54813c5c1a6e9bc3298474"
+    },
+    {
+      "output": "images/guide/sim-career-desktop.png",
+      "source": "images/ui-sim-career-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "bdf2fb33c876b9e30988d4cc3067b51dc3bd212f2af635b8c5cf27d1fc9ba9a4",
+      "outputSha256": "d8a8e08cb8378b01a9caa55bfa3eb281f5489dd25a404c76afc0472ebebb3c73"
+    },
+    {
+      "output": "images/guide/sim-career-mobile.png",
+      "source": "images/ui-sim-career-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "5b89eba9b5c5dcf6bc29135229608af891d58afbd388addf93fd441ece98c0b2",
+      "outputSha256": "b63a57c8c09bbfdae13b04e69d61adda0192ce0e90f7a809432a49c680c5d142"
+    },
+    {
+      "output": "images/guide/career-review-desktop.png",
+      "source": "images/ui-career-review-desktop.png",
+      "rect": {
+        "x": 899,
+        "y": 438,
+        "width": 360,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "fbf41374b0c2003191f633f779300eb3a0d58821152a9cfb883c5f8b5c643123",
+      "outputSha256": "5277149e83707434168ef1973d6be89ec789c05933ae31f28cec09dcfbc98eec"
+    },
+    {
+      "output": "images/guide/career-review-mobile.png",
+      "source": "images/ui-career-review-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 250,
+        "width": 374,
+        "height": 420
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "50eda1535034f6148102aebb11d9f2b0e443897f6720f2074100b7a58f5255c8",
+      "outputSha256": "9c4f8840f4d0ca3c16f59a7a193038102b5b9cd66e0e7d757d5843e0e0c649f8"
+    },
+    {
+      "output": "images/guide/chores-board-desktop.png",
+      "source": "images/ui-chores-board-desktop.png",
+      "rect": {
+        "x": 360,
+        "y": 72,
+        "width": 720,
+        "height": 816
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "4957cc44f4067046089157cb8f8d634ec3a9e84de28748dda2fa9375fcac318a",
+      "outputSha256": "51b7096e358441ad603c5c009b1ce3f02182b1e9c40a33a9719f604f83f182d7"
+    },
+    {
+      "output": "images/guide/chores-board-mobile.png",
+      "source": "images/ui-chores-board-mobile.png",
+      "rect": {
+        "x": 12,
+        "y": 63,
+        "width": 366,
+        "height": 718
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "3a16386169f9ec92c80e5d3a966109ba11a60efe210ebbde5e8ea78359c2a91d",
+      "outputSha256": "dc82e89d02ed6e5e4088260cdb66999fe776b8f194dd259fc8994bea020f2871"
+    },
+    {
+      "output": "images/guide/chores-profile-desktop.png",
+      "source": "images/ui-chores-profile-desktop.png",
+      "rect": {
+        "x": 360,
+        "y": 72,
+        "width": 720,
+        "height": 816
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "4db62f25368e44da18c0a97e2003c382623a197bb4681fdefaf1fd9c4005fd34",
+      "outputSha256": "8c05f4c5ac6dc77ad19cfa3dca5c5175ba8c1d1a09c90e0a31da8814ab05b260"
+    },
+    {
+      "output": "images/guide/chores-profile-mobile.png",
+      "source": "images/ui-chores-profile-mobile.png",
+      "rect": {
+        "x": 12,
+        "y": 63,
+        "width": 366,
+        "height": 718
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "19db93cd3758b5a4a8b2809c5060f9892a1885fbb4869efa5eaf366865cbeb02",
+      "outputSha256": "1fa4ef9bf1ae391f63c9a5fe4712b4850bdbe3badca3ea9d58c98e477f61584f"
+    },
+    {
+      "output": "images/guide/build-furniture-desktop.png",
+      "source": "images/ui-build-furniture-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 688
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "012f602decb2a3b489f6cdf767ca2a430dc50909e7619eaba5562ecb18cedecb",
+      "outputSha256": "11c6754bfa29c0106d602fccbafa1667fb9572ff012b05b5209b5230fc054665"
+    },
+    {
+      "output": "images/guide/build-furniture-mobile.png",
+      "source": "images/ui-build-furniture-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 532,
+        "width": 374,
+        "height": 304
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "fc63c7a4f1c3c59845d0dca763eba0b5304e5a8fb17df0df756f158a9a6d7ef5",
+      "outputSha256": "14bb25c7537d556583eb4910c210eb77b96c4a5cb113e0a5ae611faeb7db2db8"
+    },
+    {
+      "output": "images/guide/build-walls-desktop.png",
+      "source": "images/ui-build-walls-refresh-desktop.png",
+      "rect": {
+        "x": 392,
+        "y": 260,
+        "width": 336,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "f78e550f8e2dc2a995b98dca58c0e5c8d33ce72c8833269fc1b5bb675baff8b8",
+      "outputSha256": "47e5bf9c4aa4f2c53bfa7e0b61ab92c032ee73c09413fa75c546d6cd4f6d0e71"
+    },
+    {
+      "output": "images/guide/build-walls-mobile.png",
+      "source": "images/ui-build-walls-refresh-mobile.png",
+      "rect": {
+        "x": 12,
+        "y": 209,
+        "width": 330,
+        "height": 274
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "f78585acc024da73ce4658631304d8a5aba2b28ba30ccae63112642cebdb5c71",
+      "outputSha256": "5e2f95098471157f3e7f45975d97b572e7e6de492ef686b16217f12846f80d2f"
+    },
+    {
+      "output": "images/guide/build-windows-desktop.png",
+      "source": "images/ui-build-windows-refresh-desktop.png",
+      "rect": {
+        "x": 17,
+        "y": 401,
+        "width": 269,
+        "height": 274
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "7e6d643ad6646ee68b07f0ffd8e698108270c4aff493fa277dab48da3c94c57a",
+      "outputSha256": "37bdcdeb8c538205ab514c5ab902ccbe873ba4771f2a6d1af6c8b2c8f962f835"
+    },
+    {
+      "output": "images/guide/build-windows-mobile.png",
+      "source": "images/ui-build-windows-refresh-mobile.png",
+      "rect": {
+        "x": 48,
+        "y": 230,
+        "width": 260,
+        "height": 247
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "6bddde3cac9e7f370e1567eb271de3361027da8eab5a0ecb3390157f4d7376d9",
+      "outputSha256": "a54b8614d9c2e00acb7a473825d52b0e8767057a44be492beb2a0553d0ab62c7"
+    },
+    {
+      "output": "images/guide/build-rooms-desktop.png",
+      "source": "images/ui-build-rooms-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 669
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "121596831a03f8d71406ecde092e7f118f1eced514d07ed7248f5fdfe685dcbc",
+      "outputSha256": "aa184bc521eccfcb2a8c86a0a4bc63161e976d0ad30f18ee7963d827be0b37cc"
+    },
+    {
+      "output": "images/guide/build-rooms-mobile.png",
+      "source": "images/ui-build-rooms-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 337,
+        "width": 374,
+        "height": 499
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "120e8b2d935650345ed58ea9432aa786c7cb22b5e003cf156f2886db38ddea10",
+      "outputSha256": "15cfaf56b0c094b6f6cbb8cea654bbdfc8b9194f8c1ad9e512936dbba2c715f5"
+    },
+    {
+      "output": "images/guide/build-land-desktop.png",
+      "source": "images/ui-build-land-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 738
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "de1fb5bb403fe56499323f5432898423b54fc176912f049c11edd5074ce864bb",
+      "outputSha256": "2a600659bad108c047f3f3f9870efc7747decd86bd0d67ac0a0b2d7dc6817170"
+    },
+    {
+      "output": "images/guide/build-land-mobile.png",
+      "source": "images/ui-build-land-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 532,
+        "width": 374,
+        "height": 304
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "54b2005267d2064aec5fc37d4fe4a336e15479c462288aa5adf7554f71957a36",
+      "outputSha256": "7b7dd58ce98ba2d9ac89a46ccf78add1be9734c68add758135791fbb32b4cd26"
+    },
+    {
+      "output": "images/guide/room-review-desktop.png",
+      "source": "images/ui-room-review-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 618
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "c5e801768b39e8b7c82652874f0935c61d988b4f9b51e7d9907fa0ee306ba4f3",
+      "outputSha256": "0b03b82efae739e83c3cb75ccfd8d6f31bc70218acf1d335b48e7470dcd34f3e"
+    },
+    {
+      "output": "images/guide/room-review-mobile.png",
+      "source": "images/ui-room-review-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 245,
+        "width": 374,
+        "height": 591
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "a063e541ff84f4e14b3e34396ca7f9489af437d608d530563ff4a53c729af396",
+      "outputSha256": "b1218b4aa843a0e60a3b02acd333317ed7df2e3e94a393d1afd2528af53c6c7f"
+    },
+    {
+      "output": "images/guide/buy-details-desktop.png",
+      "source": "images/ui-buy-details-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 800
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "0bbb09c89b0c15eccab6e7af835b387c13aca391f9cb686850fd0391757532f9",
+      "outputSha256": "fb42bb5dd88013ebb4863e704ab0302e98015bb842045934089e903a3de042ab"
+    },
+    {
+      "output": "images/guide/buy-details-mobile.png",
+      "source": "images/ui-buy-details-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 300,
+        "width": 390,
+        "height": 232
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "8613c9e93f80c3fe8c62112351ee998c3bb99c061cc06d1a87acbe445b513034",
+      "outputSha256": "6fea92b7ea5372b6556c9d36be7f0265a17c0a5c62bb722b7e07fbc229dfd91d"
+    },
+    {
+      "output": "images/guide/build-buy-desktop.png",
+      "source": "images/ui-buy-catalogue-desktop.png",
+      "rect": {
+        "x": 8,
+        "y": 112,
+        "width": 304,
+        "height": 800
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "4d2f451af78f50c0745fb07e8c7eab27f5a78b00ee1cb3f335990ed56bc21942",
+      "outputSha256": "b0e36838380c9ca9245bd6e58182e027c3c5da005b38619ba3e15cb10a63c00a"
+    },
+    {
+      "output": "images/guide/build-buy-mobile.png",
+      "source": "images/ui-buy-catalogue-mobile.png",
+      "rect": {
+        "x": 8,
+        "y": 532,
+        "width": 374,
+        "height": 304
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "afcf2eb6d21184cc3ded8bb01bce17ef60a9f8ccdd9f61cc0bb1f689f696ec94",
+      "outputSha256": "d9144cd4563ceebb33bcad1fe24c30fced5179b7922504c78e85d9a99c453b7b"
+    },
+    {
+      "output": "images/guide/load-confirm-desktop.png",
+      "source": "images/ui-load-confirm-desktop.png",
+      "rect": {
+        "x": 576,
+        "y": 400,
+        "width": 288,
+        "height": 160
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "b54b8a754f4e4ebdc7e098915f831b98138629f3b099dc9a709c170263479104",
+      "outputSha256": "4c7d61ea43ccbce0c08e8ccdb0661f0324454d2cf996843849e8c50ec03f7898"
+    },
+    {
+      "output": "images/guide/load-confirm-mobile.png",
+      "source": "images/ui-load-confirm-mobile.png",
+      "rect": {
+        "x": 51,
+        "y": 342,
+        "width": 288,
+        "height": 160
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "c8cd15bbc3a3c8a0f5051405d79451c86d8387fd76008b9d86fc8ed08316f6e9",
+      "outputSha256": "4c7d61ea43ccbce0c08e8ccdb0661f0324454d2cf996843849e8c50ec03f7898"
+    },
+    {
+      "output": "images/guide/new-game-confirm-desktop.png",
+      "source": "images/ui-new-game-confirm-desktop.png",
+      "rect": {
+        "x": 540,
+        "y": 391,
+        "width": 360,
+        "height": 178
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "30e46ac0902856dc973a5ffbc5f84156d6844f238a5bbdd1e856ad568a44ecce",
+      "outputSha256": "c5ba7c46b1ab7e5a8238fa4dc5a950e4f903d746b5245284975d40df2eb2c5de"
+    },
+    {
+      "output": "images/guide/new-game-confirm-mobile.png",
+      "source": "images/ui-new-game-confirm-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 333,
+        "width": 358,
+        "height": 178
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "aaa7c2639279f097453543c2a1476baefcb95324669c27374cd2457c81639ebd",
+      "outputSha256": "323c941b9b3615e0a823c309ac18c9f3b1952ab093389ee34da8478ad23a918c"
+    },
+    {
+      "output": "images/guide/work-conflict-desktop.png",
+      "source": "images/ui-work-conflict-desktop.png",
+      "rect": {
+        "x": 480,
+        "y": 340,
+        "width": 480,
+        "height": 280
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "924792aaa8261add5ba14cfbfcc9fbc1a1353270fdd1692d63e2bc9ebbde42ed",
+      "outputSha256": "71d9a0b1ce3571f480d1c43f26d34d4916fc8bd9a36016949a7e819ae6e6eac4"
+    },
+    {
+      "output": "images/guide/work-conflict-mobile.png",
+      "source": "images/ui-work-conflict-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 260,
+        "width": 358,
+        "height": 320
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "0f266ecbb95219f8236940656e370ddbe8f858250f059626261d4fd0ce50ce60",
+      "outputSha256": "9c9e68fc0aa67444ee2df75d68c6146b49e5af3b0a7ffe3aafc2887d70bd7d08"
+    },
+    {
+      "output": "images/guide/person-menu-desktop.png",
+      "source": "images/ui-person-menu-desktop.png",
+      "rect": {
+        "x": 550,
+        "y": 310,
+        "width": 330,
+        "height": 280
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "cb8ad454f758b3bdf8e2aa8e2e20617a3d28782c91b6c5fba80fe7946ccb062a",
+      "outputSha256": "5dffd4393f2b6169b81048b77e95aba77acaf3fec3b6a571e97feed00f2df503"
+    },
+    {
+      "output": "images/guide/person-menu-mobile.png",
+      "source": "images/ui-person-menu-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 280,
+        "width": 390,
+        "height": 240
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "9af43b77477adc56420bf55e43cec6005f5077332d7d2744f98d9c9c81301d38",
+      "outputSha256": "e32b8420bcc3c43a2591a9ad6d9593f48e30e612e5498469132620e9142210e8"
+    },
+    {
+      "output": "images/guide/build-placement-desktop.png",
+      "source": "images/ui-build-placement-desktop.png",
+      "rect": {
+        "x": 400,
+        "y": 220,
+        "width": 420,
+        "height": 240
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "b20133affdaf2234d6dc1628cded30053124a5b2c36afd5a8a3074ff4e90d0f2",
+      "outputSha256": "f114661f9209be4e3a33fcc579f8d999bfbc70bbbf6a25105069f5dde80bae79"
+    },
+    {
+      "output": "images/guide/build-placement-mobile.png",
+      "source": "images/ui-build-placement-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 170,
+        "width": 390,
+        "height": 220
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "78bc276485084ee6ad0e91df5a4596aba3bba1e0833070d33090572db1b710de",
+      "outputSha256": "42c361e6beaf3306868799ed394d7588396d15a19de3947eb560f6fe22fe9521"
+    },
+    {
+      "output": "images/guide/floor-actions-desktop.png",
+      "source": "images/ui-floor-actions-refresh-desktop.png",
+      "rect": {
+        "x": 792,
+        "y": 382,
+        "width": 364,
+        "height": 232
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "9367e1e111a4a5a7a5fab3de7bd90163dd8feaa6ad9949c6d3c6ed7688c2ee74",
+      "outputSha256": "dbf72732c86f0ea85097f42df6d0c1fe30ba52a3675a33cee2753e8562f25bfe"
+    },
+    {
+      "output": "images/guide/floor-actions-mobile.png",
+      "source": "images/ui-floor-actions-refresh-mobile.png",
+      "rect": {
+        "x": 58,
+        "y": 250,
+        "width": 326,
+        "height": 228
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "sourceSha256": "6fdfacff5498cc4ee55c3ba433c9abecea53809de361f719b89605e7f43201f1",
+      "outputSha256": "4121fbfb2ff9df5fbbc85a55f8dbb92efe6344992ab9d331bff110c204437aab"
+    },
+    {
+      "output": "images/guide/weather-autumn-falling-desktop.png",
+      "source": "images/weather-autumn-falling-desktop.png",
+      "rect": {
+        "x": 180,
+        "y": 490,
+        "width": 420,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "13d0b43ab46601c8121c0ee7f295a39c7c5f11cbb85fe4c012c24b0606541a3f",
+      "outputSha256": "4cd53d5333c90f423d7510e6c38ff24491d216440d174016f56faba2bedf1862"
+    },
+    {
+      "output": "images/guide/weather-autumn-falling-mobile.png",
+      "source": "images/weather-autumn-falling-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 235,
+        "width": 390,
+        "height": 300
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "f4410ada856983ae50a3448900d18799ebca9bfa271f451089b614dfc1845593",
+      "outputSha256": "80722aebb4ba0ad912fca0bc253c8698bf680b57233ddbac1a14df0ab696cd74"
+    },
+    {
+      "output": "images/guide/weather-autumn-grounded-desktop.png",
+      "source": "images/weather-autumn-grounded-desktop.png",
+      "rect": {
+        "x": 180,
+        "y": 490,
+        "width": 420,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "16016d2e31d87002bb0d579e560696fb19ec8844a59e75ac8edb20eceac02e5c",
+      "outputSha256": "ce9ce7a1c2734ec4fcf606e7daaa41eca15d091e36744232029a5fb925f30027"
+    },
+    {
+      "output": "images/guide/weather-autumn-grounded-mobile.png",
+      "source": "images/weather-autumn-grounded-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 235,
+        "width": 390,
+        "height": 300
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "3c732d0fd199f61485ce06bf59f90d842cabef74f996a80f63809fd575862cb9",
+      "outputSha256": "5af10257ab4466f24d6ebe965324e69a4d5e912bdc2faf055b0dcf897bdce822"
+    },
+    {
+      "output": "images/guide/weather-mild-desktop.png",
+      "source": "images/weather-mild-desktop.png",
+      "rect": {
+        "x": 180,
+        "y": 490,
+        "width": 420,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "a528274775e113aa2cf7c590f627e48c5cb3798fccf6bff8ff2a8f1f301bb8a9",
+      "outputSha256": "659fb9cff28dfc23d20df560d27dadb4f01e72c4d4d4b53d8f91504d77403938"
+    },
+    {
+      "output": "images/guide/weather-mild-mobile.png",
+      "source": "images/weather-mild-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 235,
+        "width": 390,
+        "height": 300
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "52ee53a286b62a66e634029f08ff58080f27ab107b9e1bd2233c0b6b2cdd98e3",
+      "outputSha256": "00e5ed35ccbc9380f3575f0a6146dfcc2b8191977bb4d25b423cb107f8af80d1"
+    },
+    {
+      "output": "images/guide/weather-winter-snow-desktop.png",
+      "source": "images/weather-winter-snow-desktop.png",
+      "rect": {
+        "x": 180,
+        "y": 490,
+        "width": 420,
+        "height": 270
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "8197ef0f60702e2f128e6fae03a938f7360ae55dd7e84f37577990331b430646",
+      "outputSha256": "544e64984c5d650565deffa25710310396f43b957eb524a8249c5c7e21cea48c"
+    },
+    {
+      "output": "images/guide/weather-winter-snow-mobile.png",
+      "source": "images/weather-winter-snow-mobile.png",
+      "rect": {
+        "x": 0,
+        "y": 235,
+        "width": 390,
+        "height": 300
+      },
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "c1c9ed74d2b658167200bf310036bc73b182e3095a460525686d80bd2cbb5c28",
+      "outputSha256": "1ea82c4990b8a2c95cef796126471bc14c1ecf99c27a6f15993fc8bfbc7f2176"
+    },
+    {
+      "output": "images/guide/help-desktop.png",
+      "source": "images/ui-help-refresh-desktop.png",
+      "rect": {
+        "x": 300,
+        "y": 192,
+        "width": 680,
+        "height": 516
+      },
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "79d9e8016048eb96ce27c6fc1d42d4b9da4522e39d45b7218344b55d67d6b7b0",
+      "outputSha256": "4554ed6c9c9445a1733828140ebd4687b22f197e389c912b5ad9f90ad3e7dce9"
+    },
+    {
+      "output": "images/guide/help-mobile.png",
+      "source": "images/ui-help-refresh-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 164,
+        "width": 358,
+        "height": 516
+      },
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
+      "sourceSha256": "bda913de672342401f4d4fa4a6a0d2be3514316dfa6e86e94fd5c27372db7918",
+      "outputSha256": "daade701f403439a398c066280fdb59374bd63bcbb5426fd7db7c9ef9a24e9e6"
+    },
+    {
+      "output": "images/guide/help-build-exits-desktop.png",
+      "source": "images/ui-build-release-help-current-desktop.png",
+      "rect": {
+        "x": 380,
+        "y": 200,
+        "width": 680,
+        "height": 560
+      },
+      "sourceSnapshot": "build-release-help-e620",
+      "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
+      "sourceSha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+      "outputSha256": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123"
+    },
+    {
+      "output": "images/guide/help-build-exits-mobile.png",
+      "source": "images/ui-build-release-help-current-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 142,
+        "width": 358,
+        "height": 560
+      },
+      "sourceSnapshot": "build-release-help-e620",
+      "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
+      "sourceSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+      "outputSha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
+    }
+  ]
+}

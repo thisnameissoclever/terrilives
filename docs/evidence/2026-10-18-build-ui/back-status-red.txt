@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f19a/terrilives/web
+
+ ❯ tests/main-build-wiring.test.ts (34 tests | 1 failed | 33 skipped) 214ms
+   × ordinary review Back preserves native/raw choices and clears status without reporting a failure 187ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/main-build-wiring.test.ts > ordinary review Back preserves native/raw choices and clears status without reporting a failure
+AssertionError: expected 'The changes could not be confirmed. T…' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ The changes could not be confirmed. Try Confirm again.
+
+ ❯ tests/main-build-wiring.test.ts:327:44
+    325|     expect(f.roomReview.active).toBe(true); f.roomReview.setName([1, 1…
+    326|     f.roomReview.back(); expect(await result).toBe(false);
+    327|     expect(f.buildBatchStatus.textContent).toBe('');
+       |                                            ^
+    328|     expect(f.roomReview.name([1, 1])).toBe('  raw review name  ');
+    329|     expect(f.sim.buildDirty()).toBe(true); expect(f.sim.saveBytes()).t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 33 skipped (34)
+   Start at  12:16:53
+   Duration  866ms (transform 297ms, setup 54ms, import 458ms, tests 214ms, environment 0ms)
+

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_batch_budget.CapacityFailureHistoryTests",
+    "test_mutation_batch_budget.PreparedBudgetTests",
+    "test_mutation_native.NativeAuthenticationTests",
+    "test_mutation_native.NativeSkippedHistoryTests"
+  ],
+  "exit_code": 0,
+  "seconds": 15.157,
+  "output": "................\n----------------------------------------------------------------------\nRan 16 tests in 14.642s\n\nOK\n"
+}

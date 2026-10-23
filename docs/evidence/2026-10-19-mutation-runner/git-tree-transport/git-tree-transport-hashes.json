@@ -1,0 +1,24 @@
+{
+  "source_head": "d08ddae6c1710ded44383131e2df23ff45aeddd5",
+  "files": {
+    "mutation_tool.py": {
+      "before_sha256": "4469f57deb7fdc72ff3af446c68409f024b76d8e4d30f1a52264dde286c75b84",
+      "before_bytes": 19567,
+      "after_sha256": "d42308cab14a24b604fff8884b42f6dc9db57731bedc5df999e653c81e0c51bd",
+      "after_bytes": 21213
+    },
+    "test_mutation_tool.py": {
+      "before_sha256": "e14566399d0b4444ef0129658dd8b8f0f49d3c0316ae16b7d15ee1e3da819e70",
+      "before_bytes": 13407,
+      "after_sha256": "c76b010beb2324b0000ae727d4e0d607023d401691075e329d6608157a88ab2d",
+      "after_bytes": 22257
+    },
+    "test_mutation_native.py": {
+      "before_sha256": "5ea9e4758640f829f362f6c7864cafbd37cfb04cfd0cdba1dced54270294b8f8",
+      "before_bytes": 62314,
+      "after_sha256": "3e8156826a01e75ccff1f9c877aa15847169c183a85a977751c9b9d5aa7bf7aa",
+      "after_bytes": 66214
+    }
+  },
+  "package_sha256": "7965d317b9c8fe874c1cfed54109206055e0baf2be794785d174de9f91dc6ff5"
+}

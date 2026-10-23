@@ -1,6 +1,7 @@
 import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
+import { WeatherScene } from './render/weather-scene.js';
 import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
@@ -22,8 +23,11 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { BuildSession } from './ui/build-session.js';
 import { BuildExit, buildCommandsIdle, confirmRefusal, hasUnconfirmedChanges, type BuildDraftSources } from './ui/build-exit.js';
-import { WallTool } from './ui/wall-tool.js';
+import { WallTool, nearestLine, type WallLine } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { floorPoint, pickWallFace, wallFaces } from './ui/wall-pick.js';
+import { WallView, WallViewControls } from './ui/wall-view.js';
+import { withHoverLine } from './render/placement-preview.js';
 import { WindowTool } from './ui/window-tool.js';
 import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
@@ -63,9 +67,12 @@ import { drawFloorSwatch } from './ui/floor-swatches.js';
 import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
+  frameElapsedMs,
   advanceSimulationFrame,
   buildInstanceBatch,
 } from './frame.js';
+import { FrameClock } from './frame-clock.js';
+import { BackgroundTicker } from './background-ticker.js';
 import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT, cameraOrigin } from './render/iso.js';
 import { landExtent, clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { CreatorSession } from './ui/character-creator/session.js';
@@ -84,6 +91,7 @@ import {
   buildStaticInstances,
   setCutAwayWalls,
   setSeason,
+  setSelectedLines,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -168,6 +176,28 @@ const TICK_HZ = 10;
  * more than the frame that fell behind.
  */
 const MAX_TICKS_PER_FRAME = 5;
+
+/**
+ * How often the background timer checks for missing animation frames: once
+ * per 10 Hz tick. Its steps are not drawn, so a faster beat would only cost
+ * battery.
+ */
+const BACKGROUND_STEP_MS = 100;
+
+/**
+ * How long animation frames may be absent before the timer steps instead. A
+ * hidden tab gets none; an unselected or covered one may get about one a
+ * second. Several times a 60 Hz frame, so an ordinary slow frame is left alone.
+ */
+const FRAME_STALL_MS = 250;
+
+/**
+ * The tick budget of one background step: ten seconds of play at 3x. The
+ * browser can deliver a background timer late, and its steps draw nothing, so
+ * it catches up on gaps a frame would drop. A longer stall, such as a tab the
+ * browser froze, still drops the rest rather than stalling the page to replay it.
+ */
+const BACKGROUND_MAX_TICKS = TICK_HZ * 3 * 10;
 
 /**
  * The speed the page opens at: real time. Not paused, because a game that
@@ -337,15 +367,15 @@ async function main(): Promise<void> {
   // New game prevents a save from writing the old household during reload.
   let graphicsRecovering = false;
   let startingNewGame = false;
-  void audio.setBackgrounded(document.visibilityState === 'hidden');
   armAudioUnlock(document, audio);
-  // Registered here rather than with the save-on-hide handler below, and for
-  // the same reason as the arming: the reading above is a snapshot taken
-  // before the awaits, so the listener that corrects it has to exist before
-  // them too. A tab that loads hidden and is shown during the load would
-  // otherwise stay marked backgrounded, and refuse every gesture, for good.
+  // A hidden tab keeps playing, sound included, so hiding changes nothing
+  // here. Some browsers suspend the audio context themselves while the page
+  // is hidden; showing it resumes that context without resetting the
+  // schedulers, which are still describing the sound that kept playing.
+  // Registered before the awaits, like the arming, so a tab shown during the
+  // load is reconciled too. Graphics recovery owns silence itself.
   document.addEventListener('visibilitychange', () => {
-    void audio.setBackgrounded(document.visibilityState === 'hidden' || graphicsRecovering);
+    if (document.visibilityState === 'visible' && !graphicsRecovering) void audio.resumeIfInterrupted();
   });
 
   // init() resolves to the instance exports, whose `memory` is the
@@ -459,8 +489,7 @@ async function main(): Promise<void> {
   try {
     // The files are the sprite pages plus the click-area data, which loads
     // alongside them. The last file is followed by the renderer's own setup,
-    // which is long enough on a phone that "43 of 43" sitting still reads as
-    // a hang.
+    // which can otherwise look like a finished download that has stalled.
     renderer = await SpriteRenderer.create(gpu, architectureAtlas, {
       files: (done, total) => {
         if (done < total) loading.files(done, total);
@@ -472,7 +501,13 @@ async function main(): Promise<void> {
   loading.note('Loading character models');
   await afterPaint();
   let characterWorld=await CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
-  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();contactRoster.dispose();}});
+  let weatherScene = new WeatherScene(gpu.device);
+  const weatherTuning = sim.weatherTuning();
+  const drawWorldEffects = (encoder: GPUCommandEncoder, target: import('./render/scene-target.js').SceneTarget): void => {
+    characterWorld.drawEffects(encoder, target);
+    weatherScene.draw(encoder, target);
+  };
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();weatherScene.destroy();contactRoster.dispose();}});
   // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
@@ -566,7 +601,7 @@ async function main(): Promise<void> {
     // calls `sync_render_buffer`, which sorts and clones on every
     // count change, so seeding N entities from JavaScript is O(N^2 log N).
     // Printed separately so it can never be mistaken for frame cost.
-    console.log(
+    console.debug(
       `spawned ${sim.count} entities in ` +
         `${(performance.now() - spawnStartMs).toFixed(1)}ms`,
     );
@@ -1459,13 +1494,14 @@ async function main(): Promise<void> {
     windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
     architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
       finishes: architectureAtlas.finishes },
-    floorPreview: null as readonly [number, number, number] | null,
+    floorPreview: null as readonly number[] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(),
     houseOrigin: sim.houseOrigin() as readonly [number, number], yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
+    selectedLines: null as ReadonlyMap<string, boolean> | null,
     frontDoors: sim.frontDoorLines(),
     // [SEA-yard]: the yard's seasonal looks, content read once, and the
     // last season the frame loop saw.
@@ -1542,6 +1578,9 @@ async function main(): Promise<void> {
   let cameraInitialised = false;
   const wallFade = new WallFade();
   function applyCamera(): void {
+    const outside = sim.roomTiles(0);
+    if (!outside.ok) throw new Error('Outdoor weather tiles are unavailable.');
+    weatherScene.setOutside(outside.value, lotWidth, lotHeight, ...lot.houseOrigin);
     if (lightingDirty) {
       lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
       sky = buildSky();
@@ -1698,6 +1737,25 @@ async function main(): Promise<void> {
       placementActions?.invalidate();
     },
   }, windowTool);
+  // [WB-height]: the Walls and Room tools' wall height, Low unless the player asks for Full.
+  let wallViewControls: WallViewControls | undefined;
+  const wallView = new WallView(() => { wallViewControls?.render(); cameraDirty = true; });
+  /** The line a click would choose, drawn as a fainter bar while the Walls tool is in use ([WB-pick]). */
+  let hoverLine: WallLine | null = null;
+  /** Every barrier line at the height the static walls draw it, for picking the one under the pointer. */
+  const wallFacesNow = () => wallFaces({
+    width: lot.width, height: lot.height, house: lot.house, houseOrigin: lot.houseOrigin,
+    edges: lot.edges ?? [], windowLines: lot.windows ?? [],
+    hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [],
+    low: lot.showCutAwayWalls !== true, raised: new Set(lot.selectedLines?.keys() ?? []),
+  });
+  /** The line under a canvas point, and the floor point that chose it when no drawn wall did. */
+  const pickWallAt = (point: { x: number; y: number }): { line: WallLine | null; floor: [number, number] | null } => {
+    const face = pickWallFace(point.x, point.y, camera, wallFacesNow());
+    if (face) return { line: face, floor: null };
+    const floor = floorPoint(point.x, point.y, camera, lot.width, lot.height);
+    return { line: floor ? nearestLine(floor[0], floor[1], lot.width, lot.height) : null, floor };
+  };
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
     changed: () => {
       buyControls?.render();
@@ -1726,7 +1784,7 @@ async function main(): Promise<void> {
   const roomSelection = new RoomSelection(sim, () => {
     selectionControls?.render(); cameraDirty = true;
     if (buildSession.active && (sim.buildDirty() || roomSelection.hasLocalChanges())) {
-      buildBatchStatus.textContent = roomSelection.error || 'Changes remain pending until Confirm.';
+      setBuildStatus(roomSelection.error, roomSelection.error !== '');
     }
   });
   const roomsTool = new RoomsTool(roomSelection, roomTool, () => {
@@ -1735,10 +1793,10 @@ async function main(): Promise<void> {
   const roomReview = new RoomReviewController(sim, {
     changed: () => { reviewControls?.render(); placementActions?.invalidate(); cameraDirty = true; },
     completed: adopted => {
-      if (!adopted) buildExit.clearExitIntent();
+      if (!adopted) { buildSession.noteReviewCancellation(); buildExit.clearExitIntent(); }
       const finish = finishReview; finishReview = null; finish?.(adopted);
     },
-    refused: () => buildExit.clearExitIntent(),
+    refused: () => buildExit.cancelDestination(),
   });
   hasRetainedReviewChoices = () => roomReview.hasChoices;
   requestRoomReview = review => new Promise<boolean>(resolve => {
@@ -1868,7 +1926,12 @@ async function main(): Promise<void> {
       : document.documentElement.clientHeight;
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
-    beforeEnter: () => buildSession.begin(),
+    beforeEnter: () => {
+      if (buildSession.begin()) return true;
+      commandStatus.textContent = buildSession.error || 'Build mode could not open.';
+      commandStatus.setAttribute('data-kind', 'error');
+      return false;
+    },
     // Every way out asks first while changes are not confirmed; see build-exit.ts.
     beforeExit: () => buildExit.gate(),
     changed: () => {
@@ -1878,7 +1941,7 @@ async function main(): Promise<void> {
     enter() {
       optionsMenu.close();
       syncBuildIsolation();
-      buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
+      setBuildStatus('');
       document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
@@ -1904,6 +1967,11 @@ async function main(): Promise<void> {
     },
   });
   const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
+  /** The footer's status; a refusal is marked so it reads as an error. */
+  function setBuildStatus(text: string, error = false): void {
+    buildBatchStatus.textContent = text;
+    if (error) buildBatchStatus.setAttribute('data-kind', 'error'); else buildBatchStatus.removeAttribute('data-kind');
+  }
   // What decides whether leaving Build mode would lose a change; see build-exit.ts.
   const buildDraft: BuildDraftSources = {
     session: buildSession, furniture: builder,
@@ -1946,7 +2014,7 @@ async function main(): Promise<void> {
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
     lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
-    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
+    if (buildSession.active && hasUnconfirmedChanges(buildDraft)) setBuildStatus('');
   }
   /**
    * Reads the lot's size and the house's place from the simulation; true
@@ -1995,30 +2063,28 @@ async function main(): Promise<void> {
   }
   async function confirmBuildBatch(): Promise<boolean> {
     const confirmed = await buildSession.confirm();
-    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange);
+    const reason = confirmed || buildSession.confirmationCancelled ? ''
+      : roomSelection.error || buildSession.error || confirmRefusal(builder.hasPlacementChange);
+    setBuildStatus(reason, reason !== '');
     if (confirmed) {
       builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
       roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection(); landTool.clearSelection();
       placementActions?.invalidate();
       roomSelection.reset(); choresBoard.update(); refreshBuildArchitecture();
-      buildBatchStatus.textContent = 'Changes confirmed.';
+      setBuildStatus('');
     }
     return confirmed;
   }
-  // Only explicit exit confirmation continues through the builder's exit gate.
+  // Both footer actions leave after success; Land starts a fresh paused batch.
   const buildExit: BuildExit = new BuildExit(document, {
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(buildDraft) || roomSelection.hasLocalChanges() || roomReview.hasChoices,
     confirm: confirmBuildBatch,
-    cancel: () => {
-      const cancelled = buildSession.cancel();
-      buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled. Build mode remains open.' : buildSession.error;
-      return cancelled;
-    },
     discard: () => {
       const cancelled = buildSession.end();
-      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
+      if (!cancelled) setBuildStatus(buildSession.error || 'Changes could not be cancelled. Try Cancel again.', true);
       return cancelled;
     },
+    refusal: () => buildBatchStatus.getAttribute('data-kind') === 'error' ? buildBatchStatus.textContent ?? '' : '',
     leave: () => { builder.exit(); return !builder.active; },
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
@@ -2072,6 +2138,7 @@ async function main(): Promise<void> {
   wallControls.setCompact(compactBuildQuery.matches);
   windowControls = new WindowToolControls(document, windowTool, wallTool);
   windowControls.setCompact(compactBuildQuery.matches);
+  wallViewControls = new WallViewControls(document, wallView, ['wall', 'room']);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames(), cards => {
     drawCataloguePreviews(cards).catch(error => console.warn('The catalogue pictures were not drawn.', error));
   });
@@ -2115,6 +2182,22 @@ async function main(): Promise<void> {
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
     { tool: landTool, button: 'build-tool-land', panel: 'land-tool' },
   ], {
+    beforeSelect(button, activate) {
+      if (roomReview.active || buildExit.resolving) return false;
+      if (button === 'build-tool-land' && landTool.active) { canvas.focus(); return true; }
+      if (landTool.pending) return false;
+      if (button !== 'build-tool-land') {
+        buildExit.clearExitIntent();
+        return activate();
+      }
+      return buildExit.requestDestination(() => {
+        if (!buildSession.begin()) {
+          buildBatchStatus.textContent = buildSession.error || 'Land could not be opened. Try again.';
+          return false;
+        }
+        return activate();
+      }, 'Switch to Land?');
+    },
     leaveFurniture() {
       builder.cancel();
       return builder.selected === null && !builder.pending;
@@ -2132,6 +2215,12 @@ async function main(): Promise<void> {
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
         if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
+        event.preventDefault();
+        return;
+      }
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && event.key.toLowerCase() === 't' && (wallTool.active || roomTool.active)) {
+        wallView.toggle();
         event.preventDefault();
         return;
       }
@@ -2258,12 +2347,16 @@ async function main(): Promise<void> {
     {
       active: () => builder.active,
       mode: () => roomReview.active ? 'review' : roomsTool.selecting ? 'room-selection' : buildTools.findIndex(tool => tool.active),
-      click(pick, tile, world) {
+      click(pick, tile, world, point) {
         if (roomReview.active) return;
         if (roomsTool.selecting) { if (tile) roomSelection.chooseTile(tile); return; }
         if (pick?.bookCopy !== undefined) { openBookCopy(pick.bookCopy); return; }
         if (wallTool.active) {
-          if (world) wallTool.choosePoint(world[0], world[1]);
+          // [WB-pick]: the wall drawn under the pointer, then the floor beside it.
+          if (point) {
+            const { line, floor } = pickWallAt(point);
+            if (line) wallTool.chooseClicked(line, floor);
+          } else if (world) wallTool.choosePoint(world[0], world[1]);
           return;
         }
         if (roomTool.active) {
@@ -2284,6 +2377,10 @@ async function main(): Promise<void> {
         }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
+      },
+      hover(point) {
+        hoverLine = point && wallTool.active && !roomReview.active && wallTool.pending === null && !wallTool.blocked
+          ? pickWallAt(point).line : null;
       },
     },
     openBookCopy,
@@ -2314,21 +2411,22 @@ async function main(): Promise<void> {
   const recoverGraphics=async()=>{
     if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
     void audio.setBackgrounded(true);
-    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();
+    overlayPause.suspend('graphics');menu.close();buildExit.dismiss();housemateView?.destroy();characterWorld.destroy();weatherScene.destroy();
     graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
     if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
     try{
       Object.assign(gpu,await initDevice(stage));
       watchGraphics(gpu.device);
+      weatherScene = new WeatherScene(gpu.device);
       const replacement=CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
       try{await floorResources.invalidate();characterWorld=await replacement;characterWorld.prepareFixtures(sim);}
       catch(error){void replacement.then(world=>world.destroy(),()=>{});throw error;}
-      if(graphicsClosed){characterWorld.destroy();return;}
+      if(graphicsClosed){characterWorld.destroy();weatherScene.destroy();return;}
       deviceLifetime.assertAvailable(gpu.device);
       if(creatorSession&&housemateDialog.open)housemateView=new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,creatorSession,gpu.device,gpu.format,()=>housemateDialog.close('cancel'));
       graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
       previousFrameMs=performance.now();cameraDirty=true;overlayPause.resume('graphics');
-      void audio.setBackgrounded(document.visibilityState === 'hidden');
+      void audio.setBackgrounded(false);
     }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart. Your game is still available to save. Try again.';graphicsRetry.hidden=false;}
     finally{recoveryPending=false;}
   };
@@ -2341,13 +2439,19 @@ async function main(): Promise<void> {
    * `frameEntered` records when this callback actually starts. Measurements
    * retain callback delay separately from simulation, bridge reads, instance
    * packing, and draw submission.
+   *
+   * `presenting` is false for a background step, taken while the browser
+   * sends no animation frames: the simulation, saves, sound and panels
+   * advance, and the scene is not drawn.
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
-  function frame(nowMs: number): void {
+  let firstSceneRecorded = false;
+  function frame(nowMs: number, presenting = true): void {
     const frameEntered=performance.now();
-    const deltaMs = nowMs - previousFrameMs;
+    const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
     previousFrameMs = nowMs;
+    const tickBudget = presenting ? MAX_TICKS_PER_FRAME : BACKGROUND_MAX_TICKS;
 
     // Chromium's media-query event is not reliable under every embedding and
     // emulation path. The value is already read each frame for animation, so
@@ -2359,7 +2463,7 @@ async function main(): Promise<void> {
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
     const alpha = advanceFrameWithCommandFeedback(
-      () => advanceSimulationFrame(driver, deltaMs, frameSimulation),
+      () => advanceSimulationFrame(driver, deltaMs, frameSimulation, tickBudget),
       () => {
         if (!startingNewGame) persistence.updateAutosave();
       },
@@ -2402,17 +2506,24 @@ async function main(): Promise<void> {
     if (builder.afterCommands()) {
       refreshBuildArchitecture();
     }
-    // [WB-draw]: the walls the view cuts away are drawn while a wall tool
-    // is in use, so the player sees every line they can edit. The static
-    // block is rebuilt only when that changes, not on every click.
-    if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
+    // [WB-draw], [WB-height]: while a wall tool is in use the walls stand
+    // low, the chosen ones full height, or every wall full height when the
+    // player asks. The static block is rebuilt only when that changes, not
+    // on every click.
+    const wallsInUse = wallTool.active || roomTool.active;
+    if (setCutAwayWalls(lot, wallsInUse && wallView.height === 'full')) cameraDirty = true;
+    const chosenWalls = wallTool.active ? wallTool.selection() : null;
+    if (setSelectedLines(lot, chosenWalls
+      ? new Map(chosenWalls.lines.map((line, at) => [`${line.axis}/${line.x}/${line.y}`, chosenWalls.valid[at]]))
+      : null)) cameraDirty = true;
+    if (!wallTool.active) hoverLine = null;
     // [SEA-yard]: the yard's grass changes color when the season turns, or
     // when a Load lands in another season; the static block is rebuilt then
     // and not on every frame.
     if (setSeason(lot, sim.seasonIndex())) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (floorScene.visible&&!graphicsRecovering) {
+    if (presenting&&floorScene.visible&&!graphicsRecovering) {
       if (cameraDirty) applyCamera();
       renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
 
@@ -2440,7 +2551,9 @@ async function main(): Promise<void> {
         lightingMode.isFlat() ? null : lighting,
         undefined,
         buyTool.ghost() ?? builder.preview,
-        roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null) ?? wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
+        roomReview.highlight() ?? (roomsTool.selecting ? roomSelection.highlight() : null)
+          ?? (wallTool.active ? withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)
+          ?? roomTool.highlight() ?? floorTool.highlight() ?? landTool.highlight(),
         // A purchase in the Buy tool's colourway; a moved object in its own.
         buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,
@@ -2451,6 +2564,8 @@ async function main(): Promise<void> {
       // state governs ambient light, pools, and the button without rewriting
       // the player's preference.
       wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
+      weatherScene.prepare(sim.clockTick() + alpha, sim.dayTicks(), sim.seasonIndex(), weatherTuning,
+        camera.originX, camera.originY, camera.scale, depthScale, ambient, reducedMotion.matches);
       renderer.draw(
         batch.instances,
         batch.count,
@@ -2461,8 +2576,16 @@ async function main(): Promise<void> {
         characterWorld.draw,
         batch.owners,
         batch.annotations,
-        characterWorld?.drawEffects,
+        drawWorldEffects,
       );
+      if (!firstSceneRecorded) {
+        firstSceneRecorded = true;
+        void gpu.device.queue.onSubmittedWorkDone().then(() => {
+          window.dispatchEvent(new Event('terrilives:startup-ready'));
+        }, error => {
+          window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
+        });
+      }
     }
 
     // Inside the sample below rather than outside it, deliberately: the
@@ -2495,17 +2618,19 @@ async function main(): Promise<void> {
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.
-    if (floorScene.visible && !firstSceneDrawn) {
+    if (presenting && floorScene.visible && !firstSceneDrawn) {
       firstSceneDrawn = true;
       void gpu.device.queue.onSubmittedWorkDone()
         .then(() => requestAnimationFrame(() => loading.finish()), () => loading.finish());
     }
 
-    timer.sample(performance.now() - nowMs);
-    characterMeasurement?.frame(nowMs,frameEntered,performance.now());
+    if (presenting) {
+      timer.sample(performance.now() - nowMs);
+      characterMeasurement?.frame(nowMs,frameEntered,performance.now());
+    }
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {
       lastReportMs = nowMs;
-      console.log(`entities ${sim.count}  ${timer.report()}`);
+      console.debug(`entities ${sim.count}  ${timer.report()}`);
     }
   }
 
@@ -2646,23 +2771,34 @@ async function main(): Promise<void> {
     };
   }
 
-  function loop(nowMs: number): void {
-    if (graphicsClosed) return;
+  // A background tab keeps playing on a worker-paced timer. Under `?stress=N`
+  // the harness steps the frame itself from a hidden tab ([L14]), so a second
+  // clock there would advance the game between its fabricated timestamps.
+  const backgroundTicker = new BackgroundTicker(BACKGROUND_STEP_MS);
+  const clock = new FrameClock({
+    now: () => performance.now(),
+    requestFrame: callback => { requestAnimationFrame(callback); },
+    startTimer: callback => backgroundTicker.start(callback),
+  }, (nowMs, presenting) => {
+    if (graphicsClosed) {
+      clock.stop();
+      return;
+    }
     try {
-      frame(nowMs);
+      frame(nowMs, presenting);
     } catch (error) {
       // A throw here already ended the loop before the cover existed; the
       // cover must not then hide the frozen game for good.
+      window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
       loading.finish();
       throw error;
     }
-    requestAnimationFrame(loop);
-  }
+  }, stressParam === null ? FRAME_STALL_MS : null);
 
   // A startup that fell back to loading floor materials separately is still
   // waiting on them, and the cover already says so.
   if (floorScene.visible) loading.step('Drawing the house');
-  requestAnimationFrame(loop);
+  clock.start();
 }
 
 // Surfaced rather than swallowed, ON SCREEN as well as in the console:
@@ -2674,6 +2810,7 @@ async function main(): Promise<void> {
 // secure context and WebGPU never existed there. The card names that
 // case in words a player can act on.
 void main().catch((error: unknown) => {
+  window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
   console.error('Natural Causes failed to start:', error);
   loading.finish();
   // A lost graphics device may already have put its own card up, which says

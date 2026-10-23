@@ -243,6 +243,7 @@ fn grime_mood_scales_above_tolerance_even_without_dirty_floors() {
     let mut scores = vec![];
     for amount in [400, 700, 1000] {
         sim.world_mut().resource_mut::<SavedChores>().surfaces = vec![(counter, amount)];
+        crate::neglect::tests::age(&mut sim);
         let score = moodlets(sim.world(), person)
             .into_iter()
             .find(|m| m.label == "Grimy surfaces")

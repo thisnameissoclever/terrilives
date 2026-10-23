@@ -15,9 +15,9 @@ pub(crate) fn is_queued_setting(command: &SimCommand) -> bool {
 }
 
 /// Whether `command` is a shift command (issue 296), which no schema up to
-/// eighteen can record. Until schema nineteen carries them, every writer
-/// leaves them out of the queue it saves and out of the positions it
-/// counts, so the rest of the queue still loads in order.
+/// twenty can record. Every writer up to schema twenty leaves them out of
+/// the queue it saves and out of the positions it counts, so the rest of
+/// the queue still loads in order; schema twenty-one carries them.
 pub(crate) fn is_shift_command(command: &SimCommand) -> bool {
     matches!(
         command,

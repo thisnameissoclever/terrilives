@@ -4,8 +4,8 @@ import { beforeAll, expect, it, vi } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { BuildSession } from '../src/ui/build-session.js';
-import { BuildExit, hasUnconfirmedChanges } from '../src/ui/build-exit.js';
-import { routeBuildKey } from '../src/ui/build-tools.js';
+import { BuildExit, confirmRefusal, hasUnconfirmedChanges } from '../src/ui/build-exit.js';
+import { BuildToolSwitch, routeBuildKey } from '../src/ui/build-tools.js';
 import { FurnitureBuilder } from '../src/ui/builder.js';
 import { WallTool } from '../src/ui/wall-tool.js';
 import { RoomTool } from '../src/ui/room-tool.js';
@@ -16,9 +16,10 @@ import { FloorTool } from '../src/ui/floor-tool.js';
 import { LandTool } from '../src/ui/land-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { OrderDiagnostics } from '../src/ui/player-orders.js';
+import { frameElapsedMs } from '../src/frame.js';
 import type { BuildReview } from '../src/rooms/codec.js';
 
-const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+const main = readFileSync(process.env.BUILD_MAIN_SOURCE ?? new URL('../src/main.ts', import.meta.url), 'utf8');
 let memory: WebAssembly.Memory;
 beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 
@@ -28,6 +29,7 @@ function wiring(source: string): string {
   const one = <T>(rows: readonly T[], name: string): T => { if (rows.length !== 1) throw Error(`Expected exactly one ${name}`); return rows[0]; };
   const body = one(file.statements.filter(ts.isFunctionDeclaration).filter(node => node.name?.text === 'main'), 'main').body!;
   const declaration = (name: string) => one(body.statements.filter(ts.isVariableStatement).filter(node => node.declarationList.declarations.some(d => ts.isIdentifier(d.name) && d.name.text === name)), name).getText(file);
+  const functionBody = (name: string) => one(body.statements.filter(ts.isFunctionDeclaration).filter(node => node.name?.text === name), name).getText(file);
   const assignment = (name: string) => one(body.statements.filter(ts.isExpressionStatement).filter(node =>
     ts.isBinaryExpression(node.expression) && node.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
       && node.expression.left.getText(file) === name), `${name} assignment`).getText(file);
@@ -43,9 +45,9 @@ function wiring(source: string): string {
   return ts.transpile(`${declaration('replaceBuildLocalState')}\n${declaration('hasRetainedReviewChoices')}\n${declaration('requestRoomReview')}
     ${declaration('roomsTool')}\n${declaration('finishReview')}\n${declaration('roomReview')}
     ${assignment('hasRetainedReviewChoices')}\n${assignment('requestRoomReview')}
-    ${declaration('buildTools')}\n${declaration('buildExit')}\n${assignment('replaceBuildLocalState')}\n${listener.getText(file)}
-    function blockedFrame(nowMs: number) { ${frame.statements.slice(0, end + 1).map(node => node.getText(file)).join('\n')} }
-    return { roomsTool, roomReview, buildTools, buildExit, blockedFrame, hasRetainedReviewChoices, requestRoomReview, replaceBuildLocalState };`, { target: ts.ScriptTarget.ES2022 });
+    ${declaration('buildTools')}\n${functionBody('confirmBuildBatch')}\n${declaration('buildExit')}\n${assignment('replaceBuildLocalState')}\n${assignment('toolSwitch')}\n${listener.getText(file)}
+    function blockedFrame(nowMs: number, presenting = true) { ${frame.statements.slice(0, end + 1).map(node => node.getText(file)).join('\n')} }
+    return { roomsTool, roomReview, buildTools, buildExit, toolSwitch, confirmBuildBatch, blockedFrame, hasRetainedReviewChoices, requestRoomReview, replaceBuildLocalState };`, { target: ts.ScriptTarget.ES2022 });
 }
 
 class Element {
@@ -55,12 +57,13 @@ class Element {
   addEventListener(type: string, fn: (event: any) => void) { this.listeners.set(type, [...this.listeners.get(type) ?? [], fn]); }
   fire(type: string, event: any = {}) { for (const fn of this.listeners.get(type) ?? []) fn(event); }
   focus() { this.doc.activeElement = this; } closest() { return null; }
+  setAttribute() {} querySelectorAll() { return []; }
   showModal() { this.open = true; } close(value = '') { this.open = false; this.returnValue = value; this.fire('close'); }
 }
 class DocumentModel {
   activeElement: Element | null = null; body = new Element(this);
   nodes = new Map<string, Element>(); listeners = new Map<string, ((event: any) => void)[]>();
-  querySelector(selector: string) { return this.nodes.get(selector); }
+  querySelector(selector: string) { if (!this.nodes.has(selector)) this.nodes.set(selector, new Element(this)); return this.nodes.get(selector)!; }
   addEventListener(type: string, fn: (event: any) => void) { this.listeners.set(type, [...this.listeners.get(type) ?? [], fn]); }
   key(canvas: Element, key: string, repeat = false) {
     const event = { target: canvas, key, repeat, defaultPrevented: false, ctrlKey: false, metaKey: false, altKey: false,
@@ -70,7 +73,7 @@ class DocumentModel {
 }
 function fixture(source = main) {
   const handle = new SimHandle(10, 8), sim = new SimBridge(handle, memory), document = new DocumentModel(), canvas = new Element(document);
-  for (const id of ['build-batch-confirm', 'build-batch-cancel', 'build-exit-dialog', 'build-exit-keep']) document.nodes.set(`#${id}`, new Element(document));
+  for (const id of ['build-batch-confirm', 'build-batch-cancel', 'build-exit-dialog', 'build-exit-title', 'build-exit-keep']) document.nodes.set(`#${id}`, new Element(document));
   const overlayPause = new OverlayPauseController({ setSpeed() {} }, () => {}, 1), changed = () => {};
   const wallTool = new WallTool(sim, 10, 8, { changed }), roomTool = new RoomTool(sim, 10, 8, { changed });
   const buyTool = new BuyTool(sim, 10, 8, { changed }), floorTool = new FloorTool(sim, 10, 8, { changed });
@@ -79,7 +82,7 @@ function fixture(source = main) {
   let exit: BuildExit;
   let lifecycle = { needsReview: () => false, review: async (_review: BuildReview) => false,
     replaced: (_reason: 'load' | 'cancel' | 'end') => {} };
-  const buildSession = new BuildSession(sim, { prepare: () => true, settled: () => true, restored() {},
+  const buildSession = new BuildSession(sim, { prepare: () => roomSelection.validate(), settled: () => true, restored() {},
     needsReview: () => lifecycle.needsReview(), review: review => lifecycle.review(review), replaced: reason => lifecycle.replaced(reason) });
   const left = vi.fn();
   const builder = new FurnitureBuilder(sim, overlayPause, { beforeEnter: () => buildSession.begin(), beforeExit: () => exit.gate(), changed, enter() {}, exit: left });
@@ -87,22 +90,27 @@ function fixture(source = main) {
   const commandStatus = { textContent: '', setAttribute: vi.fn() };
   const orderDiagnostics = new OrderDiagnostics(commandStatus);
   const feedbackBubbles = new Element(document);
-  const context = { RoomsTool, RoomReviewController, BuildExit, routeBuildKey, hasUnconfirmedChanges, roomSelection, roomTool, wallTool, buyTool, floorTool, landTool,
-    document, canvas, builder, buildDraft, buildSession, buildBatchStatus: { textContent: '' }, confirmBuildBatch: () => buildSession.confirm(),
+  const buildBatchStatus = { textContent: '', kind: null as string | null,
+    getAttribute(name: string) { return name === 'data-kind' ? this.kind : null; } };
+  const context = { RoomsTool, RoomReviewController, BuildExit, BuildToolSwitch, routeBuildKey, hasUnconfirmedChanges, confirmRefusal, roomSelection, roomTool, wallTool, buyTool, floorTool, landTool,
+    document, canvas, builder, buildDraft, buildSession, buildBatchStatus,
+    setBuildStatus: (text: string, error = false) => { buildBatchStatus.textContent = text; buildBatchStatus.kind = error ? 'error' : null; },
+    windowTool: { handleKey() {} }, choresBoard: { update() {} }, refreshBuildArchitecture() {},
     selectionControls: undefined, reviewControls: undefined, toolSwitch: undefined, placementActions: undefined, cameraDirty: false,
     overlayPause, optionsMenu: { close() {} }, menu: { close() {}, isShowing: () => false },
-    previousFrameMs: 0, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
+    previousFrameMs: 0, frameElapsedMs, syncSystemLighting() {}, driver: {}, frameSimulation: {}, startingNewGame: false,
+    MAX_TICKS_PER_FRAME: 5, BACKGROUND_MAX_TICKS: 300,
     persistence: { updateAutosave() {} }, sim, commandStatus, audio: { emit() {} }, bookResults: { drain() {} },
     orderDiagnostics, feedbackBubbles, floorScene: { visible: true }, graphicsRecovering: false,
     advanceSimulationFrame: () => { sim.flushCommands(); return 0; },
     advanceFrameWithCommandFeedback: (advance: () => number, after: () => void) => { const result = advance(); after(); return result; } };
   const bound = new Function('ctx', `with(ctx) { ${wiring(source)} }`)(context) as {
     roomsTool: RoomsTool; roomReview: RoomReviewController;
-    buildTools: (WallTool | RoomsTool | BuyTool | FloorTool | LandTool)[]; buildExit: BuildExit; blockedFrame(now: number): void;
-    hasRetainedReviewChoices(): boolean; requestRoomReview(review: BuildReview): Promise<boolean>; replaceBuildLocalState(reason: 'load' | 'cancel' | 'end'): void };
+    buildTools: (WallTool | RoomsTool | BuyTool | FloorTool | LandTool)[]; buildExit: BuildExit; toolSwitch: BuildToolSwitch; blockedFrame(now: number): void;
+    confirmBuildBatch(): Promise<boolean>; hasRetainedReviewChoices(): boolean; requestRoomReview(review: BuildReview): Promise<boolean>; replaceBuildLocalState(reason: 'load' | 'cancel' | 'end'): void };
   exit = bound.buildExit;
   lifecycle = { needsReview: bound.hasRetainedReviewChoices, review: bound.requestRoomReview, replaced: bound.replaceBuildLocalState };
-  return { handle, sim, document, canvas, overlayPause, wallTool, roomTool, buyTool, floorTool, landTool, roomSelection, buildSession, builder, left, ...bound,
+  return { handle, sim, document, canvas, overlayPause, wallTool, roomTool, buyTool, floorTool, landTool, roomSelection, buildSession, buildBatchStatus, builder, left, ...bound,
     key: (key: string, repeat = false) => document.key(canvas, key, repeat), dialog: document.nodes.get('#build-exit-dialog')! };
 }
 
@@ -152,8 +160,8 @@ it.each(['discard', 'cancel'] as const)('clears retained review input only throu
     if (action === 'discard') f.dialog.close('discard');
     else { f.dialog.close('keep'); f.document.nodes.get('#build-batch-cancel')!.fire('click'); }
     expect(f.roomReview.hasChoices).toBe(false); expect(f.sim.saveBytes()).toEqual(baseline);
-    expect(f.sim.buildDirty()).toBe(false); expect(f.builder.active).toBe(action === 'cancel');
-    expect(f.left).toHaveBeenCalledTimes(action === 'discard' ? 1 : 0);
+    expect(f.sim.buildDirty()).toBe(false); expect(f.builder.active).toBe(false);
+    expect(f.left).toHaveBeenCalledOnce();
   } finally { f.handle.free(); }
 });
 
@@ -218,6 +226,160 @@ it.each(['walls', 'buy', 'floors', 'land'] as const)('routes the actual %s desti
     f.builder.enter(); const tool = { walls: f.wallTool, buy: f.buyTool, floors: f.floorTool, land: f.landTool }[name]; tool.enter();
     const read = vi.spyOn(tool, 'handleKey'), furniture = vi.spyOn(f.builder, 'handleKey'); f.key('ArrowLeft');
     expect(read).toHaveBeenCalledOnce(); expect(furniture).not.toHaveBeenCalled();
+  } finally { f.handle.free(); }
+});
+
+it.each(['confirm', 'discard', 'keep'] as const)('executes actual pending Land page bindings: %s', async answer => {
+  const f = fixture();
+  try {
+    f.builder.enter(); f.roomsTool.enter(); f.roomSelection.select(0); f.roomSelection.edit('Renamed outside');
+    const tick = f.sim.clockTick();
+    expect(f.toolSwitch.select('build-tool-land')).toBe(false);
+    expect(f.dialog.open).toBe(true); expect(f.landTool.active).toBe(false);
+    expect(f.document.querySelector('#build-exit-title').textContent).toBe('Switch to Land?');
+    expect(f.roomSelection.text).toBe('Renamed outside');
+    f.dialog.close(answer); await Promise.resolve(); await Promise.resolve();
+    expect(f.builder.active).toBe(true); expect(f.buildSession.active).toBe(true);
+    expect(f.landTool.active).toBe(answer !== 'keep'); expect(f.sim.clockTick()).toBe(tick);
+    expect(f.left).not.toHaveBeenCalled();
+    if (answer === 'keep') {
+      expect(f.roomSelection.text).toBe('Renamed outside'); expect(f.buildSession.hasChanges()).toBe(true);
+    } else {
+      expect(f.buildSession.hasChanges()).toBe(false);
+      const rooms = new RoomSelection(f.sim); rooms.select(0);
+      expect(rooms.text).toBe(answer === 'confirm' ? 'Renamed outside' : 'Outside');
+    }
+  } finally { f.handle.free(); }
+});
+
+it('Land keeps an invalid raw name unchanged until an explicit decision', () => {
+  const f = fixture();
+  try {
+    f.builder.enter(); f.roomsTool.enter(); f.roomSelection.select(0); f.roomSelection.edit('');
+    f.toolSwitch.select('build-tool-land'); expect(f.dialog.open).toBe(true);
+    f.dialog.close('keep'); expect(f.roomSelection.text).toBe(''); expect(f.roomSelection.error).not.toBe('');
+    expect(f.landTool.active).toBe(false); expect(f.roomsTool.active).toBe(true);
+  } finally { f.handle.free(); }
+});
+
+it.each(['footer', 'exit', 'land'] as const)('correcting refused review input preserves an ordinary exit and cancels only a Land destination: %s', async route => {
+  const f = fixture();
+  try {
+    expect(f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 })).toBe(true); f.sim.flushCommands();
+    f.builder.enter(); const baseline = f.sim.saveBytes(), tick = f.sim.clockTick();
+    for (let y = 1; y <= 5; y++) { expect(f.sim.setWallEdge(0, 4, y, 1)).toBe(true); f.sim.flushCommands(); }
+    const commit = vi.spyOn(f.sim, 'commitBuild');
+    if (route === 'footer') f.document.nodes.get('#build-batch-confirm')!.fire('click');
+    else {
+      if (route === 'land') f.toolSwitch.select('build-tool-land');
+      else f.key('Escape');
+      expect(f.dialog.open).toBe(true); f.dialog.close('confirm');
+    }
+    expect(f.roomReview.active).toBe(true);
+    f.roomReview.setName([1, 1], '');
+    expect(await f.roomReview.confirm()).toBe(false);
+    expect(f.roomReview.error).not.toBe(''); expect(f.roomReview.name([1, 1])).toBe('');
+    expect(f.roomReview.active).toBe(true); expect(f.builder.active).toBe(true);
+    expect(f.sim.saveBytes()).toEqual(baseline); expect(commit).not.toHaveBeenCalled();
+    f.roomReview.setName([1, 1], 'Corrected room');
+    expect(await f.roomReview.confirm()).toBe(false);
+    expect(f.roomReview.active).toBe(true); expect(commit).not.toHaveBeenCalled();
+    expect(await f.roomReview.confirm()).toBe(true);
+    await vi.waitFor(() => expect(f.buildExit.resolving).toBe(false));
+    expect(commit).toHaveBeenCalledOnce(); expect(f.sim.clockTick()).toBe(tick);
+    const summaries = f.sim.roomSummaries();
+    expect(summaries.ok && summaries.value.rooms.some(room => room.name === 'Corrected room')).toBe(true);
+    expect(f.builder.active).toBe(route === 'land'); expect(f.buildSession.active).toBe(route === 'land');
+    expect(f.landTool.active).toBe(false); expect(f.left).toHaveBeenCalledTimes(route === 'land' ? 0 : 1);
+  } finally { f.buildExit.dismiss(); f.roomReview.reset(); f.handle.free(); }
+});
+
+it('actual clean Land switch starts a fresh native session without leaving Build', () => {
+  const f = fixture();
+  try {
+    f.builder.enter(); const tick = f.sim.clockTick();
+    expect(f.toolSwitch.select('build-tool-land')).toBe(true);
+    expect(f.landTool.active).toBe(true); expect(f.dialog.open).toBe(false);
+    expect(f.builder.active).toBe(true); expect(f.buildSession.active).toBe(true);
+    expect(f.buildSession.hasChanges()).toBe(false); expect(f.sim.clockTick()).toBe(tick);
+    expect(f.left).not.toHaveBeenCalled();
+  } finally { f.handle.free(); }
+});
+
+it('same-tool Land selection keeps its chosen strip and session without a prompt', () => {
+  const f = fixture();
+  try {
+    f.builder.enter(); f.landTool.enter(); f.landTool.choose(0); f.sim.stageRoomName(0, 'Draft outside');
+    expect(f.toolSwitch.select('build-tool-land')).toBe(true);
+    expect(f.dialog.open).toBe(false); expect(f.landTool.side).toBe(0);
+    expect(f.buildSession.hasChanges()).toBe(true); expect(f.landTool.active).toBe(true);
+  } finally { f.handle.free(); }
+});
+
+it.each(['build-tool-walls', 'build-tool-furniture'])('does not stage another tool behind a pending Land purchase: %s', button => {
+  const f = fixture();
+  try {
+    f.builder.enter(); f.landTool.enter();
+    vi.spyOn(f.landTool, 'pending', 'get').mockReturnValue(true);
+    expect(f.toolSwitch.select(button)).toBe(false);
+    expect(f.landTool.active).toBe(true); expect(f.wallTool.active).toBe(false);
+    expect(f.dialog.open).toBe(false); expect(f.builder.active).toBe(true);
+  } finally { f.handle.free(); }
+});
+
+it.each(['back', 'load', 'graphics'] as const)('cancels native Land review continuation on %s', async action => {
+  const f = fixture();
+  try {
+    f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 }); f.sim.flushCommands();
+    f.builder.enter(); const baseline = f.sim.saveBytes(), tick = f.sim.clockTick();
+    for (let y = 1; y <= 5; y++) { f.sim.setWallEdge(0, 4, y, 1); f.sim.flushCommands(); }
+    f.toolSwitch.select('build-tool-land'); f.dialog.close('confirm');
+    expect(f.roomReview.active).toBe(true); expect(f.landTool.active).toBe(false);
+    f.roomReview.setName([1, 1], 'Retained review name');
+    if (action === 'back') f.roomReview.back();
+    else if (action === 'load') expect(f.buildSession.loadBytes(baseline)).toBe(true);
+    else {
+      f.buildExit.dismiss();
+      expect(await f.roomReview.confirm()).toBe(false);
+      expect(await f.roomReview.confirm()).toBe(true);
+    }
+    await vi.waitFor(() => expect(f.buildExit.resolving).toBe(false));
+    expect(f.landTool.active).toBe(false); expect(f.builder.active).toBe(true);
+    expect(f.buildSession.active).toBe(true); expect(f.sim.clockTick()).toBe(tick);
+    expect(f.left).not.toHaveBeenCalled();
+    if (action === 'back') expect(f.roomReview.name([1, 1])).toBe('Retained review name');
+  } finally { f.buildExit.dismiss(); f.roomReview.reset(); f.handle.free(); }
+});
+
+it('ordinary review Back preserves native/raw choices and clears status without reporting a failure', async () => {
+  const f = fixture(); let result: Promise<boolean> | undefined;
+  try {
+    f.sim.buildRoom([1, 1, 7, 5], { axis: 0, x: 8, y: 3 }); f.sim.flushCommands();
+    f.builder.enter(); const baseline = f.sim.saveBytes();
+    for (let y = 1; y <= 5; y++) { f.sim.setWallEdge(0, 4, y, 1); f.sim.flushCommands(); }
+    f.buildBatchStatus.textContent = 'Old status'; result = f.confirmBuildBatch();
+    expect(f.roomReview.active).toBe(true); f.roomReview.setName([1, 1], '  raw review name  ');
+    f.roomReview.back(); expect(await result).toBe(false);
+    expect(f.buildBatchStatus.textContent).toBe('');
+    expect(f.roomReview.name([1, 1])).toBe('  raw review name  ');
+    expect(f.sim.buildDirty()).toBe(true); expect(f.sim.saveBytes()).toEqual(baseline);
+    expect(f.builder.active).toBe(true); expect(f.buildSession.active).toBe(true);
+    vi.spyOn(f.sim, 'prepareBuildCommit').mockReturnValue({ ok: false, error: { code: 10, detail: 7n } });
+    expect(await f.confirmBuildBatch()).toBe(false);
+    expect(f.buildSession.confirmationCancelled).toBe(false);
+    expect(f.buildBatchStatus.textContent).toBe(f.buildSession.error);
+    expect(f.buildBatchStatus.textContent).not.toBe('');
+  } finally { f.roomReview.reset(); await result; f.handle.free(); }
+});
+
+it('a genuinely invalid room name keeps a useful refusal in the actual page status', async () => {
+  const f = fixture();
+  try {
+    f.builder.enter(); f.roomSelection.select(0); f.roomSelection.edit('');
+    expect(await f.confirmBuildBatch()).toBe(false);
+    expect(f.buildBatchStatus.textContent).toBe(f.roomSelection.error);
+    expect(f.buildBatchStatus.textContent).not.toBe('');
+    expect(f.builder.active).toBe(true); expect(f.roomSelection.text).toBe('');
   } finally { f.handle.free(); }
 });
 

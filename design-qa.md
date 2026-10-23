@@ -1,4 +1,9 @@
-# Aquarium and exercise bike design QA
+# Design quality reviews
+
+The [2026-10-18 compact changelog header review](docs/assets/review-evidence/changelog-header/README.md)
+records the approved layout, browser captures, regression comparison and responsive checks.
+
+## Aquarium and exercise bike design QA
 
 Current review date: 2026-08-14
 

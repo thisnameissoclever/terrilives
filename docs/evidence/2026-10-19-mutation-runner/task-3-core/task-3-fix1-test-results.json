@@ -1,0 +1,14 @@
+[
+  {
+    "command": "python -B -m unittest discover -s .github/scripts -p 'test_mutation_*.py'",
+    "exit_code": 0,
+    "observed_output": "Ran 148 tests in 128.283s\n\nOK"
+  },
+  {
+    "command": "python -B -m unittest test_mutation_recovery.AggregateVerdictRegressionTests test_mutation_recovery.RecoveryFaultControls test_mutation_workflow.OriginalPlanPolicyTests",
+    "working_directory": ".github/scripts",
+    "exit_code": 0,
+    "observed_output": "Ran 10 tests in 3.196s\n\nOK",
+    "note": "Final focused run includes strengthened real tail-ingestion positive control added after the full suite; implementation bytes were unchanged."
+  }
+]

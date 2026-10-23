@@ -9,7 +9,7 @@ mod execution;
 mod execution_persistence;
 pub(crate) use execution::{
     commit_autonomous, complete_execution, execution_order, release_order, request_order_id,
-    Execution, ExecutionPhase,
+    Execution, ExecutionOwner, ExecutionPhase,
 };
 pub(crate) use execution_persistence::{
     adopt_legacy, adopt_published_player_requests, restore_executions, save_executions,
@@ -41,7 +41,19 @@ pub(crate) struct CommunalEpisode {
 
 /// Family adds value independently of affinity; dislike never removes company.
 pub(crate) fn benefit(affinity: f32, strength: f32, family: bool) -> f32 {
-    (1. + affinity * strength).max(0.25) + if family { 0.1 } else { 0. }
+    (1. + affinity * strength).max(0.25) + family_bonus(family)
+}
+
+pub(crate) fn family_bonus(related: bool) -> f32 {
+    if related {
+        0.25
+    } else {
+        0.
+    }
+}
+
+pub(crate) fn shared_interest(topic: &Topic) -> bool {
+    topic.initiator_preference > 0. && topic.listener_preference > 0.
 }
 pub(crate) fn urgent(world: &World, person: Entity) -> bool {
     world.get::<terri_core::AtWork>(person).is_some()
@@ -242,19 +254,12 @@ pub(crate) fn begin_topics(world: &mut World) {
             .get(interaction as usize)
             .is_some_and(crate::fights::is_fight)
         {
-            let reason = world
-                .get::<terri_core::SimId>(listener)
-                .copied()
-                .and_then(|id| crate::fights::reason_against(world, id));
-            world.resource_mut::<SocialEpisodes>().topics.insert(
-                initiator,
-                Topic {
-                    code: crate::fights::Reason::code(reason),
-                    tag: crate::fights::Reason::tag(reason).into(),
-                    initiator_preference: -1.,
-                    listener_preference: -1.,
-                },
-            );
+            if let Some(topic) = crate::fights::begin_topic(world, initiator, listener) {
+                world
+                    .resource_mut::<SocialEpisodes>()
+                    .topics
+                    .insert(initiator, topic);
+            }
             continue;
         }
         let prefs = |person| {

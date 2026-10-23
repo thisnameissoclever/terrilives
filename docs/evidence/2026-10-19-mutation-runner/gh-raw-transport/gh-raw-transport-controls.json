@@ -1,0 +1,33 @@
+{
+  "controls": [
+    {
+      "control": "positive_old_cli",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "test_mutation_artifacts.GitHubTransportTests.test_old_cli_preserves_original_argv_and_raw_bytes"
+      ],
+      "exit_code": 0,
+      "intended_assertion_failure": false,
+      "import_or_syntax_error": false
+    },
+    {
+      "control": "capability_guard_removed",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "test_mutation_artifacts.GitHubTransportTests.test_old_cli_preserves_original_argv_and_raw_bytes"
+      ],
+      "exit_code": 1,
+      "intended_assertion_failure": true,
+      "import_or_syntax_error": false
+    }
+  ],
+  "source_unchanged": true,
+  "offline_only": true,
+  "http_requests": 0
+}

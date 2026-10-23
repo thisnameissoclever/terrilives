@@ -778,6 +778,14 @@ impl CompiledLot {
     }
 }
 
+/// Fight behavior selected by authenticated content, independent of save format.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FightRules {
+    #[default]
+    Attributed,
+    Published,
+}
+
 /// The validated system knobs, compiled from `content/tuning.toml`.
 ///
 /// Every value here has been through `compile`, so a reader may assume
@@ -1175,11 +1183,34 @@ pub struct Tuning {
     pub autonomy: Option<crate::AutonomyTuning>,
     /// Appreciation after a shared portion; appended for issue 275.
     pub meal_appreciation_gain: f32,
+    /// Presentation-only extension after the historical tuning fields.
+    #[serde(default)]
+    pub weather: Option<crate::WeatherTuning>,
+    /// Purposeful fight and chore response balance, appended after weather.
+    pub fight_grievance_ticks: u32,
+    pub fight_history_ticks: u32,
+    pub fight_repeat_grievance_ticks: u32,
+    pub fight_mood_bad_multiplier: f32,
+    pub fight_mood_good_multiplier: f32,
+    pub fight_opinion_strength: f32,
+    pub fight_severity_reference: f32,
+    pub chore_fight_response_base: f32,
+    pub chore_fight_response_ticks: u32,
+    pub chore_fight_response_cleanliness: f32,
+    pub chore_fight_response_responsibility: f32,
+    pub chore_fight_response_commitment: f32,
+    pub chore_fight_response_preference: f32,
+    pub chore_fight_response_affinity: f32,
+    pub chore_fight_response_mood: f32,
+    pub chore_repair_base: f32,
+    pub chore_repair_cleanliness: f32,
+    /// Authenticated producer references retain their original fight rules.
+    pub fight_rules: FightRules,
     /// Shifts (issue 296, [WS-sleep] in
     /// `docs/specs/2026-10-18-shifts-and-careers.md`): ticks added to a
     /// person's sleep rhythm while they hold a shift of each kind, in
     /// kind order (day, early, late, night). Appended after the
-    /// meal-appreciation float, per the rule above.
+    /// purposeful-fight rules, per the rule above.
     pub shift_sleep_offset_day: i32,
     pub shift_sleep_offset_early: i32,
     pub shift_sleep_offset_late: i32,
@@ -2213,6 +2244,25 @@ mod tests {
             career_mood_demoted_ticks: 2900,
             career_mood_fired_ticks: 5800,
             autonomy: None,
+            weather: None,
+            fight_grievance_ticks: 360,
+            fight_history_ticks: 10080,
+            fight_repeat_grievance_ticks: 1440,
+            fight_mood_bad_multiplier: 2.0,
+            fight_mood_good_multiplier: 0.25,
+            fight_opinion_strength: 0.5,
+            fight_severity_reference: 0.25,
+            chore_fight_response_base: 0.80,
+            chore_fight_response_ticks: 240,
+            chore_fight_response_cleanliness: 0.20,
+            chore_fight_response_responsibility: 0.10,
+            chore_fight_response_commitment: 0.05,
+            chore_fight_response_preference: 0.05,
+            chore_fight_response_affinity: 0.05,
+            chore_fight_response_mood: 0.05,
+            chore_repair_base: 0.08,
+            chore_repair_cleanliness: 0.04,
+            fight_rules: FightRules::Attributed,
             meal_appreciation_gain: 0.0,
             shift_sleep_offset_day: 3,
             shift_sleep_offset_early: -61,
@@ -3073,8 +3123,9 @@ mod tests {
     /// `hated_communal_chance`, the fourteen of the burnt-meal knobs, the
     /// eighteen of the fight knobs, the four of the land knobs, the
     /// ninety-five of the career knobs and the fifty of the season knobs,
-    /// followed by optional autonomy, the meal-appreciation float and the
-    /// ten bytes of the shift knobs;
+    /// followed by optional autonomy, the meal-appreciation float, the
+    /// optional weather, the purposeful-fight knobs and the ten bytes of
+    /// the shift knobs;
     /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
@@ -3089,7 +3140,8 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Shifts (issue 296): the five shift knobs are the last ten bytes:
+        // Shifts (issue 296): the five shift knobs are the last ten bytes,
+        // after the purposeful-fight knobs:
         // four zigzag varints (3 as 6, -61 as 121, 125 as 250 in two bytes
         // and 655 as 1310 in two bytes), then the search temperature's
         // four bytes.
@@ -3138,15 +3190,45 @@ mod tests {
         })
         .iter()
         .all(|index| *index >= shifts + 6));
-        // Optional autonomy adds a None marker; appreciation follows with four bytes.
-        let historical_end = shifts - 5;
-        assert_eq!(&before[shifts - 4..shifts], &0.0f32.to_le_bytes());
+        // Autonomy, appreciation and weather follow the original season fields.
+        let mut tail = Vec::new();
+        macro_rules! tail_field {
+            ($field:ident) => {
+                tail.extend(postcard::to_allocvec(&a_tuning().$field).unwrap());
+            };
+        }
+        tail_field!(fight_grievance_ticks);
+        tail_field!(fight_history_ticks);
+        tail_field!(fight_repeat_grievance_ticks);
+        tail_field!(fight_mood_bad_multiplier);
+        tail_field!(fight_mood_good_multiplier);
+        tail_field!(fight_opinion_strength);
+        tail_field!(fight_severity_reference);
+        tail_field!(chore_fight_response_base);
+        tail_field!(chore_fight_response_ticks);
+        tail_field!(chore_fight_response_cleanliness);
+        tail_field!(chore_fight_response_responsibility);
+        tail_field!(chore_fight_response_commitment);
+        tail_field!(chore_fight_response_preference);
+        tail_field!(chore_fight_response_affinity);
+        tail_field!(chore_fight_response_mood);
+        tail_field!(chore_repair_base);
+        tail_field!(chore_repair_cleanliness);
+        tail_field!(fight_rules);
+        let purposeful_start = shifts - tail.len();
+        assert_eq!(&before[purposeful_start..shifts], tail);
+        let historical_end = purposeful_start - 6;
+        assert_eq!(before[purposeful_start - 1], 0);
+        assert_eq!(
+            &before[purposeful_start - 5..purposeful_start - 1],
+            &0.0f32.to_le_bytes()
+        );
         assert_eq!(
             changed(Tuning {
                 meal_appreciation_gain: 0.1875,
                 ..a_tuning()
             }),
-            vec![shifts - 2, shifts - 1]
+            vec![purposeful_start - 3, purposeful_start - 2]
         );
         assert_eq!(before[historical_end], 0);
         // Seasons (issue 251): the three season knobs are the preceding fifty
@@ -3212,6 +3294,7 @@ mod tests {
             changed(Tuning {
                 career_mood_fired_ticks: 5801,
                 autonomy: None,
+                weather: None,
                 ..a_tuning()
             }),
             vec![season - 2],

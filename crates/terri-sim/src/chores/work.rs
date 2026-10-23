@@ -73,6 +73,7 @@ pub(super) fn may_release_path(world: &World, person: Entity) -> bool {
 }
 
 pub(crate) fn cancel(world: &mut World, person: Entity) {
+    crate::chore_repair::canceled(world, person);
     if world.get_resource::<SavedChores>().is_some_and(|s| {
         s.tasks.iter().any(|t| t.person == person.index_u32())
             || s.dish_started.iter().any(|(p, _)| *p == person.index_u32())
@@ -265,6 +266,7 @@ pub(crate) fn start(
         completed_units: 0,
     });
     state.tasks.sort_by_key(|t| t.person);
+    crate::chore_repair::started_in(world, state, person, key);
     true
 }
 
@@ -317,6 +319,15 @@ fn start_dishes(
             state.dish_started.retain(|r| r.0 != person.index_u32());
             state.dish_started.push((person.index_u32(), day));
             state.dish_started.sort_unstable();
+            crate::chore_repair::started_in(
+                world,
+                state,
+                person,
+                ChoreKey {
+                    kind: ChoreKind::Dishes,
+                    target: 0,
+                },
+            );
             return true;
         }
     }
@@ -723,6 +734,12 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
                     }
                 }
             }
+        }
+        if let Some((key, _, units)) = credit {
+            crate::chore_repair::completed_in(world, state, person, key, units);
+        }
+        if let Some(actor) = crate::dining::entity(world, person) {
+            crate::chore_repair::canceled(world, actor);
         }
         state.tasks.retain(|t| t.person != person);
         if let Some(entity) = crate::dining::entity(world, person) {

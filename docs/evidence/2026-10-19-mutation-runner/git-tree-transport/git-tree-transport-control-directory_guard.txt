@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_selected_directory_requires_tree_type_and_mode (test_mutation_tool.ToolAuthenticationTests.test_selected_directory_requires_tree_type_and_mode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_tool.py", line 178, in test_selected_directory_requires_tree_type_and_mode
+    with self.assertRaisesRegex(ValueError, "recipe directory mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+FAILED (failures=1)

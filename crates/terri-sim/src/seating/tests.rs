@@ -121,7 +121,7 @@ fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
                 .unwrap()
                 .set(terri_core::NeedId::Fun, 30.);
             sim.tick();
-            let expected = 30. - 0.032 + if seated { 29. / 41. } else { 0. };
+            let expected = 30. - 0.021333333 + if seated { 29. / 41. } else { 0. };
             let actual = sim
                 .world()
                 .get::<terri_core::Needs>(person)
@@ -146,11 +146,11 @@ fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
                 .1;
             assert!(
                 (levels.get(terri_core::NeedId::Fun)
-                    - (30. - 0.048 + fun / action.duration_ticks as f32))
+                    - (30. - 0.032 + fun / action.duration_ticks as f32))
                     .abs()
                     < 0.00001
             );
-            assert!((levels.get(terri_core::NeedId::Energy) - (30. - 0.051)).abs() < 0.00001);
+            assert!((levels.get(terri_core::NeedId::Energy) - (30. - 0.034)).abs() < 0.00001);
             let endpoint = crate::seating::claim(sim.world(), person.index_u32())
                 .map_or((0, 3), |lease| lease.endpoint);
             sim.world_mut().entity_mut(person).insert(Path {

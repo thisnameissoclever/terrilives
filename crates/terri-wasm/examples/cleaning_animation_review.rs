@@ -1,6 +1,7 @@
 //! Isolated furniture-contact fixtures; ordinary needs and chore durations apply.
 #[path = "support/mod.rs"]
 mod support;
+use support::CurrentSnapshotViews;
 use terri_core::{
     chores::{ChoreKey, ChoreKind},
     Agent, CommandQueue, Position, SimClock, SimCommand,
@@ -51,7 +52,8 @@ fn main() {
             sim.world_mut()
                 .entity_mut(person)
                 .insert(Position { x: pos.0, y: pos.1 });
-            let mut household = sim.save_snapshot_v18();
+            let mut household = sim.current_snapshot();
+            household.neglect = Default::default();
             let saved = support::v5_mut(&mut household);
             let chores = saved.chores.as_mut().unwrap();
             chores.board_enabled = false;
@@ -60,7 +62,7 @@ fn main() {
             } else {
                 chores.surfaces = vec![(object.index_u32(), 1000)];
             }
-            sim.load_snapshot_v18(household).unwrap();
+            sim.load_current_snapshot(household).unwrap();
             let bytes = support::encode(&sim);
             std::fs::write(
                 directory.join(format!("cleaning-{name}-{facing}.sav")),

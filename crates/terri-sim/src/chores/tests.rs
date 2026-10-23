@@ -3,6 +3,124 @@ use crate::Sim;
 use terri_core::{SimClock, TileGrid};
 
 #[test]
+fn issue314_real_cleaning_with_the_board_off_earns_each_housemates_appreciation() {
+    let mut sim = Sim::new_with_lot(16, 8);
+    let pack = sim.world().resource::<crate::Content>().0;
+    let mut create = |name: &str, x: f32| {
+        let person = crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: name.into(),
+                personality: 0,
+                position: terri_core::Position { x, y: 1. },
+                needs: [100.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        );
+        sim.world_mut()
+            .get_mut::<terri_core::Personality>(person)
+            .unwrap()
+            .drain = [0.; 7];
+        person
+    };
+    let clean_observer = create("Clean observer", 1.);
+    let messy_observer = create("Messy observer", 2.);
+    let worker = create("Sweeper", 7.);
+    ensure(sim.world_mut());
+    let cell = 16 + 7;
+    let key = ChoreKey {
+        kind: ChoreKind::Floors,
+        target: crate::rooms::cleaning_area_at(sim.world(), (7, 1))
+            .unwrap()
+            .key(),
+    };
+    sim.world_mut()
+        .insert_resource(terri_core::save::SavedDomestic::default());
+    {
+        let mut domestic = sim
+            .world_mut()
+            .resource_mut::<terri_core::save::SavedDomestic>();
+        domestic.cleanliness = vec![
+            (clean_observer.index_u32(), 1.),
+            (messy_observer.index_u32(), 0.),
+            (worker.index_u32(), 0.5),
+        ];
+        domestic.cleanliness.sort_by_key(|row| row.0);
+    }
+    {
+        let mut chores = sim.world_mut().resource_mut::<SavedChores>();
+        chores.board_enabled = false;
+        chores.assignments.clear();
+        chores.episodes.clear();
+        add(&mut chores.floors, cell, 1000);
+    }
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::CleanChoreFirst {
+            agent: worker.index_u32(),
+            key,
+        });
+    let worker_id = *sim.world().get::<terri_core::SimId>(worker).unwrap();
+    let observer_ids =
+        [clean_observer, messy_observer].map(|e| *sim.world().get::<terri_core::SimId>(e).unwrap());
+    let mut appreciated = [0.; 2];
+    let mut started = false;
+    let mut finished = false;
+    for _ in 0..1000 {
+        sim.tick();
+        started |= sim
+            .world()
+            .resource::<SavedChores>()
+            .tasks
+            .iter()
+            .any(|task| task.person == worker.index_u32());
+        for effect in sim.relationship_effects() {
+            if effect.cause == crate::relationship_effects::RelationshipCause::ChoreFulfilled
+                && effect.responsible == worker_id
+            {
+                for (index, id) in observer_ids.iter().enumerate() {
+                    if effect.affected == *id {
+                        appreciated[index] += effect.requested;
+                    }
+                }
+            }
+        }
+        if started
+            && !sim
+                .world()
+                .resource::<SavedChores>()
+                .tasks
+                .iter()
+                .any(|task| task.person == worker.index_u32())
+        {
+            finished = true;
+            break;
+        }
+    }
+    assert!(
+        started && finished,
+        "the directed physical chore must finish"
+    );
+    assert_eq!(
+        value(&sim.world().resource::<SavedChores>().floors, cell),
+        0
+    );
+    assert!(
+        appreciated[1] > 0.,
+        "even a messy housemate appreciates actual cleanup: {appreciated:?}"
+    );
+    assert!(
+        appreciated[0] > appreciated[1],
+        "a cleaner housemate appreciates cleanup more: {appreciated:?}"
+    );
+}
+
+#[test]
 fn incoming_order_waits_for_current_directed_floor_task_to_finish() {
     let mut sim = Sim::new_with_lot(16, 8);
     let pack = sim.world().resource::<crate::Content>().0;
@@ -69,11 +187,13 @@ fn incoming_order_waits_for_current_directed_floor_task_to_finish() {
         .iter()
         .find(|(_, execution)| execution.recipient == recipient && execution.admitted);
     assert!(admitted.is_none(),"an unfinished directed chore cannot already have an admitted autonomous conversation: {admitted:?}");
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v19_view();
     let hash = sim.world_hash();
     let mut restored = Sim::new_with_lot(16, 8);
-    restored.load_snapshot_v17(saved.clone()).unwrap_or_else(|error|panic!("V17 chore state refused: {error:?}; player_orders={:#?}; chores={:#?}; queues={:#?}",saved.player_orders,saved.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy.chores,saved.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy.queues));
-    super::lifecycle_tests::assert_v17_projection(&saved, &restored.save_snapshot_v17());
+    restored
+        .load_current_v19_view(saved.clone())
+        .expect("current chore state must reload");
+    assert_eq!(saved, restored.current_v19_view());
     assert_eq!(restored.world_hash(), hash);
     sim.world_mut()
         .resource_mut::<terri_core::CommandQueue>()
@@ -190,12 +310,12 @@ fn floor_work_walks_and_cleans_over_time_with_valid_saves_at_every_tick() {
             walking |= sim.world().get::<terri_core::Path>(person).is_some();
             working |= task.remaining > 0;
         }
-        let saved = sim.save_snapshot_v17();
+        let saved = sim.current_v19_view();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded
-            .load_snapshot_v17(saved)
+            .load_current_v19_view(saved)
             .expect("floor walking and work must save at the transition boundary");
-        assert_eq!(loaded.save_snapshot_v17(), sim.save_snapshot_v17());
+        assert_eq!(loaded.current_v19_view(), sim.current_v19_view());
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if started && !state.tasks.iter().any(|t| t.person == person.index_u32()) {
             break;
@@ -252,7 +372,9 @@ fn mixed_dish_chore_and_ordinary_orders_restore_their_complete_queue_order() {
     sim.flush_commands();
     let expected = sim.action_queue_of(person);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    loaded
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(loaded.action_queue_of(person), expected);
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
@@ -323,7 +445,9 @@ fn surface_and_bin_work_require_elapsed_work_and_keep_valid_interrupted_saves() 
                     && task.remaining > 0
                     && (1..500).contains(&value(&state.surfaces, object));
                 let mut loaded = Sim::new_from_shipped_lot();
-                loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+                loaded
+                    .load_current_v19_view(sim.current_v19_view())
+                    .unwrap();
                 assert_eq!(loaded.world_hash(), sim.world_hash());
             } else {
                 break;
@@ -391,7 +515,9 @@ fn paused_cancel_releases_chore_work_without_deleting_unfinished_dirt() {
     assert!(sim.world().resource::<SavedChores>().tasks.is_empty());
     assert!(value(&sim.world().resource::<SavedChores>().surfaces, counter) >= 500);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    loaded
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -420,9 +546,9 @@ fn unused_tiles_remain_clean_and_profiles_round_trip_without_rerolling() {
     assert_eq!(value(&state.floors, yard), 0);
     assert_eq!(state.profiles.len(), 3);
     let before = sim.world_hash();
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v19_view();
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v17(saved).unwrap();
+    loaded.load_current_v19_view(saved).unwrap();
     assert_eq!(loaded.world_hash(), before);
     assert_eq!(loaded.world().resource::<SavedChores>(), state);
 }

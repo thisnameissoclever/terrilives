@@ -10,6 +10,7 @@ import { formatFunds } from './game-hud.js';
 import { preventMenuSelection } from './menu-selection.js';
 import type { RoomTool } from './room-tool.js';
 import { DOORWAY, OPEN, WALL, WINDOW, type WallTool } from './wall-tool.js';
+import { WALL_FACE_FULL } from './wall-pick.js';
 
 /** The ghost's tile footprint: its north-west corner and its size. */
 export interface GhostFootprint {
@@ -88,6 +89,10 @@ export interface ContextModel {
   readonly x: number;
   readonly y: number;
   readonly ghost?: PlacementPreview;
+  /** Logical pixels the chosen thing rises above its floor point, when it has no ghost: a chosen wall stands full height. */
+  readonly rise?: number;
+  /** World points bounding a selection wider than one spot, so the buttons clear all of it: a run's ends, an area's corners. */
+  readonly points?: readonly (readonly [number, number])[];
   readonly actions: readonly ContextAction[];
 }
 export interface ContextTools {
@@ -103,6 +108,14 @@ export interface ContextTools {
   readonly suspended?: () => boolean;
 }
 
+/** The floor points at both ends of a straight run of lines. */
+function lineEnds(lines: readonly { readonly axis: 0 | 1; readonly x: number; readonly y: number }[]): [number, number][] {
+  if (lines.length === 0) return [];
+  const first = lines[0], last = lines[lines.length - 1];
+  return [[first.x - 0.5, first.y - 0.5],
+    last.axis === 0 ? [last.x - 0.5, last.y + 0.5] : [last.x + 0.5, last.y - 0.5]];
+}
+
 /** Presentation reads capabilities; the controllers alone stage game commands. */
 export function contextModel(tools: ContextTools): ContextModel | null {
   const { furniture, buy, walls, room, floors } = tools;
@@ -113,15 +126,18 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   if (walls.active) {
     const windows = walls.windows;
     const line = windows?.active ? windows.line : walls.line;
-    if (!line || walls.blocked) return null;
+    const anchor = walls.anchorPoint();
+    if (!line || !anchor || walls.blocked) return null;
     const ready = walls.pending === null && windows?.pending == null;
-    if (windows?.active) return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
+    // [WB-height]: the chosen lines stand full height, so the buttons clear the wall and every line of a run.
+    const points = lineEnds(windows?.active ? windows.span() : walls.lines());
+    if (windows?.active) return { tool: 'walls', x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
       action('affirmative', 'fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
       ...(windows.owner ? [action('destructive', 'remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
       action('negative', 'wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
       action('negative', 'clear', 'Cancel', 'bottom', ready, tools.clearSelection, 'clear'),
     ] };
-    return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
+    return { tool: 'walls', x: anchor[0], y: anchor[1], rise: WALL_FACE_FULL, points, actions: [
       action('neutral', 'wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
       action('neutral', 'doorway', 'Doorway', 'top', walls.canApply(DOORWAY), () => walls.apply(DOORWAY), 'doorway'),
       action('neutral', 'window', windows ? 'Windows' : 'Window', 'top', windows ? ready : walls.canApply(WINDOW),
@@ -144,8 +160,14 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     ] };
   }
   if (floors.active) {
-    if (!floors.tile || floors.blocked) return null;
-    return { tool: 'floors', x: floors.tile[0], y: floors.tile[1], actions: [
+    const anchor = floors.anchorPoint();
+    if (!anchor || floors.blocked) return null;
+    // [FL-area]: the buttons clear the whole area rather than sitting on its middle.
+    const tiles = floors.tiles();
+    const xs = tiles.map(tile => tile[0]), ys = tiles.map(tile => tile[1]);
+    const [x0, x1, y0, y1] = [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5, Math.min(...ys) - 0.5, Math.max(...ys) + 0.5];
+    const points = floors.isArea ? [[x0, y0], [x1, y0], [x0, y1], [x1, y1]] as const : undefined;
+    return { tool: 'floors', x: anchor[0], y: anchor[1], points, actions: [
       ...floors.coverings().map((name, index) => action('neutral', `floor-${index + 1}`, name, 'top',
         floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
       action('destructive', 'remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
@@ -197,7 +219,11 @@ export function contextPosition(x: number, top: number, bottom: number, bounds: 
     overlapsZoom ? bounds.topRight!.bottom + gap : gap);
   const available = Math.max(0, bounds.bottom - minY - gap);
   const arcHeight = Math.max(208, bottom - top + topHeight + bottomHeight + 44);
-  const compact = arcHeight > available || width < 280;
+  // An arc pushed up from the screen's bottom would lay its lower row over the
+  // selection it surrounds, as a wall run reaching the edge does; stack every
+  // button above the selection instead.
+  const compact = arcHeight > available || width < 280
+    || (bottom + bottomHeight + gap > bounds.bottom && top - topHeight - 22 >= minY);
   const height = compact ? topHeight + Math.max(bottomHeight, 44) + 6 : arcHeight;
   const y = Math.max(minY, Math.min(compact ? top - height - gap : top - topHeight - 22,
     bounds.bottom - height - gap));
@@ -234,12 +260,13 @@ export class BuildContextActions {
       && camera.originY === this.originY && width === this.width && height === this.height) return;
     this.scale = camera.scale; this.originX = camera.originX; this.originY = camera.originY;
     this.width = width; this.height = height;
-    const floor = screenY(model.x, model.y, camera.originY, camera.scale);
+    const floors = (model.points?.length ? model.points : [[model.x, model.y] as const])
+      .map(([x, y]) => screenY(x, y, camera.originY, camera.scale));
     const art = model.ghost ? this.artOf(model.ghost) : null;
     this.surface.place(model.ghost ? ghostAnchorX(model.ghost, camera, art?.offsetX)
       : screenX(model.x, model.y, camera.originX, camera.scale),
-    model.ghost ? ghostAnchorTop(model.ghost, camera, art?.height ?? 0) : floor - 18 * camera.scale,
-    floor + 20 * camera.scale, width, height);
+    model.ghost ? ghostAnchorTop(model.ghost, camera, art?.height ?? 0) : Math.min(...floors) - (model.rise ?? 18) * camera.scale,
+    Math.max(...floors) + 20 * camera.scale, width, height);
   }
 }
 

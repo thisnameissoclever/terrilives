@@ -31,7 +31,7 @@ Report all four. A test claiming to pin a mechanism it cannot detect is **worse
 than no test**, because it also removes the suspicion that would otherwise
 prompt someone to check.
 
-## 2. `cargo mutants` runs in CI
+## 2. Mutation testing and approved hosted campaigns
 
 Automated backstop for everything rule 1 depends on a human to notice. A
 surviving mutant is, by definition, behaviour that nothing constrains.
@@ -43,65 +43,83 @@ surviving mutant is, by definition, behaviour that nothing constrains.
 - It mutates **production** code, so it finds untested production behaviour. A
   test vacuous in a way not tied to a production mutation can still slip
   through. It is a backstop, not a replacement for rule 1.
-- **A mutant that HANGS is invisible to the gate, and no production loop may
-  be unbounded.** The gate compares `missed.txt`; a hang lands in
-  `timeout.txt` and is neither caught nor a survivor, so nothing mechanical
-  sees it. Worse, a hang **suppresses the assertions that did fire**: the test
-  process never exits, so failures elsewhere in the same run are never
-  reported, and the mutant looks detected only by the hang. [L50] is the
-  recorded instance - three `SimRng` mutants each failed real assertions and
-  all three reported TIMEOUT for a whole milestone. Every loop in production
-  code therefore gets a bound whose overrun panics, however unreachable that
-  bound is: `SimRng::draw_below_bound` and `roll_wander_path` are the two
-  worked examples. CI now fails on a non-empty `timeout.txt`; the fix for one
-  is a bound, never a longer cap. Two cases are not hangs and must not be
-  answered with a bound. A mutant nothing kills runs the whole workspace
-  suite to the end, so it costs a full suite and lands near the cap rather
-  than at it. And a cap below the UNMUTATED run is worse and silent: that run
-  fails first, no mutants are tested at all, and every file the gates read is
-  empty and green. CI's cap is therefore the larger of 120 seconds and four
-  times the unmutated run, which here are two different commands, and a
-  separate step fails a shard whose sweep tested nothing
-  ([L-mutant-cap-must-scale]).
+- **Every real tool timeout fails policy.** A timeout is a recorded build or
+  test phase failure; it does not prove an infinite loop. A controller stop at
+  the job budget is unfinished work and cannot become a timeout or a caught
+  mutant. Preserve the last validated report before signaling the owned process.
+  The baseline and each mutant use the same complete `cargo test --workspace
+  --locked` command. Planning freezes the test cap at the larger of 120 seconds
+  and four times that measured baseline, with a 600-second build cap. A failed
+  baseline supplies no mutation coverage. Exact planned/completed identity
+  equality replaces the former positive-count check. A resumed slot with no
+  pending identities may pass from authenticated evidence; a partially tested
+  manifest may not. See [campaign operations](mutation-campaign.md).
+  Production loops still need bounds whose violation fails an assertion. [L50]
+  records why a hung test can conceal assertions that already failed. Distinguish
+  a real loop defect from a test workload whose legitimate runtime exceeds its
+  calibrated cap before deciding which code to repair.
 - **It does not emit statement-deletion mutants.** It rewrites expressions and
   return values, so a whole statement whose only effect is on state - `swap`,
   `clear`, `sort`, `push`, `insert` - is outside its grammar. A clean report
   over such a line is true and is simultaneously no evidence. Delete those by
   hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
   under a "0 survivors" report.
-- **A documentation-only change skips it, and the rest of CI.** The `changes`
-  job in `ci.yml` runs the CI script and workflow contract tests, then asks
-  it whether anything but documentation changed. Documentation means files
-  ending `.md` in any letter case, outside `.agents/` and `.claude/`, because a
-  web test reads the skill files there. Everything else counts as code,
-  including `docs/mutants-baseline.txt`, which the mutation gate reads. A pull
-  request is compared from where it branched; a push to main is compared with
-  the newest main push whose `web` job passed, so a documentation push cannot
-  skip code whose own run was cancelled or failed. When only documentation
-  changed, the Rust, web and mutation jobs skip and the `docs` job checks
-  document ids. Public Markdown in `docs/changelog/` also runs the lightweight
-  `changelog` job and redeploys Pages; other Markdown does not redeploy.
-  The classifier's `site` output includes both game changes and public notes,
-  so the Pages stale-artifact check never treats newer notes as unpublished docs.
-  Pages can still publish a tested revision whose only difference from main's
-  tip is unpublished documentation. See `docs/changelog.md`.
-  Anything the script cannot decide runs everything. Local gates are
-  unchanged: a change that touches code still runs every step before it is
-  pushed.
+- **Run routine verification locally.** Use [the local check runner](local-checks.md)
+  to retain Rust, web, artwork, published-document and testing-tool checks.
+  Record the checked revision, each command, its result and platform limits.
+  Complete independent review before merging. Pushes and pull requests do not
+  start hosted tests. The manual workflow accepts only the owner's exact locally
+  checked revision and an evidence reference; its authorization jobs do not claim
+  to rerun those tests.
+- **Approve hosted work separately.** Explain the concrete gap that local checks
+  cannot close and the expected compute before asking for approval. GitHub's real
+  job logs, artifact retention and same-run retry behavior are properties of the
+  optional hosted campaign. Their qualification does not gate local game tests.
+  Use plan-only mode when approval covers planning; that mode cannot start native
+  measurement or production workers. A general repair or merge request is not
+  approval to spend hosted compute.
+- **Publish only deployable changes.** After local verification and review,
+  relevant main pushes start Pages directly. The publication path filter and
+  stale-release classifier share the declared deployable inputs. Tests, testing
+  tools, engineering documents and unrelated metadata do not start publication.
+  Each release builds the WebAssembly package once and verifies the site artifact.
+  The deployment job fetches only the classifier and Git metadata needed to
+  compare with current main. Newer deployable inputs or unknown comparisons
+  prevent a stale artifact from publishing. Manual publication retains its
+  exact-main-revision guard. See [publication rules](changelog.md).
 - **Mutation jobs share eight runner slots across this repository.** Each
   shard uses `ci-mutation-shard-${{ matrix.shard }}` as its job concurrency
   group, without a PR number or run id. `queue: max` retains up to 100 pending
   jobs per group; GitHub cancels additional jobs when that queue is full.
-  A cancelled sweep is not a passed sweep. The outer workflow still cancels
-  obsolete heads of the same PR. Its groups also separate events so a manual
-  sweep on main cannot block push CI while it waits for mutation slots.
-  Rust, web and Pages jobs do not use these groups, so mutation sweeps cannot
-  consume more than eight runners between
-  them. This is a mutation budget, not a guarantee of available account-wide
+  A cancelled sweep is not a passed sweep. Manual dispatch groups keep
+  independently approved campaigns separate. Local validation and Pages
+  publication do not use these groups. Tool
+  builds, calibration and mutation execution share the eight slots; lightweight aggregation uses
+  a separate job after its workers finish. This budget does not guarantee available account-wide
   runners. Previously dispatched workflows retain their old configuration.
   See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+
+  Every mutation stage uses the same committed container image and tool-inventory
+  pin. The image supplies the compiler, libraries and command-line tools;
+  hosting-machine metadata remains separate provenance. The owner-dispatched
+  runtime publisher shares slot zero and receives package-write permission only
+  for that operation. Mutation consumers remain read-only. Runtime replacement
+  requires a reviewed actual image receipt and fresh interrupted/resumed fixture
+  qualification. See `docs/mutation-campaign.md` and `.github/runtime/README.md`.
   `.github/scripts/test_workflow_concurrency.py` pins the shared group, queue,
   shard count and CI invocation; it does not emulate GitHub's scheduler.
+  Tool preparation, calibration, native diagnostics and current-attempt recovery
+  preparation acquire slot zero sequentially, before the workers. The same-run
+  native report authenticates completed uploads, then admission deliberately
+  stops with `native_review_required`. Only the external owner's later numeric
+  admission-job rerun releases production preparation after report review.
+  Native samples contribute no production coverage; their fixed admission,
+  original lifetime and additional total-history ceiling remain mandatory on
+  continuation and aggregate-only recovery. See [campaign operations](mutation-campaign.md).
+  Every mutation job has a 120-minute cap. The distinct fixture checks
+  prove interruption and recovery; they never establish production coverage.
+  Read-only jobs cannot dispatch themselves. An authorized external controller
+  owns finite reruns and explicitly selected predecessor chains.
 
 ## 3. Prefer causal assertions to equality assertions
 
@@ -253,7 +271,7 @@ A counter is an allocator, and branches that cannot see each other read
 it identically. Both series collided in practice: two different `[L41]`s
 on 2026-07-29, then three PRs on 2026-08-01 each appending what they
 believed was `[A-17]`. Every collision costs a renumber, a sweep of the
-cross-references and a fresh CI run, and none of it is about the code
+cross-references and fresh local verification, and none of it is about the code
 under review.
 
 - New entry: `## [L-what-it-is-about] ...`. Nothing to look up or
@@ -261,7 +279,7 @@ under review.
 - Existing numbers never move; they are cited from ~60 files. The
   series closed at `[L74]` and `[A-25]`.
 - `check-doc-ids.py` fails the build on a number past the closed series
-  or on the same id twice. It runs in the `rust` CI job.
+  or on the same id twice. Run it through the local `docs` check group.
 - Both files carry `merge=union` in `.gitattributes`, so two branches
   appending different entries merge with no conflict at all. Union keeps
   both sides of an overlapping hunk, so an edit to an OLD entry made on

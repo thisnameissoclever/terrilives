@@ -17,9 +17,9 @@ export function actionPage(length: number, capacity: number, requested: number) 
   return { page, indices: Array.from({ length: Math.min(chunk, length - start) }, (_, i) => start + i), back: page > 0, more: start + chunk < length };
 }
 
-/** Positions are top-left coordinates; their original action indices never change. */
+/** Positions are top-left coordinates; use the rendered identity width, including an open description. */
 export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionSize[], viewport: ActionSize,
-  top = 8, bottom = viewport.height - 8, identityHeight = 48, left = 8, right = viewport.width - 8): ObjectActionLayout {
+  top = 8, bottom = viewport.height - 8, identityHeight = 48, left = 8, right = viewport.width - 8, identityWidth = 88): ObjectActionLayout {
   const width = Math.max(44, ...sizes.map(size => size.width));
   const height = Math.max(44, ...sizes.map(size => size.height));
   const availableWidth = right - left;
@@ -28,7 +28,7 @@ export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionS
   const centerHeight = identityHeight + 52;
   const identityOffset = -centerHeight / 2;
   const closeOffset = identityOffset + identityHeight + 8;
-  const compact = availableWidth < 2 * width + 80 || availableHeight < (count === 2 ? centerHeight : 2 * height + centerHeight + 16);
+  const compact = availableWidth < 2 * width + (identityWidth > 88 ? identityWidth + 16 : 80) || availableHeight < (count === 2 ? centerHeight : 2 * height + centerHeight + 16);
   if (compact) {
     const center = { x: (left + right) / 2, y: top + identityHeight / 2 };
     const gap = 4;
@@ -42,16 +42,17 @@ export function layoutObjectActions(anchor: ClientPoint, sizes: readonly ActionS
   const angles = count === 0 ? [] : count === 1 ? [-90] : count === 2 ? [180, 0] : count === 3 ? [-90, 30, 150]
     : count === 4 ? [-90, 0, 180, 90] : count === 5 ? [-90, -30, 210, 90, 30] : [-90, -30, 210, 90, 30, 150];
   const cosine = Math.max(...angles.map(angle => Math.abs(Math.cos(angle * Math.PI / 180))));
-  const radiusX = Math.min(142, (availableWidth - width) / 2 / Math.max(cosine, 0.1));
+  const preferredX = identityWidth > 88 ? Math.max(142, (identityWidth / 2 + width / 2 + 8) / Math.max(cosine, 0.1)) : 142;
+  const radiusX = Math.min(preferredX, (availableWidth - width) / 2 / Math.max(cosine, 0.1));
   const preferredY = Math.max(count > 4 ? 2 * height + 16 : height + 8, 110, centerHeight / 2 + height / 2 + 8);
   const radiusY = count === 2 ? 0 : Math.min(preferredY, (availableHeight - height) / 2);
   const offsets = angles.map((angle, i) => ({ x: Math.cos(angle * Math.PI / 180) * radiusX - sizes[i].width / 2,
     y: Math.sin(angle * Math.PI / 180) * radiusY - sizes[i].height / 2 }));
-  const minX = Math.min(-44, ...offsets.map(at => at.x)), maxX = Math.max(44, ...offsets.map((at, i) => at.x + sizes[i].width));
+  const minX = Math.min(-identityWidth / 2, ...offsets.map(at => at.x)), maxX = Math.max(identityWidth / 2, ...offsets.map((at, i) => at.x + sizes[i].width));
   const minY = Math.min(identityOffset, ...offsets.map(at => at.y)), maxY = Math.max(closeOffset + 44, ...offsets.map((at, i) => at.y + sizes[i].height));
   const center = { x: Math.max(left - minX, Math.min(right - maxX, anchor.x)),
     y: Math.max(top - minY, Math.min(bottom - maxY, anchor.y)) };
-  return { center, compact, identity: { x: center.x - 44, y: center.y + identityOffset }, close: { x: center.x - 22, y: center.y + closeOffset }, positions: offsets.map(at => ({ x: center.x + at.x, y: center.y + at.y })) };
+  return { center, compact, identity: { x: center.x - identityWidth / 2, y: center.y + identityOffset }, close: { x: center.x - 22, y: center.y + closeOffset }, positions: offsets.map(at => ({ x: center.x + at.x, y: center.y + at.y })) };
 }
 
 
@@ -76,16 +77,16 @@ export function safeActionRegions(viewport: ActionSize, obstacles: readonly Acti
   return regions;
 }
 
-/** Validate the final, clamped children rather than the original object anchor. */
-export function actionLayoutFits(layout: ObjectActionLayout, sizes: readonly ActionSize[], identityHeight: number, region: ActionRegion): boolean {
+/** Validate final child rectangles, including the measured identity width. */
+export function actionLayoutFits(layout: ObjectActionLayout, sizes: readonly ActionSize[], identityHeight: number, region: ActionRegion, identityWidth = 88): boolean {
   const boxes = layout.positions.map((at,i) => ({left:at.x,top:at.y,right:at.x+sizes[i].width,bottom:at.y+sizes[i].height}));
-  if (identityHeight > 0) boxes.push({left:layout.identity.x,top:layout.identity.y,right:layout.identity.x+88,bottom:layout.identity.y+identityHeight});
+  if (identityHeight > 0) boxes.push({left:layout.identity.x,top:layout.identity.y,right:layout.identity.x+identityWidth,bottom:layout.identity.y+identityHeight});
   boxes.push({left:layout.close.x,top:layout.close.y,right:layout.close.x+44,bottom:layout.close.y+44});
   return boxes.every((box,i) => box.left >= region.left-.25 && box.top >= region.top-.25 && box.right <= region.right+.25 && box.bottom <= region.bottom+.25 && boxes.slice(i+1).every(other => !intersects(box,other)));
 }
 
 export function chooseActionPlacement(anchor: ClientPoint, entries: readonly ActionSize[], navigation: ActionSize, viewport: ActionSize,
-  identityHeight: number, obstacles: readonly ActionRegion[]): ActionPlacement | null {
+  identityHeight: number, obstacles: readonly ActionRegion[], identityWidth = 88): ActionPlacement | null {
   const maximum = maximumActionSize([...entries,navigation]);
   const regions = safeActionRegions(viewport,obstacles);
   const candidates: {placement:ActionPlacement; distance:number; compact:boolean}[] = [];
@@ -98,16 +99,16 @@ export function chooseActionPlacement(anchor: ClientPoint, entries: readonly Act
     }
     for (const region of regions) {
       const width = region.right-region.left, height = region.bottom-region.top;
-      if (width < maximum.width) continue;
+      if (width < Math.max(maximum.width, identityWidth + 48)) continue;
       const columns = Math.max(1,Math.min(2,Math.floor((width+4)/(maximum.width+4))));
       const rows = Math.ceil(Math.max(...pageCounts)/columns);
       const limitedHeight = Math.min(identityHeight,Math.max(44,height-rows*(maximum.height+4)));
       let nearest = Infinity, valid = true, compact = false;
       for (const count of new Set(pageCounts)) {
         const sizes = Array.from({length:count},()=>maximum);
-        const layout = layoutObjectActions(anchor,sizes,viewport,region.top,region.bottom,limitedHeight,region.left,region.right);
+        const layout = layoutObjectActions(anchor,sizes,viewport,region.top,region.bottom,limitedHeight,region.left,region.right,identityWidth);
         compact ||= layout.compact;
-        if (!actionLayoutFits(layout,sizes,limitedHeight,region)) {valid=false;break;}
+        if (!actionLayoutFits(layout,sizes,limitedHeight,region,identityWidth)) {valid=false;break;}
         nearest = Math.min(nearest,(layout.center.x-anchor.x)**2+(layout.center.y-anchor.y)**2);
       }
       if (valid) candidates.push({placement:{region,capacity,identityHeight:limitedHeight,scroll:false},distance:nearest,compact});
@@ -116,6 +117,6 @@ export function chooseActionPlacement(anchor: ClientPoint, entries: readonly Act
   candidates.sort((a,b) => Number(a.compact)-Number(b.compact) || b.placement.capacity-a.placement.capacity || a.distance-b.distance || (b.placement.region.right-b.placement.region.left)*(b.placement.region.bottom-b.placement.region.top)-(a.placement.region.right-a.placement.region.left)*(a.placement.region.bottom-a.placement.region.top));
   if (candidates.length) return candidates[0].placement;
   // The compact scroller retains minimum targets when a complete page cannot fit.
-  const fallback = regions.filter(region => region.right-region.left >= maximum.width && region.bottom-region.top >= 96).sort((a,b) => (b.right-b.left)*(b.bottom-b.top)-(a.right-a.left)*(a.bottom-a.top))[0];
+  const fallback = regions.filter(region => region.right-region.left >= Math.max(maximum.width,identityWidth+48) && region.bottom-region.top >= 96).sort((a,b) => (b.right-b.left)*(b.bottom-b.top)-(a.right-a.left)*(a.bottom-a.top))[0];
   return fallback ? {region:fallback,capacity:3,identityHeight:Math.min(identityHeight,44),scroll:true} : null;
 }

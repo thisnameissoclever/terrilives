@@ -4,9 +4,9 @@ name: Deploy to GitHub Pages
 # including a phone that is not on the same network.
 #
 # Execution stays separate from ci.yml because this workflow ships to the
-# public internet. Automatic publication follows successful push CI. A maintainer
-# may also dispatch the exact main commit after its relevant checks pass locally.
-# Both paths execute the site build and reject stale release artifacts.
+# public internet. Relevant production inputs publish directly from main after
+# local verification and independent review. Manual publication requires the
+# exact main commit. Both paths build once and reject stale release artifacts.
 #
 # KNOWN LIMIT, recorded because it contradicts TIM-TODO [T18]: GitHub
 # Pages cannot set response headers, so it cannot send COOP and COEP.
@@ -17,74 +17,122 @@ name: Deploy to GitHub Pages
 # the artifact is a static bundle; it will not get cheaper.
 
 on:
+  push:
+    branches: [main]
+    # Ordered patterns must equal changes.PAGES_PATHS for stale-release checks.
+    paths:
+      - '.github/workflows/pages.yml'
+      - '.github/scripts/changes.py'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - '.cargo/**'
+      - 'crates/*/Cargo.toml'
+      - 'crates/*/build.rs'
+      - 'crates/*/src/**'
+      - '!crates/*/src/**/tests/**'
+      - '!crates/*/src/**/tests.rs'
+      - '!crates/*/src/**/*_tests.rs'
+      - '!crates/*/src/test_content.rs'
+      - 'crates/terri-data/build_pre_books.rs'
+      - 'crates/terri-data/tests/fixtures/pre-books/*.toml'
+      - 'crates/terri-data/tests/fixtures/pre-books/source-revision.txt'
+      - 'crates/terri-data/tests/fixtures/pre-books-920abaf/*.toml'
+      - 'crates/terri-data/tests/fixtures/pre-books-920abaf/source-revision.txt'
+      - 'crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/*.toml'
+      - 'crates/terri-data/tests/fixtures/pre-books-f3cb7a1c/source-revision.txt'
+      - 'crates/terri-data/tests/fixtures/pre-books-89040f82/*.toml'
+      - 'crates/terri-data/tests/fixtures/pre-books-89040f82/source-revision.txt'
+      - 'crates/terri-data/tests/fixtures/pre-books-2f319c3b/*.toml'
+      - 'crates/terri-data/tests/fixtures/pre-books-2f319c3b/source-revision.txt'
+      - 'content/*.toml'
+      - 'assets/sprites/atlas.toml'
+      - 'assets/models/kitchen/wall-registration.json'
+      - 'assets/models/architecture-depth.json'
+      - 'assets/models/sims/character-creator/surface-policy.json'
+      - 'assets/models/sims/character-creator/export/manifest.json'
+      - 'assets/models/sims/character-creator/export/runtime*.bin'
+      - 'assets/models/sims/character-creator/clips/clips.json'
+      - 'assets/models/sims/character-creator/clips/**/runtime*.bin'
+      - 'assets/models/sims/character-creator/clips/*/parts.json'
+      - 'assets/models/sims/character-repair/fixture-depth/manifest.json'
+      - 'assets/models/sims/character-repair/fixture-depth/*.rgba'
+      - 'assets/models/sims/character-repair/aquarium-depth/manifest.json'
+      - 'assets/models/sims/character-repair/aquarium-depth/*.rgba'
+      - 'assets/models/sims/character-repair/outdoor-depth/manifest.json'
+      - 'assets/models/sims/character-repair/outdoor-depth/*.rgba'
+      - 'assets/models/sims/character-repair/shelf-depth/manifest.json'
+      - 'assets/models/sims/character-repair/shelf-depth/*.rgba'
+      - 'assets/models/sims/character-repair/components/manifest.json'
+      - 'assets/models/sims/character-repair/components/*.rgba'
+      - 'assets/models/sims/character-repair/dropped-book/manifest.json'
+      - 'assets/models/sims/character-repair/dropped-book/*.rgba'
+      - 'web/src/**'
+      - '!web/src/**/*.test.*'
+      - '!web/src/**/*.spec.*'
+      - '!web/src/**/__tests__/**'
+      - 'web/public/**'
+      - 'web/index.html'
+      - 'web/package.json'
+      - 'web/package-lock.json'
+      - 'web/vite.config.ts'
+      - 'web/tsconfig.json'
+      - 'web/changelog/**'
+      - 'web/guide/**'
+      - 'docs/player/**'
+      - 'scripts/build-changelog.mjs'
+      - 'scripts/build-player-guide.mjs'
+      - 'scripts/player-markdown.mjs'
+      - 'scripts/player-coverage.mjs'
+      - 'scripts/player-illustrations.mjs'
+      - 'scripts/player-activity-filters.mjs'
   workflow_dispatch:
     inputs:
       validated_sha:
         description: Full main commit whose relevant checks passed locally
         required: true
         type: string
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
 
 permissions:
   contents: read
   pages: write
   id-token: write
-  # To read which of the triggering CI run's jobs ran.
-  actions: read
 
-# One deploy at a time. Cancelling an in-flight run would be wrong here:
-# unlike a test run, a half-finished deploy is a state someone might be
-# looking at, so let it finish and queue the next. The queue is set on the
-# build and deploy jobs rather than the workflow, so an unpublished-docs-only
-# run, whose build is skipped, never joins it. GitHub keeps one waiting
-# entry per queue and cancels the older one, so a run that joined only to
-# deploy nothing could otherwise cancel a waiting deploy of real code.
+# Keep separate build and deployment queues. Let an in-flight publication
+# finish, then check current main immediately before releasing its artifact.
 
 jobs:
-  # Publish game changes and public changelog edits. Other documentation
-  # still skips publication. CI compares from the last tested game revision,
-  # so a notes-only edit cannot hide code whose own CI never passed.
   decide:
-    # Automatic publication requires successful push CI. Manual publication
-    # validates its locally checked commit against the workflow's main revision.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push')
+    if: github.repository == 'thisnameissoclever/terrilives'
     runs-on: ubuntu-latest
     outputs:
       site: ${{ steps.content.outputs.site }}
       tested_sha: ${{ steps.content.outputs.tested_sha }}
     steps:
-      - name: Find whether CI tested published content
+      - name: Authenticate the publication revision
         id: content
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN: ${{ github.event.workflow_run.id }}
           EVENT: ${{ github.event_name }}
           VALIDATED_SHA: ${{ inputs.validated_sha }}
-          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          PUSH_SHA: ${{ github.event.after }}
+          SOURCE_REPOSITORY: ${{ github.event.repository.full_name }}
         run: |
           set -eu
+          test "$GITHUB_REPOSITORY" = "thisnameissoclever/terrilives"
+          test "$SOURCE_REPOSITORY" = "$GITHUB_REPOSITORY"
+          test "$GITHUB_REF" = "refs/heads/main"
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
           if [ "$EVENT" = "workflow_dispatch" ]; then
-            test "$GITHUB_REF" = "refs/heads/main"
             test "$VALIDATED_SHA" = "$GITHUB_SHA"
-            echo "tested_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-            echo "site=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "tested_sha=$TESTED_SHA" >> "$GITHUB_OUTPUT"
-          tested=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN/jobs" \
-            --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | .conclusion] | any(. == "success")')
-          if [ "$tested" = "true" ]; then
-            echo "site=true" >> "$GITHUB_OUTPUT"
+            current_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+            test "$current_sha" = "$VALIDATED_SHA"
           else
-            echo "site=false" >> "$GITHUB_OUTPUT"
-            echo "No published content changed; the site stays as it is."
+            test "$EVENT" = "push"
+            test "$PUSH_SHA" = "$GITHUB_SHA"
           fi
+          echo "tested_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "site=true" >> "$GITHUB_OUTPUT"
 
   build:
     needs: decide
@@ -94,15 +142,13 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
-      # A workflow_run starts in the default-branch context. Check out the
-      # triggering CI run's tested revision rather than whichever main commit
-      # happens to be newest when this runner starts.
+      # Build the authenticated event revision, even if main moves while queued.
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.decide.outputs.tested_sha }}
 
       # rust-toolchain.toml is the single source for the version,
-      # components and targets. See ci.yml for why it is pinned.
+      # components and targets.
       - name: Install the pinned toolchain
         run: rustup show
 
@@ -135,6 +181,8 @@ jobs:
           set -eu
           test -f web/dist/index.html
           test -f web/dist/changelog/index.html
+          test -f web/dist/guide/index.html
+          test -f web/dist/guide/ui-elements/index.html
           wasm=$(find web/dist -name '*.wasm' | head -1)
           test -n "$wasm"
           echo "Game, changelog and $wasm present"
@@ -155,14 +203,17 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # A rerun or overlapping CI run can finish after a newer main run. The
+      # A rerun or overlapping publication can finish after a newer main run. The
       # concurrency queue orders Pages runs by arrival, not source history, so
       # re-check the live ref immediately before deployment and leave the
       # existing public revision alone when this artifact is stale.
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.decide.outputs.tested_sha }}
-          fetch-depth: 0
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: .github/scripts/changes.py
+          sparse-checkout-cone-mode: false
 
       # A tip that differs only in unpublished documentation serves the same
       # site, and its own documentation-only run will not
@@ -176,17 +227,17 @@ jobs:
         run: |
           set -eu
           current_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
-          test -n "$current_sha"
+          [[ "$current_sha" =~ ^[0-9a-f]{40}$ ]]
           if [ "$current_sha" = "$TESTED_SHA" ]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
             echo "Deploying current main revision $TESTED_SHA"
           else
-            git fetch --quiet origin main
+            git fetch --quiet --no-tags --depth=1 --filter=blob:none origin "$current_sha"
             classification=$(python3 -B .github/scripts/changes.py compare "$TESTED_SHA" "$current_sha")
             site=$(printf '%s\n' "$classification" | sed -n 's/^site=//p')
             if [ "$site" = "false" ]; then
               echo "current=true" >> "$GITHUB_OUTPUT"
-              echo "Deploying $TESTED_SHA; main is $current_sha, which adds only unpublished documentation"
+              echo "Deploying $TESTED_SHA; main is $current_sha, which changes no publication inputs"
             else
               echo "current=false" >> "$GITHUB_OUTPUT"
               echo "Skipping stale revision $TESTED_SHA; current main is $current_sha"

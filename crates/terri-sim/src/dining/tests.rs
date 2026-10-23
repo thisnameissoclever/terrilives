@@ -36,7 +36,7 @@ fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
             .unwrap()
             .chair
             .is_some();
-        let expected = 30. - 0.032 + if seated { 37. / 62. } else { -2. / 90. };
+        let expected = 30. - 0.021333333 + if seated { 37. / 62. } else { -2. / 90. };
         let actual = sim
             .world()
             .get::<Needs>(*person)
@@ -1033,7 +1033,7 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     for _ in 0..40 {
         let mut replay = Sim::new_from_shipped_lot();
         replay
-            .load_snapshot_v16(migrated.save_snapshot_v16())
+            .load_current_v19_view(migrated.current_v19_view())
             .unwrap();
         assert_eq!(replay.world_hash(), migrated.world_hash());
         migrated.tick();

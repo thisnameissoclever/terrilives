@@ -216,10 +216,12 @@ fn a_legacy_house_rear_shell_and_outside_apertures_are_refused() {
     let (mut sim, _) = house(vec![]);
     for request in [
         edit(Vertical, 0, 2, Wall),
-        edit(Vertical, 7, 2, Doorway),
+        edit(Vertical, 0, 2, Doorway),
+        edit(Vertical, 8, 2, Doorway),
         edit(Vertical, 3, 7, Wall),
         edit(Horizontal, 2, 0, Wall),
-        edit(Horizontal, 2, 7, Doorway),
+        edit(Horizontal, 2, 0, Doorway),
+        edit(Horizontal, 2, 8, Doorway),
         edit(Horizontal, 7, 2, Wall),
         edit(Vertical, u32::MAX, 2, Doorway),
     ] {
@@ -1117,7 +1119,7 @@ fn the_front_doors_line_is_kept_without_the_doors_art() {
 }
 
 #[test]
-fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdoor_apertures() {
+fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt() {
     for (x, y, axis, wall_x, wall_y) in [
         (18, 0, Horizontal, 18, 0),
         (0, 14, Vertical, 0, 14),
@@ -1145,13 +1147,6 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
         sim.flush_commands();
         let boundary = line(axis, wall_x, wall_y, false);
         assert!(edges(&sim).contains(&boundary));
-        for state in [Doorway, Window] {
-            refused(
-                &mut sim,
-                edit(axis, wall_x, wall_y, state),
-                PlacementRefusal::OutOfBounds,
-            );
-        }
         applied(&mut sim, edit(axis, wall_x, wall_y, Open));
         assert!(!edges(&sim).contains(&boundary));
         let mut reader = Sim::new_from_shipped_lot();
@@ -1161,6 +1156,65 @@ fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdo
         assert!(edges(&reader).contains(&boundary));
         sim.load_snapshot_v16(reader.save_snapshot_v16()).unwrap();
         assert!(edges(&sim).contains(&boundary));
+    }
+}
+
+/// The shipped lot with one confirmed room on the tiles from `(x0, y0)` to `(x1, y1)`.
+pub(crate) fn shipped_lot_with_room(x0: u32, y0: u32, x1: u32, y1: u32) -> Sim {
+    let mut sim = Sim::new_from_shipped_lot();
+    let room = super::super::rooms::RoomEdit {
+        x0,
+        y0,
+        x1,
+        y1,
+        doorway: None,
+    };
+    assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway: None,
+        });
+    sim.flush_commands();
+    sim
+}
+
+#[test]
+fn walls_on_every_lot_edge_take_doorways_and_windows_that_survive_a_save() {
+    for (x, y, axis, wall_x, wall_y) in [
+        (18, 0, Horizontal, 18, 0),
+        (0, 14, Vertical, 0, 14),
+        (19, 14, Vertical, 20, 14),
+        (18, 15, Horizontal, 18, 16),
+    ] {
+        let mut sim = shipped_lot_with_room(x, y, x, y);
+        let segment = WallLine {
+            axis,
+            x: wall_x,
+            y: wall_y,
+        };
+        let grid = format!("{:?}", sim.world().resource::<TileGrid>());
+        for state in [Doorway, Window] {
+            applied(&mut sim, edit(axis, wall_x, wall_y, state));
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                state
+            );
+            let mut reader = Sim::new_from_shipped_lot();
+            reader.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+            assert_eq!(
+                reader.world().resource::<SavedLayout>().state_of(segment),
+                state
+            );
+            applied(&mut sim, edit(axis, wall_x, wall_y, Wall));
+            assert!(edges(&sim).contains(&line(axis, wall_x, wall_y, false)));
+        }
+        // Nothing lies beyond the lot's edge, so the opening never touched the movement grid.
+        assert_eq!(format!("{:?}", sim.world().resource::<TileGrid>()), grid);
     }
 }
 

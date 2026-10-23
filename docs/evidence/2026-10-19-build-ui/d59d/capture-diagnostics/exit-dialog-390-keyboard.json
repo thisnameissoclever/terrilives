@@ -1,0 +1,217 @@
+{
+  "source": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "raster": {
+    "width": 390,
+    "height": 844,
+    "mime": "image/jpeg"
+  },
+  "geometry": {
+    "active": {
+      "box": {
+        "height": 281.84375,
+        "width": 358,
+        "x": 16,
+        "y": 281.078125
+      },
+      "focusVisible": false,
+      "label": "Leave Build mode?\n      Discarding changes undoes this batch, including purchases and sales.\n      \n        \n          Keep building\n          Discard changes\n          Confirm changes",
+      "outline": "rgb(216, 216, 224) none 3px"
+    },
+    "buttons": [
+      {
+        "background": "rgb(91, 45, 53)",
+        "box": {
+          "height": 44,
+          "width": 70.5625,
+          "x": 300.4375,
+          "y": 386.234375
+        },
+        "color": "rgb(255, 240, 241)",
+        "label": "Exit build"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 73.515625,
+          "x": 19,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Furniture"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 50.109375,
+          "x": 97.515625,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Walls"
+      },
+      {
+        "background": "rgb(41, 49, 58)",
+        "box": {
+          "height": 44,
+          "width": 60.09375,
+          "x": 152.625,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Rooms"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 40.46875,
+          "x": 217.71875,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Buy"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 55.1875,
+          "x": 263.1875,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Floors"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 47.625,
+          "x": 323.375,
+          "y": 438.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Land"
+      },
+      {
+        "background": "rgb(41, 49, 58)",
+        "box": {
+          "height": 44,
+          "width": 172,
+          "x": 19,
+          "y": 490.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Select rooms"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 172,
+          "x": 199,
+          "y": 490.234375
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Build room"
+      },
+      {
+        "background": "rgb(91, 45, 53)",
+        "box": {
+          "height": 44,
+          "width": 62.90625,
+          "x": 228.59375,
+          "y": 773
+        },
+        "color": "rgb(255, 240, 241)",
+        "label": "Cancel"
+      },
+      {
+        "background": "rgb(38, 79, 61)",
+        "box": {
+          "height": 44,
+          "width": 71.5,
+          "x": 299.5,
+          "y": 773
+        },
+        "color": "rgb(232, 248, 237)",
+        "label": "Confirm"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "box": {
+          "height": 44,
+          "width": 320,
+          "x": 35,
+          "y": 395.921875
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Keep building"
+      },
+      {
+        "background": "rgb(91, 45, 53)",
+        "box": {
+          "height": 44,
+          "width": 320,
+          "x": 35,
+          "y": 447.921875
+        },
+        "color": "rgb(255, 240, 241)",
+        "label": "Discard changes"
+      },
+      {
+        "background": "rgb(38, 79, 61)",
+        "box": {
+          "height": 44,
+          "width": 320,
+          "x": 35,
+          "y": 499.921875
+        },
+        "color": "rgb(232, 248, 237)",
+        "label": "Confirm changes"
+      },
+      {
+        "background": "rgb(22, 22, 28)",
+        "box": {
+          "height": 44,
+          "width": 53,
+          "x": 272,
+          "y": 8
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Zoom out"
+      },
+      {
+        "background": "rgb(22, 22, 28)",
+        "box": {
+          "height": 44,
+          "width": 53,
+          "x": 329,
+          "y": 8
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Zoom in"
+      },
+      {
+        "background": "rgb(22, 22, 28)",
+        "box": {
+          "height": 44,
+          "width": 110,
+          "x": 272,
+          "y": 56
+        },
+        "color": "rgb(216, 216, 224)",
+        "label": "Options"
+      }
+    ],
+    "clock": "\n        \n          Time\n          Day 1, Monday\n03:09\nSpring: mild\n        \n        \n          Funds\n          0\n        \n\n        \n        \n          Saved game loaded\n          \n          \n        \n      ",
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390
+    }
+  }
+}

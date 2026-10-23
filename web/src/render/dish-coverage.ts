@@ -5,7 +5,7 @@ const coverage = new Map<number, Uint8Array>();
 /** Retain decoded alpha only for the small surface dish props. */
 export function setDishCoverage(sprite: number, alpha: Uint8Array): void {
   const rect = SPRITES[sprite];
-  if (alpha.length !== rect.w * rect.h) throw new Error('Dish alpha dimensions differ from the atlas sprite');
+  if (!rect || alpha.length !== rect.w * rect.h) throw new Error('Dish alpha dimensions differ from the atlas sprite');
   coverage.set(sprite, alpha);
 }
 

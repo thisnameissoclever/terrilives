@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_artifacts",
+    "test_mutation_recovery.RecoveryTests.test_snapshot_authentication_reconstructs_exact_records_and_retained_log_bytes",
+    "test_mutation_recovery.RecoveryTests.test_actual_job_token_budget_refuses_before_preparation_or_native_work"
+  ],
+  "cwd": ".github/scripts",
+  "exit_code": 0,
+  "seconds": 1.427,
+  "output": ".....................................\n----------------------------------------------------------------------\nRan 37 tests in 1.184s\n\nOK\n"
+}

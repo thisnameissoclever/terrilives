@@ -1,0 +1,34 @@
+[
+  {
+    "diff": "--- src/lib.rs\n+++ delete field second from struct Pair expression in configured\n@@ -1,13 +1,13 @@\n #[derive(Default)]\n pub struct Pair {\n     pub first: i32,\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n-    Pair { first: 11, second: 22, ..Default::default() }\n+    Pair { first: 11,  /* ~ changed by cargo-mutants ~ */ ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n     left + right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "configured",
+      "return_type": "-> Pair",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 9
+        },
+        "start": {
+          "column": 1,
+          "line": 7
+        }
+      }
+    },
+    "genre": "StructField",
+    "name": "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+    "package": "selector-qualification",
+    "replacement": "",
+    "span": {
+      "end": {
+        "column": 34,
+        "line": 8
+      },
+      "start": {
+        "column": 23,
+        "line": 8
+      }
+    }
+  }
+]
