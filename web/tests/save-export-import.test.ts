@@ -100,6 +100,7 @@ describe('Export save', () => {
 
     expect(await controller.exportSave(() => { throw new Error('blocked'); })).toBe(false);
     expect(view.textContent).toBe('Export failed. The game is still running. Saving paused.');
+    expect(view.attributes.get('data-kind')).toBe('error');
 
     const empty = store(null);
     empty.load = async () => { throw new Error('storage unavailable'); };
@@ -109,6 +110,7 @@ describe('Export save', () => {
     empty.load = async () => null;
     expect(await unavailable.exportSave(() => {})).toBe(false);
     expect(emptyView.textContent).toBe('No saved game found. Saving paused.');
+    expect(emptyView.attributes.get('data-kind')).toBe('error');
   });
 
   it('reads the protected slot when its bytes are not already known', async () => {
