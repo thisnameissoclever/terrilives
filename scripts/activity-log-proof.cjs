@@ -8,8 +8,8 @@
 //   node scripts/activity-log-proof.cjs rebuild     [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
 //   node scripts/activity-log-proof.cjs clicks      [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
 //
-// `--everyone` clears the selected housemate after opening the panel, so
-// every record's line shows rather than only those involving one person.
+// `--everyone` clears the selected housemate and waits until the panel
+// shows every person's lines rather than only those involving one person.
 //
 // performance: the release frame-time gate of docs/ARCHITECTURE.md with the
 //   panel closed, then open with every filter on. Needs a displayed
@@ -482,6 +482,30 @@ function timedClick(selector) {
   };
 }
 
+/**
+ * Clears the selection and checks that an open panel shows every person.
+ * `fastForward` leaves the page's frame clock ahead of real time, so the
+ * page's own frames would not reach the roster's next refresh, and the
+ * panel would keep the old selection. Ten more paused frames on the same
+ * clock let the roster report the cleared selection.
+ */
+async function showEveryone(page) {
+  await page.evaluate(() => {
+    const stress = globalThis.__terriStress;
+    stress.sim.select(null);
+    let now = Math.max(globalThis.__activityLogProofClock ?? 0, performance.now());
+    for (let frame = 0; frame < 10; frame += 1) {
+      now += 200;
+      stress.step(now);
+    }
+    globalThis.__activityLogProofClock = now;
+  });
+  await page.locator('#activity-log-toggle').click();
+  const everyone = await page.evaluate(() => document.querySelector('#activity-log-selected')?.hidden === true);
+  await page.locator('#activity-log-toggle').click();
+  if (!everyone) throw new Error('the panel still shows one person after the selection was cleared');
+}
+
 /** Opening, filter changes and Show earlier entries, with the store filled first. */
 async function runRebuild(browser, args) {
   const { context, page } = await openPage(browser, args, true);
@@ -489,8 +513,7 @@ async function runRebuild(browser, args) {
     await closeHelpAndSetThreeTimes(page);
     await setSpeed(page, 0);
     await page.evaluate(fastForward, args.fillTicks);
-    if (args.everyone) await page.evaluate(() => globalThis.__terriStress.sim.select(null));
-    // Let the roster's poll see the selection before the panel reads it.
+    if (args.everyone) await showEveryone(page);
     await page.waitForTimeout(500);
     const state = await logState(page);
     const opens = [];
@@ -567,7 +590,7 @@ async function runClicks(browser, args) {
     await closeHelpAndSetThreeTimes(page);
     await setSpeed(page, 0);
     await page.evaluate(fastForward, args.fillTicks);
-    if (args.everyone) await page.evaluate(() => globalThis.__terriStress.sim.select(null));
+    if (args.everyone) await showEveryone(page);
     await page.waitForTimeout(500);
     const state = await logState(page);
     const report = { state, baseline: [], open: [], filter: [], earlier: [] };
