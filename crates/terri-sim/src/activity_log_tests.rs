@@ -269,6 +269,49 @@ fn label_table_covers_every_action_and_chain_label() {
     assert_eq!(sim.activity_log().label(pack, "not a label anywhere"), NONE);
 }
 
+/// A privacy line names the fixture by its type, and the shell words a
+/// missing fixture as the bathroom. Both hold only while every object that
+/// starts private use is a bathroom fixture with a type label of its own,
+/// never a model name.
+#[test]
+fn private_use_fixtures_are_named_bathroom_types() {
+    let sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let private: Vec<_> = pack
+        .objects
+        .iter()
+        .filter(|object| {
+            object.interactions.iter().any(|action| {
+                action
+                    .tags
+                    .iter()
+                    .any(|tag| tag == crate::systems::interpersonal::PRIVATE_USE_TAG)
+            })
+        })
+        .collect();
+    let mut types: Vec<&str> = private.iter().map(|object| object.display_name()).collect();
+    types.sort_unstable();
+    types.dedup();
+    assert_eq!(types, ["Bathtub", "Shower", "Toilet"]);
+    for object in private {
+        let metadata = object.metadata.as_ref().expect("a typed object");
+        assert_eq!(object.display_name(), metadata.type_label, "{}", object.id);
+        assert_ne!(object.display_name(), object.name, "{}", object.id);
+        assert!(
+            metadata.rooms.iter().any(|room| room == "bathroom"),
+            "{}",
+            object.id
+        );
+        assert_ne!(sim.activity_log().label(pack, object.display_name()), NONE);
+        assert_eq!(
+            sim.activity_log().label(pack, &object.name),
+            NONE,
+            "{}",
+            object.id
+        );
+    }
+}
+
 /// One world's run of the shipped household: its hash after every tick,
 /// its generator at the end and every record it staged. `churn` builds a
 /// different archetype history the way

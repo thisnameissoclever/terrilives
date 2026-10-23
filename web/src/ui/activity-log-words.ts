@@ -132,17 +132,18 @@ export function objectInSentence(type: string): string {
 
 /**
  * Annoyance lines, by the cause label the simulation records. `object` is
- * the object's type label, or the affinity kind for a nuisance.
+ * the object's type label, or the affinity kind for a nuisance. For a
+ * privacy incident it is the fixture in private use; only toilets, showers
+ * and bathtubs start private use, so a fixture the shell cannot name is
+ * still in the bathroom.
  */
 export function annoyance(cause: string, other: string, object: string | null): string {
+  const fixture = () => (object === null ? 'bathroom' : objectInSentence(object));
   switch (cause) {
     case 'cause:household-mess': return `Annoyed by ${other}'s dishes`;
     case 'cause:dirty-setting': return `Annoyed by ${other}'s dirty place setting`;
-    case 'cause:privacy-entry': return `Annoyed that ${other} walked in`;
-    case 'cause:privacy-start':
-      return object === null
-        ? `Annoyed that ${other} used something nearby`
-        : `Annoyed that ${other} used the ${objectInSentence(object)} nearby`;
+    case 'cause:privacy-entry': return `Annoyed that ${other} walked in while they were using the ${fixture()}. Awkward.`;
+    case 'cause:privacy-start': return `Annoyed that ${other} started using the ${fixture()} right in front of them. Awkward.`;
     case 'cause:low-need-interruption':
     case 'cause:critical-need-interruption': return `Annoyed that ${other} interrupted`;
     // Reused from the mood panel's moodlet.

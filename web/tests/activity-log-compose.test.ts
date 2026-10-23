@@ -20,7 +20,7 @@ const LABELS = [
   'Chat', 'cooking', 'Read a book', 'Reading', 'Do dishes', 'cause:chore-fulfilled', 'cause:household-mess',
   'cause:privacy-entry', 'cause:nuisance', 'television', 'Cooking', 'Senior clerk', 'Office clerk', 'Fight',
   'fight-dishes', 'Clean floor', 'radio', 'Join meal', 'cause:meal-shared', 'cause:chore-neglected', 'smalltalk',
-  'Watch TV', 'cause:privacy-start', 'Shower', 'Toilet', 'Bathroom sink', 'TV stand',
+  'Watch TV', 'cause:privacy-start', 'Shower', 'Toilet', 'Bathroom sink', 'TV stand', 'Bathtub',
 ] as const;
 const L = Object.fromEntries(LABELS.map((label, index) => [label, index])) as Record<(typeof LABELS)[number], number>;
 
@@ -164,7 +164,7 @@ describe('activity log lines', () => {
     expect(lines(store, C)).toEqual(['Tim: Chores this week: Do dishes, Clean floor (Kitchen)', 'Tim: Missed chore: Do dishes']);
     expect(lines(store, S)).toEqual([
       "Bill: Annoyed by Casey's dishes",
-      'Bill: Annoyed that Casey walked in',
+      'Bill: Annoyed that Casey walked in while they were using the bathroom. Awkward.',
       'Bill: Bothered by Casey using the television',
       'Tim: Died',
       'Tim: Fight with Bill about the dishes; Tim and Bill like each other less',
@@ -202,12 +202,19 @@ describe('activity log lines', () => {
     expect(lines(missed, S | D)).toEqual(['Tim: Missed chore: Do dishes; Casey resents Tim (-2 opinion of Tim)']);
     // The simulation records the object's type label, never its model name;
     // the line lowercases it mid-sentence unless it starts with an acronym.
-    const start = (object: number) => record({
-      seq: 1, kind: KIND.annoyed, triggers: S, actor: BILL, other: CASEY, label: L['cause:privacy-start'], label2: object,
+    const privacy = (cause: 'cause:privacy-start' | 'cause:privacy-entry', object?: number) => record({
+      seq: 1, kind: KIND.annoyed, triggers: S, actor: TIM, other: BILL, label: L[cause], label2: object,
     });
-    expect(lines(storeOf(start(L.Toilet)), S)).toEqual(['Bill: Annoyed that Casey used the toilet nearby']);
-    expect(lines(storeOf(start(L['Bathroom sink'])), S)).toEqual(['Bill: Annoyed that Casey used the bathroom sink nearby']);
-    expect(lines(storeOf(start(L['TV stand'])), S)).toEqual(['Bill: Annoyed that Casey used the TV stand nearby']);
+    expect(lines(storeOf(privacy('cause:privacy-start', L.Toilet)), S))
+      .toEqual(['Tim: Annoyed that Bill started using the toilet right in front of them. Awkward.']);
+    expect(lines(storeOf(privacy('cause:privacy-start', L.Bathtub)), S))
+      .toEqual(['Tim: Annoyed that Bill started using the bathtub right in front of them. Awkward.']);
+    expect(lines(storeOf(privacy('cause:privacy-start', L['TV stand'])), S))
+      .toEqual(['Tim: Annoyed that Bill started using the TV stand right in front of them. Awkward.']);
+    expect(lines(storeOf(privacy('cause:privacy-start')), S), 'every private fixture is in a bathroom')
+      .toEqual(['Tim: Annoyed that Bill started using the bathroom right in front of them. Awkward.']);
+    expect(lines(storeOf(privacy('cause:privacy-entry', L.Shower)), S))
+      .toEqual(['Tim: Annoyed that Bill walked in while they were using the shower. Awkward.']);
   });
 
   it('rounds halves away from zero for both signs', () => {
