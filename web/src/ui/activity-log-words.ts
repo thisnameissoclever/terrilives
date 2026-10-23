@@ -71,7 +71,6 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['television', 'TV'], ['tv', 'TV'],
   ['lounging', 'lounging'],
   ['bathroom_privacy', 'bathroom privacy'],
-  ['fighting', 'fighting'],
   ['washing', 'washing'], ['hygiene', 'washing'],
   ['cleaning', 'cleaning'],
   ['music', 'music'], ['radio', 'music'],

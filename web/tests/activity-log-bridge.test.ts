@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { ACTIVITY_LOG_RECORD_WORDS, SimBridge } from '../src/bridge.js';
-import { SOMETHING, topicWord } from '../src/ui/activity-log-words.js';
+import { NO_SUBJECT_TAGS, SOMETHING, TOPIC_WORDS, topicWord } from '../src/ui/activity-log-words.js';
 
 // [AL-bridge] against the freshly built wasm: records cross the boundary,
 // the label table decodes, a detached view cannot lose records, and a Load
@@ -49,6 +49,23 @@ function tickUntil(handle: SimHandle, bridge: SimBridge, wanted: (record: Uint32
 }
 
 describe('activity log bridge', () => {
+  it('names every cause and topic tag the shell words in the real label table', () => {
+    // The shell matches these strings; a rename on either side must fail here.
+    const source = ['activity-log-words.ts', 'activity-log-compose.ts']
+      .map(file => readFileSync(new URL(`../src/ui/${file}`, import.meta.url), 'utf8')).join(' ');
+    const causes = [...new Set(source.match(/'cause:[a-z-]+'/g)!.map(quoted => quoted.slice(1, -1)))];
+    expect(causes.length).toBeGreaterThan(8);
+    const handle = SimHandle.from_lot();
+    try {
+      const labels = new Set(new SimBridge(handle, memory).activityLogLabels());
+      expect(causes.filter(cause => !labels.has(cause))).toEqual([]);
+      const tags = [...TOPIC_WORDS.keys(), ...NO_SUBJECT_TAGS];
+      expect(tags.filter(tag => !labels.has(tag))).toEqual([]);
+    } finally {
+      handle.free();
+    }
+  });
+
   it('has a topic word for every fight reason the simulation can name', () => {
     const handle = SimHandle.from_lot();
     try {
