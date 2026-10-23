@@ -370,7 +370,7 @@ These are proposals, not approved copy. They live in one shell module, `web/src/
 
 | Surface | Proposed strings |
 | --- | --- |
-| Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details; Time; Only entries involving {name}.; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries |
+| Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details; Time; Only entries involving {name}.; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries; the accessible names Filters, for the filter group, and Log entries, for the scrolling list |
 | Head | {name}: {label}; with {name}; about {topic}, left out for small talk and a fight over nothing in particular, which read Chat with {name} and Fight with {name}; Someone at the start of a line and someone elsewhere, for a person the shell never saw a name for |
 | Time | D{day}, T{hh}:{mm} |
 | Topic words, phase 1 | eating; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging; washing; cleaning; music; letters; baths; cooking; bathroom privacy; something; the dishes; chores; for arguments over a grievance privacy, TV, music, exercise, a nuisance and interruptions; for arguments over an everyday topic the same words as that topic's chats, with ingredients and preparing food |
