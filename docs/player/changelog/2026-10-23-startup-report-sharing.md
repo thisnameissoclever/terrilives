@@ -4,8 +4,8 @@ A new Log lists what the household has done this session. Send loading and in-ga
 
 ## New
 
-- The Log button at the top right opens a list of what the household has done: finished activities, chats and fights, annoyances, chores, new skill levels, weekly reviews, job changes and deaths. The game keeps running while it is open.
-- Log filters choose what each entry shows: Actions, Chores, Social, Skills, Career, Details for numbers such as opinion changes, and Time for the day and time. Select a housemate to see only entries involving them.
+- The Log button at the top right opens a list of what the household has done this session. The game keeps running while it is open.
+- The Log starts with Actions, Social and Career on, showing finished activities, chats and fights, annoyances, weekly reviews, job changes and deaths. Turn on Chores and Skills to add chore and skill entries, Details for numbers such as opinion changes, and Time for the day and time. Select a housemate to see only entries involving them.
 - The log covers the current session only. It is not saved, and it starts empty when you load a game or start a new one.
 
 ## Improved
