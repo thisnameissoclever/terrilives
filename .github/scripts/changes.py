@@ -59,7 +59,7 @@ PAGES_PATHS = (
     "web/src/**", "!web/src/**/*.test.*", "!web/src/**/*.spec.*",
     "!web/src/**/__tests__/**", "web/public/**", "web/index.html",
     "web/package.json", "web/package-lock.json", "web/vite.config.ts",
-    "web/tsconfig.json", "web/changelog/**", "web/guide/**",
+    "web/tsconfig.json", "web/changelog/**", "web/guide/**", "web/startup-report/**",
     "docs/player/**", "scripts/build-changelog.mjs",
     "scripts/build-player-guide.mjs", "scripts/player-markdown.mjs",
     "scripts/player-coverage.mjs", "scripts/player-illustrations.mjs",

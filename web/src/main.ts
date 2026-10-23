@@ -1,3 +1,4 @@
+import {recordDiagnostic} from './diagnostics.js';
 import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
@@ -2671,9 +2672,12 @@ async function main(): Promise<void> {
       );
       if (!firstSceneRecorded) {
         firstSceneRecorded = true;
+        recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'start'});
         void gpu.device.queue.onSubmittedWorkDone().then(() => {
+          recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'complete'});
           window.dispatchEvent(new Event('terrilives:startup-ready'));
         }, error => {
+          recordDiagnostic('graphics.first-frame',{id:'first-scene',state:'failed'},error);
           window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
         });
       }

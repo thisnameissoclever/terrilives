@@ -1,4 +1,6 @@
+import {recordDiagnostic} from '../../diagnostics.js';
 const MAX_ATTEMPTS=3;
+let downloadSequence=0;
 const MAX_RETRY_WAIT_MS=15_000;
 const RESPONSE_HEADERS=['server','content-type','retry-after','age','via','x-cache','x-served-by','x-github-request-id','x-fastly-request-id'] as const;
 
@@ -43,10 +45,11 @@ function retryDelay(response:Response,fallback:number):number {
 }
 
 /** Recover a temporary service outage without accepting missing or invalid assets. */
-export async function readCharacterAsset(url:URL):Promise<ArrayBuffer> {
+async function download(url:URL):Promise<ArrayBuffer> {
   let waited=0;
   for(let attempt=0;attempt<MAX_ATTEMPTS;attempt++){
     const response=await (attempt===0?fetch(url):fetch(url,{cache:'reload'}));
+    recordDiagnostic('asset.response',{path:url.pathname,status:response.status,attempt:attempt+1});
     if(response.ok)return response.arrayBuffer();
     const delay=retryDelay(response,attempt===0?500:1500);
     if(response.status!==503||attempt===MAX_ATTEMPTS-1||delay>MAX_RETRY_WAIT_MS-waited){
@@ -58,4 +61,14 @@ export async function readCharacterAsset(url:URL):Promise<ArrayBuffer> {
     await new Promise<void>(resolve=>setTimeout(resolve,delay));
   }
   throw new Error('Character asset download attempts exhausted');
+}
+
+export async function readCharacterAsset(url:URL):Promise<ArrayBuffer> {
+  const id=`download:${++downloadSequence}:${url.pathname}`,started=Date.now();
+  recordDiagnostic('asset.download',{id,state:'start',path:url.pathname});
+  try{
+    const bytes=await download(url);
+    recordDiagnostic('asset.download',{id,state:'complete',path:url.pathname,bytes:bytes.byteLength,elapsedMs:Date.now()-started});
+    return bytes;
+  }catch(error){recordDiagnostic('asset.download',{id,state:'failed',path:url.pathname,elapsedMs:Date.now()-started},error);throw error;}
 }

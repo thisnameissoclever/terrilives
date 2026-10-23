@@ -209,40 +209,40 @@
         "method": "Displayed isolated Chrome 155 through the provided Playwright tool; one game navigation, muted process, initial Help paused at 00:00."
       },
       {
-        "id": "save-files",
-        "url": "https://127.0.0.1:4173/",
-        "htmlSha256": "f1d1899ea1c7f525ac1a056fa5eb198eefe8d02cf178183104cecf4087c6b5d2",
-        "bundle": "index-rtN_q1qT.js",
-        "bundleSha256": "fdbfe3502aea9e51792fb58374f368402700707d334425a7c3c73d9fffc54fce",
-        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
-        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
-        "gameSourceFileSha256": {
-          "web/index.html": "395e9179e2c62adfc362c75a94f4c47b26c001ee032b4b25ac5d5e71c33e1468",
-          "web/src/main.ts": "bbe0947173a9e06dd921d926a7743962e79fb611eed1c23e11de1b9433c9923c",
-          "web/src/ui/persistence-controller.ts": "dc7bfcbb1070c16def847cc725a47b98b991de8c53d8e15f65883fdffa3fecdf",
-          "web/src/storage/save-file.ts": "ad5eb421d726469edf632e9ee96d885c9006b98bef09bb00afad20ea2c6b84e9"
+        "id": "startup-report-sharing",
+        "url": "http://127.0.0.1:5177/terrilives/startup-report.html",
+        "sourceFileSha256": {
+          "web/index.html": "b075a4cf6396eea02c9e818d155f30079426b01754f006cf99f7a0f1708e49f6",
+          "web/src/ui/startup-failure.ts": "ee934e99cb719afd9ce1fec1541b1e210d8a4399dccc9c5a59bc9947a189d5d3",
+          "web/public/startup-diagnostics-v2.js": "9860faa4e4dc726bbe16142ce1708b4af066da4a51c8b79fd14a699fb76090b9",
+          "web/startup-report/template.html": "a68127ec2dc2d0a3dddc1e180bcc939c5dc0f27a849203d0d7e3307bb389a3fb",
+          "web/startup-report/plugin.ts": "fc17ef40988db9f02d31121705c843cd8ec66b928311c7163f9a92c44a520d3d",
+          "web/vite.config.ts": "66155ae191158a5e7683882a344df49c2cf74aa227d2f404e45d4d78dd12e371"
         },
-        "hashNormalization": "Text source hashes normalize CRLF to LF.",
-        "capturedAt": "2026-10-23",
-        "method": "Playwright Chrome against this worktree build served by vite preview; Sound off before any capture; Options opened from the world controls after dismissing first-run Help."
+        "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+        "bundle": "./assets/index-B7Q70Ugo.js",
+        "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+        "browser": "Google Chrome 155 on Windows; isolated muted context",
+        "evidence": "docs/evidence/2026-10-23-startup-report-sharing/verification.json"
       },
       {
-        "id": "save-files-review",
-        "url": "https://127.0.0.1:4173/",
-        "htmlSha256": "b5793090e51c7c572dec9b48bc0d03844457455a907d5ea45f3a8451753805eb",
-        "bundle": "index-DNRQnDks.js",
-        "bundleSha256": "63947e1607a4b7d77b09efc992a7453857e571a55a48f9b063cc82d6cf74480e",
-        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
-        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
-        "gameSourceFileSha256": {
-          "web/index.html": "c22444a425fc02b2ca6a1f02b92ffe35bd7638550fceea6464548712a17c8a66",
-          "web/src/main.ts": "3c79c63305c114116d68ed664b1fa35bd47673118b6be072da9b8ce41eee464d",
-          "web/src/ui/persistence-controller.ts": "53681fd17eca49a47ea48be075abd30cd3575aba8a15d47bf802b565c63370d8",
-          "web/src/storage/save-file.ts": "208998ca29d5791c47441b87da78392e2456242a1ef7ab22cd0bc74c250a32a4"
+        "id": "meaningful-debug-reports",
+        "url": "http://127.0.0.1:5177/terrilives/",
+        "sourceFileSha256": {
+          "web/public/startup-diagnostics-v3.js": "7d59411a9bcde77ce95b3c70e1dced1351cab26120db22b1c200b9ee04f9825a",
+          "web/startup-report/template.html": "14a01a7f48aa2f64964573acf3fbd914adb3ac8e7c72f5f881d88ec340349e92",
+          "web/index.html": "0063b27b44438136b68d5ad2db5d70db198ed704773bfcfa7f007e28b93939e3",
+          "web/src/diagnostics.ts": "ecd5b212d932508fc11a706b5274bf00fedd97be1cad3a761071fbb1856d136e",
+          "web/src/render/device.ts": "f69c7b8837789d373efe1e4813e84a83a43ccd6fc329f50648947e5b04f3be6a",
+          "web/src/render/character/asset-download.ts": "5091cbdd0b6cddbdc2ddf5ba2b71381a7b55e7d1be8992161c38d6cd61345ae9",
+          "web/src/render/character/character-preparation-service.ts": "bd89aba95510f11bc12d64ffba84ef9b500a840979b8fd4774b392db4bda14c8",
+          "web/src/render/character/preparation-transport.ts": "c16e056b2dd7a575e0022812ab9cc0b44aba0be505d9fb158bd9349f9357cf10",
+          "web/src/main.ts": "8be9e2e0a9784f5cbd4de18a2f7e9fa869e9d5f82510e9a1f72fb17808a4ac0b"
         },
-        "hashNormalization": "Text source hashes normalize CRLF to LF.",
-        "capturedAt": "2026-10-23",
-        "method": "Playwright Chrome against this worktree build served by vite preview; Sound off; Options closed with Escape; a saved game file chosen through Import save."
+        "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+        "bundle": "./assets/index-CF2EA_TM.js",
+        "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+        "evidence": "docs/evidence/2026-10-23-meaningful-debug-reports/verification.json"
       }
     ],
     "weatherSetup": {
@@ -388,18 +388,18 @@
       "section": "options",
       "desktop": "images/ui-options-desktop.png",
       "mobile": "images/ui-options-mobile.png",
-      "description": "Options open, with New housemate above Save, Load, Export save and Import save.",
+      "description": "Options open, with New housemate above Save and Load.",
       "access": "Choose Options beside Build.",
       "desktopDetail": "images/ui-options-detail-desktop.png",
-      "sourceSnapshot": "save-files",
-      "htmlSha256": "f1d1899ea1c7f525ac1a056fa5eb198eefe8d02cf178183104cecf4087c6b5d2",
-      "bundleSha256": "fdbfe3502aea9e51792fb58374f368402700707d334425a7c3c73d9fffc54fce",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
       "mobileDetail": "images/ui-options-detail-mobile.png",
       "imageSha256": {
-        "desktop": "2ceeb22f97a48d1e3619905f0e22e4b190700ae46da4de34508764e167a76fc2",
-        "mobile": "929ca478ee10ea5ed0f0815101d44c4520b192a6596361fdfb251aefbd7dd403",
-        "desktopDetail": "7a86c9b91ee578488878e0434947c69208ba854e945e8cb2a7b0f8ecf3aae6ff",
-        "mobileDetail": "5db86215b4d19161ba4f568255de8a38e4ed5eb765df2cb421bc9ea7ccba75b6"
+        "desktop": "9bc540af1042ceb04e5e8ca3014aae946c03105bc6231f729dca94ef379f67fc",
+        "mobile": "9c01197624aeb1d4be61a58f85b9a5266687d0f5940e7bfa3e6b0feb89a7baaf",
+        "desktopDetail": "1eb48331d7f29f9a4d9dad15e2d13915fc64de85e56a36e605108cc147b0b533",
+        "mobileDetail": "b400e0ab789298badfd9e9b99429bde1108d95e5efe324a45c763045d43bd6d2"
       }
     },
     {
@@ -1288,21 +1288,6 @@
       }
     },
     {
-      "id": "import-confirm",
-      "section": "saves",
-      "desktop": "images/ui-import-confirm-desktop.png",
-      "mobile": "images/ui-import-confirm-mobile.png",
-      "description": "Import save confirmation, with Keep playing and Import game.",
-      "access": "Choose Options > Import save, then pick a saved game file.",
-      "sourceSnapshot": "save-files-review",
-      "htmlSha256": "b5793090e51c7c572dec9b48bc0d03844457455a907d5ea45f3a8451753805eb",
-      "bundleSha256": "63947e1607a4b7d77b09efc992a7453857e571a55a48f9b063cc82d6cf74480e",
-      "imageSha256": {
-        "desktop": "57fe7a28f9b4dd653c26548bb96ca1ba8e3b6e0aa12b20d14e31ec56d466ec64",
-        "mobile": "fc014fd91f66fd7957b7c09478c1faedfcfd6b8d5129b9f66983fb4be0516067"
-      }
-    },
-    {
       "id": "new-game-confirm",
       "section": "saves",
       "desktop": "images/ui-new-game-confirm-desktop.png",
@@ -2021,6 +2006,119 @@
       "sourceSnapshot": "build-release-guide-integration",
       "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
       "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Copy and email controls after a controlled startup download error.",
+      "access": "Open startup-report.html in the same browser after a loading error.",
+      "sourceSnapshot": "startup-report-sharing",
+      "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+      "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+      "imageSha256": {
+        "desktop": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9",
+        "mobile": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+        }
+      },
+      "desktop": "images/startup-report-sharing-desktop.png",
+      "mobile": "images/startup-report-sharing-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-options",
+      "section": "options",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open Options, then Report bug.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7",
+        "mobile": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 720,
+          "height": 1875,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7"
+        },
+        "mobile": {
+          "width": 720,
+          "height": 2160,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+        }
+      },
+      "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-options-desktop.png",
+      "mobile": "images/debug-report-options-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open startup-report.html in the same browser after an error.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc",
+        "mobile": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 4320,
+          "height": 2700,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc"
+        },
+        "mobile": {
+          "width": 1206,
+          "height": 2622,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+        }
+      },
+      "htmlSha256": "8c6c24bf145f9c904b5f2f1e5617eb13109b3ef929525ac58fbed4423d00be5d",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-sharing-desktop.png",
+      "mobile": "images/debug-report-sharing-mobile.png"
     }
   ],
   "uiSections": {

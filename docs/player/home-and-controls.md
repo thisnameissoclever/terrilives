@@ -120,4 +120,4 @@ Options contains lighting, sound, the death setting, automatic career changes an
 
 Reduced motion suppresses weather particles and uses flat lighting while keeping weather text. The saved lighting preference remains available when that setting changes back. Use visible text labels, mood reasons and status messages alongside colors and animations.
 
-Open Help for the short controls reference or the full player guide for the longer explanations. Changelog opens the update history in another tab. See [UI elements](ui-elements/#options) for the exact desktop and phone route.
+Open Help for the short controls reference or the full player guide for the longer explanations. Changelog opens the update history in another tab. Report bug prepares an email to Tim with the recorded error and newest logs that fit. Review the draft before sending it. See [UI elements](ui-elements/#options) for the exact desktop and phone route.

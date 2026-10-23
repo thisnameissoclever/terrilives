@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-startup-report>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game startup report</title>
+  <meta name="natural-causes-version" content="__NATURAL_CAUSES_VERSION__">
+  <style>
+    :root {color-scheme:dark; font:16px/1.5 system-ui,sans-serif; background:#16161c; color:#d8d8e0}
+    body {max-width:64rem; margin:2rem auto; padding:0 1rem}
+    h1 {font-size:1.5rem}
+    button,a {font:inherit; color:inherit}
+    button,.share-email {background:#292934; padding:.7rem 1rem; border:1px solid #737383; border-radius:.4rem}
+    .share-actions {display:flex; flex-wrap:wrap; align-items:center; gap:.7rem}
+    .share-email {display:inline-block; text-decoration:underline}
+    textarea {box-sizing:border-box; width:100%; min-height:10rem; font:13px/1.5 monospace}
+    button:disabled {opacity:.6}
+    pre {white-space:pre-wrap; overflow-wrap:anywhere; background:#0d0d10; padding:1rem; border-radius:.4rem; font-size:.8rem}
+    :focus-visible {outline:3px solid #6fb2d2; outline-offset:3px}
+  </style>
+</head>
+<body>
+  <h1>Game startup report</h1>
+  <p>Copy the debug details and send them to Tim, or open an email with the report filled in. This page opens without starting the game.</p>
+  <p id="startup-report-summary" role="status">Reading the saved report...</p>
+  <div class="share-actions">
+    <button id="startup-report-copy" type="button" disabled>Copy debug details</button>
+    <a id="startup-report-email" class="share-email">Email Tim</a>
+  </div>
+  <p id="startup-report-share-status" role="status" aria-live="polite"></p>
+  <textarea id="startup-report-manual" aria-label="Debug details to copy manually" readonly hidden></textarea>
+  <p>If you don't know who Tim is - I'm so sorry. You're really missing out. He's gr8.</p>
+  <p>The report includes loading history, recent logs and actual recorded errors. Email Tim includes the newest details that fit; Copy debug details and Download report include the larger retained report. Your household save is not included. Nothing is sent automatically.</p>
+  <button id="startup-report-download" type="button" disabled>Download report</button>
+  <p><a href="./">Return to the game</a></p>
+  <pre id="startup-report-data" aria-label="Saved startup report"></pre>
+  <script src="./startup-diagnostics-v4.js"></script>
+</body>
+</html>

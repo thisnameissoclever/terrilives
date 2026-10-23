@@ -133,8 +133,8 @@
     },
     "options": {
       "title": "Options",
-      "desktop": "images/ui-options-detail-desktop.png",
-      "mobile": "images/ui-options-detail-mobile.png"
+      "desktop": "images/debug-report-options-desktop.png",
+      "mobile": "images/debug-report-options-mobile.png"
     },
     "load-confirm": {
       "title": "Load game confirmation",
@@ -226,6 +226,11 @@
       "title": "Household",
       "desktop": "images/guide/household-desktop.png",
       "mobile": "images/guide/household-mobile.png"
+    },
+    "startup-report-sharing": {
+      "title": "Sending a startup report",
+      "desktop": "images/debug-report-sharing-desktop.png",
+      "mobile": "images/debug-report-sharing-mobile.png"
     }
   },
   "crops": [
