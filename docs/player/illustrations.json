@@ -221,6 +221,11 @@
       "title": "Household",
       "desktop": "images/guide/household-desktop.png",
       "mobile": "images/guide/household-mobile.png"
+    },
+    "startup-report-sharing": {
+      "title": "Sending a startup report",
+      "desktop": "images/startup-report-sharing-desktop.png",
+      "mobile": "images/startup-report-sharing-mobile.png"
     }
   },
   "crops": [

@@ -192,7 +192,10 @@ describe('renderStartupFailure', () => {
     expect(card.getAttribute('inert')).toBeNull();
     expect(document.activeElement).toBe(card);
 
-    const [title, detail, hints, report] = card.children;
+    const [title, detail, hints, sharing, status, manual, tim, report] = card.children;
+    expect(sharing.children.map(child=>child.textContent)).toEqual(['Copy debug details','Email Tim']);
+    expect(status.id).toBe('startup-report-share-status');expect(manual.id).toBe('startup-report-manual');
+    expect(tim.textContent).toContain("He's gr8.");
     expect(report.textContent).toBe('Startup report');
     expect(report.getAttribute('href')).toBe('./startup-report.html');
     expect(title.id).toBe('startup-failure-title');
