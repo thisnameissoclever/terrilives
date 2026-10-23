@@ -118,6 +118,7 @@ struct ArchitectureFinishes { entries: array<ArchitectureFinish>, };
 @group(0) @binding(8) var<storage, read> architectureFinishes: ArchitectureFinishes;
 // ARCHITECTURE_PATTERN_BINDINGS
 // JOINT_ALPHA_BINDING
+// ATLAS_STORAGE_SAMPLING
 
 // ARCHITECTURE_MODE_HELPERS_BEGIN
 override maxArchitectureFinishSlot: u32;
@@ -347,7 +348,7 @@ fn sampleAtlasColor(uv:vec2f,page:i32)->vec4f {
   let pixel=vec2i(floor(at));let f=fract(at);
   var sum=vec4f(0.);
   for(var y=0;y<2;y++){for(var x=0;x<2;x++){
-    let texel=textureLoad(atlasTexture,pixel+vec2i(x,y),page,0);
+    let texel=atlasLoad(pixel+vec2i(x,y),page);
     let weight=select(1.-f.x,f.x,x==1)*select(1.-f.y,f.y,y==1);
     sum+=vec4f(sceneLinear(texel.rgb)*texel.a,texel.a)*weight;
   }}
@@ -366,8 +367,8 @@ fn bedLayerAt(reference: u32, corner: vec2f, sceneSize: vec2f, point:bool) -> ve
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, sampleCorner),
     sprite.uv.xy + halfTexel, sprite.uv.zw - halfTexel);
-  if(point){return textureLoad(atlasTexture,vec2i(floor(uv*vec2f(textureDimensions(atlasTexture)))),i32(sprite.registration.z),0);}
-  return textureSampleLevel(atlasTexture, atlasSampler, uv, i32(sprite.registration.z), 0.0);
+  if(point){return atlasLoad(vec2i(floor(uv*vec2f(textureDimensions(atlasTexture)))),i32(sprite.registration.z));}
+  return atlasSample(uv,i32(sprite.registration.z));
 }
 
 fn bedLayer(reference:u32,corner:vec2f,sceneSize:vec2f)->vec4f {return bedLayerAt(reference,corner,sceneSize,false);}
@@ -393,7 +394,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
       let mask = atlas.sprites[in.supportMask - 1u];
       let halfTexel = 0.5 / vec2f(textureDimensions(atlasTexture));
       let uv = clamp(mix(mask.uv.xy, mask.uv.zw, in.supportUv), mask.uv.xy + halfTexel, mask.uv.zw - halfTexel);
-      supported = textureSampleLevel(atlasTexture, atlasSampler, uv, i32(mask.registration.z), 0.0).a >= 0.5;
+      supported = atlasSample(uv,i32(mask.registration.z)).a >= 0.5;
     }
     if (supported == (in.wall.x == DINING_BACKGROUND)) { discard; }
   }
@@ -404,7 +405,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
   let fixturePixel = vec2i(floor(uv * vec2f(textureDimensions(atlasTexture))));
   let registered=in.wall.x==REGISTERED_SURFACE_DEPTH||in.wall.x==SHELF_SURFACE_DEPTH;
   var colour:vec4f;
-  if(registered){colour=textureLoad(atlasTexture,fixturePixel,i32(in.page),0);}
+  if(registered){colour=atlasLoad(fixturePixel,i32(in.page));}
   else{colour=sampleAtlasColor(uv,i32(in.page));}
 
   let architectureFloor = isArchitectureFloor(in.wall.x);
@@ -506,12 +507,12 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
     // Explicit LOD avoids derivative-uniformity restrictions in this branch.
     // The furniture layer is premultiplied; only it takes the colourway of
     // the object the sim is using, never the sim or the ink over it.
-    let layer = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, i32(furniture.registration.z), 0.0);
+    let layer = atlasSample(furnitureUv,i32(furniture.registration.z));
     var prop = layer;
     if (layer.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
       prop = vec4f(recolour(layer.rgb / layer.a, in.colourway) * layer.a, layer.a);
     }
-    let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, i32(outline.registration.z), 0.0);
+    let ink = atlasSample(outlineUv,i32(outline.registration.z));
     let sum = colour + prop;
     colour = ink + sum * (1.0 - ink.a);
   }
@@ -589,7 +590,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
     let atlasSize = vec2f(textureDimensions(atlasTexture));
     let local = fixturePixel - vec2i(round(in.uvBounds.xy * atlasSize));
     let sourcePixel = vec2i(round(surface.uv.xy * atlasSize)) + local;
-    let sample = textureLoad(atlasTexture, sourcePixel, i32(surface.registration.z), 0);
+    let sample = atlasLoad(sourcePixel,i32(surface.registration.z));
     var sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0;
     if(in.wall.x==SHELF_SURFACE_DEPTH){
       let mask=u32(in.wall.w);
@@ -597,7 +598,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
         if((mask&(1u<<slot))==0u){continue;}
         let layer=atlas.sprites[u32(in.wall.z)+1u+slot];
         let at=vec2i(round(layer.uv.xy*atlasSize))+local;
-        let covered=textureLoad(atlasTexture,at,i32(layer.registration.z),0);
+        let covered=atlasLoad(at,i32(layer.registration.z));
         if(covered.a>0.){sum=max(sum,dot(covered.rg,vec2f(65280.,255.))/65535.*4.-2.);}
       }
     }
@@ -606,7 +607,7 @@ fn shadeFragment(in: VertexOut) -> FragmentOut {
     let surface = atlas.sprites[u32(in.wall.z)];
     let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
       surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
-    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, i32(surface.registration.z), 0.0);
+    let sample = atlasSample(depthUv,i32(surface.registration.z));
     // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
     let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
     out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);

@@ -31,6 +31,8 @@ ART_COMMANDS = [
     "python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'",
     "python3 -B -m unittest discover -s assets/models/outdoor -p 'test_*.py'",
     "python3 assets/sprites/gen/build.py --check",
+    "python3 -B -m unittest discover -s scripts -p test_runtime_atlas.py",
+    "python3 -B scripts/build-runtime-atlas.py --check",
 ]
 
 

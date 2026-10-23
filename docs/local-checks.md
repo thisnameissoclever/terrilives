@@ -10,7 +10,7 @@ Run the complete local check catalog from the repository root:
 python -B scripts/check-local-ci.py run --report .local-build/local-ci/report.json
 ```
 
-The runner executes checks sequentially. It retains documentation IDs; the complete CI-script and workflow-policy suite; every previous sprite and model contract suite; the atlas reproducibility check; Rust formatting, Clippy and workspace tests; native and WebAssembly dependency-purity checks; public documentation generation tests and builds; WebAssembly compilation; compiled player-reference validation; web type checks and tests; and the release web build. Python commands use the interpreter running the script. npm commands run from `web/`.
+The runner executes checks sequentially. It retains documentation IDs; the complete CI-script and workflow-policy suite; every previous sprite and model contract suite; atlas reproducibility and lossless runtime-storage reconstruction; Rust formatting, Clippy and workspace tests; native and WebAssembly dependency-purity checks; public documentation generation tests and builds; WebAssembly compilation; compiled player-reference validation; web type checks and tests; and the release web build. Python commands use the interpreter running the script. npm commands run from `web/`.
 
 The existing Pillow and NumPy installation command and `npm ci` remain available through `--install-dependencies`. Use that flag only when dependency installation is authorized. Ordinary checks use the installed dependencies. The runner does not upgrade dependencies or toolchains.
 

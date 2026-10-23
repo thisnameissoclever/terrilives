@@ -73,6 +73,9 @@ for(const [folder,manifest] of [['components',components],['dropped-book',droppe
 
 /** Counts include every appended color and depth record, after the grime page. */
 export const FIXTURE_DEPTH_PAGE_COUNT=pages.length;
+/** Source identities in the same logical order as fixture sprite page IDs. */
+export const FIXTURE_ATLAS_PAGES=pages.map(({folder,record})=>({folder,path:record.path,
+  width:record.width,height:record.height,sha256:record.sha256}));
 export const FIXTURE_DEPTH_COUNT=entries.length;
 let drawBase=0;
 const resolved=new Map<FixtureDrawRecord,FixtureDrawRecord>();
