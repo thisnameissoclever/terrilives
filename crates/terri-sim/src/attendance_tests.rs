@@ -1965,3 +1965,36 @@ fn a_shift_change_takes_effect_at_the_new_shifts_next_start() {
         "nothing registers at the standard start"
     );
 }
+
+/// [WS-systems]: a hand-built commuter with no scheduled shift, the case
+/// `finish_tick` keeps for worlds that never registered one, arrives for
+/// the held shift's length.
+#[test]
+fn a_commuter_without_a_scheduled_shift_arrives_for_the_held_length() {
+    let (mut sim, actor) = held_fixture(600, 540, 0b1111111, 1);
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(Commuting::Outbound);
+    assert!(scheduled(&sim, actor).is_none());
+    finish_tick(sim.world_mut());
+    assert_eq!(
+        sim.world()
+            .get::<AtWork>(actor)
+            .map(|work| work.remaining_ticks),
+        Some(540)
+    );
+}
+
+/// [WS-systems]: adopting an older world's unscheduled commute registers
+/// a legacy shift as long as the held shift.
+#[test]
+fn legacy_adoption_registers_the_held_shifts_length() {
+    let (mut sim, actor) = held_fixture(600, 540, 0b1111111, 1);
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(Commuting::Outbound);
+    migrate_legacy(sim.world_mut());
+    let shift = scheduled(&sim, actor).expect("adoption registers the commute");
+    assert!(shift.legacy);
+    assert_eq!(shift.end_tick - shift.start_tick, 540);
+}
