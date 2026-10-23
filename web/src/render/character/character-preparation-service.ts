@@ -1,4 +1,5 @@
 import type {CharacterAppearanceV1} from '../../character/schema.js';
+import {recordDiagnostic} from '../../diagnostics.js';
 import {bikeContactAppearanceKey,prepareBikeContactForAppearance} from './bike-contact-preparation.js';
 import {createSleepContactInput,sleepContactAppearanceKey} from './sleep-contact-preparation.js';
 import {freezeBikeContactArtifact,validateBikeContactInput} from './bike-contact-protocol.js';
@@ -19,6 +20,7 @@ export class CharacterPreparationNotReadyError extends Error {
   constructor(){super('Character support must be prepared before admitting this appearance.');this.name='CharacterPreparationNotReadyError';}
 }
 interface Owner {lease:CharacterPreparationLease;parts:PreparationLease<PreparationArtifact>[];closed:boolean;artifact?:CharacterPreparation;failure?:unknown;reject:(error:unknown)=>void}
+let serviceSequence=0;
 export interface CharacterPreparationServiceOptions {
   bikeInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<BikeContactInputV1>;
   sleepInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<SleepContactInputV1>;
@@ -28,6 +30,7 @@ export interface CharacterPreparationServiceOptions {
 
 /** Required support is independently keyed, but every expensive job uses the same worker. */
 export class CharacterPreparationService {
+  private readonly diagnosticId=++serviceSequence;
   private readonly queue=new PreparationQueue<PreparationArtifact>();
   private readonly owners=new Map<string,Owner>();
   private readonly bike:PreparationDefinition<PreparationArtifact>;
@@ -62,11 +65,16 @@ export class CharacterPreparationService {
     }};
   }
   private async compile(request:PreparationRequest):Promise<PreparationArtifact>{
-    this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
-    try{const response=await this.transport.run(request);validatePreparationResponse(response);
+    const id=`preparation:${this.diagnosticId}:${request.id}`,started=Date.now();recordDiagnostic('worker.prepare',{id,state:'start',kind:request.kind});
+    try{this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
+      const response=await this.transport.run(request);validatePreparationResponse(response);
       if(response.id!==request.id||response.kind!==request.kind)throw new Error('Character preparation response does not match its request.');
-      if(!response.ok){const error=new Error(response.error);Object.assign(error,{workerStack:response.workerStack,workerErrorName:response.errorName,workerKind:response.kind});throw error;}return response.artifact;
-    }catch(error){this.transport?.dispose();this.transport=undefined;throw error;}
+      if(!response.ok){const error=new Error(response.error);Object.assign(error,{workerStack:response.workerStack,workerErrorName:response.errorName,workerKind:response.kind});throw error;}
+      recordDiagnostic('worker.prepare',{id,state:'complete',kind:request.kind,elapsedMs:Date.now()-started});return response.artifact;
+    }catch(error){
+      const cancelled=error instanceof Error&&error.name==='AbortError';
+      recordDiagnostic('worker.prepare',{id,state:cancelled?'complete':'failed',kind:request.kind,cancelled,elapsedMs:Date.now()-started},cancelled?undefined:error);
+      this.transport?.dispose();this.transport=undefined;throw error;}
   }
   acquire(owner:string,appearance:CharacterAppearanceV1):CharacterPreparationLease {
     if(this.disposed)throw new Error('The character preparation service is disposed.');

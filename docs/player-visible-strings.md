@@ -76,8 +76,9 @@ Routine interface copy must add information the player cannot already see. Omit 
 | Confirmation | Start a new game?; This replaces the saved household and cannot be undone.; Load the saved game?; Progress since the last save will be replaced.; Keep playing; Start over; Load game | `web/index.html` |
 | Help | How to play; Game time is paused while this guide is open.; Got it; Build & place; People & actions; Camera; Options & saves; grouped Shortcuts reference | `web/index.html` |
 | Keyboard targeting | Target: {name}.; Selected {name}; Choose a target first.; Select a person before choosing an object | `web/src/ui/keyboard-target.ts`, `web/src/main.ts` |
-| Startup failure | This address cannot render the game; This browser cannot render the game; The game failed to start; recovery hints; Startup report | `web/src/ui/startup-failure.ts` |
-| Startup report | Game startup report; Download report; Return to the game; saved loading steps and error details; local-storage and sharing explanations | `web/public/startup-report.html`, `web/public/startup-diagnostics.js` |
+| Startup failure | This address cannot render the game; This browser cannot render the game; The game failed to start; recovery hints; Startup report; Copy debug details; Email Tim; the owner's Tim introduction | `web/src/ui/startup-failure.ts` |
+| Startup report | Game startup report; Copy debug details; Email Tim; Download report; Return to the game; Copied. Send these details to Tim.; blocked-copy instructions; the owner's Tim introduction; loading history, recorded errors and recent logs; email excerpt limits | `web/startup-report/template.html`, `web/public/startup-diagnostics-v3.js` |
+| Bug reporting | Report bug in Options opens the latest error and recent logs in an email draft to Tim | `web/index.html`, `web/public/startup-diagnostics-v3.js` |
 
 ## Approved build controls copy
 

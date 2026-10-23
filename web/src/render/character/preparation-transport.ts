@@ -13,7 +13,9 @@ export class WorkerPreparationTransport implements PreparationTransport {
         this.pending=undefined;pending.resolve(event.data);
       }catch(error){this.fail(error);}
     };
-    this.worker.onerror=event=>{event.preventDefault();this.fail(new Error(event.message||'The character preparation worker failed.'));};
+    this.worker.onerror=event=>{event.preventDefault();this.fail(Object.assign(new Error(event.message||'The character preparation worker failed.'),{
+      workerStack:event.error?.stack,workerErrorName:event.error?.name||'WorkerError',workerSource:{path:event.filename,line:event.lineno,column:event.colno},
+    }));};
     this.worker.onmessageerror=()=>this.fail(new Error('The character preparation worker returned an unreadable message.'));
   }
   run(request:PreparationRequest):Promise<PreparationResponse>{

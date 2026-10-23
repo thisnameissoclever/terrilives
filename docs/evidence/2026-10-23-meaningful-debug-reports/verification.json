@@ -1,0 +1,2014 @@
+{
+  "url": "http://127.0.0.1:5177/terrilives/",
+  "cases": [
+    {
+      "name": "controlled persistent HTTP failure",
+      "requests": 1,
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T18:32:58.062Z",
+            "updatedAt": "2026-10-23T18:33:03.891Z",
+            "lastSeenAt": "2026-10-23T18:33:03.891Z",
+            "state": "failed",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-CF2EA_TM.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            },
+            "logs": [
+              {
+                "ms": 1,
+                "at": "2026-10-23T18:32:58.063Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 1 of 10: Downloading the game"
+              },
+              {
+                "ms": 3307,
+                "at": "2026-10-23T18:33:01.369Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 2 of 10: Downloading the simulation"
+              },
+              {
+                "ms": 3309,
+                "at": "2026-10-23T18:33:01.371Z",
+                "level": "info",
+                "operation": "page.show",
+                "message": "Page shown"
+              },
+              {
+                "ms": 3355,
+                "at": "2026-10-23T18:33:01.417Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 4 of 10: Loading the household"
+              },
+              {
+                "ms": 3362,
+                "at": "2026-10-23T18:33:01.424Z",
+                "level": "info",
+                "operation": "gpu.acquire",
+                "message": "{\"id\":\"graphics:1\",\"state\":\"start\"}"
+              },
+              {
+                "ms": 3363,
+                "at": "2026-10-23T18:33:01.425Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 5 of 10: Starting graphics"
+              },
+              {
+                "ms": 3430,
+                "at": "2026-10-23T18:33:01.492Z",
+                "level": "info",
+                "operation": "gpu.adapter",
+                "message": "{\"maxTextureDimension2D\":16384}"
+              },
+              {
+                "ms": 3452,
+                "at": "2026-10-23T18:33:01.514Z",
+                "level": "info",
+                "operation": "gpu.device",
+                "message": "{\"maxTextureDimension2D\":16384,\"vendor\":\"nvidia\",\"architecture\":\"lovelace\",\"description\":\"\"}"
+              },
+              {
+                "ms": 3452,
+                "at": "2026-10-23T18:33:01.514Z",
+                "level": "info",
+                "operation": "gpu.acquire",
+                "message": "{\"id\":\"graphics:1\",\"state\":\"complete\"}"
+              },
+              {
+                "ms": 3453,
+                "at": "2026-10-23T18:33:01.515Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 6 of 10: Loading walls and floors"
+              },
+              {
+                "ms": 3572,
+                "at": "2026-10-23T18:33:01.634Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 7 of 10: Loading furniture and people"
+              },
+              {
+                "ms": 4600,
+                "at": "2026-10-23T18:33:02.662Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 8 of 10: Preparing graphics"
+              },
+              {
+                "ms": 4659,
+                "at": "2026-10-23T18:33:02.721Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Loading character models"
+              },
+              {
+                "ms": 4660,
+                "at": "2026-10-23T18:33:02.722Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:1:/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.vertices-1XuvGrzg.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:2:/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-DczNUgjw.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:3:/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-Qnakb9K3.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:4:/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:5:/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:6:/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\"}"
+              },
+              {
+                "ms": 4661,
+                "at": "2026-10-23T18:33:02.723Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:7:/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\"}"
+              },
+              {
+                "ms": 4665,
+                "at": "2026-10-23T18:33:02.727Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4672,
+                "at": "2026-10-23T18:33:02.734Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"status\":503,\"attempt\":1}"
+              },
+              {
+                "ms": 4673,
+                "at": "2026-10-23T18:33:02.735Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4673,
+                "at": "2026-10-23T18:33:02.735Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4673,
+                "at": "2026-10-23T18:33:02.735Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4674,
+                "at": "2026-10-23T18:33:02.736Z",
+                "level": "error",
+                "operation": "asset.download",
+                "message": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}"
+              },
+              {
+                "ms": 4674,
+                "at": "2026-10-23T18:33:02.736Z",
+                "level": "error",
+                "operation": "application.failure",
+                "message": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}"
+              },
+              {
+                "ms": 4674,
+                "at": "2026-10-23T18:33:02.736Z",
+                "level": "error",
+                "operation": "console.error",
+                "message": "Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}"
+              },
+              {
+                "ms": 4689,
+                "at": "2026-10-23T18:33:02.751Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4689,
+                "at": "2026-10-23T18:33:02.751Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 4695,
+                "at": "2026-10-23T18:33:02.757Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:4:/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"bytes\":1966208,\"elapsedMs\":34}"
+              },
+              {
+                "ms": 4711,
+                "at": "2026-10-23T18:33:02.773Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:2:/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"bytes\":2798112,\"elapsedMs\":51}"
+              },
+              {
+                "ms": 4712,
+                "at": "2026-10-23T18:33:02.774Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:3:/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"bytes\":3856320,\"elapsedMs\":51}"
+              },
+              {
+                "ms": 4716,
+                "at": "2026-10-23T18:33:02.778Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:6:/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"bytes\":983104,\"elapsedMs\":55}"
+              },
+              {
+                "ms": 4717,
+                "at": "2026-10-23T18:33:02.779Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:1:/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"bytes\":7864832,\"elapsedMs\":57}"
+              },
+              {
+                "ms": 4748,
+                "at": "2026-10-23T18:33:02.810Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:5:/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"bytes\":12325688,\"elapsedMs\":87}"
+              },
+              {
+                "ms": 5829,
+                "at": "2026-10-23T18:33:03.891Z",
+                "level": "info",
+                "operation": "ui.activate",
+                "message": "{\"id\":\"startup-report-copy\",\"label\":\"Copy debug details\",\"type\":\"BUTTON\"}",
+                "repeatCount": 3
+              }
+            ],
+            "errors": [
+              {
+                "name": "Error",
+                "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+                "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\n    at async Promise.all (index 6)\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)",
+                "truncatedFields": [],
+                "source": {
+                  "operation": "asset.download",
+                  "context": "{\"id\":\"download:7:/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"state\":\"failed\",\"path\":\"/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"elapsedMs\":12}",
+                  "path": ""
+                },
+                "assetFailure": {
+                  "path": "/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin",
+                  "status": 503,
+                  "headers": {
+                    "server": "verification-edge",
+                    "retry-after": "60",
+                    "x-github-request-id": "controlled-response-42"
+                  },
+                  "body": "Controlled persistent refusal",
+                  "bodyIncomplete": false
+                },
+                "at": "2026-10-23T18:33:02.736Z"
+              },
+              {
+                "name": "Error",
+                "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+                "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\n    at async Promise.all (index 6)\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)",
+                "truncatedFields": [],
+                "source": {
+                  "operation": "application.failure",
+                  "path": ""
+                },
+                "assetFailure": {
+                  "path": "/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin",
+                  "status": 503,
+                  "headers": {
+                    "server": "verification-edge",
+                    "retry-after": "60",
+                    "x-github-request-id": "controlled-response-42"
+                  },
+                  "body": "Controlled persistent refusal",
+                  "bodyIncomplete": false
+                },
+                "at": "2026-10-23T18:33:02.736Z"
+              },
+              {
+                "name": "Error",
+                "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+                "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\n    at async Promise.all (index 6)\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)",
+                "truncatedFields": [],
+                "source": {
+                  "operation": "console.error",
+                  "context": "Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+                  "path": ""
+                },
+                "assetFailure": {
+                  "path": "/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin",
+                  "status": 503,
+                  "headers": {
+                    "server": "verification-edge",
+                    "retry-after": "60",
+                    "x-github-request-id": "controlled-response-42"
+                  },
+                  "body": "Controlled persistent refusal",
+                  "bodyIncomplete": false
+                },
+                "at": "2026-10-23T18:33:02.736Z"
+              }
+            ],
+            "phases": [
+              {
+                "ms": 1,
+                "phase": "Step 1 of 10: Downloading the game"
+              },
+              {
+                "ms": 3307,
+                "phase": "Step 2 of 10: Downloading the simulation"
+              },
+              {
+                "ms": 3355,
+                "phase": "Step 4 of 10: Loading the household"
+              },
+              {
+                "ms": 3363,
+                "phase": "Step 5 of 10: Starting graphics"
+              },
+              {
+                "ms": 3453,
+                "phase": "Step 6 of 10: Loading walls and floors"
+              },
+              {
+                "ms": 3572,
+                "phase": "Step 7 of 10: Loading furniture and people"
+              },
+              {
+                "ms": 4600,
+                "phase": "Step 8 of 10: Preparing graphics"
+              },
+              {
+                "ms": 4659,
+                "phase": "Loading character models"
+              }
+            ],
+            "droppedLogCount": 0,
+            "pending": {
+              "count": 0,
+              "latest": []
+            },
+            "failureStage": "startup",
+            "error": {
+              "name": "Error",
+              "message": "Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+              "stack": "Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\n    at async Promise.all (index 6)\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)",
+              "truncatedFields": [],
+              "source": {
+                "operation": "console.error",
+                "context": "Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}",
+                "path": ""
+              },
+              "assetFailure": {
+                "path": "/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin",
+                "status": 503,
+                "headers": {
+                  "server": "verification-edge",
+                  "retry-after": "60",
+                  "x-github-request-id": "controlled-response-42"
+                },
+                "body": "Controlled persistent refusal",
+                "bodyIncomplete": false
+              }
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics-v3.js"
+        ],
+        "sharing": {
+          "subject": "[Bug report] Natural Causes v1.0.0",
+          "encodedLinkCharacters": 7922,
+          "mailBody": "Natural Causes v1.0.0 (recorded attempt)\r\nBuild: /terrilives/assets/index-CF2EA_TM.js\r\nAttempt: 2026-10-23T18:32:58.062Z; state=failed; phase=Loading character models\r\nLast seen: 2026-10-23T18:33:04.162Z; first frame: not recorded\r\nBrowser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\r\nActual error: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\nSource: {\"operation\":\"console.error\",\"context\":\"Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\\nResponse: {\\\"headers\\\":{\\\"server\\\":\\\"verification-edge\\\",\\\"retry-after\\\":\\\"60\\\",\\\"x-github-request-id\\\":\\\"controlled-response-42\\\"},\\\"body\\\":\\\"Controlled persistent refusal\\\",\\\"bodyIncomplete\\\":false}\",\"path\":\"\"}\r\nHTTP: {\"path\":\"/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"status\":503,\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\nError: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\r\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\r\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\r\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\r\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\r\n    at async Promise.all (index 6)\r\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\r\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\r\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)\r\nLoading history: 1ms Step 1 of 10: Downloading the game > 3307ms Step 2 of 10: Downloading the simulation > 3355ms Step 4 of 10: Loading the household > 3363ms Step 5 of 10: Starting graphics > 3453ms Step 6 of 10: Loading walls and floors > 3572ms Step 7 of 10: Loading furniture and people > 4600ms Step 8 of 10: Preparing graphics > 4659ms Loading character models\r\nLatest logs (newest first):\r\n+6100ms [info] page.visibility: hidden\r\n+6100ms [info] page.hide: Page hidden or unloaded\r\n+5829ms [info] ui.activate: {\"id\":\"startup-report-copy\",\"label\":\"Copy debug details\",\"type\":\"BUTTON\"} (repeated 3)\r\n+4748ms [info] asset.download: {\"id\":\"download:5:/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"bytes\":12325688,\"elapsedMs\":87}\r\n+4717ms [info] asset.download: {\"id\":\"download:1:/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"bytes\":7864832,\"elapsedMs\":57}\r\n+4716ms [info] asset.download: {\"id\":\"download:6:/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"bytes\":983104,\"elapsedMs\":55}\r\n+4712ms [info] asset.download: {\"id\":\"download:3:/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"bytes\":3856320,\"elapsedMs\":51}\r\n+4711ms [info] asset.download: {\"id\":\"download:2:/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"bytes\":2798112,\"elapsedMs\":51}\r\n+4695ms [info] asset.download: {\"id\":\"download:4:/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"bytes\":1966208,\"elapsedMs\":34}\r\n+4689ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"status\":200,\"attempt\":1}\r\n+4689ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"status\":200,\"attempt\":1}\r\n+4674ms [error] console.error: Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n+4674ms [error] application.failure: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n+4674ms [error] asset.download: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"control [trimmed]\r\n\r\nIncluded 14/39 retained logs; 0 earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.",
+          "copyCharacters": 22335,
+          "clipboardTransport": "isolated test double; system clipboard untouched",
+          "fallback": true
+        },
+        "summary": "The last attempt recorded an error. Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Co",
+        "download": "natural-causes-debug-report.json"
+      },
+      "cardSharing": {
+        "subject": "[Bug report] Natural Causes v1.0.0",
+        "encodedLinkCharacters": 7866,
+        "mailBody": "Natural Causes v1.0.0 (recorded attempt)\r\nBuild: /terrilives/assets/index-CF2EA_TM.js\r\nAttempt: 2026-10-23T18:32:58.062Z; state=failed; phase=Loading character models\r\nLast seen: 2026-10-23T18:33:03.760Z; first frame: not recorded\r\nBrowser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\r\nActual error: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\nSource: {\"operation\":\"console.error\",\"context\":\"Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\\nResponse: {\\\"headers\\\":{\\\"server\\\":\\\"verification-edge\\\",\\\"retry-after\\\":\\\"60\\\",\\\"x-github-request-id\\\":\\\"controlled-response-42\\\"},\\\"body\\\":\\\"Controlled persistent refusal\\\",\\\"bodyIncomplete\\\":false}\",\"path\":\"\"}\r\nHTTP: {\"path\":\"/terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\",\"status\":503,\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\nError: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n    at Oh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4880766)\r\n    at async Ah (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881356)\r\n    at async jh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4881618)\r\n    at async Ph (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883322)\r\n    at async http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883686\r\n    at async Promise.all (index 6)\r\n    at async Fh (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:808:4883566)\r\n    at async e.create (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2388:5073)\r\n    at async ok (http://127.0.0.1:5177/terrilives/assets/index-CF2EA_TM.js:2398:66943)\r\nLoading history: 1ms Step 1 of 10: Downloading the game > 3307ms Step 2 of 10: Downloading the simulation > 3355ms Step 4 of 10: Loading the household > 3363ms Step 5 of 10: Starting graphics > 3453ms Step 6 of 10: Loading walls and floors > 3572ms Step 7 of 10: Loading furniture and people > 4600ms Step 8 of 10: Preparing graphics > 4659ms Loading character models\r\nLatest logs (newest first):\r\n+5698ms [info] ui.activate: {\"id\":\"startup-report-copy\",\"label\":\"Copy debug details\",\"type\":\"BUTTON\"}\r\n+4748ms [info] asset.download: {\"id\":\"download:5:/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"bytes\":12325688,\"elapsedMs\":87}\r\n+4717ms [info] asset.download: {\"id\":\"download:1:/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-1XuvGrzg.bin\",\"bytes\":7864832,\"elapsedMs\":57}\r\n+4716ms [info] asset.download: {\"id\":\"download:6:/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"bytes\":983104,\"elapsedMs\":55}\r\n+4712ms [info] asset.download: {\"id\":\"download:3:/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-Qnakb9K3.bin\",\"bytes\":3856320,\"elapsedMs\":51}\r\n+4711ms [info] asset.download: {\"id\":\"download:2:/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-DczNUgjw.bin\",\"bytes\":2798112,\"elapsedMs\":51}\r\n+4695ms [info] asset.download: {\"id\":\"download:4:/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BJQc2qPu.bin\",\"bytes\":1966208,\"elapsedMs\":34}\r\n+4689ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalRanges-BOyampBs.bin\",\"status\":200,\"attempt\":1}\r\n+4689ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilWeights-snRZU28T.bin\",\"status\":200,\"attempt\":1}\r\n+4674ms [error] console.error: Natural Causes failed to start: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n+4674ms [error] application.failure: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n+4674ms [error] asset.download: Error: Character asset could not load: 503 /terrilives/assets/runtime.normalTriangles-LaqE7zy1.bin\r\nResponse: {\"headers\":{\"server\":\"verification-edge\",\"retry-after\":\"60\",\"x-github-request-id\":\"controlled-response-42\"},\"body\":\"Controlled persistent refusal\",\"bodyIncomplete\":false}\r\n\r\nIncluded 12/37 retained logs; 0 earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.",
+        "copyCharacters": 22108,
+        "clipboardTransport": "isolated test double; system clipboard untouched",
+        "fallback": true
+      }
+    },
+    {
+      "name": "controlled renderer termination during loading",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T18:33:05.486Z",
+            "updatedAt": "2026-10-23T18:33:10.221Z",
+            "lastSeenAt": "2026-10-23T18:33:10.221Z",
+            "state": "loading",
+            "phase": "Loading character models",
+            "build": "/terrilives/assets/index-CF2EA_TM.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            },
+            "logs": [
+              {
+                "ms": 1,
+                "at": "2026-10-23T18:33:05.487Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 1 of 10: Downloading the game"
+              },
+              {
+                "ms": 3237,
+                "at": "2026-10-23T18:33:08.723Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 2 of 10: Downloading the simulation"
+              },
+              {
+                "ms": 3239,
+                "at": "2026-10-23T18:33:08.725Z",
+                "level": "info",
+                "operation": "page.show",
+                "message": "Page shown"
+              },
+              {
+                "ms": 3259,
+                "at": "2026-10-23T18:33:08.745Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 3 of 10: Starting the simulation"
+              },
+              {
+                "ms": 3277,
+                "at": "2026-10-23T18:33:08.763Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 4 of 10: Loading the household"
+              },
+              {
+                "ms": 3283,
+                "at": "2026-10-23T18:33:08.769Z",
+                "level": "info",
+                "operation": "gpu.acquire",
+                "message": "{\"id\":\"graphics:1\",\"state\":\"start\"}"
+              },
+              {
+                "ms": 3284,
+                "at": "2026-10-23T18:33:08.770Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 5 of 10: Starting graphics"
+              },
+              {
+                "ms": 3346,
+                "at": "2026-10-23T18:33:08.832Z",
+                "level": "info",
+                "operation": "gpu.adapter",
+                "message": "{\"maxTextureDimension2D\":16384}"
+              },
+              {
+                "ms": 3366,
+                "at": "2026-10-23T18:33:08.852Z",
+                "level": "info",
+                "operation": "gpu.device",
+                "message": "{\"maxTextureDimension2D\":16384,\"vendor\":\"nvidia\",\"architecture\":\"lovelace\",\"description\":\"\"}"
+              },
+              {
+                "ms": 3367,
+                "at": "2026-10-23T18:33:08.853Z",
+                "level": "info",
+                "operation": "gpu.acquire",
+                "message": "{\"id\":\"graphics:1\",\"state\":\"complete\"}"
+              },
+              {
+                "ms": 3367,
+                "at": "2026-10-23T18:33:08.853Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 6 of 10: Loading walls and floors"
+              },
+              {
+                "ms": 3487,
+                "at": "2026-10-23T18:33:08.973Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 7 of 10: Loading furniture and people"
+              },
+              {
+                "ms": 4678,
+                "at": "2026-10-23T18:33:10.164Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 8 of 10: Preparing graphics"
+              },
+              {
+                "ms": 4735,
+                "at": "2026-10-23T18:33:10.221Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Loading character models"
+              }
+            ],
+            "errors": [],
+            "phases": [
+              {
+                "ms": 1,
+                "phase": "Step 1 of 10: Downloading the game"
+              },
+              {
+                "ms": 3237,
+                "phase": "Step 2 of 10: Downloading the simulation"
+              },
+              {
+                "ms": 3259,
+                "phase": "Step 3 of 10: Starting the simulation"
+              },
+              {
+                "ms": 3277,
+                "phase": "Step 4 of 10: Loading the household"
+              },
+              {
+                "ms": 3284,
+                "phase": "Step 5 of 10: Starting graphics"
+              },
+              {
+                "ms": 3367,
+                "phase": "Step 6 of 10: Loading walls and floors"
+              },
+              {
+                "ms": 3487,
+                "phase": "Step 7 of 10: Loading furniture and people"
+              },
+              {
+                "ms": 4678,
+                "phase": "Step 8 of 10: Preparing graphics"
+              },
+              {
+                "ms": 4735,
+                "phase": "Loading character models"
+              }
+            ],
+            "droppedLogCount": 0,
+            "pending": {
+              "count": 0,
+              "latest": []
+            }
+          }
+        ]
+      },
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics-v3.js"
+        ],
+        "sharing": {
+          "subject": "[Bug report] Natural Causes v1.0.0",
+          "encodedLinkCharacters": 2978,
+          "mailBody": "Natural Causes v1.0.0 (recorded attempt)\r\nBuild: /terrilives/assets/index-CF2EA_TM.js\r\nAttempt: 2026-10-23T18:33:05.486Z; state=loading; phase=Loading character models\r\nLast seen: 2026-10-23T18:33:10.221Z; first frame: not recorded\r\nBrowser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\r\nNo JavaScript error was captured. Describe the problem here.\r\nLoading history: 1ms Step 1 of 10: Downloading the game > 3237ms Step 2 of 10: Downloading the simulation > 3259ms Step 3 of 10: Starting the simulation > 3277ms Step 4 of 10: Loading the household > 3284ms Step 5 of 10: Starting graphics > 3367ms Step 6 of 10: Loading walls and floors > 3487ms Step 7 of 10: Loading furniture and people > 4678ms Step 8 of 10: Preparing graphics > 4735ms Loading character models\r\nLatest logs (newest first):\r\n+4735ms [info] loading.phase: Loading character models\r\n+4678ms [info] loading.phase: Step 8 of 10: Preparing graphics\r\n+3487ms [info] loading.phase: Step 7 of 10: Loading furniture and people\r\n+3367ms [info] loading.phase: Step 6 of 10: Loading walls and floors\r\n+3367ms [info] gpu.acquire: {\"id\":\"graphics:1\",\"state\":\"complete\"}\r\n+3366ms [info] gpu.device: {\"maxTextureDimension2D\":16384,\"vendor\":\"nvidia\",\"architecture\":\"lovelace\",\"description\":\"\"}\r\n+3346ms [info] gpu.adapter: {\"maxTextureDimension2D\":16384}\r\n+3284ms [info] loading.phase: Step 5 of 10: Starting graphics\r\n+3283ms [info] gpu.acquire: {\"id\":\"graphics:1\",\"state\":\"start\"}\r\n+3277ms [info] loading.phase: Step 4 of 10: Loading the household\r\n+3259ms [info] loading.phase: Step 3 of 10: Starting the simulation\r\n+3239ms [info] page.show: Page shown\r\n+3237ms [info] loading.phase: Step 2 of 10: Downloading the simulation\r\n+1ms [info] loading.phase: Step 1 of 10: Downloading the game\r\n\r\nIncluded 14/14 retained logs; 0 earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.",
+          "copyCharacters": 4990,
+          "clipboardTransport": "isolated test double; system clipboard untouched",
+          "fallback": true
+        },
+        "summary": "The last load is unfinished. This can also mean the page was closed.",
+        "download": "natural-causes-debug-report.json"
+      }
+    },
+    {
+      "name": "ordinary load and advancing simulation",
+      "record": {
+        "version": 1,
+        "attempts": [
+          {
+            "startedAt": "2026-10-23T18:33:12.609Z",
+            "updatedAt": "2026-10-23T18:33:19.469Z",
+            "lastSeenAt": "2026-10-23T18:33:19.469Z",
+            "state": "ready",
+            "phase": "Step 10 of 10: Drawing the house",
+            "build": "/terrilives/assets/index-CF2EA_TM.js",
+            "gameVersion": "1.0.0",
+            "environment": {
+              "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "width": 402,
+              "height": 874,
+              "pixelRatio": 3,
+              "secure": true,
+              "webgpu": true
+            },
+            "logs": [
+              {
+                "ms": 5052,
+                "at": "2026-10-23T18:33:17.661Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:140:/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-CLhDfo7T.bin\"}"
+              },
+              {
+                "ms": 5052,
+                "at": "2026-10-23T18:33:17.661Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:141:/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-DBS31bmG.bin\"}"
+              },
+              {
+                "ms": 5052,
+                "at": "2026-10-23T18:33:17.661Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:142:/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\"}"
+              },
+              {
+                "ms": 5052,
+                "at": "2026-10-23T18:33:17.661Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:143:/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\"}"
+              },
+              {
+                "ms": 5052,
+                "at": "2026-10-23T18:33:17.661Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:144:/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\"}"
+              },
+              {
+                "ms": 5053,
+                "at": "2026-10-23T18:33:17.662Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:145:/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\"}"
+              },
+              {
+                "ms": 5055,
+                "at": "2026-10-23T18:33:17.664Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5055,
+                "at": "2026-10-23T18:33:17.664Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5055,
+                "at": "2026-10-23T18:33:17.664Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:139:/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"bytes\":192512,\"elapsedMs\":4}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5056,
+                "at": "2026-10-23T18:33:17.665Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:140:/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"bytes\":71856,\"elapsedMs\":4}"
+              },
+              {
+                "ms": 5057,
+                "at": "2026-10-23T18:33:17.666Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:141:/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"bytes\":192512,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5057,
+                "at": "2026-10-23T18:33:17.666Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:142:/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"bytes\":48128,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5057,
+                "at": "2026-10-23T18:33:17.666Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:143:/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"bytes\":24064,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5057,
+                "at": "2026-10-23T18:33:17.666Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:144:/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"bytes\":24064,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5057,
+                "at": "2026-10-23T18:33:17.666Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:145:/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"bytes\":71856,\"elapsedMs\":4}"
+              },
+              {
+                "ms": 5058,
+                "at": "2026-10-23T18:33:17.667Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:146:/terrilives/assets/parts-1Bu9D9VH.json\",\"state\":\"start\",\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:146:/terrilives/assets/parts-1Bu9D9VH.json\",\"state\":\"complete\",\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\",\"bytes\":7843,\"elapsedMs\":1}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:147:/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:148:/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:149:/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:150:/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:151:/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:152:/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\"}"
+              },
+              {
+                "ms": 5059,
+                "at": "2026-10-23T18:33:17.668Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:153:/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\"}"
+              },
+              {
+                "ms": 5060,
+                "at": "2026-10-23T18:33:17.669Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5061,
+                "at": "2026-10-23T18:33:17.670Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:148:/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"bytes\":50400,\"elapsedMs\":3}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:147:/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"bytes\":136192,\"elapsedMs\":3}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:150:/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"bytes\":34048,\"elapsedMs\":3}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:151:/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"bytes\":17024,\"elapsedMs\":3}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5062,
+                "at": "2026-10-23T18:33:17.671Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:149:/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"bytes\":136192,\"elapsedMs\":3}"
+              },
+              {
+                "ms": 5063,
+                "at": "2026-10-23T18:33:17.672Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:152:/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"bytes\":17024,\"elapsedMs\":4}"
+              },
+              {
+                "ms": 5063,
+                "at": "2026-10-23T18:33:17.672Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:153:/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"bytes\":50400,\"elapsedMs\":4}"
+              },
+              {
+                "ms": 5063,
+                "at": "2026-10-23T18:33:17.672Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:154:/terrilives/assets/parts-DFTVdCwj.json\",\"state\":\"start\",\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\"}"
+              },
+              {
+                "ms": 5064,
+                "at": "2026-10-23T18:33:17.673Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:154:/terrilives/assets/parts-DFTVdCwj.json\",\"state\":\"complete\",\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\",\"bytes\":31430,\"elapsedMs\":2}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\"}"
+              },
+              {
+                "ms": 5065,
+                "at": "2026-10-23T18:33:17.674Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\"}"
+              },
+              {
+                "ms": 5067,
+                "at": "2026-10-23T18:33:17.676Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5067,
+                "at": "2026-10-23T18:33:17.676Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5068,
+                "at": "2026-10-23T18:33:17.677Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5068,
+                "at": "2026-10-23T18:33:17.677Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5068,
+                "at": "2026-10-23T18:33:17.677Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5068,
+                "at": "2026-10-23T18:33:17.677Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5069,
+                "at": "2026-10-23T18:33:17.678Z",
+                "level": "info",
+                "operation": "asset.response",
+                "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"status\":200,\"attempt\":1}"
+              },
+              {
+                "ms": 5070,
+                "at": "2026-10-23T18:33:17.679Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"bytes\":311296,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5070,
+                "at": "2026-10-23T18:33:17.679Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"bytes\":115200,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5070,
+                "at": "2026-10-23T18:33:17.679Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"bytes\":311296,\"elapsedMs\":5}"
+              },
+              {
+                "ms": 5071,
+                "at": "2026-10-23T18:33:17.680Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"bytes\":77824,\"elapsedMs\":6}"
+              },
+              {
+                "ms": 5071,
+                "at": "2026-10-23T18:33:17.680Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"bytes\":38912,\"elapsedMs\":6}"
+              },
+              {
+                "ms": 5071,
+                "at": "2026-10-23T18:33:17.680Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"bytes\":38912,\"elapsedMs\":6}"
+              },
+              {
+                "ms": 5071,
+                "at": "2026-10-23T18:33:17.680Z",
+                "level": "info",
+                "operation": "asset.download",
+                "message": "{\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"bytes\":115200,\"elapsedMs\":6}"
+              },
+              {
+                "ms": 5073,
+                "at": "2026-10-23T18:33:17.682Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 9 of 10: Setting up the game"
+              },
+              {
+                "ms": 5179,
+                "at": "2026-10-23T18:33:17.788Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Preparing characters"
+              },
+              {
+                "ms": 5294,
+                "at": "2026-10-23T18:33:17.903Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:1\",\"state\":\"start\",\"kind\":\"bike\"}"
+              },
+              {
+                "ms": 5399,
+                "at": "2026-10-23T18:33:18.008Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:1\",\"state\":\"complete\",\"kind\":\"bike\",\"elapsedMs\":105}"
+              },
+              {
+                "ms": 5404,
+                "at": "2026-10-23T18:33:18.013Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:2\",\"state\":\"start\",\"kind\":\"sleep\"}"
+              },
+              {
+                "ms": 5818,
+                "at": "2026-10-23T18:33:18.427Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:2\",\"state\":\"complete\",\"kind\":\"sleep\",\"elapsedMs\":414}"
+              },
+              {
+                "ms": 5827,
+                "at": "2026-10-23T18:33:18.436Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:3\",\"state\":\"start\",\"kind\":\"seat\"}"
+              },
+              {
+                "ms": 6234,
+                "at": "2026-10-23T18:33:18.843Z",
+                "level": "info",
+                "operation": "worker.prepare",
+                "message": "{\"id\":\"preparation:1:3\",\"state\":\"complete\",\"kind\":\"seat\",\"elapsedMs\":408}"
+              },
+              {
+                "ms": 6280,
+                "at": "2026-10-23T18:33:18.889Z",
+                "level": "info",
+                "operation": "loading.phase",
+                "message": "Step 10 of 10: Drawing the house"
+              },
+              {
+                "ms": 6783,
+                "at": "2026-10-23T18:33:19.392Z",
+                "level": "info",
+                "operation": "graphics.first-frame",
+                "message": "{\"id\":\"first-scene\",\"state\":\"start\"}"
+              },
+              {
+                "ms": 6860,
+                "at": "2026-10-23T18:33:19.469Z",
+                "level": "info",
+                "operation": "graphics.first-frame",
+                "message": "{\"id\":\"first-scene\",\"state\":\"complete\"}"
+              },
+              {
+                "ms": 6860,
+                "at": "2026-10-23T18:33:19.469Z",
+                "level": "info",
+                "operation": "startup.ready",
+                "message": "First graphics frame completed"
+              }
+            ],
+            "errors": [],
+            "phases": [
+              {
+                "ms": 0,
+                "phase": "Step 1 of 10: Downloading the game"
+              },
+              {
+                "ms": 3241,
+                "phase": "Step 2 of 10: Downloading the simulation"
+              },
+              {
+                "ms": 3268,
+                "phase": "Step 3 of 10: Starting the simulation"
+              },
+              {
+                "ms": 3286,
+                "phase": "Step 4 of 10: Loading the household"
+              },
+              {
+                "ms": 3292,
+                "phase": "Step 5 of 10: Starting graphics"
+              },
+              {
+                "ms": 3371,
+                "phase": "Step 6 of 10: Loading walls and floors"
+              },
+              {
+                "ms": 3487,
+                "phase": "Step 7 of 10: Loading furniture and people"
+              },
+              {
+                "ms": 4671,
+                "phase": "Step 8 of 10: Preparing graphics"
+              },
+              {
+                "ms": 4726,
+                "phase": "Loading character models"
+              },
+              {
+                "ms": 5073,
+                "phase": "Step 9 of 10: Setting up the game"
+              },
+              {
+                "ms": 5179,
+                "phase": "Preparing characters"
+              },
+              {
+                "ms": 6280,
+                "phase": "Step 10 of 10: Drawing the house"
+              }
+            ],
+            "droppedLogCount": 429,
+            "pending": {
+              "count": 0,
+              "latest": []
+            },
+            "readyAt": "2026-10-23T18:33:19.469Z"
+          }
+        ]
+      },
+      "diagnostics": [
+        "Error: Controlled runtime exception after first frame"
+      ]
+    },
+    {
+      "name": "real GPU validation and thrown runtime error after first frame; Options report",
+      "validation": {
+        "name": "GPUValidationError",
+        "message": "Buffer usages must not be 0.\n - While calling [Device].CreateBuffer([BufferDescriptor]).\n",
+        "truncatedFields": [],
+        "source": {
+          "operation": "gpu.uncaptured-error",
+          "context": "undefined",
+          "path": ""
+        }
+      },
+      "runtime": {
+        "startedAt": "2026-10-23T18:33:12.609Z",
+        "updatedAt": "2026-10-23T18:33:20.051Z",
+        "lastSeenAt": "2026-10-23T18:33:20.051Z",
+        "state": "failed",
+        "phase": "Step 10 of 10: Drawing the house",
+        "build": "/terrilives/assets/index-CF2EA_TM.js",
+        "gameVersion": "1.0.0",
+        "environment": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+          "width": 402,
+          "height": 874,
+          "pixelRatio": 3,
+          "secure": true,
+          "webgpu": true
+        },
+        "logs": [
+          {
+            "ms": 5053,
+            "at": "2026-10-23T18:33:17.662Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:145:/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\"}"
+          },
+          {
+            "ms": 5055,
+            "at": "2026-10-23T18:33:17.664Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5055,
+            "at": "2026-10-23T18:33:17.664Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5055,
+            "at": "2026-10-23T18:33:17.664Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:139:/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-BKHOXhnk.bin\",\"bytes\":192512,\"elapsedMs\":4}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5056,
+            "at": "2026-10-23T18:33:17.665Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:140:/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-CLhDfo7T.bin\",\"bytes\":71856,\"elapsedMs\":4}"
+          },
+          {
+            "ms": 5057,
+            "at": "2026-10-23T18:33:17.666Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:141:/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-DBS31bmG.bin\",\"bytes\":192512,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5057,
+            "at": "2026-10-23T18:33:17.666Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:142:/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-BUk_CR2R.bin\",\"bytes\":48128,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5057,
+            "at": "2026-10-23T18:33:17.666Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:143:/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DuzRWlu_.bin\",\"bytes\":24064,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5057,
+            "at": "2026-10-23T18:33:17.666Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:144:/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-C1g9wwz_.bin\",\"bytes\":24064,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5057,
+            "at": "2026-10-23T18:33:17.666Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:145:/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-BnXgPeLz.bin\",\"bytes\":71856,\"elapsedMs\":4}"
+          },
+          {
+            "ms": 5058,
+            "at": "2026-10-23T18:33:17.667Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:146:/terrilives/assets/parts-1Bu9D9VH.json\",\"state\":\"start\",\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:146:/terrilives/assets/parts-1Bu9D9VH.json\",\"state\":\"complete\",\"path\":\"/terrilives/assets/parts-1Bu9D9VH.json\",\"bytes\":7843,\"elapsedMs\":1}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:147:/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:148:/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:149:/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:150:/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:151:/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:152:/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\"}"
+          },
+          {
+            "ms": 5059,
+            "at": "2026-10-23T18:33:17.668Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:153:/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\"}"
+          },
+          {
+            "ms": 5060,
+            "at": "2026-10-23T18:33:17.669Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5061,
+            "at": "2026-10-23T18:33:17.670Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:148:/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-DmkjeUP4.bin\",\"bytes\":50400,\"elapsedMs\":3}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:147:/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-DtvG45Fx.bin\",\"bytes\":136192,\"elapsedMs\":3}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:150:/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-WeWVHPaV.bin\",\"bytes\":34048,\"elapsedMs\":3}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:151:/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-D_8ro98k.bin\",\"bytes\":17024,\"elapsedMs\":3}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5062,
+            "at": "2026-10-23T18:33:17.671Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:149:/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-CVooRTz8.bin\",\"bytes\":136192,\"elapsedMs\":3}"
+          },
+          {
+            "ms": 5063,
+            "at": "2026-10-23T18:33:17.672Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:152:/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-CXTcR62j.bin\",\"bytes\":17024,\"elapsedMs\":4}"
+          },
+          {
+            "ms": 5063,
+            "at": "2026-10-23T18:33:17.672Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:153:/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-D7eIhXJJ.bin\",\"bytes\":50400,\"elapsedMs\":4}"
+          },
+          {
+            "ms": 5063,
+            "at": "2026-10-23T18:33:17.672Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:154:/terrilives/assets/parts-DFTVdCwj.json\",\"state\":\"start\",\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\"}"
+          },
+          {
+            "ms": 5064,
+            "at": "2026-10-23T18:33:17.673Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:154:/terrilives/assets/parts-DFTVdCwj.json\",\"state\":\"complete\",\"path\":\"/terrilives/assets/parts-DFTVdCwj.json\",\"bytes\":31430,\"elapsedMs\":2}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\"}"
+          },
+          {
+            "ms": 5065,
+            "at": "2026-10-23T18:33:17.674Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"start\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\"}"
+          },
+          {
+            "ms": 5067,
+            "at": "2026-10-23T18:33:17.676Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5067,
+            "at": "2026-10-23T18:33:17.676Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5068,
+            "at": "2026-10-23T18:33:17.677Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5068,
+            "at": "2026-10-23T18:33:17.677Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5068,
+            "at": "2026-10-23T18:33:17.677Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5068,
+            "at": "2026-10-23T18:33:17.677Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5069,
+            "at": "2026-10-23T18:33:17.678Z",
+            "level": "info",
+            "operation": "asset.response",
+            "message": "{\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"status\":200,\"attempt\":1}"
+          },
+          {
+            "ms": 5070,
+            "at": "2026-10-23T18:33:17.679Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"bytes\":311296,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5070,
+            "at": "2026-10-23T18:33:17.679Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"bytes\":115200,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5070,
+            "at": "2026-10-23T18:33:17.679Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"bytes\":311296,\"elapsedMs\":5}"
+          },
+          {
+            "ms": 5071,
+            "at": "2026-10-23T18:33:17.680Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"bytes\":77824,\"elapsedMs\":6}"
+          },
+          {
+            "ms": 5071,
+            "at": "2026-10-23T18:33:17.680Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"bytes\":38912,\"elapsedMs\":6}"
+          },
+          {
+            "ms": 5071,
+            "at": "2026-10-23T18:33:17.680Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"bytes\":38912,\"elapsedMs\":6}"
+          },
+          {
+            "ms": 5071,
+            "at": "2026-10-23T18:33:17.680Z",
+            "level": "info",
+            "operation": "asset.download",
+            "message": "{\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"bytes\":115200,\"elapsedMs\":6}"
+          },
+          {
+            "ms": 5073,
+            "at": "2026-10-23T18:33:17.682Z",
+            "level": "info",
+            "operation": "loading.phase",
+            "message": "Step 9 of 10: Setting up the game"
+          },
+          {
+            "ms": 5179,
+            "at": "2026-10-23T18:33:17.788Z",
+            "level": "info",
+            "operation": "loading.phase",
+            "message": "Preparing characters"
+          },
+          {
+            "ms": 5294,
+            "at": "2026-10-23T18:33:17.903Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:1\",\"state\":\"start\",\"kind\":\"bike\"}"
+          },
+          {
+            "ms": 5399,
+            "at": "2026-10-23T18:33:18.008Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:1\",\"state\":\"complete\",\"kind\":\"bike\",\"elapsedMs\":105}"
+          },
+          {
+            "ms": 5404,
+            "at": "2026-10-23T18:33:18.013Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:2\",\"state\":\"start\",\"kind\":\"sleep\"}"
+          },
+          {
+            "ms": 5818,
+            "at": "2026-10-23T18:33:18.427Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:2\",\"state\":\"complete\",\"kind\":\"sleep\",\"elapsedMs\":414}"
+          },
+          {
+            "ms": 5827,
+            "at": "2026-10-23T18:33:18.436Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:3\",\"state\":\"start\",\"kind\":\"seat\"}"
+          },
+          {
+            "ms": 6234,
+            "at": "2026-10-23T18:33:18.843Z",
+            "level": "info",
+            "operation": "worker.prepare",
+            "message": "{\"id\":\"preparation:1:3\",\"state\":\"complete\",\"kind\":\"seat\",\"elapsedMs\":408}"
+          },
+          {
+            "ms": 6280,
+            "at": "2026-10-23T18:33:18.889Z",
+            "level": "info",
+            "operation": "loading.phase",
+            "message": "Step 10 of 10: Drawing the house"
+          },
+          {
+            "ms": 6783,
+            "at": "2026-10-23T18:33:19.392Z",
+            "level": "info",
+            "operation": "graphics.first-frame",
+            "message": "{\"id\":\"first-scene\",\"state\":\"start\"}"
+          },
+          {
+            "ms": 6860,
+            "at": "2026-10-23T18:33:19.469Z",
+            "level": "info",
+            "operation": "graphics.first-frame",
+            "message": "{\"id\":\"first-scene\",\"state\":\"complete\"}"
+          },
+          {
+            "ms": 6860,
+            "at": "2026-10-23T18:33:19.469Z",
+            "level": "info",
+            "operation": "startup.ready",
+            "message": "First graphics frame completed"
+          },
+          {
+            "ms": 7033,
+            "at": "2026-10-23T18:33:19.642Z",
+            "level": "info",
+            "operation": "ui.activate",
+            "message": "{\"id\":\"close-help\",\"label\":\"Got it\",\"type\":\"BUTTON\"}"
+          },
+          {
+            "ms": 7191,
+            "at": "2026-10-23T18:33:19.800Z",
+            "level": "info",
+            "operation": "ui.activate",
+            "message": "{\"id\":\"speed-0\",\"label\":\"\",\"type\":\"INPUT\"}"
+          },
+          {
+            "ms": 7419,
+            "at": "2026-10-23T18:33:20.028Z",
+            "level": "error",
+            "operation": "gpu.uncaptured-error",
+            "message": "GPUValidationError: Buffer usages must not be 0.\n - While calling [Device].CreateBuffer([BufferDescriptor]).\n"
+          },
+          {
+            "ms": 7442,
+            "at": "2026-10-23T18:33:20.051Z",
+            "level": "error",
+            "operation": "console.error",
+            "message": "Controlled logged recovery error Error: Recovery diagnostic marker"
+          },
+          {
+            "ms": 7442,
+            "at": "2026-10-23T18:33:20.051Z",
+            "level": "error",
+            "operation": "window.error",
+            "message": "Error: Controlled runtime exception after first frame"
+          }
+        ],
+        "errors": [
+          {
+            "name": "GPUValidationError",
+            "message": "Buffer usages must not be 0.\n - While calling [Device].CreateBuffer([BufferDescriptor]).\n",
+            "truncatedFields": [],
+            "source": {
+              "operation": "gpu.uncaptured-error",
+              "context": "undefined",
+              "path": ""
+            },
+            "at": "2026-10-23T18:33:20.028Z"
+          },
+          {
+            "name": "Error",
+            "message": "Recovery diagnostic marker",
+            "stack": "Error: Recovery diagnostic marker\n    at eval (eval at evaluate (:311:30), <anonymous>:2:58)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+            "truncatedFields": [],
+            "source": {
+              "operation": "console.error",
+              "context": "Controlled logged recovery error Error: Recovery diagnostic marker",
+              "path": ""
+            },
+            "at": "2026-10-23T18:33:20.051Z"
+          },
+          {
+            "name": "Error",
+            "message": "Controlled runtime exception after first frame",
+            "stack": "Error: Controlled runtime exception after first frame\n    at eval (eval at evaluate (:311:30), <anonymous>:3:31)",
+            "truncatedFields": [],
+            "source": {
+              "operation": "window.error",
+              "path": "",
+              "line": 3,
+              "column": 31
+            },
+            "cause": {
+              "name": "Error",
+              "message": "Controlled underlying cause",
+              "stack": "Error: Controlled underlying cause\n    at eval (eval at evaluate (:311:30), <anonymous>:3:97)",
+              "truncatedFields": []
+            },
+            "at": "2026-10-23T18:33:20.051Z"
+          }
+        ],
+        "phases": [
+          {
+            "ms": 0,
+            "phase": "Step 1 of 10: Downloading the game"
+          },
+          {
+            "ms": 3241,
+            "phase": "Step 2 of 10: Downloading the simulation"
+          },
+          {
+            "ms": 3268,
+            "phase": "Step 3 of 10: Starting the simulation"
+          },
+          {
+            "ms": 3286,
+            "phase": "Step 4 of 10: Loading the household"
+          },
+          {
+            "ms": 3292,
+            "phase": "Step 5 of 10: Starting graphics"
+          },
+          {
+            "ms": 3371,
+            "phase": "Step 6 of 10: Loading walls and floors"
+          },
+          {
+            "ms": 3487,
+            "phase": "Step 7 of 10: Loading furniture and people"
+          },
+          {
+            "ms": 4671,
+            "phase": "Step 8 of 10: Preparing graphics"
+          },
+          {
+            "ms": 4726,
+            "phase": "Loading character models"
+          },
+          {
+            "ms": 5073,
+            "phase": "Step 9 of 10: Setting up the game"
+          },
+          {
+            "ms": 5179,
+            "phase": "Preparing characters"
+          },
+          {
+            "ms": 6280,
+            "phase": "Step 10 of 10: Drawing the house"
+          }
+        ],
+        "droppedLogCount": 434,
+        "pending": {
+          "count": 0,
+          "latest": []
+        },
+        "readyAt": "2026-10-23T18:33:19.469Z",
+        "failureStage": "runtime",
+        "error": {
+          "name": "Error",
+          "message": "Controlled runtime exception after first frame",
+          "stack": "Error: Controlled runtime exception after first frame\n    at eval (eval at evaluate (:311:30), <anonymous>:3:31)",
+          "truncatedFields": [],
+          "source": {
+            "operation": "window.error",
+            "path": "",
+            "line": 3,
+            "column": 31
+          },
+          "cause": {
+            "name": "Error",
+            "message": "Controlled underlying cause",
+            "stack": "Error: Controlled underlying cause\n    at eval (eval at evaluate (:311:30), <anonymous>:3:97)",
+            "truncatedFields": []
+          }
+        }
+      },
+      "encodedLinkCharacters": 7896,
+      "mailBody": "Natural Causes v1.0.0 (recorded attempt)\r\nBuild: /terrilives/assets/index-CF2EA_TM.js\r\nAttempt: 2026-10-23T18:33:12.609Z; state=failed; phase=Step 10 of 10: Drawing the house\r\nLast seen: 2026-10-23T18:33:20.147Z; first frame: 2026-10-23T18:33:19.469Z\r\nBrowser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\r\nActual error: Error: Controlled runtime exception after first frame\r\nSource: {\"operation\":\"window.error\",\"path\":\"\",\"line\":3,\"column\":31}\r\nCause: {\"name\":\"Error\",\"message\":\"Controlled underlying cause\",\"stack\":\"Error: Controlled underlying cause\\n    at eval (eval at evaluate (:311:30), <anonymous>:3:97)\",\"truncatedFields\":[]}\r\nError: Controlled runtime exception after first frame\r\n    at eval (eval at evaluate (:311:30), <anonymous>:3:31)\r\nLoading history: 0ms Step 1 of 10: Downloading the game > 3241ms Step 2 of 10: Downloading the simulation > 3268ms Step 3 of 10: Starting the simulation > 3286ms Step 4 of 10: Loading the household > 3292ms Step 5 of 10: Starting graphics > 3371ms Step 6 of 10: Loading walls and floors > 3487ms Step 7 of 10: Loading furniture and people > 4671ms Step 8 of 10: Preparing graphics > 4726ms Loading character models > 5073ms Step 9 of 10: Setting up the game > 5179ms Preparing characters > 6280ms Step 10 of 10: Drawing the house\r\nLatest logs (newest first):\r\n+7538ms [info] ui.activate: {\"id\":\"report-bug\",\"label\":\"Report bug\",\"type\":\"A\"}\r\n+7472ms [info] ui.activate: {\"id\":\"options-toggle\",\"label\":\"Options\",\"type\":\"BUTTON\"}\r\n+7442ms [error] window.error: Error: Controlled runtime exception after first frame\r\n+7442ms [error] console.error: Controlled logged recovery error Error: Recovery diagnostic marker\r\n+7419ms [error] gpu.uncaptured-error: GPUValidationError: Buffer usages must not be 0.\r\n - While calling [Device].CreateBuffer([BufferDescriptor]).\r\n\r\n+7191ms [info] ui.activate: {\"id\":\"speed-0\",\"label\":\"\",\"type\":\"INPUT\"}\r\n+7033ms [info] ui.activate: {\"id\":\"close-help\",\"label\":\"Got it\",\"type\":\"BUTTON\"}\r\n+6860ms [info] startup.ready: First graphics frame completed\r\n+6860ms [info] graphics.first-frame: {\"id\":\"first-scene\",\"state\":\"complete\"}\r\n+6783ms [info] graphics.first-frame: {\"id\":\"first-scene\",\"state\":\"start\"}\r\n+6280ms [info] loading.phase: Step 10 of 10: Drawing the house\r\n+6234ms [info] worker.prepare: {\"id\":\"preparation:1:3\",\"state\":\"complete\",\"kind\":\"seat\",\"elapsedMs\":408}\r\n+5827ms [info] worker.prepare: {\"id\":\"preparation:1:3\",\"state\":\"start\",\"kind\":\"seat\"}\r\n+5818ms [info] worker.prepare: {\"id\":\"preparation:1:2\",\"state\":\"complete\",\"kind\":\"sleep\",\"elapsedMs\":414}\r\n+5404ms [info] worker.prepare: {\"id\":\"preparation:1:2\",\"state\":\"start\",\"kind\":\"sleep\"}\r\n+5399ms [info] worker.prepare: {\"id\":\"preparation:1:1\",\"state\":\"complete\",\"kind\":\"bike\",\"elapsedMs\":105}\r\n+5294ms [info] worker.prepare: {\"id\":\"preparation:1:1\",\"state\":\"start\",\"kind\":\"bike\"}\r\n+5179ms [info] loading.phase: Preparing characters\r\n+5073ms [info] loading.phase: Step 9 of 10: Setting up the game\r\n+5071ms [info] asset.download: {\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"bytes\":115200,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"bytes\":38912,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"bytes\":38912,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"bytes\":77824,\"elapsedMs\":6}\r\n+5070ms [info] asset.download: {\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"bytes\":311296,\"elapsedMs\":5}\r\n+5070ms [info] asset.download: {\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"bytes\":115200,\"elapsedMs\":5}\r\n+5070ms [info] asset.download: {\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"bytes\":311296,\"elapsedMs\":5}\r\n+5069ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"status\":200,\"attempt\":1}\r\n\r\nIncluded 31/80 retained logs; 436 earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.",
+      "view": {
+        "requests": [
+          "/terrilives/startup-report.html",
+          "/terrilives/startup-diagnostics-v3.js"
+        ],
+        "sharing": {
+          "subject": "[Bug report] Natural Causes v1.0.0",
+          "encodedLinkCharacters": 7862,
+          "mailBody": "Natural Causes v1.0.0 (recorded attempt)\r\nBuild: /terrilives/assets/index-CF2EA_TM.js\r\nAttempt: 2026-10-23T18:33:12.609Z; state=failed; phase=Step 10 of 10: Drawing the house\r\nLast seen: 2026-10-23T18:33:20.807Z; first frame: 2026-10-23T18:33:19.469Z\r\nBrowser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36\r\nActual error: Error: Controlled runtime exception after first frame\r\nSource: {\"operation\":\"window.error\",\"path\":\"\",\"line\":3,\"column\":31}\r\nCause: {\"name\":\"Error\",\"message\":\"Controlled underlying cause\",\"stack\":\"Error: Controlled underlying cause\\n    at eval (eval at evaluate (:311:30), <anonymous>:3:97)\",\"truncatedFields\":[]}\r\nError: Controlled runtime exception after first frame\r\n    at eval (eval at evaluate (:311:30), <anonymous>:3:31)\r\nLoading history: 0ms Step 1 of 10: Downloading the game > 3241ms Step 2 of 10: Downloading the simulation > 3268ms Step 3 of 10: Starting the simulation > 3286ms Step 4 of 10: Loading the household > 3292ms Step 5 of 10: Starting graphics > 3371ms Step 6 of 10: Loading walls and floors > 3487ms Step 7 of 10: Loading furniture and people > 4671ms Step 8 of 10: Preparing graphics > 4726ms Loading character models > 5073ms Step 9 of 10: Setting up the game > 5179ms Preparing characters > 6280ms Step 10 of 10: Drawing the house\r\nLatest logs (newest first):\r\n+8198ms [info] page.visibility: hidden\r\n+8197ms [info] page.hide: Page hidden or unloaded\r\n+7538ms [info] ui.activate: {\"id\":\"report-bug\",\"label\":\"Report bug\",\"type\":\"A\"}\r\n+7472ms [info] ui.activate: {\"id\":\"options-toggle\",\"label\":\"Options\",\"type\":\"BUTTON\"}\r\n+7442ms [error] window.error: Error: Controlled runtime exception after first frame\r\n+7442ms [error] console.error: Controlled logged recovery error Error: Recovery diagnostic marker\r\n+7419ms [error] gpu.uncaptured-error: GPUValidationError: Buffer usages must not be 0.\r\n - While calling [Device].CreateBuffer([BufferDescriptor]).\r\n\r\n+7191ms [info] ui.activate: {\"id\":\"speed-0\",\"label\":\"\",\"type\":\"INPUT\"}\r\n+7033ms [info] ui.activate: {\"id\":\"close-help\",\"label\":\"Got it\",\"type\":\"BUTTON\"}\r\n+6860ms [info] startup.ready: First graphics frame completed\r\n+6860ms [info] graphics.first-frame: {\"id\":\"first-scene\",\"state\":\"complete\"}\r\n+6783ms [info] graphics.first-frame: {\"id\":\"first-scene\",\"state\":\"start\"}\r\n+6280ms [info] loading.phase: Step 10 of 10: Drawing the house\r\n+6234ms [info] worker.prepare: {\"id\":\"preparation:1:3\",\"state\":\"complete\",\"kind\":\"seat\",\"elapsedMs\":408}\r\n+5827ms [info] worker.prepare: {\"id\":\"preparation:1:3\",\"state\":\"start\",\"kind\":\"seat\"}\r\n+5818ms [info] worker.prepare: {\"id\":\"preparation:1:2\",\"state\":\"complete\",\"kind\":\"sleep\",\"elapsedMs\":414}\r\n+5404ms [info] worker.prepare: {\"id\":\"preparation:1:2\",\"state\":\"start\",\"kind\":\"sleep\"}\r\n+5399ms [info] worker.prepare: {\"id\":\"preparation:1:1\",\"state\":\"complete\",\"kind\":\"bike\",\"elapsedMs\":105}\r\n+5294ms [info] worker.prepare: {\"id\":\"preparation:1:1\",\"state\":\"start\",\"kind\":\"bike\"}\r\n+5179ms [info] loading.phase: Preparing characters\r\n+5073ms [info] loading.phase: Step 9 of 10: Setting up the game\r\n+5071ms [info] asset.download: {\"id\":\"download:161:/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"bytes\":115200,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:160:/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"bytes\":38912,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:159:/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"bytes\":38912,\"elapsedMs\":6}\r\n+5071ms [info] asset.download: {\"id\":\"download:158:/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"bytes\":77824,\"elapsedMs\":6}\r\n+5070ms [info] asset.download: {\"id\":\"download:157:/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.cage-BuGovt_O.bin\",\"bytes\":311296,\"elapsedMs\":5}\r\n+5070ms [info] asset.download: {\"id\":\"download:156:/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.indices-BMZpZR5E.bin\",\"bytes\":115200,\"elapsedMs\":5}\r\n+5070ms [info] asset.download: {\"id\":\"download:155:/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"state\":\"complete\",\"path\":\"/terrilives/assets/runtime.vertices-nxHb3Efm.bin\",\"bytes\":311296,\"elapsedMs\":5}\r\n+5069ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalTriangles-DxhbkTaK.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.normalRanges-Bb-7_DYL.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilWeights-DMvdqcMw.bin\",\"status\":200,\"attempt\":1}\r\n+5068ms [info] asset.response: {\"path\":\"/terrilives/assets/runtime.stencilRanges-qZqO4ceo.bin\",\"status\":200,\"attempt\":1}\r\n\r\nIncluded 32/80 retained logs; 438 earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.",
+          "copyCharacters": 29104,
+          "clipboardTransport": "isolated test double; system clipboard untouched",
+          "fallback": true
+        },
+        "summary": "The last attempt recorded an error. Error: Controlled runtime exception after first frame",
+        "download": "natural-causes-debug-report.json"
+      }
+    }
+  ],
+  "entry": "./assets/index-CF2EA_TM.js",
+  "entrySha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+  "status": "PASS",
+  "browserClosed": true
+}

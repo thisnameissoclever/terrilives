@@ -1,0 +1,47 @@
+{
+  "checks": [
+    {
+      "name": "desktop",
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false,
+      "viewer": true,
+      "focusReturn": true,
+      "search": true
+    },
+    {
+      "name": "desktop",
+      "optionsArticle": true,
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false
+    },
+    {
+      "name": "phone",
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false,
+      "viewer": true,
+      "focusReturn": true,
+      "search": true
+    },
+    {
+      "name": "phone",
+      "optionsArticle": true,
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false
+    },
+    {
+      "javascriptDisabledReadable": true
+    }
+  ]
+}
