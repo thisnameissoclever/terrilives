@@ -51,6 +51,8 @@ mod catalogue;
 mod catalogue_meals;
 #[path = "trace/relationships.rs"]
 mod relationships;
+#[path = "trace/shifts.rs"]
+mod shifts;
 
 /// Read catalogue fields from current capture, without historical room projection.
 fn current_catalogue_state(sim: &Sim) -> terri_core::SaveSnapshotV6 {
@@ -112,19 +114,14 @@ struct Motion {
 }
 
 fn main() {
-    if std::env::args().nth(1).as_deref() == Some("meals") {
-        catalogue_meals::run(
-            std::env::args()
-                .nth(2)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(1),
-        );
+    // `--night-worker` and `--careers-seed <n>` (issue 296) may appear
+    // anywhere; the positional arguments keep their places without them.
+    let (flags, args) = shifts::split_args(std::env::args());
+    if args.get(1).map(String::as_str) == Some("meals") {
+        catalogue_meals::run(args.get(2).and_then(|s| s.parse().ok()).unwrap_or(1));
         return;
     }
-    let ticks: u64 = std::env::args()
-        .nth(1)
-        .and_then(|a| a.parse().ok())
-        .unwrap_or(12_000);
+    let ticks: u64 = args.get(1).and_then(|a| a.parse().ok()).unwrap_or(12_000);
     if ticks == 0 {
         // Zero ticks traces nothing, and the per-sim percentage lines
         // would divide by it and print NaN, which reads as a broken
@@ -134,16 +131,17 @@ fn main() {
     }
 
     let pack = terri_data::pack();
-    let seed: u64 = std::env::args()
-        .nth(2)
+    let seed: u64 = args
+        .get(2)
         .and_then(|arg| arg.parse().ok())
         .unwrap_or(pack.tuning.rng_seed);
-    let override_instinct: Option<u8> = std::env::args().nth(3).and_then(|arg| arg.parse().ok());
+    let override_instinct: Option<u8> = args.get(3).and_then(|arg| arg.parse().ok());
     let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
+    shifts::prepare(&mut sim, &flags);
     if std::env::var_os("TRACE_CATALOGUE").is_some() {
         catalogue::print_catalogue(&sim);
     }
-    let scenario = std::env::args().nth(4).unwrap_or_else(|| "new".into());
+    let scenario = args.get(4).cloned().unwrap_or_else(|| "new".into());
     catalogue::prepare(&mut sim, seed, &scenario);
     let mut catalogue_summary = catalogue::Summary::new(&sim);
     if let Some(instinct) = override_instinct {
@@ -260,6 +258,7 @@ fn main() {
     let mut maximum_pending_age = 0u64;
     let mut capped_handwash_choices = 0u64;
 
+    let mut shift_summary = shifts::Summary::new(sims.len());
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
     };
@@ -345,6 +344,11 @@ fn main() {
             }
         }
         previous_requests = current_requests;
+        shift_summary.observe(
+            &sim,
+            &sims,
+            previous_requests.values().map(|(request, _)| request),
+        );
 
         let world = sim.world();
         if let Some(telemetry) =
@@ -1394,6 +1398,7 @@ fn main() {
             sum / count as f64
         );
     }
+    shift_summary.print(&sim, &sims);
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());
