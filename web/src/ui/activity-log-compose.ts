@@ -343,7 +343,10 @@ class LineText {
   private readonly family = new Family();
 
   private on(filter: number): boolean { return (this.context.filters & filter) !== 0; }
-  private name(simId: number): string { return this.context.name(simId) ?? words.SOMEONE; }
+  /** A person anywhere after the start of a line. */
+  private name(simId: number): string { return this.context.name(simId) ?? words.SOMEONE_IN_SENTENCE; }
+  /** The person a line starts with. */
+  private headName(simId: number): string { return this.context.name(simId) ?? words.SOMEONE; }
   private label(index: number): string {
     return index === NONE ? words.SOMETHING : this.context.labels[index] ?? words.SOMETHING;
   }
@@ -382,7 +385,7 @@ class LineText {
     this.context = context;
     this.details = (context.filters & FILTER.details) !== 0;
     this.family.collect(store, index);
-    const actor = this.name(store.actor(index));
+    const actor = this.headName(store.actor(index));
     switch (store.kind(index)) {
       case KIND.actionDone: return this.action(actor);
       case KIND.chatDone: return this.chat(actor);
@@ -390,8 +393,8 @@ class LineText {
       case KIND.annoyed: return this.annoyed(actor, line);
       case KIND.choresThisWeek: return this.week(actor);
       case KIND.choreOutcome: return this.outcome(actor);
-      // A feeling with no line to attach to: the feeling alone.
-      case KIND.feeling: return this.feelingText(index);
+      // A feeling with no line to attach to: its own line.
+      case KIND.feeling: return this.loneFeeling(actor);
       case KIND.skillLevel: return words.head(actor, this.levelText(index));
       case KIND.weeklyReview: return this.review(actor);
       case KIND.careerChange: return this.change(actor);
@@ -413,6 +416,16 @@ class LineText {
     const sentence = this.label(store.label(child)) === 'cause:chore-neglected'
       ? words.resents(actor, other) : words.appreciates(actor, other);
     return this.details ? sentence + this.numbers(this.opinion(store.value(child, 2), store.other(child))) : sentence;
+  }
+
+  /** A feeling whose line was not logged, headed by the person who felt it. */
+  private loneFeeling(actor: string): string {
+    const { store, index } = this;
+    const other = this.name(store.other(index));
+    const cause = this.label(store.label(index));
+    const label = cause === 'cause:meal-shared' ? words.appreciatedMeal(other)
+      : cause === 'cause:chore-neglected' ? words.resentedNeglectedChore(other) : words.appreciatedChore(other);
+    return words.head(actor, label) + this.numbers(this.opinion(store.value(index, 2), store.other(index)));
   }
 
   /** The Social clause from feelings attached anywhere below this line. */
@@ -491,7 +504,8 @@ class LineText {
     const { store, index } = this;
     let head = words.head(actor, this.label(store.label(index))) + words.withPerson(this.name(store.other(index)));
     const topic = store.label2(index);
-    if (topic !== NONE) head += words.aboutTopic(words.topicWord(this.label(topic)));
+    const word = topic === NONE ? null : words.topicWord(this.label(topic));
+    if (word !== null) head += words.aboutTopic(word);
     return head;
   }
 
@@ -518,7 +532,7 @@ class LineText {
       ) : '';
       const separator = words.LIST_SEPARATOR;
       const sides = joined(
-        joined('', this.side(actor, lowHalf(preferences), topic, mine), separator),
+        joined('', this.side(this.name(store.actor(index)), lowHalf(preferences), topic, mine), separator),
         this.side(this.name(other), highHalf(preferences), topic, theirs),
         separator,
       );
@@ -543,7 +557,7 @@ class LineText {
     const other = store.other(index);
     let social: string | null = null;
     if (this.on(FILTER.social)) {
-      social = words.likeEachOtherLess(actor, this.name(other));
+      social = words.likeEachOtherLess(this.name(store.actor(index)), this.name(other));
       if (this.details) {
         social += this.numbers(
           this.opinion(store.value(index, 2), other),

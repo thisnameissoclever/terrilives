@@ -22,8 +22,10 @@ export const PANEL_WORDS = {
 
 export function onlyInvolving(name: string): string { return `Only entries involving ${name}.`; }
 
-/** A person the shell never saw a name for. */
+/** A person the shell never saw a name for, at the start of a line. */
 export const SOMEONE = 'Someone';
+/** The same person anywhere else in a line. */
+export const SOMEONE_IN_SENTENCE = 'someone';
 
 /** A label index the table does not hold, and a topic with no word. */
 export const SOMETHING = 'something';
@@ -45,12 +47,20 @@ export function timestamp(day: number, hours: number, minutes: number): string {
 }
 
 /**
- * Phase 1 topic words by conversation topic tag. Tags that share a bubble
- * share a word. Phase 2 replaces this table with content labels.
+ * Topics with no subject to name: small talk, and a fight over nothing in
+ * particular. Their lines read "Chat with Bill" or "Fight with Bill".
+ */
+export const NO_SUBJECT_TAGS: ReadonlySet<string> = new Set([
+  'socialising', 'smalltalk', 'fight', 'fight-random-4', 'fight-random-7',
+]);
+
+/**
+ * Phase 1 topic words by conversation topic tag, each read after "about".
+ * Tags that share a bubble share a word. Phase 2 replaces this table with
+ * content labels.
  */
 export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['eating', 'eating'], ['food', 'eating'],
-  ['socialising', 'small talk'], ['smalltalk', 'small talk'],
   ['sleeping', 'sleep'], ['sleep', 'sleep'],
   ['reading', 'reading'],
   ['exercise', 'exercise'],
@@ -59,7 +69,9 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['showering', 'showers'], ['shower', 'showers'],
   ['toilet', 'the toilet'],
   ['television', 'TV'], ['tv', 'TV'],
-  ['lounging', 'lounging about'],
+  ['lounging', 'lounging'],
+  ['bathroom_privacy', 'bathroom privacy'],
+  ['fighting', 'fighting'],
   ['washing', 'washing'], ['hygiene', 'washing'],
   ['cleaning', 'cleaning'],
   ['music', 'music'], ['radio', 'music'],
@@ -68,7 +80,6 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['cooking', 'cooking'],
   ['fight-dishes', 'the dishes'],
   ['fight-chore', 'chores'],
-  ['fight', 'nothing in particular'],
   // Arguments over a remembered grievance.
   ['fight-privacy', 'privacy'],
   ['fight-television', 'TV'],
@@ -78,9 +89,7 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['fight-interruption', 'interruptions'],
   // Arguments over an everyday topic, by the topic's bubble code.
   ['fight-random-3', 'eating'],
-  ['fight-random-4', 'small talk'],
   ['fight-random-5', 'sleep'],
-  ['fight-random-7', 'nothing in particular'],
   ['fight-random-8', 'reading'],
   ['fight-random-9', 'exercise'],
   ['fight-random-10', 'the aquarium'],
@@ -88,7 +97,7 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['fight-random-12', 'showers'],
   ['fight-random-13', 'the toilet'],
   ['fight-random-14', 'TV'],
-  ['fight-random-15', 'lounging about'],
+  ['fight-random-15', 'lounging'],
   ['fight-random-16', 'washing'],
   ['fight-random-17', 'cleaning'],
   ['fight-random-18', 'music'],
@@ -99,7 +108,10 @@ export const TOPIC_WORDS: ReadonlyMap<string, string> = new Map([
   ['fight-random-23', 'cooking'],
 ]);
 
-export function topicWord(tag: string): string { return TOPIC_WORDS.get(tag) ?? SOMETHING; }
+/** The word after "about", or null for a topic with no subject. */
+export function topicWord(tag: string): string | null {
+  return NO_SUBJECT_TAGS.has(tag) ? null : TOPIC_WORDS.get(tag) ?? SOMETHING;
+}
 
 /** A chat reaction, chosen from the Likes and dislikes band edges. */
 export type Reaction = 'loves' | 'likes' | 'neutral' | 'dislikes' | 'hates';
@@ -117,6 +129,10 @@ export function reaction(name: string, kind: Reaction): string {
 export function appreciates(name: string, other: string): string { return `${name} appreciates ${other}`; }
 export function resents(name: string, other: string): string { return `${name} resents ${other}`; }
 export function likeEachOtherLess(name: string, other: string): string { return `${name} and ${other} like each other less`; }
+/** A feeling whose line was not logged, as its own line's label. */
+export function appreciatedMeal(other: string): string { return `Appreciated ${other}'s meal`; }
+export function appreciatedChore(other: string): string { return `Appreciated ${other}'s chore`; }
+export function resentedNeglectedChore(other: string): string { return `Resented ${other}'s neglected chore`; }
 
 /**
  * An object's type label, such as Bathroom sink, as it reads after "the" in

@@ -17,7 +17,7 @@ import {
   type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, lineText,
 } from './activity-log-compose.js';
 import { ACTIVITY_LOG_CAPACITY, type ActivityLogStore } from './activity-log-store.js';
-import { PANEL_WORDS, SOMEONE, onlyInvolving } from './activity-log-words.js';
+import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyInvolving } from './activity-log-words.js';
 import type { HouseholdRosterSurface } from './household-roster.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
@@ -270,7 +270,7 @@ export class ActivityLogPanel {
 
   private reflectSelected(): void {
     const selected = this.context.selected;
-    this.options.view.reflectSelected(selected === null ? null : onlyInvolving(this.context.name(selected) ?? SOMEONE));
+    this.options.view.reflectSelected(selected === null ? null : onlyInvolving(this.context.name(selected) ?? SOMEONE_IN_SENTENCE));
   }
 
   /**

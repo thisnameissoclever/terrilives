@@ -21,6 +21,7 @@ const LABELS = [
   'cause:privacy-entry', 'cause:nuisance', 'television', 'Cooking', 'Senior clerk', 'Office clerk', 'Fight',
   'fight-dishes', 'Clean floor', 'radio', 'Join meal', 'cause:meal-shared', 'cause:chore-neglected', 'smalltalk',
   'Watch TV', 'cause:privacy-start', 'Shower', 'Toilet', 'Bathroom sink', 'TV stand', 'Bathtub',
+  'fight', 'lounging', 'bathroom_privacy', 'socialising', 'fight-random-4',
 ] as const;
 const L = Object.fromEntries(LABELS.map((label, index) => [label, index])) as Record<(typeof LABELS)[number], number>;
 
@@ -94,7 +95,7 @@ describe('activity log lines', () => {
       expect(lines(store, S)[0]).toBe(`Tim: Chat with Bill about cooking; Tim ${word} it, Bill does not mind it`);
     }
     const smalltalk = record({ seq: 1, kind: KIND.chatDone, triggers: A | S, actor: TIM, other: BILL, label: L.Chat, label2: L.smalltalk });
-    expect(lines(storeOf(smalltalk), A)).toEqual(['Tim: Chat with Bill about small talk']);
+    expect(lines(storeOf(smalltalk), A), 'small talk has no subject to name').toEqual(['Tim: Chat with Bill']);
     const unknown = record({ seq: 1, kind: KIND.chatDone, triggers: A | S, actor: TIM, other: BILL, label: L.Chat, label2: L.Reading });
     expect(lines(storeOf(unknown), A)).toEqual(['Tim: Chat with Bill about something']);
     const none = record({ seq: 1, kind: KIND.chatDone, triggers: A | S, actor: TIM, other: BILL, label: L.Chat, values: [0, pack(480, 0)] });
@@ -352,6 +353,37 @@ describe('grouping and numbers', () => {
     expect(stamp(1_440, 1_440)).toBe('D2, T00:00 ');
     expect(stamp(D74_1545, 1_440)).toBe('D74, T15:45 ');
     expect(stamp(719, 720)).toBe('D1, T23:58 ');
+  });
+
+  it('names a topic only when the conversation had a subject', () => {
+    const talk = (label: number, topic: number, kind: number = KIND.chatDone) => record({
+      seq: 1, kind, triggers: A, actor: TIM, other: BILL, label, label2: topic,
+    });
+    expect(lines(storeOf(talk(L.Chat, L.socialising)), A)).toEqual(['Tim: Chat with Bill']);
+    expect(lines(storeOf(talk(L.Fight, L.fight, KIND.fightDone)), A)).toEqual(['Tim: Fight with Bill']);
+    expect(lines(storeOf(talk(L.Fight, L['fight-random-4'], KIND.fightDone)), A)).toEqual(['Tim: Fight with Bill']);
+    expect(lines(storeOf(talk(L.Chat, L.lounging)), A)).toEqual(['Tim: Chat with Bill about lounging']);
+    expect(lines(storeOf(talk(L.Chat, L.bathroom_privacy)), A)).toEqual(['Tim: Chat with Bill about bathroom privacy']);
+  });
+
+  it('writes someone in lowercase except at the start of a line', () => {
+    const STRANGER = 99;
+    const mess = record({ seq: 1, kind: KIND.annoyed, triggers: S, actor: TIM, other: STRANGER, label: L['cause:household-mess'] });
+    expect(lines(storeOf(mess), S)).toEqual(["Tim: Annoyed by someone's dishes"]);
+    const chat = record({ seq: 1, kind: KIND.chatDone, triggers: A, actor: TIM, other: STRANGER, label: L.Chat, label2: L.cooking });
+    expect(lines(storeOf(chat), A)).toEqual(['Tim: Chat with someone about cooking']);
+    const fight = record({ seq: 1, kind: KIND.fightDone, triggers: A | S, actor: STRANGER, other: TIM, label: L.Fight, label2: L['fight-dishes'] });
+    expect(lines(storeOf(fight), S)).toEqual(['Someone: Fight with Tim about the dishes; someone and Tim like each other less']);
+  });
+
+  it('gives a feeling with no line of its own a head', () => {
+    const feeling = (cause: (typeof LABELS)[number]) => record({
+      seq: 1, kind: KIND.feeling, triggers: S, actor: BILL, other: TIM, label: L[cause], values: [0, 0, 150],
+    });
+    expect(lines(storeOf(feeling('cause:meal-shared')), S)).toEqual(["Bill: Appreciated Tim's meal"]);
+    expect(lines(storeOf(feeling('cause:chore-fulfilled')), S)).toEqual(["Bill: Appreciated Tim's chore"]);
+    expect(lines(storeOf(feeling('cause:chore-neglected')), S)).toEqual(["Bill: Resented Tim's neglected chore"]);
+    expect(lines(storeOf(feeling('cause:meal-shared')), S | D)).toEqual(["Bill: Appreciated Tim's meal (+2 opinion of Tim)"]);
   });
 
   it('names people it never saw as Someone', () => {
