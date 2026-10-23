@@ -62,7 +62,12 @@ describe('the sky wired into the page', () => {
   it('passes expanded window lines to exposure and refreshes them after Load and lot edits', () => {
     expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows, lot.houseOrigin)');
     expect(MAIN_TS.match(/lot.windows = sim.windowLines\(\);/g)).toHaveLength(2);
-    expect(MAIN_TS).toMatch(/if \(loaded\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
+    const adopt = MAIN_TS.slice(
+      MAIN_TS.indexOf('const adoptLoadedWorld = (): void => {'),
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+    );
+    expect(adopt).toMatch(/lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
+    expect(MAIN_TS).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
     expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{\s*refreshBuildArchitecture\(\);/);
     expect(MAIN_TS).toMatch(/function refreshBuildArchitecture\(\): void \{[^}]*lot.windows = sim.windowLines\(\);[^}]*lightingDirty = true;/);
   });

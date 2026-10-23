@@ -733,7 +733,9 @@ describe('HousemateFormView', () => {
     expect(MAIN_TS).toContain('openCreator(person);');
     expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;');
     expect(MAIN_TS).toContain('restorePersistenceFocus(document, housemateDialog, housemateOpener');
-    const loaded = MAIN_TS.slice(MAIN_TS.indexOf('if (loaded) {'));
+    // Load and Import share adoptLoadedWorld, which replaces the world.
+    expect(MAIN_TS).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
+    const loaded = MAIN_TS.slice(MAIN_TS.indexOf('const adoptLoadedWorld = (): void => {'));
     const loadBranch = loaded.slice(0, loaded.indexOf('wallTool.resetAfterLoad('));
     expect(loadBranch).toContain("if (housemateDialog.open) housemateDialog.close('cancel');");
     expect(loadBranch).toContain('housemateView?.destroy();');

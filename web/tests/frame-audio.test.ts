@@ -341,9 +341,14 @@ describe('sampleSimAudioAfterTick', () => {
 
   it('resets at Load and keeps sound playing in a hidden tab', () => {
     expect(MAIN).not.toMatch(/audio\.reset\('pause'\)/);
-    expect(MAIN).toMatch(
-      /if \(loaded\) \{[\s\S]*?audio\.reset\('load'\)/,
+    // Load and Import share the refresh of a replaced world; scope the match
+    // to that function's body and require Load to call it on success.
+    const adopt = MAIN.slice(
+      MAIN.indexOf('const adoptLoadedWorld = (): void => {'),
+      MAIN.indexOf("confirmLoadGame.addEventListener('click'"),
     );
+    expect(adopt).toContain("audio.reset('load')");
+    expect(MAIN).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
     // Scoped to the handler body rather than spanning the file: a lazy match
     // from the word to any later call would be satisfied by a `setBackgrounded`
     // sitting anywhere below, including outside the listener entirely.
