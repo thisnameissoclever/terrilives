@@ -38,7 +38,7 @@ function fixture() {
   let floors = new Uint32Array([0, 0, 1]);
   const speeds: number[] = [], statuses: [boolean, string | null][] = [], draws: number[][] = [];
   const diagnostics: unknown[][] = [];
-  const startup: { name: string; detail: unknown; error?: unknown }[] = [], events: string[] = [];
+  const startup: { name: string; detail: unknown; error?: unknown }[] = [], events: string[] = [], eventDetails: unknown[] = [];
   // Each submitted-work promise stays pending until a test settles it.
   const gpuWork: { resolve(): void; reject(error: Error): void }[] = [];
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
@@ -67,7 +67,7 @@ function fixture() {
     weatherScene: { setOutside() {}, prepare() {} }, weatherTuning: null, drawWorldEffects() {},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
     stage: { width: 500, height: 400, clientWidth: 500, clientHeight: 400,
-      getBoundingClientRect() { return {left:0,top:0,width:this.clientWidth,height:this.clientHeight}; } }, window: { devicePixelRatio: 1, dispatchEvent: (event: Event) => events.push(event.type) },
+      getBoundingClientRect() { return {left:0,top:0,width:this.clientWidth,height:this.clientHeight}; } }, window: { devicePixelRatio: 1, dispatchEvent: (event: Event) => { events.push(event.type); eventDetails.push((event as CustomEvent).detail); } },
     nowMs:0, orderDiagnostics:{failedActors:()=>new Set<number>()}, failureBubbles:{update(){}},
     lightingDirty: false, lighting: null, sky: { width: 0, height: 0, values: new Float32Array() },
     buildStaticInstances, buildGrimeInstances:()=>({instances:new Float32Array(),count:0}), depthScale: 16, clampCamera() {},
@@ -99,7 +99,7 @@ function fixture() {
   request();
   const load = (covering: number) => { floors = new Uint32Array([0, 0, covering]); ctx.lot.floors = floors; ctx.cameraDirty = true; request(); };
   const settle = (index: number) => { const next = { renderer: renderer(), finishes: prepareArchitectureFinishes(pending[index].keys, limits, catalogue) }; pending[index].resolve(next); return next; };
-  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, startup, events, gpuWork, pending, resources, request, load, settle,
+  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, startup, events, eventDetails, gpuWork, pending, resources, request, load, settle,
     frame: () => drawMainFrame(ctx) };
 }
 
@@ -123,6 +123,9 @@ describe('main floor scene presentation', () => {
     f.gpuWork[0].reject(error); await flush();
     expect(f.startup).toEqual([firstScene('start'), { ...firstScene('failed'), error }]);
     expect(f.events).toEqual(['terrilives:startup-failure']);
+    // The same error object reaches the report and the failure event's listeners.
+    expect(f.startup[1].error).toBe(error);
+    expect(f.eventDetails).toEqual([error]); expect(f.eventDetails[0]).toBe(error);
   });
   it('retains the current scene while graphics are recovering and resumes coherent drawing',()=>{
     const f=fixture();f.frame();expect(f.draws).toHaveLength(1);
