@@ -1,6 +1,6 @@
 # Activity log performance, measured 2026-10-18
 
-This record holds the measurements Task 11 of the [activity log plan](../../../superpowers/plans/2026-10-18-activity-log.md) takes against [AL-perf] in the [specification](../../../specs/2026-10-18-activity-log.md). It compares the panel and simulation code before and after the fixes for five gaps the first measurement found, under the same conditions. The release frame-time gate could not run as the specification defines it on the machine available, so the browser measures were taken in substitute configurations. Every threshold is reported with the configuration it was measured in, and no threshold that was not measured as defined is marked as passed.
+This record holds the measurements Task 11 of the [activity log plan](../../../superpowers/plans/2026-10-18-activity-log.md) takes against [AL-perf] in the [specification](../../../specs/2026-10-18-activity-log.md). It compares the panel and simulation code before and after the fixes for five gaps the first measurement found, under the same conditions. The release frame-time gate could not run as the specification defines it on the machine available, so the browser measures were taken in substitute configurations. Every threshold is reported with the configuration it was measured in, and no threshold that was not measured as defined is marked as passed. A second comparison on 2026-10-23 measured the change to Show earlier entries and reran the allocation measure; its runs are described with the first ones below.
 
 ## Contents
 
@@ -19,7 +19,8 @@ This record holds the measurements Task 11 of the [activity log plan](../../../s
 
 ## What was run
 
-- **Revisions.** Before the fixes: the panel and log code of `039ac9985`, built into a production bundle beside the merges of main through `7b45ac301` (merge `7324bf665`). After the fixes: `b9fa490d8` (panel) and `cda1f9eab` (simulation and measurement tools). The before and after bundles ran alternately in one session, so they shared the machine's load. The native cost runs marked before used the branch at `c12171440`, before the two merges of main; the runs marked after used `cda1f9eab`. Main's changes moved the household's behavior between those revisions, so the before and after record counts differ.
+- **Revisions.** Before the fixes: the panel and log code of `039ac9985`, built into a production bundle beside the merges of main through `7b45ac301` (merge `7324bf665`). After the fixes: `b9fa490d8` (panel) and `cda1f9eab` (simulation and measurement tools). By the reports' start times, only the rebuild runs alternated between the two bundles, from 00:50 to 00:56 UTC on 2026-10-19. The frame-time runs went in sequential blocks: the after bundle's stress 0 and stress 100 runs started at 00:59 and 01:06 UTC, and the before bundle's at 01:11 and 01:18 UTC. The allocation runs were blocks too: before from 23:35 to 23:41 UTC on 2026-10-18, after from 00:25 to 01:28 UTC. Blocks run at different times meet whatever load other sessions put on the shared machine then, so the frame-time and allocation comparisons do not control for load; within each performance run, the enabled and disabled pages of a pair did alternate. The native cost runs marked before used the branch at `c12171440`, before the two merges of main; the runs marked after used `cda1f9eab`. Main's changes moved the household's behavior between those revisions, so the before and after record counts differ.
+- **Second comparison, 2026-10-23.** Before: the production bundle of `71f210201`, the revision this record first described (`index-CtDM-l2-.js`). After: the bundle of `1380c51f7` (`index-WdXf8KYR.js`), whose activity log panel, store and composer equal those of the pushed head `8a8861e82`. Each mode ran two rounds at each stress level, the two bundles alternating within each round, between 18:17 and 18:44 UTC. The stress level is at most 50 because higher counts overload the shared desktop the measurements run on. The allocation reruns used the development server on the branch at `5257cd838`, between 18:45 and 18:54 UTC. Runs from earlier that day whose selection never cleared (see [One-off work on a click](#one-off-work-on-a-click)) are not used.
 - **Machine.** Windows 11 desktop, 60 Hz display, observed 2026-10-18: Windows 11 Pro, Intel Core i7-13700KF, 64 GB, NVIDIA GeForce RTX 4090, one display at 1920 by 1080 and 60 Hz; Chrome 155.0.8059.85 driven by Playwright Core 1.64 from Node 24.14.1. The machine was shared with other sessions' processes, with the processor at 88 percent load before the runs began.
 - **Builds.** `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, then `npm run build` in `web/` for the after bundle and `npx vite build --outDir <dir>` from the before sources for the before bundle, each served by `npx vite preview --port 4173 --strictPort --host 127.0.0.1 --outDir <dir>`. The allocation runs used the development server, `npx vite --mode lan --port 5174 --strictPort --host 127.0.0.1`, where module paths and function names survive.
 - **Harness.** `scripts/activity-log-proof.cjs` with the helpers in `scripts/lib/browser-frame-gate.cjs`; `scripts/activity-log-wasm-memory.mjs`; the `activity_log_cost` example in `crates/terri-sim/examples/`. Every page ran with `audio=0` and Chrome's `--mute-audio`. Raw reports are in [2026-10-18-performance/](2026-10-18-performance/); files named `before-fix` and `after-fix` belong to this comparison, and the others are the first measurement of `23288060d`.
@@ -30,6 +31,7 @@ This record holds the measurements Task 11 of the [activity log plan](../../../s
   - `node scripts/activity-log-proof.cjs allocation --url http://127.0.0.1:5174/` with `--stress 0` at the specified 32 KB interval and at `--sampling-interval 1024`, and with `--stress 100 --sampling-interval 1024`, with and without `--everyone`.
   - `node scripts/activity-log-proof.cjs memory --stress 100 --fill-ticks 2160 --after-ticks 720` and `memory --stress 0 --fill-ticks 46080 --after-ticks 2880` on the after bundle.
   - `node scripts/activity-log-wasm-memory.mjs --stress 100 --days 6 --pairs 3` on the before wasm and `--pairs 1` on the after wasm, and `--stress 0 --days 36 --pairs 1` on the after wasm, with `--wasm-dir` naming each build's copy.
+  - On 2026-10-23: `node scripts/activity-log-proof.cjs rebuild` and `clicks`, each with `--everyone --repetitions 2`, at `--stress 0 --fill-ticks 46080` and at `--stress 50 --fill-ticks 2880`, with `--url` naming each bundle's preview server; `allocation --url http://127.0.0.1:5174/` four times at `--stress 0 --sampling-interval 1024`, twice at `--stress 0`, and once each at `--stress 50 --sampling-interval 1024` with and without `--everyone`.
   - `cargo build --release -p terri-sim --example activity_log_cost`, then `activity_log_cost --agents 0 --seed S` and `--agents 3 --seed S` for seeds 20260728, 7 and 42, and `--agents 100 --ticks 2880 --chunk 360`.
 
 ## Why the release gate could not run as defined
@@ -52,11 +54,12 @@ Before and after are the same session's runs of the two bundles unless the row s
 | Application-work p95 regression at most 1 ms, stress 0 | Median pair: closed -0.605 ms, open -0.495 ms | Median pair: closed 0.390 ms, open -1.765 ms | Met at 60 Hz; not measured as defined |
 | No application-work frame over 16.6 ms | Up to 10 per run, enabled and disabled alike | Up to 2 per run, enabled and disabled alike | Not met in either mode; the frames occur without the log |
 | No steady `simIdOf` call | 0 in every run | 0 in every run | Met |
-| Allocation, panel closed, 32 KB interval | 0 bytes | 0 bytes in two runs | Met |
-| Allocation, panel open, 32 KB interval | 0 bytes over 2 lines | 0 bytes over 2 and 1 lines | Met, but see [Allocation](#allocation): this interval cannot resolve 2 KB a line with so few lines |
-| Allocation per appended line, 1 KB interval | 1,176 bytes over 292 lines at stress 100 | 748 bytes over 416 lines at stress 100 | Met; the budget stays at 2 KB |
+| Allocation, panel closed, 32 KB interval | 0 bytes | 0 bytes in two runs, and in two reruns | Met |
+| Allocation, panel open, 32 KB interval | 0 bytes over 2 lines | 0 bytes over 2 and 1 lines, and over 2 and 3 in two reruns | Met, but see [Allocation](#allocation): this interval cannot resolve 2 KB a line with so few lines |
+| Allocation per appended line, 1 KB interval | 1,176 bytes over 292 lines at stress 100 | 748 bytes over 416 lines at stress 100; 930 bytes over 225 lines at stress 50 in the rerun | Met; the budget stays at 2 KB |
 | Nothing for records whose lines stay hidden | 43,584 bytes for 342 hidden records, 37,348 of them in `visible` | 1,040 bytes besides the one view per drain, for 433 records and 2 lines; nothing in `visible` | Met |
-| Nothing per frame without new lines, open, 1 KB interval | 9,472 bytes over 20 seconds and no line: `update`, `family`, `add`, `append`, `remember` | 3,096 and 2,072 bytes over 20 seconds with 3 and 2 lines: `remember`, which also runs with the panel closed, and one 1 KB sample in `groupKey`, a line's own merge key | Met for the panel; `remember` is open below |
+| Nothing per frame without new lines, open, 1 KB interval | 9,472 bytes over 20 seconds and no line: `update`, `family`, `add`, `append`, `remember` | 3,096 and 2,072 bytes with 3 and 2 lines in the first runs; 4,144, 9,464, 0 and 7,552 bytes with 2, 1, 1 and 2 lines in four reruns | Not resolved at this interval: see [Allocation](#allocation). At most 9.5 KB in 20 seconds, nearly all in composing and appending the new lines |
+| Show earlier entries, a click and its frame (reported, not a per-frame threshold) | 7.1 to 29.6 ms at stress 0 and 8.2 to 39.0 ms at stress 50, growing with the rows shown | 4.5 to 6.6 ms at stress 0 and 3.7 to 7.9 ms at stress 50, over windows of 400 to 1,316 rows | Within one 16.6 ms frame at every window size |
 | Retained JS difference at most 160 KiB, store full, stress 0 | Median 79,460 bytes (first measurement) | Median 20,256 bytes | Met |
 | No wasm growth after the store is full | Page pairs at stress 100: 655 to 983 KB more with the log on (first measurement); Node runs at stress 100: 64 KB less with the log on | Page pairs: median 0 at stress 100, one 64 KB page at stress 0; Node runs at stress 100 and over 36 household days: identical | Met in the deterministic Node runs; the page pairs' small medians lie within their page-to-page spread |
 | Simulation cost within 2 percent | Household median chunk ratios -1.29, +0.05 and +0.86 percent for seeds 20260728, 7 and 42 | +0.11, -0.06 and -0.71 percent for the same seeds, every 95 percent interval's upper end below +1.6 percent | Met |
@@ -82,14 +85,41 @@ At stress 100 with every person shown, the page drained 573 records before and 8
 
 ## One-off work on a click
 
-Opening the panel, changing a filter and Show earlier entries recompose the rendered window from the store in the click handler, outside the frame's log work. The `rebuild` mode filled the store to 2,000 records at stress 100, showed every person, and timed each click's script and the style and layout it left behind. Each bundle ran twice; the windows held 101 to 200 lines because the pages differed in what they had logged.
+Opening the panel and changing a filter recompose the rendered window from the store in the click handler, outside the frame's log work. Show earlier entries now composes and inserts only the up to 200 lines it reveals and keeps the rendered ones; before `2a5158129` it recomposed the whole store and every shown line. These costs come once per click, so they are reported rather than held to the per-frame limits.
+
+Two modes of `scripts/activity-log-proof.cjs` time them with the store full. The `rebuild` mode clicks back to back and times each click's script, then the style and layout it leaves, read back at once. The `clicks` mode pauses between clicks and charges each click its script plus the main-thread work of the frame after it beyond a frame without a click; work a click defers to that frame, such as a ResizeObserver scroll, counts too. Both clear the selection first so every person's lines show.
+
+### First measurement, 2026-10-19, rebuild mode at stress 100
+
+The two `rebuild-stress100-*-fix-*.json` runs of each bundle went in alternation. They meant to show every person, but the runs paused the page after filling the store with a frame clock ahead of real time, so the roster never reported the cleared selection and each run showed whatever selection the page already had. The windows held 101 to 200 lines when opened.
 
 | Click | Before: script p50, max | Before: layout p50, max | After: script p50, max | After: layout p50, max |
 | --- | --- | --- | --- | --- |
 | Open | 2.06 to 2.18, up to 9.05 ms | 0.02 to 0.03, up to 0.20 ms | 0.59 to 2.14, up to 7.11 ms | 1.13 to 3.14, up to 5.31 ms |
 | Filter change | 1.66 to 1.83, up to 2.39 ms | 0.02, up to 0.04 ms | 0.48 to 1.95, up to 5.06 ms | 0.92 to 2.45, up to 4.58 ms |
+| Show earlier entries | none: no window passed 200 lines | none | 14 clicks in `rebuild-stress100-after-fix-2.json`, windows of 400 to 1,474 rows: script 7.23 to 29.41 ms, median 16.22 ms | 0.03 to 0.47 ms |
 
-Before the fixes the click read the list's height inside its own script, so the layout ran there and the second reading found little left. After the fixes the scroll waits for the frame's own layout, which the mode's read-back measures as layout. The largest single click, script and layout together, took 12.4 ms after the fixes, on opening a 200-line window, and 9.2 ms before, on opening a 125-line window: one frame's work on a click, not a cost every frame pays. Show earlier entries never appeared, because no window reached 200 lines with more held.
+The largest single click after those fixes took 29.9 ms of script and layout, a Show earlier entries click on the 1,474-row window, and the cost grew with the rows already shown. Opening a 200-line window took 12.4 ms at most. Before those fixes the largest was 9.2 ms, on opening a 125-line window; no before run reached Show earlier entries.
+
+### Second comparison, 2026-10-23, at stress 0 and 50
+
+Before is `71f210201`, which still recomposed everything on Show earlier entries; after is `1380c51f7`. Every run showed every person; the raw reports are the `rebuild-stress*-show-earlier-fix-*.json` and `clicks-stress*-show-earlier-fix-*.json` files. In the `clicks` table each value is the click's script plus its frame's work, in milliseconds; the median frame without a click took 0.21 to 0.26 ms and is subtracted.
+
+| `clicks` mode | Before, stress 0 | After, stress 0 | Before, stress 50 | After, stress 50 |
+| --- | --- | --- | --- | --- |
+| Open, 200 lines | 4.0 to 4.8 | 5.7 to 8.3 | 4.7 to 6.0 | 6.8 to 9.4 |
+| Filter change, 56 clicks a column | median 3.2, max 7.4 | median 4.6, max 10.3 | median 3.8, max 6.0 | median 5.4, max 7.6 |
+| Show earlier entries | 22 clicks, 400 to 1,225 rows: 7.1 to 29.6, median 14.1 | 20 clicks, 400 to 1,193 rows: 4.5 to 6.6, median 5.5 | 24 clicks, 400 to 1,407 rows: 8.2 to 39.0, median 21.1 | 22 clicks, 400 to 1,316 rows: 3.7 to 7.9, median 6.0 |
+
+| `rebuild` mode, script and layout | Before, stress 0 | After, stress 0 | Before, stress 50 | After, stress 50 |
+| --- | --- | --- | --- | --- |
+| Open, 200 lines, largest | 2.7 and 2.3 | 2.4 and 3.5 | 3.2 and 3.6 | 3.4 and 5.0 |
+| Filter change, largest | 2.9 and 2.5 | 2.7 and 3.2 | 3.2 and 4.0 | 3.9 and 4.4 |
+| Show earlier entries, script | 24 clicks, 400 to 1,275 rows: 2.8 to 9.5 | 24 clicks, 400 to 1,234 rows: 1.3 to 2.4 | 24 clicks, 400 to 1,422 rows: 3.6 to 17.2 | 22 clicks, 400 to 1,303 rows: 1.7 to 3.6 |
+
+Show earlier entries no longer grows with the rows already shown: after the change every click and its frame fit within one 16.6 ms frame, at most 7.9 ms, where before they reached 39.0 ms, more than two frames at 60 Hz. What remains of the click's cost that rises with the list is the layout of the longer list in its frame, 2.3 to 4.9 ms.
+
+Opening the panel and changing a filter now cost about 1.4 to 2.7 ms more per click at the median, at most 10.3 ms with the frame. They scroll to the newest line inside the click, which lays out the new window there; the frame after still lays out and paints. Before, the scroll waited for a ResizeObserver report, which never came when the new list had the old one's height, and the list stayed where the player had scrolled. Those clicks still fit within one frame. The `rebuild` mode's back-to-back clicks also show the after bundle's open and filter clicks as slower, because its timer counts the scroll that the before bundle made later, outside the timer.
 
 ## Allocation
 
@@ -101,6 +131,11 @@ The [V11] procedure ran on the development server: 6 seconds of warm-up, a 20-se
 | Stress 0, open, 32 KB | 0 bytes; 2 lines | 0 bytes in two runs; 2 and 1 lines |
 | Stress 0, closed, 1 KB | 4,116 bytes, all `remember` | 4,116 and 3,096 bytes, all `remember` |
 | Stress 0, open, 1 KB | 9,472 bytes; 0 lines | 3,096 and 2,072 bytes; 3 and 2 lines; `remember` and one sample in `groupKey` |
+| Stress 0, open, 1 KB, reruns of 2026-10-23 | | 4,144, 9,464, 0 and 7,552 bytes; 2, 1, 1 and 2 lines |
+| Stress 0, closed, 1 KB, reruns of 2026-10-23 | | 3,096, 3,096, 2,064 and 1,032 bytes, all `remember` |
+| Stress 50, every person shown, open, 1 KB, rerun | | 209,148 bytes for 225 lines, 930 a line |
+| Stress 50, one housemate selected, open, 1 KB, rerun | | 6,288 bytes for 194 records and 2 lines; `takeActivityLog` 4,200, the one view per drain |
+| Stress 50, closed, 1 KB, rerun | | 9,444 and 12,624 bytes, about 76 and 91 a drain: `takeActivityLog` and `remember` |
 | Stress 100, every person shown, open, 1 KB | 343,352 bytes for 292 lines, 1,176 a line | 311,328 bytes for 416 lines, 748 a line |
 | Stress 100, one housemate selected, open, 1 KB | 43,584 bytes for 342 records and 0 lines; `visible` 37,348 | 6,320 bytes for 433 records and 2 lines; `takeActivityLog` 5,280, the one view per drain |
 | Stress 100, closed, 1 KB | 8,340 bytes; about 97 a drain | 12,480 bytes; about 103 a drain, the one view |
@@ -108,6 +143,10 @@ The [V11] procedure ran on the development server: 6 seconds of warm-up, a 20-se
 The household adds at most a few lines in a 20-second window. At the specified 32 KB interval each sample stands for 32 KB, so a window with two lines reads 0 or 32 KB a line by chance: one run during this work charged a single 32 KB sample to `annoyed` over four lines. The first measurement's 4.6 KB a line came from four lines at the 1 KB interval. The figure per line here therefore comes from stress 100 with every person shown, where hundreds of lines arrive in the window. It includes the text, the list item's wrapper and the ResizeObserver callback, about 70 bytes a line. One stress 100 line can be much larger: a missed chore at a day's end carries a feeling from each of a hundred people and allocated about 40 KB when composed. A household's line carries at most five such clauses.
 
 `ActivityLogNames.remember` runs at the roster's cadence whether or not the panel is open and is charged 2 to 4 KB in each 20-second window at the 1 KB interval, about 15 bytes a call. A Node loop of the same method showed no allocation, and the cause in the page is not identified. It is the only allocation left in frames without new records.
+
+Two more stress 0 runs at the 1 KB interval, made during the fix and kept outside the repository, charged 45,996 and 19,692 bytes to the open panel at 00:13 and 00:16 UTC on 2026-10-19. Both ran on an earlier, uncommitted state of the fix: the development server served a panel module whose `update` sits at generated line 182 and whose `row` sits at 327, where `b9fa490d8` transforms to lines 176 and 318, and that `update` was charged 39,496 and 11,328 bytes for the clock arithmetic change 3 below removed. The after runs in the table, at 00:25 and 00:26 UTC, also ran before `b9fa490d8` was committed at 01:00 UTC. Their profile places `remember` where the committed revision does, but cannot prove the rest of the module was the same, so the measure ran again on 2026-10-23.
+
+The four reruns charged the open panel 0 to 9,464 bytes in a 20-second window that added one or two lines. Every sample but one fell in functions that compose or append a new line (`lineText`, `conversationHead`, `compose`, `append`, `appendRow`, `row`, `reflectEmpty` from the append), or in `remember`; the other, 1,056 bytes in `update`, can be the append the engine inlined into it. A window that adds lines cannot separate frames with lines from frames without them, so whether a frame without new lines allocates is not resolved at this interval; what the reruns bound is the total, at most 9.5 KB in 20 seconds. The per-line check of the 1 KB stress 0 runs fails in three of the four for the same reason the 32 KB check cannot pass judgment: one or two lines make a sample of 1 KB a large share of a line. The figure per line comes from stress 50 with every person shown, 930 bytes over 225 lines.
 
 ## Retained memory
 
@@ -165,6 +204,8 @@ A household has at most six people, and its busiest frame used under a third of 
 3. **The frame update did clock arithmetic.** Comparing and storing the frame time boxed a number on frames between polls before the engine optimized `update`, which the 1 KB profile charged to `update`. The update now takes no clock: the selected housemate is a stored value the roster refreshes at its cadence.
 4. **The wasm growth was the page's, not the log's.** The deterministic Node runs show the log on and off ending within one 64 KB page, and the log's state stops growing after the first day. The end-of-tick pass also no longer collects closed nuisance episodes into a vector every tick an episode is open.
 5. **The simulation cost was unresolved.** The lockstep example replaced separate processes; see [Simulation cost](#simulation-cost).
+6. **Show earlier entries grew with the rows shown.** It recomposed every record in the store and every rendered line on each click, up to 39.0 ms with its frame. It now composes only the lines it reveals and puts them above the kept rows, holding the old first row in place (`2a5158129`); see [One-off work on a click](#one-off-work-on-a-click).
+7. **A filter change could leave the list where the player had scrolled.** A replaced list of the old height drew no ResizeObserver report, so the waiting scroll to the newest line never ran. Opening the panel and changing a filter now scroll in the click, and a list replaced from a frame observes the list afresh so the report arrives.
 
 ## Findings outside the log
 
