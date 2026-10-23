@@ -4,7 +4,7 @@ if(!['dense-reference','dense-budget','packed-budget'].includes(mode))throw Erro
 const desktop=process.env.ATLAS_STARTUP_VIEWPORT==='desktop';
 const directory=process.env.ATLAS_STARTUP_OUT||path.join(root,'.scratch/ios-resident-memory/startup',desktop?'desktop':'phone');
 fs.mkdirSync(directory,{recursive:true});
-const report={mode,url:process.env.ATLAS_STARTUP_URL||(mode==='packed-budget'?'http://127.0.0.1:5176/?stress=0':'https://thisnameissoclever.github.io/terrilives/?stress=0'),viewport:desktop?{width:1440,height:900}:{width:402,height:874},deviceScaleFactor:desktop?1:3,errors:[],budgetBytes:mode==='dense-reference'?null:1024**3};
+const report={mode,url:process.env.ATLAS_STARTUP_URL||(mode==='packed-budget'?'http://127.0.0.1:5176/?stress=0':'https://natural-causes.life/?stress=0'),viewport:desktop?{width:1440,height:900}:{width:402,height:874},deviceScaleFactor:desktop?1:3,errors:[],budgetBytes:mode==='dense-reference'?null:1024**3};
 const {chromium}=require(require.resolve('playwright',{paths:[root,path.join(process.env.USERPROFILE||process.env.HOME||root,'.cache/codex-runtimes/codex-primary-runtime/dependencies/node')]}));
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:false,args:['--mute-audio','--js-flags=--max-old-space-size=1536']});

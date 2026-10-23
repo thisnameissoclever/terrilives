@@ -172,7 +172,7 @@ describe('the Options flyout in the page', () => {
   });
 
   it.each(['game-version', 'lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
-    'game-actions', 'save-game', 'load-game', 'death-enabled', 'new-game', 'show-help'])(
+    'game-actions', 'save-game', 'load-game', 'export-save', 'import-save', 'death-enabled', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
       expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
@@ -273,6 +273,7 @@ describe('the Options flyout wired into main.ts', () => {
     for (const opening of [
       "confirmLoadGame.addEventListener('click', (event) => {",
       "confirmNewGame.addEventListener('click', (event) => {",
+      "confirmImportSave.addEventListener('click', (event) => {",
     ]) {
       expect(handler(opening)).toMatch(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/);
     }
@@ -283,6 +284,7 @@ describe('the Options flyout wired into main.ts', () => {
   describe.each([
     ['loadGameDialog', 'loadingGame', 'load-game'],
     ['newGameDialog', 'clearingForNewGame', 'new-game'],
+    ['importSaveDialog', 'importingSave', 'import-save'],
   ])('%s cancellation', (dialogName, busyName, owner) => {
     function close(busy = false, deliberateFocus = false) {
       const body = {};
@@ -331,6 +333,88 @@ describe('the Options flyout wired into main.ts', () => {
       const { toggle, resume } = close(false, true);
       expect(toggle.focus).not.toHaveBeenCalled();
       expect(resume).toHaveBeenCalledExactlyOnceWith(owner);
+    });
+  });
+
+  describe('choosing a file for Import save', () => {
+    function chooser(accept: (prefix: Uint8Array) => boolean) {
+      const reads: number[] = [];
+      const file = { size: 5_000_000, slice: (start: number, end: number) => ({ size: end - start }) };
+      const input = { value: 'C:\fakepath\save.ncsave', files: [file] as unknown[] };
+      const dialog = { open: false, showModal: vi.fn(() => { dialog.open = true; }) };
+      const persistence = { acceptImportFile: vi.fn(accept), importFileUnreadable: vi.fn() };
+      let listener: (() => void) | undefined;
+      input['addEventListener' as keyof typeof input] = ((type: string, callback: () => void) => {
+        expect(type).toBe('change');
+        listener = callback;
+      }) as never;
+      let finishRead!: () => void;
+      const context = {
+        importSaveFile: input,
+        importSaveDialog: dialog,
+        persistence,
+        readingImportFile: false,
+        pendingImport: null as unknown,
+        SAVE_FILE_PREFIX_BYTES: 10,
+        readSaveFile: (blob: { size: number }) => new Promise<Uint8Array>((resolve) => {
+          reads.push(blob.size);
+          finishRead = () => resolve(new Uint8Array(blob.size === 10 ? 10 : 1));
+        }),
+        optionsMenu: { close: vi.fn() },
+        menu: { close: vi.fn() },
+        overlayPause: { suspend: vi.fn() },
+      };
+      // Execute the real bootstrap listener rather than a copy of its logic.
+      runInNewContext(ts.transpile(`${handler("importSaveFile.addEventListener('change', () => {")}
+  });`,
+        { target: ts.ScriptTarget.ES2022 }), context);
+      expect(listener).toBeTypeOf('function');
+      const settle = async () => { finishRead(); for (let i = 0; i < 5; i++) await Promise.resolve(); };
+      return { context, dialog, input, persistence, reads, fire: () => listener!(), settle };
+    }
+
+    it('reads only the header of a file that is not a save', async () => {
+      const { dialog, input, persistence, reads, fire, settle } = chooser(() => false);
+      fire();
+      expect(input.value).toBe('');
+      await settle();
+      expect(reads).toEqual([10]);
+      expect(persistence.acceptImportFile).toHaveBeenCalledTimes(1);
+      expect(dialog.showModal).not.toHaveBeenCalled();
+    });
+
+    it('reads the whole save only after its header is accepted, then asks', async () => {
+      const { context, dialog, reads, fire, settle } = chooser(() => true);
+      fire();
+      await settle();
+      await settle();
+      expect(reads).toEqual([10, 5_000_000]);
+      expect(dialog.showModal).toHaveBeenCalledTimes(1);
+      expect(context.overlayPause.suspend).toHaveBeenCalledWith('import-save');
+      expect(context.pendingImport).toBeInstanceOf(Uint8Array);
+    });
+
+    it('ignores a second file while the first is waiting for confirmation', async () => {
+      const { context, dialog, reads, fire, settle } = chooser(() => true);
+      fire();
+      await settle();
+      await settle();
+      const first = context.pendingImport;
+      fire();
+      await Promise.resolve();
+      expect(reads).toEqual([10, 5_000_000]);
+      expect(dialog.showModal).toHaveBeenCalledTimes(1);
+      expect(context.pendingImport).toBe(first);
+    });
+
+    it('ignores a second file while the first is still being read', async () => {
+      const { reads, fire, settle } = chooser(() => false);
+      fire();
+      fire();
+      expect(reads).toEqual([10]);
+      await settle();
+      fire();
+      expect(reads).toEqual([10, 10]);
     });
   });
 
