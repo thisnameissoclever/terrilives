@@ -183,7 +183,9 @@ Choose Behind the house, Left side or Right side and inspect dimensions, price a
 
 ## Options {#options}
 
-Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, New game, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab. Pause first if you want the household to wait while you read.
+Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, New game, Report bug, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab. Pause first if you want the household to wait while you read.
+
+Report bug opens an email draft to Tim with the game version, recorded error and newest logs that fit. Review the draft and describe the problem before sending it. To copy or download the larger retained report, open [Startup report](https://thisnameissoclever.github.io/terrilives/startup-report.html) in the same browser. See [loading failures](start-here/#loading-failure).
 
 Light: auto follows the clock; Light: flat removes the changing light cycle. Sound mutes all sound. Effects changes the overall effects mix; Voices adjusts conversations within that mix. Opening Options does not pause the household. Escape, Close Options or a press outside closes it.
 
