@@ -70,6 +70,8 @@ class LocalVerification(unittest.TestCase):
         self.assertLess(names.index("Test web"), names.index("Build web"))
         self.assertTrue(any(row.name == "Verify sim core has no web dependencies" for row in rows))
         self.assertTrue(any(row.argv[-2:] == ("assets/sprites/gen/build.py", "--check") for row in rows))
+        self.assertTrue(any(row.argv[-2:] == ("scripts/build-runtime-atlas.py", "--check") for row in rows))
+        self.assertTrue(any(row.argv[1:] == ("-B", "-m", "unittest", "discover", "-s", "scripts", "-p", "test_runtime_atlas.py") for row in rows))
         self.assertTrue(any(row.argv == ("node", "--test", "scripts/build-changelog.test.mjs", "scripts/build-player-guide.test.mjs",
                                         "scripts/player-activity-filters.test.mjs", "scripts/player-coverage.test.mjs",
                                         "scripts/check-player-reference.test.mjs", "scripts/branding.test.mjs") for row in rows))

@@ -13193,3 +13193,24 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the workflow file was bound while its newly called authorization code was treated as ordinary source inventory.
 3. Prevention: include authorization helpers in the qualification contract. Keep full computation inventory and qualification compatibility checks distinct.
 4. Verification: change the authorization helper independently and require prior qualification and substituted remote source to refuse. Update precise API accounting for any added source tree without increasing the production ceiling.
+
+## [L-resident-graphics-and-first-frame-proof] Measure permanent graphics storage through the first complete frame
+
+1. What happened: waiting for uploads to finish reduced unfinished work while the affected iPhone continued to fail after loading. A later local budget probe initially treated removal of the loading cover as successful startup.
+2. Root cause: upload pacing left the complete dense texture allocation resident. The first-frame error path also removes the loading cover, so DOM readiness could report success after rendering had stopped.
+3. Prevention: measure actual requested texture and buffer storage, including scene attachments at device scale. Require a completed rendering frame and nonempty scene identities. Distinguish resource-pressure evidence from an observed operating-system termination on the user's device.
+4. Verification: a controlled budget rejects the old essential first-frame allocation; the repaired build completes a frame within the same budget. Compare color, depth and picking with the same paused household, and preserve source pixels and filtering independently.
+
+## [L-compressed-resource-identities] Distinguish transport hashes from unpacked content hashes
+
+1. What happened: a derived binary producer initially named gzip files using their unpacked digest despite the contract requiring the exact compressed bytes in the filename.
+2. Root cause: one digest was reused for two different byte representations.
+3. Prevention: name the encoded artifact by its exact encoded bytes. Keep the unpacked length and digest in a separate descriptor. Preserve equivalent valid committed gzip streams across compressor versions.
+4. Verification: assert the filename against the downloaded bytes and the descriptor against decompressed bytes. Corrupt each representation separately and require rejection.
+
+## [L-external-image-texture-usage] Preserve external-image upload permissions when replacing a loader
+
+1. What happened: a replacement graphics loader initially declared its destination texture for sampling and copying, omitting the render-attachment permission required by external-image uploads.
+2. Root cause: a mock queue accepted the upload without validating the real graphics API's destination contract.
+3. Prevention: trace resource descriptors through their actual upload operation. Preserve required usage flags and test the descriptor as well as the call sequence. Use real graphics validation before accepting the loader.
+4. Verification: require a descriptor test to reject the omitted permission. Run actual bitmap uploads with validation and memory error scopes, then verify rendered output on the real graphics device.

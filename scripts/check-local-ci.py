@@ -40,6 +40,8 @@ def commands(groups, *, install_dependencies=False):
     rows.extend(Command("art", "Test " + directory, (sys.executable, "-B", "-m", "unittest", "discover", "-s", directory, "-p", "test_*.py")) for directory in ART_DIRECTORIES)
     rows.extend([
         Command("art", "Sprite atlas is reproducible", (sys.executable, "assets/sprites/gen/build.py", "--check")),
+        Command("art", "Test lossless runtime atlas storage", (sys.executable, "-B", "-m", "unittest", "discover", "-s", "scripts", "-p", "test_runtime_atlas.py")),
+        Command("art", "Reconstruct runtime atlas pixels and coverage", (sys.executable, "-B", "scripts/build-runtime-atlas.py", "--check")),
         Command("rust", "Inspect the pinned toolchain", ("rustup", "show")),
         Command("rust", "Format check", ("cargo", "fmt", "--all", "--", "--check")),
         Command("rust", "Clippy", ("cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings")),

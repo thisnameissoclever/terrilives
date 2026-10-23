@@ -489,8 +489,7 @@ async function main(): Promise<void> {
   try {
     // The files are the sprite pages plus the click-area data, which loads
     // alongside them. The last file is followed by the renderer's own setup,
-    // which is long enough on a phone that "43 of 43" sitting still reads as
-    // a hang.
+    // which can otherwise look like a finished download that has stalled.
     renderer = await SpriteRenderer.create(gpu, architectureAtlas, {
       files: (done, total) => {
         if (done < total) loading.files(done, total);
