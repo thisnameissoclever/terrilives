@@ -117,13 +117,15 @@ fn career_schedule_of_reports_working_days_and_hours() {
     let hash = handle.world_hash();
 
     // Monday to Friday is bits 0 to 4; 06:00 for eight hours.
-    assert_eq!(handle.career_schedule_of(tim), [31, 360, 480]);
+    assert_eq!(handle.career_schedule_of(tim), [31, 360, 480, 0, 0]);
     assert_eq!(
         handle.career_schedule_of(tim),
         [
             u32::from(office.working_days),
             office.shift_start,
-            office.shift_ticks
+            office.shift_ticks,
+            u32::from(office.standard_kind),
+            0
         ],
         "the projection reads the compiled career"
     );
@@ -159,7 +161,7 @@ fn career_schedule_of_rejects_non_people_in_release() {
 fn career_schedule_of_rejects_a_dead_workers_retired_index_in_release() {
     let mut handle = SimHandle::from_lot();
     let tim = index_named(&handle, "Tim");
-    assert_eq!(handle.career_schedule_of(tim), [31, 360, 480]);
+    assert_eq!(handle.career_schedule_of(tim), [31, 360, 480, 0, 0]);
 
     // Tim dies of hunger on the first tick it is empty, so his index is
     // retired the way a real death retires it - the mortality path

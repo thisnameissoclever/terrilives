@@ -3037,8 +3037,11 @@ impl SimHandle {
     }
 
     /// The schedule of the shift held by the sim carrying `entity_index`,
-    /// as `[working_days, shift_start, shift_ticks]` - [CAL-hud], with the
-    /// held shift of issue 296's [WS-systems]. The mask
+    /// as `[working_days, shift_start, shift_ticks, kind, index]` -
+    /// [CAL-hud], with the held shift of issue 296's [WS-systems] and
+    /// [WS-shell] item 6: `kind` 0 to 3 is day, early, late or night, and
+    /// `index` is the shift's index at the level, 0 for the standard. The
+    /// mask
     /// has bit 0 for Monday through bit 6 for Sunday; the two times are
     /// ticks of the day clock. Empty for the unemployed and for anything
     /// that is not a living person: an object, a retired index, or a
@@ -3051,6 +3054,8 @@ impl SimHandle {
                     u32::from(shift.working_days),
                     shift.shift_start,
                     shift.shift_ticks,
+                    u32::from(shift.kind),
+                    shift.index as u32,
                 ]
             })
             .unwrap_or_default()
@@ -3116,6 +3121,46 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
+    /// The shifts the first level of career path `path` offers, flattened
+    /// as `[index, kind, shift_start, shift_ticks, working_days, weight]`
+    /// per shift, standard first then authored order (issue 296,
+    /// [WS-shell] item 6). Empty for an unknown path.
+    pub fn career_path_shifts(&self, path: u32) -> Vec<u32> {
+        flatten_shifts(&self.sim.career_path_offered_shifts(path))
+    }
+
+    /// The shifts the current level of the person carrying `entity_index`
+    /// offers, in `career_path_shifts`'s form. Empty for anyone without a
+    /// job and anything that is not a living person.
+    pub fn career_shifts_of(&self, entity_index: u32) -> Vec<u32> {
+        flatten_shifts(&self.sim.career_offered_shifts_of(entity_index))
+    }
+
+    /// Stages putting the person carrying `entity_index` on career path
+    /// `path` holding shift index `shift` of its first level, with no draw
+    /// (issue 296, [WS-select] item 1). Returns whether the queue accepted
+    /// it; the drain reports the outcome through `last_career_result`.
+    pub fn assign_career_shift(&mut self, entity_index: u32, path: u32, shift: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::AssignCareerShift {
+            agent: entity_index,
+            path,
+            shift,
+        })
+        .expect("a shift assignment serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// Stages moving the employed person carrying `entity_index` to shift
+    /// index `shift` of their level ([WS-select] items 2 and 3).
+    pub fn change_shift(&mut self, entity_index: u32, shift: u32) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::ChangeShift {
+            agent: entity_index,
+            shift,
+        })
+        .expect("a shift change serializes");
+        self.enqueue_command(&bytes)
+    }
+
     /// Stages making the person carrying `entity_index` unemployed.
     pub fn quit_career(&mut self, entity_index: u32) -> bool {
         let bytes = postcard::to_allocvec(&SimCommand::QuitCareer {
@@ -3127,8 +3172,10 @@ impl SimHandle {
 
     /// `[agent, refusal]` of the last career command a drain handled:
     /// refusal 0 when it applied, else 1 for no such living person, 2 for
-    /// a person at work or commuting, 3 for an unknown path. Empty before
-    /// any career command.
+    /// a person at work or commuting, 3 for an unknown path, 4 for a shift
+    /// the level does not offer, 5 for a person with no job and 6 for the
+    /// shift already held (issue 296, [WS-select] item 4). Empty before any
+    /// career command.
     pub fn last_career_result(&self) -> Vec<f64> {
         self.sim
             .last_career_result()
@@ -10973,6 +11020,26 @@ mod published_v15_tests;
 mod published_v19_tests;
 #[cfg(test)]
 mod room_save_tests;
+#[cfg(test)]
+mod shift_boundary_tests;
+/// `[index, kind, shift_start, shift_ticks, working_days, weight]` for each
+/// shift, in order ([WS-shell] item 6).
+fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
+    shifts
+        .iter()
+        .flat_map(|shift| {
+            [
+                shift.index as u32,
+                u32::from(shift.kind),
+                shift.shift_start,
+                shift.shift_ticks,
+                u32::from(shift.working_days),
+                shift.weight,
+            ]
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod shift_save_tests;
 

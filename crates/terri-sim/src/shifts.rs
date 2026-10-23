@@ -22,10 +22,7 @@ pub const SHIFTS_SEED: u64 = 0x5348_4946_5453_3031;
 /// the shift stream over the offered shifts' weights, standard first, and
 /// the first shift whose running sum of weights exceeds the draw.
 pub fn draw(careers: &mut Careers, job: &CompiledCareer) -> u32 {
-    let offered: Vec<ShiftView<'_>> = (0..job.shift_count())
-        .filter_map(|index| job.shift(index))
-        .filter(|shift| shift.weight > 0)
-        .collect();
+    let offered = offered(job);
     let Some(first) = offered.first() else {
         // The compiler refuses a level that offers nothing; a hand-built
         // one holds its standard shift.
@@ -47,6 +44,15 @@ pub fn draw(careers: &mut Careers, job: &CompiledCareer) -> u32 {
         }
     }
     chosen as u32
+}
+
+/// The shifts `job` offers: those with a weight above 0, the standard
+/// shift first and then the level's other shifts in authored order.
+pub fn offered(job: &CompiledCareer) -> Vec<ShiftView<'_>> {
+    (0..job.shift_count())
+        .filter_map(|index| job.shift(index))
+        .filter(|shift| shift.weight > 0)
+        .collect()
 }
 
 /// The shift a person holding shift `held` of `from` takes at `to` on a

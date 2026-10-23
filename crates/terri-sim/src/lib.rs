@@ -19,6 +19,8 @@ pub use careers::Careers;
 pub(crate) mod chore_repair;
 pub mod fights;
 pub use terri_data::FightRules;
+/// The held or offered shift a boundary reads (issue 296).
+pub use terri_data::ShiftView;
 pub(crate) mod social_conflicts;
 pub use fights::Fights;
 pub mod land;
@@ -3897,6 +3899,32 @@ impl Sim {
             .iter(&self.world)
             .find(|entity| entity.index_u32() == index)?;
         shifts::shift_of(&self.world, pack, entity)
+    }
+
+    /// The shifts the level of the sim carrying `index` offers, standard
+    /// first then authored order ([WS-shell] item 6 in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`); empty for the
+    /// unemployed and everything else.
+    pub fn career_offered_shifts_of(&self, index: u32) -> Vec<terri_data::ShiftView<'static>> {
+        self.career_definition_of(index)
+            .map_or_else(Vec::new, shifts::offered)
+    }
+
+    /// The shifts the first level of career path `path` offers, standard
+    /// first then authored order; empty for an unknown path.
+    pub fn career_path_offered_shifts(&self, path: u32) -> Vec<terri_data::ShiftView<'static>> {
+        let Some(pack) = self
+            .world
+            .get_resource::<Content>()
+            .map(|content| content.0)
+        else {
+            return Vec::new();
+        };
+        pack.career_paths
+            .get(path as usize)
+            .and_then(|path| path.levels.first())
+            .and_then(|row| pack.careers.get(*row as usize))
+            .map_or_else(Vec::new, shifts::offered)
     }
 
     /// The compiled career held by the sim carrying `index`, or `None`
