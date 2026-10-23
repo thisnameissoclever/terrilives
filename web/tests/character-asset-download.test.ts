@@ -3,6 +3,53 @@ import {createHash} from 'node:crypto';
 import {loadGeometryAssets,loadBundle,type Bundle,geometryBuffers} from '../src/render/character/bundle.js';
 import {readCharacterAsset} from '../src/render/character/asset-download.js';
 
+it('retains the actual terminal HTTP response without collecting cookies',async()=>{
+  vi.useFakeTimers();
+  const response=new Response('<title>Service refused</title>request failed',{status:503,headers:{
+    'Server':'edge-test','X-GitHub-Request-Id':'request-42','X-Cache':'HIT','Age':'120',
+    'Retry-After':'60','Set-Cookie':'private-cookie','Authorization':'private-token',
+  }});
+  vi.stubGlobal('fetch',vi.fn(async()=>response));
+  const outcome=readCharacterAsset(new URL('https://game.test/asset.bin?private=query')).catch(error=>error);
+  await vi.runAllTimersAsync();
+  const error=await outcome;
+  expect(error.assetFailure).toMatchObject({path:'/asset.bin',status:503,
+    headers:{server:'edge-test','x-github-request-id':'request-42','x-cache':'HIT',age:'120'},
+    body:'<title>Service refused</title>request failed'});
+  expect(JSON.stringify(error.assetFailure)).not.toMatch(/private-cookie|private-token|private=query/);
+  expect(error.message).toContain('request-42');
+});
+
+it('keeps a terminal response bounded when its body never finishes',async()=>{
+  const cancel=vi.fn(()=>new Promise<void>(()=>{}));
+  vi.stubGlobal('fetch',vi.fn(async()=>new Response(new ReadableStream({cancel}),{status:404})));
+  const outcome=readCharacterAsset(new URL('https://game.test/asset.bin')).catch(error=>error);
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(await Promise.race([outcome,Promise.resolve('still waiting')])).not.toBe('still waiting');
+  expect(await outcome).toBeInstanceOf(Error);
+});
+
+it('continues the existing retry when cleanup of the preceding response never settles',async()=>{
+  const cancel=vi.fn(()=>new Promise<void>(()=>{}));
+  const fetcher=vi.fn().mockResolvedValueOnce(new Response(new ReadableStream({cancel}),{status:503}))
+    .mockResolvedValueOnce(new Response(new Uint8Array([19])));
+  vi.stubGlobal('fetch',fetcher);
+  const outcome=readCharacterAsset(new URL('https://game.test/asset.bin'));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(new Uint8Array(await outcome)).toEqual(new Uint8Array([19]));
+  expect(cancel).toHaveBeenCalledTimes(1);expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
+it('retains at most 1024 error-body bytes and cancels the remaining stream',async()=>{
+  const cancel=vi.fn();
+  vi.stubGlobal('fetch',vi.fn(async()=>new Response(new ReadableStream({
+    start(controller){controller.enqueue(new TextEncoder().encode('X'.repeat(65536)));},cancel,
+  }),{status:404})));
+  const error=await readCharacterAsset(new URL('https://game.test/asset.bin')).catch(error=>error);
+  expect(error.assetFailure.body).toHaveLength(1024);
+  expect(error.assetFailure.bodyIncomplete).toBe(true);expect(cancel).toHaveBeenCalledTimes(1);
+});
+
 const payloads={
   vertices:new Float32Array(48).buffer,indices:new Uint32Array([0,1,2]).buffer,
   cage:new Float32Array(48).buffer,stencilRanges:new Uint32Array([0,1,0,0,1,1,1,0,2,1,2,0]).buffer,
@@ -64,7 +111,8 @@ it('stops after three 503 responses and releases each failed response body',asyn
   const fetcher=vi.fn(async(_input:URL,_init?:RequestInit)=>new Response(new ReadableStream({cancel:cancelled}),{status:503}));vi.stubGlobal('fetch',fetcher);
   const outcome=readCharacterAsset(new URL('https://game.test/asset.bin')).catch(error=>error);
   await vi.runAllTimersAsync();
-  expect(await outcome).toEqual(new Error('Character asset could not load: 503 /asset.bin'));
+  expect(await outcome).toMatchObject({message:'Character asset could not load: 503 /asset.bin',
+    assetFailure:{status:503,path:'/asset.bin',bodyIncomplete:true}});
   expect(fetcher).toHaveBeenCalledTimes(3);expect(cancelled).toHaveBeenCalledTimes(3);
   expect(fetcher.mock.calls[0]).toHaveLength(1);
   expect(fetcher.mock.calls[1][1]).toEqual({cache:'reload'});

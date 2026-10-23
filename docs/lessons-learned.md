@@ -13228,3 +13228,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the earlier loader stopped on an unsuccessful response. The cause of the reported 503 remains unknown. Calling the reported failure temporary inferred its duration from the status code; neither a successful local download nor an injected response establishes that duration.
 3. Prevention: preserve the exact resource, status, build and failure layer. Capture a naturally failing request before attributing its cause. Keep tests of bounded recovery, memory-pressure evidence and physical-device acceptance separate.
 4. Verification: injected 503s test response handling only. Require bounded attempts and unchanged geometry validation, including rejection of corrupted successful bytes. Separately record normal public requests and their limits. Establish the reported failure's cause from an actual failing response or a reproduction of the conditions that produce it.
+
+## [L-startup-response-cleanup-and-evidence] Keep failure cleanup bounded and preserve the failed response
+
+1. What happened: the character reader discarded an unsuccessful response's delivery headers and body. A local stream test also demonstrated that awaiting its cancellation could hold the loader open forever.
+2. Root cause: cleanup completion was a prerequisite for retry or failure, and the thrown error retained only status and path. Successful desktop loads could not recover the missing evidence from an affected browser.
+3. Prevention: request discarded-body cleanup without awaiting it. Bound error-body reading by bytes and time. Retain selected response details and loading steps locally before another attempt or browser termination loses them. Keep an unfinished load distinct from a confirmed crash.
+4. Verification: hold cancellation unresolved and require retry and terminal failure to complete within their declared bounds. Verify response truncation, excluded credential headers and query strings, persisted loading steps after a renderer termination, and standalone retrieval without starting the game. Keep these diagnostic tests separate from physical-device recovery.

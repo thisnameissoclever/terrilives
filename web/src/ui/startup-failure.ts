@@ -32,7 +32,7 @@ export interface StartupEnvironment {
 /** The message, chosen; rendering it is `renderStartupFailure`'s job. */
 export interface StartupFailureNotice {
   readonly title: string;
-  /** The underlying error, verbatim - the developer-facing truth. */
+  /** The failure summary; bounded HTTP delivery details remain in the startup report. */
   readonly detail: string;
   /** Player-facing explanation and what to actually do, in order. */
   readonly hints: readonly string[];
@@ -46,7 +46,9 @@ export function describeStartupFailure(
   error: unknown,
   env: StartupEnvironment,
 ): StartupFailureNotice {
-  const detail = error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : String(error);
+  const detail = message.startsWith('Character asset could not load: ')
+    ? message.split('\nResponse: ', 1)[0] : message;
 
   if (!env.webgpu && !env.secure) {
     // The LAN case. The browser is fine; the address is the problem.
@@ -212,7 +214,11 @@ export function renderStartupFailure(
     hints.append(line);
   }
 
-  card.append(title, detail, hints);
+  const report = document.createElement('a');
+  report.setAttribute('href', './startup-report.html');
+  report.textContent = 'Startup report';
+  report.style.cssText = 'color:inherit;text-decoration:underline';
+  card.append(title, detail, hints, report);
   // Startup failure is terminal. The canvas and HUD underneath can no longer
   // do useful work, so leaving them tabbable creates a second, dead interface
   // behind the explanation. A native modal is also in the browser's top layer,
