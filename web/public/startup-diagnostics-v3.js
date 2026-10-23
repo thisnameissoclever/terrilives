@@ -3,7 +3,7 @@
   'use strict';
   const KEY='terrilives.startup-report.v1',MAX_STORE=32768,MAX_LINK=8000;
   const text=(value,limit)=>typeof value==='string'?value.slice(0,limit):'';
-  const well=value=>String(value).toWellFormed();
+  const well=value=>Array.from(String(value),char=>char.length===1&&char.charCodeAt(0)>=0xD800&&char.charCodeAt(0)<=0xDFFF?'\uFFFD':char).join('');
   const now=()=>new Date().toISOString();
   let storage;try{storage=window.localStorage;}catch{}
   function read(){try{
@@ -14,6 +14,44 @@
   function path(value){if(typeof value!=='string'||!value)return '';try{return new URL(value,window.location.href).pathname.slice(0,512);}catch{return '';}}
   const coordinate=value=>typeof value==='number'&&Number.isFinite(value)?Math.max(0,Math.floor(value)):undefined;
   const sourceDetails=value=>value?{operation:text(value.operation,80)||undefined,context:text(value.context,512)||undefined,path:path(value.path),line:coordinate(value.line),column:coordinate(value.column)}:undefined;
+  const size=value=>JSON.stringify(value).length;
+  function fitText(value,budget){
+    const string=typeof value==='string'?value:'';if(size(string)<=budget)return string;
+    const chars=Array.from(string);let low=0,high=chars.length;
+    while(low<high){const middle=Math.ceil((low+high)/2);if(size(chars.slice(0,middle).join('')+' [trimmed]')<=budget)low=middle;else high=middle-1;}
+    return chars.slice(0,low).join('')+' [trimmed]';
+  }
+  function fitSource(source){return source?{operation:fitText(source.operation,96)||undefined,context:fitText(source.context,192)||undefined,
+    path:fitText(source.path,256),line:coordinate(source.line),column:coordinate(source.column)}:undefined;}
+  function errorNode(error,budget){
+    const result={name:fitText(error.name,128),message:fitText(error.message,budget===7000?2048:768)};
+    const shortened=new Set(error.truncatedFields||[]);
+    function add(key,value){if(value===undefined)return;if(size({...result,[key]:value})<=budget-256)result[key]=value;else shortened.add(key);}
+    if(result.name!==error.name)shortened.add('name');if(result.message!==error.message)shortened.add('message');
+    add('source',fitSource(error.source));add('code',error.code);add('workerErrorName',fitText(error.workerErrorName,128)||undefined);
+    add('workerKind',fitText(error.workerKind,96)||undefined);add('workerSource',fitSource(error.workerSource));
+    if(error.assetFailure)add('assetFailure',{path:fitText(error.assetFailure.path,384),status:error.assetFailure.status,
+      headers:Object.fromEntries(Object.entries(error.assetFailure.headers||{}).map(([key,value])=>[key,fitText(value,48)])),body:fitText(error.assetFailure.body,budget===7000?512:128),bodyIncomplete:error.assetFailure.bodyIncomplete});
+    for(const [key,allowance] of [['workerStack',budget===7000?1536:256],['stack',budget===7000?1024:256]]){
+      if(!error[key])continue;const value=fitText(error[key],allowance);if(value!==error[key])shortened.add(key);add(key,value);
+    }
+    if(error.repeatCount)add('repeatCount',error.repeatCount);
+    result.truncatedFields=[...shortened].slice(0,12);result.reportTrimmed=shortened.size>0||size(result)<size({...error,cause:undefined});return result;
+  }
+  function primaryError(error){
+    if(!error)return undefined;const result=errorNode(error,7000);
+    if(error.cause){result.cause=errorNode(error.cause,2500);if(error.cause.cause)result.cause.cause=errorNode(error.cause.cause,2500);}
+    return result;
+  }
+  function errorSummary(error){return {name:fitText(error.name,96),message:fitText(error.message,256),at:text(error.at,48)||undefined,
+    source:error.source?{operation:fitText(error.source.operation,80),path:fitText(error.source.path,128),line:coordinate(error.source.line),column:coordinate(error.source.column)}:undefined,
+    repeatCount:error.repeatCount,summaryOnly:true};}
+  function priorSummary(attempt){
+    const result={startedAt:fitText(attempt.startedAt,48),state:attempt.state,phase:fitText(attempt.phase,128),build:fitText(attempt.build,128),
+      gameVersion:version(attempt.gameVersion)||undefined,summaryOnly:true};
+    if(attempt.error)result.error={name:fitText(attempt.error.name,64),message:fitText(attempt.error.message,160)};
+    return result;
+  }
   function valueText(value,limit=1024){
     try{
       const seen=new Set();
@@ -80,25 +118,30 @@
     const last=report.attempts.at(-1),errors=last?.errors??[],error=last?.error??errors.at(-1);
     const historical=!error&&report.attempts.slice(0,-1).reverse().find(attempt=>attempt.error);
     const actual=error||historical?.error;
-    const header=[`Natural Causes v${report.reportContext.gameVersion} (${report.reportContext.versionSource})`,`Build: ${last?.build||'unknown'}`,
-      `Attempt: ${last?.startedAt||'none'}; state=${last?.state||'not recorded'}; phase=${last?.phase||'unknown'}`,
-      `Last seen: ${last?.lastSeenAt||last?.updatedAt||'unknown'}; first frame: ${last?.readyAt||'not recorded'}`,
-      'Browser: '+text(last?.environment?.userAgent||report.reportContext.browser,200)].join('\n');
-    let body=clipped(header,1600)+'\n';
-    const errorLines=actual?[(historical?'Previous attempt error: ':'Actual error: ')+actual.name+': '+actual.message+(actual.repeatCount?` (repeated ${actual.repeatCount})`:''),
-      actual.source?'Source: '+valueText(actual.source):'',actual.cause?'Cause: '+valueText(actual.cause,1800):'',
-      actual.assetFailure?'HTTP: '+valueText(actual.assetFailure,1800):'',actual.workerSource?'Worker source: '+valueText(actual.workerSource):'',
-      actual.truncatedFields?.length||actual.reportTrimmed?'Some error fields were shortened in the retained report.':'',
-      actual.workerStack?'Worker: '+actual.workerStack:'',actual.stack||'']
-      .filter(Boolean).join('\n'):'No JavaScript error was captured. Describe the problem here.';
-    body+=clipped(errorLines,2800)+'\n';
-    if(last?.pending?.count)body+=clipped('Pending operations: '+valueText(last.pending,1500),700)+'\n';
-    if(last?.phases?.length)body+=clipped('Loading history: '+last.phases.map(row=>`${row.ms}ms ${row.phase}`).join(' > '),900)+'\n';
+    let body=[clipped(`Natural Causes v${report.reportContext.gameVersion} (${report.reportContext.versionSource}); Build: ${last?.build||'unknown'}`,380),
+      clipped(`Attempt: ${last?.startedAt||'none'}; state=${last?.state||'not recorded'}; phase=${last?.phase||'unknown'}`,320),
+      clipped(`Last seen: ${last?.lastSeenAt||last?.updatedAt||'unknown'}; first frame: ${last?.readyAt||'not recorded'}`,180),
+      clipped('Browser: '+(last?.environment?.userAgent||report.reportContext.browser),160)].join('\n')+'\n';
+    const frame=stack=>String(stack||'').split('\n').filter(line=>/\bat\s/.test(line)).slice(0,2).join('\n')||String(stack||'');
+    if(actual){
+      body+=(historical?'Previous attempt error: ':'Actual error: ')+clipped(actual.name||'Error',96)+': '+clipped(actual.message||'',680)+(actual.repeatCount?` (repeated ${actual.repeatCount})`:'')+'\n';
+      if(actual.source)body+=clipped('Source: '+(actual.source.path||actual.source.operation||'unknown')+':'+(actual.source.line||0)+':'+(actual.source.column||0),280)+'\n';
+      if(actual.cause)body+='Cause: '+clipped(actual.cause.name||'Error',64)+': '+clipped(actual.cause.message||'',220)+'\n';
+      if(actual.workerStack||actual.workerSource||actual.workerKind)body+='Worker: '+clipped(actual.workerKind||actual.workerErrorName||'',64)+' '+
+        (actual.workerSource?clipped(valueText(actual.workerSource),160):'')+' '+clipped(frame(actual.workerStack),160)+'\n';
+      if(actual.assetFailure)body+=clipped('HTTP: '+actual.assetFailure.status+' '+clipped(actual.assetFailure.path||'',90)+' '+clipped(actual.assetFailure.body||'',140),330)+'\n';
+      if(actual.stack)body+=clipped('Stack: '+frame(actual.stack),160)+'\n';
+      if(actual.truncatedFields?.length||actual.reportTrimmed)body+=clipped('Error detail shortened; copy/download for more.',70)+'\n';
+    }else body+='No JavaScript error was captured. Describe the problem here.\n';
+    if(last?.pending?.count)body+=clipped('Pending operations: '+valueText(last.pending,1500),450)+'\n';
+    if(last?.phases?.length)body+=clipped('Recent loading history: '+[...last.phases].reverse().map(row=>`${row.ms}ms ${row.phase}`).join(' < '),300)+'\n';
     const logs=last?.logs??[];
     const footer=count=>`\nIncluded ${count}/${logs.length} retained logs; ${last?.droppedLogCount||0} earlier records evicted. Older logs omitted where needed for the email link. Copy debug details or Download report provides the larger retained report.`;
     body+='Latest logs (newest first):\n';let included=0;
     for(const row of [...logs].reverse()){
-      let line=`+${row.ms}ms [${row.level}] ${row.operation}: ${row.message}${row.repeatCount?` (repeated ${row.repeatCount})`:''}\n`;
+      const ms=typeof row.ms==='number'&&Number.isFinite(row.ms)?row.ms:'?';
+      let line=`+${ms}ms [${clipped(row.level||'info',24)}] ${clipped(row.operation||'',64)}: ${clipped(row.message||'',128)}${row.repeatCount?` (repeated ${row.repeatCount})`:''}\n`;
+      line=clipped(line,256)+'\n';
       const room=MAX_LINK-link(body+footer(included+1)).length-64;
       if(room<80)break;
       if(link(body+line+footer(included+1)).length>MAX_LINK)line=clipped(line,Math.max(0,room-20))+'\n';
@@ -147,29 +190,32 @@
     environment:{userAgent:text(window.navigator.userAgent,512),width:window.innerWidth,height:window.innerHeight,pixelRatio:window.devicePixelRatio,
       secure:window.isSecureContext,webgpu:!!window.navigator.gpu},logs:[],errors:[],phases:[],droppedLogCount:0};attempts.push(current);
   let scheduled,lastErrorSignature;
-  function compactError(error){
-    return {...error,message:text(error.message,2048),stack:text(error.stack,256),workerStack:text(error.workerStack,512),
-      cause:error.cause?compactError(error.cause):undefined,
-      assetFailure:error.assetFailure?{...error.assetFailure,body:text(error.assetFailure.body,128),
-        headers:Object.fromEntries(Object.entries(error.assetFailure.headers||{}).map(([key,value])=>[key,text(value,32)]))}:undefined,
-      reportTrimmed:true};
+  function keepLogTail(){
+    let used=2,start=current.logs.length;
+    while(start>0){const next=size(current.logs[start-1])+(start<current.logs.length?1:0);if(used+next>10240)break;used+=next;start--;}
+    if(start){current.logs.splice(0,start);current.droppedLogCount+=start;}
+  }
+  function contextSnapshot(){
+    const pending={count:active.size,latest:[...active.values()].reverse().slice(0,8).map(row=>({operation:fitText(row.operation,96),id:fitText(row.id,192),startedAt:row.startedAt}))};
+    while(size(pending)>1536)pending.latest.pop();pending.omitted=active.size-pending.latest.length;
+    // Reserve room for the omitted count within the pending-work section.
+    while(size(pending)>1536&&pending.latest.length){pending.latest.pop();pending.omitted=active.size-pending.latest.length;}
+    const phases=current.phases.map(row=>({ms:row.ms,phase:fitText(row.phase,192)}));
+    while(size(phases)>2400&&phases.length>1)phases.splice(1,1);
+    return {pending,phases};
   }
   function write(){
+    // Serialized section caps reserve 12,288 for the primary error, 10,240
+    // for logs, 4,096 each for context/history, and 2,048 for the envelope.
+    // Sections never borrow from the recent log tail.
     scheduled=undefined;current.updatedAt=now();current.lastSeenAt=now();
-    current.pending={count:active.size,latest:[...active.values()].slice(-8)};
-    while(attempts.length>3)attempts.shift();
-    let raw=JSON.stringify({version:1,attempts});
-    while(raw.length>MAX_STORE){
-      if(attempts.length>1)attempts.shift();
-      else if(current.errors.length)current.errors.shift();
-      else if(current.logs.length){current.logs.shift();current.droppedLogCount++;}
-      else if(current.phases.length>1)current.phases.shift();
-      else if(current.pending.latest.length)current.pending.latest.shift();
-      else if(current.error&&!current.error.reportTrimmed)current.error=compactError(current.error);
-      else if(current.error)current.error={name:text(current.error.name,160),message:text(current.error.message,2048),source:current.error.source,reportTrimmed:true};
-      else break;
-      raw=JSON.stringify({version:1,attempts});
-    }
+    keepLogTail();Object.assign(current,contextSnapshot());
+    current.phase=fitText(current.phase,192);current.build=fitText(current.build,384);current.environment.userAgent=fitText(current.environment.userAgent,384);
+    const previous=attempts.slice(0,-1).slice(-2).map(priorSummary);
+    current.errors=current.errors.slice(-6).map(errorSummary);
+    while(size({errors:current.errors,attempts:previous})>4096&&current.errors.length)current.errors.shift();
+    attempts.splice(0,attempts.length-1,...previous);
+    const raw=JSON.stringify({version:1,attempts});
     try{storage?.setItem(KEY,raw);}catch{}
   }
   function persist(immediate){
@@ -177,19 +223,20 @@
     else if(scheduled===undefined)scheduled=window.setTimeout(write,250);
   }
   function append(level,operation,message,immediate=false){
+    operation=fitText(operation,128);message=fitText(text(message,1200),1152);
     const previous=current.logs.at(-1);
-    if(previous&&previous.level===level&&previous.operation===operation&&previous.message===text(message,1200)){
-      previous.repeatCount=(previous.repeatCount||1)+1;previous.ms=Math.max(0,Date.now()-started);previous.at=now();persist(immediate);return;
+    if(previous&&previous.level===level&&previous.operation===operation&&previous.message===message){
+      previous.repeatCount=(previous.repeatCount||1)+1;previous.ms=Math.max(0,Date.now()-started);previous.at=now();keepLogTail();persist(immediate);return;
     }
-    current.logs.push({ms:Math.max(0,Date.now()-started),at:now(),level,operation:text(operation,80),message:text(message,1200)});
+    current.logs.push({ms:Math.max(0,Date.now()-started),at:now(),level,operation,message});keepLogTail();
     while(current.logs.length>80){current.logs.shift();current.droppedLogCount++;}persist(immediate);
   }
   function failed(error,source,logMessage){
     const details=errorDetails(error,source),signature=JSON.stringify(details);
     if(signature===lastErrorSignature){current.error.repeatCount=(current.error.repeatCount||1)+1;
       const last=current.errors.at(-1);if(last)last.repeatCount=current.error.repeatCount;persist(false);return;}
-    lastErrorSignature=signature;current.failureStage=current.readyAt?'runtime':'startup';current.state='failed';current.error=details;
-    current.errors.push({...details,at:now()});while(current.errors.length>6)current.errors.shift();
+    lastErrorSignature=signature;current.failureStage=current.readyAt?'runtime':'startup';current.state='failed';current.error=primaryError(details);
+    current.errors.push(errorSummary({...details,at:now()}));while(current.errors.length>6)current.errors.shift();
     append('error',source?.operation||'error',logMessage||details.name+': '+details.message,true);
   }
   function phase(){const value=text(step?.textContent,160);if(value===current.phase&&current.phases.length)return;

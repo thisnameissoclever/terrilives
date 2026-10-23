@@ -149,6 +149,45 @@ it('preserves newest useful logs ahead of large historical error copies under st
   expect(body.indexOf('Distinct failure 5')).toBeLessThan(body.indexOf('Distinct failure 4'));
 });
 
+it('reserves recent logs when the latest error, its causes and pending operations are all large',()=>{
+  const run=boot(),headers=Object.fromEntries(['server','content-type','retry-after','age','via','x-cache','x-served-by','x-github-request-id','x-fastly-request-id'].map(key=>[key,'h'.repeat(160)]));
+  for(let i=0;i<12;i++)run.emit('terrilives:diagnostic',{detail:{operation:'meaningful.info',message:`Useful recent context ${i} `+'x'.repeat(160)}});
+  for(let i=0;i<8;i++)run.emit('terrilives:diagnostic',{detail:{operation:'operation',id:String(i).padEnd(600,'i'),state:'start'}});
+  let error:unknown;
+  for(let i=0;i<3;i++)error={name:'n'.repeat(160),message:'Actual detailed error '+ 'm'.repeat(2048),stack:'s'.repeat(1536),workerStack:'w'.repeat(2048),workerErrorName:'e'.repeat(160),workerKind:'k'.repeat(64),workerSource:{path:'p'.repeat(512),line:1,column:1},assetFailure:{path:'p'.repeat(512),status:503,headers,body:'b'.repeat(1024)},cause:error};
+  run.emit('error',{error});
+  const attempt=run.report().attempts.at(-1);
+  expect(attempt.logs.some((row:{message:string})=>row.message.includes('Useful recent context 11'))).toBe(true);
+  expect(attempt.pending.count).toBe(8);expect(attempt.error.message).toContain('Actual detailed error');
+  expect(JSON.stringify(attempt.error).length).toBeLessThanOrEqual(12288);
+  expect(JSON.stringify(attempt.logs).length).toBeLessThanOrEqual(10240);
+  expect(JSON.stringify({pending:attempt.pending,phases:attempt.phases}).length).toBeLessThanOrEqual(4096);
+  expect(JSON.stringify({errors:attempt.errors,attempts:run.report().attempts.slice(0,-1)}).length).toBeLessThanOrEqual(4096);
+  const {error:primary,logs,errors,phases,pending,...metadata}=attempt;
+  expect(JSON.stringify({version:1,attempts:[{...metadata,error:null,logs:[],errors:[],phases:[],pending:null}]}).length).toBeLessThanOrEqual(2048);
+  const view=boot(run.values.get(key),true),body=new URL(view.email.href).searchParams.get('body')!;
+  expect(body).toContain('Actual detailed error');expect(body).toContain('Useful recent context 11');
+});
+
+it('keeps six maximum-size recent records even when all other sections are occupied',()=>{
+  const run=boot();run.emit('error',{error:new Error('Latest actual error')});
+  for(let i=0;i<6;i++)run.emit('terrilives:diagnostic',{detail:{operation:'max.row',message:`Maximum record ${i} `+('"\\\n🚀\ud800').repeat(500)}});
+  run.emit('pagehide');const attempt=run.report().attempts.at(-1);
+  for(let i=0;i<6;i++)expect(attempt.logs.some((row:{message:string})=>row.message.includes(`Maximum record ${i}`))).toBe(true);
+  expect(attempt.logs.every((row:unknown)=>JSON.stringify(row).length<=1536)).toBe(true);
+  expect(JSON.stringify(attempt.logs).length).toBeLessThanOrEqual(10240);
+  expect(run.values.get(key)!.length).toBeLessThanOrEqual(32768);
+});
+
+it('reserves encoded space for actual messages independently of Unicode names and operations',()=>{
+  const run=boot();run.emit('error',{error:{name:'名'.repeat(160),message:'ACTUAL_ERROR_MESSAGE',cause:{name:'因'.repeat(160),message:'ACTUAL_CAUSE_MESSAGE'}}});
+  run.emit('terrilives:diagnostic',{detail:{operation:'工'.repeat(80),message:'USEFUL_NEWEST_LOG'}});
+  run.emit('terrilives:startup-report-controls',{detail:{title:'Error',detail:'ACTUAL_ERROR_MESSAGE'}});run.clickEmail();
+  const body=new URL(run.email.href).searchParams.get('body')!;
+  expect(body).toContain('ACTUAL_ERROR_MESSAGE');expect(body).toContain('ACTUAL_CAUSE_MESSAGE');expect(body).toContain('USEFUL_NEWEST_LOG');
+  expect(run.email.href.length).toBeLessThanOrEqual(8000);
+});
+
 it('copies the full report and includes its actual error in a correctly encoded compact email',async()=>{
   const first=boot();first.emit('terrilives:startup-failure',{detail:new Error('503 & # ? % café')});
   const view=boot(first.values.get(key),true);await view.clickCopy();

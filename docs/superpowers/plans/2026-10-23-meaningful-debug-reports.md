@@ -13,6 +13,7 @@
 3. Preserve errors after the first frame, thrown/rejected strings or objects, causes, worker stack and browser source locations. Capture console diagnostics, resource failures, download boundaries and graphics-device errors.
 4. Limit the complete encoded mail link to 8,000 characters. This is an application budget, not a universal mail-client guarantee: neither RFC 6068 nor Apple's Mail Links reference specifies a portable numeric maximum. Preserve actual error context and newest logs; state omissions. Keep complete copy/download available.
 5. Native browser-process termination may prevent JavaScript error delivery. Persist preceding operations and liveness without inventing an operating-system cause.
+6. Reserve serialized storage sections independently: latest error 12,288; recent logs 10,240; context 4,096; history 4,096; metadata/envelope 2,048. Normalize log rows to 1,536 so the tail preserves at least six maximum-size recent records. Bound encoded email labels separately from messages.
 
 ## Implementation and proof
 
