@@ -458,6 +458,13 @@ describe('the activity log panel', () => {
     expect(names.name(10)).toBeNull();
   });
 
+  it('takes a new name when the roster reports a rename', () => {
+    const names = new ActivityLogNames();
+    names.remember([{ simId: 9, name: 'Ann' }]);
+    names.remember([{ simId: 9, name: 'Annie' }]);
+    expect(names.name(9)).toBe('Annie');
+  });
+
   it('learns the selected housemate from the roster, so its poll calls no simIdOf', () => {
     const names = new ActivityLogNames();
     const surface = rememberingNames({ render: () => {} }, names);

@@ -355,6 +355,15 @@ describe('grouping and numbers', () => {
     expect(stamp(719, 720)).toBe('D1, T23:58 ');
   });
 
+  it('shows a covered chore only under Chores, for an outcome that is its own line', () => {
+    const store = storeOf(
+      record({ seq: 1, tick: 5, kind: KIND.choreOutcome, triggers: C, actor: BILL, other: TIM, label: L['Do dishes'], values: [1] }),
+      record({ seq: 2, tick: 5, kind: KIND.feeling, triggers: S, actor: CASEY, other: BILL, label: L['cause:chore-fulfilled'], parent: 1, values: [0, 0, 100] }),
+    );
+    expect(lines(store, S)).toEqual(['Bill: Do dishes; Casey appreciates Bill']);
+    expect(lines(store, C | S)).toEqual(["Bill: Do dishes; covered Tim's chore; Casey appreciates Bill"]);
+  });
+
   it('names a topic only when the conversation had a subject', () => {
     const talk = (label: number, topic: number, kind: number = KIND.chatDone) => record({
       seq: 1, kind, triggers: A, actor: TIM, other: BILL, label, label2: topic,
