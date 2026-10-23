@@ -6,6 +6,7 @@
 //   node scripts/activity-log-proof.cjs allocation  [--stress N] [--url U] [--sampling-interval B]
 //   node scripts/activity-log-proof.cjs memory      [--stress N] [--url U] [--fill-ticks T] [--after-ticks T]
 //   node scripts/activity-log-proof.cjs rebuild     [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
+//   node scripts/activity-log-proof.cjs clicks      [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
 //
 // `--everyone` clears the selected housemate after opening the panel, so
 // every record's line shows rather than only those involving one person.
@@ -22,6 +23,10 @@
 // rebuild: the one-off work outside the frame, with the store filled:
 //   opening the panel, each filter change and each Show earlier entries,
 //   timed as the click's script and the layout it leaves for the frame.
+// clicks: the same clicks with a pause between them, each timed as its
+//   script plus the main-thread work of the frame after it (ResizeObserver
+//   callbacks, style, layout and paint), less the median of frames without
+//   a click. Work a click defers to its frame is charged to the click.
 //
 // Every page runs with `audio=0` and Chrome's `--mute-audio`, so a proof
 // never plays sound.
@@ -87,7 +92,8 @@ function parseArgs(argv) {
   };
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
-    if (value === 'performance' || value === 'allocation' || value === 'memory' || value === 'rebuild') {
+    if (value === 'performance' || value === 'allocation' || value === 'memory' || value === 'rebuild'
+      || value === 'clicks') {
       result.mode = value;
     } else if (value === '--everyone') {
       result.everyone = true;
@@ -524,6 +530,95 @@ async function runRebuild(browser, args) {
 }
 
 /**
+ * One click at the start of a task after a frame, as a player's click
+ * lands: its script, then the main-thread work of the next frame, from this
+ * page's animation-frame callback to a task queued there, which runs after
+ * that frame's ResizeObserver callbacks, style, layout and paint. A null
+ * selector clicks nothing and measures a frame for the baseline.
+ */
+function clickAndFrame(selector) {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const started = performance.now();
+        if (selector !== null) {
+          const target = document.querySelector(selector);
+          if (!(target instanceof HTMLElement)) throw new Error(`missing ${selector}`);
+          target.click();
+        }
+        const clicked = performance.now();
+        requestAnimationFrame(() => {
+          const frame = performance.now();
+          setTimeout(() => resolve({
+            scriptMs: clicked - started,
+            renderMs: performance.now() - frame,
+            rows: document.querySelectorAll('#activity-log-list > li').length,
+          }), 0);
+        });
+      }, 0);
+    });
+  });
+}
+
+/** Opening, every filter twice and Show earlier entries, paced, with baseline frames before and after. */
+async function runClicks(browser, args) {
+  const { context, page } = await openPage(browser, args, true);
+  try {
+    await closeHelpAndSetThreeTimes(page);
+    await setSpeed(page, 0);
+    await page.evaluate(fastForward, args.fillTicks);
+    if (args.everyone) await page.evaluate(() => globalThis.__terriStress.sim.select(null));
+    await page.waitForTimeout(500);
+    const state = await logState(page);
+    const report = { state, baseline: [], open: [], filter: [], earlier: [] };
+    const measure = async (selector) => {
+      const result = await page.evaluate(clickAndFrame, selector);
+      await page.waitForTimeout(150);
+      return result;
+    };
+    const baseline = async () => {
+      for (let frame = 0; frame < 10; frame += 1) report.baseline.push(await measure(null));
+    };
+    for (let repetition = 0; repetition < args.repetitions; repetition += 1) {
+      await baseline();
+      report.open.push(await measure('#activity-log-toggle'));
+      for (let index = 1; index <= FILTER_COUNT; index += 1) {
+        const selector = `#activity-log-filters button:nth-child(${index})`;
+        report.filter.push({ filter: index, ...(await measure(selector)) });
+        report.filter.push({ filter: index, ...(await measure(selector)) });
+      }
+      for (let more = 0; more < 10; more += 1) {
+        const visible = await page.evaluate(() => document.querySelector('#activity-log-earlier')?.hidden === false);
+        if (!visible) break;
+        report.earlier.push(await measure('#activity-log-earlier'));
+      }
+      await baseline();
+      await measure('#activity-log-toggle');
+    }
+    return report;
+  } finally {
+    await context.close();
+  }
+}
+
+/**
+ * Each click's script plus its frame's work beyond the median frame without
+ * a click, in hundredths of a millisecond, and the largest total per kind.
+ */
+function analyseClicks(report) {
+  const round = (value) => Math.round(value * 100) / 100;
+  const baselineRenderMs = round(median(report.baseline.map((frame) => frame.renderMs)));
+  const kind = (runs) => {
+    const clicks = runs.map((run) => {
+      const renderMs = round(run.renderMs - baselineRenderMs);
+      return { scriptMs: round(run.scriptMs), renderMs, totalMs: round(run.scriptMs + renderMs), rows: run.rows };
+    });
+    return { clicks, maxTotalMs: clicks.length === 0 ? null : Math.max(...clicks.map((click) => click.totalMs)) };
+  };
+  return { baselineRenderMs, open: kind(report.open), filter: kind(report.filter), earlier: kind(report.earlier) };
+}
+
+/**
  * Retained difference: enabled minus disabled JS heap at the first sample,
  * after the store has filled. Growth: the second sample minus the first,
  * enabled minus disabled, so growth both modes share is not charged to the log.
@@ -595,6 +690,11 @@ async function main() {
       report.open = open;
       report.analysis = analysis;
       report.pass = Object.values(analysis.checks).every(Boolean);
+    } else if (args.mode === 'clicks') {
+      report.clicks = await runClicks(browser, args);
+      report.analysis = analyseClicks(report.clicks);
+      // Reported, not judged, as rebuild is.
+      report.pass = report.clicks.state.held > 0;
     } else if (args.mode === 'rebuild') {
       report.rebuild = await runRebuild(browser, args);
       // Reported, not judged: [AL-perf] budgets the per-frame work, and
@@ -622,6 +722,7 @@ async function main() {
 module.exports = {
   FRAME_BUDGET_MS,
   analyseAllocation,
+  analyseClicks,
   analyseMemory,
   analysePerformance,
   attributeAllocation,

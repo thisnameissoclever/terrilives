@@ -123,3 +123,21 @@ test('the rebuild mode and the everyone flag parse', () => {
   expect(args).toMatchObject({ mode: 'rebuild', stress: 100, everyone: true, fillTicks: 2160 });
   expect(proof.parseArgs(['allocation']).everyone).toBe(false);
 });
+
+test('the clicks mode parses and charges each click its own frame beyond the baseline', () => {
+  expect(proof.parseArgs(['clicks', '--stress', '0', '--everyone']).mode).toBe('clicks');
+  const click = (scriptMs, renderMs, rows) => ({ scriptMs, renderMs, rows });
+  const analysis = proof.analyseClicks({
+    baseline: [click(0, 0.2, 0), click(0, 0.3, 0), click(0, 0.2, 0)],
+    open: [click(8, 4.2, 200)],
+    filter: [click(2, 2.2, 200), click(1, 2.4, 200)],
+    earlier: [click(1.5, 2.7, 400), click(2, 3.2, 600)],
+  });
+  expect(analysis.baselineRenderMs).toBe(0.2);
+  expect(analysis.earlier.clicks.map(c => c.totalMs)).toEqual([4, 5]);
+  expect(analysis.earlier.maxTotalMs).toBe(5);
+  expect(analysis.open.maxTotalMs).toBe(12);
+  expect(analysis.filter.clicks[1]).toEqual({ scriptMs: 1, renderMs: 2.2, totalMs: 3.2, rows: 200 });
+  expect(proof.analyseClicks({ baseline: [click(0, 0.2, 0)], open: [], filter: [], earlier: [] }).earlier)
+    .toEqual({ clicks: [], maxTotalMs: null });
+});
