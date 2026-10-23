@@ -38,7 +38,9 @@ function fixture() {
   let floors = new Uint32Array([0, 0, 1]);
   const speeds: number[] = [], statuses: [boolean, string | null][] = [], draws: number[][] = [];
   const diagnostics: unknown[][] = [];
-  const startup: { name: string; detail: unknown }[] = [], events: string[] = [];
+  const startup: { name: string; detail: unknown; error?: unknown }[] = [], events: string[] = [];
+  // Each submitted-work promise stays pending until a test settles it.
+  const gpuWork: { resolve(): void; reject(error: Error): void }[] = [];
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const renderer = () => ({ disposed: false, rows: new Float32Array(),
     setArchitectureCamera() {},
@@ -49,10 +51,10 @@ function fixture() {
       draws.push([this.rows[0], this.rows[1], instances[0], instances[1], scale, this.rows[3]]);
     }, destroy() { this.disposed = true; } });
   const ctx = {
-    sceneFramebufferSize,gpu:{device:{limits,queue:{onSubmittedWorkDone:()=>Promise.resolve()}}},
-    // The first drawn frame reports startup once ([main.ts] first-scene diagnostic).
+    sceneFramebufferSize,gpu:{device:{limits,queue:{onSubmittedWorkDone:()=>new Promise<void>((resolve,reject)=>gpuWork.push({resolve,reject}))}}},
+    // The first drawn frame reports startup once; see the first-scene report in main.ts.
     firstSceneRecorded:false,
-    recordDiagnostic:(name:string,detail:unknown)=>startup.push({name,detail}),
+    recordDiagnostic:(name:string,detail:unknown,error?:unknown)=>startup.push(error===undefined?{name,detail}:{name,detail,error}),
     console: { warn: (...details: unknown[]) => diagnostics.push(details) },
     lotWidth: 2, lotHeight: 1,
     lot: { width: 2, height: 1, houseOrigin: [0, 0] as const, walls: new Uint32Array(), edges: new Uint32Array(), floors,
@@ -97,19 +99,30 @@ function fixture() {
   request();
   const load = (covering: number) => { floors = new Uint32Array([0, 0, covering]); ctx.lot.floors = floors; ctx.cameraDirty = true; request(); };
   const settle = (index: number) => { const next = { renderer: renderer(), finishes: prepareArchitectureFinishes(pending[index].keys, limits, catalogue) }; pending[index].resolve(next); return next; };
-  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, startup, events, pending, resources, request, load, settle,
+  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, startup, events, gpuWork, pending, resources, request, load, settle,
     frame: () => drawMainFrame(ctx) };
 }
 
 describe('main floor scene presentation', () => {
-  it('reports the first drawn scene once and announces startup when the GPU finishes it', async () => {
+  const firstScene = (state: string) => ({ name: 'graphics.first-frame', detail: { id: 'first-scene', state } });
+  it('reports the first drawn scene once and announces startup only after the GPU finishes it', async () => {
     const f = fixture(); f.ctx.presenting = false; f.frame();
     expect(f.startup).toEqual([]);
     f.ctx.presenting = true; f.frame(); f.frame();
     await flush();
-    expect(f.startup.map(entry => entry.detail)).toEqual([
-      { id: 'first-scene', state: 'start' }, { id: 'first-scene', state: 'complete' }]);
+    expect(f.gpuWork).toHaveLength(1);
+    expect(f.startup).toEqual([firstScene('start')]);
+    expect(f.events).toEqual([]);
+    f.gpuWork[0].resolve(); await flush();
+    expect(f.startup).toEqual([firstScene('start'), firstScene('complete')]);
     expect(f.events).toEqual(['terrilives:startup-ready']);
+  });
+  it('reports a failed first scene and announces a startup failure instead of readiness', async () => {
+    const f = fixture(); f.frame();
+    const error = new Error('device lost');
+    f.gpuWork[0].reject(error); await flush();
+    expect(f.startup).toEqual([firstScene('start'), { ...firstScene('failed'), error }]);
+    expect(f.events).toEqual(['terrilives:startup-failure']);
   });
   it('retains the current scene while graphics are recovering and resumes coherent drawing',()=>{
     const f=fixture();f.frame();expect(f.draws).toHaveLength(1);
