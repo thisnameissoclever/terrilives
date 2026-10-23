@@ -1,6 +1,6 @@
 # Maintaining the public changelog
 
-The public page is [Changelog](https://thisnameissoclever.github.io/terrilives/changelog/). Options contains Player guide and Changelog links beneath the game actions. Each opens a new tab so the current game stays open. Changelog also links back to Player guide; it is a separate site destination, not a guide topic.
+The public page is [Changelog](https://natural-causes.life/changelog/). Options contains Player guide and Changelog links beneath the game actions. Each opens a new tab so the current game stays open. Changelog also links back to Player guide; it is a separate site destination, not a guide topic.
 
 ## Source and format
 

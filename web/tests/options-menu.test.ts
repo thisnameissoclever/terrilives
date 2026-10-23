@@ -172,7 +172,7 @@ describe('the Options flyout in the page', () => {
   });
 
   it.each(['game-version', 'lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
-    'game-actions', 'save-game', 'load-game', 'death-enabled', 'new-game', 'show-help'])(
+    'game-actions', 'save-game', 'load-game', 'export-save', 'import-save', 'death-enabled', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
       expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);

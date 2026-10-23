@@ -86,7 +86,17 @@ Choose **Load game** in the Load confirmation to restore the save. Choose **Star
 
 :::illustration load-confirm
 
-The slot belongs to the game's site in this browser. A different browser, browser profile or site address may have separate storage. Light and sound preferences are separate from household progress.
+The slot belongs to the game's site in this browser. A different browser, browser profile or site address has separate storage. Light and sound preferences are separate from household progress.
+
+### Move a save to another browser or device {#export-import}
+
+Choose Options, then **Export save** to download the current household as a file ending in `.ncsave`. Exporting does not change the saved slot. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
+
+To use the file, open the game where you want to play, choose Options, then **Import save**, and pick the file. Choose **Import game** in the confirmation. The imported household replaces the running game and this browser's saved slot, and this cannot be undone, so export the current game first if you want to keep it. **Keep playing** closes the confirmation without changing anything. A file that is not a Natural Causes save, or a save from a newer version of the game, is rejected and the current game is kept.
+
+### Saves from the old web address {#old-address}
+
+The game moved from thisnameissoclever.github.io/terrilives to natural-causes.life. A save made at the old address stays in the browser where it was made, and the old address now opens the new one. To bring that save across, open [Move your Natural Causes save](https://thisnameissoclever.github.io/natural-causes-old-save/) in the same browser and on the same device, choose **Download save**, then use Import save at natural-causes.life.
 
 ## Add or edit a housemate {#housemates}
 

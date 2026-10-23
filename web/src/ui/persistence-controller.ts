@@ -15,12 +15,14 @@ export interface SaveStatusTarget {
 }
 
 export type StartupRestore = 'loaded' | 'new' | 'invalid' | 'unavailable';
-type PersistenceOperation = 'save' | 'load' | 'clear';
+type PersistenceOperation = 'save' | 'load' | 'clear' | 'export' | 'import';
 
 export interface PersistenceControlState {
   readonly saveDisabled: boolean;
   readonly loadDisabled: boolean;
   readonly newGameDisabled: boolean;
+  readonly exportDisabled: boolean;
+  readonly importDisabled: boolean;
   readonly confirmationDisabled: boolean;
 }
 
@@ -28,8 +30,11 @@ export interface PersistenceControlTargets {
   readonly save: { disabled: boolean };
   readonly load: { disabled: boolean };
   readonly newGame: { disabled: boolean };
+  readonly exportSave: { disabled: boolean };
+  readonly importSave: { disabled: boolean };
   readonly confirmLoad: { disabled: boolean };
   readonly confirmNewGame: { disabled: boolean };
+  readonly confirmImport: { disabled: boolean };
 }
 
 export interface PersistenceFocusDocument {
@@ -82,10 +87,22 @@ export function applyPersistenceControlState(
   targets.save.disabled = state.saveDisabled;
   targets.load.disabled = state.loadDisabled;
   targets.newGame.disabled = state.newGameDisabled;
+  targets.exportSave.disabled = state.exportDisabled;
+  targets.importSave.disabled = state.importDisabled;
   targets.confirmLoad.disabled =
     state.loadDisabled || state.confirmationDisabled;
   targets.confirmNewGame.disabled =
     state.newGameDisabled || state.confirmationDisabled;
+  targets.confirmImport.disabled =
+    state.importDisabled || state.confirmationDisabled;
+}
+
+/** Why a chosen file or stored slot could not become the running game. */
+function unloadableReason(bytes: Uint8Array, fallback: string): string {
+  const version = saveSchemaVersion(bytes);
+  return version !== null && (version < 1 || version > CURRENT_SAVE_VERSION)
+    ? `Saved game version ${version} is not supported.`
+    : fallback;
 }
 
 /**
@@ -207,6 +224,93 @@ export class PersistenceController {
     }
   }
 
+  /**
+   * Gives `deliver` the bytes for a save file. While saving is paused, the
+   * running world is not the protected household, so the stored bytes are
+   * exported unchanged instead.
+   */
+  async exportSave(deliver: (bytes: Uint8Array) => void): Promise<boolean> {
+    if (!this.beginOperation('export')) return false;
+    try {
+      const protectedSave = this.savingPaused;
+      const bytes = protectedSave ? await this.store.load() : this.sim.saveBytes();
+      if (bytes === null) {
+        this.show('No saved game found', true);
+        return false;
+      }
+      deliver(bytes);
+      this.show(protectedSave ? 'Saved game exported' : 'Game exported');
+      return true;
+    } catch (error: unknown) {
+      this.reportError(error);
+      this.show('Export failed. The game is still running.', true);
+      return false;
+    } finally {
+      this.finishOperation('export');
+    }
+  }
+
+  /**
+   * Checks a chosen file before Import asks for confirmation, so the player is
+   * not asked to replace their game with something that is not a save.
+   */
+  acceptImportFile(bytes: Uint8Array): boolean {
+    if (saveSchemaVersion(bytes) !== null) return true;
+    this.show('That file is not a Natural Causes save. Current game kept.', true);
+    return false;
+  }
+
+  /** The browser could not read the chosen file. */
+  importFileUnreadable(error: unknown): void {
+    this.reportError(error);
+    this.show('Could not read that file. Current game kept.', true);
+  }
+
+  /**
+   * Replaces the running game and the saved slot with a chosen file. The file
+   * loads first, so a rejected file changes neither. The loaded world is then
+   * written in the current format, which also converts an older file.
+   */
+  async importSave(bytes: Uint8Array): Promise<boolean> {
+    if (!this.beginOperation('import')) return false;
+    this.show('Importing');
+    try {
+      let loaded = false;
+      try {
+        loaded = await this.loadPrepared(bytes);
+      } catch (error: unknown) {
+        this.reportError(error);
+      }
+      if (!loaded) {
+        const reason = saveSchemaVersion(bytes) === null
+          ? 'That file is not a Natural Causes save.'
+          : unloadableReason(bytes, 'Import failed.');
+        this.show(`${reason} Current game kept.`, true);
+        return false;
+      }
+      this.armAutosave();
+      const importedDay = this.currentDay();
+      try {
+        await this.store.save(this.sim.saveBytes());
+        this.savingPaused = false;
+        this.savedGameAvailable = true;
+        this.autosaveDay = Math.max(this.autosaveDay, importedDay);
+        this.show('Imported game loaded and saved');
+      } catch (error: unknown) {
+        this.reportError(error);
+        this.show(
+          this.savingPaused
+            ? 'Imported game loaded. Saved data kept. Saving paused.'
+            : 'Imported game loaded, but saving failed. Use Save to try again.',
+          true,
+        );
+      }
+      return true;
+    } finally {
+      this.finishOperation('import');
+    }
+  }
+
   /** Called from the frame loop. It schedules at most one save per new day. */
   updateAutosave(): void {
     if (this.savingPaused) return;
@@ -239,6 +343,8 @@ export class PersistenceController {
       saveDisabled: busy || this.savingPaused,
       loadDisabled: busy || (!this.savedGameAvailable && !this.savingPaused),
       newGameDisabled: busy,
+      exportDisabled: busy,
+      importDisabled: busy,
       confirmationDisabled: busy,
     };
   }
@@ -249,10 +355,7 @@ export class PersistenceController {
 
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
-    const version = bytes ? saveSchemaVersion(bytes) : null;
-    const reason = version !== null && (version < 1 || version > CURRENT_SAVE_VERSION)
-      ? `Saved game version ${version} is not supported.`
-      : 'Load failed.';
+    const reason = bytes ? unloadableReason(bytes, 'Load failed.') : 'Load failed.';
     this.show(
       `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,
       true,

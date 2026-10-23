@@ -2,7 +2,7 @@
 
 The game saves its last three startup attempts in browser-local storage. Each attempt records the game entry filename, browser and viewport details, timestamps, the last loading step, and a captured error when available. It marks readiness only after the graphics queue completes the first scene. Removing the loading cover does not establish readiness.
 
-Open [Startup report](https://thisnameissoclever.github.io/terrilives/startup-report.html) in the same browser that loaded the game. The terminal failure card also links to this page. Download report saves the recorded data as JSON. The report page loads a small script and does not start the game, simulation or graphics device. Reading or downloading a report does not overwrite the stored attempt.
+Open [Startup report](https://natural-causes.life/startup-report.html) in the same browser that loaded the game. The terminal failure card also links to this page. Download report saves the recorded data as JSON. The report page loads a small script and does not start the game, simulation or graphics device. Reading or downloading a report does not overwrite the stored attempt.
 
 An unfinished attempt means readiness was not recorded. Closing the page during loading also produces that state; it is not evidence of a browser crash by itself. A browser termination can preserve the last saved step while preventing JavaScript from recording its cause. A report saved before this recorder was deployed is unavailable. Reports in another browser or cleared storage are unavailable as well.
 

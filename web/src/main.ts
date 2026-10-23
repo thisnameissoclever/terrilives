@@ -116,6 +116,7 @@ import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
+import { downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { OrderDiagnostics } from './ui/player-orders.js';
@@ -1095,6 +1096,11 @@ async function main(): Promise<void> {
 
   const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
   const loadButton = document.querySelector<HTMLButtonElement>('#load-game');
+  const exportSaveButton = document.querySelector<HTMLButtonElement>('#export-save');
+  const importSaveButton = document.querySelector<HTMLButtonElement>('#import-save');
+  const importSaveFile = document.querySelector<HTMLInputElement>('#import-save-file');
+  const importSaveDialog = document.querySelector<HTMLDialogElement>('#import-save-dialog');
+  const confirmImportSave = document.querySelector<HTMLButtonElement>('#confirm-import-save');
   const stopOrdersButton = document.querySelector<HTMLButtonElement>('#stop-orders');
   const queueButton = document.querySelector<HTMLButtonElement>('#queue-mode');
   const lightingModeButton = document.querySelector<HTMLButtonElement>('#lighting-mode');
@@ -1120,6 +1126,11 @@ async function main(): Promise<void> {
   if (
     !saveButton ||
     !loadButton ||
+    !exportSaveButton ||
+    !importSaveButton ||
+    !importSaveFile ||
+    !importSaveDialog ||
+    !confirmImportSave ||
     !stopOrdersButton ||
     !queueButton ||
     !lightingModeButton ||
@@ -1163,14 +1174,17 @@ async function main(): Promise<void> {
   let persistenceControlKey = '';
   const syncPersistenceButtons = (): void => {
     const state = persistence.controlState();
-    const key = `${state.saveDisabled}:${state.loadDisabled}:${state.newGameDisabled}:${state.confirmationDisabled}`;
+    const key = `${state.saveDisabled}:${state.loadDisabled}:${state.newGameDisabled}:${state.exportDisabled}:${state.importDisabled}:${state.confirmationDisabled}`;
     if (key === persistenceControlKey) return;
     applyPersistenceControlState(state, {
       save: saveButton,
       load: loadButton,
       newGame: newGameButton,
+      exportSave: exportSaveButton,
+      importSave: importSaveButton,
       confirmLoad: confirmLoadGame,
       confirmNewGame,
+      confirmImport: confirmImportSave,
     });
     persistenceControlKey = key;
   };
@@ -1219,6 +1233,63 @@ async function main(): Promise<void> {
     restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
     overlayPause.resume('load-game');
   });
+  // Load and Import both replace the world, so both refresh every view of it.
+  const adoptLoadedWorld = (): void => {
+      wallFade.reset();
+      adoptLotShape();
+      lot.walls = sim.wallTiles();
+      lot.edges = sim.wallEdges();
+      lot.windows = sim.windowLines();
+      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
+      // [FL-draw]: the loaded house's own painted tiles. Without this the
+      // previous game's floors stayed on screen, and on a lot of another
+      // height they landed on unrelated tiles, because the renderer keys
+      // the list by height.
+      lot.floors = sim.floorTiles();
+      lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
+      lot.frontDoors = sim.frontDoorLines();
+      // A world saved before the yard that never grew has no street.
+      lot.street = sim.streetColumn();
+      // A restored world may reuse entity indices for different live
+      // entities. Discard every transient action that names the old world.
+      lightingDirty = true;
+      cameraDirty = true;
+      menu.close();
+      keyboardTargets.clear();
+      bookResults.resetAfterLoad();
+      orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
+      commandStatus.textContent = '';
+      commandStatus.removeAttribute('data-kind');
+      bookCommerce.resetAfterLoad();
+      builder.resetAfterLoad();
+      // [ES-form]: a draft names a person of the replaced world, so
+      // close it before the form returns to create mode.
+      if (housemateDialog.open) housemateDialog.close('cancel');
+      housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
+      characterWorld.reset();characterWorld.prepareFixtures(sim);
+      bedAssignmentPanel.resetAfterLoad();
+      careerPanel.resetAfterLoad();
+      syncNewHousemateButton();
+      syncEditHousemateButton();
+      wallTool.resetAfterLoad(lotWidth, lotHeight);
+      windowTool.resetAfterLoad(lotWidth, lotHeight);
+      buyTool.resetAfterLoad(lotWidth, lotHeight);
+      roomTool.resetAfterLoad(lotWidth, lotHeight);
+      floorTool.resetAfterLoad(lotWidth, lotHeight);
+      landTool.resetAfterLoad(lotWidth, lotHeight);
+      audio.reset('load');
+      const nowMs = performance.now();
+      householdRoster.update(nowMs, true);
+      peoplePanel.update(nowMs, true);
+      moodPanel.update(nowMs, true);
+      traitsPanel.update(nowMs, true);
+      personalDetailsPanel.update(nowMs, true);
+      skillsPanel.update(nowMs, true);
+      affinitiesPanel.update(nowMs, true);
+      bedAssignmentPanel.update(nowMs, true);
+      careerPanel.update(nowMs, true);
+  };
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
     // before the browser's method=dialog default action can cancel that action
@@ -1231,62 +1302,7 @@ async function main(): Promise<void> {
     syncPersistenceButtons();
     void loading
       .then((loaded) => {
-        if (loaded) {
-          wallFade.reset();
-          adoptLotShape();
-          lot.walls = sim.wallTiles();
-          lot.edges = sim.wallEdges();
-          lot.windows = sim.windowLines();
-          lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
-          // [FL-draw]: the loaded house's own painted tiles. Without this the
-          // previous game's floors stayed on screen, and on a lot of another
-          // height they landed on unrelated tiles, because the renderer keys
-          // the list by height.
-          lot.floors = sim.floorTiles();
-          lot.doors = sim.interiorDoorLines();
-          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
-          lot.frontDoors = sim.frontDoorLines();
-          // A world saved before the yard that never grew has no street.
-          lot.street = sim.streetColumn();
-          // A restored world may reuse entity indices for different live
-          // entities. Discard every transient action that names the old world.
-          lightingDirty = true;
-          cameraDirty = true;
-          menu.close();
-          keyboardTargets.clear();
-          bookResults.resetAfterLoad();
-          orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
-          commandStatus.textContent = '';
-          commandStatus.removeAttribute('data-kind');
-          bookCommerce.resetAfterLoad();
-          builder.resetAfterLoad();
-          // [ES-form]: a draft names a person of the replaced world, so
-          // close it before the form returns to create mode.
-          if (housemateDialog.open) housemateDialog.close('cancel');
-          housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
-          characterWorld.reset();characterWorld.prepareFixtures(sim);
-          bedAssignmentPanel.resetAfterLoad();
-          careerPanel.resetAfterLoad();
-          syncNewHousemateButton();
-          syncEditHousemateButton();
-          wallTool.resetAfterLoad(lotWidth, lotHeight);
-          windowTool.resetAfterLoad(lotWidth, lotHeight);
-          buyTool.resetAfterLoad(lotWidth, lotHeight);
-          roomTool.resetAfterLoad(lotWidth, lotHeight);
-          floorTool.resetAfterLoad(lotWidth, lotHeight);
-          landTool.resetAfterLoad(lotWidth, lotHeight);
-          audio.reset('load');
-          const nowMs = performance.now();
-          householdRoster.update(nowMs, true);
-          peoplePanel.update(nowMs, true);
-          moodPanel.update(nowMs, true);
-          traitsPanel.update(nowMs, true);
-          personalDetailsPanel.update(nowMs, true);
-          skillsPanel.update(nowMs, true);
-          affinitiesPanel.update(nowMs, true);
-          bedAssignmentPanel.update(nowMs, true);
-          careerPanel.update(nowMs, true);
-        }
+        if (loaded) adoptLoadedWorld();
       })
       .finally(() => {
         loadingGame = false;
@@ -1298,6 +1314,72 @@ async function main(): Promise<void> {
           persistenceFocusFallbacks,
         );
         overlayPause.resume('load-game');
+      });
+  });
+  exportSaveButton.addEventListener('click', () => {
+    const exporting = persistence.exportSave((bytes) =>
+      downloadSaveFile(bytes, saveFileName(new Date())),
+    );
+    syncPersistenceButtons();
+    void exporting.then(() => syncPersistenceButtons());
+  });
+  // The chosen file waits here while the player confirms. Clearing the input
+  // lets the same file be chosen again after a cancel.
+  let pendingImport: Uint8Array | null = null;
+  let importingSave = false;
+  importSaveButton.addEventListener('click', () => {
+    importSaveFile.value = '';
+    importSaveFile.click();
+  });
+  importSaveFile.addEventListener('change', () => {
+    const file = importSaveFile.files?.[0];
+    importSaveFile.value = '';
+    if (!file) return;
+    void readSaveFile(file).then(
+      (bytes) => {
+        if (!persistence.acceptImportFile(bytes)) return;
+        pendingImport = bytes;
+        optionsMenu.close();
+        menu.close(); overlayPause.suspend('import-save');
+        importSaveDialog.showModal();
+      },
+      (error: unknown) => persistence.importFileUnreadable(error),
+    );
+  });
+  importSaveDialog.addEventListener('close', () => {
+    if (importingSave) return;
+    pendingImport = null;
+    restorePersistenceFocus(document, importSaveDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('import-save');
+  });
+  confirmImportSave.addEventListener('click', (event) => {
+    // Same ordering rule as Load: close the dialog before the operation lock
+    // disables this button.
+    event.preventDefault();
+    const bytes = pendingImport;
+    pendingImport = null;
+    if (!bytes) {
+      importSaveDialog.close('cancel');
+      return;
+    }
+    importingSave = true;
+    importSaveDialog.close('confirm');
+    const importing = persistence.importSave(bytes);
+    syncPersistenceButtons();
+    void importing
+      .then((loaded) => {
+        if (loaded) adoptLoadedWorld();
+      })
+      .finally(() => {
+        importingSave = false;
+        syncPersistenceButtons();
+        restorePersistenceFocus(
+          document,
+          importSaveDialog,
+          optionsToggle,
+          persistenceFocusFallbacks,
+        );
+        overlayPause.resume('import-save');
       });
   });
   let housemateOpener: HTMLButtonElement = optionsToggle;

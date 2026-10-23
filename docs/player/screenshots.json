@@ -207,6 +207,24 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-20",
         "method": "Displayed isolated Chrome 155 through the provided Playwright tool; one game navigation, muted process, initial Help paused at 00:00."
+      },
+      {
+        "id": "save-files",
+        "url": "https://127.0.0.1:4173/",
+        "htmlSha256": "f1d1899ea1c7f525ac1a056fa5eb198eefe8d02cf178183104cecf4087c6b5d2",
+        "bundle": "index-rtN_q1qT.js",
+        "bundleSha256": "fdbfe3502aea9e51792fb58374f368402700707d334425a7c3c73d9fffc54fce",
+        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
+        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
+        "gameSourceFileSha256": {
+          "web/index.html": "395e9179e2c62adfc362c75a94f4c47b26c001ee032b4b25ac5d5e71c33e1468",
+          "web/src/main.ts": "bbe0947173a9e06dd921d926a7743962e79fb611eed1c23e11de1b9433c9923c",
+          "web/src/ui/persistence-controller.ts": "dc7bfcbb1070c16def847cc725a47b98b991de8c53d8e15f65883fdffa3fecdf",
+          "web/src/storage/save-file.ts": "ad5eb421d726469edf632e9ee96d885c9006b98bef09bb00afad20ea2c6b84e9"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright Chrome against this worktree build served by vite preview; Sound off before any capture; Options opened from the world controls after dismissing first-run Help."
       }
     ],
     "weatherSetup": {
@@ -352,18 +370,18 @@
       "section": "options",
       "desktop": "images/ui-options-desktop.png",
       "mobile": "images/ui-options-mobile.png",
-      "description": "Options open, with New housemate above Save and Load.",
+      "description": "Options open, with New housemate above Save, Load, Export save and Import save.",
       "access": "Choose Options beside Build.",
       "desktopDetail": "images/ui-options-detail-desktop.png",
-      "sourceSnapshot": "help-options-final",
-      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
-      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "sourceSnapshot": "save-files",
+      "htmlSha256": "f1d1899ea1c7f525ac1a056fa5eb198eefe8d02cf178183104cecf4087c6b5d2",
+      "bundleSha256": "fdbfe3502aea9e51792fb58374f368402700707d334425a7c3c73d9fffc54fce",
       "mobileDetail": "images/ui-options-detail-mobile.png",
       "imageSha256": {
-        "desktop": "9bc540af1042ceb04e5e8ca3014aae946c03105bc6231f729dca94ef379f67fc",
-        "mobile": "9c01197624aeb1d4be61a58f85b9a5266687d0f5940e7bfa3e6b0feb89a7baaf",
-        "desktopDetail": "1eb48331d7f29f9a4d9dad15e2d13915fc64de85e56a36e605108cc147b0b533",
-        "mobileDetail": "b400e0ab789298badfd9e9b99429bde1108d95e5efe324a45c763045d43bd6d2"
+        "desktop": "2ceeb22f97a48d1e3619905f0e22e4b190700ae46da4de34508764e167a76fc2",
+        "mobile": "929ca478ee10ea5ed0f0815101d44c4520b192a6596361fdfb251aefbd7dd403",
+        "desktopDetail": "7a86c9b91ee578488878e0434947c69208ba854e945e8cb2a7b0f8ecf3aae6ff",
+        "mobileDetail": "5db86215b4d19161ba4f568255de8a38e4ed5eb765df2cb421bc9ea7ccba75b6"
       }
     },
     {
