@@ -2609,7 +2609,7 @@ async function main(): Promise<void> {
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.
-    if (presenting && floorScene.visible && !firstSceneDrawn) {
+    if (presenting && floorScene.visible && !graphicsRecovering && !firstSceneDrawn) {
       firstSceneDrawn = true;
       void gpu.device.queue.onSubmittedWorkDone()
         .then(() => {

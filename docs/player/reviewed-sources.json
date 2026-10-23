@@ -410,7 +410,7 @@
     "web/src/frame.ts": "5a24e999a3cfe9da6126bed3a2062bcddae9bf802f93487525aaed248cb92165",
     "web/src/input.ts": "f0eb46d268e44f9fe81918f7be465037fd32eb161fb1a1433974ed967148a204",
     "web/src/load-progress.ts": "cc85e37ea616f5ec01711dd24292aff7e4bb68e4f737d04859bd42ee8509ee32",
-    "web/src/main.ts": "2d0f88673ac93ea6241c49bb5f35449c9de736961708ed3b32cc524409e1dc1c",
+    "web/src/main.ts": "1fd6c98d087b7d19d7886402dd7bceda64766402c59f17accd7aea21701699bf",
     "web/src/new-game-seed.ts": "22a741389cfcc9a7b008bb1c25eae2279496bdd1a162d0ce1afba7fd167e2679",
     "web/src/perf.ts": "40087f8be0f6ea4060825a75b725d6567f843d7a7b3446c862891defe1fd5dc9",
     "web/src/render/architecture-atlas.ts": "67eb0303dc1f19d1ecc6a7311bbe5c6306e2944a34327182b0f10e3c583e21bf",
