@@ -2446,6 +2446,7 @@ async function main(): Promise<void> {
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
+  let firstSceneRecorded = false;
   function frame(nowMs: number, presenting = true): void {
     const frameEntered=performance.now();
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
@@ -2577,6 +2578,14 @@ async function main(): Promise<void> {
         batch.annotations,
         drawWorldEffects,
       );
+      if (!firstSceneRecorded) {
+        firstSceneRecorded = true;
+        void gpu.device.queue.onSubmittedWorkDone().then(() => {
+          window.dispatchEvent(new Event('terrilives:startup-ready'));
+        }, error => {
+          window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
+        });
+      }
     }
 
     // Inside the sample below rather than outside it, deliberately: the
@@ -2609,16 +2618,10 @@ async function main(): Promise<void> {
     // The cover lifts once the GPU has finished the first full scene, not
     // when it was queued: a phone compiles shaders on that first draw, and
     // lifting early would show the blank canvas the cover exists to hide.
-    if (presenting && floorScene.visible && !graphicsRecovering && !firstSceneDrawn) {
+    if (presenting && floorScene.visible && !firstSceneDrawn) {
       firstSceneDrawn = true;
       void gpu.device.queue.onSubmittedWorkDone()
-        .then(() => {
-          window.dispatchEvent(new Event('terrilives:startup-ready'));
-          requestAnimationFrame(() => loading.finish());
-        }, error => {
-          window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
-          loading.finish();
-        });
+        .then(() => requestAnimationFrame(() => loading.finish()), () => loading.finish());
     }
 
     if (presenting) {
