@@ -225,6 +225,24 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-23",
         "method": "Playwright Chrome against this worktree build served by vite preview; Sound off before any capture; Options opened from the world controls after dismissing first-run Help."
+      },
+      {
+        "id": "save-files-review",
+        "url": "https://127.0.0.1:4173/",
+        "htmlSha256": "b5793090e51c7c572dec9b48bc0d03844457455a907d5ea45f3a8451753805eb",
+        "bundle": "index-DNRQnDks.js",
+        "bundleSha256": "63947e1607a4b7d77b09efc992a7453857e571a55a48f9b063cc82d6cf74480e",
+        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
+        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
+        "gameSourceFileSha256": {
+          "web/index.html": "c22444a425fc02b2ca6a1f02b92ffe35bd7638550fceea6464548712a17c8a66",
+          "web/src/main.ts": "3c79c63305c114116d68ed664b1fa35bd47673118b6be072da9b8ce41eee464d",
+          "web/src/ui/persistence-controller.ts": "53681fd17eca49a47ea48be075abd30cd3575aba8a15d47bf802b565c63370d8",
+          "web/src/storage/save-file.ts": "208998ca29d5791c47441b87da78392e2456242a1ef7ab22cd0bc74c250a32a4"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright Chrome against this worktree build served by vite preview; Sound off; Options closed with Escape; a saved game file chosen through Import save."
       }
     ],
     "weatherSetup": {
@@ -1267,6 +1285,21 @@
       "imageSha256": {
         "desktop": "b54b8a754f4e4ebdc7e098915f831b98138629f3b099dc9a709c170263479104",
         "mobile": "c8cd15bbc3a3c8a0f5051405d79451c86d8387fd76008b9d86fc8ed08316f6e9"
+      }
+    },
+    {
+      "id": "import-confirm",
+      "section": "saves",
+      "desktop": "images/ui-import-confirm-desktop.png",
+      "mobile": "images/ui-import-confirm-mobile.png",
+      "description": "Import save confirmation, with Keep playing and Import game.",
+      "access": "Choose Options > Import save, then pick a saved game file.",
+      "sourceSnapshot": "save-files-review",
+      "htmlSha256": "b5793090e51c7c572dec9b48bc0d03844457455a907d5ea45f3a8451753805eb",
+      "bundleSha256": "63947e1607a4b7d77b09efc992a7453857e571a55a48f9b063cc82d6cf74480e",
+      "imageSha256": {
+        "desktop": "57fe7a28f9b4dd653c26548bb96ca1ba8e3b6e0aa12b20d14e31ec56d466ec64",
+        "mobile": "fc014fd91f66fd7957b7c09478c1faedfcfd6b8d5129b9f66983fb4be0516067"
       }
     },
     {

@@ -70,7 +70,7 @@ describe('Export save', () => {
     expect(controller.controlState().exportDisabled).toBe(false);
   });
 
-  it('exports the protected slot unchanged while saving is paused', async () => {
+  it('exports the protected slot unchanged, within the click, while saving is paused', async () => {
     const protectedSave = saveBytes(CURRENT_SAVE_VERSION + 1);
     const backend = store(protectedSave);
     const game = sim(false);
@@ -78,12 +78,31 @@ describe('Export save', () => {
     const view = status();
     const controller = new PersistenceController(backend, game, view);
     expect(await controller.restoreAtStartup()).toBe('invalid');
+    const read = vi.spyOn(backend, 'load');
+    const deliver = vi.fn();
+
+    const exporting = controller.exportSave(deliver);
+    // Delivered before any await, so a browser still treats the download as
+    // part of the player's click.
+    expect(deliver).toHaveBeenCalledWith(protectedSave);
+    expect(await exporting).toBe(true);
+    expect(read).not.toHaveBeenCalled();
+    expect(capture).not.toHaveBeenCalled();
+    expect(view.textContent).toBe('Saved game exported');
+  });
+
+  it('reads the protected slot when its bytes are not already known', async () => {
+    const stored = saveBytes(CURRENT_SAVE_VERSION + 1);
+    const backend = store(stored);
+    const restoreRead = backend.load;
+    backend.load = async () => { throw new Error('storage unavailable'); };
+    const controller = new PersistenceController(backend, sim(false), status());
+    expect(await controller.restoreAtStartup()).toBe('unavailable');
+    backend.load = restoreRead;
     const deliver = vi.fn();
 
     expect(await controller.exportSave(deliver)).toBe(true);
-    expect(deliver).toHaveBeenCalledWith(protectedSave);
-    expect(capture).not.toHaveBeenCalled();
-    expect(view.textContent).toBe('Saved game exported');
+    expect(deliver).toHaveBeenCalledWith(stored);
   });
 
   it('reports a failed download and releases the operation', async () => {
@@ -175,18 +194,70 @@ describe('Import save', () => {
     expect(controller.controlState().saveDisabled).toBe(false);
   });
 
-  it('keeps a protected slot paused when writing over it fails', async () => {
-    const backend = store(saveBytes(CURRENT_SAVE_VERSION + 1));
+  it.each([
+    ['a newer version', saveBytes(CURRENT_SAVE_VERSION + 1)],
+    ['an unreadable header', new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])],
+  ])('refuses before loading when the protected slot holds %s the game cannot overwrite', async (_name, slot) => {
+    const backend = store(slot);
+    const game = sim(false);
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    await controller.restoreAtStartup();
+    game.loadBytes = vi.fn(() => true);
+
+    expect(await controller.importSave(saveBytes())).toBe(false);
+    expect(game.loadBytes).not.toHaveBeenCalled();
+    expect(backend.saves).toEqual([]);
+    expect(view.textContent).toBe(
+      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Current game kept. Saving paused.',
+    );
+    expect(controller.isSavingPaused()).toBe(true);
+    expect(controller.controlState().importDisabled).toBe(false);
+  });
+
+  it('refuses when the protected slot cannot be checked', async () => {
+    const backend = store(null);
+    backend.load = async () => { throw new Error('storage unavailable'); };
+    const game = sim();
+    const loadBytes = vi.spyOn(game, 'loadBytes');
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    expect(await controller.restoreAtStartup()).toBe('unavailable');
+
+    expect(await controller.importSave(saveBytes())).toBe(false);
+    expect(loadBytes).not.toHaveBeenCalled();
+    expect(view.textContent).toBe('Could not check the saved data in this browser. Current game kept. Saving paused.');
+  });
+
+  it('keeps saving paused when a writable protected slot still fails to save', async () => {
+    const backend = store(saveBytes(CURRENT_SAVE_VERSION - 1));
     const game = sim(false);
     const view = status();
     const controller = new PersistenceController(backend, game, view);
     await controller.restoreAtStartup();
     game.loadBytes = () => true;
-    backend.save = async () => { throw new Error('unsupported slot kept'); };
+    backend.save = async () => { throw new Error('quota'); };
 
     expect(await controller.importSave(saveBytes())).toBe(true);
     expect(view.textContent).toBe('Imported game loaded. Saved data kept. Saving paused.');
     expect(controller.isSavingPaused()).toBe(true);
+  });
+
+  it('keeps paused state and the paused note when a file is rejected', async () => {
+    const backend = store(saveBytes());
+    const game = sim(false);
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    await controller.restoreAtStartup();
+    const available = controller.hasSavedGame();
+
+    expect(await controller.importSave(saveBytes())).toBe(false);
+    expect(view.textContent).toBe('Import failed. Current game kept. Saving paused.');
+    expect(controller.isSavingPaused()).toBe(true);
+    expect(controller.hasSavedGame()).toBe(available);
+    game.tick = 500;
+    controller.updateAutosave();
+    expect(backend.saves).toEqual([]);
   });
 
   it('waits its turn behind another storage operation', async () => {
@@ -208,10 +279,14 @@ describe('Import save', () => {
     const view = status();
     const controller = new PersistenceController(store(null), sim(), view);
 
-    expect(controller.acceptImportFile(saveBytes())).toBe(true);
+    expect(controller.acceptImportFile(saveBytes().slice(0, 10))).toBe(true);
     expect(view.textContent).toBe('');
     expect(controller.acceptImportFile(new Uint8Array([60, 104, 116, 109, 108]))).toBe(false);
     expect(view.textContent).toBe('That file is not a Natural Causes save. Current game kept.');
+    expect(controller.acceptImportFile(saveBytes(CURRENT_SAVE_VERSION + 1).slice(0, 10))).toBe(false);
+    expect(view.textContent).toBe(`Saved game version ${CURRENT_SAVE_VERSION + 1} is not supported. Current game kept.`);
+    expect(controller.acceptImportFile(saveBytes(0).slice(0, 10))).toBe(false);
+    expect(view.textContent).toBe('Saved game version 0 is not supported. Current game kept.');
 
     controller.importFileUnreadable(new Error('permission'));
     expect(view.textContent).toBe('Could not read that file. Current game kept.');

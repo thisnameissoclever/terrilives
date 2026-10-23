@@ -106,12 +106,23 @@ function unloadableReason(bytes: Uint8Array, fallback: string): string {
 }
 
 /**
+ * Whether the storage worker will write a current save over these slot
+ * bytes. It refuses an unreadable or newer slot rather than lose it.
+ */
+function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
+  const version = saveSchemaVersion(bytes);
+  return version !== null && version >= 1 && version <= CURRENT_SAVE_VERSION;
+}
+
+/**
  * Player-facing save lifecycle over one storage slot.
  */
 export class PersistenceController {
   private autosaveDay = 0;
   private savedGameAvailable = false;
   private savingPaused = false;
+  /** The protected slot's bytes, when known, so Export can deliver them within the click. */
+  private protectedBytes: Uint8Array | null = null;
   private activeOperation: PersistenceOperation | null = null;
 
   constructor(
@@ -136,7 +147,7 @@ export class PersistenceController {
         this.protectSavedGame(bytes);
         return 'invalid';
       }
-      this.savingPaused = false;
+      this.resumeSaving();
       this.armAutosave();
       this.savedGameAvailable = true;
       this.show('Saved game loaded');
@@ -187,7 +198,7 @@ export class PersistenceController {
         this.protectSavedGame(bytes);
         return false;
       }
-      this.savingPaused = false;
+      this.resumeSaving();
       this.armAutosave();
       this.savedGameAvailable = true;
       this.show('Saved game loaded');
@@ -207,7 +218,7 @@ export class PersistenceController {
     try {
       await this.store.clear();
       this.savedGameAvailable = false;
-      this.savingPaused = false;
+      this.resumeSaving();
       this.armAutosave();
       return true;
     } catch (error: unknown) {
@@ -233,7 +244,11 @@ export class PersistenceController {
     if (!this.beginOperation('export')) return false;
     try {
       const protectedSave = this.savingPaused;
-      const bytes = protectedSave ? await this.store.load() : this.sim.saveBytes();
+      // Known protected bytes are delivered synchronously, still inside the
+      // click, because some mobile browsers drop a download started later.
+      const bytes = protectedSave
+        ? this.protectedBytes ?? await this.store.load()
+        : this.sim.saveBytes();
       if (bytes === null) {
         this.show('No saved game found', true);
         return false;
@@ -254,16 +269,22 @@ export class PersistenceController {
    * Checks a chosen file before Import asks for confirmation, so the player is
    * not asked to replace their game with something that is not a save.
    */
-  acceptImportFile(bytes: Uint8Array): boolean {
-    if (saveSchemaVersion(bytes) !== null) return true;
-    this.show('That file is not a Natural Causes save. Current game kept.', true);
-    return false;
+  acceptImportFile(prefix: Uint8Array): boolean {
+    if (saveSchemaVersion(prefix) === null) {
+      this.keepCurrentGame('That file is not a Natural Causes save.');
+      return false;
+    }
+    if (!slotAcceptsCurrentWrite(prefix)) {
+      this.keepCurrentGame(unloadableReason(prefix, 'Import failed.'));
+      return false;
+    }
+    return true;
   }
 
   /** The browser could not read the chosen file. */
   importFileUnreadable(error: unknown): void {
     this.reportError(error);
-    this.show('Could not read that file. Current game kept.', true);
+    this.keepCurrentGame('Could not read that file.');
   }
 
   /**
@@ -275,6 +296,25 @@ export class PersistenceController {
     if (!this.beginOperation('import')) return false;
     this.show('Importing');
     try {
+      // A protected slot the worker will not overwrite would leave the
+      // imported world running with saving still paused, and New game would
+      // then discard it. Refuse before anything changes instead.
+      if (this.savingPaused) {
+        let stored: Uint8Array | null;
+        try {
+          stored = this.protectedBytes ?? await this.store.load();
+        } catch (error: unknown) {
+          this.reportError(error);
+          this.keepCurrentGame('Could not check the saved data in this browser.');
+          return false;
+        }
+        if (stored !== null && !slotAcceptsCurrentWrite(stored)) {
+          this.keepCurrentGame(
+            'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
+          );
+          return false;
+        }
+      }
       let loaded = false;
       try {
         loaded = await this.loadPrepared(bytes);
@@ -282,17 +322,18 @@ export class PersistenceController {
         this.reportError(error);
       }
       if (!loaded) {
-        const reason = saveSchemaVersion(bytes) === null
-          ? 'That file is not a Natural Causes save.'
-          : unloadableReason(bytes, 'Import failed.');
-        this.show(`${reason} Current game kept.`, true);
+        this.keepCurrentGame(
+          saveSchemaVersion(bytes) === null
+            ? 'That file is not a Natural Causes save.'
+            : unloadableReason(bytes, 'Import failed.'),
+        );
         return false;
       }
       this.armAutosave();
       const importedDay = this.currentDay();
       try {
         await this.store.save(this.sim.saveBytes());
-        this.savingPaused = false;
+        this.resumeSaving();
         this.savedGameAvailable = true;
         this.autosaveDay = Math.max(this.autosaveDay, importedDay);
         this.show('Imported game loaded and saved');
@@ -353,8 +394,19 @@ export class PersistenceController {
     this.autosaveDay = this.currentDay();
   }
 
+  private resumeSaving(): void {
+    this.savingPaused = false;
+    this.protectedBytes = null;
+  }
+
+  /** Ends a rejected import or file choice, keeping the paused-saving note visible. */
+  private keepCurrentGame(reason: string): void {
+    this.show(`${reason} Current game kept.${this.savingPaused ? ' Saving paused.' : ''}`, true);
+  }
+
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
+    this.protectedBytes = bytes ?? null;
     const reason = bytes ? unloadableReason(bytes, 'Load failed.') : 'Load failed.';
     this.show(
       `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,

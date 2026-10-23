@@ -8,6 +8,9 @@
 
 export const SAVE_FILE_EXTENSION = '.ncsave';
 
+/** The identifying prefix (an 8-byte signature and a 2-byte version) checked before a whole file is read. */
+export const SAVE_FILE_PREFIX_BYTES = 10;
+
 /** A dated name, so several exports sort by day instead of overwriting. */
 export function saveFileName(date: Date): string {
   const year = date.getFullYear();

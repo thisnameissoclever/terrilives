@@ -4,7 +4,7 @@ The game saves its last three startup attempts in browser-local storage. Each at
 
 Open [Startup report](https://natural-causes.life/startup-report.html) in the same browser that loaded the game. The terminal failure card also links to this page. Download report saves the recorded data as JSON. The report page loads a small script and does not start the game, simulation or graphics device. Reading or downloading a report does not overwrite the stored attempt.
 
-An unfinished attempt means readiness was not recorded. Closing the page during loading also produces that state; it is not evidence of a browser crash by itself. A browser termination can preserve the last saved step while preventing JavaScript from recording its cause. A report saved before this recorder was deployed is unavailable. Reports in another browser or cleared storage are unavailable as well.
+An unfinished attempt means readiness was not recorded. Closing the page during loading also produces that state; it is not evidence of a browser crash by itself. A browser termination can preserve the last saved step while preventing JavaScript from recording its cause. A report saved before this recorder was deployed is unavailable. Reports in another browser, at another web address or in cleared storage are unavailable as well.
 
 Character download failures retain selected delivery headers, the resource pathname and at most 1,024 response-body bytes. Error-body reading waits at most one second. Cookies, authorization headers and URL queries are excluded from this structured HTTP record. Errors forwarded through the preparation worker retain bounded response details in their message.
 

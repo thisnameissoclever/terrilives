@@ -203,9 +203,11 @@ Choose **Load game** to restore the save. **Keep playing** dismisses the confirm
 
 Choose **Start over** to confirm a new game. **Keep playing** also dismisses this confirmation without replacing the household.
 
-Options, then Export save downloads the current household as a file. Options, then Import save asks you to pick a save file, then asks before replacing the running game and the local slot with it. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
-
 :::illustration new-game-confirm
+
+Options, then Export save downloads the current household as a file. Options, then Import save opens a file picker; after you choose a save file, a confirmation appears before the running game and this browser's saved game are replaced. Choose **Import game** to replace them. **Keep playing** dismisses the confirmation without changing anything. See [moving a save](home-and-controls/#export-import).
+
+:::illustration import-confirm
 
 ## Help and the full guide {#help}
 

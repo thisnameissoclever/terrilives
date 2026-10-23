@@ -116,7 +116,7 @@ import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
-import { downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
+import { SAVE_FILE_PREFIX_BYTES, downloadSaveFile, readSaveFile, saveFileName } from './storage/save-file.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
 import { OrderDiagnostics } from './ui/player-orders.js';
@@ -1327,6 +1327,7 @@ async function main(): Promise<void> {
   // lets the same file be chosen again after a cancel.
   let pendingImport: Uint8Array | null = null;
   let importingSave = false;
+  let readingImportFile = false;
   importSaveButton.addEventListener('click', () => {
     importSaveFile.value = '';
     importSaveFile.click();
@@ -1334,17 +1335,25 @@ async function main(): Promise<void> {
   importSaveFile.addEventListener('change', () => {
     const file = importSaveFile.files?.[0];
     importSaveFile.value = '';
-    if (!file) return;
-    void readSaveFile(file).then(
-      (bytes) => {
-        if (!persistence.acceptImportFile(bytes)) return;
+    // One file at a time: a second choice while the first is still being read
+    // or confirmed would replace it silently.
+    if (!file || readingImportFile || importSaveDialog.open) return;
+    readingImportFile = true;
+    // Check the header before reading the rest, so a mistakenly chosen photo
+    // or video is never loaded into memory.
+    void readSaveFile(file.slice(0, SAVE_FILE_PREFIX_BYTES))
+      .then(async (prefix) => {
+        if (!persistence.acceptImportFile(prefix)) return;
+        const bytes = await readSaveFile(file);
         pendingImport = bytes;
         optionsMenu.close();
         menu.close(); overlayPause.suspend('import-save');
         importSaveDialog.showModal();
-      },
-      (error: unknown) => persistence.importFileUnreadable(error),
-    );
+      })
+      .catch((error: unknown) => persistence.importFileUnreadable(error))
+      .finally(() => {
+        readingImportFile = false;
+      });
   });
   importSaveDialog.addEventListener('close', () => {
     if (importingSave) return;
