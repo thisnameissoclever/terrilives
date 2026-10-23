@@ -734,9 +734,22 @@ describe('HousemateFormView', () => {
     expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;');
     expect(MAIN_TS).toContain('restorePersistenceFocus(document, housemateDialog, housemateOpener');
     // Load and Import share adoptLoadedWorld, which replaces the world.
-    expect(MAIN_TS).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
-    const loaded = MAIN_TS.slice(MAIN_TS.indexOf('const adoptLoadedWorld = (): void => {'));
-    const loadBranch = loaded.slice(0, loaded.indexOf('wallTool.resetAfterLoad('));
+    const loadHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+      MAIN_TS.indexOf("exportSaveButton.addEventListener('click'"),
+    );
+    expect(loadHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const importHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmImportSave.addEventListener('click'"),
+      MAIN_TS.indexOf('let housemateOpener'),
+    );
+    expect(importHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const adopt = MAIN_TS.slice(
+      MAIN_TS.indexOf('const adoptLoadedWorld = (): void => {'),
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+    );
+    expect(adopt).toContain('wallTool.resetAfterLoad(');
+    const loadBranch = adopt.slice(0, adopt.indexOf('wallTool.resetAfterLoad('));
     expect(loadBranch).toContain("if (housemateDialog.open) housemateDialog.close('cancel');");
     expect(loadBranch).toContain('housemateView?.destroy();');
     expect(loadBranch).toContain('creatorSession=undefined;');

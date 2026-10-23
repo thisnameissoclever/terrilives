@@ -348,7 +348,16 @@ describe('sampleSimAudioAfterTick', () => {
       MAIN.indexOf("confirmLoadGame.addEventListener('click'"),
     );
     expect(adopt).toContain("audio.reset('load')");
-    expect(MAIN).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
+    const loadHandler = MAIN.slice(
+      MAIN.indexOf("confirmLoadGame.addEventListener('click'"),
+      MAIN.indexOf("exportSaveButton.addEventListener('click'"),
+    );
+    expect(loadHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const importHandler = MAIN.slice(
+      MAIN.indexOf("confirmImportSave.addEventListener('click'"),
+      MAIN.indexOf('let housemateOpener'),
+    );
+    expect(importHandler).toContain('if (loaded) adoptLoadedWorld();');
     // Scoped to the handler body rather than spanning the file: a lazy match
     // from the word to any later call would be satisfied by a `setBackgrounded`
     // sitting anywhere below, including outside the listener entirely.

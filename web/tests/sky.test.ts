@@ -67,7 +67,16 @@ describe('the sky wired into the page', () => {
       MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
     );
     expect(adopt).toMatch(/lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
-    expect(MAIN_TS).toMatch(/if \(loaded\) adoptLoadedWorld\(\);/);
+    const loadHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+      MAIN_TS.indexOf("exportSaveButton.addEventListener('click'"),
+    );
+    expect(loadHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const importHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmImportSave.addEventListener('click'"),
+      MAIN_TS.indexOf('let housemateOpener'),
+    );
+    expect(importHandler).toContain('if (loaded) adoptLoadedWorld();');
     expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{\s*refreshBuildArchitecture\(\);/);
     expect(MAIN_TS).toMatch(/function refreshBuildArchitecture\(\): void \{[^}]*lot.windows = sim.windowLines\(\);[^}]*lightingDirty = true;/);
   });
