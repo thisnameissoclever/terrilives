@@ -20,7 +20,7 @@ fn current_save_preserves_confirmed_orders_before_the_command_drain() {
     let token = handle.work_conflicts_of(&[actor])[0].clone();
     assert!(handle.enqueue_confirmed_order(&bytes, &token));
     let saved = handle.save_bytes();
-    assert_eq!(u16::from_le_bytes([saved[8], saved[9]]), 20);
+    assert_eq!(u16::from_le_bytes([saved[8], saved[9]]), 21);
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&saved));
     assert_eq!(saved, restored.save_bytes());

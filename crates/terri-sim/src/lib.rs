@@ -1465,28 +1465,29 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
-    /// Complete current persistence, including pending fights and repair decisions.
+    /// Historical schema twenty, before held shifts: pending fights and
+    /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1495,6 +1496,27 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV20,
     ) -> Result<(), SaveError> {
         let candidate = save::v20::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
+    }
+
+    /// The current save: schema twenty-one, which adds each person's held
+    /// shift, the shift stream and queued shift commands (issue 296,
+    /// [WS-save] in `docs/specs/2026-10-18-shifts-and-careers.md`).
+    pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v21::capture(self))
+    }
+
+    pub fn load_snapshot_v21(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV21,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v21::restore(
             snapshot,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),

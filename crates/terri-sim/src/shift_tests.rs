@@ -873,47 +873,6 @@ fn a_promotion_after_a_chosen_shift_keeps_it_when_offered() {
     assert_eq!(draws(&sim).1, 0);
 }
 
-/// Until schema twenty-one carries them (plan Task 9), the schema-eighteen
-/// writer leaves queued shift commands out, and every other queued
-/// command, a setting placed by position among them, loads in order.
-#[test]
-fn schema_eighteen_leaves_queued_shift_commands_out_until_schema_twenty_one() {
-    let mut sim = Sim::new_from_shipped_lot();
-    let (_, entity) = worker(&mut sim);
-    let agent = entity.index_u32();
-    for command in [
-        SimCommand::SetSpeed(2),
-        SimCommand::ChangeShift { agent, shift: 1 },
-        SimCommand::SetJobSearch {
-            agent,
-            search: false,
-        },
-        SimCommand::AssignCareerShift {
-            agent,
-            path: 1,
-            shift: 0,
-        },
-        SimCommand::SetSpeed(1),
-    ] {
-        sim.world_mut().resource_mut::<CommandQueue>().push(command);
-    }
-    let mut loaded = Sim::new_from_shipped_lot();
-    loaded
-        .load_snapshot_v18(sim.save_snapshot_v18())
-        .expect("loads");
-    assert_eq!(
-        loaded.world().resource::<CommandQueue>().as_slice(),
-        [
-            SimCommand::SetSpeed(2),
-            SimCommand::SetJobSearch {
-                agent,
-                search: false
-            },
-            SimCommand::SetSpeed(1),
-        ]
-    );
-}
-
 // Reading the held shift wherever hours are read: [WS-systems].
 
 /// [WS-systems]: the search runs at 09:00 before shifts start in that tick,

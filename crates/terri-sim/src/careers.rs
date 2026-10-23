@@ -11,6 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bevy_ecs::prelude::*;
+use terri_core::save_v21::{SavedHeldShift, SavedShifts};
 use terri_core::{
     save_v14::{SavedCareerMoodlet, SavedCareerRecord, SavedCareerWeek, SavedCareers},
     Agent, AtWork, Career, Commuting, FnvHasher, Funds, Satisfaction, SimClock, SimId, SimRng,
@@ -1241,6 +1242,7 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     }
     hash.write_bytes(b"careers-v1");
     careers.hash_into(hash);
+    hash_shifts(world, careers, hash);
     let mut jobs: Vec<(u32, u32)> = world
         .try_query_filtered::<(&SimId, &Career), With<Agent>>()
         .map(|mut query| {
@@ -1256,6 +1258,100 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
         hash.write_u64(u64::from(sim));
         hash.write_u64(u64::from(career));
     }
+}
+
+/// Issue 296, [WS-determinism] item 3: after the people whose search is
+/// off, the shift stream, its draw count and every held shift other than
+/// the standard one, by sim id and shift id; written only once the stream
+/// has been drawn or someone holds another shift, so a world of standard
+/// shifts hashes as it did before shifts existed.
+fn hash_shifts(world: &World, careers: &Careers, hash: &mut FnvHasher) {
+    let held = held_shifts(world);
+    if careers.shift_draws == 0 && held.is_empty() {
+        return;
+    }
+    hash.write_bytes(b"career-shifts-v1");
+    careers.shift_rng.hash_into(hash);
+    hash.write_u64(careers.shift_draws);
+    hash.write_u64(held.len() as u64);
+    for row in &held {
+        hash.write_u64(u64::from(row.sim));
+        hash.write_u64(row.shift.len() as u64);
+        hash.write_bytes(row.shift.as_bytes());
+    }
+}
+
+/// Every living person whose held shift is not their level's standard
+/// one, in sim id order, with the shift's id ([WS-save]). A held index past
+/// the level's list works the standard shift (`shifts::shift_of`), so it is
+/// left out, as the standard shift is.
+pub(crate) fn held_shifts(world: &World) -> Vec<SavedHeldShift> {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return Vec::new();
+    };
+    let pack = world.resource::<Content>().0;
+    careers
+        .records
+        .iter()
+        .filter(|(_, record)| record.shift != 0)
+        .filter_map(|(sim, record)| {
+            let entity = crate::edit::living_entity(world, sim.0)?;
+            let shift = job_of(world, pack, entity)?.shift(record.shift as usize)?;
+            Some(SavedHeldShift {
+                sim: sim.0,
+                shift: shift.id.to_string(),
+            })
+        })
+        .collect()
+}
+
+/// Schema twenty-one's shift block: the stream, its draw count and the
+/// held shifts other than the standard ones.
+pub(crate) fn saved_shifts(world: &World) -> SavedShifts {
+    let (rng, draws) = world.get_resource::<Careers>().map_or_else(
+        || (SimRng::from_seed(crate::shifts::SHIFTS_SEED), 0),
+        |careers| (careers.shift_rng.clone(), careers.shift_draws),
+    );
+    SavedShifts {
+        rng,
+        draws,
+        held: held_shifts(world),
+    }
+}
+
+/// Validates and installs schema twenty-one's shift block over a world
+/// whose careers the older envelope restored, every held shift standard:
+/// each listed person living, holding a job and a career record, listed
+/// once in ascending order, with a shift id other than `standard` that
+/// their level lists ([WS-save]).
+pub(crate) fn restore_shifts(
+    world: &mut World,
+    saved: SavedShifts,
+) -> Result<(), crate::SaveError> {
+    use crate::SaveError::InvalidValue;
+    let pack = world.resource::<Content>().0;
+    if saved.held.windows(2).any(|pair| pair[0].sim >= pair[1].sim) {
+        return Err(InvalidValue);
+    }
+    let mut indices = Vec::with_capacity(saved.held.len());
+    for row in &saved.held {
+        let entity = crate::edit::living_entity(world, row.sim).ok_or(InvalidValue)?;
+        let job = job_of(world, pack, entity).ok_or(InvalidValue)?;
+        if world.resource::<Careers>().record(SimId(row.sim)).is_none()
+            || row.shift == terri_data::STANDARD_SHIFT_ID
+        {
+            return Err(InvalidValue);
+        }
+        let index = job.shift_index(&row.shift).ok_or(InvalidValue)?;
+        indices.push((SimId(row.sim), index as u32));
+    }
+    let mut careers = world.resource_mut::<Careers>();
+    careers.shift_rng = saved.rng;
+    careers.shift_draws = saved.draws;
+    for (sim, index) in indices {
+        careers.records.get_mut(&sim).expect("checked above").shift = index;
+    }
+    Ok(())
 }
 
 /// Validates a saved careers block against the loaded world (rule 16):

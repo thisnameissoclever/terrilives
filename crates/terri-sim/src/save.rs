@@ -125,6 +125,7 @@ pub(crate) mod v17;
 pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
+pub(crate) mod v21;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;

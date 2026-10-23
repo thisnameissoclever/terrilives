@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "7b45ac301142a3dfbbb6cce4239428a79af018c4",
+  "producer": "SimHandle::save_bytes from a native release build of terri-wasm at the source revision, through a scratch example that was not committed",
+  "records": [
+    {
+      "name": "shipped-household.sav",
+      "schema": 18,
+      "length": 6909,
+      "sha256": "a348b65b596307e9293db36d1f53f38cb27c7a1c370699fc6f6c9645899b1a80",
+      "tick": "4920",
+      "queuedSetting": false
+    },
+    {
+      "name": "queued-setting.sav",
+      "schema": 18,
+      "length": 6738,
+      "sha256": "446a4223208e2000756395a14331e08d59872915ebb4c149b7b5bcd8586242b0",
+      "tick": "4920",
+      "queuedSetting": true
+    }
+  ]
+}
