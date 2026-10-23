@@ -3,6 +3,7 @@ import tempfile
 import unittest
 import gzip
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
@@ -65,6 +66,23 @@ class CodecTests(unittest.TestCase):
                 altered[1, 1, 3] ^= 1
                 with self.assertRaises(ValueError):
                     atlas.verify_page(altered, entries, store.read, store.count, tile_size=2)
+
+    def test_independent_verifier_rejects_poisoned_producer_traversal_and_halos(self):
+        page = np.arange(64, dtype=np.uint8).reshape(4, 4, 4)
+        correct_blocks = list(atlas.bordered_blocks(page, tile_size=2))
+        column_first = [correct_blocks[index] for index in (0, 2, 1, 3)]
+        damaged = bytearray(correct_blocks[0])
+        damaged[0] ^= 1
+        bad_halo = [bytes(damaged), *correct_blocks[1:]]
+        for label, poisoned in [('column-first traversal', column_first), ('wrong halo', bad_halo)]:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                with atlas.TileStore(Path(directory) / 'tiles', tile_size=2) as store:
+                    # Leave the producer fault installed while verifying. A shared
+                    # extraction oracle would incorrectly accept its own mistake.
+                    with patch.object(atlas, 'bordered_blocks', side_effect=lambda *_: iter(poisoned)):
+                        entries = store.add_page(page)
+                        with self.assertRaises(ValueError):
+                            atlas.verify_page(page, entries, store.read, store.count, tile_size=2)
 
 
 class CoverageTests(unittest.TestCase):

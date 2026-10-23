@@ -111,16 +111,46 @@ class TileStore:
 
 def verify_page(page: np.ndarray, entries: np.ndarray, read_block, unique: int,
                 tile_size: int = TILE_SIZE) -> None:
-    """Reconstruct every pixel including all halos, not just each block's center."""
-    expected_count = (page.shape[0] // tile_size) ** 2
-    if len(entries) != expected_count or np.any(entries > unique):
+    """Reconstruct source pixels and check halos independently of producer extraction."""
+    if (page.dtype != np.uint8 or page.ndim != 3 or page.shape[2] != 4
+            or page.shape[0] != page.shape[1] or page.shape[0] == 0
+            or tile_size <= 0 or page.shape[0] % tile_size):
+        raise ValueError('Virtual page dimensions or pixel type are invalid')
+    size = page.shape[0]
+    blocks_per_side = size // tile_size
+    expected_count = blocks_per_side ** 2
+    if (entries.ndim != 1 or len(entries) != expected_count or entries.dtype.kind not in 'ui'
+            or np.any(entries < 0) or np.any(entries > unique)):
         raise ValueError('Virtual block lookup length or index is invalid')
-    zero = bytes((tile_size + 2) ** 2 * 4)
-    for index, expected in enumerate(bordered_blocks(page, tile_size)):
-        physical = int(entries[index])
-        actual = zero if physical == 0 else read_block(physical - 1)
-        if actual != expected:
-            raise ValueError(f'Virtual block {index} pixels or border differ from source')
+    cell_size = tile_size + 2
+    cells = np.zeros((expected_count, cell_size, cell_size, 4), dtype=np.uint8)
+    for position in np.flatnonzero(entries):
+        actual = read_block(int(entries[position]) - 1)
+        if len(actual) != cell_size ** 2 * 4:
+            raise ValueError('Physical block byte length is invalid')
+        cells[position] = np.frombuffer(actual, dtype=np.uint8).reshape(cell_size, cell_size, 4)
+    cells = cells.reshape(blocks_per_side, blocks_per_side, cell_size, cell_size, 4)
+
+    # Lookup positions define block row then column. Reassemble the complete
+    # center image without extracting any expected source blocks.
+    reconstructed = cells[:, :, 1:-1, 1:-1].transpose(0, 2, 1, 3, 4).reshape(page.shape)
+    if reconstructed.tobytes() != page.tobytes():
+        raise ValueError('Reconstructed virtual page pixels differ from source')
+
+    # Compute each edge's source coordinates directly. No padded source image
+    # or producer iterator participates in this halo oracle, including corners.
+    starts = np.arange(blocks_per_side) * tile_size
+    along = np.clip(starts[:, None] + np.arange(-1, tile_size + 1), 0, size - 1)
+    before = np.maximum(starts - 1, 0)
+    after = np.minimum(starts + tile_size, size - 1)
+    sides = (
+        (cells[:, :, 0, :, :], page[before[:, None, None], along[None, :, :]]),
+        (cells[:, :, -1, :, :], page[after[:, None, None], along[None, :, :]]),
+        (cells[:, :, :, 0, :], page[along[:, None, :], before[None, :, None]]),
+        (cells[:, :, :, -1, :], page[along[:, None, :], after[None, :, None]]),
+    )
+    if any(not np.array_equal(actual, expected) for actual, expected in sides):
+        raise ValueError('Virtual page halo pixels differ from independently clamped source')
 
 
 def body_mask(alpha: np.ndarray) -> tuple[bytes, bytes, bytes]:
