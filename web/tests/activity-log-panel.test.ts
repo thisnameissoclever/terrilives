@@ -83,6 +83,7 @@ function setup() {
   let selected: number | null = null;
   let opened = 0;
   let labelReads = 0;
+  const deferred: (() => void)[] = [];
   const panel = new ActivityLogPanel({
     store, view, names,
     labels: () => { labelReads++; return LABELS; },
@@ -91,6 +92,7 @@ function setup() {
     selected: () => selected,
     room: () => '',
     onOpen: () => { opened++; },
+    defer: task => { deferred.push(task); },
   });
   let seq = 0;
   const read = (actor = TIM) => record({ seq: ++seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor, label: 0 });
@@ -98,6 +100,9 @@ function setup() {
   return {
     store, view, panel, names, read, drain,
     select: (simId: number | null) => { selected = simId; },
+    /** Runs the tasks the panel deferred out of the frame, as the page's task queue would. */
+    runDeferred: () => { for (const task of deferred.splice(0)) task(); },
+    deferredCount: () => deferred.length,
     opened: () => opened,
     labelReads: () => labelReads,
   };
@@ -396,7 +401,7 @@ describe('the activity log panel', () => {
   });
 
   it('jumps to the newest line at once when a click rebuilds the list', () => {
-    const { panel, view, drain, read, select } = setup();
+    const { panel, view, drain, read, select, runDeferred } = setup();
     drain(read(TIM), read(BILL));
     panel.open();
     expect(view.jumped, 'opening is a click: the newest line shows at once').toBe(1);
@@ -406,11 +411,50 @@ describe('the activity log panel', () => {
     select(BILL);
     panel.update();
     expect(view.jumped, 'a selection seen in a frame reads no layout').toBe(2);
+    expect(view.replaced, 'nor does the frame rebuild the list').toBe(2);
+    runDeferred();
     expect(view.replaced).toBe(3);
+    expect(view.jumped, 'the deferred rebuild runs outside the frame, as a click does').toBe(3);
+  });
+
+  it('rebuilds for a new selection in a task of its own, after the frame', () => {
+    const { panel, view, drain, read, select, runDeferred, deferredCount } = setup();
+    drain(read(TIM), read(BILL));
+    panel.open();
+    select(BILL);
+    panel.update();
+    expect(deferredCount()).toBe(1);
+    drain(read(TIM));
+    panel.update();
+    expect(deferredCount(), 'one rebuild waits, however many frames pass').toBe(1);
+    expect(view.texts(), 'frames before it compose nothing for the old selection').toHaveLength(2);
+    runDeferred();
+    expect(view.texts()).toEqual(['Bill: Read a book']);
+    panel.update();
+    expect(view.texts(), 'the records drained meanwhile are already in').toEqual(['Bill: Read a book']);
+  });
+
+  it('drops a waiting selection rebuild when a click or a close came first', () => {
+    const { panel, view, drain, read, select, runDeferred } = setup();
+    drain(read(TIM), read(BILL));
+    panel.open();
+    select(BILL);
+    panel.update();
+    panel.toggleFilter(1);
+    const replaced = view.replaced;
+    runDeferred();
+    expect(view.replaced, 'the filter click already rebuilt for the new selection').toBe(replaced);
+    expect(view.texts()).toEqual(['Bill: Read a book']);
+    select(null);
+    panel.update();
+    panel.close();
+    runDeferred();
+    expect(view.open).toBe(false);
+    expect(view.texts()).toEqual([]);
   });
 
   it('follows the housemate the roster reports as selected and narrows the lines', () => {
-    const { panel, view, drain, read, select } = setup();
+    const { panel, view, drain, read, select, runDeferred } = setup();
     drain(read(TIM), read(BILL));
     panel.open();
     panel.update();
@@ -418,10 +462,12 @@ describe('the activity log panel', () => {
     expect(view.texts()).toHaveLength(2);
     select(BILL);
     panel.update();
+    runDeferred();
     expect(view.texts()).toEqual(['Bill: Read a book']);
     expect(view.selected).toBe('Only entries involving Bill.');
     select(null);
     panel.update();
+    runDeferred();
     expect(view.texts()).toHaveLength(2);
     expect(view.selected).toBeNull();
   });

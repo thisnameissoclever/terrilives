@@ -26,7 +26,9 @@
 // clicks: the same clicks with a pause between them, each timed as its
 //   script plus the main-thread work of the frame after it (ResizeObserver
 //   callbacks, style, layout and paint), less the median of frames without
-//   a click. Work a click defers to its frame is charged to the click.
+//   a click. Work a click defers to its frame is charged to the click. Then
+//   a selection change, to one housemate by the roster's button and back to
+//   everyone, each timed as the rebuild the panel defers out of the frame.
 //
 // Every page runs with `audio=0` and Chrome's `--mute-audio`, so a proof
 // never plays sound.
@@ -583,6 +585,40 @@ function clickAndFrame(selector) {
   });
 }
 
+/**
+ * Changes the selection, by the first roster button or back to everyone,
+ * steps paused frames on the proof's clock until the roster reports it, and
+ * returns the rebuild the panel then ran outside the frame.
+ */
+async function measureSelection(page, toHousemate) {
+  const before = await page.evaluate(() => globalThis.__terriStress.activityLog.deferredRebuilds);
+  await page.evaluate((pick) => {
+    const stress = globalThis.__terriStress;
+    if (pick) {
+      const button = document.querySelector('.household-member');
+      if (!(button instanceof HTMLElement)) throw new Error('missing .household-member');
+      button.click();
+    } else {
+      stress.sim.select(null);
+    }
+    let now = Math.max(globalThis.__activityLogProofClock ?? 0, performance.now());
+    for (let frame = 0; frame < 10; frame += 1) {
+      now += 200;
+      stress.step(now);
+    }
+    globalThis.__activityLogProofClock = now;
+  }, toHousemate);
+  await page.waitForFunction((count) => globalThis.__terriStress.activityLog.deferredRebuilds > count, before, {
+    polling: 50,
+    timeout: 10_000,
+  });
+  return page.evaluate((pick) => ({
+    to: pick ? 'housemate' : 'everyone',
+    rebuildMs: globalThis.__terriStress.activityLog.lastDeferredRebuildMs,
+    rows: document.querySelectorAll('#activity-log-list > li').length,
+  }), toHousemate);
+}
+
 /** Opening, every filter twice and Show earlier entries, paced, with baseline frames before and after. */
 async function runClicks(browser, args) {
   const { context, page } = await openPage(browser, args, true);
@@ -593,7 +629,7 @@ async function runClicks(browser, args) {
     if (args.everyone) await showEveryone(page);
     await page.waitForTimeout(500);
     const state = await logState(page);
-    const report = { state, baseline: [], open: [], filter: [], earlier: [] };
+    const report = { state, baseline: [], open: [], filter: [], earlier: [], selection: [] };
     const measure = async (selector) => {
       const result = await page.evaluate(clickAndFrame, selector);
       await page.waitForTimeout(150);
@@ -614,6 +650,10 @@ async function runClicks(browser, args) {
         const visible = await page.evaluate(() => document.querySelector('#activity-log-earlier')?.hidden === false);
         if (!visible) break;
         report.earlier.push(await measure('#activity-log-earlier'));
+      }
+      if (args.everyone) {
+        report.selection.push(await measureSelection(page, true));
+        report.selection.push(await measureSelection(page, false));
       }
       await baseline();
       await measure('#activity-log-toggle');
@@ -638,7 +678,14 @@ function analyseClicks(report) {
     });
     return { clicks, maxTotalMs: clicks.length === 0 ? null : Math.max(...clicks.map((click) => click.totalMs)) };
   };
-  return { baselineRenderMs, open: kind(report.open), filter: kind(report.filter), earlier: kind(report.earlier) };
+  const selection = (report.selection ?? []).map((change) => ({ ...change, rebuildMs: round(change.rebuildMs) }));
+  return {
+    baselineRenderMs,
+    open: kind(report.open),
+    filter: kind(report.filter),
+    earlier: kind(report.earlier),
+    selection: { changes: selection, maxRebuildMs: selection.length === 0 ? null : Math.max(...selection.map((c) => c.rebuildMs)) },
+  };
 }
 
 /**

@@ -140,4 +140,10 @@ test('the clicks mode parses and charges each click its own frame beyond the bas
   expect(analysis.filter.clicks[1]).toEqual({ scriptMs: 1, renderMs: 2.2, totalMs: 3.2, rows: 200 });
   expect(proof.analyseClicks({ baseline: [click(0, 0.2, 0)], open: [], filter: [], earlier: [] }).earlier)
     .toEqual({ clicks: [], maxTotalMs: null });
+  const selection = proof.analyseClicks({
+    baseline: [click(0, 0.2, 0)], open: [], filter: [], earlier: [],
+    selection: [{ to: 'housemate', rebuildMs: 3.456, rows: 120 }, { to: 'everyone', rebuildMs: 7.891, rows: 200 }],
+  }).selection;
+  expect(selection.maxRebuildMs).toBe(7.89);
+  expect(selection.changes[0]).toEqual({ to: 'housemate', rebuildMs: 3.46, rows: 120 });
 });

@@ -266,6 +266,9 @@ export interface StressHandle {
     /** Records the simulation's staging ring overwrote before a drain. */
     readonly dropped: number;
     readonly open: boolean;
+    /** Rebuilds the panel deferred out of a frame for a selection change, and the latest one's time. */
+    readonly deferredRebuilds: number;
+    readonly lastDeferredRebuildMs: number;
   };
   readonly entities: number;
   /** Current WASM linear-memory size, read live after any growth. */
@@ -613,6 +616,10 @@ async function main(): Promise<void> {
   // Present only under `?stress=N`, so the shipping frame takes no extra
   // clock reads for the activity log's [AL-perf] measurement.
   const activityLogSamplerTimer = stressParam === null ? null : new FrameTimer(FRAME_WINDOW);
+  // Under `?stress=N`, the time of the latest rebuild the panel deferred out
+  // of a frame for a selection change, and how many have run.
+  let activityLogDeferredRebuilds = 0;
+  let activityLogLastDeferredRebuildMs = 0;
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   // Probe accepted floor cells, then stack filler there. Edge-mode spawning
@@ -1000,6 +1007,16 @@ async function main(): Promise<void> {
     selected: () => activityLogNames.selected(),
     room: (kind, target) => sim.choreLocation(kind, target),
     onOpen: () => { optionsMenu.close(); compactHud.close(); },
+    defer: stressParam === null
+      ? task => { setTimeout(task, 0); }
+      : task => {
+        setTimeout(() => {
+          const startedMs = performance.now();
+          task();
+          activityLogLastDeferredRebuildMs = performance.now() - startedMs;
+          activityLogDeferredRebuilds++;
+        }, 0);
+      },
   });
   attachActivityLogPanel(
     document,
@@ -2750,6 +2767,8 @@ async function main(): Promise<void> {
         capacity: activityLogStore.capacity,
         get dropped() { return sim.activityLogDropped(); },
         get open() { return activityLogPanel.isOpen(); },
+        get deferredRebuilds() { return activityLogDeferredRebuilds; },
+        get lastDeferredRebuildMs() { return activityLogLastDeferredRebuildMs; },
       },
       entities: sim.count,
       get wasmMemoryBytes() {

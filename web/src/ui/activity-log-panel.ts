@@ -128,6 +128,12 @@ export interface ActivityLogPanelOptions {
   room(kind: number, target: number): string;
   /** Closes the Options flyout and the Sim details sheet: one right-side surface at a time. */
   onOpen(): void;
+  /**
+   * Runs `task` in a task of its own after the current frame, as a click's
+   * handler runs. A selection the frame notices is rebuilt there, so the
+   * frame's log work stays an append.
+   */
+  defer(task: () => void): void;
 }
 
 class PanelContext implements ComposeContext {
@@ -151,6 +157,14 @@ export class ActivityLogPanel {
   private prepared = false;
   private limit = ACTIVITY_LOG_WINDOW;
   private seen = 0;
+  /** A selection change waits for its rebuild outside the frame. */
+  private selectionPending = false;
+  /** Made once, so deferring a rebuild allocates no function per change. */
+  private readonly rebuildForSelection = (): void => {
+    if (!this.selectionPending || !this.open_) return;
+    this.context.selected = this.options.selected();
+    this.rebuild(true);
+  };
   private readonly lines = new LogLines();
   private readonly rows = new Map<LogLine, ActivityLogRow>();
   private readonly context: PanelContext;
@@ -189,6 +203,7 @@ export class ActivityLogPanel {
   close(): boolean {
     if (!this.open_) return false;
     this.open_ = false;
+    this.selectionPending = false;
     const hadFocus = this.options.view.holdsFocus();
     this.options.view.reflectOpen(false);
     if (hadFocus) this.options.view.focusToggle();
@@ -264,11 +279,14 @@ export class ActivityLogPanel {
    * allocate a boxed number before the engine optimizes this method.
    */
   update(): void {
-    if (!this.open_) return;
+    if (!this.open_ || this.selectionPending) return;
     const selected = this.options.selected();
     if (selected !== this.context.selected) {
+      // Recomposing every line is a click's kind of work, not a frame's: the
+      // rebuild runs in its own task, and frames until then wait for it.
       this.context.selected = selected;
-      this.rebuild(false);
+      this.selectionPending = true;
+      this.options.defer(this.rebuildForSelection);
       return;
     }
     const fresh = this.options.store.total - this.seen;
@@ -289,6 +307,7 @@ export class ActivityLogPanel {
    */
   private rebuild(click: boolean): void {
     const { store, view } = this.options;
+    this.selectionPending = false;
     this.lines.reset();
     this.rows.clear();
     this.lines.add(store, 0, this.context);
