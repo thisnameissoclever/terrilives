@@ -83,7 +83,8 @@ class ClassifyPaths(unittest.TestCase):
                  "assets/sprites/atlas.toml", "web/src/main.ts", "web/public/audio/talk.wav",
                  "web/index.html", "web/package.json", "web/package-lock.json",
                  "web/vite.config.ts", "web/tsconfig.json", "web/changelog/template.html",
-                 "web/guide/plugin.ts", "scripts/build-changelog.mjs", "scripts/build-player-guide.mjs",
+                 "web/guide/plugin.ts", "web/startup-report/plugin.ts", "web/startup-report/template.html",
+                 "scripts/build-changelog.mjs", "scripts/build-player-guide.mjs",
                  "scripts/player-markdown.mjs", "scripts/player-coverage.mjs",
                  "scripts/player-illustrations.mjs", "scripts/player-activity-filters.mjs")
         for path in paths:

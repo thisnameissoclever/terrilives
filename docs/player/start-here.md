@@ -43,3 +43,11 @@ Needs describe immediate bodily and social requirements. [Mood](mood-and-persona
 Use the guide search for an action, object or symptom. Try washing hands, lonely, angry, meals or Queue. Open Numbers and limits within an article when you want the detailed reference. The same disclosure works by click, tap or keyboard.
 
 Browse [Needs](needs/#overview), [Activities](activities/#all-actions), [Relationships](relationships/#directional-feelings), [Home and controls](home-and-controls/#orders), or [The world](the-world/#calendar) when you want a fuller explanation. The [Glossary](glossary/#terms) defines the game's terms.
+
+## If the game cannot load {#loading-failure}
+
+Choose Copy debug details on the failure screen to copy the report for Tim. If copying is blocked, select and copy the displayed text instead. Email Tim opens your mail application with the game version in the subject and the report already filled in. Review the draft before sending it.
+
+If the browser replaces the game with its own error page, open [Startup report](https://thisnameissoclever.github.io/terrilives/startup-report.html) in that same browser. The report page opens without starting the game and provides the same sharing controls. Download report saves a file if you prefer. The report contains loading steps and error details, with no household save.
+
+:::illustration startup-report-sharing
