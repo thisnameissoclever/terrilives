@@ -13225,6 +13225,6 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 ## [L-startup-http-versus-process-failure] Separate download failures from browser-process failures
 
 1. What happened: a later screenshot from an earlier build showed the game's own HTTP 503 failure card, while previous reports showed browser-level page failures.
-2. Root cause: a single temporary service response was terminal in the character loader. The original server-side cause is unknown; a current request returns the correct file successfully.
-3. Prevention: preserve the exact resource, status, build and failure layer. Reproduce the observed HTTP response at the actual loader before changing transport behavior. Keep bounded service recovery separate from memory-pressure evidence and physical-device acceptance.
-4. Verification: inject one 503 for the exact resource and require recovery with unchanged geometry validation. Persistent service failure must stop after the declared attempts; corrupted successful bytes must still fail their hash check.
+2. Root cause: the earlier loader stopped on an unsuccessful response. The cause of the reported 503 remains unknown. Calling the reported failure temporary inferred its duration from the status code; neither a successful local download nor an injected response establishes that duration.
+3. Prevention: preserve the exact resource, status, build and failure layer. Capture a naturally failing request before attributing its cause. Keep tests of bounded recovery, memory-pressure evidence and physical-device acceptance separate.
+4. Verification: injected 503s test response handling only. Require bounded attempts and unchanged geometry validation, including rejection of corrupted successful bytes. Separately record normal public requests and their limits. Establish the reported failure's cause from an actual failing response or a reproduction of the conditions that produce it.

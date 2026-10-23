@@ -1,0 +1,162 @@
+{
+  "sourceRevision": "f7293d547974b35390b403113656868de2ad9d6e",
+  "fullLocalRecordSha256": "443050f46bb0a68f33da99cc8203dfd4aba80371ea756790f0251b1d2725c8b5",
+  "interceptedResponses": false,
+  "injectedGraphicsConstraints": false,
+  "browserClosed": true,
+  "runs": [
+    {
+      "identity": "native-chrome",
+      "temperature": "cold",
+      "engine": "installed Windows Chrome",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "entry": "./assets/index-DYnMdxA5.js",
+      "clockAdvanced": true,
+      "startupFailure": null,
+      "diagnostics": [],
+      "requestCount": 298,
+      "failedResponses": [],
+      "failedRequests": [],
+      "auditedBinaryCount": 217,
+      "binaryMismatches": [],
+      "exactBinary": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "bytes": 147816,
+        "sha256": "1922467d482252adec60f8958e3888dd1b97ae0b05d8af6c23b6344aba949c53",
+        "matchesBuiltBytes": true
+      },
+      "exactResponse": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "type": "fetch",
+        "method": "GET",
+        "startedMs": 1792730364966,
+        "status": 200,
+        "headers": {
+          "age": "0",
+          "cache-control": "max-age=600",
+          "content-encoding": "gzip",
+          "content-length": "50317",
+          "content-type": "application/octet-stream",
+          "etag": "W/\"6adacde2-24168\"",
+          "last-modified": "Fri, 23 Oct 2026 03:00:50 GMT",
+          "server": "GitHub.com",
+          "vary": "Accept-Encoding",
+          "via": "1.1 varnish",
+          "x-cache": "MISS",
+          "x-cache-hits": "0",
+          "x-github-request-id": "3BB0:11FE72:3CB0:6865:6ADAE4FE",
+          "x-served-by": "cache-pdx12323-PDX"
+        },
+        "finishedMs": 1792730365100,
+        "elapsedMs": 134
+      },
+      "pageTargetProtocols": [
+        "h2",
+        "data"
+      ],
+      "maxInflight": 49
+    },
+    {
+      "identity": "native-chrome",
+      "temperature": "warm",
+      "engine": "installed Windows Chrome",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "entry": "./assets/index-DYnMdxA5.js",
+      "clockAdvanced": true,
+      "startupFailure": null,
+      "diagnostics": [],
+      "requestCount": 297,
+      "failedResponses": [],
+      "failedRequests": [],
+      "auditedBinaryCount": 217,
+      "binaryMismatches": [],
+      "exactBinary": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "bytes": 147816,
+        "sha256": "1922467d482252adec60f8958e3888dd1b97ae0b05d8af6c23b6344aba949c53",
+        "matchesBuiltBytes": true
+      },
+      "exactResponse": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "type": "fetch",
+        "method": "GET",
+        "startedMs": 1792730382909,
+        "status": 200,
+        "headers": {
+          "age": "18",
+          "cache-control": "max-age=600",
+          "content-encoding": "gzip",
+          "content-length": "50317",
+          "content-type": "application/octet-stream",
+          "etag": "W/\"6adacde2-24168\"",
+          "last-modified": "Fri, 23 Oct 2026 03:00:50 GMT",
+          "server": "GitHub.com",
+          "vary": "Accept-Encoding",
+          "via": "1.1 varnish",
+          "x-cache": "HIT",
+          "x-cache-hits": "1",
+          "x-github-request-id": "3BB0:11FE72:3CB0:6865:6ADAE4FE",
+          "x-served-by": "cache-pdx12323-PDX"
+        },
+        "finishedMs": 1792730382943,
+        "elapsedMs": 34
+      },
+      "pageTargetProtocols": [
+        "h2",
+        "data"
+      ],
+      "maxInflight": 49
+    },
+    {
+      "identity": "safari-header-only",
+      "temperature": "cold",
+      "engine": "installed Windows Chrome",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+      "entry": "./assets/index-DYnMdxA5.js",
+      "clockAdvanced": true,
+      "startupFailure": null,
+      "diagnostics": [],
+      "requestCount": 298,
+      "failedResponses": [],
+      "failedRequests": [],
+      "auditedBinaryCount": 217,
+      "binaryMismatches": [],
+      "exactBinary": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "bytes": 147816,
+        "sha256": "1922467d482252adec60f8958e3888dd1b97ae0b05d8af6c23b6344aba949c53",
+        "matchesBuiltBytes": true
+      },
+      "exactResponse": {
+        "url": "https://thisnameissoclever.github.io/terrilives/assets/runtime.normalTriangles-DitPThSI.bin",
+        "type": "fetch",
+        "method": "GET",
+        "startedMs": 1792730400243,
+        "status": 200,
+        "headers": {
+          "age": "0",
+          "cache-control": "max-age=600",
+          "content-encoding": "gzip",
+          "content-length": "50317",
+          "content-type": "application/octet-stream",
+          "etag": "W/\"6adacde2-24168\"",
+          "last-modified": "Fri, 23 Oct 2026 03:00:50 GMT",
+          "server": "GitHub.com",
+          "vary": "Accept-Encoding",
+          "via": "1.1 varnish",
+          "x-cache": "HIT",
+          "x-cache-hits": "1",
+          "x-github-request-id": "3BB0:11FE72:3CB0:6865:6ADAE4FE",
+          "x-served-by": "cache-pdx12330-PDX"
+        },
+        "finishedMs": 1792730400360,
+        "elapsedMs": 117
+      },
+      "pageTargetProtocols": [
+        "h2",
+        "data"
+      ],
+      "maxInflight": 49
+    }
+  ]
+}
