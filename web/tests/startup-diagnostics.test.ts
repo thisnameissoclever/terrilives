@@ -16,7 +16,7 @@ function boot(saved?:string,reportPage=false,denied=false,clipboardFails=false,b
   let observe:(()=>void)|undefined;
   const pending=new Map<number,()=>void>();let timer=0;
   const storage={getItem:(name:string)=>values.get(name)??null,setItem:vi.fn((name:string,value:string)=>values.set(name,value))};
-  const originalConsole={log:vi.fn(),info:vi.fn(),warn:vi.fn(),error:vi.fn()},testConsole={...originalConsole};
+  const originalConsole={debug:vi.fn(),log:vi.fn(),info:vi.fn(),warn:vi.fn(),error:vi.fn()},testConsole={...originalConsole};
   const window={console:testConsole,navigator:{userAgent:'test-browser',gpu:{},clipboard:{writeText}},devicePixelRatio:3,innerWidth:402,innerHeight:874,isSecureContext:true,
     location:{href:'https://game.test/terrilives/?private=query'},
     get localStorage(){if(denied)throw Error('storage denied');return storage;},
@@ -61,10 +61,12 @@ it('includes a later actual error when the email and copy controls are used',asy
 
 it('captures console errors and structured promise rejections while preserving console output',()=>{
   const run=boot();run.emit('terrilives:startup-ready');
+  run.console.debug('Debug operation marker');
   run.console.error('Graphics recovery failed',new Error('Device queue lost'));
   run.emit('unhandledrejection',{reason:{name:'PrepareError',message:'Unsupported contact geometry',code:42}});
   const attempt=run.report().attempts[0];
   expect(attempt.logs.some((row:{message:string})=>row.message.includes('Graphics recovery failed'))).toBe(true);
+  expect(attempt.logs.some((row:{message:string})=>row.message.includes('Debug operation marker'))).toBe(true);
   expect(attempt.errors.some((row:{message:string})=>row.message==='Device queue lost')).toBe(true);
   expect(attempt.error).toMatchObject({name:'PrepareError',message:'Unsupported contact geometry',code:42});
 });
@@ -132,6 +134,19 @@ it('retains actual nested Error fields in structured console diagnostics and dis
   expect(run.report().attempts[0].error.message).toContain('Actual nested failure');
   expect(run.values.get(key)).not.toContain('private credential');
   const view=boot(run.values.get(key),true);expect(view.summary.textContent).toContain('Actual nested failure');
+});
+
+it('preserves newest useful logs ahead of large historical error copies under storage pressure',()=>{
+  const run=boot(),headers=Object.fromEntries(['server','content-type','retry-after','age','via','x-cache','x-served-by','x-github-request-id','x-fastly-request-id'].map(key=>[key,'h'.repeat(160)]));
+  for(let i=0;i<12;i++)run.emit('terrilives:diagnostic',{detail:{operation:'meaningful.info',message:`Useful recent context ${i} `+'x'.repeat(160)}});
+  for(let i=0;i<6;i++)run.emit('error',{error:{name:'Error',message:`Distinct failure ${i} `+'m'.repeat(1800),stack:'s'.repeat(1536),workerStack:'w'.repeat(2048),workerErrorName:'WorkerError',workerKind:'sleep',workerSource:{path:'/worker.js',line:12,column:4},assetFailure:{path:'/asset.bin',status:503,headers,body:'b'.repeat(1024)}}});
+  const attempt=run.report().attempts.at(-1);
+  expect(attempt.error.message).toContain('Distinct failure 5');
+  expect(attempt.logs.some((row:{message:string})=>row.message.includes('Useful recent context 11'))).toBe(true);
+  run.emit('terrilives:startup-report-controls',{detail:{title:'Failure',detail:'Distinct failure 5'}});run.clickEmail();
+  const body=new URL(run.email.href).searchParams.get('body')!;
+  expect(body).toContain('Distinct failure 5');expect(body).not.toContain('Included 0/0 retained logs');
+  expect(body.indexOf('Distinct failure 5')).toBeLessThan(body.indexOf('Distinct failure 4'));
 });
 
 it('copies the full report and includes its actual error in a correctly encoded compact email',async()=>{

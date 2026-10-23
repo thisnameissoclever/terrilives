@@ -15,5 +15,6 @@
   "reportHtmlSha256": "8c6c24bf145f9c904b5f2f1e5617eb13109b3ef929525ac58fbed4423d00be5d",
   "bundle": "./assets/index-CF2EA_TM.js",
   "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
-  "browser": "Google Chrome 155, headed and muted on Windows; isolated test contexts; clipboard test double; no mail client opened"
+  "browser": "Google Chrome 155, headed and muted on Windows; isolated test contexts; clipboard test double; no mail client opened",
+  "capturedProductRevision": "f002c28f64b6a363f7f43844ee3c0c08a766b8e3"
 }

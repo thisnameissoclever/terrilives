@@ -161,8 +161,8 @@
     let raw=JSON.stringify({version:1,attempts});
     while(raw.length>MAX_STORE){
       if(attempts.length>1)attempts.shift();
-      else if(current.logs.length){current.logs.shift();current.droppedLogCount++;}
       else if(current.errors.length)current.errors.shift();
+      else if(current.logs.length){current.logs.shift();current.droppedLogCount++;}
       else if(current.phases.length>1)current.phases.shift();
       else if(current.pending.latest.length)current.pending.latest.shift();
       else if(current.error&&!current.error.reportTrimmed)current.error=compactError(current.error);
@@ -199,7 +199,7 @@
   phase();
   const observer=step&&typeof MutationObserver==='function'?new MutationObserver(phase):null;
   observer?.observe(step,{childList:true,characterData:true,subtree:true});
-  for(const level of ['log','info','warn','error']){
+  for(const level of ['debug','log','info','warn','error']){
     const original=window.console?.[level];if(typeof original!=='function')continue;
     window.console[level]=function(...args){try{
       const message=args.map(value=>value&&typeof value==='object'&&typeof value.message==='string'?value.name+': '+value.message:valueText(value)).join(' ');
