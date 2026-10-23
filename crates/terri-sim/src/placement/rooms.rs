@@ -6,7 +6,7 @@
 //! and the loader's checks run once, on the finished room, so a room whose
 //! doorway lets a sim in is not refused wall by wall on the way there.
 
-use super::walls::check_new_walls;
+use super::walls::{check_new_walls, keep_usable};
 use super::{current_layout, CurrentLayout, LotEditState, PlacementRefusal};
 use bevy_ecs::prelude::*;
 use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallLine};
@@ -214,10 +214,13 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         height,
         crate::lot_frame::house_or_grid(world),
     )?;
-    // Only new walls can cut anything off; a doorway made from a wall only
-    // removes a barrier, as for a single line.
+    // New walls meet every wall rule. An outline that adds none can still open
+    // a doorway onto furniture from a sealed pocket, held to the rule an
+    // opened single line meets.
     if !walls.is_empty() {
         check_new_walls(world, &rectangles, &grid, &walls)?;
+    } else {
+        keep_usable(world, &rectangles, &grid)?;
     }
     Ok(RoomPlan {
         changed: true,

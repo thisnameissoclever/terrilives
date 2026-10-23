@@ -169,7 +169,9 @@ describe('WallTool', () => {
     walls.choosePoint(1.6, 1.0);
     expect(walls.status).toBe('No wall on this line. A wall there would cut off the front door.');
     expect(([OPEN, WALL, DOORWAY] as const).map((state) => walls.canApply(state))).toEqual([false, false, true]);
-    expect(walls.highlight()).toEqual({ tiles: [[1, 1], [2, 1]], valid: false });
+    // [WB-mark]: the line itself is marked, in the refused tint.
+    expect(walls.highlight()).toEqual({ tiles: [], valid: false,
+      lines: [{ axis: 0, x: 2, y: 1, length: 1, valid: false }] });
     walls.apply(WALL);
     expect(source.staged).toEqual([]);
   });
@@ -358,11 +360,12 @@ describe('WallTool', () => {
     expect(source.staged).toHaveLength(1);
   });
 
-  it('rings only lot tiles, and keeps one highlight until the line changes', () => {
+  it('marks the chosen line rather than tiles, and keeps one highlight until the line changes', () => {
     const { walls, source } = tool(7, 5);
     walls.enter();
     walls.choosePoint(-0.45, 2.0);
-    expect(walls.highlight()?.tiles).toEqual([[0, 2]]);
+    expect(walls.highlight()?.tiles).toEqual([]);
+    expect(walls.highlight()?.lines).toEqual([{ axis: 0, x: 0, y: 2, length: 1, valid: true }]);
     const shown = walls.highlight();
     expect(walls.highlight()).toBe(shown);
     source.revision = 2;
@@ -386,6 +389,123 @@ describe('WallTool', () => {
     expect([walls.line, walls.pending, walls.status]).toEqual([null, null, CHOOSE_LINE]);
     walls.choosePoint(15.6, 1.0);
     expect(walls.line).toEqual({ axis: 0, x: 16, y: 1 });
+  });
+});
+
+describe('a run of lines ([WT-run])', () => {
+  const row = (x: number): WallLine => ({ axis: 1, x, y: 2 });
+
+  it('selects every line between two clicks in one row, and builds them all at once', () => {
+    const { walls, source } = tool(7, 5);
+    walls.enter();
+    walls.chooseClicked(row(1));
+    expect(walls.isRun).toBe(false);
+    walls.chooseClicked(row(4));
+    expect(walls.isRun).toBe(true);
+    expect(walls.lines()).toEqual([row(1), row(2), row(3), row(4)]);
+    expect(walls.status).toBe('4 lines selected.');
+    expect(walls.highlight()?.lines).toEqual([{ axis: 1, x: 1, y: 2, length: 4, valid: true }]);
+    expect(walls.anchorPoint()).toEqual([2.5, 1.5]);
+    // Windows are fitted one at a time.
+    expect(walls.canApply(WINDOW)).toBe(false);
+    walls.apply(WALL);
+    expect(source.staged).toEqual([1, 2, 3, 4].map(x => [1, x, 2, WALL]));
+    expect(walls.pending).toBe(WALL);
+    source.edges = [1, 2, 3, 4].flatMap(x => [1, x, 2, 0]);
+    source.result = { axis: 1, x: 4, y: 2, state: WALL, reason: null };
+    source.revision = 1;
+    walls.afterCommands();
+    expect([walls.pending, walls.status]).toEqual([null, '4 walls built.']);
+    // The next click starts again rather than stretching the run.
+    walls.chooseClicked(row(6));
+    expect([walls.isRun, walls.line]).toEqual([false, row(6)]);
+  });
+
+  it('runs either way along the row and only stages lines that would change', () => {
+    const { walls, source } = tool(7, 5);
+    source.edges = [1, 3, 2, 0];
+    walls.enter();
+    walls.chooseClicked(row(4));
+    walls.chooseClicked(row(2));
+    expect(walls.lines()).toEqual([row(2), row(3), row(4)]);
+    walls.apply(WALL);
+    expect(source.staged).toEqual([[1, 2, 2, WALL], [1, 4, 2, WALL]]);
+  });
+
+  it('says how many lines took the edit when some were refused', () => {
+    const { walls, source } = tool(7, 5);
+    walls.enter();
+    walls.chooseClicked(row(1));
+    walls.chooseClicked(row(3));
+    walls.apply(DOORWAY);
+    source.edges = [1, 1, 2, 1, 1, 3, 2, 1];
+    source.result = { axis: 1, x: 3, y: 2, state: DOORWAY, reason: null };
+    walls.afterCommands();
+    expect(walls.status).toBe('2 of 3 doorways made.');
+  });
+
+  it('ends a run at the line of its row nearest a floor click beside the row', () => {
+    const { walls } = tool(7, 5);
+    walls.enter();
+    walls.chooseClicked(row(1));
+    // A vertical line near the row's far end, clicked on the floor just beside the row.
+    walls.chooseClicked({ axis: 0, x: 4, y: 1 }, [3.6, 1.7]);
+    expect(walls.lines()).toEqual([row(1), row(2), row(3), row(4)]);
+    // A click off the row and off any straight line from the first starts afresh.
+    walls.chooseClicked(row(0));
+    walls.chooseClicked({ axis: 0, x: 2, y: 0 }, [1.4, 0.1]);
+    expect([walls.isRun, walls.line]).toEqual([false, { axis: 0, x: 2, y: 0 }]);
+  });
+
+  it('follows the clicks along a row even when the first click chose the crossing line', () => {
+    const { walls } = tool(7, 5);
+    walls.enter();
+    // Near tile corners in the last row, the floor's nearest lines cross the lot's south edge.
+    walls.chooseClicked({ axis: 0, x: 3, y: 4 }, [2.6, 4.2]);
+    walls.chooseClicked({ axis: 0, x: 6, y: 4 }, [5.6, 4.3]);
+    expect(walls.lines()).toEqual([3, 4, 5, 6].map(x => ({ axis: 1, x, y: 5 })));
+    // The same along a column, starting from a wall face: its middle stands in for the click.
+    walls.chooseClicked({ axis: 1, x: 2, y: 1 });
+    walls.chooseClicked({ axis: 1, x: 2, y: 4 }, [2.2, 3.6]);
+    expect(walls.lines()).toEqual([1, 2, 3, 4].map(y => ({ axis: 0, x: 3, y })));
+  });
+
+  it('lets the arrows, a turn or Escape leave the run for one line', () => {
+    const { walls } = tool(7, 5);
+    walls.enter();
+    walls.chooseClicked(row(1));
+    walls.chooseClicked(row(3));
+    walls.handleKey('ArrowRight');
+    expect([walls.isRun, walls.line]).toEqual([false, row(2)]);
+    walls.chooseClicked(row(4));
+    walls.rotate();
+    expect(walls.isRun).toBe(false);
+    walls.chooseClicked({ axis: 0, x: 2, y: 4 });
+    expect(walls.handleKey('Escape')).toBe(true);
+    expect(walls.lines()).toEqual([]);
+  });
+});
+
+describe('a run on real wasm ([WT-run])', () => {
+  it('builds and removes a run along the whole of the shipped lot\'s south edge', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, wasmMemory);
+      const walls = new WallTool(bridge, handle.lot_width(), handle.lot_height(), { changed: () => undefined });
+      walls.enter();
+      const width = handle.lot_width(), y = handle.lot_height();
+      // The lot's own south edge, end to end.
+      walls.chooseClicked({ axis: 1, x: 0, y });
+      walls.chooseClicked({ axis: 1, x: width - 1, y });
+      expect(walls.lines()).toHaveLength(width);
+      for (const [state, text] of [[WALL, `${width} walls built.`], [OPEN, `${width} walls removed.`]] as const) {
+        walls.apply(state);
+        for (let drain = 0; drain < 4 && walls.pending !== null; drain++) { bridge.flushCommands(); walls.afterCommands(); }
+        expect([walls.pending, walls.status]).toEqual([null, text]);
+        walls.chooseClicked({ axis: 1, x: 0, y });
+        walls.chooseClicked({ axis: 1, x: width - 1, y });
+      }
+    } finally { handle.free(); }
   });
 });
 
@@ -476,8 +596,13 @@ describe('the Walls tool in the page', () => {
       'wallTool.resetAfterLoad(lotWidth, lotHeight)', 'wallTool.exit()']) {
       expect(MAIN_TS).toContain(wiring);
     }
-    // [WB-draw]: the cut-away walls follow the Walls and Room tools.
-    expect(MAIN_TS).toContain('if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;');
+    // [WB-draw], [WB-height]: the cut-away walls follow the Walls and Room
+    // tools and the player's wall height; the chosen lines stand tall.
+    expect(MAIN_TS).toContain('const wallsInUse = wallTool.active || roomTool.active;');
+    expect(MAIN_TS).toContain("if (setCutAwayWalls(lot, wallsInUse && wallView.height === 'full')) cameraDirty = true;");
+    expect(MAIN_TS).toContain('if (setSelectedLines(lot, chosenWalls');
+    // [WB-pick]: a click hits the drawn wall before the floor.
+    expect(MAIN_TS).toContain('if (line) wallTool.chooseClicked(line, floor);');
     expect(MAIN_TS).toContain('lot.frontDoors = sim.frontDoorLines();');
   });
 

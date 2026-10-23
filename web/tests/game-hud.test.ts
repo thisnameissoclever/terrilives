@@ -47,11 +47,27 @@ function source(overrides: Partial<GameHudSource> = {}): GameHudSource {
     dayTicks: () => 1440,
     weekdayIndex: () => 1,
     seasonIndex: () => 0,
+    weatherTuning: () => null,
     ...overrides,
   };
 }
 
 describe('game HUD formatting', () => {
+  it('puts the season and current weather below the date and time', () => {
+    expect(formatSimTime(360, 1440, 0, 3, 'snowing')).toBe('Day 1, Monday\n06:00\nWinter: snowing');
+  });
+  it('reads the current weather from content and keeps the weather when paused', () => {
+    const view = roots(), hud = new GameHud(view, 100);
+    const weather = { seed: 73517, chance: [0, 1, 1, 1], eventHours: 2,
+      earliestHour: 10, latestHour: 10, leafHours: 2, fallMinutes: 15 };
+    const winter = source({ clockTick: () => 600, seasonIndex: () => 3, weatherTuning: () => weather });
+    hud.update(0, winter);
+    expect(view.clock.textContent).toBe('Day 1, Tuesday\n10:00\nWinter: snowing');
+    hud.update(1000, winter);
+    expect(view.clock.textContent).toBe('Day 1, Tuesday\n10:00\nWinter: snowing');
+    hud.update(2000, source({ clockTick: () => 720, seasonIndex: () => 3, weatherTuning: () => weather }));
+    expect(view.clock.textContent).toBe('Day 1, Tuesday\n12:00\nWinter: mild');
+  });
   it('calls the residual state idle instead of implying ongoing deliberation', () => {
     expect(formatActivity(0, null, null)).toBe('Idle');
   });
@@ -83,20 +99,21 @@ describe('game HUD formatting', () => {
     expect(formatActivity(code, null, null)).toBe(label);
   });
   it('formats day boundaries and the authored day length', () => {
-    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 00:00');
-    expect(formatSimTime(359, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 05:59');
-    expect(formatSimTime(1440, 1440, 1, 0)).toBe('Day 2, Tuesday\nSpring, 00:00');
-    expect(formatSimTime(1440 * 6, 1440, 6, 0)).toBe('Day 7, Sunday\nSpring, 00:00');
+    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\n00:00\nSpring: mild');
+    expect(formatSimTime(359, 1440, 0, 0)).toBe('Day 1, Monday\n05:59\nSpring: mild');
+    expect(formatSimTime(1440, 1440, 1, 0)).toBe('Day 2, Tuesday\n00:00\nSpring: mild');
+    expect(formatSimTime(1440 * 6, 1440, 6, 0)).toBe('Day 7, Sunday\n00:00\nSpring: mild');
     // A nonstandard content day still maps across a 24-hour display.
-    expect(formatSimTime(50, 100, 0, 0)).toBe('Day 1, Monday\nSpring, 12:00');
+    expect(formatSimTime(50, 100, 0, 0)).toBe('Day 1, Monday\n12:00\nSpring: mild');
   });
 
-  it('keeps the day and the time on two lines whatever the weekday is called', () => {
-    // Two fixed lines, so the HUD panel does not change height at midnight.
+  it('keeps the day and the time on three lines whatever the weekday is called', () => {
+    // Three fixed lines, so the HUD panel does not change height at midnight.
     for (const [weekday] of WEEKDAY_NAMES.entries()) {
       expect(formatSimTime(1440 * 99 + 1439, 1440, weekday, 2).split('\n')).toEqual([
         `Day 100, ${WEEKDAY_NAMES[weekday]}`,
-        'Autumn, 23:59',
+        '23:59',
+        'Autumn: mild',
       ]);
     }
     expect(formatSimTime(Number.NaN, 1440, 0, 0)).not.toContain('\n');
@@ -107,15 +124,15 @@ describe('game HUD formatting', () => {
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ]);
     WEEKDAY_NAMES.forEach((name, weekday) => {
-      expect(formatSimTime(0, 1440, weekday, 0)).toBe(`Day 1, ${name}\nSpring, 00:00`);
+      expect(formatSimTime(0, 1440, weekday, 0)).toBe(`Day 1, ${name}\n00:00\nSpring: mild`);
     });
   });
 
   it('names the weekday the simulation reports instead of counting from the day number', () => {
     // A pack whose first day is a Sunday puts day 7 on a Saturday; only the
     // simulation knows first_weekday, so the clock prints what it is given.
-    expect(formatSimTime(1440 * 6, 1440, 5, 0)).toBe('Day 7, Saturday\nSpring, 00:00');
-    expect(formatSimTime(1440 * 6, 1440, 0, 0)).toBe('Day 7, Monday\nSpring, 00:00');
+    expect(formatSimTime(1440 * 6, 1440, 5, 0)).toBe('Day 7, Saturday\n00:00\nSpring: mild');
+    expect(formatSimTime(1440 * 6, 1440, 0, 0)).toBe('Day 7, Monday\n00:00\nSpring: mild');
   });
 
   it('shows no clock rather than a wrong or missing weekday', () => {
@@ -125,23 +142,23 @@ describe('game HUD formatting', () => {
   });
 
   // [SEA-hud] in docs/specs/2026-10-17-seasons.md: the season leads the
-  // second line, before the time, and the clock stays two lines.
-  it('names every season in full, Spring first, before the time', () => {
+  // third line, below the time, and the clock stays three lines.
+  it('names every season in full, Spring first, below the time', () => {
     expect(SEASON_NAMES).toEqual(['Spring', 'Summer', 'Autumn', 'Winter']);
     // The shipped year: days 1, 8, 15 and 22 begin the four seasons.
-    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\nSpring, 00:00');
-    expect(formatSimTime(1440 * 7 + 360, 1440, 0, 1)).toBe('Day 8, Monday\nSummer, 06:00');
-    expect(formatSimTime(1440 * 14 + 720, 1440, 0, 2)).toBe('Day 15, Monday\nAutumn, 12:00');
-    expect(formatSimTime(1440 * 21 + 1439, 1440, 0, 3)).toBe('Day 22, Monday\nWinter, 23:59');
-    // Every season name has six letters, so the second line keeps one length.
+    expect(formatSimTime(0, 1440, 0, 0)).toBe('Day 1, Monday\n00:00\nSpring: mild');
+    expect(formatSimTime(1440 * 7 + 360, 1440, 0, 1)).toBe('Day 8, Monday\n06:00\nSummer: mild');
+    expect(formatSimTime(1440 * 14 + 720, 1440, 0, 2)).toBe('Day 15, Monday\n12:00\nAutumn: mild');
+    expect(formatSimTime(1440 * 21 + 1439, 1440, 0, 3)).toBe('Day 22, Monday\n23:59\nWinter: mild');
+    // The authored season names remain unchanged.
     for (const name of SEASON_NAMES) expect(name).toHaveLength(6);
   });
 
   it('names the season the simulation reports instead of counting from the day number', () => {
     // A pack that starts in Winter puts day 1 in Winter; only the simulation
     // knows first_season and days_per_season, so the clock prints its answer.
-    expect(formatSimTime(0, 1440, 0, 3)).toBe('Day 1, Monday\nWinter, 00:00');
-    expect(formatSimTime(1440 * 7, 1440, 0, 0)).toBe('Day 8, Monday\nSpring, 00:00');
+    expect(formatSimTime(0, 1440, 0, 3)).toBe('Day 1, Monday\n00:00\nWinter: mild');
+    expect(formatSimTime(1440 * 7, 1440, 0, 0)).toBe('Day 8, Monday\n00:00\nSpring: mild');
   });
 
   it('shows no clock rather than a wrong or missing season', () => {
@@ -240,21 +257,21 @@ describe('GameHud', () => {
     hud.update(100, source());
     expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
     hud.update(200, source({ weekdayIndex: () => 2 }));
-    expect(view.clock.textContent).toBe('Day 2, Wednesday\nSpring, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Wednesday\n01:30\nSpring: mild');
     expect(probes[0].writes).toBe(1);
     hud.update(300, source({ funds: () => 4321 }));
     expect(view.funds.textContent).toBe('4,321');
     expect(probes[1].writes).toBe(1);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30\nSpring: mild');
     expect(probes[0].writes).toBe(2);
     // A new season rewrites the clock once, like a new weekday.
     hud.update(400, source({ seasonIndex: () => 1 }));
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSummer, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30\nSummer: mild');
     expect(probes[0].writes).toBe(3);
     // The external edit is one write and the repair another.
     view.clock.textContent = 'External change';
     hud.update(500, source());
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30\nSpring: mild');
     expect(probes[0].writes).toBe(5);
   });
 
@@ -263,7 +280,7 @@ describe('GameHud', () => {
     const hud = new GameHud(view, 100);
 
     expect(hud.update(0, source())).toBe(true);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday\nSpring, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30\nSpring: mild');
     expect(view.funds.textContent).toBe('1,234');
     expect(view.satisfaction.textContent).toBe('12.3');
     expect(view.careerRow.hidden).toBe(false);

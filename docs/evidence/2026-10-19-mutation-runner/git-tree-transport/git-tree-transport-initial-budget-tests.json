@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_recovery.FullWrapperBudgetTests.test_complete_wrapper_request_budget_at_ten_thirty_fifty_and_eight_runs",
+    "test_mutation_native.NativeWrapperBudgetTests.test_complete_production_wrapper_with_retained_native_admission",
+    "test_mutation_native.NativeGateBudgetTests.test_complete_native_stage_wrappers_count_all_authentication_calls",
+    "test_mutation_native.NativePlanBudgetTests.test_original_plan_wrapper_includes_qualification_tool_and_calibration_transport"
+  ],
+  "exit_code": 0,
+  "seconds": 247.196,
+  "output": "....\n----------------------------------------------------------------------\nRan 4 tests in 246.767s\n\nOK\n"
+}

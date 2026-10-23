@@ -1,0 +1,258 @@
+[
+  {
+    "diff": "--- src/lib.rs\n+++ replace configured -> Pair with Default::default()\n@@ -1,13 +1,13 @@\n #[derive(Default)]\n pub struct Pair {\n     pub first: i32,\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n-    Pair { first: 11, second: 22, ..Default::default() }\n+    Default::default() /* ~ changed by cargo-mutants ~ */\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n     left + right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "configured",
+      "return_type": "-> Pair",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 9
+        },
+        "start": {
+          "column": 1,
+          "line": 7
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "src/lib.rs:8:5: replace configured -> Pair with Default::default()",
+    "package": "selector-qualification",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 57,
+        "line": 8
+      },
+      "start": {
+        "column": 5,
+        "line": 8
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ delete field first from struct Pair expression in configured\n@@ -1,13 +1,13 @@\n #[derive(Default)]\n pub struct Pair {\n     pub first: i32,\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n-    Pair { first: 11, second: 22, ..Default::default() }\n+    Pair {  /* ~ changed by cargo-mutants ~ */ second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n     left + right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "configured",
+      "return_type": "-> Pair",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 9
+        },
+        "start": {
+          "column": 1,
+          "line": 7
+        }
+      }
+    },
+    "genre": "StructField",
+    "name": "src/lib.rs:8:12: delete field first from struct Pair expression in configured",
+    "package": "selector-qualification",
+    "replacement": "",
+    "span": {
+      "end": {
+        "column": 22,
+        "line": 8
+      },
+      "start": {
+        "column": 12,
+        "line": 8
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ delete field second from struct Pair expression in configured\n@@ -1,13 +1,13 @@\n #[derive(Default)]\n pub struct Pair {\n     pub first: i32,\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n-    Pair { first: 11, second: 22, ..Default::default() }\n+    Pair { first: 11,  /* ~ changed by cargo-mutants ~ */ ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n     left + right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "configured",
+      "return_type": "-> Pair",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 9
+        },
+        "start": {
+          "column": 1,
+          "line": 7
+        }
+      }
+    },
+    "genre": "StructField",
+    "name": "src/lib.rs:8:23: delete field second from struct Pair expression in configured",
+    "package": "selector-qualification",
+    "replacement": "",
+    "span": {
+      "end": {
+        "column": 34,
+        "line": 8
+      },
+      "start": {
+        "column": 23,
+        "line": 8
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ replace ordinary -> i32 with 0\n@@ -4,10 +4,10 @@\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n     Pair { first: 11, second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n-    left + right\n+    0 /* ~ changed by cargo-mutants ~ */\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "ordinary",
+      "return_type": "-> i32",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 13
+        },
+        "start": {
+          "column": 1,
+          "line": 11
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "src/lib.rs:12:5: replace ordinary -> i32 with 0",
+    "package": "selector-qualification",
+    "replacement": "0",
+    "span": {
+      "end": {
+        "column": 17,
+        "line": 12
+      },
+      "start": {
+        "column": 5,
+        "line": 12
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ replace ordinary -> i32 with 1\n@@ -4,10 +4,10 @@\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n     Pair { first: 11, second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n-    left + right\n+    1 /* ~ changed by cargo-mutants ~ */\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "ordinary",
+      "return_type": "-> i32",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 13
+        },
+        "start": {
+          "column": 1,
+          "line": 11
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "src/lib.rs:12:5: replace ordinary -> i32 with 1",
+    "package": "selector-qualification",
+    "replacement": "1",
+    "span": {
+      "end": {
+        "column": 17,
+        "line": 12
+      },
+      "start": {
+        "column": 5,
+        "line": 12
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ replace ordinary -> i32 with -1\n@@ -4,10 +4,10 @@\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n     Pair { first: 11, second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n-    left + right\n+    -1 /* ~ changed by cargo-mutants ~ */\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "ordinary",
+      "return_type": "-> i32",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 13
+        },
+        "start": {
+          "column": 1,
+          "line": 11
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "src/lib.rs:12:5: replace ordinary -> i32 with -1",
+    "package": "selector-qualification",
+    "replacement": "-1",
+    "span": {
+      "end": {
+        "column": 17,
+        "line": 12
+      },
+      "start": {
+        "column": 5,
+        "line": 12
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ replace + with - in ordinary\n@@ -4,10 +4,10 @@\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n     Pair { first: 11, second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n-    left + right\n+    left - /* ~ changed by cargo-mutants ~ */ right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "ordinary",
+      "return_type": "-> i32",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 13
+        },
+        "start": {
+          "column": 1,
+          "line": 11
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "src/lib.rs:12:10: replace + with - in ordinary",
+    "package": "selector-qualification",
+    "replacement": "-",
+    "span": {
+      "end": {
+        "column": 11,
+        "line": 12
+      },
+      "start": {
+        "column": 10,
+        "line": 12
+      }
+    }
+  },
+  {
+    "diff": "--- src/lib.rs\n+++ replace + with * in ordinary\n@@ -4,10 +4,10 @@\n     pub second: i32,\n }\n \n pub fn configured() -> Pair {\n     Pair { first: 11, second: 22, ..Default::default() }\n }\n \n pub fn ordinary(left: i32, right: i32) -> i32 {\n-    left + right\n+    left * /* ~ changed by cargo-mutants ~ */ right\n }\n",
+    "file": "src/lib.rs",
+    "function": {
+      "function_name": "ordinary",
+      "return_type": "-> i32",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 13
+        },
+        "start": {
+          "column": 1,
+          "line": 11
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "src/lib.rs:12:10: replace + with * in ordinary",
+    "package": "selector-qualification",
+    "replacement": "*",
+    "span": {
+      "end": {
+        "column": 11,
+        "line": 12
+      },
+      "start": {
+        "column": 10,
+        "line": 12
+      }
+    }
+  }
+]

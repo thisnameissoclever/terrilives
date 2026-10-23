@@ -249,6 +249,7 @@ pub fn tick_interactions(
         for (need_index, delta) in &act.advertises {
             if *delta > 0.
                 && *need_index as usize == NeedId::Social.index()
+                && !crate::social_company::solo_social(act)
                 && !company
                     .active_allowed(entity, &feelings.get(entity).cloned().unwrap_or_default())
             {
@@ -273,7 +274,11 @@ pub fn tick_interactions(
             // as a good one ([E3]).
             let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
             let company_scale = if *need_index as usize == NeedId::Social.index() {
-                company.active_scale(entity, &feelings.get(entity).cloned().unwrap_or_default())
+                crate::social_company::social_scale(
+                    act,
+                    company
+                        .active_scale(entity, &feelings.get(entity).cloned().unwrap_or_default()),
+                )
             } else {
                 1.
             };

@@ -5,7 +5,8 @@ import {
   MARKER_UNIFORM_HEADER_FLOATS, MARKER_UNIFORM_LAYOUT, MAX_GROUND_MARKERS, OFFSET_MARKER_SEMI_AXIS_X,
   OFFSET_MARKER_SEMI_AXIS_Y, PLACEMENT_MARKER_MARGIN, drawAroundMarkers, groundMarkerPipelineDescriptor,
   groundMarkerRows, groundSelectionShader, MARKER_LOOK, markerAxes, placementMarkerSemiAxis, wgslFloat,
-  writeHousemateMarker, writeMarkerUniform, writePlacementMarker,
+  writeHousemateMarker, writeMarkerUniform, writePlacementMarker, writeSegmentMarker, MARKER_SEGMENT,
+  MARKER_SEGMENT_HOVER, OFFSET_MARKER_KIND, SEGMENT_MARKER_OVERHANG, SEGMENT_MARKER_RADIUS,
 } from '../src/render/ground-selection.js';
 import { buildInstanceBatch, type RenderSource } from '../src/frame.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -328,7 +329,7 @@ const VERTEX_STRUCT = 'struct Vertex{@builtin(position)position:vec4f,@location(
 
 /** One fragment invocation's values, named as the shader names them. */
 interface Fragment {
-  block: Float64Array; covered: boolean; unit: [number, number];
+  block: Float64Array; covered: boolean; unit: [number, number]; bar: number;
   r: number; f: number; n: [number, number]; slope: number; dist: number; aa: number;
   edge: number; fill: number; opacity: number; discarded: boolean; output: number[];
 }
@@ -358,6 +359,8 @@ const LINEAR: readonly [string, (channel: number) => number] = [
  */
 const FRAGMENT: readonly Statement[] = [
   ['let m=u.items[i.marker];', () => {}],
+  // The bar's own statements are tied and replayed below, as SEGMENT.
+  ['let bar=segment(i,m);', value => { value.bar = segmentAt(value.block, value.unit).result; }],
   ['let r=length(i.unit);', value => { value.r = Math.hypot(...value.unit); }],
   ['let f=r-1.;', value => { value.f = value.r - 1; }],
   [`let n=select(vec2f(1,0),i.unit/r,r>${float(look.centerRadius)});`, value => {
@@ -376,14 +379,72 @@ const FRAGMENT: readonly Statement[] = [
   [`let fill=(1.-smoothstep(-aa,aa,dist))*${float(look.fillOpacity)};`, value => {
     value.fill = (1 - smoothstep(-value.aa, value.aa, value.dist)) * look.fillOpacity;
   }],
-  [`let opacity=edge*${float(look.borderOpacity)}+(1.-edge)*fill;`, value => {
-    value.opacity = value.edge * look.borderOpacity + (1 - value.edge) * value.fill;
+  [`let opacity=select(edge*${float(look.borderOpacity)}+(1.-edge)*fill,bar,m.kind>.5);`, value => {
+    value.opacity = value.block[L.kind] > 0.5 ? value.bar : value.edge * look.borderOpacity + (1 - value.edge) * value.fill;
   }],
   [`if(opacity<${float(look.discardOpacity)}){discard;}`, value => { value.discarded = value.opacity < look.discardOpacity; }],
   ['return vec4f(linear(m.color.rgb)*opacity,opacity);', value => {
     value.output = [0, 1, 2].map(channel => LINEAR[1](value.block[L.color + channel]) * value.opacity).concat(value.opacity);
   }],
 ];
+
+/** One invocation of the shader's `segment`, named as it names its values. */
+interface SegmentValue {
+  block: Float64Array; unit: [number, number]; p: [number, number]; radius: number; q: [number, number];
+  dist: number; aa: number; edge: number; inside: number; hover: boolean; border: number; fill: number; result: number;
+}
+type SegmentStatement = readonly [wgsl: string, run: (value: SegmentValue, fwidth: (name: 'dist') => number) => void];
+
+/** The bar function `segment`, statement by statement, each beside the TypeScript the replay runs for it. */
+const SEGMENT: readonly SegmentStatement[] = [
+  ['let p=abs(i.unit)*m.semi;', value => {
+    value.p = [Math.abs(value.unit[0]) * value.block[L.semi], Math.abs(value.unit[1]) * value.block[L.semi + 1]];
+  }],
+  ['let radius=min(m.semi.x,m.semi.y);', value => { value.radius = Math.min(value.block[L.semi], value.block[L.semi + 1]); }],
+  ['let q=p-m.semi+vec2f(radius);', value => {
+    value.q = [value.p[0] - value.block[L.semi] + value.radius, value.p[1] - value.block[L.semi + 1] + value.radius];
+  }],
+  ['let dist=length(max(q,vec2f(0)))+min(max(q.x,q.y),0.)-radius;', value => {
+    value.dist = Math.hypot(Math.max(value.q[0], 0), Math.max(value.q[1], 0))
+      + Math.min(Math.max(value.q[0], value.q[1]), 0) - value.radius;
+  }],
+  [`let aa=max(fwidth(dist),${float(look.minSoftening)});`, (value, fwidth) => {
+    value.aa = Math.max(fwidth('dist'), look.minSoftening);
+  }],
+  [`let edge=1.-smoothstep(${float(look.borderHalfWidth)}-aa,${float(look.borderHalfWidth)}+aa,abs(dist));`, value => {
+    value.edge = 1 - smoothstep(look.borderHalfWidth - value.aa, look.borderHalfWidth + value.aa, Math.abs(value.dist));
+  }],
+  ['let inside=1.-smoothstep(-aa,aa,dist);', value => { value.inside = 1 - smoothstep(-value.aa, value.aa, value.dist); }],
+  ['let hover=m.kind>1.5;', value => { value.hover = value.block[L.kind] > 1.5; }],
+  [`let border=select(${float(look.borderOpacity)},${float(look.hoverBorderOpacity)},hover);`, value => {
+    value.border = value.hover ? look.hoverBorderOpacity : look.borderOpacity;
+  }],
+  [`let fill=select(${float(look.segmentFillOpacity)},${float(look.hoverFillOpacity)},hover);`, value => {
+    value.fill = value.hover ? look.hoverFillOpacity : look.segmentFillOpacity;
+  }],
+  ['return edge*border+(1.-edge)*inside*fill;', value => {
+    value.result = value.edge * value.border + (1 - value.edge) * value.inside * value.fill;
+  }],
+];
+
+/**
+ * Runs `segment` at a unit-space point. fwidth differences `dist` one game
+ * sample step to the right and down on the screen; the unit is linear in the
+ * screen offset, so the neighbor's unit follows from the block's rows.
+ */
+function segmentAt(block: Float64Array, at: [number, number], limit = SEGMENT.length): SegmentValue {
+  const value: SegmentValue = { block, unit: at, p: [0, 0], radius: 0, q: [0, 0], dist: 0, aa: 0, edge: 0, inside: 0,
+    hover: false, border: 0, fill: 0, result: 0 };
+  const step = GAME_STEP, right = unit(block, step, 0), down = unit(block, 0, step);
+  for (let index = 0; index < limit; index++) {
+    SEGMENT[index][1](value, name => {
+      const here = segmentAt(block, at, index)[name];
+      return Math.abs(segmentAt(block, [at[0] + right[0], at[1] + right[1]], index)[name] - here)
+        + Math.abs(segmentAt(block, [at[0] + down[0], at[1] + down[1]], index)[name] - here);
+    });
+  }
+  return value;
+}
 
 /** The earlier softening, taken from fwidth(dist), which jumps at an exact center. */
 const EARLIER: Record<string, Statement> = {
@@ -447,7 +508,7 @@ function rasterize(quad: Replay, point: [number, number]): { covered: boolean; u
  */
 function fragment(quad: Replay, x: number, y: number, quadX = x, quadY = y, limit = quad.statements.length): Fragment {
   const raster = rasterize(quad, [quad.block[L.center] + x, quad.block[L.center + 1] + y]);
-  const value: Fragment = { block: quad.block, covered: raster.covered, unit: raster.unit, r: 0, f: 0, n: [0, 0],
+  const value: Fragment = { block: quad.block, covered: raster.covered, unit: raster.unit, bar: 0, r: 0, f: 0, n: [0, 0],
     slope: 0, dist: 0, aa: 0, edge: 0, fill: 0, opacity: 0, discarded: false, output: [] };
   for (let index = 0; index < limit; index++) {
     quad.statements[index][1](value, name => {
@@ -511,6 +572,7 @@ describe('the marker shader, replayed on the CPU', () => {
     expect(functionStatements(groundSelectionShader, 'vs')).toEqual(VERTEX.map(([wgsl]) => normalized(wgsl)));
     expect(functionStatements(groundSelectionShader, 'fs')).toEqual(FRAGMENT.map(([wgsl]) => normalized(wgsl)));
     expect(functionStatements(groundSelectionShader, 'linear')).toEqual([normalized(LINEAR[0])]);
+    expect(functionStatements(groundSelectionShader, 'segment')).toEqual(SEGMENT.map(([wgsl]) => normalized(wgsl)));
     const struct = /struct Vertex \{[^}]*\};/.exec(groundSelectionShader);
     expect(struct && normalized(struct[0])).toBe(VERTEX_STRUCT);
   });
@@ -627,6 +689,58 @@ describe('the marker shader, replayed on the CPU', () => {
         }
       }
       expect(reach).toBeGreaterThan(1);
+    }
+  });
+});
+
+describe('the bar along a chosen wall line', () => {
+  function segmentRow(axis: 0 | 1, length: number, valid = true, hover = false): Float32Array {
+    const row = new Float32Array(FLOATS_PER_INSTANCE);
+    writeSegmentMarker(row, 0, 300, 200, axis, length, valid, hover);
+    return row;
+  }
+  /** The bar's opacity a world offset (dx, dy) from its centre. */
+  const opacityAt = (block: Float64Array, dx: number, dy: number, scale: number) =>
+    segmentAt(block, unit(block, ...screenOffset(dx, dy, scale))).result;
+
+  it('lies along its line, a little longer than the lines it covers and thin across them', () => {
+    const row = segmentRow(1, 3);
+    expect(row[OFFSET_MARKER_KIND]).toBe(MARKER_SEGMENT);
+    expect(row[OFFSET_MARKER_SEMI_AXIS_X]).toBeCloseTo(1.5 + SEGMENT_MARKER_OVERHANG, 6);
+    expect(row[OFFSET_MARKER_SEMI_AXIS_Y]).toBeCloseTo(SEGMENT_MARKER_RADIUS, 6);
+    const vertical = segmentRow(0, 2);
+    expect(vertical[OFFSET_MARKER_SEMI_AXIS_X]).toBeCloseTo(SEGMENT_MARKER_RADIUS, 6);
+    expect(vertical[OFFSET_MARKER_SEMI_AXIS_Y]).toBeCloseTo(1 + SEGMENT_MARKER_OVERHANG, 6);
+    expect(Array.from(segmentRow(1, 1, false).slice(4, 7))).toEqual(Array.from(Float32Array.from(MARKER_RED)));
+    expect(segmentRow(1, 1, true, true)[OFFSET_MARKER_KIND]).toBe(MARKER_SEGMENT_HOVER);
+  });
+
+  it.each([1, 2.5])('draws a firm body along the line and nothing beside or past it at scale %s', scale => {
+    const block = uniform(segmentRow(1, 3), scale);
+    expect(block[L.kind]).toBe(MARKER_SEGMENT);
+    for (const along of [0, 0.7, 1.3]) expect(opacityAt(block, along, 0, scale)).toBeCloseTo(look.segmentFillOpacity, 2);
+    expect(opacityAt(block, 0, 0.4, scale)).toBe(0);
+    expect(opacityAt(block, 1.9, 0, scale)).toBe(0);
+    // Its outline is the ellipse markers' border.
+    const edge = Math.max(...Array.from({ length: 200 }, (_, i) => opacityAt(block, 0, i * 0.001, scale)));
+    expect(edge).toBeCloseTo(look.borderOpacity, 1);
+  });
+
+  it('draws the line under the pointer fainter than a chosen one', () => {
+    const chosen = uniform(segmentRow(0, 1), 1), hover = uniform(segmentRow(0, 1, true, true), 1);
+    expect(opacityAt(hover, 0, 0, 1)).toBeCloseTo(look.hoverFillOpacity, 2);
+    expect(opacityAt(hover, 0, 0, 1)).toBeLessThan(opacityAt(chosen, 0, 0, 1));
+  });
+
+  it('bounds the whole bar, square ends included, with its screen box', () => {
+    for (const axis of [0, 1] as const) {
+      const block = uniform(segmentRow(axis, 3), 1.5);
+      for (const [dx, dy] of [[1.54, 0.09], [-1.54, -0.09], [0.09, 1.54], [-0.09, -1.54]]) {
+        const [x, y] = screenOffset(dx, dy, 1.5);
+        if (opacityAt(block, dx, dy, 1.5) === 0) continue;
+        expect(Math.abs(x)).toBeLessThanOrEqual(block[L.extent] + look.boxMargin);
+        expect(Math.abs(y)).toBeLessThanOrEqual(block[L.extent + 1] + look.boxMargin);
+      }
     }
   });
 });

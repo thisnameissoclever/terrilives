@@ -114,6 +114,7 @@ describe('the Land tool', () => {
   it('starts with nothing chosen and outlines all three strips', () => {
     const { land, source } = tool();
     expect(land.status).toBe(CHOOSE_STRIP);
+    expect(land.status).toBe('');
     expect(land.side).toBeNull();
     expect(land.reach()).toBe(10);
     const highlight = land.highlight()!;

@@ -35,6 +35,12 @@ their original save versions, sprite counts and measurements describe those rele
 Completed slices are complete even when their larger system remains partial.
 The system inventory and remaining dependencies are in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 
+### Requested future work: weather and creative hobbies
+
+The owner requested [weather preferences and longer-term variation](GAME-SYSTEMS.md#s-weather-preferences-weather-preferences-and-longer-term-variation) on October 19, 2026. Sims should prefer warmer or cooler weather, with a small overall mood change when the weather suits or displeases them. Weather should vary more across months and years; months require a calendar design because the current game has seasons but no months. These additions are not implemented.
+
+The owner also requested [creative hobbies and their products](GAME-SYSTEMS.md#s-creative-hobbies-creative-hobbies-progression-and-things-made-at-home), including gardening, knitting and painting. Leveling up should provide personal satisfaction and eventually produce things to display or use, such as paintings, flowers and throw blankets. Possible economic benefits include selling creations and growing food to reduce food spending. These are future features, with no committed release date or change to the existing build order.
+
 ### Varied autonomy delivery (2026-09-30)
 
 New games take fresh browser randomness. Autonomous targets and their interactions
@@ -447,7 +453,7 @@ Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an acti
 
 The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours; see `specs/2026-10-06-calendar.md`.
 
-The seasons slice of [S-calendar] (issue 251) shipped on 2026-10-17: the year is Spring, Summer, Autumn and Winter, seven days each, a new game starts in Spring, the clock names the season before the time, and the yard's grass takes a tint in each season. The season has no gameplay effect yet. Dates, pay days and scheduled events remain open; see `specs/2026-10-17-seasons.md`.
+The seasons slice of [S-calendar] (issue 251) defines the year is Spring, Summer, Autumn and Winter, seven days each, a new game starts in Spring, the clock shows the date, time and season/weather on separate lines, and the yard stays green with subtle seasonal tints. Brief snow, autumn leaf fall and summer hot periods vary by day. Leaves disappear two game hours after landing. The season has no gameplay effect yet. Dates, pay days and scheduled events remain open; see `specs/2026-10-17-seasons.md`.
 
 The first object-affinities slice [B-object-affinities] shipped on 2026-10-06: every person has a value for plants, the aquarium, the television and the radio, shown as Loves to Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood, and somebody else using a television or radio a person dislikes in the same room lowers their mood and their feeling toward that person. Colour preferences, editing the values, the general nuisance field and pets remain open; see `specs/2026-10-06-object-affinities.md`.
 
@@ -477,10 +483,10 @@ and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
-The bed-assignment extension is implemented locally within that disclosure,
-with explicit Assign and Clear controls. It remains unpublished until the
-occupied-bed visual checks pass. Place-specific routing is implemented locally; see
-`docs/specs/2026-10-01-bed-assignment.md`.
+The disclosure includes Assign and Clear controls for physical sleeping places.
+Unassigned Sims automatically claim reachable, unassigned places on simulation
+ticks. Existing assignments are preserved. A Sim without an assigned place
+receives a -20 mood condition. See `docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -866,6 +872,8 @@ activities such as swimming remain.
 
 Build > Floors offers Boards, Tiles, Carpet and Outdoor patio. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Outdoor patio appends a distinct rectangular paving material. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
+Since 2026-10-19 a second click on another tile selects every tile in the rectangle between the two, and a covering applies to all of them that accept it ([FL-area] in `docs/specs/2026-09-22-floors.md`).
+
 Room-wide painting remains separate work. Floor cleaning follows eligible material and lot ownership, as defined in `docs/specs/2026-10-17-room-identities.md`. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for the original material evidence and acceptance limits.
 
 ### [B-windows] Windows admit daylight
@@ -895,6 +903,8 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 **Status: Complete.**
 
 Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
+
+Revised on 2026-10-19 at the owner's request: the tools draw interior and front walls low by default with the chosen lines full height, and Full height or T shows every wall ([WB-height]); a click chooses the wall drawn under the pointer ([WB-pick]); the chosen lines are marked along themselves ([WB-mark]); two clicks choose a run of lines ([WT-run]); a wide window slides along its wall to fit ([WN-fit]); and walls on every lot edge take windows and doorways ([WT-rules]). The played check is [A-build-walls-ux] and the evidence is `docs/evidence/2026-10-19-build-walls/verification.md`.
 
 ### [B-placement-buttons] Contextual actions surround the build selection
 
@@ -927,27 +937,29 @@ does not mean both households are allies.
 
 ### [B-family-relationships] Family relationships are explicit
 
-**Status: Partial: SimId ties and labels complete; tree and family-specific behaviour remain.**
+**Status: Partial: saved ties, labels and family social effects are implemented; the family tree and broader family behaviour remain.**
 
 Saved family ties now distinguish partner, parent, child and sibling independently
 of affinity. Family-tree UI, extended and non-household relatives, inheritance,
-age-valid relationship creation, and family-specific autonomy and social
-consequences remain. Bereavement already reads affinity at death, while family
+age-valid relationship creation and family-specific autonomous choices remain.
+Family and partners strengthen positive opinion effects, soften negative ones
+and add a Social bonus during eligible company. Bereavement reads affinity at death, while family
 ties survive the loss; no separate family-specific grief effect has shipped.
 
-The completed first slice ships the tie itself. A newcomer arrives as somebody: the New
+A newcomer arrives as somebody: the New
 housemate form asks who they are to the household, choosing from partner,
 parent, child and sibling and naming the member it is to, and the
 relationship list then says it beside the feeling, from the row's side:
 "Bill, their parent" means Bill is the parent. A
 tie is one stored fact between two people, read from either end so a parent
 one way is a child the other, saved sparsely and appended, and in the world
-hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. Since PR 134 at
+hash. Family now increases positive social effects and reduces negative opinion
+changes. The saved tie first shipped in PR 131 at merge `2f87db7`. Since PR 134 at
 merge `e1ce54e`, a tie names each person by SimId rather than entity index, so
 it stays with them once somebody can leave or die. The design is
 `docs/specs/2026-09-22-family.md`, which names the three later slices, and the
 played check is [A-family]. The item stays open: the tree, relatives outside
-the household, inheritance and family-specific consequences are still to build.
+the household, inheritance and broader family-specific choices are still to build.
 
 ### [A-audio-voices] The game has sound and Sim voices
 
@@ -1045,6 +1057,78 @@ construction is reclaimed immediately. Rendered-sample evidence is recorded in
 `docs/specs/2026-09-30-conversation-audio.md`. Simultaneous conversations have
 independent initiator/token ownership; starting or ending one pair does not
 restart another. See `docs/specs/2026-09-30-conversation-audio-ownership.md`.
+
+#### Remaining sound improvements
+
+Implement these improvements in the listed priority order. Start with seated
+eating, natural reading and exercise sounds, and fridge handling; follow with
+cleaning chores. Keep sound selection, technical playback verification and
+in-game listening acceptance distinct.
+
+1. **Restore seated-eating audio.** Seated meals use visual action 13, while
+   `activityForVisualAction` in `web/src/audio/frame-audio.ts` recognizes only
+   ordinary eating, action 2. Cover both with the eating scheduler and add a
+   regression test for an actual seated meal. Verify transitions between
+   standing and seated eating do not duplicate or restart its cadence.
+2. **Replace the remaining synthesized activity tones.** Evaluate natural
+   paper rustles for reading, sparse cutlery and plate contact for eating,
+   and a restrained mechanical sound for exercise-bike use. The paper candidates
+   in `assets/audio/review/paper/` are available for evaluation, not accepted
+   replacements. Avoid prominent chewing, repetitive squeaks and unexplained
+   periodic thuds. Tie sound timing to the relevant contact or motion.
+3. **Add kitchen handling sounds.** Cover fridge opening and its soft closing
+   seal, ingredient or package handling, food preparation and plating. Keep the
+   existing provisional stove simmer/sizzle texture available for listening
+   review. Drive each addition from actual action progress and contact;
+   interruption must end the appropriate sound without playing a false finish.
+4. **Add cleaning sounds.** Cover mopping, wiping counters and tables, collecting
+   dishes, and emptying bins. Dishwashing already has running water; add sparse
+   ceramic contacts to distinguish it from handwashing. Play physical work
+   sounds only during active work, not while queued, travelling or suspended.
+5. **Differentiate bathroom water.** Evaluate separate shower and sink recordings
+   instead of sharing one recording at different gains. Add occasional gentle
+   bath-water movement during actual bathing. Preserve independent source
+   ownership, clean loop transitions and interruption cleanup.
+6. **Add emotional voice categories.** Arguments currently draw from the ordinary
+   conversation library. Preserve separate disinterested, annoyed and
+   argumentative performances and select them from the actual social context.
+   Later additions can include sparse laughter, relief and disappointment.
+   Preserve deterministic clip selection and matching action duration through
+   mute and save/load; the browser must not choose gameplay outcomes.
+7. **Improve the combined mix.** Add subtle source-position stereo placement and
+   distance-based volume reduction. Evaluate lowering competing sounds while
+   conversations play. Keep important events intelligible during busy household
+   activity without raising every source. Treat audible distance as presentation;
+   do not invent new Sim reactions or nuisance rules as part of the mix change.
+8. **Make TV and radio use audible.** Evaluate quiet, varied nonverbal program
+   material or original music, owned by the exact device and active only during
+   use. Bound volume, repetition and simultaneous playback. Add appropriate
+   controls when playable music content is introduced, preserving existing
+   Effects and Voices preferences.
+9. **Reserve notification sounds for consequential events.** Consider restrained
+   cues for death warnings, job outcomes and important household events. Keep
+   visible feedback and avoid repeats for the same event. Routine menu choices,
+   successful clicks, slider releases and ordinary mood changes remain silent.
+
+**Preserve the accepted direction.** Keep footsteps quiet and retain the accepted
+flush recording unless listening identifies a specific defect. Continuous indoor
+background noise remains excluded. Door opening stays silent; closing retains
+the filtered thunk without a squeak. Review each repeated addition as an isolated
+sound, at its normal single-source cadence, and at the busiest supported overlap.
+Preserve bounded playback, cancellation, pause, load and browser-audio recovery.
+
+**Deferred with their gameplay.** Laundry, pet sounds, fire alarms and rain sounds
+wait for the corresponding systems. A placed washer-dryer does not establish a
+working laundry cycle, and current seasonal visuals do not establish rain or
+fire gameplay. Retain the selected future cat-purr asset for the pets system.
+
+**Documentation follow-through.** When implementing each item, reconcile the audio
+catalog and behavior descriptions in `FEATURES.md`, `GAME-SYSTEMS.md`,
+`ARCHITECTURE.md`, `ASSETS.md` and the affected audio specifications. Older
+specifications contain superseded background-tab silence rules; align maintained
+contracts with the current requirement to keep the game and sound running in a
+background tab. Preserve dated evidence as historical evidence. Update player
+guidance and the public changelog for delivered player-visible changes.
 
 ### [B-death] Sims can die and leave consequences
 
@@ -1148,7 +1232,7 @@ Confirm resolves final boundaries, names, and cleaning duties together, with a
 review for splits, merges, and lost enclosures. Native transactions preserve the
 last confirmed save and unfinished work until adoption. Outdoor flooring and
 surfaces are cleanable, while grass and the street are excluded. Outdoor patio is
-an additional covering. See [room identity and naming](specs/2026-10-17-room-identities.md)
+an additional covering. Footer Confirm keeps edits and leaves Build; Cancel discards them and leaves. Entering Land first resolves any pending edits through the same confirm/discard/keep decision. See [room identity and naming](specs/2026-10-17-room-identities.md)
 and [build confirmation](specs/2026-10-13-build-confirmation.md).
 
 The lot starts from `content/lot.toml`. The furniture builder shipped in
@@ -1400,7 +1484,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
 | **Native desktop build** | Shell swap, deferred by choice, not blocked. Shell options, costs and multithreading paths are in [the desktop app research](plans/2026-10-17-desktop-app.md) |
-| **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle and the yard's seasonal tint have shipped ([S-calendar]); seasons with gameplay effects have not. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
+| **Weather, seasonal gameplay, vehicles** | Classic expansion-pack material. The season cycle, green seasonal grass and occasional visual weather are covered by [S-calendar]; seasons with gameplay effects remain later work. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
 ## Design tone
@@ -1452,7 +1536,7 @@ the upper-left world group ([CUI-world]). Moving furniture displays one preview;
 Confirm commits and deselects, and Cancel restores and deselects. Selected-person
 action cards now appear in the bounded Queue panel ([CUI-details]); the earlier
 top-right presentation faded between 33% and 55% of viewport
-height. Bed shortages apply a shared household mood penalty. Bookcases rotate
+height. Sims without an assigned bed receive a -20 mood condition. Unassigned Sims automatically claim reachable, unassigned sleeping places. Bookcases rotate
 against their tile edges, and scrolling sidebars retain their content width.
 See `docs/specs/2026-09-30-gameplay-ui.md` for scope and verification.
 

@@ -1,0 +1,30 @@
+...................................................................................E...............................................................................F.........
+======================================================================
+ERROR: test_failure_exit_still_compacts_existing_bundle_without_changing_the_failure (test_mutation_native.NativeTransportTests.test_failure_exit_still_compacts_existing_bundle_without_changing_the_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_native.py", line 392, in test_failure_exit_still_compacts_existing_bundle_without_changing_the_failure
+    self.assertEqual(workflow.main(["slot", "--root", str(root), "--scope", "production"]), 22)
+                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_workflow.py", line 489, in main
+    output("bundle_ready", "true")
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_workflow.py", line 32, in output
+    with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as stream:
+              ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'GITHUB_OUTPUT'
+
+======================================================================
+FAIL: test_isolated_original_policy_guard_removal_fails_expiry_assertion (test_mutation_workflow.OriginalPlanPolicyTests.test_isolated_original_policy_guard_removal_fails_expiry_assertion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_workflow.py", line 268, in test_isolated_original_policy_guard_removal_fails_expiry_assertion
+    self.assertEqual(original.decode().count(old), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 173 tests in 193.793s
+
+FAILED (failures=1, errors=1)

@@ -1,0 +1,34 @@
+[
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\main.ts",
+    "Hash": "866B2626D86D0D8AE89CF84F5EA668F5E38AF9CFD2328BA13752F8D00FADEF53"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\index.html",
+    "Hash": "04BA60E559F1ACF3E0B1FC47E07292DCB9706409D2194E9ED8864C8E151441E4"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\ui\\build-exit.ts",
+    "Hash": "67DE442E8433EEDFE0AF1F5C49F6F548FF8AB52F6604E3E06D4D354F8ED6BC54"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\ui\\activity-tooltip.ts",
+    "Hash": "684F20975AA63DA07FB439CDA49C3EE07226B2DDCA321B2BAB73C57155839908"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\ui\\compact-hud.css",
+    "Hash": "AD55FEEFBF717A0407B78AC0236C3480959B35E0C6634517B71A831B03F66883"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\ui\\land-tool.ts",
+    "Hash": "756399939405DC98D64BEB4E7495D662D1AD93D2D9725AC8880BCC7336747C0D"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\ui\\room-tool.ts",
+    "Hash": "257751A9C7125F6B9A85D7D46CE7A53146C506FD6888FF91F4C9C3DF477F3CE0"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\web\\src\\wasm\\terri_wasm_bg.wasm",
+    "Hash": "A270E06FB861293B401318740022376C50AC6D572858AF5335C0A036813CDB2F"
+  }
+]

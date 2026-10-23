@@ -1,0 +1,8 @@
+test_real_timeout_is_preserved_for_policy (test_mutation_runner.RunnerTests.test_real_timeout_is_preserved_for_policy) ... ok
+test_partial_active_revert_write_is_deferred_until_exact_bytes (test_mutation_runner.RunnerTests.test_partial_active_revert_write_is_deferred_until_exact_bytes) ... ok
+test_interrupt_freezes_prior_result_excludes_signal_fake_and_resumes_pending_first (test_mutation_runner.RunnerTests.test_interrupt_freezes_prior_result_excludes_signal_fake_and_resumes_pending_first) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 15.591s
+
+OK

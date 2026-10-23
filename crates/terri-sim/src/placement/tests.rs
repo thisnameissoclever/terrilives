@@ -319,7 +319,7 @@ fn placement_invalid_saved_edges_refuse_without_panicking() {
         }],
         vec![terri_core::layout::WallEdge {
             doorway: true,
-            ..vertical(7, 1)
+            ..vertical(8, 1)
         }],
         vec![vertical(8, 1)],
         vec![vertical(1, 7)],

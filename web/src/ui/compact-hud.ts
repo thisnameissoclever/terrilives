@@ -1,3 +1,5 @@
+import { createActivityTooltip } from './activity-tooltip.js';
+
 /** Presentation only: the existing panels still own their simulation data. */
 export const COMPACT_HUD_MEDIA_QUERY = '(max-width: 600px), (max-height: 480px)';
 export type SimPanel = 'overview' | 'queue' | 'people' | 'traits' | 'career';
@@ -70,6 +72,7 @@ export class CompactHud {
 
 /** Wire one set of controls; move the need meters instead of duplicating them. */
 export function createCompactHud(document: Document, refreshQueue: () => void, beforeOpen: () => void = () => {}): CompactHud {
+  createActivityTooltip(document);
   const element = <T extends HTMLElement>(id: string): T => {
     const result = document.getElementById(id);
     if (!result) throw new Error(`missing #${id}`);

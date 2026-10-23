@@ -1,0 +1,39 @@
+{
+  "base_commit": "ad67b0b5995276a34c7434b9370042c6d6016dbd",
+  "original_sha256": {
+    "task-3-native-admission-report.md": "ad3f4abe96c859d6ccd64035615330b0a233771cda31482380931af645415085",
+    "task-3-native-admission-package.diff": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+    "task-3-native-admission-hashes.json": "7f12263e32d4553f847e0e65c372d584db109c507153f0502791e9a8afbf6889",
+    "task-3-native-final-all-tests.txt": "aa110e5a69390c910969fa63696f421dc5c9df52a7a5ee6a18524e7b2d4ed3de",
+    "task-3-native-workflow-tests.txt": "69ec61638b861ac08d6c2687e0b19052e329225bd8d28bf7a8557220d816aca7",
+    "task-3-native-api-costs.json": "b380d3f3d7f5b36e74fdc6ab2726089f8c04bc9996263af6eca989681a970ac7",
+    "task-3-native-gate-api-costs.json": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+    "task-3-native-plan-api-costs.json": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a",
+    "task-3-native-fixture-api-costs.json": "7a1237854705d7776f4cc9aa22f70965035529d56de3713ab9dc7f5ce118e6ae",
+    "task-3-native-admission-evidence-hashes.json": "2ca8311f47523e525bfb6147a4c654166971f5b5029c963b507d56b1a640e556",
+    "task-3-native-final-tests.txt": "d3552d2d2fd48947275bf6c269275cd170a710970ebf49e6a56909c340cbf855",
+    "task-3-native-admission-brief.md": "0ac6e1f0d76056f84ef63bbb1991bc62243c0b9ae1725542c701e31f8b642ba7",
+    "task-3-native-admission-preflight.md": "f10819d3f0c54fe655f0e3faa1accc4ae5498bf69561bdff240cf16a5b0f24bf",
+    "task-3-native-admission-spec-review.md": "986dc010dc4c68825bf412b04b375a2555ee7b1dfb60d5759963701f742e2c82",
+    "task-3-native-admission-quality-review.md": "1bdc861726f7d96cb2e2c6550fa4d6e5cdba94236e8899c62b6cebdf95522702"
+  },
+  "retained_sha256": {
+    "task-3-native-admission-report.md": "ad3f4abe96c859d6ccd64035615330b0a233771cda31482380931af645415085",
+    "task-3-native-admission-package.diff": "db36c9dbfd0961cd4e566e7aadad5d0bda473d6d1117cde53bedc21a518df60d",
+    "task-3-native-admission-hashes.json": "dc1bb3b00d556af80f3a4288c0324c67111f4c30d2e2cdd128610ada1f68c135",
+    "task-3-native-final-all-tests.txt": "4ad1cc699c496df282cffce47aab2b8702d1db72dfc0f55d3f7370ebbb157b42",
+    "task-3-native-workflow-tests.txt": "e5831652f929d02f7061ccd1364690e5d21ab428a819e4bbf71ddb086f2c562f",
+    "task-3-native-api-costs.json": "e95e67b585e1a110b809cbc3c458bbf692f513b884787440ac2273a8fecb6fec",
+    "task-3-native-gate-api-costs.json": "af124c977ebfcc690dd1785c35699f35613cc4a116f3eee5ed9bf7bc0f3ed21a",
+    "task-3-native-plan-api-costs.json": "077ddebee0594dcbea3279384da65030c2e7887e2396baca3ae26062b5a488fc",
+    "task-3-native-fixture-api-costs.json": "079608137e84909083600321264d7b80b984032c06cd7f6ab180a98111771643",
+    "task-3-native-admission-evidence-hashes.json": "9a012bc47d7aa2e06b8120bf1d8b56f48a7c5a2538ea70ad83a8e62fee371bb4",
+    "task-3-native-final-tests.txt": "3fe46d37565abed79bede9bfdf0292299ef18e7ded6662c1386034f5dc966a59",
+    "task-3-native-admission-brief.md": "0ac6e1f0d76056f84ef63bbb1991bc62243c0b9ae1725542c701e31f8b642ba7",
+    "task-3-native-admission-preflight.md": "72095bea31c71998647f1b0d9d8f4895daaddf7231d6cf00fdf9f398bdb92130",
+    "task-3-native-admission-spec-review.md": "986dc010dc4c68825bf412b04b375a2555ee7b1dfb60d5759963701f742e2c82",
+    "task-3-native-admission-quality-review.md": "1bdc861726f7d96cb2e2c6550fa4d6e5cdba94236e8899c62b6cebdf95522702"
+  },
+  "normalization": "Retained text changes CRLF to LF only. Raw local files remain unchanged; patch context spaces remain exact.",
+  "scope": "Initial frozen native-admission implementation and local fixture evidence; not actual Linux qualification or native coverage."
+}

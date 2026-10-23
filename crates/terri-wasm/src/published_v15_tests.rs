@@ -40,12 +40,48 @@ fn six(snapshot: &terri_core::SaveSnapshotV15) -> &terri_core::SaveSnapshotV6 {
     &snapshot.legacy.legacy.legacy.legacy.legacy.legacy
 }
 
+pub(super) fn pre_balance_content() -> terri_sim::Content {
+    // The empty probe exposes the catalogue without adding a crate dependency.
+    // Tested worlds receive historical inputs before their construction.
+    let catalogue = Sim::new();
+    let mut pack = catalogue.world().resource::<Content>().0.clone();
+    pack.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+    pack.tuning.relationship_gain_per_talk = 0.17;
+    pack.tuning.fight_rules = terri_sim::FightRules::Published;
+    pack.tuning.fight_chance_per_tick = 0.01;
+    let chat = pack
+        .social
+        .iter_mut()
+        .find(|action| action.id == "chat")
+        .unwrap();
+    let social = chat
+        .advertises
+        .iter_mut()
+        .find(|(need, _)| usize::from(*need) == terri_core::NeedId::Social.index())
+        .unwrap();
+    assert_eq!(social.1, 100.5);
+    social.1 = 50.25;
+    for object in &mut pack.objects {
+        for action in &mut object.interactions {
+            if action.id == "attend_correspondence" {
+                assert!(action.advertises.iter().any(|(need, amount)| {
+                    usize::from(*need) == terri_core::NeedId::Social.index() && *amount == 24.0
+                }));
+                action
+                    .advertises
+                    .retain(|(need, _)| usize::from(*need) != terri_core::NeedId::Social.index());
+            }
+        }
+    }
+    terri_sim::Content(Box::leak(Box::new(pack)))
+}
+
 #[test]
 fn checksum_control_compares_the_exact_original_published_state() {
     let bytes = include_bytes!("../../../docs/evidence/2026-10-17-room-identities/published-v15-producer/published-v15-golden-public-100.sav");
     let original = decode(bytes);
     for current in [false, true] {
-        let mut sim = Sim::new_with_lot(24, 24);
+        let mut sim = Sim::new_with_lot_and_content(24, 24, pre_balance_content());
         if !current {
             sim.world_mut()
                 .remove_resource::<terri_core::rooms::SavedRooms>();
@@ -96,6 +132,24 @@ fn checksum_control_compares_the_exact_original_published_state() {
                 .world
                 .content_fingerprint,
         );
+        // Historical digests predate only this new timer resource. Prove the
+        // inspection keeps every other current field before comparing hashes.
+        let before_hash_inspection = if current {
+            sim.save_snapshot_v16().legacy
+        } else {
+            sim.save_snapshot_v15()
+        };
+        sim.world_mut()
+            .insert_resource(terri_core::save_v19::SavedNeglect::default());
+        assert_eq!(
+            if current {
+                sim.save_snapshot_v16().legacy
+            } else {
+                sim.save_snapshot_v15()
+            },
+            before_hash_inspection,
+            "historical hash inspection preserves every published V15 field"
+        );
         if current {
             let original_five = &six(&original).legacy;
             let actual_five = &mut captured.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
@@ -128,7 +182,6 @@ fn checksum_control_compares_the_exact_original_published_state() {
                 "after the reviewed catalogue fingerprint rewrite, only blank-layout encoding and Outside proximity relationships change"
             );
             assert_eq!(sim.world_hash(), 4661132544113609906);
-            eprintln!("checksum cause: original=4676206450852028819 current={} relationship_rows={changed_relationships}", sim.world_hash());
         } else {
             assert_eq!(
                 captured, original,
@@ -145,7 +198,11 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         let original = decode(bytes);
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let migrated = decode_current(&source.save_bytes()).legacy;
+        let migrated = decode_current(&source.save_bytes())
+            .legacy
+            .legacy
+            .legacy
+            .legacy;
         let mut expected_requests = original.conversation_requests.clone();
         if name == "chat-talking-later-identical" {
             use terri_core::save_v15::{
@@ -297,7 +354,8 @@ fn authentic_published_fifteen_survives_build_baselines_and_rejected_loads() {
         live.sim.commit_build(token).unwrap();
         let mut committed = decode_current(&live.save_bytes());
         let baseline = decode_current(&settled);
-        committed.legacy.rooms = baseline.legacy.rooms.clone();
+        committed.legacy.legacy.legacy.legacy.rooms =
+            baseline.legacy.legacy.legacy.legacy.rooms.clone();
         assert_eq!(committed, baseline, "only the confirmed room name changes");
         let confirmed = live.save_bytes();
         live.sim
@@ -360,7 +418,7 @@ fn authentic_published_player_phases_are_visible_while_paused_without_observatio
             .index;
         let mut source = SimHandle::from_lot();
         assert!(source.load_bytes(bytes), "authentic {name}");
-        let before = source.sim.save_snapshot_v17();
+        let before = source.sim.current_v17_view();
         let world = &before
             .legacy
             .legacy
@@ -424,14 +482,14 @@ fn authentic_published_player_phases_are_visible_while_paused_without_observatio
             );
         }
         assert_eq!(
-            source.sim.save_snapshot_v17(),
+            source.sim.current_v17_view(),
             before,
             "paused queries are pure"
         );
         assert!(source.sim.action_events_since(0).events.is_empty());
-        source.sim.load_snapshot_v17(before.clone()).unwrap();
+        source.sim.load_current_v17_view(before.clone()).unwrap();
         assert_eq!(
-            source.sim.save_snapshot_v17(),
+            source.sim.current_v17_view(),
             before,
             "current metadata is authoritative"
         );

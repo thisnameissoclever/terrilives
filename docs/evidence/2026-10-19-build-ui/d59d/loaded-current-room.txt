@@ -1,0 +1,41 @@
+- generic "Isometric household. Use Help for controls and accessible status." [active]
+- region "Household status":
+  - generic: Time
+  - strong: "Day 1, Monday 03:14 Spring: mild"
+  - generic: Funds
+  - strong: "0"
+  - status: Saved game loaded
+  - status
+- region "Build mode":
+  - heading "Build mode" [level=2]
+  - button "Exit build"
+  - group "Build tool":
+    - button "Furniture"
+    - button "Walls"
+    - button "Rooms" [pressed]
+    - button "Buy"
+    - button "Floors"
+    - button "Land"
+  - generic "Rooms mode":
+    - button "Select rooms" [pressed]
+    - button "Build room"
+  - generic: Room
+  - combobox "Room":
+    - option "Select a room" [selected]
+    - option "Outside · 128 tiles · Outside"
+    - option "Kitchen merged Land · 48 tiles · 0, 0"
+    - option "Living room · 48 tiles · 8, 0"
+    - option "Bedroom 1 · 36 tiles · 0, 6"
+    - option "Bedroom 2 · 36 tiles · 6, 6"
+    - option "Bathroom · 24 tiles · 12, 6"
+  - generic: Room name
+  - textbox "Room name" [disabled]
+  - paragraph: Room boundaries update when you Confirm.
+  - paragraph: Outside counts as one room, including disconnected outdoor areas.
+  - button "Cancel"
+  - button "Confirm"
+- generic "Camera zoom":
+  - button "Zoom out":
+  - button "Zoom in": +
+  - button "Options"
+- status: 1Password menu is available. Press down arrow to select.

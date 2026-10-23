@@ -1,0 +1,78 @@
+{
+  "application_revision": "ac25b9b2f40aa2d48d97f02afbaa4e1223ca200d",
+  "merged_main": "8465a69d89c497155dc1957ba36de18bf463e970",
+  "captured_head": "ac25b9b2f40aa2d48d97f02afbaa4e1223ca200d",
+  "source_sha256": {
+    "web/index.html": "edccf6a12353e30d7407ed66004db62c1d067e870e4049395cfb90bd51b39bd6",
+    "web/src/main.ts": "2a8ba8ce99206a00ff515d9616eb6fb6ed2154c3769adb2f85b6e3a6a7b61183",
+    "web/src/ui/build-exit.ts": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+    "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908",
+    "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+    "web/src/wasm/terri_wasm_bg.wasm": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+  },
+  "logs": {
+    "v19-wasm-build.log": {
+      "original_sha256": "d8aed1472a4bca817a5885579fe37d9e9bfdce5359f1d2af229917cbe55ded5e",
+      "retained_sha256": "86a47ee749274a917da9a8b09825f9cbce146461f84898193a8caa9618fc28e2"
+    },
+    "v19-typecheck.log": {
+      "original_sha256": "696468ad079ab726f2e8042418d54153b3dcb5dd807a90406a7cce2af0a11ceb",
+      "retained_sha256": "a0f99707be80bcf2bc3cae357209ea13d539c9a9ed0d59266b0182d0095d8aad"
+    },
+    "v19-focused-web-tests.log": {
+      "original_sha256": "cefbc741f7e934f48a1105f8c974b886668e19aa574a165994d5e94ebb7d64b7",
+      "retained_sha256": "d0336cf254868d839f8a62ceb474d0cf15f1e77e2994741dd5ef887458b19187"
+    },
+    "v19-production-build.log": {
+      "original_sha256": "71310f2fdeb4bea104fa9002169546083c2dd72bed128736c4a3e4ffbadd29b6",
+      "retained_sha256": "1057bb0aa8dbdc9bcbe513b756aca42430a6e1c526b5db49aff3db31bb6a6982"
+    }
+  },
+  "retained_capture_sha256": {
+    "dock-390.jpg": "c158b247c0e3bc2871570def3e16f91fbedf8c877566992164bbcf288aad0153",
+    "dock-390.json": "85c86e87dedb8c483a112b87a0db326bbd43a51b07298c78dc99e487073970c4",
+    "dock-434.jpg": "da72b6f20b51bea5f20d130307f9a1f4bd822810d82f54977460ae7f02754040",
+    "dock-434.json": "6103bb122959909ddeb92a321dd0fb39455bfbad228d0ba02098c1d6e03bc35b",
+    "exit-dialog-390-keyboard.jpg": "69e3611a97176e7d4a73f7b7bd3e34a47d2170941002e0e1f4a4d8e359d80bc5",
+    "exit-dialog-390-keyboard.json": "dce25d396ba9688d5ccc26aa7320f1d66acd86650f5d22e5b17be947db555f1e",
+    "walls-land-review-back-390.jpg": "3d972024d8dcda88ae2d38fee8398dc228bc6d3f47da2688061d7d00d7c200cc",
+    "walls-land-review-back-390.json": "cd8b2362d4e9615291cad993f15378659f85e5d9eabb5bd4d4db1d24e96f83e3",
+    "loaded-room-state.txt": "38b2b67c832ce036274799f65a17406a1b2c1fb72736b2c11f565907d2102822",
+    "final-loaded-game.jpg": "33f07ceaa490fa09531a19c7dece3858394770513b00d55873b428edd92d6476",
+    "cleanup.json": "bf98fae4f2b5d9559fec0fb9584437310b3178e503c7209b108c0187cd626f70",
+    "independent-visual-review.md": "40a9f184a648f4ed928fdd2e5aabbef7c67307f8125c18063c809cac885923b8"
+  },
+  "original_capture_sha256": {
+    "dock-390.jpg": "c158b247c0e3bc2871570def3e16f91fbedf8c877566992164bbcf288aad0153",
+    "dock-390.json": "85c86e87dedb8c483a112b87a0db326bbd43a51b07298c78dc99e487073970c4",
+    "dock-434.jpg": "da72b6f20b51bea5f20d130307f9a1f4bd822810d82f54977460ae7f02754040",
+    "dock-434.json": "6103bb122959909ddeb92a321dd0fb39455bfbad228d0ba02098c1d6e03bc35b",
+    "exit-dialog-390-keyboard.jpg": "69e3611a97176e7d4a73f7b7bd3e34a47d2170941002e0e1f4a4d8e359d80bc5",
+    "exit-dialog-390-keyboard.json": "dce25d396ba9688d5ccc26aa7320f1d66acd86650f5d22e5b17be947db555f1e",
+    "walls-land-review-back-390.jpg": "3d972024d8dcda88ae2d38fee8398dc228bc6d3f47da2688061d7d00d7c200cc",
+    "walls-land-review-back-390.json": "cd8b2362d4e9615291cad993f15378659f85e5d9eabb5bd4d4db1d24e96f83e3",
+    "loaded-room-state.txt": "38b2b67c832ce036274799f65a17406a1b2c1fb72736b2c11f565907d2102822",
+    "final-loaded-game.jpg": "33f07ceaa490fa09531a19c7dece3858394770513b00d55873b428edd92d6476",
+    "cleanup.json": "bf98fae4f2b5d9559fec0fb9584437310b3178e503c7209b108c0187cd626f70",
+    "independent-visual-review.md": "40a9f184a648f4ed928fdd2e5aabbef7c67307f8125c18063c809cac885923b8"
+  },
+  "checks": {
+    "normal_release_wasm": "passed",
+    "typecheck": "passed",
+    "affected_web_tests": {
+      "files": 16,
+      "tests": 479,
+      "result": "passed",
+      "workers": 1
+    },
+    "production_build": "passed",
+    "source_integration_review": "approved",
+    "independent_visual_review": "approved"
+  },
+  "proof_limits": [
+    "No Linux mutation cleanup or recovery proof",
+    "No production mutation campaign",
+    "No physical touch or operating-system held-repeat proof",
+    "No PR merge, deployment or live-game claim"
+  ]
+}

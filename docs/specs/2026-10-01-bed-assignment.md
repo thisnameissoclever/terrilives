@@ -25,7 +25,8 @@ and independent reviews.
 
 1. A double bed has two sleeping places. The supported lower bunk has one.
    Travelling to a place reserves it just as sleeping in it does.
-2. Each living Sim can have one assigned place. Each place can have one
+2. On simulation ticks, an unassigned living Sim automatically claims a reachable, unassigned place. People choose in stable identity order, preferring the shortest route and then the bed and place order. Existing assignments are preserved. Clearing an assignment makes that person eligible again on the next tick. Paused command processing does not assign places.
+   Each living Sim can have one assigned place. Each place can have one
    assignee. Assigning an already assigned place refuses the change rather
    than silently taking it from somebody else.
 3. A tired Sim prefers their available, reachable place. Other Sims prefer
@@ -43,15 +44,14 @@ and independent reviews.
 
 The existing `Reserved` marker retains whole-object exclusivity for ordinary
 furniture. Beds use owner-aware place admission and release. Authored sleep
-capacity also controls household bed-shortage counting. Shared sleeping does
+capacity also controls individual missing-bed reporting. Shared sleeping does
 not bypass reservation checks.
 
 An active sleep place belongs to the Sim's current `Target`, including the
 walk to it. Alternative sleep interactions on one bed share physical places.
-Use one capacity definition throughout admission, assignment, shortage counting
+Use one capacity definition throughout admission, assignment, missing-bed reporting
 and save validation: the maximum `slots` across the object's sleep-tagged
-interactions, or zero when there are none. This preserves the existing
-household shortage calculation. Validate the selected interaction's sleep tag;
+interactions, or zero when there are none. A double bed offers two distinct assignments; the supported lower bunk offers one. Validate the selected interaction's sleep tag;
 validate the place against the bed's shared capacity. Renderer profiles do not
 define capacity.
 A place is occupied by at most one Sim; one Sim occupies at most one place.

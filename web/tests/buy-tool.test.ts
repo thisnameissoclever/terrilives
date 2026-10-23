@@ -177,7 +177,7 @@ describe('BuyTool', () => {
     const { buy } = tool();
     buy.enter();
     buy.choose(CHAIR.definition);
-    expect([buy.preview?.x, buy.preview?.y, buy.preview?.facing, buy.status]).toEqual([4, 3, 1, 'Ready to buy.']);
+    expect([buy.preview?.x, buy.preview?.y, buy.preview?.facing, buy.status]).toEqual([4, 3, 1, '']);
     buy.moveTo(2, 1);
     buy.choose(BED.definition);
     expect([buy.chosen, buy.preview?.x, buy.preview?.y, buy.preview?.facing]).toEqual([BED, 2, 1, 0]);

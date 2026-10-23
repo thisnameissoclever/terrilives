@@ -26,6 +26,29 @@ pub(crate) fn work_needed(world: &World, state: &SavedChores, key: ChoreKey, own
         .map_or(0.5, |(_, person)| {
             crate::domestic::cleanliness(world, person)
         });
+    work_needed_at_cleanliness(world, state, key, clean)
+}
+
+pub(crate) fn work_needed_for(
+    world: &World,
+    state: &SavedChores,
+    key: ChoreKey,
+    owner: Entity,
+) -> bool {
+    work_needed_at_cleanliness(
+        world,
+        state,
+        key,
+        crate::domestic::cleanliness(world, owner),
+    )
+}
+
+fn work_needed_at_cleanliness(
+    world: &World,
+    state: &SavedChores,
+    key: ChoreKey,
+    clean: f32,
+) -> bool {
     match key.kind {
         ChoreKind::Bins => dirt_in(world, state, key) >= 600,
         ChoreKind::Dishes => {
@@ -62,9 +85,12 @@ pub(crate) fn readiness(world: &World, person: Entity) -> f32 {
     ((urgent - critical) / (45.0 - critical)).clamp(0.0, 1.0)
 }
 fn idle(world: &World, state: &SavedChores, person: Entity) -> bool {
-    world
-        .get::<crate::reading::ReadingJourney>(person)
-        .is_none()
+    // A reserved person is waiting for someone walking over to talk or argue.
+    // The loader refuses a reserved recipient with work of their own.
+    world.get::<terri_core::Reserved>(person).is_none()
+        && world
+            .get::<crate::reading::ReadingJourney>(person)
+            .is_none()
         && world.get::<crate::reading::PendingShift>(person).is_none()
         && !state.tasks.iter().any(|t| t.person == person.index_u32())
         && world.get::<Path>(person).is_none()
@@ -346,7 +372,9 @@ pub(crate) fn credit(
     }
     if !covered {
         history(state, owner, if day == today { 100 } else { 50 });
-    } else if state.episodes[index].decision == Some(false) {
+    } else if state.episodes[index].decision == Some(false)
+        && crate::neglect::episode_matured(world, state.episodes[index].id)
+    {
         history(state, owner, 50);
     }
     let outcome = if covered {
@@ -355,18 +383,28 @@ pub(crate) fn credit(
         crate::activity_log::OUTCOME_DONE
     };
     log_outcome(world, (actor.0, owner), key.kind, outcome);
-    for (_, observer) in people(world) {
-        let cleanliness = crate::domestic::cleanliness(world, observer);
-        effect(
-            world,
-            actor.0,
-            observer,
-            0.006 + 0.006 * cleanliness,
-            crate::relationship_effects::RelationshipCause::ChoreFulfilled,
-        );
-    }
-    if covered && state.episodes[index].decision == Some(false) {
+    if covered
+        && state.episodes[index].decision == Some(false)
+        && crate::neglect::episode_matured(world, state.episodes[index].id)
+    {
         if let Some(helper) = crate::dining::entity(world, person) {
+            if let Some(affected) = world.get::<SimId>(helper).copied() {
+                let delta = crate::relationship_effects::scaled_opinion_delta(
+                    world,
+                    affected,
+                    SimId(owner),
+                    crate::relationship_effects::RelationshipCause::ChoreNeglected,
+                    -0.004,
+                );
+                crate::chore_repair::record_annoyance_in(
+                    world,
+                    state,
+                    affected,
+                    SimId(owner),
+                    key,
+                    -delta,
+                );
+            }
             effect(
                 world,
                 owner,
@@ -381,6 +419,8 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
     if reconcile(world, state) {
         log_week(world, state);
     }
+    crate::neglect::refresh_in(world, state);
+    crate::chore_repair::tick_in(world, state);
     if !state.board_enabled {
         return;
     }
@@ -409,8 +449,20 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             {
                 continue;
             }
-            let missed =
-                state.episodes[i].needed && !state.episodes[i].unavailable && person.is_some();
+            let needed = work_needed(world, state, key, owner);
+            if needed
+                && state.episodes[i].needed
+                && !state.episodes[i].unavailable
+                && person.is_some()
+                && !crate::neglect::duty_due(world, state, key, owner)
+            {
+                continue;
+            }
+            let missed = needed
+                && crate::neglect::duty_due(world, state, key, owner)
+                && state.episodes[i].needed
+                && !state.episodes[i].unavailable
+                && person.is_some();
             state.episodes[i].outcome = if missed {
                 DutyOutcome::Missed
             } else if state.episodes[i].needed {
@@ -429,11 +481,29 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
                 );
                 for (_, observer) in &live {
                     let cleanliness = crate::domestic::cleanliness(world, *observer);
+                    let loss = -(0.008 + 0.012 * cleanliness);
+                    if let Some(affected) = world.get::<SimId>(*observer).copied() {
+                        let scaled = crate::relationship_effects::scaled_opinion_delta(
+                            world,
+                            affected,
+                            SimId(owner),
+                            crate::relationship_effects::RelationshipCause::ChoreNeglected,
+                            loss,
+                        );
+                        crate::chore_repair::record_annoyance_in(
+                            world,
+                            state,
+                            affected,
+                            SimId(owner),
+                            key,
+                            -scaled,
+                        );
+                    }
                     effect(
                         world,
                         owner,
                         *observer,
-                        -(0.008 + 0.012 * cleanliness),
+                        loss,
                         crate::relationship_effects::RelationshipCause::ChoreNeglected,
                     );
                 }

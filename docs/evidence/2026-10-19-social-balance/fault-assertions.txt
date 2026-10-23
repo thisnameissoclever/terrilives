@@ -1,0 +1,78 @@
+failures:
+
+---- chores::board_tests::balance_household_grace_helper_resentment_uses_the_same_boundary stdout ----
+
+thread 'chores::board_tests::balance_household_grace_helper_resentment_uses_the_same_boundary' (60704) panicked at crates\terri-sim\src\chores\board_tests.rs:367:9:
+assertion `left == right` failed
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- chores::board_tests::balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment stdout ----
+
+thread 'chores::board_tests::balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment' (67756) panicked at crates\terri-sim\src\chores\board_tests.rs:319:5:
+assertion `left == right` failed
+  left: 40
+ right: 50
+
+---- chores::board_tests::balance_household_grace_removed_dirty_member_does_not_age_reused_duty stdout ----
+
+thread 'chores::board_tests::balance_household_grace_removed_dirty_member_does_not_age_reused_duty' (12328) panicked at crates\terri-sim\src\chores\board_tests.rs:507:5:
+fresh work on the same daily duty gets fresh grace
+
+---- domestic::tests::balance_household_grace_fresh_dishes_have_no_ordinary_annoyance stdout ----
+
+thread 'domestic::tests::balance_household_grace_fresh_dishes_have_no_ordinary_annoyance' (52448) panicked at crates\terri-sim\src\domestic\tests.rs:3607:5:
+assertion `left == right` failed
+  left: -0.003
+ right: 0.0
+
+---- need_interactions::tests::correspondence_balance_tests::conversation_balance_correspondence_provides_social_while_alone stdout ----
+
+thread 'need_interactions::tests::correspondence_balance_tests::conversation_balance_correspondence_provides_social_while_alone' (64940) panicked at crates\terri-sim\src\need_interactions\tests\correspondence_balance_tests.rs:19:5:
+letters offer Social without another person at the desk
+
+---- chores::board_tests::balance_household_grace_real_gradual_wipe_retains_its_admitted_boundary stdout ----
+
+thread 'chores::board_tests::balance_household_grace_real_gradual_wipe_retains_its_admitted_boundary' (46728) panicked at crates\terri-sim\src\chores\board_tests.rs:443:17:
+assertion `left == right` failed
+  left: true
+ right: false
+
+---- neglect::tests::balance_household_grace_maximum_boundary_and_partial_cleaning_reset stdout ----
+
+thread 'neglect::tests::balance_household_grace_maximum_boundary_and_partial_cleaning_reset' (47912) panicked at crates\terri-sim\src\neglect\tests.rs:42:5:
+assertion failed: !source_due(sim.world(), source)
+
+---- chores::board_tests::balance_household_grace_cancel_below_tolerance_clears_prior_maturity stdout ----
+
+thread 'chores::board_tests::balance_household_grace_cancel_below_tolerance_clears_prior_maturity' (81160) panicked at crates\terri-sim\src\chores\board_tests.rs:571:5:
+assertion failed: !crate::neglect::episode_matured(sim.world(), episode_id)
+
+---- social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions stdout ----
+
+thread 'social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions' (58596) panicked at crates\terri-sim\src\social_episode\tests\reward_balance_tests.rs:101:9:
+assertion failed: (sim.world().get::<Relationships>(a).unwrap().feeling(bid) - 0.15).abs() <
+    0.00001
+
+---- neglect::tests::balance_household_grace_save_continues_and_legacy_starts_fresh stdout ----
+
+thread 'neglect::tests::balance_household_grace_save_continues_and_legacy_starts_fresh' (27140) panicked at crates\terri-sim\src\neglect\tests.rs:86:5:
+assertion failed: !source_due(loaded.world(), NeglectSource::Surface(counter))
+
+
+failures:
+    chores::board_tests::balance_household_grace_cancel_below_tolerance_clears_prior_maturity
+    chores::board_tests::balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment
+    chores::board_tests::balance_household_grace_helper_resentment_uses_the_same_boundary
+    chores::board_tests::balance_household_grace_real_gradual_wipe_retains_its_admitted_boundary
+    chores::board_tests::balance_household_grace_removed_dirty_member_does_not_age_reused_duty
+    domestic::tests::balance_household_grace_fresh_dishes_have_no_ordinary_annoyance
+    need_interactions::tests::correspondence_balance_tests::conversation_balance_correspondence_provides_social_while_alone
+    neglect::tests::balance_household_grace_maximum_boundary_and_partial_cleaning_reset
+    neglect::tests::balance_household_grace_save_continues_and_legacy_starts_fresh
+    social_episode::tests::reward_balance_tests::conversation_balance_family_increases_positive_and_softens_negative_opinions
+
+test result: FAILED. 15 passed; 10 failed; 0 ignored; 0 measured; 1760 filtered out; finished in 1.35s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

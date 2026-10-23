@@ -3196,8 +3196,85 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = fight_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::FightTuningOutOfRange { key });
     }
+    let purposeful_fight_rules = [
+        (
+            "fight_grievance_ticks",
+            (1..=100_800).contains(&tuning.fight_grievance_ticks),
+        ),
+        (
+            "fight_history_ticks",
+            (1..=100_800).contains(&tuning.fight_history_ticks)
+                && tuning.fight_history_ticks >= tuning.fight_grievance_ticks,
+        ),
+        (
+            "fight_repeat_grievance_ticks",
+            (1..=100_800).contains(&tuning.fight_repeat_grievance_ticks),
+        ),
+        (
+            "fight_mood_bad_multiplier",
+            tuning.fight_mood_bad_multiplier.is_finite()
+                && (1.0..=10.0).contains(&tuning.fight_mood_bad_multiplier),
+        ),
+        (
+            "fight_mood_good_multiplier",
+            chance(tuning.fight_mood_good_multiplier),
+        ),
+        (
+            "fight_opinion_strength",
+            chance(tuning.fight_opinion_strength),
+        ),
+        (
+            "fight_severity_reference",
+            tuning.fight_severity_reference.is_finite()
+                && tuning.fight_severity_reference > 0.0
+                && tuning.fight_severity_reference <= 2.0,
+        ),
+        (
+            "chore_fight_response_base",
+            chance(tuning.chore_fight_response_base),
+        ),
+        (
+            "chore_fight_response_ticks",
+            (1..=100_800).contains(&tuning.chore_fight_response_ticks),
+        ),
+        (
+            "chore_fight_response_cleanliness",
+            chance(tuning.chore_fight_response_cleanliness),
+        ),
+        (
+            "chore_fight_response_responsibility",
+            chance(tuning.chore_fight_response_responsibility),
+        ),
+        (
+            "chore_fight_response_commitment",
+            chance(tuning.chore_fight_response_commitment),
+        ),
+        (
+            "chore_fight_response_preference",
+            chance(tuning.chore_fight_response_preference),
+        ),
+        (
+            "chore_fight_response_affinity",
+            chance(tuning.chore_fight_response_affinity),
+        ),
+        (
+            "chore_fight_response_mood",
+            chance(tuning.chore_fight_response_mood),
+        ),
+        ("chore_repair_base", chance(tuning.chore_repair_base)),
+        (
+            "chore_repair_cleanliness",
+            chance(tuning.chore_repair_cleanliness),
+        ),
+    ];
+    if let Some((key, _)) = purposeful_fight_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::FightTuningOutOfRange { key });
+    }
     if tuning.autonomy.is_some_and(|policy| !policy.valid()) {
         return Err(ContentError::InvalidAutonomyTuning);
+    }
+    if tuning.weather.is_some_and(|weather| !weather.valid()) {
+        return Err(ContentError::InvalidWeatherTuning);
     }
     let land_rules = [
         (
@@ -3941,6 +4018,25 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             days_per_season: tuning.days_per_season,
             first_season: tuning.first_season,
             season_yard_looks: tuning.season_yard_looks,
+            weather: tuning.weather,
+            fight_rules: crate::pack::FightRules::Attributed,
+            fight_grievance_ticks: tuning.fight_grievance_ticks,
+            fight_history_ticks: tuning.fight_history_ticks,
+            fight_repeat_grievance_ticks: tuning.fight_repeat_grievance_ticks,
+            fight_mood_bad_multiplier: tuning.fight_mood_bad_multiplier,
+            fight_mood_good_multiplier: tuning.fight_mood_good_multiplier,
+            fight_opinion_strength: tuning.fight_opinion_strength,
+            fight_severity_reference: tuning.fight_severity_reference,
+            chore_fight_response_base: tuning.chore_fight_response_base,
+            chore_fight_response_ticks: tuning.chore_fight_response_ticks,
+            chore_fight_response_cleanliness: tuning.chore_fight_response_cleanliness,
+            chore_fight_response_responsibility: tuning.chore_fight_response_responsibility,
+            chore_fight_response_commitment: tuning.chore_fight_response_commitment,
+            chore_fight_response_preference: tuning.chore_fight_response_preference,
+            chore_fight_response_affinity: tuning.chore_fight_response_affinity,
+            chore_fight_response_mood: tuning.chore_fight_response_mood,
+            chore_repair_base: tuning.chore_repair_base,
+            chore_repair_cleanliness: tuning.chore_repair_cleanliness,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -5408,6 +5504,24 @@ mod tests {
             career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             autonomy: None,
+            weather: None,
+            fight_grievance_ticks: 360,
+            fight_history_ticks: 10080,
+            fight_repeat_grievance_ticks: 1440,
+            fight_mood_bad_multiplier: 2.0,
+            fight_mood_good_multiplier: 0.25,
+            fight_opinion_strength: 0.5,
+            fight_severity_reference: 0.25,
+            chore_fight_response_base: 0.80,
+            chore_fight_response_ticks: 240,
+            chore_fight_response_cleanliness: 0.20,
+            chore_fight_response_responsibility: 0.10,
+            chore_fight_response_commitment: 0.05,
+            chore_fight_response_preference: 0.05,
+            chore_fight_response_affinity: 0.05,
+            chore_fight_response_mood: 0.05,
+            chore_repair_base: 0.08,
+            chore_repair_cleanliness: 0.04,
             meal_appreciation_gain: 0.0,
             days_per_season: crate::Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: crate::Tuning::SHIPPED_FIRST_SEASON,
@@ -6721,8 +6835,87 @@ mod tests {
     }
 
     #[test]
+    fn issue314_purposeful_fight_tuning_rejects_nonfinite_and_invalid_ranges() {
+        macro_rules! rejects {
+            ($field:ident, $value:expr) => {{
+                let mut tuning = full_tuning();
+                tuning.$field = $value;
+                assert!(matches!(compile_tuned(tuning), Err(ContentError::FightTuningOutOfRange { key }) if key == stringify!($field)));
+            }};
+        }
+        rejects!(fight_mood_bad_multiplier, f32::NAN);
+        rejects!(fight_mood_bad_multiplier, f32::INFINITY);
+        rejects!(fight_mood_good_multiplier, f32::NAN);
+        rejects!(fight_mood_good_multiplier, f32::INFINITY);
+        rejects!(fight_opinion_strength, f32::NAN);
+        rejects!(fight_opinion_strength, f32::INFINITY);
+        rejects!(fight_severity_reference, f32::NAN);
+        rejects!(fight_severity_reference, f32::INFINITY);
+        rejects!(chore_fight_response_base, f32::NAN);
+        rejects!(chore_fight_response_base, f32::INFINITY);
+        rejects!(chore_fight_response_cleanliness, f32::NAN);
+        rejects!(chore_fight_response_cleanliness, f32::INFINITY);
+        rejects!(chore_fight_response_responsibility, f32::NAN);
+        rejects!(chore_fight_response_responsibility, f32::INFINITY);
+        rejects!(chore_fight_response_commitment, f32::NAN);
+        rejects!(chore_fight_response_commitment, f32::INFINITY);
+        rejects!(chore_fight_response_preference, f32::NAN);
+        rejects!(chore_fight_response_preference, f32::INFINITY);
+        rejects!(chore_fight_response_affinity, f32::NAN);
+        rejects!(chore_fight_response_affinity, f32::INFINITY);
+        rejects!(chore_fight_response_mood, f32::NAN);
+        rejects!(chore_fight_response_mood, f32::INFINITY);
+        rejects!(chore_repair_base, f32::NAN);
+        rejects!(chore_repair_base, f32::INFINITY);
+        rejects!(chore_repair_cleanliness, f32::NAN);
+        rejects!(chore_repair_cleanliness, f32::INFINITY);
+        rejects!(fight_grievance_ticks, 0);
+        rejects!(fight_history_ticks, 359);
+        rejects!(fight_repeat_grievance_ticks, 100_801);
+        rejects!(chore_fight_response_ticks, 0);
+        rejects!(fight_mood_bad_multiplier, 0.9);
+        rejects!(fight_mood_good_multiplier, 1.1);
+        rejects!(fight_severity_reference, 0.0);
+        rejects!(chore_fight_response_base, -0.01);
+        rejects!(chore_repair_cleanliness, 1.01);
+    }
+
+    #[test]
+    fn issue314_raw_content_selects_attributed_rules_without_changing_save_identity() {
+        let mut pack = compile_tuned(full_tuning()).unwrap();
+        assert_eq!(pack.tuning.fight_rules, crate::FightRules::Attributed);
+        let fingerprint = crate::content_fingerprint(&pack);
+        pack.tuning.fight_rules = crate::FightRules::Published;
+        assert_eq!(crate::content_fingerprint(&pack), fingerprint);
+    }
+
+    #[test]
+    fn issue314_live_values_compile_and_historical_chance_remains_published() {
+        let current = crate::pack().tuning;
+        assert_eq!(current.fight_chance_per_tick, 0.001);
+        assert_eq!(current.fight_rules, crate::FightRules::Attributed);
+        assert_eq!(current.chore_fight_response_base, 0.80);
+        assert_eq!(current.fight_grievance_ticks, 360);
+        assert_eq!(current.fight_history_ticks, 10_080);
+        assert_eq!(current.fight_repeat_grievance_ticks, 1_440);
+        assert_eq!(current.chore_fight_response_ticks, 240);
+        assert_eq!(crate::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK, 0.01);
+        for historical in [
+            crate::pre_books_pack(),
+            crate::published_pre_books_pack(),
+            crate::affinity_pre_books_pack(),
+            crate::latest_pre_books_pack(),
+            crate::contextual_pre_books_pack(),
+        ] {
+            assert_eq!(historical.tuning.fight_chance_per_tick, 0.01);
+            assert_eq!(historical.tuning.fight_rules, crate::FightRules::Published);
+            assert_eq!(historical.tuning.chore_fight_response_base, 0.80);
+        }
+    }
+
+    #[test]
     fn a_compiled_pack_serialises_to_a_stable_golden_vector() {
-        let pack = compile_bare(
+        let mut pack = compile_bare(
             full_needs(),
             one_object(snack_advertising_three_needs()),
             distinct_lot(),
@@ -6730,6 +6923,7 @@ mod tests {
             distinct_tuning(),
         )
         .expect("valid");
+        pack.tuning.fight_rules = crate::FightRules::Published;
         let bytes = postcard::to_allocvec(&pack).expect("pack must serialise");
         assert!(
             !GOLDEN_PACK_BYTES.is_empty(),
@@ -9823,6 +10017,43 @@ mod tests {
         let compiled =
             compile_tuned(tuning_where(|t| t.days_per_season = u32::MAX)).expect("any length");
         assert_eq!(compiled.tuning.days_per_season, u32::MAX);
+    }
+
+    #[test]
+    fn rejects_weather_that_cannot_finish_before_midnight() {
+        let good = crate::pack().tuning.weather.unwrap();
+        assert_eq!(good.event_day_chance, [0.0, 0.35, 0.4, 0.2]);
+        assert_eq!(good.event_hours, 2.0);
+        assert_eq!(good.leaf_ground_hours, 2.0);
+        type Change = Box<dyn Fn(&mut crate::WeatherTuning)>;
+        let cases: Vec<Change> = vec![
+            Box::new(|w| w.event_day_chance[3] = 1.01),
+            Box::new(|w| w.event_day_chance[2] = -0.01),
+            Box::new(|w| w.event_day_chance[1] = f32::NAN),
+            Box::new(|w| w.event_day_chance[0] = 0.1),
+            Box::new(|w| w.event_hours = 0.0),
+            Box::new(|w| w.earliest_hour = -1.0),
+            Box::new(|w| w.latest_hour = 6.0),
+            Box::new(|w| w.latest_hour = 22.0),
+            Box::new(|w| w.leaf_ground_hours = f32::INFINITY),
+            Box::new(|w| w.leaf_ground_hours = 0.0),
+            Box::new(|w| w.fall_minutes = 0.0),
+            Box::new(|w| w.fall_minutes = 121.0),
+        ];
+        for change in cases {
+            let mut weather = good;
+            change(&mut weather);
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.weather = Some(weather))).unwrap_err(),
+                ContentError::InvalidWeatherTuning
+            );
+        }
+        for probability in [0.0, 1.0] {
+            let mut weather = good;
+            weather.event_day_chance[3] = probability;
+            assert!(compile_tuned(tuning_where(|t| t.weather = Some(weather))).is_ok());
+        }
+        assert!(compile_tuned(tuning_where(|t| t.weather = None)).is_ok());
     }
 
     /// [SEA-year]: `first_season` names a season, 0 (Spring) to 3 (Winter).

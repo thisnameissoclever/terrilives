@@ -67,9 +67,9 @@ fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
             .transfer_contact,
         Some((6, 9))
     );
-    let saved = sim.save_snapshot_v17();
-    sim.load_snapshot_v17(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v17(), saved);
+    let saved = sim.current_v19_view();
+    sim.load_current_v19_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v19_view(), saved);
 }
 
 #[test]
@@ -980,7 +980,9 @@ fn reading_player_running_phase_starts_at_actual_read_entry_without_oscillation(
     assert_eq!(starts[0].tick, sim.world().resource::<SimClock>().tick);
     let pack = sim.world().resource::<Content>().0;
     let mut restored = Sim::new_with_lot_and_content(20, 20, Content(pack));
-    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    restored
+        .load_current_v19_view(sim.current_v19_view())
+        .unwrap();
     for _ in 0..3 {
         sim.tick();
         restored.tick();
@@ -1236,7 +1238,7 @@ fn reading_journey_duplicate_orders_return_before_new_exact_order() {
     let saved = sim.current_v6_view();
     sim.load_current_v6_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v6_view(), saved);
-    let whole = sim.save_snapshot_v17();
+    let whole = sim.current_v19_view();
     let hash = sim.world_hash();
     for fault in 0..3 {
         let mut bad = sim.current_v10_view();
@@ -1249,7 +1251,7 @@ fn reading_journey_duplicate_orders_return_before_new_exact_order() {
         }
         bad.social.communal.push(obsolete);
         assert!(sim.load_current_v10_view(bad).is_err());
-        assert_eq!(sim.save_snapshot_v17(), whole);
+        assert_eq!(sim.current_v19_view(), whole);
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -1459,7 +1461,7 @@ fn reading_journey_blocked_return_keeps_copy_and_recovers() {
     let saved = sim.current_v6_view();
     sim.load_current_v6_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v6_view(), saved);
-    let whole = sim.save_snapshot_v17();
+    let whole = sim.current_v19_view();
     let hash = sim.world_hash();
     for fault in 0..3 {
         let mut bad = sim.current_v10_view();
@@ -1472,7 +1474,7 @@ fn reading_journey_blocked_return_keeps_copy_and_recovers() {
         }
         bad.social.communal.push(obsolete);
         assert!(sim.load_current_v10_view(bad).is_err());
-        assert_eq!(sim.save_snapshot_v17(), whole);
+        assert_eq!(sim.current_v19_view(), whole);
         assert_eq!(sim.world_hash(), hash);
     }
 
@@ -1582,10 +1584,10 @@ fn reading_journey_and_older_orders_defer_work_in_the_saved_scheduled_window() {
         (obligation.start_tick, obligation.end_tick),
         (scheduled_start, scheduled_end)
     );
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.current_v19_view();
     let before = sim.world_hash();
-    sim.load_snapshot_v17(saved.clone()).unwrap();
-    assert_eq!(sim.save_snapshot_v17(), saved);
+    sim.load_current_v19_view(saved.clone()).unwrap();
+    assert_eq!(sim.current_v19_view(), saved);
     assert_eq!(sim.world_hash(), before);
     let funds = sim.world().resource::<Funds>().0;
     let mut observed_work = 0;
@@ -2896,8 +2898,8 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v17::restore(
-        sim.save_snapshot_v17(),
+    let mut returning = crate::save::v20::restore(
+        sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
     )

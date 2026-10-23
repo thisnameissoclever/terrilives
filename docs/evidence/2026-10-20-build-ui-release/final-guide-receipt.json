@@ -1,0 +1,54 @@
+{
+  "revision": "1cb7b7a3dcbbac856001eac1cbd888676cfcd6fc",
+  "url": "http://127.0.0.1:5194/guide/home-and-controls/#rooms-and-land",
+  "driver": "existing Playwright MCP, authorized by owner October 20",
+  "served_html_sha256": "acf475ca444217343dd84d2a4e3bce68f1cc0d46835a7ebb6b049918b027a4ca",
+  "captures": [
+    {
+      "file": "guide-land-desktop-light.png",
+      "width": 1440,
+      "height": 960,
+      "theme": "light",
+      "device_pixel_ratio": 1,
+      "scroll_y": 2411,
+      "horizontal_overflow": false,
+      "sha256": "977e594137b9a6191e8ff593dc093e5ac214bfc6535aabee27b43f673a55a3cd"
+    },
+    {
+      "file": "guide-land-mobile-light.png",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "device_pixel_ratio": 1,
+      "scroll_y": 5293,
+      "horizontal_overflow": false,
+      "sha256": "caf9f7cbd12106095f770f52698245d4180727781ff5fbd745293b401e83081d"
+    },
+    {
+      "file": "guide-land-mobile-dark.png",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "device_pixel_ratio": 1,
+      "scroll_y": 5293,
+      "horizontal_overflow": false,
+      "sha256": "80905edd7734b89215fdfe110e684e001070a5c28cb77f4554d0fb16159befcf"
+    }
+  ],
+  "no_javascript": {
+    "java_script_enabled": false,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "heading": "Rooms and land #",
+    "confirms_discards_keep_labels_readable": true,
+    "native_numbers_disclosure_opened": true,
+    "horizontal_overflow": false,
+    "context_closed_in_finally": true
+  },
+  "limits": [
+    "Static guide only; existing game acceptance retains its original attribution.",
+    "No physical touch, OS held-repeat or naturally clipped popup claim."
+  ]
+}

@@ -233,7 +233,7 @@ it('keeps non-selected household death warnings outside the collapsed roster', (
 
 it('keeps the current activity on the dock and lists critical needs on their own line', () => {
   const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-  expect(html).toContain('<span id="dock-activity"></span><span id="dock-critical"></span>');
+  expect(html).toContain('<button id="dock-activity" type="button"></button><span id="dock-critical"></span>');
   expect(main).toContain("const activity = activityValue.textContent ?? '';");
   expect(main).toContain('dockCritical.textContent = urgent');
   expect(main).toContain('dockActivity.textContent = activity');

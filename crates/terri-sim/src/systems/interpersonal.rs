@@ -658,7 +658,34 @@ pub(crate) fn apply(world: &mut World) {
     let phase = world
         .remove_resource::<InterpersonalPhase>()
         .expect("movement phase must be prepared");
-    for effect in phase.effects {
+    let mutual: std::collections::BTreeSet<_> = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .topics
+        .iter()
+        .filter(|(_, topic)| crate::social_episode::shared_interest(topic))
+        .filter_map(|(initiator, _)| {
+            let talk = world.get::<terri_core::Socialising>(*initiator)?;
+            Some((
+                *world.get::<SimId>(talk.partner)?,
+                *world.get::<SimId>(*initiator)?,
+            ))
+        })
+        .collect();
+    for mut effect in phase.effects {
+        if matches!(
+            effect.cause,
+            RelationshipCause::LowNeedInterruption | RelationshipCause::CriticalNeedInterruption
+        ) && mutual.contains(&(effect.offended, effect.responsible))
+        {
+            continue;
+        }
+        effect.delta = crate::relationship_effects::scaled_opinion_delta(
+            world,
+            effect.offended,
+            effect.responsible,
+            effect.cause,
+            effect.delta,
+        );
         if effect.delta == 0.0
             && !matches!(
                 effect.cause,
@@ -686,6 +713,29 @@ pub(crate) fn apply(world: &mut World) {
             .feeling(effect.responsible)
             - before;
         let tick = world.resource::<terri_core::SimClock>().tick;
+        let grievance = match effect.cause {
+            RelationshipCause::PrivacyEntry => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyEntry)
+            }
+            RelationshipCause::PrivacyStart => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyStart)
+            }
+            RelationshipCause::LowNeedInterruption
+            | RelationshipCause::CriticalNeedInterruption => {
+                Some(terri_core::save_v20::GrievanceKind::NeedInterruption)
+            }
+            _ => None,
+        };
+        if let Some(kind) = grievance {
+            crate::social_conflicts::remember(
+                world,
+                effect.offended,
+                effect.responsible,
+                kind,
+                terri_core::save_v20::GrievanceSubject::None,
+                (-effect.delta).max(0.0),
+            );
+        }
         let pack = world.resource::<Content>().0;
         let fixture = effect
             .fixture

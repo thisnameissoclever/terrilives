@@ -23,6 +23,7 @@ pub enum ContentError {
     },
     InvalidDomesticTuning,
     InvalidAutonomyTuning,
+    InvalidWeatherTuning,
     InvalidNeedInteractionTuning,
     EmptyObjectText {
         object: String,
@@ -2237,7 +2238,10 @@ impl fmt::Display for ContentError {
                  fight_chance_per_tick finite, from 0 to 1; \
                  fight_relationship_loss finite, from 0 to 2; \
                  fight_mood_penalty finite and not negative; \
-                 fight_mood_ticks from 1 to 10080"
+                 fight_mood_ticks from 1 to 10080; grievance, history, repeat and response \
+                 ticks from 1 to 100800, with history at least grievance duration; \
+                 bad-mood multiplier from 1 to 10; severity reference above 0 \
+                 and at most 2; other purposeful-fight weights finite from 0 to 1"
             ),
             ContentError::AffinityTuningOutOfRange { key } => write!(
                 f,
@@ -2634,6 +2638,7 @@ impl fmt::Display for ContentError {
             ),
             ContentError::InvalidNeedInteractionTuning => write!(f, "contextual need rates must be finite and bounded; partial washing cannot exceed the odor threshold"),
             ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
+            ContentError::InvalidWeatherTuning => write!(f, "weather in tuning.toml requires finite daily probabilities in [0, 1], zero Spring probability, positive event, fall and leaf durations, ordered start hours, a fall no longer than the event, and all leaves expired before midnight"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
             ContentError::InvalidInterpersonalTuning => write!(f, "interpersonal penalties, hated_communal_chance and meal_appreciation_gain must be finite, from zero to one, with the critical penalty at least the low penalty"),
             ContentError::InvalidSharedActivity { owner, interaction } => write!(f, "shared activity on {owner}.{interaction} must name one of its activity tags and cannot describe a conversation or private use"),

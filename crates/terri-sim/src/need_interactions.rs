@@ -43,6 +43,7 @@ pub(crate) fn benefits(
     seat_rate: f32,
     shared: bool,
 ) -> Vec<(u8, f32)> {
+    let social = social || crate::social_company::solo_social(act);
     let seat_rate = if crate::seating::work_action(act) {
         0.
     } else {
@@ -257,7 +258,15 @@ pub(crate) fn active_benefits(world: &World, person: Entity) -> Vec<(u8, f32)> {
         .get::<Relationships>(person)
         .cloned()
         .unwrap_or_default();
-    let social = company.active_allowed(person, &feelings);
+    let solo = world
+        .get::<Eating>(person)
+        .filter(|e| e.remaining_ticks > 0)
+        .is_some_and(|e| {
+            crate::social_company::solo_social(
+                &pack.object(e.object).interactions[e.interaction as usize],
+            )
+        });
+    let social = solo || company.active_allowed(person, &feelings);
     let personality = world.get::<Personality>(person);
     let scale = |n: u8| personality.map_or(1., |p| p.satisfaction[n as usize]);
     let mut effects = vec![];
@@ -347,7 +356,7 @@ pub(crate) fn active_benefits(world: &World, person: Entity) -> Vec<(u8, f32)> {
         ));
     }
     for (need, delta) in &mut effects {
-        if *need as usize == NeedId::Social.index() && *delta > 0. {
+        if *need as usize == NeedId::Social.index() && *delta > 0. && !solo {
             *delta *= company.active_scale(person, &feelings);
         }
     }

@@ -4004,3 +4004,24 @@ The screenshots, source bindings, executed checks, review coverage, and desktop 
 The displayed game reproduced the reported cancellation loop with an idle pose and repeated sideways movement. The repaired build was played through approach, protected bathroom use, waiting outside, and conversation. Named activity and queue text were checked at desktop and 390-pixel phone widths. A clipped partner name was repaired, and active chores retain their actual activity instead of Idle.
 
 The initiator remains committed while waiting and needs continue to decay. Long work shifts, blocked routes, and chosen waits can still delay care. Selected images, live-state measurements, independent review limits, and executed regression checks are recorded in [the dated evidence](evidence/2026-10-17-urgent-needs-conversations/README.md). This focused pass does not claim inspection of every object or every animation frame.
+
+## [A-social-household-balance] Rewarding company and household grace, 2026-10-19
+
+The desktop production build was played through a desk-writing session and a complete shared-interest conversation between partners. Casey's Social rose during writing. Both conversation participants gained Social and positive feelings. The activity labels, desk seating, conversation bubbles and People panel were inspected directly and reviewed independently from selected captures.
+
+The exact measurements, captures, browser settings and review limits are in [the dated evidence](evidence/2026-10-19-social-balance/verification.md). Household grace and family forgiveness also have simulation regression checks. This focused pass does not establish every animation phase, phone performance or long-term population balance.
+
+## [A-build-controls-current-chrome] Build controls on the current save format, 2026-10-19
+
+The displayed Chrome game exercised footer Confirm and Cancel, keyboard Keep building, Land confirmation and discard, a real doorway merge review and Back, and Save/Load of the confirmed room name. The clock stayed paused. Actual phone-width captures show the neutral, red and green decision stack, readable dock controls with complete keyboard focus outlines, and Walls after review cancellation without a false failure message.
+
+The root reviewer and a fresh independent reviewer inspected the selected original images. Matching raster dimensions, measurements, application hashes, executed checks and limits are in [the version-19 evidence](evidence/2026-10-19-build-ui/v19/README.md). The task tab and preview server are closed. Physical touch, operating-system held-key repeat and exhaustive gameplay remain outside this focused pass.
+
+After integrating the version-20 save and argument/cleanup changes, the [refreshed played pass](evidence/2026-10-19-build-ui/v20/README.md) loaded the earlier task save, repeated the affected Build/Land/review/save flows and refreshed the four required captures. Root and a fresh independent reviewer accepted the actual pixels. Startup advanced before manual Pause; the later checks held the paused clock. The source review, full web suite and build evidence remain distinct from the visual verdict.
+## [A-build-walls-ux] Walls, windows and floors in Build mode, 2026-10-19
+
+The desktop development build was played in the Walls and Floors tools with the shipped household. A click high on the face of the bottom-left front wall chose that wall and tinted it; the same click in the previous renderer chose an empty line behind the wall. The low wall view kept the rooms visible while the chosen wall stood full height. Two clicks along the lot's south edge chose a five-line run, Wall built all five, and a three-unit window fitted in them. Two corner clicks in Floors chose a four by four area that took one covering.
+
+Two findings were fixed during the pass. A first click near tile corners in the last row chose the crossing line, so the second click could not extend the run; the run now follows the direction the clicks travel. The floating buttons covered floor areas and the near end of a run reaching the screen's edge; they now clear the whole selection. Remaining findings that predate this work: the Floors panel's swatches overlap their labels, and unselected windows read only as a pale strip in the low view.
+
+Captures, review verdicts and limits are in [the dated evidence](evidence/2026-10-19-build-walls/verification.md). This pass covers the desktop layout with a mouse; touch and phone layouts were not played.

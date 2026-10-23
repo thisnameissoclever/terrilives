@@ -6,12 +6,13 @@
 // what the drain did with it.
 
 import type { CatalogueItem, PlacementPreview, SimBridge } from '../bridge.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type BuySource = Pick<SimBridge, 'catalogue' | 'purchasePreview' | 'buyObject' |
   'lastPurchaseResult' | 'lotRevision' | 'funds' | 'colourwayNames' | 'buyObjectInColourway'>;
 
-export const CHOOSE_ITEM = 'Choose something to buy.';
-const READY = 'Ready to buy.';
+export const CHOOSE_ITEM = '';
+const READY = '';
 const BUYING = 'Buying…';
 const NOT_SENT = 'The purchase could not be sent.';
 const UNAVAILABLE = 'This position is unavailable.';
@@ -240,6 +241,7 @@ export class BuyTool {
         }
         if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${this.chosen?.name ?? 'Furniture'} bought.`;
+        if (result.reason !== null) logWarning('Buy', 'Purchase refused.', { ...result });
         this.hooks.changed();
         return;
       }

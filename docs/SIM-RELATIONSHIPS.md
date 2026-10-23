@@ -7,12 +7,16 @@ exact formulas and verification evidence.
 
 ## Directional affinity
 
+Player explanations and activity examples are maintained in [Relationships](player/relationships.md). The public guide's effect map covers every current runtime cause. A completed Fight lowers both participants' opinions and creates separate mood effects; an interrupted Fight grants no completion effects. See [the fight contract](specs/2026-10-16-fights.md) for engineering details.
+
 Each Sim has a separate affinity toward another Sim, from -1 to 1. One Sim
 liking another does not guarantee the feeling is mutual. Completed chats, pleasant
 nearby time and recognized shared activities add affinity. Opposing authored
 preferences create friction; time gradually moves living relationships toward neutral. Affinity
 toward dead Sims remains available for grief. Family ties are a separate
-relationship classification and do not replace affinity.
+relationship classification. Positive opinion events between partners, parents,
+children and siblings are multiplied by 1.5; negative opinion events are halved.
+Neutral drift, restored values and explicit relationship edits remain unchanged.
 
 ## Personality, needs and emotional consequences
 
@@ -36,8 +40,9 @@ and its creator, not to an omniscient account of why it was left.
 
 ## Domestic support and friction
 
-Social refill requires simultaneous participation with another Sim. Each
-receiver gets a positive benefit even from disliked company. Directional
+Chats and shared activities provide Social through actual participation.
+Correspondence also supplies Social while the writer works alone. Each chat
+participant gets a positive benefit even from disliked company. Directional
 affinity scales the benefit, and family adds an independent bonus. Watching TV or listening to the radio counts
 only while another Sim actively uses the same device.
 Travelling toward it, standing nearby or using another device does not count.
@@ -57,8 +62,9 @@ by personality. Food quality affects the food rewards rather than the value of
 the company. Rewards stop when eligible participation stops
 and do not multiply with the number of other diners.
 
-Chats restore Social at every affinity level. The multiplier is
-`max(0.25, 1 + affinity * relationship_delta_scale)`, plus 0.1 for family.
+Chats restore twice their previous authored Social at every affinity level,
+up to the meter limit of 100. Fights supply no Social. The multiplier is
+`max(0.25, 1 + affinity * relationship_delta_scale)`, plus 0.25 for family.
 Personality satisfaction then scales the positive reward. Selection values
 that same immediate benefit, so low Social encourages contact even with a
 disliked relative or housemate. A group uses its strongest eligible affinity multiplier and adds the family
@@ -104,14 +110,18 @@ average cleanliness, increasing or decreasing with cleanliness. Urgent needs
 reduce it. This is separate from cleaning the eater's own dishes; resuming an
 interrupted meal does not repeat the same complaint.
 
-Cleaning someone else's dishes currently removes the environmental nuisance.
-It does not automatically grant gratitude, a permanent friendship bonus, or
-credit toward the cook's hobby. Those would be separate authored interactions.
+Completed cleaning raises other living housemates' opinions of the cleaner, including when the board is off. Cleaner observers appreciate it more; messy observers still gain some goodwill. Physical completion pays once, separately from board accounting. Successful dish washing pays once per batch. Cancellation and zero completed work provide no appreciation. The [fight specification](specs/2026-10-16-fights.md) defines the additional temporary repair window after an argument about a current duty.
 
 Collection transfers visibility from furniture to a plate held by the cleaner.
 Taking another activity puts the dishes back and restores the nuisance until
 cleanup resumes. The claim remains exclusive while interrupted, so two Sims
 cannot claim the same cleanup. Cancellation releases that claim.
+
+## Arguments and follow-through
+
+Autonomous arguments require a recorded grievance against the other Sim: an actual privacy incident, a current overdue assigned chore, a nearby hated activity or a real unmet-need interruption. Worse mood increases their likelihood; better mood and positive opinion reduce it. Both Sims' cooldowns and urgent needs constrain autonomous arguments. Player arguments choose relevant recent history, with an ordinary random subject when none applies. See the [fight specification](specs/2026-10-16-fights.md) for probabilities, exact source ownership and save rules.
+
+After a completed argument about an unfinished assigned duty, the recipient makes one saved willingness decision with a neutral 80% chance of following through. Needs, work and player orders retain priority. Completing that duty within four game hours repairs opinions between the participants and toward the cleaner from housemates who actually complained. A declined response can still earn the bonus through later natural work. Old dirt, another duty or another person's work cannot claim that repair.
 
 ## Conversation topics and waiting
 

@@ -1,0 +1,85 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index eabf01b28..fd5bca2a2 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -20,6 +20,9 @@ on:
+       qualification_run_id:
+         description: Optional explicit qualified fixture run; otherwise bounded discovery
+         type: string
++      transport_probe_job_id:
++        description: Optional completed historical job for the fixture tool's log transport diagnostic only
++        type: string
+       resume_run_id:
+         description: Explicit production predecessor run
+         type: string
+@@ -295,6 +298,7 @@ jobs:
+         env:
+           GH_TOKEN: ${{ github.token }}
+           MUTATION_JOB_NAME: mutation-fixture-tool
++          TRANSPORT_PROBE_JOB_ID: ${{ inputs.transport_probe_job_id }}
+         run: python3 -B .github/scripts/mutation_workflow.py tool --scope fixture
+       - name: Upload immutable tool
+         id: upload
+diff --git a/docs/lessons-learned.md b/docs/lessons-learned.md
+index 44560193d..8c1d2f21a 100644
+--- a/docs/lessons-learned.md
++++ b/docs/lessons-learned.md
+@@ -13053,3 +13053,13 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
+ **Prevention.** Follow only the required parent directories from the authenticated commit. Require complete immediate-tree responses and bind each child tree to its selected parent entry. Preserve exact file identities, valid object modes and duplicate-name rejection. Never accept a partial recursive listing because the desired paths happen to appear in it.
+
+ **Verification.** Reject truncated, missing, duplicate and altered parent or file evidence. Exercise distinct commit and parent identities through the real request-accounting wrapper. Measure the additional requests and keep existing request limits; a smaller query does not make those calls free.
++
++## [L-provider-lifecycle-transport-contract] Test evidence transport at the producer's actual lifecycle
++
++**What happened.** Recovery preparation required a whole-run log download location while that same workflow was still running. GitHub refused the request before workers could start, although completed producer-job logs were available.
++
++**Root cause.** Successful high-level probe mocks hid the production HTTP behavior and the circular dependency on workflow completion. A host credential's successful or failed request also cannot establish behavior under the workflow's token.
++
++**Prevention.** Select an authenticated completed producer before probing its log availability. Preserve all original evidence and expiry separately; a current download location is only a limited availability signal. Do not skip an active run, substitute another producer after a failure, or treat retained bytes as proof of current availability.
++
++**Verification.** Exercise the real HTTP branch with only its network boundary injected. Test active runs, completed predecessors, same-run recovery and a new continuation without a new plan receipt. Before native work, verify the selected completed-job endpoint inside Actions with the actual workflow token, bounded requests and no retained credentials or signed download locations.
+diff --git a/docs/mutation-campaign.md b/docs/mutation-campaign.md
+index 4e5e5856c..061aee847 100644
+--- a/docs/mutation-campaign.md
++++ b/docs/mutation-campaign.md
+@@ -13,6 +13,11 @@ it supplies no production mutation coverage.
+    builds the exact reviewed cargo-mutants 27.1.0 patch with Rust 1.94.1 and
+    locked dependencies, exercises same-line field selection, and uploads one
+    immutable executable and receipt. It does not install into Cargo home.
++   Before Cargo work, the same job verifies log transport with its own Actions
++   token and the completed `changes` predecessor. An optional manual
++   `transport_probe_job_id` adds a completed historical job to that diagnostic.
++   It selects no qualification, plan, recovery anchor or mutation result. Empty
++   input checks only the current predecessor and claims no historical diagnostic.
+ 2. Fixture planning acquires the same slot after tool preparation finishes.
+    It authenticates executable bytes, committed recipe inputs, producer logs,
+    artifact IDs and expiry, then calibrates and freezes the plan. A separate
+@@ -270,12 +275,22 @@ images stop recovery. A rebuilt executable or a new receipt cannot renew evidenc
+ The initial authenticator retains the exact original producer-log bytes, SHA-256,
+ retrieval identity, observation time and that producer's own original retention
+ bound. Later snapshots carry those bytes and original expiry forward. Preparation
+-and aggregation also request a non-following run-log download redirect for each
+-referenced run. A valid 302 establishes only that GitHub issued a current download
+-location; the signed URL is never retained, logged or followed with credentials.
+-This is an additional run-level deletion signal, not a fresh fetch of every old
+-per-job body or proof that a latest-run archive contains older attempts. Any
+-separately observed loss of required original evidence still stops recovery.
++and aggregation also check one stable completed-job log anchor for each referenced
++run, including the active current run. Selection follows authenticated original
++producers in attempt and job-ID order. A new continuation without an original
++producer uses its authenticated completed planning job solely for availability.
++The selected identity, basis, observation and original expiry remain fixed across
++snapshots and later uploads. Missing selected evidence fails; another available
++job cannot replace it.
++
++Each check authenticates completed-job metadata and requests a non-following
++job-log redirect. A valid 302 establishes only that GitHub issued a current
++download location for that selected job. The signed URL is never retained,
++logged or followed with credentials. This is a limited availability signal,
++not a fresh fetch of every historical body, proof of future durability or
++production coverage. All original evidence and its original retention remain
++required. Any separately observed loss of required evidence still stops recovery.
++The check does not require an unfinished workflow's whole-run log archive.
+
+ Hosted Ubuntu 24.04 image identity, architecture, ELF interpreter, loaded-library
+ hashes and verbose Rust/Cargo identities are part of the authenticated runtime.

@@ -950,6 +950,100 @@ fn enter(sim: &mut Sim, entrant: Entity) {
     });
 }
 
+fn issue314_privacy_household(chance: f32) -> (Sim, Entity, Entity) {
+    let mut sim = fixture();
+    let offended = person(&mut sim, 4.0, 2.0);
+    let responsible = person(&mut sim, 3.0, 2.0);
+    let toilet = object(&mut sim, "toilet");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_chance_per_tick = chance;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    start(&mut sim, responsible, toilet);
+    movement(&mut sim);
+    assert_eq!(feeling(&sim, offended, responsible), -0.25);
+    assert!(sim.world().get::<Eating>(responsible).is_some());
+    (sim, offended, responsible)
+}
+
+#[test]
+fn issue314_actual_privacy_incident_permits_a_neutral_person_to_fight() {
+    let (mut sim, offended, responsible) = issue314_privacy_household(1.0);
+    crate::fights::provoke(sim.world_mut());
+    let fight = crate::fights::fight_index(sim.world().resource::<Content>().0).unwrap();
+    assert!(
+        sim.world()
+            .get::<terri_core::IntentQueue>(offended)
+            .and_then(|q| q.front())
+            .is_some_and(|i| i.object == responsible && i.interaction == fight),
+        "an accepted privacy incident supplies a real reason without requiring hostile affinity"
+    );
+}
+
+#[test]
+fn issue314_pending_autonomous_privacy_fight_preserves_its_exact_cause_and_order() {
+    let (mut sim, offended, _) = issue314_privacy_household(1.);
+    crate::fights::provoke(sim.world_mut());
+    let saved = sim.save_snapshot_v20();
+    let context = saved.conflicts.fights[0].clone();
+    assert!(context.autonomous && context.grievance.is_some() && context.order_id.is_some());
+    let hash = sim.world_hash();
+    sim.load_snapshot_v20(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v20().conflicts.fights[0], context);
+    assert_eq!(sim.world_hash(), hash);
+    let order = sim
+        .world()
+        .get::<terri_core::IntentQueue>(offended)
+        .unwrap()
+        .entries()[0]
+        .id;
+    assert_eq!(context.order_id, Some(order));
+    let mut missing = saved;
+    missing.conflicts.fights.clear();
+    assert!(sim.load_snapshot_v20(missing).is_err());
+}
+
+#[test]
+fn issue314_mood_changes_fight_likelihood_without_urgent_needs() {
+    let count = |bad_mood: bool| {
+        let (mut sim, offended, responsible) = issue314_privacy_household(0.2);
+        if bad_mood {
+            let mut needs = sim.world_mut().get_mut::<Needs>(offended).unwrap();
+            for need in [
+                NeedId::Social,
+                NeedId::Fun,
+                NeedId::Comfort,
+                NeedId::Hygiene,
+            ] {
+                needs.set(need, 1.0);
+            }
+        }
+        assert!(!crate::social_episode::urgent(sim.world(), offended));
+        let mood = sim.mood_of(offended.index_u32()).unwrap().overall_score;
+        let mut count = 0;
+        for seed in 1..=256 {
+            sim.world_mut()
+                .entity_mut(offended)
+                .remove::<terri_core::IntentQueue>();
+            sim.world_mut()
+                .insert_resource(terri_core::SimRng::from_seed(seed));
+            crate::fights::provoke(sim.world_mut());
+            count += usize::from(
+                sim.world()
+                    .get::<terri_core::IntentQueue>(offended)
+                    .and_then(|q| q.front())
+                    .is_some_and(|i| i.object == responsible),
+            );
+        }
+        (mood, count)
+    };
+    let (good_mood, good_count) = count(false);
+    let (bad_mood, bad_count) = count(true);
+    assert!(bad_mood < good_mood, "the actual derived moods differ");
+    assert!(bad_count > good_count,
+        "worse mood must increase fight likelihood over identical random seeds: bad={bad_count}, good={good_count}");
+}
+
 #[test]
 fn interpersonal_conversation_penalizes_only_the_recipient_and_helped_needs_are_exempt() {
     for (need, level, expected) in [
@@ -1382,15 +1476,15 @@ fn interpersonal_saved_starts_and_entries_replay_without_recharging_on_load() {
         } else {
             start(&mut sim, b, furniture);
         }
-        let before = sim.save_snapshot_v17();
+        let before = sim.save_snapshot_v20();
         movement(&mut sim);
         let after_hash = sim.world_hash();
-        let after = sim.save_snapshot_v17();
-        sim.load_snapshot_v17(before)
+        let after = sim.save_snapshot_v20();
+        sim.load_snapshot_v20(before)
             .expect("pre-event save must load");
         movement(&mut sim);
         assert_eq!(sim.world_hash(), after_hash, "event must replay exactly");
-        sim.load_snapshot_v17(after)
+        sim.load_snapshot_v20(after)
             .expect("post-event save must load");
         assert_eq!(
             sim.world_hash(),
@@ -1432,7 +1526,7 @@ fn interpersonal_completion_and_cancellation_preserve_the_start_impression() {
         -0.20,
         "a still-critical bladder prevents a positive completion reward"
     );
-    assert_eq!(feeling(&sim, a, b), 0.17);
+    assert_eq!(feeling(&sim, a, b), 0.34);
     sim.load_snapshot_v5(snapshot).unwrap();
     // Redirecting the partner disturbs the conversation; cleanup must not
     // erase the impression from when it began or add a completion gain.

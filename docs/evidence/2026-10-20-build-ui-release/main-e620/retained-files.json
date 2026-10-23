@@ -1,0 +1,104 @@
+[
+  {
+    "file": "main-e620-guide-tests.log",
+    "original_sha256": "72eca036c7b2f868c073923cb7052b1aad49bccf32b615948a6b595cd5290424",
+    "published_sha256": "715a0f210fa0e1d26be2cbd155993dc777c5cde8106be4aad0edb5e8f4f4c2bc",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "main-e620-production-build.log",
+    "original_sha256": "c7ff58f9cbb691f2e10658f9b0178795c9eadffda54c732758d65aaa335e8cd7",
+    "published_sha256": "230b7e94cb64e398dc078502b29a336900637827cadbe95ddc948c1d32e10152",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-guide-integration-review.md",
+    "original_sha256": "64cc2b704d83fcff6c9a9350c4285e25fe6fae0a1d13579b021fff7b0fb075d5",
+    "published_sha256": "19041e7bbfcc195136e5db4d84e324073b463f2ced8aeb7c0db45afe5ac0e2cd",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-guide-integration-rereview.md",
+    "original_sha256": "770f795573b95800523a47354e9e503fbc4de9b2c2966e0e1090a79fa32d35f3",
+    "published_sha256": "d1bfa62b482a32a227d036ed8ec9c7651d9eb9cf38d91d19a5f9fea5c9bc9e70",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-independent-visual-review.md",
+    "original_sha256": "f3642434ee8691b96cf6d2e5612dc0212ce2bf3c67223cead0805ee63fee10b3",
+    "published_sha256": "407426dbaaa11da8d08a8be283896595a4f0f77cd41294fef60cc71fe86cf4ad",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-no-script.json",
+    "original_sha256": "dff003932deeda99d25821285f0b23bb224a980a450080035cad98f7ff593a1a",
+    "published_sha256": "dff003932deeda99d25821285f0b23bb224a980a450080035cad98f7ff593a1a",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-guide-interactions.json",
+    "original_sha256": "7e6dcd17aa8ea956c5b2b7299d8f21820522ed4b64cbac618600d40e8394512b",
+    "published_sha256": "7e6dcd17aa8ea956c5b2b7299d8f21820522ed4b64cbac618600d40e8394512b",
+    "normalization": "CRLF to LF; original unchanged"
+  },
+  {
+    "file": "e620-guide-desktop-light.png",
+    "original_sha256": "66060c8b62776a86e10cecbdbe8e15c5146ec9d7ac7693349137537d31399289",
+    "published_sha256": "66060c8b62776a86e10cecbdbe8e15c5146ec9d7ac7693349137537d31399289",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-guide-desktop-dark.png",
+    "original_sha256": "45b5e48029f06d890c1980ee2d272a761a9b33226e63e387929815d524c7c76b",
+    "published_sha256": "45b5e48029f06d890c1980ee2d272a761a9b33226e63e387929815d524c7c76b",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-guide-mobile-light.png",
+    "original_sha256": "79d114c468d1da1ca09bb838be36d67bbf198ed7676471de68c352bb3517ba8b",
+    "published_sha256": "79d114c468d1da1ca09bb838be36d67bbf198ed7676471de68c352bb3517ba8b",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-guide-mobile-dark.png",
+    "original_sha256": "10c5edaa9fb8d7fe61a4e2e36cb3ed51461e1251b98966723e2ee67b14acd7d4",
+    "published_sha256": "10c5edaa9fb8d7fe61a4e2e36cb3ed51461e1251b98966723e2ee67b14acd7d4",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-viewer-initial-mobile.png",
+    "original_sha256": "3a0658266d874d6a465683e7c207367b6ab150f2dc01be82e2b512000a12442d",
+    "published_sha256": "3a0658266d874d6a465683e7c207367b6ab150f2dc01be82e2b512000a12442d",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-help-viewer-mobile.png",
+    "original_sha256": "22a6d22014196ce99771fc55b7ceaba667c3b9ab125a9174fa47625b816bdf2c",
+    "published_sha256": "22a6d22014196ce99771fc55b7ceaba667c3b9ab125a9174fa47625b816bdf2c",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-help-desktop.png",
+    "original_sha256": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123",
+    "published_sha256": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-help-mobile.png",
+    "original_sha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39",
+    "published_sha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-help-desktop-source.png",
+    "original_sha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+    "published_sha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+    "normalization": "none"
+  },
+  {
+    "file": "e620-help-mobile-source.png",
+    "original_sha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+    "published_sha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+    "normalization": "none"
+  }
+]

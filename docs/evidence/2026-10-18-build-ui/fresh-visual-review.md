@@ -1,0 +1,57 @@
+# Build UI independent visual review
+
+## Phase 1: blind zoom comparison
+
+I inspected the actual pixels of each supplied 434 x 683 image at original resolution with `view_image`. I did not read the condition mapping, receipts, or source before saving these findings.
+
+Acceptance: a clear minus in the existing zoom-out button, with the readable control and its pairing with zoom-in preserved.
+
+1. `browser/panel-41.png`: ACCEPT for the visible zoom criterion. The upper-right left button contains a single clear horizontal minus. The plus button sits immediately to its right. Both buttons retain separate rectangular outlines and appear the same size. The minus is centered, readable, and contained within its button.
+2. `browser/panel-62.png`: REJECT. The upper-right left button contains a cluster of accented or corrupt characters in place of one minus. It reads as several marks rather than a simple subtraction symbol. The surrounding button outline and adjacent plus remain visible, so the defect is specifically the zoom-out label.
+3. `browser/panel-87.png`: ACCEPT for the visible zoom criterion. The upper-right left button contains one short horizontal minus, clearly separated from the plus to its right. The button outlines, apparent dimensions, placement, and surrounding controls match the other captures. The minus remains readable inside its button.
+
+The scene and Build Rooms panel appear visually aligned across all three captures. The top Time, Funds, Options, zoom controls, room selector, room-name field, Cancel, and Confirm remain visible. No visible displacement or clipping accompanies either accepted minus.
+
+This phase judges only the displayed symbols and visible button geometry. Still images cannot establish actual hitboxes, accessible names, control actions, continuous animation, or physical mobile keyboard behavior. Those require separate evidence. Condition disclosure and restoration receipts are pending; the initial verdicts above must remain intact.
+
+## Phase 2: disclosed conditions and final captures
+
+### Zoom restoration
+
+The mapping was read only after the Phase 1 verdicts were saved. It identifies `panel-41.png` as the actual corrected SVG, `panel-62.png` as the old corrupt text injected into that isolated button, and `panel-87.png` as the corrected SVG restored. The blind review rejected the known defective condition.
+
+I independently hashed the two corrected PNGs. Both are SHA256 `E609BF00914375DA5528BB3F9361846EB1A0B1D2190E3EAE496D2E734D4DF091`. They are identical. The apparent relative stroke-length distinction in my original descriptions was an inspection error; those words do not establish a difference between the images.
+
+The `zoom-fault-restoration` receipt records matching before/after SVG markup, background `rgb(22, 22, 28)`, border `1px solid rgb(44, 44, 54)`, text color `rgb(216, 216, 224)`, font `20px / 28px system-ui, sans-serif`, and button rectangle x316, y8, width53, height44. It records `identicalDOMStylesRects: true` and `correctedFullScreenshotBytesEqual: true`. These fields support restoration of the displayed button and measured rectangle. The receipt does not establish a click outcome or the accessible name.
+
+### Per-image findings
+
+Every image below was opened with `view_image` at original resolution. Actual PNG dimensions were read independently from the files.
+
+1. `browser/final-desktop-dock.png`, 1440 x 1000: ACCEPT for desktop dock appearance. The bottom dock has readable Edit, Sim details, Chores, Queue, Collapse and all three person names. The complete pale Chores focus outline is visible with surrounding space. No control label overlaps another label or the need bars. The receipt measures 27px header controls and 28px roster controls, 13px header fonts, 15px roster fonts and 60px roster widths. The supplied earlier receipt has matching header widths/fonts/gaps and 60px roster widths/fonts; the earlier roster was actually 31px, so that receipt does not by itself prove the originally requested 34px baseline.
+2. `browser/final-dialog390-keyboard.png`, 390 x 271: REJECT AS PHONE DIALOG EVIDENCE. The image shows a reduced wide Build Walls scene with wall tools and a Build panel at the left. It contains no decision dialog. Its height differs from the paired receipt's 390 x 844 viewport. It cannot establish the required phone dialog stack, readable labels, or focus outline.
+3. `browser/final-dock390.png`, 390 x 844: REJECT AS SIM DOCK EVIDENCE. It shows Build Walls, a focused Exit build control, wall tools, and the Build panel. There is no Sim dock. The paired receipt says `building: false` and records dock controls, which do not match the saved pixels. This is a capture/receipt mismatch, not evidence of a dock product failure.
+4. `browser/final-dock434.png`, 316 x 683: The visible Sim dock labels are readable, its Chores focus outline is complete, the three names fit, and no dock controls overlap. DECLINED for the named 434px acceptance case because the actual image is 316px wide while its receipt reports width434. No actual 434px final image is established by this file.
+5. `browser/final-dock740.png`, 740 x 390: ACCEPT for normal short-landscape dock appearance. The bottom-right dock remains inside the viewport, with readable activity text, action labels, names and mood labels. The complete Chores focus outline remains clear of neighboring controls. No label collision or cutoff is visible. The receipt records 36px header and roster heights at this viewport.
+6. `browser/dock390-text200.png`, 390 x 844: ACCEPT for the inspected enlarged-text layout. The activity wraps into four readable lines. Collapse moves to a second action row without covering the other actions. Tim, Bill and Casey remain readable, and the Chores focus outline is complete. Mood and life-satisfaction labels fit above their separate bars. No text or control overlap is visible. This is an earlier source-wave image, as the browser report states; it is not a final-source recapture.
+7. `browser/dock740-text200.png`, 740 x 390: ACCEPT for the inspected enlarged-text short-landscape layout. The full activity text occupies two lines. Action labels and the complete Chores focus outline fit. All three person names are visible in a bounded roster area with a scrollbar at the right. There is no visible overlap or viewport overflow. This is also an earlier source-wave image.
+8. `browser/final-review-back.png`, 1440 x 1000: The Review room changes panel is readable, including the merge selector, former rooms, resulting room name, duties, Back to build and Confirm changes. No error is visible. DECLINED as visual proof of the claimed return from Back to Walls because the capture still shows the room review rather than the Walls panel described by the paired receipt.
+9. `parent-played-activity.png`, 1280 x 720: ACCEPT for the actual painted popup. The dock trigger is visibly ellipsized while a separate popup above it shows the complete literal text: `Returning: A Second Cup. Title progress: 50% of 120 baseline game minutes.` The popup wraps onto two readable lines, stays inside the viewport, and is not clipped. `parent-played-activity.json` agrees on the full text and records popup x154.734375, y589.625, width420, height55.6875, `popupHidden: false`, and `pause: true`. This proves the captured Returning state. It is not a still of Reading or proof of a live transition.
+10. `parent-played-dialog.png`, 1280 x 720: ACCEPT for the displayed desktop decision-dialog hierarchy. Keep building is neutral and first; red Discard changes follows; green Confirm changes sits directly below. All labels and the explanatory text are readable with separation between buttons. The still does not show a distinct external focus ring. `parent-played-land.json` separately records Keep focused, all buttons 44px high, and successive y positions333.921875,385.921875,437.921875. Desktop geometry and recorded focus do not replace the missing phone pixels.
+11. `parent-played-dock.png`, 1280 x 720: ACCEPT for the parent's displayed normal desktop dock. Edit, Sim details, Chores, Queue, Collapse and all three names are readable, with no overlapping controls or need bars. `parent-played-dock.json` records 27px header buttons, 28px roster buttons, 13px header fonts, 15px roster fonts and 60px roster widths. No focused dock control is shown in this still; the focused desktop case is image1.
+
+### Evidence boundaries and declined judgments
+
+1. Final-source hashes identify main.ts `866B2626D86D0D8AE89CF84F5EA668F5E38AF9CFD2328BA13752F8D00FADEF53`, index.html `04BA60E559F1ACF3E0B1FC47E07292DCB9706409D2194E9ED8864C8E151441E4`, build-exit.ts `67DE442E8433EEDFE0AF1F5C49F6F548FF8AB52F6604E3E06D4D354F8ED6BC54`, and compact-hud.css `AD55FEEFBF717A0407B78AC0236C3480959B35E0C6634517B71A831B03F66883`. The browser report explicitly distinguishes the older zoom/activity/enlarged-text wave from refreshed final files. I read the hashes as provenance; I did not inspect or modify source files.
+2. Final receipts record 36px compact controls at390x844,434x683 and740x390 and 36px coarse-pointer controls. The matching final740 image supports visible normal compact acceptance. The final390 and434 files do not visually establish their paired receipts. The requested 32->27,34->28 and44->36 reductions are approximately15.6%,17.6% and18.2%; these calculations do not replace a measured original baseline. The supplied earlier desktop receipt already has27px headers and31px roster controls.
+3. The browser report says the child pane's displayed visibility was not established. Parent captures are the separate displayed played pass at1280x720. I did not personally operate a live browser. Stills and measurements cannot prove continuous motion, Save/Load behavior, keyboard action results, held repeat handling, safe default activation behavior, true touch, or physical phone keyboards. The reported provider errors leave touch and held-repeat input unverified.
+4. I declined long-name gameplay layout judgment. The attempted27-character setup exceeded the24-character limit and did not establish a valid gameplay rename. It is neither acceptance proof nor a product-failure finding. Source tests and focused test totals cannot replace missing visual evidence.
+5. The earlier unpainted immediate parent activity capture was not inspected or accepted. Only the listed painted parent popup is acceptance evidence here. No live-release or deployment judgment is made. Automated gates remain the parent's separate responsibility.
+
+### Verdict
+
+The corrected zoom passes the blind defect check and exact restoration check. Desktop dock readability, normal740px short landscape, the inspected enlarged-text layouts, the parent's full Returning popup, and desktop dialog action hierarchy pass the visible criteria described above. I found no product blocker in those accepted pixels.
+
+The overall requested final visual scope is NOT FULLY APPROVED. The390px dialog, final390px dock, final434px dock and claimed Back-returned Walls state need captures that actually match their receipts. The mismatches are concrete evidence blockers. Independent review must inspect replacement pixels before those claims can be accepted.
+
+**Next steps**: Parent should resolve the four capture/receipt mismatches and submit only the corrected captures for a bounded visual follow-up. No source change is justified solely by these mismatches.

@@ -40,11 +40,12 @@ describe.each(['palette', 'pattern'])('default production catalogue %s addition'
       coverings: { ...original.coverings, 5: 'fixture' } };
     vi.resetModules();
     vi.doMock('../src/render/architecture-data.js', () => ({ ARCHITECTURE: { ...ARCHITECTURE, catalogue } }));
-    [floorModule, finishModule, tileModule] = await Promise.all([
-      import('../src/render/floor-materials.js'),
-      import('../src/render/architecture-finishes.js'),
-      import('../src/render/tiles.js'),
-    ]);
+    // Resolve the shared mock before dependents capture their default catalogue.
+    const mocked = await import('../src/render/architecture-data.js');
+    expect(mocked.ARCHITECTURE.catalogue).toBe(catalogue);
+    finishModule = await import('../src/render/architecture-finishes.js');
+    floorModule = await import('../src/render/floor-materials.js');
+    tileModule = await import('../src/render/tiles.js');
   });
 
   it('routes the addition through a prepared carrier finish', () => {

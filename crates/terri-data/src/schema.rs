@@ -440,6 +440,27 @@ pub struct TuningFile {
     /// ranges.
     #[serde(deserialize_with = "read_season_yard_looks")]
     pub season_yard_looks: [[f32; 3]; 4],
+    /// Absent from historical content sources, which have no weather effects.
+    #[serde(default)]
+    pub weather: Option<crate::WeatherTuning>,
+    /// Purposeful fight and chore response balance, appended after weather.
+    pub fight_grievance_ticks: u32,
+    pub fight_history_ticks: u32,
+    pub fight_repeat_grievance_ticks: u32,
+    pub fight_mood_bad_multiplier: f32,
+    pub fight_mood_good_multiplier: f32,
+    pub fight_opinion_strength: f32,
+    pub fight_severity_reference: f32,
+    pub chore_fight_response_base: f32,
+    pub chore_fight_response_ticks: u32,
+    pub chore_fight_response_cleanliness: f32,
+    pub chore_fight_response_responsibility: f32,
+    pub chore_fight_response_commitment: f32,
+    pub chore_fight_response_preference: f32,
+    pub chore_fight_response_affinity: f32,
+    pub chore_fight_response_mood: f32,
+    pub chore_repair_base: f32,
+    pub chore_repair_cleanliness: f32,
 }
 
 /// The seasons as `season_yard_looks` names them in `tuning.toml`, in the
@@ -1601,7 +1622,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 131] = [
+    const TUNING_LINES: [(&str, &str); 148] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1647,6 +1668,23 @@ mod tests {
         ("fight_relationship_loss", "0.125"),
         ("fight_mood_penalty", "11.5"),
         ("fight_mood_ticks", "500"),
+        ("fight_grievance_ticks", "360"),
+        ("fight_history_ticks", "10080"),
+        ("fight_repeat_grievance_ticks", "1440"),
+        ("fight_mood_bad_multiplier", "2.0"),
+        ("fight_mood_good_multiplier", "0.25"),
+        ("fight_opinion_strength", "0.5"),
+        ("fight_severity_reference", "0.25"),
+        ("chore_fight_response_base", "0.80"),
+        ("chore_fight_response_ticks", "240"),
+        ("chore_fight_response_cleanliness", "0.20"),
+        ("chore_fight_response_responsibility", "0.10"),
+        ("chore_fight_response_commitment", "0.05"),
+        ("chore_fight_response_preference", "0.05"),
+        ("chore_fight_response_affinity", "0.05"),
+        ("chore_fight_response_mood", "0.05"),
+        ("chore_repair_base", "0.08"),
+        ("chore_repair_cleanliness", "0.04"),
         ("land_strip_depth", "7"),
         ("land_price_cents", "12345"),
         ("land_price_step_cents", "21"),

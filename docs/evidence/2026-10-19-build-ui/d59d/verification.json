@@ -1,0 +1,249 @@
+{
+  "source_commit": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "wasm_sha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+  "original_sha256": {
+    "d59d-full-web-tests.log": "a8561f01fcf8ac129457be0f1f688953a55ad8cddd5af828df59f98f9a9edaf7",
+    "d59d-production-build.log": "efe2871dc3c8228309587179b526c482b907d4c3ffc2005c8bb1ffb3317bb949",
+    "d59d-web-gates-receipt.json": "d7ec1850636e66b8b9c0b641aca3711a1fa3231a7e7093f1605a9d997c0bd131",
+    "d59d-integration-review.md": "bb5b9306edb94b5fb06912f06f65adeef64f8ecff7d048af6b847a336701a872",
+    "played-report.md": "ab23f49bc5ca940729cee23140327725a73c5148ab33b08cbfb9c285cc5a271e",
+    "independent-visual-review.md": "f912d2b3842b4b577678484f6e36089832351132a9d77d6860b6692d9427433e",
+    "cleanup.json": "89edfd08ca1e2198380cc1ae7361a6abd97347c277af63d04fe168b5b163addb",
+    "exit-dialog-390-keyboard-surface.png": "9f6e2f46bd2875b7be944f94bd996a5d0318c2b5678e5cb6d402117fd082c466",
+    "exit-dialog-390-keyboard-surface.json": "ba8eb8399c2709734a69d55b5316ee839bd23a89348112428e8f7e10232f9149",
+    "dock-390.png": "0a88cdba4f857e89922d756e47ff1dd8c387a858dc90e142db49bb917d4878f8",
+    "dock-390.json": "1b4644dff0faf20e148fe21580df6b92d2a838bcdb5d50ba5dfa0a5074f275a8",
+    "dock-434.png": "f3dd766f81bc5032390a77251d9e53a0a1b5e5830124713523ca85c13c79e497",
+    "dock-434.json": "1b0155189ec74e025c65ec160b6e920445dd523823ecdf1207d53aaaf151fdd3",
+    "walls-land-review-back-390.png": "97892d8cc8bd9c911dfea43706d80152a29443b73bad667de3f4259da683d26a",
+    "walls-land-review-back-390.json": "cadf133a995ac7aa77b756d791e07ebfe05a1c0d4e359e623f750dc6d77ada3b",
+    "merge-review.txt": "3152073b2407d442619133e8ce8cc8a07d5e8a846814c0f0155cdc94bfe297a9",
+    "loaded-current-room.txt": "ff4ac64716c560e0b6e45691dea0d347f74d25a618185736c1116538e3ba98b2",
+    "capture-diagnostics/capture-better-way.md": "b1674493a6b79d1952bf1c5c9d5bb5c8f435554b86aa6c6ea23e3c996f301551",
+    "capture-diagnostics/visibility-observation.json": "2350f3b9a095728d8cf6bd764cd7e0abb2735702bc4acffbab5bad42a44cd37c",
+    "capture-diagnostics/exit-dialog-390-keyboard.jpg": "30ce364732f339e394d313bd680f997c57f0386b32ca6ab1d0bc8827457d989f",
+    "capture-diagnostics/exit-dialog-390-keyboard.json": "c6284ffda75abf8bdfd24439c57095adc074fa346f197a4f085ac4ee5f55f379",
+    "capture-diagnostics/exit-dialog-390-focused.jpg": "4d6b50f31f063750cc56d566faff65be43c3b337a9e61e7673c59e477b490ea2"
+  },
+  "retained_sha256": {
+    "d59d-full-web-tests.log": "2dcb3e39b674058a198104c330746bca3a8b2226fa7c2f25c3c2beec2f3015a6",
+    "d59d-production-build.log": "87b1df938985ddab19c75ee90ec73b269ba8d838b9aa1e0a991cb6c78d5a749a",
+    "d59d-web-gates-receipt.json": "a0c9326c6f26a8b4cf178fd30de3936c04d1890b07f5e2ee23a5483414332b9f",
+    "d59d-integration-review.md": "36ade570b053ea417e5473ccd6b5cc216f2caec07b8509273c43902b35d08711",
+    "played-report.md": "ab23f49bc5ca940729cee23140327725a73c5148ab33b08cbfb9c285cc5a271e",
+    "independent-visual-review.md": "f912d2b3842b4b577678484f6e36089832351132a9d77d6860b6692d9427433e",
+    "cleanup.json": "1537acd36fe1f3107d57fba9e124ba8608aedcb15079663faecccae26f85e196",
+    "exit-dialog-390-keyboard-surface.png": "9f6e2f46bd2875b7be944f94bd996a5d0318c2b5678e5cb6d402117fd082c466",
+    "exit-dialog-390-keyboard-surface.json": "ba8eb8399c2709734a69d55b5316ee839bd23a89348112428e8f7e10232f9149",
+    "dock-390.png": "0a88cdba4f857e89922d756e47ff1dd8c387a858dc90e142db49bb917d4878f8",
+    "dock-390.json": "1b4644dff0faf20e148fe21580df6b92d2a838bcdb5d50ba5dfa0a5074f275a8",
+    "dock-434.png": "f3dd766f81bc5032390a77251d9e53a0a1b5e5830124713523ca85c13c79e497",
+    "dock-434.json": "1b0155189ec74e025c65ec160b6e920445dd523823ecdf1207d53aaaf151fdd3",
+    "walls-land-review-back-390.png": "97892d8cc8bd9c911dfea43706d80152a29443b73bad667de3f4259da683d26a",
+    "walls-land-review-back-390.json": "cadf133a995ac7aa77b756d791e07ebfe05a1c0d4e359e623f750dc6d77ada3b",
+    "merge-review.txt": "fa95d855b3d49ad374813eb48ba0c56f1033c7e5039f01afaf262367761a9f53",
+    "loaded-current-room.txt": "9f2a7d58dee2c854af78ad5502cab792a68b0eb98440eb2bfd84acf8dea9922e",
+    "capture-diagnostics/capture-better-way.md": "b1674493a6b79d1952bf1c5c9d5bb5c8f435554b86aa6c6ea23e3c996f301551",
+    "capture-diagnostics/visibility-observation.json": "2350f3b9a095728d8cf6bd764cd7e0abb2735702bc4acffbab5bad42a44cd37c",
+    "capture-diagnostics/exit-dialog-390-keyboard.jpg": "30ce364732f339e394d313bd680f997c57f0386b32ca6ab1d0bc8827457d989f",
+    "capture-diagnostics/exit-dialog-390-keyboard.json": "c6284ffda75abf8bdfd24439c57095adc074fa346f197a4f085ac4ee5f55f379",
+    "capture-diagnostics/exit-dialog-390-focused.jpg": "4d6b50f31f063750cc56d566faff65be43c3b337a9e61e7673c59e477b490ea2"
+  },
+  "normalization": "Retained text changes CRLF to LF, strips trailing whitespace per line and removes blank final lines. Original local files remain unchanged. Images are byte-identical.",
+  "typecheck": {
+    "state": "passed",
+    "command": "npm --prefix web run typecheck",
+    "root_session": 44011,
+    "boundary": "Same merged web source; passed before merge commit and pending-work restore."
+  },
+  "limits": "Actual hidden-tab behavior, physical touch, OS held-repeat, audio listening acceptance and private malformed saves are not claimed.",
+  "verified_source_files": {
+    "web/index.html": {
+      "git_sha256": "f536e1a1d3f5b265d9a705b2da9a3ab84303f3e06c10c65016a26ec74ccd677f",
+      "working_sha256": "f536e1a1d3f5b265d9a705b2da9a3ab84303f3e06c10c65016a26ec74ccd677f",
+      "normalization": "identical bytes"
+    },
+    "web/package.json": {
+      "git_sha256": "39e4594ef45e3e47e30f84bf1be386a606ddd271e721f4d919b57a2939050cf7",
+      "working_sha256": "39e4594ef45e3e47e30f84bf1be386a606ddd271e721f4d919b57a2939050cf7",
+      "normalization": "identical bytes"
+    },
+    "web/src/audio/audio-controller.ts": {
+      "git_sha256": "5725afc0ba519f9fb613ca03523921cf50c01114f92f3832647a8e251efbe05e",
+      "working_sha256": "5725afc0ba519f9fb613ca03523921cf50c01114f92f3832647a8e251efbe05e",
+      "normalization": "identical bytes"
+    },
+    "web/src/background-ticker-worker.ts": {
+      "git_sha256": "73edfda8cad16431425a9e97d45b75cf2a1a60d2517b38ae594944a424f3e7fd",
+      "working_sha256": "73edfda8cad16431425a9e97d45b75cf2a1a60d2517b38ae594944a424f3e7fd",
+      "normalization": "identical bytes"
+    },
+    "web/src/background-ticker.ts": {
+      "git_sha256": "2b50d9dc7c917795e910c38773f141780b6ad04d5ce3f264e216700364c1f12d",
+      "working_sha256": "2b50d9dc7c917795e910c38773f141780b6ad04d5ce3f264e216700364c1f12d",
+      "normalization": "identical bytes"
+    },
+    "web/src/frame-clock.ts": {
+      "git_sha256": "e71f1ff051a42d3c8a7475c5f3b0a905c370af74efde91640134eb5e93f64923",
+      "working_sha256": "e71f1ff051a42d3c8a7475c5f3b0a905c370af74efde91640134eb5e93f64923",
+      "normalization": "identical bytes"
+    },
+    "web/src/frame.ts": {
+      "git_sha256": "5a24e999a3cfe9da6126bed3a2062bcddae9bf802f93487525aaed248cb92165",
+      "working_sha256": "5a24e999a3cfe9da6126bed3a2062bcddae9bf802f93487525aaed248cb92165",
+      "normalization": "identical bytes"
+    },
+    "web/src/main.ts": {
+      "git_sha256": "b3695936f87bb2dd73c715fc10904c8c728fd8ccd50014a2d46b8bea474bb836",
+      "working_sha256": "b3695936f87bb2dd73c715fc10904c8c728fd8ccd50014a2d46b8bea474bb836",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/activity-tooltip.ts": {
+      "git_sha256": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908",
+      "working_sha256": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/build-controls.css": {
+      "git_sha256": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+      "working_sha256": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/build-exit.ts": {
+      "git_sha256": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+      "working_sha256": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/build-session.ts": {
+      "git_sha256": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+      "working_sha256": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/build-tools.ts": {
+      "git_sha256": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+      "working_sha256": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/builder.ts": {
+      "git_sha256": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+      "working_sha256": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/buy-tool.ts": {
+      "git_sha256": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+      "working_sha256": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/compact-hud.css": {
+      "git_sha256": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+      "working_sha256": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/compact-hud.ts": {
+      "git_sha256": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+      "working_sha256": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/floor-tool.ts": {
+      "git_sha256": "5d93982b2587edc48b9f69dd53abd0412bbd7c9fe0bd0cb8acab3561e7f0045c",
+      "working_sha256": "5d93982b2587edc48b9f69dd53abd0412bbd7c9fe0bd0cb8acab3561e7f0045c",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/land-tool.ts": {
+      "git_sha256": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+      "working_sha256": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+      "normalization": "identical bytes"
+    },
+    "web/src/ui/room-tool.ts": {
+      "git_sha256": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+      "working_sha256": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+      "normalization": "identical bytes"
+    },
+    "web/tests/action-intent.test.ts": {
+      "git_sha256": "79e059083312ede116f9616e63df409723ef982526126a9324dd368c38015c1b",
+      "working_sha256": "79e059083312ede116f9616e63df409723ef982526126a9324dd368c38015c1b",
+      "normalization": "identical bytes"
+    },
+    "web/tests/activity-tooltip.test.ts": {
+      "git_sha256": "0daeec1596073335cc793370c47704af97b4a8c48332093cd5b065b6a458c57b",
+      "working_sha256": "0daeec1596073335cc793370c47704af97b4a8c48332093cd5b065b6a458c57b",
+      "normalization": "identical bytes"
+    },
+    "web/tests/audio-controller.test.ts": {
+      "git_sha256": "708938e80bb10892df51b7222417978aafca9a934cb4524f51d011c097399107",
+      "working_sha256": "708938e80bb10892df51b7222417978aafca9a934cb4524f51d011c097399107",
+      "normalization": "identical bytes"
+    },
+    "web/tests/build-exit-destination.test.ts": {
+      "git_sha256": "13b0477e97a9a1cc6fa25c7b14fc50f3d98d1853f9407aff05643836a551a7ed",
+      "working_sha256": "13b0477e97a9a1cc6fa25c7b14fc50f3d98d1853f9407aff05643836a551a7ed",
+      "normalization": "identical bytes"
+    },
+    "web/tests/build-exit.test.ts": {
+      "git_sha256": "0653320695c661459d1d29ea68ab0d1adc7010d6eb53cae30ebcedcd211cbb9f",
+      "working_sha256": "e8a8efbfb95018ce8138118165d7cd258e5e304778d07e67a113d4f65144744a",
+      "normalization": "Working CRLF to Git LF only; no source value changed."
+    },
+    "web/tests/builder.test.ts": {
+      "git_sha256": "017a0fd0a27bb5000fc222c67d0c5c0ebad46e3919d3a707b8d2420ef5411fe3",
+      "working_sha256": "017a0fd0a27bb5000fc222c67d0c5c0ebad46e3919d3a707b8d2420ef5411fe3",
+      "normalization": "identical bytes"
+    },
+    "web/tests/buy-tool.test.ts": {
+      "git_sha256": "9d17c29c8d341b288e9dc479f586043a67a2f95f9c9c5b6ef9726b979f79c740",
+      "working_sha256": "1aaf1020392fc978077402a0739138cf187281e7d7aacd2b565ef0dfbae0cdb6",
+      "normalization": "Working CRLF to Git LF only; no source value changed."
+    },
+    "web/tests/compact-hud.test.ts": {
+      "git_sha256": "b655a09a708fbc905359c327b5de335ecd7bff3518242bcbaa0063637c2d01d4",
+      "working_sha256": "b655a09a708fbc905359c327b5de335ecd7bff3518242bcbaa0063637c2d01d4",
+      "normalization": "identical bytes"
+    },
+    "web/tests/floor-scene-presentation.test.ts": {
+      "git_sha256": "1197cf7cbf2764256bbb6e6c6f4087e3253053c4a63478c9c06249a71ea626e2",
+      "working_sha256": "1197cf7cbf2764256bbb6e6c6f4087e3253053c4a63478c9c06249a71ea626e2",
+      "normalization": "identical bytes"
+    },
+    "web/tests/frame-audio.test.ts": {
+      "git_sha256": "092044cacc36b954d592c69b2c99d4f85e46fbf3ce95a3fd0222795a684770e6",
+      "working_sha256": "092044cacc36b954d592c69b2c99d4f85e46fbf3ce95a3fd0222795a684770e6",
+      "normalization": "identical bytes"
+    },
+    "web/tests/frame-clock.test.ts": {
+      "git_sha256": "6bfe1db7c5e45a30f6349361bc0b684e4ea7bec74cd7193d9660bf462d9b65cb",
+      "working_sha256": "6bfe1db7c5e45a30f6349361bc0b684e4ea7bec74cd7193d9660bf462d9b65cb",
+      "normalization": "identical bytes"
+    },
+    "web/tests/frame.test.ts": {
+      "git_sha256": "d4361e183b5459b6ad8865b74628ed7a9a1f6a47586d5875b05deb88e12328c8",
+      "working_sha256": "d4361e183b5459b6ad8865b74628ed7a9a1f6a47586d5875b05deb88e12328c8",
+      "normalization": "identical bytes"
+    },
+    "web/tests/housemate-form.test.ts": {
+      "git_sha256": "34f4fa26ef620b072c281752eafcb863a975acb22764ce293052b5c0a3af493a",
+      "working_sha256": "34f4fa26ef620b072c281752eafcb863a975acb22764ce293052b5c0a3af493a",
+      "normalization": "identical bytes"
+    },
+    "web/tests/land-tool.test.ts": {
+      "git_sha256": "5dbfcc523fa79c9fb9a1e9f07c0e084bd65364603eaced4e7cb5bba133bd4d69",
+      "working_sha256": "5dbfcc523fa79c9fb9a1e9f07c0e084bd65364603eaced4e7cb5bba133bd4d69",
+      "normalization": "identical bytes"
+    },
+    "web/tests/main-build-wiring.test.ts": {
+      "git_sha256": "257db184645b8de5476c40a1ec68d95be23b8db05aa0d2f12e2d606df95c6e3e",
+      "working_sha256": "257db184645b8de5476c40a1ec68d95be23b8db05aa0d2f12e2d606df95c6e3e",
+      "normalization": "identical bytes"
+    },
+    "web/tests/room-tool.test.ts": {
+      "git_sha256": "c0512a5de90653e7fa8c085ae733f9481022d98e056efa1878f4d64c8fefbe0c",
+      "working_sha256": "6c0c57440bf09eae3eee5e640affa6d3799b9e0411f82284c6b3dfc9d5382e94",
+      "normalization": "Working CRLF to Git LF only; no source value changed."
+    }
+  },
+  "capture_session_attribution": {
+    "tab_id": "365218544",
+    "origin": "http://127.0.0.1:5391/",
+    "source": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+    "dpr_observation": "Read-only browser measurement reported DPR 1 with 390 by 844 CSS pixels immediately before the direct compositor diagnostic. Sibling dock receipts also record DPR 1. No viewport mutation occurred between that observation and the dialog diagnostic.",
+    "surface_capture": "Original Page.captureScreenshot PNG, fromSurface true, measured viewport clip, scale 1; before/after layout metrics retained."
+  }
+}

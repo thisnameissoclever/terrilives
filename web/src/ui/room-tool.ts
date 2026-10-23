@@ -8,13 +8,14 @@
 import { DOORWAY_MENDS, type EdgeLine, type RoomPreview, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { nearestLine } from './wall-tool.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type RoomSource = Pick<SimBridge, 'roomEditPreview' | 'buildRoom' | 'lastRoomResult' | 'lotRevision'>;
 
 export const CHOOSE_CORNER = 'Choose a corner tile of the room.';
 const CHOOSE_OPPOSITE = 'Choose the opposite corner.';
-const READY = 'Ready to build. Choose a line of the outline for a doorway.';
-const READY_WITH_DOORWAY = 'Ready to build, with a doorway.';
+const READY = 'Choose a line of the outline for a doorway.';
+const READY_WITH_DOORWAY = '';
 const ALREADY_BUILT = 'This room is already built.';
 const BUILDING = 'Building the room…';
 const BUILT = 'Room built.';
@@ -218,6 +219,7 @@ export class RoomTool {
         if (result.reason === null) this.clear();
         else this.refresh();
         this.status = result.reason === null ? BUILT : this.refusal(result.reason, result.code);
+        if (result.reason !== null) logWarning('Rooms', 'Room build refused.', { ...result });
         this.hooks.changed();
         return;
       }

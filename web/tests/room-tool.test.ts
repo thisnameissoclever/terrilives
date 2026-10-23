@@ -81,7 +81,7 @@ describe('RoomTool', () => {
     expect(room.highlight()).toEqual({ tiles: [[2, 1]], valid: true });
     clickTile(room, 3, 2);
     expect(room.second).toEqual([3, 2]);
-    expect(room.status).toBe('Ready to build. Choose a line of the outline for a doorway.');
+    expect(room.status).toBe('Choose a line of the outline for a doorway.');
     expect(room.highlight()?.tiles).toEqual([[2, 1], [3, 1], [2, 2], [3, 2]]);
     expect(room.canBuild).toBe(true);
   });
@@ -104,7 +104,7 @@ describe('RoomTool', () => {
     // The right side's line at x = 3.5, row 2.
     room.choosePoint(3.55, 2.0);
     expect(room.doorway).toEqual({ axis: 0, x: 4, y: 2 });
-    expect(room.status).toBe('Ready to build, with a doorway.');
+    expect(room.status).toBe('');
     // The tile outside the doorway joins the highlight, so it shows.
     expect(room.highlight()?.tiles).toContainEqual([4, 2]);
     room.choosePoint(3.55, 2.0);
@@ -452,7 +452,7 @@ describe('the Room tool in the page', () => {
       "{ tool: roomsTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
-    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);
+    expect(MAIN_TS.split('withHoverLine(wallTool.highlight(), hoverLine, chosenWalls?.lines) : null)\n          ?? roomTool.highlight()')).toHaveLength(2);
   });
 });
 

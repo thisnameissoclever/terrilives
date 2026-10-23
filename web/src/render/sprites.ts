@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
-import {loadIndicatorCoverage} from './indicator-coverage.js';
 import {SceneTarget} from './scene-target.js';
 import {GroundSelectionRenderer,MAX_GROUND_MARKERS,drawAroundMarkers,groundMarkerRows} from './ground-selection.js';
 import {spriteShaderSource,spriteBindGroupLayoutEntries,spritePipelineDescriptors} from './sprite-pipelines.js';
 import { packPresentationLayers } from './visible-scene-layers.js';
-import { countResponseBytes, type LoadProgress } from '../load-progress.js';
+import { type LoadProgress } from '../load-progress.js';
+import {loadAtlasStorage} from './atlas-storage.js';
+import {ATLAS_STORAGE} from './atlas-storage-metadata.js';
 import { uploadJointAlpha } from './joint-alpha.js';
 import { loadCoveragePayload } from './coverage-payload.js';
 import { packShelfLayers } from './shelf-sprites.js';
@@ -13,10 +14,8 @@ import { packDiningSupport } from './dining-support.js';
 import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 
-import { loadDishCoverage } from './dish-coverage.js';
-import { loadBodyCoverage } from './body-coverage.js';
-import { GRIME_SPRITE_COUNT, grimeSpriteTable, uploadGrimePage } from './grime-decals.js';
-import {FIXTURE_DEPTH_PAGE_COUNT,FIXTURE_DEPTH_COUNT,fixtureDepthTable,uploadFixtureDepth} from './fixture-depth.js';
+import { GRIME_SPRITE_COUNT, grimeSpriteTable } from './grime-decals.js';
+import {FIXTURE_DEPTH_COUNT,fixtureDepthTable} from './fixture-depth.js';
 import {
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
@@ -157,107 +156,12 @@ export function validateAtlasPageCount(count: number, deviceLimit: number): void
   }
 }
 
-/** Sprite pages downloading at once, counting the one being decoded. */
-const ATLAS_PREFETCH_PAGES = 4;
-
-/**
- * Decodes the content-addressed atlas PNG into a GPU texture.
- *
- * `createImageBitmap` rather than an `Image` element, because
- * `copyExternalImageToTexture` wants a decoded source and an `Image`'s
- * `onload` does not guarantee one. Decode straight encoded RGB so the
- * shader can linearize each texel before premultiplying and filtering.
- * The scene attachment receives linear premultiplied color.
- */
+/** Load physical storage while retaining the original logical catalogue. */
 export async function loadAtlasTexture(
   device: GPUDevice,
   progress?: LoadProgress,
-): Promise<GPUTexture> {
-  validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
-  validateAtlasPageCount(ATLAS_PAGE_FILES.length+1+FIXTURE_DEPTH_PAGE_COUNT, device.limits.maxTextureArrayLayers);
-  const total = ATLAS_PAGE_FILES.length;
-  // Downloads run a few pages ahead of decoding. One page at a time left the
-  // network idle during every decode and upload, and a phone pays a round
-  // trip per page on top of that. Only compressed bytes wait in `pending`;
-  // decoded pages stay one at a time, because each is tens of megabytes.
-  const pending = new Map<number, Promise<Blob>>();
-  const download = async (page: number): Promise<Blob> => {
-    const url = atlasTextureUrl(import.meta.env.BASE_URL, page);
-    let response: Response;
-    try {
-      response = await fetch(url);
-    } catch (cause) {
-      throw new Error(
-        `could not reach the sprite atlas at ${url} - check the server and device connection`,
-        { cause },
-      );
-    }
-    if (!response.ok) {
-      throw new Error(`the sprite atlas at ${url} returned ${response.status}`);
-    }
-    return countResponseBytes(response, progress?.bytes).blob();
-  };
-  const take = (page: number): Promise<Blob> => {
-    for (let ahead = page; ahead < Math.min(page + ATLAS_PREFETCH_PAGES, total); ahead++) {
-      if (pending.has(ahead)) continue;
-      const blob = download(ahead);
-      // A later page can fail while an earlier one is still decoding, or
-      // after an earlier failure has already ended the load. Its error is
-      // reported when that page is taken, or not at all; never as an
-      // unhandled rejection.
-      blob.catch(() => {});
-      pending.set(ahead, blob);
-    }
-    const blob = pending.get(page)!;
-    pending.delete(page);
-    return blob;
-  };
-  let texture: GPUTexture | undefined;
-  try {
-    progress?.files?.(0, total);
-    for (let page = 0; page < total; page++) {
-      const bitmap = await createImageBitmap(await take(page), {
-        premultiplyAlpha: 'none',
-        colorSpaceConversion: 'none',
-      });
-      try {
-        if (bitmap.width !== ATLAS_WIDTH || bitmap.height !== ATLAS_HEIGHT) {
-          throw new Error(
-            `${ATLAS_PAGE_FILES[page]} is ${bitmap.width}x${bitmap.height} but atlas.ts says ` +
-              `${ATLAS_WIDTH}x${ATLAS_HEIGHT}; every sprite rect would be wrong`,
-          );
-        }
-        loadDishCoverage(bitmap, page);
-        loadBodyCoverage(bitmap, page);
-        loadIndicatorCoverage(bitmap,page);
-        texture ??= device.createTexture({
-          size: {
-            width: bitmap.width,
-            height: bitmap.height,
-            depthOrArrayLayers: ATLAS_PAGE_FILES.length+1+FIXTURE_DEPTH_PAGE_COUNT,
-          },
-          format: 'rgba8unorm',
-          usage: GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-        });
-        device.queue.copyExternalImageToTexture(
-          { source: bitmap },
-          { texture, origin: [0, 0, page] },
-          { width: bitmap.width, height: bitmap.height },
-        );
-      } finally {
-        bitmap.close();
-      }
-      progress?.files?.(page + 1, total);
-    }
-    await uploadGrimePage(device,texture!);
-    await uploadFixtureDepth(device,texture!);
-    return texture!;
-  } catch (error) {
-    texture?.destroy();
-    throw error;
-  }
-
+): Promise<{texture: GPUTexture; lookup: GPUBuffer}> {
+  return loadAtlasStorage(device,progress);
 }
 
 /**
@@ -388,20 +292,20 @@ export class SpriteRenderer {
       validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
       validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
     }
-    const total = ATLAS_PAGE_FILES.length + 1;
+    const total = ATLAS_STORAGE.pages.length + 3;
     let pagesDone = 0, coverageDone = 0;
     const report = (): void => progress?.files?.(pagesDone + coverageDone, total);
     const coverage = loadCoveragePayload(import.meta.env.BASE_URL, { bytes: progress?.bytes })
       .then(() => { coverageDone = 1; report(); });
     // Reported below, or after an atlas failure not at all; never unhandled.
     coverage.catch(() => {});
-    const texture = await loadAtlasTexture(gpu.device, progress && {
+    const storage = await loadAtlasTexture(gpu.device, progress && {
       bytes: progress.bytes,
       files: (done) => { pagesDone = done; report(); },
     });
-    try { await coverage; } catch (error) { texture.destroy(); throw error; }
-    const textures = [texture], buffers: GPUBuffer[] = [];
-    try { return new SpriteRenderer(gpu, texture, architecture, textures, buffers); }
+    try { await coverage; } catch (error) { storage.texture.destroy(); storage.lookup.destroy(); throw error; }
+    const textures = [storage.texture], buffers: GPUBuffer[] = [storage.lookup];
+    try { return new SpriteRenderer(gpu, storage.texture, storage.lookup, architecture, textures, buffers); }
     catch (error) {
       for (const resource of textures) resource.destroy();
       for (const resource of buffers) resource.destroy();
@@ -412,6 +316,7 @@ export class SpriteRenderer {
   private constructor(
     private readonly gpu: GpuContext,
     atlasTexture: GPUTexture,
+    atlasLookup: GPUBuffer,
     architecture?: ArchitectureAtlas,
     textures: GPUTexture[] = [],
     buffers: GPUBuffer[] = [],
@@ -548,6 +453,7 @@ export class SpriteRenderer {
         { binding: 10, resource: { buffer: this.diningBuffer } },
         { binding: jointBinding, resource: joint.texture.createView({ dimension: '2d-array' }) },
         { binding: jointBinding + 1, resource: { buffer: jointRegistration } },
+        { binding: jointBinding + 2, resource: { buffer: atlasLookup } },
       ],
     });
     this.groundSelection=new GroundSelectionRenderer(gpu.device);

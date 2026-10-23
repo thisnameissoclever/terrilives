@@ -115,6 +115,26 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("fight_relationship_loss", toml::Value::Float(0.1)),
         ("fight_mood_penalty", toml::Value::Float(12.0)),
         ("fight_mood_ticks", toml::Value::Integer(480)),
+        ("fight_grievance_ticks", toml::Value::Integer(360)),
+        ("fight_history_ticks", toml::Value::Integer(10080)),
+        ("fight_repeat_grievance_ticks", toml::Value::Integer(1440)),
+        ("fight_mood_bad_multiplier", toml::Value::Float(2.0)),
+        ("fight_mood_good_multiplier", toml::Value::Float(0.25)),
+        ("fight_opinion_strength", toml::Value::Float(0.5)),
+        ("fight_severity_reference", toml::Value::Float(0.25)),
+        ("chore_fight_response_base", toml::Value::Float(0.80)),
+        ("chore_fight_response_ticks", toml::Value::Integer(240)),
+        ("chore_fight_response_cleanliness", toml::Value::Float(0.20)),
+        (
+            "chore_fight_response_responsibility",
+            toml::Value::Float(0.10),
+        ),
+        ("chore_fight_response_commitment", toml::Value::Float(0.05)),
+        ("chore_fight_response_preference", toml::Value::Float(0.05)),
+        ("chore_fight_response_affinity", toml::Value::Float(0.05)),
+        ("chore_fight_response_mood", toml::Value::Float(0.05)),
+        ("chore_repair_base", toml::Value::Float(0.08)),
+        ("chore_repair_cleanliness", toml::Value::Float(0.04)),
         // Land expansion (issue 254): the shipped values, reconstructed by
         // the published-pack conversions too.
         ("land_strip_depth", toml::Value::Integer(10)),
@@ -246,6 +266,8 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         },
     )
     .expect("frozen pre-books content compiles");
+    pack.tuning.fight_rules = pack::FightRules::Published;
+    pack.tuning.fight_chance_per_tick = pack::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK;
     if !has_skills {
         pack.tuning.habituation_max = 1.0;
     }

@@ -11,6 +11,40 @@ mod decision_tests;
 mod integration_tests;
 mod native_build_tests;
 mod order_cycle_tests;
+mod reward_balance_tests;
+
+fn attributed_system_fight(sim: &mut Sim, initiator: Entity, recipient: Entity) -> u64 {
+    let affected = *sim.world().get::<SimId>(initiator).unwrap();
+    let responsible = *sim.world().get::<SimId>(recipient).unwrap();
+    crate::social_conflicts::remember(
+        sim.world_mut(),
+        affected,
+        responsible,
+        terri_core::save_v20::GrievanceKind::PrivacyStart,
+        terri_core::save_v20::GrievanceSubject::None,
+        0.25,
+    );
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_chance_per_tick = 1.;
+    let fight = crate::fights::fight_index(&pack).unwrap();
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    crate::fights::provoke(sim.world_mut());
+    let id = sim
+        .world()
+        .get::<IntentQueue>(initiator)
+        .unwrap()
+        .entries()
+        .iter()
+        .find(|entry| entry.intent.object == recipient && entry.intent.interaction == fight)
+        .unwrap()
+        .id;
+    assert!(sim
+        .world()
+        .resource::<crate::fights::Fights>()
+        .owns_order(initiator, id));
+    id
+}
 
 #[test]
 fn current_save_rejects_shared_physical_conversation_participants() {
@@ -354,8 +388,8 @@ fn dislike_still_delivers_and_family_adds_an_independent_bonus() {
     let (disliked, liked) = run(false);
     let (family_disliked, family_liked) = run(true);
     assert!(disliked > 0. && liked > disliked);
-    assert!((family_disliked - disliked - 0.075).abs() < 0.00001);
-    assert!((family_liked - liked - 0.075).abs() < 0.00001);
+    assert!((family_disliked - disliked - 0.1875).abs() < 0.00001);
+    assert!((family_liked - liked - 0.1875).abs() < 0.00001);
     assert_eq!(benefit(-1., 1., false), 0.25);
 }
 
@@ -444,7 +478,9 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
     assert!(sim.world().get::<Path>(a).is_some());
     let hash = sim.world_hash();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    restored
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), hash);
     sim.tick();
     restored.tick();
@@ -462,9 +498,9 @@ fn waiting_claim_round_trips_mid_approach_and_cancellation_releases_it() {
         .rendezvous
         .is_empty());
     assert!(restored.world().get::<Reserved>(b).is_none());
-    let cancelled = restored.save_snapshot_v17();
+    let cancelled = restored.current_v17_view();
     let mut paused = test_content::sim_with(12, 8, restored.world().resource::<Content>().0);
-    paused.load_snapshot_v17(cancelled).unwrap();
+    paused.load_current_v17_view(cancelled).unwrap();
     assert!(paused
         .world()
         .resource::<SocialEpisodes>()
@@ -1300,14 +1336,14 @@ fn liked_stranger_company_keeps_the_independent_disliked_family_bonus() {
         .resource::<crate::social_company::SocialCompany>();
     let feelings = sim.world().get::<Relationships>(p[0]).unwrap();
     let target = *sim.world().get::<Target>(p[0]).unwrap();
-    assert_eq!(company.active_scale(p[0], feelings), 1.6);
+    assert_eq!(company.active_scale(p[0], feelings), 1.75);
     assert_eq!(
         company.proposed_scale(p[0], target.object, 0, feelings, (2, 3)),
-        1.6
+        1.75
     );
     crate::need_interactions::tick(sim.world_mut());
     assert!(
-        (sim.world().get::<Needs>(p[0]).unwrap().get(NeedId::Social) - 30.192).abs() < 0.00001,
+        (sim.world().get::<Needs>(p[0]).unwrap().get(NeedId::Social) - 30.21).abs() < 0.00001,
         "family adds once even when a stranger is more liked"
     );
 }
@@ -1327,10 +1363,10 @@ fn paused_talk_flush_saves_only_physical_admission_and_round_trips() {
     );
     assert_eq!(sim.world().get::<Target>(a).map(|t| t.object), Some(b));
     assert_eq!(execution_order(sim.world(), a), Some(0));
-    let snapshot = sim.save_snapshot_v17();
+    let snapshot = sim.current_v17_view();
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(snapshot.clone()).unwrap();
-    assert_eq!(restored.save_snapshot_v17(), snapshot);
+    restored.load_current_v17_view(snapshot.clone()).unwrap();
+    assert_eq!(restored.current_v17_view(), snapshot);
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..100 {
         sim.tick();
@@ -1533,7 +1569,9 @@ fn every_competing_social_boundary_has_one_physical_owner_and_round_trips() {
             }
         }
         let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-        restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+        restored
+            .load_current_v17_view(sim.current_v17_view())
+            .unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         sim.tick();
         restored.tick();
@@ -1563,7 +1601,9 @@ fn autonomous_approach_keeps_its_exact_claim_through_maintenance_and_save() {
     maintain(sim.world_mut());
     assert!(sim.world().get::<Reserved>(b).is_some());
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    restored
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..100 {
         sim.tick();
@@ -1622,7 +1662,7 @@ fn frozen_object_save_adopts_its_original_front_without_repeating_it() {
 }
 
 #[test]
-fn pending_and_running_system_fights_keep_provenance_through_v15() {
+fn pending_and_running_system_fights_keep_provenance_through_current_save() {
     let (mut sim, a, b) = chat_fixture();
     let mut pack = sim.world().resource::<Content>().0.clone();
     pack.reading = terri_data::pack().reading;
@@ -1631,38 +1671,22 @@ fn pending_and_running_system_fights_keep_provenance_through_v15() {
     pack.social.push(fight);
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
-    let mut queue = IntentQueue::default();
-    let id = queue
-        .insert_order(
-            terri_core::Intent {
-                object: b,
-                interaction: 1,
-                cleanup: None,
-                chore: None,
-            },
-            None,
-            false,
-        )
-        .unwrap();
-    sim.world_mut().entity_mut(a).insert(queue);
-    sim.world_mut()
-        .resource_mut::<crate::fights::Fights>()
-        .restore_order(a, id);
-    let pending = sim.save_snapshot_v17();
+    let id = attributed_system_fight(&mut sim, a, b);
+    let pending = sim.current_v17_view();
     assert!(pending.player_orders.orders.is_empty());
     assert!(pending.social_executions.is_empty());
     assert_eq!(pending.system_social_orders, vec![(a.index_u32(), id)]);
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(pending).unwrap();
+    restored.load_current_v17_view(pending).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
     for _ in 0..120 {
         sim.tick();
         restored.tick();
         assert_eq!(restored.world_hash(), sim.world_hash());
-        assert!(sim.save_snapshot_v17().player_orders.orders.is_empty());
+        assert!(sim.current_v17_view().player_orders.orders.is_empty());
         let mut checkpoint = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
         checkpoint
-            .load_snapshot_v17(sim.save_snapshot_v17())
+            .load_current_v17_view(sim.current_v17_view())
             .unwrap();
         assert_eq!(checkpoint.world_hash(), sim.world_hash());
     }
@@ -1734,23 +1758,7 @@ fn system_cancel_at_ordinary_command_boundary_removes_exact_execution() {
     pack.social.push(fight);
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
-    let mut queue = IntentQueue::default();
-    let id = queue
-        .insert_order(
-            terri_core::Intent {
-                object: b,
-                interaction: 1,
-                cleanup: None,
-                chore: None,
-            },
-            None,
-            false,
-        )
-        .unwrap();
-    sim.world_mut().entity_mut(a).insert(queue);
-    sim.world_mut()
-        .resource_mut::<crate::fights::Fights>()
-        .restore_order(a, id);
+    attributed_system_fight(&mut sim, a, b);
     sim.flush_commands();
     assert!(sim
         .world()
@@ -1769,7 +1777,9 @@ fn system_cancel_at_ordinary_command_boundary_removes_exact_execution() {
     assert!(!sim.world().resource::<SocialEpisodes>().executions.contains_key(&a),"the ordinary command boundary must release the exact system execution without whole-world arbitration");
     assert!(sim.world().get::<Reserved>(b).is_none());
     let mut restored = test_content::sim_with(12, 8, sim.world().resource::<Content>().0);
-    restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+    restored
+        .load_current_v17_view(sim.current_v17_view())
+        .unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1883,7 +1893,9 @@ fn explicit_talk_front_suspends_recipe_and_resumes_original_order_identity() {
             );
             interruption_cursor = history.next_cursor;
             let mut restored = Sim::new_with_lot_and_content(24, 16, Content(pack));
-            restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+            restored
+                .load_current_v17_view(sim.current_v17_view())
+                .unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             interrupted = true;
             break;
@@ -2011,7 +2023,9 @@ fn explicit_talk_front_suspends_chore_and_resumes_original_order_identity() {
             );
             interruption_cursor = history.next_cursor;
             let mut restored = Sim::new_with_lot(16, 8);
-            restored.load_snapshot_v17(sim.save_snapshot_v17()).unwrap();
+            restored
+                .load_current_v17_view(sim.current_v17_view())
+                .unwrap();
             assert_eq!(restored.world_hash(), sim.world_hash());
             interrupted = true;
             break;

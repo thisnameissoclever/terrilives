@@ -15,7 +15,7 @@
 
 <p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
 
-<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
+<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/guide/">Player guide</a> | <a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
 
 Natural Causes is a dark-comedy life sim that runs in the browser. The current
 cast is Tim, Bill, and Casey.
@@ -52,6 +52,7 @@ Then, by what you want:
 | Which UI strings are functional and which await the owner's voice pass | [docs/player-visible-strings.md](docs/player-visible-strings.md) |
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
+| How to run checks locally and retain their results | [docs/local-checks.md](docs/local-checks.md) |
 
 ### The bracketed tags in code comments and docs
 

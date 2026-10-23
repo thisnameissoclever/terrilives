@@ -1,0 +1,13 @@
+{
+  "status": "INTERRUPTED",
+  "exit_code": -1,
+  "pid": 59200,
+  "process_started_at": "2026-10-19T16:44:19-07:00",
+  "ownership": "Exact command line and creation time verified; no child processes existed. Only PID59200 was stopped under root authorization.",
+  "reason": "Repeated full-manifest validations; replace with approved explicit one-pass ordering before the final complete run.",
+  "files_sha256": {
+    "task-3-native-batch-budget-interrupted-integrated-tests.txt": "0e716c7035bd8b4e5b6074bb7b78d69afed6da3b5b1504b9f7a4b4087b8244ae",
+    "task-3-native-batch-budget-interrupted-gate-api-costs.json": "1a4c3c4a594868da22df069f7afeb6286b0df13084ad24817a026cb262be273e",
+    "task-3-native-batch-budget-interrupted-plan-api-costs.json": "1ce4afca307ed070c1b4b2c442f117cd5b8b25845873b12916465723722eb13a"
+  }
+}

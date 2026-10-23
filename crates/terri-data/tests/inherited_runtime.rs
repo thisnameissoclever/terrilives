@@ -26,6 +26,45 @@ fn fixture(extra: &str) -> Result<terri_data::ContentPack, terri_data::ContentEr
         pack.voice_clips.iter().map(|v| v.duration_ticks).collect(),
         toml::from_str(include_str!("../../../content/skills.toml")).unwrap(),
     )?;
+    // Keep this retained runtime pack on its published balance. Live balance
+    // has separate content and delivery regressions.
+    assert_eq!(
+        result.decay_per_tick,
+        [
+            0.041333333,
+            0.034,
+            0.048,
+            0.068,
+            0.017333333,
+            0.032,
+            0.021333333
+        ]
+    );
+    result.decay_per_tick = [0.062, 0.051, 0.072, 0.102, 0.026, 0.048, 0.032];
+    assert_eq!(result.tuning.relationship_gain_per_talk, 0.34);
+    result.tuning.relationship_gain_per_talk = 0.17;
+    result.tuning.fight_rules = terri_data::FightRules::Published;
+    result.tuning.fight_chance_per_tick = terri_data::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK;
+    for action in &mut result.social {
+        if action.id == "chat" {
+            let social = action
+                .advertises
+                .iter_mut()
+                .find(|(need, _)| *need == 4)
+                .unwrap();
+            assert_eq!(social.1, 100.5, "live Chat Social changed");
+            social.1 = 50.25;
+        }
+    }
+    for object in &mut result.objects {
+        for action in &mut object.interactions {
+            if action.id == "attend_correspondence" {
+                let social = action.advertises.iter().find(|(need, _)| *need == 4);
+                assert_eq!(social.map(|(_, amount)| *amount), Some(24.0));
+                action.advertises.retain(|(need, _)| *need != 4);
+            }
+        }
+    }
     result.books = pack.books.clone();
     Ok(result)
 }
@@ -102,11 +141,9 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // Issue 275: encoding-only movement, 23008 -> 23012 bytes.
-            // SHA-256 before: d6bb03b7a27253a13e0b9581786ea96f0ba428096afb25ab2309ba6205ca36c5
-            // SHA-256 after: 6ff17b687b515239ac1367b1ee0c01bf9f36317295a9bd315a6d7f6bb7a6cfa5
-            // Removing the new tuning float
-            // must recover every byte of the previous runtime fixture.
+            // This mutable fixture retains its published balance. The current
+            // compiled contract appends only the purposeful-fight tuning tail.
+            // Removing that exact tail must recover every previous input byte.
             let prefix = postcard::to_allocvec(&(
                 &pack.decay_per_tick,
                 &pack.objects,
@@ -115,19 +152,37 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
                 &pack.tuning,
             ))
             .unwrap();
-            assert!(encoded.starts_with(&prefix));
-            let end = prefix.len();
-            assert_eq!(
-                &encoded[end - 4..end],
-                &pack.tuning.meal_appreciation_gain.to_le_bytes()
-            );
+            let mut tail = Vec::new();
+            macro_rules! tail_field {
+                ($field:ident) => {
+                    tail.extend(postcard::to_allocvec(&pack.tuning.$field).unwrap());
+                };
+            }
+            tail_field!(fight_grievance_ticks);
+            tail_field!(fight_history_ticks);
+            tail_field!(fight_repeat_grievance_ticks);
+            tail_field!(fight_mood_bad_multiplier);
+            tail_field!(fight_mood_good_multiplier);
+            tail_field!(fight_opinion_strength);
+            tail_field!(fight_severity_reference);
+            tail_field!(chore_fight_response_base);
+            tail_field!(chore_fight_response_ticks);
+            tail_field!(chore_fight_response_cleanliness);
+            tail_field!(chore_fight_response_responsibility);
+            tail_field!(chore_fight_response_commitment);
+            tail_field!(chore_fight_response_preference);
+            tail_field!(chore_fight_response_affinity);
+            tail_field!(chore_fight_response_mood);
+            tail_field!(chore_repair_base);
+            tail_field!(chore_repair_cleanliness);
+            tail_field!(fight_rules);
             let mut previous = encoded.clone();
-            previous.drain(end - 4..end);
+            previous.drain(prefix.len() - tail.len()..prefix.len());
             assert_eq!(
                 previous, old_bytes,
-                "only meal appreciation tuning may change the current fixture"
+                "only the appended fight tuning contract may change this fixture"
             );
-            eprintln!("Meal appreciation fixture proof: four appended tuning bytes, all other bytes unchanged");
+            eprintln!("Purposeful-fight fixture proof: removing the compiled tail recovers every previous byte");
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;

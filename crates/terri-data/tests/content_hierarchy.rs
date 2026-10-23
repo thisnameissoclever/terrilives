@@ -561,7 +561,13 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
                         intended.duration_ticks = 75;
                         intended.satisfaction = 3.0;
                     }
-                    "desk" => intended.label = "Handle correspondence".into(),
+                    "desk" => {
+                        intended.label = "Handle correspondence".into();
+                        intended
+                            .advertises
+                            .push((terri_core::NeedId::Social as u8, 24.));
+                        intended.advertises.sort_by_key(|(need, _)| *need);
+                    }
                     _ => (),
                 }
                 assert_eq!(comparable, intended);

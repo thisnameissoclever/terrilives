@@ -1,0 +1,18 @@
+{
+  "source_head": "0a7ee7b2ceef3a7737d9ad41844f88326e1b837e",
+  "files": {
+    "mutation_artifacts.py": {
+      "before_sha256": "b377e388941fbb842b0a8c63d5eb27018bd86dfe8f78e373068580fb67639b4b",
+      "after_sha256": "c307eb155202c2bc49acf7c00e4e51d1f13b3dca5ebba30cca17835f7434dddd",
+      "before_bytes": 29210,
+      "after_bytes": 29786
+    },
+    "test_mutation_artifacts.py": {
+      "before_sha256": "d60d2bba018d05c160fccfd2e554eef2975ee7fb8771e87f80e60489aeffe01f",
+      "after_sha256": "f983814c816f81f2b60e3c3e9bf6b477c9fb4cb4b3be23b1b118d5784b0bb10d",
+      "before_bytes": 18374,
+      "after_bytes": 24280
+    }
+  },
+  "package_sha256": "4f9f5e51b0aee91e3a9690cd5787c91ed5efb605b0295c63023d0ff5d834601f"
+}

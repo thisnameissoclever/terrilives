@@ -104,7 +104,7 @@ function entryHtml(entry, index, legacyAnchors) {
 
 /** Produce the complete page from source documents, with no runtime fetches. */
 export function buildChangelog(root = ROOT) {
-  const folder = join(root, 'docs/changelog');
+  const folder = join(root, 'docs/player/changelog');
   const entries = readdirSync(folder)
     .filter((name) => name.toLowerCase().endsWith('.md'))
     .sort().reverse()

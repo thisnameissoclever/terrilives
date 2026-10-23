@@ -1,0 +1,76 @@
+{
+  "source_head": "0a7ee7b2ceef3a7737d9ad41844f88326e1b837e",
+  "normalization": "UTF-8 text copies use LF and remove trailing whitespace. Raw ignored originals remain unchanged.",
+  "files": [
+    {
+      "file": "gh-raw-transport-report.md",
+      "raw_bytes": 4702,
+      "raw_sha256": "7feb2476b2a3db27d2deca4aef4867de51cc5858b9cd31edcefcfa5e579e8c48",
+      "retained_bytes": 4688,
+      "retained_sha256": "0a86f2bb11efbeb78353f91940324f59d01de8a9aad2dec5f58397c44031a70f"
+    },
+    {
+      "file": "gh-raw-transport-review.md",
+      "raw_bytes": 4086,
+      "raw_sha256": "8304f1c89721ec0d8868bb3856db0e923abb2b2ae19f9ef444860e5a57d89ad4",
+      "retained_bytes": 4086,
+      "retained_sha256": "8304f1c89721ec0d8868bb3856db0e923abb2b2ae19f9ef444860e5a57d89ad4"
+    },
+    {
+      "file": "gh-raw-transport-package.diff",
+      "raw_bytes": 7645,
+      "raw_sha256": "4f9f5e51b0aee91e3a9690cd5787c91ed5efb605b0295c63023d0ff5d834601f",
+      "retained_bytes": 7640,
+      "retained_sha256": "4f00671685afadfca874a1ccde3578c5a62560cc4bba9965bb7052c82028208f"
+    },
+    {
+      "file": "gh-raw-transport-hashes.json",
+      "raw_bytes": 742,
+      "raw_sha256": "d1fc4abbae976fff04e197e958444900627a60df7d78258a486cbb600521f951",
+      "retained_bytes": 724,
+      "retained_sha256": "fd276a4a91a50195ec71333699ddccdfd353cc9d1d542aa5424715d8ff7fdfdf"
+    },
+    {
+      "file": "gh-raw-transport-host-proof.json",
+      "raw_bytes": 618,
+      "raw_sha256": "2f9060cc1dfb46c43ea1bf98f026cc1278d6187066798d8b10079d27e2cb36e4",
+      "retained_bytes": 594,
+      "retained_sha256": "e5ad23378f23c0f7dbf01aff4538eb8def890f4c6cbfba6f2777e4380d48a443"
+    },
+    {
+      "file": "gh-raw-transport-controls.json",
+      "raw_bytes": 977,
+      "raw_sha256": "82b01fc0c8f4dc7e989ce8f33420e377f904606120289ff3110d7b2877b157b6",
+      "retained_bytes": 944,
+      "retained_sha256": "1ad78ac0194925f74588463589431f010e3645a78c057f26fcd737db16901b37"
+    },
+    {
+      "file": "gh-raw-transport-test-results.json",
+      "raw_bytes": 646,
+      "raw_sha256": "6b65f9be1d16a410b995e3f9ff7f41d65b743bda61e5a16deb642a9020fb287c",
+      "retained_bytes": 631,
+      "retained_sha256": "fc18fb47c3c6a965d4d6e7b0c010ab9636ea29301c19367d3f5b05d8f43445a6"
+    },
+    {
+      "file": "gh-raw-transport-focused-tests.txt",
+      "raw_bytes": 141,
+      "raw_sha256": "a13e892c88d829cd89added38aec6752e06683d35676120e824c25e562dc22ba",
+      "retained_bytes": 136,
+      "retained_sha256": "2d1f2d99d3522c8653676ee0880e34f801bc49cd0d47afd28651e1576b93084d"
+    },
+    {
+      "file": "gh-raw-transport-positive_old_cli.txt",
+      "raw_bytes": 103,
+      "raw_sha256": "223e06d17dfb6c32bd67ca7c62b915cb03e0a1189bad193f723662e346b75b55",
+      "retained_bytes": 98,
+      "retained_sha256": "d10ffbd9f0faa72cd6837063279524e199b59fbc3d035051302a1e8dbc4b36ad"
+    },
+    {
+      "file": "gh-raw-transport-capability_guard_removed.txt",
+      "raw_bytes": 1309,
+      "raw_sha256": "49398a138b09eb8fb801f8f2df43cb1d4a4e443c65c70572a5c8477c158722e5",
+      "retained_bytes": 1288,
+      "retained_sha256": "bc173c07ff1b34e688ef4a9111082ff33849306bbce2859c091765e33d796b8e"
+    }
+  ]
+}

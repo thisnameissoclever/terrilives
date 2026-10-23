@@ -1,0 +1,46 @@
+.............................................................................................................................................................................................F......F..F...................................................................
+code=false
+site=false
+code=true
+site=true
+======================================================================
+FAIL: test_interrupt_freezes_prior_result_excludes_signal_fake_and_resumes_pending_first (test_mutation_runner.RunnerTests.test_interrupt_freezes_prior_result_excludes_signal_fake_and_resumes_pending_first)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_runner.py", line 511, in test_interrupt_freezes_prior_result_excludes_signal_fake_and_resumes_pending_first
+    self.assertEqual(completed["state"], "complete")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'incomplete_without_progress' != 'complete'
+- incomplete_without_progress
++ complete
+
+
+======================================================================
+FAIL: test_partial_active_revert_write_is_deferred_until_exact_bytes (test_mutation_runner.RunnerTests.test_partial_active_revert_write_is_deferred_until_exact_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_runner.py", line 303, in test_partial_active_revert_write_is_deferred_until_exact_bytes
+    self.assertEqual(observed["result"]["state"], "incomplete_with_progress")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'incomplete_without_progress' != 'incomplete_with_progress'
+- incomplete_without_progress
+?                ---
++ incomplete_with_progress
+
+
+======================================================================
+FAIL: test_real_timeout_is_preserved_for_policy (test_mutation_runner.RunnerTests.test_real_timeout_is_preserved_for_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_runner.py", line 535, in test_real_timeout_is_preserved_for_policy
+    self.assertEqual(result["state"], "complete")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'incomplete_without_progress' != 'complete'
+- incomplete_without_progress
++ complete
+
+
+----------------------------------------------------------------------
+Ran 267 tests in 1512.788s
+
+FAILED (failures=3)

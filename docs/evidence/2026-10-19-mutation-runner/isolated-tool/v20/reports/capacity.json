@@ -1,0 +1,338 @@
+[
+  {
+    "label": "clone",
+    "elapsed_seconds": 0.007,
+    "task_rss_bytes": 36491264,
+    "host_available_bytes": 15909568512
+  },
+  {
+    "label": "checkout-config",
+    "elapsed_seconds": 0.044,
+    "task_rss_bytes": 36392960,
+    "host_available_bytes": 18063126528
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 0.016,
+    "task_rss_bytes": 36405248,
+    "host_available_bytes": 18561282048
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 15.344,
+    "task_rss_bytes": 275587072,
+    "host_available_bytes": 15567073280
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 30.992,
+    "task_rss_bytes": 311533568,
+    "host_available_bytes": 17174745088
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 46.311,
+    "task_rss_bytes": 331517952,
+    "host_available_bytes": 19208994816
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 61.664,
+    "task_rss_bytes": 459075584,
+    "host_available_bytes": 17943937024
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 76.946,
+    "task_rss_bytes": 478031872,
+    "host_available_bytes": 20292202496
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 92.188,
+    "task_rss_bytes": 478433280,
+    "host_available_bytes": 19591634944
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 108.198,
+    "task_rss_bytes": 478437376,
+    "host_available_bytes": 17698672640
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 123.412,
+    "task_rss_bytes": 592293888,
+    "host_available_bytes": 20323700736
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 138.685,
+    "task_rss_bytes": 611516416,
+    "host_available_bytes": 19407429632
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 153.977,
+    "task_rss_bytes": 706293760,
+    "host_available_bytes": 13365129216
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 170.839,
+    "task_rss_bytes": 706359296,
+    "host_available_bytes": 10491322368
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 186.222,
+    "task_rss_bytes": 719486976,
+    "host_available_bytes": 10197766144
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 201.684,
+    "task_rss_bytes": 705409024,
+    "host_available_bytes": 10649788416
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 216.714,
+    "task_rss_bytes": 845221888,
+    "host_available_bytes": 12761489408
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 232.255,
+    "task_rss_bytes": 840335360,
+    "host_available_bytes": 16472834048
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 247.606,
+    "task_rss_bytes": 870588416,
+    "host_available_bytes": 17475330048
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 262.95,
+    "task_rss_bytes": 998846464,
+    "host_available_bytes": 17927081984
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 278.271,
+    "task_rss_bytes": 1133961216,
+    "host_available_bytes": 16709328896
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 293.539,
+    "task_rss_bytes": 1217777664,
+    "host_available_bytes": 17325223936
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 308.843,
+    "task_rss_bytes": 1199693824,
+    "host_available_bytes": 17591869440
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 324.103,
+    "task_rss_bytes": 1241718784,
+    "host_available_bytes": 20189593600
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 339.341,
+    "task_rss_bytes": 1362087936,
+    "host_available_bytes": 19300917248
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 354.607,
+    "task_rss_bytes": 1378619392,
+    "host_available_bytes": 17371328512
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 369.842,
+    "task_rss_bytes": 1779810304,
+    "host_available_bytes": 17558392832
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 385.054,
+    "task_rss_bytes": 1791619072,
+    "host_available_bytes": 17972326400
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 400.897,
+    "task_rss_bytes": 1791672320,
+    "host_available_bytes": 19403460608
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 416.254,
+    "task_rss_bytes": 2026795008,
+    "host_available_bytes": 17988603904
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 431.469,
+    "task_rss_bytes": 2036359168,
+    "host_available_bytes": 17357844480
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 446.817,
+    "task_rss_bytes": 2035331072,
+    "host_available_bytes": 19205611520
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 462.025,
+    "task_rss_bytes": 2037280768,
+    "host_available_bytes": 19406286848
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 477.231,
+    "task_rss_bytes": 2044100608,
+    "host_available_bytes": 19777114112
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 492.444,
+    "task_rss_bytes": 2169073664,
+    "host_available_bytes": 19295834112
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 507.658,
+    "task_rss_bytes": 2286702592,
+    "host_available_bytes": 19092234240
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 522.87,
+    "task_rss_bytes": 2388439040,
+    "host_available_bytes": 19056291840
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 538.35,
+    "task_rss_bytes": 2415398912,
+    "host_available_bytes": 18180382720
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 553.562,
+    "task_rss_bytes": 2435473408,
+    "host_available_bytes": 18046267392
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 568.779,
+    "task_rss_bytes": 2478989312,
+    "host_available_bytes": 18071994368
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 583.987,
+    "task_rss_bytes": 2591485952,
+    "host_available_bytes": 17980993536
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 599.198,
+    "task_rss_bytes": 2760241152,
+    "host_available_bytes": 18796027904
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 615.145,
+    "task_rss_bytes": 2889854976,
+    "host_available_bytes": 17243803648
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 630.37,
+    "task_rss_bytes": 2909917184,
+    "host_available_bytes": 16802451456
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 645.582,
+    "task_rss_bytes": 2911330304,
+    "host_available_bytes": 18954215424
+  },
+  {
+    "label": "checkout",
+    "elapsed_seconds": 660.789,
+    "task_rss_bytes": 2964750336,
+    "host_available_bytes": 17281175552
+  },
+  {
+    "label": "cargo-version",
+    "elapsed_seconds": 0.008,
+    "task_rss_bytes": 32792576,
+    "host_available_bytes": 20225249280
+  },
+  {
+    "label": "rustc-version",
+    "elapsed_seconds": 0.018,
+    "task_rss_bytes": 40255488,
+    "host_available_bytes": 20215984128
+  },
+  {
+    "label": "before-stock",
+    "elapsed_seconds": 0.004,
+    "task_rss_bytes": 40263680,
+    "host_available_bytes": 20213620736
+  },
+  {
+    "label": "before-stock",
+    "elapsed_seconds": 15.226,
+    "task_rss_bytes": 76775424,
+    "host_available_bytes": 21418610688
+  },
+  {
+    "label": "stock-inventory",
+    "elapsed_seconds": 0.064,
+    "task_rss_bytes": 24498176,
+    "host_available_bytes": 20523405312
+  },
+  {
+    "label": "stock-inventory",
+    "elapsed_seconds": 15.29,
+    "task_rss_bytes": 195796992,
+    "host_available_bytes": 20053852160
+  },
+  {
+    "label": "after-stock",
+    "elapsed_seconds": 0.004,
+    "task_rss_bytes": 73011200,
+    "host_available_bytes": 20298256384
+  },
+  {
+    "label": "before-candidate",
+    "elapsed_seconds": 0.005,
+    "task_rss_bytes": 70397952,
+    "host_available_bytes": 20210286592
+  },
+  {
+    "label": "candidate-inventory",
+    "elapsed_seconds": 0.147,
+    "task_rss_bytes": 57675776,
+    "host_available_bytes": 20238954496
+  },
+  {
+    "label": "after-candidate",
+    "elapsed_seconds": 0.008,
+    "task_rss_bytes": 102232064,
+    "host_available_bytes": 21547745280
+  }
+]

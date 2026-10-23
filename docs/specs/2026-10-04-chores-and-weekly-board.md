@@ -78,7 +78,8 @@ the tile makes that dirt eligible again.
 Grime mood effects apply the [cleanliness response](2026-10-13-cleanliness.md)
 to each floor tile or surface before averaging separately within the current
 room. Each effect is -(0.3 + cleanliness) times average response in 0..1, capped
-at its fully dirty value. Cleanliness sets a tolerated dirt threshold from 40%
+at its fully dirty value. Environmental penalties wait for the continuous grace
+period described in the cleanliness specification. Cleanliness sets a tolerated dirt threshold from 40%
 at zero cleanliness to 5% at full cleanliness. Clean floors do not suppress the
 surface effect. Daily chore decisions use these same mood effects. Active work
 shows the fitted cleaning poses described below.
@@ -118,9 +119,13 @@ workload and weights eligible Sims by 1.2 + preference, using a separately
 saved random stream. It does not consume the activity-duration stream.
 
 History uses (4 previous + outcome)/5. On-time completion counts as 100;
-late completion or a helper covering a consciously skipped duty counts as 50;
+late completion counts as 50; a helper covering a consciously skipped duty
+counts as 50 only after its neglect grace expires;
 avoidable missed work counts as zero. Other housemates gain 0.006 + 0.006
-cleanliness affinity toward a real performer. Avoidable neglect loses 0.008 +
+cleanliness affinity toward a real performer at successful physical completion, including board-disabled and repeat work. Dish washing pays once per completed batch; board accounting does not duplicate the reward. A completed relevant chore argument can create the four-hour [repair window](2026-10-16-fights.md), with a separate scoped dish-contribution record. Avoidable neglect begins only after two game hours at maximum dirt or one full
+game day of unfinished actionable work. The same gate applies to helper
+resentment and midnight settlement; fresh work stays eligible for cleaning.
+Avoidable neglect loses 0.008 +
 0.012 cleanliness affinity toward its owner; a helper covering a skipped duty
 also loses 0.004 toward that owner. No Sim applies these effects to itself.
 The panel retains eight days of episodes and identifies actual performers.
@@ -162,6 +167,11 @@ settled episodes. Hash every value that affects future simulation. Validate
 references, numeric bounds, ordering and exclusive claims before adoption.
 Older saves adopt clean surfaces and neutral history without rerolling existing
 work or changing existing dish responsibility.
+
+Schema nineteen wraps schema eighteen with independent source and duty timers.
+Older saves start fresh grace; the positional chore, domestic and grime records
+remain frozen. The timers are hashed and validated and survive native build and
+ordinary-command reconstruction.
 
 The room schema adds stable identities around the unchanged published save shapes.
 Historical room seeds are validated under their original meanings before explicit

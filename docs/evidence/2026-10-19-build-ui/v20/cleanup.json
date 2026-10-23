@@ -1,0 +1,11 @@
+{
+  "closedAt": "2026-10-19T21:10:12.402Z",
+  "tabId": "365218508",
+  "url": "http://127.0.0.1:5391/",
+  "paused": true,
+  "pausedClock": "Day 1, Monday 01:05 Spring: mild",
+  "startupClockObservation": "The prior task save checkpoint was 00:05. The first startup HUD observed after loading showed00:10; startup ran at1x until manual Pause at01:05. All subsequent Build/Land/save checks kept01:05.",
+  "warnings": [],
+  "errors": [],
+  "scope": "Task-owned local origin only"
+}

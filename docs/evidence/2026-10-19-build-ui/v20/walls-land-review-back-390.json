@@ -1,0 +1,171 @@
+{
+  "capturedAt": "2026-10-19T21:09:36.479Z",
+  "url": "http://127.0.0.1:5391/",
+  "measurements": {
+    "active": "Land",
+    "box": {
+      "bottom": 836,
+      "height": 271.1875,
+      "left": 8,
+      "right": 382,
+      "top": 564.8125,
+      "width": 374,
+      "x": 8,
+      "y": 564.8125
+    },
+    "buttons": [
+      {
+        "background": "rgb(91, 45, 53)",
+        "font": "12px",
+        "outline": "rgb(255, 240, 241) none 3px",
+        "rect": {
+          "bottom": 619.8125,
+          "height": 44,
+          "left": 300.4375,
+          "right": 371,
+          "top": 575.8125,
+          "width": 70.5625,
+          "x": 300.4375,
+          "y": 575.8125
+        },
+        "text": "Exit build"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 19,
+          "right": 92.515625,
+          "top": 627.8125,
+          "width": 73.515625,
+          "x": 19,
+          "y": 627.8125
+        },
+        "text": "Furniture"
+      },
+      {
+        "background": "rgb(41, 49, 58)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 97.515625,
+          "right": 147.625,
+          "top": 627.8125,
+          "width": 50.109375,
+          "x": 97.515625,
+          "y": 627.8125
+        },
+        "text": "Walls"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 152.625,
+          "right": 212.71875,
+          "top": 627.8125,
+          "width": 60.09375,
+          "x": 152.625,
+          "y": 627.8125
+        },
+        "text": "Rooms"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 217.71875,
+          "right": 258.1875,
+          "top": 627.8125,
+          "width": 40.46875,
+          "x": 217.71875,
+          "y": 627.8125
+        },
+        "text": "Buy"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 263.1875,
+          "right": 318.375,
+          "top": 627.8125,
+          "width": 55.1875,
+          "x": 263.1875,
+          "y": 627.8125
+        },
+        "text": "Floors"
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "font": "14px",
+        "outline": "rgb(216, 216, 224) none 3px",
+        "rect": {
+          "bottom": 671.8125,
+          "height": 44,
+          "left": 323.375,
+          "right": 371,
+          "top": 627.8125,
+          "width": 47.625,
+          "x": 323.375,
+          "y": 627.8125
+        },
+        "text": "Land"
+      },
+      {
+        "background": "rgb(91, 45, 53)",
+        "font": "14px",
+        "outline": "rgb(255, 240, 241) none 3px",
+        "rect": {
+          "bottom": 817,
+          "height": 44,
+          "left": 228.59375,
+          "right": 291.5,
+          "top": 773,
+          "width": 62.90625,
+          "x": 228.59375,
+          "y": 773
+        },
+        "text": "Cancel"
+      },
+      {
+        "background": "rgb(38, 79, 61)",
+        "font": "14px",
+        "outline": "rgb(232, 248, 237) none 3px",
+        "rect": {
+          "bottom": 817,
+          "height": 44,
+          "left": 299.5,
+          "right": 371,
+          "top": 773,
+          "width": 71.5,
+          "x": 299.5,
+          "y": 773
+        },
+        "text": "Confirm"
+      }
+    ],
+    "clientWidth": 372,
+    "scrollWidth": 372,
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "width": 390
+    },
+    "visibleText": "Build mode\nExit build\nFurniture\nWalls\nRooms\nBuy\nFloors\nLand\nShortcuts\n\nWall removed.\n\nCancel\nConfirm"
+  }
+}

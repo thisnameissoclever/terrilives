@@ -305,6 +305,48 @@ fn window_rear_shell_is_bounded_and_removal_restores_implicit_shell() {
 }
 
 #[test]
+fn wide_windows_fit_walls_on_the_lot_south_and_east_edges_and_survive_a_save() {
+    // A row of yard tiles against the south edge, and a column against the east one.
+    for (room, start) in [
+        ((17, 15, 19, 15), line(EdgeAxis::Horizontal, 17, 16)),
+        ((19, 13, 19, 15), line(EdgeAxis::Vertical, 20, 13)),
+    ] {
+        let mut sim =
+            super::super::walls::tests::shipped_lot_with_room(room.0, room.1, room.2, room.3);
+        let grid = grid_view(sim.world().resource::<TileGrid>());
+        let placed = WindowPlacement {
+            line: start,
+            model: WindowModel::Picture,
+        };
+        fit(&mut sim, placed);
+        for segment in placed.lines() {
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                WallState::Window
+            );
+        }
+        assert_eq!(grid_view(sim.world().resource::<TileGrid>()), grid);
+        let mut reader = Sim::new_from_shipped_lot();
+        reader.load_snapshot_v19(sim.save_snapshot_v19()).unwrap();
+        assert_eq!(
+            reader.world().resource::<SavedLayout>().window_placements(),
+            [placed]
+        );
+        assert_eq!(
+            apply_window_edit(sim.world_mut(), WindowEdit::Remove(placed.lines()[1])).reason,
+            None
+        );
+        for segment in placed.lines() {
+            assert_eq!(
+                sim.world().resource::<SavedLayout>().state_of(segment),
+                WallState::Wall,
+                "removing perimeter glass restores its wall"
+            );
+        }
+    }
+}
+
+#[test]
 fn window_new_commands_drain_in_order_and_capture_model() {
     let mut sim = house();
     sim.world_mut()
@@ -559,6 +601,146 @@ fn window_loader_refuses_front_door_without_employed_sims() {
         Err(crate::save::SaveError::InvalidGrid)
     );
     assert_eq!(sim.save_snapshot_v5(), before);
+}
+
+/// Someone walking past a window on their way round to what lies behind it is
+/// not using it through the glass. Refusing that at load stopped Build mode
+/// opening and Confirm succeeding; someone who has arrived and uses it across
+/// the window is still refused. The seeded Build search covers the full load.
+#[test]
+fn window_loader_lets_a_walker_pass_beside_their_target_but_not_use_it_through_glass() {
+    let mut sim = house();
+    fit(&mut sim, window(WindowModel::Cottage));
+    let first = window(WindowModel::Cottage).line;
+    let [beside, behind] = record(first, false).cells();
+    assert!(first.y > 0, "the walk goes round above the window");
+    let pack = sim.world().resource::<Content>().0;
+    let plant = sim.spawn_object(
+        Position {
+            x: behind.0 as f32,
+            y: behind.1 as f32,
+        },
+        pack.find("potted_plant").unwrap(),
+    );
+    sim.world_mut().resource_mut::<TileGrid>().set_blocked(
+        behind.0 as usize,
+        behind.1 as usize,
+        true,
+    );
+    let walker = sim.spawn_agent(
+        Position {
+            x: beside.0 as f32,
+            y: beside.1 as f32,
+        },
+        100.0,
+    );
+    let around = vec![(beside.0, beside.1 - 1), (behind.0, behind.1 - 1)];
+    sim.world_mut().entity_mut(walker).insert((
+        terri_core::Target {
+            object: plant,
+            interaction: 0,
+        },
+        terri_core::Path {
+            steps: around,
+            cursor: 0,
+        },
+    ));
+    assert_eq!(validate_restored_windows(sim.world()), Ok(()));
+    sim.world_mut()
+        .entity_mut(walker)
+        .remove::<terri_core::Path>();
+    assert_eq!(
+        validate_restored_windows(sim.world()),
+        Err(PlacementRefusal::InUse)
+    );
+}
+
+/// The full load and Build entry for the case above, in the shipped house: a
+/// housemate on the far side of a fresh window from a piece of furniture walks
+/// round to use it.
+#[test]
+fn shipped_house_loads_and_opens_build_with_a_walker_beside_a_window() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let objects: Vec<(Entity, (i32, i32), terri_core::Footprint)> = sim
+        .world_mut()
+        .query::<(
+            Entity,
+            &Position,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>()
+        .iter(sim.world())
+        .map(|(entity, p, object, facing)| {
+            (
+                entity,
+                (p.x as i32, p.y as i32),
+                crate::placed_footprint(pack, object.0, facing),
+            )
+        })
+        .collect();
+    for (object, origin, footprint) in objects {
+        let beside = (origin.0, origin.1 + footprint.depth as i32);
+        let placed = WindowPlacement {
+            line: line(EdgeAxis::Horizontal, beside.0 as u32, beside.1 as u32),
+            model: WindowModel::Sash,
+        };
+        let Ok(plan) = validate_window_edit(sim.world(), WindowEdit::Fit(placed)) else {
+            continue;
+        };
+        if !plan.grid.is_walkable(beside.0, beside.1) {
+            continue;
+        }
+        let Some(walk) = plan.grid.find_path_adjacent(beside, origin, footprint) else {
+            continue;
+        };
+        if walk.is_empty() {
+            continue;
+        }
+        let mut trial = Sim::new_from_shipped_lot();
+        trial.world_mut().insert_resource(plan.layout.clone());
+        trial.world_mut().insert_resource(plan.grid.clone());
+        let walker = trial
+            .world_mut()
+            .query_filtered::<Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(trial.world())
+            .next()
+            .unwrap();
+        trial.world_mut().entity_mut(walker).insert((
+            Position {
+                x: beside.0 as f32,
+                y: beside.1 as f32,
+            },
+            terri_core::Target {
+                object,
+                interaction: 0,
+            },
+            terri_core::Path {
+                steps: walk,
+                cursor: 0,
+            },
+        ));
+        if crate::placement::lot_usable_for_tests(trial.world()).is_err()
+            || crate::save::candidate_grid_loads(
+                trial.world(),
+                trial.world().resource::<TileGrid>(),
+            )
+            .is_err()
+        {
+            continue;
+        }
+        crate::save::v20::restore(
+            crate::save::v20::capture(&trial),
+            pack,
+            crate::save::Carried::for_load(trial.world()),
+        )
+        .expect("a walk past a window loads");
+        trial
+            .begin_build()
+            .expect("Build opens with a walker beside a window");
+        return;
+    }
+    panic!("no window line in the shipped house has floor on both sides");
 }
 
 #[test]

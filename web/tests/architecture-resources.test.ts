@@ -4,6 +4,8 @@ import { closeArchitectureAtlas, loadArchitectureAtlas, validateArchitectureDevi
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
+import {SPRITE_STORAGE_BUFFER_COUNT} from '../src/render/sprite-resource-limits.js';
+import {spriteBindGroupLayoutEntries} from '../src/render/sprite-pipelines.js';
 
 const limits = { maxTextureDimension2D: 8192, maxTextureArrayLayers: 256,
   maxSampledTexturesPerShaderStage: 16, maxStorageBuffersPerShaderStage: 8, maxStorageBufferBindingSize: 128 * 1024 * 1024 } as GPUDevice['limits'];
@@ -14,14 +16,24 @@ it('checks direct caller texture, array, sampling and storage limits before GPU 
     sprites: ARCHITECTURE.sprites, registration: new Float32Array(472 * 4),
     patterns: [{ width: 256, height: 256 }] } as unknown as ArchitectureAtlas;
   expect(() => validateArchitectureDevice(atlas, limits, 1700)).not.toThrow();
-  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: 3 }, 1700)).toThrow(/buffer counts/);
-  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: 4 }, 1700)).not.toThrow();
+  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: SPRITE_STORAGE_BUFFER_COUNT-1 }, 1700)).toThrow(/buffer counts/);
+  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: SPRITE_STORAGE_BUFFER_COUNT }, 1700)).not.toThrow();
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxTextureDimension2D: 2048 }, 1700)).toThrow(/dimensions/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxTextureArrayLayers: 1 }, 1700)).toThrow(/layer/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxSampledTexturesPerShaderStage: 4 }, 1700)).toThrow(/sampled/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBufferBindingSize: 65536 }, 1700)).toThrow(/storage/);
   // 2,172 sprite records need 104,256 bytes; the old 32-byte estimate was 69,504.
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBufferBindingSize: 100000 }, 1700)).toThrow(/storage/);
+});
+
+it('uses the actual sprite layout to preflight storage buffers without spending texture slots',()=>{
+  vi.stubGlobal('GPUShaderStage',{VERTEX:1,FRAGMENT:2});
+  for(const patterns of [0,1,11]){
+    const entries=spriteBindGroupLayoutEntries(patterns);
+    const perStage=[1,2].map(stage=>entries.filter(entry=>entry.visibility&stage&&entry.buffer?.type==='read-only-storage').length);
+    expect(Math.max(...perStage)).toBe(SPRITE_STORAGE_BUFFER_COUNT);
+    expect(entries.filter(entry=>entry.visibility&2&&entry.texture).length-patterns).toBe(5);
+  }
 });
 
 it('rejects device limits before allocating or fetching any architecture resource', async () => {

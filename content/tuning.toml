@@ -527,7 +527,7 @@ need_bar_refresh_ms = 100
 # critical needs can block it. Calibrated with ordinary privacy incidents
 # and shared activities; see the relationship-development evidence.
 # Zero disables this completion reward.
-relationship_gain_per_talk = 0.17
+relationship_gain_per_talk = 0.34
 # Appreciation per completed shared portion, issue 275. This matches the
 # code-defined chore reward at average cleanliness; chore gratitude is not tuned here.
 meal_appreciation_gain = 0.009
@@ -583,29 +583,37 @@ burn_chance_master = 0.002
 burnt_meal_mood_penalty = 10.0
 burnt_meal_mood_ticks = 240
 
-# FIGHTS - issue 248. A person starts a fight on their own only with
-# someone they feel fight_affinity_threshold or worse about (-0.9 is the
-# bottom five percent of the -1 to 1 scale) and only with a reason: a chore
-# the other person was assigned, missed, and left undone. On a tick where
-# the person is idle (nothing chosen, no order, no activity), each such
-# grudge with a reason gets one roll against fight_chance_per_tick, and
-# the first roll that passes starts the fight; 0.01 means about a hundred
-# idle ticks before it starts when one such grudge is held. An order the
-# roll made up is withdrawn if the other person leaves the lot (for work
-# or a commute) before it is served. A finished fight
-# lowers each side's feeling for the other by fight_relationship_loss and
-# leaves a Had a fight moodlet scoring minus fight_mood_penalty for
-# fight_mood_ticks ticks (480 is eight game hours); the moodlet also holds
-# off another autonomous fight by the same person. The threshold must be
-# finite from -1 to 1, the chance finite from 0 to 1, the loss finite from
-# 0 to 2, the penalty finite and not negative, the duration from 1 to a
-# week. Appended to the compiled tuning after burnt_meal_mood_ticks, so
-# packs published before them reconstruct these shipped values.
+# FIGHTS - attributable arguments and chore responses, issue 314.
+# Fights use one probability draw per eligible idle person, after selecting
+# an attributable current grievance. Mood, opinion and incident severity scale
+# the neutral chance. Both participants must be outside the fight cooldown.
+# The historical affinity threshold remains in the compiled record for old packs;
+# current grievance admission uses the opinion modifier below instead.
+# A completed argument lowers opinion and leaves an eight-hour moodlet.
 fight_affinity_threshold = -0.9
-fight_chance_per_tick = 0.01
+fight_chance_per_tick = 0.001
 fight_relationship_loss = 0.1
 fight_mood_penalty = 12.0
 fight_mood_ticks = 480
+
+# Attributable fights remember recent incidents and allow one saved chore response.
+fight_grievance_ticks = 360
+fight_history_ticks = 10080
+fight_repeat_grievance_ticks = 1440
+fight_mood_bad_multiplier = 2.0
+fight_mood_good_multiplier = 0.25
+fight_opinion_strength = 0.5
+fight_severity_reference = 0.25
+chore_fight_response_base = 0.80
+chore_fight_response_ticks = 240
+chore_fight_response_cleanliness = 0.20
+chore_fight_response_responsibility = 0.10
+chore_fight_response_commitment = 0.05
+chore_fight_response_preference = 0.05
+chore_fight_response_affinity = 0.05
+chore_fight_response_mood = 0.05
+chore_repair_base = 0.08
+chore_repair_cleanliness = 0.04
 
 # LAND EXPANSION - issue 254 (docs/specs/2026-10-17-land-expansion.md). A
 # strip of bought land is land_strip_depth tiles deep along the whole of
@@ -727,7 +735,7 @@ first_weekday = 0
 # day, 0 (Spring) to 3 (Winter). Like the weekday, the season is worked
 # out from the tick and these two numbers, so nothing about it is saved;
 # changing either can move a saved game to a different season. The
-# season changes how the yard's grass looks and nothing else: needs,
+# season changes the grass tint and visual weather: needs,
 # moods, careers and autonomy do not read it. days_per_season must be at
 # least 1 and first_season at most 3. Appended to the compiled tuning
 # after career_mood_fired_ticks, with season_yard_looks below, so packs
@@ -752,12 +760,12 @@ first_season = 0
 #
 # Spring: the grass as authored.
 season_yard_looks.spring = { hue = 0.0, strength = 1.0, lightness = 0.0 }
-# Summer: warmer, drier and lighter, like sun-dried grass.
-season_yard_looks.summer = { hue = -20.0, strength = 0.85, lightness = 0.04 }
-# Autumn: a yellow-brown cast.
-season_yard_looks.autumn = { hue = -45.0, strength = 0.9, lightness = -0.05 }
-# Winter: pale and desaturated, with a frosty lightness.
-season_yard_looks.winter = { hue = 12.0, strength = 0.3, lightness = 0.14 }
+# Summer: slightly warmer green.
+season_yard_looks.summer = { hue = -3.0, strength = 0.98, lightness = 0.015 }
+# Autumn: slightly warmer and darker green.
+season_yard_looks.autumn = { hue = -6.0, strength = 0.97, lightness = -0.005 }
+# Winter: slightly cooler and lighter green.
+season_yard_looks.winter = { hue = 3.0, strength = 0.92, lightness = 0.025 }
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # One crisis costs about 0.0144 points per game day, alongside its mood
@@ -865,153 +873,17 @@ sleep_tag = "sleep"
 # fails if a balance pass ever makes two of them equal; see [L26] for the
 # instance where a uniform fixture hid exactly this bug one layer down.
 [decay_per_tick]
-# ALL SEVEN WERE SLOWED at the alpha pass, and hunger by more than the rest.
-#
-# The old rates drained a need in 12 to 60 real minutes at 1x, which sounds
-# leisurely and was not: the sim's whole day was eating and using the toilet,
-# because those two drained fastest and everything else never got a turn. The
-# measured share bears it out - fridge 28% and toilet 26% of all interactions
-# between them, against 8% for the shower and 0% for the bookshelf.
-#
-# Every rate is multiplied by roughly 0.75, and hunger by 0.6 so it stops
-# dominating. Hunger now takes 1 613 ticks to drain from full, which is 2.7
-# real minutes at 1x and about 27 sim-hours.
-#
-# **All seven must stay DISTINCT.** `decay_needs` looks a rate up by need
-# index, and no test can tell one slot from another if two slots hold the same
-# value; `needs_decay_at_different_rates` fails if a balance pass ever makes
-# two equal. See [L26] for the instance where a uniform fixture hid exactly
-# that bug one layer down.
-#
-# **These are the BASE rates and they are about to stop being the whole
-# story.** Three things are designed to modulate them and none is built:
-# per-sim affinities so a social butterfly and an introvert drain `social` at
-# different speeds, activity coupling so effort drains hunger faster than
-# resting does, and a small seeded jitter so two sims are never metronomic
-# together. See docs/specs/2026-07-29-needs-modulation-design.md; the shape
-# those take is why this table is a table of base rates rather than the final
-# numbers.
-hunger = 0.062
-energy = 0.051
-# **0.072, raised from 0.039, for exactly the reason `fun` was raised.** The sink
-# was used once in 12 000 ticks, and the candidate table shows why: hygiene sat at
-# level 93, so its deficit was 0.07, and a cubed 0.07 makes the sink's only
-# advertised need worth 0.0001. The shower alone delivers 840 points of hygiene
-# per run against 468 drained - one shower covers about 1 800 ticks of drain, so
-# a second hygiene object can never be needed.
-#
-# Raised here rather than by cutting the shower's 70, because "restores a lot and
-# costs energy" is the shower's whole identity and the trade it exists to offer.
-hygiene = 0.072
-bladder = 0.102
-social = 0.026
-# **0.048, raised from 0.031, and this is the fix for [C6] that two earlier
-# guesses missed.** The bookshelf was used ZERO times in every measurement ever
-# taken, and both previous explanations were wrong: it was not its delta and it
-# was not its 70-tick duration. The candidate table shows why - `fun` sat at
-# level 98, so the bookshelf's only advertised need had a deficit of 0.02, and
-# score is `delta * deficit^3`. Its score was exactly 0.0000. No delta and no
-# duration can fix a zero.
-#
-# Fun was OVER-SUPPLIED. Three objects advertise it - television 30, bookshelf
-# 26, sofa 18 - while it drained more slowly than all but two needs. Measured
-# over 12 000 ticks: about 534 points delivered against 372 drained, a 43%
-# surplus, and the two objects chosen for their OTHER needs (the television for
-# social, the sofa for comfort) were quietly keeping fun topped up as a side
-# effect.
-#
-# Raising the rate is the fix rather than stripping fun off the sofa, because the
-# sofa genuinely is a fun object and the surplus is what was wrong.
-fun = 0.048
-# **0.032, raised from 0.021, and this is [C6] again in a different object.**
-#
-# The five-room house added five comfort objects - dining table 44, long sofa
-# 52, armchair 38, reading chair 29, bathtub 47 - and the first trace over it
-# had every single one of them at ZERO uses in 12 000 ticks. Same shape as the
-# bookshelf, same reason, found the same way: the candidate table showed
-# `comfort` sitting at level 87, so a deficit of 0.13, and score is
-# `delta * deficit^3 / (distance / 0.25 + duration + 1)`. Cubed, that deficit
-# is 0.0022. The armchair's 38 comfort - the best comfort-per-tick in the
-# house - scored 0.0007 from across the lot and 0.0071 standing beside it,
-# against an `action_threshold` of 0.05. No delta and no duration fixes a
-# number an order of magnitude short at point-blank range.
-#
-# The distance matters to the diagnosis and is easy to drop: the same 0.0007
-# still appears in the candidate table AFTER this fix, from nineteen tiles
-# away, and reads as if nothing changed. What changed is the score standing
-# next to the thing.
-#
-# Comfort was over-supplied and barely drained: 298 points delivered against
-# 252 drained over 12 000 ticks, with a floor of 60.8, so it never got low
-# enough to want. At 0.021 it was also the slowest-draining need in the file,
-# 1.24 times slower than `social`'s 0.026 behind it.
-#
-# **Two changes together, and the other one matters more.** The double bed's
-# comfort delta went from 27 to 10, because eight nights' sleep was supplying
-# 216 of those 298 points - comfort was being kept topped up as a side effect
-# of an action taken for a different need entirely, which is exactly what was
-# wrong with `fun` above. This rate then went up by half so that comfort
-# genuinely presses on a sim over a day rather than drifting.
-#
-# At 0.032 it is now the second slowest, behind `social`'s 0.026, and that is
-# deliberate on both counts: comfort should be a background ache rather than
-# an alarm, and social is meant to stay under-served until sims can satisfy
-# each other.
-comfort = 0.032
+# Base rates are two thirds of the previous balance. Personality, sleep and
+# work apply their existing multipliers. Keep every rate distinct so tests
+# can detect a need reading the wrong slot.
+hunger = 0.0413333333
+energy = 0.0340000000
+hygiene = 0.0480000000
+bladder = 0.0680000000
+social = 0.0173333333
+fun = 0.0320000000
+comfort = 0.0213333333
 
-# ---------------------------------------------------------------------------
-# THE CIRCADIAN RHYTHM IS BUILT AND SWITCHED OFF - [ML-curve], [ML-chrono].
-# ---------------------------------------------------------------------------
-#
-# Every part of the mechanism ships: the schema, the compile-time
-# validation, the curve and its tests in `systems/circadian.rs`, the
-# per-sim chronotype offsets in personalities.toml, the `sleep` tags on
-# both beds, and the multiplier composed into selection beside the trait
-# dispositions. Uncommenting the block below is the only thing between
-# here and sims that go to bed at night.
-#
-# It is off because the CURVE is not tuned, and turning it on with an
-# untuned curve is exactly the failure this project has written down
-# twice. [ML-feel] in the spec requires a measured seven-sim-day run
-# before the shape is trusted, and the first draft proved why: at a
-# 6.4x peak-to-trough swing the household slept so much that
-# `save.rs`'s fixture could no longer get anyone to habituate to a
-# kitchen chain row in 3 000 ticks, and needed 12 000 to see one. That
-# is the drive overpowering the needs rather than weighting them.
-#
-# Softening it to 2.5x helped and did not settle it, and the honest
-# reading is that the number wants a feel run rather than another guess.
-# Widening the fixture instead is not available: `--timeout 60` bounds
-# each mutant's whole workspace test run, and that one test alone went
-# from 10 s to 39 s.
-#
-# So the mechanism lands reviewable and inert, and the tuning is a
-# separate, measured piece of work. A milestone whose payoff has not
-# been watched does not get quietly ticked.
-#
-# The circadian rhythm - [ML-curve] and [ML-tag] in
-# docs/specs/2026-08-03-muted-line-implementation.md.
-#
-# WHY this exists at all: energy says how TIRED a sim is and nothing in it
-# knows what time it is, so a bed looks identical at 14:00 and at 23:00 to
-# a sim of the same tiredness. Without a drive, sims sleep whenever energy
-# happens to bottom out, and over a few days that drifts through every
-# hour of the clock - a house full of shift workers.
-#
-# The multiplier scales the BENEFIT of a sleep-tagged interaction, so it
-# makes a bed more or less ATTRACTIVE rather than making anyone more or
-# less tired. A sim who is exhausted at noon still goes to bed; a sim who
-# is merely tired at 23:00 now does too, and that second one is the whole
-# feature.
-#
-# `sleep_drive` is (tick, multiplier), interpolated linearly and wrapping
-# from the last point back to the first. 60 ticks is a sim-hour, so 420 is
-# 07:00 and 1320 is 22:00. The compile step rejects points that are
-# unsorted, duplicated, outside the day, or negative - all four of which
-# would interpolate to something plausible-looking and wrong rather than
-# failing.
-# The tag it keys on is `sleep_tag` up beside the decay knobs, not in
-# here: this table is optional and the tag is not.
 [circadian]
 #
 # The peak-to-trough ratio is deliberately modest at 2.5x. The first
@@ -1133,3 +1005,14 @@ creation_instinct_bands = [
   { min = 81, max = 90, weight = 15 },
   { min = 91, max = 95, weight = 5 },
 ]
+
+# Visual weather uses a private daily hash, never household random draws.
+# Chances are Spring, Summer heat, Autumn leaf fall, Winter snow.
+[weather]
+seed = 73517
+event_day_chance = [0.0, 0.35, 0.4, 0.2]
+event_hours = 2.0
+earliest_hour = 7.0
+latest_hour = 17.0
+leaf_ground_hours = 2.0
+fall_minutes = 15.0

@@ -1,0 +1,22 @@
+{
+  "cargo": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+  "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)\nbinary: rustc\ncommit-hash: e408947bfd200af42db322daf0fadfe7e26d3bd1\ncommit-date: 2026-03-25\nhost: x86_64-pc-windows-msvc\nrelease: 1.94.1\nLLVM version: 21.1.8",
+  "committed_toolchain": {
+    "channel": "1.94.1",
+    "components": [
+      "clippy",
+      "rustfmt"
+    ],
+    "targets": [
+      "wasm32-unknown-unknown"
+    ],
+    "profile": "minimal"
+  },
+  "toolchain_sha256": "350e50f9118f1f6ca7df6bb8b48f8f4cdf05b80b30cd3ed7a16465b313aa43a7",
+  "metadata_context": {
+    "RUSTUP_TOOLCHAIN": "1.94.1",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_TARGET_DIR": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\v20\\target",
+    "CARGO_NET_OFFLINE": "true"
+  }
+}
