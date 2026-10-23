@@ -58,6 +58,8 @@ export interface ActivityLogView {
   /** Brings the newest line into view at once. Only for a click, where reading layout is allowed. */
   jumpToBottom(): void;
   focusToggle(): void;
+  /** Whether keyboard focus is inside the panel. */
+  holdsFocus(): boolean;
   /**
    * Places the panel above the Sim dock now. Called when the panel opens;
    * while it stays open the view follows the dock's height by itself.
@@ -179,11 +181,17 @@ export class ActivityLogPanel {
     this.rebuild(true);
   }
 
-  /** Closes the panel; true when it was open, so the caller can move focus. */
+  /**
+   * Closes the panel; true when it was open. Focus inside the panel returns
+   * to the Log button, so closing it from Options or Sim details does not
+   * drop keyboard focus onto the page.
+   */
   close(): boolean {
     if (!this.open_) return false;
     this.open_ = false;
+    const hadFocus = this.options.view.holdsFocus();
     this.options.view.reflectOpen(false);
+    if (hadFocus) this.options.view.focusToggle();
     // Nothing is composed while closed; the next open recomposes from the store.
     this.lines.reset();
     this.rows.clear();
@@ -396,6 +404,9 @@ export function activityLogElements(doc: Document): ActivityLogElements {
   element('activity-log-title').textContent = PANEL_WORDS.title;
   close.textContent = PANEL_WORDS.close;
   earlier.textContent = PANEL_WORDS.showEarlier;
+  group.setAttribute('aria-label', PANEL_WORDS.filtersGroup);
+  const scroller = element('activity-log-scroller');
+  scroller.setAttribute('aria-label', PANEL_WORDS.entries);
   const filters = PANEL_WORDS.filters.map(word => {
     const button = doc.createElement('button');
     button.type = 'button';
@@ -411,7 +422,7 @@ export function activityLogElements(doc: Document): ActivityLogElements {
     close,
     filters,
     selected: element('activity-log-selected'),
-    scroller: element('activity-log-scroller'),
+    scroller,
     earlier,
     list: element<HTMLOListElement>('activity-log-list'),
     empty: element('activity-log-empty'),
@@ -550,6 +561,7 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
       toBottom();
     },
     focusToggle() { toggle.focus(); },
+    holdsFocus() { return panel.contains(doc.activeElement); },
     fitAboveDock: fit,
   };
 }

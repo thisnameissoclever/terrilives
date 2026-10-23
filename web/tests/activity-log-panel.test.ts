@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FILTER } from '../src/ui/activity-log-compose.js';
 import {
   ACTIVITY_LOG_WINDOW, ActivityLogNames, ActivityLogPanel, type ActivityLogRow, type ActivityLogView,
-  attachActivityLogPanel, createActivityLogView, rememberingNames,
+  activityLogElements, attachActivityLogPanel, createActivityLogView, rememberingNames,
 } from '../src/ui/activity-log-panel.js';
 import { ActivityLogStore, KIND } from '../src/ui/activity-log-store.js';
 import { PANEL_WORDS } from '../src/ui/activity-log-words.js';
@@ -33,6 +33,7 @@ class FakeView implements ActivityLogView {
   replaced = 0;
   focused = 0;
   fits = 0;
+  focusInside = false;
 
   reflectOpen(open: boolean) { this.calls++; this.open = open; }
   reflectToggleHidden(hidden: boolean) { this.calls++; this.toggleHidden = hidden; }
@@ -68,6 +69,7 @@ class FakeView implements ActivityLogView {
   scrollToBottom() { this.calls++; this.scrolled++; }
   jumpToBottom() { this.calls++; this.jumped++; }
   focusToggle() { this.calls++; this.focused++; }
+  holdsFocus() { this.calls++; return this.focusInside; }
   fitAboveDock() { this.calls++; this.fits++; }
   texts() { return this.rows.map(entry => entry.text); }
 }
@@ -153,6 +155,18 @@ describe('the activity log panel', () => {
     blocked = false;
     expect(escape()).toBe(true);
     expect(panel.isOpen()).toBe(false);
+  });
+
+  it('returns focus to the Log button when Options or Sim details closes the panel from inside it', () => {
+    const { panel, view } = setup();
+    panel.open();
+    view.focusInside = false;
+    panel.close();
+    expect(view.focused, 'focus elsewhere stays where it is').toBe(0);
+    panel.open();
+    view.focusInside = true;
+    panel.close();
+    expect(view.focused).toBe(1);
   });
 
   it('hides the toggle and closes in Build', () => {
@@ -649,6 +663,8 @@ describe('the activity log page', () => {
   it('puts the toggle at the top right with the panel controls it names', () => {
     expect(html).toContain('<button id="activity-log-toggle" class="hud-button" type="button" aria-expanded="false" aria-controls="activity-log"></button>');
     expect(html).toContain('<section id="activity-log" aria-labelledby="activity-log-title" hidden>');
+    expect(html, 'the filters have a name of their own').toContain('<div id="activity-log-filters" role="group"></div>');
+    expect(html, 'keyboard users can scroll the entries').toContain('<div id="activity-log-scroller" role="region" tabindex="0">');
     for (const id of ['activity-log-close', 'activity-log-filters', 'activity-log-selected', 'activity-log-scroller',
       'activity-log-earlier', 'activity-log-list', 'activity-log-empty']) expect(html).toContain(`id="${id}"`);
     expect(css).toMatch(/#activity-log-toggle \{\s*position: fixed;\s*top: max\(8px, env\(safe-area-inset-top\)\);\s*right: max\(8px, env\(safe-area-inset-right\)\);/);
@@ -660,6 +676,26 @@ describe('the activity log page', () => {
   it('no longer says Options owns the top-right corner', () => {
     expect(html).not.toContain("it is fixed to the window's\n         top right");
     expect(html).toContain('The Log toggle owns the window\'s top right in normal play');
+  });
+
+  it('names the filter group and the entries from the words module', () => {
+    const attributes = new Map<string, Map<string, string>>();
+    const element = (id: string) => {
+      const own = new Map<string, string>();
+      attributes.set(id, own);
+      return { id, textContent: '', setAttribute: (name: string, value: string) => own.set(name, value), replaceChildren() {} };
+    };
+    const ids = ['activity-log-toggle', 'activity-log-close', 'activity-log-earlier', 'activity-log-filters', 'activity-log-title',
+      'activity-log', 'activity-log-selected', 'activity-log-scroller', 'activity-log-list', 'activity-log-empty', 'sim-dock'];
+    const nodes = new Map(ids.map(id => [id, element(id)]));
+    const doc = {
+      getElementById: (id: string) => nodes.get(id) ?? null,
+      createElement: () => ({ ...element('filter'), type: '', className: '' }),
+    };
+    activityLogElements(doc as never);
+    expect(attributes.get('activity-log-filters')!.get('aria-label')).toBe(PANEL_WORDS.filtersGroup);
+    expect(attributes.get('activity-log-scroller')!.get('aria-label')).toBe(PANEL_WORDS.entries);
+    expect([PANEL_WORDS.filtersGroup, PANEL_WORDS.entries]).toEqual(['Filters', 'Log entries']);
   });
 
   it('keeps every panel word in the words module', () => {

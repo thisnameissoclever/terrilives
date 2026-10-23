@@ -1212,9 +1212,9 @@
     <button id="activity-log-toggle" class="hud-button" type="button" aria-expanded="false" aria-controls="activity-log"></button>
     <section id="activity-log" aria-labelledby="activity-log-title" hidden>
       <div id="activity-log-header"><h2 id="activity-log-title" class="activity-log-title"></h2><button data-action-intent="negative" id="activity-log-close" class="hud-button" type="button"></button></div>
-      <div id="activity-log-filters" role="group" aria-labelledby="activity-log-title"></div>
+      <div id="activity-log-filters" role="group"></div>
       <p id="activity-log-selected" hidden></p>
-      <div id="activity-log-scroller">
+      <div id="activity-log-scroller" role="region" tabindex="0">
         <button id="activity-log-earlier" class="hud-button" type="button" hidden></button>
         <ol id="activity-log-list"></ol>
         <p id="activity-log-empty" hidden></p>

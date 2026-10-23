@@ -15,6 +15,9 @@ export const PANEL_WORDS = {
   title: 'Log',
   close: 'Close',
   filters: ['Actions', 'Chores', 'Social', 'Skills', 'Career', 'Details', 'Time'] as const,
+  /** The accessible names of the filter group and the scrolling list of entries. */
+  filtersGroup: 'Filters',
+  entries: 'Log entries',
   nothingYet: 'Nothing has happened yet.',
   nothingMatches: 'Nothing matches these filters.',
   showEarlier: 'Show earlier entries',
