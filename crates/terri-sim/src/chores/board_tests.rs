@@ -826,6 +826,13 @@ fn chore_cover_and_appreciation_are_children() {
     episode.decision = Some(false);
     episode.outcome = DutyOutcome::Skipped;
     let owner = episode.owner;
+    let episode_id = episode.id;
+    // The declined duty has been neglected past its grace, so covering it
+    // earns the helper's resentment.
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    sim.world_mut().resource_mut::<SimClock>().tick += 120;
+    crate::neglect::refresh_in(sim.world_mut(), &state);
+    assert!(crate::neglect::episode_matured(sim.world(), episode_id));
     let helper_id = *everyone(&mut sim).iter().find(|id| **id != owner).unwrap();
     let helper = person(&mut sim, helper_id);
     assert!(work::start(sim.world_mut(), &mut state, helper, key, true));
@@ -869,8 +876,9 @@ fn chore_cover_and_appreciation_are_children() {
     );
 }
 
-/// [AL-sources]: a chore missed at the day rollover is one Missed line for
-/// its owner, carrying every other housemate's resentment as children.
+/// [AL-sources]: a chore missed at the day rollover, once its grace has
+/// passed, is one Missed line for its owner, carrying every other
+/// housemate's resentment as children.
 #[test]
 fn missed_chore_logs_neglect_feelings() {
     let (mut sim, mut state, key) = fixture();
@@ -880,6 +888,8 @@ fn missed_chore_logs_neglect_feelings() {
     e.decision = Some(false);
     e.outcome = DutyOutcome::Skipped;
     let owner = e.owner;
+    // The duty's neglect timer starts now, so it is due by the rollover.
+    crate::neglect::refresh_in(sim.world_mut(), &state);
     sim.world_mut().resource_mut::<SimClock>().tick =
         u64::from(sim.world().resource::<crate::Content>().0.tuning.day_ticks);
     crate::activity_log_tests::drain(&mut sim);

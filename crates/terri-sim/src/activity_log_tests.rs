@@ -254,6 +254,10 @@ fn label_table_covers_every_action_and_chain_label() {
     for (tag, _) in crate::social_episode::TOPIC_CODES {
         assert!(has(tag));
     }
+    for reason in crate::fights::Reason::all() {
+        let tag = crate::fights::Reason::tag(reason);
+        assert!(has(tag), "fight reason {reason:?} names {tag}");
+    }
     assert!(has("smalltalk"));
     for cause in crate::relationship_effects::RelationshipCause::ALL {
         assert!(has(cause.log_label()));
@@ -352,16 +356,15 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 }
 
 /// The shipped household's two-day hash fold on main without the log, at
-/// merge 2b15dcfea (pull request 295). Measured on 2026-10-18 by running
-/// the loop of `run_household(false, false, 2880)` (a tick, a command drain
-/// after every 97th tick, then `world_hash`) through `fold` in a detached
-/// checkout of that commit, in a release build. A reviewer measured the
-/// same value on main at merge 7b45ac301 (pull request 303), the main this
-/// branch last merged. Comparing the log on with the log off cannot see
-/// code that runs in both modes; this pin can. A deliberate change to
-/// simulated behavior on main moves it: re-measure on the new main the same
-/// way and record the commit here.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xc1d9_089d_be8b_13eb;
+/// 2fa3eac56 (pull request 332), the main this branch last merged. Measured
+/// on 2026-10-23 by running the loop of `run_household(false, false, 2880)`
+/// (a tick, a command drain after every 97th tick, then `world_hash`)
+/// through `fold` in a detached checkout of that commit, in a release build.
+/// Comparing the log on with the log off cannot see code that runs in both
+/// modes; this pin can. A deliberate change to simulated behavior on main
+/// moves it: re-measure on the new main the same way and record the commit
+/// here.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xad59_d080_6ae0_b58e;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.
@@ -406,9 +409,9 @@ fn activity_log_never_changes_the_world() {
     };
     use crate::relationship_effects::RelationshipCause as Cause;
     seen("recipe", action_labelled(&recipes));
-    seen("mess annoyance", annoyed_by(cause(Cause::HouseholdMess)));
     seen("nuisance episode", annoyed_by(cause(Cause::Nuisance)));
-    // Fights, dirty place settings and shared meals do not happen in the
+    // Fights, dirty place settings, shared meals and mess annoyances, which
+    // wait out a grace period before a pile counts, do not happen in the
     // shipped household's first two days; their own tests drive them.
 }
 

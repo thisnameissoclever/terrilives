@@ -262,11 +262,7 @@ impl Labels {
         for (tag, _) in crate::social_episode::TOPIC_CODES {
             labels.add(tag);
         }
-        for reason in [
-            None,
-            Some(crate::fights::Reason::Dishes),
-            Some(crate::fights::Reason::OtherChore),
-        ] {
+        for reason in crate::fights::Reason::all() {
             labels.add(crate::fights::Reason::tag(reason));
         }
         // Any other tag a preference can name is still a possible topic.

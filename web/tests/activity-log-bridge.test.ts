@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { ACTIVITY_LOG_RECORD_WORDS, SimBridge } from '../src/bridge.js';
+import { SOMETHING, topicWord } from '../src/ui/activity-log-words.js';
 
 // [AL-bridge] against the freshly built wasm: records cross the boundary,
 // the label table decodes, a detached view cannot lose records, and a Load
@@ -48,6 +49,18 @@ function tickUntil(handle: SimHandle, bridge: SimBridge, wanted: (record: Uint32
 }
 
 describe('activity log bridge', () => {
+  it('has a topic word for every fight reason the simulation can name', () => {
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, memory);
+      const fights = bridge.activityLogLabels().filter(label => label === 'fight' || label.startsWith('fight-'));
+      expect(fights.length).toBeGreaterThan(3);
+      expect(fights.filter(tag => topicWord(tag) === SOMETHING)).toEqual([]);
+    } finally {
+      handle.free();
+    }
+  });
+
   it('carries a finished chat with its people, labels and both reactions', () => {
     const handle = SimHandle.from_lot();
     try {

@@ -3351,6 +3351,8 @@ fn mess_annoyance_logs_each_notice() {
             .copied()
     };
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    // A pile is noticed only after its grace has passed.
+    crate::neglect::tests::age(&mut sim);
     sim.tick();
     let effect = noticed(&sim).expect("the pile is noticed");
     let first = notices(&mut sim);
@@ -3366,6 +3368,7 @@ fn mess_annoyance_logs_each_notice() {
     assert!(notices(&mut sim).is_empty());
 
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    crate::neglect::tests::age(&mut sim);
     sim.tick();
     assert!(noticed(&sim).is_some(), "a new pile");
     assert_eq!(notices(&mut sim).len(), 1, "each notice is its own record");

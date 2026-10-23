@@ -116,18 +116,18 @@ Every source is a point where the simulation already settles the event. The sche
 | Book read completes | 1 | `reading::tick` (`reading.rs`), where `practise` runs | Book action label; Reading practice |
 | Shared activity or table meal completes | 1 | The same completion sites | Social accumulated in the scratch area [AL-capture]; first companion `SimId` |
 | Chat completes | 2 | `systems::social::tick_social` normal completion | Initiator, partner, interaction, the topic from `SocialEpisodes.topics` before `maintain` removes it, both preferences, Social accumulated per participant, the Conversation feelings |
-| Fight completes | 3 | `tick_social` fight branch | Both people, the fight topic, the two Fight feelings |
+| Fight completes | 3 | `tick_social` fight branch | Both people, the fight topic (no reason, a chore, a remembered grievance or an everyday topic, every one of `fights::Reason::all`), the two Fight feelings |
 | Interrupted chat or fight | none | `tick_social` disturbed branch | Nothing is logged; the game changes nothing either |
-| Mess noticed | 4 | `domestic::tick` (`domestic.rs`), cause HouseholdMess | Observer, pile owner, opinion change |
+| Mess noticed | 4 | `domestic::tick` (`domestic.rs`), cause HouseholdMess, once the pile's neglect grace has passed | Observer, pile owner, opinion change |
 | Dirty place setting | 4 | `domestic::blocked_setting_annoyance`, called from `dining.rs` | Diner, each dish owner, opinion change; today this records no diagnostic [AL-capture] |
 | Privacy incident | 4 | `systems::interpersonal::moved` and `private_start`, applied in `apply` | Affected, intruder, PrivacyEntry or PrivacyStart, the fixture's type label (never its model name), opinion change |
 | Chat started while the listener had an unhelped need | 4 | `systems::interpersonal::conversation_start` | Listener, initiator, low or critical, opinion change |
 | Disliked object in use | 4 | `affinity::bother`, every tick per pair | One record per episode, not per tick [AL-group] |
 | New weekly duties | 5, 6 | Callers of `chores::board::reconcile` when it reports that `policy::assign` wrote new assignments | Assignments grouped by owner: duty kind and target |
 | Chore work completes | 1 | `chores::work::advance` where a task finishes with credit | Performer, the duty kind's label; never a Social total or companion, because chore work is not company; the chore outcome that follows attaches to it |
-| Chore done or covered | 7, 8 | `chores::board::credit` | Owner, performer, duty, outcome; the ChoreFulfilled feelings from each other housemate; the ChoreNeglected feeling when a helper covers a declined duty |
+| Chore done or covered | 7, 8 | `chores::board::credit`; the appreciation comes from `chore_repair::appreciate` and `chore_repair::completed_in` in the same tick | Owner, performer, duty, outcome; the ChoreFulfilled feelings from each other housemate; the ChoreNeglected feeling when a helper covers a declined duty whose neglect grace has passed |
 | Meal appreciated | 8 | `domestic::appreciate_meal` through `relationship_effects::record_opinion_change`, cause MealShared | Eater, cook, opinion change; a child of the eater's kind 1 record for the shared meal, which completes in the same tick |
-| Chore missed | 7, 8 | `chores::board::tick` at the day rollover | Owner, duty, Missed; the ChoreNeglected feelings |
+| Chore missed | 7, 8 | `chores::board::tick` at the first day rollover after the duty's neglect grace | Owner, duty, Missed; the ChoreNeglected feelings |
 | Chore skipped | 7 | `chores::board::tick` where the willingness roll fails | Owner, duty, Skipped |
 | Skill level crossed | 9 | `skills::practise`, comparing `standing` before and after | Person, skill, new level |
 | Weekly review | 10 | `careers::review_person`, including reviews settled late in `complete_shift` and `settle_due_review` | Outcome code, performance, `factors()` (fit, mastery, mood), title after, the warning that starts at the second poor week |
@@ -143,6 +143,7 @@ Sources that are not logged, and why:
 4. Moodlets starting or ending, needs turning critical, money and purchases. These would need the Mood or Money filters the owner did not choose.
 5. Chats and fights withdrawn or given up before they start (pull request 302): a chosen chat a housemate gives up once Hunger or Energy turns critical, a waiting request withdrawn for another conversation, and a chore fight called off before it begins. Each ends a conversation that never ran, so the log records nothing, as it records nothing for an interrupted chat.
 6. Changes to a housemate's own job search setting (pull request 303). Turning it on or off is a setting, not something the household did, so it logs nothing, as the old household-wide setting logged nothing. A hire by job search still logs its Career line.
+7. Duties a room change adds in the middle of a week (`chores::board::assign_new_duties`, called from `chores::room_changes`). The room review lists each automatically assigned duty with its owner before the player confirms the change, and the next week's Chores this week line names it; a mid-week line would repeat what the player just confirmed.
 
 No source turned out to be impossible. Two are costlier than the others: the Social total per action needs an accumulator, and a skill level-up needs `practise` to report what it crossed, which changes that function's signature and its five call sites.
 
@@ -372,7 +373,7 @@ These are proposals, not approved copy. They live in one shell module, `web/src/
 | Toggle and panel | Log; Close; Actions; Chores; Social; Skills; Career; Details; Time; Only entries involving {name}.; Nothing has happened yet.; Nothing matches these filters.; Show earlier entries |
 | Head | {name}: {label}; with {name}; about {topic}; Someone, for a person the shell never saw a name for |
 | Time | D{day}, T{hh}:{mm} |
-| Topic words, phase 1 | eating; small talk; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging about; washing; cleaning; music; letters; baths; cooking; something; the dishes; chores; nothing in particular |
+| Topic words, phase 1 | eating; small talk; sleep; reading; exercise; the aquarium; comfort; showers; the toilet; TV; lounging about; washing; cleaning; music; letters; baths; cooking; something; the dishes; chores; nothing in particular; for arguments over a grievance privacy, TV, music, exercise, a nuisance and interruptions; for arguments over an everyday topic the same words as that topic's chats, with ingredients and preparing food |
 | Reactions | {name} loves it; {name} likes it; {name} does not mind it; {name} dislikes it; {name} hates it |
 | Feelings | {name} appreciates {name}; {name} and {name} like each other less; Annoyed by {name}'s dishes; Annoyed by {name}'s dirty place setting; Annoyed that {name} walked in; Annoyed that {name} used the {type} nearby, where {type} is the object's type label in lowercase, such as the toilet, and never its model name; Annoyed that {name} interrupted; Bothered by {name} using the {kind}, reused from the mood panel; ({n} times), which shares its parentheses with a Details number as ({n} times, {+n} opinion of {name}); {name} resents {name}, for a chore neglected; Annoyed that {name} used something nearby, when the fixture is unknown; Annoyed by {name}, for a cause the shell does not know |
 | Chores | Chores this week: {duties}; {duty} ({room}); covered {name}'s chore; Missed chore: {chore} and Skipped chore: {chore}, chosen by the owner |

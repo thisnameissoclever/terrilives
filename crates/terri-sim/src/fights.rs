@@ -131,6 +131,23 @@ impl Reason {
             None => Self::NONE_CODE,
         }
     }
+    /// Every reason a fight can have, `None` first, so a table such as the
+    /// activity log's labels can name every tag [`Reason::tag`] returns.
+    pub fn all() -> impl Iterator<Item = Option<Self>> {
+        [
+            None,
+            Some(Self::Dishes),
+            Some(Self::OtherChore),
+            Some(Self::Privacy),
+            Some(Self::Television),
+            Some(Self::Music),
+            Some(Self::Exercise),
+            Some(Self::Nuisance),
+            Some(Self::Interruption),
+        ]
+        .into_iter()
+        .chain(RANDOM_TOPICS.iter().map(|&code| Some(Self::Random(code))))
+    }
     pub fn tag(reason: Option<Self>) -> &'static str {
         match reason {
             Some(Self::Dishes) => "fight-dishes",
@@ -2039,6 +2056,17 @@ mod order_tests {
             |sim| sim.world().get::<Socialising>(a).is_some(),
             "the fight",
         );
+        // A player's fight takes a reason of its own; the line names it.
+        let tag = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .topics[&a]
+            .tag
+            .clone();
+        assert!(
+            Reason::from_tag_current(&tag).is_some(),
+            "{tag} is a fight reason"
+        );
         tick_until(
             &mut sim,
             |sim| sim.world().get::<Socialising>(a).is_none(),
@@ -2059,10 +2087,8 @@ mod order_tests {
         );
         assert_eq!((record.actor(), record.other()), (a_id.0, b_id.0));
         assert_eq!(record.triggers(), ACTIONS | SOCIAL);
-        assert_eq!(
-            record.label2(),
-            sim.activity_log().label(pack, Reason::tag(None))
-        );
+        assert_eq!(record.label2(), sim.activity_log().label(pack, &tag));
+        assert_ne!(record.label2(), crate::activity_log::NONE);
         let loss = |me: SimId, other: SimId| {
             sim.relationship_effects()
                 .iter()
