@@ -2446,6 +2446,7 @@ async function main(): Promise<void> {
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
+  let firstSceneRecorded = false;
   function frame(nowMs: number, presenting = true): void {
     const frameEntered=performance.now();
     const deltaMs = frameElapsedMs(nowMs, previousFrameMs);
@@ -2577,6 +2578,14 @@ async function main(): Promise<void> {
         batch.annotations,
         drawWorldEffects,
       );
+      if (!firstSceneRecorded) {
+        firstSceneRecorded = true;
+        void gpu.device.queue.onSubmittedWorkDone().then(() => {
+          window.dispatchEvent(new Event('terrilives:startup-ready'));
+        }, error => {
+          window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
+        });
+      }
     }
 
     // Inside the sample below rather than outside it, deliberately: the
@@ -2780,6 +2789,7 @@ async function main(): Promise<void> {
     } catch (error) {
       // A throw here already ended the loop before the cover existed; the
       // cover must not then hide the frozen game for good.
+      window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
       loading.finish();
       throw error;
     }
@@ -2800,6 +2810,7 @@ async function main(): Promise<void> {
 // secure context and WebGPU never existed there. The card names that
 // case in words a player can act on.
 void main().catch((error: unknown) => {
+  window.dispatchEvent(new CustomEvent('terrilives:startup-failure',{detail:error}));
   console.error('Natural Causes failed to start:', error);
   loading.finish();
   // A lost graphics device may already have put its own card up, which says

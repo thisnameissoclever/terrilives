@@ -1,5 +1,37 @@
 const MAX_ATTEMPTS=3;
 const MAX_RETRY_WAIT_MS=15_000;
+const RESPONSE_HEADERS=['server','content-type','retry-after','age','via','x-cache','x-served-by','x-github-request-id','x-fastly-request-id'] as const;
+
+function release(response:Response):void {
+  try {void response.body?.cancel().catch(()=>{});} catch {}
+}
+
+async function failure(response:Response,url:URL):Promise<Error> {
+  const headers=Object.fromEntries(RESPONSE_HEADERS.flatMap(name=>{
+    const value=response.headers.get(name);return value?[[name,value.slice(0,160)]]:[];
+  }));
+  let body='',bodyIncomplete=false;
+  if(response.body){
+    const reader=response.body.getReader(),decoder=new TextDecoder();
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    const expired=new Promise<null>(resolve=>{timer=setTimeout(()=>resolve(null),1000);});
+    try{
+      let remaining=1024;
+      while(remaining>0){
+        const chunk=await Promise.race([reader.read(),expired]);
+        if(!chunk){bodyIncomplete=true;break;}
+        if(chunk.done)break;
+        const take=chunk.value.subarray(0,remaining);body+=decoder.decode(take,{stream:true});remaining-=take.length;
+        if(chunk.value.length>take.length||remaining===0){bodyIncomplete=true;break;}
+      }
+      body+=decoder.decode();
+    }catch{bodyIncomplete=true;}
+    finally{clearTimeout(timer);try{void reader.cancel().catch(()=>{});}catch{}}
+  }
+  const assetFailure={path:url.pathname,status:response.status,headers,body,bodyIncomplete};
+  const extra=Object.keys(headers).length||body?`\nResponse: ${JSON.stringify({headers,body,bodyIncomplete})}`:'';
+  return Object.assign(new Error(`Character asset could not load: ${response.status} ${url.pathname}${extra}`),{assetFailure});
+}
 
 function retryDelay(response:Response,fallback:number):number {
   const value=response.headers.get('Retry-After')?.trim();
@@ -17,11 +49,11 @@ export async function readCharacterAsset(url:URL):Promise<ArrayBuffer> {
     const response=await (attempt===0?fetch(url):fetch(url,{cache:'reload'}));
     if(response.ok)return response.arrayBuffer();
     const delay=retryDelay(response,attempt===0?500:1500);
-    // An already broken error body has nothing left to release; retain its HTTP status.
-    try {await response.body?.cancel();} catch {}
     if(response.status!==503||attempt===MAX_ATTEMPTS-1||delay>MAX_RETRY_WAIT_MS-waited){
-      throw new Error(`Character asset could not load: ${response.status} ${url.pathname}`);
+      throw await failure(response,url);
     }
+    // Cleanup must not hold a retry open when a browser's cancellation never settles.
+    release(response);
     waited+=delay;
     await new Promise<void>(resolve=>setTimeout(resolve,delay));
   }
