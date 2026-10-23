@@ -208,7 +208,6 @@ export class ActivityLogPanel {
     this.options.view.fitAboveDock();
     this.options.names.learn();
     this.context.selected = this.options.selected();
-    this.limit = ACTIVITY_LOG_WINDOW;
     this.rebuild(true);
   }
 
@@ -317,14 +316,17 @@ export class ActivityLogPanel {
   }
 
   /**
-   * Recomposes every line from the store, renders the newest `limit` and
-   * shows the newest line. `click` is true when a click asked for it: the
+   * Recomposes every line from the store, renders the newest 200 and shows
+   * the newest line. Earlier lines a Show earlier entries revealed would sit
+   * above the newest line the rebuild scrolls to, so they are not rendered
+   * again: the rebuild's cost stays that of one window. `click` is true when a click asked for it: the
    * view then scrolls at once, since a list that keeps its height reports no
    * resize. From a frame the view scrolls after layout instead.
    */
   private rebuild(click: boolean): void {
     const { store, view } = this.options;
     this.selectionPending = false;
+    this.limit = ACTIVITY_LOG_WINDOW;
     this.lines.reset();
     this.rows.clear();
     this.lines.add(store, 0, this.context);

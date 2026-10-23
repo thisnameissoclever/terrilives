@@ -311,6 +311,22 @@ describe('the activity log panel', () => {
     expect(view.rows).toHaveLength(200);
   });
 
+  it('starts a filter change or a new selection from the newest 200 lines', () => {
+    const { panel, view, drain, read, select, runDeferred } = setup();
+    for (let batch = 0; batch < 3; batch++) drain(...Array.from({ length: 200 }, () => read()));
+    panel.open();
+    panel.showEarlier();
+    expect(view.rows).toHaveLength(400);
+    panel.toggleFilter(6);
+    expect(view.rows, 'a filter change jumps to the newest line, so it renders only the newest window').toHaveLength(ACTIVITY_LOG_WINDOW);
+    expect(view.earlier).toBe(true);
+    panel.showEarlier();
+    select(TIM);
+    panel.update();
+    runDeferred();
+    expect(view.rows).toHaveLength(ACTIVITY_LOG_WINDOW);
+  });
+
   it('never renders more than the store holds', () => {
     const { panel, view, drain, read } = setup();
     for (let batch = 0; batch < 9; batch++) drain(...Array.from({ length: 250 }, () => read()));
