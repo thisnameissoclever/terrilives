@@ -13214,3 +13214,10 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: a mock queue accepted the upload without validating the real graphics API's destination contract.
 3. Prevention: trace resource descriptors through their actual upload operation. Preserve required usage flags and test the descriptor as well as the call sequence. Use real graphics validation before accepting the loader.
 4. Verification: require a descriptor test to reject the omitted permission. Run actual bitmap uploads with validation and memory error scopes, then verify rendered output on the real graphics device.
+
+## [L-local-command-catalogue-contracts] Update every guard for an expanded local check catalogue
+
+1. What happened: adding two local artwork checks passed the catalogue's direct tests but failed a second guard that compares the entire artwork command list.
+2. Root cause: the impact scan found direct catalogue assertions and missed the independent complete-list expectation.
+3. Prevention: search for both the changed command and complete-list comparisons before extending a shared verification catalogue. Preserve every existing command and add the new local requirements to each relevant contract.
+4. Verification: the full script run identifies stale expectations. After correcting the list, run the affected complete-list and catalogue policy tests. Record the initial failure and subsequent covering pass separately.

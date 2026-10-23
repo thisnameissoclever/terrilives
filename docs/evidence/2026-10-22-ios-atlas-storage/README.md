@@ -30,10 +30,29 @@ All 9,524 probes match exactly. Altering a physical halo causes 56 channel misma
 
 The reference game fails before completing its first frame under that limit. The failure records an essential rejected buffer allocation, an uncaught controlled-budget error, zero completed frames and no available scene target. Removing the loading cover is insufficient evidence of startup: the deployed animation error path also removes it. Successful startup requires a completed frame, valid scene attachments, completed graphics submission and nonempty rendered identities.
 
-Positive and comparison results must be recorded from the integrated repair before delivery. Phone tests use a 402 by 874 CSS-pixel viewport at device scale three. This is a test configuration based on the reported model's physical display, rather than measured browser-window dimensions on the affected phone. Desktop tests use 1440 by 900 at device scale one.
+The compiled repair at `2bd4d4c42986be695f1bfa7788f88fc1fb48e495` completes startup and the saved-household comparison within the same limit. Both views have zero budget denials or browser diagnostics. Color, surface depth and picking identities match the reference byte-for-byte and remain stable on repeated paused captures. The repaired entry is `assets/index-CXN1KiA8.js`, SHA-256 `bac164d853e64d7ffa361d86ada5850734b060dbd8af7ebc4ac22dc800a50339`.
+
+| View | Reference requested peak at startup | Repair requested peak at startup | Comparison |
+| --- | --- | --- | --- |
+| Phone, 402 by 874 CSS pixels, scale three | 1363.94 MiB | 785.44 MiB | All three scene buffers identical |
+| Desktop, 1440 by 900 CSS pixels, scale one | 1193.09 MiB | 643.07 MiB | All three scene buffers identical |
+
+These totals are snapshots through observed startup frames. Temporary targets and timing can change the total difference between runs; the representation's independently measured saving remains exactly 530.25 MiB. The phone viewport is a test configuration based on the reported model's physical display, rather than measured browser-window dimensions on the affected phone. Both views use the installed Windows Chrome graphics device. The release build is served from `/terrilives/` on a local static server, exercising the project-relative resource paths.
+
+The [comparison receipt](verification.json) retains source bundle identities, allocation records, exact attachment dimensions and hashes, bitmap-sampling results and browser cleanup. Four selected screenshots show the paired scenes. The full raw scene buffers remain in ignored local storage.
+
+## Local checks and played pass
+
+The clean source revision `2bd4d4c42986be695f1bfa7788f88fc1fb48e495` passed the local web runner: WebAssembly compilation, compiled player-reference verification, TypeScript checking, all 3,978 web tests across 286 files and the production build. The runner recorded unchanged source before and after execution. Its report reference is `sha256:a2c7f3bd6a082135cbc32a7c6de7b4b77c1ff1f57d37b46da87062c40c202320`. Native simulation sources are unchanged; no unrelated native regression sweep was repeated.
+
+Documentation identifiers pass. All 38 guide, changelog and branding tests pass. The 331-case script run found one outdated expected artwork-command list and skipped one optional environment-specific case. The correction retains the complete old list and adds the two new local atlas checks; all 29 affected policy and local-runner tests then pass. The unaffected cases passed in the original run. No application source changed after the successful web build.
+
+The build reports its existing large entry bundle and mixed static/dynamic character-asset imports as warnings. It exits successfully. This repair does not suppress those warnings or change dependencies.
+
+A separate headed, muted Chrome session exercises Options and runs the production game at 3x for 36 seconds. The sampled frame count advances from 260 to 2,191, and the simulation advances from tick 134 to 1,103. Character positions and activities change through several furniture interactions. The session reports no script or graphics diagnostics, pauses afterward and closes its browser in `finally`. Two selected stills and [the played-session record](played-report.json) retain that evidence. This is a targeted played pass for the storage change, rather than a complete retest of every game feature.
 
 ## Player guide and acceptance limits
 
-The storage change preserves gameplay, controls, layout and documented values. Existing guide articles, effect mappings and screenshots require no behavioral changes. Source fingerprints must be refreshed only after reviewing the final loader, ownership, sampling and coverage changes; compiled reference verification remains a separate check.
+The storage change preserves gameplay, controls, layout and documented values. Existing guide articles, effect mappings and screenshots require no behavioral changes. Source fingerprints were refreshed after reviewing the final loader, ownership, sampling and coverage changes. Compiled reference verification passes separately.
 
 Complete local source, asset and browser evidence establishes the measured reduction and rendering preservation. The affected iPhone's recovery remains unobserved until the published repair runs on that device. Keep that limit separate from successful publication and the controlled memory test.
