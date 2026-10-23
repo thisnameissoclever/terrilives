@@ -394,6 +394,19 @@ describe('the Options flyout wired into main.ts', () => {
       expect(context.pendingImport).toBeInstanceOf(Uint8Array);
     });
 
+    it('ignores a second file while the first is waiting for confirmation', async () => {
+      const { context, dialog, reads, fire, settle } = chooser(() => true);
+      fire();
+      await settle();
+      await settle();
+      const first = context.pendingImport;
+      fire();
+      await Promise.resolve();
+      expect(reads).toEqual([10, 5_000_000]);
+      expect(dialog.showModal).toHaveBeenCalledTimes(1);
+      expect(context.pendingImport).toBe(first);
+    });
+
     it('ignores a second file while the first is still being read', async () => {
       const { reads, fire, settle } = chooser(() => false);
       fire();

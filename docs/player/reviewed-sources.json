@@ -638,7 +638,7 @@
     "web/src/ui/order-failure-bubbles.ts": "cab0dd8d8dfc632d79439dcd2b90f7b4048476e5fd1bb708b17f142086547e6e",
     "web/src/ui/overlay-pause.ts": "b38c25c72d9df07ae99343204088e219ab71e5e2e492eb973bef26c5b51b301c",
     "web/src/ui/people-panel.ts": "b3a5952ded4aa1d0f9ecdce10bfd38b60d78b455c78dc9d38a03433393824d2c",
-    "web/src/ui/persistence-controller.ts": "53681fd17eca49a47ea48be075abd30cd3575aba8a15d47bf802b565c63370d8",
+    "web/src/ui/persistence-controller.ts": "0d85990a58516784289bdd1f193fa5c911d04afb0160ac93b38745189cbc1f2f",
     "web/src/ui/personal-details.ts": "cadf85cbb3f22bf3c8eb6d22c51b6b42a3f2a4caed13a7ce5a4f09cd6cee7823",
     "web/src/ui/placement-actions.ts": "7b6540905da917782c8a6a7f7949b8be6ac3c42ccff9ce11bde7a4de403fb664",
     "web/src/ui/player-orders.ts": "4dad57c9320f849edc246c224af2958ad37a51e61648833e43e45151a2de646e",

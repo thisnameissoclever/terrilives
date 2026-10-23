@@ -107,7 +107,9 @@ function unloadableReason(bytes: Uint8Array, fallback: string): string {
 
 /**
  * Whether the storage worker will write a current save over these slot
- * bytes. It refuses an unreadable or newer slot rather than lose it.
+ * bytes. It refuses an unreadable or newer slot rather than lose it. This
+ * mirrors `preserveHistoricalBackup` in save-worker.ts, which needs a backup
+ * file for every older version; keep the two in step when the version rises.
  */
 function slotAcceptsCurrentWrite(bytes: Uint8Array): boolean {
   const version = saveSchemaVersion(bytes);
@@ -250,15 +252,15 @@ export class PersistenceController {
         ? this.protectedBytes ?? await this.store.load()
         : this.sim.saveBytes();
       if (bytes === null) {
-        this.show('No saved game found', true);
+        this.showKeepingPausedNote('No saved game found', true);
         return false;
       }
       deliver(bytes);
-      this.show(protectedSave ? 'Saved game exported' : 'Game exported');
+      this.showKeepingPausedNote(protectedSave ? 'Saved game exported' : 'Game exported');
       return true;
     } catch (error: unknown) {
       this.reportError(error);
-      this.show('Export failed. The game is still running.', true);
+      this.showKeepingPausedNote('Export failed. The game is still running.', true);
       return false;
     } finally {
       this.finishOperation('export');
@@ -276,6 +278,10 @@ export class PersistenceController {
     }
     if (!slotAcceptsCurrentWrite(prefix)) {
       this.keepCurrentGame(unloadableReason(prefix, 'Import failed.'));
+      return false;
+    }
+    if (this.savingPaused && this.protectedBytes !== null && !slotAcceptsCurrentWrite(this.protectedBytes)) {
+      this.refuseUnreplaceableSlot();
       return false;
     }
     return true;
@@ -309,9 +315,7 @@ export class PersistenceController {
           return false;
         }
         if (stored !== null && !slotAcceptsCurrentWrite(stored)) {
-          this.keepCurrentGame(
-            'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
-          );
+          this.refuseUnreplaceableSlot();
           return false;
         }
       }
@@ -401,7 +405,23 @@ export class PersistenceController {
 
   /** Ends a rejected import or file choice, keeping the paused-saving note visible. */
   private keepCurrentGame(reason: string): void {
-    this.show(`${reason} Current game kept.${this.savingPaused ? ' Saving paused.' : ''}`, true);
+    this.showKeepingPausedNote(`${reason} Current game kept.`, true);
+  }
+
+  private refuseUnreplaceableSlot(): void {
+    this.keepCurrentGame(
+      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again.',
+    );
+  }
+
+  /** While saving is paused, every message keeps saying so, since Save stays disabled. */
+  private showKeepingPausedNote(message: string, error = false): void {
+    if (!this.savingPaused) {
+      this.show(message, error);
+      return;
+    }
+    const sentence = message.endsWith('.') ? message : `${message}.`;
+    this.show(`${sentence} Saving paused.`, true);
   }
 
   private protectSavedGame(bytes?: Uint8Array): void {

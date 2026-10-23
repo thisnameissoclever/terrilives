@@ -88,7 +88,27 @@ describe('Export save', () => {
     expect(await exporting).toBe(true);
     expect(read).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
-    expect(view.textContent).toBe('Saved game exported');
+    expect(view.textContent).toBe('Saved game exported. Saving paused.');
+    expect(view.attributes.get('data-kind')).toBe('error');
+  });
+
+  it('keeps the paused note when a paused export fails or finds nothing', async () => {
+    const backend = store(saveBytes(CURRENT_SAVE_VERSION + 1));
+    const view = status();
+    const controller = new PersistenceController(backend, sim(false), view);
+    await controller.restoreAtStartup();
+
+    expect(await controller.exportSave(() => { throw new Error('blocked'); })).toBe(false);
+    expect(view.textContent).toBe('Export failed. The game is still running. Saving paused.');
+
+    const empty = store(null);
+    empty.load = async () => { throw new Error('storage unavailable'); };
+    const emptyView = status();
+    const unavailable = new PersistenceController(empty, sim(), emptyView);
+    expect(await unavailable.restoreAtStartup()).toBe('unavailable');
+    empty.load = async () => null;
+    expect(await unavailable.exportSave(() => {})).toBe(false);
+    expect(emptyView.textContent).toBe('No saved game found. Saving paused.');
   });
 
   it('reads the protected slot when its bytes are not already known', async () => {
@@ -213,6 +233,17 @@ describe('Import save', () => {
     );
     expect(controller.isSavingPaused()).toBe(true);
     expect(controller.controlState().importDisabled).toBe(false);
+  });
+
+  it('refuses a known unreplaceable protected slot before the confirmation', async () => {
+    const view = status();
+    const controller = new PersistenceController(store(saveBytes(CURRENT_SAVE_VERSION + 1)), sim(false), view);
+    await controller.restoreAtStartup();
+
+    expect(controller.acceptImportFile(saveBytes().slice(0, 10))).toBe(false);
+    expect(view.textContent).toBe(
+      'The saved data in this browser cannot be replaced. Export save to keep it, then New game, then import again. Current game kept. Saving paused.',
+    );
   });
 
   it('refuses when the protected slot cannot be checked', async () => {
