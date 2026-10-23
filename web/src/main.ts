@@ -2068,7 +2068,7 @@ async function main(): Promise<void> {
     floorTool.afterCommands(); buyTool.afterCommands(); landTool.afterCommands();
     if (adoptLotShape()) refreshLotPresentation();
     housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); careerPanel.afterCommands(); bookResults.drain();
-    activityLogStore.drain(sim);
+    if (activityLogStore.drain(sim) > 0) activityLogNames.learn();
     if (builder.afterCommands()) refreshBuildArchitecture();
     return buildCommandsIdle(buildDraft);
   }
@@ -2562,7 +2562,7 @@ async function main(): Promise<void> {
     // [AL-bridge]: once a frame, open or closed, so history exists when the
     // player opens the panel.
     const activityLogStartedMs = activityLogSamplerTimer === null ? 0 : performance.now();
-    activityLogStore.drain(sim);
+    if (activityLogStore.drain(sim) > 0) activityLogNames.learn();
     const activityLogDrainMs = activityLogSamplerTimer === null ? 0 : performance.now() - activityLogStartedMs;
     if (roomsTool.active) selectionControls?.render();
     const roomMarker = document.querySelector<HTMLElement>('#room-map-marker')!;

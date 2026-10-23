@@ -16,7 +16,8 @@
 //   production build on a display calibrated at 120 Hz.
 // allocation: the [V11] sampling heap profile of docs/gpu-verification.md
 //   (6 seconds of warm-up, a 20-second window, both garbage-collection
-//   inclusion flags), attributed by function. Point --url at the dev server
+//   inclusion flags), attributed by function; then a second 20-second
+//   window with the game paused, whose frames all drain no records. Point --url at the dev server
 //   so function names and module paths survive.
 // memory: alternating enabled and disabled pairs, panel closed, sampled
 //   after the store has filled and again after more ticks.
@@ -313,6 +314,59 @@ function attributeAllocation(profile) {
   };
 }
 
+/**
+ * One [V11] sampling window: counts frames, frames that drained records and
+ * rows appended to the list, without allocating per frame beyond the
+ * counters themselves, and attributes the window's allocation by function.
+ */
+async function sampleAllocationWindow(page, cdp, args) {
+  await page.evaluate(() => {
+    const stress = globalThis.__terriStress;
+    const sampler = stress.activityLogSampler;
+    const original = sampler.sample.bind(sampler);
+    const counts = { frames: 0, framesWithRecords: 0, rowsAdded: 0, drained: stress.activityLog.drained };
+    let previous = counts.drained;
+    sampler.sample = (elapsedMs) => {
+      counts.frames += 1;
+      const drained = stress.activityLog.drained;
+      if (drained > previous) counts.framesWithRecords += 1;
+      previous = drained;
+      original(elapsedMs);
+    };
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) counts.rowsAdded += mutation.addedNodes.length;
+    });
+    observer.observe(document.querySelector('#activity-log-list'), { childList: true });
+    globalThis.__activityLogAllocation = {
+      counts,
+      stop() {
+        sampler.sample = original;
+        observer.disconnect();
+        counts.drained = stress.activityLog.drained - counts.drained;
+        return counts;
+      },
+    };
+  });
+  await cdp.send('HeapProfiler.enable');
+  await cdp.send('HeapProfiler.startSampling', {
+    samplingInterval: args.samplingInterval,
+    includeObjectsCollectedByMinorGC: true,
+    includeObjectsCollectedByMajorGC: true,
+  });
+  const startTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
+  await page.waitForTimeout(ALLOCATION_WINDOW_MS);
+  const { profile } = await cdp.send('HeapProfiler.stopSampling');
+  const counts = await page.evaluate(() => globalThis.__activityLogAllocation.stop());
+  const endTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
+  const visibility = await page.evaluate(() => document.visibilityState);
+  return { visibility, ticks: endTick - startTick, ...counts, ...attributeAllocation(profile) };
+}
+
+/**
+ * The running window, then a second window with the game paused: no tick
+ * runs, so every frame of the paused window drains no records, and what it
+ * charges to the log is the log's cost in frames without records.
+ */
 async function runAllocation(browser, args, panelOpen) {
   const { context, page } = await openPage(browser, args, true);
   const cdp = await context.newCDPSession(page);
@@ -320,54 +374,11 @@ async function runAllocation(browser, args, panelOpen) {
     await closeHelpAndSetThreeTimes(page);
     if (panelOpen) await openPanelWithEveryFilter(page, args.everyone);
     await page.waitForTimeout(ALLOCATION_WARMUP_MS);
-    // Counts frames, frames that drained records and rows appended to the
-    // list, without allocating per frame beyond the counters themselves.
-    await page.evaluate(() => {
-      const stress = globalThis.__terriStress;
-      const sampler = stress.activityLogSampler;
-      const original = sampler.sample.bind(sampler);
-      const counts = { frames: 0, framesWithRecords: 0, rowsAdded: 0, drained: stress.activityLog.drained };
-      let previous = counts.drained;
-      sampler.sample = (elapsedMs) => {
-        counts.frames += 1;
-        const drained = stress.activityLog.drained;
-        if (drained > previous) counts.framesWithRecords += 1;
-        previous = drained;
-        original(elapsedMs);
-      };
-      const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) counts.rowsAdded += mutation.addedNodes.length;
-      });
-      observer.observe(document.querySelector('#activity-log-list'), { childList: true });
-      globalThis.__activityLogAllocation = {
-        counts,
-        stop() {
-          sampler.sample = original;
-          observer.disconnect();
-          counts.drained = stress.activityLog.drained - counts.drained;
-          return counts;
-        },
-      };
-    });
-    await cdp.send('HeapProfiler.enable');
-    await cdp.send('HeapProfiler.startSampling', {
-      samplingInterval: args.samplingInterval,
-      includeObjectsCollectedByMinorGC: true,
-      includeObjectsCollectedByMajorGC: true,
-    });
-    const startTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
-    await page.waitForTimeout(ALLOCATION_WINDOW_MS);
-    const { profile } = await cdp.send('HeapProfiler.stopSampling');
-    const counts = await page.evaluate(() => globalThis.__activityLogAllocation.stop());
-    const endTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
-    const visibility = await page.evaluate(() => document.visibilityState);
-    return {
-      panelOpen,
-      visibility,
-      ticks: endTick - startTick,
-      ...counts,
-      ...attributeAllocation(profile),
-    };
+    const running = await sampleAllocationWindow(page, cdp, args);
+    await setSpeed(page, 0);
+    await page.waitForTimeout(1_000);
+    const paused = await sampleAllocationWindow(page, cdp, args);
+    return { panelOpen, ...running, paused };
   } finally {
     await context.close();
   }
@@ -388,6 +399,12 @@ function analyseAllocation(closed, open, viewBytes) {
       framesRan: closed.frames > 0 && open.frames > 0 && closed.visibility === 'visible' && open.visibility === 'visible',
       closedWithinOneViewPerDrain: closed.logBytes <= closed.framesWithRecords * viewBytes,
       openWithinRowAllowance: open.logBytes <= Math.max(open.rowsAdded, 0) * OPEN_BYTES_PER_LINE,
+      ...(closed.paused === undefined ? {} : {
+        closedNothingWithoutRecords: closed.paused.framesWithRecords === 0 && closed.paused.logBytes === 0,
+      }),
+      ...(open.paused === undefined ? {} : {
+        openNothingWithoutRecords: open.paused.framesWithRecords === 0 && open.paused.logBytes === 0,
+      }),
     },
   };
 }

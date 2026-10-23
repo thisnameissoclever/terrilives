@@ -85,6 +85,19 @@ describe('the activity log allocation attribution', () => {
       framesRan: true, closedWithinOneViewPerDrain: false, openWithinRowAllowance: false,
     });
   });
+
+  test('judges frames without records on the paused window alone', () => {
+    const closed = { frames: 100, framesWithRecords: 4, logBytes: 400, visibility: 'visible' };
+    const open = { frames: 100, rowsAdded: 3, logBytes: 6_000, visibility: 'visible' };
+    const paused = (logBytes, framesWithRecords = 0) => ({ frames: 1_200, framesWithRecords, logBytes, visibility: 'visible' });
+    const withPaused = (closedPaused, openPaused) => proof.analyseAllocation(
+      { ...closed, paused: closedPaused }, { ...open, paused: openPaused }, 128);
+    expect(withPaused(paused(0), paused(0)).checks).toMatchObject({
+      closedNothingWithoutRecords: true, openNothingWithoutRecords: true,
+    });
+    expect(withPaused(paused(1_032), paused(0)).checks.closedNothingWithoutRecords).toBe(false);
+    expect(withPaused(paused(0), paused(0, 3)).checks.openNothingWithoutRecords, 'a paused window that drained records proves nothing').toBe(false);
+  });
 });
 
 describe('the activity log memory verdict', () => {

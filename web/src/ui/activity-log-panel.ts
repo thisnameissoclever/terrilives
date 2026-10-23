@@ -67,25 +67,42 @@ export interface ActivityLogView {
   fitAboveDock(): void;
 }
 
+type Member = { readonly simId: number; readonly name: string };
+
 /**
  * The last name the shell saw for each `SimId`, so a line about someone who
  * has left still names them, and the selected housemate's `SimId` from the
  * same roster read, so the panel's selection poll makes no `simIdOf` call.
+ *
+ * A roster read only keeps a reference to its members. Their names are
+ * copied when records arrive and when the panel opens, the only times a
+ * line can need one, so a frame without records runs no name code at all
+ * ([AL-perf]).
  */
 export class ActivityLogNames {
   private readonly names = new Map<number, string>();
   private selectedSimId: number | null = null;
+  private latest: readonly Member[] = [];
+
+  /** Keeps the roster's latest members; copies nothing. */
+  offer(members: readonly Member[]): void { this.latest = members; }
 
   /**
-   * Called at the roster's cadence whether or not the panel is open, so it
-   * indexes the array rather than taking an iterator: a closed panel
-   * allocates nothing here ([AL-perf]).
+   * Copies the latest members' names, keeping those of people who have
+   * left. Indexes the array rather than taking an iterator.
    */
-  remember(members: readonly { readonly simId: number; readonly name: string }[]): void {
+  learn(): void {
+    const members = this.latest;
     for (let index = 0; index < members.length; index++) {
       const member = members[index];
       if (this.names.get(member.simId) !== member.name) this.names.set(member.simId, member.name);
     }
+  }
+
+  /** Offers and learns at once. */
+  remember(members: readonly Member[]): void {
+    this.offer(members);
+    this.learn();
   }
 
   name(simId: number): string | null { return this.names.get(simId) ?? null; }
@@ -97,14 +114,13 @@ export class ActivityLogNames {
 }
 
 /**
- * Wraps the household roster's surface so the log learns each housemate's
- * name and the selection at the roster's own cadence, with no extra reads
- * while the panel is closed.
+ * Wraps the household roster's surface so the log sees each housemate and
+ * the selection at the roster's own cadence, with no extra reads.
  */
 export function rememberingNames(surface: HouseholdRosterSurface, names: ActivityLogNames): HouseholdRosterSurface {
   return {
     render(members, selectedSimId, onSelect) {
-      names.remember(members);
+      names.offer(members);
       names.rememberSelected(selectedSimId);
       surface.render(members, selectedSimId, onSelect);
     },
@@ -190,6 +206,7 @@ export class ActivityLogPanel {
     }
     this.options.view.reflectOpen(true);
     this.options.view.fitAboveDock();
+    this.options.names.learn();
     this.context.selected = this.options.selected();
     this.limit = ACTIVITY_LOG_WINDOW;
     this.rebuild(true);

@@ -512,10 +512,22 @@ describe('the activity log panel', () => {
     const rendered: unknown[] = [];
     const surface = rememberingNames({ render: (...args) => { rendered.push(args); } }, names);
     surface.render([{ simId: 9, entity: 3, name: 'Ann' }], null, () => {});
+    expect(names.name(9), 'a roster read alone copies no names').toBeNull();
+    names.learn();
     surface.render([], null, () => {});
+    names.learn();
     expect(rendered).toHaveLength(2);
     expect(names.name(9)).toBe('Ann');
     expect(names.name(10)).toBeNull();
+  });
+
+  it('learns names when records arrive or the panel opens, not at every roster read', () => {
+    const { panel, names, drain, read, view } = setup();
+    names.offer([{ simId: TIM, name: 'Tim' }, { simId: BILL, name: 'Bill' }, { simId: 7, name: 'Casey' }]);
+    expect(names.name(7)).toBeNull();
+    drain(read(7));
+    panel.open();
+    expect(view.texts(), 'opening learns the roster it last read').toEqual(['Casey: Read a book']);
   });
 
   it('takes a new name when the roster reports a rename', () => {
@@ -751,7 +763,7 @@ describe('the activity log page', () => {
   });
 
   it('drains every frame, resets on Load and closes beside Options and Sim details', () => {
-    expect(main.match(/activityLogStore\.drain\(sim\);/g)).toHaveLength(2);
+    expect(main.match(/if \(activityLogStore\.drain\(sim\) > 0\) activityLogNames\.learn\(\);/g)).toHaveLength(2);
     expect(main).toContain('activityLogStore.resetAfterLoad();\n          activityLogPanel.resetAfterLoad();');
     expect(main).toContain("optionsToggle.addEventListener('click', () => { compactHud.close(); activityLogPanel.close(); });");
     expect(main).toContain('onOpen: () => { optionsMenu.close(); compactHud.close(); },');
