@@ -47,7 +47,7 @@ async function checkSharing(page,attempts){
   assert.equal(mail.protocol,'mailto:');assert.equal(mail.pathname,'bugreport@stfuai.com');
   assert.equal(parsed.reportContext.gameVersion,expectedVersion);
   assert.equal(mail.searchParams.get('subject'),'[Bug report] Natural Causes v'+expectedVersion);
-  assert.ok(mail.href.length<=8000);assert.match(mail.searchParams.get('body'),/Latest logs \(newest first\)/);
+  assert.ok(256+encodeURIComponent(mail.href).length<=7500);assert.match(mail.searchParams.get('body'),/Latest logs \(newest first\)/);
   if(parsed.attempts.at(-1).error)assert.ok(mail.searchParams.get('body').includes(parsed.attempts.at(-1).error.message.slice(0,80)));
   await page.evaluate(()=>{window.__reportClipboard.deny=true;});
   await page.getByRole('button',{name:'Copy debug details'}).click();
@@ -58,7 +58,7 @@ async function checkSharing(page,attempts){
   await page.evaluate(()=>{window.__reportClipboard.deny=false;});
   await page.getByRole('button',{name:'Copy debug details'}).click();
   await page.evaluate(()=>{window.scrollTo(0,0);const card=document.querySelector('[data-role="startup-failure"]');if(card)card.scrollTop=0;});
-  return {subject:mail.searchParams.get('subject'),encodedLinkCharacters:mail.href.length,mailBody:mail.searchParams.get('body'),copyCharacters:copied.length,clipboardTransport:'isolated test double; system clipboard untouched',fallback:true};
+  return {subject:mail.searchParams.get('subject'),mailto:mail.href,reservedHandoffCharacters:256+encodeURIComponent(mail.href).length,encodedLinkCharacters:mail.href.length,mailBody:mail.searchParams.get('body'),copyCharacters:copied.length,clipboardTransport:'isolated test double; system clipboard untouched',fallback:true};
 }
 async function readReport(page,record,label){
   const requests=[],capture=request=>requests.push(new URL(request.url()).pathname);page.on('request',capture);
@@ -67,7 +67,7 @@ async function readReport(page,record,label){
     await page.goto(new URL('startup-report.html',url).href);
     const shown=JSON.parse(await page.locator('#startup-report-data').textContent());
     assert.equal(shown.attempts.at(-1).startedAt,record.attempts.at(-1).startedAt);
-    assert.ok(requests.every(name=>name.endsWith('/startup-report.html')||name.endsWith('/startup-diagnostics-v3.js')),
+    assert.ok(requests.every(name=>name.endsWith('/startup-report.html')||name.endsWith('/startup-diagnostics-v4.js')),
       'The report must not request game code, simulation or artwork');
     const sharing=await checkSharing(page,record.attempts);
     const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Download report'}).click();
@@ -167,7 +167,7 @@ try{
       const bug=page.locator('#report-bug');await bug.scrollIntoViewIfNeeded();
       await bug.evaluate(element=>element.addEventListener('click',event=>event.preventDefault()));
       await bug.click();const optionsMail=new URL(await bug.getAttribute('href'));
-      assert.equal(optionsMail.pathname,'bugreport@stfuai.com');assert.ok(optionsMail.href.length<=8000);
+      assert.equal(optionsMail.pathname,'bugreport@stfuai.com');assert.ok(256+encodeURIComponent(optionsMail.href).length<=7500);
       assert.equal(optionsMail.searchParams.get('subject'),'[Bug report] Natural Causes v'+expectedVersion);
       assert.ok(optionsMail.searchParams.get('body').includes(runtime.error.message));
       assert.ok(optionsMail.searchParams.get('body').includes('Controlled underlying cause'));
@@ -177,7 +177,7 @@ try{
       await bug.focus();
       await page.screenshot({path:path.join(out,'options-report-desktop.png')});
       await page.locator('#options-panel').screenshot({path:path.join(out,'options-detail-desktop.png')});
-      report.cases.push({name:'real GPU validation and thrown runtime error after first frame; Options report',validation,runtime,encodedLinkCharacters:optionsMail.href.length,mailBody:optionsMail.searchParams.get('body')});
+      report.cases.push({name:'real GPU validation and thrown runtime error after first frame; Options report',validation,runtime,mailto:optionsMail.href,reservedHandoffCharacters:256+encodeURIComponent(optionsMail.href).length,encodedLinkCharacters:optionsMail.href.length,mailBody:optionsMail.searchParams.get('body')});
       const runtimeView=await readReport(page,await stored(page),'runtime-report');
       report.cases.at(-1).view=runtimeView;
     }finally{await context.close();}
