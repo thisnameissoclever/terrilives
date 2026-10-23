@@ -6,10 +6,12 @@
 //! change keeps it when the new level offers it. Every reader of a job's
 //! hours asks [`shift_of`].
 use bevy_ecs::prelude::*;
+use bevy_ecs::system::SystemParam;
 use terri_core::{Career, SimId};
-use terri_data::{CompiledCareer, ContentPack, ShiftView};
+use terri_data::{CompiledCareer, ContentPack, ShiftView, Tuning};
 
-use crate::careers::{job_of, Careers};
+use crate::careers::{job_of, Careers, Record};
+use crate::Content;
 
 /// The seed the shift stream starts from in a new game and in a save from
 /// before shifts.
@@ -95,16 +97,59 @@ pub(crate) fn shift_at<'a>(
     }
 }
 
-/// The shift `entity` holds at `job`, their own level: the record's index,
-/// or the standard shift without a record or past the level's list.
+/// The shift `entity` holds at `job`, their own level.
 fn held_at<'a>(world: &World, job: &'a CompiledCareer, entity: Entity) -> ShiftView<'a> {
-    let held = world
+    let record = world
         .get::<SimId>(entity)
-        .and_then(|sim| world.get_resource::<Careers>()?.record(*sim))
-        .map_or(0, |record| record.shift);
+        .and_then(|sim| world.get_resource::<Careers>()?.record(*sim));
+    held_shift(job, record)
+}
+
+/// The shift `record` holds at `job`: the record's index, or the standard
+/// shift without a record or past the level's list.
+fn held_shift<'a>(job: &'a CompiledCareer, record: Option<&Record>) -> ShiftView<'a> {
+    let held = record.map_or(0, |record| record.shift);
     job.shift(held as usize)
         .or_else(|| job.shift(0))
         .expect("every level has its standard shift")
+}
+
+/// The ticks a shift of `kind` adds to its holder's sleep rhythm
+/// ([WS-sleep]); a kind past the four named ones counts as day.
+pub fn kind_offset(tuning: &Tuning, kind: u8) -> i32 {
+    match kind {
+        terri_data::SHIFT_EARLY => tuning.shift_sleep_offset_early,
+        terri_data::SHIFT_LATE => tuning.shift_sleep_offset_late,
+        terri_data::SHIFT_NIGHT => tuning.shift_sleep_offset_night,
+        _ => tuning.shift_sleep_offset_day,
+    }
+}
+
+/// The sleep rhythm each person's held shift adds ([WS-sleep] in
+/// `docs/specs/2026-10-18-shifts-and-careers.md`), read once per person
+/// per decision by `select_action`. One parameter, so the selection
+/// system's own query and parameter lists do not grow.
+#[derive(SystemParam)]
+pub struct ShiftRhythm<'w, 's> {
+    content: Res<'w, Content>,
+    careers: Option<Res<'w, Careers>>,
+    people: Query<'w, 's, (Option<&'static SimId>, &'static Career)>,
+}
+
+impl ShiftRhythm<'_, '_> {
+    /// The ticks `entity`'s held shift adds to their rhythm, on working
+    /// days and days off alike; 0 without a job.
+    pub fn offset(&self, entity: Entity) -> i32 {
+        let Ok((sim, career)) = self.people.get(entity) else {
+            return 0;
+        };
+        let pack = self.content.0;
+        let Some(job) = pack.careers.get(career.0 as usize) else {
+            return 0;
+        };
+        let record = sim.and_then(|sim| self.careers.as_ref()?.record(*sim));
+        kind_offset(&pack.tuning, held_shift(job, record).kind)
+    }
 }
 
 #[cfg(test)]

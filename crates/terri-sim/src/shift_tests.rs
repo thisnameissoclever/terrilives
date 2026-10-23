@@ -1007,3 +1007,169 @@ fn a_pending_shift_is_validated_against_the_held_shift() {
     assert!(!valid(&mut sim, 60), "the held late shift starts at 900");
     assert!(valid(&mut sim, 900));
 }
+
+// Sleeping around a shift: [WS-sleep].
+
+/// A sleep-tagged bed and an equally restful couch, a rhythm whose pull
+/// toward bed peaks at midnight (4) and bottoms at noon (0.25), the shipped
+/// shift offsets, and one job whose standard shift is of `kind`, worked
+/// only on Sundays from 22:00, so the tests below fall on days off.
+fn rhythm_pack(kind: u8) -> &'static ContentPack {
+    let mut sleeping =
+        crate::test_content::interaction("use_it", &[(terri_core::NeedId::Energy, 40.0)], 15);
+    sleeping.tags = vec!["sleep".to_string()];
+    let objects = vec![
+        crate::test_content::object("couch", &[(terri_core::NeedId::Energy, 40.0)], 15),
+        crate::test_content::object_offering("bed", vec![sleeping]),
+    ];
+    // Decisive, as the circadian choice tests in `systems::action` are, so
+    // each pick is about scoring rather than one roll of the dice.
+    let tuning = Tuning {
+        choice_temperature: 0.0001,
+        duration_variance: 0.0,
+        ..crate::test_content::tuning()
+    };
+    let base = crate::test_content::pack_with_circadian(
+        objects,
+        tuning,
+        "sleep",
+        vec![(0, 4.0), (720, 0.25)],
+    );
+    let mut job = terri_data::pack().careers[0].clone();
+    job.standard_kind = kind;
+    job.standard_weight = 1;
+    job.shifts = Vec::new();
+    job.shift_start = 1320;
+    job.working_days = 0b1000000;
+    Box::leak(Box::new(ContentPack {
+        careers: vec![job],
+        career_paths: Vec::new(),
+        ..base.clone()
+    }))
+}
+
+/// Whether a tired person deciding at `tick` picks the bed over the couch.
+/// `kind` is the kind of shift they hold; `None` is no job.
+fn picks_bed(kind: Option<u8>, tick: u64) -> bool {
+    use terri_core::{NeedId, Needs, Position, SmartObject, Target};
+    let pack = rhythm_pack(kind.unwrap_or(terri_data::SHIFT_DAY));
+    let mut sim = crate::test_content::sim_with(16, 16, pack);
+    sim.world_mut().resource_mut::<SimClock>().tick = tick;
+    let couch = sim
+        .world_mut()
+        .spawn((
+            Position { x: 5.0, y: 8.0 },
+            SmartObject(terri_core::ObjectDefId(0)),
+        ))
+        .id();
+    let bed = sim
+        .world_mut()
+        .spawn((
+            Position { x: 11.0, y: 8.0 },
+            SmartObject(terri_core::ObjectDefId(1)),
+        ))
+        .id();
+    let mut needs = Needs::all_at(100.0);
+    needs.set(NeedId::Energy, 20.0);
+    let agent = sim
+        .world_mut()
+        .spawn((Agent, SimId(1), Position { x: 8.0, y: 8.0 }, needs))
+        .id();
+    if kind.is_some() {
+        sim.world_mut().entity_mut(agent).insert(Career(0));
+    }
+    for _ in 0..40 {
+        sim.tick();
+        match sim.world().get::<Target>(agent).map(|target| target.object) {
+            Some(object) if object == bed => return true,
+            Some(object) if object == couch => return false,
+            _ => {}
+        }
+    }
+    panic!("the person never chose either");
+}
+
+/// The shift offset `select_action` adds for each person, read through the
+/// system parameter it uses.
+fn rhythm_offset(sim: &mut Sim, entity: Entity) -> i32 {
+    let mut state = bevy_ecs::system::SystemState::<ShiftRhythm>::new(sim.world_mut());
+    state.get(sim.world()).offset(entity)
+}
+
+/// [WS-sleep]: a night worker's rhythm puts midnight at 11:00, so the bed
+/// wins at 10:00 and loses at 22:00, the reverse of a person with no job.
+#[test]
+fn a_night_shift_moves_the_beds_appeal_to_the_morning() {
+    let morning = 600;
+    let evening = 1320;
+    assert!(!picks_bed(None, morning), "no job: the couch at 10:00");
+    assert!(picks_bed(None, evening), "no job: the bed at 22:00");
+    let night = Some(terri_data::SHIFT_NIGHT);
+    assert!(
+        picks_bed(night, morning),
+        "a night worker: the bed at 10:00"
+    );
+    assert!(
+        !picks_bed(night, evening),
+        "a night worker: the couch at 22:00"
+    );
+}
+
+/// [WS-sleep]: the shipped day offset is 0, so a day worker chooses as a
+/// person with no job does at every hour tried, and the offset each kind
+/// adds is its tuning knob.
+#[test]
+fn a_day_shift_leaves_the_sleep_drive_unchanged() {
+    for tick in [0, 360, 600, 720, 1080, 1320] {
+        assert_eq!(
+            picks_bed(Some(terri_data::SHIFT_DAY), tick),
+            picks_bed(None, tick),
+            "tick {tick}"
+        );
+    }
+    let tuning = &terri_data::pack().tuning;
+    for (kind, expected) in [
+        (None, 0),
+        (Some(terri_data::SHIFT_DAY), tuning.shift_sleep_offset_day),
+        (
+            Some(terri_data::SHIFT_EARLY),
+            tuning.shift_sleep_offset_early,
+        ),
+        (Some(terri_data::SHIFT_LATE), tuning.shift_sleep_offset_late),
+        (
+            Some(terri_data::SHIFT_NIGHT),
+            tuning.shift_sleep_offset_night,
+        ),
+    ] {
+        let mut sim =
+            crate::test_content::sim_with(8, 8, rhythm_pack(kind.unwrap_or(terri_data::SHIFT_DAY)));
+        let person = sim.world_mut().spawn((Agent, SimId(1))).id();
+        if kind.is_some() {
+            sim.world_mut().entity_mut(person).insert(Career(0));
+        }
+        assert_eq!(rhythm_offset(&mut sim, person), expected, "{kind:?}");
+    }
+    assert_eq!(
+        (
+            tuning.shift_sleep_offset_day,
+            tuning.shift_sleep_offset_early,
+            tuning.shift_sleep_offset_late,
+            tuning.shift_sleep_offset_night
+        ),
+        (0, -60, 120, 660),
+        "the shipped offsets"
+    );
+}
+
+/// [WS-sleep]: the offset follows the held shift's kind on days off too.
+/// The job works Sunday nights only; on a Wednesday and a Saturday the
+/// night worker still sleeps by day.
+#[test]
+fn the_offset_holds_on_days_off() {
+    let night = Some(terri_data::SHIFT_NIGHT);
+    for day in [2u64, 5] {
+        let tick = day * 1440 + 600;
+        assert!(picks_bed(night, tick), "day {day} at 10:00");
+        assert!(!picks_bed(None, tick), "day {day} at 10:00 with no job");
+    }
+}

@@ -683,7 +683,8 @@ career_mood_fired_ticks = 5760
 # kind's offset is added to their sleep rhythm, in ticks from -720 to 720,
 # positive meaning later, on working days and days off alike. Appended to
 # the compiled tuning after meal_appreciation_gain, so packs published
-# before them reconstruct these shipped values.
+# before them reconstruct these shipped offsets and a search temperature
+# of 0, the best-fit search they ran.
 # A day shift leaves the rhythm alone.
 shift_sleep_offset_day = 0
 # An early shift puts bed an hour earlier.
