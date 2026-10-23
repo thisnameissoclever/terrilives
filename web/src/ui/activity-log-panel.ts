@@ -221,11 +221,13 @@ export class ActivityLogPanel {
   /**
    * Composes only the lines this click reveals and puts them above the
    * rendered ones, so its cost depends on the 200-line batch rather than on
-   * how many lines are already shown. The lines themselves are current: every
-   * frame that drains records appends and evicts them.
+   * how many lines are already shown. Records drained since the last frame
+   * may have pushed lines out of the store, so those go first; new lines wait
+   * for the frame.
    */
   showEarlier(): void {
     if (!this.open_) return;
+    this.forgetEvicted();
     const { store, view } = this.options;
     const lines = this.lines.lines;
     const shownBefore = Math.min(lines.length, this.limit);
@@ -297,6 +299,9 @@ export class ActivityLogPanel {
     const from = Math.max(0, store.length - fresh);
     this.seen = store.total;
     const changed = this.lines.add(store, from, this.context);
+    // Hidden records still push old ones out of the store, so their lines go
+    // even on a frame that adds none.
+    this.forgetEvicted();
     if (changed.length === 0) {
       // The first records can arrive hidden: Nothing matches these filters.
       this.reflectState();
@@ -309,7 +314,6 @@ export class ActivityLogPanel {
       if (old) view.removeRow(old);
       this.rows.set(line, view.appendRow(lineText(store, line, this.context)));
     }
-    this.forgetEvicted();
     this.trimRows();
     this.reflectState();
     if (follow) view.scrollToBottom();

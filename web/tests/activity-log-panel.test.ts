@@ -266,6 +266,58 @@ describe('the activity log panel', () => {
     expect(view.rows).toHaveLength(2_000);
   });
 
+  it('forgets evicted lines on a frame that brings only hidden records', () => {
+    // Career alone: 300 reviews make lines, then 2,000 hidden actions push
+    // every review out of the store.
+    const { panel, view, drain } = setup();
+    panel.toggleFilter(0);
+    panel.toggleFilter(2);
+    let seq = 10_000;
+    const review = () => record({ seq: ++seq, tick: seq, kind: KIND.weeklyReview, triggers: FILTER.career, actor: TIM, label: 0 });
+    drain(...Array.from({ length: 300 }, review));
+    panel.open();
+    expect(view.rows).toHaveLength(ACTIVITY_LOG_WINDOW);
+    expect(view.earlier).toBe(true);
+    const hidden = () => record({ seq: ++seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 });
+    drain(...Array.from({ length: 2_000 }, hidden));
+    panel.update();
+    expect(view.rows, 'every review left the store').toHaveLength(0);
+    expect(view.empty).toBe(PANEL_WORDS.nothingMatches);
+    expect(view.earlier).toBe(false);
+    panel.showEarlier();
+    expect(view.texts()).toEqual([]);
+  });
+
+  it('forgets evicted lines before Show earlier entries composes', () => {
+    const { panel, view, drain } = setup();
+    panel.toggleFilter(0);
+    panel.toggleFilter(2);
+    let seq = 10_000;
+    const review = () => record({ seq: ++seq, tick: seq, kind: KIND.weeklyReview, triggers: FILTER.career, actor: TIM, label: 0 });
+    drain(...Array.from({ length: 300 }, review));
+    panel.open();
+    const hidden = () => record({ seq: ++seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 });
+    // A click between the drain and the frame's update.
+    drain(...Array.from({ length: 1_900 }, hidden));
+    panel.showEarlier();
+    expect(view.texts().filter(text => text === ''), 'no blank row for an evicted line').toEqual([]);
+    expect(view.rows).toHaveLength(100);
+  });
+
+  it('drops the rows of evicted lines when new lines arrive', () => {
+    const { panel, view, drain } = setup();
+    let seq = 0;
+    const read = () => record({ seq: ++seq, tick: seq, kind: KIND.actionDone, triggers: FILTER.actions, actor: TIM, label: 0 });
+    const hidden = () => record({ seq: ++seq, tick: seq, kind: KIND.skillLevel, triggers: FILTER.skills, actor: TIM, label: 0, values: [0, 2] });
+    drain(...Array.from({ length: 10 }, read), ...Array.from({ length: 1_990 }, hidden));
+    panel.open();
+    expect(view.rows).toHaveLength(10);
+    drain(...Array.from({ length: 5 }, read));
+    panel.update();
+    expect(view.rows, 'five lines left the store and five arrived').toHaveLength(10);
+    expect(view.texts().filter(text => text === '')).toEqual([]);
+  });
+
   it('shows earlier entries by composing and inserting only the lines it reveals', () => {
     const { panel, view, names, drain, read } = setup();
     // Time makes every line distinct, so the order can be checked.
