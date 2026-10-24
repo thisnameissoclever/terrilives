@@ -125,13 +125,13 @@ fn active_dish_duty_crossing_midnight_settles_only_at_real_completion() {
     let effects = sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .len();
     board::credit(sim.world_mut(), &mut state, person.index_u32(), key, 0, 1);
     assert_eq!(
         sim.world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .len(),
         effects
     );
@@ -344,7 +344,7 @@ fn balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment() {
     let effects = sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .len();
     board::tick(sim.world_mut(), &mut state);
     sim.world_mut().resource_mut::<SimClock>().tick = day_ticks;
@@ -361,7 +361,7 @@ fn balance_household_grace_fresh_work_at_2359_has_no_midnight_resentment() {
     assert_eq!(
         sim.world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .len(),
         effects
     );

@@ -348,7 +348,11 @@ fn private_use_fixtures_are_named_bathroom_types() {
 /// The log's scratch sizes at the end of a run, as `ActivityLog::scratch_sizes` reports them.
 type ScratchSizes = (usize, usize, usize);
 
-fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec<LogRecord>, ScratchSizes) {
+fn run_household(
+    log: bool,
+    churn: bool,
+    ticks: usize,
+) -> (Vec<u64>, SimRng, Vec<LogRecord>, ScratchSizes) {
     let mut sim = Sim::new_from_shipped_lot();
     sim.set_activity_log_enabled(log);
     let bystander = churn.then(|| sim.world_mut().spawn(Position { x: 2.0, y: 2.0 }).id());
@@ -392,7 +396,12 @@ fn run_household(log: bool, churn: bool, ticks: usize) -> (Vec<u64>, SimRng, Vec
         hashes.push(sim.world_hash());
     }
     let scratch = sim.activity_log().scratch_sizes();
-    (hashes, sim.world().resource::<SimRng>().clone(), staged, scratch)
+    (
+        hashes,
+        sim.world().resource::<SimRng>().clone(),
+        staged,
+        scratch,
+    )
 }
 
 /// FNV-1a over the per-tick world hashes, so one number stands for a whole
@@ -420,7 +429,11 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
     let (off, off_rng, none, off_scratch) = run_household(false, false, ticks);
     // A disabled log must hold nothing in its scratch area either: no Social
     // total, no open nuisance episode, no held feeling.
-    assert_eq!(off_scratch, (0, 0, 0), "a disabled log's scratch area stays empty");
+    assert_eq!(
+        off_scratch,
+        (0, 0, 0),
+        "a disabled log's scratch area stays empty"
+    );
     assert!(none.is_empty(), "a disabled log stages nothing");
     if let Some(tick) = on.iter().zip(&off).position(|(a, b)| a != b) {
         panic!(

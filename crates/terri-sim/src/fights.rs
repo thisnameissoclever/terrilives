@@ -1912,7 +1912,7 @@ mod order_tests {
             .resource::<crate::relationship_effects::RelationshipDiagnostics>();
         assert_eq!(
             diagnostics
-                .effects
+                .effects()
                 .iter()
                 .filter(|e| e.cause == crate::relationship_effects::RelationshipCause::Fight)
                 .count(),
@@ -2039,7 +2039,7 @@ mod order_tests {
         assert!(sim
             .world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .iter()
             .all(|e| e.cause != crate::relationship_effects::RelationshipCause::Fight));
     }

@@ -90,9 +90,18 @@ pub struct RelationshipEffect {
 #[derive(Resource, Default, Clone)]
 #[doc(hidden)]
 pub struct RelationshipDiagnostics {
-    pub(crate) effects: Vec<RelationshipEffect>,
+    /// Written only by [`record`] and [`record_in`], so every effect also
+    /// reaches the activity log's classification; read through [`Self::effects`].
+    effects: Vec<RelationshipEffect>,
     pub(crate) contacts: Vec<(SimId, SimId)>,
     pub(crate) waits: Vec<(SimId, bool, u64)>,
+}
+
+impl RelationshipDiagnostics {
+    /// This tick's effects, in the order they were recorded.
+    pub(crate) fn effects(&self) -> &[RelationshipEffect] {
+        &self.effects
+    }
 }
 
 impl crate::Sim {

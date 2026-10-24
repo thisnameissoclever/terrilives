@@ -720,10 +720,7 @@ fn privacy_diagnostics_group_victims_and_report_clamped_loss_without_changing_ha
     assert!((events[0].actual + 0.1).abs() < 0.000001);
     assert_eq!(events[1].affected, *sim.world().get::<SimId>(b).unwrap());
     let hash = sim.world_hash();
-    sim.world_mut()
-        .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
-        .clear();
+    crate::relationship_effects::reset(sim.world_mut());
     assert_eq!(sim.world_hash(), hash);
 }
 
