@@ -173,7 +173,19 @@ describe('game HUD formatting', () => {
       'Office clerk, Monday to Friday, 06:00 to 14:00',
     );
     expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1000001 }, 1440)).toBe(
-      'Office clerk, Monday, Sunday, 06:00 to 14:00',
+      'Office clerk, Sunday to Monday, 06:00 to 14:00',
+    );
+    expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1001111 }, 1440)).toBe(
+      'Office clerk, Sunday to Thursday, 06:00 to 14:00',
+    );
+    expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1110011 }, 1440)).toBe(
+      'Office clerk, Friday to Tuesday, 06:00 to 14:00',
+    );
+    expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1000010 }, 1440)).toBe(
+      'Office clerk, Tuesday, Sunday, 06:00 to 14:00',
+    );
+    expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1011001 }, 1440)).toBe(
+      'Office clerk, Monday, Thursday, Friday, Sunday, 06:00 to 14:00',
     );
     expect(formatCareerSchedule('Office clerk', { ...office, workingDays: 0b1111111 }, 1440)).toBe(
       'Office clerk, every day, 06:00 to 14:00',
@@ -275,6 +287,16 @@ describe('GameHud', () => {
     expect(probes[0].writes).toBe(5);
   });
 
+  it('names the held shift on the assembled Career row (issue 296, [WS-shell] item 1)', () => {
+    const view = roots();
+    const hud = new GameHud(view, 100);
+    hud.update(0, source({
+      careerScheduleOf: () => ({ workingDays: 0b1001111, shiftStart: 1320, shiftTicks: 480, kind: 3, index: 0 }),
+    }));
+    expect(view.careerRow.hidden).toBe(false);
+    expect(view.career.textContent).toBe('Office clerk, Night shift, Sunday to Thursday, 22:00 to 06:00');
+  });
+
   it('shows the clock, funds and selected sim state together', () => {
     const view = roots();
     const hud = new GameHud(view, 100);
@@ -301,7 +323,7 @@ describe('GameHud', () => {
       },
     }));
     expect(asked).toEqual([34]);
-    expect(view.career.textContent).toBe('Office clerk, Monday, Sunday, 06:00 to 14:00');
+    expect(view.career.textContent).toBe('Office clerk, Sunday to Monday, 06:00 to 14:00');
     hud.update(100, source({ careerScheduleOf: () => null }));
     expect(view.careerRow.hidden).toBe(false);
     expect(view.career.textContent).toBe('Office clerk');
@@ -385,7 +407,7 @@ describe('the held shift on the Career row (issue 296, [WS-shell] item 1)', () =
       );
     }
     expect(formatCareerSchedule('Night watch', { workingDays: 0b1001111, shiftStart: 1320, shiftTicks: 480, kind: 3, index: 0 }, 1440))
-      .toBe('Night watch, Night shift, Monday, Tuesday, Wednesday, Thursday, Sunday, 22:00 to 06:00');
+      .toBe('Night watch, Night shift, Sunday to Thursday, 22:00 to 06:00');
     for (const kind of [4, -1, 0.5, Number.NaN, null, undefined]) {
       expect(formatCareerSchedule('Office clerk', { ...office, kind, index: 0 }, 1440), String(kind)).toBe(
         'Office clerk, Monday to Friday, 06:00 to 14:00',

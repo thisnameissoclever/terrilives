@@ -177,17 +177,22 @@ const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
 
 /**
  * Names the days in a working-day mask: `every day` for all seven,
- * `Monday to Friday` for one unbroken run of two or more days in the
- * Monday-first week, and otherwise each day, separated by commas. A run
- * does not wrap from Sunday to Monday.
+ * `Monday to Friday` for one unbroken run of two or more days, and
+ * otherwise each day in Monday-first order, separated by commas. A run
+ * may wrap past Sunday, so Sunday to Thursday nights read
+ * `Sunday to Thursday`.
  */
 function formatWorkingDays(mask: number): string {
   if (mask === EVERY_WEEKDAY) return 'every day';
-  const days = WEEKDAY_NAMES.filter((_, weekday) => (mask & (1 << weekday)) !== 0);
-  const first = WEEKDAY_NAMES.indexOf(days[0]);
-  const last = WEEKDAY_NAMES.indexOf(days[days.length - 1]);
-  const unbroken = last - first + 1 === days.length;
-  return unbroken && days.length > 1 ? `${days[0]} to ${days[days.length - 1]}` : days.join(', ');
+  const count = WEEKDAY_NAMES.length;
+  const works = (weekday: number) => (mask & (1 << (((weekday % count) + count) % count))) !== 0;
+  const days = WEEKDAY_NAMES.filter((_, weekday) => works(weekday));
+  // A run starts on a working day whose previous day is off; exactly one
+  // such day means the working days form one run around the week.
+  const starts = WEEKDAY_NAMES.map((_, weekday) => weekday).filter(weekday => works(weekday) && !works(weekday - 1));
+  if (days.length < 2 || starts.length !== 1) return days.join(', ');
+  const first = starts[0];
+  return `${WEEKDAY_NAMES[first]} to ${WEEKDAY_NAMES[(first + days.length - 1) % count]}`;
 }
 
 function isScheduleTime(value: number): boolean {

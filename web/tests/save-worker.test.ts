@@ -200,6 +200,20 @@ describe('save worker recovery backup', () => {
     expect(slot.files.get(V20_BACKUP)).toEqual(original);
   });
 
+  it.each(['open', 'write', 'close'])('preserves V20 after backup %s failure and permits retry', async (phase) => {
+    const slot = await workerSlot(v20);
+    slot.fail.file = V20_BACKUP;
+    slot.fail.phase = phase;
+    expect(await slot.request('save', v21)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v20);
+    expect(slot.files.has(V20_BACKUP)).toBe(false);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+    slot.fail.file = '';
+    expect(await slot.request('save', v21)).toMatchObject({ ok: true });
+    expect(slot.files.get(V20_BACKUP)).toEqual(v20);
+    expect(slot.files.get(PRIMARY)).toEqual(v21);
+  });
+
   it.each([new Uint8Array(), v19, v21])('refuses a mismatched V20 recovery copy', async (backup) => {
     const slot = await workerSlot(v20);
     slot.files.set(V20_BACKUP, backup);
