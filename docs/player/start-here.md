@@ -43,3 +43,13 @@ Needs describe immediate bodily and social requirements. [Mood](mood-and-persona
 Use the guide search for an action, object or symptom. Try washing hands, lonely, angry, meals or Queue. Open Numbers and limits within an article when you want the detailed reference. The same disclosure works by click, tap or keyboard.
 
 Browse [Needs](needs/#overview), [Activities](activities/#all-actions), [Relationships](relationships/#directional-feelings), [Home and controls](home-and-controls/#orders), or [The world](the-world/#calendar) when you want a fuller explanation. The [Glossary](glossary/#terms) defines the game's terms.
+
+## If the game cannot load {#loading-failure}
+
+Choose Copy debug details on the failure screen to copy the retained report for Tim. If copying is blocked, select and copy the displayed text instead. Email Tim opens your mail application with the game version in the subject, the recorded error and the newest logs that fit. Review the draft before sending it. Copy and download retain more detail than the email excerpt.
+
+If the browser replaces the game with its own error page, open [Startup report](https://natural-causes.life/startup-report.html) in that same browser. The report page opens without starting the game and provides the same sharing controls. Download report saves a file if you prefer. The report contains loading steps and error details, with no household save.
+
+If the game is still open, choose [Options, then Report bug](ui-elements/#options) to prepare the same email with the latest recorded details. You can describe the problem in the draft before sending it.
+
+:::illustration startup-report-sharing

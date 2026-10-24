@@ -78,7 +78,7 @@ Assignments identify who can be blamed for an overdue duty. A completed chore ar
 
 ## Save, Load and New game {#saves}
 
-Options contains Save, Load and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work and queued orders so the household can resume.
+Options contains Save, Load, Export save, Import save and New game. Save writes the current household to this browser's local slot. Autosave writes at the beginning of each new simulated day. A save includes people, needs, relationships, time, active work and queued orders so the household can resume.
 
 Load asks before replacing progress with the saved household. An invalid or incompatible save is rejected without replacing the running household. New game asks before deleting the local save and returning to the authored starting household.
 
@@ -86,7 +86,21 @@ Choose **Load game** in the Load confirmation to restore the save. Choose **Star
 
 :::illustration load-confirm
 
-The slot belongs to the game's site in this browser. A different browser, browser profile or site address may have separate storage. Light and sound preferences are separate from household progress.
+The slot belongs to the game's site in this browser. A different browser, browser profile or site address has separate storage. Light and sound preferences are separate from household progress.
+
+### Move a save to another browser or device {#export-import}
+
+Choose Options, then Export save to download the current household as a file ending in `.ncsave`. Exporting leaves this browser's saved game as it is. While saving is paused because the stored save could not be loaded, Export save downloads that stored save unchanged instead of the running game.
+
+To use the file, open the game in the browser or on the device where you want to play, choose Options, then Import save, and pick the file. Choose **Import game** in the confirmation. The imported household replaces the running game and this browser's saved game, and this cannot be undone, so export the current game first if you want to keep it. **Keep playing** closes the confirmation without changing anything. A file that is not a Natural Causes save, a damaged save, or a save from a newer version of the game is rejected and the current game is kept. While saving is paused because this browser's saved game is unreadable or from a newer version, Import save cannot replace it: export it first if you want to keep it, choose New game, then import again.
+
+:::illustration import-confirm
+
+### Saves from the old web address {#old-address}
+
+If you played at thisnameissoclever.github.io/terrilives, natural-causes.life starts without your household, because a save stays in the browser where it was made. The old address now opens the new one. To bring that save across, open [Move your Natural Causes save](https://thisnameissoclever.github.io/natural-causes-old-save/) in the same browser and on the same device, choose **Download save**, then use Import save at natural-causes.life.
+
+Do this soon. Some browsers, including Safari, can clear saved data for a site you have not visited for a while.
 
 ## Add or edit a housemate {#housemates}
 
@@ -106,4 +120,4 @@ Options contains lighting, sound, the death setting, automatic career changes an
 
 Reduced motion suppresses weather particles and uses flat lighting while keeping weather text. The saved lighting preference remains available when that setting changes back. Use visible text labels, mood reasons and status messages alongside colors and animations.
 
-Open Help for the short controls reference or the full player guide for the longer explanations. Changelog opens the update history in another tab. See [UI elements](ui-elements/#options) for the exact desktop and phone route.
+Open Help for the short controls reference or the full player guide for the longer explanations. Changelog opens the update history in another tab. Report bug prepares an email to Tim with the recorded error and newest logs that fit. Review the draft before sending it. See [UI elements](ui-elements/#options) for the exact desktop and phone route.

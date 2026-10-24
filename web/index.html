@@ -15,7 +15,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>Natural Causes</title>
-    <script defer vite-ignore src="./startup-diagnostics.js"></script>
+    <script defer vite-ignore src="./startup-diagnostics-v4.js"></script>
     <link rel="icon" href="./favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
     <style>
@@ -738,6 +738,7 @@
       }
       #new-game-dialog,
       #load-game-dialog,
+      #import-save-dialog,
       #land-dialog,
       #build-exit-dialog,
       #housemate-dialog {
@@ -750,6 +751,7 @@
       }
       #new-game-dialog::backdrop,
       #load-game-dialog::backdrop,
+      #import-save-dialog::backdrop,
       #land-dialog::backdrop,
       #build-exit-dialog::backdrop,
       #housemate-dialog::backdrop {
@@ -757,6 +759,7 @@
       }
       #new-game-dialog h2,
       #load-game-dialog h2,
+      #import-save-dialog h2,
       #land-dialog h2,
       #build-exit-dialog h2,
       #housemate-dialog h2 {
@@ -806,6 +809,7 @@
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
       #load-game-dialog menu,
+      #import-save-dialog menu,
       #land-dialog menu,
       #build-exit-dialog menu,
       #housemate-dialog menu {
@@ -1293,9 +1297,13 @@
         <button id="new-housemate" class="hud-button" type="button">New housemate</button>
         <button data-action-intent="affirmative" id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="export-save" class="hud-button" type="button">Export save</button>
+        <button id="import-save" class="hud-button" type="button">Import save</button>
+        <input id="import-save-file" type="file" hidden tabindex="-1" aria-hidden="true" />
 
 
         <button id="new-game" class="hud-button" type="button">New game</button>
+        <a id="report-bug" class="hud-button" href="./startup-report.html" title="Email a bug report to Tim">Report bug</a>
         <button
           id="show-help"
           class="hud-button"
@@ -1609,6 +1617,16 @@
         <menu>
           <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
           <button data-action-intent="affirmative" id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
+        </menu>
+      </form>
+    </dialog>
+    <dialog id="import-save-dialog" aria-labelledby="import-save-title">
+      <h2 id="import-save-title">Import this saved game?</h2>
+      <p>The current game and its saved data will be replaced. This cannot be undone.</p>
+      <form method="dialog">
+        <menu>
+          <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
+          <button data-action-intent="affirmative" id="confirm-import-save" class="hud-button" value="confirm">Import game</button>
         </menu>
       </form>
     </dialog>
