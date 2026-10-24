@@ -23,7 +23,8 @@ export const PANEL_WORDS = {
   showEarlier: 'Show earlier entries',
 } as const;
 
-export function onlyInvolving(name: string): string { return `Only entries involving ${name}.`; }
+/** The checkbox that narrows the log to the selected housemate. */
+export function onlyNamed(name: string): string { return `Only ${name}`; }
 
 /** A person the shell never saw a name for, at the start of a line. */
 export const SOMEONE = 'Someone';

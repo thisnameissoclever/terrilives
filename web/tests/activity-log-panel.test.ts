@@ -22,7 +22,7 @@ class FakeView implements ActivityLogView {
   open = false;
   toggleHidden = false;
   filters: boolean[] = [];
-  selected: string | null = null;
+  only: { label: string | null; checked: boolean } = { label: null, checked: false };
   empty: string | null = null;
   earlier = false;
   rows: { row: ActivityLogRow; text: string }[] = [];
@@ -38,7 +38,7 @@ class FakeView implements ActivityLogView {
   reflectOpen(open: boolean) { this.calls++; this.open = open; }
   reflectToggleHidden(hidden: boolean) { this.calls++; this.toggleHidden = hidden; }
   reflectFilter(index: number, on: boolean) { this.calls++; this.filters[index] = on; }
-  reflectSelected(text: string | null) { this.calls++; this.selected = text; }
+  reflectOnly(label: string | null, checked: boolean) { this.calls++; this.only = { label, checked }; }
   reflectEmpty(text: string | null) { this.calls++; this.empty = text; }
   reflectShowEarlier(visible: boolean) { this.calls++; this.earlier = visible; }
   replaceRows(texts: readonly string[]) {
@@ -142,7 +142,7 @@ describe('the activity log panel', () => {
     let blocked = false;
     attachActivityLogPanel(
       { addEventListener: (_type, listener, capture) => { captured = capture; listeners.push(listener); } },
-      { toggle, close: button(), filters: [button(), button()], earlier: button() } as never,
+      { toggle, close: button(), filters: [button(), button()], earlier: button(), onlyBox: button() } as never,
       panel,
       () => blocked,
     );
@@ -313,18 +313,21 @@ describe('the activity log panel', () => {
 
   it('starts a filter change or a new selection from the newest 200 lines', () => {
     const { panel, view, drain, read, select, runDeferred } = setup();
-    for (let batch = 0; batch < 3; batch++) drain(...Array.from({ length: 200 }, () => read()));
+    for (let batch = 0; batch < 6; batch++) drain(...Array.from({ length: 200 }, (_, index) => read(index % 2 === 0 ? TIM : BILL)));
+    select(TIM);
     panel.open();
+    panel.toggleOnly();
     panel.showEarlier();
     expect(view.rows).toHaveLength(400);
     panel.toggleFilter(6);
     expect(view.rows, 'a filter change jumps to the newest line, so it renders only the newest window').toHaveLength(ACTIVITY_LOG_WINDOW);
     expect(view.earlier).toBe(true);
     panel.showEarlier();
-    select(TIM);
+    select(BILL);
     panel.update();
     runDeferred();
     expect(view.rows).toHaveLength(ACTIVITY_LOG_WINDOW);
+    expect(view.texts().every(text => text.endsWith('Bill: Read a book'))).toBe(true);
   });
 
   it('never renders more than the store holds', () => {
@@ -419,31 +422,37 @@ describe('the activity log panel', () => {
   it('jumps to the newest line at once when a click rebuilds the list', () => {
     const { panel, view, drain, read, select, runDeferred } = setup();
     drain(read(TIM), read(BILL));
+    select(TIM);
     panel.open();
     expect(view.jumped, 'opening is a click: the newest line shows at once').toBe(1);
     view.bottom = false;
     panel.toggleFilter(1);
     expect(view.jumped, 'a filter change jumps even when the list keeps its height').toBe(2);
+    panel.toggleOnly();
+    expect(view.jumped, 'ticking Only is a click too').toBe(3);
     select(BILL);
     panel.update();
-    expect(view.jumped, 'a selection seen in a frame reads no layout').toBe(2);
-    expect(view.replaced, 'nor does the frame rebuild the list').toBe(2);
+    expect(view.jumped, 'a selection seen in a frame reads no layout').toBe(3);
+    expect(view.replaced, 'nor does the frame rebuild the list').toBe(3);
     runDeferred();
-    expect(view.replaced).toBe(3);
-    expect(view.jumped, 'the deferred rebuild runs outside the frame, as a click does').toBe(3);
+    expect(view.replaced).toBe(4);
+    expect(view.jumped, 'the deferred rebuild runs outside the frame, as a click does').toBe(4);
   });
 
-  it('rebuilds for a new selection in a task of its own, after the frame', () => {
+  it('rebuilds for a new selection in a task of its own while Only is ticked', () => {
     const { panel, view, drain, read, select, runDeferred, deferredCount } = setup();
     drain(read(TIM), read(BILL));
+    select(TIM);
     panel.open();
+    panel.toggleOnly();
+    expect(view.texts()).toEqual(['Tim: Read a book']);
     select(BILL);
     panel.update();
     expect(deferredCount()).toBe(1);
     drain(read(TIM));
     panel.update();
     expect(deferredCount(), 'one rebuild waits, however many frames pass').toBe(1);
-    expect(view.texts(), 'frames before it compose nothing for the old selection').toHaveLength(2);
+    expect(view.texts(), 'frames before it compose nothing for the old selection').toEqual(['Tim: Read a book']);
     runDeferred();
     expect(view.texts()).toEqual(['Bill: Read a book']);
     panel.update();
@@ -453,7 +462,9 @@ describe('the activity log panel', () => {
   it('drops a waiting selection rebuild when a click or a close came first', () => {
     const { panel, view, drain, read, select, runDeferred } = setup();
     drain(read(TIM), read(BILL));
+    select(TIM);
     panel.open();
+    panel.toggleOnly();
     select(BILL);
     panel.update();
     panel.toggleFilter(1);
@@ -469,23 +480,55 @@ describe('the activity log panel', () => {
     expect(view.texts()).toEqual([]);
   });
 
-  it('follows the housemate the roster reports as selected and narrows the lines', () => {
-    const { panel, view, drain, read, select, runDeferred } = setup();
+  it('shows the whole household by default and names the selected housemate in Only', () => {
+    const { panel, view, drain, read, select, deferredCount } = setup();
+    drain(read(TIM), read(BILL));
+    select(BILL);
+    panel.open();
+    expect(view.texts(), 'a selection alone narrows nothing').toHaveLength(2);
+    expect(view.only).toEqual({ label: 'Only Bill', checked: false });
+    const replaced = view.replaced;
+    select(TIM);
+    panel.update();
+    expect(view.only, 'the label follows the selection').toEqual({ label: 'Only Tim', checked: false });
+    expect([view.replaced, deferredCount()], 'and nothing rebuilds').toEqual([replaced, 0]);
+    select(null);
+    panel.update();
+    expect(view.only.label, 'with nobody selected there is nobody to narrow to').toBeNull();
+  });
+
+  it('narrows to the selected housemate while Only is ticked', () => {
+    const { panel, view, drain, read, select } = setup();
     drain(read(TIM), read(BILL));
     panel.open();
-    panel.update();
-    expect(view.selected).toBeNull();
-    expect(view.texts()).toHaveLength(2);
+    panel.toggleOnly();
+    expect(view.only, 'Only needs a selected housemate').toEqual({ label: null, checked: false });
     select(BILL);
     panel.update();
-    runDeferred();
+    panel.toggleOnly();
     expect(view.texts()).toEqual(['Bill: Read a book']);
-    expect(view.selected).toBe('Only entries involving Bill.');
+    expect(view.only).toEqual({ label: 'Only Bill', checked: true });
+    panel.toggleOnly();
+    expect(view.texts()).toHaveLength(2);
+    expect(view.only.checked).toBe(false);
+  });
+
+  it('shows everyone while Only has nobody to name, and narrows again when someone is selected', () => {
+    const { panel, view, drain, read, select, runDeferred } = setup();
+    drain(read(TIM), read(BILL));
+    select(BILL);
+    panel.open();
+    panel.toggleOnly();
     select(null);
     panel.update();
     runDeferred();
     expect(view.texts()).toHaveLength(2);
-    expect(view.selected).toBeNull();
+    expect(view.only.label).toBeNull();
+    select(TIM);
+    panel.update();
+    runDeferred();
+    expect(view.texts()).toEqual(['Tim: Read a book']);
+    expect(view.only).toEqual({ label: 'Only Tim', checked: true });
   });
 
   it('fits above the dock when it opens, and its frames read no layout', () => {
@@ -632,7 +675,7 @@ function fakePage() {
     },
   };
   const elements = {
-    toggle: element(), panel: element(), close: element(), filters: [], selected: element(), scroller,
+    toggle: element(), panel: element(), close: element(), filters: [], only: element(), onlyBox: element(), onlyText: element(), scroller,
     earlier: element(), list, empty: element(), dock,
   };
   const view = createActivityLogView(doc as never, elements as never);
@@ -739,7 +782,8 @@ describe('the activity log page', () => {
     expect(html).toContain('<section id="activity-log" aria-labelledby="activity-log-title" hidden>');
     expect(html, 'the filters have a name of their own').toContain('<div id="activity-log-filters" role="group"></div>');
     expect(html, 'keyboard users can scroll the entries').toContain('<div id="activity-log-scroller" role="region" tabindex="0">');
-    for (const id of ['activity-log-close', 'activity-log-filters', 'activity-log-selected', 'activity-log-scroller',
+    expect(html, 'the Only checkbox replaces the line that named the selection').not.toContain('activity-log-selected');
+    for (const id of ['activity-log-close', 'activity-log-filters', 'activity-log-scroller',
       'activity-log-earlier', 'activity-log-list', 'activity-log-empty']) expect(html).toContain(`id="${id}"`);
     expect(css).toMatch(/#activity-log-toggle \{\s*position: fixed;\s*top: max\(8px, env\(safe-area-inset-top\)\);\s*right: max\(8px, env\(safe-area-inset-right\)\);/);
     expect(css).toContain("body[data-building='true'] #activity-log-toggle");
@@ -760,11 +804,11 @@ describe('the activity log page', () => {
       return { id, textContent: '', setAttribute: (name: string, value: string) => own.set(name, value), replaceChildren() {} };
     };
     const ids = ['activity-log-toggle', 'activity-log-close', 'activity-log-earlier', 'activity-log-filters', 'activity-log-title',
-      'activity-log', 'activity-log-selected', 'activity-log-scroller', 'activity-log-list', 'activity-log-empty', 'sim-dock'];
+      'activity-log', 'activity-log-scroller', 'activity-log-list', 'activity-log-empty', 'sim-dock'];
     const nodes = new Map(ids.map(id => [id, element(id)]));
     const doc = {
       getElementById: (id: string) => nodes.get(id) ?? null,
-      createElement: () => ({ ...element('filter'), type: '', className: '' }),
+      createElement: () => ({ ...element('filter'), type: '', className: '', hidden: false, append() {} }),
     };
     activityLogElements(doc as never);
     expect(attributes.get('activity-log-filters')!.get('aria-label')).toBe(PANEL_WORDS.filtersGroup);

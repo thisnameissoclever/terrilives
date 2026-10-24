@@ -52,7 +52,7 @@ export interface ComposeContext {
   readonly labels: readonly string[];
   /** Enabled filters as `FILTER` bits. */
   readonly filters: number;
-  /** The selected housemate's `SimId`, or null for everyone. */
+  /** The housemate the lines are narrowed to while Only is ticked, or null for everyone. */
   readonly selected: number | null;
   readonly dayTicks: number;
   /** The Likes and dislikes band edges in hundredths, the unit of a recorded preference. */

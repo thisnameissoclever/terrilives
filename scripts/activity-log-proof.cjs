@@ -8,8 +8,8 @@
 //   node scripts/activity-log-proof.cjs rebuild     [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
 //   node scripts/activity-log-proof.cjs clicks      [--stress N] [--url U] [--fill-ticks T] [--repetitions R]
 //
-// `--everyone` clears the selected housemate and waits until the panel
-// shows every person's lines rather than only those involving one person.
+// The log shows every person by default. Without `--everyone`, the panel's
+// Only box is ticked so the log shows only the selected housemate's lines.
 //
 // performance: the release frame-time gate of docs/ARCHITECTURE.md with the
 //   panel closed, then open with every filter on. Needs a displayed
@@ -27,9 +27,9 @@
 // clicks: the same clicks with a pause between them, each timed as its
 //   script plus the main-thread work of the frame after it (ResizeObserver
 //   callbacks, style, layout and paint), less the median of frames without
-//   a click. Work a click defers to its frame is charged to the click. Then
-//   a selection change, to one housemate by the roster's button and back to
-//   everyone, each timed as the rebuild the panel defers out of the frame.
+//   a click. Work a click defers to its frame is charged to the click. Then,
+//   with Only ticked, two selection changes by the roster's buttons, each
+//   timed as the rebuild the panel defers out of the frame.
 //
 // Every page runs with `audio=0` and Chrome's `--mute-audio`, so a proof
 // never plays sound.
@@ -144,16 +144,25 @@ async function openPage(browser, args, logEnabled) {
 }
 
 /**
+ * Ticks or clears the panel's Only box. Ticking needs a selected housemate:
+ * with nobody selected, the first roster button selects one, and the box
+ * appears when the roster next reports it.
+ */
+async function setOnly(page, on) {
+  const box = page.locator('#activity-log-filters .activity-log-only input');
+  if (on && !(await box.isVisible())) {
+    await page.locator('.household-member').first().click();
+    await box.waitFor({ state: 'visible', timeout: 10_000 });
+  }
+  if ((await box.isChecked()) !== on) await box.click();
+  if ((await box.isChecked()) !== on) throw new Error(`the Only box did not turn ${on ? 'on' : 'off'}`);
+}
+
+/**
  * Opens the panel through its button and turns every filter on through its
- * toggle. With `everyone`, clears the selection and waits for the panel's
- * poll to show every person's lines.
+ * toggle. Without `everyone`, ticks Only so the log shows one housemate.
  */
 async function openPanelWithEveryFilter(page, everyone = false) {
-  if (everyone) {
-    await page.evaluate(() => globalThis.__terriStress.sim.select(null));
-    // Let the roster's poll see the cleared selection before the panel reads it.
-    await page.waitForTimeout(500);
-  }
   await page.locator('#activity-log-toggle').click();
   const filters = page.locator('#activity-log-filters button');
   const count = await filters.count();
@@ -170,12 +179,7 @@ async function openPanelWithEveryFilter(page, everyone = false) {
   if (!state.open || state.pressed !== FILTER_COUNT) {
     throw new Error(`panel did not open with every filter on: ${JSON.stringify(state)}`);
   }
-  if (everyone) {
-    await page.waitForFunction(() => document.querySelector('#activity-log-selected')?.hidden === true, undefined, {
-      polling: 100,
-      timeout: 10_000,
-    });
-  }
+  await setOnly(page, !everyone);
 }
 
 async function logState(page) {
@@ -506,27 +510,14 @@ function timedClick(selector) {
 }
 
 /**
- * Clears the selection and checks that an open panel shows every person.
- * `fastForward` leaves the page's frame clock ahead of real time, so the
- * page's own frames would not reach the roster's next refresh, and the
- * panel would keep the old selection. Ten more paused frames on the same
- * clock let the roster report the cleared selection.
+ * Checks that an open panel shows every person: the log does by default,
+ * so the Only box must be clear.
  */
 async function showEveryone(page) {
-  await page.evaluate(() => {
-    const stress = globalThis.__terriStress;
-    stress.sim.select(null);
-    let now = Math.max(globalThis.__activityLogProofClock ?? 0, performance.now());
-    for (let frame = 0; frame < 10; frame += 1) {
-      now += 200;
-      stress.step(now);
-    }
-    globalThis.__activityLogProofClock = now;
-  });
   await page.locator('#activity-log-toggle').click();
-  const everyone = await page.evaluate(() => document.querySelector('#activity-log-selected')?.hidden === true);
+  const narrowed = await page.locator('#activity-log-filters .activity-log-only input').isChecked();
   await page.locator('#activity-log-toggle').click();
-  if (!everyone) throw new Error('the panel still shows one person after the selection was cleared');
+  if (narrowed) throw new Error('the panel shows one person: its Only box is ticked');
 }
 
 /** Opening, filter changes and Show earlier entries, with the store filled first. */
@@ -607,37 +598,34 @@ function clickAndFrame(selector) {
 }
 
 /**
- * Changes the selection, by the first roster button or back to everyone,
- * steps paused frames on the proof's clock until the roster reports it, and
+ * With Only ticked, selects another housemate by their roster button, steps
+ * paused frames on the proof's clock until the roster reports it, and
  * returns the rebuild the panel then ran outside the frame.
  */
-async function measureSelection(page, toHousemate) {
+async function measureSelection(page) {
   const before = await page.evaluate(() => globalThis.__terriStress.activityLog.deferredRebuilds);
-  await page.evaluate((pick) => {
+  await page.evaluate(() => {
     const stress = globalThis.__terriStress;
-    if (pick) {
-      const button = document.querySelector('.household-member');
-      if (!(button instanceof HTMLElement)) throw new Error('missing .household-member');
-      button.click();
-    } else {
-      stress.sim.select(null);
-    }
+    const button = Array.from(document.querySelectorAll('.household-member'))
+      .find((candidate) => candidate.getAttribute('aria-pressed') !== 'true');
+    if (!(button instanceof HTMLElement)) throw new Error('no other housemate to select');
+    button.click();
     let now = Math.max(globalThis.__activityLogProofClock ?? 0, performance.now());
     for (let frame = 0; frame < 10; frame += 1) {
       now += 200;
       stress.step(now);
     }
     globalThis.__activityLogProofClock = now;
-  }, toHousemate);
+  });
   await page.waitForFunction((count) => globalThis.__terriStress.activityLog.deferredRebuilds > count, before, {
     polling: 50,
     timeout: 10_000,
   });
-  return page.evaluate((pick) => ({
-    to: pick ? 'housemate' : 'everyone',
+  return page.evaluate(() => ({
+    to: 'housemate',
     rebuildMs: globalThis.__terriStress.activityLog.lastDeferredRebuildMs,
     rows: document.querySelectorAll('#activity-log-list > li').length,
-  }), toHousemate);
+  }));
 }
 
 /** Opening, every filter twice and Show earlier entries, paced, with baseline frames before and after. */
@@ -673,8 +661,11 @@ async function runClicks(browser, args) {
         report.earlier.push(await measure('#activity-log-earlier'));
       }
       if (args.everyone) {
-        report.selection.push(await measureSelection(page, true));
-        report.selection.push(await measureSelection(page, false));
+        // A selection change rebuilds the lines only while Only is ticked.
+        await setOnly(page, true);
+        report.selection.push(await measureSelection(page));
+        report.selection.push(await measureSelection(page));
+        await setOnly(page, false);
       }
       await baseline();
       await measure('#activity-log-toggle');

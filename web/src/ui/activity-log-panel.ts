@@ -1,8 +1,9 @@
 /**
  * The activity log panel ([AL-panel] in docs/specs/2026-10-18-activity-log.md):
  * a `Log` toggle at the top right opens a non-modal right-side panel with
- * seven filter toggles, a line naming the selected housemate, and the
- * newest 200 visible lines, 200 more per Show earlier entries.
+ * seven filter toggles, an Only checkbox naming the selected housemate, and
+ * the newest 200 visible lines, 200 more per Show earlier entries. The log
+ * shows the whole household unless Only is ticked.
  *
  * The store fills every frame whether or not the panel is open. While the
  * panel is closed, `update` returns at once: no text, no DOM, no
@@ -17,7 +18,7 @@ import {
   type ComposeContext, DEFAULT_FILTERS, FILTER_ORDER, LogLines, type LogLine, lineText,
 } from './activity-log-compose.js';
 import { ACTIVITY_LOG_CAPACITY, type ActivityLogStore } from './activity-log-store.js';
-import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyInvolving } from './activity-log-words.js';
+import { PANEL_WORDS, SOMEONE_IN_SENTENCE, onlyNamed } from './activity-log-words.js';
 import type { HouseholdRosterSurface } from './household-roster.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
@@ -32,8 +33,11 @@ export interface ActivityLogView {
   reflectOpen(open: boolean): void;
   reflectToggleHidden(hidden: boolean): void;
   reflectFilter(index: number, on: boolean): void;
-  /** The selected-person line, or null to hide it. */
-  reflectSelected(text: string | null): void;
+  /**
+   * The Only checkbox: its label naming the selected housemate, or null to
+   * hide it when nobody is selected, and whether it is ticked.
+   */
+  reflectOnly(label: string | null, checked: boolean): void;
   /** The empty state, or null to hide it. */
   reflectEmpty(text: string | null): void;
   reflectShowEarlier(visible: boolean): void;
@@ -173,12 +177,17 @@ export class ActivityLogPanel {
   private prepared = false;
   private limit = ACTIVITY_LOG_WINDOW;
   private seen = 0;
+  /** Whether Only is ticked. Off by default; lasts for the page session, as the filters do. */
+  private onlySelected = false;
+  /** The selected housemate as the roster last reported them. */
+  private lastSelected: number | null = null;
   /** A selection change waits for its rebuild outside the frame. */
   private selectionPending = false;
   /** Made once, so deferring a rebuild allocates no function per change. */
   private readonly rebuildForSelection = (): void => {
     if (!this.selectionPending || !this.open_) return;
-    this.context.selected = this.options.selected();
+    this.lastSelected = this.options.selected();
+    this.context.selected = this.narrowedTo(this.lastSelected);
     this.rebuild(true);
   };
   private readonly lines = new LogLines();
@@ -207,8 +216,29 @@ export class ActivityLogPanel {
     this.options.view.reflectOpen(true);
     this.options.view.fitAboveDock();
     this.options.names.learn();
-    this.context.selected = this.options.selected();
+    this.lastSelected = this.options.selected();
+    this.context.selected = this.narrowedTo(this.lastSelected);
     this.rebuild(true);
+  }
+
+  /**
+   * The Only checkbox, a click: narrows the log to the selected housemate or
+   * widens it to everyone. With nobody selected there is nobody to name.
+   */
+  toggleOnly(): void {
+    if (!this.open_) return;
+    if (this.lastSelected === null) {
+      this.reflectOnly();
+      return;
+    }
+    this.onlySelected = !this.onlySelected;
+    this.context.selected = this.narrowedTo(this.lastSelected);
+    this.rebuild(true);
+  }
+
+  /** The housemate the lines are narrowed to: the selected one while Only is ticked, otherwise nobody. */
+  private narrowedTo(selected: number | null): number | null {
+    return this.onlySelected ? selected : null;
   }
 
   /**
@@ -297,22 +327,33 @@ export class ActivityLogPanel {
   update(): void {
     if (!this.open_ || this.selectionPending) return;
     const selected = this.options.selected();
-    if (selected !== this.context.selected) {
-      // Recomposing every line is a click's kind of work, not a frame's: the
-      // rebuild runs in its own task, and frames until then wait for it.
-      this.context.selected = selected;
-      this.selectionPending = true;
-      this.options.defer(this.rebuildForSelection);
-      return;
+    if (selected !== this.lastSelected) {
+      // The Only label follows the selection; the lines change only while
+      // Only is ticked.
+      this.lastSelected = selected;
+      this.options.names.learn();
+      this.reflectOnly();
+      const narrowed = this.narrowedTo(selected);
+      if (narrowed !== this.context.selected) {
+        // Recomposing every line is a click's kind of work, not a frame's:
+        // the rebuild runs in its own task, and frames until then wait for it.
+        this.context.selected = narrowed;
+        this.selectionPending = true;
+        this.options.defer(this.rebuildForSelection);
+        return;
+      }
     }
     const fresh = this.options.store.total - this.seen;
     if (fresh <= 0) return;
     this.append(fresh);
   }
 
-  private reflectSelected(): void {
-    const selected = this.context.selected;
-    this.options.view.reflectSelected(selected === null ? null : onlyInvolving(this.context.name(selected) ?? SOMEONE_IN_SENTENCE));
+  private reflectOnly(): void {
+    const selected = this.lastSelected;
+    this.options.view.reflectOnly(
+      selected === null ? null : onlyNamed(this.context.name(selected) ?? SOMEONE_IN_SENTENCE),
+      this.onlySelected && selected !== null,
+    );
   }
 
   /**
@@ -334,10 +375,9 @@ export class ActivityLogPanel {
     const shown = this.lines.lines.slice(-this.limit);
     const rows = view.replaceRows(shown.map(line => lineText(store, line, this.context)));
     shown.forEach((line, index) => this.rows.set(line, rows[index]));
-    this.reflectSelected();
+    this.reflectOnly();
     this.reflectState();
-    // Last, so the selected-person line and Show earlier entries have
-    // already taken their space.
+    // Last, so Show earlier entries has already taken its space.
     if (click) view.jumpToBottom();
   }
 
@@ -415,7 +455,10 @@ export interface ActivityLogElements {
   readonly panel: HTMLElement;
   readonly close: HTMLButtonElement;
   readonly filters: readonly HTMLButtonElement[];
-  readonly selected: HTMLElement;
+  /** The Only control: the label, its checkbox and the text naming the housemate. */
+  readonly only: HTMLLabelElement;
+  readonly onlyBox: HTMLInputElement;
+  readonly onlyText: HTMLSpanElement;
   readonly scroller: HTMLElement;
   readonly earlier: HTMLButtonElement;
   readonly list: HTMLOListElement;
@@ -453,13 +496,22 @@ export function activityLogElements(doc: Document): ActivityLogElements {
     button.setAttribute('aria-pressed', 'false');
     return button;
   });
-  group.replaceChildren(...filters);
+  const only = doc.createElement('label');
+  only.className = 'activity-log-only';
+  only.hidden = true;
+  const onlyBox = doc.createElement('input');
+  onlyBox.type = 'checkbox';
+  const onlyText = doc.createElement('span');
+  only.append(onlyBox, onlyText);
+  group.replaceChildren(...filters, only);
   return {
     toggle,
     panel: element('activity-log'),
     close,
     filters,
-    selected: element('activity-log-selected'),
+    only,
+    onlyBox,
+    onlyText,
     scroller,
     earlier,
     list: element<HTMLOListElement>('activity-log-list'),
@@ -480,7 +532,7 @@ export function activityLogElements(doc: Document): ActivityLogElements {
  * DOM, the view reads and scrolls at once instead.
  */
 export function createActivityLogView(doc: Document, elements: ActivityLogElements): ActivityLogView {
-  const { toggle, panel, filters, selected, scroller, earlier, list, empty, dock } = elements;
+  const { toggle, panel, filters, only, onlyBox, onlyText, scroller, earlier, list, empty, dock } = elements;
   const page = doc.defaultView;
   const Observer = page?.ResizeObserver;
   let lastBottom = -1;
@@ -549,9 +601,10 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
     },
     reflectToggleHidden(hidden) { toggle.hidden = hidden; },
     reflectFilter(index, on) { filters[index]?.setAttribute('aria-pressed', String(on)); },
-    reflectSelected(text) {
-      selected.hidden = text === null;
-      setTextIfChanged(selected, text ?? '');
+    reflectOnly(label, checked) {
+      only.hidden = label === null;
+      setTextIfChanged(onlyText, label ?? '');
+      onlyBox.checked = checked;
     },
     reflectEmpty(text) {
       empty.hidden = text === null;
@@ -621,7 +674,7 @@ export interface ActivityLogDocument {
  */
 export function attachActivityLogPanel(
   doc: ActivityLogDocument,
-  elements: Pick<ActivityLogElements, 'toggle' | 'close' | 'filters' | 'earlier'>,
+  elements: Pick<ActivityLogElements, 'toggle' | 'close' | 'filters' | 'earlier' | 'onlyBox'>,
   panel: ActivityLogPanel,
   blocked: (target: unknown) => boolean,
 ): void {
@@ -629,6 +682,7 @@ export function attachActivityLogPanel(
   elements.close.addEventListener('click', () => { if (panel.close()) elements.toggle.focus(); });
   elements.filters.forEach((button, index) => button.addEventListener('click', () => panel.toggleFilter(index)));
   elements.earlier.addEventListener('click', () => panel.showEarlier());
+  elements.onlyBox.addEventListener('change', () => panel.toggleOnly());
   doc.addEventListener('keydown', event => {
     if (event.defaultPrevented || blocked(event.target)) return;
     if (!panel.handleKey(event.key)) return;

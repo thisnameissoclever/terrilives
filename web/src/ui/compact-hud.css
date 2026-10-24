@@ -310,7 +310,8 @@ body[data-building='true'] #hud #time-controls { display: none; }
 #activity-log-filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; }
 #activity-log-filters .hud-button { min-height: 32px; padding: 2px 8px; font-size: 12px; }
 #activity-log-filters .hud-button[aria-pressed='true'] { border-color: var(--need-fill); color: var(--need-fill); font-weight: 600; }
-#activity-log-selected { margin: 0 10px 6px; color: var(--hud-muted); font-size: 12px; overflow-wrap: anywhere; }
+#activity-log-filters .activity-log-only { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; font-size: 12px; overflow-wrap: anywhere; }
+#activity-log-filters .activity-log-only[hidden] { display: none; }
 #activity-log-scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 10px 8px; border-top: 1px solid var(--hud-edge); }
 #activity-log-scroller:focus-visible { outline: 2px solid var(--need-fill); outline-offset: -2px; }
 #activity-log-earlier { width: 100%; min-height: 32px; margin-bottom: 6px; font-size: 12px; }
