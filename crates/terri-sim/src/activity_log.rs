@@ -1007,6 +1007,11 @@ impl ActivityLog {
     /// pass, so a child never attaches to an earlier tick's event. The
     /// nearest earlier candidate wins, then the nearest later one, so two
     /// chore outcomes in one tick each keep the feelings staged after them.
+    ///
+    /// A chore feeling no outcome adopts, such as the appreciation of each
+    /// washed batch of dishes, joins the appreciated person's own action
+    /// line instead; with neither it stays a line of its own. Every feeling
+    /// shows under Social, so none is a line no filter shows.
     fn link(&mut self, meal: u32) {
         // Sequence numbers rise through the ring, so this pass's records
         // are its tail.
@@ -1018,17 +1023,25 @@ impl ActivityLog {
             let Some(kind) = record.kind() else {
                 continue;
             };
-            let parent = (first..child)
-                .rev()
-                .chain(child + 1..self.len)
-                .map(|offset| *self.at(offset))
-                .find(|candidate| adopts(candidate, kind, &record, meal));
+            let nearest = |rule: &dyn Fn(&LogRecord) -> bool| {
+                (first..child)
+                    .rev()
+                    .chain(child + 1..self.len)
+                    .map(|offset| *self.at(offset))
+                    .find(|candidate| rule(candidate))
+            };
+            let parent =
+                nearest(&|candidate| adopts(candidate, kind, &record, meal)).or_else(|| {
+                    (kind == LogKind::Feeling && record.label() != meal)
+                        .then(|| nearest(&|candidate| adopts_unclaimed_feeling(candidate, &record)))
+                        .flatten()
+                });
+            let slot = (self.head + child) % STAGING_CAPACITY;
             if let Some(parent) = parent {
-                let slot = (self.head + child) % STAGING_CAPACITY;
                 self.ring[slot].0[PARENT] = parent.seq();
-                if kind == LogKind::Feeling && parent.kind() == Some(LogKind::ChoreOutcome) {
-                    self.ring[slot].0[KIND] |= SOCIAL << 8;
-                }
+            }
+            if kind == LogKind::Feeling {
+                self.ring[slot].0[KIND] |= SOCIAL << 8;
             }
         }
     }
@@ -1060,6 +1073,12 @@ fn adopts(parent: &LogRecord, kind: LogKind, child: &LogRecord, meal: u32) -> bo
         (LogKind::SkillLevel, Some(LogKind::ChatDone)) => parent.involves(child.actor()),
         _ => false,
     }
+}
+
+/// Whether `parent` takes a chore feeling no chore outcome adopted: the
+/// appreciated person's own finished action in the same pass.
+fn adopts_unclaimed_feeling(parent: &LogRecord, child: &LogRecord) -> bool {
+    parent.kind() == Some(LogKind::ActionDone) && parent.actor() == child.other()
 }
 
 /// A chore kind's position in `ChoreKind::ALL`, the number the shell's

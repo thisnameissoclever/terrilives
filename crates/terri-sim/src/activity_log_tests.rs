@@ -414,6 +414,7 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xad59_d080_6ae0_b58e;
 #[test]
 fn activity_log_never_changes_the_world() {
     let (hashes, records) = assert_log_never_changes_the_world(2);
+    assert_every_line_can_show(&records);
     assert_eq!(
         fold(&hashes),
         TWO_DAY_FOLD_WITHOUT_THE_LOG,
@@ -468,7 +469,8 @@ fn activity_log_never_changes_the_world() {
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn activity_log_never_changes_the_world_over_twenty_days() {
-    assert_log_never_changes_the_world(20);
+    let (_, records) = assert_log_never_changes_the_world(20);
+    assert_every_line_can_show(&records);
 }
 
 /// Every cause reaches the activity log as the specification classifies it
@@ -806,6 +808,43 @@ fn skill_level_up_is_logged_once_per_level() {
 /// Two chores missed by one owner at the same rollover: each outcome keeps
 /// the feelings staged after it rather than the newest outcome taking all
 /// of them.
+/// A chore feeling that no chore outcome adopts, such as the appreciation
+/// of each washed batch of dishes, still shows: it joins the line of the
+/// appreciated person's own action in the same tick, under Social, and with
+/// no such line it is its own line under Social.
+#[test]
+fn chore_feelings_without_an_outcome_still_show() {
+    let mut sim = Sim::new_with_lot(4, 4);
+    let washing = stage(&mut sim, record(LogKind::ActionDone, 1, 5));
+    let thanks = stage(&mut sim, record(LogKind::Feeling, 1, 9).with_other(5));
+    let lone = stage(&mut sim, record(LogKind::Feeling, 1, 9).with_other(6));
+    sim.flush_commands();
+    let find = |seq: u32| staged(&sim).into_iter().find(|r| r.seq() == seq).unwrap();
+    assert_eq!(find(thanks).parent(), washing);
+    assert_eq!(find(thanks).triggers(), SOCIAL);
+    assert_eq!(find(lone).parent(), 0);
+    assert_eq!(
+        find(lone).triggers(),
+        SOCIAL,
+        "a feeling with no line is its own line"
+    );
+    assert_eq!(
+        find(washing).triggers(),
+        0,
+        "the action's own filters are its own"
+    );
+}
+
+/// Every record the panel can show as a line has a filter that shows it: a
+/// record without a parent and without a trigger bit would never appear.
+fn assert_every_line_can_show(records: &[LogRecord]) {
+    let hidden: Vec<_> = records
+        .iter()
+        .filter(|r| r.parent() == 0 && r.triggers() == 0)
+        .collect();
+    assert!(hidden.is_empty(), "lines no filter shows: {hidden:?}");
+}
+
 #[test]
 fn two_outcomes_in_one_tick_keep_their_own_feelings() {
     let mut sim = Sim::new_with_lot(4, 4);
