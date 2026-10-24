@@ -684,10 +684,16 @@ fn a_mid_week_new_duty_through_the_board_tick_logs_only_its_owner() {
     state.week = None;
     board::tick(sim.world_mut(), &mut state);
     settled_records(&mut sim);
-    assert!(state.assignments.len() >= 2, "the shipped lot has several duties");
+    assert!(
+        state.assignments.len() >= 2,
+        "the shipped lot has several duties"
+    );
     let owners_before: std::collections::BTreeSet<u32> =
         state.assignments.iter().map(|a| a.owner).collect();
-    assert!(owners_before.len() >= 2, "duties are spread over several owners");
+    assert!(
+        owners_before.len() >= 2,
+        "duties are spread over several owners"
+    );
     let lacking = state.assignments.remove(0);
     board::tick(sim.world_mut(), &mut state);
     let gained = state
