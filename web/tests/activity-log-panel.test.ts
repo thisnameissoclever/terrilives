@@ -824,7 +824,7 @@ describe('the activity log page', () => {
 
   it('drains every frame, resets on Load and closes beside Options and Sim details', () => {
     expect(main.match(/if \(activityLogStore\.drain\(sim\) > 0\) activityLogNames\.learn\(\);/g)).toHaveLength(2);
-    expect(main).toContain('activityLogStore.resetAfterLoad();\n          activityLogPanel.resetAfterLoad();');
+    expect(main).toContain('activityLogStore.resetAfterLoad();\n      activityLogPanel.resetAfterLoad();');
     expect(main).toContain("optionsToggle.addEventListener('click', () => { compactHud.close(); activityLogPanel.close(); });");
     expect(main).toContain('onOpen: () => { optionsMenu.close(); compactHud.close(); },');
     expect(main).toContain('activityLogPanel.setBuilding(buildSession.active);');

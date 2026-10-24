@@ -48,7 +48,7 @@ Browse [Needs](needs/#overview), [Activities](activities/#all-actions), [Relatio
 
 Choose Copy debug details on the failure screen to copy the retained report for Tim. If copying is blocked, select and copy the displayed text instead. Email Tim opens your mail application with the game version in the subject, the recorded error and the newest logs that fit. Review the draft before sending it. Copy and download retain more detail than the email excerpt.
 
-If the browser replaces the game with its own error page, open [Startup report](https://thisnameissoclever.github.io/terrilives/startup-report.html) in that same browser. The report page opens without starting the game and provides the same sharing controls. Download report saves a file if you prefer. The report contains loading steps and error details, with no household save.
+If the browser replaces the game with its own error page, open [Startup report](https://natural-causes.life/startup-report.html) in that same browser. The report page opens without starting the game and provides the same sharing controls. Download report saves a file if you prefer. The report contains loading steps and error details, with no household save.
 
 If the game is still open, choose [Options, then Report bug](ui-elements/#options) to prepare the same email with the latest recorded details. You can describe the problem in the draft before sending it.
 

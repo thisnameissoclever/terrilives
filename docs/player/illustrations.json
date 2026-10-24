@@ -146,6 +146,11 @@
       "desktop": "images/guide/new-game-confirm-desktop.png",
       "mobile": "images/guide/new-game-confirm-mobile.png"
     },
+    "import-confirm": {
+      "title": "Import save confirmation",
+      "desktop": "images/guide/import-confirm-desktop.png",
+      "mobile": "images/guide/import-confirm-mobile.png"
+    },
     "help": {
       "title": "Help",
       "desktop": "images/guide/help-build-exits-desktop.png",
@@ -1012,6 +1017,32 @@
       "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
       "sourceSha256": "aaa7c2639279f097453543c2a1476baefcb95324669c27374cd2457c81639ebd",
       "outputSha256": "323c941b9b3615e0a823c309ac18c9f3b1952ab093389ee34da8478ad23a918c"
+    },
+    {
+      "output": "images/guide/import-confirm-desktop.png",
+      "source": "images/ui-import-confirm-desktop.png",
+      "rect": {
+        "x": 540,
+        "y": 391,
+        "width": 360,
+        "height": 178
+      },
+      "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
+      "sourceSha256": "545eac6f6e211150905084b34990ef9454adc932c9dee73c0c98c7a4b37fd0c0",
+      "outputSha256": "bc31eb6f527d8115aa38ee3feeeeec7d2fb6304e0e52c5f16593854ca892db97"
+    },
+    {
+      "output": "images/guide/import-confirm-mobile.png",
+      "source": "images/ui-import-confirm-mobile.png",
+      "rect": {
+        "x": 16,
+        "y": 333,
+        "width": 358,
+        "height": 178
+      },
+      "method": "Pillow crop of the source image at 1:1 size around the measured dialog box; no scaling or color changes",
+      "sourceSha256": "1d635066fb621a64a40d993989d61ba9b508620ae019ffbe99cc3ffc409836a4",
+      "outputSha256": "f20cefe9c66f54bf10c31a5772447827265145e3a8b9016d65c2191045bd80e9"
     },
     {
       "output": "images/guide/work-conflict-desktop.png",

@@ -3,6 +3,7 @@ import vm from 'node:vm';
 import {expect,it,vi} from 'vitest';
 
 const key='terrilives.startup-report.v1';
+const gmailHandoff=(mailto:string)=>'https://mail.google.com/mail/u/0/?extsrc=mailto&url='+encodeURIComponent(mailto);
 function boot(saved?:string,reportPage=false,denied=false,clipboardFails=false,batched=false){
   const values=new Map<string,string>(saved?[[key,saved]]:[]),events=new Map<string,((event:unknown)=>void)[]>();
   const step={textContent:'Downloading the game'},output={textContent:''},summary={textContent:''};
@@ -28,7 +29,7 @@ function boot(saved?:string,reportPage=false,denied=false,clipboardFails=false,b
       'startup-report-copy':copy,'startup-report-email':email,'startup-report-share-status':shareStatus,'startup-report-manual':manual}[id]),
     querySelector:(selector:string)=>selector.startsWith('meta')?{content:'1.0.0'}:{src:'https://game.test/terrilives/assets/index-build.js'},
   };
-  vm.runInNewContext(readFileSync(new URL('../public/startup-diagnostics-v3.js',import.meta.url),'utf8'),
+  vm.runInNewContext(readFileSync(new URL('../public/startup-diagnostics-v4.js',import.meta.url),'utf8'),
     {window,document,navigator:window.navigator,URL,Date,JSON,fetch,console,
       MutationObserver:class{constructor(callback:()=>void){observe=callback;}observe(){}disconnect(){}},
     });
@@ -77,7 +78,7 @@ it('retains phase history and newest logs, bounded in storage and in the encoded
   run.emit('error',{error:new Error('Actual terminal error & café 🚀')});
   run.emit('terrilives:startup-report-controls',{detail:{title:'Failure',detail:'Actual terminal error'}});run.clickEmail();
   const body=new URL(run.email.href).searchParams.get('body')!;
-  expect(run.email.href.length).toBeLessThanOrEqual(8000);
+  expect(256+encodeURIComponent(run.email.href).length).toBeLessThanOrEqual(7500);
   expect(body).toContain('Actual terminal error & café 🚀');expect(body).toContain('Latest record 149');
   expect(body).not.toContain('Latest record 0 ');expect(body).toMatch(/omitted/i);
   expect(run.values.get(key)!.length).toBeLessThanOrEqual(32768);
@@ -109,7 +110,7 @@ it('does not coalesce distinct worker errors behind an identical wrapper',()=>{
 
 it('counts CRLF and Unicode expansion against the complete mail link budget',()=>{
   const saved=JSON.stringify({version:1,attempts:[{state:'failed',phase:'\n'.repeat(160),environment:{userAgent:'\n'.repeat(200)},error:{name:'Error',message:'\n'.repeat(2048),stack:'\n'.repeat(1536)},phases:Array.from({length:24},(_,ms)=>({ms,phase:'\n'.repeat(160)})),logs:[{ms:1,level:'error',operation:'unicode',message:'Newest 🚀 café \ud800'}]}]});
-  const view=boot(saved,true);expect(view.email.href.length).toBeLessThanOrEqual(8000);
+  const view=boot(saved,true);expect(256+encodeURIComponent(view.email.href).length).toBeLessThanOrEqual(7500);
   expect(new URL(view.email.href).searchParams.get('body')).toContain('Newest 🚀 café');
 });
 
@@ -185,7 +186,46 @@ it('reserves encoded space for actual messages independently of Unicode names an
   run.emit('terrilives:startup-report-controls',{detail:{title:'Error',detail:'ACTUAL_ERROR_MESSAGE'}});run.clickEmail();
   const body=new URL(run.email.href).searchParams.get('body')!;
   expect(body).toContain('ACTUAL_ERROR_MESSAGE');expect(body).toContain('ACTUAL_CAUSE_MESSAGE');expect(body).toContain('USEFUL_NEWEST_LOG');
-  expect(run.email.href.length).toBeLessThanOrEqual(8000);
+  expect(256+encodeURIComponent(run.email.href).length).toBeLessThanOrEqual(7500);
+});
+
+it('puts the error and cause before context, newest logs before optional history',()=>{
+  const saved=JSON.stringify({version:1,attempts:[{state:'failed',gameVersion:'1.0.0',build:'BUILD_MARKER',
+    error:{name:'Error',message:'PRIMARY_ERROR',cause:{name:'Error',message:'ROOT_CAUSE'},source:{operation:'FAILING_OPERATION',path:'/SOURCE_MARKER.js',line:42,column:9}},
+    pending:{count:1,operations:['OPTIONAL_PENDING']},phases:[{ms:1,phase:'OPTIONAL_PHASE'}],environment:{userAgent:'OPTIONAL_BROWSER'},
+    logs:[{ms:1,level:'info',operation:'log',message:'OLDER_RECORD'},{ms:2,level:'error',operation:'log',message:'NEWEST_RECORD'}]}]});
+  const view=boot(saved,true),body=new URL(view.email.href).searchParams.get('body')!;
+  const ordered=['Actual error: Error: PRIMARY_ERROR','Cause: Error: ROOT_CAUSE','FAILING_OPERATION','SOURCE_MARKER','BUILD_MARKER','NEWEST_RECORD','OLDER_RECORD','OPTIONAL_PENDING','OPTIONAL_PHASE','OPTIONAL_BROWSER'];
+  for(let i=1;i<ordered.length;i++)expect(body.indexOf(ordered[i]),ordered[i]).toBeGreaterThan(body.indexOf(ordered[i-1]));
+  expect(body.startsWith(ordered[0])).toBe(true);
+});
+
+it.each(['plain text ', '& # ? % = / \\ " \r\n', 'café 日本語 🚀 ', '\uD800 lone surrogate '])('bounds variable reports containing %j after webmail encoding',sample=>{
+  for(const length of [1,20,100]){
+    const saved=JSON.stringify({version:1,attempts:[{state:'failed',gameVersion:'1.2.3-'+ 'a'.repeat(90),build:'/assets/'+sample.repeat(4),
+      error:{name:'LongError'+sample.repeat(6),message:'PRIMARY_ERROR '+sample.repeat(length),cause:{name:'Cause',message:'ROOT_CAUSE '+sample.repeat(length)},
+        source:{operation:'FAILING_OPERATION',path:'/assets/'+sample.repeat(8),line:1234,column:99},stack:'at primary ('+sample.repeat(length)+')',
+        workerKind:'worker',workerSource:{path:sample.repeat(8)},workerStack:sample.repeat(length),assetFailure:{status:503,path:sample.repeat(8),body:sample.repeat(length)}},
+      pending:{count:1,operations:[sample.repeat(length)]},phases:[{ms:1,phase:sample.repeat(length)}],
+      logs:Array.from({length:24},(_,i)=>({ms:i,level:'info',operation:'step',message:(i===23?'NEWEST_RECORD ':'OLDER_RECORD ')+sample.repeat(16)}))}]});
+    expect(saved.length).toBeLessThanOrEqual(32768);
+    const view=boot(saved,true),body=new URL(view.email.href).searchParams.get('body')!;
+    expect(JSON.parse(view.output.textContent).attempts).toHaveLength(1);
+    expect(256+encodeURIComponent(view.email.href).length).toBeLessThanOrEqual(7500);
+    expect(gmailHandoff(view.email.href).length).toBeLessThanOrEqual(7500);
+    expect(body).toContain('PRIMARY_ERROR');expect(body).toContain('ROOT_CAUSE');expect(body).toContain('NEWEST_RECORD');
+    expect(body.indexOf('PRIMARY_ERROR')).toBeLessThan(body.indexOf('NEWEST_RECORD'));
+    expect(body.endsWith('provides the larger retained report.')).toBe(true);
+  }
+});
+
+it('budgets the browser mail-handler request after its additional percent encoding',()=>{
+  const saved=JSON.stringify({version:1,attempts:[{state:'failed',gameVersion:'1.0.0',error:{name:'Error',message:'ACTUAL_GMAIL_HANDOFF_ERROR',cause:{name:'Error',message:'ACTUAL_GMAIL_CAUSE'}},logs:Array.from({length:80},(_,i)=>({ms:i,level:'info',operation:'handoff.step',message:`Newest record ${i} & # ? % café 🚀 `+'details '.repeat(12)}))}]});
+  const view=boot(saved,true),mail=new URL(view.email.href),body=mail.searchParams.get('body')!;
+  expect(256+encodeURIComponent(view.email.href).length).toBeLessThanOrEqual(7500);
+  expect(gmailHandoff(view.email.href).length).toBeLessThanOrEqual(7500);
+  expect(body).toContain('ACTUAL_GMAIL_HANDOFF_ERROR');expect(body).toContain('ACTUAL_GMAIL_CAUSE');
+  expect(body).toContain('Newest record 79');expect(body.endsWith('provides the larger retained report.')).toBe(true);
 });
 
 it('copies the full report and includes its actual error in a correctly encoded compact email',async()=>{
@@ -197,7 +237,7 @@ it('copies the full report and includes its actual error in a correctly encoded 
   const mail=new URL(view.email.href);
   expect(mail.protocol).toBe('mailto:');expect(mail.pathname).toBe('bugreport@stfuai.com');
   expect(mail.searchParams.get('subject')).toBe('[Bug report] Natural Causes v1.0.0');
-  expect(view.email.href.length).toBeLessThanOrEqual(8000);
+  expect(256+encodeURIComponent(view.email.href).length).toBeLessThanOrEqual(7500);
   expect(mail.searchParams.get('body')).toContain('503 & # ? % café');
   expect(view.fetch).not.toHaveBeenCalled();
 });
@@ -227,7 +267,7 @@ it('labels the current page version when an older saved attempt has no version',
 it('bounds an old large error in the email while retaining the full copy report',()=>{
   const saved=JSON.stringify({version:1,attempts:[{state:'failed',error:{message:'Z'.repeat(25000)}}]});
   const view=boot(saved,true),body=new URL(view.email.href).searchParams.get('body')!;
-  expect(view.email.href.length).toBeLessThanOrEqual(8000);expect(body).toContain('[trimmed]');
+  expect(256+encodeURIComponent(view.email.href).length).toBeLessThanOrEqual(7500);expect(body).toContain('[trimmed]');
   expect(JSON.parse(view.output.textContent).attempts[0].error.message).toHaveLength(25000);
 });
 
@@ -274,8 +314,8 @@ it('reads reports without starting the game or overwriting its last attempt',()=
 
 it('loads the recorder before the game module and provides a standalone report page',()=>{
   const game=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-  expect(game.indexOf('startup-diagnostics-v3.js')).toBeGreaterThan(-1);
-  expect(game.indexOf('startup-diagnostics-v3.js')).toBeLessThan(game.indexOf('type="module"'));
+  expect(game.indexOf('startup-diagnostics-v4.js')).toBeGreaterThan(-1);
+  expect(game.indexOf('startup-diagnostics-v4.js')).toBeLessThan(game.indexOf('type="module"'));
   const page=readFileSync(new URL('../startup-report/template.html',import.meta.url),'utf8');
   expect(page).toContain('data-startup-report');
   expect(page).not.toContain('type="module"');

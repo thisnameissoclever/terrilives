@@ -1,6 +1,6 @@
 # Maintaining the public changelog
 
-The public page is [Changelog](https://thisnameissoclever.github.io/terrilives/changelog/). Options contains Player guide and Changelog links beneath the game actions. Each opens a new tab so the current game stays open. Changelog also links back to Player guide; it is a separate site destination, not a guide topic.
+The public page is [Changelog](https://natural-causes.life/changelog/). Options contains Player guide and Changelog links beneath the game actions. Each opens a new tab so the current game stays open. Changelog also links back to Player guide; it is a separate site destination, not a guide topic.
 
 ## Source and format
 
@@ -96,7 +96,7 @@ Each update has a stable `#update-YYYY-MM-DD` link. Opening a link expands the r
 
 ## Generation and publication
 
-`scripts/build-changelog.mjs` reads the Markdown and `web/changelog/` presentation files. The Vite plugin emits `changelog/index.html` during `npm --prefix web run build`. In development, `/changelog/` uses the same renderer and reloads when notes change. The generated page includes its CSS, script and all entries; reading it does not require WebGPU, an API, external fonts or runtime requests for Markdown. Native disclosures also work without JavaScript. Play links use `../` and the game link uses `./changelog/`, preserving GitHub Pages' project path.
+`scripts/build-changelog.mjs` reads the Markdown and `web/changelog/` presentation files. The Vite plugin emits `changelog/index.html` during `npm --prefix web run build`. In development, `/changelog/` uses the same renderer and reloads when notes change. The generated page includes its CSS, script and all entries; reading it does not require WebGPU, an API, external fonts or runtime requests for Markdown. Native disclosures also work without JavaScript. Play links use `../` and the game link uses `./changelog/`, so both work at the site root and under a path prefix.
 
 Run changelog, guide, Rust, web, artwork and script checks locally before delivery. Record the checked revision, commands, results and platform limitations, then obtain independent review. See [local checks](local-checks.md). Hosted test workflows require separate owner approval; a push or pull request does not start them.
 
