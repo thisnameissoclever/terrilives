@@ -231,6 +231,16 @@
       "title": "Sending a startup report",
       "desktop": "images/debug-report-sharing-desktop.png",
       "mobile": "images/debug-report-sharing-mobile.png"
+    },
+    "log": {
+      "title": "Log",
+      "desktop": "images/guide/log-desktop.png",
+      "mobile": "images/guide/log-mobile.png"
+    },
+    "log-only": {
+      "title": "Log with Only ticked",
+      "desktop": "images/guide/log-only-desktop.png",
+      "mobile": "images/guide/log-only-mobile.png"
     }
   },
   "crops": [
@@ -1309,6 +1319,58 @@
       "method": "Original browser element screenshot with corresponding full viewport capture; no raster edits",
       "sourceSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
       "outputSha256": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
+    },
+    {
+      "output": "images/guide/log-desktop.png",
+      "source": "images/ui-log-desktop.png",
+      "rect": {
+        "x": 1064,
+        "y": 0,
+        "width": 376,
+        "height": 872
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "cd01ab9aafb1f0f7e38c69c5a8a02b1a02fffb945a2e3dfbc4d9dfe8c9d2ea2f",
+      "outputSha256": "1d3c42c1020020560122833e87edfc414d8a8bb14e9818d9669f8d7e8b169c7b"
+    },
+    {
+      "output": "images/guide/log-mobile.png",
+      "source": "images/ui-log-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 4,
+        "width": 382,
+        "height": 670
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "5e84f96060f213ed36ca595b5b314e36129b4a50865c81c7f19c495912556547",
+      "outputSha256": "d4500dfe14a18001b39c1d825a84d64a7bd70229fbc197852c67d42da8959111"
+    },
+    {
+      "output": "images/guide/log-only-desktop.png",
+      "source": "images/ui-log-only-desktop.png",
+      "rect": {
+        "x": 1064,
+        "y": 0,
+        "width": 376,
+        "height": 872
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "4a3e25e78e273eb6856fe3bf79e87fe116018c64cb46110399504af54b1c90bc",
+      "outputSha256": "0e40372cf75efa40689288648b80a33ccf4afd6c2dbf21bc9430578742c46f78"
+    },
+    {
+      "output": "images/guide/log-only-mobile.png",
+      "source": "images/ui-log-only-mobile.png",
+      "rect": {
+        "x": 4,
+        "y": 4,
+        "width": 382,
+        "height": 670
+      },
+      "method": "Pillow crop of the source image at 1:1 size; no scaling or color change",
+      "sourceSha256": "bf5f3244fd27adcaf1f1ab29748d69ad4d9a6a41ddcec74660c96b999c445678",
+      "outputSha256": "71d95c0673159abd84d9efcb7b2c7a71153950b8bfcdba0c59f7d783ac5f3ebc"
     }
   ]
 }
