@@ -80,10 +80,23 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         Option<&AtWork>,
         Entity,
     ), With<Agent>>();
-    // The length of the shift each person holds (issue 296, [WS-systems]
-    // item 5), read through the one reader of a job's hours.
+    // The length of the shift each person is working (issue 296,
+    // [WS-systems] item 5): the registered shift's own length while one is
+    // open, and otherwise the schedule of the day, which on the day of a
+    // shift change is the one held when the day began.
+    let now = world
+        .get_resource::<terri_core::SimClock>()
+        .map_or(0, |clock| clock.tick);
     let shift_ticks = |entity: Entity| {
-        crate::shifts::shift_of(world, content, entity).map(|shift| shift.shift_ticks)
+        let registered = world
+            .get::<terri_core::SimId>(entity)
+            .zip(world.get_resource::<crate::attendance::Attendance>())
+            .and_then(|(sim, attendance)| attendance.shifts.get(sim))
+            .filter(|shift| !shift.settled)
+            .map(|shift| (shift.end_tick - shift.start_tick) as u32);
+        registered.or_else(|| {
+            crate::shifts::shift_today(world, content, entity, now).map(|shift| shift.shift_ticks)
+        })
     };
 
     for portal in &portals {
@@ -1304,6 +1317,68 @@ mod tests {
                 buffer.states,
                 vec![expected],
                 "held shift {held}, remaining work ticks {remaining}"
+            );
+        }
+    }
+
+    /// On the day of a shift change the door times a worker by the
+    /// schedule held when the day began: the long shift is held, but the
+    /// standard shift's ten ticks are worked today, so ten remaining ticks
+    /// is the start of the shift and the door is open, as for the standard
+    /// shift above.
+    #[test]
+    fn the_door_window_follows_the_days_schedule_on_a_change_day() {
+        let base = portal_career_pack();
+        let mut job = base.careers[0].clone();
+        job.shifts = vec![terri_data::CompiledShift {
+            id: "long".to_string(),
+            kind: terri_data::SHIFT_LATE,
+            shift_start: 0,
+            shift_ticks: 20,
+            working_days: 0b1111111,
+            weight: 1,
+        }];
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            careers: vec![job],
+            ..base.clone()
+        }));
+        for (changed_today, expected) in [(false, CLOSED), (true, OPEN)] {
+            let mut world = world_with_active_portals(pack);
+            world.insert_resource(terri_core::SimClock { tick: 5 });
+            let mut careers = crate::careers::Careers::default();
+            careers.records.insert(
+                terri_core::SimId(1),
+                crate::careers::Record {
+                    shift: 1,
+                    ..crate::careers::Record::new(&pack.careers[0])
+                },
+            );
+            if changed_today {
+                careers.shift_changed.insert(
+                    terri_core::SimId(1),
+                    crate::careers::ShiftChange {
+                        day: 0,
+                        career: 0,
+                        from: 0,
+                    },
+                );
+            }
+            world.insert_resource(careers);
+            world.spawn((
+                Agent,
+                terri_core::SimId(1),
+                Position { x: 5.0, y: 2.0 },
+                terri_core::Career(0),
+                terri_core::AtWork {
+                    remaining_ticks: 10,
+                },
+            ));
+            let mut buffer = PortalBuffer::default();
+            sync_portals(&mut world, &mut buffer);
+            assert_eq!(
+                buffer.states,
+                vec![expected],
+                "changed today: {changed_today}"
             );
         }
     }

@@ -1218,10 +1218,17 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
     if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
         return Some(reason);
     }
+    let path_before = job_of(world, pack, entity).map(|job| job.path);
     crate::attendance::close_for_shift_change(world, entity);
     // Settling can run a review that waited for the person: it can fire,
     // demote or promote them or change their path. The change applies only
-    // to the job they hold after it, so it is checked again.
+    // to the job they hold after it, so it is checked again. A shift index
+    // names a shift of one path, so after a change of path it is refused
+    // rather than read as the new path's shift. The settlement itself
+    // stands either way ([WS-select] item 4).
+    if job_of(world, pack, entity).is_some_and(|job| Some(job.path) != path_before) {
+        return Some(CareerRefusal::ShiftNotOffered);
+    }
     if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
         return Some(reason);
     }

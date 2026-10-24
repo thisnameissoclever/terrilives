@@ -1493,17 +1493,155 @@ fn a_change_that_settles_a_path_change_is_judged_against_the_new_job() {
         pack(&sim).careers[before as usize].path,
         "the path changed"
     );
-    let held = sim
-        .world()
-        .resource::<Careers>()
-        .record(id)
-        .expect("a record")
-        .shift;
+    // The index named a shift of the old path, so it is refused rather
+    // than read as the new path's shift.
+    assert_eq!(reason(&sim), Some(Some(CareerRefusal::ShiftNotOffered)));
+    let careers = sim.world().resource::<Careers>();
+    let held = careers.record(id).expect("a record").shift;
     assert!(pack(&sim).careers[after as usize].offers(held as usize));
-    if let Some(change) = sim.world().resource::<Careers>().shift_changed.get(&id) {
-        assert_eq!(change.career, after);
-    }
+    assert!(careers.shift_changed.is_empty(), "no change marker");
+    // [WS-select] item 4: the refusal does not undo the settlement. The
+    // open shift ended unscored, and the waiting review ran.
+    let attendance = sim.world().resource::<crate::attendance::Attendance>();
+    assert!(attendance
+        .shifts
+        .get(&id)
+        .is_some_and(|shift| shift.settled));
+    assert_eq!(
+        attendance.outcomes.iter().filter(|o| o.sim == id.0).count(),
+        1
+    );
+    assert_eq!(
+        careers
+            .record(id)
+            .map(|r| r.history.iter().map(|w| w.week).collect::<Vec<_>>()),
+        Some(vec![0]),
+        "the review of week 0 ran"
+    );
     reloads(&sim);
+}
+
+/// Review of 2026-10-24, R1: a hospital night worker changes to the day
+/// shift on Monday at 12:00. Monday's night shift, 23:00 to Tuesday 07:00,
+/// still runs on the old schedule; the day shift does not also start at
+/// 07:00 on Tuesday, the day that night shift ended, and starts on
+/// Wednesday.
+#[test]
+fn a_change_from_nights_starts_after_the_last_night_ends() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+    });
+    let (id, entity) = worker(&mut sim);
+    let hospital = path_index(pack(&sim), "hospital");
+    let first = row(pack(&sim), "hospital", 0);
+    let night = pack(&sim).careers[first]
+        .shift_index("night")
+        .expect("listed") as u32;
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: hospital,
+            shift: night,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    while sim.world().resource::<SimClock>().tick < 720 {
+        sim.tick();
+    }
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: entity.index_u32(),
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        starts_through(&mut sim, id, 2 * 1440 + 421),
+        vec![1380, 2 * 1440 + 420],
+        "Monday's night shift, then the day shift on Wednesday"
+    );
+}
+
+/// Review of 2026-10-24, R1: a night watch worker works Monday 22:00 to
+/// Tuesday 06:00 and is assigned the office late shift on Tuesday morning.
+/// The new job starts on Wednesday, not at 12:00 on the day the night
+/// shift ended.
+#[test]
+fn a_new_job_after_a_night_shift_starts_the_day_after_it_ends() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+    });
+    let (id, entity) = worker(&mut sim);
+    let night_watch = path_index(pack(&sim), "night_watch");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: night_watch,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    while sim.world().resource::<SimClock>().tick < 1440 + 400
+        || sim.world().get::<terri_core::AtWork>(entity).is_some()
+        || sim.world().get::<terri_core::Commuting>(entity).is_some()
+    {
+        sim.tick();
+        assert!(
+            sim.world().resource::<SimClock>().tick < 1440 + 700,
+            "home on Tuesday morning"
+        );
+    }
+    let office = path_index(pack(&sim), "office");
+    let first = row(pack(&sim), "office", 0);
+    let late = pack(&sim).careers[first]
+        .shift_index("late")
+        .expect("listed") as u32;
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: office,
+            shift: late,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        starts_through(&mut sim, id, 2 * 1440 + 721),
+        vec![1320, 2 * 1440 + 720],
+        "the night shift, then the office late shift on Wednesday"
+    );
+}
+
+/// Consecutive nights on one job are not two shifts in a day: a night
+/// watch worker starts at 22:00 on Monday and again on Tuesday, the day the
+/// first night ended.
+#[test]
+fn consecutive_nights_on_one_job_each_start() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+    });
+    let (id, entity) = worker(&mut sim);
+    let night_watch = path_index(pack(&sim), "night_watch");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: night_watch,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        starts_through(&mut sim, id, 1440 + 1321),
+        vec![1320, 1440 + 1320],
+        "Monday and Tuesday nights"
+    );
 }
 
 /// Review of 2026-10-24, F9: after a new job is assigned, the attendance

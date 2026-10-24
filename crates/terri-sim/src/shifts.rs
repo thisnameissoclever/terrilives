@@ -46,27 +46,52 @@ pub fn draw(careers: &mut Careers, job: &CompiledCareer) -> u32 {
     chosen as u32
 }
 
-/// Whether `shift`, held by `sim`, starts at tick `now`: its start time of
-/// day on a day it works, unless the person changed shift today, which
-/// makes the change take effect from the next day (the owner's ruling of
-/// 2026-10-23). The attendance register and the order preflight both ask
-/// this, so a prompt never warns of a start that will not happen.
+/// Whether `shift`, worked by `sim` at career row `career`, starts at tick
+/// `now`: its start time of day on a day it works, and one paid shift a day
+/// (the owner's rulings of 2026-10-24 in [WS-rulings]). No shift starts on
+/// a day another shift of the person's already started, and none starts on
+/// the day their last shift ended unless it repeats that shift's schedule
+/// on the same path, as consecutive nights on one job do; a changed shift
+/// or a new job therefore starts on a day after the last shift ended. The
+/// attendance register and the order preflight both ask this, so a prompt
+/// never warns of a start that will not happen.
 pub(crate) fn starts_at(
     world: &World,
-    tuning: &Tuning,
+    pack: &ContentPack,
     sim: SimId,
+    career: u32,
     shift: &ShiftView<'_>,
     now: u64,
 ) -> bool {
+    let tuning = &pack.tuning;
     let day_ticks = u64::from(tuning.day_ticks);
-    now % day_ticks == u64::from(shift.shift_start)
-        && crate::systems::career::works_today(shift, &crate::SimClock { tick: now }, tuning)
-        && !world
-            .get_resource::<crate::attendance::Attendance>()
-            .and_then(|attendance| attendance.shifts.get(&sim))
-            .is_some_and(|last| {
-                last.start_tick / day_ticks == now / day_ticks && last.start_tick != now
-            })
+    if now % day_ticks != u64::from(shift.shift_start)
+        || !crate::systems::career::works_today(shift, &crate::SimClock { tick: now }, tuning)
+    {
+        return false;
+    }
+    let Some(last) = world
+        .get_resource::<crate::attendance::Attendance>()
+        .and_then(|attendance| attendance.shifts.get(&sim))
+    else {
+        return true;
+    };
+    let today = now / day_ticks;
+    // The start being registered this very tick, and an older save's
+    // legacy record, whose start was its arrival, never block.
+    if last.start_tick == now || last.legacy {
+        return true;
+    }
+    if last.start_tick / day_ticks == today {
+        return false;
+    }
+    if last.end_tick / day_ticks < today {
+        return true;
+    }
+    let path = |row: u32| pack.careers.get(row as usize).map(|job| job.path);
+    path(last.career) == path(career)
+        && last.start_tick % day_ticks == u64::from(shift.shift_start)
+        && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)
 }
 
 /// The shift whose schedule `entity` works on the day of tick `now`: on the

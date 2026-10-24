@@ -1976,6 +1976,53 @@ fn a_shift_change_takes_effect_from_the_next_day() {
     );
 }
 
+/// Several changes on one day keep the schedule held when the day began:
+/// changed to the late shift, back to the standard one and to the late one
+/// again before 01:00, the person still works the standard shift that day
+/// and the late shift starts the next day.
+#[test]
+fn a_second_change_the_same_day_keeps_the_days_schedule() {
+    let (mut sim, actor) = held_fixture(900, 300, 0b1111111, 0);
+    let agent = actor.index_u32();
+    sim.world_mut().resource_mut::<SimClock>().tick = 20;
+    for (tick, shift) in [(20, 1), (30, 0), (40, 1)] {
+        sim.world_mut().resource_mut::<SimClock>().tick = tick;
+        issue(&mut sim, SimCommand::ChangeShift { agent, shift });
+        assert_eq!(
+            sim.world()
+                .resource::<Careers>()
+                .last_result
+                .map(|r| r.reason),
+            Some(None),
+            "the change at {tick} applies"
+        );
+        assert_eq!(
+            sim.world()
+                .resource::<Careers>()
+                .shift_changed
+                .values()
+                .map(|change| change.from)
+                .collect::<Vec<_>>(),
+            vec![0],
+            "the day began on the standard shift"
+        );
+    }
+    until(&mut sim, "the standard shift registers", 100, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(scheduled(&sim, actor).map(|s| s.start_tick), Some(60));
+    until(
+        &mut sim,
+        "the late shift registers the next day",
+        2500,
+        |sim| scheduled(sim, actor).is_some_and(|s| s.start_tick != 60),
+    );
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| s.start_tick),
+        Some(1440 + 900)
+    );
+}
+
 /// The order preflight agrees with the register on the day of a change: at
 /// the old shift's start it reports the old shift's hours, at the new
 /// shift's start that day it reports nothing, and the next day it reports
