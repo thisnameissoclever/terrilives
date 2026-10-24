@@ -11,7 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bevy_ecs::prelude::*;
-use terri_core::save_v21::{SavedHeldShift, SavedShifts};
+use terri_core::save_v21::{SavedHeldShift, SavedShiftChange, SavedShifts};
 use terri_core::{
     save_v14::{SavedCareerMoodlet, SavedCareerRecord, SavedCareerWeek, SavedCareers},
     Agent, AtWork, Career, Commuting, FnvHasher, Funds, Satisfaction, SimClock, SimId, SimRng,
@@ -144,6 +144,11 @@ pub struct Careers {
     pub shift_rng: SimRng,
     /// How often the shift stream was drawn.
     pub shift_draws: u64,
+    /// The day of each person's last shift change, by day number. A changed
+    /// shift takes effect from the next day (the owner's ruling of
+    /// 2026-10-23 in [WS-rulings]), so no shift of theirs starts on this
+    /// day. A day before today means nothing and is neither hashed nor saved.
+    pub shift_changed: BTreeMap<SimId, u64>,
 }
 
 impl Default for Careers {
@@ -162,6 +167,7 @@ impl Default for Careers {
             last_result: None,
             shift_rng: SimRng::from_seed(crate::shifts::SHIFTS_SEED),
             shift_draws: 0,
+            shift_changed: BTreeMap::new(),
         }
     }
 }
@@ -189,6 +195,12 @@ impl Careers {
 
     pub fn record(&self, sim: SimId) -> Option<&Record> {
         self.records.get(&sim)
+    }
+
+    /// Whether `sim` changed shift on day `day`, which keeps every shift of
+    /// theirs from starting that day.
+    pub fn changed_shift_on(&self, sim: SimId, day: u64) -> bool {
+        self.shift_changed.get(&sim) == Some(&day)
     }
 
     /// Whether `sim` looks for work on their own while unemployed.
@@ -1137,6 +1149,7 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
     world
         .entity_mut(entity)
         .remove::<crate::reading::PendingShift>();
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
     let mut careers = world.resource_mut::<Careers>();
     let record = careers
         .records
@@ -1144,6 +1157,9 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
         .or_insert_with(|| Record::new(job));
     record.consecutive_good = 0;
     record.shift = shift;
+    // The owner's ruling of 2026-10-23: the change takes effect from the
+    // next day, so a shift worked today is the day's only one.
+    careers.shift_changed.insert(sim, today);
     None
 }
 
@@ -1173,6 +1189,9 @@ fn assign_or_refuse(
             }
             crate::attendance::close_for_career_change(world, entity);
             let mut careers = world.resource_mut::<Careers>();
+            // A new job starts as it always has; the next-day rule is a
+            // shift change's.
+            careers.shift_changed.remove(&sim);
             let shift = match chosen {
                 Some(shift) => shift,
                 None => crate::shifts::draw(&mut careers, job),
@@ -1191,7 +1210,9 @@ fn assign_or_refuse(
         }
         None => {
             crate::attendance::close_for_career_change(world, entity);
-            world.resource_mut::<Careers>().records.remove(&sim);
+            let mut careers = world.resource_mut::<Careers>();
+            careers.records.remove(&sim);
+            careers.shift_changed.remove(&sim);
             world
                 .entity_mut(entity)
                 .remove::<Career>()
@@ -1243,6 +1264,7 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     hash.write_bytes(b"careers-v1");
     careers.hash_into(hash);
     hash_shifts(world, careers, hash);
+    hash_shift_changes(world, hash);
     let mut jobs: Vec<(u32, u32)> = world
         .try_query_filtered::<(&SimId, &Career), With<Agent>>()
         .map(|mut query| {
@@ -1281,6 +1303,40 @@ fn hash_shifts(world: &World, careers: &Careers, hash: &mut FnvHasher) {
     }
 }
 
+/// The people who changed shift today, by sim id with the day; written only
+/// when someone did, so every other world hashes as before the rule.
+fn hash_shift_changes(world: &World, hash: &mut FnvHasher) {
+    let changes = shift_changes_today(world);
+    if changes.is_empty() {
+        return;
+    }
+    hash.write_bytes(b"career-shift-changes-v1");
+    hash.write_u64(changes.len() as u64);
+    for change in &changes {
+        hash.write_u64(u64::from(change.sim));
+        hash.write_u64(change.day);
+    }
+}
+
+/// Every living person who changed shift on the current day, in sim id
+/// order: the only changes that still keep a shift from starting.
+pub(crate) fn shift_changes_today(world: &World) -> Vec<SavedShiftChange> {
+    let Some(careers) = world.get_resource::<Careers>() else {
+        return Vec::new();
+    };
+    let pack = world.resource::<Content>().0;
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
+    careers
+        .shift_changed
+        .iter()
+        .filter(|(sim, day)| **day == today && crate::edit::living_entity(world, sim.0).is_some())
+        .map(|(sim, day)| SavedShiftChange {
+            sim: sim.0,
+            day: *day,
+        })
+        .collect()
+}
+
 /// Every living person whose held shift is not their level's standard
 /// one, in sim id order, with the shift's id ([WS-save]). A held index past
 /// the level's list works the standard shift (`shifts::shift_of`), so it is
@@ -1316,6 +1372,7 @@ pub(crate) fn saved_shifts(world: &World) -> SavedShifts {
         rng,
         draws,
         held: held_shifts(world),
+        changed_today: shift_changes_today(world),
     }
 }
 
@@ -1345,12 +1402,36 @@ pub(crate) fn restore_shifts(
         let index = job.shift_index(&row.shift).ok_or(InvalidValue)?;
         indices.push((SimId(row.sim), index as u32));
     }
+    let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
+    if saved
+        .changed_today
+        .windows(2)
+        .any(|pair| pair[0].sim >= pair[1].sim)
+    {
+        return Err(InvalidValue);
+    }
+    for change in &saved.changed_today {
+        crate::edit::living_entity(world, change.sim).ok_or(InvalidValue)?;
+        if change.day != today
+            || world
+                .resource::<Careers>()
+                .record(SimId(change.sim))
+                .is_none()
+        {
+            return Err(InvalidValue);
+        }
+    }
     let mut careers = world.resource_mut::<Careers>();
     careers.shift_rng = saved.rng;
     careers.shift_draws = saved.draws;
     for (sim, index) in indices {
         careers.records.get_mut(&sim).expect("checked above").shift = index;
     }
+    careers.shift_changed = saved
+        .changed_today
+        .iter()
+        .map(|change| (SimId(change.sim), change.day))
+        .collect();
     Ok(())
 }
 

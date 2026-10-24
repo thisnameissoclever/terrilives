@@ -46,6 +46,38 @@ pub fn draw(careers: &mut Careers, job: &CompiledCareer) -> u32 {
     chosen as u32
 }
 
+/// Whether `shift`, held by `sim`, starts at tick `now`: its start time of
+/// day on a day it works, unless the person changed shift today, which
+/// makes the change take effect from the next day (the owner's ruling of
+/// 2026-10-23). The attendance register and the order preflight both ask
+/// this, so a prompt never warns of a start that will not happen.
+pub(crate) fn starts_at(
+    world: &World,
+    tuning: &Tuning,
+    sim: SimId,
+    shift: &ShiftView<'_>,
+    now: u64,
+) -> bool {
+    now % u64::from(tuning.day_ticks) == u64::from(shift.shift_start)
+        && crate::systems::career::works_today(shift, &crate::SimClock { tick: now }, tuning)
+        && !world
+            .get_resource::<Careers>()
+            .is_some_and(|careers| careers.changed_shift_on(sim, now / u64::from(tuning.day_ticks)))
+}
+
+/// Whether any shift `job` lists, weight 0 included, starts at tick `tick`:
+/// its start time of day on a day it works. The reading system's saved
+/// deferral of a departure is checked this way ([WS-systems] item 4).
+pub(crate) fn a_listed_shift_starts_at(job: &CompiledCareer, tuning: &Tuning, tick: u64) -> bool {
+    let clock = crate::SimClock { tick };
+    (0..job.shift_count())
+        .filter_map(|index| job.shift(index))
+        .any(|shift| {
+            tick % u64::from(tuning.day_ticks) == u64::from(shift.shift_start)
+                && crate::systems::career::works_today(&shift, &clock, tuning)
+        })
+}
+
 /// The shifts `job` offers: those with a weight above 0, the standard
 /// shift first and then the level's other shifts in authored order.
 pub fn offered(job: &CompiledCareer) -> Vec<ShiftView<'_>> {

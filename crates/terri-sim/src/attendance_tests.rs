@@ -1923,10 +1923,12 @@ fn a_sunday_night_shift_counts_in_the_ending_week_and_its_review_waits() {
     );
 }
 
-/// [WS-systems]: a shift change at home takes effect at the new shift's
-/// next start, later the same day, and the old start registers nothing.
+/// [WS-systems], the owner's ruling of 2026-10-23: a shift change at home
+/// takes effect from the next day. The new shift's start later the same
+/// day registers nothing, the old shift's next start registers nothing,
+/// and the new shift starts on the next day it works.
 #[test]
-fn a_shift_change_takes_effect_at_the_new_shifts_next_start() {
+fn a_shift_change_takes_effect_from_the_next_day() {
     let (mut sim, actor) = held_fixture(900, 300, 0b1111111, 0);
     for _ in 0..30 {
         sim.tick();
@@ -1945,24 +1947,65 @@ fn a_shift_change_takes_effect_at_the_new_shifts_next_start() {
             .map(|r| r.reason),
         Some(None)
     );
+    until(&mut sim, "the end of the day of the change", 1500, |sim| {
+        sim.world().resource::<SimClock>().tick >= 1439
+    });
+    assert!(
+        scheduled(&sim, actor).is_none(),
+        "neither the new shift at 900 nor the old one at 60 starts on the day of the change"
+    );
     until(&mut sim, "the late shift registers", 1000, |sim| {
         scheduled(sim, actor).is_some()
     });
-    assert_eq!(sim.world().resource::<SimClock>().tick, 900);
+    assert_eq!(sim.world().resource::<SimClock>().tick, 1440 + 900);
     assert_eq!(
         scheduled(&sim, actor).map(|s| (s.start_tick, s.end_tick)),
-        Some((900, 1200))
+        Some((1440 + 900, 1440 + 1200))
     );
-    until(
+}
+
+/// The double pay the review of 2026-10-23 found: a person who worked a
+/// shift today and then changed to a shift starting later the same day was
+/// paid for both. With the change taking effect from the next day, the
+/// day's only pay is the shift worked before the change.
+#[test]
+fn a_shift_worked_before_a_change_is_the_days_only_pay() {
+    // Standard 01:00 to 09:00 every day; the late shift 20:00 to 22:00.
+    let (mut sim, actor) = held_fixture(1200, 120, 0b1111111, 0);
+    until(&mut sim, "the standard shift settles", 700, |sim| {
+        !sim.world().resource::<Attendance>().outcomes.is_empty()
+    });
+    until(&mut sim, "the worker is home", 300, |sim| {
+        sim.world().get::<AtWork>(actor).is_none() && sim.world().get::<Commuting>(actor).is_none()
+    });
+    let changed_at = sim.world().resource::<SimClock>().tick;
+    assert!(
+        changed_at < 1200,
+        "the change comes before the late start, at {changed_at}"
+    );
+    issue(
         &mut sim,
-        "the next day's standard start passes",
-        700,
-        |sim| sim.world().resource::<SimClock>().tick > 1440 + 60,
+        SimCommand::ChangeShift {
+            agent: actor.index_u32(),
+            shift: 1,
+        },
     );
     assert_eq!(
-        scheduled(&sim, actor).map(|s| s.start_tick),
-        Some(900),
-        "nothing registers at the standard start"
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .map(|r| r.reason),
+        Some(None),
+        "the change is accepted at home"
+    );
+    until(&mut sim, "the end of the first day", 1500, |sim| {
+        sim.world().resource::<SimClock>().tick >= 1439
+    });
+    let outcomes = &sim.world().resource::<Attendance>().outcomes;
+    assert_eq!(
+        outcomes.iter().map(|o| o.start_tick).collect::<Vec<_>>(),
+        vec![60],
+        "one shift paid on the day of the change"
     );
 }
 

@@ -690,7 +690,7 @@ career_mood_fired_ticks = 5760
 # [WS-sleep] and [WS-search]). While a person holds a shift of a kind, that
 # kind's offset is added to their sleep rhythm, in ticks from -720 to 720,
 # positive meaning later, on working days and days off alike. Appended to
-# the compiled tuning after meal_appreciation_gain, so packs published
+# the compiled tuning after fight_rules, so packs published
 # before them reconstruct these shipped offsets and a search temperature
 # of 0, the best-fit search they ran.
 # A day shift leaves the rhythm alone.

@@ -21,8 +21,8 @@ pub struct Flags {
     pub pre_shift_careers: bool,
 }
 
-/// Splits `--night-worker` and `--careers-seed <n>` from the positional
-/// arguments, which keep their order.
+/// Splits `--night-worker`, `--careers-seed <n>` and `--pre-shift-careers`
+/// from the positional arguments, which keep their order.
 pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
     let mut flags = Flags {
         night_worker: false,

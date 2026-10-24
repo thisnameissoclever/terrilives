@@ -19,6 +19,19 @@ pub struct SavedShifts {
     /// Ascending by sim id, each person once. Everyone not listed holds
     /// their level's standard shift, so a new game saves an empty list.
     pub held: Vec<SavedHeldShift>,
+    /// The people who changed shift on the saved day, ascending by sim id:
+    /// none of their shifts starts that day (the owner's ruling of
+    /// 2026-10-23). A change on an earlier day no longer matters and is not
+    /// saved.
+    pub changed_today: Vec<SavedShiftChange>,
+}
+
+/// One person's shift change on the saved day.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedShiftChange {
+    pub sim: u32,
+    /// The day number, tick divided by the day's ticks.
+    pub day: u64,
 }
 
 /// A shift command staged just before a save. The published saved command

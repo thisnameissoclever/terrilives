@@ -39,6 +39,7 @@ pub(crate) fn current_from_v20(legacy: terri_core::SaveSnapshotV20) -> terri_cor
             rng: terri_core::SimRng::from_seed(terri_sim::shifts::SHIFTS_SEED),
             draws: 0,
             held: Vec::new(),
+            changed_today: Vec::new(),
         },
         queued_shift_commands: Vec::new(),
     }

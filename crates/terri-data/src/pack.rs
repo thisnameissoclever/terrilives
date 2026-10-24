@@ -1278,7 +1278,6 @@ impl Tuning {
     pub const SHIPPED_SHIFT_SLEEP_OFFSET_EARLY: i32 = -60;
     pub const SHIPPED_SHIFT_SLEEP_OFFSET_LATE: i32 = 120;
     pub const SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT: i32 = 660;
-    pub const SHIPPED_CAREER_SEARCH_TEMPERATURE: f32 = 0.25;
     /// The search temperature a pack published before issue 296 rebuilds
     /// with: 0, the best-fit search those packs ran, so their worlds keep
     /// choosing a path exactly as they did.

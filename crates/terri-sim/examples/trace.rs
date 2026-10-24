@@ -15,6 +15,12 @@
 //!
 //!     cargo run -p terri-sim --example trace -- 12000
 //!
+//! Issue 296's flags may appear anywhere among the arguments:
+//! `--night-worker` puts Casey on the night watch's standard shift,
+//! `--careers-seed <n>` reseeds the careers stream, and
+//! `--pre-shift-careers` runs the career content and search from before
+//! shifts (`examples/trace/shifts.rs`).
+//!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:
 //!
@@ -114,8 +120,10 @@ struct Motion {
 }
 
 fn main() {
-    // `--night-worker` and `--careers-seed <n>` (issue 296) may appear
-    // anywhere; the positional arguments keep their places without them.
+    // `--night-worker`, `--careers-seed <n>` and `--pre-shift-careers`
+    // (issue 296) may appear anywhere; the positional arguments keep their
+    // places without them. `--pre-shift-careers` runs the career content and
+    // search from before shifts, for comparing a run with main's behavior.
     let (flags, args) = shifts::split_args(std::env::args());
     if args.get(1).map(String::as_str) == Some("meals") {
         catalogue_meals::run(args.get(2).and_then(|s| s.parse().ok()).unwrap_or(1));

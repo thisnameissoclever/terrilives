@@ -932,9 +932,11 @@ fn a_hire_at_the_search_tick_starts_a_shift_due_that_tick() {
 }
 
 /// [WS-systems] item 4: a departure that a reading order deferred is
-/// validated against the held shift's start, not the standard shift's.
+/// validated against the start of any shift the row lists, whichever is
+/// held, as saved attendance is, because a save restores the held shifts
+/// after this check; a time no listed shift starts at is refused.
 #[test]
-fn a_pending_shift_is_validated_against_the_held_shift() {
+fn a_pending_shift_is_validated_against_any_listed_shift() {
     let (mut sim, actor) = kept_home();
     sim.world_mut().resource_mut::<SimClock>().tick = 1000;
     let valid = |sim: &mut Sim, scheduled_tick: u64| {
@@ -954,7 +956,8 @@ fn a_pending_shift_is_validated_against_the_held_shift() {
         valid
     };
     assert!(valid(&mut sim, 60), "the standard shift starts at 60");
-    assert!(!valid(&mut sim, 900));
+    assert!(valid(&mut sim, 900), "the late shift starts at 900");
+    assert!(!valid(&mut sim, 500), "no listed shift starts at 500");
     let job = pack(&sim).careers[0].clone();
     sim.world_mut().resource_mut::<Careers>().records.insert(
         SimId(1),
@@ -963,8 +966,12 @@ fn a_pending_shift_is_validated_against_the_held_shift() {
             ..Record::new(&job)
         },
     );
-    assert!(!valid(&mut sim, 60), "the held late shift starts at 900");
+    assert!(
+        valid(&mut sim, 60),
+        "holding the late shift still lists the standard one"
+    );
     assert!(valid(&mut sim, 900));
+    assert!(!valid(&mut sim, 500));
 }
 
 // Sleeping around a shift: [WS-sleep].
@@ -1130,5 +1137,91 @@ fn the_offset_holds_on_days_off() {
         let tick = day * 1440 + 600;
         assert!(picks_bed(night, tick), "day {day} at 10:00");
         assert!(!picks_bed(None, tick), "day {day} at 10:00 with no job");
+    }
+}
+
+/// [WS-content]: the five new paths' labels and every level's id, title,
+/// pay, pay maximum and promotion weeks, as the spec's tables give them.
+#[test]
+fn the_five_new_paths_match_the_spec_tables() {
+    type Level = (&'static str, &'static str, u32, u32, u32);
+    let paths: [(&str, &str, [Level; 4]); 5] = [
+        (
+            "hospital",
+            "Hospital",
+            [
+                ("hospital_orderly", "Ward orderly", 95, 120, 2),
+                (
+                    "hospital_nursing_assistant",
+                    "Nursing assistant",
+                    125,
+                    160,
+                    3,
+                ),
+                ("hospital_ward_nurse", "Ward nurse", 170, 220, 3),
+                ("hospital_charge_nurse", "Charge nurse", 235, 300, 4),
+            ],
+        ),
+        (
+            "warehouse",
+            "Warehouse",
+            [
+                ("warehouse_picker", "Warehouse picker", 90, 110, 2),
+                ("warehouse_forklift_driver", "Forklift driver", 110, 140, 2),
+                ("warehouse_team_leader", "Team leader", 150, 190, 3),
+                ("warehouse_manager", "Warehouse manager", 210, 270, 4),
+            ],
+        ),
+        (
+            "library",
+            "Library",
+            [
+                ("library_assistant", "Library assistant", 85, 105, 2),
+                ("library_librarian", "Librarian", 105, 130, 3),
+                ("library_senior_librarian", "Senior librarian", 140, 175, 3),
+                ("library_head_librarian", "Head librarian", 190, 240, 4),
+            ],
+        ),
+        (
+            "restaurant_kitchen",
+            "Restaurant kitchen",
+            [
+                ("kitchen_porter", "Kitchen porter", 75, 95, 2),
+                ("kitchen_line_cook", "Line cook", 100, 130, 2),
+                ("kitchen_sous_chef", "Sous chef", 150, 195, 3),
+                ("kitchen_head_chef", "Head chef", 230, 300, 4),
+            ],
+        ),
+        (
+            "buses",
+            "Buses",
+            [
+                ("buses_relief_driver", "Relief bus driver", 110, 135, 2),
+                ("buses_driver", "Bus driver", 130, 165, 3),
+                ("buses_senior_driver", "Senior bus driver", 165, 205, 3),
+                ("buses_route_supervisor", "Route supervisor", 205, 255, 4),
+            ],
+        ),
+    ];
+    let pack = terri_data::pack();
+    for (id, label, levels) in paths {
+        let path = &pack.career_paths[path_index(pack, id) as usize];
+        assert_eq!(path.label, label, "{id}");
+        let actual: Vec<Level> = path
+            .levels
+            .iter()
+            .map(|row| {
+                let job = &pack.careers[*row as usize];
+                (
+                    job.id.as_str(),
+                    job.label.as_str(),
+                    job.pay,
+                    job.pay_max,
+                    job.advance_weeks,
+                )
+            })
+            .collect();
+        // The top level's advance_weeks is never read; the table still names it.
+        assert_eq!(actual, levels.to_vec(), "{id}");
     }
 }

@@ -384,12 +384,34 @@ fn schema_twenty_one_refuses_what_the_world_cannot_account_for() {
 fn older_writers_leave_queued_shift_commands_out() {
     let mut with = Sim::new_from_shipped_lot();
     let mut without = Sim::new_from_shipped_lot();
-    let agent = household(&mut with)[0].1.index_u32();
+    let people = household(&mut with);
+    let agent = people[0].1.index_u32();
+    let chat = with
+        .world()
+        .resource::<Content>()
+        .0
+        .social
+        .iter()
+        .position(|action| action.id == "chat")
+        .expect("shipped Chat") as u32;
+    // A confirmed work order rides beside its queue position from schema
+    // seventeen, as the settings do from eighteen; neither may move when the
+    // shift commands around them are left out.
     let ordinary = [
         SimCommand::SetSpeed(2),
         SimCommand::SetJobSearch {
             agent,
             search: false,
+        },
+        SimCommand::ConfirmedOrder {
+            fingerprint: 7,
+            command: SimCommand::TalkTo {
+                agent,
+                target: people[1].1.index_u32(),
+                interaction: chat,
+            }
+            .into_player_order()
+            .expect("a player order"),
         },
         SimCommand::SetSpeed(1),
     ];
@@ -409,6 +431,8 @@ fn older_writers_leave_queued_shift_commands_out() {
             shift: 0,
         },
         ordinary[2].clone(),
+        SimCommand::ChangeShift { agent, shift: 2 },
+        ordinary[3].clone(),
     ] {
         with.world_mut()
             .resource_mut::<CommandQueue>()
@@ -478,4 +502,59 @@ fn a_build_transaction_keeps_the_held_shift() {
     let after: Vec<u32> = people.iter().map(|(id, _)| held(&sim, *id)).collect();
     assert_eq!(after, before);
     assert_eq!(stream(&sim), stream_before);
+}
+
+/// A reading order deferred the late cafe worker's 13:00 departure. The
+/// world is valid, but the schema-twenty restore checked the deferral
+/// against the standard shift before the held shifts were installed, so
+/// the save and a Build mode round trip refused it (review of 2026-10-23).
+/// The deferral is now checked against every shift the level lists, as
+/// saved attendance is.
+fn late_worker_with_a_deferred_departure() -> Sim {
+    let (mut sim, people) = shifted();
+    let pack = sim.world().resource::<Content>().0;
+    let (_, worker) = *people
+        .iter()
+        .find(|(id, entity)| {
+            let held = held(&sim, *id);
+            sim.world()
+                .get::<Career>(*entity)
+                .and_then(|career| pack.careers[career.0 as usize].shift(held as usize))
+                .is_some_and(|shift| shift.id == "late")
+        })
+        .expect("the late cafe worker");
+    let row = sim.world().get::<Career>(worker).expect("employed").0;
+    // Monday 13:20; the cafe's late shift starts at 13:00 and works Mondays.
+    sim.world_mut().resource_mut::<terri_core::SimClock>().tick = 800;
+    sim.world_mut()
+        .entity_mut(worker)
+        .insert(crate::reading::PendingShift {
+            scheduled_tick: 780,
+            career: row,
+        });
+    let world = sim.world();
+    assert!(
+        crate::reading::persistence::validate(world, world.resource::<terri_core::TileGrid>())
+            .is_ok(),
+        "the live world is valid"
+    );
+    sim
+}
+
+#[test]
+fn a_deferred_departure_on_a_held_shift_survives_a_save() {
+    let sim = late_worker_with_a_deferred_departure();
+    let saved = sim.save_snapshot_v21();
+    let mut loaded = Sim::new_from_shipped_lot();
+    assert_eq!(loaded.load_snapshot_v21(saved.clone()), Ok(()));
+    assert_eq!(loaded.save_snapshot_v21(), saved);
+}
+
+#[test]
+fn a_deferred_departure_on_a_held_shift_survives_build_mode() {
+    let mut sim = late_worker_with_a_deferred_departure();
+    let before = sim.save_snapshot_v21();
+    sim.begin_build().expect("build starts");
+    sim.cancel_build().expect("cancel restores the baseline");
+    assert_eq!(sim.save_snapshot_v21(), before);
 }

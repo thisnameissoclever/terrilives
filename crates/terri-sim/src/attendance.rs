@@ -80,12 +80,7 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
             .get_resource::<Attendance>()
             .and_then(|a| a.shifts.get(&sim))
             .filter(|s| !s.settled && s.end_tick > now);
-        let due_now = now % u64::from(pack.tuning.day_ticks) == u64::from(shift.shift_start)
-            && super::systems::career::works_today(
-                &shift,
-                world.resource::<SimClock>(),
-                &pack.tuning,
-            );
+        let due_now = crate::shifts::starts_at(world, &pack.tuning, sim, &shift, now);
         let away = world.get::<AtWork>(actor).is_some()
             || world.get::<Commuting>(actor) == Some(&Commuting::Outbound);
         if saved.is_none() && !due_now && !away {
@@ -324,12 +319,7 @@ pub(crate) fn start_tick(world: &mut World) {
         let job = &pack.careers[career as usize];
         // [WS-systems] item 1: a due shift is the held shift.
         let shift = crate::shifts::shift_of(world, pack, actor).expect("employed");
-        let starts = now % u64::from(pack.tuning.day_ticks) == u64::from(shift.shift_start)
-            && crate::systems::career::works_today(
-                &shift,
-                world.resource::<SimClock>(),
-                &pack.tuning,
-            );
+        let starts = crate::shifts::starts_at(world, &pack.tuning, sim, &shift, now);
         let untracked_legacy_work = world.get::<AtWork>(actor).is_some()
             && !world.resource::<Attendance>().shifts.contains_key(&sim);
         if starts
