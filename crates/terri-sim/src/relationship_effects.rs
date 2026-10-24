@@ -90,8 +90,10 @@ pub struct RelationshipEffect {
 #[derive(Resource, Default, Clone)]
 #[doc(hidden)]
 pub struct RelationshipDiagnostics {
-    /// Written only by [`record`] and [`record_in`], so every effect also
-    /// reaches the activity log's classification. Only tests read it.
+    /// Written only by [`record`], [`record_in`] and
+    /// [`record_unlogged_opinion_change`], so every effect also reaches the
+    /// activity log's classification or is left out by name. Only tests
+    /// read it.
     effects: Vec<RelationshipEffect>,
     pub(crate) contacts: Vec<(SimId, SimId)>,
     pub(crate) waits: Vec<(SimId, bool, u64)>,
@@ -252,11 +254,44 @@ pub(crate) fn record_opinion_change(
     delta: f32,
     cause: RelationshipCause,
 ) {
-    let Some(subject) = world.get::<SimId>(affected).copied() else {
-        return;
-    };
+    if let Some(effect) = change_opinion(world, responsible, affected, delta, cause) {
+        record(world, effect);
+    }
+}
+
+/// [`record_opinion_change`] for the one change the activity log leaves
+/// out: the cleaner's warmer feeling toward the person who complained when
+/// a repaired chore argument completes ([AL-sources], unlogged sources). The
+/// log already shows that repair as the observers' appreciation of the
+/// cleaner, and a ChoreFulfilled line from the cleaner about the
+/// complainer would read as appreciating the complainer's chore.
+pub(crate) fn record_unlogged_opinion_change(
+    world: &mut World,
+    responsible: u32,
+    affected: Entity,
+    delta: f32,
+    cause: RelationshipCause,
+) {
+    if let Some(effect) = change_opinion(world, responsible, affected, delta, cause) {
+        world
+            .resource_mut::<RelationshipDiagnostics>()
+            .effects
+            .push(effect);
+    }
+}
+
+/// Applies a scaled opinion change and describes it, or returns `None` when
+/// `affected` is not a person or is the responsible person.
+fn change_opinion(
+    world: &mut World,
+    responsible: u32,
+    affected: Entity,
+    delta: f32,
+    cause: RelationshipCause,
+) -> Option<RelationshipEffect> {
+    let subject = world.get::<SimId>(affected).copied()?;
     if subject.0 == responsible {
-        return;
+        return None;
     }
     let delta = scaled_opinion_delta(world, subject, SimId(responsible), cause, delta);
     if world.get::<Relationships>(affected).is_none() {
@@ -275,18 +310,15 @@ pub(crate) fn record_opinion_change(
         .unwrap()
         .feeling(SimId(responsible));
     let tick = world.resource::<SimClock>().tick;
-    record(
-        world,
-        RelationshipEffect {
-            tick,
-            event: 0,
-            cause,
-            responsible: SimId(responsible),
-            affected: subject,
-            requested: delta,
-            actual: after - before,
-            emergency: false,
-            directed: false,
-        },
-    );
+    Some(RelationshipEffect {
+        tick,
+        event: 0,
+        cause,
+        responsible: SimId(responsible),
+        affected: subject,
+        requested: delta,
+        actual: after - before,
+        emergency: false,
+        directed: false,
+    })
 }
