@@ -157,13 +157,20 @@ pub(crate) fn refresh_grouped_need(world: &World, state: &mut SavedChores) {
     }
 }
 
-/// Settles the week's assignments and today's episodes. Returns whether it
-/// wrote new assignments, which the caller logs with [`log_week`].
-pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> bool {
+/// The assignments a [`reconcile`] replaced, for [`log_week`].
+pub(crate) struct WeekChange {
+    pub previous_week: Option<u64>,
+    pub previous: Vec<terri_core::chores::ChoreAssignment>,
+}
+
+/// Settles the week's assignments and today's episodes. Returns what it
+/// replaced when it wrote new assignments, which the caller logs with
+/// [`log_week`].
+pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> Option<WeekChange> {
     if !state.board_enabled {
-        return false;
+        return None;
     }
-    let mut changed = false;
+    let mut changed = None;
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
     let week = day / 7;
@@ -195,6 +202,10 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> bool {
         } else {
             vec![]
         };
+        changed = Some(WeekChange {
+            previous_week: state.week,
+            previous: state.assignments.clone(),
+        });
         let rng = state.rng.as_mut().expect("chore stream is initialized");
         state.assignments = if keep.is_empty() {
             policy::assign(&weighted, &profiles, week, rng)
@@ -203,7 +214,6 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> bool {
         };
         state.week = Some(week);
         state.roster = roster;
-        changed = true;
     }
     start_episodes(state, day, state.assignments.clone());
     state.episodes.retain(|e| e.day.saturating_add(8) >= day);
@@ -212,13 +222,32 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> bool {
     changed
 }
 
-/// Logs the week's assignments as one Chores line per owner ([AL-sources]).
-pub(crate) fn log_week(world: &mut World, state: &SavedChores) {
+/// Logs the week's assignments as one Chores line per owner ([AL-sources]):
+/// every owner in a new week, and within a week only the owners whose own
+/// duties changed, so a change to the available duties does not repeat
+/// everyone's unchanged list.
+pub(crate) fn log_week(world: &mut World, state: &SavedChores, change: &WeekChange) {
     let pack = world.resource::<crate::Content>().0;
     let tick = world.resource::<SimClock>().tick;
     let week = state.week.unwrap_or_default();
+    let new_week = change.previous_week != state.week;
+    let duties = |assignments: &[terri_core::chores::ChoreAssignment], owner: u32| {
+        assignments
+            .iter()
+            .filter(|duty| duty.owner == owner)
+            .map(|duty| duty.key)
+            .collect::<Vec<_>>()
+    };
+    let owners: std::collections::BTreeSet<u32> = state
+        .assignments
+        .iter()
+        .map(|duty| duty.owner)
+        .filter(|&owner| {
+            new_week || duties(&change.previous, owner) != duties(&state.assignments, owner)
+        })
+        .collect();
     if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
-        log.chore_week(pack, tick, week, &state.assignments);
+        log.chore_week(pack, tick, week, &state.assignments, &owners);
     }
 }
 
@@ -416,8 +445,8 @@ pub(crate) fn credit(
     }
 }
 pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
-    if reconcile(world, state) {
-        log_week(world, state);
+    if let Some(change) = reconcile(world, state) {
+        log_week(world, state, &change);
     }
     crate::neglect::refresh_in(world, state);
     crate::chore_repair::tick_in(world, state);

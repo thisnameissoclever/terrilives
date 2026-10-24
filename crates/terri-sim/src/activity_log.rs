@@ -805,14 +805,13 @@ impl ActivityLog {
         tick: u64,
         week: u64,
         assignments: &[terri_core::chores::ChoreAssignment],
+        owners: &std::collections::BTreeSet<u32>,
     ) {
         if !self.enabled {
             return;
         }
         let labels = labels(pack);
-        let owners: std::collections::BTreeSet<u32> =
-            assignments.iter().map(|duty| duty.owner).collect();
-        for owner in owners {
+        for &owner in owners {
             self.push(
                 LogRecord::new(LogKind::ChoresThisWeek, CHORES, tick, owner)
                     .with_value(0, i32::try_from(week).unwrap_or(i32::MAX)),

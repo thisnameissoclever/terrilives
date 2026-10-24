@@ -733,6 +733,56 @@ fn chore_week_logs_one_header_per_owner() {
     );
 }
 
+/// [AL-sources]: within a week, a change to the available duties logs a new
+/// Chores this week line only for the owners whose own duties changed; a
+/// new week logs every owner.
+#[test]
+fn a_mid_week_duty_change_logs_only_the_owners_it_changed() {
+    let (mut sim, mut state, _) = fixture();
+    let duty = |kind: ChoreKind, target: u32, owner: u32| terri_core::chores::ChoreAssignment {
+        key: ChoreKey { kind, target },
+        owner,
+        week: 3,
+    };
+    let before = vec![duty(ChoreKind::Dishes, 0, 1), duty(ChoreKind::Floors, 4, 2)];
+    state.week = Some(3);
+    state.assignments = vec![
+        duty(ChoreKind::Dishes, 0, 1),
+        duty(ChoreKind::Floors, 4, 2),
+        duty(ChoreKind::Bins, 0, 1),
+    ];
+    crate::activity_log_tests::drain(&mut sim);
+    let headers = |sim: &mut Sim| -> Vec<u32> {
+        settled_records(sim)
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::ChoresThisWeek))
+            .map(|r| r.actor())
+            .collect()
+    };
+    board::log_week(
+        sim.world_mut(),
+        &state,
+        &board::WeekChange {
+            previous_week: Some(3),
+            previous: before.clone(),
+        },
+    );
+    assert_eq!(
+        headers(&mut sim),
+        vec![1],
+        "only the owner who gained a duty"
+    );
+    board::log_week(
+        sim.world_mut(),
+        &state,
+        &board::WeekChange {
+            previous_week: Some(2),
+            previous: before,
+        },
+    );
+    assert_eq!(headers(&mut sim), vec![1, 2], "a new week logs everyone");
+}
+
 /// [AL-record] kind 7: a finished chore is an action line of the performer
 /// with the Done outcome as its child, and the household's appreciation as
 /// children of the outcome under Social.
