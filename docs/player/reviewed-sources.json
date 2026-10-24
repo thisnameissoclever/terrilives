@@ -95,7 +95,7 @@
     "crates/terri-sim/examples/trace/catalogue.rs": "b86a1b48f8a9a46f20fd749c6cf3268fd5d0a5ad4c1d9dce8ccb55ed17d9364c",
     "crates/terri-sim/examples/trace/catalogue_meals.rs": "261ba065b89aa57971ad02d44ac0ee00238776b0c7590a71c5eb9241e01c7589",
     "crates/terri-sim/examples/trace/relationships.rs": "d7cee32bd9f78476b73b209cbc2d395beb98f070cc1fee5a35c582c91d331819",
-    "crates/terri-sim/examples/trace/shifts.rs": "6e41f8ac36d715d98219a3e7c1df5748a1b38d54ab87d31e619242a638fc9d82",
+    "crates/terri-sim/examples/trace/shifts.rs": "1c14f000f489293f09afc7099ba4face20bd9fb5e5b67b46243474f95bace1f3",
     "crates/terri-sim/src/action_queue.rs": "91049b3fd68c9787f4b08571008b4a3f4e7b0ceebb00bde27d2dec7b062f977b",
     "crates/terri-sim/src/action_rows.rs": "80cadae2bf9ee792561fd0b2874edf0ff1bd0807e141f578f65f625518cf0186",
     "crates/terri-sim/src/activity_status.rs": "871e4ab4577fead6467ccb9ad7d69be638e84292fe406fa4b48455acffbe285f",
