@@ -144,11 +144,22 @@ pub struct Careers {
     pub shift_rng: SimRng,
     /// How often the shift stream was drawn.
     pub shift_draws: u64,
-    /// The day of each person's last shift change, by day number. A changed
-    /// shift takes effect from the next day (the owner's ruling of
-    /// 2026-10-23 in [WS-rulings]), so no shift of theirs starts on this
-    /// day. A day before today means nothing and is neither hashed nor saved.
-    pub shift_changed: BTreeMap<SimId, u64>,
+    /// Each person's last shift change. A changed shift takes effect from
+    /// the next day, and the schedule they held when the day began still
+    /// runs that day (the owner's rulings of 2026-10-23 and 2026-10-24 in
+    /// [WS-rulings]). A change on an earlier day, or at a level the person
+    /// no longer holds, means nothing and is neither hashed nor saved.
+    pub shift_changed: BTreeMap<SimId, ShiftChange>,
+}
+
+/// One person's shift change: the day it was made, the level (career row)
+/// it was made at and the shift index whose schedule runs for the rest of
+/// that day.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShiftChange {
+    pub day: u64,
+    pub career: u32,
+    pub from: u32,
 }
 
 impl Default for Careers {
@@ -197,10 +208,13 @@ impl Careers {
         self.records.get(&sim)
     }
 
-    /// Whether `sim` changed shift on day `day`, which keeps every shift of
-    /// theirs from starting that day.
-    pub fn changed_shift_on(&self, sim: SimId, day: u64) -> bool {
-        self.shift_changed.get(&sim) == Some(&day)
+    /// The shift index whose schedule runs on day `day` for `sim` at level
+    /// `career` because they changed shift that day, or `None`.
+    pub fn shift_before_change(&self, sim: SimId, day: u64, career: u32) -> Option<u32> {
+        self.shift_changed
+            .get(&sim)
+            .filter(|change| change.day == day && change.career == career)
+            .map(|change| change.from)
     }
 
     /// Whether `sim` looks for work on their own while unemployed.
@@ -222,6 +236,7 @@ impl Careers {
     pub fn forget(&mut self, sim: SimId) {
         self.records.remove(&sim);
         self.search_off.remove(&sim);
+        self.shift_changed.remove(&sim);
         self.promoted.forget(sim);
         self.raised.forget(sim);
         self.demoted.forget(sim);
@@ -1172,12 +1187,15 @@ fn person_at_home(world: &World, agent: u32) -> Result<(Entity, SimId), CareerRe
     Ok((entity, sim))
 }
 
-fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<CareerRefusal> {
+/// Why `shift` cannot become `entity`'s shift at their current level, or
+/// `None` when it can.
+fn shift_change_refusal(
+    world: &World,
+    entity: Entity,
+    sim: SimId,
+    shift: u32,
+) -> Option<CareerRefusal> {
     let pack = world.resource::<Content>().0;
-    let (entity, sim) = match person_at_home(world, agent) {
-        Ok(person) => person,
-        Err(reason) => return Some(reason),
-    };
     let Some(job) = job_of(world, pack, entity) else {
         return Some(CareerRefusal::NotEmployed);
     };
@@ -1188,10 +1206,27 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
         .resource::<Careers>()
         .record(sim)
         .map_or(0, |record| record.shift);
-    if held == shift {
-        return Some(CareerRefusal::SameShift);
+    (held == shift).then_some(CareerRefusal::SameShift)
+}
+
+fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<CareerRefusal> {
+    let pack = world.resource::<Content>().0;
+    let (entity, sim) = match person_at_home(world, agent) {
+        Ok(person) => person,
+        Err(reason) => return Some(reason),
+    };
+    if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
+        return Some(reason);
     }
     crate::attendance::close_for_shift_change(world, entity);
+    // Settling can run a review that waited for the person: it can fire,
+    // demote or promote them or change their path. The change applies only
+    // to the job they hold after it, so it is checked again.
+    if let Some(reason) = shift_change_refusal(world, entity, sim, shift) {
+        return Some(reason);
+    }
+    let job = job_of(world, pack, entity).expect("checked above");
+    let career = world.get::<Career>(entity).expect("employed").0;
     // A departure a reading order deferred belongs to the old shift, as an
     // assignment drops it for the old job.
     world
@@ -1199,15 +1234,27 @@ fn change_shift_or_refuse(world: &mut World, agent: u32, shift: u32) -> Option<C
         .remove::<crate::reading::PendingShift>();
     let today = world.resource::<SimClock>().tick / u64::from(pack.tuning.day_ticks);
     let mut careers = world.resource_mut::<Careers>();
+    let held = careers.record(sim).map_or(0, |record| record.shift);
+    // The owner's rulings of 2026-10-23 and 2026-10-24: the change takes
+    // effect from the next day, and the schedule held when the day began
+    // still runs today. A second change the same day keeps that schedule.
+    let from = careers
+        .shift_before_change(sim, today, career)
+        .unwrap_or(held);
     let record = careers
         .records
         .entry(sim)
         .or_insert_with(|| Record::new(job));
     record.consecutive_good = 0;
     record.shift = shift;
-    // The owner's ruling of 2026-10-23: the change takes effect from the
-    // next day, so a shift worked today is the day's only one.
-    careers.shift_changed.insert(sim, today);
+    careers.shift_changed.insert(
+        sim,
+        ShiftChange {
+            day: today,
+            career,
+            from,
+        },
+    );
     None
 }
 
@@ -1358,23 +1405,28 @@ fn hash_shifts(world: &World, careers: &Careers, hash: &mut FnvHasher) {
     }
 }
 
-/// The people who changed shift today, by sim id with the day; written only
-/// when someone did, so every other world hashes as before the rule.
+/// The people who changed shift today, by sim id with the day and the
+/// shift whose schedule still runs today; written only when someone did,
+/// so every other world hashes as before the rule.
 fn hash_shift_changes(world: &World, hash: &mut FnvHasher) {
     let changes = shift_changes_today(world);
     if changes.is_empty() {
         return;
     }
-    hash.write_bytes(b"career-shift-changes-v1");
+    hash.write_bytes(b"career-shift-changes-v2");
     hash.write_u64(changes.len() as u64);
     for change in &changes {
         hash.write_u64(u64::from(change.sim));
         hash.write_u64(change.day);
+        hash.write_u64(change.from.len() as u64);
+        hash.write_bytes(change.from.as_bytes());
     }
 }
 
-/// Every living person who changed shift on the current day, in sim id
-/// order: the only changes that still keep a shift from starting.
+/// Every living person who changed shift on the current day at the level
+/// they still hold, in sim id order, with the id of the shift whose
+/// schedule runs for the rest of the day: the only changes that still
+/// matter.
 pub(crate) fn shift_changes_today(world: &World) -> Vec<SavedShiftChange> {
     let Some(careers) = world.get_resource::<Careers>() else {
         return Vec::new();
@@ -1384,10 +1436,19 @@ pub(crate) fn shift_changes_today(world: &World) -> Vec<SavedShiftChange> {
     careers
         .shift_changed
         .iter()
-        .filter(|(sim, day)| **day == today && crate::edit::living_entity(world, sim.0).is_some())
-        .map(|(sim, day)| SavedShiftChange {
-            sim: sim.0,
-            day: *day,
+        .filter(|(_, change)| change.day == today)
+        .filter_map(|(sim, change)| {
+            let entity = crate::edit::living_entity(world, sim.0)?;
+            let career = world.get::<Career>(entity)?.0;
+            let from = pack
+                .careers
+                .get(career as usize)?
+                .shift(change.from as usize)?;
+            (career == change.career).then(|| SavedShiftChange {
+                sim: sim.0,
+                day: change.day,
+                from: from.id.to_string(),
+            })
         })
         .collect()
 }
@@ -1465,8 +1526,12 @@ pub(crate) fn restore_shifts(
     {
         return Err(InvalidValue);
     }
+    let mut changes = BTreeMap::new();
     for change in &saved.changed_today {
-        crate::edit::living_entity(world, change.sim).ok_or(InvalidValue)?;
+        let entity = crate::edit::living_entity(world, change.sim).ok_or(InvalidValue)?;
+        let career = world.get::<Career>(entity).ok_or(InvalidValue)?.0;
+        let job = pack.careers.get(career as usize).ok_or(InvalidValue)?;
+        let from = job.shift_index(&change.from).ok_or(InvalidValue)?;
         if change.day != today
             || world
                 .resource::<Careers>()
@@ -1475,6 +1540,14 @@ pub(crate) fn restore_shifts(
         {
             return Err(InvalidValue);
         }
+        changes.insert(
+            SimId(change.sim),
+            ShiftChange {
+                day: change.day,
+                career,
+                from: from as u32,
+            },
+        );
     }
     let mut careers = world.resource_mut::<Careers>();
     careers.shift_rng = saved.rng;
@@ -1482,11 +1555,7 @@ pub(crate) fn restore_shifts(
     for (sim, index) in indices {
         careers.records.get_mut(&sim).expect("checked above").shift = index;
     }
-    careers.shift_changed = saved
-        .changed_today
-        .iter()
-        .map(|change| (SimId(change.sim), change.day))
-        .collect();
+    careers.shift_changed = changes;
     Ok(())
 }
 

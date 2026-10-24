@@ -58,11 +58,37 @@ pub(crate) fn starts_at(
     shift: &ShiftView<'_>,
     now: u64,
 ) -> bool {
-    now % u64::from(tuning.day_ticks) == u64::from(shift.shift_start)
+    let day_ticks = u64::from(tuning.day_ticks);
+    now % day_ticks == u64::from(shift.shift_start)
         && crate::systems::career::works_today(shift, &crate::SimClock { tick: now }, tuning)
         && !world
-            .get_resource::<Careers>()
-            .is_some_and(|careers| careers.changed_shift_on(sim, now / u64::from(tuning.day_ticks)))
+            .get_resource::<crate::attendance::Attendance>()
+            .and_then(|attendance| attendance.shifts.get(&sim))
+            .is_some_and(|last| {
+                last.start_tick / day_ticks == now / day_ticks && last.start_tick != now
+            })
+}
+
+/// The shift whose schedule `entity` works on the day of tick `now`: on the
+/// day they changed shift, the one they held when the day began (the
+/// owner's ruling of 2026-10-24), and otherwise their held shift. `None`
+/// for the unemployed.
+pub(crate) fn shift_today<'a>(
+    world: &World,
+    pack: &'a ContentPack,
+    entity: Entity,
+    now: u64,
+) -> Option<ShiftView<'a>> {
+    let job = job_of(world, pack, entity)?;
+    let before = world
+        .get::<SimId>(entity)
+        .zip(world.get::<Career>(entity))
+        .zip(world.get_resource::<Careers>())
+        .and_then(|((sim, career), careers)| {
+            careers.shift_before_change(*sim, now / u64::from(pack.tuning.day_ticks), career.0)
+        })
+        .and_then(|from| job.shift(from as usize));
+    before.or_else(|| Some(held_at(world, job, entity)))
 }
 
 /// Whether any shift `job` lists, weight 0 included, starts at tick `tick`:

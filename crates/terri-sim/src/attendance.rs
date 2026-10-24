@@ -74,8 +74,9 @@ pub fn work_conflicts(world: &World, agents: &[u32]) -> WorkPreflight {
         };
         hash.write_u64(u64::from(career.0));
         let job = &pack.careers[career.0 as usize];
-        // [WS-systems] item 2: the hours are the held shift's.
-        let shift = crate::shifts::shift_of(world, pack, actor).expect("employed");
+        // [WS-systems] item 2: the hours are those of the shift worked
+        // today, the held shift except on the day of a shift change.
+        let shift = crate::shifts::shift_today(world, pack, actor, now).expect("employed");
         let saved = world
             .get_resource::<Attendance>()
             .and_then(|a| a.shifts.get(&sim))
@@ -317,8 +318,9 @@ pub(crate) fn start_tick(world: &mut World) {
         let sim = identity(world, actor);
         let career = world.get::<Career>(actor).unwrap().0;
         let job = &pack.careers[career as usize];
-        // [WS-systems] item 1: a due shift is the held shift.
-        let shift = crate::shifts::shift_of(world, pack, actor).expect("employed");
+        // [WS-systems] item 1: a due shift is the held shift, or on the day
+        // of a shift change the one held when the day began.
+        let shift = crate::shifts::shift_today(world, pack, actor, now).expect("employed");
         let starts = crate::shifts::starts_at(world, &pack.tuning, sim, &shift, now);
         let untracked_legacy_work = world.get::<AtWork>(actor).is_some()
             && !world.resource::<Attendance>().shifts.contains_key(&sim);
@@ -585,13 +587,24 @@ pub fn hash(world: &World, hash: &mut FnvHasher) {
         }
     }
 }
-/// Latest settled attendance, or the running shift's minutes; no settlement is triggered.
+/// Latest settled attendance, or the running shift's minutes, at the job
+/// the person holds now; no settlement is triggered. A shift of a job they
+/// left, or of the level they held before a promotion or demotion, is not
+/// reported, so the Career tab never shows an old job's pay under a new
+/// title.
 pub fn report(world: &World, actor: Entity) -> Vec<f32> {
     let sim = identity(world, actor);
     let Some(a) = world.get_resource::<Attendance>() else {
         return Vec::new();
     };
-    if let Some(s) = a.shifts.get(&sim).filter(|s| !s.settled) {
+    let Some(career) = world.get::<Career>(actor).map(|career| career.0) else {
+        return Vec::new();
+    };
+    if let Some(s) = a
+        .shifts
+        .get(&sim)
+        .filter(|s| !s.settled && s.career == career)
+    {
         let total = (s.end_tick - s.start_tick) as f32;
         return vec![
             total,
@@ -610,6 +623,7 @@ pub fn report(world: &World, actor: Entity) -> Vec<f32> {
         .iter()
         .rev()
         .find(|s| s.sim == sim.0)
+        .filter(|s| s.career == career)
         .map(|s| {
             vec![
                 s.scheduled_minutes,

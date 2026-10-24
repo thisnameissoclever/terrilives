@@ -1923,10 +1923,12 @@ fn a_sunday_night_shift_counts_in_the_ending_week_and_its_review_waits() {
     );
 }
 
-/// [WS-systems], the owner's ruling of 2026-10-23: a shift change at home
-/// takes effect from the next day. The new shift's start later the same
-/// day registers nothing, the old shift's next start registers nothing,
-/// and the new shift starts on the next day it works.
+/// [WS-systems], the owner's rulings of 2026-10-23 and 2026-10-24: a shift
+/// change at home takes effect from the next day, and the old schedule
+/// still runs on the day of the change. Changed at 00:30, before the
+/// standard shift's 01:00 start, the person still works that shift; the
+/// new shift's start later that day registers nothing, and the next day
+/// the new shift starts and the old one does not.
 #[test]
 fn a_shift_change_takes_effect_from_the_next_day() {
     let (mut sim, actor) = held_fixture(900, 300, 0b1111111, 0);
@@ -1947,20 +1949,76 @@ fn a_shift_change_takes_effect_from_the_next_day() {
             .map(|r| r.reason),
         Some(None)
     );
+    until(&mut sim, "the old shift registers", 100, |sim| {
+        scheduled(sim, actor).is_some()
+    });
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| (s.start_tick, s.end_tick)),
+        Some((60, 540)),
+        "the old schedule still runs on the day of the change"
+    );
     until(&mut sim, "the end of the day of the change", 1500, |sim| {
         sim.world().resource::<SimClock>().tick >= 1439
     });
-    assert!(
-        scheduled(&sim, actor).is_none(),
-        "neither the new shift at 900 nor the old one at 60 starts on the day of the change"
+    assert_eq!(
+        scheduled(&sim, actor).map(|s| s.start_tick),
+        Some(60),
+        "the new shift's start at 900 registers nothing that day"
     );
     until(&mut sim, "the late shift registers", 1000, |sim| {
-        scheduled(sim, actor).is_some()
+        scheduled(sim, actor).is_some_and(|s| s.start_tick != 60)
     });
     assert_eq!(sim.world().resource::<SimClock>().tick, 1440 + 900);
     assert_eq!(
         scheduled(&sim, actor).map(|s| (s.start_tick, s.end_tick)),
-        Some((1440 + 900, 1440 + 1200))
+        Some((1440 + 900, 1440 + 1200)),
+        "the next day the new shift starts and the old one at 1500 did not"
+    );
+}
+
+/// The order preflight agrees with the register on the day of a change: at
+/// the old shift's start it reports the old shift's hours, at the new
+/// shift's start that day it reports nothing, and the next day it reports
+/// the new shift at its own start.
+#[test]
+fn the_preflight_on_the_day_of_a_change_reports_the_old_schedule() {
+    let (mut sim, actor) = held_fixture(900, 300, 0b1111111, 0);
+    let agent = actor.index_u32();
+    sim.world_mut().resource_mut::<SimClock>().tick = 30;
+    issue(&mut sim, SimCommand::ChangeShift { agent, shift: 1 });
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .map(|r| r.reason),
+        Some(None)
+    );
+    let at = |sim: &mut Sim, tick: u64| {
+        sim.world_mut().resource_mut::<SimClock>().tick = tick;
+        work_conflicts(sim.world(), &[agent])
+            .conflicts
+            .first()
+            .map(|c| (c.start_tick, c.end_tick, c.total_minutes))
+    };
+    assert_eq!(
+        at(&mut sim, 60),
+        Some((60, 540, 480.0)),
+        "the old shift is due"
+    );
+    assert_eq!(
+        at(&mut sim, 900),
+        None,
+        "the new shift does not start today"
+    );
+    assert_eq!(
+        at(&mut sim, 1440 + 60),
+        None,
+        "the old shift does not start tomorrow"
+    );
+    assert_eq!(
+        at(&mut sim, 1440 + 900),
+        Some((1440 + 900, 1440 + 1200, 300.0)),
+        "the new shift is due tomorrow"
     );
 }
 

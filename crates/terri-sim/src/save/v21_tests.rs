@@ -571,6 +571,13 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
         .find(|(id, _)| held(&sim, *id) != 0)
         .expect("someone on another shift");
     let before = sim.world_hash();
+    let pack = sim.world().resource::<Content>().0;
+    let row = sim.world().get::<Career>(worker).expect("employed").0;
+    let from = pack.careers[row as usize]
+        .shift(held(&sim, id) as usize)
+        .expect("the held shift")
+        .id
+        .to_string();
     issue(
         &mut sim,
         SimCommand::ChangeShift {
@@ -589,12 +596,25 @@ fn a_shift_change_today_is_hashed_saved_and_checked() {
     let saved = sim.save_snapshot_v21();
     assert_eq!(
         saved.shifts.changed_today,
-        vec![terri_core::save_v21::SavedShiftChange { sim: id.0, day: 0 }]
+        vec![terri_core::save_v21::SavedShiftChange {
+            sim: id.0,
+            day: 0,
+            from: from.clone(),
+        }],
+        "the schedule held when the day began runs for the rest of it"
     );
     let mut loaded = Sim::new_from_shipped_lot();
     assert_eq!(loaded.load_snapshot_v21(saved.clone()), Ok(()));
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(loaded.save_snapshot_v21(), saved);
+
+    let mut unknown = saved.clone();
+    unknown.shifts.changed_today[0].from = "no_such_shift".to_string();
+    assert_eq!(
+        Sim::new_from_shipped_lot().load_snapshot_v21(unknown),
+        Err(crate::SaveError::InvalidValue),
+        "a shift the level does not list refuses to load"
+    );
 
     let mut other_day = saved.clone();
     other_day.shifts.changed_today[0].day = 1;

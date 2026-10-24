@@ -1225,3 +1225,309 @@ fn the_five_new_paths_match_the_spec_tables() {
         assert_eq!(actual, levels.to_vec(), "{id}");
     }
 }
+
+// One paid shift a day: the owner's rulings of 2026-10-24.
+
+/// The shipped household with review chances pinned and no search, its
+/// worker hired onto the hospital's day shift (07:00 to 15:00, Monday to
+/// Friday) at Monday 00:00, run until that shift has settled and the worker
+/// is home.
+fn worked_hospital_day(edit: impl FnOnce(&mut ContentPack)) -> (Sim, SimId, Entity) {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+        edit(pack);
+    });
+    let (id, entity) = worker(&mut sim);
+    let hospital = path_index(pack(&sim), "hospital");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: hospital,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    while sim
+        .world()
+        .resource::<crate::attendance::Attendance>()
+        .outcomes
+        .is_empty()
+        || sim.world().get::<terri_core::AtWork>(entity).is_some()
+        || sim.world().get::<terri_core::Commuting>(entity).is_some()
+    {
+        sim.tick();
+        assert!(
+            sim.world().resource::<SimClock>().tick < 1200,
+            "the day shift settles"
+        );
+    }
+    (sim, id, entity)
+}
+
+fn starts(sim: &Sim, id: SimId) -> Vec<u64> {
+    let attendance = sim.world().resource::<crate::attendance::Attendance>();
+    let mut starts: Vec<u64> = attendance
+        .outcomes
+        .iter()
+        .filter(|o| o.sim == id.0)
+        .map(|o| o.start_tick)
+        .collect();
+    if let Some(open) = attendance.shifts.get(&id).filter(|s| !s.settled) {
+        starts.push(open.start_tick);
+    }
+    starts
+}
+
+/// Runs to `tick` and returns the starts of every shift so far.
+fn starts_through(sim: &mut Sim, id: SimId, tick: u64) -> Vec<u64> {
+    while sim.world().resource::<SimClock>().tick < tick {
+        sim.tick();
+    }
+    starts(sim, id)
+}
+
+/// Re-assigned on the same path after working today's shift, a worker
+/// starts the newly assigned shift the next day: the hospital's night shift
+/// at 23:00 does not start on Monday, and does on Tuesday.
+#[test]
+fn reassignment_on_the_same_path_after_a_worked_shift_starts_tomorrow() {
+    let (mut sim, id, entity) = worked_hospital_day(|_| {});
+    let hospital = path_index(pack(&sim), "hospital");
+    let first = row(pack(&sim), "hospital", 0);
+    let night = pack(&sim).careers[first]
+        .shift_index("night")
+        .expect("listed") as u32;
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: hospital,
+            shift: night,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        starts_through(&mut sim, id, 1439),
+        vec![420],
+        "one shift on Monday"
+    );
+    assert_eq!(
+        starts_through(&mut sim, id, 1440 + 1381),
+        vec![420, 1440 + 1380],
+        "the night shift starts on Tuesday"
+    );
+}
+
+/// Assigned a different path after working today's shift, a worker starts
+/// the new job the next day: the night watch's 22:00 shift does not start
+/// on Monday, and does on Tuesday.
+#[test]
+fn a_new_path_after_a_worked_shift_starts_tomorrow() {
+    let (mut sim, id, entity) = worked_hospital_day(|_| {});
+    let night_watch = path_index(pack(&sim), "night_watch");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: night_watch,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        starts_through(&mut sim, id, 1439),
+        vec![420],
+        "one shift on Monday"
+    );
+    assert_eq!(
+        starts_through(&mut sim, id, 1440 + 1321),
+        vec![420, 1440 + 1320],
+        "the night watch starts on Tuesday"
+    );
+}
+
+/// A worker home in week 1 whose Friday shift of week 0 (the office's
+/// 06:00 start) was never settled: changing shift settles it, and that
+/// settlement runs the review that waited for them.
+fn waiting_review(
+    edit: impl FnOnce(&mut ContentPack),
+    record: impl FnOnce(&mut Record),
+) -> (Sim, SimId, Entity) {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+        edit(pack);
+    });
+    let (id, entity) = worker(&mut sim);
+    let career = sim.world().get::<Career>(entity).expect("employed").0;
+    let start = 4 * 1440 + 360;
+    sim.world_mut().resource_mut::<SimClock>().tick = 7 * 1440 + 60;
+    sim.world_mut()
+        .resource_mut::<crate::attendance::Attendance>()
+        .shifts
+        .insert(
+            id,
+            terri_core::save_v17::SavedScheduledShift {
+                sim: id.0,
+                career,
+                start_tick: start,
+                end_tick: start + 480,
+                worked_ticks: 0,
+                accounted_tick: start,
+                pay_cents: 12_000,
+                settled: false,
+                legacy: false,
+            },
+        );
+    record(
+        sim.world_mut()
+            .resource_mut::<Careers>()
+            .records
+            .get_mut(&id)
+            .expect("a record"),
+    );
+    (sim, id, entity)
+}
+
+/// The world saves and loads into a fresh game on the same pack.
+fn reloads(sim: &Sim) {
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.world_mut().insert_resource(Content(pack(sim)));
+    let saved = sim.save_snapshot_v21();
+    assert_eq!(
+        loaded.load_snapshot_v21(saved),
+        Ok(()),
+        "the world still saves and loads"
+    );
+}
+
+/// Review of 2026-10-24, F1: settling the open shift runs a waiting review
+/// that fires the worker. The change is then refused as for anyone without
+/// a job, creates no record and no change marker, and the world still
+/// saves and loads.
+#[test]
+fn a_change_that_settles_a_firing_review_is_refused() {
+    let (mut sim, id, entity) = waiting_review(
+        |pack| pack.tuning.career_fire_base = 1.0,
+        |record| {
+            record.consecutive_poor = 3;
+            record.shifts = vec![5.0, 5.0];
+        },
+    );
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: entity.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(reason(&sim), Some(Some(CareerRefusal::NotEmployed)));
+    assert!(sim.world().get::<Career>(entity).is_none(), "fired");
+    let careers = sim.world().resource::<Careers>();
+    assert!(
+        careers.record(id).is_none(),
+        "no record for someone without a job"
+    );
+    assert!(careers.shift_changed.is_empty(), "no change marker");
+    reloads(&sim);
+}
+
+/// A waiting review that promotes the worker: the change applies at the
+/// new level, which offers the same shifts, and the world saves and loads.
+#[test]
+fn a_change_that_settles_a_promoting_review_applies_at_the_new_level() {
+    let (mut sim, id, entity) = waiting_review(
+        // Certain whatever the settled shift scores: the chance is clamped.
+        |pack| pack.tuning.career_promote_base = 100.0,
+        |record| {
+            record.consecutive_good = 10;
+            record.shifts = vec![100.0, 100.0];
+        },
+    );
+    let before = sim.world().get::<Career>(entity).expect("employed").0;
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: entity.index_u32(),
+            shift: 1,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    let after = sim.world().get::<Career>(entity).expect("employed").0;
+    assert_ne!(after, before, "promoted");
+    let careers = sim.world().resource::<Careers>();
+    assert_eq!(careers.record(id).map(|r| r.shift), Some(1));
+    assert_eq!(
+        careers.shift_changed.get(&id).map(|c| c.career),
+        Some(after)
+    );
+    reloads(&sim);
+}
+
+/// A waiting review that moves the worker to another path: the change is
+/// judged against the new job, and whatever the outcome the held shift is
+/// one that job offers and the world saves and loads.
+#[test]
+fn a_change_that_settles_a_path_change_is_judged_against_the_new_job() {
+    let (mut sim, id, entity) = waiting_review(
+        |pack| {
+            pack.tuning.career_change_chance = 1.0;
+            pack.tuning.career_change_fit = 2.0;
+            pack.tuning.career_change_gap = -100.0;
+        },
+        |record| record.shifts = vec![55.0, 55.0],
+    );
+    let before = sim.world().get::<Career>(entity).expect("employed").0;
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: entity.index_u32(),
+            shift: 1,
+        },
+    );
+    let after = sim.world().get::<Career>(entity).expect("employed").0;
+    assert_ne!(
+        pack(&sim).careers[after as usize].path,
+        pack(&sim).careers[before as usize].path,
+        "the path changed"
+    );
+    let held = sim
+        .world()
+        .resource::<Careers>()
+        .record(id)
+        .expect("a record")
+        .shift;
+    assert!(pack(&sim).careers[after as usize].offers(held as usize));
+    if let Some(change) = sim.world().resource::<Careers>().shift_changed.get(&id) {
+        assert_eq!(change.career, after);
+    }
+    reloads(&sim);
+}
+
+/// Review of 2026-10-24, F9: after a new job is assigned, the attendance
+/// line no longer reports the old job's last shift and pay.
+#[test]
+fn the_attendance_report_describes_only_the_current_job() {
+    let (mut sim, _, entity) = worked_hospital_day(|_| {});
+    let report = crate::attendance::report(sim.world(), entity);
+    assert_eq!(
+        report.last(),
+        Some(&1.0),
+        "the settled day shift is reported"
+    );
+    let library = path_index(pack(&sim), "library");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareer {
+            agent: entity.index_u32(),
+            path: library,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert!(
+        crate::attendance::report(sim.world(), entity).is_empty(),
+        "the hospital shift is not the library job's"
+    );
+}
