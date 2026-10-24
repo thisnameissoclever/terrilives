@@ -108,6 +108,8 @@ Scroll to Assign a career, then choose a path and Assign to put the person at it
 
 :::illustration sim-career
 
+:::illustration career-shift
+
 Scroll to Reviews for the graph of actual events. The information button beside a Career title in Overview opens a smaller graph.
 
 :::illustration career-review

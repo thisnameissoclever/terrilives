@@ -7,6 +7,7 @@ This record holds the measured figures, moved test expectations and targeted mut
 - [Night worker sleep](#night-worker-sleep)
 - [The shipped household's week](#the-shipped-households-week)
 - [Search spread over 200 careers seeds](#search-spread-over-200-careers-seeds)
+- [Played pass](#played-pass)
 - [Tim's first shift](#tims-first-shift)
 - [Waiting on a sleeping recipient](#waiting-on-a-sleeping-recipient)
 - [Trace cost](#trace-cost)
@@ -41,6 +42,10 @@ The trace ran the shipped household for one week under `--careers-seed` 0 to 199
 | Still unemployed after the week | 20.0% | 19.0% |
 
 The [WS-household] predictions are for the path a person ends up in, so they compare with the shares among those hired within the week: Bill was hired in 160 runs, 34% into the office, 28% the library, 17% the restaurant kitchen and 11% the night watch, against predictions of 30, 30, 18 and 11 percent. Casey was hired in 162 runs, 28% into the hospital, 20% buses, 18% the cafe, 15% the warehouse and 16% the night watch, against 21 percent for each of the first four and 13 percent for the night watch; measured in standard errors of each predicted share for the people hired (about 3.2 percentage points for Casey's paths near 21 percent and 2.6 for the night watch), the hospital is 2.3 standard errors above its prediction, the warehouse 1.75 below, the night watch 1.15 above, the cafe 1.0 below and buses 0.2 below. Bill's paths are within 1.2 standard errors: the office 1.2 above, the library 0.5 below, the restaurant kitchen 0.4 below and the night watch 0.15 below. All three housemates shared Tim's schedule in 1 run of 200 (0.5 percent, predicted 0.45 percent), Tim and Bill in 27.5 percent (predicted 28 percent), Bill and Casey in 0.5 percent (predicted about 2 percent), and at least two of the three in 28 percent (predicted 31 percent, which assumed both were hired).
+
+## Played pass
+
+The [WS-played] pass ran on 2026-10-24 against the build of merge commit `d79c9e258`, at desktop and phone widths, in a muted browser on a task-owned preview port. Every point has an inspected capture with a written finding in [the played record](../evidence/2026-10-24-shifts-played/README.md), which also lists the build hashes, a fresh independent review of the captures and the disposition of each of its findings. The same session refreshed the player guide's Career captures and added a figure for the shift controls.
 
 ## Tim's first shift
 
