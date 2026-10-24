@@ -446,15 +446,21 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 }
 
 /// The shipped household's two-day hash fold on main without the log, at
-/// 2fa3eac56 (pull request 332), the main this branch last merged. Measured
-/// on 2026-10-23 by running the loop of `run_household(false, false, 2880)`
-/// (a tick, a command drain after every 97th tick, then `world_hash`)
-/// through `fold` in a detached checkout of that commit, in a release build.
-/// Comparing the log on with the log off cannot see code that runs in both
-/// modes; this pin can. A deliberate change to simulated behavior on main
-/// moves it: re-measure on the new main the same way and record the commit
-/// here.
+/// 6d92fc561 (pull request 337), the main this branch last merged; the same
+/// value held at 2fa3eac56 and d1e557de4. Measured on 2026-10-23 by running
+/// the loop of `run_household(false, false, 2880)` (a tick, a command drain
+/// after every 97th tick, then `world_hash`) through `fold` in a detached
+/// checkout of that commit, in a release build. Comparing the log on with
+/// the log off cannot see code that runs in both modes; this pin can. A
+/// deliberate change to simulated behavior on main moves it: re-measure on
+/// the new main the same way and record the commit here.
 const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xad59_d080_6ae0_b58e;
+
+/// The same fold over twenty game days, measured the same way at the same
+/// commit, 6d92fc561; a reviewer measured the same value at d1e557de4. The
+/// twenty-day check is a manual release test, so this pin catches a change
+/// running in both modes that only shows after the second day.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x8381_918c_1bdb_58be;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.
@@ -516,7 +522,12 @@ fn activity_log_never_changes_the_world() {
 #[test]
 #[ignore = "manual check: twenty game days; run with --release and --ignored"]
 fn activity_log_never_changes_the_world_over_twenty_days() {
-    let (_, records) = assert_log_never_changes_the_world(20);
+    let (hashes, records) = assert_log_never_changes_the_world(20);
+    assert_eq!(
+        fold(&hashes),
+        TWENTY_DAY_FOLD_WITHOUT_THE_LOG,
+        "the world differs from main without the log"
+    );
     assert_every_line_can_show(&records);
 }
 
