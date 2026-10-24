@@ -509,15 +509,15 @@ impl ActivityLog {
         self.dropped
     }
 
-    /// Entries the scratch area holds: Social totals by person, open
-    /// nuisance episodes by pair, and the held-feeling buffer's capacity.
-    /// Diagnostic only, for the bounded-state measurement of [AL-perf].
     /// The export buffer's capacity in words, for the allocation tests.
     #[cfg(test)]
     pub(crate) fn export_capacity(&self) -> usize {
         self.export.capacity()
     }
 
+    /// Entries the scratch area holds: Social totals by person, open
+    /// nuisance episodes by pair, and the held-feeling buffer's capacity.
+    /// Diagnostic only, for the bounded-state measurement of [AL-perf].
     pub fn scratch_sizes(&self) -> (usize, usize, usize) {
         (
             self.scratch.company.len(),
