@@ -42,6 +42,33 @@ fn staging_ring_overwrites_oldest_and_counts_drops() {
     assert_eq!(log.push(record(LogKind::ActionDone, 300, 0)), 301);
 }
 
+/// A Build transaction clones the log into its candidate world; the clone
+/// keeps an export buffer for a full ring, so its next take allocates
+/// nothing.
+#[test]
+fn a_cloned_log_keeps_room_for_a_full_take() {
+    let mut log = ActivityLog::default();
+    log.push(record(LogKind::ActionDone, 1, 0));
+    log.take_export();
+    let mut clone = log.clone();
+    let full = STAGING_CAPACITY * RECORD_WORDS;
+    assert!(
+        clone.export_capacity() >= full,
+        "{}",
+        clone.export_capacity()
+    );
+    let before = clone.export_capacity();
+    for tick in 0..STAGING_CAPACITY as u64 {
+        clone.push(record(LogKind::ActionDone, tick, 0));
+    }
+    clone.take_export();
+    assert_eq!(
+        clone.export_capacity(),
+        before,
+        "a full take reuses the buffer"
+    );
+}
+
 #[test]
 fn a_disabled_log_stages_nothing() {
     let mut log = ActivityLog::default();

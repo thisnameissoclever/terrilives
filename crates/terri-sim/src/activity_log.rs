@@ -343,7 +343,7 @@ pub fn labels(pack: &'static ContentPack) -> &'static Labels {
 /// Never saved, never hashed, never read by a simulation system. A Load
 /// builds a fresh world and with it an empty log; a Build transaction
 /// carries this resource across its world swaps in `copy_feedback`.
-#[derive(Resource, Clone)]
+#[derive(Resource)]
 pub struct ActivityLog {
     ring: Box<[LogRecord]>,
     head: usize,
@@ -443,6 +443,27 @@ pub struct HeldFeeling {
     pub change: f32,
 }
 
+/// A Build transaction clones the log into its candidate world. A derived
+/// clone would copy only the export buffer's contents, so the clone's next
+/// take would allocate; this one keeps room for a full ring.
+impl Clone for ActivityLog {
+    fn clone(&self) -> Self {
+        let mut export = Vec::with_capacity(STAGING_CAPACITY * RECORD_WORDS);
+        export.extend_from_slice(&self.export);
+        Self {
+            ring: self.ring.clone(),
+            head: self.head,
+            len: self.len,
+            next_seq: self.next_seq,
+            dropped: self.dropped,
+            enabled: self.enabled,
+            unlinked: self.unlinked,
+            scratch: self.scratch.clone(),
+            export,
+        }
+    }
+}
+
 impl Default for ActivityLog {
     fn default() -> Self {
         Self {
@@ -488,6 +509,12 @@ impl ActivityLog {
     /// Entries the scratch area holds: Social totals by person, open
     /// nuisance episodes by pair, and the held-feeling buffer's capacity.
     /// Diagnostic only, for the bounded-state measurement of [AL-perf].
+    /// The export buffer's capacity in words, for the allocation tests.
+    #[cfg(test)]
+    pub(crate) fn export_capacity(&self) -> usize {
+        self.export.capacity()
+    }
+
     pub fn scratch_sizes(&self) -> (usize, usize, usize) {
         (
             self.scratch.company.len(),
