@@ -1,6 +1,6 @@
 # Shifts and careers played pass, 2026-10-24
 
-This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7` (guide captures retaken at `97f802913`), which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
+This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7` (guide captures retaken after the reviews of that day), which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
 
 ## Contents
 
@@ -72,13 +72,13 @@ A fresh reviewer received the [WS-played] points and the first set of captures w
 8. The Overview row wraps inside a time range: the row is right-aligned text in a narrow panel and wraps at spaces; left as it is.
 9. Tim's status line is cut: the dock truncates long activity text by design; the full text is in the Overview's Doing row.
 10. The phone sheet covers part of the Player guide button: main's layout, unchanged by this work.
-11. The job search box was cut by the dock in the mobile controls capture: the capture now scrolls to the end of the tab, so the box shows.
+11. The job search box was cut by the dock in the mobile controls capture: the controls capture now starts at Assign a career's legend, so the tab bar covers nothing; a second capture of the end of the tab, `ui-career-shift-*.png`, shows the job search box, and the guide's shift figure is cropped from it.
 12. The miniature graph's axis labels are small: main's graph, unchanged.
 13. A new job showed the old job's last shift and pay: the attendance line now describes only the current job (`the_attendance_report_describes_only_the_current_job`), and the guide's assigned capture was retaken.
 14. A file name disagreed with its clock: names now follow the clock.
 15. Two night watch night shifts differ only by days: by design, the days distinguish them.
 
-For the guide, the reviewer found that the Career crops did not show the shift controls; a figure, `career-shift`, now shows Assign a career and Shift schedule beside the instructions that describe them. A later review asked that the tab bar not cover the Career path selector and that the Reviews figure not cut the next group's legend: the controls captures now start at Assign a career's legend, and the Reviews captures end at Assign a career. On a phone the sheet then ends at the Shift schedule note, so the job search box shows in the desktop figure only; the guide text names it.
+For the guide, the reviewer found that the Career crops did not show the shift controls; a figure, `career-shift`, now shows Assign a career and Shift schedule beside the instructions that describe them. Later reviews asked that the tab bar not cover the Career path selector, that the Reviews figures include the whole Assign a career box, and that the shift figure show the whole note and the job search box. The controls captures start at Assign a career's legend, the Reviews captures run from the Reviews heading to below the Assign a career box, and the shift figure is cropped from a capture of the end of the tab, from the assigning Shift label to the job search box, at both layouts.
 
 ## Limits
 

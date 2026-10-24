@@ -315,11 +315,11 @@
       {
         "id": "shift-careers-2026-10-24",
         "url": "http://127.0.0.1:4191/",
-        "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-        "bundle": "index-DGXOcHUa.js",
-        "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
-        "wasm": "terri_wasm_bg-DnNK5oAE.wasm",
-        "wasmSha256": "cb2a18d525e8221330b6f2b043f3f1cffd2da59cc974ff517af8e85b0f8de4c1",
+        "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+        "bundle": "index-DVZUdzNT.js",
+        "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+        "wasm": "terri_wasm_bg-aSRI3UZc.wasm",
+        "wasmSha256": "c5be841fe787dea99a1467bad4200e0df63519077c0471de14f6fba5b13023bf",
         "gameSourceFileSha256": {
           "web/index.html": "f8022e944a0005cc1a4c4f113efd0d59c4936f2f2ad5ed7abadf365c2c24efc5",
           "web/src/main.ts": "a601d3e4511b1b4e2ee714688ffb305a2bb0f386eab0eb9c82a01f7dceb0f4a1",
@@ -644,11 +644,11 @@
       "access": "Open Sim details > Career.",
       "desktopDetail": "images/ui-sim-career-detail-desktop.png",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-      "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "d0d21e139af8566d548838663ebe733bb930666288908463ab1bde83e228da53",
-        "mobile": "e2471b358daf7c9139cd1222ab9b182228d55cd220c56e76df4ef9f1e38dfffe",
+        "desktop": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
+        "mobile": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
         "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
       }
     },
@@ -1426,11 +1426,11 @@
       "description": "Career details after assigning a path.",
       "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-      "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "f5d3932effbc6b08f1b251a6733bdb68df24508e2102b94686807a6b188c0bcf",
-        "mobile": "8e833068880019350998eed96f180ffe7482558db8c0584234c35e21ddcf6fb4"
+        "desktop": "97172c578c224526c96df68934647e8fd0e75951f4336651acab5f97d51ea2fc",
+        "mobile": "47f4a5aafc192b5b266b891491a9ecbc6a33178dbca8f9a0857ce70d10be031d"
       }
     },
     {
@@ -1438,14 +1438,29 @@
       "section": "career",
       "desktop": "images/ui-career-controls-desktop.png",
       "mobile": "images/ui-career-controls-mobile.png",
-      "description": "Career assignment, Quit and automatic job search controls.",
+      "description": "The Assign a career controls: Career path, the assigning Shift selector, Assign and Quit.",
       "access": "Open Sim details > Career, then scroll to Assign a career.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-      "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "288aac4a5e265522736c1c58352b7d0ec325884601ec97a149f0a8ecaa03339d",
-        "mobile": "08e4ed18e09f6a2d019e40cf2095d3a1ffdd13953fb2fd71792e04fbdb1b4349"
+        "desktop": "31512630612c02553ef39a856a3a2b9f631c48c4805292f1197efdcc2917a4eb",
+        "mobile": "9fa96d81346266ed1856321436fa9e2a88a32d99ddd64fb7d5ab8fcc3f6529aa"
+      }
+    },
+    {
+      "id": "career-shift-controls",
+      "section": "career",
+      "desktop": "images/ui-career-shift-desktop.png",
+      "mobile": "images/ui-career-shift-mobile.png",
+      "description": "The end of the Career tab: the assigning Shift selector, Assign and Quit, Shift schedule with Change shift and its note, and the automatic job search box.",
+      "access": "Open Sim details > Career, then scroll to the end of the tab.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
+        "mobile": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752"
       }
     },
     {
@@ -1816,11 +1831,11 @@
       "description": "The selected person's completed work reviews.",
       "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-      "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "6013cfd1f746f117ec10569518978df611789bca2a726180b71130e0b2abc5ed",
-        "mobile": "40f586c11fc52f08358dc721a3ec3d3dbbc85a4b10ab7ca535fdddac1e4ffbbf"
+        "desktop": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
+        "mobile": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e"
       }
     },
     {
@@ -1831,11 +1846,11 @@
       "description": "The review graph opened beside the career in Overview.",
       "access": "Open Sim details > Overview, then choose i beside the career name.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "855de546373dfb1c480bd002594067a35f0055a066217e94a78aaaadb9837ab7",
-      "bundleSha256": "ec8eb20dd84cac75276fdd9d8eb81a53a5de91f65b0d7f5b4eab998718fcc672",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
       "imageSha256": {
-        "desktop": "21471c4b4e9cca7a0bc0ffb29a3a65c75bfb4a7014d34754447d1cc1d6dcf1f6",
-        "mobile": "9ddeb84909303de9e70f9bde54b5359f467811663b890bbabc82eb4fc0a5b1ef"
+        "desktop": "6be0220959c480ffa8eeab079ecc9b71b6fff2bd2d88187a44e1a386c439b9dd",
+        "mobile": "80bce91c35ca1a37005f19c156be67051fc97ed498d8f6bff25e8abaec1cb36c"
       }
     },
     {
