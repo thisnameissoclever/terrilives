@@ -19,8 +19,11 @@ use terri_data::ContentPack;
 /// Little-endian `u32` words in one record ([AL-record]).
 pub const RECORD_WORDS: usize = 12;
 /// Records the simulation holds before the oldest is overwritten. The shell
-/// drains every frame and a frame runs at most five ticks, so the ring only
-/// fills when nothing drains it.
+/// drains every frame and a frame runs at most five ticks; a household's
+/// busiest frame stages under a third of the ring. A frame that stages
+/// more, such as a stress page's day end with a feeling from each of a
+/// hundred people, overwrites the oldest records and counts them in
+/// `dropped`.
 pub const STAGING_CAPACITY: usize = 256;
 /// The "nobody" and "no label" value of the `other`, `label` and `label2`
 /// words.

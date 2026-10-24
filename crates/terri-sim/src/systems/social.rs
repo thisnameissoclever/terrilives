@@ -2642,6 +2642,13 @@ mod tests {
                     listener_preference: listener,
                 },
             );
+        // The listener is nearly full, so their Social total stays far
+        // under the initiator's: a record that swapped the two totals would
+        // fail.
+        sim.world_mut()
+            .get_mut::<Needs>(second)
+            .unwrap()
+            .set(NeedId::Social, 97.0);
         for _ in 0..SESSION {
             sim.tick();
             if sim.world().get::<Socialising>(first).is_none() {
@@ -2686,6 +2693,10 @@ mod tests {
         assert_eq!(unpack_pair(record.value(0)), (80, -50));
         let (mine, theirs) = unpack_pair(record.value(1));
         assert!(mine > 0 && theirs > 0, "both refilled: {mine}, {theirs}");
+        assert!(
+            mine > 2 * theirs,
+            "the nearly full listener gains far less than the initiator: {mine}, {theirs}"
+        );
         assert_eq!(record.value(2), opinion_units(spoke.actual));
         assert!((heard.requested - 0.02 * -0.5).abs() < 1e-7);
         assert_eq!(record.value(3), opinion_units(heard.actual));
