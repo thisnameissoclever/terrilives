@@ -1209,12 +1209,25 @@
       <progress id="startup-loading-progress" aria-label="Files loaded" hidden></progress>
       <p id="startup-loading-bytes" hidden></p>
     </div>
-    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
-         Outside #hud for #object-menu's reason: it is fixed to the window's
-         top right, not part of the sidebar's column. Before the sidebar, so
-         it is the first stop after the game view, in and out of Build. The panel holds the
-         controls a player reaches for now and then; the sidebar keeps what
-         they read all the time. -->
+    <!-- The activity log - [AL-panel] in docs/specs/2026-10-18-activity-log.md.
+         The Log toggle owns the window's top right in normal play; Build
+         hides it, because Build's zoom buttons use that corner. Outside
+         #hud for #object-menu's reason: fixed to the window, not part of the
+         sidebar's column. The panel is non-modal and shares the right side
+         with Options and Sim details, one at a time. Its words, the filter
+         toggles included, come from src/ui/activity-log-words.ts at startup.
+         The Options flyout ([OF1] in docs/specs/2026-09-22-options-flyout.md)
+         lives in the sidebar's world actions below, beside Build. -->
+    <button id="activity-log-toggle" class="hud-button" type="button" aria-expanded="false" aria-controls="activity-log"></button>
+    <section id="activity-log" aria-labelledby="activity-log-title" hidden>
+      <div id="activity-log-header"><h2 id="activity-log-title" class="activity-log-title"></h2><button data-action-intent="negative" id="activity-log-close" class="hud-button" type="button"></button></div>
+      <div id="activity-log-filters" role="group"></div>
+      <div id="activity-log-scroller" role="region" tabindex="0">
+        <button id="activity-log-earlier" class="hud-button" type="button" hidden></button>
+        <ol id="activity-log-list"></ol>
+        <p id="activity-log-empty" hidden></p>
+      </div>
+    </section>
     <div id="hud">
       <section id="household-summary" aria-label="Household status">
         <div id="clock-row" class="summary-row">

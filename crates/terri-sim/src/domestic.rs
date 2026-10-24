@@ -350,6 +350,7 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
     if !owners.is_empty() && world.get::<Relationships>(person).is_none() {
         world.entity_mut(person).insert(Relationships::default());
     }
+    let tick = world.resource::<SimClock>().tick;
     for owner in owners {
         let penalty = -crate::relationship_effects::scaled_opinion_delta(
             world,
@@ -358,10 +359,10 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
             crate::relationship_effects::RelationshipCause::HouseholdMess,
             -penalty,
         );
-        world
-            .get_mut::<Relationships>(person)
-            .unwrap()
-            .bump(SimId(owner), -penalty);
+        let mut feelings = world.get_mut::<Relationships>(person).unwrap();
+        let before = feelings.feeling(SimId(owner));
+        feelings.bump(SimId(owner), -penalty);
+        let actual = feelings.feeling(SimId(owner)) - before;
         crate::chore_repair::record_annoyance(
             world,
             own,
@@ -371,6 +372,20 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
                 target: 0,
             },
             penalty,
+        );
+        crate::relationship_effects::record(
+            world,
+            crate::relationship_effects::RelationshipEffect {
+                tick,
+                event: 0,
+                cause: crate::relationship_effects::RelationshipCause::DirtySetting,
+                responsible: SimId(owner),
+                affected: own,
+                requested: -penalty,
+                actual,
+                emergency: false,
+                directed: false,
+            },
         );
     }
 }
@@ -643,10 +658,9 @@ pub(crate) fn tick(world: &mut World) {
                 - before;
             let tick = world.resource::<SimClock>().tick;
             let affected = *world.get::<SimId>(person).unwrap();
-            world
-                .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-                .effects
-                .push(crate::relationship_effects::RelationshipEffect {
+            crate::relationship_effects::record(
+                world,
+                crate::relationship_effects::RelationshipEffect {
                     tick,
                     event: 0,
                     cause: crate::relationship_effects::RelationshipCause::HouseholdMess,
@@ -656,7 +670,8 @@ pub(crate) fn tick(world: &mut World) {
                     actual,
                     emergency: false,
                     directed: false,
-                });
+                },
+            );
         }
         let mut state = world.resource_mut::<SavedDomestic>();
         state
@@ -972,6 +987,12 @@ pub(crate) fn gather_diners(world: &mut World) {
                     && participants.len() + outsiders > dining_capacity(world, table)))
         {
             world.resource_mut::<SavedDomestic>().meals[index].dining_started = true;
+            // The meal's company starts now ([AL-capture] item 4).
+            if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+                for id in participants.union(&arrived) {
+                    log.begin_activity(*id);
+                }
+            }
             if meal.table.is_none() {
                 world
                     .resource_mut::<SavedDining>()

@@ -1,0 +1,485 @@
+{
+  "generatedAt": "2026-10-19T01:56:07.770Z",
+  "args": {
+    "stress": 0,
+    "days": 36,
+    "frame": 5,
+    "pairs": 1,
+    "output": "evidence/wasm-memory-stress0-after.json",
+    "wasmDir": "C:/Users/myema/AppData/Local/Temp/claude/D--VIBES--worktrees-terrilives-nifty-morse-1d549a/8347eed5-fcc5-46f4-8762-05eaeb9964fa/scratchpad/wasm-after"
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "finalDifferenceBytes": 0,
+      "growthAfterDay": 2,
+      "onGrowthBytes": 1441792,
+      "offGrowthBytes": 1441792,
+      "logGrowthBytes": 0,
+      "onLastGrowthDay": 33,
+      "offLastGrowthDay": 33,
+      "largestFrame": 33,
+      "dropped": 0
+    }
+  ],
+  "runs": [
+    {
+      "pair": 0,
+      "logEnabled": true,
+      "largestFrame": 33,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1703936,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 2621440,
+          "drained": 59,
+          "dropped": 0
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 2686976,
+          "drained": 128,
+          "dropped": 0
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 2883584,
+          "drained": 185,
+          "dropped": 0
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 2949120,
+          "drained": 252,
+          "dropped": 0
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 3080192,
+          "drained": 319,
+          "dropped": 0
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 3145728,
+          "drained": 396,
+          "dropped": 0
+        },
+        {
+          "day": 7,
+          "wasmMemoryBytes": 3145728,
+          "drained": 490,
+          "dropped": 0
+        },
+        {
+          "day": 8,
+          "wasmMemoryBytes": 3145728,
+          "drained": 557,
+          "dropped": 0
+        },
+        {
+          "day": 9,
+          "wasmMemoryBytes": 3211264,
+          "drained": 615,
+          "dropped": 0
+        },
+        {
+          "day": 10,
+          "wasmMemoryBytes": 3473408,
+          "drained": 683,
+          "dropped": 0
+        },
+        {
+          "day": 11,
+          "wasmMemoryBytes": 3538944,
+          "drained": 754,
+          "dropped": 0
+        },
+        {
+          "day": 12,
+          "wasmMemoryBytes": 3538944,
+          "drained": 813,
+          "dropped": 0
+        },
+        {
+          "day": 13,
+          "wasmMemoryBytes": 3604480,
+          "drained": 893,
+          "dropped": 0
+        },
+        {
+          "day": 14,
+          "wasmMemoryBytes": 3735552,
+          "drained": 987,
+          "dropped": 0
+        },
+        {
+          "day": 15,
+          "wasmMemoryBytes": 3735552,
+          "drained": 1047,
+          "dropped": 0
+        },
+        {
+          "day": 16,
+          "wasmMemoryBytes": 3801088,
+          "drained": 1103,
+          "dropped": 0
+        },
+        {
+          "day": 17,
+          "wasmMemoryBytes": 3801088,
+          "drained": 1144,
+          "dropped": 0
+        },
+        {
+          "day": 18,
+          "wasmMemoryBytes": 3801088,
+          "drained": 1211,
+          "dropped": 0
+        },
+        {
+          "day": 19,
+          "wasmMemoryBytes": 3801088,
+          "drained": 1256,
+          "dropped": 0
+        },
+        {
+          "day": 20,
+          "wasmMemoryBytes": 3866624,
+          "drained": 1339,
+          "dropped": 0
+        },
+        {
+          "day": 21,
+          "wasmMemoryBytes": 3866624,
+          "drained": 1430,
+          "dropped": 0
+        },
+        {
+          "day": 22,
+          "wasmMemoryBytes": 3866624,
+          "drained": 1506,
+          "dropped": 0
+        },
+        {
+          "day": 23,
+          "wasmMemoryBytes": 3866624,
+          "drained": 1556,
+          "dropped": 0
+        },
+        {
+          "day": 24,
+          "wasmMemoryBytes": 3866624,
+          "drained": 1624,
+          "dropped": 0
+        },
+        {
+          "day": 25,
+          "wasmMemoryBytes": 3932160,
+          "drained": 1695,
+          "dropped": 0
+        },
+        {
+          "day": 26,
+          "wasmMemoryBytes": 3997696,
+          "drained": 1740,
+          "dropped": 0
+        },
+        {
+          "day": 27,
+          "wasmMemoryBytes": 3997696,
+          "drained": 1815,
+          "dropped": 0
+        },
+        {
+          "day": 28,
+          "wasmMemoryBytes": 4063232,
+          "drained": 1909,
+          "dropped": 0
+        },
+        {
+          "day": 29,
+          "wasmMemoryBytes": 4063232,
+          "drained": 1984,
+          "dropped": 0
+        },
+        {
+          "day": 30,
+          "wasmMemoryBytes": 4063232,
+          "drained": 2055,
+          "dropped": 0
+        },
+        {
+          "day": 31,
+          "wasmMemoryBytes": 4063232,
+          "drained": 2134,
+          "dropped": 0
+        },
+        {
+          "day": 32,
+          "wasmMemoryBytes": 4063232,
+          "drained": 2198,
+          "dropped": 0
+        },
+        {
+          "day": 33,
+          "wasmMemoryBytes": 4128768,
+          "drained": 2260,
+          "dropped": 0
+        },
+        {
+          "day": 34,
+          "wasmMemoryBytes": 4128768,
+          "drained": 2344,
+          "dropped": 0
+        },
+        {
+          "day": 35,
+          "wasmMemoryBytes": 4128768,
+          "drained": 2453,
+          "dropped": 0
+        },
+        {
+          "day": 36,
+          "wasmMemoryBytes": 4128768,
+          "drained": 2516,
+          "dropped": 0
+        }
+      ]
+    },
+    {
+      "pair": 0,
+      "logEnabled": false,
+      "largestFrame": 0,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1703936,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 2621440,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 2686976,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 2818048,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 2949120,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 3080192,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 3145728,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 7,
+          "wasmMemoryBytes": 3145728,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 8,
+          "wasmMemoryBytes": 3145728,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 9,
+          "wasmMemoryBytes": 3211264,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 10,
+          "wasmMemoryBytes": 3473408,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 11,
+          "wasmMemoryBytes": 3538944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 12,
+          "wasmMemoryBytes": 3538944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 13,
+          "wasmMemoryBytes": 3604480,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 14,
+          "wasmMemoryBytes": 3735552,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 15,
+          "wasmMemoryBytes": 3735552,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 16,
+          "wasmMemoryBytes": 3801088,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 17,
+          "wasmMemoryBytes": 3801088,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 18,
+          "wasmMemoryBytes": 3801088,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 19,
+          "wasmMemoryBytes": 3801088,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 20,
+          "wasmMemoryBytes": 3866624,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 21,
+          "wasmMemoryBytes": 3866624,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 22,
+          "wasmMemoryBytes": 3866624,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 23,
+          "wasmMemoryBytes": 3866624,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 24,
+          "wasmMemoryBytes": 3866624,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 25,
+          "wasmMemoryBytes": 3932160,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 26,
+          "wasmMemoryBytes": 3997696,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 27,
+          "wasmMemoryBytes": 3997696,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 28,
+          "wasmMemoryBytes": 4063232,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 29,
+          "wasmMemoryBytes": 4063232,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 30,
+          "wasmMemoryBytes": 4063232,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 31,
+          "wasmMemoryBytes": 4063232,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 32,
+          "wasmMemoryBytes": 4063232,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 33,
+          "wasmMemoryBytes": 4128768,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 34,
+          "wasmMemoryBytes": 4128768,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 35,
+          "wasmMemoryBytes": 4128768,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 36,
+          "wasmMemoryBytes": 4128768,
+          "drained": 0,
+          "dropped": 0
+        }
+      ]
+    }
+  ]
+}

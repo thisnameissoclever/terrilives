@@ -1,9 +1,19 @@
 const fs = require('node:fs');
-const path = require('node:path');
 const { createHash } = require('node:crypto');
+const {
+  FIXED_TICKS,
+  WARMUP_TICKS,
+  calibrateRefresh,
+  closeHelpAndSetThreeTimes,
+  launchDisplayedChrome,
+  loadPlaywright,
+  measureFixedTicks,
+  median,
+  setSpeed,
+  stats,
+  waitForStress,
+} = require('./lib/browser-frame-gate.cjs');
 
-const FIXED_TICKS = 600;
-const WARMUP_TICKS = 60;
 const MEMORY_STEP_TICKS = 60;
 const AUDIO_RETAINED_ALLOWANCE_BYTES = 64 * 1024;
 
@@ -38,59 +48,11 @@ function parseArgs(argv) {
   return result;
 }
 
-function loadPlaywright() {
-  const configured = process.env.TERRILIVES_PLAYWRIGHT_CORE;
-  const globalRoot = path.join(process.env.APPDATA ?? '', 'npm', 'node_modules');
-  const candidates = [
-    configured,
-    path.join(globalRoot, '@playwright', 'cli', 'node_modules', 'playwright-core'),
-    path.join(globalRoot, 'playwright-core'),
-  ].filter(Boolean);
-  const found = candidates.find((candidate) =>
-    fs.existsSync(path.join(candidate, 'package.json')),
-  );
-  if (found === undefined) {
-    throw new Error(
-      'Playwright Core was not found. Install the existing Codex Playwright CLI or set TERRILIVES_PLAYWRIGHT_CORE.',
-    );
-  }
-  return require(found);
-}
-
 function withQuery(baseUrl, audioEnabled) {
   const url = new URL(baseUrl);
   url.searchParams.set('stress', '1000');
   if (!audioEnabled) url.searchParams.set('audio', '0');
   return url.toString();
-}
-
-async function waitForStress(page) {
-  await page.waitForFunction(
-    () => globalThis.__terriStress?.entities === 1037,
-    undefined,
-    { polling: 100, timeout: 60_000 },
-  );
-}
-
-async function closeHelpAndSetThreeTimes(page) {
-  const close = page.locator('#close-help');
-  if (await close.isVisible()) await close.click();
-  // Always deliver a real gesture, even when first-run Help is already closed.
-  await page.locator('#options-toggle').click();
-  await page.locator('#options-close').click();
-  await setSpeed(page, 3);
-  await page.waitForTimeout(250);
-}
-
-async function setSpeed(page, multiplier) {
-  await page.evaluate((multiplier) => {
-    const speed = document.querySelector(`#speed-${multiplier}`);
-    if (!(speed instanceof HTMLInputElement)) {
-      throw new Error(`missing #speed-${multiplier} input`);
-    }
-    speed.checked = true;
-    speed.dispatchEvent(new Event('change', { bubbles: true }));
-  }, multiplier);
 }
 
 /** Self-contained for browser serialization; stop without a remote polling delay. */
@@ -109,44 +71,6 @@ function pauseAtMemoryEndpoint(target) {
   requestAnimationFrame(pauseAtEndpoint);
 }
 
-function percentile(sorted, fraction) {
-  if (sorted.length === 0) return 0;
-  return sorted[Math.ceil(sorted.length * fraction) - 1];
-}
-
-function stats(values) {
-  const sorted = [...values].sort((left, right) => left - right);
-  return {
-    count: sorted.length,
-    mean: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
-    p50: percentile(sorted, 0.5),
-    p95: percentile(sorted, 0.95),
-    max: sorted.at(-1) ?? 0,
-  };
-}
-
-async function calibrateRefresh(page) {
-  return page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        const intervals = [];
-        let first = null;
-        let previous = null;
-        function frame(timestamp) {
-          if (first === null) first = timestamp;
-          if (previous !== null) intervals.push(timestamp - previous);
-          previous = timestamp;
-          if (timestamp - first >= 5_000) {
-            resolve({ durationMs: timestamp - first, intervals });
-            return;
-          }
-          requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-      }),
-  );
-}
-
 async function runPerformance(browser, baseUrl, audioEnabled) {
   const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
   const page = await context.newPage();
@@ -161,74 +85,12 @@ async function runPerformance(browser, baseUrl, audioEnabled) {
       (calibrationRaw.intervals.length * 1_000) / calibrationRaw.durationMs;
 
     await closeHelpAndSetThreeTimes(page);
-    const result = await page.evaluate(
-      async ({ warmupTicks, retainedTicks }) => {
-        const stress = globalThis.__terriStress;
-        if (stress === undefined) throw new Error('stress handle disappeared');
-
-        const warmupStart = stress.sim.clockTick();
-        await new Promise((resolve) => {
-          const check = () => {
-            if (stress.sim.clockTick() - warmupStart >= warmupTicks) resolve();
-            else requestAnimationFrame(check);
-          };
-          requestAnimationFrame(check);
-        });
-
-        const work = [];
-        const intervals = [];
-        const timer = stress.timer;
-        const originalSample = timer.sample.bind(timer);
-        timer.sample = (elapsedMs) => {
-          work.push(elapsedMs);
-          originalSample(elapsedMs);
-        };
-        let simIdOfCalls = 0;
-        const originalSimIdOf = stress.sim.simIdOf.bind(stress.sim);
-        stress.sim.simIdOf = (...args) => {
-          simIdOfCalls += 1;
-          return originalSimIdOf(...args);
-        };
-
-        const startTick = stress.sim.clockTick();
-        let firstTimestamp = null;
-        let previousTimestamp = null;
-        try {
-          await new Promise((resolve) => {
-            const collect = (timestamp) => {
-              if (firstTimestamp === null) firstTimestamp = timestamp;
-              if (previousTimestamp !== null) {
-                intervals.push(timestamp - previousTimestamp);
-              }
-              previousTimestamp = timestamp;
-              if (stress.sim.clockTick() - startTick >= retainedTicks) resolve();
-              else requestAnimationFrame(collect);
-            };
-            requestAnimationFrame(collect);
-          });
-        } finally {
-          timer.sample = originalSample;
-          stress.sim.simIdOf = originalSimIdOf;
-        }
-
-        return {
-          entities: stress.entities,
-          fixedTicks: stress.sim.clockTick() - startTick,
-          durationMs: previousTimestamp - firstTimestamp,
-          intervals,
-          work,
-          simIdOfCalls,
-          sampler: {
-            frames: stress.footstepSampler.frames,
-            window: stress.footstepSampler.windowSize,
-            mean: stress.footstepSampler.mean,
-            p95: stress.footstepSampler.p95,
-            max: stress.footstepSampler.max,
-          },
-        };
-      },
-      { warmupTicks: WARMUP_TICKS, retainedTicks: FIXED_TICKS - WARMUP_TICKS },
-    );
+    const measured = await measureFixedTicks(page, {
+      warmupTicks: WARMUP_TICKS,
+      retainedTicks: FIXED_TICKS - WARMUP_TICKS,
+      rings: ['footstepSampler'],
+    });
+    const result = { ...measured, sampler: measured.rings.footstepSampler };
 
     const intervals = stats(result.intervals);
     const work = stats(result.work);
@@ -581,11 +443,6 @@ function growth(run, field) {
   return first === null || last === null ? null : last - first;
 }
 
-function median(values) {
-  const sorted = [...values].sort((left, right) => left - right);
-  return sorted[Math.floor(sorted.length / 2)];
-}
-
 function analyseMemory(runs) {
   const reference = runs[0];
   const coveragePass = runs.every(run => {
@@ -711,15 +568,7 @@ async function runScheduler(browser, baseUrl) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const { chromium } = loadPlaywright();
-  const browser = await chromium.launch({
-    channel: 'chrome',
-    headless: false,
-    args: [
-      '--window-position=0,0',
-      '--window-size=1400,900',
-      '--enable-blink-features=ForceEagerMeasureMemory',
-    ],
-  });
+  const browser = await launchDisplayedChrome(chromium);
   let report;
   try {
     if (args.mode === 'performance') {

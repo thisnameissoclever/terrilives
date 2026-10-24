@@ -1,6 +1,8 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 #[cfg(test)]
+mod activity_log_tests;
+#[cfg(test)]
 mod player_order_tests;
 
 #[cfg(test)]
@@ -2129,6 +2131,47 @@ impl SimHandle {
 
     pub fn clear_completion_sounds(&mut self) {
         self.sim.clear_completion_sounds();
+    }
+
+    /// Moves every staged activity log record into the export buffer and
+    /// returns the record count ([AL-bridge]). Consuming, like
+    /// `takeBookResults`: a second take without new events returns 0.
+    pub fn activity_log_take(&mut self) -> u32 {
+        self.sim.take_activity_log_export()
+    }
+
+    /// The export buffer the last take filled: `count * 12` little-endian
+    /// words. Read through a fresh view and copied out before any other
+    /// boundary call, because any allocation here can detach the view
+    /// ([L72]).
+    pub fn activity_log_ptr(&self) -> *const u32 {
+        self.sim.activity_log_export().as_ptr()
+    }
+
+    /// Records overwritten in the staging ring before a take. Diagnostic.
+    pub fn activity_log_dropped(&self) -> u32 {
+        self.sim.activity_log_dropped()
+    }
+
+    /// Every string a record's `label` and `label2` words index, one per
+    /// line in table order. Fixed by the content pack, so the shell reads
+    /// it once per page.
+    pub fn activity_log_labels(&self) -> String {
+        self.sim.activity_log_labels().join("\n")
+    }
+
+    /// Turns the activity log off for the disabled performance baseline
+    /// (`?activitylog=0`). The choice survives a Load.
+    pub fn set_activity_log_enabled(&mut self, on: bool) {
+        self.sim.set_activity_log_enabled(on);
+    }
+
+    /// The Likes and dislikes band edges, `affinity_band_loves` then
+    /// `affinity_band_likes`, which turn a chat's topic preferences into the
+    /// log's reaction words ([AL-numbers]).
+    pub fn activity_log_reaction_bands(&self) -> Vec<f32> {
+        let tuning = &self.sim.world().resource::<Content>().0.tuning;
+        vec![tuning.affinity_band_loves, tuning.affinity_band_likes]
     }
 
     /// Exact SmartObject entity index that sources each authored sound, or

@@ -108,7 +108,10 @@ pub fn follow_path(
     mut interpersonal: ResMut<super::interpersonal::InterpersonalPhase>,
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     clock: Res<terri_core::SimClock>,
-    mut diagnostics: ResMut<crate::relationship_effects::RelationshipDiagnostics>,
+    (mut diagnostics, mut log): (
+        ResMut<crate::relationship_effects::RelationshipDiagnostics>,
+        Option<ResMut<crate::activity_log::ActivityLog>>,
+    ),
     identities: Query<&terri_core::SimId>,
     beds: super::action::BedState,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
@@ -208,6 +211,13 @@ pub fn follow_path(
                         .remove::<terri_core::SleepPlace>();
                     continue;
                 };
+                // A recipe starts its own Social total at its first step
+                // ([AL-capture] item 4).
+                if let (0, Some(log), Ok(id)) =
+                    (chain_state.step, log.as_deref_mut(), identities.get(entity))
+                {
+                    log.begin_activity(id.0);
+                }
                 let chain = &content.0.chains[chain_state.chain as usize];
                 let step = &chain.steps[chain_state.step as usize];
                 let base_work = crate::recipe_actions::duration(content.0, chain_state, origin);
@@ -329,6 +339,9 @@ pub fn follow_path(
                     interaction: target.interaction,
                     remaining_ticks,
                 });
+                if let (Some(log), Ok(id)) = (log.as_deref_mut(), identities.get(entity)) {
+                    log.begin_activity(id.0);
+                }
                 let contact = *target;
                 commands.queue(move |world: &mut World| {
                     crate::player_actions::record_physical_work_start(world, entity, contact)
@@ -436,6 +449,13 @@ pub fn follow_path(
                 commands.queue(move |world: &mut World| {
                     crate::social_episode::started(world, entity, partner)
                 });
+                if let Some(log) = log.as_deref_mut() {
+                    for person in [entity, partner] {
+                        if let Ok(id) = identities.get(person) {
+                            log.begin_activity(id.0);
+                        }
+                    }
+                }
                 let mut talker = commands.entity(entity);
                 talker.remove::<Path>().insert(Socialising {
                     interaction: target.interaction,

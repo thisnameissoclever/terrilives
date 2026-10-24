@@ -460,7 +460,7 @@ fn review_floor_merge_keeps_selected_owner_and_retires_without_credit_or_neglect
     assert!(sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .is_empty());
 }
 
@@ -699,7 +699,7 @@ fn review_floor_replanning_keeps_nonzero_cleaned_units_and_unrelated_activity_pa
     assert!(sim
         .world()
         .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-        .effects
+        .effects()
         .is_empty());
 }
 

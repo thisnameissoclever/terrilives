@@ -1,0 +1,345 @@
+{
+  "generatedAt": "2026-10-19T00:38:37.862Z",
+  "args": {
+    "stress": 100,
+    "days": 6,
+    "frame": 5,
+    "pairs": 3,
+    "output": "evidence/wasm-memory-stress100-before.json",
+    "wasmDir": "C:/Users/myema/AppData/Local/Temp/claude/D--VIBES--worktrees-terrilives-nifty-morse-1d549a/8347eed5-fcc5-46f4-8762-05eaeb9964fa/scratchpad/wasm-before"
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "finalDifferenceBytes": -65536,
+      "growthAfterDay": 2,
+      "onGrowthBytes": 1310720,
+      "offGrowthBytes": 1376256,
+      "logGrowthBytes": -65536,
+      "onLastGrowthDay": 6,
+      "offLastGrowthDay": 6,
+      "largestFrame": 256,
+      "dropped": 53
+    },
+    {
+      "pair": 1,
+      "finalDifferenceBytes": -65536,
+      "growthAfterDay": 2,
+      "onGrowthBytes": 1310720,
+      "offGrowthBytes": 1376256,
+      "logGrowthBytes": -65536,
+      "onLastGrowthDay": 6,
+      "offLastGrowthDay": 6,
+      "largestFrame": 256,
+      "dropped": 53
+    },
+    {
+      "pair": 2,
+      "finalDifferenceBytes": -65536,
+      "growthAfterDay": 2,
+      "onGrowthBytes": 1310720,
+      "offGrowthBytes": 1376256,
+      "logGrowthBytes": -65536,
+      "onLastGrowthDay": 6,
+      "offLastGrowthDay": 6,
+      "largestFrame": 256,
+      "dropped": 53
+    }
+  ],
+  "runs": [
+    {
+      "pair": 0,
+      "logEnabled": true,
+      "largestFrame": 256,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 1577,
+          "dropped": 53
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 3289,
+          "dropped": 53
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 4731,
+          "dropped": 53
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12320768,
+          "drained": 5995,
+          "dropped": 53
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12910592,
+          "drained": 7345,
+          "dropped": 53
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13041664,
+          "drained": 8865,
+          "dropped": 53
+        }
+      ]
+    },
+    {
+      "pair": 0,
+      "logEnabled": false,
+      "largestFrame": 0,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12189696,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12976128,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13107200,
+          "drained": 0,
+          "dropped": 0
+        }
+      ]
+    },
+    {
+      "pair": 1,
+      "logEnabled": false,
+      "largestFrame": 0,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12189696,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12976128,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13107200,
+          "drained": 0,
+          "dropped": 0
+        }
+      ]
+    },
+    {
+      "pair": 1,
+      "logEnabled": true,
+      "largestFrame": 256,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 1577,
+          "dropped": 53
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 3289,
+          "dropped": 53
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 4731,
+          "dropped": 53
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12320768,
+          "drained": 5995,
+          "dropped": 53
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12910592,
+          "drained": 7345,
+          "dropped": 53
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13041664,
+          "drained": 8865,
+          "dropped": 53
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "logEnabled": true,
+      "largestFrame": 256,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 1577,
+          "dropped": 53
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 3289,
+          "dropped": 53
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 4731,
+          "dropped": 53
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12320768,
+          "drained": 5995,
+          "dropped": 53
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12910592,
+          "drained": 7345,
+          "dropped": 53
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13041664,
+          "drained": 8865,
+          "dropped": 53
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "logEnabled": false,
+      "largestFrame": 0,
+      "samples": [
+        {
+          "day": 0,
+          "wasmMemoryBytes": 1769472,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 1,
+          "wasmMemoryBytes": 10682368,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 2,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 3,
+          "wasmMemoryBytes": 11730944,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 4,
+          "wasmMemoryBytes": 12189696,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 5,
+          "wasmMemoryBytes": 12976128,
+          "drained": 0,
+          "dropped": 0
+        },
+        {
+          "day": 6,
+          "wasmMemoryBytes": 13107200,
+          "drained": 0,
+          "dropped": 0
+        }
+      ]
+    }
+  ]
+}

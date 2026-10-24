@@ -261,6 +261,56 @@
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
         "capturedAt": "2026-10-23",
         "method": "Playwright Chrome against this worktree build, merged with main, served by vite preview; Sound off before any capture. Options opened from the world controls after dismissing first-run Help; Import confirmation opened by choosing a saved game file after closing Options with Escape."
+      },
+      {
+        "id": "activity-log",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "33ee7a4ac",
+        "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+        "bundle": "index-BAhtCSe1.js",
+        "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+        "wasm": "terri_wasm_bg-DFgWgfcg.wasm",
+        "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "708c80b3e6b1dbc99bf0a5f19da37981608b48294a4199fba88c20c385985415",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "067119877f6ab0f837e7a679fa78bce87865a9152a7553445368a3c5e02f62f0",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping, one or two game days for the open, Only and privacy states and six or seven for Show earlier entries, then the Log opened from its top-right button.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "activity-log-review-fixes",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "e8d1d9018",
+        "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+        "bundle": "index-B3WUuvwr.js",
+        "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+        "wasm": "terri_wasm_bg-BQBZ8UbY.wasm",
+        "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "6ea637b3addd69e0fac6b5bc6791380aa221b73acb6c3a9b5cca582a1c00f159",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "230a26a08040f5c428fb5affdb205ca1e81b38d2ea5a918e81b8f7fc7f1ac9b1",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping one game day at a time until a bathroom privacy line was held, then the Log opened from its top-right button. The open and Only states are scrolled to the newest line.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
       }
     ],
     "weatherSetup": {
@@ -2152,6 +2202,126 @@
       "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
       "desktop": "images/debug-report-sharing-desktop.png",
       "mobile": "images/debug-report-sharing-mobile.png"
+    },
+    {
+      "id": "log",
+      "section": "log",
+      "description": "The Log open with the default filters, showing the whole household and scrolled to the newest line; the desktop capture includes a bathroom privacy line.",
+      "access": "Choose Log at the top right of the screen.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
+        "mobile": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-desktop.png",
+      "mobile": "images/ui-log-mobile.png"
+    },
+    {
+      "id": "log-only",
+      "section": "log",
+      "description": "The Log with Only Tim ticked, showing only the lines that involve the selected housemate.",
+      "access": "Select Tim in the Household row, choose Log, then tick Only Tim at the end of the filter row.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
+        "mobile": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-only-desktop.png",
+      "mobile": "images/ui-log-only-mobile.png"
+    },
+    {
+      "id": "log-show-earlier",
+      "section": "log",
+      "description": "The top of the Log after a week of play, with Show earlier entries above the oldest shown line.",
+      "access": "Choose Log, then scroll to the top of the list.",
+      "sourceSnapshot": "activity-log",
+      "imageSha256": {
+        "desktop": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8",
+        "mobile": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+        }
+      },
+      "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+      "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+      "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+      "desktop": "images/ui-log-show-earlier-desktop.png",
+      "mobile": "images/ui-log-show-earlier-mobile.png"
     }
   ],
   "uiSections": {

@@ -543,7 +543,7 @@ fn completed_verified_in(
     let gain = base + clean_weight * crate::domestic::cleanliness(world, entity);
     for initiator in initiators {
         if people.contains_key(&initiator) {
-            crate::relationship_effects::record_opinion_change(
+            crate::relationship_effects::record_unlogged_opinion_change(
                 world,
                 initiator,
                 entity,

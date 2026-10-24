@@ -2,6 +2,9 @@
 
 mod action_queue;
 pub mod action_rows;
+pub mod activity_log;
+#[cfg(test)]
+mod activity_log_tests;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
@@ -1761,6 +1764,11 @@ impl Sim {
             .revision
             .saturating_add(1);
         build_transaction::carry_adoption(&self.world, &mut restored)?;
+        let log_enabled = self
+            .world
+            .get_resource::<activity_log::ActivityLog>()
+            .is_none_or(activity_log::ActivityLog::enabled);
+        restored.set_activity_log_enabled(log_enabled);
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
         self.portals
@@ -1807,6 +1815,8 @@ impl Sim {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
         world.insert_resource(completion_sounds::CompletionSounds::default());
+        // Unsaved and unhashed, like the completion sounds: [AL-boundary].
+        world.insert_resource(activity_log::ActivityLog::default());
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(social_company::SocialCompany::default());
@@ -2469,6 +2479,7 @@ impl Sim {
         chore_repair::reconcile(&mut self.world);
         social_conflicts::tick(&mut self.world);
         player_actions::observe(&mut self.world);
+        activity_log::finish_tick(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
     }
@@ -2480,6 +2491,13 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        self.apply_staged_commands();
+        // Commands can settle events too, so a paused frame ends with the
+        // same activity log pass a full tick does.
+        activity_log::finish_tick(&mut self.world);
+    }
+
+    fn apply_staged_commands(&mut self) {
         if !self.build_active() {
             player_actions::observe(&mut self.world);
         }
@@ -2506,6 +2524,52 @@ impl Sim {
         player_actions::observe(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
+    }
+
+    /// Moves every staged activity log record into `out`, twelve words
+    /// each and oldest first, and returns how many it moved ([AL-bridge]).
+    pub fn take_activity_log(&mut self, out: &mut Vec<u32>) -> u32 {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .take_into(out)
+    }
+
+    /// Moves every staged record into the log's export buffer and returns
+    /// how many it moved; [`Sim::activity_log_export`] then reads them. The
+    /// wasm bridge's consuming take ([AL-bridge]).
+    pub fn take_activity_log_export(&mut self) -> u32 {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .take_export()
+    }
+
+    /// The records the last [`Sim::take_activity_log_export`] moved.
+    pub fn activity_log_export(&self) -> &[u32] {
+        self.world
+            .resource::<activity_log::ActivityLog>()
+            .exported()
+    }
+
+    /// The strings a record's `label` and `label2` words index.
+    pub fn activity_log_labels(&self) -> &[String] {
+        activity_log::labels(self.world.resource::<Content>().0).names()
+    }
+
+    /// Records overwritten before anything drained them. Diagnostic only.
+    pub fn activity_log_dropped(&self) -> u32 {
+        self.world.resource::<activity_log::ActivityLog>().dropped()
+    }
+
+    /// Turns the activity log off for the disabled performance baseline. The
+    /// choice survives a Load, which otherwise starts an empty log.
+    pub fn set_activity_log_enabled(&mut self, on: bool) {
+        self.world
+            .resource_mut::<activity_log::ActivityLog>()
+            .set_enabled(on);
+    }
+
+    pub fn activity_log(&self) -> &activity_log::ActivityLog {
+        self.world.resource::<activity_log::ActivityLog>()
     }
 
     pub fn completion_sounds(&self) -> &[u32] {

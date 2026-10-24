@@ -131,6 +131,23 @@ impl Reason {
             None => Self::NONE_CODE,
         }
     }
+    /// Every reason a fight can have, `None` first, so a table such as the
+    /// activity log's labels can name every tag [`Reason::tag`] returns.
+    pub fn all() -> impl Iterator<Item = Option<Self>> {
+        [
+            None,
+            Some(Self::Dishes),
+            Some(Self::OtherChore),
+            Some(Self::Privacy),
+            Some(Self::Television),
+            Some(Self::Music),
+            Some(Self::Exercise),
+            Some(Self::Nuisance),
+            Some(Self::Interruption),
+        ]
+        .into_iter()
+        .chain(RANDOM_TOPICS.iter().map(|&code| Some(Self::Random(code))))
+    }
     pub fn tag(reason: Option<Self>) -> &'static str {
         match reason {
             Some(Self::Dishes) => "fight-dishes",
@@ -1895,7 +1912,7 @@ mod order_tests {
             .resource::<crate::relationship_effects::RelationshipDiagnostics>();
         assert_eq!(
             diagnostics
-                .effects
+                .effects()
                 .iter()
                 .filter(|e| e.cause == crate::relationship_effects::RelationshipCause::Fight)
                 .count(),
@@ -2022,9 +2039,70 @@ mod order_tests {
         assert!(sim
             .world()
             .resource::<crate::relationship_effects::RelationshipDiagnostics>()
-            .effects
+            .effects()
             .iter()
             .all(|e| e.cause != crate::relationship_effects::RelationshipCause::Fight));
+    }
+
+    /// [AL-record] kind 3: a finished fight is one line naming both sides,
+    /// the fight topic and both losses.
+    #[test]
+    fn fight_completion_logs_reason_and_both_losses() {
+        use crate::activity_log::{opinion_units, LogKind, ACTIONS, SOCIAL};
+        let (mut sim, a, b, _fridge) = household();
+        order_fight(&mut sim, a, b);
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_some(),
+            "the fight",
+        );
+        // A player's fight takes a reason of its own; the line names it.
+        let tag = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .topics[&a]
+            .tag
+            .clone();
+        assert!(
+            Reason::from_tag_current(&tag).is_some(),
+            "{tag} is a fight reason"
+        );
+        tick_until(
+            &mut sim,
+            |sim| sim.world().get::<Socialising>(a).is_none(),
+            "the end of the fight",
+        );
+        let pack = sim.world().resource::<crate::Content>().0;
+        let records: Vec<_> = sim.activity_log().records().copied().collect();
+        let fights: Vec<_> = records
+            .iter()
+            .filter(|r| r.kind() == Some(LogKind::FightDone))
+            .collect();
+        assert_eq!(fights.len(), 1, "{records:?}");
+        assert!(records.iter().all(|r| r.kind() != Some(LogKind::ChatDone)));
+        let record = fights[0];
+        let (a_id, b_id) = (
+            *sim.world().get::<SimId>(a).unwrap(),
+            *sim.world().get::<SimId>(b).unwrap(),
+        );
+        assert_eq!((record.actor(), record.other()), (a_id.0, b_id.0));
+        assert_eq!(record.triggers(), ACTIONS | SOCIAL);
+        assert_eq!(record.label2(), sim.activity_log().label(pack, &tag));
+        assert_ne!(record.label2(), crate::activity_log::NONE);
+        let loss = |me: SimId, other: SimId| {
+            sim.relationship_effects()
+                .iter()
+                .find(|e| {
+                    e.cause == crate::relationship_effects::RelationshipCause::Fight
+                        && e.affected == me
+                        && e.responsible == other
+                })
+                .unwrap()
+                .actual
+        };
+        assert_eq!(record.value(2), opinion_units(loss(a_id, b_id)));
+        assert_eq!(record.value(3), opinion_units(loss(b_id, a_id)));
+        assert!(record.value(2) < 0 && record.value(3) < 0);
     }
 
     #[test]

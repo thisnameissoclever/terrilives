@@ -245,3 +245,19 @@ it('wires household warnings into the frame refresh outside the selected-person 
   expect(main).toContain('dockAlert.textContent = warning');
   expect(main).toContain('if (needsUpdated) syncDockSummary();');
 });
+
+// [AL-panel] items 1 and 4: the Log toggle takes the top-right corner, and
+// the panel stacks above the dock and below Options, the debug panel and the
+// object menu.
+it('stacks the activity log between the dock and Options in the top-right corner', () => {
+  const zIndex = (selector: string): number => {
+    const start = css.indexOf(`\n${selector} {`);
+    return Number(/z-index: (\d+);/.exec(css.slice(start, css.indexOf('}', start)))?.[1]);
+  };
+  expect(zIndex('#sim-dock')).toBe(5);
+  expect(zIndex('#activity-log')).toBe(7);
+  expect(zIndex('#activity-log-toggle')).toBe(8);
+  expect(html).toContain('#options { position: relative; z-index: 8; }');
+  expect(css).toMatch(/#activity-log-toggle \{\s*position: fixed;\s*top: max\(8px, env\(safe-area-inset-top\)\);\s*right: max\(8px, env\(safe-area-inset-right\)\);/);
+  expect(css).toContain('bottom: var(--activity-log-bottom, 140px);');
+});

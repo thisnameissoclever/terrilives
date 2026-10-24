@@ -385,6 +385,9 @@ const FLOOR_REASONS: Readonly<Record<number, string>> = {
 export const RELATION_WORDS = ['partner', 'parent', 'child', 'sibling'] as const;
 export const NO_RELATION = 4;
 
+/** Little-endian `u32` words in one activity log record ([AL-record]). */
+export const ACTIVITY_LOG_RECORD_WORDS = 12;
+
 /** The plain word for a relation code, or null when there is no tie. */
 export function relationWord(code: number): string | null {
   return RELATION_WORDS[code] ?? null;
@@ -1213,6 +1216,61 @@ export class SimBridge {
   }
 
   clearCompletionSounds(): void { this.handle.clear_completion_sounds(); }
+
+  private activityLogLabelsCache: string[] | null = null;
+
+  /**
+   * Moves every staged activity log record into `into`, a ring of
+   * 12-word records, starting at record slot `at` and wrapping to slot 0 at
+   * its end, and returns the record count ([AL-bridge]). Consuming: the
+   * simulation forgets what it hands over.
+   *
+   * The view over the export buffer is built after the take and copied
+   * word by word before this returns, so no later boundary call (a label
+   * string, a name) can detach it mid-copy (lesson L72). The copy builds
+   * one view object and nothing else.
+   */
+  takeActivityLog(into: Uint32Array, at: number): number {
+    const count = this.handle.activity_log_take();
+    if (count === 0) return 0;
+    const words = count * ACTIVITY_LOG_RECORD_WORDS;
+    const slots = Math.floor(into.length / ACTIVITY_LOG_RECORD_WORDS);
+    if (count > slots || !Number.isInteger(at) || at < 0 || at >= slots) {
+      throw new Error('Activity log records do not fit the destination.');
+    }
+    const view = new Uint32Array(this.memory.buffer, this.handle.activity_log_ptr(), words);
+    const length = slots * ACTIVITY_LOG_RECORD_WORDS;
+    let target = at * ACTIVITY_LOG_RECORD_WORDS;
+    for (let word = 0; word < words; word++) {
+      into[target] = view[word];
+      target = target + 1 === length ? 0 : target + 1;
+    }
+    return count;
+  }
+
+  /**
+   * The strings record `label` and `label2` words index. Fixed by the
+   * content pack, so it crosses the boundary once per page.
+   */
+  activityLogLabels(): readonly string[] {
+    return this.activityLogLabelsCache ??= this.handle.activity_log_labels().split('\n');
+  }
+
+  /** Records lost to a full staging ring before a take. Diagnostic only. */
+  activityLogDropped(): number { return this.handle.activity_log_dropped(); }
+
+  /** Turns emission off for the disabled baseline, `?activitylog=0`. */
+  setActivityLogEnabled(on: boolean): void { this.handle.set_activity_log_enabled(on); }
+
+  /**
+   * The Likes and dislikes band edges that turn a topic preference, from
+   * -1 to 1, into a reaction word ([AL-numbers]).
+   */
+  activityLogReactionBands(): { loves: number; likes: number } {
+    const [loves, likes] = this.handle.activity_log_reaction_bands();
+    if (!(likes > 0 && likes < loves && loves <= 1)) throw new Error('Invalid reaction bands.');
+    return { loves, likes };
+  }
 
   /**
    * Exact placed-object entity index that owns each sound action, or u32::MAX.
