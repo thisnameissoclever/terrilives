@@ -558,3 +558,73 @@ fn a_deferred_departure_on_a_held_shift_survives_build_mode() {
     sim.cancel_build().expect("cancel restores the baseline");
     assert_eq!(sim.save_snapshot_v21(), before);
 }
+
+/// The owner's ruling of 2026-10-23: the day of a shift change is part of
+/// the world while it is today. It changes the hash, survives a save and a
+/// load, and a row naming another day refuses to load; once the day has
+/// passed, nothing of it is hashed or saved.
+#[test]
+fn a_shift_change_today_is_hashed_saved_and_checked() {
+    let (mut sim, people) = shifted();
+    let (id, worker) = *people
+        .iter()
+        .find(|(id, _)| held(&sim, *id) != 0)
+        .expect("someone on another shift");
+    let before = sim.world_hash();
+    issue(
+        &mut sim,
+        SimCommand::ChangeShift {
+            agent: worker.index_u32(),
+            shift: 0,
+        },
+    );
+    assert_eq!(
+        sim.world()
+            .resource::<Careers>()
+            .last_result
+            .map(|r| r.reason),
+        Some(None),
+        "the change applies at home"
+    );
+    let saved = sim.save_snapshot_v21();
+    assert_eq!(
+        saved.shifts.changed_today,
+        vec![terri_core::save_v21::SavedShiftChange { sim: id.0, day: 0 }]
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    assert_eq!(loaded.load_snapshot_v21(saved.clone()), Ok(()));
+    assert_eq!(loaded.world_hash(), sim.world_hash());
+    assert_eq!(loaded.save_snapshot_v21(), saved);
+
+    let mut other_day = saved.clone();
+    other_day.shifts.changed_today[0].day = 1;
+    let mut refused = Sim::new_from_shipped_lot();
+    let untouched = refused.world_hash();
+    assert_eq!(
+        refused.load_snapshot_v21(other_day),
+        Err(crate::SaveError::InvalidValue)
+    );
+    assert_eq!(
+        refused.world_hash(),
+        untouched,
+        "a refused load changes nothing"
+    );
+
+    // The change is what made the hash move: the same world with the day
+    // forgotten hashes as a world without a change today would.
+    let mut forgotten = Sim::new_from_shipped_lot();
+    forgotten.load_snapshot_v21(saved).expect("loads");
+    forgotten
+        .world_mut()
+        .resource_mut::<Careers>()
+        .shift_changed
+        .clear();
+    assert_ne!(forgotten.world_hash(), sim.world_hash());
+    assert_ne!(before, sim.world_hash());
+
+    // A day later the change no longer matters, and nothing of it remains.
+    for _ in 0..1440 {
+        sim.tick();
+    }
+    assert!(sim.save_snapshot_v21().shifts.changed_today.is_empty());
+}
