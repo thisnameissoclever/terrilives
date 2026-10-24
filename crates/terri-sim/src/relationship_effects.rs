@@ -91,7 +91,7 @@ pub struct RelationshipEffect {
 #[doc(hidden)]
 pub struct RelationshipDiagnostics {
     /// Written only by [`record`] and [`record_in`], so every effect also
-    /// reaches the activity log's classification; read through [`Self::effects`].
+    /// reaches the activity log's classification. Only tests read it.
     effects: Vec<RelationshipEffect>,
     pub(crate) contacts: Vec<(SimId, SimId)>,
     pub(crate) waits: Vec<(SimId, bool, u64)>,
@@ -99,6 +99,7 @@ pub struct RelationshipDiagnostics {
 
 impl RelationshipDiagnostics {
     /// This tick's effects, in the order they were recorded.
+    #[cfg(test)]
     pub(crate) fn effects(&self) -> &[RelationshipEffect] {
         &self.effects
     }
