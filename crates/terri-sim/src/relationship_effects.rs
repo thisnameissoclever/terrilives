@@ -92,8 +92,9 @@ pub struct RelationshipEffect {
 pub struct RelationshipDiagnostics {
     /// Written only by [`record`], [`record_in`] and
     /// [`record_unlogged_opinion_change`], so every effect also reaches the
-    /// activity log's classification or is left out by name. Only tests
-    /// read it.
+    /// activity log's classification or is left out by name. Read through
+    /// `Sim::relationship_effects`, which the tests and the balance and
+    /// trace examples use.
     effects: Vec<RelationshipEffect>,
     pub(crate) contacts: Vec<(SimId, SimId)>,
     pub(crate) waits: Vec<(SimId, bool, u64)>,

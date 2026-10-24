@@ -79,9 +79,11 @@ type Member = { readonly simId: number; readonly name: string };
  * same roster read, so the panel's selection poll makes no `simIdOf` call.
  *
  * A roster read only keeps a reference to its members. Their names are
- * copied when records arrive and when the panel opens, the only times a
- * line can need one, so a frame without records runs no name code at all
- * ([AL-perf]).
+ * copied when records arrive, when the panel opens, and when the open
+ * panel sees a new selection or a rename of the selected housemate. While
+ * the panel is open with someone selected, each frame compares that
+ * person's latest roster name with the one Only shows, which allocates
+ * nothing ([AL-perf]).
  */
 export class ActivityLogNames {
   private readonly names = new Map<number, string>();
