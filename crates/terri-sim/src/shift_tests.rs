@@ -1675,11 +1675,24 @@ fn the_attendance_report_describes_only_the_current_job() {
 /// Whether the standard shift of `path`'s first level starts at `now` for
 /// the shipped worker whose last registered shift is `last`.
 fn starts_after(last: terri_core::save_v17::SavedScheduledShift, path: &str, now: u64) -> bool {
+    starts_after_on(last, path, "standard", now)
+}
+
+/// As [`starts_after`], for the shift `shift_id` of `path`'s first level.
+fn starts_after_on(
+    last: terri_core::save_v17::SavedScheduledShift,
+    path: &str,
+    shift_id: &str,
+    now: u64,
+) -> bool {
     let mut sim = shipped_with(|_| {});
     let (id, _) = worker(&mut sim);
     let pack = pack(&sim);
     let career = row(pack, path, 0) as u32;
-    let shift = pack.careers[career as usize].shift(0).expect("standard");
+    let job = &pack.careers[career as usize];
+    let shift = job
+        .shift(job.shift_index(shift_id).expect("listed"))
+        .expect("listed");
     sim.world_mut()
         .resource_mut::<crate::attendance::Attendance>()
         .shifts
@@ -1733,18 +1746,40 @@ fn a_legacy_record_still_blocks_a_second_shift_that_day() {
 #[test]
 fn a_legacy_night_lets_the_next_night_of_the_job_start() {
     assert!(starts_after(
-        last_shift("night_watch", 1340, 1800, true),
+        last_shift("night_watch", 1340, 1820, true),
         "night_watch",
         1440 + 1320
     ));
     assert!(
         !starts_after(
-            last_shift("night_watch", 1340, 1800, false),
+            last_shift("night_watch", 1340, 1820, false),
             "night_watch",
             1440 + 1320
         ),
         "a scheduled record with another start is another schedule"
     );
+}
+
+/// Review of 2026-10-24: a legacy night watch record, Monday 22:00 to
+/// Tuesday 06:00, then a quit and rehire on the night watch's evening shift
+/// on Tuesday morning. Older saves held only standard shifts, so the legacy
+/// night was the 22:00 standard schedule; the evening shift at 14:00 is
+/// another schedule and waits until Wednesday.
+#[test]
+fn a_legacy_night_does_not_let_another_schedule_start_that_day() {
+    let night = last_shift("night_watch", 1320, 1800, true);
+    assert!(!starts_after_on(
+        night.clone(),
+        "night_watch",
+        "evening",
+        1440 + 840
+    ));
+    assert!(starts_after_on(
+        night,
+        "night_watch",
+        "evening",
+        2 * 1440 + 840
+    ));
 }
 
 /// On the day a night ended, a shift with the same start and length starts

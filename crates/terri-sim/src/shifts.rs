@@ -91,13 +91,21 @@ pub(crate) fn starts_at(
     }
     // On the day the last shift ended, only the same schedule on the same
     // path starts again, as consecutive nights do. An older save's legacy
-    // record began at an arrival rather than a scheduled start, so for it
-    // the path alone decides.
+    // record began at an arrival rather than a scheduled start; older saves
+    // held only standard shifts, so its scheduled start is its job's
+    // standard start.
     let path = |row: u32| pack.careers.get(row as usize).map(|job| job.path);
+    let last_start = if last.legacy {
+        pack.careers
+            .get(last.career as usize)
+            .and_then(|job| job.shift(0))
+            .map(|standard| u64::from(standard.shift_start))
+    } else {
+        Some(last.start_tick % day_ticks)
+    };
     path(last.career) == path(career)
-        && (last.legacy
-            || (last.start_tick % day_ticks == u64::from(shift.shift_start)
-                && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)))
+        && last_start == Some(u64::from(shift.shift_start))
+        && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)
 }
 
 /// The shift whose schedule `entity` works on the day of tick `now`: on the

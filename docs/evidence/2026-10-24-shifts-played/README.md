@@ -1,6 +1,6 @@
 # Shifts and careers played pass, 2026-10-24
 
-This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7` (guide captures retaken after the reviews of that day), which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
+This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7` (the player guide's Career captures were retaken later that day from a build of the sources committed as `6ac4a503e`), which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
 
 ## Contents
 

@@ -737,11 +737,11 @@
         "x": 8,
         "y": 250,
         "width": 374,
-        "height": 420
+        "height": 409
       },
       "method": "Lossless crop of the source image at 1:1 size",
       "sourceSha256": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e",
-      "outputSha256": "cbca1e41e8417b5ca266da0273ddfa564b5bafb6f522c9c5fca7a05d5de9ea4e"
+      "outputSha256": "af64c472ac5acdbae212e61463096738d52a0ec7079632ab971bf542db426953"
     },
     {
       "output": "images/guide/chores-board-desktop.png",
