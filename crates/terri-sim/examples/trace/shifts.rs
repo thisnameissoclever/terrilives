@@ -15,6 +15,10 @@ pub struct Flags {
     pub night_worker: bool,
     /// Reseed the careers stream before the first tick.
     pub careers_seed: Option<u64>,
+    /// Run on the career content and search from before issue 296: the
+    /// first three paths and twelve rows, standard shifts only, every
+    /// shift sleep offset 0 and a search temperature of 0.
+    pub pre_shift_careers: bool,
 }
 
 /// Splits `--night-worker` and `--careers-seed <n>` from the positional
@@ -23,12 +27,14 @@ pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
     let mut flags = Flags {
         night_worker: false,
         careers_seed: None,
+        pre_shift_careers: false,
     };
     let mut positional = Vec::new();
     let mut args = args.peekable();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--night-worker" => flags.night_worker = true,
+            "--pre-shift-careers" => flags.pre_shift_careers = true,
             "--careers-seed" => {
                 flags.careers_seed = Some(
                     args.next()
@@ -44,6 +50,22 @@ pub fn split_args(args: impl Iterator<Item = String>) -> (Flags, Vec<String>) {
 
 /// Applies the flags to a new game before its first tick.
 pub fn prepare(sim: &mut Sim, flags: &Flags) {
+    if flags.pre_shift_careers {
+        let mut pack = terri_data::pack().clone();
+        pack.careers.truncate(12);
+        pack.career_paths.truncate(3);
+        for job in &mut pack.careers {
+            job.shifts.clear();
+            job.standard_weight = 1;
+        }
+        pack.tuning.shift_sleep_offset_day = 0;
+        pack.tuning.shift_sleep_offset_early = 0;
+        pack.tuning.shift_sleep_offset_late = 0;
+        pack.tuning.shift_sleep_offset_night = 0;
+        pack.tuning.career_search_temperature = 0.0;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+    }
     if let Some(seed) = flags.careers_seed {
         sim.world_mut().resource_mut::<terri_sim::Careers>().rng =
             terri_core::SimRng::from_seed(seed);
@@ -100,6 +122,12 @@ pub struct Summary {
     /// Consecutive waiting ticks per pending request while its recipient sleeps.
     waits: BTreeMap<u64, u64>,
     longest_wait: u64,
+    /// The request behind the longest wait, worded when it is set.
+    longest_detail: String,
+    /// Every finished wait on a sleeping recipient longer than an hour.
+    long_waits: Vec<String>,
+    /// The wording of each wait still running, by request id.
+    open: BTreeMap<u64, String>,
 }
 
 impl Summary {
@@ -109,6 +137,9 @@ impl Summary {
             starts: vec![Vec::new(); people],
             waits: BTreeMap::new(),
             longest_wait: 0,
+            longest_detail: String::new(),
+            long_waits: Vec::new(),
+            open: BTreeMap::new(),
         }
     }
 
@@ -158,10 +189,15 @@ impl Summary {
             }
         }
         // A pending conversation request whose recipient sleeps is a wait on
-        // a sleeping recipient ([WS-systems]).
+        // a sleeping recipient ([WS-systems]). A suspended request waits on
+        // its own initiator, who is busy elsewhere, so it is not counted.
         let mut seen = BTreeMap::new();
         for request in requests {
-            if request.phase == terri_core::save_v15::SavedConversationPhase::Talking {
+            if matches!(
+                request.phase,
+                terri_core::save_v15::SavedConversationPhase::Talking
+                    | terri_core::save_v15::SavedConversationPhase::Suspended
+            ) {
                 continue;
             }
             let recipient = sim
@@ -173,10 +209,27 @@ impl Summary {
                 .map(|(entity, _)| entity);
             if recipient.is_some_and(|recipient| asleep(sim, recipient)) {
                 let run = self.waits.get(&request.id).copied().unwrap_or(0) + 1;
-                self.longest_wait = self.longest_wait.max(run);
+                let detail = format!(
+                    "request {} from sim {} to sim {} ({}, {:?}), created at tick {}, {:?}, waiting on the sleeping recipient from tick {} to tick {now} ({run} ticks)",
+                    request.id, request.initiator, request.recipient, request.interaction,
+                    request.origin, request.created, request.phase, now + 1 - run
+                );
+                if run > self.longest_wait {
+                    self.longest_wait = run;
+                    self.longest_detail = detail.clone();
+                }
+                self.open.insert(request.id, detail);
                 seen.insert(request.id, run);
             }
         }
+        for (id, run) in &self.waits {
+            if !seen.contains_key(id) && *run > 60 {
+                if let Some(detail) = self.open.get(id) {
+                    self.long_waits.push(detail.clone());
+                }
+            }
+        }
+        self.open.retain(|id, _| seen.contains_key(id));
         self.waits = seen;
     }
 
@@ -239,5 +292,16 @@ impl Summary {
             "longest wait on a sleeping conversation recipient: {} ticks",
             self.longest_wait
         );
+        if !self.longest_detail.is_empty() {
+            println!("LONGEST WAIT {}", self.longest_detail);
+        }
+        let running = self
+            .open
+            .iter()
+            .filter(|(id, _)| self.waits.get(id).is_some_and(|run| *run > 60))
+            .map(|(_, detail)| detail);
+        for detail in self.long_waits.iter().chain(running) {
+            println!("WAIT OVER AN HOUR {detail}");
+        }
     }
 }
