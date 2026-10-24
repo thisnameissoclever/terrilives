@@ -111,6 +111,19 @@ export class ActivityLogNames {
 
   name(simId: number): string | null { return this.names.get(simId) ?? null; }
 
+  /**
+   * The name the roster last reported for `simId`, before it is learned, or
+   * null when that person is not in the roster. Indexes the array, so a
+   * frame's check allocates nothing.
+   */
+  latestName(simId: number): string | null {
+    const members = this.latest;
+    for (let index = 0; index < members.length; index++) {
+      if (members[index].simId === simId) return members[index].name;
+    }
+    return null;
+  }
+
   rememberSelected(simId: number | null): void { this.selectedSimId = simId; }
 
   /** The selected housemate as the roster last drew them, or null. */
@@ -181,6 +194,8 @@ export class ActivityLogPanel {
   private onlySelected = false;
   /** The selected housemate as the roster last reported them. */
   private lastSelected: number | null = null;
+  /** The name the Only label shows, so a rename is noticed without rebuilding the label each frame. */
+  private onlyName: string | null = null;
   /** A selection change waits for its rebuild outside the frame. */
   private selectionPending = false;
   /** Made once, so deferring a rebuild allocates no function per change. */
@@ -247,12 +262,20 @@ export class ActivityLogPanel {
    * drop keyboard focus onto the page.
    */
   close(): boolean {
+    return this.closePanel(true);
+  }
+
+  /**
+   * Closes the panel, returning focus to the Log button when it was inside
+   * and `returnFocus` allows it. Build hides that button, so it passes false.
+   */
+  private closePanel(returnFocus: boolean): boolean {
     if (!this.open_) return false;
     this.open_ = false;
     this.selectionPending = false;
     const hadFocus = this.options.view.holdsFocus();
     this.options.view.reflectOpen(false);
-    if (hadFocus) this.options.view.focusToggle();
+    if (hadFocus && returnFocus) this.options.view.focusToggle();
     // Nothing is composed while closed; the next open recomposes from the store.
     this.lines.reset();
     this.rows.clear();
@@ -277,7 +300,7 @@ export class ActivityLogPanel {
   setBuilding(active: boolean): void {
     if (this.building === active) return;
     this.building = active;
-    if (active) this.close();
+    if (active) this.closePanel(false);
     this.options.view.reflectToggleHidden(active);
   }
 
@@ -342,6 +365,14 @@ export class ActivityLogPanel {
         this.options.defer(this.rebuildForSelection);
         return;
       }
+    } else if (selected !== null) {
+      // A rename while the Log is open: the label takes the roster's new
+      // name. Someone who left keeps the last name, so null changes nothing.
+      const latest = this.options.names.latestName(selected);
+      if (latest !== null && latest !== this.onlyName) {
+        this.options.names.learn();
+        this.reflectOnly();
+      }
     }
     const fresh = this.options.store.total - this.seen;
     if (fresh <= 0) return;
@@ -350,8 +381,9 @@ export class ActivityLogPanel {
 
   private reflectOnly(): void {
     const selected = this.lastSelected;
+    this.onlyName = selected === null ? null : this.context.name(selected);
     this.options.view.reflectOnly(
-      selected === null ? null : onlyNamed(this.context.name(selected) ?? SOMEONE_IN_SENTENCE),
+      selected === null ? null : onlyNamed(this.onlyName ?? SOMEONE_IN_SENTENCE),
       this.onlySelected && selected !== null,
     );
   }
@@ -602,6 +634,9 @@ export function createActivityLogView(doc: Document, elements: ActivityLogElemen
     reflectToggleHidden(hidden) { toggle.hidden = hidden; },
     reflectFilter(index, on) { filters[index]?.setAttribute('aria-pressed', String(on)); },
     reflectOnly(label, checked) {
+      // A hidden checkbox cannot keep focus; the entries take it rather
+      // than the page.
+      if (label === null && !only.hidden && doc.activeElement === onlyBox) scroller.focus();
       only.hidden = label === null;
       setTextIfChanged(onlyText, label ?? '');
       onlyBox.checked = checked;

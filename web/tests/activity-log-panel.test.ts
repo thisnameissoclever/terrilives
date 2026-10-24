@@ -174,6 +174,15 @@ describe('the activity log panel', () => {
     expect(view.focused).toBe(1);
   });
 
+  it('leaves focus alone when Build closes the panel, because Build hides the Log button', () => {
+    const { panel, view } = setup();
+    panel.open();
+    view.focusInside = true;
+    panel.setBuilding(true);
+    expect(view.open).toBe(false);
+    expect(view.focused, 'focusing the button Build is about to hide would drop focus').toBe(0);
+  });
+
   it('hides the toggle and closes in Build', () => {
     const { panel, view } = setup();
     panel.open();
@@ -497,6 +506,31 @@ describe('the activity log panel', () => {
     expect(view.only.label, 'with nobody selected there is nobody to narrow to').toBeNull();
   });
 
+  it('names a newly selected housemate the panel has not learned yet in the same frame', () => {
+    const { panel, view, names, select } = setup();
+    panel.open();
+    names.offer([{ simId: TIM, name: 'Tim' }, { simId: BILL, name: 'Bill' }, { simId: 7, name: 'Casey' }]);
+    select(7);
+    panel.update();
+    expect(view.only.label).toBe('Only Casey');
+  });
+
+  it('renames Only while the Log is open when the selected housemate is renamed', () => {
+    const { panel, view, names, select } = setup();
+    select(TIM);
+    panel.open();
+    expect(view.only.label).toBe('Only Tim');
+    names.offer([{ simId: TIM, name: 'Timothy' }, { simId: BILL, name: 'Bill' }]);
+    panel.update();
+    expect(view.only.label).toBe('Only Timothy');
+    const calls = view.calls;
+    panel.update();
+    expect(view.calls, 'an unchanged name writes nothing').toBe(calls);
+    names.offer([{ simId: BILL, name: 'Bill' }]);
+    panel.update();
+    expect([view.only.label, view.calls], 'someone who left keeps the last name, with no write per frame').toEqual(['Only Timothy', calls]);
+  });
+
   it('narrows to the selected housemate while Only is ticked', () => {
     const { panel, view, drain, read, select } = setup();
     drain(read(TIM), read(BILL));
@@ -622,13 +656,14 @@ function fakePage() {
   let observing = false;
   let fresh = false;
   let reported = -1;
+  let active: unknown = null;
   const element = () => ({
     hidden: false,
     textContent: '',
     style: { setProperty() {}, removeProperty() {} },
     setAttribute() {},
     addEventListener(type: string, listener: () => void) { listeners[type] = listener; },
-    focus() {},
+    focus() { active = this; },
   });
   interface Item { textContent: string; remove(): void; getBoundingClientRect(): { top: number } }
   const items: Item[] = [];
@@ -665,6 +700,7 @@ function fakePage() {
   const page = { ResizeObserver: Observer, innerHeight: 900, addEventListener() {} };
   const doc = {
     defaultView: page,
+    get activeElement() { return active; },
     createElement: () => {
       const item: Item = {
         textContent: '',
@@ -681,6 +717,9 @@ function fakePage() {
   const view = createActivityLogView(doc as never, elements as never);
   return {
     view,
+    elements,
+    active: () => active,
+    focus: (target: { focus(): void }) => { target.focus(); },
     items,
     texts: () => items.map(item => item.textContent),
     reads: () => layoutReads,
@@ -758,6 +797,21 @@ describe('the activity log view', () => {
     expect(page.scrollTop()).toBe(60);
     page.afterLayout();
     expect(page.view.atBottom()).toBe(true);
+  });
+
+  it('moves focus to the entries when the focused Only checkbox hides', () => {
+    const page = fakePage();
+    page.view.reflectOpen(true);
+    page.view.reflectOnly('Only Tim', false);
+    page.focus(page.elements.onlyBox);
+    page.view.reflectOnly('Only Bill', false);
+    expect(page.active(), 'a new name keeps focus on the checkbox').toBe(page.elements.onlyBox);
+    page.view.reflectOnly(null, false);
+    expect(page.active()).toBe(page.elements.scroller);
+    page.focus(page.elements.toggle);
+    page.view.reflectOnly('Only Tim', false);
+    page.view.reflectOnly(null, false);
+    expect(page.active(), 'focus elsewhere stays where it is').toBe(page.elements.toggle);
   });
 
   it('puts earlier lines above the kept ones and holds the old first line in place', () => {
