@@ -673,6 +673,37 @@ fn feelings_of(records: &[LogRecord], parent: u32, cause: u32) -> Vec<LogRecord>
         .collect()
 }
 
+/// [AL-sources] through `board::tick`: when a duty the week's assignments
+/// lack is assigned mid-week, as when a duty becomes available, only the
+/// owner who gains it gets a new Chores this week line. A reconcile that
+/// captured the previous assignments after writing the new ones would log
+/// nobody; one that lost them would log everyone.
+#[test]
+fn a_mid_week_new_duty_through_the_board_tick_logs_only_its_owner() {
+    let (mut sim, mut state, _) = fixture();
+    state.week = None;
+    board::tick(sim.world_mut(), &mut state);
+    settled_records(&mut sim);
+    assert!(state.assignments.len() >= 2, "the shipped lot has several duties");
+    let owners_before: std::collections::BTreeSet<u32> =
+        state.assignments.iter().map(|a| a.owner).collect();
+    assert!(owners_before.len() >= 2, "duties are spread over several owners");
+    let lacking = state.assignments.remove(0);
+    board::tick(sim.world_mut(), &mut state);
+    let gained = state
+        .assignments
+        .iter()
+        .find(|a| a.key == lacking.key)
+        .expect("the missing duty is assigned again")
+        .owner;
+    let headers: Vec<u32> = settled_records(&mut sim)
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ChoresThisWeek))
+        .map(|r| r.actor())
+        .collect();
+    assert_eq!(headers, vec![gained]);
+}
+
 /// [AL-sources]: new weekly duties are one Chores line per owner, with the
 /// owner's duties as its children, and an unchanged week stages nothing.
 #[test]
