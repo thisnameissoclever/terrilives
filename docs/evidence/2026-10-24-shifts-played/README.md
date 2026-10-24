@@ -1,6 +1,6 @@
 # Shifts and careers played pass, 2026-10-24
 
-This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7`, which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
+This record holds the played pass for [shifts and more career paths](../../specs/2026-10-18-shifts-and-careers.md) ([WS-played]) on the branch `twcl/296-shifts-and-careers` at commit `c14aea9a7` (guide captures retaken at `97f802913`), which includes main through `d1ba84590` (the activity log, pull request 291) and the owner's rulings of 2026-10-24. Each still below was inspected at full size; enlarged crops were used for bodies, beds and selection markers.
 
 ## Contents
 
@@ -35,9 +35,9 @@ This record holds the played pass for [shifts and more career paths](../../specs
 | `14-tim-after-change.png` | 3 | `Shift changed.`, the late shift selected and Change shift disabled again. Before and after, the tab read `No streak running.` and `The next promotion needs 2 good weeks in a row.`, because a new game has no good weeks to reset (run log). |
 | `15-tim-late-overview-row.png` | 3 | Tim's row now reads the late shift. |
 | `18-tim-late-start-tuesday.png` | 3 | Tuesday 12:03, the day after that change: Tim returns his book first and then leaves for the late shift; he stayed home at 06:00. |
-| `38-change-at-0011-before-the-day-shift.png` | 3 | A separate run: Tim changes from the day shift to the late shift at Monday 00:11, before either starts that day. |
-| `39-old-day-shift-worked-monday-0657.png`, `40-monday-1200-still-on-the-old-shift.png` | 3 | That Monday the old day shift still runs: Tim set off at 06:04, was At work at 06:57, and is still at work at 12:02, so the new late shift did not start that day. |
-| `41-tuesday-0603-home-before-the-new-shift.png`, `42-tuesday-1203-leaving-for-the-new-shift.png` | 3 | On Tuesday Tim is home at 06:03 and leaves for the late shift at 12:03; he was At work at 13:28. |
+| `38-change-at-0011-before-the-day-shift.png` | 3 | A separate run, full frame: Tim, selected, changed from the day shift to the late shift at Monday 00:11; at 00:12 the tab reads `Shift changed.` with the late shift under Shift schedule, before either shift starts that day. |
+| `39-old-day-shift-worked-monday-0657.png`, `40-monday-1205-still-on-the-old-shift.png` | 3 | That Monday the old day shift still runs: Tim set off at 06:04, was At work at 06:57, and is still At work at 12:05, so the new late shift did not start that day. |
+| `41-tuesday-0605-home-before-the-new-shift.png`, `42-tuesday-1203-leaving-for-the-new-shift.png` | 3 | On Tuesday Tim is home reading at 06:05 and leaves for the late shift at 12:03; he was At work at 13:28. |
 | `16-casey-leaving-tuesday-2204.png` | 4 | Casey on the night watch's night shift, Tuesday 22:04: Walking through the living room toward the front door, marker under her feet. |
 | `35-casey-at-work-monday.png` | 4 | Monday 22:59, Casey At work and off the lot. |
 | `17-casey-asleep-tuesday-0904.png` | 4 | Tuesday 09:04, Casey asleep in the lower bunk with the sleep bubble while a housemate is up at the kitchen counter and Tim is at work. |
@@ -62,7 +62,7 @@ Every [WS-played] point has a capture. The run logs with each sampled activity a
 
 A fresh reviewer received the [WS-played] points and the first set of captures without an expected verdict. It found every point shown at least in part and raised fifteen findings. Their dispositions:
 
-1. Panel-only crops do not identify the person or the time: full frames with the selected name and the clock were added (`12`, `16`, `35`, `37` and the change-day set), and the table gives the time of each panel crop from the run logs.
+1. Panel-only crops do not identify the person or the time: full frames with the selected name and the clock were added (`12`, `16`, `35`, `37` and the change-day set `38` to `42`), and the table gives the time of each remaining panel crop from the run logs.
 2. No frame showed Tim leaving at 06:00: `19` and `20` now do.
 3. Casey was partly hidden while leaving: `16` now shows her in the open living room.
 4. No frame shows a good-week count after the change: the row for `14` gives the count from the page; a new game has none to reset, and `changing_shift_costs_only_the_good_week_streak` in `crates/terri-sim/src/shift_tests.rs` covers the reset.
@@ -78,7 +78,7 @@ A fresh reviewer received the [WS-played] points and the first set of captures w
 14. A file name disagreed with its clock: names now follow the clock.
 15. Two night watch night shifts differ only by days: by design, the days distinguish them.
 
-For the guide, the reviewer found that the Career crops did not show the shift controls; a figure, `career-shift`, now shows Assign a career and Shift schedule beside the instructions that describe them.
+For the guide, the reviewer found that the Career crops did not show the shift controls; a figure, `career-shift`, now shows Assign a career and Shift schedule beside the instructions that describe them. A later review asked that the tab bar not cover the Career path selector and that the Reviews figure not cut the next group's legend: the controls captures now start at Assign a career's legend, and the Reviews captures end at Assign a career. On a phone the sheet then ends at the Shift schedule note, so the job search box shows in the desktop figure only; the guide text names it.
 
 ## Limits
 
