@@ -5,7 +5,7 @@ import {
   BY_CHANCE,
   CAREER_WARNING,
   CHANGE_SHIFT,
-  CURRENT_SHIFT,
+  SHIFT_SCHEDULE,
   CareerPanel,
   SHIFT_CHANGE_NOTE,
   careerShiftOptions,
@@ -95,6 +95,7 @@ const WATCH_SHIFTS = [shift(0, 3, 1320, 0b1001111, 2), shift(1, 3, 1320, 0b11111
  * descent with a space).
  */
 class Node_ {
+  id = '';
   textContent = '';
   className = '';
   value = '';
@@ -714,7 +715,13 @@ describe('shift selectors (issue 296, [WS-shell] items 3 to 5)', () => {
     expect(assignShift.disabled, 'no path chosen').toBe(true);
     const change = content.querySelector('.career-shift-change')!;
     expect(change.hidden).toBe(false);
-    expect(change.querySelector('legend')?.textContent).toBe(CURRENT_SHIFT);
+    expect(change.querySelector('legend')?.textContent).toBe(SHIFT_SCHEDULE);
+    const changeLine = change.querySelector('.career-shift-line')!;
+    expect(changeLine.textContent, 'the selected shift reads in full beneath the selector').toBe(held[0].text);
+    expect(changeLine.hidden).toBe(false);
+    expect(changeLine.getAttribute('aria-hidden')).toBe('true');
+    const assignLine = content.querySelector('.career-shift-assign')!.parent!.querySelector('.career-shift-line')!;
+    expect(assignLine.hidden, 'By chance needs no repeat').toBe(true);
     const changeSelect = change.querySelector('select')!;
     expect(changeSelect.options.map(option => option.textContent)).toEqual(held.map(option => option.text));
     expect(changeSelect.value).toBe('0');
@@ -735,6 +742,8 @@ describe('shift selectors (issue 296, [WS-shell] items 3 to 5)', () => {
     expect(assignShift.options).toHaveLength(4);
     expect(assignShift.value).toBe('2');
     expect(assignShift.disabled).toBe(false);
+    expect(assignLine.textContent).toBe(careerShiftOptions(CAFE_SHIFTS, 1440).find(option => option.index === 2)!.text);
+    expect(assignLine.hidden).toBe(false);
     assignShift.value = '';
     assignShift.dispatch('change');
     expect(calls).toEqual([['changeTo', 1], ['change'], ['shift', null]]);

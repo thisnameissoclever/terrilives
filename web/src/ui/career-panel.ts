@@ -89,7 +89,7 @@ export interface CareerShiftOption {
 // [WS-shell] items 3 to 5. Functional text, for the owner's review.
 export const BY_CHANCE = 'By chance';
 export const SHIFT_LABEL = 'Shift';
-export const CURRENT_SHIFT = 'Current shift';
+export const SHIFT_SCHEDULE = 'Shift schedule';
 export const CHANGE_SHIFT = 'Change shift';
 export const SHIFT_CHANGE_NOTE = 'Changing shift resets the good weeks counted toward the next promotion.';
 
@@ -574,6 +574,11 @@ export function createCareerPanelSurface(
   byChance.textContent = BY_CHANCE;
   shiftSelect.append(byChance);
   shiftLabel.append(shiftSelect);
+  // A closed selector cuts a long line at narrow widths, hiding the chance
+  // or the end time, so the chosen shift's whole line is repeated beneath
+  // it. Assistive technology already reads the selector's value.
+  const shiftLine = line(doc, 'career-shift-line');
+  shiftLine.setAttribute('aria-hidden', 'true');
   const buttons = doc.createElement('div');
   buttons.className = 'career-actions';
   const assign = doc.createElement('button');
@@ -585,18 +590,20 @@ export function createCareerPanelSurface(
   quit.textContent = 'Quit';
   setActionIntent(quit, 'destructive');
   buttons.append(assign, quit);
-  fieldset.append(legend, label, shiftLabel, buttons);
+  fieldset.append(legend, label, shiftLabel, shiftLine, buttons);
   // [WS-shell] item 4: an employed person's shift, below the schedule line
   // and after the assignment controls, which keep the first path list.
   const change = doc.createElement('fieldset');
   change.className = 'career-shift-change';
   const changeLegend = doc.createElement('legend');
-  changeLegend.textContent = CURRENT_SHIFT;
+  changeLegend.textContent = SHIFT_SCHEDULE;
   const changeLabel = doc.createElement('label');
   changeLabel.textContent = SHIFT_LABEL;
   const changeSelect = doc.createElement('select');
   changeSelect.setAttribute('aria-label', 'Choose a shift to change to');
   changeLabel.append(changeSelect);
+  const changeLine = line(doc, 'career-shift-line');
+  changeLine.setAttribute('aria-hidden', 'true');
   const changeButton = doc.createElement('button');
   changeButton.type = 'button';
   changeButton.className = 'career-change-shift';
@@ -608,7 +615,7 @@ export function createCareerPanelSurface(
   // the note as its description, which screen readers read with it.
   changeNote.id = 'career-shift-note';
   changeButton.setAttribute('aria-describedby', changeNote.id);
-  change.append(changeLegend, changeLabel, changeButton, changeNote);
+  change.append(changeLegend, changeLabel, changeLine, changeButton, changeNote);
   // The person's own setting, outside the assignment controls: it stays
   // usable while an assignment is pending and for the employed, for when
   // they are next out of work.
@@ -793,12 +800,18 @@ export function createCareerPanelSurface(
     fill(shiftSelect, shiftOptions, assignShifts);
     shiftSelect.value = state.shiftChoice === null || state.shiftChoice === undefined ? '' : String(state.shiftChoice);
     shiftSelect.disabled = state.choice === null || assignShifts.length === 0;
+    const chosen = assignShifts.find(option => option.index === state.shiftChoice);
+    setTextIfChanged(shiftLine, chosen?.text ?? '');
+    shiftLine.hidden = chosen === undefined;
     const heldShifts = state.heldShifts ?? [];
     // A level that offers one shift has nothing to change to.
     change.hidden = job === null || heldShifts.length < 2;
     fill(changeSelect, changeOptions, heldShifts);
     const changeChoice = state.changeChoice ?? state.heldShift ?? null;
     changeSelect.value = changeChoice === null ? '' : String(changeChoice);
+    const changeTo = heldShifts.find(option => option.index === changeChoice);
+    setTextIfChanged(changeLine, changeTo?.text ?? '');
+    changeLine.hidden = changeTo === undefined;
     change.disabled = disabled || job === null;
     changeButton.disabled = changeChoice === null || changeChoice === (state.heldShift ?? null);
     assign.disabled = state.choice === null;
