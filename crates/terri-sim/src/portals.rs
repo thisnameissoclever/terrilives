@@ -1321,6 +1321,49 @@ mod tests {
         }
     }
 
+    /// While a shift is registered and open the door times the worker by
+    /// that shift's own length: twenty ticks registered while the held
+    /// standard shift is ten, so ten remaining ticks is mid-shift and the
+    /// door is closed.
+    #[test]
+    fn the_door_window_follows_the_open_shift_length() {
+        let pack = portal_career_pack();
+        for (registered, expected) in [(false, OPEN), (true, CLOSED)] {
+            let mut world = world_with_active_portals(pack);
+            world.insert_resource(terri_core::SimClock { tick: 5 });
+            let mut attendance = crate::attendance::Attendance::default();
+            if registered {
+                attendance.shifts.insert(
+                    terri_core::SimId(1),
+                    terri_core::save_v17::SavedScheduledShift {
+                        sim: 1,
+                        career: 0,
+                        start_tick: 0,
+                        end_tick: 20,
+                        worked_ticks: 5,
+                        accounted_tick: 5,
+                        pay_cents: 0,
+                        settled: false,
+                        legacy: false,
+                    },
+                );
+            }
+            world.insert_resource(attendance);
+            world.spawn((
+                Agent,
+                terri_core::SimId(1),
+                Position { x: 5.0, y: 2.0 },
+                terri_core::Career(0),
+                terri_core::AtWork {
+                    remaining_ticks: 10,
+                },
+            ));
+            let mut buffer = PortalBuffer::default();
+            sync_portals(&mut world, &mut buffer);
+            assert_eq!(buffer.states, vec![expected], "registered: {registered}");
+        }
+    }
+
     /// On the day of a shift change the door times a worker by the
     /// schedule held when the day began: the long shift is held, but the
     /// standard shift's ten ticks are worked today, so ten remaining ticks

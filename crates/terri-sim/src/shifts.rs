@@ -77,21 +77,27 @@ pub(crate) fn starts_at(
         return true;
     };
     let today = now / day_ticks;
-    // The start being registered this very tick, and an older save's
-    // legacy record, whose start was its arrival, never block.
-    if last.start_tick == now || last.legacy {
+    // The start being registered this very tick never blocks itself.
+    if last.start_tick == now {
         return true;
     }
     if last.start_tick / day_ticks == today {
         return false;
     }
+    // The last shift's scheduled end counts, so a forfeited night shift
+    // still holds its morning until the time it was due to end.
     if last.end_tick / day_ticks < today {
         return true;
     }
+    // On the day the last shift ended, only the same schedule on the same
+    // path starts again, as consecutive nights do. An older save's legacy
+    // record began at an arrival rather than a scheduled start, so for it
+    // the path alone decides.
     let path = |row: u32| pack.careers.get(row as usize).map(|job| job.path);
     path(last.career) == path(career)
-        && last.start_tick % day_ticks == u64::from(shift.shift_start)
-        && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)
+        && (last.legacy
+            || (last.start_tick % day_ticks == u64::from(shift.shift_start)
+                && last.end_tick - last.start_tick == u64::from(shift.shift_ticks)))
 }
 
 /// The shift whose schedule `entity` works on the day of tick `now`: on the

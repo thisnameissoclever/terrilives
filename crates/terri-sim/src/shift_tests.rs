@@ -1669,3 +1669,110 @@ fn the_attendance_report_describes_only_the_current_job() {
         "the hospital shift is not the library job's"
     );
 }
+
+// The one-shift-a-day rule, case by case through `starts_at`.
+
+/// Whether the standard shift of `path`'s first level starts at `now` for
+/// the shipped worker whose last registered shift is `last`.
+fn starts_after(last: terri_core::save_v17::SavedScheduledShift, path: &str, now: u64) -> bool {
+    let mut sim = shipped_with(|_| {});
+    let (id, _) = worker(&mut sim);
+    let pack = pack(&sim);
+    let career = row(pack, path, 0) as u32;
+    let shift = pack.careers[career as usize].shift(0).expect("standard");
+    sim.world_mut()
+        .resource_mut::<crate::attendance::Attendance>()
+        .shifts
+        .insert(
+            id,
+            terri_core::save_v17::SavedScheduledShift { sim: id.0, ..last },
+        );
+    crate::shifts::starts_at(sim.world(), pack, id, career, &shift, now)
+}
+
+/// A last shift on `path`'s first level from `start` to `end`.
+fn last_shift(
+    path: &str,
+    start: u64,
+    end: u64,
+    legacy: bool,
+) -> terri_core::save_v17::SavedScheduledShift {
+    terri_core::save_v17::SavedScheduledShift {
+        sim: 0,
+        career: row(terri_data::pack(), path, 0) as u32,
+        start_tick: start,
+        end_tick: end,
+        worked_ticks: end - start,
+        accounted_tick: end,
+        pay_cents: 0,
+        settled: true,
+        legacy,
+    }
+}
+
+/// Review of 2026-10-24, F1: an older save's legacy record of Monday's
+/// office shift still makes it Monday's shift, so a night watch job
+/// assigned that afternoon does not start at 22:00.
+#[test]
+fn a_legacy_record_still_blocks_a_second_shift_that_day() {
+    assert!(!starts_after(
+        last_shift("office", 360, 840, true),
+        "night_watch",
+        1320
+    ));
+    assert!(starts_after(
+        last_shift("office", 360, 840, true),
+        "night_watch",
+        1440 + 1320
+    ));
+}
+
+/// A legacy night recorded from its arrival (22:20) lets the next night of
+/// the same job start, though its start and length differ from the
+/// schedule's.
+#[test]
+fn a_legacy_night_lets_the_next_night_of_the_job_start() {
+    assert!(starts_after(
+        last_shift("night_watch", 1340, 1800, true),
+        "night_watch",
+        1440 + 1320
+    ));
+    assert!(
+        !starts_after(
+            last_shift("night_watch", 1340, 1800, false),
+            "night_watch",
+            1440 + 1320
+        ),
+        "a scheduled record with another start is another schedule"
+    );
+}
+
+/// On the day a night ended, a shift with the same start and length starts
+/// only on the same path.
+#[test]
+fn the_same_schedule_on_another_path_waits_a_day() {
+    assert!(starts_after(
+        last_shift("night_watch", 1320, 1800, false),
+        "night_watch",
+        1440 + 1320
+    ));
+    let mut other_path = last_shift("night_watch", 1320, 1800, false);
+    other_path.career = row(terri_data::pack(), "office", 0) as u32;
+    assert!(!starts_after(other_path, "night_watch", 1440 + 1320));
+}
+
+/// On the day a night ended, a shift on the same path with the same start
+/// but another length waits a day.
+#[test]
+fn another_shift_length_on_the_same_path_waits_a_day() {
+    assert!(!starts_after(
+        last_shift("night_watch", 1320, 1740, false),
+        "night_watch",
+        1440 + 1320
+    ));
+    assert!(starts_after(
+        last_shift("night_watch", 1320, 1740, false),
+        "night_watch",
+        2 * 1440 + 1320
+    ));
+}
