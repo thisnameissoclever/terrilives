@@ -1,0 +1,349 @@
+{
+  "mode": "performance",
+  "generatedAt": "2026-10-18T21:29:04.661Z",
+  "args": {
+    "mode": "performance",
+    "url": "http://127.0.0.1:4173/",
+    "stress": 100,
+    "samplingInterval": 32768,
+    "fillTicks": 1440,
+    "afterTicks": 720,
+    "readyTimeoutMs": 600000,
+    "repetitions": 1
+  },
+  "closed": {
+    "pairs": [
+      {
+        "enabled": {
+          "logEnabled": true,
+          "panelOpen": false,
+          "calibration": {
+            "achievedHz": 58.79970600146998,
+            "count": 294,
+            "mean": 17.006887755102046,
+            "p50": 16.665000000000873,
+            "p95": 16.7400000000016,
+            "max": 99.91000000000349
+          },
+          "active": {
+            "entities": 137,
+            "fixedTicks": 543,
+            "achievedHz": 6.103362411261295,
+            "intervals": {
+              "count": 124,
+              "mean": 163.8441129032258,
+              "p50": 166.6800000000003,
+              "p95": 216.6600000000035,
+              "max": 383.36499999999796
+            },
+            "framesOver16_6Ms": 124,
+            "work": {
+              "count": 125,
+              "mean": 171.4897999939347,
+              "p50": 179.76499999463704,
+              "p95": 223.15499999105668,
+              "max": 387.2199999886725
+            },
+            "workFramesOver16_6Ms": 125,
+            "simIdOfCalls": 0
+          },
+          "log": {
+            "count": 125,
+            "mean": 0.006119999647140503,
+            "p50": 0.004999995231628418,
+            "p95": 0.015000000596046448,
+            "max": 0.06000000238418579,
+            "withRecords": {
+              "count": 108,
+              "mean": 0.006527777485273502,
+              "p50": 0.004999995231628418,
+              "p95": 0.015000000596046448,
+              "max": 0.06000000238418579
+            },
+            "withoutRecords": {
+              "count": 17,
+              "mean": 0.0035294110284132115,
+              "p50": 0.004999995231628418,
+              "p95": 0.01000000536441803,
+              "max": 0.01000000536441803
+            },
+            "recordsDrained": 498,
+            "before": {
+              "drained": 18,
+              "held": 18,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": false,
+              "rows": 0
+            },
+            "after": {
+              "drained": 516,
+              "held": 516,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": false,
+              "rows": 0
+            }
+          }
+        },
+        "disabled": {
+          "logEnabled": false,
+          "panelOpen": false,
+          "calibration": {
+            "achievedHz": 59.20267747597257,
+            "count": 297,
+            "mean": 16.89112794612795,
+            "p50": 16.665000000000873,
+            "p95": 16.700000000000728,
+            "max": 83.26499999999942
+          },
+          "active": {
+            "entities": 137,
+            "fixedTicks": 540,
+            "achievedHz": 9.042560406298197,
+            "intervals": {
+              "count": 170,
+              "mean": 110.58814705882354,
+              "p50": 83.3550000000032,
+              "p95": 183.36499999999796,
+              "max": 283.34999999999854
+            },
+            "framesOver16_6Ms": 170,
+            "work": {
+              "count": 171,
+              "mean": 118.00549706937275,
+              "p50": 99.37499999404099,
+              "p95": 198.75,
+              "max": 292.2849999898681
+            },
+            "workFramesOver16_6Ms": 171,
+            "simIdOfCalls": 0
+          },
+          "log": {
+            "count": 171,
+            "mean": 0.003011695997059694,
+            "p50": 0.004999995231628418,
+            "p95": 0.009999990463256836,
+            "max": 0.010000020265579224,
+            "withRecords": {
+              "count": 0,
+              "mean": null,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "withoutRecords": {
+              "count": 171,
+              "mean": 0.003011695997059694,
+              "p50": 0.004999995231628418,
+              "p95": 0.009999990463256836,
+              "max": 0.010000020265579224
+            },
+            "recordsDrained": 0,
+            "before": {
+              "drained": 0,
+              "held": 0,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": false,
+              "rows": 0
+            },
+            "after": {
+              "drained": 0,
+              "held": 0,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": false,
+              "rows": 0
+            }
+          }
+        }
+      }
+    ],
+    "analysis": {
+      "workP95RegressionsMs": [
+        24.404999991056684
+      ],
+      "medianWorkP95RegressionMs": 24.404999991056684,
+      "checks": {
+        "calibrated": false,
+        "logP95": true,
+        "logMax": true,
+        "workRegression": false,
+        "noLongWorkFrame": false,
+        "noSteadySimIdOf": true,
+        "recordsArrived": true,
+        "baselineEmitsNothing": true
+      },
+      "pass": false
+    }
+  },
+  "open": {
+    "pairs": [
+      {
+        "enabled": {
+          "logEnabled": true,
+          "panelOpen": true,
+          "calibration": {
+            "achievedHz": 59.19970400147997,
+            "count": 296,
+            "mean": 16.891976351351357,
+            "p50": 16.669999999998254,
+            "p95": 16.700000000000728,
+            "max": 83.34999999999854
+          },
+          "active": {
+            "entities": 137,
+            "fixedTicks": 541,
+            "achievedHz": 7.889288370618007,
+            "intervals": {
+              "count": 152,
+              "mean": 126.7541447368421,
+              "p50": 116.66000000000349,
+              "p95": 216.67499999999563,
+              "max": 266.6650000000009
+            },
+            "framesOver16_6Ms": 152,
+            "work": {
+              "count": 153,
+              "mean": 136.09735294421895,
+              "p50": 121.03500001013163,
+              "p95": 224.7400000065536,
+              "max": 409.6200000071549
+            },
+            "workFramesOver16_6Ms": 153,
+            "simIdOfCalls": 0
+          },
+          "log": {
+            "count": 153,
+            "mean": 0.042483660422898584,
+            "p50": 0.030000001192092896,
+            "p95": 0.06000000238418579,
+            "max": 0.9350000023841858,
+            "withRecords": {
+              "count": 131,
+              "mean": 0.04614503875033546,
+              "p50": 0.034999996423721313,
+              "p95": 0.0650000125169754,
+              "max": 0.9350000023841858
+            },
+            "withoutRecords": {
+              "count": 22,
+              "mean": 0.020681816745888103,
+              "p50": 0.024999991059303284,
+              "p95": 0.030000001192092896,
+              "max": 0.04500000178813934
+            },
+            "recordsDrained": 570,
+            "before": {
+              "drained": 226,
+              "held": 226,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": true,
+              "rows": 7
+            },
+            "after": {
+              "drained": 796,
+              "held": 796,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": true,
+              "rows": 10
+            }
+          }
+        },
+        "disabled": {
+          "logEnabled": false,
+          "panelOpen": true,
+          "calibration": {
+            "achievedHz": 58.604904273672936,
+            "count": 294,
+            "mean": 17.06341836734694,
+            "p50": 16.665000000000873,
+            "p95": 16.700000000000728,
+            "max": 133.33000000000175
+          },
+          "active": {
+            "entities": 137,
+            "fixedTicks": 543,
+            "achievedHz": 11.498643868470774,
+            "intervals": {
+              "count": 211,
+              "mean": 86.96677725118482,
+              "p50": 66.70999999999913,
+              "p95": 183.3249999999971,
+              "max": 216.64500000000407
+            },
+            "framesOver16_6Ms": 211,
+            "work": {
+              "count": 212,
+              "mean": 95.67653302527305,
+              "p50": 82.12500000119326,
+              "p95": 187.8750000137079,
+              "max": 231.84500000775006
+            },
+            "workFramesOver16_6Ms": 212,
+            "simIdOfCalls": 0
+          },
+          "log": {
+            "count": 212,
+            "mean": 0.022971697081372422,
+            "p50": 0.019999995827674866,
+            "p95": 0.04500000178813934,
+            "max": 0.375,
+            "withRecords": {
+              "count": 0,
+              "mean": null,
+              "p50": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "withoutRecords": {
+              "count": 212,
+              "mean": 0.022971697081372422,
+              "p50": 0.019999995827674866,
+              "p95": 0.04500000178813934,
+              "max": 0.375
+            },
+            "recordsDrained": 0,
+            "before": {
+              "drained": 0,
+              "held": 0,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": true,
+              "rows": 0
+            },
+            "after": {
+              "drained": 0,
+              "held": 0,
+              "capacity": 2000,
+              "dropped": 0,
+              "open": true,
+              "rows": 0
+            }
+          }
+        }
+      }
+    ],
+    "analysis": {
+      "workP95RegressionsMs": [
+        36.864999992845696
+      ],
+      "medianWorkP95RegressionMs": 36.864999992845696,
+      "checks": {
+        "calibrated": false,
+        "logP95": true,
+        "logMax": true,
+        "workRegression": false,
+        "noLongWorkFrame": false,
+        "noSteadySimIdOf": true,
+        "recordsArrived": true,
+        "baselineEmitsNothing": true
+      },
+      "pass": false
+    }
+  },
+  "pass": false
+}

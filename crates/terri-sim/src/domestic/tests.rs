@@ -1640,8 +1640,10 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
-#[test]
-fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
+/// Person 0 has cooked dinner for the household and invited the three
+/// hungry friends with ids 1 to 3 to the returned table; person 4 is
+/// away at work.
+fn shared_meal_scenario() -> (Sim, Vec<Entity>, Entity) {
     let (mut sim, _, _, counter, table) = household();
     for index in 3..5 {
         sim.world_mut()
@@ -1720,6 +1722,12 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
     sim.world_mut().entity_mut(people[4]).insert(AtWork {
         remaining_ticks: 10_000,
     });
+    (sim, people, table)
+}
+
+#[test]
+fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
+    let (mut sim, people, table) = shared_meal_scenario();
     let mut shared_seen = BTreeSet::new();
     let mut simultaneous = 0;
     let mut appreciation = std::collections::BTreeMap::<u32, usize>::new();
@@ -3304,6 +3312,121 @@ fn targeted_generic_order_waits_for_a_first_floor_chore() {
     assert!(chore_finished && all_finished);
 }
 
+/// The activity log records each mess the observer notices, once per pile,
+/// with the same change the diagnostic reports ([AL-sources]).
+#[test]
+fn mess_annoyance_logs_each_notice() {
+    let (mut sim, people, _, counter, _) = household();
+    let pack = sim.world().resource::<Content>().0;
+    let mess = sim.activity_log().label(
+        pack,
+        crate::relationship_effects::RelationshipCause::HouseholdMess.log_label(),
+    );
+    let observer = people[1];
+    let position = *sim.world().get::<Position>(counter).unwrap();
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() = position;
+    sim.world_mut()
+        .entity_mut(observer)
+        .insert(ChainState::begin(0));
+    sim.world_mut().insert_resource(SavedDomestic {
+        cleanliness: vec![(observer.index_u32(), 1.0)],
+        ..Default::default()
+    });
+    let notices = |sim: &mut Sim| {
+        let mut out = Vec::new();
+        sim.take_activity_log(&mut out);
+        out.chunks_exact(12)
+            .map(|words| crate::activity_log::LogRecord(words.try_into().unwrap()))
+            .filter(|r| r.label() == mess && r.actor() == 1 && r.other() == 0)
+            .collect::<Vec<_>>()
+    };
+    let noticed = |sim: &Sim| {
+        sim.relationship_effects()
+            .iter()
+            .find(|e| {
+                e.cause == crate::relationship_effects::RelationshipCause::HouseholdMess
+                    && e.affected == SimId(1)
+                    && e.responsible == SimId(0)
+            })
+            .copied()
+    };
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    // A pile is noticed only after its grace has passed.
+    crate::neglect::tests::age(&mut sim);
+    sim.tick();
+    let effect = noticed(&sim).expect("the pile is noticed");
+    let first = notices(&mut sim);
+    assert_eq!(first.len(), 1);
+    assert_eq!(
+        first[0].value(2),
+        crate::activity_log::opinion_units(effect.actual)
+    );
+    assert_eq!(first[0].triggers(), crate::activity_log::SOCIAL);
+
+    sim.tick();
+    assert!(noticed(&sim).is_none(), "a pile already seen");
+    assert!(notices(&mut sim).is_empty());
+
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    crate::neglect::tests::age(&mut sim);
+    sim.tick();
+    assert!(noticed(&sim).is_some(), "a new pile");
+    assert_eq!(notices(&mut sim).len(), 1, "each notice is its own record");
+}
+
+/// A dirty place setting changed opinion without a trace before the activity
+/// log; it now records a `DirtySetting` effect and the log line that goes
+/// with it ([AL-capture] item 2).
+#[test]
+fn dirty_setting_annoyance_is_recorded() {
+    let (mut sim, people, _, counter, _) = household();
+    let pack = sim.world().resource::<Content>().0;
+    let diner = people[1];
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 1);
+    add_dishes(sim.world_mut(), counter.index_u32(), 1, 1);
+    let ids: Vec<u32> = sim
+        .world()
+        .resource::<SavedDomestic>()
+        .dishes
+        .iter()
+        .map(|dish| dish.id)
+        .collect();
+    crate::relationship_effects::reset(sim.world_mut());
+    let before = sim
+        .world()
+        .get::<Relationships>(diner)
+        .map_or(0.0, |r| r.feeling(SimId(0)));
+    blocked_setting_annoyance(sim.world_mut(), diner, &ids);
+    let after = sim
+        .world()
+        .get::<Relationships>(diner)
+        .unwrap()
+        .feeling(SimId(0));
+    let effects: Vec<_> = sim.relationship_effects().to_vec();
+    assert_eq!(effects.len(), 1, "the diner's own dish annoys nobody");
+    let effect = effects[0];
+    assert_eq!(
+        effect.cause,
+        crate::relationship_effects::RelationshipCause::DirtySetting
+    );
+    assert_eq!((effect.affected, effect.responsible), (SimId(1), SimId(0)));
+    assert!(effect.requested < 0.0);
+    assert_eq!(effect.actual, after - before);
+    let records: Vec<_> = sim.activity_log().records().copied().collect();
+    assert_eq!(records.len(), 1);
+    assert_eq!(
+        records[0].label(),
+        sim.activity_log().label(
+            pack,
+            crate::relationship_effects::RelationshipCause::DirtySetting.log_label()
+        )
+    );
+    assert_eq!(
+        records[0].value(2),
+        crate::activity_log::opinion_units(after - before)
+    );
+}
+
 fn appreciation_meal() -> (Sim, Vec<Entity>, Entity) {
     let (mut sim, people, _, counter, table) = household();
     sim.world_mut().insert_resource(SavedDomestic::default());
@@ -3608,6 +3731,162 @@ fn meal_appreciation_skips_dead_cooks_without_discarding_the_portion() {
         assert!(!sim.relationship_effects().iter().any(
             |effect| effect.cause == crate::relationship_effects::RelationshipCause::MealShared
         ));
+    }
+}
+
+/// [AL-sources]: each guest's appreciation of the cook is one Social
+/// feeling attached to the line of the meal that guest finished, with the
+/// change the diagnostic reports, and the log never changes the meal.
+#[test]
+fn meal_appreciation_is_logged_on_the_eaters_meal() {
+    use crate::activity_log::{opinion_units, LogKind, LogRecord, RECORD_WORDS, SOCIAL};
+    use crate::relationship_effects::RelationshipCause;
+    let run = |log: bool| {
+        let (mut sim, ..) = shared_meal_scenario();
+        sim.set_activity_log_enabled(log);
+        let (mut hashes, mut records, mut effects, mut out) = (vec![], vec![], vec![], vec![]);
+        for _ in 0..1000 {
+            sim.tick();
+            hashes.push(sim.world_hash());
+            sim.take_activity_log(&mut out);
+            records.extend(
+                out.chunks_exact(RECORD_WORDS)
+                    .map(|words| LogRecord(words.try_into().unwrap())),
+            );
+            out.clear();
+            effects.extend(
+                sim.relationship_effects()
+                    .iter()
+                    .filter(|e| e.cause == RelationshipCause::MealShared)
+                    .copied(),
+            );
+            if sim.world().resource::<SavedDomestic>().meals.is_empty() {
+                break;
+            }
+        }
+        let meal = sim.activity_log().label(
+            sim.world().resource::<Content>().0,
+            RelationshipCause::MealShared.log_label(),
+        );
+        (hashes, records, effects, meal)
+    };
+    let (on, records, effects, meal) = run(true);
+    let (off, none, _, _) = run(false);
+    assert_eq!(on, off, "the log never changes the meal");
+    assert!(none.is_empty());
+    assert_eq!(effects.len(), 3, "three guests thank the cook");
+    for effect in &effects {
+        let (eater, cook) = (effect.affected.0, effect.responsible.0);
+        let feeling = records
+            .iter()
+            .find(|r| r.kind() == Some(LogKind::Feeling) && r.label() == meal && r.actor() == eater)
+            .unwrap_or_else(|| panic!("no appreciation by {eater}: {records:?}"));
+        assert_eq!(cook, 0);
+        assert_eq!(feeling.other(), cook);
+        assert_eq!(feeling.triggers(), SOCIAL);
+        assert_eq!(feeling.value(2), opinion_units(effect.actual));
+        assert_eq!(u64::from(feeling.tick()), effect.tick);
+        let parent = records
+            .iter()
+            .find(|r| r.seq() == feeling.parent())
+            .unwrap_or_else(|| panic!("appreciation by {eater} has no parent"));
+        assert_eq!(parent.kind(), Some(LogKind::ActionDone));
+        assert_eq!((parent.actor(), parent.tick()), (eater, feeling.tick()));
+    }
+}
+
+/// [AL-capture] item 4: a recipe starts its own Social total at its first
+/// step, so a solo snack after an interrupted shared activity carries none
+/// of that activity's Social or company.
+#[test]
+fn solo_recipe_after_interrupted_company_logs_no_company() {
+    use crate::activity_log::{ActivityLog, LogKind, ACTIONS, NONE};
+    let (mut sim, people, fridge, _, _) = household();
+    let person = people[0];
+    for other in &people[1..] {
+        *sim.world_mut().get_mut::<Needs>(*other).unwrap() = Needs::all_at(100.0);
+    }
+    let id = sim.world().get::<SimId>(person).unwrap().0;
+    let pack = sim.world().resource::<Content>().0;
+    let fridge_def = sim.world().get::<SmartObject>(fridge).unwrap().0;
+    let row = pack
+        .object(fridge_def)
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .unwrap() as u32;
+    let snack = chain_index(sim.world(), SNACK).unwrap();
+    // An interrupted shared activity: Social and a companion, never closed.
+    sim.world_mut()
+        .resource_mut::<ActivityLog>()
+        .social(id, 5.0, Some(99));
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObject {
+            agent: person.index_u32(),
+            object: fridge.index_u32(),
+            interaction: row,
+        });
+    let (mut records, mut running) = (vec![], false);
+    for _ in 0..3000 {
+        sim.tick();
+        records.extend(crate::activity_log_tests::drain(&mut sim));
+        let now = sim
+            .world()
+            .get::<ChainState>(person)
+            .is_some_and(|state| state.chain == snack);
+        if running && !now {
+            break;
+        }
+        running = now;
+    }
+    let snacks: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && r.actor() == id)
+        .collect();
+    assert_eq!(snacks.len(), 1, "{records:?}");
+    assert_eq!(
+        (snacks[0].other(), snacks[0].value(0), snacks[0].flags()),
+        (NONE, 0, 0),
+        "the snack started its own total"
+    );
+    assert_eq!(snacks[0].triggers(), ACTIONS);
+}
+
+/// [AL-capture] item 4: the meal gathering starts each diner's Social
+/// total, so whatever a guest's total held before the table filled never
+/// reaches the meal's line.
+#[test]
+fn meal_gathering_resets_company() {
+    use crate::activity_log::{ActivityLog, LogKind, PARTIAL};
+    let (mut sim, ..) = shared_meal_scenario();
+    let (mut records, mut gathered) = (vec![], false);
+    for _ in 0..1000 {
+        sim.tick();
+        records.extend(crate::activity_log_tests::drain(&mut sim));
+        let state = sim.world().resource::<SavedDomestic>();
+        let Some(meal) = state.meals.first() else {
+            break;
+        };
+        gathered |= meal.dining_started;
+        if !gathered {
+            let guests = meal.guests.clone();
+            let mut log = sim.world_mut().resource_mut::<ActivityLog>();
+            for guest in guests {
+                log.social(guest, 5.0, Some(99));
+            }
+        }
+    }
+    assert!(gathered, "the meal gathered");
+    let meals: Vec<_> = records
+        .iter()
+        .filter(|r| r.kind() == Some(LogKind::ActionDone) && (1..=3).contains(&r.actor()))
+        .collect();
+    assert_eq!(meals.len(), 3, "{records:?}");
+    for record in meals {
+        assert_ne!(record.other(), 99, "{record:?}");
+        assert_eq!(record.flags() & PARTIAL, 0, "{record:?}");
+        assert!(record.value(0) < 50, "{record:?}");
     }
 }
 

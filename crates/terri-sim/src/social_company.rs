@@ -140,6 +140,14 @@ impl SocialCompany {
             },
         )
     }
+    /// The lowest `SimId` in `owner`'s current company, for the activity
+    /// log's line about what they shared.
+    pub(crate) fn companion(&self, owner: Entity) -> Option<SimId> {
+        let me = self.participants.iter().find(|p| p.entity == owner)?;
+        self.peers(owner, me.station, &me.activity, me.position)
+            .map(|peer| peer.id)
+            .min()
+    }
     /// What `owner` is doing in company, for affinity recognition.
     pub(crate) fn communal_activity(&self, owner: Entity) -> Option<Communal> {
         let me = self.participants.iter().find(|p| p.entity == owner)?;
@@ -766,9 +774,13 @@ pub(crate) fn tick_meals(world: &mut World) {
         })
         .collect();
     for (person, delta) in payments {
-        if let Some(mut needs) = world.get_mut::<Needs>(person) {
-            needs.fill(NeedId::Social, delta);
-        }
+        let Some(mut needs) = world.get_mut::<Needs>(person) else {
+            continue;
+        };
+        let before = needs.get(NeedId::Social);
+        needs.fill(NeedId::Social, delta);
+        let delivered = needs.get(NeedId::Social) - before;
+        crate::activity_log::add_social(world, person, delivered);
     }
 }
 

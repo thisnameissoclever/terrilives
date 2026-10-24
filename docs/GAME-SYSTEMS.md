@@ -150,6 +150,8 @@ A task can also name the kind of unpleasantness it involves. A Sim who is sensit
 
 Every event-driven system needs this feed, with a way to jump the camera to the place concerned.
 
+The activity log, opened by the Log button, records events a feed can reuse: finished actions, chats and fights, annoyances, chores, skill levels, weekly reviews, career changes and deaths, each as a numeric record with the people involved. It keeps them only for the current session and shows them as a filtered list, not as notifications; the feed itself, with channels, muting and camera jumps, remains unbuilt. See [the activity log specification](specs/2026-10-18-activity-log.md).
+
 **Owner direction, 2026-09-21.** The feed reports significant things that happened. The owner's examples: two Sims have an actual fight, a Sim is promoted, a Sim becomes despondent. Many trigger conditions across every system should produce notifications.
 
 Each notification carries a channel, a type, and the Sim it concerns. A channel is a broad area, such as relationships, work, mood, money, pets, or the house. A type is one specific trigger, such as "promoted". The player can mute any one Sim, any one channel, or any one type, and the mutes are saved with the player's other preferences.

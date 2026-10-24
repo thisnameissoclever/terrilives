@@ -4025,3 +4025,9 @@ The desktop development build was played in the Walls and Floors tools with the 
 Two findings were fixed during the pass. A first click near tile corners in the last row chose the crossing line, so the second click could not extend the run; the run now follows the direction the clicks travel. The floating buttons covered floor areas and the near end of a run reaching the screen's edge; they now clear the whole selection. Remaining findings that predate this work: the Floors panel's swatches overlap their labels, and unselected windows read only as a pale strip in the low view.
 
 Captures, review verdicts and limits are in [the dated evidence](evidence/2026-10-19-build-walls/verification.md). This pass covers the desktop layout with a mouse; touch and phone layouts were not played.
+
+## [A-activity-log-guide-captures] The Log in the player guide, 2026-10-23
+
+The production build ran at desktop and phone sizes, muted, until the Log held a week of lines. The captures show the Log open with the whole household, Only Tim narrowing it to Tim's lines, bathroom privacy lines wrapping inside the panel, and Show earlier entries adding older lines above without moving the line in view. No defects were found in these states.
+
+The settings, inspected images and limits are in [the dated evidence](evidence/2026-10-23-activity-log-guide/verification.md). This pass does not cover the full [AL-evidence] checklist in the activity log specification, and its independent visual review is still to run.

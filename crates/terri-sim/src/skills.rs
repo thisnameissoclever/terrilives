@@ -153,16 +153,57 @@ pub fn mastery_for_tag(skills: Option<&Skills>, pack: &ContentPack, tag: &str) -
 /// One completed attempt's practice - [SK-learning]: every skill whose tag
 /// the activity carries gains its `practice_per_attempt`, pass or fail,
 /// clamped at the top of its ladder.
-pub fn practise(skills: &mut Skills, pack: &ContentPack, tags: &[String]) {
+///
+/// Returns the skills whose level rose, for the activity log. Reporting
+/// reads the standing before and after; it changes neither the stored
+/// practice nor the order the skills are updated in.
+pub fn practise(skills: &mut Skills, pack: &ContentPack, tags: &[String]) -> LevelUps {
     let ladder = Ladder::from_tuning(&pack.tuning);
+    let mut rises = LevelUps::default();
     for (index, skill) in pack.skills.iter().enumerate() {
         if !tags.contains(&skill.tag) {
             continue;
         }
         let index = index as u32;
-        let next = (skills.practice(index) + skill.practice_per_attempt)
-            .min(ladder.max_practice(skill.levels));
+        let before = skills.practice(index);
+        let next = (before + skill.practice_per_attempt).min(ladder.max_practice(skill.levels));
         skills.set_practice(index, next);
+        let reached = standing(&ladder, skill.levels, next).level;
+        if reached > standing(&ladder, skill.levels, before).level {
+            rises.push(index, reached);
+        }
+    }
+    rises
+}
+
+/// The skills whose level rose in one [`practise`] call, in pack order: the
+/// skill's index and the level it reached. Fixed-size, so practice never
+/// allocates; a call that raised more than [`LevelUps::CAPACITY`] skills at
+/// once would keep the first ones. The shipped pack gives each skill its
+/// own tag.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct LevelUps {
+    rises: [(u32, u8); LevelUps::CAPACITY],
+    len: usize,
+}
+
+impl LevelUps {
+    pub const CAPACITY: usize = 4;
+
+    fn push(&mut self, skill: u32, level: u8) {
+        if self.len < Self::CAPACITY {
+            self.rises[self.len] = (skill, level);
+            self.len += 1;
+        }
+    }
+
+    /// Each rise as the skill's index and the level it reached.
+    pub fn iter(&self) -> impl Iterator<Item = (u32, u8)> + '_ {
+        self.rises[..self.len].iter().copied()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 }
 

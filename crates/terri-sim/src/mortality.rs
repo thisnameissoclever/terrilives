@@ -89,6 +89,9 @@ pub(crate) fn tick(world: &mut World) {
                 cause: DeathCause::Deprivation,
                 issued_sim_ids,
             });
+            if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+                log.death(now, id);
+            }
             dead.push(entity);
         } else {
             state.counts.push((entity.index_u32(), count));
@@ -1216,5 +1219,30 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![0, 1]
         );
+    }
+
+    /// [AL-record] kind 12: a death is one Social line about the person
+    /// who died.
+    #[test]
+    fn death_is_logged() {
+        use crate::activity_log::{LogKind, SOCIAL};
+        let (mut sim, person) = fixture();
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(SimCommand::SetDeathEnabled(true));
+        sim.flush_commands();
+        crate::activity_log_tests::drain(&mut sim);
+        for _ in 0..2 {
+            super::tick(sim.world_mut());
+        }
+        assert!(crate::activity_log_tests::drain(&mut sim).is_empty());
+        super::tick(sim.world_mut());
+        assert!(sim.world().get_entity(person).is_err());
+        let deaths: Vec<_> = crate::activity_log_tests::drain(&mut sim)
+            .into_iter()
+            .filter(|r| r.kind() == Some(LogKind::Death))
+            .collect();
+        assert_eq!(deaths.len(), 1);
+        assert_eq!((deaths[0].actor(), deaths[0].triggers()), (0, SOCIAL));
     }
 }

@@ -305,7 +305,9 @@ pub(crate) fn prune(world: &mut World) {
         }
     }
     prune_references(world, &mut state);
-    board::reconcile(world, &mut state);
+    if let Some(change) = board::reconcile(world, &mut state) {
+        board::log_week(world, &state, &change);
+    }
     crate::neglect::refresh_in(world, &state);
     world.insert_resource(state);
     patches::reconcile(world);

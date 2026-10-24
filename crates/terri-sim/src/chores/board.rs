@@ -157,10 +157,20 @@ pub(crate) fn refresh_grouped_need(world: &World, state: &mut SavedChores) {
     }
 }
 
-pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
+/// The assignments a [`reconcile`] replaced, for [`log_week`].
+pub(crate) struct WeekChange {
+    pub previous_week: Option<u64>,
+    pub previous: Vec<terri_core::chores::ChoreAssignment>,
+}
+
+/// Settles the week's assignments and today's episodes. Returns what it
+/// replaced when it wrote new assignments, which the caller logs with
+/// [`log_week`].
+pub(crate) fn reconcile(world: &World, state: &mut SavedChores) -> Option<WeekChange> {
     if !state.board_enabled {
-        return;
+        return None;
     }
+    let mut changed = None;
     let day = world.resource::<SimClock>().tick
         / u64::from(world.resource::<crate::Content>().0.tuning.day_ticks);
     let week = day / 7;
@@ -192,6 +202,10 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
         } else {
             vec![]
         };
+        changed = Some(WeekChange {
+            previous_week: state.week,
+            previous: state.assignments.clone(),
+        });
         let rng = state.rng.as_mut().expect("chore stream is initialized");
         state.assignments = if keep.is_empty() {
             policy::assign(&weighted, &profiles, week, rng)
@@ -205,6 +219,45 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
     state.episodes.retain(|e| e.day.saturating_add(8) >= day);
     let episodes: std::collections::BTreeSet<_> = state.episodes.iter().map(|e| e.id).collect();
     state.dish_contributions.retain(|r| episodes.contains(&r.0));
+    changed
+}
+
+/// Logs the week's assignments as one Chores line per owner ([AL-sources]):
+/// every owner in a new week, and within a week only the owners whose own
+/// duties changed, so a change to the available duties does not repeat
+/// everyone's unchanged list.
+pub(crate) fn log_week(world: &mut World, state: &SavedChores, change: &WeekChange) {
+    let pack = world.resource::<crate::Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    let week = state.week.unwrap_or_default();
+    let new_week = change.previous_week != state.week;
+    let duties = |assignments: &[terri_core::chores::ChoreAssignment], owner: u32| {
+        assignments
+            .iter()
+            .filter(|duty| duty.owner == owner)
+            .map(|duty| duty.key)
+            .collect::<Vec<_>>()
+    };
+    let owners: std::collections::BTreeSet<u32> = state
+        .assignments
+        .iter()
+        .map(|duty| duty.owner)
+        .filter(|&owner| {
+            new_week || duties(&change.previous, owner) != duties(&state.assignments, owner)
+        })
+        .collect();
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.chore_week(pack, tick, week, &state.assignments, &owners);
+    }
+}
+
+/// Logs one chore outcome, performed by `actor` for `owner` ([AL-sources]).
+fn log_outcome(world: &mut World, (actor, owner): (u32, u32), kind: ChoreKind, outcome: i32) {
+    let pack = world.resource::<crate::Content>().0;
+    let tick = world.resource::<SimClock>().tick;
+    if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+        log.chore_outcome(pack, tick, (actor, owner), kind, outcome);
+    }
 }
 /// Construction assigns only new duties; ordinary tick policy owns deferred
 /// assignment, week changes, and daily episode maintenance.
@@ -353,6 +406,12 @@ pub(crate) fn credit(
     {
         history(state, owner, 50);
     }
+    let outcome = if covered {
+        crate::activity_log::OUTCOME_COVERED
+    } else {
+        crate::activity_log::OUTCOME_DONE
+    };
+    log_outcome(world, (actor.0, owner), key.kind, outcome);
     if covered
         && state.episodes[index].decision == Some(false)
         && crate::neglect::episode_matured(world, state.episodes[index].id)
@@ -386,7 +445,9 @@ pub(crate) fn credit(
     }
 }
 pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
-    reconcile(world, state);
+    if let Some(change) = reconcile(world, state) {
+        log_week(world, state, &change);
+    }
     crate::neglect::refresh_in(world, state);
     crate::chore_repair::tick_in(world, state);
     if !state.board_enabled {
@@ -441,6 +502,12 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             state.episodes[i].settled = true;
             if missed {
                 history(state, owner, 0);
+                log_outcome(
+                    world,
+                    (owner, owner),
+                    key.kind,
+                    crate::activity_log::OUTCOME_MISSED,
+                );
                 for (_, observer) in &live {
                     let cleanliness = crate::domestic::cleanliness(world, *observer);
                     let loss = -(0.008 + 0.012 * cleanliness);
@@ -517,6 +584,14 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             } else {
                 DutyOutcome::Skipped
             };
+            if !decision {
+                log_outcome(
+                    world,
+                    (owner, owner),
+                    key.kind,
+                    crate::activity_log::OUTCOME_SKIPPED,
+                );
+            }
         }
         if state.episodes[i].decision == Some(true) {
             state.episodes[i].unavailable = !work::start(world, state, person, key, false);

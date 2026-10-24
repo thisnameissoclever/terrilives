@@ -1,0 +1,14 @@
+seed 20260728; 100 filler agents; 2880 ticks in chunks of 360; a take every 5 ticks
+chunk  first      on ms     off ms   ratio      on cycles     off cycles   ratio  records   frame dropped  company nuisances  feelings
+    1     on     4582.4     4746.3  0.9655    15386684070    15932227011  0.9658      314     106       0      103         0         4
+    2    off     3372.5     3165.2  1.0655    11368490897    10769707474  1.0556      570     106       0      103         0         4
+    3     on    11572.5    11539.1  1.0029    39304437457    39196390778  1.0028      821     106       0      103         0         4
+    4    off    13029.7    13068.2  0.9971    43862704945    44055729571  0.9956     1546     256      69      103         0         4
+    5     on    13594.2    14782.3  0.9196    45524644205    50056318161  0.9095     1910     256      69      103         0         4
+    6    off    10077.0    11287.1  0.8928    33791553038    38128658700  0.8863     2255     256      69      103         0         4
+    7     on    12382.8    13042.6  0.9494    41573790494    44211022938  0.9403     2733     256      69      103         0         4
+    8    off    11983.4    11784.9  1.0168    40211746950    39864286437  1.0087     3401     256     137      103         0         4
+records 3401; largest frame 256; dropped 137; the worlds hashed the same after every chunk
+wall time ms: totals on 80594.5 off 83415.7; log cost -3.38% of the totals; median chunk -1.87% (95% interval -8.04% to +1.68%); quartiles -5.06% to +0.29%
+thread cycles: totals on 271024052056.0 off 282214341070.0; log cost -3.97% of the totals; median chunk -1.93% (95% interval -9.05% to +0.87%); quartiles -5.97% to +0.28%
+exit 0

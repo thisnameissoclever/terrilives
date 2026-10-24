@@ -2,7 +2,7 @@
 
 ## Find the controls {#overview}
 
-The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. A phone uses a compact dock, with the needs inside Sim details, then Overview. Expand or Collapse changes how much of the dock is shown.
+The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top left and the [Log](#log) button at the top right; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. A phone uses a compact dock, with the needs inside Sim details, then Overview. Expand or Collapse changes how much of the dock is shown.
 
 The paths below use the actual button and panel names. Desktop uses clicks and right-clicks; phone uses taps and long-presses. Scroll inside a panel when its content extends beyond the screen.
 
@@ -29,6 +29,20 @@ Drag the game view to pan. Use the mouse wheel on desktop or pinch on touch to z
 Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. The game keeps running in the background, so use Pause first if you want the household to wait. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
 
 :::illustration guide-shortcut
+
+## Log {#log}
+
+Choose Log at the top right to see what the household has done recently. Each line starts with the person it is about, such as Tim: Read a book or Bill: Annoyed by Tim's dishes. The oldest line is at the top and the newest at the bottom; the list follows new lines while you are scrolled to the bottom. The Log does not pause the game and stays open while you play. Close, Escape or the Log button closes it. Opening Options or Sim details closes the Log, and opening the Log closes them. On a phone, the open Log covers the screen down to the dock. The Log button is hidden in Build mode.
+
+The filter buttons choose what the Log shows. Actions, Social and Career are on at first. Actions shows finished activities, chats and fights. Social shows chats, fights, activities shared with company, annoyances, deaths and how people felt about each other's chores and meals, so a missed chore that someone resents shows with the filters that start on. Chores adds the week's duties and the result of every chore, including chores done for someone else. Skills adds skill levels, and Career adds hiring, quitting and weekly reviews. Details adds numbers that compare with each other, such as opinion and Social changes. Time puts the day and time first, such as D2, T08:15. A line shows when any of its filters is on, and each filter adds its own part to the line. Your filter choices last until the page reloads.
+
+:::illustration log
+
+The Log shows the whole household. To follow one person, select them in the [Household](#household) row, then tick Only with their name, such as Only Tim, at the end of the filter row. The Log then shows only the lines that involve that person, either as the one who acted or as someone named in a shown part of the line. The checkbox follows the selected person and stays ticked until you untick it. With nobody selected, it is hidden and the Log shows everyone.
+
+:::illustration log-only
+
+The Log shows the newest 200 lines. Scroll to the top and choose Show earlier entries to add 200 more. It keeps a limited number of recent events, so the oldest events of a long session drop off. The Log is not saved: Load, New game and reloading the page empty it.
 
 ## Sim details and needs {#sim-details}
 
