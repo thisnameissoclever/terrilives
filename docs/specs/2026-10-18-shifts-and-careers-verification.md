@@ -45,7 +45,7 @@ The [WS-household] predictions are for the path a person ends up in, so they com
 
 ## Played pass
 
-The [WS-played] pass ran on 2026-10-24 against the build of merge commit `d79c9e258`, at desktop and phone widths, in a muted browser on a task-owned preview port. Every point has an inspected capture with a written finding in [the played record](../evidence/2026-10-24-shifts-played/README.md), which also lists the build hashes, a fresh independent review of the captures and the disposition of each of its findings. The same session refreshed the player guide's Career captures and added a figure for the shift controls.
+The [WS-played] pass ran on 2026-10-24 against the build of commit `c14aea9a7`, which carries the owner's rulings of that day, at desktop and phone widths, in a muted browser on a task-owned preview port. Every point has an inspected capture with a written finding in [the played record](../evidence/2026-10-24-shifts-played/README.md), which also lists the build hashes, a fresh independent review of the captures and the disposition of each of its findings. The same session refreshed the player guide's Career captures and added a figure for the shift controls.
 
 ## Tim's first shift
 

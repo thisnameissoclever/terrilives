@@ -675,8 +675,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "9792f3679fec41e67f0603b97dca179bd3fa88c9b158a02e1952c284579fb4c0",
-      "outputSha256": "ad9446f9222be9f435caff5799d2f8413bed0ae06b1f954329d062eb463b1302"
+      "sourceSha256": "7beed8f8005d8cd4177a98ada313c36044889d7286dfa55f41c9c2d725c0b59e",
+      "outputSha256": "9bc2a4dca63097e2e307d97de64942e75c67166d34bda4461a9a53cc62577477"
     },
     {
       "output": "images/guide/sim-career-mobile.png",
@@ -688,8 +688,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "21337e621646bdacd7efd0f5aeb92fd2da3f3b79c61d6992449cc275161cf0d0",
-      "outputSha256": "aab0faa40422a3ec7c1243488a4de91b53d6b4fc6a53fb63d1d393707c9be09a"
+      "sourceSha256": "53a231f443527cda38188c23ded2360cc5a67014dfe9a7d553692b57a94746d9",
+      "outputSha256": "76e63574fbeb8bd7b5859c3090f228133756a42696050b2824957addd1343f12"
     },
     {
       "output": "images/guide/career-shift-desktop.png",
@@ -701,8 +701,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "2c45ba77f11e36fd19b5acfd26f1bb77805c0b5e9a2f509f218630ce0d971947",
-      "outputSha256": "6ec035d4e43ac8d5b2a7150814648e07e426b34040ac8b69786989b13df69704"
+      "sourceSha256": "c886736a11b95319c8877d931f5ee01ebf6264b598eb2f149135ebf9c05cb581",
+      "outputSha256": "9341816963b7b02ee35d675e28b44cbe3c9504cac8631e8377edb24f8ee504a3"
     },
     {
       "output": "images/guide/career-shift-mobile.png",
@@ -714,8 +714,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "181feb7e624ae3b3a00356ccecb37fec18ef96e0524b586333d2353208fe0292",
-      "outputSha256": "028844e51886c61ed07476a3db37a303bf2bb2002d29360285e43e6eea40185d"
+      "sourceSha256": "de41aac1dadd964d978ba3e02f49aac421861ea4bfa3f1ed2cb556cf1e7a8905",
+      "outputSha256": "ff6e5a868a2fb767848590479c28cb21fbcce2f714314f693cf0dd84a0d538e6"
     },
     {
       "output": "images/guide/career-review-desktop.png",
@@ -727,8 +727,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "dc2e2e5da5ef0dcfc91d78b9e5a449860bc641b242af26253b85e452f4310c53",
-      "outputSha256": "5ad5f521ae60b8715787d194589684d3504b799b975864d7a3c995ced2d0c176"
+      "sourceSha256": "9121105958b47b0a2404f0ca28afb6f7942b6a6f112944fffbbb4f6f5b4ff012",
+      "outputSha256": "8f1658b6d2e50b5ef30610a4165bf163754623d0466048ee26abb65de23f62d7"
     },
     {
       "output": "images/guide/career-review-mobile.png",
@@ -740,8 +740,8 @@
         "height": 420
       },
       "method": "Lossless crop of the source image at 1:1 size",
-      "sourceSha256": "82b977ba1d2c666aa2b092d948769c5ded23a42cc9663d745bb86d51c4037301",
-      "outputSha256": "4f4961feb3ffa19f8ab8e2fbcb33bd508b3225a920e11493e6c03754247ddc8b"
+      "sourceSha256": "e38d16e32a652ad0bf68fc31e9b4c4023a466e4be45165c87fabd69e48dfb82e",
+      "outputSha256": "2ae915f10398d1bd000bb3df48690ffcb7909dcdc360122d0e6794aa425367d9"
     },
     {
       "output": "images/guide/chores-board-desktop.png",

@@ -315,15 +315,15 @@
       {
         "id": "shift-careers-2026-10-24",
         "url": "http://127.0.0.1:4191/",
-        "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-        "bundle": "index-DyxaWcdx.js",
-        "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
-        "wasm": "terri_wasm_bg-B5MlBgC7.wasm",
-        "wasmSha256": "6ed9a4991bc8b9bebe01cf4fad1166dc815ebb1c1f9b37d7d50ac2dc82850dbf",
+        "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+        "bundle": "index-DN4CLjPn.js",
+        "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
+        "wasm": "terri_wasm_bg-CPrEBrgW.wasm",
+        "wasmSha256": "da1d92a3c6c52705bd1beec304e50348560ab97abd2f028a722c05c17e7ab80e",
         "gameSourceFileSha256": {
-          "web/index.html": "1c3609e5b6f5dd6e1e60b7176b9023591936da13e04ed0b381faf572a0e8750c",
+          "web/index.html": "f8022e944a0005cc1a4c4f113efd0d59c4936f2f2ad5ed7abadf365c2c24efc5",
           "web/src/main.ts": "a601d3e4511b1b4e2ee714688ffb305a2bb0f386eab0eb9c82a01f7dceb0f4a1",
-          "web/src/ui/career-panel.ts": "0aeef64edcfd86ebe95937066944783abae0e730ded91480e7d36753364bafe3",
+          "web/src/ui/career-panel.ts": "fa3d8deda723c27cf6ae334f3cb750cc01d940c16cffe43afdab2a55b89d1bbd",
           "web/src/ui/game-hud.ts": "b2baab95e236adb1f14e4f844a2af57f81c6b9066670ad542da9dfa975c34661"
         },
         "hashNormalization": "Text source hashes normalize CRLF to LF.",
@@ -644,12 +644,12 @@
       "access": "Open Sim details > Career.",
       "desktopDetail": "images/ui-sim-career-detail-desktop.png",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-      "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
+      "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+      "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
       "imageSha256": {
-        "desktop": "9792f3679fec41e67f0603b97dca179bd3fa88c9b158a02e1952c284579fb4c0",
-        "mobile": "21337e621646bdacd7efd0f5aeb92fd2da3f3b79c61d6992449cc275161cf0d0",
-        "desktopDetail": "686f35347854d902493ffde25a7ebd1f084117e5fc920657131b9c968f23a8b3"
+        "desktop": "7beed8f8005d8cd4177a98ada313c36044889d7286dfa55f41c9c2d725c0b59e",
+        "mobile": "53a231f443527cda38188c23ded2360cc5a67014dfe9a7d553692b57a94746d9",
+        "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
       }
     },
     {
@@ -1426,11 +1426,11 @@
       "description": "Career details after assigning a path.",
       "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-      "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
+      "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+      "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
       "imageSha256": {
-        "desktop": "361af1221d711d0f80583012e41b5ee963e81b1c869c4afde6ba4d712ddc0e7d",
-        "mobile": "2de27f4e6e1ba3bfae9fd8794e135bfd7bb7823541921209c1c22cb76f2d08b9"
+        "desktop": "74a276e69840afb3f2675b4f2d2b924a9fbc7660fc9b68ee0ee489f2bc3ba1be",
+        "mobile": "2c4e44fef63f35a710c3b5fae9b8f2e0664be45db2730634d2f939130b0c03b9"
       }
     },
     {
@@ -1441,11 +1441,11 @@
       "description": "Career assignment, Quit and automatic job search controls.",
       "access": "Open Sim details > Career, then scroll to Assign a career.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-      "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
+      "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+      "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
       "imageSha256": {
-        "desktop": "2c45ba77f11e36fd19b5acfd26f1bb77805c0b5e9a2f509f218630ce0d971947",
-        "mobile": "181feb7e624ae3b3a00356ccecb37fec18ef96e0524b586333d2353208fe0292"
+        "desktop": "c886736a11b95319c8877d931f5ee01ebf6264b598eb2f149135ebf9c05cb581",
+        "mobile": "de41aac1dadd964d978ba3e02f49aac421861ea4bfa3f1ed2cb556cf1e7a8905"
       }
     },
     {
@@ -1816,11 +1816,11 @@
       "description": "The selected person's completed work reviews.",
       "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-      "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
+      "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+      "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
       "imageSha256": {
-        "desktop": "dc2e2e5da5ef0dcfc91d78b9e5a449860bc641b242af26253b85e452f4310c53",
-        "mobile": "82b977ba1d2c666aa2b092d948769c5ded23a42cc9663d745bb86d51c4037301"
+        "desktop": "9121105958b47b0a2404f0ca28afb6f7942b6a6f112944fffbbb4f6f5b4ff012",
+        "mobile": "e38d16e32a652ad0bf68fc31e9b4c4023a466e4be45165c87fabd69e48dfb82e"
       }
     },
     {
@@ -1831,11 +1831,11 @@
       "description": "The review graph opened beside the career in Overview.",
       "access": "Open Sim details > Overview, then choose i beside the career name.",
       "sourceSnapshot": "shift-careers-2026-10-24",
-      "htmlSha256": "f41e2cd12444edaf26323d7f2d8f8b414e32ca633c620b228121e6604c5c2e83",
-      "bundleSha256": "82cb3e5a32cb5784b74a81b88cbefc0abca5313f67fc0316e1e4929d8cfce324",
+      "htmlSha256": "c4d38f11693fd59fbbd87d571cfecdee2d63330ff2dd066eee0445a1c04c7c22",
+      "bundleSha256": "7fd0df8037b70e98542becdbb52ed7315586d0447f3701c553754f881be6edb3",
       "imageSha256": {
-        "desktop": "ad6460d6b1ddef5c2463c15f8d3e7431c830bcf79a60fa8c00c926a380926bfe",
-        "mobile": "0dc281a930ebd0082c69973ebcfc7cc70597358a8fe451f640ac2c44aa5a6bf7"
+        "desktop": "e42fe30603482a85dada3a99b2842100b783075664cd465f99fb2ee65e508fdc",
+        "mobile": "199cbb3a5f2e563017d5d06e227fe989bc6b64905cba6cd94c0923a0a43ea3c0"
       }
     },
     {
