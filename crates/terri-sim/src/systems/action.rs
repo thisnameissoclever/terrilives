@@ -1521,7 +1521,9 @@ pub fn select_action(
     _relationship_context: Res<crate::relationship_dynamics::RelationshipContext>,
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
-    clock: Res<SimClock>,
+    // Paired, so the held shift's sleep rhythm (issue 296, [WS-sleep])
+    // joins without a seventeenth parameter.
+    (clock, rhythm): (Res<SimClock>, crate::shifts::ShiftRhythm),
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
     reading: Option<Res<crate::reading::Options>>,
@@ -1778,6 +1780,11 @@ pub fn select_action(
                 .remove::<Blocked>();
             continue;
         }
+        // The chronotype plus the held shift's kind offset, once per
+        // decision rather than per candidate ([WS-sleep]).
+        let sleep_offset = personality
+            .chronotype_offset_ticks
+            .saturating_add(rhythm.offset(agent));
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
         let mut outcomes = std::collections::HashMap::new();
         let mut admissions = std::collections::HashMap::new();
@@ -1955,7 +1962,7 @@ pub fn select_action(
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
-                        personality.chronotype_offset_ticks,
+                        sleep_offset,
                         tags,
                         pressure.map_or(0, |p| p.ticks),
                     );

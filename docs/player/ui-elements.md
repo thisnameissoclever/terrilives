@@ -88,9 +88,9 @@ An object being present and another person actively using it can have different 
 
 ## Career {#career}
 
-Open Sim details, then Career. The panel shows path, title, level, pay and range, schedule, this week's score, review history and the factors used by performance.
+Open Sim details, then Career. The panel shows path, title, level, pay and range, the schedule with the shift's name, this week's score, review history and the factors used by performance.
 
-Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
+Scroll to Assign a career, then choose a path and Assign to put the person at its first level, or Quit to leave their job. Shift lists By chance first and then each shift the path's first level offers, with its days, hours and chance of being drawn; leave By chance to let the hire draw one, or pick a shift to hold it. For an employed person, the second Shift list shows their current shift; choose another and select Change shift. Changing shift resets the good weeks counted toward the next promotion. These actions are refused while at work or commuting. That person's automatic job-search setting is here. The household's automatic career-change setting is in Options. Reviews continue when autonomy is turned off. See [work and pay](the-world/#careers).
 
 :::illustration sim-career
 

@@ -141,48 +141,21 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
-            // This mutable fixture retains its published balance. The current
-            // compiled contract appends only the purposeful-fight tuning tail.
-            // Removing that exact tail must recover every previous input byte.
-            let prefix = postcard::to_allocvec(&(
-                &pack.decay_per_tick,
-                &pack.objects,
-                pack.sim_sprite,
-                &pack.lot,
-                &pack.tuning,
-            ))
-            .unwrap();
-            let mut tail = Vec::new();
-            macro_rules! tail_field {
-                ($field:ident) => {
-                    tail.extend(postcard::to_allocvec(&pack.tuning.$field).unwrap());
-                };
-            }
-            tail_field!(fight_grievance_ticks);
-            tail_field!(fight_history_ticks);
-            tail_field!(fight_repeat_grievance_ticks);
-            tail_field!(fight_mood_bad_multiplier);
-            tail_field!(fight_mood_good_multiplier);
-            tail_field!(fight_opinion_strength);
-            tail_field!(fight_severity_reference);
-            tail_field!(chore_fight_response_base);
-            tail_field!(chore_fight_response_ticks);
-            tail_field!(chore_fight_response_cleanliness);
-            tail_field!(chore_fight_response_responsibility);
-            tail_field!(chore_fight_response_commitment);
-            tail_field!(chore_fight_response_preference);
-            tail_field!(chore_fight_response_affinity);
-            tail_field!(chore_fight_response_mood);
-            tail_field!(chore_repair_base);
-            tail_field!(chore_repair_cleanliness);
-            tail_field!(fight_rules);
-            let mut previous = encoded.clone();
-            previous.drain(prefix.len() - tail.len()..prefix.len());
+            // Issue 296 (shifts): the shift tuning appended to `Tuning`, the
+            // shift fields appended to every `CompiledCareer`, and the new
+            // career rows and paths. The proof always runs against the
+            // fixture as it was on main before issue 296 merged (23113 bytes,
+            // SHA-256
+            // 48f32c6ffaeae3d9885f444efd8c2ca7b785bf67a00865557f711b28377a435a,
+            // main at 2fa3eac56): restore that file before regenerating.
             assert_eq!(
-                previous, old_bytes,
-                "only the appended fight tuning contract may change this fixture"
+                previous_without_shifts(&pack),
+                old_bytes,
+                "only the shift tuning, the shift fields and the new careers may change the current fixture"
             );
-            eprintln!("Purposeful-fight fixture proof: removing the compiled tail recovers every previous byte");
+            eprintln!(
+                "Shift fixture proof: removing the shift tuning, the career shift fields and the new careers recovers every byte of the previous fixture"
+            );
         }
         if std::env::var_os("TERRI_PROVE_RUNTIME_FIXTURE").is_some() {
             return;
@@ -197,6 +170,91 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
             "regenerate the compiled runtime fixture through this test"
         );
     }
+}
+
+/// The fixture's bytes as they were before issue 296 (shifts), rebuilt
+/// from the current pack: the five shift knobs left off the end of the
+/// tuning, the three shift fields left off each career row, and only the
+/// twelve rows and three paths that existed then. Postcard writes a struct
+/// as its fields in order, so a tuple of the old fields encodes exactly as
+/// the old struct did.
+fn previous_without_shifts(pack: &terri_data::ContentPack) -> Vec<u8> {
+    const SHIFT_TUNING_BYTES: usize = 10;
+    const OLD_ROWS: usize = 12;
+    const OLD_PATHS: usize = 3;
+    let mut bytes = postcard::to_allocvec(&(
+        &pack.decay_per_tick,
+        &pack.objects,
+        pack.sim_sprite,
+        &pack.lot,
+    ))
+    .unwrap();
+    let tuning = postcard::to_allocvec(&pack.tuning).unwrap();
+    assert_eq!(
+        &tuning[tuning.len() - SHIFT_TUNING_BYTES..],
+        postcard::to_allocvec(&(
+            pack.tuning.shift_sleep_offset_day,
+            pack.tuning.shift_sleep_offset_early,
+            pack.tuning.shift_sleep_offset_late,
+            pack.tuning.shift_sleep_offset_night,
+            pack.tuning.career_search_temperature,
+        ))
+        .unwrap(),
+        "the shift knobs are the tuning's last bytes"
+    );
+    bytes.extend_from_slice(&tuning[..tuning.len() - SHIFT_TUNING_BYTES]);
+    bytes.extend(
+        postcard::to_allocvec(&(
+            &pack.personalities,
+            &pack.household,
+            &pack.social,
+            &pack.traits,
+        ))
+        .unwrap(),
+    );
+    let rows: Vec<_> = pack.careers[..OLD_ROWS]
+        .iter()
+        .map(|c| {
+            (
+                &c.id,
+                &c.label,
+                c.shift_start,
+                c.shift_ticks,
+                c.pay,
+                c.energy_cost,
+                c.satisfaction,
+                c.working_days,
+                c.path,
+                c.level,
+                c.pay_max,
+                c.advance_weeks,
+                c.social_demand,
+                &c.skill_tag,
+                &c.trait_fit,
+            )
+        })
+        .collect();
+    bytes.extend(postcard::to_allocvec(&rows).unwrap());
+    bytes.extend(
+        postcard::to_allocvec(&(
+            &pack.roles,
+            &pack.item_kinds,
+            &pack.chains,
+            &pack.circadian,
+            &pack.sleep_tag,
+            &pack.voice_clips,
+            &pack.portals,
+            &pack.colourways,
+            &pack.coverings,
+            &pack.skills,
+            &pack.affinities,
+            &pack.books,
+            &pack.reading,
+            &pack.career_paths[..OLD_PATHS],
+        ))
+        .unwrap(),
+    );
+    bytes
 }
 
 #[test]

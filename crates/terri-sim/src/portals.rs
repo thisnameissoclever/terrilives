@@ -1,7 +1,7 @@
 //! Deterministic presentation projection for authored lot portals.
 
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, AtWork, Career, Commuting, Path, Position, TileGrid};
+use terri_core::{Agent, AtWork, Commuting, Path, Position, TileGrid};
 
 use crate::Content;
 
@@ -78,8 +78,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         Option<&Path>,
         Has<Commuting>,
         Option<&AtWork>,
-        Option<&Career>,
+        Entity,
     ), With<Agent>>();
+    // The length of the shift each person holds (issue 296, [WS-systems]
+    // item 5), read through the one reader of a job's hours.
+    let shift_ticks = |entity: Entity| {
+        crate::shifts::shift_of(world, content, entity).map(|shift| shift.shift_ticks)
+    };
 
     for portal in &portals {
         // [OS-door]: a door with a yard beyond it swings for a sim walking
@@ -87,13 +92,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         // commuter; the more open of the two wins.
         let line = door_line(portal, width);
         let state = strongest(people.iter(world).map(
-            |(position, path, commuting, at_work, career)| {
+            |(position, path, commuting, at_work, entity)| {
                 let commute = project_person(
                     position,
                     path,
                     commuting,
                     at_work,
-                    career.and_then(|career| content.careers.get(career.0 as usize)),
+                    shift_ticks(entity),
                     portal.position,
                     portal.inward,
                 );
@@ -126,13 +131,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         buffer.states.push(state);
         let amount = people
             .iter(world)
-            .map(|(position, path, commuting, at_work, career)| {
+            .map(|(position, path, commuting, at_work, entity)| {
                 let commute = project_person(
                     position,
                     path,
                     commuting,
                     at_work,
-                    career.and_then(|career| content.careers.get(career.0 as usize)),
+                    shift_ticks(entity),
                     portal.position,
                     portal.inward,
                 );
@@ -456,7 +461,7 @@ fn project_person(
     path: Option<&Path>,
     commuting: bool,
     at_work: Option<&AtWork>,
-    career: Option<&terri_data::CompiledCareer>,
+    shift_ticks: Option<u32>,
     door: (u32, u32),
     inward: (u32, u32),
 ) -> u32 {
@@ -483,14 +488,13 @@ fn project_person(
         }
     }
 
-    let (Some(at_work), Some(career)) = (at_work, career) else {
+    let (Some(at_work), Some(shift)) = (at_work, shift_ticks) else {
         return CLOSED;
     };
     if distance_from(position, door) > 0.01 {
         return CLOSED;
     }
     let remaining = at_work.remaining_ticks;
-    let shift = career.shift_ticks;
 
     // The opening and closing windows are deliberately expressed in work
     // ticks. They therefore pause, save and load with the same countdown as
@@ -677,6 +681,9 @@ mod tests {
                 social_demand: 0.0,
                 skill_tag: None,
                 trait_fit: Vec::new(),
+                standard_kind: terri_data::SHIFT_DAY,
+                standard_weight: 1,
+                shifts: Vec::new(),
             }],
             ..base.clone()
         }))
@@ -1138,7 +1145,7 @@ mod tests {
                 None,
                 false,
                 Some(&work),
-                Some(&pack.careers[0]),
+                Some(pack.careers[0].shift_ticks),
                 (0, 0),
                 (0, 1),
             ),
@@ -1241,6 +1248,62 @@ mod tests {
                 buffer.states,
                 vec![expected],
                 "remaining work ticks {remaining}"
+            );
+        }
+    }
+
+    /// Issue 296, [WS-systems] item 5: the opening and closing windows
+    /// measure the held shift's length. The job's standard shift lasts 10
+    /// ticks and its `long` shift 20.
+    #[test]
+    fn the_door_window_follows_the_held_shift_length() {
+        let base = portal_career_pack();
+        let mut job = base.careers[0].clone();
+        job.shifts = vec![terri_data::CompiledShift {
+            id: "long".to_string(),
+            kind: terri_data::SHIFT_LATE,
+            shift_start: 0,
+            shift_ticks: 20,
+            working_days: 0b1111111,
+            weight: 1,
+        }];
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            careers: vec![job],
+            ..base.clone()
+        }));
+        for (held, remaining, expected) in [
+            (0, 10, OPEN),
+            (1, 10, CLOSED),
+            (1, 19, OPEN),
+            (1, 16, CLOSING),
+            (1, 5, OPENING),
+            (1, 2, OPEN),
+        ] {
+            let mut world = world_with_active_portals(pack);
+            let mut careers = crate::careers::Careers::default();
+            careers.records.insert(
+                terri_core::SimId(1),
+                crate::careers::Record {
+                    shift: held,
+                    ..crate::careers::Record::new(&pack.careers[0])
+                },
+            );
+            world.insert_resource(careers);
+            world.spawn((
+                Agent,
+                terri_core::SimId(1),
+                Position { x: 5.0, y: 2.0 },
+                terri_core::Career(0),
+                terri_core::AtWork {
+                    remaining_ticks: remaining,
+                },
+            ));
+            let mut buffer = PortalBuffer::default();
+            sync_portals(&mut world, &mut buffer);
+            assert_eq!(
+                buffer.states,
+                vec![expected],
+                "held shift {held}, remaining work ticks {remaining}"
             );
         }
     }

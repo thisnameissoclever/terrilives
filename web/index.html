@@ -288,6 +288,11 @@
       .career-controls select { width: 100%; }
       .career-actions { display: flex; gap: 8px; }
       .career-search { display: flex; align-items: center; gap: 6px; }
+      .career-shift-assign, .career-shift-change label { display: grid; gap: 4px; }
+      .career-shift-change { display: grid; gap: 6px; margin: 0; padding: 6px 8px; min-width: 0; }
+      .career-shift-change[hidden] { display: none; }
+      .career-shift-change select, .career-shift-assign select { width: 100%; min-width: 0; }
+      .career-shift-note { margin: 0; font-size: 0.9em; }
       .career-search[hidden] { display: none; }
       #sim-career p { margin: 2px 0; }
       #lighting-mode {

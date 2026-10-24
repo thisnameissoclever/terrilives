@@ -601,3 +601,25 @@ pub(crate) fn assert_current_admission(sim: &Sim) {
     assert_eq!(restored.current_v19_view(), before);
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
+
+/// The career content and search exactly as they were before issue 296
+/// (`docs/specs/2026-10-18-shifts-and-careers.md`, [WS-determinism]): `pack`
+/// cut back to its first three paths and twelve rows, every row holding its
+/// standard shift alone, every shift sleep offset at 0 and the search
+/// temperature at 0, the best-fit rule. Pull request 303's pinned run keeps
+/// main's values under it.
+pub(crate) fn pre_shift_careers(pack: &ContentPack) -> &'static ContentPack {
+    let mut pack = pack.clone();
+    pack.careers.truncate(12);
+    pack.career_paths.truncate(3);
+    for job in &mut pack.careers {
+        job.shifts.clear();
+        job.standard_weight = 1;
+    }
+    pack.tuning.shift_sleep_offset_day = 0;
+    pack.tuning.shift_sleep_offset_early = 0;
+    pack.tuning.shift_sleep_offset_late = 0;
+    pack.tuning.shift_sleep_offset_night = 0;
+    pack.tuning.career_search_temperature = 0.0;
+    Box::leak(Box::new(pack))
+}

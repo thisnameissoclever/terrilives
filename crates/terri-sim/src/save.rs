@@ -125,6 +125,7 @@ pub(crate) mod v17;
 pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
+pub(crate) mod v21;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -214,7 +215,7 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
                     SimCommand::Book(_)
                         | SimCommand::Character(_)
                         | SimCommand::ConfirmedOrder { .. }
-                ) && !v18::is_queued_setting(command)
+                ) && !v18::left_out_of_records(command)
             })
             .map(|command| capture_command(command, pack))
             .collect(),
@@ -376,7 +377,9 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
         | SimCommand::Character(_)
         | SimCommand::ConfirmedOrder { .. }
         | SimCommand::SetJobSearch { .. }
-        | SimCommand::SetCareerChange { .. } => {
+        | SimCommand::SetCareerChange { .. }
+        | SimCommand::AssignCareerShift { .. }
+        | SimCommand::ChangeShift { .. } => {
             unreachable!("Versioned commands are captured separately")
         }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },

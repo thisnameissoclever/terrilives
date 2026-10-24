@@ -1,9 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { CareerFactors, CareerReport, CareerResult, CareerWeek } from '../src/bridge.js';
+import type { CareerFactors, CareerReport, CareerResult, CareerShift, CareerWeek } from '../src/bridge.js';
 import {
+  BY_CHANCE,
   CAREER_WARNING,
+  CHANGE_SHIFT,
   CareerPanel,
+  SHIFT_CHANGE_NOTE,
+  careerShiftOptions,
   careerFactorLines,
   careerAttendanceLine,
   careerJobView,
@@ -48,11 +52,13 @@ class Source implements CareerPanelSource {
   result: CareerResult | null = null;
   search: boolean | null = true;
   accept = true;
+  heldIndex = 0;
+  pathShifts: Record<number, CareerShift[]> = { 0: OFFICE_SHIFTS, 1: CAFE_SHIFTS, 2: WATCH_SHIFTS };
   readonly sent: unknown[][] = [];
   selectedIndex(): number | null { return this.selected; }
   dayTicks(): number { return 1440; }
   careerOf(): string | null { return this.title; }
-  careerScheduleOf() { return { workingDays: 31, shiftStart: 360, shiftTicks: 480 }; }
+  careerScheduleOf() { return { workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: 0, index: this.heldIndex }; }
   careerReport(): CareerReport | null { return this.report_; }
   careerHistory(): readonly CareerWeek[] { return this.history; }
   careerFactors(): CareerFactors | null { return this.factors; }
@@ -62,7 +68,22 @@ class Source implements CareerPanelSource {
   lastCareerResult(): CareerResult | null { return this.result; }
   jobSearchOf(): boolean | null { return this.search; }
   setJobSearch(entity: number, search: boolean): boolean { this.sent.push(['search', entity, search]); return this.accept; }
+  careerPathShifts(path: number): readonly CareerShift[] { return this.pathShifts[path] ?? []; }
+  careerShiftsOf(): readonly CareerShift[] { return this.title === null ? [] : this.pathShifts[0]; }
+  assignCareerShift(entity: number, path: number, shift: number): boolean {
+    this.sent.push(['assignShift', entity, path, shift]);
+    return this.accept;
+  }
+  changeShift(entity: number, shift: number): boolean { this.sent.push(['change', entity, shift]); return this.accept; }
 }
+
+const shift = (index: number, kind: number | null, shiftStart: number, workingDays: number, weight: number): CareerShift =>
+  ({ index, kind, shiftStart, shiftTicks: 480, workingDays, weight });
+// The office's day shift and rare late one; the cafe's three; the night
+// watch's two equally likely nights and an evening.
+const OFFICE_SHIFTS = [shift(0, 0, 360, 31, 19), shift(1, 2, 720, 31, 1)];
+const CAFE_SHIFTS = [shift(0, 1, 360, 31, 5), shift(1, 0, 540, 0b1111100, 3), shift(2, 2, 780, 0b1110011, 2)];
+const WATCH_SHIFTS = [shift(0, 3, 1320, 0b1001111, 2), shift(1, 3, 1320, 0b1111100, 2), shift(2, 2, 840, 31, 1)];
 
 /**
  * A small DOM model, enough for the surface: elements with classes,
@@ -487,5 +508,156 @@ describe('career panel surface', () => {
     expect(MAIN_TS).toContain('careerPanel.afterCommands()');
     expect(MAIN_TS).toContain('careerPanel.resetAfterLoad()');
     expect(MAIN_TS).toContain('new CareerAutonomyControls(');
+  });
+});
+
+describe('shift selectors (issue 296, [WS-shell] items 3 to 5)', () => {
+  it('words each offered shift with its chance, most likely first and ties in authored order', () => {
+    expect(careerShiftOptions(OFFICE_SHIFTS, 1440)).toEqual([
+      { index: 0, text: 'Day shift, Monday to Friday, 06:00 to 14:00, 95%' },
+      { index: 1, text: 'Late shift, Monday to Friday, 12:00 to 20:00, 5%' },
+    ]);
+    expect(careerShiftOptions(WATCH_SHIFTS, 1440).map(option => [option.index, option.text.split(', ').pop()]))
+      .toEqual([[0, '40%'], [1, '40%'], [2, '20%']]);
+    expect(careerShiftOptions([shift(0, 9, 360, 31, 1)], 1440)).toEqual([
+      { index: 0, text: 'Monday to Friday, 06:00 to 14:00, 100%' },
+    ]);
+    expect(careerShiftOptions([shift(0, 0, 360, 31, 1), shift(1, 2, 720, 31, 3), shift(2, 3, 1320, 31, 2)], 1440)
+      .map(option => option.index), 'a likelier later shift comes first').toEqual([1, 2, 0]);
+    expect(careerShiftOptions([], 1440)).toEqual([]);
+  });
+
+  it('offers By chance and each shift when assigning', () => {
+    const source = new Source();
+    source.title = null;
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().assignShifts).toEqual([]);
+    controller.choose(1);
+    expect(last().shiftChoice).toBeNull();
+    expect(last().assignShifts?.map(option => option.text)).toEqual([
+      'Early shift, Monday to Friday, 06:00 to 14:00, 50%',
+      'Day shift, Wednesday to Sunday, 09:00 to 17:00, 30%',
+      'Late shift, Monday, Tuesday, Friday, Saturday, Sunday, 13:00 to 21:00, 20%',
+    ]);
+    controller.chooseShift(2);
+    expect(last().shiftChoice).toBe(2);
+    controller.chooseShift(7);
+    expect(last().shiftChoice, 'a shift the path does not offer is By chance').toBeNull();
+    controller.chooseShift(1);
+    controller.choose(2);
+    expect(last().shiftChoice, 'a new path starts at By chance, though it lists the same index').toBeNull();
+    controller.chooseShift(2);
+    controller.choose(0);
+    expect(last().shiftChoice).toBeNull();
+    expect(last().assignShifts?.map(option => option.index)).toEqual([0, 1]);
+    controller.choose(1);
+    controller.assign();
+    expect(source.sent.pop()).toEqual(['assign', 7, 1]);
+    expect(last().status).toBe('Assigning the career…');
+    source.result = { sequence: 1n, agent: 7, reason: null };
+    controller.afterCommands();
+    expect(last().status).toBe('Career assigned.');
+    controller.chooseShift(2);
+    controller.assign();
+    expect(source.sent.pop()).toEqual(['assignShift', 7, 1, 2]);
+  });
+
+  it('changes the shift of an employed person', () => {
+    const source = new Source();
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().heldShift).toBe(0);
+    expect(last().changeChoice).toBe(0);
+    expect(last().heldShifts?.map(option => option.index)).toEqual([0, 1]);
+    controller.changeShift();
+    expect(source.sent, 'the held shift is not sent').toEqual([]);
+    controller.chooseChange(1);
+    expect(last().changeChoice).toBe(1);
+    controller.changeShift();
+    expect(source.sent).toEqual([['change', 7, 1]]);
+    expect(last().status).toBe('Changing the shift…');
+    expect(last().pending).toBe(true);
+    source.heldIndex = 1;
+    source.result = { sequence: 1n, agent: 7, reason: null };
+    controller.afterCommands();
+    expect(last().status).toBe('Shift changed.');
+    expect(last().heldShift).toBe(1);
+    expect(last().changeChoice).toBe(1);
+    for (const reason of ['That shift is not offered at this level.', 'This person has no job.',
+      'They already work that shift.', 'Not while they are at work or on the way.']) {
+      controller.chooseChange(0);
+      controller.changeShift();
+      source.result = { sequence: (source.result?.sequence ?? 0n) + 1n, agent: 7, reason };
+      controller.afterCommands();
+      expect(last().status).toBe(reason);
+    }
+    source.accept = false;
+    controller.chooseChange(0);
+    controller.changeShift();
+    expect(last().status).toBe('The career change could not be sent.');
+  });
+
+  it('hides the change controls for an unemployed person', () => {
+    const source = new Source();
+    source.title = null;
+    const { controller, last } = panel(source);
+    controller.update(0, true);
+    expect(last().heldShifts).toEqual([]);
+    expect(last().heldShift).toBeNull();
+    controller.changeShift();
+    expect(source.sent).toEqual([]);
+  });
+
+  it('draws both Shift selectors, the Change shift button and the note', () => {
+    const document = new Doc();
+    const section = document.createElement('section');
+    const empty = document.createElement('p');
+    const content = document.createElement('div');
+    section.append(empty, content);
+    document.body.append(section);
+    const calls: unknown[][] = [];
+    const render = createCareerPanelSurface(document as unknown as Document, {
+      section: section as unknown as HTMLElement, empty: empty as unknown as HTMLElement, content: content as unknown as HTMLElement,
+    }, { choose: () => {}, assign: () => {}, quit: () => {}, setJobSearch: () => {},
+      chooseShift: shift => calls.push(['shift', shift]), chooseChange: shift => calls.push(['changeTo', shift]),
+      changeShift: () => calls.push(['change']) });
+    const held = careerShiftOptions(OFFICE_SHIFTS, 1440);
+    const state = (overrides: Partial<CareerPanelState> = {}): CareerPanelState => ({
+      agent: 7, unavailable: false, paths: ['Office', 'Cafe'], choice: null, pending: false, status: '', jobSearch: true,
+      job: careerJobView('Office clerk', 'Office', 'Office clerk, Day shift, Monday to Friday, 06:00 to 14:00', report(), FACTORS, WEEKS),
+      assignShifts: [], shiftChoice: null, heldShifts: held, heldShift: 0, changeChoice: 0, ...overrides,
+    });
+    render(state());
+    const assignShift = content.querySelector('.career-shift-assign select')!;
+    expect(content.querySelector('.career-shift-assign')?.textContent).toBe('Shift');
+    expect(assignShift.options.map(option => option.textContent)).toEqual([BY_CHANCE]);
+    expect(assignShift.disabled, 'no path chosen').toBe(true);
+    const change = content.querySelector('.career-shift-change')!;
+    expect(change.hidden).toBe(false);
+    const changeSelect = change.querySelector('select')!;
+    expect(changeSelect.options.map(option => option.textContent)).toEqual(held.map(option => option.text));
+    expect(changeSelect.value).toBe('0');
+    const button = change.querySelector('.career-change-shift')!;
+    expect(button.textContent).toBe(CHANGE_SHIFT);
+    expect(button.disabled, 'the held shift is selected').toBe(true);
+    expect(change.querySelector('.career-shift-note')?.textContent).toBe(SHIFT_CHANGE_NOTE);
+    changeSelect.value = '1';
+    changeSelect.dispatch('change');
+    render(state({ changeChoice: 1 }));
+    expect(button.disabled).toBe(false);
+    button.click();
+    render(state({ choice: 1, assignShifts: careerShiftOptions(CAFE_SHIFTS, 1440), shiftChoice: 2 }));
+    expect(assignShift.options.map(option => option.textContent)[0]).toBe(BY_CHANCE);
+    expect(assignShift.options).toHaveLength(4);
+    expect(assignShift.value).toBe('2');
+    expect(assignShift.disabled).toBe(false);
+    assignShift.value = '';
+    assignShift.dispatch('change');
+    expect(calls).toEqual([['changeTo', 1], ['change'], ['shift', null]]);
+    render(state({ job: null, heldShifts: [], heldShift: null, changeChoice: null }));
+    expect(change.hidden, 'no job, no change controls').toBe(true);
+    render(state({ pending: true, status: 'Changing the shift…' }));
+    expect(change.disabled).toBe(true);
   });
 });

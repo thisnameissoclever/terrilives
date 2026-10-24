@@ -1206,6 +1206,18 @@ pub struct Tuning {
     pub chore_repair_cleanliness: f32,
     /// Authenticated producer references retain their original fight rules.
     pub fight_rules: FightRules,
+    /// Shifts (issue 296, [WS-sleep] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`): ticks added to a
+    /// person's sleep rhythm while they hold a shift of each kind, in
+    /// kind order (day, early, late, night). Appended after the
+    /// purposeful-fight rules, per the rule above.
+    pub shift_sleep_offset_day: i32,
+    pub shift_sleep_offset_early: i32,
+    pub shift_sleep_offset_late: i32,
+    pub shift_sleep_offset_night: i32,
+    /// [WS-search]: how far the job search spreads its choice of path over
+    /// fit. 0 is the best-fit search with no draw.
+    pub career_search_temperature: f32,
 }
 
 impl Tuning {
@@ -1259,6 +1271,18 @@ impl Tuning {
     pub const SHIPPED_CAREER_MOOD_PROMOTED_TICKS: u32 = 1440;
     pub const SHIPPED_CAREER_MOOD_DEMOTED_TICKS: u32 = 2880;
     pub const SHIPPED_CAREER_MOOD_FIRED_TICKS: u32 = 5760;
+    /// The shipped shift knobs (issue 296), reconstructed the same way for
+    /// packs published before they existed. The offsets matter only for a
+    /// held shift of a non-day kind, which no published pack has.
+    pub const SHIPPED_SHIFT_SLEEP_OFFSET_DAY: i32 = 0;
+    pub const SHIPPED_SHIFT_SLEEP_OFFSET_EARLY: i32 = -60;
+    pub const SHIPPED_SHIFT_SLEEP_OFFSET_LATE: i32 = 120;
+    pub const SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT: i32 = 660;
+    pub const SHIPPED_CAREER_SEARCH_TEMPERATURE: f32 = 0.25;
+    /// The search temperature a pack published before issue 296 rebuilds
+    /// with: 0, the best-fit search those packs ran, so their worlds keep
+    /// choosing a path exactly as they did.
+    pub const PRE_SHIFT_CAREER_SEARCH_TEMPERATURE: f32 = 0.0;
     /// The shipped season knobs, reconstructed the same way for packs
     /// published before they existed.
     pub const SHIPPED_DAYS_PER_SEASON: u32 = 7;
@@ -1695,6 +1719,63 @@ pub struct CompiledCareer {
     pub skill_tag: Option<String>,
     /// Trait index to fit weight, sorted by index (the path's values).
     pub trait_fit: Vec<(u32, f32)>,
+    /// Shifts (issue 296, [WS-model] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`), appended per the
+    /// pack's compatibility rule. The kind of this level's own shift, the
+    /// standard shift, from 0 to 3, and its weight at this level.
+    pub standard_kind: u8,
+    pub standard_weight: u32,
+    /// The path's other shifts this level names in its weights, including
+    /// weight-0 entries, in the path's authored order. Shift index 0 is the
+    /// standard shift and index `i` above 0 is `shifts[i - 1]`.
+    pub shifts: Vec<CompiledShift>,
+}
+
+/// Shift kind numbers, in [`crate::schema::SHIFT_KIND_NAMES`] order.
+pub const SHIFT_DAY: u8 = 0;
+pub const SHIFT_EARLY: u8 = 1;
+pub const SHIFT_LATE: u8 = 2;
+pub const SHIFT_NIGHT: u8 = 3;
+
+/// One of a path's other shifts as one level offers it ([WS-model]).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledShift {
+    pub id: String,
+    /// From 0 to 3, per [`SHIFT_DAY`] and the constants after it.
+    pub kind: u8,
+    pub shift_start: u32,
+    pub shift_ticks: u32,
+    /// The weekdays the shift runs, as a level's mask is.
+    pub working_days: u8,
+    /// Its weight at this level, 0 to 1000. 0 is never drawn or offered.
+    pub weight: u32,
+}
+
+/// One shift of a level, standard or not, read through one shape so a
+/// reader of a job's hours never cares which it is.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ShiftView<'a> {
+    /// The shift's index at its level: 0 for the standard shift.
+    pub index: usize,
+    /// `standard` for the level's own shift.
+    pub id: &'a str,
+    pub kind: u8,
+    pub shift_start: u32,
+    pub shift_ticks: u32,
+    pub working_days: u8,
+    pub weight: u32,
+}
+
+impl ShiftView<'_> {
+    /// Whether the shift runs on `weekday`, 0 (Monday) to 6 (Sunday), with
+    /// the rule of [`CompiledCareer::works_on`].
+    pub fn works_on(&self, weekday: u8) -> bool {
+        works_on_mask(self.working_days, weekday)
+    }
+}
+
+fn works_on_mask(mask: u8, weekday: u8) -> bool {
+    weekday < terri_core::clock::WEEKDAY_COUNT && mask & (1 << weekday) != 0
 }
 
 /// One career path: its levels in order, as indices into `careers`.
@@ -1711,7 +1792,54 @@ impl CompiledCareer {
     /// working day, whatever the mask's spare bit holds; the clock never
     /// returns one.
     pub fn works_on(&self, weekday: u8) -> bool {
-        weekday < terri_core::clock::WEEKDAY_COUNT && self.working_days & (1 << weekday) != 0
+        works_on_mask(self.working_days, weekday)
+    }
+
+    /// How many shifts this level lists: the standard shift and its others.
+    pub fn shift_count(&self) -> usize {
+        1 + self.shifts.len()
+    }
+
+    /// The shift at `index`: 0 is the standard shift, `i` above 0 is
+    /// `shifts[i - 1]`, and anything past the list is `None`.
+    pub fn shift(&self, index: usize) -> Option<ShiftView<'_>> {
+        if index == 0 {
+            return Some(ShiftView {
+                index,
+                id: crate::schema::STANDARD_SHIFT_ID,
+                kind: self.standard_kind,
+                shift_start: self.shift_start,
+                shift_ticks: self.shift_ticks,
+                working_days: self.working_days,
+                weight: self.standard_weight,
+            });
+        }
+        self.shifts.get(index - 1).map(|shift| ShiftView {
+            index,
+            id: &shift.id,
+            kind: shift.kind,
+            shift_start: shift.shift_start,
+            shift_ticks: shift.shift_ticks,
+            working_days: shift.working_days,
+            weight: shift.weight,
+        })
+    }
+
+    /// The index of the shift named `id` at this level, `standard` being 0.
+    pub fn shift_index(&self, id: &str) -> Option<usize> {
+        if id == crate::schema::STANDARD_SHIFT_ID {
+            return Some(0);
+        }
+        self.shifts
+            .iter()
+            .position(|shift| shift.id == id)
+            .map(|position| position + 1)
+    }
+
+    /// Whether this level offers the shift at `index`: it exists and its
+    /// weight is above 0.
+    pub fn offers(&self, index: usize) -> bool {
+        self.shift(index).is_some_and(|shift| shift.weight > 0)
     }
 }
 
@@ -2136,6 +2264,11 @@ mod tests {
             chore_repair_cleanliness: 0.04,
             fight_rules: FightRules::Attributed,
             meal_appreciation_gain: 0.0,
+            shift_sleep_offset_day: 3,
+            shift_sleep_offset_early: -61,
+            shift_sleep_offset_late: 125,
+            shift_sleep_offset_night: 655,
+            career_search_temperature: 0.3125,
             days_per_season: 5,
             first_season: 2,
             season_yard_looks: [
@@ -2368,6 +2501,9 @@ mod tests {
                     social_demand: 0.0,
                     skill_tag: None,
                     trait_fit: vec![],
+                    standard_kind: SHIFT_NIGHT,
+                    standard_weight: 1,
+                    shifts: Vec::new(),
                 },
                 CompiledCareer {
                     id: "clerk".to_string(),
@@ -2385,6 +2521,16 @@ mod tests {
                     social_demand: 0.75,
                     skill_tag: Some("reading".to_string()),
                     trait_fit: vec![(0, 0.5), (2, -0.25)],
+                    standard_kind: SHIFT_EARLY,
+                    standard_weight: 7,
+                    shifts: vec![CompiledShift {
+                        id: "evenings".to_string(),
+                        kind: SHIFT_LATE,
+                        shift_start: 12,
+                        shift_ticks: 4,
+                        working_days: 0b0000110,
+                        weight: 2,
+                    }],
                 },
             ],
             // Two vocabulary entries each, out of alphabetical order,
@@ -2858,6 +3004,9 @@ mod tests {
             social_demand: 0.0,
             skill_tag: None,
             trait_fit: vec![],
+            standard_kind: SHIFT_DAY,
+            standard_weight: 1,
+            shifts: Vec::new(),
         };
         let worked: Vec<u8> = (0..7).filter(|day| career.works_on(*day)).collect();
         assert_eq!(worked, vec![0, 2, 6]);
@@ -2884,9 +3033,79 @@ mod tests {
             social_demand: 0.0,
             skill_tag: None,
             trait_fit: vec![],
+            standard_kind: SHIFT_DAY,
+            standard_weight: 1,
+            shifts: Vec::new(),
         };
         assert!(!career.works_on(7));
         assert!(!career.works_on(200));
+    }
+
+    /// [WS-model]: index 0 reads the level's own fields as the standard
+    /// shift, index `i` reads `shifts[i - 1]`, ids resolve both ways, and a
+    /// weight-0 shift is listed but not offered.
+    #[test]
+    fn shift_index_zero_is_the_level_standard_shift() {
+        let shift = |id: &str, kind: u8, start: u32, weight: u32| CompiledShift {
+            id: id.to_string(),
+            kind,
+            shift_start: start,
+            shift_ticks: 6,
+            working_days: 0b0011000,
+            weight,
+        };
+        let career = CompiledCareer {
+            id: "porter".to_string(),
+            label: "Porter".to_string(),
+            shift_start: 2,
+            shift_ticks: 9,
+            pay: 3,
+            energy_cost: 4.0,
+            satisfaction: 5.0,
+            working_days: 0b1000101,
+            path: 0,
+            level: 0,
+            pay_max: 3,
+            advance_weeks: 1,
+            social_demand: 0.0,
+            skill_tag: None,
+            trait_fit: vec![],
+            standard_kind: SHIFT_EARLY,
+            standard_weight: 5,
+            shifts: vec![
+                shift("late", SHIFT_LATE, 11, 3),
+                shift("retired", SHIFT_NIGHT, 15, 0),
+            ],
+        };
+        assert_eq!(career.shift_count(), 3);
+        assert_eq!(
+            career.shift(0),
+            Some(ShiftView {
+                index: 0,
+                id: "standard",
+                kind: SHIFT_EARLY,
+                shift_start: 2,
+                shift_ticks: 9,
+                working_days: 0b1000101,
+                weight: 5,
+            })
+        );
+        let late = career.shift(1).expect("the first listed shift");
+        assert_eq!((late.index, late.id, late.kind), (1, "late", SHIFT_LATE));
+        assert_eq!(
+            (late.shift_start, late.shift_ticks, late.weight),
+            (11, 6, 3)
+        );
+        assert!(late.works_on(3) && late.works_on(4) && !late.works_on(0));
+        assert_eq!(career.shift(2).map(|view| view.id), Some("retired"));
+        assert_eq!(career.shift(3), None);
+        assert_eq!(career.shift_index("standard"), Some(0));
+        assert_eq!(career.shift_index("late"), Some(1));
+        assert_eq!(career.shift_index("retired"), Some(2));
+        assert_eq!(career.shift_index("nights"), None);
+        assert!(career.offers(0) && career.offers(1));
+        assert!(!career.offers(2), "a weight-0 shift is held, not offered");
+        assert!(!career.offers(3));
     }
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`
@@ -2904,7 +3123,9 @@ mod tests {
     /// `hated_communal_chance`, the fourteen of the burnt-meal knobs, the
     /// eighteen of the fight knobs, the four of the land knobs, the
     /// ninety-five of the career knobs and the fifty of the season knobs,
-    /// followed by optional autonomy and the meal-appreciation float;
+    /// followed by optional autonomy, the meal-appreciation float, the
+    /// optional weather, the purposeful-fight knobs and the ten bytes of
+    /// the shift knobs;
     /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
@@ -2919,6 +3140,56 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // Shifts (issue 296): the five shift knobs are the last ten bytes,
+        // after the purposeful-fight knobs:
+        // four zigzag varints (3 as 6, -61 as 121, 125 as 250 in two bytes
+        // and 655 as 1310 in two bytes), then the search temperature's
+        // four bytes.
+        let shifts = before.len() - 10;
+        assert_eq!(before[shifts..shifts + 6], [6, 121, 0xFA, 0x01, 0x9E, 0x0A]);
+        assert_eq!(before[shifts + 6..], 0.3125f32.to_le_bytes());
+        for (offset, after) in [
+            (
+                0,
+                Tuning {
+                    shift_sleep_offset_day: 4,
+                    ..a_tuning()
+                },
+            ),
+            (
+                1,
+                Tuning {
+                    shift_sleep_offset_early: -62,
+                    ..a_tuning()
+                },
+            ),
+            (
+                2,
+                Tuning {
+                    shift_sleep_offset_late: 126,
+                    ..a_tuning()
+                },
+            ),
+            (
+                4,
+                Tuning {
+                    shift_sleep_offset_night: 656,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(
+                changed(after),
+                vec![shifts + offset],
+                "shift offset {offset}"
+            );
+        }
+        assert!(changed(Tuning {
+            career_search_temperature: 0.375,
+            ..a_tuning()
+        })
+        .iter()
+        .all(|index| *index >= shifts + 6));
         // Autonomy, appreciation and weather follow the original season fields.
         let mut tail = Vec::new();
         macro_rules! tail_field {
@@ -2944,8 +3215,8 @@ mod tests {
         tail_field!(chore_repair_base);
         tail_field!(chore_repair_cleanliness);
         tail_field!(fight_rules);
-        let purposeful_start = before.len() - tail.len();
-        assert_eq!(&before[purposeful_start..], tail);
+        let purposeful_start = shifts - tail.len();
+        assert_eq!(&before[purposeful_start..shifts], tail);
         let historical_end = purposeful_start - 6;
         assert_eq!(before[purposeful_start - 1], 0);
         assert_eq!(

@@ -7,7 +7,7 @@ fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) 
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let snapshot = decode_current(current).legacy.legacy.legacy;
+    let snapshot = decode_current(current).legacy.legacy.legacy.legacy;
     assert_eq!(snapshot.legacy, historical);
     let mut projected = SAVE_MAGIC.to_vec();
     projected.extend(16u16.to_le_bytes());

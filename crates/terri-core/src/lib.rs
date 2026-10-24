@@ -45,9 +45,11 @@ pub use save_v17::SaveSnapshotV17;
 pub mod save_v18;
 pub mod save_v19;
 pub mod save_v20;
+pub mod save_v21;
 pub use save_v18::SaveSnapshotV18;
 pub use save_v19::SaveSnapshotV19;
 pub use save_v20::SaveSnapshotV20;
+pub use save_v21::SaveSnapshotV21;
 mod save_before_voice;
 pub mod windows;
 
