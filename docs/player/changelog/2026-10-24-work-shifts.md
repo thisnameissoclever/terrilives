@@ -1,0 +1,16 @@
+# Work shifts and five new careers
+
+Jobs now come with shifts, there are five new careers, and you can choose or change a housemate's shift in the Career tab.
+
+## New
+
+- Five new careers: Hospital, Warehouse, Library, Restaurant kitchen and Buses, each with four levels.
+- Jobs now come with shifts. Depending on the career, a job can be a day, early, late or night shift, and a new hire is given one by chance. Office work is nearly always a weekday day shift. Housemates leave for work and come home at their own shift's times.
+- The Career tab in Sim details names each housemate's shift. When you assign a career you can pick a shift or leave it to chance. You can also change an employed housemate's shift while they are at home: their old shift is still worked that day if it has not started yet, the new one starts the next day, and changing shift resets the good weeks counted toward their next promotion.
+- Nobody works two shifts in one day. A housemate who has already worked a shift today starts a newly assigned job the next day.
+- Night workers sleep during the day. Early workers go to bed about an hour earlier, and late workers about two hours later.
+
+## Improved
+
+- Housemates looking for work now try different careers by chance, still favoring the ones that suit their traits, rather than always picking the same best fit.
+- Older saved games keep every job on its usual hours.
