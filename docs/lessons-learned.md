@@ -13256,3 +13256,17 @@ A workspace test build failed with `LNK1104` because it tried to replace an exam
 2. Root cause: the formatter counted one layer of URL escaping. Gmail's registered handler escaped the complete link again. Earlier verification decoded the link without opening the configured handler.
 3. Prevention: measure every generated report after the handler's extra encoding, reserve its address overhead, and place the error, cause and failing operation before context. Append newest logs before optional history. Preserve full copy and download reports.
 4. Verification: reproduce the old link's Error 400 in real Gmail, then verify recipient, subject and the complete repaired body in a populated unsent draft. Test variable report lengths, reserved characters, Unicode and lone surrogates against the encoded budget and content order. A passing direct-link test alone does not establish mail-handler acceptance.
+
+## [L-save-domain-recovery-discovery] Put domain-transfer recovery beside the export control
+
+1. What happened: the game moved domains with a working old-domain save recovery page, but Export save did not tell players where to find it.
+2. Root cause: recovery instructions existed only in the guide. The export control downloaded the new website's game, leaving the old household's location unclear.
+3. Prevention: expose the old-domain recovery link and complete transfer steps when Export save is activated. Keep the recovery page on the original browser origin, because browser storage is isolated by origin. Use the same browser profile and device, and preserve the old save during recovery.
+4. Verification: follow the public recovery page, download an existing save, import it at the new domain, and reload the game. Separately verify that Export save opens the recovery instructions, downloads the current game, and supports keyboard dismissal on desktop and phone layouts.
+
+## [L-capture-file-encoding] Match screenshot filenames to the captured encoding
+
+1. What happened: guide generation rejected screenshots saved with a PNG extension because the browser had returned JPEG bytes.
+2. Root cause: the capture filename assumed an encoding that the screenshot API did not promise.
+3. Prevention: inspect the captured file signature before choosing its extension. Preserve the original screenshot bytes and use the matching file type in guide metadata.
+4. Verification: build the guide with signature validation enabled and compare the published image hash with the original capture.

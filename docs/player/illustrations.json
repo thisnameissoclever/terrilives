@@ -241,6 +241,11 @@
       "title": "Log with Only ticked",
       "desktop": "images/guide/log-only-desktop.png",
       "mobile": "images/guide/log-only-mobile.png"
+    },
+    "save-recovery": {
+      "title": "Recover a save from the old website",
+      "desktop": "images/guide/save-recovery-desktop.jpg",
+      "mobile": "images/guide/save-recovery-mobile.jpg"
     }
   },
   "crops": [

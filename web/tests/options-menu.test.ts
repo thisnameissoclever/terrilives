@@ -423,3 +423,20 @@ describe('the Options flyout wired into main.ts', () => {
     expect(MAIN_TS).toContain('createCompactHud(document, () => actionQueue.invalidate(), () => {\n    optionsMenu.close();\n    activityLogPanel.close();\n  });');
   });
 });
+
+describe('Export save recovery instructions', () => {
+  it('opens a recovery panel through native popover activation', () => {
+    const button = INDEX_HTML.match(/<button\b[^>]*id="export-save"[^>]*>/)?.[0];
+    expect(button).toContain('popovertarget="save-transfer-help"');
+    expect(INDEX_HTML).toContain('<dialog id="save-transfer-help" popover="auto"');
+    expect(INDEX_HTML).toContain('aria-labelledby="save-transfer-title"');
+  });
+  it('provides the old-origin link and the complete import route', () => {
+    const recovery = between('save-transfer-help', 'import-save-dialog');
+    expect(recovery).toContain('https://thisnameissoclever.github.io/natural-causes-old-save/');
+    expect(recovery).toContain('same browser, browser profile, and device');
+    for (const label of ['Download save', 'Options', 'Import save', 'Import game']) expect(recovery).toContain(label);
+    expect(recovery).toContain('popovertargetaction="hide"');
+    expect(recovery).toContain('rel="noopener"');
+  });
+});
