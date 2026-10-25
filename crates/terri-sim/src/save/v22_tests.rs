@@ -117,10 +117,13 @@ fn rich() -> Sim {
 /// or its cap leaves a schema-22 save loadable. Each bill keeps the terms
 /// it was issued under, so its fees and overdue day do not change, and the
 /// open month keeps the month length it is counted under.
+/// A named change to the bills tuning.
+type TuningEdit = (&'static str, fn(&mut terri_data::BillsTuning));
+
 #[test]
 fn a_save_loads_after_each_bills_tuning_change() {
     let snapshot = rich().save_snapshot_v22();
-    let edits: [(&str, fn(&mut terri_data::BillsTuning)); 5] = [
+    let edits: [TuningEdit; 5] = [
         ("a longer month", |b| b.days_per_month = 30),
         ("a shorter month", |b| {
             b.days_per_month = 3;
