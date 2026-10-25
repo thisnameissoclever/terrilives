@@ -46,8 +46,9 @@ describe('the bills exports at the boundary (issue 298, [WB-panel])', () => {
   });
 
   it('reads bill lines and refuses a malformed one', () => {
-    expect(parseBillLines([3, 1, 14, 60, 840])).toEqual([{ line: 3, kindIndex: 1, count: 14, unitCents: 60, amountCents: 840 }]);
-    for (const values of [[6, 0, 0, 0, 0], [0, -1, 0, 0, 0], [0, 0, 1.5, 0, 0], [0, 0, 0, -1, 0], [0, 0, 0, 0]]) {
+    expect(parseBillLines([3, 1, 14, 60, 840, 0])).toEqual([{ line: 3, kindIndex: 1, count: 14, unitCents: 60, amountCents: 840, tileDays: 0 }]);
+    expect(parseBillLines([1, 0, 192, 90, 2469, 1344])[0].tileDays).toBe(1344);
+    for (const values of [[6, 0, 0, 0, 0, 0], [0, -1, 0, 0, 0, 0], [0, 0, 1.5, 0, 0, 0], [0, 0, 0, -1, 0, 0], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0]]) {
       expect(parseBillLines(values), JSON.stringify(values)).toEqual([]);
     }
   });

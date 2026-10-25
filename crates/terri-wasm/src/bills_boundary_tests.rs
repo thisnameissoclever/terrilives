@@ -137,7 +137,7 @@ fn bills_lines_for_each_bill_kind() {
     let rows = |kind: f64| -> Vec<Vec<f64>> {
         handle
             .bills_lines(kind)
-            .chunks(5)
+            .chunks(6)
             .map(<[f64]>::to_vec)
             .collect()
     };

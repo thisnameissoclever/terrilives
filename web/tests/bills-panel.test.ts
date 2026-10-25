@@ -59,20 +59,20 @@ const NEXT: NextBill[] = [
 
 const LINES: Record<number, BillLine[]> = {
   0: [
-    { line: 0, kindIndex: 0, count: 3, unitCents: 7_000, amountCents: 3_000 },
-    { line: 1, kindIndex: 0, count: 192, unitCents: 100, amountCents: 8_229 },
-    { line: 2, kindIndex: 0, count: 112, unitCents: 30, amountCents: 1_440 },
+    { line: 0, kindIndex: 0, count: 3, unitCents: 7_000, amountCents: 3_000, tileDays: 0 },
+    { line: 1, kindIndex: 0, count: 192, unitCents: 100, amountCents: 8_229, tileDays: 576 },
+    { line: 2, kindIndex: 0, count: 112, unitCents: 30, amountCents: 1_440, tileDays: 336 },
   ],
   1: [
-    { line: 0, kindIndex: 0, count: 3, unitCents: 1_400, amountCents: 600 },
-    { line: 3, kindIndex: 0, count: 14, unitCents: 60, amountCents: 840 },
-    { line: 3, kindIndex: 1, count: 0, unitCents: 80, amountCents: 0 },
-    { line: 4, kindIndex: 0, count: 6, unitCents: 20, amountCents: 120 },
+    { line: 0, kindIndex: 0, count: 3, unitCents: 1_400, amountCents: 600, tileDays: 0 },
+    { line: 3, kindIndex: 0, count: 14, unitCents: 60, amountCents: 840, tileDays: 0 },
+    { line: 3, kindIndex: 1, count: 0, unitCents: 80, amountCents: 0, tileDays: 0 },
+    { line: 4, kindIndex: 0, count: 6, unitCents: 20, amountCents: 120, tileDays: 0 },
   ],
-  2: [{ line: 0, kindIndex: 0, count: 3, unitCents: 1_400, amountCents: 600 }],
+  2: [{ line: 0, kindIndex: 0, count: 3, unitCents: 1_400, amountCents: 600, tileDays: 0 }],
   3: [
-    { line: 0, kindIndex: 0, count: 3, unitCents: 700, amountCents: 300 },
-    { line: 5, kindIndex: 0, count: 3, unitCents: 300, amountCents: 900 },
+    { line: 0, kindIndex: 0, count: 3, unitCents: 700, amountCents: 300, tileDays: 0 },
+    { line: 5, kindIndex: 0, count: 3, unitCents: 300, amountCents: 900, tileDays: 0 },
   ],
 };
 
@@ -131,18 +131,25 @@ describe('bills text', () => {
   });
 
   it('words each line of a bill, leaving out usage nobody used', () => {
-    expect(LINES[0].map(line => billLineText(line, LABELS, 7))).toEqual([
+    expect(LINES[0].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $30.00',
-      'Indoor tiles: 192 at $1.00 a month',
-      'Outdoor tiles: 112 at $0.30 a month',
+      'Indoor tiles: 192 at $1.00 a month: $82.29',
+      'Outdoor tiles: 112 at $0.30 a month: $14.40',
     ]);
-    expect(LINES[1].map(line => billLineText(line, LABELS, 7))).toEqual([
+    // The lines add up to rent so far: $30.00 + $82.29 + $14.40.
+    expect(LINES[0].reduce((sum, line) => sum + line.amountCents, 0)).toBe(12_669);
+    // After a change this month, today's tiles and the month's average.
+    expect(billLineText({ ...LINES[0][1], tileDays: 600, amountCents: 8_572 }, LABELS, 7, 3))
+      .toBe('Indoor tiles: 192 today, 200 a day on average this month, at $1.00 a month: $85.72');
+    expect(billLineText({ ...LINES[0][2], tileDays: 340, amountCents: 1_458 }, LABELS, 7, 3))
+      .toBe('Outdoor tiles: 112 today, 113.3 a day on average this month, at $0.30 a month: $14.58');
+    expect(LINES[1].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $6.00', 'Showers: 14 x $0.60', null, 'Fridges: 6 days x $0.20',
     ]);
-    expect(billLineText(LINES[3][1], LABELS, 7)).toBe('Trips to work: 3 x $3.00');
-    expect(billLineText({ line: 4, kindIndex: 0, count: 1, unitCents: 20, amountCents: 20 }, LABELS, 7))
+    expect(billLineText(LINES[3][1], LABELS, 7, 3)).toBe('Trips to work: 3 x $3.00');
+    expect(billLineText({ line: 4, kindIndex: 0, count: 1, unitCents: 20, amountCents: 20, tileDays: 0 }, LABELS, 7, 3))
       .toBe('Fridges: 1 day x $0.20');
-    expect(billLineText({ line: 3, kindIndex: 9, count: 2, unitCents: 1, amountCents: 2 }, LABELS, 7)).toBeNull();
+    expect(billLineText({ line: 3, kindIndex: 9, count: 2, unitCents: 1, amountCents: 2, tileDays: 0 }, LABELS, 7, 3)).toBeNull();
   });
 });
 

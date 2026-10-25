@@ -660,9 +660,12 @@ pub enum LineKind {
 
 /// One line of a next bill. `kind_index` is the use or daily kind's compiled
 /// index for [`LineKind::Use`] and [`LineKind::Daily`], and 0 otherwise.
-/// `amount_cents` is the line's share of the bill so far; the base and tile
-/// lines share one rounding with the rest of rent, so their amounts are the
-/// exact fractions rounded up and may sum a cent above the bill.
+/// `amount_cents` is the line's share of the bill so far, and a bill's lines
+/// add up to its amount so far exactly: rent's base and tile lines split its
+/// one rounding by largest remainder. For a tile line `count` is today's
+/// tiles and `tile_days` the tiles summed over the days counted, which
+/// differs from `count` times those days once the layout changed this month;
+/// for every other line `tile_days` is 0.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Line {
     pub line: LineKind,
@@ -670,6 +673,25 @@ pub struct Line {
     pub count: u64,
     pub unit_cents: i64,
     pub amount_cents: i64,
+    pub tile_days: u64,
+}
+
+/// Splits `ceil(sum(numerators) / denominator)` into one whole amount per
+/// numerator that add up to it exactly: each takes its floor, and the cents
+/// left go to the largest remainders, the earlier line first on a tie.
+fn split_rounded(numerators: &[i64], denominator: i64) -> Vec<i64> {
+    let total = ceil_div(numerators.iter().sum(), denominator);
+    let mut amounts: Vec<i64> = numerators
+        .iter()
+        .map(|n| n.div_euclid(denominator))
+        .collect();
+    let mut order: Vec<usize> = (0..numerators.len()).collect();
+    order.sort_by_key(|&i| std::cmp::Reverse(numerators[i].rem_euclid(denominator)));
+    let left = total - amounts.iter().sum::<i64>();
+    for &i in order.iter().take(left.max(0) as usize) {
+        amounts[i] += 1;
+    }
+    amounts
 }
 
 fn counted(world: &World) -> Option<(&Bills, &'static ContentPack, u32)> {
@@ -755,11 +777,12 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
         count: bills.month_days.into(),
         unit_cents: base,
         amount_cents: ceil_div(base * days, month),
+        tile_days: 0,
     }];
     match kind {
         RENT => {
             let (indoor, outdoor) = rent_tiles(world);
-            for (line, tiles, tile_days, rate) in [
+            let tiles = [
                 (
                     LineKind::IndoorTiles,
                     indoor,
@@ -772,13 +795,26 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
                     bills.outdoor_tile_days,
                     tuning.rent_outdoor_tile_cents,
                 ),
-            ] {
+            ];
+            // Rent rounds once over all its parts, so the base and tile
+            // lines share that rounding and add up to it exactly.
+            let numerators: Vec<i64> = std::iter::once(base * days)
+                .chain(
+                    tiles
+                        .iter()
+                        .map(|(_, _, tile_days, rate)| rate * *tile_days as i64),
+                )
+                .collect();
+            let amounts = split_rounded(&numerators, month);
+            out[0].amount_cents = amounts[0];
+            for ((line, count, tile_days, rate), amount) in tiles.into_iter().zip(&amounts[1..]) {
                 out.push(Line {
                     line,
                     kind_index: 0,
-                    count: tiles.into(),
+                    count: count.into(),
                     unit_cents: rate,
-                    amount_cents: ceil_div(rate * tile_days as i64, month),
+                    amount_cents: *amount,
+                    tile_days,
                 });
             }
         }
@@ -800,6 +836,7 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
                             count: (*count).into(),
                             unit_cents: unit,
                             amount_cents: i64::from(*count) * unit,
+                            tile_days: 0,
                         });
                     }
                 }
@@ -811,6 +848,7 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
             count: bills.commutes.into(),
             unit_cents: tuning.commute_cents,
             amount_cents: tuning.commute_cents * i64::from(bills.commutes),
+            tile_days: 0,
         }),
     }
     out

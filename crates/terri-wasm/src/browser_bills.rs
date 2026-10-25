@@ -66,10 +66,12 @@ impl SimHandle {
     }
 
     /// Per line of next bill `kind`, `[line, kind_index, count, unit_cents,
-    /// amount_cents]`: line 0 the base charge (count is days counted), 1
-    /// indoor tiles, 2 outdoor tiles, 3 a use kind (kind_index into the use
-    /// labels), 4 a daily kind (into the daily labels), 5 trips. Empty for
-    /// a kind past 3, a non-integer, or a world without a lot.
+    /// amount_cents, tile_days]`: line 0 the base charge (count is days
+    /// counted), 1 indoor tiles, 2 outdoor tiles (count is today's tiles and
+    /// tile_days the tiles summed over the days counted), 3 a use kind
+    /// (kind_index into the use labels), 4 a daily kind (into the daily
+    /// labels), 5 trips. A bill's line amounts add up to its amount so far.
+    /// Empty for a kind past 3, a non-integer, or a world without a lot.
     pub fn bills_lines(&self, kind: f64) -> Vec<f64> {
         let Some(kind) = placement_u32(kind).and_then(|kind| u8::try_from(kind).ok()) else {
             return Vec::new();
@@ -83,6 +85,7 @@ impl SimHandle {
                     line.count as f64,
                     line.unit_cents as f64,
                     line.amount_cents as f64,
+                    line.tile_days as f64,
                 ]
             })
             .collect()

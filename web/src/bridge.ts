@@ -309,8 +309,10 @@ export interface NextBill {
 
 /**
  * One line of a next bill: 0 the base charge (`count` days counted), 1
- * indoor tiles, 2 outdoor tiles, 3 a use kind, 4 a daily kind (both by
- * `kindIndex`), 5 trips to work.
+ * indoor tiles, 2 outdoor tiles (`count` today's tiles, `tileDays` the
+ * tiles summed over the days counted), 3 a use kind, 4 a daily kind (both
+ * by `kindIndex`), 5 trips to work. `amountCents` is the line's share of
+ * the bill so far; a bill's lines add up to it.
  */
 export interface BillLine {
   readonly line: 0 | 1 | 2 | 3 | 4 | 5;
@@ -318,6 +320,7 @@ export interface BillLine {
   readonly count: number;
   readonly unitCents: number;
   readonly amountCents: number;
+  readonly tileDays: number;
 }
 
 /** An issued bill; `paidDay` is null while it is unpaid. */
@@ -372,13 +375,14 @@ export function parseNextBills(values: readonly number[]): NextBill[] {
 
 /** Reads `bills_lines`; empty for anything malformed. */
 export function parseBillLines(values: readonly number[]): BillLine[] {
-  if (values.length % 5 !== 0) return [];
+  if (values.length % 6 !== 0) return [];
   const lines: BillLine[] = [];
-  for (let at = 0; at < values.length; at += 5) {
-    const [line, kindIndex, count, unitCents, amountCents] = values.slice(at, at + 5);
+  for (let at = 0; at < values.length; at += 6) {
+    const [line, kindIndex, count, unitCents, amountCents, tileDays] = values.slice(at, at + 6);
     if (!Number.isInteger(line) || line < 0 || line > 5) return [];
-    if (!isU32(kindIndex) || !wholeCents(count) || !wholeCents(unitCents) || !wholeCents(amountCents)) return [];
-    lines.push({ line: line as BillLine['line'], kindIndex, count, unitCents, amountCents });
+    if (!isU32(kindIndex) || !wholeCents(count) || !wholeCents(unitCents) || !wholeCents(amountCents)
+      || !wholeCents(tileDays)) return [];
+    lines.push({ line: line as BillLine['line'], kindIndex, count, unitCents, amountCents, tileDays });
   }
   return lines;
 }

@@ -49,17 +49,31 @@ function dayAndWeekday(day: number, weekday: string | null): string {
 }
 
 /**
- * One line of a next bill as the panel shows it, or null for a usage line
- * with nothing counted. `daysPerMonth` is the `{m}` of the base charge line.
+ * A tile line: `Indoor tiles: 192 at $0.90 a month: $24.69`, or, once the
+ * layout changed this month so the days counted held other numbers of
+ * tiles, today's count and the month's daily average, so the amount can be
+ * checked. `monthDays` is the number of days counted.
  */
-export function billLineText(line: BillLine, labels: BillKindLabels, daysPerMonth: number): string | null {
+function tileLineText(name: string, line: BillLine, monthDays: number): string {
+  const rate = `at ${formatCents(line.unitCents)} a month: ${formatCents(line.amountCents)}`;
+  if (monthDays === 0 || line.tileDays === line.count * monthDays) return `${name}: ${line.count} ${rate}`;
+  const average = (line.tileDays / monthDays).toLocaleString('en-US', { maximumFractionDigits: 1 });
+  return `${name}: ${line.count} today, ${average} a day on average this month, ${rate}`;
+}
+
+/**
+ * One line of a next bill as the panel shows it, or null for a usage line
+ * with nothing counted. `daysPerMonth` is the `{m}` of the base charge
+ * line, and `monthDays` the days counted so far.
+ */
+export function billLineText(line: BillLine, labels: BillKindLabels, daysPerMonth: number, monthDays: number): string | null {
   switch (line.line) {
     case 0:
       return `Base charge, ${line.count} of ${daysPerMonth} days: ${formatCents(line.amountCents)}`;
     case 1:
-      return `Indoor tiles: ${line.count} at ${formatCents(line.unitCents)} a month`;
+      return tileLineText('Indoor tiles', line, monthDays);
     case 2:
-      return `Outdoor tiles: ${line.count} at ${formatCents(line.unitCents)} a month`;
+      return tileLineText('Outdoor tiles', line, monthDays);
     case 3: {
       const label = labels.uses[line.kindIndex];
       return line.count === 0 || label === undefined ? null
@@ -283,7 +297,7 @@ export class BillsPanel {
     row.append(summary);
     const labels = this.kindLabels();
     for (const line of lines) {
-      const text = billLineText(line, labels, overview.daysPerMonth);
+      const text = billLineText(line, labels, overview.daysPerMonth, overview.monthDays);
       if (text !== null) row.append(this.paragraph(text, 'bill-line'));
     }
     return row;

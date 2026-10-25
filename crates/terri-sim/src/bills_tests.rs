@@ -148,11 +148,11 @@ fn the_shipped_lot_has_192_indoor_and_112_outdoor_rent_tiles() {
         outdoor_tile_days: 112 * 7,
         ..Bills::default()
     };
-    assert_eq!(month_amounts(&full, &pack().bills)[RENT as usize], 29_360);
+    assert_eq!(month_amounts(&full, &pack().bills)[RENT as usize], 25_520);
 }
 
 /// [WB-rent]: one 4 by 4 room on the shipped lot is 16 indoor tiles and 288
-/// outdoor ones, rent $135.20; with no wall at all every one of the 304
+/// outdoor ones, rent $132.00; with no wall at all every one of the 304
 /// floor tiles off the street is outdoor, rent $120.80.
 #[test]
 fn the_tiny_house_and_the_wall_free_lot_count_as_the_spec_says() {
@@ -169,7 +169,7 @@ fn the_tiny_house_and_the_wall_free_lot_count_as_the_spec_says() {
     };
     let tiny = lot_with(square_room(2, 2, 4));
     assert_eq!(crate::rooms::rent_tiles(tiny.world()), Some((16, 288)));
-    assert_eq!(month(16, 288), 13_520);
+    assert_eq!(month(16, 288), 13_200);
     let open = lot_with(Vec::new());
     assert_eq!(crate::rooms::rent_tiles(open.world()), Some((0, 304)));
     assert_eq!(month(0, 304), 12_080);
@@ -200,6 +200,78 @@ fn a_new_game_counts_its_first_day_on_its_first_tick() {
     assert!(counted.bills.is_empty());
 }
 
+/// The owner's decision of 2026-10-24: a bill's lines add up to its amount
+/// so far, including rent after the layout changed in the middle of a month,
+/// when the days counted held other numbers of tiles than today.
+#[test]
+fn every_bills_lines_add_up_to_its_amount_so_far() {
+    let mut sim = house();
+    sim.tick();
+    // Three days counted, the first two with fewer indoor and more outdoor
+    // tiles than today's layout, so no tile line is today's count times
+    // the days.
+    {
+        let mut bills = bills_mut(&mut sim);
+        bills.month_days = 3;
+        bills.indoor_tile_days = 171 * 2 + 192;
+        bills.outdoor_tile_days = 133 * 2 + 112;
+        bills.commutes = 4;
+    }
+    let so_far = month_amounts(bills(&sim), &pack().bills);
+    for kind in 0..BILL_KINDS {
+        let lines = lines(sim.world(), kind);
+        assert_eq!(
+            lines.iter().map(|line| line.amount_cents).sum::<i64>(),
+            so_far[kind as usize],
+            "bill kind {kind}"
+        );
+    }
+    let rent = lines(sim.world(), RENT);
+    assert_eq!(
+        rent.iter()
+            .map(|line| (line.count, line.tile_days))
+            .collect::<Vec<_>>(),
+        [(3, 0), (192, 534), (112, 378)]
+    );
+}
+
+/// Rent's one rounding is shared by largest remainder: the parts' floors,
+/// then a cent each to the largest remainders, so they add up to the
+/// rounded total exactly.
+#[test]
+fn split_rounded_adds_up_to_the_rounded_total() {
+    assert_eq!(
+        split_rounded(&[18_000, 57_600, 13_440], 7),
+        [2571, 8229, 1920]
+    );
+    assert_eq!(split_rounded(&[7, 7, 7], 7), [1, 1, 1]);
+    assert_eq!(split_rounded(&[1, 1, 1], 7), [1, 0, 0]);
+    assert_eq!(split_rounded(&[0, 0], 7), [0, 0]);
+}
+
+/// [WB-rulings] ruling 18: a new household starts with the tuned starting
+/// funds, and they cover the whole first month's bills as projected before
+/// any usage, so the Bills panel shows no shortfall at the start. A tuning
+/// change that makes the first bills dearer than the starting funds fails
+/// here.
+#[test]
+fn a_new_household_starts_with_enough_for_its_first_bills() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let start = pack().bills.starting_funds_cents;
+    assert!(start > 0);
+    assert_eq!(sim.world().resource::<Funds>().0, start);
+    sim.tick();
+    let first: i64 = next_bills(sim.world())
+        .iter()
+        .map(|bill| bill.expected_cents)
+        .sum();
+    assert!(
+        start >= first,
+        "starting funds {start} must cover the first month's projected bills {first}"
+    );
+    assert_eq!(overview(sim.world()).expect("a lot").shortfall_cents, 0);
+}
+
 /// [WB-panel]: before a new game's first tick counts its first day, rent
 /// and the base charges are projected over the whole month, the same as
 /// after it; only the first day's usage is added by the tick.
@@ -210,7 +282,7 @@ fn the_first_month_is_projected_whole_before_the_first_tick() {
     sim.tick();
     let after = next_bills(sim.world());
     assert_eq!(before.len(), 4);
-    assert_eq!(before[0].expected_cents, 29_360, "a full month of rent");
+    assert_eq!(before[0].expected_cents, 25_520, "a full month of rent");
     assert_eq!(before[0].expected_cents, after[0].expected_cents);
     let base = &pack().bills;
     assert_eq!(before[1].expected_cents, base.electricity_base_cents);
@@ -252,14 +324,14 @@ fn a_full_month_issues_four_bills_with_the_exact_amounts() {
         .iter()
         .map(|b| (b.due_day, b.kind, b.amount_cents))
         .collect();
-    // Rent $293.60. Electricity $30 and $10.98 of use: showers 210, baths
+    // Rent $255.20. Electricity $30 and $10.98 of use: showers 210, baths
     // 175, television 220, radio 48, stove 200, fridge 140, lamp 35,
     // aquarium 70. Water $20 and $19.65: showers 840, baths 630, hand
     // washing 115, toilet 340, dishes 40. Transportation $10 and 13 trips.
     assert_eq!(
         issued,
         [
-            (7, RENT, 29_360),
+            (7, RENT, 25_520),
             (7, ELECTRICITY, 4_098),
             (7, WATER, 3_965),
             (7, TRANSPORTATION, 4_900),
@@ -284,7 +356,7 @@ fn a_full_month_issues_four_bills_with_the_exact_amounts() {
 
 /// [WB-bills]: a part month's base charges and rent are its share of the
 /// month, with one rounding step, up, per bill: three days of the shipped
-/// rent is 88080 / 7 = 12582.86, charged as 12583 cents.
+/// rent is 76560 / 7 = 10937.14, charged as 10938 cents.
 #[test]
 fn a_partial_month_rounds_each_bill_once_up_to_the_cent() {
     let month = Bills {
@@ -297,7 +369,7 @@ fn a_partial_month_rounds_each_bill_once_up_to_the_cent() {
     assert_eq!(
         month_amounts(&month, &pack().bills),
         // 3000 * 3 / 7 = 1285.7, 2000 * 3 / 7 = 857.1, 1000 * 3 / 7 = 428.6.
-        [12_583, 1_286, 858, 429 + 600]
+        [10_938, 1_286, 858, 429 + 600]
     );
 }
 
@@ -832,7 +904,7 @@ fn bills_are_paid_on_the_tick_they_are_issued_when_funds_cover_them() {
     assert_eq!(paid_days(&sim), [Some(7); 4]);
     assert_eq!(
         sim.world().resource::<Funds>().0,
-        50_000 - (29_360 + 4_098 + 3_965 + 4_900)
+        50_000 - (25_520 + 4_098 + 3_965 + 4_900)
     );
 }
 
@@ -883,12 +955,9 @@ fn a_bill_is_never_paid_in_part_and_funds_never_go_below_zero() {
 #[test]
 fn pay_from_a_settling_shift_pays_a_waiting_bill_in_the_same_tick() {
     let (mut sim, _, _) = worker_world();
+    // No money, so the waiting bill can only be paid from the shift.
+    sim.world_mut().resource_mut::<Funds>().0 = 0;
     sim.tick();
-    assert_eq!(
-        sim.world().resource::<Funds>().0,
-        0,
-        "a new game has no money"
-    );
     let before = sim.world().resource::<SimClock>().tick;
     let outcome_pay = |sim: &Sim| {
         sim.world()
