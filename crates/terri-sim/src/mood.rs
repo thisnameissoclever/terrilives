@@ -203,6 +203,15 @@ fn derive_mood_with_chores(
     {
         career_moodlets(&mut moodlets, careers, *id, now, &pack.tuning);
     }
+    // Bills (issue 298, [WB-paying]): derived from the bills each time, like
+    // Warned at work, so it needs no timer and ends on the tick the last
+    // overdue bill is paid. Bills still in their grace do not count.
+    if crate::bills::any_overdue(world) {
+        moodlets.push(Moodlet {
+            label: BEHIND_ON_BILLS.to_string(),
+            score: -pack.bills.overdue_mood,
+        });
+    }
     for death in world
         .resource::<terri_core::save::SavedMortality>()
         .deaths
@@ -271,6 +280,8 @@ const FEELING_SICK: &str = "Feeling sick";
 pub(crate) const BURNT_DINNER: &str = "Burnt dinner";
 /// The moodlet both sides carry after a fight - issue 248.
 pub(crate) const HAD_A_FIGHT: &str = "Had a fight";
+/// The moodlet every housemate carries while a bill is overdue - issue 298.
+pub(crate) const BEHIND_ON_BILLS: &str = "Behind on bills";
 
 /// The career moodlets (issue 249, rules 9 to 11): how the job sits with
 /// the person, a standing warning, and the week's events while they last.

@@ -599,7 +599,7 @@ pub(crate) fn enclose(sim: &mut Sim) {
 /// Assert complete current admission without changing the live fixture.
 pub(crate) fn assert_current_admission(sim: &Sim) {
     let before = sim.current_v19_view();
-    let restored = crate::save::v20::restore(
+    let restored = crate::save::v22::restore(
         before.0.clone(),
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

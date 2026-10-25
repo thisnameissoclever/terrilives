@@ -348,6 +348,9 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     } else if candidate != *layout {
         keep_usable(world, &rectangles, &grid)?;
     }
+    if candidate != *layout && super::edit_leaves_a_bed_outside(world, &candidate) {
+        return Err(BedOutside);
+    }
     Ok(WallPlan {
         changed: candidate != *layout,
         layout: candidate,

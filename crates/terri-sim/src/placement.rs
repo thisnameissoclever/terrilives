@@ -38,6 +38,13 @@ pub enum PlacementRefusal {
     WindowRequiresWall = 18,
     WindowJunction = 19,
     PartialWindow = 20,
+    /// A bed, or any object that must stand inside a room, would have a
+    /// tile outside every enclosed room - [WB-beds] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`.
+    OutsideRoom = 21,
+    /// A wall or room edit outside a Build session would leave a bed that
+    /// stands inside a room outside every room - [WB-beds].
+    BedOutside = 22,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -539,6 +546,82 @@ fn plan_rectangle(
     Ok((grid, staged.map(|(_, plan)| plan)))
 }
 
+/// Whether an object that must stand inside a room may stand with
+/// `footprint` at `origin` ([WB-beds]): every tile inside an enclosed room
+/// of the world as it now stands, which inside a Build session is the
+/// draft. An object without the rule may stand anywhere.
+pub(crate) fn indoors_allowed(
+    world: &World,
+    definition: &terri_data::CompiledObject,
+    origin: (u32, u32),
+    footprint: Footprint,
+) -> bool {
+    !definition.indoor_only
+        || crate::rooms::RoomTopology::from_world(world)
+            .is_ok_and(|topology| topology.footprint_indoors(origin, footprint))
+}
+
+/// The placed objects that must stand inside a room, with where they stand,
+/// in entity order ([WB-beds]).
+pub(crate) fn indoor_only_objects(world: &World) -> Vec<(Entity, (u32, u32), Footprint)> {
+    let content = world.resource::<crate::Content>().0;
+    let Some(mut query) = world.try_query::<(
+        Entity,
+        &SmartObject,
+        &Position,
+        Option<&terri_core::ObjectFacing>,
+    )>() else {
+        return Vec::new();
+    };
+    let mut objects: Vec<_> = query
+        .iter(world)
+        .filter_map(|(entity, object, position, facing)| {
+            let definition = content.objects.get(object.0 .0 as usize)?;
+            definition.indoor_only.then(|| {
+                let facing = facing.map_or(definition.base_facing, |f| f.0);
+                (
+                    entity,
+                    (position.x as u32, position.y as u32),
+                    definition.footprint_at(facing),
+                )
+            })
+        })
+        .collect();
+    objects.sort_by_key(|(entity, ..)| entity.index());
+    objects
+}
+
+/// Whether a lot edit outside a Build session would turn `next` into a
+/// layout that leaves a bed standing inside a room outside every room
+/// ([WB-beds]). A bed already outside before the edit, as an older save may
+/// hold, does not stop it. Inside a session, and while a session replays,
+/// only Confirm judges beds, so a player can take a wall down and put it
+/// back without being stopped halfway.
+pub(crate) fn edit_leaves_a_bed_outside(
+    world: &World,
+    next: &terri_core::layout::SavedLayout,
+) -> bool {
+    if world.contains_resource::<crate::build_transaction::BuildTransaction>()
+        || crate::build_transaction::replaying(world)
+    {
+        return false;
+    }
+    let beds = indoor_only_objects(world);
+    if beds.is_empty() {
+        return false;
+    }
+    let (Ok(before), Ok(after)) = (
+        crate::rooms::RoomTopology::from_world(world),
+        crate::rooms::RoomTopology::with_layout(world, next),
+    ) else {
+        return false;
+    };
+    beds.iter().any(|(_, origin, footprint)| {
+        before.footprint_indoors(*origin, *footprint)
+            && !after.footprint_indoors(*origin, *footprint)
+    })
+}
+
 /// Produces a complete owned transaction; no mutation and no random draws.
 pub fn validate_placement(
     world: &World,
@@ -553,6 +636,9 @@ pub fn validate_placement(
     }
     let footprint = definition.footprint_at(facing);
     let (grid, reading) = plan_rectangle(world, Some(entity), footprint, origin, Some(facing))?;
+    if !indoors_allowed(world, definition, origin, footprint) {
+        return Err(OutsideRoom);
+    }
     Ok(PlacementPlan {
         grid,
         reading,
@@ -603,5 +689,8 @@ pub mod sale;
 pub mod walls;
 pub mod windows;
 
+#[cfg(test)]
+#[path = "placement/bed_room_tests.rs"]
+mod bed_room_tests;
 #[cfg(test)]
 mod tests;

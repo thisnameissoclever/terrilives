@@ -2898,7 +2898,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v20::restore(
+    let mut returning = crate::save::v22::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
