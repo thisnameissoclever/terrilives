@@ -57,7 +57,7 @@ pub(crate) fn positive_scale(score: f32) -> f32 {
 
 /// A completed chat can establish friendship even when loneliness is critical.
 /// Its positive Social advertisement exempts loneliness for relationship growth;
-/// actual meter delivery still requires a positive feeling toward the partner.
+/// actual meter delivery remains positive at every affinity level.
 pub(crate) fn conversation_positive_allowed(
     subject: &Needs,
     other: &Needs,
@@ -272,6 +272,9 @@ pub(crate) fn tick(world: &mut World) {
             {
                 continue;
             }
+            let requested = crate::relationship_effects::scaled_opinion_delta(
+                world, subject.id, other.id, cause, requested,
+            );
             let mut feelings = world
                 .get::<Relationships>(subject.entity)
                 .cloned()
@@ -279,10 +282,9 @@ pub(crate) fn tick(world: &mut World) {
             feelings.bump(other.id, requested);
             let actual = feelings.feeling(other.id) - before;
             world.entity_mut(subject.entity).insert(feelings);
-            world
-                .resource_mut::<RelationshipDiagnostics>()
-                .effects
-                .push(RelationshipEffect {
+            crate::relationship_effects::record(
+                world,
+                RelationshipEffect {
                     tick,
                     event: 0,
                     cause,
@@ -292,7 +294,8 @@ pub(crate) fn tick(world: &mut World) {
                     actual,
                     emergency: false,
                     directed: false,
-                });
+                },
+            );
         }
     }
 }

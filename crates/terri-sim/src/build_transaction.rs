@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV18,
+    SaveSnapshotV21,
 };
 
 #[cfg(test)]
@@ -51,6 +51,56 @@ pub enum BuildCommitError {
     StaleToken,
     CommandNotAllowed,
 }
+/// Which load rule refused the draft when Build could not open or confirm.
+/// `BuildCommitError::Validation` names only the kind of error; this names the
+/// rule, so the player and the console can be told what is in the way.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ValidationProblem {
+    /// A windowed house is held to the usability proofs a lot edit passes.
+    LotUsability(crate::placement::PlacementRefusal),
+    /// A housemate, their walk, or their contact with what they use, against the walls.
+    EdgeWorld,
+    /// The front door, its landing, or a worker's way home from the street.
+    PortalReturn,
+    Seating,
+    Reading,
+}
+
+/// The rules a draft that will not load is checked against, first failure wins.
+/// `None` when the refusal lies outside these rules.
+pub(crate) fn diagnose(world: &World) -> Option<ValidationProblem> {
+    let grid = world.resource::<terri_core::TileGrid>();
+    // `candidate_grid_loads` reports a book problem as a walls problem; it is
+    // not one, and none of these rules names it.
+    if save::v6::validate_live_books(world).is_err() {
+        return None;
+    }
+    if crate::seating::validate(world, grid).is_err() {
+        return Some(ValidationProblem::Seating);
+    }
+    if crate::reading::persistence::validate(world, grid).is_err() {
+        return Some(ValidationProblem::Reading);
+    }
+    match save::candidate_grid_loads(world, grid) {
+        Err(save::LoadProblem::PortalReturn) => return Some(ValidationProblem::PortalReturn),
+        Err(save::LoadProblem::EdgeWorld) => return Some(ValidationProblem::EdgeWorld),
+        Ok(()) => {}
+    }
+    let windowed = matches!(
+        world.get_resource::<terri_core::layout::SavedLayout>(),
+        Some(terri_core::layout::SavedLayout::EdgeWallsV3 { .. })
+    );
+    if windowed {
+        if let Err(refusal) = crate::placement::windows::validate_restored_windows(world) {
+            return Some(ValidationProblem::LotUsability(refusal));
+        }
+    }
+    None
+}
+
+#[derive(Resource, Default)]
+struct BuildDiagnosis(Option<ValidationProblem>);
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BuildRoomReview {
     pub selection: RoomSelection,
@@ -92,12 +142,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV18,
+    draft: SaveSnapshotV21,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV18,
+    baseline: SaveSnapshotV21,
     request_runtime: crate::social_episode::requests::runtime::Runtime,
     journal: Vec<BuildJournalEntry>,
     names: BTreeMap<RoomSelection, String>,
@@ -109,7 +159,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV18,
+        baseline: SaveSnapshotV21,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
     ) -> Self {
@@ -174,7 +224,7 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV18> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV21> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
@@ -194,16 +244,30 @@ impl Sim {
             .iter()
             .any(ordinary::construction)
             || build.names.iter().any(|(selection, name)| match selection {
-                RoomSelection::Outside => *name != build.baseline.legacy.legacy.rooms.outside_name,
+                RoomSelection::Outside => {
+                    *name
+                        != build
+                            .baseline
+                            .legacy
+                            .legacy
+                            .legacy
+                            .legacy
+                            .legacy
+                            .rooms
+                            .outside_name
+                }
                 RoomSelection::Room(id) => build
                     .baseline
+                    .legacy
+                    .legacy
+                    .legacy
                     .legacy
                     .legacy
                     .rooms
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v18::capture(self))
+            || !same_authored(&build.baseline, &save::v21::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -217,6 +281,9 @@ impl Sim {
             .map(|b| b.revision)
     }
     pub fn take_build_error(&mut self) -> Option<BuildCommitError> {
+        // A diagnosis belongs to the entry or preparation that failed, never to
+        // a later command error.
+        self.world.remove_resource::<BuildDiagnosis>();
         let active = self
             .world
             .get_resource_mut::<BuildTransaction>()
@@ -227,7 +294,16 @@ impl Sim {
                 .and_then(|mut f| f.error.take())
         })
     }
+    /// The rule that refused the latest Build entry or preparation, if it was one
+    /// of the rules [`diagnose`] reads. Cleared when either is tried again, when
+    /// a build error is taken, and when Build commits, cancels or ends.
+    pub fn build_diagnosis(&self) -> Option<ValidationProblem> {
+        self.world
+            .get_resource::<BuildDiagnosis>()
+            .and_then(|d| d.0)
+    }
     pub fn begin_build(&mut self) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if self.build_active() {
             return Err(BuildCommitError::AlreadyActive);
         }
@@ -237,12 +313,16 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v18::capture(self);
-        save::v18::restore(
+        let baseline = save::v21::capture(self);
+        if let Err(error) = save::v21::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
-        )?;
+        ) {
+            let problem = diagnose(&self.world);
+            self.world.insert_resource(BuildDiagnosis(problem));
+            return Err(error.into());
+        }
         let epoch = next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
         let session = new_session()?;
         self.world.insert_resource(BuildEpoch(epoch));
@@ -265,6 +345,9 @@ impl Sim {
             .ok_or(BuildCommitError::NotActive)?;
         if let RoomSelection::Room(id) = selection {
             if b.baseline
+                .legacy
+                .legacy
+                .legacy
                 .legacy
                 .legacy
                 .rooms
@@ -293,7 +376,7 @@ impl Sim {
             map,
             self.world.resource::<SavedRooms>(),
             map,
-            &b.baseline.legacy.legacy.rooms,
+            &b.baseline.legacy.legacy.legacy.legacy.legacy.rooms,
         );
         for row in &mut rows {
             if let Some(name) = b.names.get(&row.selection) {
@@ -319,8 +402,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v18::restore(
-                    save::v18::capture(candidate),
+                save::v21::restore(
+                    save::v21::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -350,6 +433,7 @@ impl Sim {
         validate: impl FnOnce(&Sim) -> Result<(), SaveError>,
         project: impl FnOnce(&BuildReview) -> Result<T, BuildCommitError>,
     ) -> Result<T, BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -370,7 +454,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v18::restore(
+        let mut candidate = save::v21::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -394,13 +478,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v18::capture(self);
-        if save::v18::capture(&candidate) != draft {
+        let draft = save::v21::capture(self);
+        if save::v21::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v18::restore(
+            candidate = save::v21::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -414,7 +498,7 @@ impl Sim {
         );
         let topology = RoomTopology::from_world(&candidate.world)?;
         let proposal = match_rooms(&context.map, &topology, offset);
-        let mut saved = b.baseline.legacy.legacy.rooms.clone();
+        let mut saved = b.baseline.legacy.legacy.legacy.legacy.legacy.rooms.clone();
         for (selection, name) in &b.names {
             match selection {
                 RoomSelection::Outside => saved.outside_name = name.clone(),
@@ -439,7 +523,7 @@ impl Sim {
             &resolved.map,
             &resolved.saved,
             &context.map,
-            &b.baseline.legacy.legacy.rooms,
+            &b.baseline.legacy.legacy.legacy.legacy.legacy.rooms,
         );
         let retired_names = resolved
             .retired_ids
@@ -456,7 +540,11 @@ impl Sim {
             final_maintenance(&mut candidate.world);
         }
         ordinary::runtime::refresh_derived(&mut candidate.world);
-        validate(&candidate)?;
+        if let Err(error) = validate(&candidate) {
+            let problem = diagnose(&candidate.world);
+            self.world.insert_resource(BuildDiagnosis(problem));
+            return Err(error.into());
+        }
         let review = BuildReview {
             token,
             groups,
@@ -489,7 +577,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v18::capture(self) != prepared.draft {
+        if save::v21::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -555,6 +643,7 @@ impl Sim {
             .collect())
     }
     pub fn commit_build(&mut self, token: BuildToken) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         if !self.build_active() {
             return Err(BuildCommitError::NotActive);
         }
@@ -562,8 +651,12 @@ impl Sim {
         next_epoch(&self.world).map_err(|_| BuildCommitError::CounterExhausted)?;
         let session = new_session()?;
         let mut b = self.world.remove_resource::<BuildTransaction>().unwrap();
-        let prepared = b.prepared.take().unwrap();
-        let baseline = save::v18::capture(&prepared.candidate);
+        let mut prepared = b.prepared.take().unwrap();
+        // The review copied the activity log when it was prepared, and the
+        // shell may have drained records since; installing that copy would
+        // hand them over a second time.
+        ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
+        let baseline = save::v21::capture(&prepared.candidate);
         let request_runtime =
             crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
         match ordinary::runtime::install(self, *prepared.candidate) {
@@ -595,6 +688,7 @@ impl Sim {
         Ok(())
     }
     fn restore_build(&mut self, end: bool) -> Result<(), BuildCommitError> {
+        self.world.remove_resource::<BuildDiagnosis>();
         let baseline = self
             .world
             .get_resource::<BuildTransaction>()
@@ -606,7 +700,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v18::restore(
+        let mut restored = save::v21::restore(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -629,7 +723,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v18::restore(
+            save::v21::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -645,6 +739,9 @@ pub(crate) fn final_maintenance(world: &mut World) {
     crate::privacy::maintain(world);
     crate::media::maintain(world);
     crate::social_episode::maintain(world);
+    crate::neglect::refresh(world);
+    crate::chore_repair::reconcile(world);
+    crate::social_conflicts::tick(world);
 }
 fn unchanged_duties(world: &World) -> DutyChangeReport {
     let assignments = world
@@ -666,9 +763,11 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV18, b: &SaveSnapshotV18) -> bool {
-    let a = &a.legacy.legacy;
-    let b = &b.legacy.legacy;
+fn same_authored(a: &SaveSnapshotV21, b: &SaveSnapshotV21) -> bool {
+    // Held shifts are not authored; compare the schema-twenty envelope.
+    let (a, b) = (&a.legacy, &b.legacy);
+    let a = &a.legacy.legacy.legacy.legacy;
+    let b = &b.legacy.legacy.legacy.legacy;
     let av = &a.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
     let bv = &b.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;
     let edges = |layout: &terri_core::layout::SavedLayout| {

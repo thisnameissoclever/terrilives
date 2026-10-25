@@ -244,13 +244,15 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                     y: window.y,
                     doorway: false,
                 };
-                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                if !edge.physical_in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((window.axis, window.x, window.y))
                 {
                     return Err(UnsupportedLayout);
                 }
-                let [a, b] = edge.cells();
-                grid.set_edge_blocked(a, b, true);
+                if edge.in_bounds(grid.width() as u32, grid.height() as u32) {
+                    let [a, b] = edge.cells();
+                    grid.set_edge_blocked(a, b, true);
+                }
             }
         }
     }
@@ -279,6 +281,14 @@ fn crosses_wall(rect: Rectangle, grid: &TileGrid) -> bool {
 pub(crate) struct CurrentLayout {
     walls: TileGrid,
     rectangles: Vec<Rectangle>,
+}
+
+/// The usability proof over the lot as it stands, for tests that build a
+/// scenario and need it valid apart from the rule under test.
+#[cfg(test)]
+pub(crate) fn lot_usable_for_tests(world: &World) -> Result<(), PlacementRefusal> {
+    let current = current_layout(world)?;
+    prove_lot_usable(world, world.resource::<TileGrid>(), &current.rectangles)
 }
 
 pub(crate) fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {

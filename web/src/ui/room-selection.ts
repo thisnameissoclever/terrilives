@@ -1,10 +1,13 @@
 import type { SimBridge } from '../bridge.js';
 import type { Point, RoomFailure, RoomSummary } from '../rooms/codec.js';
+import { failureDetails, failureWhat } from '../rooms/failure.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import type { RoomTool } from './room-tool.js';
+import { logError } from '../diagnostics/log.js';
 
 export type RoomBridge = Pick<SimBridge, 'roomsRevision' | 'roomSummaries' | 'roomTiles' | 'stageRoomName'
-  | 'prepareBuildCommit' | 'commitBuild' | 'discardBuildReview' | 'buildComponentTiles' | 'buildComponentPredecessors'>;
+  | 'prepareBuildCommit' | 'commitBuild' | 'discardBuildReview' | 'buildComponentTiles' | 'buildComponentPredecessors'>
+  & Partial<Pick<SimBridge, 'buildFailureReport'>>;
 
 export function roomNameError(raw: string): string | null {
   if (/[\uD800-\uDFFF]/u.test(raw)) return 'The name contains an incomplete character.';
@@ -13,11 +16,22 @@ export function roomNameError(raw: string): string | null {
   return length < 1 || length > 48 ? 'Use 1 to 48 characters for the room name.' : null;
 }
 export function normalizeRoomName(raw: string): string { return raw.replace(/^\p{White_Space}+|\p{White_Space}+$/gu, ''); }
+/** A room operation's failure for the status line, with what to do next. */
 export function roomFailure(error: RoomFailure): string {
-  const names = ['Unknown error', 'Build is closed', 'Build is already open', 'Not enough memory', 'Room counter exhausted',
-    'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs', 'Build draft differs',
-    'Build validation failed', 'Review is out of date', 'Command unavailable during Build', 'Invalid room request', 'Room request too large'];
-  return `${names[error.code] ?? names[0]}${error.detail === null ? '' : ` (detail ${error.detail})`}. Return to Build and review the changes again.`;
+  const advice = error.code === 5 ? 'Choose another room.' : error.code === 6 ? 'Use 1 to 48 characters for the room name.'
+    : 'Check the pending changes and try again.';
+  return `${failureWhat(error)} ${advice}`;
+}
+
+/** Writes each distinct room failure to the console once, however often it is shown. */
+export class RoomFailureLog {
+  private readonly logged = new Set<string>();
+  report(message: string, error: RoomFailure, details: Record<string, unknown> = {}): string {
+    const text = roomFailure(error), key = `${message}|${text}`;
+    if (!this.logged.has(key)) { this.logged.add(key); logError('Rooms', message, { ...failureDetails(error), ...details }); }
+    return text;
+  }
+  clear(): void { this.logged.clear(); }
 }
 
 /** Confirmed native membership and raw field drafts. No provisional room identities. */
@@ -28,12 +42,14 @@ export class RoomSelection {
   private revision: bigint | null = null;
   private readonly texts = new Map<number, string>();
   private readonly tiles = new Map<number, readonly Point[]>();
+  private readonly failures = new RoomFailureLog();
   constructor(private readonly source: RoomBridge, private readonly changed: () => void = () => {}) {}
   refresh(): void {
     const revision = this.source.roomsRevision();
     if (revision === this.revision) return;
     const result = this.source.roomSummaries();
-    if (!result.ok) { this.error = roomFailure(result.error); return; }
+    if (!result.ok) { this.error = this.failures.report('The room list could not be read.', result.error); return; }
+    this.failures.clear();
     this.rooms = result.value.rooms; this.revision = revision; this.tiles.clear();
     if (this.selected !== null && !this.rooms.some(room => room.id === this.selected)) this.selected = null;
   }
@@ -49,8 +65,11 @@ export class RoomSelection {
     if (!this.error) {
       try {
         const result = this.source.stageRoomName(this.selected, raw);
-        if (!result.ok) this.error = roomFailure(result.error);
-      } catch { this.error = 'The room name could not be sent. Keep the text and try again.'; }
+        if (!result.ok) this.error = this.failures.report('The room name was refused.', result.error, { room: this.selected });
+      } catch (error) {
+        this.error = 'The room name could not be sent. Keep the text and try again.';
+        logError('Rooms', 'The room name could not be sent.', { room: this.selected, error });
+      }
     }
     this.changed();
   }
@@ -60,7 +79,7 @@ export class RoomSelection {
       const error = roomNameError(text);
       if (error) { this.selected = id; this.error = error; this.changed(); return false; }
       const result = this.source.stageRoomName(id, text);
-      if (!result.ok) { this.error = roomFailure(result.error); this.changed(); return false; }
+      if (!result.ok) { this.error = this.failures.report('A room name was refused at Confirm.', result.error, { room: id }); this.changed(); return false; }
     }
     this.error = ''; return true;
   }
@@ -73,7 +92,7 @@ export class RoomSelection {
   private membership(id: number): readonly Point[] {
     if (!this.tiles.has(id)) {
       const result = this.source.roomTiles(id);
-      if (!result.ok) { this.error = roomFailure(result.error); return []; }
+      if (!result.ok) { this.error = this.failures.report("A room's tiles could not be read.", result.error, { room: id }); return []; }
       this.tiles.set(id, result.value);
     }
     return this.tiles.get(id)!;

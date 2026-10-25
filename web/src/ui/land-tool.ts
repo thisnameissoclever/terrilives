@@ -8,6 +8,7 @@
 
 import { landReason, type LandQuote, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type LandSource = Pick<SimBridge, 'landQuote' | 'buyLand' | 'lastLandResult' | 'lotRevision'>;
 
@@ -23,7 +24,7 @@ const SIDE_PLACES: Readonly<Record<Side, string>> = {
   0: 'behind the house', 1: 'on the left side', 2: 'on the right side',
 };
 
-export const CHOOSE_STRIP = 'Choose a strip of land.';
+export const CHOOSE_STRIP = '';
 const BUYING = 'Buying land…';
 const NOT_SENT = 'The purchase could not be sent.';
 
@@ -251,6 +252,7 @@ export class LandTool {
         this.status = result.reason === 0
           ? `Bought ${sent.quote.area} squares ${SIDE_PLACES[sent.side]} for ${dollars(dollarsUp(result.chargedCents))}.`
           : landReason(result.reason);
+        if (result.reason !== 0) logWarning('Land', 'Land purchase refused.', { ...result, reason: this.status, code: result.reason });
         this.hooks.changed();
         return;
       }

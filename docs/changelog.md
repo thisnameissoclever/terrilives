@@ -1,10 +1,10 @@
 # Maintaining the public changelog
 
-The public page is [Changelog](https://thisnameissoclever.github.io/terrilives/changelog/). Options contains a Changelog link beneath New game and Help. It opens a new tab so the current game stays open.
+The public page is [Changelog](https://natural-causes.life/changelog/). Options contains Player guide and Changelog links beneath the game actions. Each opens a new tab so the current game stays open. Changelog also links back to Player guide; it is a separate site destination, not a guide topic.
 
 ## Source and format
 
-Every significant player-facing change must have a note in `docs/changelog/`, committed and pushed on the same branch as the implementation. Apply the [maintenance skill](../.agents/skills/maintain-changelog/SKILL.md) before every push, including follow-up fixes and conflict resolution. Do not defer notes until task completion or leave them uncommitted while pushing the implementation.
+Every significant player-facing change must have a note in `docs/player/changelog/`, committed and pushed on the same branch as the implementation. Apply the [maintenance skill](../.agents/skills/maintain-changelog/SKILL.md) before every push, including follow-up fixes and conflict resolution. Do not defer notes until task completion or leave them uncommitted while pushing the implementation.
 
 Use one Markdown file per delivery date: `YYYY-MM-DD-short-slug.md`. Use the owner's intended delivery date, or the current date in America/Los_Angeles when delivering now. The date groups updates; it is not a version number, commit date or assertion of an exact publication time. A note on an unmerged branch is draft release copy and must travel with the behavior it describes. Check the date again before merging. Historical backfill retains recorded change dates without claiming separately verified deployment times.
 
@@ -85,18 +85,27 @@ variants follow the page's selected theme. The tab and home-screen icons share
 the same flower. Export sources and commands are documented in
 [the branding guide](../assets/branding/README.md).
 
+On desktop, the logo, page title and grouped Play and theme controls share one
+row. Expand all sits beneath that row, above the updates. On narrow screens,
+the logo sits beside the controls, with the title and Expand all underneath.
+The header and updates use the same content width.
+
 The owner approved the compact accordion design with both themes. Dark is the default, regardless of the device theme. The theme control saves a light or dark preference when browser storage is available. A blocked preference store does not prevent reading or switching themes. Only the newest update starts expanded. Older rows show their date and title; Expand all and Collapse all control the full history.
 
 Each update has a stable `#update-YYYY-MM-DD` link. Opening a link expands the relevant entry. `web/changelog/legacy-anchors.json` preserves the original links from before same-day consolidation; retain those aliases when changing titles or filenames. Each current filename also gets an alias automatically. New entries do not need a legacy-list addition unless an already-published filename changes.
 
 ## Generation and publication
 
-`scripts/build-changelog.mjs` reads the Markdown and `web/changelog/` presentation files. The Vite plugin emits `changelog/index.html` during `npm --prefix web run build`. In development, `/changelog/` uses the same renderer and reloads when notes change. The generated page includes its CSS, script and all entries; reading it does not require WebGPU, an API, external fonts or runtime requests for Markdown. Native disclosures also work without JavaScript. Play links use `../` and the game link uses `./changelog/`, preserving GitHub Pages' project path.
+`scripts/build-changelog.mjs` reads the Markdown and `web/changelog/` presentation files. The Vite plugin emits `changelog/index.html` during `npm --prefix web run build`. In development, `/changelog/` uses the same renderer and reloads when notes change. The generated page includes its CSS, script and all entries; reading it does not require WebGPU, an API, external fonts or runtime requests for Markdown. Native disclosures also work without JavaScript. Play links use `../` and the game link uses `./changelog/`, so both work at the site root and under a path prefix.
 
-CI's classifier reports `code` for game checks and `site` for published content. A changelog-only Markdown addition, edit or deletion sets `code=false` and `site=true`. The lightweight `changelog` job tests and renders the notes; Rust, web and mutation jobs can skip. Game changes still run their normal gates and the changelog check. Game comparisons continue to start at the newest main push whose web job passed, so an untested game change cannot disappear behind a later notes edit. Notes comparisons start at the newest successful main push whose changelog or web job passed. Keeping those histories separate lets unrelated documentation after a tested note still skip publication.
+Run changelog, guide, Rust, web, artwork and script checks locally before delivery. Record the checked revision, commands, results and platform limitations, then obtain independent review. See [local checks](local-checks.md). Hosted test workflows require separate owner approval; a push or pull request does not start them.
 
-Pages runs after successful push CI on main and checks out that run's exact SHA. A maintainer can also dispatch `pages.yml` after the relevant checks pass locally, providing the complete main commit as `validated_sha`. The manual route rejects another branch or a commit different from the workflow's main revision, then runs the same build, artifact verification and stale-release guard. This supports owner-authorized delivery without duplicate remote test gates. A successful `web` or `changelog` job enables the site build. The build includes the game and changelog in one Pages artifact. The deployment check compares all published content, including notes, with current main; a newer changelog makes an older artifact stale. Other Markdown documentation remains eligible for the existing no-deploy path.
+Pages starts automatically when a main push changes deployable game, guide, changelog or publication-build inputs. Its path filter excludes unrelated tests, testing tools, engineering documentation and metadata. Pages builds the pushed revision without waiting for a hosted test suite. A maintainer can also dispatch `pages.yml` after local validation, providing the complete main commit as `validated_sha`. The manual route rejects another branch or a commit different from the workflow's main revision.
+
+The build includes the game, guide and changelog in one Pages artifact. Before deployment, a sparse checkout compares that revision with current main. Newer deployable content makes an older artifact stale. Failed or unknown comparisons cannot authorize publication. See [guide authoring](player-guide-authoring.md) for the separate source review and numerical export checks.
 
 Validate notes with `node --test scripts/build-changelog.test.mjs` and `node scripts/build-changelog.mjs`. The latter writes `web/dist/changelog/index.html` by default. Validate workflow routing with `python -B -m unittest discover -s .github/scripts -p 'test_*.py'`. Validate the skill mirrors with `npm --prefix web test -- --maxWorkers=1 tests/agent-skill-mirrors.test.ts`. Use the regular web typecheck, suite and production build for presentation or game-link changes. Inspect desktop and phone layouts in both themes, the dark default, saved preferences, individual and global disclosures, keyboard focus, current and old permalinks, and the Options link. Close task-owned game tabs and preview servers afterward.
 
-Publication happens after the implementation reaches main and either main push CI succeeds or a maintainer dispatches the exact main revision after its relevant checks pass locally. A local build or a successful Pages workflow that skipped its deploy step does not establish that the page is live.
+Each release builds its WebAssembly package once, then builds and verifies the site. Routine validation remains local; publication does not create a duplicate hosted test run.
+
+Publication happens after locally verified and independently reviewed changes reach main and the filtered push starts Pages, or after a maintainer dispatches the exact main revision. A local build or a successful Pages workflow that skipped its deploy step does not establish that the page is live.

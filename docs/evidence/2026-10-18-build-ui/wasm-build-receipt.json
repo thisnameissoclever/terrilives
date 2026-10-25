@@ -1,0 +1,6 @@
+{
+  "started": "2026-10-18T11:53:10.4623095-07:00",
+  "ended": "2026-10-18T11:56:29.6605912-07:00",
+  "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+  "exit_code": 0
+}

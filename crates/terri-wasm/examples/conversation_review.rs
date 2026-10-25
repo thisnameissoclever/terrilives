@@ -6,7 +6,7 @@ use terri_core::{
 };
 use terri_sim::{Content, Sim};
 
-const _: () = assert!(terri_core::save::SAVE_SCHEMA_VERSION == 18);
+const _: () = assert!(terri_core::save::SAVE_SCHEMA_VERSION == 21);
 
 fn write(path: &Path, version: u16, payload: Vec<u8>) {
     let mut bytes = terri_core::save::SAVE_MAGIC.to_vec();
@@ -15,12 +15,12 @@ fn write(path: &Path, version: u16, payload: Vec<u8>) {
     fs::write(path, bytes).expect("write review input");
 }
 fn write_current(path: &Path, sim: &Sim) {
-    let snapshot = sim.save_snapshot_v18();
+    let snapshot = sim.save_snapshot_v21();
     let mut restored = Sim::new_with_lot_and_content(1, 1, *sim.world().resource::<Content>());
     restored
-        .load_snapshot_v18(snapshot.clone())
+        .load_snapshot_v21(snapshot.clone())
         .expect("valid current review input");
-    assert_eq!(restored.save_snapshot_v18(), snapshot);
+    assert_eq!(restored.save_snapshot_v21(), snapshot);
     write(
         path,
         terri_core::save::SAVE_SCHEMA_VERSION,

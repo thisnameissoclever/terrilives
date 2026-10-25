@@ -519,7 +519,8 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         }
         identity.style.maxHeight = ''; identity.style.overflowY = '';
         const viewport = {width:view.innerWidth,height:view.innerHeight};
-        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? []);
+        const identityWidth = identity.offsetWidth;
+        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? [],identityWidth);
         if (!placement) { options.dismiss?.(); return; }
         let focusAfterPlace: HTMLButtonElement | null = null;
         if (placement.capacity !== capacity) {
@@ -536,7 +537,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         }
         identity.style.maxHeight = `${placement.identityHeight}px`; identity.style.overflowY='auto';
         const region=placement.region, sizes=buttons.map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
-        const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right);
+        const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right,identityWidth);
         root.dataset.compact=String(layout.compact);
         root.style.left=placement.scroll ? `${region.left}px` : '0px'; root.style.top=placement.scroll ? `${region.top}px` : '0px';
         root.style.width=placement.scroll ? `${region.right-region.left}px` : '0px'; root.style.height=placement.scroll ? `${region.bottom-region.top}px` : '0px';

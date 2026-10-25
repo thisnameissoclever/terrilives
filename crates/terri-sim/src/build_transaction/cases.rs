@@ -30,6 +30,415 @@ fn confirm(sim: &mut Sim) -> BuildReview {
     sim.commit_build(review.token).unwrap();
     review
 }
+fn wall_refusal(
+    sim: &mut Sim,
+    axis: EdgeAxis,
+    x: u32,
+    y: u32,
+    state: WallState,
+) -> Option<crate::placement::PlacementRefusal> {
+    issue(sim, SimCommand::SetWallEdge { axis, x, y, state });
+    sim.world()
+        .resource::<crate::placement::LotEditState>()
+        .last_wall_result
+        .unwrap()
+        .reason
+}
+
+fn fit_first_window(sim: &mut Sim) {
+    let windowed = sim
+        .world()
+        .resource::<terri_core::layout::SavedLayout>()
+        .edges()
+        .iter()
+        .filter(|edge| !edge.doorway)
+        .copied()
+        .collect::<Vec<_>>()
+        .into_iter()
+        .any(|edge| {
+            issue(
+                sim,
+                SimCommand::FitWindow {
+                    axis: edge.axis,
+                    x: edge.x,
+                    y: edge.y,
+                    model: terri_core::windows::WindowModel::Sash,
+                },
+            );
+            sim.world()
+                .resource::<crate::placement::LotEditState>()
+                .last_window_result
+                .is_some_and(|r| r.reason.is_none())
+        });
+    assert!(windowed, "the shipped house takes a window somewhere");
+}
+
+/// Fits a window, then walls in one floor tile beside a piece of furniture.
+/// Returns the line between the sealed tile and the furniture, which is
+/// `Horizontal` and named by the sealed tile. A piece of furniture whose
+/// pocket cannot be sealed is skipped with the draft cancelled, so no stray
+/// wall from it changes the next try.
+fn windowed_house_with_sealed_pocket(sim: &mut Sim) -> (EdgeAxis, u32, u32) {
+    fit_first_window(sim);
+    let content = sim.world().resource::<Content>().0;
+    let objects: Vec<(u32, u32, u32)> = {
+        let world = sim.world_mut();
+        let mut query = world.query::<(
+            &terri_core::Position,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>();
+        query
+            .iter(world)
+            .map(|(p, object, facing)| {
+                let footprint = crate::placed_footprint(content, object.0, facing);
+                (p.x as u32, p.y as u32, footprint.depth)
+            })
+            .collect()
+    };
+    for (x, y, depth) in objects {
+        let pocket = (x, y + depth);
+        if !sim
+            .world()
+            .resource::<terri_core::TileGrid>()
+            .is_walkable(pocket.0 as i32, pocket.1 as i32)
+        {
+            continue;
+        }
+        let sides = [
+            (EdgeAxis::Horizontal, pocket.0, pocket.1),
+            (EdgeAxis::Horizontal, pocket.0, pocket.1 + 1),
+            (EdgeAxis::Vertical, pocket.0, pocket.1),
+            (EdgeAxis::Vertical, pocket.0 + 1, pocket.1),
+        ];
+        if sides
+            .iter()
+            .all(|&(axis, x, y)| wall_refusal(sim, axis, x, y, WallState::Wall).is_none())
+        {
+            return sides[0];
+        }
+        sim.cancel_build().unwrap();
+        fit_first_window(sim);
+    }
+    panic!("no furniture in the shipped house has a pocket to seal beside it");
+}
+
+/// Someone walking round to furniture just behind a window is not using it
+/// through the glass. The whole load must accept that, so Build mode opens.
+#[test]
+fn build_opens_with_someone_walking_past_a_window_to_furniture_behind_it() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let content = sim.world().resource::<Content>().0;
+    let objects: Vec<_> = {
+        let world = sim.world_mut();
+        let mut query = world.query::<(
+            Entity,
+            &terri_core::Position,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>();
+        query
+            .iter(world)
+            .map(|(e, p, object, facing)| {
+                let footprint = crate::placed_footprint(content, object.0, facing);
+                (e, p.x as i32, p.y as i32, footprint)
+            })
+            .collect()
+    };
+    let found = objects.into_iter().find_map(|(object, x, y, footprint)| {
+        let beyond = (x, y + footprint.depth as i32);
+        issue(
+            &mut sim,
+            SimCommand::FitWindow {
+                axis: EdgeAxis::Horizontal,
+                x: beyond.0 as u32,
+                y: beyond.1 as u32,
+                model: terri_core::windows::WindowModel::Sash,
+            },
+        );
+        let fitted = sim
+            .world()
+            .resource::<crate::placement::LotEditState>()
+            .last_window_result
+            .is_some_and(|r| r.reason.is_none());
+        if !fitted {
+            return None;
+        }
+        let grid = sim.world().resource::<terri_core::TileGrid>();
+        let path = grid.find_path_adjacent(beyond, (x, y), footprint)?;
+        (grid.is_walkable(beyond.0, beyond.1) && path.len() > 1).then_some((object, beyond, path))
+    });
+    let (object, beyond, path) = found.expect("a window fits between furniture and open floor");
+    confirm(&mut sim);
+    sim.end_build().unwrap();
+    let walker = sim.spawn_agent(
+        terri_core::Position {
+            x: beyond.0 as f32,
+            y: beyond.1 as f32,
+        },
+        100.0,
+    );
+    sim.world_mut().entity_mut(walker).insert((
+        terri_core::Target {
+            object,
+            interaction: 0,
+        },
+        terri_core::Path {
+            steps: path,
+            cursor: 0,
+        },
+    ));
+    assert_eq!(sim.begin_build(), Ok(()), "{:?}", sim.build_diagnosis());
+}
+
+/// The Room tool drawn over an already walled pocket adds no wall, only the
+/// doorway; it is held to the same rule as an opened single line.
+#[test]
+fn a_room_doorway_into_a_sealed_pocket_beside_furniture_is_refused() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
+    issue(
+        &mut sim,
+        SimCommand::BuildRoom {
+            x0: x,
+            y0: y,
+            x1: x,
+            y1: y,
+            doorway: Some(terri_core::layout::WallLine { axis, x, y }),
+        },
+    );
+    let reason = sim
+        .world()
+        .resource::<crate::placement::LotEditState>()
+        .last_room_result
+        .as_ref()
+        .unwrap()
+        .reason;
+    if reason.is_none() {
+        let confirm = sim.prepare_build_commit(RoomChoices::default()).map(|_| ());
+        panic!("the room doorway at {x}, {y} was accepted, and Confirm gives {confirm:?}");
+    }
+    assert_eq!(
+        reason,
+        Some(crate::placement::PlacementRefusal::InaccessibleInteraction)
+    );
+    confirm(&mut sim);
+}
+
+/// A doorway between furniture and a sealed pocket of floor makes the pocket
+/// an approach to the furniture that nobody can reach. A windowed house's
+/// loader refuses that, so the doorway must be refused when it is made, not
+/// at Confirm, where it left Build mode unable to confirm anything.
+#[test]
+fn a_doorway_into_a_sealed_pocket_beside_furniture_is_refused_before_confirm() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
+    let refusal = wall_refusal(&mut sim, axis, x, y, WallState::Doorway);
+    if refusal.is_none() {
+        let confirm = sim.prepare_build_commit(RoomChoices::default()).map(|_| ());
+        panic!("the doorway at {x}, {y} was accepted, and Confirm gives {confirm:?}");
+    }
+    assert_eq!(
+        refusal,
+        Some(crate::placement::PlacementRefusal::InaccessibleInteraction)
+    );
+    confirm(&mut sim);
+}
+
+/// A house that will not load names the rule it breaks, not only the kind of
+/// error, so the page can say what is in the way.
+#[test]
+fn build_entry_names_the_rule_a_house_that_will_not_load_breaks() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.begin_build().unwrap();
+    let (axis, x, y) = windowed_house_with_sealed_pocket(&mut sim);
+    confirm(&mut sim);
+    sim.end_build().unwrap();
+    // Forced past the wall tool, as a doorway from before its rule would be.
+    let layout = sim.world().resource::<terri_core::layout::SavedLayout>();
+    let mut edges = layout.edges().to_vec();
+    let windows = layout.window_placements();
+    let edge = edges
+        .iter_mut()
+        .find(|e| e.axis == axis && e.x == x && e.y == y)
+        .unwrap();
+    edge.doorway = true;
+    let [a, b] = edge.cells();
+    sim.world_mut()
+        .insert_resource(terri_core::layout::SavedLayout::from_window_placements(
+            edges, windows,
+        ));
+    sim.world_mut()
+        .resource_mut::<terri_core::TileGrid>()
+        .set_edge_blocked(a, b, false);
+    assert_eq!(
+        sim.begin_build(),
+        Err(BuildCommitError::Validation(SaveError::InvalidGrid))
+    );
+    assert_eq!(
+        sim.build_diagnosis(),
+        Some(ValidationProblem::LotUsability(
+            crate::placement::PlacementRefusal::InaccessibleInteraction
+        ))
+    );
+    assert!(!sim.build_active());
+}
+
+/// Every wall, doorway, opening, window and room the tools accept must
+/// confirm, with housemates walking, working and talking around the edits,
+/// and Build mode must open again after play. It found the sealed-pocket
+/// doorway, a reserved guest taking supper, and a walker passing a window
+/// beside their target being refused at load. Run with
+/// `cargo test -p terri-sim --release --lib accepted_architecture_edits_always_confirm -- --ignored`;
+/// `BUILD_FUZZ_FROM` and `BUILD_FUZZ_TO` choose the seeds.
+#[test]
+#[ignore = "a seeded search that takes several seconds a seed; run it after changing lot-edit or load rules"]
+fn accepted_architecture_edits_always_confirm() {
+    let seed_env = |name: &str, default: u64| {
+        std::env::var(name)
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(default)
+    };
+    for seed in seed_env("BUILD_FUZZ_FROM", 1)..=seed_env("BUILD_FUZZ_TO", 24) {
+        let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
+        let mut rng = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1;
+        let mut next = move |n: u64| {
+            rng ^= rng << 13;
+            rng ^= rng >> 7;
+            rng ^= rng << 17;
+            rng % n
+        };
+        for _ in 0..(200 + next(20000)) {
+            sim.tick();
+        }
+        if let Err(e) = sim.begin_build() {
+            panic!(
+                "seed {seed}: Build entry refused {e:?}, {:?}",
+                sim.build_diagnosis()
+            );
+        }
+        let grid = sim.world().resource::<terri_core::TileGrid>();
+        let (w, h) = (grid.width() as u64, grid.height() as u64);
+        let mut accepted = 0;
+        for step in 0..60 {
+            let axis = if next(2) == 0 {
+                EdgeAxis::Vertical
+            } else {
+                EdgeAxis::Horizontal
+            };
+            let mut spots: Vec<(u32, u32)> = vec![];
+            {
+                let world = sim.world_mut();
+                let mut q = world.query::<(&terri_core::Position, Option<&terri_core::Path>)>();
+                for (p, path) in q.iter(world) {
+                    spots.push((p.x.round().max(0.0) as u32, p.y.round().max(0.0) as u32));
+                    if let Some(path) = path {
+                        for &(x, y) in path.steps.iter().skip(path.cursor) {
+                            spots.push((x.max(0) as u32, y.max(0) as u32));
+                        }
+                    }
+                }
+            }
+            let (x, y) = if !spots.is_empty() && next(4) != 0 {
+                let (sx, sy) = spots[next(spots.len() as u64) as usize];
+                (sx + next(2) as u32, sy + next(2) as u32)
+            } else {
+                (next(w + 1) as u32, next(h + 1) as u32)
+            };
+            let command = match next(6) {
+                4 | 5 => {
+                    let (x1, y1) = (x + 1 + next(4) as u32, y + 1 + next(4) as u32);
+                    let doorway = (next(3) != 0).then(|| terri_core::layout::WallLine {
+                        axis: EdgeAxis::Horizontal,
+                        x: x + next((x1 - x) as u64 + 1) as u32,
+                        y: if next(2) == 0 { y } else { y1 + 1 },
+                    });
+                    SimCommand::BuildRoom {
+                        x0: x,
+                        y0: y,
+                        x1,
+                        y1,
+                        doorway,
+                    }
+                }
+                0 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Wall,
+                },
+                1 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Doorway,
+                },
+                2 => SimCommand::SetWallEdge {
+                    axis,
+                    x,
+                    y,
+                    state: WallState::Open,
+                },
+                _ => SimCommand::FitWindow {
+                    axis,
+                    x,
+                    y,
+                    model: terri_core::windows::WindowModel::Sash,
+                },
+            };
+            {
+                let mut state = sim
+                    .world_mut()
+                    .resource_mut::<crate::placement::LotEditState>();
+                state.last_wall_result = None;
+                state.last_window_result = None;
+                state.last_room_result = None;
+            }
+            issue(&mut sim, command.clone());
+            let state = sim.world().resource::<crate::placement::LotEditState>();
+            let ok = match command {
+                SimCommand::FitWindow { .. } => {
+                    state.last_window_result.is_some_and(|r| r.reason.is_none())
+                }
+                SimCommand::BuildRoom { .. } => state
+                    .last_room_result
+                    .as_ref()
+                    .is_some_and(|r| r.reason.is_none()),
+                _ => state.last_wall_result.is_some_and(|r| r.reason.is_none()),
+            };
+            if !ok {
+                continue;
+            }
+            accepted += 1;
+            match sim.prepare_build_commit(RoomChoices::default()) {
+                Err(e) => panic!(
+                    "seed {seed} step {step}, after {accepted} accepted edits, {command:?}: \
+                     {e:?}, {:?}",
+                    sim.build_diagnosis()
+                ),
+                Ok(review) if next(5) == 0 => {
+                    sim.commit_build(review.token).unwrap();
+                    sim.end_build().unwrap();
+                    for _ in 0..(50 + next(1500)) {
+                        sim.tick();
+                    }
+                    if let Err(e) = sim.begin_build() {
+                        panic!(
+                            "seed {seed}: Build re-entry refused {e:?}, {:?}",
+                            sim.build_diagnosis()
+                        );
+                    }
+                }
+                Ok(_) => {}
+            }
+        }
+        eprintln!("seed {seed}: {accepted} accepted edits confirmed");
+    }
+}
 
 #[test]
 fn dirty_query_is_semantic_pure_and_preserves_prepared_tokens() {

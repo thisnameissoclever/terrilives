@@ -19,10 +19,10 @@
 #household-summary .summary-row { gap: 4px; }
 #household-summary .summary-label { font-size: 10px; }
 #household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
-/* The clock is always two lines, day and weekday then season and time, so the panel keeps one height. */
+/* Date, time, then season and weather each have their own line. */
 #clock-value { white-space: pre-line; }
 /* In the 144-pixel desktop panel the Time label sits above the clock, so the
-   clock has the panel's full inner width and keeps two lines on every day.
+   clock has the panel's full inner width and keeps three lines on every day.
    The wider compact and Build panels keep the label beside it. */
 @media (min-width: 601px) and (min-height: 481px) and (not (any-pointer: coarse)) {
   body:not([data-building='true']) #clock-row { flex-direction: column; align-items: stretch; gap: 0; }
@@ -93,8 +93,42 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 }
 #sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#dock-activity { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#sim-dock-header > .hud-button { min-height: 32px; padding: 0 10px; flex: none; }
+#dock-activity {
+  appearance: none;
+  border: 0;
+  border-radius: 2px;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  background: transparent;
+  color: var(--hud-muted);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+#dock-activity:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#dock-activity-tooltip {
+  position: fixed;
+  width: max-content;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--hud-edge);
+  border-radius: 6px;
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font: 13px/1.45 system-ui, sans-serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 6px 20px #0006;
+  z-index: 9;
+}
+#dock-activity-tooltip[hidden] { display: none !important; }
+#sim-dock-header > .hud-button { min-height: 27px; padding: 0 10px; flex: none; }
 #dock-wellbeing { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: center; gap: 24px; flex: 0 0 360px; min-width: 0; }
 #dock-wellbeing #mood-block { min-width: 0; margin: 0; padding: 0; border: 0; }
 #dock-wellbeing #mood-content { gap: 2px; }
@@ -117,7 +151,7 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #sim-dock-body { display: grid; grid-template-columns: minmax(180px, 0.9fr) minmax(0, 2fr); gap: 12px; margin-top: 5px; align-items: center; }
 #household-roster { min-width: 0; }
 #household-roster-members { display: flex; overflow-x: auto; gap: 4px; padding: 2px; }
-#household-roster-members .household-member { min-height: 34px; min-width: 60px; max-width: 160px; flex: 0 0 auto; padding: 4px 8px; font-size: 15px; font-weight: 700; }
+#household-roster-members .household-member { min-height: 28px; min-width: 60px; max-width: 160px; flex: 0 0 auto; padding: 2px 8px; font-size: 15px; font-weight: 700; }
 #needs-content { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 12px; margin: 0; }
 #needs-content .need-row { grid-template-columns: auto minmax(20px, 1fr); gap: 5px; font-size: 11px; }
 #needs-content .need-state { font-size: 10px; }
@@ -213,11 +247,11 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #dock-activity { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
   #needs-caption { font-size: 18px; }
   #dock-activity, #dock-critical { font-size: 11px; }
-  #sim-dock-header > .hud-button { min-height: 44px; padding: 0 7px; }
+  #sim-dock-header > .hud-button { min-height: 36px; padding: 0 7px; }
   #dock-queue { display: none; }
   #sim-dock-collapse { font-size: 11px; }
   #sim-dock-body { display: block; margin-top: 2px; }
-  #household-roster-members .household-member { min-height: 44px; }
+  #household-roster-members .household-member { min-height: 36px; }
   #dock-needs { display: none; }
   #sim-sheet { left: -1px; right: -1px; width: auto; }
   #sim-sheet-header { gap: 4px; }
@@ -237,6 +271,69 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 body[data-building='true'] #hud #time-controls { display: none; }
 #hud:has(#options-panel:not([hidden])) { z-index: 8; }
 
+/* [AL-panel]: the Log toggle owns the window's top right in normal play, and
+   its panel runs from below it to the top of the Sim dock, whose height main.ts
+   writes to --activity-log-bottom. Above the dock (5), below Options (8), the
+   debug panel (9) and the object menu (10). Build hides both. */
+#activity-log-toggle {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  z-index: 8;
+  min-width: 44px;
+  min-height: 32px;
+  padding: 0 12px;
+}
+#activity-log-toggle[aria-expanded='true'] { background: #29313a; border-color: var(--need-fill); }
+#activity-log-toggle[hidden], body[data-building='true'] #activity-log-toggle,
+#activity-log[hidden], body[data-building='true'] #activity-log { display: none; }
+#activity-log {
+  position: fixed;
+  top: calc(max(8px, env(safe-area-inset-top)) + 40px);
+  right: max(8px, env(safe-area-inset-right));
+  bottom: var(--activity-log-bottom, 140px);
+  width: min(360px, calc(100vw - 16px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-edge);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0006;
+  z-index: 7;
+}
+#activity-log [hidden] { display: none !important; }
+#activity-log-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 10px; border-bottom: 1px solid var(--hud-edge); }
+#activity-log .activity-log-title { margin: 0; font-size: 14px; }
+#activity-log-header .hud-button { flex: none; min-height: 36px; padding-inline: 8px; }
+#activity-log-filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; }
+#activity-log-filters .hud-button { min-height: 32px; padding: 2px 8px; font-size: 12px; }
+#activity-log-filters .hud-button[aria-pressed='true'] { border-color: var(--need-fill); color: var(--need-fill); font-weight: 600; }
+#activity-log-filters .activity-log-only { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; font-size: 12px; overflow-wrap: anywhere; }
+#activity-log-filters .activity-log-only[hidden] { display: none; }
+#activity-log-scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 10px 8px; border-top: 1px solid var(--hud-edge); }
+#activity-log-scroller:focus-visible { outline: 2px solid var(--need-fill); outline-offset: -2px; }
+#activity-log-earlier { width: 100%; min-height: 32px; margin-bottom: 6px; font-size: 12px; }
+#activity-log-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.35; }
+#activity-log-list li { overflow-wrap: anywhere; }
+#activity-log-empty { margin: 4px 0; color: var(--hud-muted); font-size: 12px; }
+@media (max-width: 600px), (max-height: 480px) {
+  /* The open panel covers the full width from the top edge to the dock,
+     above the sidebar; its header leaves room for the toggle. */
+  #activity-log-toggle { min-height: 44px; }
+  #activity-log { top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); width: auto; }
+  #activity-log-header { padding-right: 72px; }
+  #activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }
+}
+@media (any-pointer: coarse) {
+  #activity-log-toggle, #activity-log-header .hud-button, #activity-log-filters .hud-button, #activity-log-earlier { min-height: 44px; }
+}
+/* A 44-pixel toggle on a wide touch screen: the panel starts below it. */
+@media (any-pointer: coarse) and (min-width: 601px) and (min-height: 481px) {
+  #activity-log { top: calc(max(8px, env(safe-area-inset-top)) + 52px); }
+}
+
 #dock-critical { grid-column: 1 / -1; color: var(--hud-danger); }
 #dock-critical:empty { display: none; }
 
@@ -244,8 +341,7 @@ body[data-building='true'] #hud #time-controls { display: none; }
 #dock-alert:empty { margin: 0; }
 @media (any-pointer: coarse) {
   #hud { width: 182px; }
-  #hud .hud-button, #hud #time-controls label,
-  #sim-dock-header > .hud-button, #sim-sheet-header .hud-button,
-  #household-roster-members .household-member { min-height: 44px; }
+  #hud .hud-button, #hud #time-controls label, #sim-sheet-header .hud-button { min-height: 44px; }
+  #sim-dock-header > .hud-button, #household-roster-members .household-member { min-height: 36px; }
   #hud #time-controls label { min-width: 44px; box-sizing: border-box; }
 }

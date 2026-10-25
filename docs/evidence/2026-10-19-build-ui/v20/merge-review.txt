@@ -1,0 +1,37 @@
+- generic "Isometric household. Use Help for controls and accessible status."
+- region "Household status":
+  - generic: Time
+  - strong: "Day 1, Monday 01:05 Spring: mild"
+  - generic: Funds
+  - strong: "0"
+  - status: Saved game loaded
+  - status
+- region "Build mode":
+  - region "Review room changes":
+    - heading "Review room changes" [active] [level=3]
+    - text: Change
+    - combobox "Change":
+      - 'option "1. Merge: Kitchen Land confirmed, Living room" [selected]'
+    - paragraph: "Former rooms: Kitchen Land confirmed, Living room"
+    - group "Kitchen Land confirmed · 0, 0 · 48 → 96 tiles":
+      - generic: Kitchen Land confirmed · 0, 0 · 48 → 96 tiles
+      - text: Keep identity and floor owner
+      - combobox "Keep identity and floor owner":
+        - option "New room"
+        - option "Kitchen Land confirmed · 48 tiles · 0, 0" [selected]
+        - option "Living room · 48 tiles · 8, 0"
+      - text: Resulting room name
+      - textbox "Resulting room name": Kitchen Land confirmed
+      - 'button "Use name: Living room"'
+    - paragraph: "Floors in Kitchen Land confirmed: Retained · Bill"
+    - paragraph: "Counter surfaces in Kitchen Land confirmed: Retained · Casey"
+    - paragraph: "Table surfaces in Kitchen Land confirmed: Retained · Casey"
+    - paragraph: "Floors in Living room: Retired · Casey"
+    - paragraph: "Retiring name: Living room"
+    - button "Back to build"
+    - button "Confirm changes"
+- generic "Camera zoom":
+  - button "Zoom out":
+  - button "Zoom in": +
+  - button "Options"
+- status: 1Password menu is available. Press down arrow to select.

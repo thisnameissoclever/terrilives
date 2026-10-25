@@ -23,6 +23,7 @@ pub enum ContentError {
     },
     InvalidDomesticTuning,
     InvalidAutonomyTuning,
+    InvalidWeatherTuning,
     InvalidNeedInteractionTuning,
     EmptyObjectText {
         object: String,
@@ -1006,6 +1007,35 @@ pub enum ContentError {
     },
     /// An `advance_weeks` of 0 or above 52.
     CareerAdvanceWeeksOutOfRange {
+        id: String,
+    },
+    /// A path's `standard_shift` or a shift's `kind` that names no shift
+    /// kind ([WS-model] in `docs/specs/2026-10-18-shifts-and-careers.md`).
+    UnknownShiftKind {
+        id: String,
+        kind: String,
+    },
+    /// A path declaring the same shift id twice.
+    DuplicateCareerShift {
+        id: String,
+        shift: String,
+    },
+    /// A path shift named `standard`, the id reserved for a level's own.
+    ReservedCareerShift {
+        id: String,
+    },
+    /// A level weighting a shift its path does not declare.
+    UnknownShiftWeight {
+        id: String,
+        shift: String,
+    },
+    /// A shift weight above 1000.
+    ShiftWeightOutOfRange {
+        id: String,
+        shift: String,
+    },
+    /// A level whose shift weights are all 0, so no shift is offered.
+    NoShiftOffered {
         id: String,
     },
     /// A household sim wearing a trait `traits.toml` does not declare.
@@ -2237,7 +2267,10 @@ impl fmt::Display for ContentError {
                  fight_chance_per_tick finite, from 0 to 1; \
                  fight_relationship_loss finite, from 0 to 2; \
                  fight_mood_penalty finite and not negative; \
-                 fight_mood_ticks from 1 to 10080"
+                 fight_mood_ticks from 1 to 10080; grievance, history, repeat and response \
+                 ticks from 1 to 100800, with history at least grievance duration; \
+                 bad-mood multiplier from 1 to 10; severity reference above 0 \
+                 and at most 2; other purposeful-fight weights finite from 0 to 1"
             ),
             ContentError::AffinityTuningOutOfRange { key } => write!(
                 f,
@@ -2270,8 +2303,9 @@ impl fmt::Display for ContentError {
                  bases from 0 to 1, the review noise from 0 to 50, the search \
                  tick at most a week, the change fit from -1 to 1 and its gap \
                  from 0 to 2, the satisfaction rate from 0 to 100, mood \
-                 amounts and the misery cost at least 0, and moodlet ticks \
-                 from 1 to 10080"
+                 amounts and the misery cost at least 0, moodlet ticks \
+                 from 1 to 10080, shift sleep offsets from -720 to 720, and the \
+                 search temperature from 0 to 2"
             ),
             ContentError::CareerPathWithoutLevels { id } => {
                 write!(f, "career path '{id}' has no levels")
@@ -2300,6 +2334,29 @@ impl fmt::Display for ContentError {
             ContentError::CareerAdvanceWeeksOutOfRange { id } => {
                 write!(f, "career level '{id}' needs advance_weeks from 1 to 52")
             }
+            ContentError::UnknownShiftKind { id, kind } => write!(
+                f,
+                "career '{id}' names unknown shift kind '{kind}'; use day, early, late or night"
+            ),
+            ContentError::DuplicateCareerShift { id, shift } => {
+                write!(f, "career path '{id}' declares shift '{shift}' twice")
+            }
+            ContentError::ReservedCareerShift { id } => write!(
+                f,
+                "career path '{id}' declares a shift named 'standard', the id reserved for each level's own shift"
+            ),
+            ContentError::UnknownShiftWeight { id, shift } => write!(
+                f,
+                "career level '{id}' weights shift '{shift}', which its path does not declare"
+            ),
+            ContentError::ShiftWeightOutOfRange { id, shift } => write!(
+                f,
+                "career level '{id}' gives shift '{shift}' a weight above 1000"
+            ),
+            ContentError::NoShiftOffered { id } => write!(
+                f,
+                "career level '{id}' gives every shift a weight of 0, so no shift is offered"
+            ),
             ContentError::EmptyCareerLabel { id } => {
                 write!(f, "career '{id}' has an empty label")
             }
@@ -2634,6 +2691,7 @@ impl fmt::Display for ContentError {
             ),
             ContentError::InvalidNeedInteractionTuning => write!(f, "contextual need rates must be finite and bounded; partial washing cannot exceed the odor threshold"),
             ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
+            ContentError::InvalidWeatherTuning => write!(f, "weather in tuning.toml requires finite daily probabilities in [0, 1], zero Spring probability, positive event, fall and leaf durations, ordered start hours, a fall no longer than the event, and all leaves expired before midnight"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
             ContentError::InvalidInterpersonalTuning => write!(f, "interpersonal penalties, hated_communal_chance and meal_appreciation_gain must be finite, from zero to one, with the critical penalty at least the low penalty"),
             ContentError::InvalidSharedActivity { owner, interaction } => write!(f, "shared activity on {owner}.{interaction} must name one of its activity tags and cannot describe a conversation or private use"),

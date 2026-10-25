@@ -15,6 +15,12 @@
 //!
 //!     cargo run -p terri-sim --example trace -- 12000
 //!
+//! Issue 296's flags may appear anywhere among the arguments:
+//! `--night-worker` puts Casey on the night watch's standard shift,
+//! `--careers-seed <n>` reseeds the careers stream, and
+//! `--pre-shift-careers` runs the career content and search from before
+//! shifts (`examples/trace/shifts.rs`).
+//!
 //! What it prints, and why each column is here rather than being eyeballed
 //! from the running game:
 //!
@@ -38,6 +44,12 @@
 //!   targetless path. This is the measured contract for local idle wandering:
 //!   endpoint distance alone cannot reveal a short-looking destination whose
 //!   route takes a sim around a wall and across the house.
+//! - **Activity log volume**: records per kind per game day, the largest
+//!   tick and five-tick burst, and dropped records, drained once a tick as
+//!   the shell drains once a frame. The staging ring's size rests on it.
+//!   It also prints the wall time spent inside `Sim::tick`, and
+//!   `TRACE_ACTIVITY_LOG=0` turns the log off, so the log's simulation cost
+//!   can be compared with a disabled baseline.
 
 use std::collections::BTreeMap;
 use terri_core::{
@@ -45,12 +57,16 @@ use terri_core::{
     Socialising, Wander, NEED_COUNT,
 };
 use terri_sim::Sim;
+#[path = "trace/activity_log.rs"]
+mod activity_log;
 #[path = "trace/catalogue.rs"]
 mod catalogue;
 #[path = "trace/catalogue_meals.rs"]
 mod catalogue_meals;
 #[path = "trace/relationships.rs"]
 mod relationships;
+#[path = "trace/shifts.rs"]
+mod shifts;
 
 /// Read catalogue fields from current capture, without historical room projection.
 fn current_catalogue_state(sim: &Sim) -> terri_core::SaveSnapshotV6 {
@@ -112,19 +128,16 @@ struct Motion {
 }
 
 fn main() {
-    if std::env::args().nth(1).as_deref() == Some("meals") {
-        catalogue_meals::run(
-            std::env::args()
-                .nth(2)
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(1),
-        );
+    // `--night-worker`, `--careers-seed <n>` and `--pre-shift-careers`
+    // (issue 296) may appear anywhere; the positional arguments keep their
+    // places without them. `--pre-shift-careers` runs the career content and
+    // search from before shifts, for comparing a run with main's behavior.
+    let (flags, args) = shifts::split_args(std::env::args());
+    if args.get(1).map(String::as_str) == Some("meals") {
+        catalogue_meals::run(args.get(2).and_then(|s| s.parse().ok()).unwrap_or(1));
         return;
     }
-    let ticks: u64 = std::env::args()
-        .nth(1)
-        .and_then(|a| a.parse().ok())
-        .unwrap_or(12_000);
+    let ticks: u64 = args.get(1).and_then(|a| a.parse().ok()).unwrap_or(12_000);
     if ticks == 0 {
         // Zero ticks traces nothing, and the per-sim percentage lines
         // would divide by it and print NaN, which reads as a broken
@@ -134,16 +147,20 @@ fn main() {
     }
 
     let pack = terri_data::pack();
-    let seed: u64 = std::env::args()
-        .nth(2)
+    let seed: u64 = args
+        .get(2)
         .and_then(|arg| arg.parse().ok())
         .unwrap_or(pack.tuning.rng_seed);
-    let override_instinct: Option<u8> = std::env::args().nth(3).and_then(|arg| arg.parse().ok());
+    let override_instinct: Option<u8> = args.get(3).and_then(|arg| arg.parse().ok());
     let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
+    shifts::prepare(&mut sim, &flags);
+    // `TRACE_ACTIVITY_LOG=0` turns the activity log off, the disabled
+    // baseline of the simulation cost comparison in [AL-perf].
+    sim.set_activity_log_enabled(activity_log::enabled_from_env());
     if std::env::var_os("TRACE_CATALOGUE").is_some() {
         catalogue::print_catalogue(&sim);
     }
-    let scenario = std::env::args().nth(4).unwrap_or_else(|| "new".into());
+    let scenario = args.get(4).cloned().unwrap_or_else(|| "new".into());
     catalogue::prepare(&mut sim, seed, &scenario);
     let mut catalogue_summary = catalogue::Summary::new(&sim);
     if let Some(instinct) = override_instinct {
@@ -161,6 +178,7 @@ fn main() {
     }
     println!("seed {seed}, instinct override {override_instinct:?}");
     let mut relationship_summary = relationships::Summary::default();
+    let mut log_volume = activity_log::Volume::new(&sim);
 
     // The household, in SimId order - which is declaration order in
     // content/household.toml, so this trace's "sim 0" is the page's Tim.
@@ -260,12 +278,16 @@ fn main() {
     let mut maximum_pending_age = 0u64;
     let mut capped_handwash_choices = 0u64;
 
+    let mut shift_summary = shifts::Summary::new(sims.len());
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
     };
 
     for _ in 0..ticks {
+        let tick_started = std::time::Instant::now();
         sim.tick();
+        log_volume.add_tick_time(tick_started.elapsed());
+        log_volume.observe(&mut sim);
         let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
 
@@ -345,6 +367,11 @@ fn main() {
             }
         }
         previous_requests = current_requests;
+        shift_summary.observe(
+            &sim,
+            &sims,
+            previous_requests.values().map(|(request, _)| request),
+        );
 
         let world = sim.world();
         if let Some(telemetry) =
@@ -1394,9 +1421,11 @@ fn main() {
             sum / count as f64
         );
     }
+    shift_summary.print(&sim, &sims);
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());
     relationship_summary.print(&sim);
     catalogue_summary.print(&sim);
+    log_volume.print(&sim, ticks);
 }

@@ -1,0 +1,307 @@
+[
+  {
+    "label": "unfiltered",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config"
+    ],
+    "wall_seconds": 0.463924,
+    "exit_code": 0,
+    "stdout_sha256": "7f245285b7433e712644338ab9f6c4c79d0777625dde3087d22032ff2f082508",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_include_nothing",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "^THIS_NAME_DOES_NOT_EXIST$"
+    ],
+    "wall_seconds": 0.223425,
+    "exit_code": 0,
+    "stdout_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_include_nothing",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_include_nothing.toml"
+    ],
+    "wall_seconds": 0.687137,
+    "exit_code": 0,
+    "stdout_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_exact_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$"
+    ],
+    "wall_seconds": 0.780447,
+    "exit_code": 0,
+    "stdout_sha256": "132b95a5103f4785c1e0072e9bdeb4095df7c000ae0b4ee1100d026ac048846a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_exact_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_exact_A.toml"
+    ],
+    "wall_seconds": 0.138003,
+    "exit_code": 0,
+    "stdout_sha256": "132b95a5103f4785c1e0072e9bdeb4095df7c000ae0b4ee1100d026ac048846a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_exclude_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--exclude-re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$"
+    ],
+    "wall_seconds": 0.197995,
+    "exit_code": 0,
+    "stdout_sha256": "e62c4a1a1ff4d91ff2e3624cf78f6d13aec0a6e962658abd91df76f67285a53e",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_exclude_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_exclude_A.toml"
+    ],
+    "wall_seconds": 0.224932,
+    "exit_code": 0,
+    "stdout_sha256": "e62c4a1a1ff4d91ff2e3624cf78f6d13aec0a6e962658abd91df76f67285a53e",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_ordinary_only",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "ordinary"
+    ],
+    "wall_seconds": 0.184295,
+    "exit_code": 0,
+    "stdout_sha256": "f8786584e367f3f8c82709afe7321d50f7fdee8e308bb026485ce7641b4bf5c8",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_ordinary_only",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_ordinary_only.toml"
+    ],
+    "wall_seconds": 0.165903,
+    "exit_code": 0,
+    "stdout_sha256": "f8786584e367f3f8c82709afe7321d50f7fdee8e308bb026485ce7641b4bf5c8",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_OR_A_B",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$",
+      "--re",
+      "^src/lib\\.rs:8:23: delete field second from struct Pair expression in configured$"
+    ],
+    "wall_seconds": 0.160024,
+    "exit_code": 0,
+    "stdout_sha256": "312f264310ebb85a805493a5c878d21aaf2b8916fa0434dba9c6f97b6b533883",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_OR_A_B",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_OR_A_B.toml"
+    ],
+    "wall_seconds": 2.004309,
+    "exit_code": 0,
+    "stdout_sha256": "312f264310ebb85a805493a5c878d21aaf2b8916fa0434dba9c6f97b6b533883",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_OR_A_ordinary",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$",
+      "--re",
+      "ordinary"
+    ],
+    "wall_seconds": 0.160283,
+    "exit_code": 0,
+    "stdout_sha256": "9cdfd1620673ed173aa982a43a06711ecac161c6e4a244af66e91f412a1e65b2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_OR_A_ordinary",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_OR_A_ordinary.toml"
+    ],
+    "wall_seconds": 0.161425,
+    "exit_code": 0,
+    "stdout_sha256": "9cdfd1620673ed173aa982a43a06711ecac161c6e4a244af66e91f412a1e65b2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "mixed_config_A_cli_ordinary",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\mixed_config_A_cli_ordinary.toml",
+      "--re",
+      "ordinary"
+    ],
+    "wall_seconds": 0.144705,
+    "exit_code": 0,
+    "stdout_sha256": "9cdfd1620673ed173aa982a43a06711ecac161c6e4a244af66e91f412a1e65b2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "cli_include_A_exclude_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--no-config",
+      "--re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$",
+      "--exclude-re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$"
+    ],
+    "wall_seconds": 0.146869,
+    "exit_code": 0,
+    "stdout_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "mixed_include_A_B_exclude_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\mixed_include_A_B_exclude_A.toml",
+      "--exclude-re",
+      "^src/lib\\.rs:8:12: delete field first from struct Pair expression in configured$"
+    ],
+    "wall_seconds": 0.152958,
+    "exit_code": 0,
+    "stdout_sha256": "00ea2e102c6580d9aa8a0f095ac7d526fc5cb9ae40f53bda5c813a341e0df27a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "config_include_A_exclude_A",
+    "argv": [
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\fixture",
+      "--list",
+      "--json",
+      "--config",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\results\\candidate_fixture\\config_include_A_exclude_A.toml"
+    ],
+    "wall_seconds": 0.164706,
+    "exit_code": 0,
+    "stdout_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

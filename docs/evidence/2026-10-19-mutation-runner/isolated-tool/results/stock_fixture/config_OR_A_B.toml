@@ -1,0 +1,1 @@
+examine_re = ['^src/lib\.rs:8:12: delete field first from struct Pair expression in configured$', '^src/lib\.rs:8:23: delete field second from struct Pair expression in configured$']

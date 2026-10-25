@@ -1,0 +1,1143 @@
+{
+  "version": 1,
+  "actions": [
+    {
+      "id": "chain:clean_dishes",
+      "article": "activities",
+      "section": "housework",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/chores/consequences.rs",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Collecting and carrying supply no need or appreciation. A completed real washing batch earns each other living housemate opinion toward its actual washer, independent of assignments or an enabled board, once per batch. Canceled or zero-unit work pays none. Repair separately requires the assigned recipient, current duty contribution, completion and deadline."
+      }
+    },
+    {
+      "id": "chain:cook_dinner",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "chain:eat_shared_meal",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "chain:prepare_snack",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "object:armchair/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:armchair/take_the_chair",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:bathtub/soak",
+      "article": "activities",
+      "section": "washing",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+      }
+    },
+    {
+      "id": "object:bed/sleep",
+      "article": "activities",
+      "section": "sleep-and-rest",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/circadian.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Sleep supplies substantial Energy; reclining has a small separate Energy reward. Upright seats and secondary TV use do not inherit reclining Energy."
+      }
+    },
+    {
+      "id": "object:bookshelf/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:chair/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:chair/sit",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:desk/attend_correspondence",
+      "article": "activities",
+      "section": "other-pastimes",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/social_company.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Correspondence supplies Social while alone. Exercise costs Energy and Hygiene. Aquarium viewing supplies Fun and Comfort. Shared activity needs active accepted matching use on separate objects."
+      }
+    },
+    {
+      "id": "object:desk_chair/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:desk_chair/sit",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:dining_table/sit_properly",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:dining_table/take_prepared_food",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "object:double_bed/sleep_properly",
+      "article": "activities",
+      "section": "sleep-and-rest",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/circadian.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Sleep supplies substantial Energy; reclining has a small separate Energy reward. Upright seats and secondary TV use do not inherit reclining Energy."
+      }
+    },
+    {
+      "id": "object:fridge/cook_dinner",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "object:fridge/grab_snack",
+      "article": "activities",
+      "section": "food",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Reference recipe totals and bound step durations are distinct. Hunger arrives only after completed consumption; preparation pays none. Chair Comfort and company require active eating. Cleanup pays no bodily need."
+      }
+    },
+    {
+      "id": "object:kitchen_sink/clean_dishes",
+      "article": "activities",
+      "section": "housework",
+      "sources": [
+        "content/chains.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/chores/consequences.rs",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/chain.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Collecting and carrying supply no need or appreciation. A completed real washing batch earns each other living housemate opinion toward its actual washer, independent of assignments or an enabled board, once per batch. Canceled or zero-unit work pays none. Repair separately requires the assigned recipient, current duty contribution, completion and deadline."
+      }
+    },
+    {
+      "id": "object:kitchen_sink/wash_up",
+      "article": "activities",
+      "section": "washing",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "numbers": [
+        "tuning.need_interactions.handwashing_hygiene_ceiling",
+        "tuning.mood_low_need_level"
+      ],
+      "review": {
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+      }
+    },
+    {
+      "id": "object:long_sofa/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:long_sofa/sit",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:long_sofa/stretch_out",
+      "article": "activities",
+      "section": "sleep-and-rest",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/circadian.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Sleep supplies substantial Energy; reclining has a small separate Energy reward. Upright seats and secondary TV use do not inherit reclining Energy."
+      }
+    },
+    {
+      "id": "object:moving_box/use_exercise_bike",
+      "article": "activities",
+      "section": "other-pastimes",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/social_company.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Correspondence supplies Social while alone. Exercise costs Energy and Hygiene. Aquarium viewing supplies Fun and Comfort. Shared activity needs active accepted matching use on separate objects."
+      }
+    },
+    {
+      "id": "object:pool_lounger/sit",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:radio/listen",
+      "article": "activities",
+      "section": "company",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/media.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/social_company.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Solo media supplies Fun; Social needs another actual same-device participant. Secondary seat benefits are actual-chair Comfort only."
+      }
+    },
+    {
+      "id": "object:reading_chair/settle_in",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:reading_chair/sit",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:reference_shelf/watch_fish",
+      "article": "activities",
+      "section": "other-pastimes",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/social_company.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Correspondence supplies Social while alone. Exercise costs Energy and Hygiene. Aquarium viewing supplies Fun and Comfort. Shared activity needs active accepted matching use on separate objects."
+      }
+    },
+    {
+      "id": "object:shower/take_shower",
+      "article": "activities",
+      "section": "washing",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+      }
+    },
+    {
+      "id": "object:sink/wash_hands",
+      "article": "activities",
+      "section": "washing",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "numbers": [
+        "tuning.need_interactions.handwashing_hygiene_ceiling",
+        "tuning.mood_low_need_level"
+      ],
+      "review": {
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+      }
+    },
+    {
+      "id": "object:sofa/lounge",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Plain sitting supplies only its authored Comfort. Table sitting requires a real chair and supplies neither food nor Social. Actual occupied secondary seating is separate."
+      }
+    },
+    {
+      "id": "object:sofa/read",
+      "article": "activities",
+      "section": "reading",
+      "sources": [
+        "content/books.toml",
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/reading.rs",
+        "crates/terri-sim/src/reading/accrual.rs",
+        "crates/terri-sim/src/reading/planning.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Actual reading earns Fun and model-specific Comfort, with taste, familiarity, novelty, session boundaries, interruptions and physical copy eligibility. Shared reading is conditional."
+      }
+    },
+    {
+      "id": "object:television/watch_tv",
+      "article": "activities",
+      "section": "company",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/media.rs",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/social_company.rs",
+        "crates/terri-sim/src/systems/interact.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Solo media supplies Fun; Social needs another actual same-device participant. Secondary seat benefits are actual-chair Comfort only."
+      }
+    },
+    {
+      "id": "object:toilet/relieve_self",
+      "article": "activities",
+      "section": "washing",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions.rs",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Bathing cleans the body, hand washing has a strict partial-cleanliness ceiling, and toilet use benefits only Bladder. Hand washing has no extra Comfort cost."
+      }
+    },
+    {
+      "id": "social:chat",
+      "article": "activities",
+      "section": "talk-and-fight",
+      "sources": [
+        "content/social.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/social_episode.rs",
+        "crates/terri-sim/src/systems/social.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Chat delivers positive Social and Fun during actual talking; Fight delivers no need benefit. Completion effects and interruptions are separate."
+      }
+    },
+    {
+      "id": "social:fight",
+      "article": "activities",
+      "section": "talk-and-fight",
+      "sources": [
+        "content/social.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/social_episode.rs",
+        "crates/terri-sim/src/systems/social.rs"
+      ],
+      "numbers": [
+        "tuning.fight_relationship_loss",
+        "tuning.fight_mood_penalty",
+        "tuning.fight_mood_ticks",
+        "tuning.fight_grievance_ticks",
+        "tuning.fight_history_ticks",
+        "tuning.fight_repeat_grievance_ticks",
+        "tuning.fight_chance_per_tick"
+      ],
+      "review": {
+        "basis": "Fight supplies no need, satisfaction or practice. Completion harms both directional opinions and mood; interruption pays neither. Autonomous arguments require attributable current incidents, mood/opinion/severity chance, both cooldowns and no crisis/work/commute; player orders can use history or a fallback topic. Resolving or reassigning the argued duty withdraws an automatic fight. Completed relevant chore arguments create one response decision and a timed repair opportunity."
+      }
+    }
+  ],
+  "relationshipCauses": [
+    {
+      "id": "Conversation",
+      "article": "relationships",
+      "section": "conversations",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/systems/social.rs"
+      ],
+      "review": {
+        "basis": "Completion pays each direction separately; listener topic dislike replaces that direction gain. Mutual enjoyment bypasses ordinary positive gates; interruption pays no completion."
+      }
+    },
+    {
+      "id": "LowNeedInterruption",
+      "article": "relationships",
+      "section": "conversations",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "review": {
+        "basis": "Recipient loses opinion of initiator for an unhelped low need; this immediate event remains after later interruption. An actual penalty records blame against the initiator for a later automatic argument; a mutually enjoyed topic remains exempt. Bad mood or an unrelated low need without this event supplies no culprit."
+      }
+    },
+    {
+      "id": "CriticalNeedInterruption",
+      "article": "relationships",
+      "section": "conversations",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "review": {
+        "basis": "Recipient loses more opinion for an unhelped critical need. Conversation Social can help loneliness; no invented benefit for other needs. An actual penalty records blame against the initiator for a later automatic argument; a mutually enjoyed topic remains exempt. Bad mood or an unrelated low need without this event supplies no culprit."
+      }
+    },
+    {
+      "id": "PrivacyEntry",
+      "article": "relationships",
+      "section": "privacy",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "review": {
+        "basis": "Existing private user loses opinion toward entrant, with shyness scaling; direct orders retain consequences. The actual incident records that affected person and responsible actor for a later argument; privacy alone without an incident supplies no blame."
+      }
+    },
+    {
+      "id": "PrivacyStart",
+      "article": "relationships",
+      "section": "privacy",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/interpersonal.rs"
+      ],
+      "review": {
+        "basis": "Existing occupant loses opinion toward a person starting private use beside them; direction differs from entry. The actual incident records that affected person and responsible actor for a later argument; privacy alone without an incident supplies no blame."
+      }
+    },
+    {
+      "id": "Proximity",
+      "article": "relationships",
+      "section": "shared-time",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/relationship_dynamics.rs"
+      ],
+      "review": {
+        "basis": "Directional awake contact within same enclosed room and radius; hygiene and unhelped critical needs gate positive gains. Outside does not create passive contacts."
+      }
+    },
+    {
+      "id": "SharedActivity",
+      "article": "relationships",
+      "section": "shared-time",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/relationship_dynamics.rs"
+      ],
+      "review": {
+        "basis": "Eligible communal contact replaces passive gain and suspends friction. Hated company intermittently earns larger gain; refused minutes retain baseline. Need-company eligibility is separately documented."
+      }
+    },
+    {
+      "id": "Incompatibility",
+      "article": "relationships",
+      "section": "shared-time",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/relationship_dynamics.rs"
+      ],
+      "review": {
+        "basis": "Strongly opposing directional preferences cause contact friction, while accepted shared activity suspends it; skills, capability, conditions and shyness are not compatibility inputs."
+      }
+    },
+    {
+      "id": "Decay",
+      "article": "relationships",
+      "section": "family-and-decay",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/systems/social.rs"
+      ],
+      "review": {
+        "basis": "Living feelings drift toward zero in either direction; feelings toward dead people remain preserved. Family event scaling excludes neutral drift."
+      }
+    },
+    {
+      "id": "HouseholdMess",
+      "article": "relationships",
+      "section": "mess-and-nuisance",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/neglect.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs"
+      ],
+      "review": {
+        "basis": "Old visible dishes affect observer toward their actual creator once per observation, after continuous neglect grace. A dirty seat can cause an immediate complaint; own mess changes mood without self-opinion. Dish creator blame cannot authorize an argument against a different assigned cleaner. Completed washing gives separate physical appreciation."
+      }
+    },
+    {
+      "id": "DirtySetting",
+      "article": "relationships",
+      "section": "mess-and-nuisance",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/dining.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/relationship_effects.rs"
+      ],
+      "review": {
+        "basis": "A diner whose chosen place holds someone else's dirty dishes complains once toward each dish owner with an immediate opinion loss, even during the grace period, scaled as household mess; it is the dirty-seat complaint the HouseholdMess row describes, recorded under its own cause for the activity log and kept as a dish grievance."
+      }
+    },
+    {
+      "id": "ChoreFulfilled",
+      "article": "relationships",
+      "section": "chores",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/chores/board.rs",
+        "crates/terri-sim/src/chores/consequences.rs",
+        "crates/terri-sim/src/chores/mod.rs",
+        "crates/terri-sim/src/chores/work.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs"
+      ],
+      "review": {
+        "basis": "Each completed physical cleaning task improves every other living housemate toward the actual cleaner, scaled by observer cleanliness preference, with no assignment or enabled-board requirement and no duplicate board payment. No start, carry, canceled or zero-unit reward. Timely completion credit for the same argued duty additionally improves the initiator and proven annoyed witnesses toward its assigned recipient, and that recipient toward the initiator. Floors, surfaces and bins require the recipient to complete the task. Dish repair selects the largest current-duty contributor when all dishes are gone, regardless of final washer, and requires the assigned recipient to hold that credit plus positive washing during the window. An owner who washes most can earn repair when a helper washes the final plate; a larger helper contribution cannot award repair to that owner. Old loads, reassignment, expired windows and replacement dirt cannot pay another duty. Overlapping repairs deduplicate beneficiaries; family scales each event once."
+      }
+    },
+    {
+      "id": "ChoreNeglected",
+      "article": "relationships",
+      "section": "chores",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/chores/board.rs",
+        "crates/terri-sim/src/chores/consequences.rs",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/neglect.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs"
+      ],
+      "review": {
+        "basis": "Once-only prior-day settlement requires work, owner opportunity and continuous neglect grace; unavailable/no-work cases are exempt, active work keeps its original day. Covering deliberately skipped overdue work can make the helper resent its owner. Actual complaints supply directional blame only against that current responsible owner and same unfinished duty; an assignment or old miss alone is insufficient."
+      }
+    },
+    {
+      "id": "Nuisance",
+      "article": "relationships",
+      "section": "mess-and-nuisance",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/affinity.rs",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs"
+      ],
+      "review": {
+        "basis": "Bothered observer loses opinion toward an actual same-room user of a hated activity, including television, music and exercise. The actual nuisance records attributable blame for an argument; ordinary incompatibility, a disliked idle object, grief and work setbacks do not. Continuous nuisance does not rearm an argument every minute; reciprocal feeling does not change automatically."
+      }
+    },
+    {
+      "id": "Fight",
+      "article": "relationships",
+      "section": "fights",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/fights.rs",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/social_episode.rs",
+        "crates/terri-sim/src/systems/social.rs"
+      ],
+      "review": {
+        "basis": "Completed fights harm both directions and mood without need, satisfaction, practice or positive completion reward. Interruption or cancellation pays no fight completion loss, moodlet or chore response. Automatic fights use actual incidents, strongest eligible grievance, one chance per initiator/minute, mood/opinion/severity, both participant cooldowns and crisis/work/commute checks; player orders use history or fallback without a live grievance. Resolving or reassigning an automatic chore cause withdraws it even while running. Relevant completed arguments against the assigned owner can open a four-hour response and repair window; arguing itself removes neither dirt nor responsibility nor recorded outcomes."
+      }
+    },
+    {
+      "id": "MealShared",
+      "article": "relationships",
+      "section": "meal-appreciation",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/domestic.rs"
+      ],
+      "review": {
+        "basis": "Eater appreciates living actual cook once per completed portion/batch, including standing or counter use. No self, snack, preparation, interruption, missing-record or dead-cook reward; no reciprocal reward."
+      }
+    }
+  ],
+  "systems": [
+    {
+      "id": "build-draft-and-land",
+      "article": "home-and-controls",
+      "section": "build",
+      "sources": [
+        "web/src/main.ts",
+        "web/src/ui/build-exit.ts",
+        "web/src/ui/build-session.ts",
+        "web/src/ui/build-tools.ts",
+        "web/src/ui/land-tool.ts",
+        "web/src/ui/room-review.ts"
+      ],
+      "review": {
+        "basis": "Footer Confirm adopts the batch and exits; footer Cancel restores the baseline and exits. Land resolves pending changes before starting a fresh paused batch. Keep building and room-review Back preserve the current draft and tool. Land's purchase confirmation adds its purchase to the draft; it does not confirm the whole batch."
+      }
+    },
+    {
+      "id": "clipped-dock-activity",
+      "article": "ui-elements",
+      "section": "household",
+      "sources": [
+        "web/src/ui/activity-tooltip.ts",
+        "web/src/ui/compact-hud.ts",
+        "web/src/ui/compact-hud.css"
+      ],
+      "review": {
+        "basis": "A clipped selected-person activity can be read by mouse hover, keyboard focus or activation. Escape and outside press dismiss it. The popup reads existing activity text and sends no simulation command. Dock sizing changes presentation only."
+      }
+    },
+    {
+      "id": "need-decay",
+      "article": "needs",
+      "section": "timing-and-decay",
+      "sources": [
+        "content/tuning.toml",
+        "content/personalities.toml",
+        "crates/terri-sim/src/systems/needs.rs"
+      ],
+      "review": {
+        "basis": "Every need decays during travel, waiting and activity; personality, sleeping and working modifiers change rates, commuting does not inherit work reduction."
+      }
+    },
+    {
+      "id": "family-opinion-and-company",
+      "article": "relationships",
+      "section": "family-and-decay",
+      "sources": [
+        "crates/terri-sim/src/relationship_effects.rs",
+        "crates/terri-sim/src/social_episode.rs",
+        "crates/terri-sim/src/social_company.rs"
+      ],
+      "review": {
+        "basis": "Family positive events scale 1.5 and negative events 0.5, excluding decay and saved/edited values. Social company separately adds family bonus once."
+      }
+    },
+    {
+      "id": "caps-and-failure",
+      "article": "activities",
+      "section": "delivery",
+      "sources": [
+        "content/traits.toml",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/systems/trait_effects.rs"
+      ],
+      "review": {
+        "basis": "Positive physical satisfaction scales, costs do not, hand-wash cap survives modifiers; ordinary failure and meal quality do not suppress actual chair/company effects."
+      }
+    },
+    {
+      "id": "chairs",
+      "article": "activities",
+      "section": "chairs",
+      "sources": [
+        "content/objects.toml",
+        "crates/terri-sim/src/seating.rs",
+        "crates/terri-sim/src/media.rs",
+        "crates/terri-sim/src/dining.rs"
+      ],
+      "review": {
+        "basis": "Only actual occupied valid seat pays secondary Comfort; no Energy or Fun copied, no travel reward and no duplicate own-sitting reward."
+      }
+    },
+    {
+      "id": "skills-and-satisfaction",
+      "article": "mood-and-personality",
+      "section": "hobbies-and-skills",
+      "sources": [
+        "content/skills.toml",
+        "content/traits.toml",
+        "crates/terri-sim/src/skills.rs",
+        "crates/terri-sim/src/systems/satisfaction.rs"
+      ],
+      "review": {
+        "basis": "Completed attempts teach; hobbies scale completion satisfaction; skill does not universally accelerate or increase physical benefits."
+      }
+    },
+    {
+      "id": "repetition",
+      "article": "mood-and-personality",
+      "section": "repetition",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-sim/src/systems/satisfaction.rs",
+        "crates/terri-sim/src/reading/accrual.rs"
+      ],
+      "review": {
+        "basis": "Habituation reduces appeal and excessive repetition harms mood; need delivery unchanged. Reading title familiarity and pass novelty separate from same-object habituation."
+      }
+    },
+    {
+      "id": "weather-and-calendar",
+      "article": "the-world",
+      "section": "weather",
+      "sources": [
+        "content/tuning.toml",
+        "crates/terri-core/src/clock.rs",
+        "web/src/render/weather.ts"
+      ],
+      "review": {
+        "basis": "Seven-day four-season calendar; occasional hot/leaves/snow visual only, reduced motion keeps text, no current need/mood/chores effect. Weather preference and variable month/year notes explicitly future."
+      }
+    },
+    {
+      "id": "no-effect-work-and-housework",
+      "article": "activities",
+      "section": "housework",
+      "sources": [
+        "crates/terri-sim/src/chore_repair.rs",
+        "crates/terri-sim/src/chores/board.rs",
+        "crates/terri-sim/src/chores/consequences.rs",
+        "crates/terri-sim/src/chores/mod.rs",
+        "crates/terri-sim/src/chores/work.rs",
+        "crates/terri-sim/src/domestic.rs",
+        "crates/terri-sim/src/neglect.rs",
+        "crates/terri-sim/src/social_conflicts.rs",
+        "crates/terri-sim/src/systems/chain.rs"
+      ],
+      "review": {
+        "basis": "Cleaning removes real dirt and physical completion earns other living housemates appreciation toward its actual cleaner, with or without board assignments, but supplies no bodily need reward. Canceled or zero-unit work earns none; already removed dirt remains removed. Accepted chore-argument responses yield to critical needs, work, book returns and player orders; failed routing ends the attempt, waiting does not reroll. The same assigned recipient must earn completion credit for the original duty in time for repair. Dish credit follows the largest current-duty contribution, with positive recipient washing during the window, regardless of the final washer. Preparation and transport cannot claim consumption benefits."
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "id": "low_spirits",
+      "article": "mood-and-personality",
+      "section": "conditions",
+      "sources": [
+        "content/traits.toml",
+        "crates/terri-sim/src/systems/trait_effects.rs",
+        "crates/terri-sim/src/mood.rs"
+      ],
+      "review": {
+        "basis": "Matching completed correspondence, Chat or exercise reduces severity; mood and activity satisfaction scale with severity."
+      }
+    },
+    {
+      "id": "isolated",
+      "article": "mood-and-personality",
+      "section": "conditions",
+      "sources": [
+        "content/traits.toml",
+        "crates/terri-sim/src/systems/trait_effects.rs",
+        "crates/terri-sim/src/mood.rs"
+      ],
+      "review": {
+        "basis": "Matching completed correspondence, Chat or exercise reduces severity; mood and activity satisfaction scale with severity."
+      }
+    },
+    {
+      "id": "cooped_up",
+      "article": "mood-and-personality",
+      "section": "conditions",
+      "sources": [
+        "content/traits.toml",
+        "crates/terri-sim/src/systems/trait_effects.rs",
+        "crates/terri-sim/src/mood.rs"
+      ],
+      "review": {
+        "basis": "Matching completed correspondence, Chat or exercise reduces severity; mood and activity satisfaction scale with severity."
+      }
+    }
+  ]
+}

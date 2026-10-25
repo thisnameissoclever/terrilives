@@ -5,23 +5,25 @@ const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←',
 // With nothing selected, Escape leaves Build mode instead: Help lists that row.
 const CANCEL: ShortcutRow = { label: 'Clear selection', keys: ['Esc'] };
 const ROTATE: ShortcutRow = { label: 'Rotate clockwise', keys: ['R'] };
+const WALL_HEIGHT: ShortcutRow = { label: 'Low or full-height walls', keys: ['T'] };
 
 export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[]): readonly ShortcutGroup[] {
   if (tool === 'walls') return [
     { label: 'Select an edge', rows: [MOVE, { label: 'Vertical edge', keys: ['V'] }, { label: 'Horizontal edge', keys: ['H'] }] },
     { label: 'Edit the edge', rows: [{ label: 'Wall', keys: ['W'] }, { label: 'Doorway', keys: ['D'] },
       { label: 'Windows', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
+    { label: 'View', rows: [WALL_HEIGHT] },
   ];
   if (tool === 'room') return [{ label: 'Select rooms', rows: [CANCEL] }, { label: 'Build room outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
     { label: 'Set first corner', keys: ['Enter'] },
     { label: 'Build completed outline', keys: ['Enter'] },
-    { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }];
+    { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }, { label: 'View', rows: [WALL_HEIGHT] }];
   if (tool === 'land') return [
     { label: 'Choose a strip', rows: [{ label: 'Behind the house', keys: ['1'] },
       { label: 'Left side', keys: ['2'] }, { label: 'Right side', keys: ['3'] }] },
     { label: 'Finish', rows: [{ label: 'Buy land', keys: ['Enter'] }, CANCEL] },
   ];
-  if (tool === 'floors') return [{ label: 'Apply to the selected tile', rows: [
+  if (tool === 'floors') return [{ label: 'Apply to the selected tiles', rows: [
     ...coverings.slice(0, 9).map((label, index) => ({ label, keys: [String(index + 1)] })),
     { label: 'Restore original floor', keys: ['0'] }, CANCEL,
   ] }];

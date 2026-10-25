@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "name": "desktop",
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false,
+      "viewer": true,
+      "focusReturn": true,
+      "search": true
+    },
+    {
+      "name": "phone",
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "overflow": false,
+      "viewer": true,
+      "focusReturn": true,
+      "search": true
+    },
+    {
+      "javascriptDisabledReadable": true
+    }
+  ]
+}

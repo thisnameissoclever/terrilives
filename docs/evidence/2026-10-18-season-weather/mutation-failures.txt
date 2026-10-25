@@ -1,0 +1,98 @@
+weather-chance
+AssertionError: expected 0 to be greater than 1800
+ ❯ tests/weather.test.ts:22:22
+     20|       expect(weatherAt(schedule.end, 1440, 3, tuning).condition).toBe(…
+     21|     }
+     22|     expect(snowDays).toBeGreaterThan(1800);
+       |                      ^
+     23|     expect(snowDays).toBeLessThan(2200);
+     24|   });
+
+
+weather-end
+AssertionError: expected 'snowing' to be 'mild' // Object.is equality
+
+Expected: "mild"
+Received: "snowing"
+
+ ❯ tests/weather.test.ts:20:66
+     18|       expect(weatherAt(schedule.start, 1440, 3, tuning).condition).toB…
+     19|       expect(weatherAt(schedule.end - 1, 1440, 3, tuning).condition).t…
+     20|       expect(weatherAt(schedule.end, 1440, 3, tuning).condition).toBe(…
+
+leaf-expiration
+AssertionError: expected [ 4.15451192855835, …(1) ] to not deeply equal [ 4.15451192855835, …(1) ]
+
+Compared values have no visual difference.
+
+ ❯ tests/weather-particles.test.ts:48:36
+     46|     expect(count).toBeGreaterThan(0);
+     47|     // The first leaf expires at minute 135; later leaves remain indep…
+     48|     expect([rows[0], rows[1]]).not.toEqual(firstLeaf);
+       |                                    ^
+
+tile-identity
+AssertionError: expected Float32Array[ 4.15451192855835, …(36.81374432146549) ] to deeply equal Float32Array[ 4.15451192855835, …(36.81374432146549) ]
+
+- Expected
++ Received
+
+@@ -9,22 +9,22 @@
+    1,
+    0.8600000143051147,
+    0.3499999940395355,
+
+candidate-cap
+AssertionError: expected 32 to be greater than 32
+ ❯ tests/weather-particles.test.ts:85:33
+     83|   for (let x = 0; x < 16; x++) for (let y = 0; y < 16; y++) tiles.push…
+     84|   const candidates = weatherCandidates(tiles);
+     85|   expect(candidates.length / 2).toBeGreaterThan(32);
+       |                                 ^
+     86|   const rows = output();
+     87|   const count = sampleWeatherParticles(rows, 120, leaves, candidates, …
+
+
+initial-elapsed
+AssertionError: expected -0.2 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -0.2
+
+ ❯ tests/frame-elapsed.test.ts:7:68
+
+lot-origin
+AssertionError: expected 118 to be 140 // Object.is equality
+
+- Expected
++ Received
+
+- 140
++ 118
+
+ ❯ tests/weather-particles.test.ts:17:24
+
+weather-validation
+thread 'compile::tests::rejects_weather_that_cannot_finish_before_midnight' (50780) panicked at crates\terri-data\src\compile.rs:9858:76:
+called `Result::unwrap_err()` on an `Ok` value: ContentPack { decay_per_tick: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0 [unrelated compiled content omitted] weather: Some(WeatherTuning { seed: 73517, event_day_chance: [0.0, 0.35, 0.4, 1.01], event_hours: 2.0, earliest_hour: 7.0, latest_hour: 17.0, leaf_ground_hours: 2.0, fall_minutes: 15.0 })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    compile::tests::rejects_weather_that_cannot_finish_before_midnight
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 342 filtered out; finished in 0.00s
+
+weather-boundary
+thread 'calendar_boundary_tests::weather_content_reads_do_not_change_saves_hash_or_random_state' (48168) panicked at crates\terri-wasm\src\calendar_boundary_tests.rs:28:5:
+assertion `left == right` failed
+  left: [0.0, 0.0, 0.5, 0.75, 1.0, 1.5, 8.0, 15.0, 2.5, 10.0]
+ right: [91.0, 0.0, 0.5, 0.75, 1.0, 1.5, 8.0, 15.0, 2.5, 10.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    calendar_boundary_tests::weather_content_reads_do_not_change_saves_hash_or_random_state

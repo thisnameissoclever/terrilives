@@ -1,5 +1,5 @@
 //! Directional consequences of inconvenient company and lost bathroom privacy.
-use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
+use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use crate::{room_regions::RoomRegions, Content};
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -15,6 +15,8 @@ struct Participant {
     id: SimId,
     room: Option<u32>,
     private_room: Option<u32>,
+    /// The fixture in private use, for the activity log's wording only.
+    private_object: Option<Entity>,
     needs: Needs,
     shyness: terri_core::Shyness,
     directed: bool,
@@ -39,6 +41,8 @@ struct AffinityEffect {
     event: u32,
     emergency: bool,
     directed: bool,
+    /// The fixture a privacy incident was about, when known.
+    fixture: Option<Entity>,
 }
 
 mod navigation;
@@ -95,6 +99,8 @@ pub(crate) fn prepare(world: &mut World) {
                     .and_then(|p| p.steps.last().copied())
                     .unwrap_or(tile(position)),
                 room: rooms.at(tile(position)),
+                private_object: private_room
+                    .and_then(|_| world.get::<Target>(entity).map(|target| target.object)),
                 private_room,
                 needs: *needs,
                 shyness: crate::shyness::of(world, entity),
@@ -539,6 +545,7 @@ impl InterpersonalPhase {
                     event: self.next_event,
                     directed,
                     emergency,
+                    fixture: user.private_object,
                     delta: -penalty
                         * user
                             .shyness
@@ -561,6 +568,7 @@ impl InterpersonalPhase {
             return;
         };
         user.private_room = Some(room);
+        user.private_object = Some(object);
         let id = user.id;
         let directed = user.directed;
         let emergency = self.emergency.contains(&entity);
@@ -574,6 +582,7 @@ impl InterpersonalPhase {
                     event: self.next_event,
                     directed,
                     emergency,
+                    fixture: Some(object),
                     delta: -penalty
                         * observer
                             .shyness
@@ -614,6 +623,7 @@ impl InterpersonalPhase {
             event: 0,
             directed: initiator.directed,
             emergency: false,
+            fixture: None,
             delta: -magnitude
                 * partner
                     .shyness
@@ -648,7 +658,34 @@ pub(crate) fn apply(world: &mut World) {
     let phase = world
         .remove_resource::<InterpersonalPhase>()
         .expect("movement phase must be prepared");
-    for effect in phase.effects {
+    let mutual: std::collections::BTreeSet<_> = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .topics
+        .iter()
+        .filter(|(_, topic)| crate::social_episode::shared_interest(topic))
+        .filter_map(|(initiator, _)| {
+            let talk = world.get::<terri_core::Socialising>(*initiator)?;
+            Some((
+                *world.get::<SimId>(talk.partner)?,
+                *world.get::<SimId>(*initiator)?,
+            ))
+        })
+        .collect();
+    for mut effect in phase.effects {
+        if matches!(
+            effect.cause,
+            RelationshipCause::LowNeedInterruption | RelationshipCause::CriticalNeedInterruption
+        ) && mutual.contains(&(effect.offended, effect.responsible))
+        {
+            continue;
+        }
+        effect.delta = crate::relationship_effects::scaled_opinion_delta(
+            world,
+            effect.offended,
+            effect.responsible,
+            effect.cause,
+            effect.delta,
+        );
         if effect.delta == 0.0
             && !matches!(
                 effect.cause,
@@ -676,10 +713,37 @@ pub(crate) fn apply(world: &mut World) {
             .feeling(effect.responsible)
             - before;
         let tick = world.resource::<terri_core::SimClock>().tick;
-        world
-            .resource_mut::<RelationshipDiagnostics>()
-            .effects
-            .push(RelationshipEffect {
+        let grievance = match effect.cause {
+            RelationshipCause::PrivacyEntry => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyEntry)
+            }
+            RelationshipCause::PrivacyStart => {
+                Some(terri_core::save_v20::GrievanceKind::PrivacyStart)
+            }
+            RelationshipCause::LowNeedInterruption
+            | RelationshipCause::CriticalNeedInterruption => {
+                Some(terri_core::save_v20::GrievanceKind::NeedInterruption)
+            }
+            _ => None,
+        };
+        if let Some(kind) = grievance {
+            crate::social_conflicts::remember(
+                world,
+                effect.offended,
+                effect.responsible,
+                kind,
+                terri_core::save_v20::GrievanceSubject::None,
+                (-effect.delta).max(0.0),
+            );
+        }
+        let pack = world.resource::<Content>().0;
+        let fixture = effect
+            .fixture
+            .and_then(|fixture| world.get::<SmartObject>(fixture))
+            .map(|object| pack.object(object.0).display_name());
+        crate::relationship_effects::record_about(
+            world,
+            RelationshipEffect {
                 tick,
                 event: effect.event,
                 cause: effect.cause,
@@ -689,7 +753,9 @@ pub(crate) fn apply(world: &mut World) {
                 actual,
                 emergency: effect.emergency,
                 directed: effect.directed,
-            });
+            },
+            fixture,
+        );
     }
 }
 

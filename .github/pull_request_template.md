@@ -15,3 +15,10 @@ Read [docs/changelog.md](https://github.com/thisnameissoclever/terrilives/blob/m
 - [ ] Changed notes passed the changelog tests and build and were reviewed for player-facing language, accuracy and material limits; mark not applicable below if notes are unchanged.
 
 Entry path or internal-only reason:
+
+## Player guide
+
+- [ ] Documented behavior, controls and values match the relevant `docs/player/` articles and effect mappings; changed UI has current desktop/mobile screenshots, or a specific no-change reason is given below.
+- [ ] Changed gameplay/reference inputs passed compiled-reference verification and their guide impact was reviewed before refreshing fingerprints.
+
+Affected guide paths or no-change reason:

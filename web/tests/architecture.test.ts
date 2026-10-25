@@ -4,7 +4,7 @@ import { gunzipSync } from 'node:zlib';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { architectureSprite, architectureJunction, architectureFloor } from '../src/render/architecture.js';
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.js';
-import { buildStaticInstances } from '../src/render/tiles.js';
+import { REFUSED_WALL_TINT, SELECTED_WALL_TINT, buildStaticInstances } from '../src/render/tiles.js';
 import { WallFade } from '../src/render/wall-fade.js';
 import { architectureMode, decodeArchitectureMode } from '../src/render/instances.js';
 import { architectureFinishSlot, architectureLocalPoint, prepareArchitectureFinishes,
@@ -126,6 +126,37 @@ describe('authored wall geometry', () => {
     expect(join).toHaveLength(3);
     expect(join.map(panel => panel.low)).toEqual([false, true, false]);
     expect(join.every(panel => panel.spriteName.startsWith('junction.2120.'))).toBe(true);
+  });
+
+  it('raises only the chosen lines, windows included, while the rest stay cut away ([WB-height])', () => {
+    const edges = Uint32Array.from([1, 3, 8, 0, 1, 4, 8, 0, 0, 8, 7, 1]);
+    const window = { axis: 1 as const, x: 2, y: 4, model: 7 as const };
+    const raised = new Set(['1/3/8', '1/3/4']);
+    const panels = buildArchitectureWallGeometry({ ...base, cutaway: true, edges, windows: [window], raised });
+    const lowOf = (line: string) => panels.filter(panel => panel.lines?.includes(line)).map(panel => panel.low);
+    expect(lowOf('1/3/8').length).toBeGreaterThan(0);
+    expect(lowOf('1/3/8').every(low => low === false)).toBe(true);
+    expect(lowOf('1/4/8').every(low => low === true)).toBe(true);
+    expect(lowOf('0/8/7')).toEqual(lowOf('0/8/7').map(() => true));
+    // A window stands full height when any of its lines is chosen.
+    expect(panels.filter(panel => panel.window).every(panel => panel.low === false)).toBe(true);
+    expect(buildArchitectureWallGeometry({ ...base, cutaway: true, edges, windows: [window] })
+      .filter(panel => panel.window).every(panel => panel.low === true)).toBe(true);
+  });
+
+  it('tints the chosen lines\' panels for their validity, and no others ([WB-mark])', () => {
+    const lot = { ...base, walls: new Uint32Array(), edges: Uint32Array.from([1, 3, 8, 0, 1, 4, 8, 0]),
+      windows: new Uint32Array(), showCutAwayWalls: true, architecture: { windows: [], catalogue } };
+    const panels = buildArchitectureWallGeometry({ ...base, edges: lot.edges });
+    const ids = (line: string) => new Set(panels.filter(panel => panel.lines?.includes(line)).map(panel => panel.architectureId));
+    for (const [valid, tint] of [[true, SELECTED_WALL_TINT], [false, REFUSED_WALL_TINT]] as const) {
+      const result = buildStaticInstances({ ...lot, selectedLines: new Map([['1/3/8', valid]]) }, 0, 0, 16);
+      const rows = Array.from({ length: result.count }, (_, i) => result.instances.subarray(i * 16, i * 16 + 16));
+      const tinted = rows.filter(row => [...row.slice(4, 7)].every((value, at) => value === Math.fround(tint[at])));
+      expect(tinted.length).toBeGreaterThan(0);
+      for (const row of tinted) expect(ids('1/3/8').has(row[3] as number)).toBe(true);
+      expect(tinted.every(row => row[7] >= 0.75)).toBe(true);
+    }
   });
 
   it('preserves physical row positions and depth at fractional camera zoom', () => {

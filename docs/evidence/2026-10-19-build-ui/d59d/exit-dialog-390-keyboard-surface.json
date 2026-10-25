@@ -1,0 +1,103 @@
+{
+  "before": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "after": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "raster": {
+    "width": 390,
+    "height": 844
+  },
+  "focus": {
+    "focusVisible": true,
+    "label": "Keep building",
+    "outline": "rgb(216, 216, 224) solid 2px"
+  }
+}

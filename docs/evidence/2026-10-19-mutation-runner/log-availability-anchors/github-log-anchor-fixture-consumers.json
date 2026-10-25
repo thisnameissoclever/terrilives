@@ -1,0 +1,14 @@
+{
+  "command": [
+    "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "test_mutation_artifacts",
+    "test_mutation_tool",
+    "test_mutation_qualification"
+  ],
+  "exit_code": 0,
+  "seconds": 2.933,
+  "output": "...............................................................\n----------------------------------------------------------------------\nRan 63 tests in 2.724s\n\nOK\n"
+}

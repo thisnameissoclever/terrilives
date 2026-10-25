@@ -1,0 +1,90 @@
+[
+  {
+    "scope": "production",
+    "historical_attempts_last_run": 10,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 26,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 41,
+    "total": 171,
+    "admitted_total_history_attempts": 56
+  },
+  {
+    "scope": "production",
+    "historical_attempts_last_run": 30,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 28,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 43,
+    "total": 175,
+    "admitted_total_history_attempts": 56
+  },
+  {
+    "scope": "production",
+    "historical_attempts_last_run": 50,
+    "run_count": 1,
+    "gap": 0,
+    "padded_to_sixteen_pages": false,
+    "external_proof_runs": 0,
+    "preparation": 29,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 44,
+    "total": 177,
+    "admitted_total_history_attempts": 56
+  },
+  {
+    "scope": "production",
+    "historical_attempts_last_run": 6,
+    "run_count": 8,
+    "gap": 3,
+    "padded_to_sixteen_pages": true,
+    "external_proof_runs": 1,
+    "preparation": 224,
+    "workers": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "aggregate": 185,
+    "total": 513,
+    "admitted_total_history_attempts": 56
+  }
+]

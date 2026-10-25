@@ -1,6 +1,8 @@
-import type { BuildReview, Point, RoomChoices, RoomSummary } from '../rooms/codec.js';
+import type { BuildReview, Point, RoomChoices, RoomFailure, RoomSummary } from '../rooms/codec.js';
 import type { TileHighlight } from '../render/placement-preview.js';
-import { roomFailure, roomNameError, type RoomBridge } from './room-selection.js';
+import { confirmFailure, failureDetails } from '../rooms/failure.js';
+import { logError } from '../diagnostics/log.js';
+import { RoomFailureLog, roomNameError, type RoomBridge } from './room-selection.js';
 
 const key = (anchor: Point) => `${anchor[0]},${anchor[1]}`;
 const same = (a: Point | null, b: Point) => a !== null && a[0] === b[0] && a[1] === b[1];
@@ -25,7 +27,14 @@ export class RoomReviewController {
   private formerNames = new Map<number, string>();
   private formerRooms = new Map<number, RoomSummary>();
   private tiles: readonly Point[] = [];
+  private readonly failures = new RoomFailureLog();
   constructor(private readonly source: RoomBridge, private readonly hooks: RoomReviewHooks = {}) {}
+  private refuseConfirm(message: string, error: RoomFailure): void {
+    const report = error.code === 10 ? this.source.buildFailureReport?.() : undefined;
+    this.error = confirmFailure(error, report);
+    logError('Rooms', message, failureDetails(error, report));
+    this.hooks.refused?.();
+  }
   open(review: BuildReview): void {
     const snapshot = this.source.roomSummaries();
     if (snapshot.ok) { this.formerNames = new Map(snapshot.value.rooms.map(room => [room.id, room.name])); this.formerRooms = new Map(snapshot.value.rooms.map(room => [room.id, room])); }
@@ -36,7 +45,7 @@ export class RoomReviewController {
     const eligible = new Map<string, readonly number[]>();
     for (const room of review.rooms) if (room.anchor) {
       const result = this.source.buildComponentPredecessors(review.token, room.anchor);
-      if (!result.ok) throw Error(roomFailure(result.error));
+      if (!result.ok) throw Error(this.failures.report("A room's former identities could not be read.", result.error));
       eligible.set(key(room.anchor), result.value);
     }
     this.review = review; this.eligible = eligible;
@@ -87,7 +96,7 @@ export class RoomReviewController {
     const tiles: Point[] = [];
     for (const anchor of group.finalAnchors) {
       const result = this.source.buildComponentTiles(review.token, anchor);
-      if (!result.ok) { this.error = roomFailure(result.error); this.tiles = []; return; }
+      if (!result.ok) { this.error = this.failures.report("A changed room's tiles could not be read.", result.error); this.tiles = []; return; }
       tiles.push(...result.value);
     }
     this.tiles = tiles;
@@ -101,7 +110,7 @@ export class RoomReviewController {
   back(): void {
     if (!this.active || this.busy) return;
     const result = this.source.discardBuildReview();
-    if (!result.ok) { this.error = roomFailure(result.error); this.hooks.refused?.(); this.hooks.changed?.(); return; }
+    if (!result.ok) { this.error = this.failures.report('The room review could not be closed.', result.error); this.hooks.refused?.(); this.hooks.changed?.(); return; }
     this.active = false; this.hooks.completed?.(false); this.hooks.changed?.();
   }
   reset(): void { this.active = false; this.review = null; this.choices.clear(); this.eligible.clear(); this.error = ''; this.edited = false; this.hooks.completed?.(false); this.hooks.changed?.(); }
@@ -122,14 +131,15 @@ export class RoomReviewController {
           if (choice.name !== undefined) names.push({ anchor: choice.anchor, name: choice.name });
         }
         const result = this.source.prepareBuildCommit({ ...choices, inheritance, names }, this.review.token);
-        if (!result.ok) { this.error = roomFailure(result.error); this.hooks.refused?.(); return false; }
+        if (!result.ok) { this.refuseConfirm('The room choices could not be prepared.', result.error); return false; }
         this.install(result.value); this.edited = false; this.error = 'Choices updated. Check the resulting names and duties, then Confirm changes.'; return false;
       }
       const result = this.source.commitBuild(this.review.token);
-      if (!result.ok) { this.error = roomFailure(result.error); this.hooks.refused?.(); return false; }
+      if (!result.ok) { this.refuseConfirm('The reviewed changes could not be committed.', result.error); return false; }
       this.active = false; this.choices.clear(); this.error = ''; this.hooks.completed?.(true); return true;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'The room review could not be read. Return to Build and try again.';
+      logError('Rooms', 'The room review failed unexpectedly.', { error });
       this.hooks.refused?.(); return false;
     } finally { this.busy = false; this.hooks.changed?.(); }
   }

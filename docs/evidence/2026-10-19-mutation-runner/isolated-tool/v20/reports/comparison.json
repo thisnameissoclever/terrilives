@@ -1,0 +1,36 @@
+{
+  "boundary": "Committed V20 native source; not final workflow input fingerprint",
+  "commit": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+  "stock_count": 18543,
+  "candidate_count": 18543,
+  "raw_bytes_identical": true,
+  "complete_ordered_entries_equal": true,
+  "ordered_names_equal": true,
+  "identity_sets_equal": true,
+  "duplicate_names": [
+    0,
+    0
+  ],
+  "duplicate_composite_identities": [
+    0,
+    0
+  ],
+  "stock_sha256": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b",
+  "candidate_sha256": "5c667dca2db9aa3fa58411d4a9585d29f6d5ec18e685c96cfea2a69274f50f7b",
+  "package_counts": {
+    "terri-core": 1153,
+    "terri-data": 1644,
+    "terri-sim": 14572,
+    "terri-wasm": 1174
+  },
+  "all_fields_compared": [
+    "diff",
+    "file",
+    "function",
+    "genre",
+    "name",
+    "package",
+    "replacement",
+    "span"
+  ]
+}

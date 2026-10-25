@@ -722,7 +722,7 @@ describe('HousemateFormView', () => {
     expect(CREATOR_VIEW).not.toContain('Removing a condition forgets its severity. Skills are kept.');
     expect(REMOVAL_NOTE).toBe('');
     const phone = COMPACT_HUD_CSS.slice(COMPACT_HUD_CSS.indexOf('@media (max-width: 600px), (max-height: 480px)'));
-    expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 44px;/);
+    expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 36px;/);
     const creatorPhone=CREATOR_CSS.slice(CREATOR_CSS.lastIndexOf('@media(max-width:760px)'));
     expect(creatorPhone).toContain('min-height:44px');
     expect(creatorPhone).toContain('.creator-shell select');
@@ -733,8 +733,23 @@ describe('HousemateFormView', () => {
     expect(MAIN_TS).toContain('openCreator(person);');
     expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;');
     expect(MAIN_TS).toContain('restorePersistenceFocus(document, housemateDialog, housemateOpener');
-    const loaded = MAIN_TS.slice(MAIN_TS.indexOf('if (loaded) {'));
-    const loadBranch = loaded.slice(0, loaded.indexOf('wallTool.resetAfterLoad('));
+    // Load and Import share adoptLoadedWorld, which replaces the world.
+    const loadHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+      MAIN_TS.indexOf("exportSaveButton.addEventListener('click'"),
+    );
+    expect(loadHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const importHandler = MAIN_TS.slice(
+      MAIN_TS.indexOf("confirmImportSave.addEventListener('click'"),
+      MAIN_TS.indexOf('let housemateOpener'),
+    );
+    expect(importHandler).toContain('if (loaded) adoptLoadedWorld();');
+    const adopt = MAIN_TS.slice(
+      MAIN_TS.indexOf('const adoptLoadedWorld = (): void => {'),
+      MAIN_TS.indexOf("confirmLoadGame.addEventListener('click'"),
+    );
+    expect(adopt).toContain('wallTool.resetAfterLoad(');
+    const loadBranch = adopt.slice(0, adopt.indexOf('wallTool.resetAfterLoad('));
     expect(loadBranch).toContain("if (housemateDialog.open) housemateDialog.close('cancel');");
     expect(loadBranch).toContain('housemateView?.destroy();');
     expect(loadBranch).toContain('creatorSession=undefined;');

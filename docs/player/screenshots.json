@@ -1,0 +1,2370 @@
+{
+  "version": 1,
+  "build": {
+    "status": "complete",
+    "capturedAt": "2026-10-19",
+    "url": "http://127.0.0.1:5191/",
+    "bundle": "index-K6DwJp0C.js",
+    "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+    "desktopViewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "mobileViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "browser": "Google Chrome 155.0.8059.85, displayed on Windows in isolated contexts",
+    "audio": "Muted through saved game preferences",
+    "pendingRefresh": [
+      "window-models",
+      "build-floors",
+      "build-room-outline",
+      "help-shortcuts"
+    ],
+    "snapshots": [
+      {
+        "id": "initial",
+        "url": "http://localhost:8315/",
+        "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+        "bundle": "index-D91PjVR4.js",
+        "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "minus-fix",
+        "url": "http://localhost:8316/",
+        "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+        "bundle": "index-D91PjVR4.js",
+        "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "help-options-final",
+        "url": "http://127.0.0.1:8318/",
+        "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+        "bundle": "index-C4DN_u1m.js",
+        "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "identity-final",
+        "url": "http://127.0.0.1:8320/",
+        "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+        "bundle": "index-C4DN_u1m.js",
+        "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+        "wasm": "terri_wasm_bg-CFXtz2xH.wasm",
+        "wasmSha256": "3dba220ce517712e3483567ccb8aed543264534977357cdf8b59930c7de520c7"
+      },
+      {
+        "id": "current-main-help",
+        "url": "http://127.0.0.1:8322/",
+        "sourceCommit": "96b14aa",
+        "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+        "bundle": "index-fopipe25.js",
+        "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "delivery-guide-shortcut",
+        "url": "http://127.0.0.1:8324/",
+        "sourceCommit": "d59d004",
+        "sourceChanges": "Direct Player guide HUD link below Build and Options.",
+        "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+        "bundle": "index-y9q1-SyJ.js",
+        "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8"
+      },
+      {
+        "id": "build-release-guide-integration",
+        "url": "http://127.0.0.1:5191/",
+        "sourceCommit": "c47f806e9",
+        "sourceChanges": "Reviewed working-tree player-guide changes, identified by exact file hashes; not a committed snapshot.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "070716aa98e4ce4d245e2d295bc74be1362316591999a122ce258c1c09d2f0b1",
+          "docs/player/home-and-controls.md": "d07b1e9fa763943287f53b2f0e5739547aeffc13c7f6b354fcfab9ba3e7a584d",
+          "docs/player/ui-elements.md": "a784bdf60d211248734d51c9b8fcc1e6fe2ebfa3542cb5733dda087e37e4bd33",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "35cf2ff0c1d5d2c65a5c10b7ea9d6f0cbec24c847c79528892951c86ebc8ddf6"
+        },
+        "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+        "bundle": "index-K6DwJp0C.js",
+        "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+        "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+        "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+        "gameSourceFileSha256": {
+          "web/index.html": "5c76a6864fb790ebc47e1148097a6dd6d410ec0ad7eec448058b1533a47c91aa",
+          "web/src/main.ts": "b3695936f87bb2dd73c715fc10904c8c728fd8ccd50014a2d46b8bea474bb836",
+          "web/src/ui/build-exit.ts": "67de442e8433eedfe0af1f5c49f6f548ff8ab52f6604e3e06d4d354f8ed6bc54",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "5d93982b2587edc48b9f69dd53abd0412bbd7c9fe0bd0cb8acab3561e7f0045c",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        }
+      },
+      {
+        "id": "build-release-main-834",
+        "url": "http://127.0.0.1:5194/",
+        "sourceCommit": "c2518b7f7",
+        "sourceChanges": "Working-tree integration of main 834227d882e60885654646742951976d91928880; reviewed source hashes identify the captured input.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "34408a446d149b1eb9d1ff3e016413e50cc736b7a6dd393c2df204b40c1897aa",
+          "docs/player/home-and-controls.md": "c6da7c532e34ec9ee5eafdf2482e174e836b0edcbd03f6ff0cbbce39913f759e",
+          "docs/player/ui-elements.md": "c2ce274d54344459194a05bdfd1c4679230bf094eb0fdcf99481d2b2bc7e5bfe",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "b820d304f1911e80d39818ba41fa4dec23072b30491dc98c47e6008e2428da54"
+        },
+        "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+        "bundle": "index-BS3Asst8.js",
+        "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+        "wasm": "terri_wasm_bg-CbUQR3HM.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "gameSourceFileSha256": {
+          "web/index.html": "c6c17e326f294d16b73d16335a9367fd85e437d9c51647debd7dc90762e7f3f5",
+          "web/src/main.ts": "2338ebe6e9d6a1a386d87d4fe5ee1bf98cee2f0ff313cfa1943bd70f88a4fda4",
+          "web/src/ui/build-exit.ts": "ef132e576274557752c37383d8875a95f25e4cd9f2f59d5e0b041eaca99336f3",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "ddf5d0daf3797989a0a6d4383bdc98440fd01675195705b8e1a956ebd08e4d47",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        },
+        "nativeSourceCommit": "834227d882e60885654646742951976d91928880",
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-20"
+      },
+      {
+        "id": "guide-controls-refresh-2026-10-20",
+        "capturedAt": "2026-10-20",
+        "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+        "mergedMainCommit": "834227d882e60885654646742951976d91928880",
+        "method": "Actual game in the native browser, served by Vite in development mode after rebuilding the release WebAssembly package with wasm-pack. JavaScript was served as development modules; no production bundle was captured.",
+        "wasm": "web/src/wasm/terri_wasm_bg.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "desktopViewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "mobileViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "state": "Paused on Day 1 at 04:42; flat lighting; Sound off. A disposable interior wall was created through Wall, then selected for wall controls and the Sash window preview. Floors shows a selected tile. Help shows collapsed sections.",
+        "cleanup": "Cancelled the Build draft and closed the task-owned game and server."
+      },
+      {
+        "id": "build-release-help-e620",
+        "url": "http://127.0.0.1:5194/",
+        "sourceCommit": "7a9b6fdb2",
+        "sourceChanges": "Working-tree integration of guide main e620ff5c51acd9779246b8996af8a8f6c1f66c0b; game inputs unchanged from the reviewed 7a9b6fdb2 integration.",
+        "sourceFileSha256": {
+          "docs/player/quick-help.md": "34408a446d149b1eb9d1ff3e016413e50cc736b7a6dd393c2df204b40c1897aa",
+          "docs/player/home-and-controls.md": "8317beb4ac8f18235ac5b2117d058a22bbe5c34970f5b54aca5aaf7296a1a68b",
+          "docs/player/ui-elements.md": "213171d1b35bb33738f0de942be2920e2b7c4f4df4102cd080fb962b473dfad3",
+          "docs/player/effects.json": "8d2d42ea8e8f06926608ae6193882f99a0d8ac5d00aa2d8e5d0276525c77b224",
+          "docs/player/reviewed-sources.json": "b820d304f1911e80d39818ba41fa4dec23072b30491dc98c47e6008e2428da54"
+        },
+        "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+        "bundle": "index-BS3Asst8.js",
+        "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+        "wasm": "terri_wasm_bg-CbUQR3HM.wasm",
+        "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+        "gameSourceFileSha256": {
+          "web/index.html": "c6c17e326f294d16b73d16335a9367fd85e437d9c51647debd7dc90762e7f3f5",
+          "web/src/main.ts": "2338ebe6e9d6a1a386d87d4fe5ee1bf98cee2f0ff313cfa1943bd70f88a4fda4",
+          "web/src/ui/build-exit.ts": "ef132e576274557752c37383d8875a95f25e4cd9f2f59d5e0b041eaca99336f3",
+          "web/src/ui/build-session.ts": "e77cc4bd7c6e1b73261efba00055a2c6a737ede99170ddc08fa7a6cd800e2521",
+          "web/src/ui/build-tools.ts": "6ae06bc202fc7a560699d671d4c26efecaef823b7039dc891ba45a0d6a08ec0d",
+          "web/src/ui/builder.ts": "b0b4e3dcd8bce939c2d545be0930942e2523f7787d0e2b808da54a62e48895a4",
+          "web/src/ui/buy-tool.ts": "4e9175ae4b2056e5d1b9d327b1fe47cd3e62f858ffda94d3c73f797cecd94886",
+          "web/src/ui/floor-tool.ts": "ddf5d0daf3797989a0a6d4383bdc98440fd01675195705b8e1a956ebd08e4d47",
+          "web/src/ui/land-tool.ts": "756399939405dc98d64beb4e7495d662d1ad93d2d9725ac8880bcc7336747c0d",
+          "web/src/ui/room-tool.ts": "257751a9c7125f6b9a85d7d46ce7a53146c506fd6888ff91f4c9c3df477f3ce0",
+          "web/src/ui/build-controls.css": "8f22d1b08db87fd759138754909d7ec6b1af97ed008b587d53ae9e99f81d9461",
+          "web/src/ui/compact-hud.css": "e8234673c592f7f47f024ebdb3bc0ec96a9b36796943fa51835ab3ee22854b81",
+          "web/src/ui/compact-hud.ts": "2d1fcf0cfc935dff3eae6e7e48ae69ed56b6f8a350fd8eb11b4e98f999470746",
+          "web/src/ui/activity-tooltip.ts": "684f20975aa63da07fb439cda49c3ee07226b2ddca321b2bab73c57155839908"
+        },
+        "nativeSourceCommit": "834227d882e60885654646742951976d91928880",
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-20",
+        "method": "Displayed isolated Chrome 155 through the provided Playwright tool; one game navigation, muted process, initial Help paused at 00:00."
+      },
+      {
+        "id": "startup-report-sharing",
+        "url": "http://127.0.0.1:5177/terrilives/startup-report.html",
+        "sourceFileSha256": {
+          "web/index.html": "b075a4cf6396eea02c9e818d155f30079426b01754f006cf99f7a0f1708e49f6",
+          "web/src/ui/startup-failure.ts": "ee934e99cb719afd9ce1fec1541b1e210d8a4399dccc9c5a59bc9947a189d5d3",
+          "web/public/startup-diagnostics-v2.js": "9860faa4e4dc726bbe16142ce1708b4af066da4a51c8b79fd14a699fb76090b9",
+          "web/startup-report/template.html": "a68127ec2dc2d0a3dddc1e180bcc939c5dc0f27a849203d0d7e3307bb389a3fb",
+          "web/startup-report/plugin.ts": "fc17ef40988db9f02d31121705c843cd8ec66b928311c7163f9a92c44a520d3d",
+          "web/vite.config.ts": "66155ae191158a5e7683882a344df49c2cf74aa227d2f404e45d4d78dd12e371"
+        },
+        "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+        "bundle": "./assets/index-B7Q70Ugo.js",
+        "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+        "browser": "Google Chrome 155 on Windows; isolated muted context",
+        "evidence": "docs/evidence/2026-10-23-startup-report-sharing/verification.json"
+      },
+      {
+        "id": "meaningful-debug-reports",
+        "url": "http://127.0.0.1:5177/terrilives/",
+        "sourceFileSha256": {
+          "web/public/startup-diagnostics-v3.js": "7d59411a9bcde77ce95b3c70e1dced1351cab26120db22b1c200b9ee04f9825a",
+          "web/startup-report/template.html": "14a01a7f48aa2f64964573acf3fbd914adb3ac8e7c72f5f881d88ec340349e92",
+          "web/index.html": "0063b27b44438136b68d5ad2db5d70db198ed704773bfcfa7f007e28b93939e3",
+          "web/src/diagnostics.ts": "ecd5b212d932508fc11a706b5274bf00fedd97be1cad3a761071fbb1856d136e",
+          "web/src/render/device.ts": "f69c7b8837789d373efe1e4813e84a83a43ccd6fc329f50648947e5b04f3be6a",
+          "web/src/render/character/asset-download.ts": "5091cbdd0b6cddbdc2ddf5ba2b71381a7b55e7d1be8992161c38d6cd61345ae9",
+          "web/src/render/character/character-preparation-service.ts": "bd89aba95510f11bc12d64ffba84ef9b500a840979b8fd4774b392db4bda14c8",
+          "web/src/render/character/preparation-transport.ts": "c16e056b2dd7a575e0022812ab9cc0b44aba0be505d9fb158bd9349f9357cf10",
+          "web/src/main.ts": "8be9e2e0a9784f5cbd4de18a2f7e9fa869e9d5f82510e9a1f72fb17808a4ac0b"
+        },
+        "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+        "bundle": "./assets/index-CF2EA_TM.js",
+        "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+        "evidence": "docs/evidence/2026-10-23-meaningful-debug-reports/verification.json"
+      },
+      {
+        "id": "save-files",
+        "url": "https://127.0.0.1:4173/",
+        "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+        "bundle": "index-DQ-pXZpf.js",
+        "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
+        "wasm": "terri_wasm_bg-C_6UR7qL.wasm",
+        "wasmSha256": "5931cdaf8c88f928b08608afc6bf52221f93a53e655a743cf7fd2b9981f7b90f",
+        "gameSourceFileSha256": {
+          "web/index.html": "b069cff8bcb6e858d0a26901b52dcd5ae7983a05f3a72abcc23c0da3f62e94fd",
+          "web/src/main.ts": "4b48e835d40d8b78dcc1188451873b59ebb2987e8ec5173f4751e2fc59591aaf",
+          "web/src/ui/persistence-controller.ts": "53681fd17eca49a47ea48be075abd30cd3575aba8a15d47bf802b565c63370d8",
+          "web/src/storage/save-file.ts": "208998ca29d5791c47441b87da78392e2456242a1ef7ab22cd0bc74c250a32a4"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright Chrome against this worktree build, merged with main, served by vite preview; Sound off before any capture. Options opened from the world controls after dismissing first-run Help; Import confirmation opened by choosing a saved game file after closing Options with Escape."
+      },
+      {
+        "id": "activity-log",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "33ee7a4ac",
+        "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+        "bundle": "index-BAhtCSe1.js",
+        "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+        "wasm": "terri_wasm_bg-DFgWgfcg.wasm",
+        "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "708c80b3e6b1dbc99bf0a5f19da37981608b48294a4199fba88c20c385985415",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "067119877f6ab0f837e7a679fa78bce87865a9152a7553445368a3c5e02f62f0",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping, one or two game days for the open, Only and privacy states and six or seven for Show earlier entries, then the Log opened from its top-right button.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "activity-log-review-fixes",
+        "url": "http://127.0.0.1:5174/?stress=0&audio=0",
+        "sourceCommit": "e8d1d9018",
+        "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+        "bundle": "index-B3WUuvwr.js",
+        "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+        "wasm": "terri_wasm_bg-BQBZ8UbY.wasm",
+        "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+        "gameSourceFileSha256": {
+          "web/index.html": "ac7935e161bf18a28a034683419a96d5bd889724fc7261cd8c907c531a835fb0",
+          "web/src/main.ts": "dd99436c2f59e4cd54b47d541540ceb25405bae9839e680f173b8c7698263c5f",
+          "web/src/ui/compact-hud.css": "3e16dce78728f9ac44b54f0c8ad629f953f0c6ba8daabb12f8ea0962871f1d0f",
+          "web/src/ui/activity-log-panel.ts": "6ea637b3addd69e0fac6b5bc6791380aa221b73acb6c3a9b5cca582a1c00f159",
+          "web/src/ui/activity-log-compose.ts": "665263139a67c932a88e774a7787dd4e4a16496c2cad38ae195009e8b1d54031",
+          "web/src/ui/activity-log-store.ts": "f5da82d9be0219a2bb36dd2b56d8d64337ee10536ea7ac980248681994d6f7f4",
+          "web/src/ui/activity-log-words.ts": "998976377bda220c44d92c10e5f0aa4c3f7eb262e7f5b2f0a5533fe2bf78c814",
+          "crates/terri-sim/src/activity_log.rs": "230a26a08040f5c428fb5affdb205ca1e81b38d2ea5a918e81b8f7fc7f1ac9b1",
+          "crates/terri-wasm/src/lib.rs": "cf37dbee860c1f744966ca9b07f96470b614774c64b64290bf37f4aa86c27123"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-23",
+        "method": "Playwright with displayed Chrome 155.0.8059.85 and --mute-audio against the production build of this branch, served by vite preview; sound off through ?audio=0. Each layout ran in its own context at device pixel ratio 1 after first-run Help was dismissed and play paused. The household was advanced with the paused game's frame stepping one game day at a time until a bathroom privacy line was held, then the Log opened from its top-right button. The open and Only states are scrolled to the newest line.",
+        "evidence": "docs/evidence/2026-10-23-activity-log-guide/verification.md"
+      },
+      {
+        "id": "shift-careers-2026-10-24",
+        "url": "http://127.0.0.1:4191/",
+        "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+        "bundle": "index-DVZUdzNT.js",
+        "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+        "wasm": "terri_wasm_bg-aSRI3UZc.wasm",
+        "wasmSha256": "c5be841fe787dea99a1467bad4200e0df63519077c0471de14f6fba5b13023bf",
+        "gameSourceFileSha256": {
+          "web/index.html": "f8022e944a0005cc1a4c4f113efd0d59c4936f2f2ad5ed7abadf365c2c24efc5",
+          "web/src/main.ts": "a601d3e4511b1b4e2ee714688ffb305a2bb0f386eab0eb9c82a01f7dceb0f4a1",
+          "web/src/ui/career-panel.ts": "fa3d8deda723c27cf6ae334f3cb750cc01d940c16cffe43afdab2a55b89d1bbd",
+          "web/src/ui/game-hud.ts": "b2baab95e236adb1f14e4f844a2af57f81c6b9066670ad542da9dfa975c34661"
+        },
+        "hashNormalization": "Text source hashes normalize CRLF to LF.",
+        "capturedAt": "2026-10-24",
+        "method": "Playwright Chrome, headed and muted, against this worktree build served by vite preview on a task-owned port; audio muted through saved preferences and the browser flag. The shipped household after two reviewed weeks (Day 15, Monday 10:00) was imported with Options > Import save from a save written by the browser save writer; Career assigned shows Bill after Assign to the Library path."
+      }
+    ],
+    "weatherSetup": {
+      "method": "Actual native simulation ticks; unchanged shipped weather probabilities.",
+      "autumnFallingTick": 20722,
+      "autumnGroundedTick": 20767,
+      "mildTick": 20980,
+      "snowTick": 74015,
+      "phoneCamera": {
+        "originX": 452,
+        "originY": -3.5625,
+        "scale": 1
+      },
+      "motionWatched": {
+        "autumnRealSeconds": 4.5,
+        "snowRealSeconds": 2.5
+      }
+    },
+    "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+    "wasmSha256": "7ab495173fb68fd97e90ecde2045b9f82c518443213911e2977ab44ff05139f8",
+    "phoneMode": "Chrome phone viewport and touch emulation; not a physical phone",
+    "viewportReuse": "Final identity and condition passes reused one isolated game context across viewports.",
+    "identityVerification": {
+      "source": "identity-final",
+      "paragraphVisibleSamples": 9,
+      "hudOrActionIntersections": 0,
+      "desktopParagraphWidth": 182.203125,
+      "mobileParagraphWidth": 182.203125,
+      "input": "Actual mouse right-click; Chrome touch long-press input at the phone viewport."
+    },
+    "sourceCommit": "c47f806e9",
+    "wasm": "terri_wasm_bg-CpN8-IQR.wasm",
+    "unchangedControlsImpact": "Build release screenshots refresh the changed exit and Land decisions, room-review return, dock layout and Build Help. Other tool states and close-ups retain their original per-entry or per-image snapshots. Unchanged close-ups show the same functional controls; their historical whole-page surroundings are not current-build evidence.",
+    "helpVerification": {
+      "source": "current-main-help",
+      "desktopGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
+      "mobileGuidePopup": "http://127.0.0.1:8322/guide/start-here/",
+      "browserErrors": [],
+      "inspected": "Opening Help, both Company & chores scroll positions, player guide link and shortcuts at both viewports. Native dialog closeups included.",
+      "cleanup": "All task-owned game contexts, guide popups and Chrome closed."
+    },
+    "sourceChanges": "Reviewed working-tree player-guide changes, identified by exact file hashes; not a committed snapshot.",
+    "guideShortcutVerification": {
+      "source": "delivery-guide-shortcut",
+      "desktop": {
+        "guideY": 198.171875,
+        "buttonsBottom": 194.171875,
+        "guideWidth": 144,
+        "guideHeight": 32,
+        "buildGuideY": 840.484375,
+        "buildGuideBottom": 872.484375
+      },
+      "mobile": {
+        "guideY": 207.984375,
+        "buttonsBottom": 203.984375,
+        "guideWidth": 182,
+        "guideHeight": 44,
+        "buildGuideY": 115.984375,
+        "buildGuideBottom": 159.984375
+      },
+      "keyboard": "Tab after Options focuses world-player-guide; Enter opens its native new-tab link. Phone viewport also passed Tab focus.",
+      "navigation": "Desktop keyboard activation and phone tap opened http://127.0.0.1:8324/guide/ in actual separate tabs.",
+      "overflow": false,
+      "buildControlIntersections": [],
+      "browserErrors": [],
+      "cleanup": "Both guide tabs, all task-owned game contexts and Chrome closed.",
+      "readiness": "Both contexts awaited globalThis.__terriStress && !document.querySelector(\"#startup-loading\") before closing first-run Help. Real Pause and Light controls were used. Fresh household started with funds 0 and No save yet; desktop advanced to 00:01 before Pause, phone remained at 00:00. No injected game state."
+    },
+    "buildReleaseVerification": {
+      "source": "build-release-guide-integration",
+      "capture": "Original Chrome compositor PNGs copied byte-for-byte; no raster edits.",
+      "viewports": {
+        "desktop": {
+          "width": 1440,
+          "height": 960
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      "devicePixelRatio": 1,
+      "activityPopup": "The captured Bathing activity is not clipped. These screenshots do not verify the clipped-activity popup.",
+      "returnedWalls": "The Walls selection is established by visible selected styling and the played ARIA receipt. activeElement remains the Land launcher and does not identify the selected tool.",
+      "independentReview": "Current game image states independently inspected; rendered guide acceptance and executed interaction receipts are retained separately."
+    },
+    "pendingRefreshReason": "The remaining capture-inventory entries predate the walls and floors controls update. They remain historical evidence pending refresh and are not selected by the curated guide illustrations. Walls, Windows, floor actions and Help were refreshed in guide-controls-refresh-2026-10-20."
+  },
+  "entries": [
+    {
+      "id": "overview",
+      "section": "overview",
+      "desktop": "images/ui-build-release-overview-desktop.png",
+      "mobile": "images/ui-build-release-overview-mobile.png",
+      "description": "The game view with the clock, funds, save status, speed controls, Build, Options, Player guide and selected-person dock.",
+      "access": "Open the game. Select a name at the bottom of the screen.",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "imageSha256": {
+        "desktop": "0fd6dde669dc871249cb80f30abe0eb9f66a389b330137940d53be08690567d8",
+        "mobile": "cdeedd57781e4d424615b39ccf94d3c995ff7d37d472008bdd488332409765e9",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      },
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
+      "imageSourceSnapshots": {
+        "desktopDetail": "delivery-guide-shortcut",
+        "mobileDetail": "delivery-guide-shortcut",
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "0fd6dde669dc871249cb80f30abe0eb9f66a389b330137940d53be08690567d8"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "cdeedd57781e4d424615b39ccf94d3c995ff7d37d472008bdd488332409765e9"
+        }
+      }
+    },
+    {
+      "id": "options",
+      "section": "options",
+      "desktop": "images/ui-options-desktop.png",
+      "mobile": "images/ui-options-mobile.png",
+      "description": "Options open, with New housemate above Save, Load, Export save, Import save, New game and Report bug.",
+      "access": "Choose Options beside Build.",
+      "desktopDetail": "images/ui-options-detail-desktop.png",
+      "sourceSnapshot": "save-files",
+      "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+      "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
+      "mobileDetail": "images/ui-options-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "d1a7b689f8d536bbcf3f3335caa5ba7a65c663af2b6aec77f398c5539049453c",
+        "mobile": "4e5012a11d3b217f81c21f2c6ebd126cea0c45c6b44e13af10b31d5847c7a19e",
+        "desktopDetail": "1b1250e179b4a6ff60255bec98906188b777a646a11d78e2267c26996f8c9b8d",
+        "mobileDetail": "47c6d87ca2cedd1d7b1c3d19595498d5d374f916837d670f2a8f181b2c5a8113"
+      }
+    },
+    {
+      "id": "dock-collapsed",
+      "section": "household",
+      "desktop": "images/ui-build-release-dock-collapsed-desktop.png",
+      "mobile": "images/ui-build-release-dock-collapsed-mobile.png",
+      "description": "The dock after Collapse; choose Expand to show the household again.",
+      "access": "Choose Collapse in the selected-person dock.",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "imageSha256": {
+        "desktop": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9",
+        "mobile": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+      },
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "46d4e1e1c179ce7f636345b8030d2158d1c5a99c38dccf4af585e593dd9677b9"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "250124339ff4f889f574001731966cda3403714a63c0630ec42c3370f1f60834"
+        }
+      }
+    },
+    {
+      "id": "sim-needs",
+      "section": "sim-details",
+      "desktop": "images/ui-sim-needs-desktop.png",
+      "mobile": "images/ui-sim-needs-mobile.png",
+      "description": "Overview. Phone needs appear here; desktop needs remain in the dock.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Overview.",
+      "desktopDetail": "images/ui-sim-needs-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "00843cf1212005acefe4efd822c574f433c6e84c856ab4d43c3f91588ee3f09e",
+        "mobile": "5a53dd94a25d430cfb232a2906367abe2d4b338c8c0e219374b53d22789f5981",
+        "desktopDetail": "5a7da6e3d417165ade05fce5fb904e886c01bc090ff4ef52ea99c0247e2ac360"
+      }
+    },
+    {
+      "id": "sim-people",
+      "section": "people",
+      "desktop": "images/ui-sim-people-desktop.png",
+      "mobile": "images/ui-sim-people-mobile.png",
+      "description": "The selected person's feelings about the household.",
+      "access": "Select a name at the bottom of the screen, then Sim details > People.",
+      "desktopDetail": "images/ui-sim-people-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "975460f068b5939471efed4bcbba34c5894c56ea51c5db93f745c2d52dbcbf3b",
+        "mobile": "749f8fd4ec010ba131fab889383013aa7285ee21f83ba54bbfd6c63ce306f45c",
+        "desktopDetail": "634eeea137514eb3b4f57a4d4cb82f8a33e1a270da73525fc9fe4f812b6e2950"
+      }
+    },
+    {
+      "id": "sim-traits",
+      "section": "traits",
+      "desktop": "images/ui-sim-traits-desktop.png",
+      "mobile": "images/ui-sim-traits-mobile.png",
+      "description": "Trait and responsibility details for the selected person.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Traits. Scroll for the remaining traits.",
+      "desktopDetail": "images/ui-sim-traits-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "023cad73a2fb2be5b20c124dd31a5c6253abbf8f4a2dd59618d93cdb5df500e6",
+        "mobile": "477174448ef529f4c0cb15c5c29bdb3d2f80427d38be117b5377b91b8a69696f",
+        "desktopDetail": "a4fb29a8b8e30ff8f0b9b1efeadcbd950735c2fc20f3e4f80a63a534d6a28c0d"
+      }
+    },
+    {
+      "id": "sim-personality",
+      "section": "schedule",
+      "desktop": "images/ui-sim-personality-desktop.png",
+      "mobile": "images/ui-sim-personality-mobile.png",
+      "description": "Personality, habits and bed assignment.",
+      "access": "Open Sim details > Overview, then Personality, habits and bed.",
+      "desktopDetail": "images/ui-sim-personality-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3c42b42d477f17341cda0adfda30724d001e9ff73461be9106751bc04c4bbf58",
+        "mobile": "6527c44648778ac1a474ac28ee622c062e6a0e86355e78dd7fce2745e2dc97c5",
+        "desktopDetail": "ec024fa508e240c7d704f34ded97a32185e0c7b8b52c410d3e85e935e899f433"
+      }
+    },
+    {
+      "id": "sim-skills",
+      "section": "skills",
+      "desktop": "images/ui-sim-skills-desktop.png",
+      "mobile": "images/ui-sim-skills-mobile.png",
+      "description": "Skill levels and progress to the next level.",
+      "access": "Open Sim details > Overview, then Skills.",
+      "desktopDetail": "images/ui-sim-skills-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "7cd6b03fba31f16e2d8ab1df38033817f85258177e7ce385302e4a6ad4d8f034",
+        "mobile": "4d2528f53d270a3a950b3e82f0064dafa69a5d9ba17ff7fd6f8d95421ac0c3a1",
+        "desktopDetail": "1879f24615ecb7ac2d68b175c46b77ce964592d04d25d8849d09bb4d349613c3"
+      }
+    },
+    {
+      "id": "sim-likes",
+      "section": "likes-and-dislikes",
+      "desktop": "images/ui-sim-likes-desktop.png",
+      "mobile": "images/ui-sim-likes-mobile.png",
+      "description": "The selected person's likes and dislikes.",
+      "access": "Open Sim details > Overview, then Likes and dislikes.",
+      "desktopDetail": "images/ui-sim-likes-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "37e807357fde0d23028f2a39ba84e3bd9cf3139d035f607f910a9ce23c520f7e",
+        "mobile": "67558f13980a06469eb85fe65a9f75b7679ae21ed727437d7457d0ca585fd057",
+        "desktopDetail": "6f86d3c1dbbd0da257974f7cabbd7fe6b8d5d3f4f9789d2bd1a55d21ec69877b"
+      }
+    },
+    {
+      "id": "sim-career",
+      "section": "career",
+      "desktop": "images/ui-sim-career-desktop.png",
+      "mobile": "images/ui-sim-career-mobile.png",
+      "description": "The selected person's career, pay and work schedule.",
+      "access": "Open Sim details > Career.",
+      "desktopDetail": "images/ui-sim-career-detail-desktop.png",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "6bfe74446206e2700d3b6fec398d71e1557edb99428865eeddb65cfb357b6aa1",
+        "mobile": "c987aa28f81736572900866d15ede1f4f558178f19943abce8ba83472c8092af",
+        "desktopDetail": "7160abbc3da5b471101817c227e3edd8826e3725388f72ce6976d8b2d5f86075"
+      }
+    },
+    {
+      "id": "sim-queue",
+      "section": "activity-and-orders",
+      "desktop": "images/ui-sim-queue-desktop.png",
+      "mobile": "images/ui-sim-queue-mobile.png",
+      "description": "Queue mode and Clear orders beside the action queue.",
+      "access": "Select a name at the bottom of the screen, then Sim details > Queue. Desktop also has Queue in the dock.",
+      "desktopDetail": "images/ui-sim-queue-detail-desktop.png",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "43cac1419612640cfd591d10fad83a7b747dbd48a29318c108dac5c01b842f95",
+        "mobile": "b86d00266f3b5d1f44ce6e4d0ac5d10fbbdd145b1944ccb04b6553704964bbd3",
+        "desktopDetail": "aef8e77a01718d01bbcb6c7b8596738d002bba8b64d258d059a56ab70cc26994"
+      }
+    },
+    {
+      "id": "chores-board",
+      "section": "chores",
+      "desktop": "images/ui-chores-board-desktop.png",
+      "mobile": "images/ui-chores-board-mobile.png",
+      "description": "Weekly assignments and Do now controls.",
+      "access": "Choose Chores in the selected-person dock.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4957cc44f4067046089157cb8f8d634ec3a9e84de28748dda2fa9375fcac318a",
+        "mobile": "3a16386169f9ec92c80e5d3a966109ba11a60efe210ebbde5e8ea78359c2a91d"
+      }
+    },
+    {
+      "id": "chores-profile",
+      "section": "chores",
+      "desktop": "images/ui-chores-profile-desktop.png",
+      "mobile": "images/ui-chores-profile-mobile.png",
+      "description": "Responsibility and chore preference controls below the board.",
+      "access": "Open Chores, then scroll to the selected person's preferences.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4db62f25368e44da18c0a97e2003c382623a197bb4681fdefaf1fd9c4005fd34",
+        "mobile": "19db93cd3758b5a4a8b2809c5060f9892a1885fbb4869efa5eaf366865cbeb02"
+      }
+    },
+    {
+      "id": "build-buy",
+      "section": "buy",
+      "desktop": "images/ui-build-buy-desktop.png",
+      "mobile": "images/ui-build-buy-mobile.png",
+      "description": "The Buy catalogue and its room and item filters.",
+      "access": "Choose Build > Buy.",
+      "desktopDetail": "images/ui-build-buy-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6467f325d7b57f45c50cc0c62e39712f05cf65c2911f4c233ed45197e9567dc8",
+        "mobile": "ef4b5f4a296d9ba2eb50cc72b9c640d77b953be955dda95b6542e0263176a3d5",
+        "desktopDetail": "c103fbb13c8ea0a37327da7db1d5356fb9323ba6622a03e670da623a12759e4e"
+      }
+    },
+    {
+      "id": "build-exit-confirm",
+      "section": "build",
+      "desktop": "images/ui-build-release-build-exit-confirm-desktop.png",
+      "mobile": "images/ui-build-release-build-exit-confirm-mobile.png",
+      "description": "Leave Build mode? with Keep building, Discard changes and Confirm changes.",
+      "access": "Change a room name in Build, then choose Exit build before confirming.",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83",
+      "imageSha256": {
+        "desktop": "a722c1e0e1bbd29640412bcdbe6372d250b46dce9a4e117b1a9ba5b3e9720ed2",
+        "mobile": "9423ebd7ae03f01f70e4c831e80f3f2f8a21388482750955426d43fb867d9dce"
+      },
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Leave Build mode?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "a722c1e0e1bbd29640412bcdbe6372d250b46dce9a4e117b1a9ba5b3e9720ed2"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Leave Build mode?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "9423ebd7ae03f01f70e4c831e80f3f2f8a21388482750955426d43fb867d9dce"
+        }
+      }
+    },
+    {
+      "id": "build-floors",
+      "section": "floors",
+      "desktop": "images/ui-build-floors-desktop.png",
+      "mobile": "images/ui-build-floors-mobile.png",
+      "description": "Floor material samples and floor controls.",
+      "access": "Choose Build > Floors.",
+      "desktopDetail": "images/ui-build-floors-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "497edd5ca1e0672599a1d77f2821d116b8e9285cacfd21abee1496eacf987f88",
+        "mobile": "692fd848a940e5cf4355f6c977b507c949f1ed91bb611578e90ed333382b88f9",
+        "desktopDetail": "cdc4b0b10d77b07e60c94bb6e3f130388cb082fddb19c5d490f75dda966d04e4"
+      }
+    },
+    {
+      "id": "build-furniture",
+      "section": "build",
+      "desktop": "images/ui-build-furniture-desktop.png",
+      "mobile": "images/ui-build-furniture-mobile.png",
+      "description": "Furniture controls in Build mode.",
+      "access": "Choose Build > Furniture.",
+      "desktopDetail": "images/ui-build-furniture-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "012f602decb2a3b489f6cdf767ca2a430dc50909e7619eaba5562ecb18cedecb",
+        "mobile": "fc63c7a4f1c3c59845d0dca763eba0b5304e5a8fb17df0df756f158a9a6d7ef5",
+        "desktopDetail": "73ac68720822b3910749775d5affa91fc04d9e23299039aa378e060c042eddb2"
+      }
+    },
+    {
+      "id": "build-land",
+      "section": "land",
+      "desktop": "images/ui-build-land-desktop.png",
+      "mobile": "images/ui-build-land-mobile.png",
+      "description": "Land strips, quote and Buy land.",
+      "access": "Choose Build > Land, then choose a strip.",
+      "desktopDetail": "images/ui-build-land-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "de1fb5bb403fe56499323f5432898423b54fc176912f049c11edd5074ce864bb",
+        "mobile": "54b2005267d2064aec5fc37d4fe4a336e15479c462288aa5adf7554f71957a36",
+        "desktopDetail": "ebd9d462fa19b0e6bab7a5c76071c76c281bd824a6105259a7d0239c4a6658e4"
+      }
+    },
+    {
+      "id": "build-placement",
+      "section": "build",
+      "desktop": "images/ui-build-placement-desktop.png",
+      "mobile": "images/ui-build-placement-mobile.png",
+      "description": "Furniture placement, rotation, Sell and Cancel controls.",
+      "access": "Choose Build > Furniture, then choose an existing object from Furniture.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b20133affdaf2234d6dc1628cded30053124a5b2c36afd5a8a3074ff4e90d0f2",
+        "mobile": "78bc276485084ee6ad0e91df5a4596aba3bba1e0833070d33090572db1b710de"
+      }
+    },
+    {
+      "id": "build-room-outline",
+      "section": "rooms",
+      "desktop": "images/ui-build-room-outline-desktop.png",
+      "mobile": "images/ui-build-room-outline-mobile.png",
+      "description": "Build room outline controls and doorway choice.",
+      "access": "Choose Build > Rooms > Build room, then choose opposite corner tiles.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "fe5f26cca3406a8e5460fb69d25ea89b59da283bc7e2258bed521ba90fe7a1dc",
+        "mobile": "d5c9dcfd9c469a3af997385f3bb461ae363bc1d3357edf109963e933f6ba034a"
+      }
+    },
+    {
+      "id": "build-rooms",
+      "section": "rooms",
+      "desktop": "images/ui-build-rooms-desktop.png",
+      "mobile": "images/ui-build-rooms-mobile.png",
+      "description": "Room selection and the Room name field.",
+      "access": "Choose Build > Rooms > Select rooms, then choose a room.",
+      "desktopDetail": "images/ui-build-rooms-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "121596831a03f8d71406ecde092e7f118f1eced514d07ed7248f5fdfe685dcbc",
+        "mobile": "120e8b2d935650345ed58ea9432aa786c7cb22b5e003cf156f2886db38ddea10",
+        "desktopDetail": "d2bba0215ff0d9adfacadde9b8146fb77648d708cfc39caf9f4837410003eabb"
+      }
+    },
+    {
+      "id": "build-walls",
+      "section": "walls",
+      "desktop": "images/ui-build-release-integrated-walls-desktop.png",
+      "mobile": "images/ui-build-release-integrated-walls-mobile.png",
+      "description": "Walls in Low view, with Full height available and the bottom Confirm and Cancel controls visible.",
+      "access": "Open Build, then Walls. Low is selected by default; choose Full height to raise every wall.",
+      "desktopDetail": "images/guide/build-walls-desktop.png",
+      "sourceSnapshot": "build-release-main-834",
+      "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+      "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+      "imageSha256": {
+        "desktop": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a",
+        "mobile": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9",
+        "desktopDetail": "47e5bf9c4aa4f2c53bfa7e0b61ab92c032ee73c09413fa75c546d6cd4f6d0e71",
+        "mobileDetail": "5e2f95098471157f3e7f45975d97b572e7e6de492ef686b16217f12846f80d2f"
+      },
+      "imageSourceSnapshots": {
+        "desktopDetail": "guide-controls-refresh-2026-10-20",
+        "desktop": "build-release-main-834",
+        "mobile": "build-release-main-834",
+        "mobileDetail": "guide-controls-refresh-2026-10-20"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Displayed Chrome 155 via existing Playwright, CSS-pixel PNG, no raster edits",
+          "dialogs": [],
+          "sourceImageSha256": "c5d731b05f71c5279f2fbb964cbe6ddf3d8b54a8dc258aa753f7f9733dce713a"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Displayed Chrome 155 via existing Playwright, CSS-pixel PNG, no raster edits",
+          "dialogs": [],
+          "sourceImageSha256": "d60546d560c6ef0450869617577f8deb6833cc598abef30a9759fe1669d53eb9"
+        }
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "mobileDetail": "images/guide/build-walls-mobile.png"
+    },
+    {
+      "id": "build-windows",
+      "section": "walls",
+      "desktop": "images/ui-build-windows-refresh-desktop.png",
+      "mobile": "images/ui-build-windows-refresh-mobile.png",
+      "description": "Window models and a Sash window placement preview on the selected interior wall.",
+      "access": "Choose Build > Walls, select an edge, then choose Windows.",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "imageSha256": {
+        "desktop": "7e6d643ad6646ee68b07f0ffd8e698108270c4aff493fa277dab48da3c94c57a",
+        "desktopDetail": "37bdcdeb8c538205ab514c5ab902ccbe873ba4771f2a6d1af6c8b2c8f962f835",
+        "mobile": "6bddde3cac9e7f370e1567eb271de3361027da8eab5a0ecb3390157f4d7376d9",
+        "mobileDetail": "a54b8614d9c2e00acb7a473825d52b0e8767057a44be492beb2a0553d0ab62c7"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/build-windows-desktop.png",
+      "mobileDetail": "images/guide/build-windows-mobile.png"
+    },
+    {
+      "id": "creator-appearance",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-appearance-mobile.png",
+      "description": "The Appearance page in the character creator.",
+      "access": "Choose Options > New housemate, then Appearance.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "0e51ed03de85d489824b4a642c41a7399085e65a3514341d18c662331b20097c"
+      }
+    },
+    {
+      "id": "creator-appearance-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-1-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-1-mobile.png",
+      "description": "Appearance: Colors expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Colors and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "9322bb4d3075efa940307c30515f51e3f388d2ee57ce7782a9e2951716cb797b",
+        "mobile": "972409dbdcb5e5ea09143bc018f463b63c41638ad6dfdc148d250d0caf71926e"
+      }
+    },
+    {
+      "id": "creator-appearance-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-2-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-2-mobile.png",
+      "description": "Appearance: Body expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Body and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e1296eeff5a1339c04eba3d4b871502a3a1cda574fb94a8570eef409c96b9ea8",
+        "mobile": "4761ef129e46ecff7140fc96452d64bb5b1fd76cb520c627e1bc1c57002bb018"
+      }
+    },
+    {
+      "id": "creator-appearance-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-3-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-3-mobile.png",
+      "description": "Appearance: Style expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Style and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0877c951c6ea784ff11b6279bee18b90b7252086a29db6b53a5c5b157422ed29",
+        "mobile": "6bdd3349d1d18f3aa0ca7db349c14e42187e8bdb1f803a4183b69c7b08aad574"
+      }
+    },
+    {
+      "id": "creator-appearance-group-4",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-4-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-4-mobile.png",
+      "description": "Appearance: Face expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Face and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b396a749006d25caf77813ab1c3a58f1681cb7ca6a7b53812f41e50035f2d973",
+        "mobile": "4b89e3f5ce25ec30c64e01bf79164b12036fbaedf6a2a86ae7866636bdcf468d"
+      }
+    },
+    {
+      "id": "creator-appearance-group-5",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-group-5-desktop.png",
+      "mobile": "images/ui-creator-appearance-group-5-mobile.png",
+      "description": "Appearance: Details expanded.",
+      "access": "Choose Options > New housemate, then Appearance. Open Details and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3000bb4be24434dc6cc201a4d0bcf1be1e96cff7426bfcc4d56ed4fe5556c048",
+        "mobile": "89e04649c3bb85d040e5357dbfe04f28168f8dcbc5de153fd1d540ef9e75f41c"
+      }
+    },
+    {
+      "id": "creator-edit",
+      "section": "creator",
+      "desktop": "images/ui-creator-edit-desktop.png",
+      "mobile": "images/ui-creator-edit-mobile.png",
+      "description": "Edit the selected person.",
+      "access": "Select a name at the bottom of the screen, then choose Edit.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a756f2d51c2048438f994138a624438956816ffc4910beef0fe7e172706734cf",
+        "mobile": "a0561295123a8dcc652e9aeb97794b020afc3190d6ffdedfacdc33e20bac21a0"
+      }
+    },
+    {
+      "id": "creator-household",
+      "section": "creator",
+      "desktop": "images/ui-creator-household-desktop.png",
+      "mobile": "images/ui-creator-household-mobile.png",
+      "description": "The Household page in the character creator.",
+      "access": "Choose Options > New housemate, then Household.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "690a73d084f7745b630d99fe99f79f2200ed01a725899a777c61cdbb9bfd13e7",
+        "mobile": "6935aff992d6b0ffaf3e5ce0e9b999c88cbfd91117db5814356aaf065812ae2d"
+      }
+    },
+    {
+      "id": "creator-identity",
+      "section": "creator",
+      "desktop": "images/ui-creator-identity-desktop.png",
+      "mobile": "images/ui-creator-identity-mobile.png",
+      "description": "The Identity page in the character creator.",
+      "access": "Choose Options > New housemate, then Identity.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6b26ddb158d8f5891ac3e46f96b6f6fa30e7d09c23b9dd41ee52897fa53e7bbb",
+        "mobile": "006f528d4bee0edf343a8e2fc5216feef7cdc0883be6b9106857f1406d152bd7"
+      }
+    },
+    {
+      "id": "creator-interests",
+      "section": "creator",
+      "desktop": "images/ui-creator-interests-desktop.png",
+      "mobile": "images/ui-creator-interests-mobile.png",
+      "description": "The Interests & skills page in the character creator.",
+      "access": "Choose Options > New housemate, then Interests & skills.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0e8cfd242abb3cff5d49f6a5cd283a916a28ebc91563a8a0a9608c8e75c6c1bb",
+        "mobile": "3b550abc1fa99703ee47898f246db615951485ddf9fc41f997b6b06e1375c103"
+      }
+    },
+    {
+      "id": "creator-interests-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-interests-group-1-desktop.png",
+      "mobile": "images/ui-creator-interests-group-1-mobile.png",
+      "description": "Interests & skills: Skills expanded.",
+      "access": "Choose Options > New housemate, then Interests & skills. Open Skills and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "94a5bb3c8ee6588826bad4c5096430a357b9ae634e3f914819989b8c22fad6b4",
+        "mobile": "f1534aff275ddd44591e45d61557417e2483499bdc4b8c021be779d97b2bc7c9"
+      }
+    },
+    {
+      "id": "creator-needs",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-desktop.png",
+      "mobile": "images/ui-creator-needs-mobile.png",
+      "description": "The Needs & habits page in the character creator.",
+      "access": "Choose Options > New housemate, then Needs & habits.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "c9f767a6e325b9f9ab41e27e0bb37ac0b831e218b030ba8cb83c9ce35afecbcc",
+        "mobile": "8e79d9a9f34fb2c8d6661e92f64ea28a309f69fbf850ac6aa9c3eae9b49b95fd"
+      }
+    },
+    {
+      "id": "creator-needs-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-1-desktop.png",
+      "mobile": "images/ui-creator-needs-group-1-mobile.png",
+      "description": "Needs & habits: Presets expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Presets and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "686f015f1e25a0b32236d2b47bffc574ae9669b219bdef300a41c21f55b28dcf",
+        "mobile": "7d76a6cb51be1275e51bb589c66157737db8b0d9299d42d42455af088fab6e00"
+      }
+    },
+    {
+      "id": "creator-needs-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-2-desktop.png",
+      "mobile": "images/ui-creator-needs-group-2-mobile.png",
+      "description": "Needs & habits: Advanced need rates expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Advanced need rates and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "89af9016f776e85ee368ff0e932f87a176576aa7e9ce43c6d56d49b29231f930",
+        "mobile": "cc7e8a3fdafb460da1a1189fa4dd9ef995f5ca3901d7291a8efdb3d89116bf73"
+      }
+    },
+    {
+      "id": "creator-needs-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-needs-group-3-desktop.png",
+      "mobile": "images/ui-creator-needs-group-3-mobile.png",
+      "description": "Needs & habits: Activity preferences expanded.",
+      "access": "Choose Options > New housemate, then Needs & habits. Open Activity preferences and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "6f92c1c60a40348ca4e276c2b797f154eed74300fb83d4c897a45b821876aafb",
+        "mobile": "8e79d9a9f34fb2c8d6661e92f64ea28a309f69fbf850ac6aa9c3eae9b49b95fd"
+      }
+    },
+    {
+      "id": "creator-personality",
+      "section": "creator",
+      "desktop": "images/ui-creator-personality-desktop.png",
+      "mobile": "images/ui-creator-personality-mobile.png",
+      "description": "The Personality page in the character creator.",
+      "access": "Choose Options > New housemate, then Personality.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b12983b9012eb4f64862d3c80960d1f27efc5c86f9b55b65acb5231ff2fadeca",
+        "mobile": "1c2bba2f919ca393a517332e531758495ca999619314e617c97430872fecc7b0"
+      }
+    },
+    {
+      "id": "creator-personality-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-personality-group-1-desktop.png",
+      "mobile": "images/ui-creator-personality-group-1-mobile.png",
+      "description": "Personality: Conditions expanded.",
+      "access": "Choose Options > New housemate, then Personality. Open Conditions and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a83f0015690c3fa922dde4bf5909f1e4949dbd9819f71632d652bf2eff6e3fde",
+        "mobile": "fec4c3ed939df467c2cde304494131f5cc1c3649bd9c1c54a7edf26a92bf44ea"
+      }
+    },
+    {
+      "id": "creator-review",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-desktop.png",
+      "mobile": "images/ui-creator-review-mobile.png",
+      "description": "The Review page in the character creator.",
+      "access": "Choose Options > New housemate, then Review.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "5c0b9879d63bdcf52d1d859c811b8283c8512d7e5ef1956388e34d925e91df4d",
+        "mobile": "b6dd2900eadd6146f41ea512519f8a667a4157da93e4d699a88555a6f574bc5e"
+      }
+    },
+    {
+      "id": "creator-review-group-1",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-1-desktop.png",
+      "mobile": "images/ui-creator-review-group-1-mobile.png",
+      "description": "Review: Identity expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Identity and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "bdbdf3488e4ed19e81100acc3049592ffd4f54e8f0bf5909e583a4f9ef5ecbbc",
+        "mobile": "a4595487eab01a7043f20fe093b0a2cc80fcac64d2d0945bbe952d96f110b2b8"
+      }
+    },
+    {
+      "id": "creator-review-group-2",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-2-desktop.png",
+      "mobile": "images/ui-creator-review-group-2-mobile.png",
+      "description": "Review: Appearance expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Appearance and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3ba9f12fcbce722b601fbcf7284969e190c6184d37ea97c5c891176301466b3a",
+        "mobile": "7e6672b5035db5c303ced54ea83b3feb634d74d43ffbebe87d360fe1b15dfc9d"
+      }
+    },
+    {
+      "id": "creator-review-group-3",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-3-desktop.png",
+      "mobile": "images/ui-creator-review-group-3-mobile.png",
+      "description": "Review: Personality expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Personality and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4703c412e97271b262155f3c8f05add61439ea844b8a23c9f4b09ddcfd0b9099",
+        "mobile": "51c1cbe670b29f229019848a89063fc55b8b5bb4886e18ac62c516605a0e0c76"
+      }
+    },
+    {
+      "id": "creator-review-group-4",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-4-desktop.png",
+      "mobile": "images/ui-creator-review-group-4-mobile.png",
+      "description": "Review: Needs & habits expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Needs & habits and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "7eccf39245e0c12b7e6070ee580b69068c34c11b875fa880b403909846bee346",
+        "mobile": "0ae3f5e08ee5cb9567266c6b01240ed05eb25ea7663ec45c2d195ea9d49b06fb"
+      }
+    },
+    {
+      "id": "creator-review-group-5",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-5-desktop.png",
+      "mobile": "images/ui-creator-review-group-5-mobile.png",
+      "description": "Review: Interests & skills expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Interests & skills and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "566539beeb8afb32b5789859d2f64ad807e6447c08d18c09607e7c8b76a8edb0",
+        "mobile": "4d3780bc0b448c9639f896f1873c3af19115be83fb80d7872d0ed233a0af177b"
+      }
+    },
+    {
+      "id": "creator-review-group-6",
+      "section": "creator",
+      "desktop": "images/ui-creator-review-group-6-desktop.png",
+      "mobile": "images/ui-creator-review-group-6-mobile.png",
+      "description": "Review: Household expanded.",
+      "access": "Choose Options > New housemate, then Review. Open Household and scroll as needed.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "138a97249a658f5d29d81cd9c969c471b5bd41c333c5135d16fb64f8609163d6",
+        "mobile": "f0232a7b109882d945abd1d910519628a6c9d134ccdab7a042b46267f3a95fbe"
+      }
+    },
+    {
+      "id": "help",
+      "section": "help",
+      "desktop": "images/ui-build-release-help-current-desktop.png",
+      "mobile": "images/ui-build-release-help-current-mobile.png",
+      "description": "Build & place in the short in-game Help dialog.",
+      "access": "Choose Options > Help, then expand Build & place. Scroll inside Help for the remaining instructions.",
+      "sourceSnapshot": "build-release-help-e620",
+      "htmlSha256": "9fc075614d0d7c4306d9ff4f68253b2180e3ba2c299af4c50e642514ed990a44",
+      "bundleSha256": "7b4775501e602465ec8354998ed498caccbdd657b55eca6ab370b2b6ed19c67b",
+      "imageSha256": {
+        "desktop": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb",
+        "mobile": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016",
+        "desktopDetail": "35dbf8acbcb419b8a9f884f72d22398c084e06f1a9e821812837606d0134d123",
+        "mobileDetail": "23d9da16e0d63d8365e03014848b698010d2dc8ed2a1a5ed77e916c8b1f29f39"
+      },
+      "imageSourceSnapshots": {
+        "desktop": "build-release-help-e620",
+        "mobile": "build-release-help-e620",
+        "desktopDetail": "build-release-help-e620",
+        "mobileDetail": "build-release-help-e620"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original displayed Chrome PNG through Playwright; no raster edits",
+          "dialogs": [
+            "help-panel"
+          ],
+          "sourceImageSha256": "4b50b02805c51c0022154889fc0598f9ae46dcf1893e647b4b8373e78fba4efb"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original displayed Chrome PNG through Playwright; no raster edits",
+          "dialogs": [
+            "help-panel"
+          ],
+          "sourceImageSha256": "7ca4cac4d5dae6fe67edef47a5c7a6a3d3163d556e2a7c647028a5f1c22d3016"
+        }
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/help-build-exits-desktop.png",
+      "mobileDetail": "images/guide/help-build-exits-mobile.png"
+    },
+    {
+      "id": "load-confirm",
+      "section": "saves",
+      "desktop": "images/ui-load-confirm-desktop.png",
+      "mobile": "images/ui-load-confirm-mobile.png",
+      "description": "Load confirmation and Keep playing.",
+      "access": "Choose Options > Load after saving a household.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b54b8a754f4e4ebdc7e098915f831b98138629f3b099dc9a709c170263479104",
+        "mobile": "c8cd15bbc3a3c8a0f5051405d79451c86d8387fd76008b9d86fc8ed08316f6e9"
+      }
+    },
+    {
+      "id": "import-confirm",
+      "section": "saves",
+      "desktop": "images/ui-import-confirm-desktop.png",
+      "mobile": "images/ui-import-confirm-mobile.png",
+      "description": "Import save confirmation, with Keep playing and Import game.",
+      "access": "Choose Options > Import save, then pick a saved game file.",
+      "sourceSnapshot": "save-files",
+      "htmlSha256": "3a1d4b4be896bf4385607575c5606b9e399e0fe8afadc39158e46f653a02809e",
+      "bundleSha256": "d90cf59b4ea0681a43fe619202ef1221a4868bbf9d62cf173df3b780c18e5ed9",
+      "imageSha256": {
+        "desktop": "545eac6f6e211150905084b34990ef9454adc932c9dee73c0c98c7a4b37fd0c0",
+        "mobile": "1d635066fb621a64a40d993989d61ba9b508620ae019ffbe99cc3ffc409836a4"
+      }
+    },
+    {
+      "id": "new-game-confirm",
+      "section": "saves",
+      "desktop": "images/ui-new-game-confirm-desktop.png",
+      "mobile": "images/ui-new-game-confirm-mobile.png",
+      "description": "New game confirmation and Keep playing.",
+      "access": "Choose Options > New game.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "30e46ac0902856dc973a5ffbc5f84156d6844f238a5bbdd1e856ad568a44ecce",
+        "mobile": "aaa7c2639279f097453543c2a1476baefcb95324669c27374cd2457c81639ebd"
+      }
+    },
+    {
+      "id": "save-status",
+      "section": "saves",
+      "desktop": "images/ui-save-status-desktop.png",
+      "mobile": "images/ui-save-status-mobile.png",
+      "description": "Game saved status after Save.",
+      "access": "Choose Options > Save and wait for Game saved.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "66f24e093236f4cc4b08609d5fe3c82c51a89074cc1d7395e420060d1a77a5af",
+        "mobile": "a20931090b20f407f9b425055903df7cb2b14bd03f7e3a2770280087deda4d10"
+      }
+    },
+    {
+      "id": "career-assigned",
+      "section": "career",
+      "desktop": "images/ui-career-assigned-desktop.png",
+      "mobile": "images/ui-career-assigned-mobile.png",
+      "description": "Career details after assigning a path.",
+      "access": "Choose a person, open Sim details > Career, choose a path and choose Assign.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "97172c578c224526c96df68934647e8fd0e75951f4336651acab5f97d51ea2fc",
+        "mobile": "47f4a5aafc192b5b266b891491a9ecbc6a33178dbca8f9a0857ce70d10be031d"
+      }
+    },
+    {
+      "id": "career-controls",
+      "section": "career",
+      "desktop": "images/ui-career-controls-desktop.png",
+      "mobile": "images/ui-career-controls-mobile.png",
+      "description": "The Assign a career controls: Career path, the assigning Shift selector, Assign and Quit.",
+      "access": "Open Sim details > Career, then scroll to Assign a career.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "31512630612c02553ef39a856a3a2b9f631c48c4805292f1197efdcc2917a4eb",
+        "mobile": "9fa96d81346266ed1856321436fa9e2a88a32d99ddd64fb7d5ab8fcc3f6529aa"
+      }
+    },
+    {
+      "id": "career-shift-controls",
+      "section": "career",
+      "desktop": "images/ui-career-shift-desktop.png",
+      "mobile": "images/ui-career-shift-mobile.png",
+      "description": "The end of the Career tab: the assigning Shift selector, Assign and Quit, Shift schedule with Change shift and its note, and the automatic job search box.",
+      "access": "Open Sim details > Career, then scroll to the end of the tab.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "306938b09d0021273170189fee285c49c986814e0f4fc80793ab8a45c82dfc51",
+        "mobile": "d7ee7edbcb03e2144a96ad952a16c83cacee20b10ab1919581fc1c5b20cd1752"
+      }
+    },
+    {
+      "id": "land-confirm",
+      "section": "land",
+      "desktop": "images/ui-land-confirm-desktop.png",
+      "mobile": "images/ui-land-confirm-mobile.png",
+      "description": "The land confirmation when funds are insufficient.",
+      "access": "Choose Build > Land, choose a strip, then Buy land. Read the quote; Cancel closes it.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "b70a80e05a727015d2115d7dca01f8342292e497dc191108b7274a7410234504",
+        "mobile": "519e07a9c3f8d36bee0d4a154be1880063de372b14c5fcbd2ab2080361b50632"
+      }
+    },
+    {
+      "id": "object-description",
+      "section": "object-menu",
+      "desktop": "images/ui-object-description-desktop.png",
+      "mobile": "images/ui-object-description-mobile.png",
+      "description": "An expanded object description.",
+      "access": "Open an object action menu, then choose its type and model name. Scroll inside longer descriptions.",
+      "desktopDetail": "images/ui-object-description-detail-desktop.png",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "mobileDetail": "images/ui-object-description-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "f756b500df7b1272fb3376eaeee7c9422b73f5c131ffe17b9b549835eb2df6ed",
+        "mobile": "1268524baf250b909880f6c40d57da8fcf1ffa35053b3011f6764628cfa3abbe",
+        "desktopDetail": "207d6b96ba15817cf97e9ed12b9a679faae5e5ba3379f6b63be5aeeca750232b",
+        "mobileDetail": "25bac42eba4d16a930ea306b945195b30b1ca1345e40be620995b20cebdd4d30"
+      }
+    },
+    {
+      "id": "object-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-object-menu-desktop.png",
+      "mobile": "images/ui-object-menu-mobile.png",
+      "description": "An object action menu.",
+      "access": "Select a person, then right-click an object or hold a finger on it. With the game view focused, arrows choose a target and Enter opens its actions.",
+      "desktopDetail": "images/ui-object-menu-detail-desktop.png",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "mobileDetail": "images/ui-object-menu-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "ce27a310733ce78e4c7cfbef88a02add620621d7a4a89044c54382c9e255b78f",
+        "mobile": "03655913f4aed957cf314436935a0439717425b19ccad8b96654c6bd6cbfb879",
+        "desktopDetail": "3210c97eed5ce9c3dc71dbdef7e13658199bd569a01326b849d70b8a087260a1",
+        "mobileDetail": "54ae74782847253b38c13dbbb9c1087f4c99c9b3b46e7fc7d1b3e1e7d2ae5c72"
+      }
+    },
+    {
+      "id": "person-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-person-menu-desktop.png",
+      "mobile": "images/ui-person-menu-mobile.png",
+      "description": "Actions directed at another person.",
+      "access": "Select one person, then right-click or hold another person.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "cb8ad454f758b3bdf8e2aa8e2e20617a3d28782c91b6c5fba80fe7946ccb062a",
+        "mobile": "9af43b77477adc56420bf55e43cec6005f5077332d7d2744f98d9c9c81301d38"
+      }
+    },
+    {
+      "id": "room-review",
+      "section": "rooms",
+      "desktop": "images/ui-room-review-desktop.png",
+      "mobile": "images/ui-room-review-mobile.png",
+      "description": "Review of a room split, including names and retained identity.",
+      "access": "Build an outline that splits an existing room, then choose Confirm.",
+      "desktopDetail": "images/ui-room-review-detail-desktop.png",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "c5e801768b39e8b7c82652874f0935c61d988b4f9b51e7d9907fa0ee306ba4f3",
+        "mobile": "a063e541ff84f4e14b3e34396ca7f9489af437d608d530563ff4a53c729af396",
+        "desktopDetail": "ef8fd178dc120d585164b6e16604fc6c122dd17a38b00a4bd29f74a1ea53dd85"
+      }
+    },
+    {
+      "id": "work-conflict",
+      "section": "activity-and-orders",
+      "desktop": "images/ui-work-conflict-desktop.png",
+      "mobile": "images/ui-work-conflict-mobile.png",
+      "description": "The warning before an order delays or interrupts a work shift.",
+      "access": "Give an explicit order to someone whose shift is underway.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "924792aaa8261add5ba14cfbfcc9fbc1a1353270fdd1692d63e2bc9ebbde42ed",
+        "mobile": "0f266ecbb95219f8236940656e370ddbe8f858250f059626261d4fd0ce50ce60"
+      }
+    },
+    {
+      "id": "weather-autumn-falling",
+      "section": "weather",
+      "desktop": "images/weather-autumn-falling-desktop.png",
+      "mobile": "images/weather-autumn-falling-mobile.png",
+      "description": "Orange leaves falling outside in autumn.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "13d0b43ab46601c8121c0ee7f295a39c7c5f11cbb85fe4c012c24b0606541a3f",
+        "mobile": "f4410ada856983ae50a3448900d18799ebca9bfa271f451089b614dfc1845593"
+      }
+    },
+    {
+      "id": "weather-autumn-grounded",
+      "section": "weather",
+      "desktop": "images/weather-autumn-grounded-desktop.png",
+      "mobile": "images/weather-autumn-grounded-mobile.png",
+      "description": "Autumn leaves resting on the lawn.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "16016d2e31d87002bb0d579e560696fb19ec8844a59e75ac8edb20eceac02e5c",
+        "mobile": "3c732d0fd199f61485ce06bf59f90d842cabef74f996a80f63809fd575862cb9"
+      }
+    },
+    {
+      "id": "weather-mild",
+      "section": "weather",
+      "desktop": "images/weather-mild-desktop.png",
+      "mobile": "images/weather-mild-mobile.png",
+      "description": "Mild weather after the autumn leaves have disappeared.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "a528274775e113aa2cf7c590f627e48c5cb3798fccf6bff8ff2a8f1f301bb8a9",
+        "mobile": "52ee53a286b62a66e634029f08ff58080f27ab107b9e1bd2233c0b6b2cdd98e3"
+      }
+    },
+    {
+      "id": "weather-winter-snow",
+      "section": "weather",
+      "desktop": "images/weather-winter-snow-desktop.png",
+      "mobile": "images/weather-winter-snow-mobile.png",
+      "description": "Winter snowfall over green ground; snow does not accumulate.",
+      "access": "Watch the clock's season and weather line while the household runs.",
+      "page": "the-world",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "8197ef0f60702e2f128e6fae03a938f7360ae55dd7e84f37577990331b430646",
+        "mobile": "c1c9ed74d2b658167200bf310036bc73b182e3095a460525686d80bd2cbb5c28"
+      }
+    },
+    {
+      "id": "creator-preview",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-preview-mobile.png",
+      "description": "The character preview expanded on a phone.",
+      "access": "Choose Options > New housemate, then Show preview on a phone. Desktop shows the preview beside the form.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "447abd8f121522855fce536067beb29d4c086a30da1467a18e5816a2ee9d7c1e"
+      }
+    },
+    {
+      "id": "creator-preview-controls",
+      "section": "creator",
+      "desktop": "images/ui-creator-appearance-desktop.png",
+      "mobile": "images/ui-creator-preview-controls-mobile.png",
+      "description": "Animation, playback, facing and game-size preview controls.",
+      "access": "On a phone choose Show preview, then scroll within the creator to the controls below the portrait. Desktop shows them beside the form.",
+      "sourceSnapshot": "initial",
+      "htmlSha256": "836cb93f80650520ffbfb1a6a5b809efa769fa3b490dfb2d9006c8069e8e9577",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "e922b061ccc6f4f97deeb679a8d0bb2b8f04fe8d083db848ead67d5c9d764870",
+        "mobile": "2176508d57fd28eb563617a1d83c6b9f5bd77adc263ee1f41227cbe7b4ee99ba"
+      }
+    },
+    {
+      "id": "bookcase-menu",
+      "section": "object-menu",
+      "desktop": "images/ui-bookcase-menu-desktop.png",
+      "mobile": "images/ui-bookcase-menu-mobile.png",
+      "description": "A bookcase menu with Read book, Buy book and Sell book.",
+      "access": "Select a name at the bottom of the screen, then right-click or hold a bookcase.",
+      "sourceSnapshot": "identity-final",
+      "htmlSha256": "91bbc2bbed08181b0c01016bf51a32c26b6405c2646d0e7e259d74434be8e4f1",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "desktopDetail": "images/ui-bookcase-menu-detail-desktop.png",
+      "mobileDetail": "images/ui-bookcase-menu-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "1df3a69ddf5b87d87927001d7deb449e201d00fcc929275da95f8c3766c61f48",
+        "mobile": "af7da255e3d6c8b18e43ce1aab0ffb13d9760bf100eb93a688aa8bd3b635567d",
+        "desktopDetail": "25b96e8da3a6ff9ff8b666933dc151e72450fe16925147eb91c233536d793c9e",
+        "mobileDetail": "e3423fd18bc035c79d6fdbdbcf998611e1cdcb90572751a8a1f86c679bf003d2"
+      }
+    },
+    {
+      "id": "build-books",
+      "section": "build",
+      "desktop": "images/ui-build-books-desktop.png",
+      "mobile": "images/ui-build-books-mobile.png",
+      "description": "Book count, Buy book and Sell book for a selected bookcase.",
+      "access": "Choose Build > Furniture, choose a Bookcase from Furniture, then scroll to its book controls.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "9dc65de8d3791d4bbd424f2c59a3ae54484c4b1504188e08f86687d8eb18134e",
+        "mobile": "89f2cdfc17b297ead81baf1cb592d887a2dd6ef6e87dfabe40146f097304eebd"
+      }
+    },
+    {
+      "id": "buy-catalogue",
+      "section": "buy",
+      "desktop": "images/ui-buy-catalogue-desktop.png",
+      "mobile": "images/ui-buy-catalogue-mobile.png",
+      "description": "Visible products in the filtered Buy catalogue.",
+      "access": "Choose Build > Buy, choose a room filter, then scroll to the product cards.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "4d2f451af78f50c0745fb07e8c7eab27f5a78b00ee1cb3f335990ed56bc21942",
+        "mobile": "afcf2eb6d21184cc3ded8bb01bce17ef60a9f8ccdd9f61cc0bb1f689f696ec94"
+      }
+    },
+    {
+      "id": "buy-details",
+      "section": "buy",
+      "desktop": "images/ui-buy-details-desktop.png",
+      "mobile": "images/ui-buy-details-mobile.png",
+      "description": "A purchase preview with its price, rotation, colour and cancellation controls.",
+      "access": "Choose Build > Buy, choose a product, then select a destination. Scroll the Buy panel for Colour and other details.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "0bbb09c89b0c15eccab6e7af835b387c13aca391f9cb686850fd0391757532f9",
+        "mobile": "8613c9e93f80c3fe8c62112351ee998c3bb99c061cc06d1a87acbe445b513034"
+      }
+    },
+    {
+      "id": "buy-filters",
+      "section": "buy",
+      "desktop": "images/ui-buy-filters-desktop.png",
+      "mobile": "images/ui-buy-filters-mobile.png",
+      "description": "The Buy catalogue filtered to Kitchen.",
+      "access": "Choose Build > Buy, then choose Kitchen under Room type.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "2bcaebe7ed46a7d973cfc0ded75ae5147b6de6131e8ee89c5b9954e1aa81bd0b",
+        "mobile": "49ee6dc5050fc8a7753c944f1f5b6577881088b4c362dc6c37448341fd1dac42"
+      }
+    },
+    {
+      "id": "chores-history",
+      "section": "chores",
+      "desktop": "images/ui-chores-history-desktop.png",
+      "mobile": "images/ui-chores-history-mobile.png",
+      "description": "Recent daily chore outcomes.",
+      "access": "Open Chores, scroll below the assignments, then open Recent daily outcomes.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "3ecb67419cb9cac1a47465419e5ef48f0e9682271faa1913af0d1b8555dcf2fa",
+        "mobile": "91ad93323467a89fff4f0dcf64309c42a72534cc9b7dcb62e255cd0a1c239e83"
+      }
+    },
+    {
+      "id": "floor-actions",
+      "section": "floors",
+      "desktop": "images/ui-floor-actions-refresh-desktop.png",
+      "mobile": "images/ui-floor-actions-refresh-mobile.png",
+      "description": "The floor materials and Remove and Cancel beside a selected tile.",
+      "access": "Choose Build > Floors, then click or tap a visible floor tile.",
+      "sourceSnapshot": "guide-controls-refresh-2026-10-20",
+      "imageSha256": {
+        "desktop": "9367e1e111a4a5a7a5fab3de7bd90163dd8feaa6ad9949c6d3c6ed7688c2ee74",
+        "desktopDetail": "dbf72732c86f0ea85097f42df6d0c1fe30ba52a3675a33cee2753e8562f25bfe",
+        "mobile": "6fdfacff5498cc4ee55c3ba433c9abecea53809de361f719b89605e7f43201f1",
+        "mobileDetail": "4121fbfb2ff9df5fbbc85a55f8dbb92efe6344992ab9d331bff110c204437aab"
+      },
+      "sourceCommit": "bedb60d5a121d5840f61474b77d9cb3223947733",
+      "wasmSha256": "6d2056436f29254f22ce4dbea82721e71078daae2207c288792c10bbba3e0234",
+      "desktopDetail": "images/guide/floor-actions-desktop.png",
+      "mobileDetail": "images/guide/floor-actions-mobile.png"
+    },
+    {
+      "id": "help-shortcuts",
+      "section": "help",
+      "desktop": "images/ui-help-shortcuts-desktop.png",
+      "mobile": "images/ui-help-shortcuts-mobile.png",
+      "description": "Keyboard shortcuts in Help.",
+      "access": "Choose Options > Help, open Shortcuts, then scroll to its control groups.",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "11c58d7e354557d61671fa119a611c5ae7dca683abfab4b7b115624435f1a78a",
+        "mobile": "e90d9a39965f4504d9ca338fcb6ed0d1b94ed148b423e2c31be88817db535281",
+        "desktopDetail": "739cd9221915a1c7d71825d4a8ddc5e420c6a1e4be7cef38e4248a19eefaf154",
+        "mobileDetail": "338e4e052631b0f904c8524759d1b7a71f9ca86a0bd0ffff529fe9d0f7617313"
+      },
+      "desktopDetail": "images/ui-help-shortcuts-detail-desktop.png",
+      "mobileDetail": "images/ui-help-shortcuts-detail-mobile.png"
+    },
+    {
+      "id": "options-build-disabled",
+      "section": "options",
+      "desktop": "images/ui-options-build-disabled-desktop.png",
+      "mobile": "images/ui-options-build-disabled-mobile.png",
+      "description": "New housemate disabled while Build mode is active.",
+      "access": "Enter Build, then open Options. Exit Build before adding a housemate.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "desktopDetail": "images/ui-options-build-disabled-detail-desktop.png",
+      "mobileDetail": "images/ui-options-build-disabled-detail-mobile.png",
+      "imageSha256": {
+        "desktop": "e95f60abcd63c41ef162bb93c7fa727ed334908afcfb7f76e5ed6c30ed7abf4e",
+        "mobile": "02cab93b398f406928568e2315698db02365f518eed84ddf9fdeb29652e62ecd",
+        "desktopDetail": "92e858a6e3a1268732381a2557c04b3f7aa3ac316f8975a9c755b6d27c391d75",
+        "mobileDetail": "d059275b91dabb66226fd80b32bdda6cc293c3249ca8e3eac679825f428e1c5d"
+      }
+    },
+    {
+      "id": "window-models",
+      "section": "walls",
+      "desktop": "images/ui-window-models-desktop.png",
+      "mobile": "images/ui-window-models-mobile.png",
+      "description": "Window models beside an eligible wall, with Place Window available.",
+      "access": "Choose Build > Walls, select a solid wall, choose Windows, then scroll to its models.",
+      "sourceSnapshot": "minus-fix",
+      "htmlSha256": "c56635d2821d0bed630a2292b1ef35158bf572fb46a8e2351de34775fe1c0213",
+      "bundleSha256": "0fce69790b5106754a3c7395ea4eb02203cb2bab720c4f7c5c559afa42f92887",
+      "imageSha256": {
+        "desktop": "de770f3a03ceace9d4016846048999dc4ebd0cdd5883aeef82750ef3ff919eb4",
+        "mobile": "aa043a7f30a7e13d824577a4db5c4fad2dbfd8be32bf066b1ae1d3cae78c43f4"
+      }
+    },
+    {
+      "id": "career-review",
+      "section": "career",
+      "desktop": "images/ui-career-review-desktop.png",
+      "mobile": "images/ui-career-review-mobile.png",
+      "description": "The selected person's completed work reviews.",
+      "access": "Select a name at the bottom of the screen, open Sim details > Career, then scroll to Reviews.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "1e65e84c89336105b0511d724bec765f19ee2402cb680a2d45facada0192e145",
+        "mobile": "3da276b00dc899c9f2d46da4f6a777acbd21ae679bf39f14732730223121784e"
+      }
+    },
+    {
+      "id": "career-overview-graph",
+      "section": "career",
+      "desktop": "images/ui-career-overview-graph-desktop.png",
+      "mobile": "images/ui-career-overview-graph-mobile.png",
+      "description": "The review graph opened beside the career in Overview.",
+      "access": "Open Sim details > Overview, then choose i beside the career name.",
+      "sourceSnapshot": "shift-careers-2026-10-24",
+      "htmlSha256": "383ac30060c431242ab23178cd3b1a2c85f4f77ec421efee608686fa02d83cb8",
+      "bundleSha256": "0f74f40c68dfae3c0b1310744eb662737598bc6ce685e840fde62fd37230b93c",
+      "imageSha256": {
+        "desktop": "6be0220959c480ffa8eeab079ecc9b71b6fff2bd2d88187a44e1a386c439b9dd",
+        "mobile": "80bce91c35ca1a37005f19c156be67051fc97ed498d8f6bff25e8abaec1cb36c"
+      }
+    },
+    {
+      "id": "creator-edit-review",
+      "section": "creator",
+      "desktop": "images/ui-creator-edit-review-desktop.png",
+      "mobile": "images/ui-creator-edit-review-mobile.png",
+      "description": "Review an edit before choosing Apply changes.",
+      "access": "Select a name at the bottom of the screen, choose Edit, then Review.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "7a74cc41dc99a1fb1bae24913cabc6d85d15fcaf9b6dd4296341294cd40dc2f4",
+        "mobile": "0aa2404a286f74fc7706d8ea83dfb223f1e61607f62e62068ae3856a63f54c24"
+      }
+    },
+    {
+      "id": "help-guide-link",
+      "section": "help",
+      "desktop": "images/ui-help-guide-link-desktop.png",
+      "mobile": "images/ui-help-guide-link-mobile.png",
+      "description": "The player guide link in Help.",
+      "access": "Choose Options > Help, open Full player guide, then choose player guide. It opens in a separate tab.",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "d1e7e4a31f8451811b7ee7b9f4dba944c1f82120b9b06f1a810136f2eef16ad6",
+        "mobile": "00aaac210a052ba7a622ef6c52e68c31a8d6bf1ff842b5b6433ba0732025c9a3",
+        "desktopDetail": "be1f592ed412dd8f8c2ed3d51aad1987ca9d55dc39525b8b611be15dfa1bd465",
+        "mobileDetail": "dadc54aa1acea714000ad623c870e65bb5072a5f575eebecb34a58af14e5fc7a"
+      },
+      "desktopDetail": "images/ui-help-guide-link-detail-desktop.png",
+      "mobileDetail": "images/ui-help-guide-link-detail-mobile.png"
+    },
+    {
+      "id": "sim-conditions",
+      "section": "traits",
+      "desktop": "images/ui-sim-conditions-desktop.png",
+      "mobile": "images/ui-sim-conditions-mobile.png",
+      "description": "A named condition and its severity, with a capability trait below it.",
+      "access": "Select a name at the bottom of the screen, open Sim details > Traits, then scroll to the named conditions.",
+      "sourceSnapshot": "help-options-final",
+      "htmlSha256": "d44f1cf28d3c50bcafb87630a9efc609f2f70f07b1986df11f7ed74c2acfdac9",
+      "bundleSha256": "2d008fbff450e4f9273d86873132a92220def57bfdb3b4166bc5ddf3cd53667e",
+      "imageSha256": {
+        "desktop": "f95d2aa2b8eb15f26a29f424b918069b289ad80b48df0d5cd647896fbaa60eb8",
+        "mobile": "fe90fb4fd8f273bb351a48ebfcf8c2df7ab0cde0702358683625d8bcd19bcb23"
+      }
+    },
+    {
+      "id": "help-company-chores",
+      "section": "help",
+      "description": "Company & chores in Help, with conversation benefits, real grievances and chore repair.",
+      "access": "Choose Options > Help. Close Build & place, then open Company & chores.",
+      "desktop": "images/ui-help-company-chores-desktop.png",
+      "desktopDetail": "images/ui-help-company-chores-detail-desktop.png",
+      "mobile": "images/ui-help-company-chores-mobile.png",
+      "mobileDetail": "images/ui-help-company-chores-detail-mobile.png",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "f1d008da41b75d703225a33631ad3718381226848fbb78118dbf8e1b98030669",
+        "mobile": "08f68db355a9ee5ce347913ed9ff1a1d2ff455eb6733d4ac0d695a55298e76c0",
+        "desktopDetail": "e69cf06fe49b0e0ded712df741fb23b858acfce6376f87c24dc18923ac3ec0f6",
+        "mobileDetail": "c3335115025250452188461d5f1779182ab2bb101b872a42ac75706354694c57"
+      }
+    },
+    {
+      "id": "help-company-chores-more",
+      "section": "help",
+      "description": "The rest of Company & chores, including completed cleaning, fresh mess grace periods and the Chores link.",
+      "access": "Choose Options > Help, open Company & chores, then scroll down to Fresh mess.",
+      "desktop": "images/ui-help-company-chores-more-desktop.png",
+      "desktopDetail": "images/ui-help-company-chores-more-detail-desktop.png",
+      "mobile": "images/ui-help-company-chores-more-mobile.png",
+      "mobileDetail": "images/ui-help-company-chores-more-detail-mobile.png",
+      "sourceSnapshot": "current-main-help",
+      "htmlSha256": "368b974c87e19c4d2aeeb4c328c4b3257a95441ad49431629d042f984417d551",
+      "bundleSha256": "8bb9c6dfb18d32f2774fc675f69fd7ca3aeb5370bb0986294a04e41b1bff8beb",
+      "imageSha256": {
+        "desktop": "eb8aa0b7c82f05dc0a5b50cf387983eb2fed327b342bd6841f0f82129178a5cf",
+        "mobile": "84ee086e6159aafd2f774307bbc3dc207a571132e2b64ee333b13818f96ab561",
+        "desktopDetail": "d4aaaf569fcea16fc76639bac09aa2e06bdec924b905345afbdcdc3594720c41",
+        "mobileDetail": "96759e903f8e1920f449984366ffc18f5e7ea820e846c5fb3fac9154b6d19e32"
+      }
+    },
+    {
+      "id": "guide-shortcut",
+      "section": "clock-and-speed",
+      "desktop": "images/ui-guide-shortcut-desktop.png",
+      "mobile": "images/ui-guide-shortcut-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
+      "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
+      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
+        "mobile": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
+        "desktopDetail": "0d92135d1baf93b84c87a61c7e9e8e5e83d6d3d286dbd95680e8feb0633d8091",
+        "mobileDetail": "f21ad1d69d84022b9612614b826a4cffbc9d7cab31c998b255a269cbeaf64529"
+      }
+    },
+    {
+      "id": "guide-shortcut-build",
+      "section": "build",
+      "desktop": "images/ui-guide-shortcut-build-desktop.png",
+      "mobile": "images/ui-guide-shortcut-build-mobile.png",
+      "desktopDetail": "images/ui-guide-shortcut-build-detail-desktop.png",
+      "mobileDetail": "images/ui-guide-shortcut-build-detail-mobile.png",
+      "description": "The guide link stays available while Build is open, with room for the building controls.",
+      "access": "Choose Build, then choose Player guide in the HUD.",
+      "sourceSnapshot": "delivery-guide-shortcut",
+      "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
+      "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",
+      "imageSha256": {
+        "desktop": "bfc648073785f1f9007db118375c1a4823404685d26aec224684ea8c7eb193e5",
+        "mobile": "06e784b5ad587ffba08a960a1b1a777e99ab346ddb7ef7d5163ee87fa0f67dce",
+        "desktopDetail": "1f2dd3108ed7ef66fdff3c94b7d4ae5b2c72a6647b9ab4709ca98e2e3fb8cc81",
+        "mobileDetail": "4ae6668de7c90be9f1d540cf647f6cb1cdd50e194d4520ce514a64202966e568"
+      }
+    },
+    {
+      "id": "build-switch-land",
+      "section": "land",
+      "description": "Switch to Land? with Keep building, Discard changes and Confirm changes.",
+      "access": "With pending Build changes, choose Land. Resolve the current batch before starting Land.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "afa8637fd4d75614605db4ec2254c68e376da4eecacff218497decac4c8b762f",
+        "mobile": "c341c8a99f2bb5d5399b7229a2988913a1b34f31e6a0940dcbb624a34067f925"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Switch to Land?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "afa8637fd4d75614605db4ec2254c68e376da4eecacff218497decac4c8b762f"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [
+            {
+              "id": "build-exit-dialog",
+              "text": "Switch to Land?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+            }
+          ],
+          "sourceImageSha256": "c341c8a99f2bb5d5399b7229a2988913a1b34f31e6a0940dcbb624a34067f925"
+        }
+      },
+      "desktop": "images/ui-build-release-build-switch-land-desktop.png",
+      "mobile": "images/ui-build-release-build-switch-land-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "build-land-fresh",
+      "section": "land",
+      "description": "A fresh Land batch with Land selected and the Build footer available.",
+      "access": "Choose Land, resolving any pending changes first. Scroll inside the phone panel for the other strips and purchase controls.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "531c044e765f179d68d719b601b431dca2f3810541bc92fda7edd0efe06acadb",
+        "mobile": "0c36cec310cb4689be35ccacb7433a79c0f1bf4fc0c025191918d7e0af309292"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "531c044e765f179d68d719b601b431dca2f3810541bc92fda7edd0efe06acadb"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "0c36cec310cb4689be35ccacb7433a79c0f1bf4fc0c025191918d7e0af309292"
+        }
+      },
+      "desktop": "images/ui-build-release-build-land-fresh-desktop.png",
+      "mobile": "images/ui-build-release-build-land-fresh-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "room-review-land",
+      "section": "rooms",
+      "description": "Review room changes after a removed wall merges two rooms.",
+      "access": "Remove a boundary in Walls, choose Land, then Confirm changes. Back to build returns to Walls with the draft retained.",
+      "imageSourceSnapshots": {
+        "desktop": "build-release-guide-integration",
+        "mobile": "build-release-guide-integration"
+      },
+      "imageSha256": {
+        "desktop": "060f6a6c60c2d45650d0071a514804e113ad3a4d2d458957caa58f3e1963e713",
+        "mobile": "8dc51540ee66d3b48b7812e4efaa4fc3eb39826ea5ef76fcc9df77c3f0ee42f2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "060f6a6c60c2d45650d0071a514804e113ad3a4d2d458957caa58f3e1963e713"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor PNG, measured viewport clip, no image edits",
+          "dialogs": [],
+          "sourceImageSha256": "8dc51540ee66d3b48b7812e4efaa4fc3eb39826ea5ef76fcc9df77c3f0ee42f2"
+        }
+      },
+      "desktop": "images/ui-build-release-room-review-land-desktop.png",
+      "mobile": "images/ui-build-release-room-review-land-mobile.png",
+      "sourceSnapshot": "build-release-guide-integration",
+      "htmlSha256": "b781c24ab73c2d2ff8e77f539ac0f13c52fc09672c630fb0285545d27a7b68f8",
+      "bundleSha256": "62f4f2e102cdebfe5b27bfadc2920c792efe1cabc196ec981c37ec7adc0dba83"
+    },
+    {
+      "id": "startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Copy and email controls after a controlled startup download error.",
+      "access": "Open startup-report.html in the same browser after a loading error.",
+      "sourceSnapshot": "startup-report-sharing",
+      "htmlSha256": "279316b61c5b9dcd154d42a48775e85800584f48ee6ea793775d2cdb8399143e",
+      "bundleSha256": "8059c38f4d820963b4f1394c7322878896df77ca6f2fa7b54a9773f5942b7003",
+      "imageSha256": {
+        "desktop": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9",
+        "mobile": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "ae49ac1ba67b8c07655e05a9526e4f393ed71215394b3ea59f2451a6cd9c9ab9"
+        },
+        "mobile": {
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor PNG, no image edits",
+          "sourceImageSha256": "87d7234b667c168e9030b8127e21f4c7dfd0d470d8ea01fb73dbe1f117425c36"
+        }
+      },
+      "desktop": "images/startup-report-sharing-desktop.png",
+      "mobile": "images/startup-report-sharing-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-options",
+      "section": "options",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open Options, then Report bug.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7",
+        "mobile": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 720,
+          "height": 1875,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "1cc0376b9b3284bcdf6fec351176efdd23efe8bac45ec4270af926e4f326beb7"
+        },
+        "mobile": {
+          "width": 720,
+          "height": 2160,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor element screenshot; no image edits",
+          "sourceImageSha256": "f99d004efadd79db59fdd1efd810f7e9559c55d1309aa97d2e9de906633d96b8"
+        }
+      },
+      "htmlSha256": "724d8e80cc9d36d43f5daf05d12fd0d25c03902e4ba840824ec04348a298ee04",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-options-desktop.png",
+      "mobile": "images/debug-report-options-mobile.png"
+    },
+    {
+      "id": "meaningful-debug-startup-report-sharing",
+      "section": "loading-failure",
+      "description": "Current bug-report controls and retained runtime error.",
+      "access": "Open startup-report.html in the same browser after an error.",
+      "sourceSnapshot": "meaningful-debug-reports",
+      "imageSha256": {
+        "desktop": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc",
+        "mobile": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 4320,
+          "height": 2700,
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "c5f0383c35b811a5ac862fb13a5b08f8a8dc2803340cbf4b2b4517207a78c7fc"
+        },
+        "mobile": {
+          "width": 1206,
+          "height": 2622,
+          "viewport": {
+            "width": 402,
+            "height": 874
+          },
+          "devicePixelRatio": 3,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "763a6694b10a8448d4aae5d7bb46d788e8d9d805799b386f5fb9e6baa9b28f77"
+        }
+      },
+      "htmlSha256": "8c6c24bf145f9c904b5f2f1e5617eb13109b3ef929525ac58fbed4423d00be5d",
+      "bundleSha256": "f803a2b8b1d3692682d1091cc638f3ad4fe59a29efa1dec80a778a1c1f3644db",
+      "desktop": "images/debug-report-sharing-desktop.png",
+      "mobile": "images/debug-report-sharing-mobile.png"
+    },
+    {
+      "id": "log",
+      "section": "log",
+      "description": "The Log open with the default filters, showing the whole household and scrolled to the newest line; the desktop capture includes a bathroom privacy line.",
+      "access": "Choose Log at the top right of the screen.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d",
+        "mobile": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "571c4c1a46bb68f341bdf0abe576ecbcb1b530d9f6e45736105b28de743d480d"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a9ff7fadc2f88399f3ecc33fedd41044b031909c9bd6e5fa470a0cc716df4ef2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-desktop.png",
+      "mobile": "images/ui-log-mobile.png"
+    },
+    {
+      "id": "log-only",
+      "section": "log",
+      "description": "The Log with Only Tim ticked, showing only the lines that involve the selected housemate.",
+      "access": "Select Tim in the Household row, choose Log, then tick Only Tim at the end of the filter row.",
+      "sourceSnapshot": "activity-log-review-fixes",
+      "imageSha256": {
+        "desktop": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636",
+        "mobile": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "f905ab2508ac414cb56cce4a72b5e8dea6559ad9da793b6cd2297e3730e25636"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "173ce3a9ef979b92399febbfa6cdf09409467cc0731b26d05c2f63e2350ce8b2"
+        }
+      },
+      "htmlSha256": "83dddfe6b426395e25eb91441df0fe7757af16f1e62fdf897c25ef9da5e658ba",
+      "bundleSha256": "8ddc4b45db9e0f32b9f18b0518808e18ae247ef5baf211b4f90aab07fd0c38eb",
+      "wasmSha256": "3f38976aad9eaff89d454d4fae09cf8231e7983155f7b65721ed9e2139c87bea",
+      "desktop": "images/ui-log-only-desktop.png",
+      "mobile": "images/ui-log-only-mobile.png"
+    },
+    {
+      "id": "log-show-earlier",
+      "section": "log",
+      "description": "The top of the Log after a week of play, with Show earlier entries above the oldest shown line.",
+      "access": "Choose Log, then scroll to the top of the list.",
+      "sourceSnapshot": "activity-log",
+      "imageSha256": {
+        "desktop": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8",
+        "mobile": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+      },
+      "captureMetadata": {
+        "desktop": {
+          "width": 1440,
+          "height": 960,
+          "viewport": {
+            "width": 1440,
+            "height": 960
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "fab49c571c832702e0080ddcac4cc73b245abc2fd84b54c710f03721bd3204d8"
+        },
+        "mobile": {
+          "width": 390,
+          "height": 844,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "devicePixelRatio": 1,
+          "captureMethod": "Original Chrome compositor viewport screenshot; no image edits",
+          "sourceImageSha256": "a5df74c891c3f079ef3f9a4eccc8b77006336c1b39771e0e44c22f00ad4eac8a"
+        }
+      },
+      "htmlSha256": "954e9c72046583f81a9f0d220822ce44567959301e1522d33a69784103bf320e",
+      "bundleSha256": "12e7846cec0410a6e89192e87bbdb613e1d5d5b2d6d7372410e9976dfc55374b",
+      "wasmSha256": "89f0c8a24996ac99a08f395ff752770f5ea7e33ccda085eff4c157de874580da",
+      "desktop": "images/ui-log-show-earlier-desktop.png",
+      "mobile": "images/ui-log-show-earlier-mobile.png"
+    }
+  ],
+  "uiSections": {
+    "clock-and-speed": [
+      "overview",
+      "build-furniture",
+      "guide-shortcut"
+    ],
+    "work-confirmation": [
+      "work-conflict"
+    ]
+  }
+}

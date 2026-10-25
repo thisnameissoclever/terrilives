@@ -18,7 +18,7 @@ function section(start: string, end: string): string {
 // Execute the production wiring, including its gate and complete camera method.
 const cameraCode = section('  function applyCamera(): void {', '  // Flagged rather than applied:')
   .replace('(): void', '()');
-const drawCode = section('    if (floorScene.visible', '    // Inside the sample below');
+const drawCode = section('    if (presenting&&floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
 const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
@@ -38,6 +38,9 @@ function fixture() {
   let floors = new Uint32Array([0, 0, 1]);
   const speeds: number[] = [], statuses: [boolean, string | null][] = [], draws: number[][] = [];
   const diagnostics: unknown[][] = [];
+  const startup: { name: string; detail: unknown; error?: unknown }[] = [], events: string[] = [], eventDetails: unknown[] = [];
+  // Each submitted-work promise stays pending until a test settles it.
+  const gpuWork: { resolve(): void; reject(error: Error): void }[] = [];
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const renderer = () => ({ disposed: false, rows: new Float32Array(),
     setArchitectureCamera() {},
@@ -48,25 +51,31 @@ function fixture() {
       draws.push([this.rows[0], this.rows[1], instances[0], instances[1], scale, this.rows[3]]);
     }, destroy() { this.disposed = true; } });
   const ctx = {
-    sceneFramebufferSize,gpu:{device:{limits}},
+    sceneFramebufferSize,gpu:{device:{limits,queue:{onSubmittedWorkDone:()=>new Promise<void>((resolve,reject)=>gpuWork.push({resolve,reject}))}}},
+    // The first drawn frame reports startup once; see the first-scene report in main.ts.
+    firstSceneRecorded:false,
+    recordDiagnostic:(name:string,detail:unknown,error?:unknown)=>startup.push(error===undefined?{name,detail}:{name,detail,error}),
     console: { warn: (...details: unknown[]) => diagnostics.push(details) },
-    lot: { width: 2, height: 1, walls: new Uint32Array(), edges: new Uint32Array(), floors,
+    lotWidth: 2, lotHeight: 1,
+    lot: { width: 2, height: 1, houseOrigin: [0, 0] as const, walls: new Uint32Array(), edges: new Uint32Array(), floors,
       coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]),
       architecture: { windows: [], catalogue: [], floorCatalogue: catalogue,
         finishes: prepareArchitectureFinishes([], limits, catalogue) } },
     floorResourceError: null as string | null,
-    graphicsRecovering:false,
+    graphicsRecovering:false, presenting: true,
     characterWorld:{beginFrame(){},plan:null,draw(){}},
+    weatherScene: { setOutside() {}, prepare() {} }, weatherTuning: null, drawWorldEffects() {},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
     stage: { width: 500, height: 400, clientWidth: 500, clientHeight: 400,
-      getBoundingClientRect() { return {left:0,top:0,width:this.clientWidth,height:this.clientHeight}; } }, window: { devicePixelRatio: 1 },
+      getBoundingClientRect() { return {left:0,top:0,width:this.clientWidth,height:this.clientHeight}; } }, window: { devicePixelRatio: 1, dispatchEvent: (event: Event) => { events.push(event.type); eventDetails.push((event as CustomEvent).detail); } },
     nowMs:0, orderDiagnostics:{failedActors:()=>new Set<number>()}, failureBubbles:{update(){}},
     lightingDirty: false, lighting: null, sky: { width: 0, height: 0, values: new Float32Array() },
     buildStaticInstances, buildGrimeInstances:()=>({instances:new Float32Array(),count:0}), depthScale: 16, clampCamera() {},
     lightingMode: { isFlat: () => true }, renderer: renderer(),
     wallFade: { configure() {}, update() {} },
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
-    sim: { selectedIndex: () => 0, clockTick: () => 0, floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
+    sim: { selectedIndex: () => 0, clockTick: () => 0, dayTicks: () => 1440, seasonIndex: () => 0,
+      roomTiles: () => ({ ok: true, value: [] }), floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null }, roomTool: { highlight: () => null },
     roomReview: { highlight: () => null }, roomsTool: { selecting: false }, roomSelection: { highlight: () => null },
@@ -90,16 +99,43 @@ function fixture() {
   request();
   const load = (covering: number) => { floors = new Uint32Array([0, 0, covering]); ctx.lot.floors = floors; ctx.cameraDirty = true; request(); };
   const settle = (index: number) => { const next = { renderer: renderer(), finishes: prepareArchitectureFinishes(pending[index].keys, limits, catalogue) }; pending[index].resolve(next); return next; };
-  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, pending, resources, request, load, settle,
+  return { ctx, overlayPause, speeds, statuses, draws, diagnostics, startup, events, eventDetails, gpuWork, pending, resources, request, load, settle,
     frame: () => drawMainFrame(ctx) };
 }
 
 describe('main floor scene presentation', () => {
+  const firstScene = (state: string) => ({ name: 'graphics.first-frame', detail: { id: 'first-scene', state } });
+  it('reports the first drawn scene once and announces startup only after the GPU finishes it', async () => {
+    const f = fixture(); f.ctx.presenting = false; f.frame();
+    expect(f.startup).toEqual([]);
+    f.ctx.presenting = true; f.frame(); f.frame();
+    await flush();
+    expect(f.gpuWork).toHaveLength(1);
+    expect(f.startup).toEqual([firstScene('start')]);
+    expect(f.events).toEqual([]);
+    f.gpuWork[0].resolve(); await flush();
+    expect(f.startup).toEqual([firstScene('start'), firstScene('complete')]);
+    expect(f.events).toEqual(['terrilives:startup-ready']);
+  });
+  it('reports a failed first scene and announces a startup failure instead of readiness', async () => {
+    const f = fixture(); f.frame();
+    const error = new Error('device lost');
+    f.gpuWork[0].reject(error); await flush();
+    expect(f.startup).toEqual([firstScene('start'), { ...firstScene('failed'), error }]);
+    expect(f.events).toEqual(['terrilives:startup-failure']);
+    // The same error object reaches the report and the failure event's listeners.
+    expect(f.startup[1].error).toBe(error);
+    expect(f.eventDetails).toEqual([error]); expect(f.eventDetails[0]).toBe(error);
+  });
   it('retains the current scene while graphics are recovering and resumes coherent drawing',()=>{
     const f=fixture();f.frame();expect(f.draws).toHaveLength(1);
     f.ctx.graphicsRecovering=true;f.frame();expect(f.draws).toHaveLength(1);
     f.ctx.graphicsRecovering=false;f.frame();expect(f.draws).toHaveLength(2);
     expect(f.draws[1]).toEqual(f.draws[0]);
+  });
+  it('draws nothing for a hidden tab step and resumes drawing when presenting again',()=>{
+    const f=fixture();f.ctx.presenting=false;f.frame();expect(f.draws).toHaveLength(0);
+    f.ctx.presenting=true;f.frame();expect(f.draws).toHaveLength(1);
   });
   it('keeps camera/static/dynamic rendering coherent during a delayed or rejected preview load', async () => {
     const f = fixture();

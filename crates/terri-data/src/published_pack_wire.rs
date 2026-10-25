@@ -428,6 +428,10 @@ fn career_from_published(old: PublishedCompiledCareer, path: u32) -> CompiledCar
         social_demand: 0.0,
         skill_tag: None,
         trait_fit: Vec::new(),
+        // Shifts (issue 296): one day standard shift and nothing else.
+        standard_kind: crate::pack::SHIFT_DAY,
+        standard_weight: 1,
+        shifts: Vec::new(),
     }
 }
 
@@ -585,7 +589,31 @@ impl From<PublishedTuning> for Tuning {
             career_mood_demoted_ticks: Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
             career_mood_fired_ticks: Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             autonomy: None,
+            weather: None,
+            fight_grievance_ticks: 360,
+            fight_history_ticks: 10080,
+            fight_repeat_grievance_ticks: 1440,
+            fight_mood_bad_multiplier: 2.0,
+            fight_mood_good_multiplier: 0.25,
+            fight_opinion_strength: 0.5,
+            fight_severity_reference: 0.25,
+            chore_fight_response_base: 0.80,
+            chore_fight_response_ticks: 240,
+            chore_fight_response_cleanliness: 0.20,
+            chore_fight_response_responsibility: 0.10,
+            chore_fight_response_commitment: 0.05,
+            chore_fight_response_preference: 0.05,
+            chore_fight_response_affinity: 0.05,
+            chore_fight_response_mood: 0.05,
+            chore_repair_base: 0.08,
+            chore_repair_cleanliness: 0.04,
+            fight_rules: FightRules::Published,
             meal_appreciation_gain: 0.0,
+            shift_sleep_offset_day: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_DAY,
+            shift_sleep_offset_early: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_EARLY,
+            shift_sleep_offset_late: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_LATE,
+            shift_sleep_offset_night: Tuning::SHIPPED_SHIFT_SLEEP_OFFSET_NIGHT,
+            career_search_temperature: Tuning::PRE_SHIFT_CAREER_SEARCH_TEMPERATURE,
             days_per_season: Tuning::SHIPPED_DAYS_PER_SEASON,
             first_season: Tuning::SHIPPED_FIRST_SEASON,
             season_yard_looks: Tuning::SHIPPED_SEASON_YARD_LOOKS,
@@ -991,4 +1019,57 @@ fn authentic_2f_pack_decodes_and_reencodes_exactly() {
         postcard::to_allocvec(&old).unwrap(),
         postcard::to_allocvec(compiled).unwrap()
     );
+}
+
+/// Issue 296, [WS-search]: a pack published before the search drew its
+/// path keeps the best-fit search, temperature 0, and the frozen pre-books
+/// source compiles to the same value.
+#[test]
+fn a_published_pack_keeps_the_best_fit_search() {
+    let bytes =
+        include_bytes!("../../terri-wasm/tests/fixtures/published-2f319c3b/content-pack.postcard");
+    let (wire, _) = postcard::take_from_bytes::<Published2fContentPack>(bytes)
+        .expect("authentic source layout");
+    let old: ContentPack = wire.into();
+    assert_eq!(old.tuning.career_search_temperature, 0.0);
+    assert_eq!(
+        crate::contextual_pre_books_pack()
+            .tuning
+            .career_search_temperature,
+        0.0
+    );
+}
+
+/// Shifts (issue 296, [WS-model]): a job from a pack published before
+/// shifts holds one day standard shift, offered with weight 1, and nothing
+/// else.
+#[test]
+fn a_published_career_converts_to_a_day_standard_shift_alone() {
+    let career = career_from_published(
+        PublishedCompiledCareer {
+            id: "night_watch".to_string(),
+            label: "Night watch".to_string(),
+            shift_start: 1320,
+            shift_ticks: 480,
+            pay: 70,
+            energy_cost: 20.0,
+            satisfaction: 0.5,
+            working_days: 0b1001111,
+        },
+        2,
+    );
+    assert_eq!(career.standard_kind, crate::pack::SHIFT_DAY);
+    assert_eq!(career.standard_weight, 1);
+    assert!(career.shifts.is_empty());
+    assert_eq!(career.shift_count(), 1);
+    let standard = career.shift(0).expect("the standard shift");
+    assert_eq!(
+        (
+            standard.shift_start,
+            standard.shift_ticks,
+            standard.working_days
+        ),
+        (1320, 480, 0b1001111)
+    );
+    assert!(career.offers(0));
 }

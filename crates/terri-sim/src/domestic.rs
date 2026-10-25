@@ -83,12 +83,11 @@ fn entity(world: &World, index: u32) -> Option<Entity> {
 
 pub fn cleanliness(world: &World, person: Entity) -> f32 {
     if let Some(state) = world.get_resource::<SavedDomestic>() {
-        if let Some((_, score)) = state
+        if let Ok(index) = state
             .cleanliness
-            .iter()
-            .find(|(index, _)| *index == person.index_u32())
+            .binary_search_by_key(&person.index_u32(), |row| row.0)
         {
-            return *score;
+            return state.cleanliness[index].1;
         }
     }
     let Some(personality) = world.get::<Personality>(person) else {
@@ -153,7 +152,10 @@ fn idle(world: &World, person: Entity) -> bool {
     let Ok(e) = world.get_entity(person) else {
         return false;
     };
-    !e.contains::<crate::reading::ReadingJourney>()
+    // A reserved person is waiting for someone walking over to talk or argue.
+    // The loader refuses a reserved recipient with work of their own.
+    !e.contains::<terri_core::Reserved>()
+        && !e.contains::<crate::reading::ReadingJourney>()
         && !e.contains::<crate::reading::PendingShift>()
         && !e.contains::<Target>()
         && !e.contains::<terri_core::chores::ChoreWork>()
@@ -171,7 +173,7 @@ fn roll(world: &mut World, probability: f32) -> bool {
 }
 
 /// Room boundaries include doorways; furniture occupancy does not split a room.
-fn rooms(world: &World) -> (usize, Vec<u32>) {
+pub(crate) fn rooms(world: &World) -> (usize, Vec<u32>) {
     if crate::rooms::stable(world) {
         let map = world.resource::<crate::rooms::RoomMap>();
         let width = map.topology.width as usize;
@@ -232,7 +234,7 @@ pub(crate) fn legacy_rooms(world: &World) -> (usize, Vec<u32>) {
     (width, labels)
 }
 
-fn room_at(width: usize, labels: &[u32], position: &Position) -> Option<u32> {
+pub(crate) fn room_at(width: usize, labels: &[u32], position: &Position) -> Option<u32> {
     let (x, y) = (position.x.round() as i32, position.y.round() as i32);
     if x < 0 || y < 0 || x as usize >= width {
         return None;
@@ -303,7 +305,13 @@ pub(crate) fn mood_penalty(world: &World, person: Entity) -> Option<f32> {
     if piles.is_empty() && !obstructed {
         return None;
     }
-    let units: u32 = piles.iter().map(|dish| dish.units).sum();
+    let units: u32 = piles
+        .iter()
+        .filter(|dish| {
+            crate::neglect::source_due(world, terri_core::save_v19::NeglectSource::Dish(dish.id))
+        })
+        .map(|dish| dish.units)
+        .sum();
     let clean = cleanliness(world, person).clamp(0.0, 1.0);
     let response = terri_core::cleanliness::dish_response(clean, units);
     let penalty = (tuning.mood_penalty_min + tuning.mood_penalty_bonus * clean)
@@ -342,11 +350,43 @@ pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: 
     if !owners.is_empty() && world.get::<Relationships>(person).is_none() {
         world.entity_mut(person).insert(Relationships::default());
     }
+    let tick = world.resource::<SimClock>().tick;
     for owner in owners {
-        world
-            .get_mut::<Relationships>(person)
-            .unwrap()
-            .bump(SimId(owner), -penalty);
+        let penalty = -crate::relationship_effects::scaled_opinion_delta(
+            world,
+            own,
+            SimId(owner),
+            crate::relationship_effects::RelationshipCause::HouseholdMess,
+            -penalty,
+        );
+        let mut feelings = world.get_mut::<Relationships>(person).unwrap();
+        let before = feelings.feeling(SimId(owner));
+        feelings.bump(SimId(owner), -penalty);
+        let actual = feelings.feeling(SimId(owner)) - before;
+        crate::chore_repair::record_annoyance(
+            world,
+            own,
+            SimId(owner),
+            terri_core::chores::ChoreKey {
+                kind: terri_core::chores::ChoreKind::Dishes,
+                target: 0,
+            },
+            penalty,
+        );
+        crate::relationship_effects::record(
+            world,
+            crate::relationship_effects::RelationshipEffect {
+                tick,
+                event: 0,
+                cause: crate::relationship_effects::RelationshipCause::DirtySetting,
+                responsible: SimId(owner),
+                affected: own,
+                requested: -penalty,
+                actual,
+                emergency: false,
+                directed: false,
+            },
+        );
     }
 }
 
@@ -395,6 +435,14 @@ fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: 
         .sort_by_key(|task| task.person);
     let progress = crate::recipe_actions::internal(world.resource::<Content>().0, chain);
     world.entity_mut(person).remove::<Path>().insert(progress);
+    crate::chore_repair::started(
+        world,
+        person,
+        terri_core::chores::ChoreKey {
+            kind: terri_core::chores::ChoreKind::Dishes,
+            target: 0,
+        },
+    );
     true
 }
 
@@ -522,6 +570,7 @@ pub(crate) fn tick(world: &mut World) {
     state.cleanliness.sort_by_key(|(index, _)| *index);
     world.insert_resource(state);
     crate::dining::maintain(world);
+    crate::neglect::refresh(world);
     let (width, labels) = rooms(world);
     let critical = world
         .resource::<Content>()
@@ -541,6 +590,12 @@ pub(crate) fn tick(world: &mut World) {
         let clean = cleanliness(world, person).clamp(0.0, 1.0);
         let units = room_piles(world, person, state, width, &labels)
             .iter()
+            .filter(|pile| {
+                crate::neglect::source_due(
+                    world,
+                    terri_core::save_v19::NeglectSource::Dish(pile.id),
+                )
+            })
             .map(|pile| pile.units)
             .sum();
         let response = terri_core::cleanliness::dish_response(clean, units);
@@ -557,7 +612,10 @@ pub(crate) fn tick(world: &mut World) {
         let mut seen_now = seen.clone();
         let mut owners = BTreeSet::new();
         for pile in &piles {
-            if response > 0.0 && !seen.contains(&pile.id) {
+            if crate::neglect::source_due(world, terri_core::save_v19::NeglectSource::Dish(pile.id))
+                && response > 0.0
+                && !seen.contains(&pile.id)
+            {
                 owners.insert(pile.owner);
                 seen_now.push(pile.id);
             }
@@ -568,8 +626,23 @@ pub(crate) fn tick(world: &mut World) {
             if world.get::<Relationships>(person).is_none() {
                 world.entity_mut(person).insert(Relationships::default());
             }
-            let requested =
-                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response;
+            let requested = crate::relationship_effects::scaled_opinion_delta(
+                world,
+                id,
+                SimId(owner),
+                crate::relationship_effects::RelationshipCause::HouseholdMess,
+                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response,
+            );
+            crate::chore_repair::record_annoyance(
+                world,
+                id,
+                SimId(owner),
+                terri_core::chores::ChoreKey {
+                    kind: terri_core::chores::ChoreKind::Dishes,
+                    target: 0,
+                },
+                -requested,
+            );
             let before = world
                 .get::<Relationships>(person)
                 .unwrap()
@@ -585,10 +658,9 @@ pub(crate) fn tick(world: &mut World) {
                 - before;
             let tick = world.resource::<SimClock>().tick;
             let affected = *world.get::<SimId>(person).unwrap();
-            world
-                .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
-                .effects
-                .push(crate::relationship_effects::RelationshipEffect {
+            crate::relationship_effects::record(
+                world,
+                crate::relationship_effects::RelationshipEffect {
                     tick,
                     event: 0,
                     cause: crate::relationship_effects::RelationshipCause::HouseholdMess,
@@ -598,7 +670,8 @@ pub(crate) fn tick(world: &mut World) {
                     actual,
                     emergency: false,
                     directed: false,
-                });
+                },
+            );
         }
         let mut state = world.resource_mut::<SavedDomestic>();
         state
@@ -914,6 +987,12 @@ pub(crate) fn gather_diners(world: &mut World) {
                     && participants.len() + outsiders > dining_capacity(world, table)))
         {
             world.resource_mut::<SavedDomestic>().meals[index].dining_started = true;
+            // The meal's company starts now ([AL-capture] item 4).
+            if let Some(mut log) = world.get_resource_mut::<crate::activity_log::ActivityLog>() {
+                for id in participants.union(&arrived) {
+                    log.begin_activity(*id);
+                }
+            }
             if meal.table.is_none() {
                 world
                     .resource_mut::<SavedDining>()
@@ -1018,20 +1097,24 @@ pub(crate) fn completed(
                 }
             }
         } else {
-            let mut washed_units = 0;
-            let mut state = world.resource_mut::<SavedDomestic>();
-            if let Some(task) = state
+            let task = world
+                .resource::<SavedDomestic>()
                 .cleanup
                 .iter()
                 .find(|task| task.person == person.index_u32())
-                .cloned()
-            {
-                washed_units = state
+                .cloned();
+            let washed_units = task.as_ref().map_or(0, |task| {
+                world
+                    .resource::<SavedDomestic>()
                     .dishes
                     .iter()
-                    .filter(|d| task.dishes.contains(&d.id))
-                    .map(|d| d.units)
-                    .sum();
+                    .filter(|dish| task.dishes.contains(&dish.id))
+                    .map(|dish| dish.units)
+                    .sum()
+            });
+            let scopes = crate::chore_repair::before_dishes_washed(world, person, washed_units);
+            let mut state = world.resource_mut::<SavedDomestic>();
+            if let Some(task) = task {
                 state.dishes.retain(|dish| !task.dishes.contains(&dish.id));
                 for visit in &mut state.visits {
                     visit.seen.retain(|id| !task.dishes.contains(id));
@@ -1043,7 +1126,9 @@ pub(crate) fn completed(
             crate::dining::maintain(world);
             crate::targeted_cleanup::washed(world, person);
             crate::chores::dish_washed(world, person.index_u32(), washed_units);
+            crate::chore_repair::dishes_finished(world, washed_units, &scopes);
         }
+        crate::neglect::refresh(world);
         return;
     }
     if (def.id == "cook_dinner" || def.id == SNACK) && step == 1 {

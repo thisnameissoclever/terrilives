@@ -111,8 +111,9 @@ Effects retains its existing meaning: it controls cues, object recordings, and r
 Voices scales conversations further. Mute owns the master gain only. Changing
 Voices, including crossing zero, leaves bounded conversation transport running
 and does not reset any scheduler. Raising it therefore restores the current
-position, not a restarted clip. Master mute, Effects zero, hidden tabs and world
-replacement retain their existing stop/reset behavior. Library loads use the
+position, not a restarted clip. Master mute, Effects zero, graphics recovery and
+world replacement retain their existing stop/reset behavior. Since 2026-10-19 a
+hidden tab keeps playing; see acceptance item 12. Library loads use the
 same graph and cannot bypass a zero voice gain.
 
 Each audible cue creates one oscillator and one gain envelope, then disconnects
@@ -385,7 +386,10 @@ The human listening pass must confirm:
    their visible actions instead of sounding on every fixed tick.
 11. Two Sims performing personal activities retain independent cadence without
     creating duplicate household-scene sounds.
-12. A hidden tab is silent.
+12. A hidden tab keeps playing sound while the game keeps running. Superseded
+    on 2026-10-19 by the owner's decision that a background tab keeps the whole
+    game running; this criterion originally read "A hidden tab is silent."
+    Graphics recovery still silences sound until the scene returns.
 13. Repeated rejected actions do not click, pop, or leave a queued tail.
 14. Every meaningful cue retains visible or text feedback.
 

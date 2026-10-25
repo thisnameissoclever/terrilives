@@ -1,0 +1,31 @@
+{
+  "emptySearch": {
+    "query": "zzznomatchrelease",
+    "feedback": "No matching section",
+    "proof": "guide-search-empty.txt"
+  },
+  "matchingSearch": {
+    "query": "Land",
+    "proof": "guide-search-matching.txt"
+  },
+  "linkResult": {
+    "heading": "Land #",
+    "title": "UI elements | Natural Causes",
+    "url": "http://127.0.0.1:5191/guide/ui-elements/#land"
+  },
+  "backResult": {
+    "query": "Land",
+    "title": "Home and controls | Natural Causes",
+    "url": "http://127.0.0.1:5191/guide/home-and-controls/?q=Land#rooms-and-land"
+  },
+  "nativeDisclosure": [
+    {
+      "summary": "Numbers and limits",
+      "text": "Numbers and limits\n\nThe current game has no fixed per-person waiting-order limit. The visible preview shows as many as fit without discarding the rest. A separate command buffer can refuse a burst of new inputs; the status reports an unaccepted instruction."
+    }
+  ],
+  "restoredDetails": [],
+  "restoredTheme": "dark",
+  "urlWaitLimit": "Driver exact-hash wait timed out despite actual UI elements document and #land. CDP frame.url plus urlFragment and DOM URL independently identify navigation; failed observations preserved separately.",
+  "noJavaScript": "Not executed through Cua; no exposed script-disable method. Pending alternate-driver static-guide verification."
+}

@@ -1,0 +1,205 @@
+{
+  "source": "1fd2abb616be37a9c4ca328f795cf546d4aa9eba",
+  "capture": "Chrome Page.captureScreenshot original PNG, measured viewport clip, scale 1; no image edits",
+  "before": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "after": {
+    "contentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssContentSize": {
+      "height": 844,
+      "width": 390,
+      "x": 0,
+      "y": 0
+    },
+    "cssLayoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "cssVisualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    },
+    "layoutViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "pageX": 0,
+      "pageY": 0
+    },
+    "visualViewport": {
+      "clientHeight": 844,
+      "clientWidth": 390,
+      "offsetX": 0,
+      "offsetY": 0,
+      "pageX": 0,
+      "pageY": 0,
+      "scale": 1,
+      "zoom": 1
+    }
+  },
+  "raster": {
+    "width": 390,
+    "height": 844
+  },
+  "ui": {
+    "active": {
+      "focusVisible": true,
+      "label": "Chores"
+    },
+    "buttons": [
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 44,
+        "label": "Build",
+        "pressed": "false",
+        "width": 89,
+        "x": 8,
+        "y": 159.984375
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 44,
+        "label": "Options",
+        "pressed": null,
+        "width": 89,
+        "x": 101,
+        "y": 159.984375
+      },
+      {
+        "background": "rgba(0, 0, 0, 0)",
+        "height": 15.390625,
+        "label": "Waiting",
+        "pressed": null,
+        "width": 319.84375,
+        "x": 55.15625,
+        "y": 701.8125
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 36,
+        "label": "Edit",
+        "pressed": null,
+        "width": 37.796875,
+        "x": 15,
+        "y": 723.203125
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 36,
+        "label": "Sim details",
+        "pressed": null,
+        "width": 78.109375,
+        "x": 56.796875,
+        "y": 723.203125
+      },
+      {
+        "background": "rgb(41, 49, 58)",
+        "height": 36,
+        "label": "Chores",
+        "pressed": null,
+        "width": 55.859375,
+        "x": 138.90625,
+        "y": 723.203125
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 36,
+        "label": "Collapse Sim dock",
+        "pressed": null,
+        "width": 57.078125,
+        "x": 198.765625,
+        "y": 723.203125
+      },
+      {
+        "background": "rgb(111, 178, 210)",
+        "height": 36,
+        "label": "Tim",
+        "pressed": "true",
+        "width": 60,
+        "x": 17,
+        "y": 793
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 36,
+        "label": "Bill",
+        "pressed": "false",
+        "width": 60,
+        "x": 81,
+        "y": 793
+      },
+      {
+        "background": "rgb(32, 32, 40)",
+        "height": 36,
+        "label": "Casey",
+        "pressed": "false",
+        "width": 60,
+        "x": 145,
+        "y": 793
+      }
+    ],
+    "clock": "\n        \n          Time\n          Day 1, Monday\n03:14\nSpring: mild\n        \n        \n          Funds\n          0\n        \n\n        \n        \n          Saved game loaded\n          \n          \n        \n      ",
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390
+    }
+  }
+}

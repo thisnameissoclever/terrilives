@@ -189,6 +189,10 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
             for _ in 0..13 {
                 source.tick();
             }
+            // V10 omits modern request identity and age. Compare continuations
+            // from the same historical state on both sides of this boundary.
+            let historical = source.save_snapshot_v10();
+            source.load_snapshot_v10(historical).unwrap();
             let line = if axis == EdgeAxis::Vertical {
                 WallLine { axis, x: 0, y: 1 }
             } else {
@@ -397,13 +401,13 @@ fn window_save_refuses_duplicate_overlap_conflict_bounds_and_overflow_atomically
 }
 
 #[test]
-fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinates() {
+fn perimeter_saves_accept_solids_and_outer_doors_but_not_shell_doors_or_outside_lines() {
     use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
-    for (axis, x, y) in [
-        (Vertical, 0, 1),
-        (Vertical, 4, 1),
-        (Horizontal, 1, 0),
-        (Horizontal, 1, 3),
+    for (axis, x, y, shell) in [
+        (Vertical, 0, 1, true),
+        (Vertical, 4, 1, false),
+        (Horizontal, 1, 0, true),
+        (Horizontal, 1, 3, false),
     ] {
         let edge = WallEdge {
             axis,
@@ -426,10 +430,17 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
                 ..edge
             }],
         };
-        assert_eq!(
-            apply_layout(&mut grid, &door, house(2, 2)),
-            Err(SaveError::InvalidGrid)
-        );
+        // [WT-rules]: a doorway may stand on the lot's edge, opening onto
+        // nothing, but the house's implicit shell is never opened.
+        if shell {
+            assert_eq!(
+                apply_layout(&mut grid, &door, house(2, 2)),
+                Err(SaveError::InvalidGrid)
+            );
+        } else {
+            assert_eq!(apply_layout(&mut grid, &door, house(2, 2)), Ok(()));
+            assert_eq!(grid.blocked_edges().count(), 0);
+        }
     }
     for (axis, x, y) in [
         (Vertical, 5, 1),
@@ -452,4 +463,76 @@ fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinat
             Err(SaveError::InvalidGrid)
         );
     }
+}
+
+#[test]
+fn a_window_edit_with_owned_reading_restores_the_complete_runtime_before_validation() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let actor = sim
+        .world_mut()
+        .query_filtered::<bevy_ecs::entity::Entity, bevy_ecs::query::With<Agent>>()
+        .iter(sim.world())
+        .next()
+        .unwrap();
+    let pack = sim.world().resource::<crate::Content>().0;
+    let (seat, action) = sim
+        .world_mut()
+        .query::<(bevy_ecs::entity::Entity, &terri_core::SmartObject)>()
+        .iter(sim.world())
+        .find_map(|(entity, object)| {
+            pack.object(object.0)
+                .interactions
+                .iter()
+                .find(|action| action.book_reading)
+                .map(|action| (entity, action.id.clone()))
+        })
+        .expect("the shipped lot has a reading place");
+    let title = sim
+        .world()
+        .resource::<crate::books::BookLibrary>()
+        .state()
+        .copies
+        .first()
+        .expect("the shipped household owns a book")
+        .title_id
+        .clone();
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::Book(
+            terri_core::command::BookCommand::Read {
+                agent: actor.index_u32(),
+                object: seat.index_u32(),
+                action,
+                title,
+                front: true,
+            },
+        ));
+    sim.tick();
+    assert!(sim
+        .world_mut()
+        .query::<&crate::reading::ReadingJourney>()
+        .iter(sim.world())
+        .next()
+        .is_some());
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::FitWindow {
+            axis: terri_core::layout::EdgeAxis::Vertical,
+            x: 0,
+            y: 1,
+            model: terri_core::windows::WindowModel::Sash,
+        });
+    sim.flush_commands();
+    assert_eq!(sim.take_build_error(), None);
+    assert_eq!(
+        sim.world()
+            .resource::<crate::placement::LotEditState>()
+            .last_window_result
+            .as_ref()
+            .map(|r| r.reason),
+        Some(None)
+    );
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_current_v6_view(sim.current_v6_view()).unwrap();
+    assert_eq!(loaded.world_hash(), sim.world_hash());
 }

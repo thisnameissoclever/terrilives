@@ -1,11 +1,13 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import type { WeatherTuning } from './render/weather.js';
 import type { ActionQueueRow, OrderEventBatch } from './ui/player-orders.js';
 import type { WorkConflict } from './ui/work-order-confirmation.js';
 import { decodeRoomUnit, decodeRoomSummary, decodeRoomTiles, decodeRoomPredecessors, decodeBuildReview,
   decodeBuildError, encodeRoomChoices, encodeRoomName, checkBuildToken, RoomWireError, EMPTY_ROOM_CHOICES,
   type BuildToken, type RoomChoices, type Point } from './rooms/codec.js';
+import { parseBuildFailureReport, type BuildFailureReport } from './rooms/failure.js';
 import { decodeActivityStatus, type ActivityStatus } from './activity-status.js';
 import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
   encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
@@ -108,7 +110,40 @@ const CAREER_REASONS: Readonly<Record<number, string>> = {
   1: 'That person is no longer here.',
   2: 'Not while they are at work or on the way.',
   3: 'That career path is not known.',
+  // Issue 296, [WS-shell] item 5. Functional text, for the owner's review.
+  4: 'That shift is not offered at this level.',
+  5: 'This person has no job.',
+  6: 'They already work that shift.',
 };
+
+/**
+ * One shift a level offers (issue 296, [WS-shell] item 6): its index at the
+ * level, 0 for the standard shift; its kind, 0 to 3, or null when it cannot
+ * be named; its working-day mask, start and length in ticks of the day
+ * clock; and its weight, the chance of a hire drawing it relative to the
+ * level's other offered shifts.
+ */
+export interface CareerShift {
+  readonly index: number;
+  readonly kind: number | null;
+  readonly workingDays: number;
+  readonly shiftStart: number;
+  readonly shiftTicks: number;
+  readonly weight: number;
+}
+
+/** The runtime's offered shifts, six numbers each; empty when any is unusable. */
+function careerShifts(values: ArrayLike<number>): CareerShift[] {
+  if (values.length % 6 !== 0) return [];
+  const shifts: CareerShift[] = [];
+  for (let at = 0; at < values.length; at += 6) {
+    const [index, kind, shiftStart, shiftTicks, workingDays, weight] = Array.from(values).slice(at, at + 6);
+    if (![index, kind, shiftStart, shiftTicks, workingDays, weight].every(isU32) || weight === 0) return [];
+    if (shifts.some(shift => shift.index === index)) return [];
+    shifts.push({ index, kind: kind <= 3 ? kind : null, workingDays, shiftStart, shiftTicks, weight });
+  }
+  return shifts;
+}
 
 export interface BedAssignmentResult {
   readonly sequence: bigint;
@@ -316,7 +351,12 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   20: 'Select the whole window to change it.',
 };
 
-export function wallReason(code: number): string | null {
+/** An open line or doorway that gives furniture an approach from floor nobody reaches. */
+const OPENING_OUT_OF_REACH = 'That opening would leave furniture facing a space nobody can reach. Make a way into that space first.';
+
+/** `state` is the requested wall state: 0 open, 1 wall, 2 doorway. */
+export function wallReason(code: number, state?: number): string | null {
+  if (code === 11 && (state === 0 || state === 2)) return OPENING_OUT_OF_REACH;
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
 }
 
@@ -344,6 +384,9 @@ const FLOOR_REASONS: Readonly<Record<number, string>> = {
  */
 export const RELATION_WORDS = ['partner', 'parent', 'child', 'sibling'] as const;
 export const NO_RELATION = 4;
+
+/** Little-endian `u32` words in one activity log record ([AL-record]). */
+export const ACTIVITY_LOG_RECORD_WORDS = 12;
 
 /** The plain word for a relation code, or null when there is no tie. */
 export function relationWord(code: number): string | null {
@@ -773,7 +816,7 @@ export class SimBridge {
   /** Axis 0 vertical, 1 horizontal; state 0 open, 1 wall, 2 doorway. Never writes. */
   wallEditPreview(axis: number, x: number, y: number, state: number): WallEditPreview {
     const code = this.handle.wall_edit_preview(axis, x, y, state);
-    return { valid: code === 0, reason: wallReason(code), code };
+    return { valid: code === 0, reason: wallReason(code, state), code };
   }
 
   /** Queue acceptance only; read the outcome from `lastWallEditResult`. */
@@ -785,7 +828,7 @@ export class SimBridge {
     reason: string | null } | null {
     const values = this.handle.last_wall_edit_result();
     return values.length === 0 ? null : { axis: values[0], x: values[1], y: values[2],
-      state: values[3], reason: wallReason(values[4]) };
+      state: values[3], reason: wallReason(values[4], values[3]) };
   }
 
   /** Corners `[x0, y0, x1, y1]`, doorway or null. Never writes. */
@@ -880,6 +923,18 @@ export class SimBridge {
     return Float32Array.from(this.handle.season_yard_looks());
   }
 
+  private weatherConfig: WeatherTuning | null | undefined;
+  weatherTuning(): WeatherTuning | null {
+    if (this.weatherConfig !== undefined) return this.weatherConfig;
+    const row = this.handle.weather_tuning();
+    if (!row.length) return this.weatherConfig = null;
+    if (row.length !== 10 || row.some(value => !Number.isFinite(value))) {
+      throw new Error('Malformed weather content.');
+    }
+    return this.weatherConfig = { seed: row[0], chance: Array.from(row.slice(1, 5)), eventHours: row[5],
+      earliestHour: row[6], latestHour: row[7], leafHours: row[8], fallMinutes: row[9] };
+  }
+
   /** Versioned simulation bytes for browser-owned storage. */
   saveBytes(): Uint8Array {
     return this.handle.save_bytes();
@@ -893,6 +948,8 @@ export class SimBridge {
   endBuild() { return decodeRoomUnit(this.handle.end_build()); }
   discardBuildReview() { return decodeRoomUnit(this.handle.discard_build_review()); }
   takeBuildError() { return decodeBuildError(this.handle.take_build_error()); }
+  /** The load rule behind the latest refused Build entry or preparation. */
+  buildFailureReport(): BuildFailureReport { return parseBuildFailureReport(this.handle.build_failure_report()); }
   stageRoomName(id: number, name: string) { return decodeRoomUnit(this.handle.stage_room_name(encodeRoomName(id, name))); }
   roomSummaries() { return decodeRoomSummary(this.handle.room_summaries()); }
   private roomContext() { return {width:this.handle.lot_width(),height:this.handle.lot_height()}; }
@@ -1159,6 +1216,61 @@ export class SimBridge {
   }
 
   clearCompletionSounds(): void { this.handle.clear_completion_sounds(); }
+
+  private activityLogLabelsCache: string[] | null = null;
+
+  /**
+   * Moves every staged activity log record into `into`, a ring of
+   * 12-word records, starting at record slot `at` and wrapping to slot 0 at
+   * its end, and returns the record count ([AL-bridge]). Consuming: the
+   * simulation forgets what it hands over.
+   *
+   * The view over the export buffer is built after the take and copied
+   * word by word before this returns, so no later boundary call (a label
+   * string, a name) can detach it mid-copy (lesson L72). The copy builds
+   * one view object and nothing else.
+   */
+  takeActivityLog(into: Uint32Array, at: number): number {
+    const count = this.handle.activity_log_take();
+    if (count === 0) return 0;
+    const words = count * ACTIVITY_LOG_RECORD_WORDS;
+    const slots = Math.floor(into.length / ACTIVITY_LOG_RECORD_WORDS);
+    if (count > slots || !Number.isInteger(at) || at < 0 || at >= slots) {
+      throw new Error('Activity log records do not fit the destination.');
+    }
+    const view = new Uint32Array(this.memory.buffer, this.handle.activity_log_ptr(), words);
+    const length = slots * ACTIVITY_LOG_RECORD_WORDS;
+    let target = at * ACTIVITY_LOG_RECORD_WORDS;
+    for (let word = 0; word < words; word++) {
+      into[target] = view[word];
+      target = target + 1 === length ? 0 : target + 1;
+    }
+    return count;
+  }
+
+  /**
+   * The strings record `label` and `label2` words index. Fixed by the
+   * content pack, so it crosses the boundary once per page.
+   */
+  activityLogLabels(): readonly string[] {
+    return this.activityLogLabelsCache ??= this.handle.activity_log_labels().split('\n');
+  }
+
+  /** Records lost to a full staging ring before a take. Diagnostic only. */
+  activityLogDropped(): number { return this.handle.activity_log_dropped(); }
+
+  /** Turns emission off for the disabled baseline, `?activitylog=0`. */
+  setActivityLogEnabled(on: boolean): void { this.handle.set_activity_log_enabled(on); }
+
+  /**
+   * The Likes and dislikes band edges that turn a topic preference, from
+   * -1 to 1, into a reaction word ([AL-numbers]).
+   */
+  activityLogReactionBands(): { loves: number; likes: number } {
+    const [loves, likes] = this.handle.activity_log_reaction_bands();
+    if (!(likes > 0 && likes < loves && loves <= 1)) throw new Error('Invalid reaction bands.');
+    return { loves, likes };
+  }
 
   /**
    * Exact placed-object entity index that owns each sound action, or u32::MAX.
@@ -2243,11 +2355,27 @@ export class SimBridge {
    */
   careerScheduleOf(
     entityIndex: number,
-  ): { workingDays: number; shiftStart: number; shiftTicks: number } | null {
+  ): { workingDays: number; shiftStart: number; shiftTicks: number; kind: number | null; index: number | null } | null {
     if (!isU32(entityIndex)) return null;
     const values = this.handle.career_schedule_of(entityIndex);
-    if (values.length !== 3) return null;
-    return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
+    if (values.length !== 5) return null;
+    const [workingDays, shiftStart, shiftTicks, kind, index] = values;
+    // A kind past the four named ones keeps the schedule and loses the name
+    // (issue 296, [WS-shell] item 6).
+    return { workingDays, shiftStart, shiftTicks, kind: isU32(kind) && kind <= 3 ? kind : null,
+      index: isU32(index) ? index : null };
+  }
+
+  /** The shifts the first level of career path `path` offers; empty for an unknown path. */
+  careerPathShifts(path: number): CareerShift[] {
+    if (!isU32(path)) return [];
+    return careerShifts(this.handle.career_path_shifts(path));
+  }
+
+  /** The shifts the person's current level offers; empty without a job. */
+  careerShiftsOf(entityIndex: number): CareerShift[] {
+    if (!isU32(entityIndex)) return [];
+    return careerShifts(this.handle.career_shifts_of(entityIndex));
   }
 
   /**
@@ -2317,6 +2445,18 @@ export class SimBridge {
   quitCareer(entityIndex: number): boolean {
     if (!isU32(entityIndex)) return false;
     return this.handle.quit_career(entityIndex);
+  }
+
+  /** Stages an assignment holding shift index `shift` of the path's first level. */
+  assignCareerShift(entityIndex: number, path: number, shift: number): boolean {
+    if (!isU32(entityIndex) || !isU32(path) || !isU32(shift)) return false;
+    return this.handle.assign_career_shift(entityIndex, path, shift);
+  }
+
+  /** Stages a move to shift index `shift` of the person's current level. */
+  changeShift(entityIndex: number, shift: number): boolean {
+    if (!isU32(entityIndex) || !isU32(shift)) return false;
+    return this.handle.change_shift(entityIndex, shift);
   }
 
   /** What the drain did with the last career command, or null before any. */

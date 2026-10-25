@@ -1,0 +1,36 @@
+code=false
+site=false
+code=true
+site=true
+...........................................................................................................................................E......................................................................................
+======================================================================
+ERROR: test_missing_worker_and_three_attempt_gap_are_not_silent_omissions (test_mutation_recovery.RecoveryTests.test_missing_worker_and_three_attempt_gap_are_not_silent_omissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_recovery.py", line 223, in test_missing_worker_and_three_attempt_gap_are_not_silent_omissions
+    recovery.ingest(api, self.f.data, settings, inventory, runs, include_current=True)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_recovery.py", line 531, in ingest
+    evidence, log = artifacts.authenticate_capacity_failure(api, manifest, entry, job,
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        data.get("native_admission", {}).get("batch_policy_digest"), repository=repository, workflow=tool.WORKFLOW,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        required_until=artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_artifacts.py", line 175, in authenticate_capacity_failure
+    attempt = api.json(f"repos/{repository}/actions/runs/{entry['run_id']}/attempts/{job['run_attempt']}")
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_recovery.py", line 640, in json
+    return super().json(path)
+           ~~~~~~~~~~~~^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\mutation_artifacts.py", line 247, in json
+    self.cache[path] = self.api.json(path)
+                       ~~~~~~~~~~~~~^^^^^^
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_artifacts.py", line 36, in json
+    return copy.deepcopy(self.responses[path])
+                         ~~~~~~~~~~~~~~^^^^^^
+KeyError: 'repos/owner/repo/actions/runs/100/attempts/3'
+
+----------------------------------------------------------------------
+Ran 226 tests in 599.115s
+
+FAILED (errors=1)

@@ -16,8 +16,9 @@ pub fn start_shift(world: &mut World) {
     crate::attendance::start_tick(world);
 }
 
-/// Whether `career` works on the day `clock` is in ([CAL-careers] in
-/// `docs/specs/2026-10-06-calendar.md`).
+/// Whether `shift`, a person's held shift, works on the day `clock` is in
+/// ([CAL-careers] in `docs/specs/2026-10-06-calendar.md`; the held shift is
+/// issue 296's [WS-systems]).
 ///
 /// `start_shift` asks this only on a shift-start tick, so it decides
 /// whether a shift STARTS and nothing else: a shift already running when
@@ -25,11 +26,11 @@ pub fn start_shift(world: &mut World) {
 /// current tick falls in, which `start_shift` reads after `advance_clock`,
 /// so a shift starting at day-tick 0 follows the day that tick begins.
 pub(crate) fn works_today(
-    career: &terri_data::CompiledCareer,
+    shift: &terri_data::ShiftView<'_>,
     clock: &SimClock,
     tuning: &terri_data::Tuning,
 ) -> bool {
-    career.works_on(terri_core::clock::weekday(
+    shift.works_on(terri_core::clock::weekday(
         clock.tick,
         tuning.day_ticks,
         tuning.first_weekday,
@@ -104,6 +105,9 @@ mod tests {
             social_demand: 0.0,
             skill_tag: None,
             trait_fit: Vec::new(),
+            standard_kind: terri_data::SHIFT_DAY,
+            standard_weight: 1,
+            shifts: Vec::new(),
         }
     }
 
@@ -1542,7 +1546,7 @@ mod tests {
         assert_eq!(today(&source), 5, "the walk home is on Saturday");
         let funds_at_save = source.funds();
 
-        let snapshot = source.save_snapshot_v17();
+        let snapshot = source.current_v17_view();
         assert_eq!(
             source.world().get::<terri_core::SimId>(worker),
             Some(&identity)
@@ -1559,7 +1563,7 @@ mod tests {
             Ok(())
         );
         let mut restored = test_content::sim_with_portals(16, 12, pack);
-        assert_eq!(restored.load_snapshot_v17(snapshot), Ok(()));
+        assert_eq!(restored.load_current_v17_view(snapshot), Ok(()));
         assert!(restored.world().get::<Commuting>(worker).is_some());
         assert_eq!(clock(&restored), saved_at);
 

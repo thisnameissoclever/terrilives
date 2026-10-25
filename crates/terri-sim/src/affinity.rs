@@ -12,7 +12,7 @@ use terri_core::{
 };
 use terri_data::{AffinityReach, CompiledTrait, CompiledTraitKind, ContentPack, Tuning};
 
-use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
+use crate::relationship_effects::{RelationshipCause, RelationshipEffect};
 use crate::room_regions::RoomRegions;
 use crate::{Content, Moodlet};
 
@@ -311,7 +311,13 @@ pub(crate) fn bother(world: &mut World) {
         ) else {
             continue;
         };
-        let requested = -nuisance.value.abs() * per_tick;
+        let requested = crate::relationship_effects::scaled_opinion_delta(
+            world,
+            affected,
+            responsible,
+            RelationshipCause::Nuisance,
+            -nuisance.value.abs() * per_tick,
+        );
         if requested == 0.0 {
             continue;
         }
@@ -323,10 +329,29 @@ pub(crate) fn bother(world: &mut World) {
         feelings.bump(responsible, requested);
         let actual = feelings.feeling(responsible) - before;
         world.entity_mut(person).insert(feelings);
-        world
-            .resource_mut::<RelationshipDiagnostics>()
-            .effects
-            .push(RelationshipEffect {
+        if let Some(target) = world.get::<Target>(nuisance.user).copied() {
+            use terri_core::save_v20::{GrievanceKind, GrievanceSubject, NuisanceKind};
+            let kind = match pack.affinities[nuisance.kind as usize].id.as_str() {
+                "television" | "tv" => NuisanceKind::Television,
+                "music" | "radio" => NuisanceKind::Music,
+                "exercise" => NuisanceKind::Exercise,
+                _ => NuisanceKind::Other,
+            };
+            crate::social_conflicts::remember(
+                world,
+                affected,
+                responsible,
+                GrievanceKind::Nuisance,
+                GrievanceSubject::Nuisance {
+                    object: target.object.index_u32(),
+                    kind,
+                },
+                -requested,
+            );
+        }
+        crate::relationship_effects::record_about(
+            world,
+            RelationshipEffect {
                 tick,
                 event: 0,
                 cause: RelationshipCause::Nuisance,
@@ -336,7 +361,9 @@ pub(crate) fn bother(world: &mut World) {
                 actual,
                 emergency: false,
                 directed: false,
-            });
+            },
+            Some(&pack.affinities[nuisance.kind as usize].label),
+        );
     }
 }
 

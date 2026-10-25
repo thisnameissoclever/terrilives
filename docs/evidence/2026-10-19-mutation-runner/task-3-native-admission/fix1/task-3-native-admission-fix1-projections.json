@@ -1,0 +1,168 @@
+{
+  "subtotal_false_fit": {
+    "per_slot_counts": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "remaining_wall_seconds": 79999.782486,
+    "envelope_wall_seconds": 45000,
+    "pessimistic_mutation_cap_seconds_per_slot": [
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000
+    ],
+    "pessimistic_capped_campaign": {
+      "mutation_cap_seconds": 720,
+      "baseline_cap_seconds_per_wave": 720,
+      "setup_seconds_per_wave": 2,
+      "reserves_seconds_per_wave": {
+        "shutdown_seconds": 30,
+        "validation_seconds": 120,
+        "upload_seconds": 240
+      },
+      "queue_seconds_per_wave": 1800,
+      "mutations_per_wave": 8,
+      "per_slot_waves": [
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13
+      ],
+      "per_slot_wall_seconds": [
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856
+      ],
+      "wall_seconds": 109856,
+      "fits_remaining": false,
+      "reason": "remaining_lifetime_exceeded",
+      "assumptions": "Every baseline and mutation uses both phase caps; measured setup, all reserves and the declared queue allowance repeat each wave. External setup and queue delays can exceed those allowances.",
+      "is_guarantee": false
+    },
+    "pessimistic_cap_bound_fits_remaining": false
+  },
+  "full_projection_fits": {
+    "per_slot_counts": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "remaining_wall_seconds": 199999.784512,
+    "envelope_wall_seconds": 45000,
+    "pessimistic_mutation_cap_seconds_per_slot": [
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000,
+      72000
+    ],
+    "pessimistic_capped_campaign": {
+      "mutation_cap_seconds": 720,
+      "baseline_cap_seconds_per_wave": 720,
+      "setup_seconds_per_wave": 2,
+      "reserves_seconds_per_wave": {
+        "shutdown_seconds": 30,
+        "validation_seconds": 120,
+        "upload_seconds": 240
+      },
+      "queue_seconds_per_wave": 1800,
+      "mutations_per_wave": 8,
+      "per_slot_waves": [
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13
+      ],
+      "per_slot_wall_seconds": [
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856,
+        109856
+      ],
+      "wall_seconds": 109856,
+      "fits_remaining": true,
+      "reason": "fits_declared_assumptions",
+      "assumptions": "Every baseline and mutation uses both phase caps; measured setup, all reserves and the declared queue allowance repeat each wave. External setup and queue delays can exceed those allowances.",
+      "is_guarantee": false
+    },
+    "pessimistic_cap_bound_fits_remaining": true
+  },
+  "no_capped_mutation_fits": {
+    "remaining_wall_seconds": 599999.787904,
+    "envelope_wall_seconds": 45000,
+    "pessimistic_capped_campaign": {
+      "mutation_cap_seconds": 4200,
+      "baseline_cap_seconds_per_wave": 4200,
+      "setup_seconds_per_wave": 2,
+      "reserves_seconds_per_wave": {
+        "shutdown_seconds": 30,
+        "validation_seconds": 120,
+        "upload_seconds": 240
+      },
+      "queue_seconds_per_wave": 1800,
+      "mutations_per_wave": 0,
+      "per_slot_waves": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "per_slot_wall_seconds": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "wall_seconds": null,
+      "fits_remaining": false,
+      "reason": "baseline_and_capped_mutation_do_not_fit",
+      "assumptions": "Every baseline and mutation uses both phase caps; measured setup, all reserves and the declared queue allowance repeat each wave. External setup and queue delays can exceed those allowances.",
+      "is_guarantee": false
+    },
+    "pessimistic_cap_bound_fits_remaining": false
+  }
+}

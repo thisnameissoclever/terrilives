@@ -9,7 +9,7 @@ import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { coveredWindowLines, type WindowDefinition, type WindowEditPreview, type WindowPlacement } from '../architecture/windows.js';
 import type { WallLine } from '../ui/wall-tool.js';
 import {fixturePlacementOffset,type FixtureRegistrationSource} from './fixture-registration.js';
-import {writePlacementMarker} from './ground-selection.js';
+import {writePlacementMarker,writeSegmentMarker} from './ground-selection.js';
 
 const lineKey = (line: WallLine): string => `${line.axis}/${line.x}/${line.y}`;
 export const windowOwnerKey = (window: WindowPlacement): string => `window/${lineKey(window)}/${window.model}`;
@@ -41,32 +41,85 @@ const VALID = [0.75, 0.9, 1] as const;
 const INVALID = [229 / 255, 140 / 255, 133 / 255] as const;
 
 /**
- * Floor tiles ringed in the preview tints: the tiles a Walls, Room, Floors,
- * Land or Window tool choice covers, a line or an area.
+ * A stretch of `length` wall lines from one line along its axis, marked on
+ * the floor as one bar ([WB-mark]): what the Walls and Window tools have
+ * chosen, or the line a click would choose.
+ */
+export interface LineMark {
+  readonly axis: 0 | 1;
+  readonly x: number;
+  readonly y: number;
+  readonly length: number;
+  readonly valid: boolean;
+  readonly hover?: boolean;
+}
+
+/**
+ * Floor tiles ringed in the preview tints, the tiles a Room, Floors or Land
+ * tool choice covers, and the bars along the wall lines a Walls or Window
+ * tool choice covers.
  */
 export interface TileHighlight {
   readonly tiles: readonly (readonly [number, number])[];
   readonly valid: boolean;
+  /** Tiles in the choice that refuse it, ringed in the refused tint whatever `valid` says. */
+  readonly refused?: readonly (readonly [number, number])[];
+  readonly lines?: readonly LineMark[];
+}
+
+/** Ordered lines merged into one bar per unbroken stretch of the same validity. */
+export function lineMarks(lines: readonly WallLine[], valid: readonly boolean[], hover = false): LineMark[] {
+  const marks: LineMark[] = [];
+  lines.forEach((line, at) => {
+    const last = marks.at(-1);
+    const along = line.axis === 0 ? line.y : line.x;
+    if (last && last.axis === line.axis && last.valid === valid[at]
+      && (line.axis === 0 ? last.x === line.x && last.y + last.length === along
+        : last.y === line.y && last.x + last.length === along)) {
+      marks[marks.length - 1] = { ...last, length: last.length + 1 };
+    } else {
+      marks.push({ axis: line.axis, x: line.x, y: line.y, length: 1, valid: valid[at], ...(hover ? { hover } : {}) });
+    }
+  });
+  return marks;
+}
+
+/** The highlight with the bar for the line under the pointer added, unless that line is already chosen. */
+export function withHoverLine(highlight: TileHighlight | null, hover: WallLine | null,
+  chosen: readonly WallLine[] = []): TileHighlight | null {
+  if (!hover || chosen.some(line => lineKey(line) === lineKey(hover))) return highlight;
+  const mark = { axis: hover.axis, x: hover.x, y: hover.y, length: 1, valid: true, hover: true };
+  return { tiles: highlight?.tiles ?? [], valid: highlight?.valid ?? true, ...(highlight?.refused ? { refused: highlight.refused } : {}),
+    lines: [...(highlight?.lines ?? []), mark] };
 }
 
 export function tileHighlightCount(highlight: TileHighlight | null): number {
-  return highlight ? highlight.tiles.length : 0;
+  return highlight ? highlight.tiles.length + (highlight.refused?.length ?? 0) + (highlight.lines?.length ?? 0) : 0;
 }
 
 /**
  * Appends one ring sprite per tile, a quarter layer above the prop layer at
- * that tile. A highlight marks a set of tiles, a line or an area, rather than
- * one object, so it keeps the per-tile ring instead of the placement
- * preview's floor marker.
+ * that tile, then one floor bar per line mark. A tile highlight marks a set
+ * of tiles, an area, rather than one object, so it keeps the per-tile ring
+ * instead of the placement preview's floor marker.
  */
 export function writeTileHighlight(out: Float32Array, slot: number,
   highlight: TileHighlight | null, originX: number, originY: number,
   gridSize: number, scale: number): number {
   if (!highlight) return slot;
-  const tint = highlight.valid ? VALID : INVALID;
-  for (const [x, y] of highlight.tiles) {
-    writeInstance(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
-      layeredDepth(x, y, gridSize, LAYER_PROP + 0.25), RING, ...tint, 1);
+  const ring = (tiles: readonly (readonly [number, number])[], tint: readonly [number, number, number]) => {
+    for (const [x, y] of tiles) {
+      writeInstance(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
+        layeredDepth(x, y, gridSize, LAYER_PROP + 0.25), RING, ...tint, 1);
+    }
+  };
+  ring(highlight.tiles, highlight.valid ? VALID : INVALID);
+  ring(highlight.refused ?? [], INVALID);
+  for (const mark of highlight.lines ?? []) {
+    const x = mark.x - 0.5 + (mark.axis === 1 ? mark.length / 2 : 0);
+    const y = mark.y - 0.5 + (mark.axis === 0 ? mark.length / 2 : 0);
+    writeSegmentMarker(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
+      mark.axis, mark.length, mark.valid, mark.hover === true);
   }
   return slot;
 }

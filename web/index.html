@@ -15,6 +15,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>Natural Causes</title>
+    <script defer vite-ignore src="./startup-diagnostics-v4.js"></script>
     <link rel="icon" href="./favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64 128x128 256x256" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
     <style>
@@ -287,6 +288,13 @@
       .career-controls select { width: 100%; }
       .career-actions { display: flex; gap: 8px; }
       .career-search { display: flex; align-items: center; gap: 6px; }
+      .career-shift-assign, .career-shift-change label { display: grid; gap: 4px; }
+      .career-shift-change { display: grid; gap: 6px; margin: 0; padding: 6px 8px; min-width: 0; }
+      .career-shift-change[hidden] { display: none; }
+      .career-shift-change select, .career-shift-assign select { width: 100%; min-width: 0; }
+      .career-shift-note { margin: 0; font-size: 0.9em; }
+      .career-shift-line { margin: 0; font-size: 0.9em; overflow-wrap: anywhere; }
+      .career-shift-line[hidden] { display: none; }
       .career-search[hidden] { display: none; }
       #sim-career p { margin: 2px 0; }
       #lighting-mode {
@@ -437,6 +445,22 @@
         color: var(--hud-muted);
         font-variant-numeric: tabular-nums;
       }
+      .moodlet-score { cursor: help; }
+      .moodlet-score:focus-visible { outline: 1px solid var(--hud-muted); outline-offset: 2px; }
+      .mood-number-help {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        box-sizing: border-box;
+        width: min(290px, calc(100vw - 16px));
+        padding: 10px 12px;
+        border: 1px solid var(--hud-muted);
+        border-radius: 6px;
+        background: var(--hud-bg, #19191f);
+        color: var(--hud-text, #ededf0);
+        font: 12px/1.45 system-ui, sans-serif;
+        pointer-events: none;
+      }
       .moodlet-row[data-tone='negative'] .moodlet-score {
         color: var(--hud-danger);
       }
@@ -577,7 +601,8 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
       }
-      #show-changelog {
+      #show-changelog,
+      #show-player-guide {
         grid-column: 1 / -1;
         display: grid;
         place-items: center;
@@ -715,6 +740,7 @@
       }
       #new-game-dialog,
       #load-game-dialog,
+      #import-save-dialog,
       #land-dialog,
       #build-exit-dialog,
       #housemate-dialog {
@@ -727,6 +753,7 @@
       }
       #new-game-dialog::backdrop,
       #load-game-dialog::backdrop,
+      #import-save-dialog::backdrop,
       #land-dialog::backdrop,
       #build-exit-dialog::backdrop,
       #housemate-dialog::backdrop {
@@ -734,6 +761,7 @@
       }
       #new-game-dialog h2,
       #load-game-dialog h2,
+      #import-save-dialog h2,
       #land-dialog h2,
       #build-exit-dialog h2,
       #housemate-dialog h2 {
@@ -783,6 +811,7 @@
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
       #load-game-dialog menu,
+      #import-save-dialog menu,
       #land-dialog menu,
       #build-exit-dialog menu,
       #housemate-dialog menu {
@@ -796,6 +825,7 @@
          phone never squeezes a label onto a third line. */
       #build-exit-dialog menu { grid-template-columns: minmax(0, 1fr); }
       #build-toggle { width: 100%; }
+      #world-player-guide { display: grid; place-items: center; text-decoration: none; padding: 4px 8px; }
       #builder-desktop { display: grid; gap: 8px; }
       #builder-controls { display: grid; gap: 8px; }
       /* [B-phone-build-dock]: hidden always wins. The phone layout gives the
@@ -1053,13 +1083,14 @@
       .book-commerce { margin-top: 10px; }
       .book-commerce-actions { display: flex; gap: 6px; }
       .book-commerce-actions button { flex: 1; min-height: 44px; }
-      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; }
+      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; background: var(--hud-bg); }
+      .radial-identity:has(.object-identity[open]) { width: min(26ch, calc(100vw - 32px)); }
       .radial-identity .object-identity { padding: 0; }
       .radial-identity summary { display: flex; flex-direction: column; }
       .radial-identity .object-type { order: -1; }
       .radial-identity .object-model { justify-content: center; }
       .radial-identity .object-description-arrow { display: none; }
-      .radial-identity .object-description { max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
+      .radial-identity .object-description { max-width: none; max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
       .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: var(--action-background, transparent); color: var(--action-text, var(--hud-muted)); font: inherit; }
       #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       #object-menu.object-menu-radial .menu-entry:disabled { opacity: .5; cursor: default; }
@@ -1180,17 +1211,30 @@
       <progress id="startup-loading-progress" aria-label="Files loaded" hidden></progress>
       <p id="startup-loading-bytes" hidden></p>
     </div>
-    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
-         Outside #hud for #object-menu's reason: it is fixed to the window's
-         top right, not part of the sidebar's column. Before the sidebar, so
-         it is the first stop after the game view, in and out of Build. The panel holds the
-         controls a player reaches for now and then; the sidebar keeps what
-         they read all the time. -->
+    <!-- The activity log - [AL-panel] in docs/specs/2026-10-18-activity-log.md.
+         The Log toggle owns the window's top right in normal play; Build
+         hides it, because Build's zoom buttons use that corner. Outside
+         #hud for #object-menu's reason: fixed to the window, not part of the
+         sidebar's column. The panel is non-modal and shares the right side
+         with Options and Sim details, one at a time. Its words, the filter
+         toggles included, come from src/ui/activity-log-words.ts at startup.
+         The Options flyout ([OF1] in docs/specs/2026-09-22-options-flyout.md)
+         lives in the sidebar's world actions below, beside Build. -->
+    <button id="activity-log-toggle" class="hud-button" type="button" aria-expanded="false" aria-controls="activity-log"></button>
+    <section id="activity-log" aria-labelledby="activity-log-title" hidden>
+      <div id="activity-log-header"><h2 id="activity-log-title" class="activity-log-title"></h2><button data-action-intent="negative" id="activity-log-close" class="hud-button" type="button"></button></div>
+      <div id="activity-log-filters" role="group"></div>
+      <div id="activity-log-scroller" role="region" tabindex="0">
+        <button id="activity-log-earlier" class="hud-button" type="button" hidden></button>
+        <ol id="activity-log-list"></ol>
+        <p id="activity-log-empty" hidden></p>
+      </div>
+    </section>
     <div id="hud">
       <section id="household-summary" aria-label="Household status">
         <div id="clock-row" class="summary-row">
           <span class="summary-label">Time</span>
-          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;Spring, 00:00</strong>
+          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;00:00&#10;Spring: mild</strong>
         </div>
         <div class="summary-row">
           <span class="summary-label">Funds</span>
@@ -1268,9 +1312,13 @@
         <button id="new-housemate" class="hud-button" type="button">New housemate</button>
         <button data-action-intent="affirmative" id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="export-save" class="hud-button" type="button">Export save</button>
+        <button id="import-save" class="hud-button" type="button">Import save</button>
+        <input id="import-save-file" type="file" hidden tabindex="-1" aria-hidden="true" />
 
 
         <button id="new-game" class="hud-button" type="button">New game</button>
+        <a id="report-bug" class="hud-button" href="./startup-report.html" title="Email a bug report to Tim">Report bug</a>
         <button
           id="show-help"
           class="hud-button"
@@ -1278,15 +1326,17 @@
           aria-controls="help-panel"
           aria-expanded="false"
         >Help</button>
+        <a id="show-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" aria-describedby="guide-time-note">Player guide<small id="guide-time-note" class="menu-secondary">Pause first to stop time</small></a>
         <a id="show-changelog" class="hud-button" href="./changelog/" target="_blank"
           rel="noopener" aria-label="Changelog (opens in a new tab)">Changelog</a>
         </section>
       </div>
     </div></div>
+    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab. Pause first if you want the household to wait.">Player guide</a>
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
-        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span><span id="dock-critical"></span></div>
+        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><button id="dock-activity" type="button"></button><span id="dock-critical"></span></div>
         <button id="edit-housemate" class="hud-button" type="button" disabled>Edit</button>
         <div id="dock-wellbeing">
           <section id="mood-block" aria-label="Mood">
@@ -1361,7 +1411,7 @@
           type="button"
           aria-pressed="true"
         >Queue mode</button><button data-action-intent="destructive" id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
-            <p id="queue-preview-note">Upcoming actions. The preview shows as many as fit; all waiting orders remain queued.</p>
+            <p id="queue-preview-note">All waiting orders remain queued, including those that do not fit in the preview.</p>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
           </section>
@@ -1410,7 +1460,7 @@
           <p id="builder-touch-help" class="builder-note builder-help" hidden>Select furniture, then a destination tile. Use the nearby buttons to turn or place it.</p>
         </div>
         <div class="builder-actions">
-          <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
+          <p id="builder-status" role="status" aria-live="polite"></p>
 
 
           <p id="builder-sale-note" class="builder-note" hidden></p>
@@ -1419,7 +1469,12 @@
         <div id="wall-tool" class="builder-tool" hidden>
           <div class="builder-choices">
             <details id="wall-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="wall-shortcut-content"></div></details>
-            <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it.</p>
+            <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it. Select a second edge in the same row to select every edge between them.</p>
+            <div class="builder-row wall-height" role="group" aria-label="Wall height">
+              <span>Walls</span>
+              <button id="wall-height-low" class="hud-button" type="button" aria-pressed="true">Low</button>
+              <button id="wall-height-full" class="hud-button" type="button" aria-pressed="false">Full height</button>
+            </div>
             <div id="window-choices" hidden>
               <div class="builder-row"><strong>Windows</strong><button data-action-intent="negative" id="window-back" class="hud-button" type="button">Wall controls</button></div>
               <div id="window-models"></div>
@@ -1446,11 +1501,11 @@
             <details id="floor-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="floor-shortcut-content"></div></details>
             <div id="floor-material-samples" aria-label="Floor materials"></div>
             <button data-action-intent="affirmative" id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
-            <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, then choose its floor covering from the nearby buttons.</p>
+            <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, or two opposite corner tiles to select every tile between them, then choose a floor covering from the nearby buttons.</p>
 
           </div>
           <div class="builder-actions">
-            <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
+            <p id="floor-status" role="status" aria-live="polite"></p>
           </div>
         </div>
         <div id="land-tool" class="builder-tool" hidden>
@@ -1461,10 +1516,10 @@
               <button id="land-side-1" class="hud-button" type="button" aria-pressed="false">Left side</button>
               <button id="land-side-2" class="hud-button" type="button" aria-pressed="false">Right side</button>
             </div>
-            <p id="land-touch-help" class="builder-note builder-help" hidden>Choose a strip beside the lot, read its price, then use Buy land.</p>
+            <p id="land-touch-help" class="builder-note builder-help" hidden></p>
           </div>
           <div class="builder-actions">
-            <p id="land-status" role="status" aria-live="polite">Choose a strip of land.</p>
+            <p id="land-status" role="status" aria-live="polite"></p>
             <button data-action-intent="affirmative" id="land-buy" class="hud-button" type="button" disabled>Buy land</button>
           </div>
         </div>
@@ -1484,6 +1539,11 @@
           <div class="builder-choices">
             <details id="room-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="room-shortcut-content"></div></details>
             <p id="room-touch-help" class="builder-note builder-help" hidden>Select two opposite corner tiles. Use Doorway to select an outline edge, then Build room. Drag to pan; pinch to zoom.</p>
+            <div class="builder-row wall-height" role="group" aria-label="Wall height">
+              <span>Walls</span>
+              <button id="room-height-low" class="hud-button" type="button" aria-pressed="true">Low</button>
+              <button id="room-height-full" class="hud-button" type="button" aria-pressed="false">Full height</button>
+            </div>
           </div>
           <div class="builder-actions">
             <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
@@ -1512,7 +1572,7 @@
             <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose an item, then its destination tile. Use the nearby buttons to turn or buy it.</p>
           </div>
           <div class="builder-actions">
-            <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
+            <p id="buy-status" role="status" aria-live="polite"></p>
 
           </div>
         </div>
@@ -1528,7 +1588,7 @@
             <button id="room-review-confirm" class="hud-button" type="button" data-action-intent="affirmative">Confirm changes</button>
           </div>
         </section>
-        <p id="build-batch-status" role="status" aria-live="polite">Changes remain pending until Confirm.</p>
+        <p id="build-batch-status" role="status" aria-live="polite"></p>
         <div id="build-batch-actions">
           <button data-action-intent="negative" id="build-batch-cancel" class="hud-button" type="button">Cancel</button>
           <button data-action-intent="affirmative" id="build-batch-confirm" class="hud-button" type="button">Confirm</button>
@@ -1542,7 +1602,8 @@
       <h2 id="help-title" tabindex="-1">How to play</h2>
       <div id="help-body">
         <p class="dialog-note">Game time is paused while this guide is open.</p>
-<details class="help-topic" open><summary>Build &amp; place</summary><ol><li>Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Place. Cancel beside a selection, or Escape, clears that selection and keeps your other changes; with nothing selected, Escape leaves Build mode. Use Confirm at the bottom to keep this batch and continue building. Cancel there discards every change since the last Confirm and keeps Build open. Exit build or Escape with changes that are not confirmed asks first: Confirm changes, Discard changes or Keep building.</li><li>Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.</li><li>Rooms opens Select rooms. Click a floor or choose a room from the dropdown, then edit its name. Names stay pending across tool changes; Enter in the name field does not confirm. Outside counts as one room. Boundaries update when you Confirm. Splits, merges and lost enclosures open a review; Back to build keeps your edits. Build room mode retains rectangle construction: choose two opposite corners, choose a doorway if needed, then Build room. Confirm keeps the batch and leaves Build open.</li><li>Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.</li><li>Floors selects a tile without changing it. Choose Boards, Tiles, Carpet or Outdoor patio beside the tile to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes.</li></ol></details><details class="help-topic"><summary>People &amp; actions</summary><ol><li>Choose a person under Household to select them and see their needs.</li><li>Tap or click an object to give the selected person its default action.</li><li>Long-press or right-click for more actions, including talking to another person.</li><li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li><li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li><li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li><li>Choose People inside Sim details to see how the selected person feels about everyone else.</li></ol></details><details class="help-topic"><summary>Camera</summary><ol><li>Drag to move the camera. Pinch, use the mouse wheel, or use the zoom buttons to move closer or farther away.</li></ol></details><details class="help-topic"><summary>Options &amp; saves</summary><ol><li>Open Options for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li></ol></details><details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
+<!-- PLAYER_HELP -->
+<details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
       </div>
       <div id="help-actions">
         <button data-action-intent="affirmative" id="close-help" class="hud-button" type="button">Got it</button>
@@ -1574,6 +1635,16 @@
         </menu>
       </form>
     </dialog>
+    <dialog id="import-save-dialog" aria-labelledby="import-save-title">
+      <h2 id="import-save-title">Import this saved game?</h2>
+      <p>The current game and its saved data will be replaced. This cannot be undone.</p>
+      <form method="dialog">
+        <menu>
+          <button class="hud-button" data-action-intent="negative" value="cancel">Keep playing</button>
+          <button data-action-intent="affirmative" id="confirm-import-save" class="hud-button" value="confirm">Import game</button>
+        </menu>
+      </form>
+    </dialog>
     <dialog id="land-dialog" aria-labelledby="land-dialog-title">
       <h2 id="land-dialog-title">Buy this land?</h2>
       <p id="land-dialog-text"></p>
@@ -1586,14 +1657,15 @@
     </dialog>
     <!-- Leaving Build mode while changes are not confirmed. build-exit.ts
          reads the button values; Escape closes the dialog with none. -->
-    <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text">
+    <dialog id="build-exit-dialog" aria-labelledby="build-exit-title" aria-describedby="build-exit-text build-exit-status">
       <h2 id="build-exit-title">Leave Build mode?</h2>
-      <p id="build-exit-text">You have changes that are not confirmed. Discarding them undoes every change since the last Confirm, including purchases and sales.</p>
+      <p id="build-exit-text">Discarding changes undoes this batch, including purchases and sales.</p>
+      <p id="build-exit-status" role="alert"></p>
       <form method="dialog">
         <menu>
-          <button id="build-exit-keep" class="hud-button" data-action-intent="negative" value="keep" autofocus>Keep building</button>
-          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
+          <button id="build-exit-keep" class="hud-button" value="keep" autofocus>Keep building</button>
           <button id="build-exit-discard" class="hud-button" data-action-intent="negative" value="discard">Discard changes</button>
+          <button id="build-exit-confirm" class="hud-button" data-action-intent="affirmative" value="confirm">Confirm changes</button>
         </menu>
       </form>
     </dialog>
@@ -1628,7 +1700,7 @@
     <!-- Contextual Build actions follow the active selection in client pixels.
          Short screens can place them in a grid beside a bounded tool panel.
          Empty space passes input to the game; only buttons consume it. -->
-    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out">âˆ’</button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
+    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="2" /></svg></button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
     <div id="placement-actions" hidden aria-label="Build actions for the current selection">
 
     </div>

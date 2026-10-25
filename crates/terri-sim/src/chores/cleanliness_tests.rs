@@ -85,6 +85,7 @@ fn cleanliness_room_mood_thresholds_each_source_before_averaging() {
                 state.floors = vec![(cells[0], 1000)];
                 state.surfaces = vec![(surfaces[0], 1000)];
             }
+            crate::neglect::tests::age(&mut sim);
             assert!(
                 (score(&sim, person, "Grimy floor") + (0.3 + clean) / cells.len() as f32).abs()
                     < 0.000001
@@ -95,6 +96,7 @@ fn cleanliness_room_mood_thresholds_each_source_before_averaging() {
                 state.floors = cells.iter().map(|cell| (*cell, 1000)).collect();
                 state.surfaces = surfaces.iter().map(|surface| (*surface, 1000)).collect();
             }
+            crate::neglect::tests::age(&mut sim);
             assert!((score(&sim, person, "Grimy floor") + 0.3 + clean).abs() < 0.000001);
             assert!((score(&sim, person, "Grimy surfaces") + 0.3 + clean).abs() < 0.000001);
         }
@@ -413,4 +415,14 @@ fn cleanliness_group_credit_waits_for_neat_owner_despite_tolerant_helper() {
 #[test]
 fn cleanliness_group_credit_covers_tolerant_owner_despite_neat_helper() {
     group_credit_with_opposite_cleanliness(0.0, 1.0, true);
+}
+
+#[test]
+fn balance_household_grace_fresh_maximum_grime_has_no_environmental_mood_penalty() {
+    let (mut sim, person, surfaces) = room(4, 1.0);
+    let mut state = sim.world_mut().resource_mut::<SavedChores>();
+    state.floors = vec![(4, 1000)];
+    state.surfaces = vec![(surfaces[0], 1000)];
+    assert_eq!(score(&sim, person, "Grimy floor"), 0.0);
+    assert_eq!(score(&sim, person, "Grimy surfaces"), 0.0);
 }

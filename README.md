@@ -8,14 +8,14 @@
 </p>
 
 <p align="center">
-  <a href="https://thisnameissoclever.github.io/terrilives/">
+  <a href="https://natural-causes.life/">
     <img src="docs/assets/play-natural-causes.svg" alt="Play Natural Causes in your browser" width="360" height="80">
   </a>
 </p>
 
-<p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
+<p align="center">Play the live game at natural-causes.life. Use a browser with WebGPU support.</p>
 
-<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
+<p align="center"><a href="https://natural-causes.life/guide/">Player guide</a> | <a href="https://natural-causes.life/changelog/">Changelog</a></p>
 
 Natural Causes is a dark-comedy life sim that runs in the browser. The current
 cast is Tim, Bill, and Casey.
@@ -45,13 +45,14 @@ Then, by what you want:
 | --- | --- |
 | What the playable alpha must prove | [docs/alpha-goals.md](docs/alpha-goals.md) - eleven acceptance criteria; ten complete and the owner's voice pass open |
 | What is built so far | [docs/FEATURES.md](docs/FEATURES.md) |
-| Significant changes to the game | [Public changelog](https://thisnameissoclever.github.io/terrilives/changelog/) and [maintenance guide](docs/changelog.md) |
+| Significant changes to the game | [Public changelog](https://natural-causes.life/changelog/) and [maintenance guide](docs/changelog.md) |
 | How it is put together, and why | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Why one specific decision went that way | `docs/specs/` - one working design per milestone, IDs stable |
 | What play actually felt like, measured | [docs/alpha-feel-notes.md](docs/alpha-feel-notes.md) |
 | Which UI strings are functional and which await the owner's voice pass | [docs/player-visible-strings.md](docs/player-visible-strings.md) |
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
+| How to run checks locally and retain their results | [docs/local-checks.md](docs/local-checks.md) |
 
 ### The bracketed tags in code comments and docs
 

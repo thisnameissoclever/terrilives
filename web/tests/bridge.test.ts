@@ -397,8 +397,8 @@ describe('SimBridge', () => {
     expect(bridge.seasonIndex()).toBe(0);
     const looks = bridge.seasonYardLooks();
     expect(looks).toBeInstanceOf(Float32Array);
-    expect(Array.from(looks, (value) => Math.round(value * 100) / 100)).toEqual([
-      0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14,
+    expect(Array.from(looks, (value) => Math.round(value * 1000) / 1000)).toEqual([
+      0, 1, 0, -3, 0.98, 0.015, -6, 0.97, -0.005, 3, 0.92, 0.025,
     ]);
     // An empty room runs the same clock and content quickly: the last minute
     // of day 7 is still Spring, and the next tick begins Summer.
@@ -1101,7 +1101,8 @@ describe('SimBridge', () => {
     // Friday (mask 31) from 06:00 for eight hours.
     expect(bridge.weekdayIndex()).toBe(0);
     const schedule = bridge.careerScheduleOf(tim)!;
-    expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    // Issue 296: the held shift is the office's standard day shift.
+    expect(schedule).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480, kind: 0, index: 0 });
     const scheduledEnd = schedule.shiftStart + schedule.shiftTicks;
     const fullPayCents = bridge.careerReport(tim)!.pay * 100;
     expect(fullPayCents).toBe(12000);
@@ -1442,7 +1443,10 @@ describe('SimBridge', () => {
     // Independently measured in native and release WASM before updating either.
     // Current rooms remove whole-lot Outside friendship and append room hash state.
     // Independently measured native and normal release Wasm on 2026-10-17.
-    expect(bridge.worldHash()).toBe(4661132544113609906n);
+    // Current grievance memory begins at tick 5. Its additional argument
+    // eligibility draw at tick 63 changes later choices without starting a
+    // fight. Measured independently on native and rebuilt release WASM.
+    expect(bridge.worldHash()).toBe(4733362429942472337n);
   });
 
   // ---- Player commands -------------------------------------------------

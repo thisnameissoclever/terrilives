@@ -73,6 +73,9 @@ for(const [folder,manifest] of [['components',components],['dropped-book',droppe
 
 /** Counts include every appended color and depth record, after the grime page. */
 export const FIXTURE_DEPTH_PAGE_COUNT=pages.length;
+/** Source identities in the same logical order as fixture sprite page IDs. */
+export const FIXTURE_ATLAS_PAGES=pages.map(({folder,record})=>({folder,path:record.path,
+  width:record.width,height:record.height,sha256:record.sha256}));
 export const FIXTURE_DEPTH_COUNT=entries.length;
 let drawBase=0;
 const resolved=new Map<FixtureDrawRecord,FixtureDrawRecord>();
@@ -127,5 +130,6 @@ export async function uploadFixtureDepth(device:GPUDevice,texture:GPUTexture):Pr
     const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),byte=>byte.toString(16).padStart(2,'0')).join('');
     if(digest!==page.sha256)throw new Error('Fixture companion checksum is invalid.');
     device.queue.writeTexture({texture,origin:[0,0,layer]},data,{bytesPerRow:page.width*4},{width:page.width,height:page.height});
+    await device.queue.onSubmittedWorkDone();
   }
 }

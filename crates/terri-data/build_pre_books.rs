@@ -115,6 +115,26 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("fight_relationship_loss", toml::Value::Float(0.1)),
         ("fight_mood_penalty", toml::Value::Float(12.0)),
         ("fight_mood_ticks", toml::Value::Integer(480)),
+        ("fight_grievance_ticks", toml::Value::Integer(360)),
+        ("fight_history_ticks", toml::Value::Integer(10080)),
+        ("fight_repeat_grievance_ticks", toml::Value::Integer(1440)),
+        ("fight_mood_bad_multiplier", toml::Value::Float(2.0)),
+        ("fight_mood_good_multiplier", toml::Value::Float(0.25)),
+        ("fight_opinion_strength", toml::Value::Float(0.5)),
+        ("fight_severity_reference", toml::Value::Float(0.25)),
+        ("chore_fight_response_base", toml::Value::Float(0.80)),
+        ("chore_fight_response_ticks", toml::Value::Integer(240)),
+        ("chore_fight_response_cleanliness", toml::Value::Float(0.20)),
+        (
+            "chore_fight_response_responsibility",
+            toml::Value::Float(0.10),
+        ),
+        ("chore_fight_response_commitment", toml::Value::Float(0.05)),
+        ("chore_fight_response_preference", toml::Value::Float(0.05)),
+        ("chore_fight_response_affinity", toml::Value::Float(0.05)),
+        ("chore_fight_response_mood", toml::Value::Float(0.05)),
+        ("chore_repair_base", toml::Value::Float(0.08)),
+        ("chore_repair_cleanliness", toml::Value::Float(0.04)),
         // Land expansion (issue 254): the shipped values, reconstructed by
         // the published-pack conversions too.
         ("land_strip_depth", toml::Value::Integer(10)),
@@ -148,6 +168,14 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         ("career_mood_promoted_ticks", toml::Value::Integer(1440)),
         ("career_mood_demoted_ticks", toml::Value::Integer(2880)),
         ("career_mood_fired_ticks", toml::Value::Integer(5760)),
+        // Shifts (issue 296): the shipped offsets, reconstructed by the
+        // published-pack conversions too, and the search temperature 0,
+        // the best-fit search every pack before issue 296 ran.
+        ("shift_sleep_offset_day", toml::Value::Integer(0)),
+        ("shift_sleep_offset_early", toml::Value::Integer(-60)),
+        ("shift_sleep_offset_late", toml::Value::Integer(120)),
+        ("shift_sleep_offset_night", toml::Value::Integer(660)),
+        ("career_search_temperature", toml::Value::Float(0.0)),
         // Seasons (issue 251): the shipped values, reconstructed by the
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),
@@ -246,6 +274,8 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         },
     )
     .expect("frozen pre-books content compiles");
+    pack.tuning.fight_rules = pack::FightRules::Published;
+    pack.tuning.fight_chance_per_tick = pack::Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK;
     if !has_skills {
         pack.tuning.habituation_max = 1.0;
     }

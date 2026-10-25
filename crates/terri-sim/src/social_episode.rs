@@ -9,7 +9,7 @@ mod execution;
 mod execution_persistence;
 pub(crate) use execution::{
     commit_autonomous, complete_execution, execution_order, release_order, request_order_id,
-    Execution, ExecutionPhase,
+    Execution, ExecutionOwner, ExecutionPhase,
 };
 pub(crate) use execution_persistence::{
     adopt_legacy, adopt_published_player_requests, restore_executions, save_executions,
@@ -41,7 +41,19 @@ pub(crate) struct CommunalEpisode {
 
 /// Family adds value independently of affinity; dislike never removes company.
 pub(crate) fn benefit(affinity: f32, strength: f32, family: bool) -> f32 {
-    (1. + affinity * strength).max(0.25) + if family { 0.1 } else { 0. }
+    (1. + affinity * strength).max(0.25) + family_bonus(family)
+}
+
+pub(crate) fn family_bonus(related: bool) -> f32 {
+    if related {
+        0.25
+    } else {
+        0.
+    }
+}
+
+pub(crate) fn shared_interest(topic: &Topic) -> bool {
+    topic.initiator_preference > 0. && topic.listener_preference > 0.
 }
 pub(crate) fn urgent(world: &World, person: Entity) -> bool {
     world.get::<terri_core::AtWork>(person).is_some()
@@ -190,31 +202,47 @@ pub(crate) fn maintain(world: &mut World) {
         .retain(|e, _| active.contains(e));
 }
 
+/// Every topic tag with a bubble code of its own; any other tag draws the
+/// generic code 7. One list, so the activity log's label table names every
+/// tag a chat can show by its code.
+pub(crate) const TOPIC_CODES: [(&str, u32); 29] = [
+    ("reading", 8),
+    ("exercise", 9),
+    ("aquarium", 10),
+    ("fish", 10),
+    ("television", 14),
+    ("tv", 14),
+    ("music", 18),
+    ("radio", 18),
+    ("socialising", 4),
+    ("lounging", 15),
+    ("correspondence", 19),
+    ("cooking", 23),
+    ("eating", 3),
+    ("food", 3),
+    ("sleeping", 5),
+    ("sleep", 5),
+    ("sitting", 11),
+    ("comfort", 11),
+    ("showering", 12),
+    ("shower", 12),
+    ("toilet", 13),
+    ("bathing", 20),
+    ("bath", 20),
+    ("washing", 16),
+    ("hygiene", 16),
+    ("cleaning", 17),
+    // Fights (issue 248): what the fight is about, drawn in red.
+    ("fight-dishes", 24),
+    ("fight-chore", 25),
+    ("fight", 26),
+];
+
 pub(crate) fn tag_code(tag: &str) -> u32 {
-    match tag {
-        "reading" => 8,
-        "exercise" => 9,
-        "aquarium" | "fish" => 10,
-        "television" | "tv" => 14,
-        "music" | "radio" => 18,
-        "socialising" => 4,
-        "lounging" => 15,
-        "correspondence" => 19,
-        "cooking" => 23,
-        "eating" | "food" => 3,
-        "sleeping" | "sleep" => 5,
-        "sitting" | "comfort" => 11,
-        "showering" | "shower" => 12,
-        "toilet" => 13,
-        "bathing" | "bath" => 20,
-        "washing" | "hygiene" => 16,
-        "cleaning" => 17,
-        // Fights (issue 248): what the fight is about, drawn in red.
-        "fight-dishes" => 24,
-        "fight-chore" => 25,
-        "fight" => 26,
-        _ => 7,
-    }
+    TOPIC_CODES
+        .iter()
+        .find(|(known, _)| *known == tag)
+        .map_or(7, |&(_, code)| code)
 }
 pub(crate) fn topic_weight(mine: f32, theirs: f32, inclination: f32) -> f32 {
     mine.max(0.) * (1. + 4. * inclination.clamp(0., 1.) * theirs.max(0.))
@@ -242,19 +270,12 @@ pub(crate) fn begin_topics(world: &mut World) {
             .get(interaction as usize)
             .is_some_and(crate::fights::is_fight)
         {
-            let reason = world
-                .get::<terri_core::SimId>(listener)
-                .copied()
-                .and_then(|id| crate::fights::reason_against(world, id));
-            world.resource_mut::<SocialEpisodes>().topics.insert(
-                initiator,
-                Topic {
-                    code: crate::fights::Reason::code(reason),
-                    tag: crate::fights::Reason::tag(reason).into(),
-                    initiator_preference: -1.,
-                    listener_preference: -1.,
-                },
-            );
+            if let Some(topic) = crate::fights::begin_topic(world, initiator, listener) {
+                world
+                    .resource_mut::<SocialEpisodes>()
+                    .topics
+                    .insert(initiator, topic);
+            }
             continue;
         }
         let prefs = |person| {

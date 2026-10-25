@@ -1,6 +1,7 @@
 import type { PlacementPreview, SimBridge } from '../bridge.js';
 import type { OverlayPauseController } from './overlay-pause.js';
 import { furnitureLabel } from './furniture-label.js';
+import { logWarning } from '../diagnostics/log.js';
 
 type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
@@ -26,7 +27,7 @@ export class FurnitureBuilder {
   preview: PlacementPreview | null = null;
   objects: readonly BuilderObject[] = [];
   name = '';
-  status = 'Choose furniture to move or rotate.';
+  status = '';
   pending = false;
   blocked = false;
   /** What selling the chosen object would pay back, or null when it would not sell. */
@@ -264,6 +265,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${name || 'Furniture'} sold.`;
+        if (result.reason !== null) logWarning('Furniture', 'Sale refused.', { ...result });
         saleStatus = this.status;
         this.hooks.changed();
       }
@@ -290,6 +292,7 @@ export class FurnitureBuilder {
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
+        if (result.reason !== null) logWarning('Furniture', 'Colour change refused.', { ...result });
         const next = this.nextColourway;
         this.nextColourway = null;
         if (next !== null) this.recolour(next);
@@ -308,6 +311,7 @@ export class FurnitureBuilder {
         if (result.reason === null) this.clearSelection();
         else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
+        if (result.reason !== null) logWarning('Furniture', 'Move refused.', { ...result });
         if (next !== null) {
           this.selectNow(next);
           if (result.reason !== null) this.status = `Previous move cancelled: ${result.reason}`;
@@ -347,7 +351,7 @@ export class FurnitureBuilder {
       this.source.placementPreview(this.selected, 0, 0, facing);
     this.preview = { ...geometry, ...preview, width: geometry.width, depth: geometry.depth,
       sprite: geometry.sprite, foreground: geometry.foreground };
-    this.status = preview.valid ? 'Ready to place.' : preview.reason ?? 'This placement is unavailable.';
+    this.status = preview.valid ? '' : preview.reason ?? 'This placement is unavailable.';
     const sale = this.source.salePreview(this.selected);
     this.saleValue = sale.reason === null ? sale.payout : null;
     this.saleRefusal = sale.reason;
@@ -369,6 +373,6 @@ export class FurnitureBuilder {
     this.preview = null;
     this.mask = 0;
     this.name = '';
-    this.status = 'Choose furniture to move or rotate.';
+    this.status = '';
   }
 }

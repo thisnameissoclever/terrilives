@@ -7,7 +7,7 @@ fn assert_current_retains_exact_published_v16(current: &[u8], published: &[u8]) 
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let snapshot = decode_current(current);
+    let snapshot = decode_current(current).legacy.legacy.legacy.legacy;
     assert_eq!(snapshot.legacy, historical);
     let mut projected = SAVE_MAGIC.to_vec();
     projected.extend(16u16.to_le_bytes());
@@ -199,7 +199,15 @@ fn room_transport_current_person_fixture_has_real_work_and_distinct_identity() {
         chores::{ChoreKey, ChoreKind, SavedChores},
         SimId, SimName,
     };
-    let mut handle = SimHandle::new(10, 8);
+    // Reconstruct the frozen V16 producer with its authored need rates.
+    // The real cleanup tick must still match every saved physical field.
+    let mut handle = SimHandle {
+        sim: Sim::new_with_lot_and_content(
+            10,
+            8,
+            super::published_v15_tests::pre_balance_content(),
+        ),
+    };
     for x in [2, 3] {
         handle
             .sim

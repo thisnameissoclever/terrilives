@@ -187,6 +187,11 @@ pub fn tick_interactions(
         ),
     >,
     conversations: Query<&terri_core::Socialising>,
+    (clock, ids, mut log): (
+        Res<terri_core::SimClock>,
+        Query<&terri_core::SimId>,
+        Option<ResMut<crate::activity_log::ActivityLog>>,
+    ),
     mut agents: Query<(
         Entity,
         &mut Eating,
@@ -217,7 +222,7 @@ pub fn tick_interactions(
             hobbies,
             fumbled,
             traits,
-            skills,
+            mut skills,
         )) = agents.get_mut(actor)
         else {
             continue;
@@ -244,6 +249,7 @@ pub fn tick_interactions(
         for (need_index, delta) in &act.advertises {
             if *delta > 0.
                 && *need_index as usize == NeedId::Social.index()
+                && !crate::social_company::solo_social(act)
                 && !company
                     .active_allowed(entity, &feelings.get(entity).cloned().unwrap_or_default())
             {
@@ -268,7 +274,11 @@ pub fn tick_interactions(
             // as a good one ([E3]).
             let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
             let company_scale = if *need_index as usize == NeedId::Social.index() {
-                company.active_scale(entity, &feelings.get(entity).cloned().unwrap_or_default())
+                crate::social_company::social_scale(
+                    act,
+                    company
+                        .active_scale(entity, &feelings.get(entity).cloned().unwrap_or_default()),
+                )
             } else {
                 1.
             };
@@ -281,7 +291,17 @@ pub fn tick_interactions(
             );
             let delta =
                 crate::need_interactions::cap_delta(content.0, act, &needs, *need_index, delta);
+            let before = needs.get(NeedId::Social);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
+            let social = *need_index as usize == NeedId::Social.index();
+            if let (Some(log), Ok(id), true) = (
+                log.as_deref_mut().filter(|log| log.enabled()),
+                ids.get(entity),
+                social,
+            ) {
+                let companion = company.companion(entity).map(|other| other.0);
+                log.social(id.0, needs.get(NeedId::Social) - before, companion);
+            }
         }
         let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
@@ -425,8 +445,25 @@ pub fn tick_interactions(
             if let Some(mut traits) = traits {
                 super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
             }
-            if let Some(mut skills) = skills {
-                crate::skills::practise(&mut skills, content.0, &act.tags);
+            let rises = skills
+                .as_deref_mut()
+                .map(|skills| crate::skills::practise(skills, content.0, &act.tags))
+                .unwrap_or_default();
+            if let (Some(log), Ok(id), true) = (
+                log.as_deref_mut().filter(|log| log.enabled()),
+                ids.get(entity),
+                target.interaction != super::chain::CHAIN_STEP,
+            ) {
+                let label =
+                    crate::action_rows::resolve(content.0, eating.object, eating.interaction)
+                        .map_or(act.label.as_str(), |row| {
+                            row.label(clock.tick, content.0.tuning.day_ticks)
+                        });
+                let skill = crate::activity_log::practiced(skills.as_deref(), content.0, &act.tags);
+                log.action_done(content.0, clock.tick, id.0, label, skill);
+            }
+            if let (Some(log), Ok(id)) = (log.as_deref_mut(), ids.get(entity)) {
+                log.levels(content.0, clock.tick, id.0, rises);
             }
             commands.entity(entity).try_remove::<terri_core::Fumbled>();
             commands

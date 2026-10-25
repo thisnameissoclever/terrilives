@@ -1,0 +1,18 @@
+{
+  "started_utc": "2026-10-19T20:17:16.249416+00:00",
+  "executable": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\target\\release\\cargo-mutants.exe",
+  "executable_sha256": "3b065b4fac0a0c98acb810883aa0c403bb9f9a7020c706715940a34ede78f7a6",
+  "version": "cargo-mutants 27.1.0",
+  "label": "candidate_fixture",
+  "only_mutants_listing_commands": true,
+  "candidate_run_authorization": "Owner approved isolated build and listing qualification.",
+  "scoped_rustup_toolchain": "1.94.1",
+  "fixture_cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+  "fixture_rustc_version": "rustc 1.94.1 (e408947bf 2026-03-25)\nbinary: rustc\ncommit-hash: e408947bfd200af42db322daf0fadfe7e26d3bd1\ncommit-date: 2026-03-25\nhost: x86_64-pc-windows-msvc\nrelease: 1.94.1\nLLVM version: 21.1.8",
+  "baseline": "This fresh stock listing establishes the frozen-source reference.",
+  "fixture_sha256": {
+    "Cargo.toml": "32a40095141cde01cc34d3152aad0e2bcad61b1b4abedcfd41ea4ddaab339704",
+    "src/lib.rs": "5877ddbec9523129eac0b36cf02c297644ed94a80a68d9566deb7d122b8651c2",
+    "rust-toolchain.toml": "350e50f9118f1f6ca7df6bb8b48f8f4cdf05b80b30cd3ed7a16465b313aa43a7"
+  }
+}

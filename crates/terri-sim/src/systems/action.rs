@@ -1328,9 +1328,15 @@ pub fn serve_intents(
                 .copied()
                 .unwrap_or(Needs::all_at(100.));
             let feelings = feelings.cloned().unwrap_or_default();
-            let social = media_plan.as_ref().is_some_and(|_| {
-                social_company.media_allowed(agent, intent.object, intent.interaction, &feelings)
-            });
+            let social = crate::social_company::solo_social(advert)
+                || media_plan.as_ref().is_some_and(|_| {
+                    social_company.media_allowed(
+                        agent,
+                        intent.object,
+                        intent.interaction,
+                        &feelings,
+                    )
+                });
             let shared = access
                 .nearest(false)
                 .and_then(|route| route.route.path(&grid, from))
@@ -1515,7 +1521,9 @@ pub fn select_action(
     _relationship_context: Res<crate::relationship_dynamics::RelationshipContext>,
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
-    clock: Res<SimClock>,
+    // Paired, so the held shift's sleep rhythm (issue 296, [WS-sleep])
+    // joins without a seventeenth parameter.
+    (clock, rhythm): (Res<SimClock>, crate::shifts::ShiftRhythm),
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
     reading: Option<Res<crate::reading::Options>>,
@@ -1772,6 +1780,11 @@ pub fn select_action(
                 .remove::<Blocked>();
             continue;
         }
+        // The chronotype plus the held shift's kind offset, once per
+        // decision rather than per candidate ([WS-sleep]).
+        let sleep_offset = personality
+            .chronotype_offset_ticks
+            .saturating_add(rhythm.offset(agent));
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
         let mut outcomes = std::collections::HashMap::new();
         let mut admissions = std::collections::HashMap::new();
@@ -1903,9 +1916,10 @@ pub fn select_action(
                     continue;
                 }
                 let duration = advert.duration_ticks;
-                let social_available = media_plan.as_ref().is_some_and(|_| {
-                    social_company.media_allowed(agent, object, index as u32, &relationships)
-                });
+                let social_available = crate::social_company::solo_social(advert)
+                    || media_plan.as_ref().is_some_and(|_| {
+                        social_company.media_allowed(agent, object, index as u32, &relationships)
+                    });
                 let shared_available = advert.shared_activity.is_some()
                     && access
                         .nearest(false)
@@ -1948,7 +1962,7 @@ pub fn select_action(
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
-                        personality.chronotype_offset_ticks,
+                        sleep_offset,
                         tags,
                         pressure.map_or(0, |p| p.ticks),
                     );
@@ -1975,12 +1989,15 @@ pub fn select_action(
                                         .and_then(|steps| steps.last().copied())
                                 })
                                 .unwrap_or(from);
-                            social_company.proposed_scale(
-                                agent,
-                                object,
-                                index as u32,
-                                &relationships,
-                                endpoint,
+                            crate::social_company::social_scale(
+                                advert,
+                                social_company.proposed_scale(
+                                    agent,
+                                    object,
+                                    index as u32,
+                                    &relationships,
+                                    endpoint,
+                                ),
                             )
                         } else {
                             1.

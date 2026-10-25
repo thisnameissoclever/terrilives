@@ -1,0 +1,21 @@
+F
+======================================================================
+FAIL: test_old_cli_preserves_original_argv_and_raw_bytes (test_mutation_artifacts.GitHubTransportTests.test_old_cli_preserves_original_argv_and_raw_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.superpowers\sdd\mutation-campaign-repair-plan\gh-raw-transport-ynlslu81\test_mutation_artifacts.py", line 84, in test_old_cli_preserves_original_argv_and_raw_bytes
+    self.assertEqual(run.call_args_list, [
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+        mock.call(["gh", "api", "--help"], **self.captured),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        mock.call(["gh", "api", self.path], **self.captured),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        mock.call(["gh", "api", zip_path], **self.captured)])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [call[67 chars]=60),
+ call(['gh', 'api', 'repos/owner/repo/ac[233 chars]=60)] != [call[67 chars]=60), call(['gh', 'api', 'repos/owner/repo/act[175 chars]=60)]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)

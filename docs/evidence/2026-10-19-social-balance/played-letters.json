@@ -1,0 +1,12 @@
+{
+  "scenario": "letters",
+  "viewport": [1280, 900],
+  "url": "http://127.0.0.1:5196/?stress=0&audio=0",
+  "actor": "Casey",
+  "order": "Handle correspondence: Desk",
+  "before": {"tick": 9, "social": 57.781612396240234},
+  "during": {"tick": 74, "social": 58.99747085571289, "activity": 19},
+  "after": {"tick": 114, "social": 70.4406509399414},
+  "pageErrors": [],
+  "capture": "letters-running.png"
+}

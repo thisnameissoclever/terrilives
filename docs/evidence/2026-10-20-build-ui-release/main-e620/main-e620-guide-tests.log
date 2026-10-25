@@ -1,0 +1,41 @@
+✔ newest notes come first and only the latest date starts open (305.2573ms)
+✔ legacy anchors reject malformed collections and unsafe identifiers (5.9328ms)
+✔ editing, adding and deleting source notes changes the generated page (8.2027ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (4.8321ms)
+✔ literal template markers in a note cannot expand into presentation code (4.3858ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (4.5118ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.1688ms)
+✔ public notes reject development references instead of publishing them (0.1889ms)
+✔ same-day notes must be consolidated and former links reach the dated update (5.4339ms)
+✔ dark is the default even on a light system; theme choices persist and blocked storage stays usable (2.2102ms)
+✔ expand and collapse switch controls and keep keyboard focus; old links open the right update (1.375ms)
+✔ the repository history renders and the CLI writes the same standalone page (698.5239ms)
+✔ renders portable cross-page anchors and keeps Changelog outside topic navigation (118.8745ms)
+✔ rejects missing fragments, duplicate anchors and unknown numeric references (6.7562ms)
+✔ rejects unsafe links, missing images and executable markup (9.7286ms)
+✔ quick Help is authored once and uses the same validated Markdown parser (7.356ms)
+✔ search indexes words after the displayed excerpt without leaking markup (6.3205ms)
+✔ publishes only authored illustrations and provides one article viewer and layout switch (10.4853ms)
+✔ authored illustrations reject incomplete pairs, unknown IDs and missing image files (10.6226ms)
+✔ illustration sizing rejects truncated PNGs and zero dimensions (8.2192ms)
+✔ reviewed source and snapshot pass without invoking Rust (12.1935ms)
+✔ browser-boundary Rust and HTML changes require guide review (9.0194ms)
+✔ generated WASM declarations are build products rather than reviewed sources (7.2011ms)
+✔ editing a nested gameplay helper requires review (6.0557ms)
+✔ new gameplay files cannot bypass source inventory (8.0513ms)
+✔ changing only a generated numeric value fails snapshot integrity (7.2271ms)
+✔ deleting a reviewed source requires review (6.739ms)
+✔ line ending differences are portable across checkouts (6.1551ms)
+✔ missing review and malformed reference fail with useful messages (6.3127ms)
+✔ CLI rejects unknown arguments even when invoked from another directory (68.656ms)
+✔ all authored activity rows have reviewed need and outcome tags (4593.8243ms)
+✔ edited rows and invalid need tags require an explicit filter review (0.3313ms)
+✔ removed activity mapping, new relationship cause and broken evidence each fail (8.0307ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5474.54

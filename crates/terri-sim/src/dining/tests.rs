@@ -36,7 +36,7 @@ fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
             .unwrap()
             .chair
             .is_some();
-        let expected = 30. - 0.032 + if seated { 37. / 62. } else { -2. / 90. };
+        let expected = 30. - 0.021333333 + if seated { 37. / 62. } else { -2. / 90. };
         let actual = sim
             .world()
             .get::<Needs>(*person)
@@ -1033,7 +1033,7 @@ fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
     for _ in 0..40 {
         let mut replay = Sim::new_from_shipped_lot();
         replay
-            .load_snapshot_v16(migrated.save_snapshot_v16())
+            .load_current_v19_view(migrated.current_v19_view())
             .unwrap();
         assert_eq!(replay.world_hash(), migrated.world_hash());
         migrated.tick();
@@ -1930,5 +1930,146 @@ fn endpoint_meal_and_media_admission_and_restore_are_symmetric() {
                 }
             }
         }
+    }
+}
+
+/// Seats every diner of `ready` at the last step with `remaining` ticks left
+/// to eat, liking each other, as the shared-minute test above does.
+fn seated_for_the_last_bite(sim: &mut Sim, people: &[Entity], remaining: u32) {
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    for person in people {
+        let place = places
+            .iter()
+            .find(|d| d.person == person.index_u32())
+            .unwrap();
+        let mut feelings = Relationships::default();
+        for other in people {
+            if other != person {
+                feelings.bump(*sim.world().get::<SimId>(*other).unwrap(), 0.5);
+            }
+        }
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork {
+                    remaining_ticks: remaining,
+                },
+                Needs::all_at(30.),
+                feelings,
+            ));
+    }
+}
+
+fn actions(sim: &Sim) -> Vec<crate::activity_log::LogRecord> {
+    sim.activity_log()
+        .records()
+        .filter(|r| r.kind() == Some(crate::activity_log::LogKind::ActionDone))
+        .copied()
+        .collect()
+}
+
+/// [AL-sources]: a table meal is one action line per diner carrying the
+/// Social its company delivered, a companion, and the opinion change of
+/// sharing it; a total that began before the world was loaded is marked
+/// partial.
+#[test]
+fn table_meal_logs_company_and_social() {
+    use crate::activity_log::{opinion_units, ACTIONS, PARTIAL, SOCIAL};
+    for started in [true, false] {
+        let (mut sim, people, _) = ready();
+        seated_for_the_last_bite(&mut sim, &people, 1);
+        let ids: Vec<u32> = people
+            .iter()
+            .map(|p| sim.world().get::<SimId>(*p).unwrap().0)
+            .collect();
+        if started {
+            // The fixture skips the gathering that starts a meal.
+            let mut log = sim
+                .world_mut()
+                .resource_mut::<crate::activity_log::ActivityLog>();
+            for id in &ids {
+                log.begin_activity(*id);
+            }
+        }
+        let before: Vec<f32> = people
+            .iter()
+            .map(|p| sim.world().get::<Needs>(*p).unwrap().get(NeedId::Social))
+            .collect();
+        sim.tick();
+        let records = actions(&sim);
+        assert_eq!(records.len(), people.len(), "{records:?}");
+        let mut refilled = 0;
+        for (index, id) in ids.iter().enumerate() {
+            let record = records.iter().find(|r| r.actor() == *id).unwrap();
+            let shared: f32 = sim
+                .relationship_effects()
+                .iter()
+                .filter(|e| e.cause == RelationshipCause::SharedActivity && e.affected.0 == *id)
+                .map(|e| e.actual)
+                .sum();
+            assert_eq!(record.value(3), opinion_units(shared), "diner {id}");
+            // Two diners share the table's chairs; the third stands and
+            // has no company ([AL-capture] item 4 counts only real Social).
+            if record.value(0) > 0 {
+                refilled += 1;
+                assert!(
+                    ids.contains(&record.other()) && record.other() != *id,
+                    "{record:?}"
+                );
+                assert_eq!(record.triggers(), ACTIONS | SOCIAL, "diner {id}");
+            } else {
+                assert_eq!(record.triggers(), ACTIONS, "diner {id}");
+            }
+            let decay = sim.world().resource::<Content>().0.decay_per_tick[NeedId::Social.index()]
+                * sim
+                    .world()
+                    .get::<terri_core::Personality>(people[index])
+                    .unwrap()
+                    .drain[NeedId::Social.index()];
+            let delivered = sim
+                .world()
+                .get::<Needs>(people[index])
+                .unwrap()
+                .get(NeedId::Social)
+                - before[index]
+                + decay;
+            assert!(
+                (record.value(0) - (delivered * 10.0).round() as i32).abs() <= 1,
+                "diner {id}: {} tenths for {delivered}",
+                record.value(0)
+            );
+            assert_eq!(record.flags() & PARTIAL != 0, !started, "diner {id}");
+        }
+        assert_eq!(refilled, 2, "the two seated diners shared the table");
+    }
+}
+
+/// [R2]: a recipe is one line, at its terminal step, under the meal name
+/// the clock gives it.
+#[test]
+fn chain_logs_once_with_the_meal_label() {
+    let (mut sim, people, _) = ready();
+    let day = sim.world().resource::<Content>().0.tuning.day_ticks;
+    sim.world_mut().resource_mut::<SimClock>().tick = u64::from(day) * 12 / 24;
+    seated_for_the_last_bite(&mut sim, &people, 3);
+    for _ in 0..10 {
+        sim.tick();
+    }
+    let pack = sim.world().resource::<Content>().0;
+    let lunch = sim.activity_log().label(pack, "Cook lunch");
+    let records = actions(&sim);
+    for person in &people {
+        let id = sim.world().get::<SimId>(*person).unwrap().0;
+        let mine: Vec<_> = records
+            .iter()
+            .filter(|r| r.actor() == id && r.label() == lunch)
+            .collect();
+        assert_eq!(mine.len(), 1, "one line per recipe: {records:?}");
     }
 }

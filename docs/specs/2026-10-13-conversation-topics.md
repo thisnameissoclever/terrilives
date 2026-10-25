@@ -5,7 +5,10 @@ conversation ownership and shared participation remain the simulation owners.
 
 ## Intended behavior
 
-Social interaction provides a positive Social benefit even at maximum dislike.
+Ordinary chats provide a positive Social benefit to both participants even at
+maximum dislike. Their authored Social reward is 100.5 over 67 minutes, twice
+the previous rate, and each meter stops at 100. Actual duration still follows
+the two selected voice clips. Fights provide no Social.
 Affinity scales that benefit, and family adds a small bonus independent of
 affinity. Selection uses the same benefit as delivery, so loneliness increases
 the value of actual company. Solitary activities never claim company rewards.
@@ -37,6 +40,17 @@ If no authored interest is positive, neutral small talk still provides company.
 It does not recast a disliked activity as a liked interest. A disliked chosen
 topic replaces the listener's ordinary positive completion reward with a small
 negative affinity change; Social delivery remains positive.
+
+When both Sims enjoy the chosen topic, completion gives each a positive
+opinion reward despite low hygiene or other unmet needs. That shared-interest
+conversation also causes no unmet-need start complaint. Independent privacy
+incidents retain their effects. Other completed chats retain their existing
+need gates and directional topic-dislike rules. The base positive completion
+reward is 0.34 before compatibility and family scaling.
+
+Partners, parents, children and siblings receive 1.5 times positive opinion
+changes and half the negative changes. Their independent Social bonus is 0.25.
+Explicit relationship values and neutral drift retain their existing rules.
 
 Topics, waiting ownership and extension limits survive save/load. Previously
 published saves remain loadable through their frozen format readers.

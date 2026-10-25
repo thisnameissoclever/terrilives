@@ -4004,3 +4004,36 @@ The screenshots, source bindings, executed checks, review coverage, and desktop 
 The displayed game reproduced the reported cancellation loop with an idle pose and repeated sideways movement. The repaired build was played through approach, protected bathroom use, waiting outside, and conversation. Named activity and queue text were checked at desktop and 390-pixel phone widths. A clipped partner name was repaired, and active chores retain their actual activity instead of Idle.
 
 The initiator remains committed while waiting and needs continue to decay. Long work shifts, blocked routes, and chosen waits can still delay care. Selected images, live-state measurements, independent review limits, and executed regression checks are recorded in [the dated evidence](evidence/2026-10-17-urgent-needs-conversations/README.md). This focused pass does not claim inspection of every object or every animation frame.
+
+## [A-social-household-balance] Rewarding company and household grace, 2026-10-19
+
+The desktop production build was played through a desk-writing session and a complete shared-interest conversation between partners. Casey's Social rose during writing. Both conversation participants gained Social and positive feelings. The activity labels, desk seating, conversation bubbles and People panel were inspected directly and reviewed independently from selected captures.
+
+The exact measurements, captures, browser settings and review limits are in [the dated evidence](evidence/2026-10-19-social-balance/verification.md). Household grace and family forgiveness also have simulation regression checks. This focused pass does not establish every animation phase, phone performance or long-term population balance.
+
+## [A-build-controls-current-chrome] Build controls on the current save format, 2026-10-19
+
+The displayed Chrome game exercised footer Confirm and Cancel, keyboard Keep building, Land confirmation and discard, a real doorway merge review and Back, and Save/Load of the confirmed room name. The clock stayed paused. Actual phone-width captures show the neutral, red and green decision stack, readable dock controls with complete keyboard focus outlines, and Walls after review cancellation without a false failure message.
+
+The root reviewer and a fresh independent reviewer inspected the selected original images. Matching raster dimensions, measurements, application hashes, executed checks and limits are in [the version-19 evidence](evidence/2026-10-19-build-ui/v19/README.md). The task tab and preview server are closed. Physical touch, operating-system held-key repeat and exhaustive gameplay remain outside this focused pass.
+
+After integrating the version-20 save and argument/cleanup changes, the [refreshed played pass](evidence/2026-10-19-build-ui/v20/README.md) loaded the earlier task save, repeated the affected Build/Land/review/save flows and refreshed the four required captures. Root and a fresh independent reviewer accepted the actual pixels. Startup advanced before manual Pause; the later checks held the paused clock. The source review, full web suite and build evidence remain distinct from the visual verdict.
+## [A-build-walls-ux] Walls, windows and floors in Build mode, 2026-10-19
+
+The desktop development build was played in the Walls and Floors tools with the shipped household. A click high on the face of the bottom-left front wall chose that wall and tinted it; the same click in the previous renderer chose an empty line behind the wall. The low wall view kept the rooms visible while the chosen wall stood full height. Two clicks along the lot's south edge chose a five-line run, Wall built all five, and a three-unit window fitted in them. Two corner clicks in Floors chose a four by four area that took one covering.
+
+Two findings were fixed during the pass. A first click near tile corners in the last row chose the crossing line, so the second click could not extend the run; the run now follows the direction the clicks travel. The floating buttons covered floor areas and the near end of a run reaching the screen's edge; they now clear the whole selection. Remaining findings that predate this work: the Floors panel's swatches overlap their labels, and unselected windows read only as a pale strip in the low view.
+
+Captures, review verdicts and limits are in [the dated evidence](evidence/2026-10-19-build-walls/verification.md). This pass covers the desktop layout with a mouse; touch and phone layouts were not played.
+
+## [A-activity-log-guide-captures] The Log in the player guide, 2026-10-23
+
+The production build ran at desktop and phone sizes, muted, until the Log held a week of lines. The captures show the Log open with the whole household, Only Tim narrowing it to Tim's lines, bathroom privacy lines wrapping inside the panel, and Show earlier entries adding older lines above without moving the line in view. No defects were found in these states.
+
+The settings, inspected images and limits are in [the dated evidence](evidence/2026-10-23-activity-log-guide/verification.md). This pass does not cover the full [AL-evidence] checklist in the activity log specification, and its independent visual review is still to run.
+
+## [A-work-shifts] Work shifts in the Career tab, 2026-10-24
+
+The built game was played at desktop and phone widths in a muted browser. A day, a late and a night worker each showed their shift on the Overview Career row and the Career tab, and the night watch's days read Sunday to Thursday. Assigning offered By chance and each shift with its chance; an assignment with a chosen late shift held it, and the Shift schedule selector then showed that shift with Change shift disabled. At work, Change shift was refused with `Not while they are at work or on the way.`; at home it applied with the note, and the new late shift started the next day. Changed before dawn, the old day shift was still worked that day and the late shift started the next day. The night worker left at 22:00, was at work by 22:50 and slept in her bunk on Tuesday morning while the others were up. A new game hired Bill and Casey within two days, and a schema-twenty save loaded every job on its standard schedule.
+
+A closed Shift selector cut long option lines at phone width and in the desktop sheet; the chosen shift's whole line now appears beneath each selector. A new job no longer shows the old job's last shift and pay. Remaining observations: a departure waits while a reader returns their book, as on main (issue 339 covers the bookcase reservation), and the night worker's daytime sleep is short, following her Energy need. Captures, build hashes, the independent review and its dispositions are in [the played record](evidence/2026-10-24-shifts-played/README.md). Task-owned pages and the preview server were closed.

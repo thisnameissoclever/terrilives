@@ -1,4 +1,5 @@
 import type {ClipContacts,ContactFrame} from './contact-types.js';
+import {readCharacterAsset} from './asset-download.js';
 export interface Bone {
   name: string; parent: number; head: [number, number, number]; tail: [number, number, number];
   rest: number[]; inverseRest: number[];
@@ -60,14 +61,8 @@ export function decodeGeometry(manifest: Bundle, quality: 'original' | 'runtime'
   return result;
 }
 
-async function read(url: URL): Promise<ArrayBuffer> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Character asset could not load: ${response.status} ${url.pathname}`);
-  return response.arrayBuffer();
-}
-
 async function verified(url: URL, expected: string): Promise<ArrayBuffer> {
-  const bytes = await read(url);
+  const bytes = await readCharacterAsset(url);
   const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
   if (hash !== expected) throw new Error(`Character asset hash differs: ${url.pathname}`);
   return bytes;
@@ -75,7 +70,7 @@ async function verified(url: URL, expected: string): Promise<ArrayBuffer> {
 
 export async function loadBundle(url: string, quality: 'original' | 'runtime' = 'runtime'): Promise<Geometry> {
   const absolute = new URL(url, location.href);
-  const manifest = JSON.parse(new TextDecoder().decode(await read(absolute))) as Bundle;
+  const manifest = JSON.parse(new TextDecoder().decode(await readCharacterAsset(absolute))) as Bundle;
   if (![2, 3].includes(manifest.version) || manifest.animationSpace !== 'evaluated-parent-local-delta' || !manifest.bones || manifest.bones.length < 17 || manifest.bones.length > 512 || !manifest.actions?.idle?.length || !manifest.basisActions?.idle?.length) {
     throw new Error('Unsupported character bundle');
   }

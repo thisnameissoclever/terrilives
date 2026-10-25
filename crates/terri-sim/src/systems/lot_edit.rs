@@ -222,6 +222,14 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::careers::quit(world, agent);
             }
+            SimCommand::AssignCareerShift { agent, path, shift } => {
+                flush_ordinary(world);
+                crate::careers::assign_with_shift(world, agent, path, shift);
+            }
+            SimCommand::ChangeShift { agent, shift } => {
+                flush_ordinary(world);
+                crate::careers::change_shift(world, agent, shift);
+            }
             SimCommand::SetCareerAutonomy { change, search } => {
                 flush_ordinary(world);
                 crate::careers::set_autonomy(world, change, search);

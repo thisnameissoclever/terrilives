@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-backlog-document-ownership] Put engineering tasks in the engineering backlog
+
+**What happened.** A detailed sound implementation backlog was added to Tim's
+personal to-do document even though Features owns engineering priorities.
+
+**Root cause.** An existing engineering summary in the personal list was treated
+as authority to add the full backlog without checking the documents' ownership rules.
+
+**Prevention.** Read each candidate document's purpose before adding work. Keep
+engineering tasks in `FEATURES.md`, link system scope from `GAME-SYSTEMS.md`, and
+use `TIM-TODO.md` for owner decisions, approvals and brief tracking pointers.
+Preserve stable item IDs and existing links when relocating work.
+
+**Verification.** Confirm that the destination retains every task and constraint,
+the former location contains only a pointer, and each cross-reference resolves.
+Document relocation must not change implementation or listening approval status.
+
 ## [L-only-waiting-is-not-busy] Let every admission path recognize a person who only waits
 
 1. What happened: after player-order execution merged, the shipped household run headless starved on day 15 at seed 20260728, and two housemates died at seed 120. Tim waited to chat with Bill, Bill held a game-made fight order against Tim, and Casey held one against Bill. Each waited for a partner who was only waiting in turn.
@@ -11888,7 +11905,7 @@ Load the production atlas during test collection and prepare mocked module depen
 
 **Root cause.** The file writer inherited the Windows locale encoding rather than specifying UTF-8.
 
-**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults.
+**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults. For a garbled glyph, compare source codepoints and actual response bytes: a correct UTF-8 header cannot repair text already stored incorrectly. Structural icons can use ASCII SVG markup while retaining their accessible names.
 
 **How to verify.** Strictly decode the saved file as UTF-8 and assert the rendered label's exact characters. Review the diff for unrelated byte changes before continuing.
 
@@ -12673,6 +12690,35 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 3. Prevention: aggregate native dirtiness, unsettled previews and every browser-local input owner when deciding whether leaving discards work. Use the owner's existing pending-input contract rather than adding a second baseline. Keep explicit adoption and explicit cancellation distinct from an apparently clean exit.
 4. Verification: use the actual page bindings and native module to reverse a build exactly while retaining review text. Exit must prompt; Keep building must preserve the text; confirmation must obtain a fresh review and leave once after adoption. Explicit Discard/Cancel may clear it. The same reversal without review input must remain clean.
 
+## [L-explicit-utf8-for-source-edits] Preserve Unicode during scripted edits
+
+**What happened.** A scripted interface edit changed the existing zoom-out symbol into corrupted text. Review caught the unrelated change before delivery.
+
+**Root cause.** Python read UTF-8 source using the Windows locale encoding, then wrote that misdecoded text as UTF-8.
+
+**Prevention.** Pass `encoding="utf-8"` for both source reads and writes. Inspect the complete diff for unrelated text changes.
+
+**Verification.** Compare pre-existing non-ASCII text with the base revision. Check affected interface symbols in the browser and run affected Unicode test fixtures. A later fixture-copy edit corrupted an accented test literal through the same implicit Windows decoding; the complete runner test module caught it before delivery.
+
+## [L-condition-help-states-the-effect] Explain the value directly
+
+**What happened.** Condition tooltips used a forbidden contrast formula and repeated explanations that made a short hover panel cumbersome.
+
+**Root cause.** The copy added imagined misunderstandings instead of answering the player's immediate question about the number.
+
+**Prevention.** State the affected value, direction and amount first. Add only the context needed to interpret that value. Apply the writing-style skill before putting prose into the interface.
+
+**Verification.** Read every tooltip variant in the rendered panel and run the prose checks on its final text.
+
+## [L-window-validation-after-owned-reading] Validate complete restored state
+
+**What happened.** Installing a window while a Sim fetched a book failed final transaction validation with InvalidGrid.
+
+**Root cause.** Window validation invoked the full grid validator inside architectural restoration, before the newer save reader restored owned reading journeys. The validator saw the saved target with its required journey still absent.
+
+**Prevention.** Keep structural validation in the architectural layer. Run validation that depends on activity ownership after that ownership has been restored, and before adopting the candidate world.
+
+**Verification.** Install a window during owned reading, require a successful transaction, and round-trip the current save with an identical world hash. Retain malformed-window rejection checks.
 ## [L-historical-architecture-versus-approved-catalogue-append] Verify an approved append separately from frozen history
 
 1. What happened: the sprite CI step failed its historical architecture descriptor assertion after Outdoor patio appended four reviewed catalogue entries. This failure did not demonstrate changed atlas pixels or nonreproducible generated files.
@@ -12686,6 +12732,41 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 2. Root cause: the report mixed completed fixes, unresolved findings and design tradeoffs without stating the actual player impact or verification status of each.
 3. Prevention: identify completed repairs and actual open findings explicitly. Describe the observed player impact and proof boundary. Do not phrase hypothetical implementation tradeoffs as pending repairs.
 4. Verification: map each reported concern to an actual open finding or a completed test. Remove unsupported pending-work claims before delivery.
+
+## [L-activation-across-focus-transfer] Guard the complete native activation sequence
+
+1. What happened: holding Enter on Land could open its decision, activate the newly focused Keep button and reopen the decision after focus returned.
+2. Root cause: repeated activation was guarded after successful completion but not at dialog opening or Keep focus restoration.
+3. Prevention: preserve the activation guard across every focus transfer in the operation, while allowing a fresh deliberate press. Keep pointer click-count protection separate.
+4. Verification: model the native button default after an uncancelled keydown. Repeated Enter must neither close a new decision nor reopen it after Keep; a fresh press must work.
+
+## [L-review-back-is-an-outcome] Preserve deliberate cancellation without reporting failure
+
+1. What happened: Back from a room review preserved the draft but displayed a generic confirmation-failure message.
+2. Root cause: the page treated every false confirmation result as a refused operation, including deliberate review cancellation.
+3. Prevention: let the existing review/session owner identify cancellation explicitly. Clear pending destinations and narration for that outcome without suppressing genuine refusal messages.
+4. Verification: execute the actual page binding. Back must preserve raw input and draft state with no false error; a subsequent native refusal and invalid name must still show useful errors.
+
+## [L-intrinsic-control-height] Measure the rendered control rather than its minimum
+
+1. What happened: roster buttons remained 31px tall after their minimum was reduced to 28px.
+2. Root cause: line height, vertical padding and borders imposed a larger intrinsic size.
+3. Prevention: measure actual border boxes with their real labels and fonts. Adjust vertical padding when necessary while preserving horizontal dimensions and spacing.
+4. Verification: compare measured original and final heights, font sizes and widths in desktop, compact and coarse-pointer layouts. Inspect complete focus outlines and enlarged text.
+
+## [L-capture-bytes-and-visible-state] Validate the saved image against the claimed state
+
+1. What happened: several browser captures contained an earlier panel or a different image size from their accompanying viewport receipts. Files named PNG contained JPEG bytes. An immediate parent popup capture also lacked the visibly painted popup that its DOM already reported.
+2. Root cause: capture acceptance relied on DOM metadata, requested dimensions and filenames without consistently validating the saved bytes and their visible contents.
+3. Prevention: identify the actual image format and decoded dimensions. Match each saved image to its displayed target, stable viewport and intended visible state. A hidden child page's visibility flag does not establish a displayed browser pane.
+4. Verification: decode and inspect every accepted image. Reject wrong-state or wrong-size captures, preserve their original receipts, and obtain fresh independent review of replacements. DOM geometry and hashes do not substitute for the pictured result.
+
+## [L-timed-out-input-is-not-atomic] Observe state after a failed browser action
+
+1. What happened: a timed-out action partly changed game speed, while its paired Pause never ran. A separate mouse-to-touch experiment emitted a trusted touch start without a release and left later pointer commands timing out.
+2. Root cause: the verification assumed a failed compound action had no effect and treated restored emulation settings as proof that pending input had ended.
+3. Prevention: inspect fresh UI state after any action failure. Use finally cleanup, pause the actual household, and distinguish restored configuration from restored input state. Stop unsupported input routes rather than patching the game around tool errors.
+4. Verification: confirm the checked speed and a stable clock. Retain partial-event and restoration receipts. A fresh-target control may recover normal testing but does not prove the input provider was repaired or establish touch or held-key coverage.
 
 
 ## [L-cross-system-negative-claims] Search old exclusions when adding a social effect
@@ -12719,3 +12800,459 @@ Adding unplaced catalogue models can change the saved global content fingerprint
 **Prevention.** Keep provenance for unfinished objects and historical responsibility. Check the living actor separately before granting a new social effect; preserve existing opinions and let consumption finish normally.
 
 **Verify.** Remove the cook through the real mortality cleanup, prove the meal survives, then finish a guest portion. Require unchanged empty and nonempty opinions, no new appreciation diagnostic and an eaten portion.
+
+## [L-count-survivor-allowances] Preserve counted allowances when normalizing identities
+
+1. What happened: a replacement mutation-result model converted the reviewed survivor baseline into a set. One accepted normalized name could then excuse several distinct missed mutations.
+2. Root cause: the prior sorted-list comparison consumed matching baseline lines one for one. Set membership preserved names but discarded their multiplicity. Projecting records to one worker too early could also reuse an allowance across workers.
+3. Prevention: retain counted allowances, allocate them deterministically over the complete merged result collection, and only then project a worker's view. Keep exact mutation identities separate from the shortened names used for baseline policy.
+4. Verification: one allowance must reject a second matching miss, two allowances must accept exactly two, and a further miss must fail. Replace counted consumption with set membership in an isolated copy and require these assertions to fail. When testing a rejection guard, keep all other evidence consistent so a different guard cannot hide its removal.
+
+## [L-bind-mutation-execution] Bind acceptance to the executable and source that ran
+
+1. What happened: independent review reproduced three acceptance defects in a proposed resumable mutation runner. Cargo could execute a different binary from the one Python hashed. A child could change the owned source copy while leaving the protected checkout clean. Complete predecessor results could bypass a failed current-source check.
+2. Root cause: tool lookup, source verification and final aggregation checked different representations of the intended computation. A version string, clean original checkout or valid historical result did not establish the actual executable and current input bytes.
+3. Prevention: resolve and hash one executable, then invoke that absolute path throughout. Prevent lockfile updates and check owned inputs at each evidence boundary, allowing only the verified active mutation. Revalidate current computation inputs before final acceptance even when all outcomes came from earlier attempts. Do not reset unexpected changes and accept the results they produced.
+4. Verification: use divergent PATH and Cargo-home tools, a child that changes the owned lockfile or another tracked input, and complete predecessor coverage followed by changed current inputs. Require each corresponding guard-removal control to fail its intended assertion. Keep a documentation-only continuation as a passing control, and distinguish fixture-process evidence from a real Rust campaign.
+## [L-seasonal-tints-preserve-material] Preserve the material's identity through seasonal changes
+
+1. What happened: the seasonal grass settings turned Autumn grass brown and Winter grass pale enough to resemble permanent snow cover. The owner requested recognizable green grass throughout the year.
+2. Root cause: chosen hue and saturation changes replaced the grass's identity instead of adding a slight tint. The visual acceptance criteria required only a readable pattern.
+3. Prevention: state the required material color explicitly and compare every seasonal treatment against it. Use temporary weather effects to communicate brief conditions instead of applying them to the whole season's ground color.
+4. Verification: compare matching defective and corrected Autumn and Winter captures in the real game. A fresh reviewer must reject the defective treatment before accepting the repair. Test the tint bounds and verify weather ends and grounded leaves expire in game time.
+
+## [L-weather-identity-frame] Give decorative fields a stable coordinate frame
+
+1. What happened: index-based particles moved during edits; ranked candidate limits removed existing leaves early; lot-local hashes rerolled leaves when west or north purchases translated the lot.
+2. Root cause: a changing list and then a changing coordinate frame were treated as physical tile identity.
+3. Prevention: normalize to the saved original lot frame once at the presentation boundary. Use that frame for eligibility, lifetime and appearance. Translate only for projection and keep clipping in current lot coordinates.
+4. Verification: compare exact sampled fields through additions, removals, west/north translations and negative relative coordinates. Remove normalization and require the translated-field test to fail. Recheck actual purchase, cancellation and save/load paths.
+
+## [L-first-animation-timestamp] Do not subtract setup time from the first animation timestamp without a lower bound
+
+1. What happened: weather validation stopped the first rendered frame because its interpolated tick was negative.
+2. Root cause: the browser's first animation timestamp preceded the performance.now sample recorded during setup, producing negative elapsed time and interpolation.
+3. Prevention: calculate elapsed frame time at a single boundary and bound it below by zero before simulation and visual consumers receive it.
+4. Verification: feed an earlier first timestamp through the actual fixed-step driver, then a normal interval. Require zero initial interpolation and the expected next tick. Restore raw subtraction and require failure.
+
+## [L-default-catalogue-mock-order] Resolve shared module mocks before loading their dependents
+
+1. What happened: a full web run intermittently saw a floor material's fixture catalogue while finish preparation reported the fixture as unknown. The same test passed in isolation.
+2. Root cause: the setup loaded several modules concurrently while each captured a shared mocked catalogue as its default.
+3. Prevention: resolve and assert the shared mocked module first, then load its dependent modules in a defined order. Keep the production default-argument assertions and functional deadline.
+4. Verification: run the palette and pattern additions together and in the full suite. Both floor selection and finish preparation must resolve the same fixture through their default catalogue.
+
+## [L-merge-head-does-not-prove-reuse] A merge commit does not establish worktree history
+
+1. What happened: a startup warning treated a detached checkout at a merged commit as evidence that previous work in that checkout had already shipped. The evidence did not establish that history.
+2. Root cause: commit ancestry was used as a substitute for worktree and task ownership. Fresh worktrees commonly start at merge commits on the remote default branch.
+3. Prevention: inspect working-tree status, the current reference, remote ancestry and task-owned artifacts separately. Apply a merged-work confirmation rule to the task's work, rather than to any merge commit in its ancestry.
+4. Verification: a clean new worktree based on remote main must not be classified as reused solely because its first commit is a merge. A branch whose own task changes have merged still requires the prescribed confirmation.
+
+## [L-generated-artifact-test-order] Finish rebuilding generated interfaces before running their integration tests
+
+1. What happened: browser save and career tests ran against the previous compiled simulation after a main-branch merge changed the save version and exported methods.
+2. Root cause: the integration tests started while the WebAssembly rebuild was still running, so source and generated artifacts described different interfaces.
+3. Prevention: finish the generated-artifact build successfully before launching tests that import it. Only independent source tests may run alongside that build.
+4. Verification: confirm the build exits successfully, then run the browser save, bridge and career tests against the generated package. Preserve failures from stale artifacts as verification-ordering evidence rather than changing expected behavior.
+## [L-keep-workspace-test-inputs-stable] Reuse the established Cargo build context
+
+**What happened.** A package-only retest rebuilt dependencies after a workspace build had finished.
+
+**Root cause.** Changing package selection changed Cargo's dependency build inputs and matched a different set of cached artifacts.
+
+**Prevention.** Keep workspace package selection for focused retries. Use `cargo test --workspace --no-run --message-format=json` to obtain current test executable paths, then execute the remaining targets. Include test-enabled examples and documentation tests when a failed library interrupted the workspace run.
+
+**Verification.** Inspect Cargo's artifact records for freshness and target names. Require the corrected tests, remaining examples and documentation tests to pass. Retain the earlier passing results only when their source and build inputs remain unchanged.
+
+## [L-logo-aspect-ratio-header-layout] Review the whole header when replacing a logo
+
+**What happened.** A tall logo made the changelog's navigation band taller while its separate title and toolbar kept their own vertical space. The result had a small-looking logo inside a large empty header.
+
+**Root cause.** The asset replacement preserved a layout designed for a shorter text brand. Reviewing the logo alone missed the total distance to the first update.
+
+**Prevention.** Compose the logo, page title and controls together. Check the complete route in both themes and at desktop, tablet and narrow phone widths before publishing an asset change.
+
+**Verification.** Compare the known defective capture with the repair at matching viewport sizes. Require an independent reviewer to reject the defective layout. Measure the displayed logo and the first update's position, then check control wrapping and horizontal overflow across breakpoints.
+
+## [L-native-pause-uses-command-flush] Test pause through the paused entry point
+
+1. What happened: a household grace regression sent `SetSpeed(0)` and then called `Sim::tick()` repeatedly. It reported clock and grace advancement as a pause defect.
+2. Root cause: `Sim::tick()` is an explicit simulation step. The browser pauses by withholding ticks and applying queued input through `flush_commands()`.
+3. Prevention: exercise pause through command flushes or the real browser frame loop. Use direct ticks only when the test intends elapsed game time.
+4. Verification: capture the clock and neglect timers, apply repeated paused command flushes and require identical values. Keep a separate test for the browser pause boundary.
+
+## [L-current-timer-inventory-bounds] Inherit timing limits from the sources they describe
+
+1. What happened: review found that a 100000-row cap on household neglect timers was lower than the combined legal floor, surface, bin and dish inventories in the wrapped save.
+2. Root cause: one underlying collection's limit was copied to an aggregate of several independently bounded collections.
+3. Prevention: validate sorted unique timer references against the actual validated active source inventory. Bound duty timers by their assignment inventory. Keep published nested record limits unchanged.
+4. Verification: load a legal schema-eighteen world with 100000 floor sources and an additional dirty surface, initialize timing and require an exact schema-nineteen round trip.
+
+
+## [L-neglect-maturity-and-current-state] Preserve historical obligation facts separately from current quantities
+
+**What happened.** A grace-period implementation forgot that a chore was overdue while gradual cleaning lowered its current grime. A proposed per-helper admission record would also have added an exemption that the requirements did not request.
+
+**Root cause.** Current dirt levels and historical obligation maturity answer different questions. Recomputing the latter from the former erased valid completion evidence; attaching it to a worker changed contribution-leader semantics.
+
+**Prevention.** Preserve the historical fact on the existing obligation identity. Reconcile physical clocks after mutations, retain maturity only through genuine unfinished continuation, and clear it when the old obligation is discharged. Derive validation limits from admitted underlying inventories and index identity lookups once.
+
+**Verify.** Use actual gradual work with a mid-work save. Exercise the grace boundary, multiple dish contributors, cancellation, removal followed by fresh dirt, late dish pickup and washing, and a valid inventory larger than any single source category. Confirm current continuation includes the full envelope while historical fixtures retain their original bytes.
+
+## [L-historical-waiters-need-current-ownership] Accepted historical state must produce a valid current save
+
+**What happened.** A historical household loaded successfully, then produced a current save that could not reload. Two people targeted the same chat recipient, but migration recovered only the admitted person's conversation ownership. The other person's waiting target remained unowned.
+
+**Root cause.** Legacy recovery covered reserved approaches and running conversations while omitting unreserved waits. Repeated version-level probes also obscured the failure because the restore call graph skips some intermediate schema wrappers.
+
+**Prevention.** Normalize all supported historical activity ownership during historical adoption. Preserve explicit legacy provenance, paths, reservations, clocks and random streams. Keep current capture and current validation strict. Index existing ownership once when processing large saved households. Map the actual restore calls before tracing failures; use a source breakpoint on the failing guard when matching debug symbols are available.
+
+**Verify.** Load a historical household with two chat initiators and one busy recipient. Require separate admitted and waiting ownership, an identical current-save reload, and rejection of an orphaned target inserted directly into a current payload. Compare paths, the Blocked marker, the admitted reservation, the clock, and both simulation and chore random streams. Keep the stale room-history trigger as a separate regression.
+
+## [L-compare-serialized-receipts-canonically] Compare receipts in their persisted representation
+
+1. What happened: an inventory checker rejected unchanged source receipts because an in-memory scope used tuples while its JSON-loaded predecessor used arrays.
+2. Root cause: the checker compared language-specific container types across a serialization boundary. The persisted receipts were identical.
+3. Prevention: normalize both sides through the declared serialization format before comparing evidence. Preserve the original outputs and repair the checker separately; do not rerun valid completed work to hide the false alarm.
+4. Verification: require equivalent tuple and array representations to compare equal. Require an altered scoped blob or actual source-byte hash to compare unequal. Retain the correction and its controls with the dated qualification evidence.
+
+## [L-physical-cleaning-credit] Keep actual cleaning credit separate from board history
+
+**What happened:** Cleaning appreciation originally depended on settling a board episode. That omitted board-disabled and repeated real work. Reusing episode contribution totals for a later argument could also award credit to an earlier washer for fresh dishes.
+
+**Root cause:** A historical accounting row was being used as proof of current physical completion. An episode can remain after its original work ends, and its contribution total does not identify a new continuous duty.
+
+**Prevention:** Award ordinary appreciation from successful physical completion with positive completed units. Track reconciliation contributions by the current chore, owner and continuous-work identity. Keep board history separate, require actual recipient work during the repair window, and capture witnesses before cleanup removes its source records. Historical source adoption must be explicit; current readers must reject missing behavioral ownership.
+
+**Verification:** Exercise real board-disabled cleaning, repeat same-day work, a fresh dish load with an old contribution leader, helper completion, declined-then-natural cleanup, and save/load through partial work. Prove that canceled, zero-unit, expired and unrelated work supplies no repair bonus.
+
+
+## [L-fixture-failure-attribution] Name the exact fixture that failed
+
+**What happened:** A failing multi-fixture save test was attributed to its first input, even though the assertion did not identify which iteration failed. Separate execution proved that the first input loaded and the later running-fight input failed.
+
+**Root cause:** A shared assertion location identified the test, while the report treated it as evidence about a particular fixture.
+
+**Prevention:** Label each fixture assertion with the input name or use separate parameterized cases. Run public loading on a fresh untouched instance; use another instance for lower-level diagnostic admission so setup cannot mask the public behavior.
+
+**Verification:** Retain independent positive and negative controls for the exact original bytes. Report a failing test separately from an observed failing input until the evidence identifies that input.
+
+
+### Keep historical producer policy consistent at every writer
+
+A partial dish-washing batch recorded a new scoped receipt under published reference rules, while that policy's loader rejected the receipt. The fight event recorder already had the policy guard; the physical-work recorder did not. Guard every writer of policy-specific state, and verify both a partial-work round-trip under historical content and a positive current-content control. Completing the whole duty can erase the conflicting state and hide the defect.
+
+
+### Keep running measurements outside Cargo output directories
+
+A workspace test build failed with `LNK1104` because it tried to replace an example executable used by a long-running measurement. Cargo builds ordinary examples during workspace testing, even when they contain no tests. Before starting a measurement, copy its validated executable to an ignored task directory and record the original digest. Run the copy so later builds can replace Cargo artifacts. Verify that the copied executable is outside `target/` and that every intended library, integration, migration and documentation test target runs. A failed combined build must remain recorded as failed, even when later explicit targets supply complete validation.
+
+## [L-recovery-retains-failed-aggregate-jobs] Recover failed stages even when they produced no artifact
+
+1. What happened: a recovery adapter retained preparation and worker jobs but omitted aggregate jobs. A failed aggregate with no snapshot disappeared from the next attempt, which could pass using earlier complete results.
+2. Root cause: artifact discovery was mistaken for a complete inventory of started work. A stage that fails before upload has no artifact to announce its failure.
+3. Prevention: inventory every started stage that can invalidate acceptance. Require authenticated verdict evidence for a failed historical stage when continuation is permitted; otherwise retain the terminal failure. Keep the current in-progress producer distinct from historical producers.
+4. Verification: start with complete valid history, insert a failed aggregate without a snapshot, and require a later aggregate-only attempt to refuse. Preserve explicit terminal verdicts through resealing. Separately accept authenticated incomplete continuation and a clean aggregate-only refresh. Remove the guard in an isolated copy and require the intended assertion to fail.
+
+## [L-recovery-binds-original-plan-policy] Bind continuation policy to the authenticated original plan
+
+1. What happened: an externally supplied continuation extended a seven-day campaign to fourteen days while retaining its original plan and results. An optional snapshot comparison caught the change only when a snapshot existed.
+2. Root cause: the adapter validated the caller's policy shape without comparing its immutable fields to the authenticated original policy.
+3. Prevention: compare start, expiry, attempt limits and retention immediately after original-plan authentication, before tool or work admission. Permit only the explicitly allowed ordered run-chain extension. A missing optional checkpoint must never remove the original policy boundary.
+4. Verification: authenticate a valid original plan and producer, then alter each immutable field independently with no snapshot available. Require every altered continuation to refuse while a valid append-only extension succeeds. Remove the policy binding in an isolated copy and require the named regression assertion to fail.
+## [L-native-measurement-before-worker-release] Put measurement review before expensive fan-out
+
+1. What happened: the mutation workflow could start all production workers after planning, before the required native measurements had been inspected.
+2. Root cause: baseline-plus-one-mutation arithmetic and a tiny qualification fixture were treated as sufficient admission for a full native campaign. The workflow had no deliberate review boundary for actual throughput, cleanup, upload and recovery capacity.
+3. Prevention: freeze the full plan first. Run representative diagnostics inside the existing shared slot, authenticate completed producer and upload evidence, and require a separate admission action before releasing production workers. Keep diagnostic outcomes outside production coverage and retain failed decisions. A capped campaign projection must include repeated capped baselines, setup, shutdown, validation, upload and declared queue costs; a mutation-time subtotal is not a campaign upper bound.
+4. Verification: prove that the first review-required attempt cannot reach preparation, workers or production aggregation. Require exact original plan and measurement bindings on the later admission and all recovery paths. Include a case where mutation time fits the deadline but repeated campaign costs do not. Establish actual platform measurements before using the gate to admit production.
+
+## [L-full-manifest-transport-sizing] Size serialized artifacts with the complete inventory
+
+1. What happened: a plan containing the full native inventory exceeded the fixed archive-member limit when pretty-printed. Result bundles repeated the same large manifest and had the same risk before any outcomes existed.
+2. Root cause: small fixtures exercised the format but not its serialized capacity. Repeated manifest bytes and whitespace counted toward the transport limit even though the logical data was valid. A later estimator also treated separate per-mutation logs as one member and confused whole-slot history with one attempt's artifact.
+3. Prevention: measure the actual emitted representation with the full inventory. Compact only the transport representation while preserving every value, canonical digest, raw outcome and existing bound. Keep individual members, one artifact and accumulated history as separate scopes. Derive per-attempt projections from an enforced selection bound, not sampled throughput alone. Include accumulated history and producer logs in capacity forecasts; enforce a conservative finite history limit rather than assuming every theoretical recovery path will fit. Compare observed result shapes after assigning the same identity; the largest original record can have a long identity but a smaller execution payload.
+4. Verification: send a representative full-size plan and result bundle through the actual archive reader and validators. Require an over-limit member to fail. Accept separately bounded log members when their artifact total also fits. Include a long-identity one-phase result and a shorter-identity two-phase result, then require both raw and retained-history projections to cover the larger substituted shape. Keep sizing shapes explicitly separate from executed outcomes and remeasure after format or inventory changes.
+
+## [L-test-root-is-not-process-cwd] Run tests from their required working directory
+
+1. What happened: Vitest found the requested web tests through `--root web`, but two suites could not load their relative Wasm fixture because the process still ran from the repository root.
+2. Root cause: the test discovery root was mistaken for the process working directory used by ordinary file reads.
+3. Prevention: use `web/` as the command working directory for its package scripts and direct test-runner invocations. A discovery flag does not change `process.cwd()`.
+4. Verification: retain the failed setup result separately, rerun the affected suites from `web/`, and require their actual assertions to execute. Do not rebuild an existing fixture to compensate for the wrong directory.
+## [L-reference-navigation-every-layout] Preserve reference navigation on every page and screen size
+
+**What happened.** The issue #313 documentation proposal promised search and links to the game and changelog on every page. The first mock-up placed search only on its home page and hid both destination links on phones. An independent novice-perspective review caught both gaps before approval.
+
+**Root cause.** The layout review treated narrow-screen space and individual article templates separately from the navigation contract. The pages fit their viewports while losing required routes.
+
+**Prevention.** Define shared navigation before styling individual templates. Put search in the shared page shell. Reflow essential destination links on phones instead of hiding them without another visible route.
+
+**Verification.** Enter directly on an article at desktop and phone widths. Find another topic through search, return to the game, and reach the changelog without relying on browser history. Inspect captures as well as overflow measurements; fitting the screen does not prove that navigation remains available.
+
+## [L-player-guide-prototypes-need-real-instructions] Review player-facing mock-ups as instructions
+
+**What happened.** The owner rejected issue #313's first guide mock-up because vague descriptions and reviewer instructions appeared inside the player-facing cards. The mock-up also replaced the changelog's existing theme toggle with a different control despite the intended shared appearance.
+
+**Root cause.** The preview mixed explanations about the proposal with instructions for playing. Review checked broad concepts and layout without requiring each passage to identify a concrete game control, action or consequence. Similar colors were treated as sufficient reuse of the existing visual design.
+
+**Prevention.** Keep proposal notes outside the player-facing preview. Use meaningful draft instructions even in a mock-up, and reuse the existing styles and controls when continuity is required. A reviewer must explain what a novice can actually do after reading each entry; recognizing the general topic is insufficient.
+
+**Verification.** Ask a fresh reviewer to follow a concrete task such as Options > New housemate and identify the exact controls and outcome. Compare the header, theme control, typography and page treatments with the current reference. Owner rejection overrides an earlier review's acceptance.
+
+## [L-generated-help-and-frozen-captures] Validate generated Help before recording a stable game build
+
+**What happened.** The player-guide screenshot pass was interrupted by development-server reloads while documentation and its imported generator changed. A fresh reviewer also found a real startup error: short Help linked to a subsection whose anchor had not been authored, causing the root HTML transform to return an error.
+
+**Root cause.** Capture state depended on a mutable development process, and fixture tests did not establish that the current authored Help could render. The initial loading screen and zero Funds were symptoms of incomplete startup, not evidence of a save defect.
+
+**Prevention.** Render the actual authored Help and guide before starting capture. Build through the normal production configuration, then serve that frozen output while documentation work continues. Preserve the real Help transform and its validation; removing a plugin would hide the bad link. Refresh captures where later UI changes alter the pictured control.
+
+**Verification.** Require the root page and authored Help links to load without errors, record the output hash, and wait for visible game readiness before operating controls. Exercise a cross-page Help fragment and require its destination to exist. Keep actual failed URLs or errors before diagnosing storage. Use paired defective/corrected captures when fixing a visible defect.
+
+## [L-form-reset-applied-search] Clear the applied search along with the form field
+
+**What happened.** The guide's Clear control emptied its input while leaving the applied query in the URL and the previous results visible. A novice-player browser review found it after both a matching search and an empty result.
+
+**Root cause.** The reset handler queued work that read the old input around the browser's native reset behavior. Clearing the field and clearing application state were treated as the same operation.
+
+**Prevention.** Handle reset as an explicit application action: prevent the native reset, clear the input, remove the applied query, hide the results and restore focus together.
+
+**Verification.** Submit a successful query and a query with no results. For each, activate Clear and require an empty field, no result panel, no query parameter and focus on the search field. A screenshot of an empty input alone does not prove that the applied search was cleared.
+
+## [L-expanded-menu-identity-measurement] Measure expanded descriptions before placing radial actions
+
+**What happened.** The guide screenshot pass exposed object descriptions clipped inside the menu's compact identity width. Giving the paragraph a wider box alone left the action positions based on the old width and could place text beneath nearby buttons.
+
+**Root cause.** The radial layout treated the identity as a fixed-width label even after it became an expanded reading area. With three or five actions, the side buttons also needed their horizontal distance checked against the actual angular placement.
+
+**Prevention.** Measure the expanded identity and pass that width through placement, overlap and fallback calculations. Keep its background behind the entire title and description. Preserve the compact default for existing callers.
+
+**Verification.** Inspect a real expanded description at desktop and phone widths. Check text visibility against the dock, world controls and action buttons. Test three and five actions with the measured width; a roomy desktop layout must remain radial, while a constrained viewport must retain a usable fallback. Require a fresh reviewer to reject the defective capture before accepting the repaired capture.
+
+## [L-approved-outline-acceptance] Check the approved outline as well as the issue
+
+**What happened.** The player-guide implementation initially included topic navigation and search but omitted the approved outline's common-task shortcuts and activity filters. Reconciling the outline before presentation exposed the missing controls.
+
+**Root cause.** Implementation checks concentrated on the issue's original prose requirements and the mechanics reference. They did not treat accepted design details as delivery requirements.
+
+**Prevention.** Turn the approved outline and later owner corrections into a concrete acceptance list before implementation. Check each promised visible control and behavior against the working result before requesting final review.
+
+**Verification.** Exercise each promised control, including its empty, reset and no-script states where relevant. Have the independent reviewer inspect the actual additions; a passing article-link check cannot establish that a missing filter was implemented.
+
+## [L-cleanup-credit-versus-final-washer] Trace the credited contributor before explaining cleanup rewards
+
+**What happened.** The guide first described chore repair as a reward for the person finishing the work, then described dishes as using the largest contributor. A novice reviewer correctly found that the two rules gave conflicting answers when a helper washed the final plate.
+
+**Root cause.** The prose named the last visible worker without tracing which person the dish-completion caller passes into reward calculation. Dish contributions span the current continuous duty and can identify somebody else.
+
+**Prevention.** Trace both the completion event and the credited person's identity. Explain different credit rules separately instead of extending a generic completion sentence to every kind of work.
+
+**Verification.** Check opposite cases: the assigned person does most washing and a helper finishes; the helper does most washing and the assigned person finishes. The first can award repair to the assigned person, subject to the window and in-window contribution requirements; the second cannot. Source routing establishes this explanation. Do not claim a new played scenario or executed regression unless it was actually run.
+
+## [L-captured-cli-byte-transport] Check captured byte transport separately from terminal display
+
+**What happened.** A newer GitHub command-line client refused a completed job log containing terminal escape sequences, even when the caller captured stdout. Recovery therefore could not authenticate the original log bytes.
+
+**Root cause.** The adapter assumed that capturing stdout bypassed the client's terminal display guard. The client required an explicit raw-output option.
+
+**Prevention.** Probe supported options offline before the first request. Enable raw output only for captured streams when supported, preserve older client arguments, and propagate request failures without a fallback request. Never strip bytes from evidence or render the raw output into a terminal.
+
+**Verification.** Test both client contracts, unchanged log and archive bytes, strict metadata parsing, request accounting and failure propagation. Compare a captured real log's byte count and hash with the original. Keep that host transport check separate from Linux recovery qualification.
+
+## [L-recipe-tree-query-scope] Authenticate required paths through complete parent trees
+
+**What happened.** Linux fixture planning refused a truncated recursive GitHub tree response before executing any mutations. The query enumerated unrelated asset directories to locate a fixed recipe file set.
+
+**Root cause.** Authentication depended on a complete recursive listing of the whole repository. Asset growth could exceed the API response boundary even when every required recipe file was unchanged.
+
+**Prevention.** Follow only the required parent directories from the authenticated commit. Require complete immediate-tree responses and bind each child tree to its selected parent entry. Preserve exact file identities, valid object modes and duplicate-name rejection. Never accept a partial recursive listing because the desired paths happen to appear in it.
+
+**Verification.** Reject truncated, missing, duplicate and altered parent or file evidence. Exercise distinct commit and parent identities through the real request-accounting wrapper. Measure the additional requests and keep existing request limits; a smaller query does not make those calls free.
+
+## [L-provider-lifecycle-transport-contract] Test evidence transport at the producer's actual lifecycle
+
+**What happened.** Recovery preparation required a whole-run log download location while that same workflow was still running. GitHub refused the request before workers could start, although completed producer-job logs were available.
+
+**Root cause.** Successful high-level probe mocks hid the production HTTP behavior and the circular dependency on workflow completion. A host credential's successful or failed request also cannot establish behavior under the workflow's token.
+
+**Prevention.** Select an authenticated completed producer before probing its log availability. Preserve all original evidence and expiry separately; a current download location is only a limited availability signal. Do not skip an active run, substitute another producer after a failure, or treat retained bytes as proof of current availability.
+
+**Verification.** Exercise the real HTTP branch with only its network boundary injected. Include malformed status and header responses; require sanitized fatal errors without raw exception context. Test active runs, completed predecessors, same-run recovery and a new continuation without a new plan receipt. Before native work, verify the selected completed-job endpoint inside Actions with the actual workflow token, bounded requests and no retained credentials or signed download locations.
+
+## [L-review-correction-exit-intent] Preserve ordinary exit intent through editable review refusals
+
+**What happened.** A room-name validation refusal invalidated the pending Build exit. Correcting the name and confirming the review saved the changes but left Build open.
+
+**Root cause.** The refusal hook used the same cancellation method for a tool destination and an ordinary exit. That method invalidated the asynchronous continuation in both cases.
+
+**Prevention.** Cancel only the continuation whose purpose the refusal invalidates. Keep an ordinary exit pending while the player corrects review input. Back, load and interruption must still invalidate an abandoned exit.
+
+**Verification.** Exercise footer Confirm and exit-dialog Confirm through invalid input, refusal, correction, review update and adoption. Require one commit and one exit without advancing game time. Exercise the same sequence for Land and require its refused destination to remain canceled.
+
+## [L-process-fixture-readiness-clock] Separate fixture startup from the behavior under test
+
+**What happened.** Process fixtures sometimes reached their short test deadline before the child could publish its first report. Tests of completed results and partial source writes then reported no progress.
+
+**Root cause.** The fixtures assumed process construction and interpreter startup would always fit inside a subsecond observation window. A controlled startup delay reproduced the failures; the production controller correctly enforced its declared deadline.
+
+**Prevention.** Use a bounded readiness handshake and start the fixture observation clock only after the required child state exists. Clear readiness markers between invocations. Keep production deadlines and shutdown limits unchanged.
+
+**Verification.** Add a controlled startup delay that exceeds the old fixture window and require the original result and source-integrity assertions to pass. Separately run the production controller without the fixture clock and require an expired deadline to stop before accepting later output. Do not present fixture timings as native capacity measurements.
+## [L-guide-capture-coverage-is-not-reading-quality] Curate screenshots around the reader's task
+
+**What happened.** The owner rejected the player guide's screenshot presentation: uncropped captures formed a disjointed dump, repeated desktop/phone wording and captions added noise, and images opened as raw files in new tabs. Screenshots were concentrated in the UI reference while articles discussing the same controls had no illustrations beside their instructions.
+
+**Root cause.** Capture coverage was treated as proof of a useful reading experience. The capture inventory drove presentation instead of an author choosing the image, crop and position that explained each passage. Review checked that screenshots existed without adequately testing whether a novice could read the labels and follow the surrounding instructions.
+
+**Prevention.** Keep capture provenance separate from curated article illustrations. Place figures explicitly beside relevant instructions, including in substantive topic articles. Crop controls to readable size while preserving their location context. Use captions only when they add meaning, preserve real desktop/phone differences without repeating identical instructions, and provide a shared device choice with in-page enlargement. Keep essential instructions visible and avoid narrowing tables beside images.
+
+**Verification.** Require a fresh reviewer to reject the known defective presentation before judging the repair. Read actual rendered sections at desktop and phone widths in both themes, including an article outside the UI reference and a long flow such as the creator. Check that each image explains nearby instructions, labels are legible, device selection applies consistently, and enlargement returns the reader to the same place. Passing image-coverage tests does not prove those results.
+
+## [L-qualification-bootstrap-diagnostics] Give the recovery procedure when setup evidence is missing
+
+1. What happened: production test planning reported an empty qualification failure after fixture setup had not completed.
+2. Root cause: discovery found no matching proof and joined an empty rejection list, leaving no explanation of the next action.
+3. Prevention: preserve strict refusal, distinguish missing proof from rejected proof, and name the fixture setup and preparation-rerun procedure. Keep fixture validation separate from production coverage.
+4. Verification: require a missing-proof test to reject planning and include the documented recovery procedure without extra discovery requests. Require real interrupted and resumed fixture completion before accepting hosted qualification.
+
+## [L-release-artifact-reruns] Bind tested release packages to the successful producer attempt
+
+1. What happened: review found that source-only package names could make a healthy rerun fail upload or leave duplicate artifacts. A live API check then found that selecting packages by the latest job's attempt could also reject a healthy partial rerun.
+2. Root cause: one run can retain artifacts from several attempts. GitHub can clone an earlier successful job with a new numeric ID and attempt while preserving its original execution timestamps and steps. The latest job's attempt does not prove that its commands ran again.
+3. Prevention: include the producing attempt in immutable artifact names. Authenticate the latest successful execution, then bind its matching original producer, artifact and receipt. Preserve earlier evidence and refuse a package from a different execution.
+4. Verification: use real API-shaped cloned-job metadata in partial-rerun tests. Retain both packages in a full-web-rerun test. Require refusal when a genuinely newer execution has no package despite an older valid package, or when original and latest execution evidence differs.
+
+## [L-stable-verification-tree] Keep verification inputs stable while a suite runs
+
+1. What happened: a broad Python test run imported an old workflow assertion before an implementation worker changed the workflow and its test. The run later compared the old assertion with the repaired file.
+2. Root cause: integration verification overlapped edits to files that tests import and read at different times.
+3. Prevention: finish worker edits before starting final integration verification. Treat a run spanning source changes as mixed-input evidence rather than a pass for the final tree.
+4. Verification: rerun affected modules after edits stop. Require the complete hosted suite on the immutable committed revision before dependent work proceeds.
+
+## [L-stable-mutation-userspace] Select the environment that the campaign requires
+
+1. What happened: separate hosted jobs received different Ubuntu image versions, so exact runtime authentication stopped fixture planning repeatedly.
+2. Root cause: a rolling runner label does not select one immutable environment across jobs or recovery attempts. Waiting for a rollout to settle cannot guarantee a stable multi-day campaign. The available failure logs established different image labels without establishing whether library bytes also differed.
+3. Prevention: select one reviewed, digest-pinned userspace for every mutation stage. Bind its compiler, executable, library and recipe identities. Retain the hosting machine as separate provenance. Update calibration, workers, native admission and recovery together.
+4. Verification: require the same pinned computation to pass across changed host metadata. Require changed image, inventory, compiler, library, helper or recipe inputs to refuse. Complete a real interrupted/resumed fixture before accepting production planning.
+
+## [L-runtime-image-consumer-contract] Test the image and its consumer together
+
+1. What happened: an image declared the intended Cargo worker count, while the consumer rejected that declaration as an unknown inherited override. Review also found that hashing a shell binary without its command alias could miss a redirected shell.
+2. Root cause: image preparation and runtime validation were checked separately. File contents, command resolution and environment declarations jointly determine the effective tools.
+3. Prevention: derive regression inputs from the actual image environment. Normalize only values that exactly match the declared computation. Verify effective helper resolutions and symlink targets as well as file bytes.
+4. Verification: run the real image environment before hosted qualification. Accept the declared worker count and refuse mismatches or unknown Cargo overrides. Redirect a shell/helper while retaining its original binary and require refusal.
+
+## [L-frozen-apt-candidates] Resolve package locks with the package manager
+
+1. What happened: package metadata enumeration selected an older security-pocket binutils version over the newer updates-pocket candidate, and the image build refused the lock.
+2. Root cause: repository iteration order replaced the package manager's version-selection rules.
+3. Prevention: freeze the package snapshot and resolve every direct package through APT's actual candidate selection. Validate every locked candidate before installation.
+4. Verification: build against the frozen signed snapshot with a candidate audit for all locked packages. Require a mismatched lock to fail before installation.
+
+## [L-isolated-test-import-closure] Copy every required module into isolated guard tests
+
+1. What happened: adding a runtime helper caused isolated guard-removal tests to fail during import, before reaching their intended assertions.
+2. Root cause: the isolated test copies explicitly listed helper modules and omitted the new transitive import.
+3. Prevention: scan isolated-copy module lists whenever adding an import. Include the required helper without weakening the original negative assertion.
+4. Verification: run the isolated controls and require each deliberate guard removal to fail for its named assertion. Complete the integration suite against a stable source tree.
+
+## [L-explain-the-purpose-of-a-check] Explain the consequence before the testing mechanism
+
+1. What happened: an explanation of remote workflow recovery described job records and interrupted execution without first explaining their purpose or connection to the requested game fix.
+2. Root cause: the explanation assumed that the reader already understood why a long testing process saves progress and which checks concern the game itself.
+3. Prevention: state what the check protects, whether it affects the requested delivery, and why the proposed location is necessary. Keep optional testing infrastructure evidence separate from application test results and player-device acceptance. Obtain approval before paid hosted work.
+4. Verification: the reader can identify the concrete failure being checked and its consequence without reconstructing previous technical explanations. Local results, remote-service behavior and deployment each retain their own verified status.
+
+## [L-canonical-runtime-inventory-unicode] Test the published inventory with its actual text encoding
+
+1. What happened: local execution of the published mutation image passed its image checks, then failed the consuming runtime validator on accented certificate filenames.
+2. Root cause: the image encoded non-ASCII JSON characters as escapes while its consumer emitted raw UTF-8 during canonical comparison. ASCII-only fixtures hid the disagreement.
+3. Prevention: define the canonical encoding explicitly on both sides. Test representative non-ASCII file paths and compare retained published inventory bytes before relying on a simulated installation.
+4. Verification: accept the exact published inventory and hash. Refuse changed certificate bytes and a hash-matching alternate JSON encoding. Run the real consumer against the pinned image locally.
+
+## [L-publication-filters-follow-build-inputs] Classify files by their production consumers
+
+1. What happened: review found that a publication filter omitted external character assets and migration content compiled from directories named `tests`.
+2. Root cause: directory labels were used as substitutes for tracing production imports, asset patterns and build-script reads.
+3. Prevention: derive publication inputs from actual consumers. Include production data stored under test directories while excluding unrelated saved-game fixtures, authoring sources and test-only files. Keep the workflow filter and stale-release comparison aligned.
+4. Verification: source-derived tests enumerate literal imports, matched runtime assets and compiled fixture filenames. Require each to trigger publication and make an older release stale. Require unrelated authoring files and test observations to remain excluded.
+
+## [L-local-npm-direct-node] Execute npm without a second command parser
+
+1. What happened: independent review ran the new local runner against the installed Windows npm command. Nested command-shell quoting made the path under `Program Files` fail before npm started.
+2. Root cause: C runtime argument escaping was reused inside `cmd /c`, whose parsing rules differ. Mocked command execution did not expose the platform failure.
+3. Prevention: resolve npm's installed JavaScript entry point and run it through Node with a direct argument array. Refuse unsupported batch wrappers rather than guessing their command syntax.
+4. Verification: run the real installed npm command through the runner. Use actual Node execution to preserve paths with spaces and arguments containing shell metacharacters, quotes and environment-variable syntax literally.
+
+## [L-qualification-binds-authorization-code] Bind helpers that define campaign authorization
+
+1. What happened: a new helper performed owner and local-report checks for the hosted workflow but was missing from the smaller contract used to select prior recovery qualification.
+2. Root cause: the workflow file was bound while its newly called authorization code was treated as ordinary source inventory.
+3. Prevention: include authorization helpers in the qualification contract. Keep full computation inventory and qualification compatibility checks distinct.
+4. Verification: change the authorization helper independently and require prior qualification and substituted remote source to refuse. Update precise API accounting for any added source tree without increasing the production ceiling.
+
+## [L-resident-graphics-and-first-frame-proof] Measure permanent graphics storage through the first complete frame
+
+1. What happened: waiting for uploads to finish reduced unfinished work while the affected iPhone continued to fail after loading. A later local budget probe initially treated removal of the loading cover as successful startup.
+2. Root cause: upload pacing left the complete dense texture allocation resident. The first-frame error path also removes the loading cover, so DOM readiness could report success after rendering had stopped.
+3. Prevention: measure actual requested texture and buffer storage, including scene attachments at device scale. Require a completed rendering frame and nonempty scene identities. Distinguish resource-pressure evidence from an observed operating-system termination on the user's device.
+4. Verification: a controlled budget rejects the old essential first-frame allocation; the repaired build completes a frame within the same budget. Compare color, depth and picking with the same paused household, and preserve source pixels and filtering independently.
+
+## [L-compressed-resource-identities] Distinguish transport hashes from unpacked content hashes
+
+1. What happened: a derived binary producer initially named gzip files using their unpacked digest despite the contract requiring the exact compressed bytes in the filename.
+2. Root cause: one digest was reused for two different byte representations.
+3. Prevention: name the encoded artifact by its exact encoded bytes. Keep the unpacked length and digest in a separate descriptor. Preserve equivalent valid committed gzip streams across compressor versions.
+4. Verification: assert the filename against the downloaded bytes and the descriptor against decompressed bytes. Corrupt each representation separately and require rejection.
+
+## [L-external-image-texture-usage] Preserve external-image upload permissions when replacing a loader
+
+1. What happened: a replacement graphics loader initially declared its destination texture for sampling and copying, omitting the render-attachment permission required by external-image uploads.
+2. Root cause: a mock queue accepted the upload without validating the real graphics API's destination contract.
+3. Prevention: trace resource descriptors through their actual upload operation. Preserve required usage flags and test the descriptor as well as the call sequence. Use real graphics validation before accepting the loader.
+4. Verification: require a descriptor test to reject the omitted permission. Run actual bitmap uploads with validation and memory error scopes, then verify rendered output on the real graphics device.
+
+## [L-local-command-catalogue-contracts] Update every guard for an expanded local check catalogue
+
+1. What happened: adding two local artwork checks passed the catalogue's direct tests but failed a second guard that compares the entire artwork command list.
+2. Root cause: the impact scan found direct catalogue assertions and missed the independent complete-list expectation.
+3. Prevention: search for both the changed command and complete-list comparisons before extending a shared verification catalogue. Preserve every existing command and add the new local requirements to each relevant contract.
+4. Verification: the full script run identifies stale expectations. After correcting the list, run the affected complete-list and catalogue policy tests. Record the initial failure and subsequent covering pass separately.
+
+## [L-startup-http-versus-process-failure] Separate download failures from browser-process failures
+
+1. What happened: a later screenshot from an earlier build showed the game's own HTTP 503 failure card, while previous reports showed browser-level page failures.
+2. Root cause: the earlier loader stopped on an unsuccessful response. The cause of the reported 503 remains unknown. Calling the reported failure temporary inferred its duration from the status code; neither a successful local download nor an injected response establishes that duration.
+3. Prevention: preserve the exact resource, status, build and failure layer. Capture a naturally failing request before attributing its cause. Keep tests of bounded recovery, memory-pressure evidence and physical-device acceptance separate.
+4. Verification: injected 503s test response handling only. Require bounded attempts and unchanged geometry validation, including rejection of corrupted successful bytes. Separately record normal public requests and their limits. Establish the reported failure's cause from an actual failing response or a reproduction of the conditions that produce it.
+
+## [L-startup-response-cleanup-and-evidence] Keep failure cleanup bounded and preserve the failed response
+
+1. What happened: the character reader discarded an unsuccessful response's delivery headers and body. A local stream test also demonstrated that awaiting its cancellation could hold the loader open forever.
+2. Root cause: cleanup completion was a prerequisite for retry or failure, and the thrown error retained only status and path. Successful desktop loads could not recover the missing evidence from an affected browser.
+3. Prevention: request discarded-body cleanup without awaiting it. Bound error-body reading by bytes and time. Retain selected response details and loading steps locally before another attempt or browser termination loses them. Keep an unfinished load distinct from a confirmed crash.
+4. Verification: hold cancellation unresolved and require retry and terminal failure to complete within their declared bounds. Verify response truncation, excluded credential headers and query strings, persisted loading steps after a renderer termination, and standalone retrieval without starting the game. Keep these diagnostic tests separate from physical-device recovery.
+
+## [L-diagnostic-report-delivery] Make device-local evidence easy to deliver
+
+1. What happened: startup reports were stored in the player's browser, while obtaining and sharing those reports remained unclear to the owner. A review also found that the report omitted the stack forwarded by a preparation worker.
+2. Root cause: collection and file download were treated as sufficient delivery. The failure surface did not provide direct copy and addressed-email actions, and the recorder retained only the wrapper's stack.
+3. Prevention: provide sharing controls beside the failure. Preserve recorded version identity, forwarded error details and the original saved data. Call clipboard writing from the user's click and expose selectable text when access is refused. Open email as a reviewable draft. Keep diagnostic delivery separate from identifying and repairing the reported defect.
+4. Verification: compare clipboard text, downloaded data and decoded draft body. Check the exact recipient and versioned subject, reserved characters, old-record version fallback, storage denial and blocked copying. Preserve cached-client compatibility when publishing a new recorder interface. Verify worker details separately from the main stack.
+
+## [L-error-capture-lifetime-and-budget] Verify report contents against actual failures throughout the session
+
+1. What happened: the recorder stopped accepting errors after the first graphics frame, and sharing used an earlier snapshot. Successful delivery tests compared equally incomplete payloads. The email also attempted to carry the entire report without a link-size budget.
+2. Root cause: startup readiness was incorrectly treated as the end of diagnostic capture. Tests established transport equality without provoking a later real exception or graphics validation error.
+3. Prevention: keep diagnostics active during play. Build sharing payloads on activation. Preserve actual error messages, causes, source locations, worker details and operation history. Reserve independent serialized budgets for errors, recent logs, context and history; changing global eviction order cannot guarantee a useful tail. Bound the fully encoded mail link separately, including CRLF and Unicode expansion. Reserve message space independently from labels. Count repeats and omitted records, and retain the larger report for copy/download.
+4. Verification: first require tests to reject missing post-ready and later errors. Then exercise a real graphics validation error and thrown exception in the compiled browser, and inspect the decoded Options email. Test nested errors, cyclic coordinates, changed worker evidence, repeated errors, newline expansion and storage readback at its hard bound. Browser-process termination still requires preceding evidence or native diagnostics; do not invent its cause.
+
+## [L-mail-handler-request-budget] Verify the complete mail-handler request
+
+1. What happened: bug reports fit the direct mail link limit but opened Gmail's Bad Request page. The body also put general context ahead of the error and omitted the operation when a source path existed.
+2. Root cause: the formatter counted one layer of URL escaping. Gmail's registered handler escaped the complete link again. Earlier verification decoded the link without opening the configured handler.
+3. Prevention: measure every generated report after the handler's extra encoding, reserve its address overhead, and place the error, cause and failing operation before context. Append newest logs before optional history. Preserve full copy and download reports.
+4. Verification: reproduce the old link's Error 400 in real Gmail, then verify recipient, subject and the complete repaired body in a populated unsent draft. Test variable report lengths, reserved characters, Unicode and lone surrogates against the encoded budget and content order. A passing direct-link test alone does not establish mail-handler acceptance.

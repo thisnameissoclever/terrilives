@@ -1,0 +1,75 @@
+{
+  "capturedAt": "2026-10-19T21:09:02.689Z",
+  "url": "http://127.0.0.1:5391/",
+  "measurements": {
+    "active": "Keep building",
+    "box": {
+      "bottom": 562.921875,
+      "height": 281.84375,
+      "left": 16,
+      "right": 374,
+      "top": 281.078125,
+      "width": 358,
+      "x": 16,
+      "y": 281.078125
+    },
+    "buttons": [
+      {
+        "background": "rgb(41, 49, 58)",
+        "font": "13px",
+        "outline": "rgb(216, 216, 224) solid 2px",
+        "rect": {
+          "bottom": 439.921875,
+          "height": 44,
+          "left": 35,
+          "right": 355,
+          "top": 395.921875,
+          "width": 320,
+          "x": 35,
+          "y": 395.921875
+        },
+        "text": "Keep building"
+      },
+      {
+        "background": "rgb(91, 45, 53)",
+        "font": "13px",
+        "outline": "rgb(255, 240, 241) none 3px",
+        "rect": {
+          "bottom": 491.921875,
+          "height": 44,
+          "left": 35,
+          "right": 355,
+          "top": 447.921875,
+          "width": 320,
+          "x": 35,
+          "y": 447.921875
+        },
+        "text": "Discard changes"
+      },
+      {
+        "background": "rgb(38, 79, 61)",
+        "font": "13px",
+        "outline": "rgb(232, 248, 237) none 3px",
+        "rect": {
+          "bottom": 543.921875,
+          "height": 44,
+          "left": 35,
+          "right": 355,
+          "top": 499.921875,
+          "width": 320,
+          "x": 35,
+          "y": 499.921875
+        },
+        "text": "Confirm changes"
+      }
+    ],
+    "clientWidth": 356,
+    "scrollWidth": 356,
+    "viewport": {
+      "dpr": 1,
+      "height": 844,
+      "width": 390
+    },
+    "visibleText": "Leave Build mode?\n\nDiscarding changes undoes this batch, including purchases and sales.\n\nKeep building\nDiscard changes\nConfirm changes"
+  }
+}

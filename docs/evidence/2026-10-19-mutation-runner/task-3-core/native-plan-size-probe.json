@@ -1,0 +1,10 @@
+{
+  "diagnostic_sizing_only": true,
+  "accepted_outcomes": 0,
+  "native_revision": "0b886b73d8fb0492fe8e8029957e0fc1db5715a7",
+  "mutation_count": 18543,
+  "pretty_plan_lower_bound_bytes": 34234770,
+  "compact_plan_lower_bound_bytes": 22720322,
+  "member_cap_bytes": 33554432,
+  "omissions": "Other context, manifest, calibration, capacity and producer fields are omitted, so these are lower bounds, not actual plans or execution evidence."
+}

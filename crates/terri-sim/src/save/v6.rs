@@ -32,7 +32,7 @@ pub(crate) fn capture_world(world: &World) -> SaveSnapshotV6 {
                 command,
                 terri_core::SimCommand::Character(_)
                     | terri_core::SimCommand::ConfirmedOrder { .. }
-            ) && !super::v18::is_queued_setting(command)
+            ) && !super::v18::left_out_of_records(command)
         })
         .map(|c| match c {
             terri_core::SimCommand::Book(book) => Some(book.clone()),
@@ -170,6 +170,7 @@ fn restore_inner_social(
     social: Option<terri_core::save_v9::SavedSocialEpisodes>,
 ) -> Result<Sim, SaveError> {
     let actor_references = portals.actor_references;
+    let current_fight_topics = portals.current_fight_topics;
     let saved_people = snapshot
         .legacy
         .world
@@ -393,6 +394,7 @@ fn restore_inner_social(
                 social,
                 saved_people,
                 social_targets,
+                current_fight_topics,
             )?;
         } else {
             super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
@@ -417,6 +419,15 @@ fn restore_inner_social(
             content,
             &candidate.world,
         )?;
+    }
+    if matches!(
+        candidate
+            .world
+            .resource::<terri_core::layout::SavedLayout>(),
+        terri_core::layout::SavedLayout::EdgeWallsV3 { .. }
+    ) {
+        crate::placement::windows::validate_restored_windows(&candidate.world)
+            .map_err(|_| SaveError::InvalidGrid)?;
     }
     candidate.sync_render_buffer_after_commands();
     Ok(candidate)

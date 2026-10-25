@@ -1,0 +1,17 @@
+diff --git a/src/visit.rs b/src/visit.rs
+index 2dfdaec4b..fbf125e38 100644
+--- a/src/visit.rs
++++ b/src/visit.rs
+@@ -744,7 +744,11 @@ impl<'ast> Visit<'ast> for DiscoveryVisitor<'_> {
+                             struct_name: struct_name.clone(),
+                         }),
+                     );
+-                    self.mutants.push(mutant);
++                    if self.options.allows_mutant(&mutant) {
++                        self.mutants.push(mutant);
++                    } else {
++                        trace!(name = mutant.name(false), "skip mutant by options");
++                    }
+                 }
+             }
+         }

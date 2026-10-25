@@ -55,8 +55,8 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-moods] | Moods and moodlets | Substantial | Derived moodlets, grief, waiting and satisfaction feedback |
 | [S-chains] | Multi-step activities | Partial | Cooking dinner and resumable chain engine |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | Directional feelings, chat and living-person decay |
-| [S-family] | Family relationships and kinship | Partial | Saved SimId ties and People labels; ties survive death |
-| [S-careers] | Jobs and careers, with player-directed career paths | Partial | One scheduled office job with wages |
+| [S-family] | Family relationships and kinship | Partial | Saved ties, People labels, stronger positive family effects and reduced negative effects; ties survive death |
+| [S-careers] | Jobs and careers, with player-directed career paths | Partial | Eight career paths with weekly reviews, held day, early, late and night shifts, and wages |
 | [S-create-a-sim] | Create-a-sim and appearance | Partial | New housemate: name, personality, traits and family tie |
 | [S-life-stages] | Life stages and aging | Not started | None |
 | [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | None |
@@ -149,6 +149,8 @@ A task can also name the kind of unpleasantness it involves. A Sim who is sensit
 **Status: Foundation only.** The HUD has four one-line status messages, for saves, orders, keyboard targeting, and build mode. Each is visible text that a screen reader also announces, and each shows only its latest message. There is no feed or history that tells the player "the dog made a mess in the kitchen" or "the rent is due".
 
 Every event-driven system needs this feed, with a way to jump the camera to the place concerned.
+
+The activity log, opened by the Log button, records events a feed can reuse: finished actions, chats and fights, annoyances, chores, skill levels, weekly reviews, career changes and deaths, each as a numeric record with the people involved. It keeps them only for the current session and shows them as a filtered list, not as notifications; the feed itself, with channels, muting and camera jumps, remains unbuilt. See [the activity log specification](specs/2026-10-18-activity-log.md).
 
 **Owner direction, 2026-09-21.** The feed reports significant things that happened. The owner's examples: two Sims have an actual fight, a Sim is promoted, a Sim becomes despondent. Many trigger conditions across every system should produce notifications.
 
@@ -425,11 +427,7 @@ house has a bunk and a double bed.
 See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
 `docs/assets/review-evidence/bed-assignment/navigation.md`.
 
-A separate shipped household capacity rule gives
-every living member a -20 Not enough beds moodlet when sleep places are fewer
-than people. The double bed counts as two places and the supported lower bunk
-as one. This affects the shared sustained-mood satisfaction mechanism, without
-assigning ownership or adding a separate drain.
+An unassigned living Sim automatically claims a reachable unassigned sleeping place on a simulation tick. Existing assignments remain in place. A double bed provides two places and the supported lower bunk one. Only a Sim without an assigned bed receives the -20 No assigned bed mood condition. The condition subtracts mood points; it does not directly change Comfort or life satisfaction. Sustained mood contributes to life satisfaction through the existing mechanism.
 
 **Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
 
@@ -445,7 +443,7 @@ assigning ownership or adding a separate drain.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, missing bed assignments, death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 Future facial expressions and unique animations should reflect both current mood and overall life satisfaction. The owner requested this direction on 2026-10-01; expression states remain unbuilt. [Life satisfaction](specs/2026-10-01-life-satisfaction.md) defines the implemented score and meter.
 
@@ -456,7 +454,7 @@ Future facial expressions and unique animations should reflect both current mood
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social even with disliked partners; affinity scales the benefit and family adds a small bonus. Topics follow the initiator's interests, with enjoyment of socializing favoring shared interests. Busy recipients can be approached and waited for. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with actual company; solo activities and empty-table sitting cannot. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social even with disliked partners; affinity scales the benefit and family adds a small bonus. Topics follow the initiator's interests, with enjoyment of socializing favoring shared interests. Busy recipients can be approached and waited for. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with actual company; letter writing provides Social while alone, while solo media and empty-table sitting do not. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
 - `[H13]` Implemented: slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
@@ -467,7 +465,7 @@ Also missing: more direct social actions than chat, group conversations, and a r
 
 ### [S-family] Family relationships and kinship
 
-**Status: Partial.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Nothing in the simulation behaves differently for family yet, and there is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Ties survive death, and affinity-based bereavement is shipped under [S-death]. Genetics, inheritance and additional family-specific consequences remain open.
+**Status: Partial.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Family and partners receive stronger positive opinion changes, reduced negative changes and an independent Social bonus during eligible company. There is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Ties survive death, and affinity-based bereavement is shipped under [S-death]. Genetics, inheritance and additional family-specific consequences remain open.
 
 ### [S-careers] Jobs and careers, with player-directed career paths
 
@@ -480,7 +478,7 @@ shift rewards reflect actual office time; missing more than two hours deducts
 ten performance points per further hour. The Career tab explains the actual
 attendance and deduction. See [player orders](specs/2026-10-17-player-orders.md).
 
-**What exists.** Three career paths in `content/careers.toml`, each four titled levels with their own hours, working days, pay range, need cost and reward; a `Career` component still names one level. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `QuitCareer` and `SetCareerAutonomy` direct it. Schema fourteen saves it. The Career row in Sim details shows the title with its working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths to assign and a Quit control; Options holds the two autonomy checkboxes.
+**What exists.** Eight career paths in `content/careers.toml`, each four titled levels with their own pay range, need cost and reward, a standard shift and other shifts offered by weight; a `Career` component still names one level, and each person holds one of its shifts, drawn at a hire or chosen by the player ([shifts and more career paths](specs/2026-10-18-shifts-and-careers.md)). A night worker's sleep rhythm moves to the day, and early and late workers' by an hour or two. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings, choosing a path by chance weighted by fit, and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `AssignCareerShift`, `ChangeShift`, `QuitCareer` and the settings commands direct it. Schema fourteen saves it, and schema twenty-one saves each held shift. The Career row in Sim details shows the title with its shift, working days and hours, green after three good reviews in a row and red after three poor, with an information control that shows the review graph; the Career tab shows the path, level, pay and range, schedule, the week so far, the last review, the factors, the streaks, the warning and the graph, and offers the paths and shifts to assign, a Change shift control and a Quit control; Options holds the career change checkbox, and the Career tab holds each person's job search box.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -537,6 +535,22 @@ The player can set how a person works each shift: work hard, work normally, slac
 ### [S-calendar] Calendar and weekly schedules
 
 **Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; seasons shipped on 2026-10-17 (issue 251); dates and scheduled events open.** The clock shows the day number, the weekday, the season and the time, and a new game starts on a Monday in Spring. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. Four seven-day seasons make a 28-day year, and the yard's grass takes a seasonal tint; the season has no gameplay effect yet; see `docs/specs/2026-10-17-seasons.md`. There are no dates or months. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
+
+### [S-weather-preferences] Weather preferences and longer-term variation
+
+**Status: Owner-requested future work, October 19, 2026. Not implemented.** Each Sim should prefer warmer or cooler weather. Weather that matches or conflicts with that preference should slightly raise or lower overall mood. Keep this effect small; the request does not add weather damage, need loss or survival mechanics. The preference model, numerical strength and presentation need a design before implementation.
+
+Weather should also vary more from month to month and year to year. Current weather already varies by day; the requested change adds longer-term variation. Months do not exist in the current calendar, so monthly variation requires a calendar decision rather than treating the current seven-day seasons as months. Do not assign a release date or priority from the phrase "Coming soon" in player documentation.
+
+See [the calendar](#s-calendar-calendar-and-weekly-schedules) for the current season cycle. The [player guide's weather section](player/the-world.md#weather) separates current visual weather from these coming features.
+
+### [S-creative-hobbies] Creative hobbies, progression and things made at home
+
+**Status: Owner-requested future work, October 19, 2026. Not implemented.** Add gardening as a hobby, alongside creative hobbies such as knitting and painting. Sims should gain personal satisfaction from developing these hobbies and leveling up, even when an activity has no practical household benefit.
+
+Hobby progression should eventually let Sims make things the household can display or use: paintings, flowers, throw blankets and other suitable creations. Selling creations, such as paintings, is a potential source of money. Growing food is a potential way to stock the fridge and reduce food spending. These are requested future possibilities, not current inventory, sale or food-cost mechanics.
+
+Design progression, satisfaction rewards, output quality, storage, placement, ownership, selling and food consumption together. Exact level requirements, prices, crop yields, crafting materials and the choice of additional hobbies remain undecided. Link the player guide's hobby overview to Activities, home decoration, money and food where those systems become available.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
@@ -604,6 +618,9 @@ alone does not establish a convincing seated pose.
 ### [S-audio] Sound, ambience, music, and voices
 
 **Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, a recorded snore while anyone sleeps, and cues for eating, reading, and exercise are in. Footsteps use a quieter peak amplitude without changing pitch or cadence. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Door opening is silent; closing plays a filtered 0.32-second thunk. Toilet audio plays a recorded flush after completed use; cancellation does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. Continuous indoor background noise is excluded from the sound design. Outdoor ambience, music, alarms and non-conversation voices remain future work. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
+
+The [sound improvement backlog](FEATURES.md#remaining-sound-improvements) owns the
+audio implementation priorities, sound-selection constraints and deferred work.
 
 ## Proposed additional systems
 

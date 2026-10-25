@@ -1,0 +1,729 @@
+--- a/.github/scripts/mutation_recovery.py
++++ b/.github/scripts/mutation_recovery.py
+@@ -191,6 +191,7 @@
+
+ def seal(data, settings, kind, verdict, destination):
+     native.validate_admitted(data, settings)
++    validate_log_anchors(data, complete=True)
+     data = dict(data, consumer={"run_id": settings["run_id"], "attempt": settings["attempt"]})
+     if kind == "aggregate":
+         key = f"{settings['run_id']}/{settings['attempt']}"
+@@ -277,6 +278,7 @@
+         retain_aggregate_verdict(data, receipt, proof, item, run)
+     validate_retained(data)
+     native.validate_admitted(data, {"run_id": receipt["run_id"], "attempt": receipt["attempt"]})
++    validate_log_anchors(data, complete=True)
+     return data, receipt
+
+
+@@ -306,6 +308,7 @@
+
+
+ def validate_retained(data, *, pending_aggregate=None):
++    validate_log_anchors(data)
+     if "native_admission" in data:
+         native.validate_admitted(data)
+     required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
+@@ -411,14 +414,116 @@
+     raise runner.CapacityFailure("original artifact inventory exceeds bounded page capacity")
+
+
++
++JOB_KEYS = {"id", "run_id", "run_attempt", "name", "status", "conclusion", "started_at", "completed_at"}
++ANCHOR_KEYS = {"version", "repository", "basis", "job", "selected_at", "original_retention_days", "expires_at", "original_log"}
++
++
++def completed_job(value, run_id=None, attempt=None, job_id=None):
++    require(isinstance(value, dict) and JOB_KEYS <= set(value), "incomplete anchor job metadata")
++    job = {key: value[key] for key in JOB_KEYS}
++    require(all(type(job[key]) is int and job[key] > 0 for key in ("id", "run_id", "run_attempt"))
++            and job["run_attempt"] <= 51 and job["status"] == "completed"
++            and isinstance(job["name"], str) and job["name"] and isinstance(job["conclusion"], str)
++            and job["conclusion"] not in ("", "skipped"), "anchor job is not completed execution")
++    require((run_id is None or str(job["run_id"]) == str(run_id))
++            and (attempt is None or job["run_attempt"] == attempt)
++            and (job_id is None or str(job["id"]) == str(job_id)), "anchor job identity mismatch")
++    require(isinstance(job["started_at"], str) and isinstance(job["completed_at"], str), "invalid anchor job timestamps")
++    require(artifacts.timestamp(job["started_at"]) <= artifacts.timestamp(job["completed_at"])
++            <= dt.datetime.now(dt.timezone.utc), "invalid anchor job timestamps")
++    return job
++
++
++def referenced_runs(data):
++    entries = dict(data["source_runs"])
++    entries.update({entry["run_id"]: entry for entry in data["chain"]["runs"]})
++    require(len(entries) <= 10, "referenced run budget exhausted")
++    return entries
++
++
++def validate_log_anchors(data, *, complete=False):
++    anchors = data.get("log_availability_anchors", {})
++    entries = referenced_runs(data)
++    require(isinstance(anchors, dict) and set(anchors) <= set(entries)
++            and (not complete or set(anchors) == set(entries)), "missing or foreign log availability anchor")
++    required_until = artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN
++    for run_id, row in anchors.items():
++        require(set(row) == ANCHOR_KEYS and row["version"] == 1 and type(row["version"]) is int
++                and row["repository"] == data["planned"]["producer"]["repository"]
++                and row["basis"] in ("original_producer", "planning"), "invalid stable log anchor")
++        completed_job(row["job"], run_id)
++        require(set(row["job"]) == JOB_KEYS and type(row["original_retention_days"]) is int
++                and row["original_retention_days"] > 0
++                and artifacts.timestamp(row["selected_at"]) <= dt.datetime.now(dt.timezone.utc)
++                and artifacts.timestamp(row["expires_at"]) > required_until, "anchor original retention is insufficient")
++        if row["basis"] == "original_producer":
++            original = row["original_log"]
++            require(isinstance(original, dict) and set(original) == {"path", "sha256", "observed_at"}
++                    and original["path"] in {item["producer_log"] for item in data["originals"].values()},
++                    "anchor lost required original producer")
++            log = data["logs"][original["path"]]
++            require(original == {"path": original["path"], "sha256": log["sha256"], "observed_at": log["observed_at"]}
++                    and log["run_id"] == run_id and log["attempt"] == row["job"]["run_attempt"]
++                    and log["job_id"] == str(row["job"]["id"])
++                    and row["expires_at"] == log["expires_at"]
++                    and row["original_retention_days"] == log["original_retention_days"], "anchor original binding changed")
++        else:
++            require(row["original_log"] is None and row["job"]["conclusion"] == "success"
++                    and row["job"]["name"] == ("mutation-fixture-plan" if data["planned"]["manifest"]["context"]["inputs"]["computation_scope"] == "fixture" else "mutation-plan"),
++                    "invalid planning availability anchor")
++
++
++def ensure_log_availability(api, data, settings, runs):
++    anchors = data.setdefault("log_availability_anchors", {})
++    validate_log_anchors(data)
++    entries = referenced_runs(data)
++    now = dt.datetime.now(dt.timezone.utc)
++    for run_id in sorted(entries, key=int):
++        if run_id not in anchors:
++            candidates = [data["logs"][path] for path in {item["producer_log"] for item in data["originals"].values()}
++                          if data["logs"][path]["run_id"] == run_id]
++            if candidates:
++                log = min(candidates, key=lambda row: (row["attempt"], int(row["job_id"])))
++                job = completed_job(api.json(f"repos/{settings['repository']}/actions/jobs/{log['job_id']}"), run_id, log["attempt"], log["job_id"])
++                original = {"path": f"repos/{settings['repository']}/actions/jobs/{job['id']}/logs", "sha256": log["sha256"], "observed_at": log["observed_at"]}
++                basis, days, expiry = "original_producer", log["original_retention_days"], log["expires_at"]
++            else:
++                require(run_id == settings["run_id"] and run_id != str(data["chain"]["plan"]["run_id"]), "run lacks an original availability anchor")
++                listing = api.json(f"repos/{settings['repository']}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
++                jobs = listing["jobs"]
++                require(type(listing.get("total_count")) is int and listing["total_count"] == len(jobs) < 100, "planning anchor listing is incomplete")
++                name = "mutation-fixture-plan" if settings["scope"] == "fixture" else "mutation-plan"
++                matches = [job for job in jobs if job["name"] == name]
++                require(len(matches) == 1, "planning anchor is missing or ambiguous")
++                job = completed_job(matches[0], run_id)
++                require(job["run_attempt"] <= settings["attempt"] and job["conclusion"] == "success", "planning anchor did not succeed")
++                original, basis, days = None, "planning", settings["log_retention_days"]
++                expiry = (artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=days)).isoformat()
++            require(str(job["id"]) != settings["job_id"], "current job cannot anchor itself")
++            anchors[run_id] = {"version": 1, "repository": settings["repository"], "basis": basis, "job": job,
++                "selected_at": now.isoformat(), "original_retention_days": days, "expires_at": expiry, "original_log": original}
++        row = anchors[run_id]
++        job = completed_job(api.json(f"repos/{settings['repository']}/actions/jobs/{row['job']['id']}"), run_id,
++                            row["job"]["run_attempt"], row["job"]["id"])
++        require(job == row["job"] and str(job["id"]) != settings["job_id"], "stable anchor job metadata changed")
++        current_expiry = artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=min(settings["log_retention_days"], row["original_retention_days"]))
++        require(row["basis"] != "planning" or artifacts.timestamp(row["expires_at"])
++                == artifacts.timestamp(runs[run_id]["created_at"]) + dt.timedelta(days=row["original_retention_days"]),
++                "planning anchor original expiry changed")
++        require(min(artifacts.timestamp(row["expires_at"]), current_expiry)
++                > artifacts.timestamp(data["chain"]["expires_at"]) + tool.MARGIN, "anchor retention policy changed")
++        api.probe_job_logs(settings["repository"], run_id, job["run_attempt"], str(job["id"]))
++    validate_log_anchors(data, complete=True)
++
++
+ def fresh_inventory(api, data, settings, *, probe=True, allow_current_aggregate=False):
+     now = dt.datetime.now(dt.timezone.utc)
+     chain = data["chain"]
+     artifacts.validate_chain(chain, current_run_id=settings["run_id"], now=now)
+     require(len(chain["runs"]) <= 8 and len(data["source_runs"]) <= 10, "referenced run budget exhausted")
+     required_until = artifacts.timestamp(chain["expires_at"]) + tool.MARGIN
+-    entries = dict(data["source_runs"])
+-    entries.update({entry["run_id"]: entry for entry in chain["runs"]})
++    entries = referenced_runs(data)
+     inventory, runs = {}, {}
+     for run_id, entry in entries.items():
+         run = artifacts.authenticate_run(api, settings["repository"], tool.WORKFLOW, entry, data["contract"]["files"][tool.WORKFLOW])
+@@ -432,8 +537,6 @@
+         for item in artifact_inventory(api, settings["repository"], run_id):
+             require(str(item["id"]) not in inventory, "duplicate original artifact ID")
+             inventory[str(item["id"])] = item
+-        if probe:
+-            api.probe_logs(settings["repository"], run_id)
+     for artifact_id, original in data["originals"].items():
+         require(artifact_id in inventory and original_metadata(inventory[artifact_id]) == original["metadata"],
+                 "required original artifact missing or changed")
+@@ -441,6 +544,8 @@
+         tool.retained_until(api, settings["repository"], inventory[artifact_id], runs[log["run_id"]], required_until,
+                             log["original_retention_days"])
+     validate_retained(data, pending_aggregate=aggregate_identity(settings) if allow_current_aggregate else None)
++    if probe:
++        ensure_log_availability(api, data, settings, runs)
+     return inventory, runs
+
+
+@@ -643,24 +748,38 @@
+         self.charge()
+         return super().bytes(path)
+
+-    def probe_logs(self, repository, run_id):
+-        if (repository, run_id) in self.probed:
++    def probe_job_logs(self, repository, run_id, attempt, job_id):
++        require(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)
++                and re.fullmatch(r"[1-9][0-9]*", str(run_id)) and re.fullmatch(r"[1-9][0-9]*", str(job_id))
++                and type(attempt) is int and 1 <= attempt <= 51, "invalid job log identity")
++        identity = (repository, str(run_id), attempt, str(job_id))
++        if identity in self.probed:
+             return
+         self.charge()
+-        if hasattr(self.api, "probe_logs"):
+-            self.api.probe_logs(repository, run_id)
+-            self.probed.add((repository, run_id))
++        if hasattr(self.api, "probe_job_logs"):
++            self.api.probe_job_logs(*identity)
++            self.probed.add(identity)
+             return
+-        token = os.environ["GH_TOKEN"]
+-        request = urllib.request.Request(f"https://api.github.com/repos/{repository}/actions/runs/{run_id}/logs",
+-            headers={"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json"})
++        resource = f"repository={repository} run={run_id} attempt={attempt} job={job_id}"
++        request = urllib.request.Request(f"https://api.github.com/repos/{repository}/actions/jobs/{job_id}/logs",
++            headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json"})
+         try:
+-            response = urllib.request.build_opener(NoRedirect).open(request, timeout=60)
+-        except urllib.error.HTTPError as error:
+-            response = error
+-        with response:
+-            location = urllib.parse.urlparse(response.headers.get("Location", ""))
+-            require(response.status == 302 and location.scheme == "https" and location.hostname and not location.username,
+-                    "GitHub did not issue a current run-log download location")
+-        # Never retain the signed location or follow it with repository credentials.
+-        self.probed.add((repository, run_id))
++            try:
++                response = urllib.request.build_opener(NoRedirect).open(request, timeout=60)
++            except urllib.error.HTTPError as error:
++                response = error
++            with response:
++                valid = False
++                try:
++                    raw_location = response.headers.get("Location", "")
++                    location = urllib.parse.urlparse(raw_location)
++                    valid = (location.scheme == "https" and bool(location.hostname)
++                             and location.username is None and location.password is None
++                             and location.port != 0 and not any(char.isspace() for char in raw_location))
++                except ValueError:
++                    pass
++                require(response.status == 302 and valid,
++                        f"job log availability failed {resource} status={response.status}")
++        except (urllib.error.URLError, OSError) as error:
++            raise ValueError(f"job log availability failed {resource} transport={type(error).__name__}") from None
++        self.probed.add(identity)
+--- a/.github/scripts/mutation_workflow.py
++++ b/.github/scripts/mutation_workflow.py
+@@ -37,9 +37,15 @@
+     repository, run_id, attempt = os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_RUN_ID"], int(os.environ["GITHUB_RUN_ATTEMPT"])
+     require(1 <= attempt <= 51, "same-run attempt budget exhausted")
+     run = api.json(f"repos/{repository}/actions/runs/{run_id}")
+-    require(run["repository"]["full_name"] == repository and run["head_repository"]["full_name"] == repository
++    require(str(run["id"]) == run_id and run["repository"]["full_name"] == repository and run["head_repository"]["full_name"] == repository
+             and run["path"] == tool.WORKFLOW, "foreign run or workflow")
+-    jobs = list(artifacts.pages(api, f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs"))
++    if job_name == "mutation-fixture-tool":
++        listing = api.json(f"repos/{repository}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
++        jobs = listing["jobs"]
++        require(type(listing.get("total_count")) is int and listing["total_count"] == len(jobs) < 100,
++                "tool preflight job listing is incomplete")
++    else:
++        jobs = list(artifacts.pages(api, f"repos/{repository}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs"))
+     matches = [job for job in jobs if job["name"] == job_name and job["status"] == "in_progress"]
+     require(len(matches) == 1, "current numeric job identity is ambiguous")
+     job = matches[0]
+@@ -200,8 +206,41 @@
+         return proof
+
+
++def tool_transport_preflight(api, settings):
++    before = api.rate_status(100)
++    repository, run_id = settings["repository"], settings["run_id"]
++    listing = api.json(f"repos/{repository}/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
++    matches = [job for job in listing["jobs"] if job["name"] == "changes"]
++    require(len(matches) == 1, "completed changes predecessor is missing or ambiguous")
++    current = recovery.completed_job(matches[0], run_id)
++    require(current["conclusion"] == "success" and current["run_attempt"] <= settings["attempt"]
++            and artifacts.timestamp(current["completed_at"]) <= artifacts.timestamp(settings["job_started_at"]),
++            "changes is not a completed successful predecessor")
++    supplied = os.environ.get("TRANSPORT_PROBE_JOB_ID", "")
++    historical = None
++    if supplied:
++        require(re.fullmatch(r"[1-9][0-9]*", supplied), "invalid historical diagnostic job ID")
++        value = api.json(f"repos/{repository}/actions/jobs/{supplied}")
++        historical = recovery.completed_job(value, job_id=supplied)
++        require(str(historical["run_id"]) != run_id
++                and value.get("url") == f"https://api.github.com/repos/{repository}/actions/jobs/{supplied}"
++                and value.get("run_url") == f"https://api.github.com/repos/{repository}/actions/runs/{historical['run_id']}",
++                "historical diagnostic job repository mismatch")
++    api.probe_job_logs(repository, run_id, current["run_attempt"], str(current["id"]))
++    if historical:
++        api.probe_job_logs(repository, str(historical["run_id"]), historical["run_attempt"], str(historical["id"]))
++    after = api.rate_status()
++    require(api.requests == (7 if historical else 5), "tool preflight request accounting mismatch")
++    result = {"version": 1, "credential": "current-job-GITHUB_TOKEN", "current": current,
++        "historical": historical, "historical_coverage": "completed_job_redirect" if historical else "absent",
++        "status": 302, "location_present": True, "https": True, "requests": api.requests,
++        "before": before, "after": after}
++    print("MUTATION_TRANSPORT_PREFLIGHT " + json.dumps(result, sort_keys=True), flush=True)
++    return result
++
++
+ def prepare_tool(api, root, settings, scratch):
+-    api.rate_status(100)
++    tool_transport_preflight(api, settings)
+     existing = [item for item in run_artifacts(api, settings) if
+                 re.fullmatch(rf"mutation-tool-run-{settings['run_id']}-attempt-[1-9][0-9]*", item["name"])]
+     require(len(existing) <= 1, "ambiguous tool producer")
+@@ -299,7 +338,8 @@
+     data = {"version": 1, "planned": planned, "chain": chain, "contract": contract,
+         "originals": {}, "logs": {}, "source_runs": {}, "bundles": [], "frontier": {},
+         "job_inventories": {}, "current_checkout": checkout, "qualification": None}
+-    inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
++    recovery.retain_recording(recording, data)
++    inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
+     selected = recovery.latest_snapshot(inventory, data, settings, allow_prepared=include_current)
+     if selected:
+         restored, receipt = recovery.load(api, selected, settings["repository"], contract)
+@@ -311,7 +351,7 @@
+         require(receipt["verdict"]["state"] in {"complete", "incomplete_with_progress", "incomplete_without_progress"},
+                 "terminal recovery verdict stops continuation")
+         recovery.retain_recording(recording, data)
+-        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
+         if settings["scope"] == "production":
+             proof = data["qualification"]
+             require(proof is not None and proof["contract"] == contract and proof["tool"] == planned["orchestration"]["tool"],
+@@ -322,7 +362,7 @@
+         bind_tool(recording, root, settings, planned["orchestration"]["tool"], contract, scratch, chain)
+         data["tool_receipt"] = recording.tool_receipts[str(planned["orchestration"]["tool"]["artifact_id"])]
+         recovery.retain_recording(recording, data)
+-        inventory, runs = recovery.fresh_inventory(api, data, settings, allow_current_aggregate=include_current)
++        inventory, runs = recovery.fresh_inventory(api, data, settings, probe=False, allow_current_aggregate=include_current)
+     ensure_native_admission(api, data, settings)
+     runner.validate_current_plan(root, planned, settings)
+     recovered = recovery.ingest(api, data, settings, inventory, runs, include_current=include_current)
+--- a/.github/scripts/mutation_native.py
++++ b/.github/scripts/mutation_native.py
+@@ -663,6 +663,20 @@
+     value["native_admission"] = {"reference": proofs[str(job_id)]["reference"], "binding": binding(planned, seed["chain"]),
+         "proofs": proofs, "batch_policy": policy, "batch_policy_digest": policy_digest,
+         "admitted_total_history_attempts": projected["admitted_total_history_attempts"]}
++    # Availability-only metadata remains part of the complete retained shape.
++    anchors = value.setdefault("log_availability_anchors", {})
++    for anchor_run in {item["run_id"] for item in value["chain"]["runs"]} | set(value["source_runs"]):
++        if anchor_run in anchors:
++            continue
++        candidates = [(path, log) for path, log in value["logs"].items() if log["run_id"] == anchor_run]
++        require(candidates, "history sizing lacks original anchor shape")
++        path, log = max(candidates, key=lambda pair: json_size(pair[1]))
++        anchor_job = {"id": int(log["job_id"]), "run_id": int(anchor_run), "run_attempt": log["attempt"],
++            "name": "mutation-production-aggregate", "status": "completed", "conclusion": "success",
++            "started_at": instant, "completed_at": instant}
++        anchors[anchor_run] = {"version": 1, "repository": planned["producer"]["repository"], "basis": "original_producer",
++            "job": anchor_job, "selected_at": instant, "original_retention_days": log["original_retention_days"],
++            "expires_at": log["expires_at"], "original_log": {"path": path, "sha256": log["sha256"], "observed_at": log["observed_at"]}}
+     value["consumer"] = {"run_id": run_id, "attempt": attempt}
+     return value
+
+--- a/.github/scripts/test_mutation_recovery.py
++++ b/.github/scripts/test_mutation_recovery.py
+@@ -12,6 +12,7 @@
+ import subprocess
+ import sys
+ import unittest
++import urllib.error
+ from unittest import mock
+
+ import mutation_artifacts as artifacts
+@@ -25,13 +26,73 @@
+ import test_mutation_qualification as qualification_tests
+
+
++class JobLogTransportTests(unittest.TestCase):
++    def test_http_boundary_accepts_only_safe_redirect_and_never_reads_body(self):
++        api = recovery.WorkflowAPI()
++        response = mock.MagicMock(status=302, headers={"Location": "https://logs.example/download?signature=private"})
++        response.__enter__.return_value = response
++        response.read.side_effect = AssertionError("body must not be read")
++        opener = mock.Mock()
++        opener.open.return_value = response
++        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
++                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener) as build:
++            api.probe_job_logs("owner/repo", "100", 1, "901")
++            api.probe_job_logs("owner/repo", "100", 1, "901")
++        build.assert_called_once_with(recovery.NoRedirect)
++        request = opener.open.call_args.args[0]
++        self.assertEqual(request.full_url, "https://api.github.com/repos/owner/repo/actions/jobs/901/logs")
++        self.assertEqual(request.get_header("Authorization"), "Bearer token-private")
++        opener.open.assert_called_once_with(request, timeout=60)
++        response.read.assert_not_called()
++        self.assertEqual(api.requests, 1)
++        self.assertIsNone(recovery.NoRedirect().redirect_request(None, None, 302, "", {}, "https://logs.example"))
++
++    def test_http_failures_are_sanitized_and_never_cached(self):
++        cases = [(code, "https://logs.example/?secret=private") for code in (401, 403, 404, 429, 500, 503)]
++        cases += [(302, location) for location in ("", "http://logs.example", "https://user:password@logs.example", "https://@logs.example", "https://logs.example:bad")]
++        for status, location in cases:
++            api = recovery.WorkflowAPI()
++            opener = mock.Mock()
++            def fail(*args, **kwargs):
++                raise urllib.error.HTTPError("https://api.github.com/private", status, "secret-private", {"Location": location}, None)
++            opener.open.side_effect = fail
++            with self.subTest(status=status, location=location), mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
++                    mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
++                for _ in range(2):
++                    with self.assertRaisesRegex(ValueError, "job=901") as caught:
++                        api.probe_job_logs("owner/repo", "100", 1, "901")
++                    self.assertNotIn("private", str(caught.exception))
++                self.assertEqual(api.requests, 2)
++                self.assertEqual(api.probed, set())
++
++    def test_transport_error_has_no_unsanitized_message(self):
++        api = recovery.WorkflowAPI()
++        opener = mock.Mock()
++        opener.open.side_effect = urllib.error.URLError("token-private")
++        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
++                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
++            with self.assertRaisesRegex(ValueError, "URLError") as caught:
++                api.probe_job_logs("owner/repo", "100", 1, "901")
++        self.assertNotIn("private", str(caught.exception))
++
++    def test_urllib_nonfollowing_302_error_is_an_accepted_redirect(self):
++        api = recovery.WorkflowAPI()
++        opener = mock.Mock()
++        opener.open.side_effect = urllib.error.HTTPError("https://api.github.com/repos/owner/repo/actions/jobs/901/logs",
++            302, "Found", {"Location": "https://logs.example/signed?private=value"}, None)
++        with mock.patch.dict(os.environ, {"GH_TOKEN": "token-private"}), \
++                mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener):
++            api.probe_job_logs("owner/repo", "100", 1, "901")
++        self.assertEqual(api.requests, 1)
++
++
+ class SnapshotFixture:
+     def __init__(self, owner):
+         self.q = qualification_tests.QualificationAuthenticationTests()
+         self.q.setUp()
+         owner.addCleanup(self.q.doCleanups)
+         self.api = self.q.api
+-        self.api.probe_logs = lambda repository, run_id: self.api.calls.append(f"PROBE repos/{repository}/actions/runs/{run_id}/logs")
++        self.api.probe_job_logs = lambda repository, run_id, attempt, job_id: self.api.calls.append(f"PROBE repos/{repository}/actions/jobs/{job_id}/logs")
+         self.root = Path(self.q.fixture.temp.name) / "source"
+         (self.root / "docs").mkdir()
+         (self.root / "docs/mutants-baseline.txt").write_text("")
+@@ -74,6 +135,10 @@
+         artifact_id = self.next_id
+         self.next_id += 1
+         directory = Path(self.q.fixture.temp.name) / f"snapshot-{artifact_id}"
++        api = recovery.WorkflowAPI(self.api)
++        runs = {run_id: api.json(f"repos/{settings['repository']}/actions/runs/{run_id}")
++                for run_id in recovery.referenced_runs(data)}
++        recovery.ensure_log_availability(api, data, settings, runs)
+         with contextlib.redirect_stdout(io.StringIO()):
+             receipt = recovery.seal(data, settings, kind, {"state": state, "reason": "fixture"}, directory)
+         raw = archive({path.name: path.read_bytes() for path in directory.iterdir()})
+@@ -298,6 +363,113 @@
+                 "artifacts": [{"id": page * 100 + index} for index in range(100)]}
+         with self.assertRaisesRegex(runner.CapacityFailure, "page capacity"):
+             recovery.artifact_inventory(self.f.api, "owner/repo", "100")
++
++
++class AnchorLifecycleTests(unittest.TestCase):
++    def setUp(self):
++        self.f = SnapshotFixture(self)
++        self.api = recovery.WorkflowAPI(self.f.api)
++        self.settings = dict(self.f.settings, attempt=3, job_id="9999")
++        self.runs = {"100": self.f.api.responses["repos/owner/repo/actions/runs/100"]}
++
++    def test_current_run_is_probed_and_missing_selected_log_cannot_use_newer_job(self):
++        data = self.f.data
++        recovery.ensure_log_availability(self.api, data, self.settings, self.runs)
++        selected = copy.deepcopy(data["log_availability_anchors"]["100"])
++        self.assertIn(("owner/repo", "100", selected["job"]["run_attempt"], str(selected["job"]["id"])), self.api.probed)
++        path = "repos/owner/repo/actions/jobs/99990/logs"
++        data["logs"][path] = dict(next(iter(data["logs"].values())), run_id="100", attempt=3, job_id="99990")
++        data["originals"]["99990"] = {"producer_log": path}
++        self.f.api.responses["repos/owner/repo/actions/jobs/99990"] = dict(self.f.q.fixture.job, id=99990, run_attempt=3)
++        def availability(repository, run_id, attempt, job_id):
++            if job_id == str(selected["job"]["id"]):
++                raise ValueError("selected old log unavailable")
++        self.f.api.probe_job_logs = mock.Mock(side_effect=availability)
++        api = recovery.WorkflowAPI(self.f.api)
++        with self.assertRaisesRegex(ValueError, "selected old log unavailable"):
++            recovery.ensure_log_availability(api, data, self.settings, self.runs)
++        self.assertEqual(data["log_availability_anchors"]["100"], selected)
++        self.f.api.probe_job_logs.assert_called_once_with("owner/repo", "100", selected["job"]["run_attempt"], str(selected["job"]["id"]))
++
++    def test_planning_anchor_survives_new_original_and_lossless_reload(self):
++        data = self.f.data
++        previous = dict(data["chain"]["runs"][0], sealed_attempt=3)
++        current = dict(previous, run_id="200", predecessor="100")
++        current.pop("sealed_attempt")
++        data["chain"] = dict(data["chain"], runs=[previous, current])
++        settings = dict(self.settings, run_id="200", attempt=1, job_id="2001")
++        run = dict(self.runs["100"], id=200, run_attempt=1)
++        runs = dict(self.runs, **{"200": run})
++        plan_job = dict(self.f.q.fixture.job, id=2000, run_id=200, run_attempt=1, name="mutation-fixture-plan")
++        self.f.api.responses["repos/owner/repo/actions/runs/200/jobs?filter=latest&per_page=100&page=1"] = {"total_count": 1, "jobs": [plan_job]}
++        recovery.ensure_log_availability(self.api, data, settings, runs)
++        self.assertEqual(self.api.requests, 5)
++        selected = copy.deepcopy(data["log_availability_anchors"]["200"])
++        self.assertEqual(selected["basis"], "planning")
++        listing = self.f.api.responses["repos/owner/repo/actions/runs/200/jobs?filter=latest&per_page=100&page=1"]
++        for change in ({"run_id": 300}, {"run_attempt": 2}, {"status": "in_progress"},
++                       {"conclusion": "skipped"}, {"conclusion": "failure"}, {"id": 2001}, {"name": "unrelated"}):
++            attempt_data = copy.deepcopy(data)
++            attempt_data["log_availability_anchors"].pop("200")
++            listing["jobs"] = [dict(plan_job, **change)]
++            with self.subTest(planning_change=change), self.assertRaises(ValueError):
++                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), attempt_data, settings, runs)
++        for jobs in ([], [plan_job, plan_job]):
++            attempt_data = copy.deepcopy(data)
++            attempt_data["log_availability_anchors"].pop("200")
++            listing.update(jobs=jobs, total_count=len(jobs))
++            with self.subTest(planning_count=len(jobs)), self.assertRaises(ValueError):
++                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), attempt_data, settings, runs)
++        listing.update(jobs=[plan_job], total_count=1)
++        self.f.api.responses["repos/owner/repo/actions/runs/200"] = run
++        prepared_settings = dict(settings, job_id="2100")
++        directory = Path(self.f.q.fixture.temp.name) / "planning-anchor-prepared"
++        with contextlib.redirect_stdout(io.StringIO()):
++            recovery.seal(data, prepared_settings, "prepared", {"state": "complete", "reason": "authenticated_preparation"}, directory)
++        artifact_id = self.f.upload_directory(directory, prepared_settings, "prepared")
++        recorder = recovery.RecordingAPI(recovery.WorkflowAPI(self.f.api))
++        restored, _ = recovery.load(recorder, {"artifact_id": artifact_id,
++            "archive_digest": self.f.api.responses[f"repos/owner/repo/actions/artifacts/{artifact_id}"]["digest"]},
++            "owner/repo", self.f.contract, consumer={"run_id": "200", "attempt": 1})
++        self.assertEqual(restored["log_availability_anchors"]["200"], selected)
++        self.f.data = restored
++        self.f.add_completed_history("200", 1)
++        aggregate_settings = dict(settings, job_id="2101")
++        aggregate_directory = Path(self.f.q.fixture.temp.name) / "planning-anchor-aggregate"
++        with contextlib.redirect_stdout(io.StringIO()):
++            recovery.seal(restored, aggregate_settings, "aggregate", {"state": "complete", "reason": "exact_coverage"}, aggregate_directory)
++        aggregate_id = self.f.upload_directory(aggregate_directory, aggregate_settings, "aggregate")
++        restored, _ = recovery.load(recovery.WorkflowAPI(self.f.api), {"artifact_id": aggregate_id,
++            "archive_digest": self.f.api.responses[f"repos/owner/repo/actions/artifacts/{aggregate_id}"]["digest"]},
++            "owner/repo", self.f.contract)
++        self.assertIn(str(aggregate_id), restored["originals"])
++        continued = recovery.WorkflowAPI(self.f.api)
++        recovery.ensure_log_availability(continued, restored, settings, runs)
++        self.assertEqual(continued.requests, 4)
++        self.assertEqual(restored["log_availability_anchors"]["200"], selected)
++        changed = copy.deepcopy(restored)
++        changed["log_availability_anchors"]["200"]["expires_at"] = data["chain"]["expires_at"]
++        with self.assertRaisesRegex(ValueError, "retention"):
++            recovery.validate_log_anchors(changed, complete=True)
++
++    def test_anchor_metadata_refuses_foreign_incomplete_skipped_and_self(self):
++        for key, value in (("run_id", 200), ("run_attempt", 2), ("status", "in_progress"), ("conclusion", "skipped")):
++            data = copy.deepcopy(self.f.data)
++            job = dict(self.f.q.fixture.job, **{key: value})
++            self.f.api.responses["repos/owner/repo/actions/jobs/901"] = job
++            with self.subTest(key=key), self.assertRaises(ValueError):
++                recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), data, self.settings, self.runs)
++        self.f.api.responses["repos/owner/repo/actions/jobs/901"] = self.f.q.fixture.job
++        with self.assertRaisesRegex(ValueError, "itself"):
++            recovery.ensure_log_availability(recovery.WorkflowAPI(self.f.api), copy.deepcopy(self.f.data), dict(self.settings, job_id="901"), self.runs)
++
++    def test_final_map_cannot_omit_current_run_or_exceed_total_source_bound(self):
++        with self.assertRaisesRegex(ValueError, "missing or foreign"):
++            recovery.validate_log_anchors(self.f.data, complete=True)
++        data = copy.deepcopy(self.f.data)
++        data["source_runs"].update({str(index): dict(data["chain"]["runs"][0], run_id=str(index)) for index in range(200, 210)})
++        with self.assertRaisesRegex(ValueError, "referenced run budget"):
++            recovery.referenced_runs(data)
+
+
+ class FullWrapperBudgetTests(unittest.TestCase):
+@@ -338,6 +510,8 @@
+             f.data["source_runs"][run_id] = dict(chain["runs"][0], run_id=run_id)
+             artifact_id = 50_000_000 + index
+             path = f"repos/owner/repo/actions/jobs/{artifact_id}/logs"
++            f.api.responses[f"repos/owner/repo/actions/jobs/{artifact_id}"] = dict(f.q.fixture.job,
++                id=artifact_id, run_id=int(run_id), run_attempt=2)
+             raw = b"retained authenticated qualification-source log"
+             f.data["logs"][path] = {"bytes": base64.b64encode(raw).decode(), "sha256": artifacts.sha(raw),
+                 "run_id": run_id, "attempt": 2, "job_id": str(artifact_id), "observed_at": f.q.now.isoformat(),
+--- a/.github/scripts/test_mutation_workflow.py
++++ b/.github/scripts/test_mutation_workflow.py
+@@ -1,8 +1,10 @@
+ """Small integration fixtures for bounded discovery and immutable workflow recovery."""
+
+ import copy
++import contextlib
+ import datetime as dt
+ import json
++import io
+ import os
+ from pathlib import Path
+ import subprocess
+@@ -14,12 +16,94 @@
+ import mutation_artifacts as artifacts
+ import mutation_campaign as model
+ import mutation_qualification as qualification
++import mutation_recovery as recovery
+ import mutation_runner as runner
+ import mutation_tool as tool
+ import mutation_workflow as workflow
+ from test_mutation_artifacts import FixtureAPI
+ from test_mutation_campaign import context, inventory, raw_report, report_ref
+ import test_mutation_qualification as qualification_tests
++
++
++class ToolTransportPreflightTests(unittest.TestCase):
++    def exercise(self, historical=False, bad=False):
++        api = FixtureAPI()
++        now = dt.datetime.now(dt.timezone.utc)
++        completed = (now - dt.timedelta(minutes=2)).isoformat()
++        started = (now - dt.timedelta(minutes=3)).isoformat()
++        changes = {"id": 900, "run_id": 100, "run_attempt": 1, "name": "changes", "status": "completed",
++                   "conclusion": "success", "started_at": started, "completed_at": completed}
++        current = dict(changes, id=901, run_attempt=2, name="mutation-fixture-tool", status="in_progress",
++                       conclusion=None, started_at=now.isoformat(), completed_at=None)
++        if bad:
++            changes["status"] = "in_progress"
++        api.responses["repos/owner/repo/actions/runs/100"] = {"id": 100, "repository": {"full_name": "owner/repo"},
++            "head_repository": {"full_name": "owner/repo"}, "path": tool.WORKFLOW, "head_sha": "d" * 40}
++        api.responses["repos/owner/repo/actions/runs/100/jobs?filter=latest&per_page=100&page=1"] = {"jobs": [changes, current], "total_count": 2}
++        api.responses["repos/owner/repo/actions/jobs/902"] = dict(changes, id=902, run_id=99, status="completed",
++            url="https://api.github.com/repos/owner/repo/actions/jobs/902", run_url="https://api.github.com/repos/owner/repo/actions/runs/99")
++        env = {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_RUN_ID": "100", "GITHUB_RUN_ATTEMPT": "2",
++               "GITHUB_WORKFLOW_SHA": "e" * 40, "GITHUB_RETENTION_DAYS": "30", "ImageOS": "ubuntu24", "ImageVersion": "test",
++               "GH_TOKEN": "private-token", "TRANSPORT_PROBE_JOB_ID": "902" if historical else ""}
++        opener = mock.Mock()
++        def response(*args, **kwargs):
++            result = mock.MagicMock(status=302, headers={"Location": "https://logs.example/signed?private=value"})
++            result.__enter__.return_value = result
++            return result
++        opener.open.side_effect = response
++        wrapper = recovery.WorkflowAPI(api)
++        captured = io.StringIO()
++        with mock.patch.dict(os.environ, env), mock.patch.object(recovery.urllib.request, "build_opener", return_value=opener), \
++                contextlib.redirect_stdout(captured), mock.patch.object(tool, "build") as build:
++            settings = workflow.current_settings(wrapper, Path.cwd(), "fixture", "mutation-fixture-tool", 0)
++            if bad:
++                with self.assertRaisesRegex(ValueError, "completed execution"):
++                    workflow.prepare_tool(wrapper, Path.cwd(), settings, Path.cwd())
++                build.assert_not_called()
++                return
++            result = workflow.tool_transport_preflight(wrapper, settings)
++        self.assertEqual(result["requests"], 7 if historical else 5)
++        self.assertEqual(result["current"]["run_attempt"], 1)
++        self.assertEqual(result["historical_coverage"], "completed_job_redirect" if historical else "absent")
++        self.assertEqual(opener.open.call_count, 2 if historical else 1)
++        self.assertNotIn("private", captured.getvalue())
++
++    def test_empty_input_records_five_calls_and_no_historical_claim(self):
++        self.exercise()
++
++    def test_historical_input_records_seven_calls_with_same_token(self):
++        self.exercise(historical=True)
++
++    def test_failed_preflight_cannot_reach_cargo(self):
++        self.exercise(bad=True)
++
++    def test_first_fixture_preparation_retains_plan_before_job_availability(self):
++        from test_mutation_recovery import SnapshotFixture
++
++        f = SnapshotFixture(self)
++        (f.root / tool.WORKFLOW).parent.mkdir(parents=True, exist_ok=True)
++        (f.root / tool.WORKFLOW).write_bytes((Path(__file__).resolve().parents[2] / tool.WORKFLOW).read_bytes())
++        f.api.responses["repos/owner/repo/actions/runs/100"]["run_attempt"] = 1
++        prefix = "mutation-" + f.q.manifest["campaign_id"] + "-"
++        f.q.artifacts[:] = [row for row in f.q.artifacts if not row["name"].startswith(prefix)]
++        jobs = f.api.responses["repos/owner/repo/actions/runs/100/attempts/1/jobs?per_page=100&page=1"]["jobs"]
++        jobs[:] = [row for row in jobs if "slot-" not in row["name"]]
++        f.paginate()
++        settings = dict(f.settings, attempt=1, job_id="9900")
++        actual = tool.authenticate
++        def authenticate(*args, **kwargs):
++            return actual(*args, **kwargs, runtime=lambda *unused: f.q.fixture.runtime)
++        with mock.patch.dict(os.environ, {"MUTATION_CHAIN": json.dumps(f.data["chain"]), "PLAN_ARTIFACT_ID": "78"}), \
++                mock.patch.object(tool, "committed_contract", return_value=f.contract), \
++                mock.patch.object(tool, "authenticate", side_effect=authenticate), \
++                mock.patch.object(runner, "checkout_inventory", return_value=(f.q.manifest["context"]["checkout"], {})), \
++                mock.patch.object(runner, "validate_current_plan", return_value=f.q.manifest["context"]):
++            data, recovered = workflow.refresh_recovery(recovery.WorkflowAPI(f.api), f.root, settings,
++                Path(f.q.fixture.temp.name) / "first-preparation", include_current=False)
++        self.assertEqual(recovered["records"], [])
++        self.assertIn("78", data["originals"])
++        self.assertEqual(data["log_availability_anchors"]["100"]["job"]["id"], 901)
++        self.assertFalse(any("actions/runs/100/logs" in path for path in f.api.calls))
+
+
+ def recovery_fixture():
+--- a/.github/scripts/test_mutation_native.py
++++ b/.github/scripts/test_mutation_native.py
+@@ -85,7 +85,7 @@
+             "log_retention_days": 30, "runner_image": self.base.image, "job_started_at": self.now.isoformat(),
+             "build_cap_seconds": 600, "shutdown_seconds": 30, "validation_seconds": 120, "upload_seconds": 240}
+         self.artifacts, self.jobs = [], {1: [], 2: [], 3: []}
+-        self.api.probe_logs = lambda repository, run_id: self.api.calls.append(f"PROBE repos/{repository}/actions/runs/{run_id}/logs")
++        self.api.probe_job_logs = lambda repository, run_id, attempt, job_id: self.api.calls.append(f"PROBE repos/{repository}/actions/jobs/{job_id}/logs")
+         (self.root / "docs").mkdir(exist_ok=True)
+         (self.root / "docs/mutants-baseline.txt").write_bytes(self.baseline.encode())
+         (self.root / tool.WORKFLOW).parent.mkdir(parents=True)
+@@ -598,7 +598,7 @@
+
+ # These component bounds cover the measured shared/distinct-root fixtures below.
+ # Broader valid histories remain subject to WorkflowAPI's unchanged capacity guard.
+-REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 192, "measurement": 135}
++REQUEST_COMPONENT_BOUNDS = {"worker": 20, "aggregate": 202, "measurement": 135}
+
+
+ def checked_request_components(test, consumers=None, measurement=None):
+--- a/.github/scripts/test_mutation_batch_budget.py
++++ b/.github/scripts/test_mutation_batch_budget.py
+@@ -459,6 +459,12 @@
+         logical = recovery.decode(raw, materialize=False)
+         restored = recovery.decode(raw)
+         self.assertEqual(model.digest(restored), model.digest(value))
++        self.assertEqual(set(restored["log_availability_anchors"]),
++            {row["run_id"] for row in restored["chain"]["runs"]} | set(restored["source_runs"]))
++        for anchor in restored["log_availability_anchors"].values():
++            self.assertEqual(set(anchor), recovery.ANCHOR_KEYS)
++            self.assertEqual(set(anchor["job"]), recovery.JOB_KEYS)
++            self.assertEqual(set(anchor["original_log"]), {"path", "sha256", "observed_at"})
+         self.assertEqual(sum(len(item["bundle"]["delta"]["records"]) for item in restored["bundles"]), len(f.items))
+         for item in restored["bundles"]:
+             bundle = item["bundle"]
+@@ -471,6 +477,16 @@
+         with mock.patch.object(recovery, "MAX_RECONSTRUCTED_BYTES", logical - 1):
+             with self.assertRaisesRegex(runner.CapacityFailure, "reconstruction capacity"):
+                 recovery.encode(value)
++
++    def test_projection_preserves_a_larger_retained_anchor(self):
++        f, pilot, seed = self.shape()
++        run_id = next(iter(seed["log_availability_anchors"]))
++        anchor = seed["log_availability_anchors"][run_id]
++        anchor["job"]["name"] += "-retained-shape" * 20
++        before = copy.deepcopy(anchor)
++        records = native.validate_samples(f.planned, pilot["payload"]["selection"], pilot["payload"]["batches"], f.baseline.splitlines())
++        value = native.projected_history(f.planned, seed, records, pilot["payload"]["forecast"], pilot["payload"]["batch_policy"], [b"original log bytes"])
++        self.assertEqual(value["log_availability_anchors"][run_id], before)
+
+     def test_isolated_logical_limit_control_fails_capacity_assertion(self):
+         source = Path(recovery.__file__)
+--- a/.github/scripts/test_mutation_artifacts.py
++++ b/.github/scripts/test_mutation_artifacts.py
+@@ -34,6 +34,14 @@
+
+     def json(self, path):
+         self.calls.append(path)
++        if path not in self.responses and "/actions/jobs/" in path:
++            job_id = int(path.rsplit("/", 1)[-1])
++            rows = [job for value in self.responses.values() if isinstance(value, dict)
++                    for job in value.get("jobs", []) if job["id"] == job_id]
++            if rows:
++                if any(row != rows[0] for row in rows):
++                    raise ValueError("conflicting fixture job metadata")
++                return copy.deepcopy(rows[0])
+         return copy.deepcopy(self.responses[path])
+
+     def bytes(self, path):

@@ -28,9 +28,20 @@ pub(crate) fn object_effects(
         .advertises
         .iter()
         .copied()
-        .filter(|(n, d)| crate::social_company::effective_delta(*n, *d, context.social_available))
+        .filter(|(n, d)| {
+            crate::social_company::effective_delta(
+                *n,
+                *d,
+                context.social_available || crate::social_company::solo_social(action),
+            )
+        })
         .collect();
-    let mut effects = ordinary_effects(&rows, personality, context.company, action.duration_ticks);
+    let mut effects = ordinary_effects(
+        &rows,
+        personality,
+        crate::social_company::social_scale(action, context.company),
+        action.duration_ticks,
+    );
     if !crate::seating::work_action(action) {
         effects[NeedId::Comfort.index()] += support_rate(
             context.seat_rate,

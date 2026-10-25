@@ -39,6 +39,18 @@ pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> b
     delta <= 0. || need as usize != NeedId::Social.index() || social_available
 }
 
+pub(crate) fn solo_social(action: &terri_data::CompiledInteraction) -> bool {
+    action.activity == Some(terri_data::CompiledActivity::Correspondence)
+}
+
+pub(crate) fn social_scale(action: &terri_data::CompiledInteraction, company: f32) -> f32 {
+    if solo_social(action) {
+        1.
+    } else {
+        company
+    }
+}
+
 impl SocialCompany {
     pub(crate) fn active_scale(&self, owner: Entity, feelings: &Relationships) -> f32 {
         let Some(me) = self.participants.iter().find(|p| p.entity == owner) else {
@@ -101,7 +113,7 @@ impl SocialCompany {
                 false,
             ));
         }
-        value + if related { 0.1 } else { 0. }
+        value + crate::social_episode::family_bonus(related)
     }
     pub(crate) fn proposed_scale(
         &self,
@@ -127,6 +139,14 @@ impl SocialCompany {
                 y: endpoint.1 as f32,
             },
         )
+    }
+    /// The lowest `SimId` in `owner`'s current company, for the activity
+    /// log's line about what they shared.
+    pub(crate) fn companion(&self, owner: Entity) -> Option<SimId> {
+        let me = self.participants.iter().find(|p| p.entity == owner)?;
+        self.peers(owner, me.station, &me.activity, me.position)
+            .map(|peer| peer.id)
+            .min()
     }
     /// What `owner` is doing in company, for affinity recognition.
     pub(crate) fn communal_activity(&self, owner: Entity) -> Option<Communal> {
@@ -754,9 +774,13 @@ pub(crate) fn tick_meals(world: &mut World) {
         })
         .collect();
     for (person, delta) in payments {
-        if let Some(mut needs) = world.get_mut::<Needs>(person) {
-            needs.fill(NeedId::Social, delta);
-        }
+        let Some(mut needs) = world.get_mut::<Needs>(person) else {
+            continue;
+        };
+        let before = needs.get(NeedId::Social);
+        needs.fill(NeedId::Social, delta);
+        let delivered = needs.get(NeedId::Social) - before;
+        crate::activity_log::add_social(world, person, delivered);
     }
 }
 

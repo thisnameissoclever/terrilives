@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_subtree_header_must_match_selected_parent_sha (test_mutation_tool.ToolAuthenticationTests.test_subtree_header_must_match_selected_parent_sha)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\f19a\terrilives\.github\scripts\test_mutation_tool.py", line 159, in test_subtree_header_must_match_selected_parent_sha
+    with self.assertRaisesRegex(ValueError, "recipe tree identity mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+FAILED (failures=1)

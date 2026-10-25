@@ -273,7 +273,7 @@ it('preserves a refused-load preview and resets a loaded world even when its rev
   expect(builder.selected).toBeNull();
   expect(builder.preview).toBeNull();
   expect(builder.pending).toBe(false);
-  expect(builder.status).toBe('Choose furniture to move or rotate.');
+  expect(builder.status).toBe('');
   handle.free();
 });
 
@@ -423,7 +423,7 @@ it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   expect(source.lastSaleResult()).toMatchObject({ object: 22, payout: 0 });
   expect(source.takeBuildError()).toEqual({ ok: true, value: null });
   const saved = source.saveBytes();
-  expect([...saved.slice(8, 10)]).toEqual([18, 0]);
+  expect([...saved.slice(8, 10)]).toEqual([21, 0]);
   expect(restored.load_bytes(saved)).toBe(true);
   expect(restored.save_bytes()).toEqual(saved);
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])

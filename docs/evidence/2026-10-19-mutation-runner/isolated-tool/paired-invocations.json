@@ -1,0 +1,28 @@
+[
+  {
+    "started_utc": "2026-10-19T20:34:48.211972+00:00",
+    "finished_utc": "2026-10-19T20:35:09.868507+00:00",
+    "argv": [
+      "C:\\Users\\myema\\.cargo\\bin\\cargo-mutants.exe",
+      "mutants",
+      "--dir",
+      "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool\\game-source",
+      "--list",
+      "--json",
+      "--no-config",
+      "--package",
+      "terri-core",
+      "--package",
+      "terri-sim",
+      "--package",
+      "terri-data",
+      "--package",
+      "terri-wasm"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\f19a\\terrilives\\.local-build\\build-ui-followup\\isolated-tool",
+    "timeout_seconds": 120,
+    "exit_code": 0,
+    "wall_seconds": 21.656554,
+    "stdout_sha256": "f14592d335fdd0000ed317c1f123315751bb906a4fd7b23ff1a8c2fafa494f44"
+  }
+]

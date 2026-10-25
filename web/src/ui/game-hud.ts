@@ -2,16 +2,32 @@
 import { setTextIfChanged } from './set-text-if-changed.js';
 import type { SatisfactionSurface } from './satisfaction-meter.js';
 import { activityStatusLabel, type ActivityStatus } from '../activity-status.js';
+import { weatherAt, type WeatherTuning } from '../render/weather.js';
 
 /**
  * A job's working days and shift hours as the simulation reports them:
  * `workingDays` is a mask with bit 0 for Monday through bit 6 for Sunday,
- * and the two times are ticks of the day clock.
+ * and the two times are ticks of the day clock. `kind` is the held shift's
+ * kind, 0 to 3 for day, early, late and night, or null when it cannot be
+ * named; `index` is the shift's index at the level, 0 for the standard
+ * shift (issue 296, [WS-shell]).
  */
 export interface CareerSchedule {
   readonly workingDays: number;
   readonly shiftStart: number;
   readonly shiftTicks: number;
+  readonly kind?: number | null;
+  readonly index?: number | null;
+}
+
+/** The shift kind names, in kind order. Functional text, for the owner's review. */
+export const SHIFT_NAMES = ['Day shift', 'Early shift', 'Late shift', 'Night shift'] as const;
+
+/** The name of shift kind `kind`, or null for anything but 0 to 3. */
+export function shiftName(kind: number | null | undefined): string | null {
+  return typeof kind === 'number' && Number.isInteger(kind) && kind >= 0 && kind < SHIFT_NAMES.length
+    ? SHIFT_NAMES[kind]
+    : null;
 }
 
 export interface GameHudSource {
@@ -32,6 +48,7 @@ export interface GameHudSource {
   dayTicks(): number;
   weekdayIndex(): number;
   seasonIndex(): number;
+  weatherTuning(): WeatherTuning | null;
 }
 
 export interface TextTarget {
@@ -136,16 +153,13 @@ function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
 
 /**
  * Formats the simulation clock without borrowing the player's wall clock,
- * as two lines: `Day {n}, {Weekday}`, a newline, then `{Season}, {hh}:{mm}`
- * ([CAL-hud], [SEA-hud]). The clock element keeps the newline
- * (`white-space: pre-line`), so the HUD panel is two lines tall on every
- * day rather than growing on days with longer names; every season name has
- * six letters, so the second line keeps one character count all year. `weekday`
+ * as three lines: day and weekday, time, then season and current weather
+ * ([CAL-hud], [SEA-hud]). The clock element preserves newlines. `weekday`
  * and `season` are the simulation's own answers for the current tick; the
  * shell never works either out from the day number, because only the
  * simulation knows which weekday and season day 1 is.
  */
-export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number): string {
+export function formatSimTime(tick: number, dayTicks: number, weekday: number, season: number, weather = 'mild'): string {
   const name = weekdayName(weekday);
   const seasonLabel = seasonName(season);
   if (!Number.isFinite(tick) || !Number.isFinite(dayTicks) || dayTicks <= 0 || name === null
@@ -156,24 +170,29 @@ export function formatSimTime(tick: number, dayTicks: number, weekday: number, s
   const safeDayTicks = Math.max(1, Math.floor(dayTicks));
   const day = Math.floor(safeTick / safeDayTicks) + 1;
   const time = formatTimeOfDay(safeTick % safeDayTicks, safeDayTicks);
-  return `Day ${day}, ${name}\n${seasonLabel}, ${time}`;
+  return `Day ${day}, ${name}\n${time}\n${seasonLabel}: ${weather}`;
 }
 
 const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;
 
 /**
  * Names the days in a working-day mask: `every day` for all seven,
- * `Monday to Friday` for one unbroken run of two or more days in the
- * Monday-first week, and otherwise each day, separated by commas. A run
- * does not wrap from Sunday to Monday.
+ * `Monday to Friday` for one unbroken run of two or more days, and
+ * otherwise each day in Monday-first order, separated by commas. A run
+ * may wrap past Sunday, so Sunday to Thursday nights read
+ * `Sunday to Thursday`.
  */
 function formatWorkingDays(mask: number): string {
   if (mask === EVERY_WEEKDAY) return 'every day';
-  const days = WEEKDAY_NAMES.filter((_, weekday) => (mask & (1 << weekday)) !== 0);
-  const first = WEEKDAY_NAMES.indexOf(days[0]);
-  const last = WEEKDAY_NAMES.indexOf(days[days.length - 1]);
-  const unbroken = last - first + 1 === days.length;
-  return unbroken && days.length > 1 ? `${days[0]} to ${days[days.length - 1]}` : days.join(', ');
+  const count = WEEKDAY_NAMES.length;
+  const works = (weekday: number) => (mask & (1 << (((weekday % count) + count) % count))) !== 0;
+  const days = WEEKDAY_NAMES.filter((_, weekday) => works(weekday));
+  // A run starts on a working day whose previous day is off; exactly one
+  // such day means the working days form one run around the week.
+  const starts = WEEKDAY_NAMES.map((_, weekday) => weekday).filter(weekday => works(weekday) && !works(weekday - 1));
+  if (days.length < 2 || starts.length !== 1) return days.join(', ');
+  const first = starts[0];
+  return `${WEEKDAY_NAMES[first]} to ${WEEKDAY_NAMES[(first + days.length - 1) % count]}`;
 }
 
 function isScheduleTime(value: number): boolean {
@@ -181,26 +200,39 @@ function isScheduleTime(value: number): boolean {
 }
 
 /**
- * The Career row's text: the job label, then its working days and shift
- * hours, for example `Office clerk, Monday to Friday, 06:00 to 14:00`
- * ([CAL-hud]). A shift that runs past midnight ends at the next day's
- * time. Without a usable schedule the row keeps the label alone, which is
- * still true.
+ * The Career row's text: the job label, the held shift's name, then its
+ * working days and hours, for example
+ * `Office clerk, Day shift, Monday to Friday, 06:00 to 14:00` ([CAL-hud],
+ * issue 296's [WS-shell] item 1). A shift that runs past midnight ends at
+ * the next day's time. A kind that cannot be named leaves the name out;
+ * without a usable schedule the row keeps the label alone, which is still
+ * true.
  */
 export function formatCareerSchedule(
   label: string,
   schedule: CareerSchedule | null,
   dayTicks: number,
 ): string {
-  if (schedule === null || !Number.isInteger(dayTicks) || dayTicks <= 0) return label;
+  const hours = schedule === null ? null : formatShiftHours(schedule, dayTicks);
+  if (schedule === null || hours === null) return label;
+  const name = shiftName(schedule.kind);
+  return name === null ? `${label}, ${hours}` : `${label}, ${name}, ${hours}`;
+}
+
+/**
+ * A shift's working days and hours, `Monday to Friday, 06:00 to 14:00`, or
+ * null when the schedule or the day length cannot be read.
+ */
+export function formatShiftHours(schedule: CareerSchedule, dayTicks: number): string | null {
+  if (!Number.isInteger(dayTicks) || dayTicks <= 0) return null;
   const { workingDays, shiftStart, shiftTicks } = schedule;
   if (!Number.isInteger(workingDays) || workingDays <= 0 || workingDays > EVERY_WEEKDAY) {
-    return label;
+    return null;
   }
-  if (!isScheduleTime(shiftStart) || !isScheduleTime(shiftTicks)) return label;
+  if (!isScheduleTime(shiftStart) || !isScheduleTime(shiftTicks)) return null;
   const start = formatTimeOfDay(shiftStart % dayTicks, dayTicks);
   const end = formatTimeOfDay((shiftStart + shiftTicks) % dayTicks, dayTicks);
-  return `${label}, ${formatWorkingDays(workingDays)}, ${start} to ${end}`;
+  return `${formatWorkingDays(workingDays)}, ${start} to ${end}`;
 }
 
 export function formatFunds(value: number): string {
@@ -235,11 +267,18 @@ export class GameHud {
     this.lastReadMs = nowMs;
 
     const dayTicks = source.dayTicks();
+    const tick = source.clockTick();
+    const season = source.seasonIndex();
+    const tuning = source.weatherTuning();
+    const condition = tuning && Number.isFinite(tick) && tick >= 0 && dayTicks > 0
+      && Number.isFinite(dayTicks) && Number.isInteger(season) && season >= 0 && season <= 3
+      ? weatherAt(tick, dayTicks, season, tuning).condition : 'mild';
     setTextIfChanged(this.roots.clock, formatSimTime(
-      source.clockTick(),
+      tick,
       dayTicks,
       source.weekdayIndex(),
-      source.seasonIndex(),
+      season,
+      condition,
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 
