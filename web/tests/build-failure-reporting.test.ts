@@ -9,7 +9,7 @@ import { BuildExit, type BuildExitHooks } from '../src/ui/build-exit.js';
 import { BuildSession } from '../src/ui/build-session.js';
 import { RoomFailureLog } from '../src/ui/room-selection.js';
 import { confirmFailure, enterFailure, parseBuildFailureReport } from '../src/rooms/failure.js';
-import type { RoomFailure } from '../src/rooms/codec.js';
+import { decodeRoomUnit, RoomWireError, type RoomFailure } from '../src/rooms/codec.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const CSS = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
@@ -195,5 +195,18 @@ describe('the page', () => {
   it('has a reason line in the dialog and marks a refusal in the footer as an error', () => {
     expect(INDEX_HTML).toMatch(/<p id="build-exit-status" role="alert"><\/p>/);
     expect(CSS).toMatch(/#build-batch-status\[data-kind='error'\], #build-exit-status:not\(:empty\)/);
+  });
+});
+
+describe('a bed left outside (issue 298, [WB-beds])', () => {
+  it('reads the bed refusal with the bed it names and refuses it without one', () => {
+    expect(decodeRoomUnit(Uint8Array.of(1, 1, 15, 1, 42))).toEqual({ ok: false, error: { code: 15, detail: 42n } });
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 15, 0))).toThrow(RoomWireError);
+    expect(() => decodeRoomUnit(Uint8Array.of(1, 1, 16, 0))).toThrow(RoomWireError);
+  });
+
+  it('tells the player to move the bed into a room or cancel', () => {
+    expect(confirmFailure({ code: 15, detail: 42n }))
+      .toBe('A bed would be left outside. Move it into a room, or choose Cancel, before confirming.');
   });
 });
