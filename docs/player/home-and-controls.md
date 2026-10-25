@@ -98,6 +98,10 @@ To use the file, open the game in the browser or on the device where you want to
 
 ### Saves from the old web address {#old-address}
 
+Export save also opens prominent recovery instructions with a link to the old website's recovery page. Close the instructions with Close or Escape.
+
+:::illustration save-recovery
+
 If you played at thisnameissoclever.github.io/terrilives, natural-causes.life starts without your household, because a save stays in the browser where it was made. The old address now opens the new one. To bring that save across, open [Move your Natural Causes save](https://thisnameissoclever.github.io/natural-causes-old-save/) in the same browser and on the same device, choose **Download save**, then use Import save at natural-causes.life.
 
 Do this soon. Some browsers, including Safari, can clear saved data for a site you have not visited for a while.

@@ -2366,5 +2366,30 @@
     "work-confirmation": [
       "work-conflict"
     ]
+  },
+  "saveRecoveryCapture": {
+    "capturedAt": "2026-10-24",
+    "sourceRevision": "d1ba8459049c5da5a867b3678f90353a31833dbb with scoped Export save HTML/CSS patch",
+    "url": "http://127.0.0.1:5222/?stress=0&audio=0",
+    "accessPath": "Options > Export save",
+    "state": "Paused and muted actual game; protected local save export; native dialog popover",
+    "method": "Unedited in-app browser compositor captures; published simulation and scripts unchanged, proxied to localhost",
+    "htmlSha256": "4c5d028975a500dab6204d63ed0109a68bc339b081f144e80bb31db3a04ff21e",
+    "desktop": {
+      "path": "images/guide/save-recovery-desktop.jpg",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "0507e157e4ce941bdea68426d20de8972e0239e9334b21512ee70e237b93fc24"
+    },
+    "mobile": {
+      "path": "images/guide/save-recovery-mobile.jpg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "sha256": "e83bda2f7060778d51853226cc7fa77b46f95db827556e4e85fa222a4c622833"
+    }
   }
 }
