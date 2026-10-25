@@ -73,6 +73,8 @@ Every moved value belongs to one of the classes of [WB-determinism]. For the fou
 | `a_weekend_commute_loads_and_the_next_shift_waits_for_monday` | no bills | runs with every charge at zero | Bills: its thirty-tick days end a month at tick 210, inside the window it checks |
 | Three command submission round trips | schema 17 | schema 22 | Bills: the schema-17 projection has no bills record |
 | `inherited-runtime.pack` fixture | 25,708 bytes | 26,131 bytes | Pack layout and wages; the proof omits the appended fields and maps old pay to new |
+| WebAssembly tests that read the current save header or payload: character, job search, player order, room save, book, schema-3 and schema-6 tests | schema 21, and 22 as the future version | schema 22, and 23 as the future version | Schema 22 |
+| `immutable_v14_rooms_preserve_source_state_and_current_continuation`, `review_authentic_land_careers_and_money_keep_their_actual_source_values` | the schema-14 fixtures' pay as saved | that pay raised by half | Migration |
 | Web: Tim's full pay in `bridge.test.ts` and `portal-bridge.test.ts` | 12000 cents | 18000 cents | Wages and migration |
 | Web: the double bed's rotation check in `bed-sprites.test.ts` | yard tile (17, 8) | indoor tile (3, 8) | The bed rule |
 
