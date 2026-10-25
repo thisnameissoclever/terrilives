@@ -26,9 +26,9 @@ Drag the game view to pan. Use the mouse wheel on desktop or pinch on touch to z
 
 ### Bills {#bills}
 
-The Bills row below Funds shows the amount to keep aside and the day the next bills are due, such as $425 due Day 8. While a bill is overdue it shows the overdue total, late fees included, in red. Select it to open the Bills panel; the game pauses until you close it with Close or Escape. The row is unavailable in Build mode.
+The Bills row below Funds shows the amount to keep aside and the day the next bills are due, such as $425 due Day 8. While a bill is unpaid but within its grace period, it shows what is unpaid and the earliest unpaid bill's due day instead, such as $351 due Day 15. While a bill is overdue it shows the overdue total, late fees included, in red. Select it to open the Bills panel; the game pauses until you close it with Close or Escape. The row is unavailable in Build mode.
 
-The Bills panel shows Funds, the amount to keep aside and whether Funds cover it, any overdue bills with their late fees, and the next bills with their amount so far and what each is expected to come to. Expand a bill to see its lines, such as the base charge, the tiles rented or each kind of use. Last month lists each bill and the day it was paid, or unpaid. How bills work repeats the rules. Payment is automatic, so the panel has no Pay button. See [bills](the-world/#bills).
+The Bills panel shows Funds, the amount to keep aside and whether Funds cover it, when unpaid bills still in their grace period become overdue, any overdue bills with their late fees, and the next bills with their amount so far and what each is expected to come to. Expand a bill to see its lines, such as the base charge, the tiles rented or each kind of use. Last month lists each bill and the day it was paid, or unpaid. How bills work repeats the rules. Payment is automatic, so the panel has no Pay button. See [bills](the-world/#bills).
 
 ### Player guide link {#player-guide}
 
