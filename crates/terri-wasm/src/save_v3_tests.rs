@@ -1971,6 +1971,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .legacy
         .legacy
         .legacy
+        .legacy
         .legacy;
     let expected: terri_core::SaveSnapshotV14 =
         postcard::from_bytes(&fourteen[SAVE_HEADER_BYTES..]).unwrap();

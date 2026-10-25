@@ -16,6 +16,7 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 mod book_commerce_tests;
+mod browser_bills;
 mod browser_rooms;
 #[cfg(test)]
 mod character_tests;
@@ -2682,8 +2683,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v21())
-            .expect("SaveSnapshotV21 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v22())
+            .expect("SaveSnapshotV22 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2712,6 +2713,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 22 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV22>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v22(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 21 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV21>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v21(snapshot).is_ok(),
@@ -4909,20 +4916,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v21()
+            uninterrupted.sim.save_snapshot_v22()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            21,
-            "the public writer must emit the schema-21 envelope"
+            22,
+            "the public writer must emit the schema-22 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v21(),
-            uninterrupted.sim.save_snapshot_v21()
+            resumed.sim.save_snapshot_v22(),
+            uninterrupted.sim.save_snapshot_v22()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4934,8 +4941,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v21(),
-            uninterrupted.sim.save_snapshot_v21()
+            resumed.sim.save_snapshot_v22(),
+            uninterrupted.sim.save_snapshot_v22()
         );
     }
 
@@ -11085,6 +11092,9 @@ fn flatten_shifts(shifts: &[terri_sim::ShiftView<'_>]) -> Vec<u32> {
 
 #[cfg(test)]
 mod shift_save_tests;
+
+#[cfg(test)]
+mod bills_boundary_tests;
 
 #[cfg(test)]
 mod current_test_snapshot;

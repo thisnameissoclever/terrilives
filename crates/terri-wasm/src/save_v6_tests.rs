@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn current_bytes_are_strict_v20() {
+fn current_bytes_are_strict_v22() {
     let source = SimHandle::from_lot();
     let bytes = source.save_bytes();
-    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v21());
+    assert_eq!(decode_current(&bytes), source.sim.save_snapshot_v22());
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);
