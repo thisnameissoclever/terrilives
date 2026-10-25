@@ -1385,6 +1385,7 @@ fn tick_both(edited: &mut Sim, control: &mut Sim, ticks: u64) {
 /// for 16 ticks, eat at the table for 20, paying 2.5 satisfaction at the end.
 fn edit_test_chain() -> terri_data::CompiledChain {
     let step = |role: u32, label: &str, duration_ticks: u32| terri_data::CompiledChainStep {
+        bill_uses: Vec::new(),
         role,
         label: label.to_string(),
         duration_ticks,

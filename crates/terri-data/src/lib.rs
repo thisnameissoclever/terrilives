@@ -1224,6 +1224,109 @@ mod tests {
         assert_eq!(shipped_scalars, BillsTuning::shipped_without_usage());
     }
 
+    /// [WB-usage]: every usage mark of the shipped content is exactly the
+    /// spec's table: each action and chain step listed carries its use
+    /// kind, the listed types and the lighting category carry their daily
+    /// kinds, and nothing else carries any.
+    #[test]
+    fn the_shipped_usage_marks_match_the_spec() {
+        let pack = pack();
+        let use_kind = |id: &str| pack.bills.uses.iter().position(|k| k.id == id).unwrap() as u16;
+        let daily_kind =
+            |id: &str| pack.bills.daily.iter().position(|k| k.id == id).unwrap() as u16;
+        let mut actions = std::collections::BTreeMap::new();
+        for object in &pack.objects {
+            let type_id = object.metadata.as_ref().map(|m| m.type_id.as_str());
+            let category = object.metadata.as_ref().map(|m| m.category_id.as_str());
+            for action in &object.interactions {
+                if !action.bill_uses.is_empty() {
+                    actions.insert(
+                        (object.id.clone(), action.id.clone()),
+                        action.bill_uses.clone(),
+                    );
+                }
+            }
+            let expected_daily = match (category, type_id) {
+                (Some("lighting"), _) => vec![daily_kind("lamp")],
+                (_, Some("fridge")) => vec![daily_kind("fridge")],
+                (_, Some("aquarium")) => vec![daily_kind("aquarium")],
+                (_, Some("pool")) => vec![daily_kind("pool")],
+                _ => Vec::new(),
+            };
+            assert_eq!(object.bill_daily, expected_daily, "{}", object.id);
+        }
+        // The actions by the template they come from: every model of a type
+        // inherits its type's action, so each row is checked by action id.
+        let expected_by_action = [
+            ("take_shower", "shower"),
+            ("soak", "bath"),
+            ("wash_hands", "hand_wash"),
+            ("wash_up", "hand_wash"),
+            ("relieve_self", "toilet"),
+            ("watch_tv", "television"),
+            ("listen", "radio"),
+        ];
+        for ((object, action), uses) in &actions {
+            let expected = expected_by_action
+                .iter()
+                .find(|(id, _)| id == action)
+                .unwrap_or_else(|| {
+                    panic!("{object} {action} carries {uses:?}, which the spec does not list")
+                });
+            assert_eq!(uses, &vec![use_kind(expected.1)], "{object} {action}");
+        }
+        for (action, _) in expected_by_action {
+            assert!(
+                actions.keys().any(|(_, id)| id == action),
+                "some shipped object carries {action}"
+            );
+        }
+        for chain in &pack.chains {
+            for step in &chain.steps {
+                let expected = match (chain.id.as_str(), step.label.as_str()) {
+                    ("cook_dinner", "Cook") => vec![use_kind("stove")],
+                    ("clean_dishes", "Wash dishes") => vec![use_kind("dishes")],
+                    _ => Vec::new(),
+                };
+                assert_eq!(step.bill_uses, expected, "{} {}", chain.id, step.label);
+            }
+        }
+        let simmer = pack
+            .chains
+            .iter()
+            .find(|c| c.id == "cook_dinner")
+            .and_then(|c| c.steps.iter().find(|s| s.label == "Simmer and stir"))
+            .expect("the shipped dinner simmers");
+        assert!(
+            simmer.bill_uses.is_empty(),
+            "the stove charges once, on Cook"
+        );
+    }
+
+    /// [WB-beds]: the sleeping category sets `indoor_only`, so both shipped
+    /// bed models carry it and no other model does.
+    #[test]
+    fn only_sleeping_models_are_indoor_only() {
+        let indoor: Vec<&str> = pack()
+            .objects
+            .iter()
+            .filter(|object| object.indoor_only)
+            .map(|object| object.id.as_str())
+            .collect();
+        assert_eq!(indoor, ["bed", "double_bed"]);
+        for object in &pack().objects {
+            assert_eq!(
+                object.indoor_only,
+                object
+                    .metadata
+                    .as_ref()
+                    .is_some_and(|m| m.category_id == "sleeping"),
+                "{}",
+                object.id
+            );
+        }
+    }
+
     /// An exact fraction, enough for the household figure below.
     #[derive(Clone, Copy, Debug, PartialEq)]
     struct Ratio(u128, u128);

@@ -928,6 +928,15 @@ pub struct ObjectDef {
     /// Comfort per occupied minute for seats without a standalone sitting action.
     #[serde(default)]
     pub seat_comfort_per_tick: f32,
+    /// Daily usage kinds by id from `[bills.daily]` in `tuning.toml`: each
+    /// placed object adds one of each to its month's bills every day
+    /// ([WB-usage] in `docs/specs/2026-10-18-wages-and-bills.md`).
+    #[serde(default)]
+    pub bill_daily: Vec<String>,
+    /// Whether every tile of the object must be inside an enclosed room
+    /// when it is bought or moved ([WB-beds]).
+    #[serde(default)]
+    pub indoor_only: bool,
 }
 
 /// A named presentation point in object-local lot coordinates.
@@ -1044,6 +1053,10 @@ pub struct InteractionDef {
     pub activity: Option<String>,
     #[serde(default)]
     pub completion_sound: Option<String>,
+    /// Use kinds by id from `[bills.uses]` in `tuning.toml`, each charged
+    /// once when this action starts its physical work ([WB-usage]).
+    #[serde(default)]
+    pub bill_uses: Vec<String>,
 }
 
 /// Authored action-presentation metadata before validation.
@@ -1460,6 +1473,10 @@ pub struct ChainStepDef {
     /// Activity shown while this exact station step is actively running.
     #[serde(default)]
     pub activity: Option<String>,
+    /// Use kinds by id from `[bills.uses]` in `tuning.toml`, each charged
+    /// once when this step starts its physical work ([WB-usage]).
+    #[serde(default)]
+    pub bill_uses: Vec<String>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it

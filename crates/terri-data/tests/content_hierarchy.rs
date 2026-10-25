@@ -406,6 +406,27 @@ fn invalid_unused_definitions_cannot_hide_until_a_model_uses_them() {
 fn compile_objects(
     source: ObjectsFile,
 ) -> Result<terri_data::ContentPack, terri_data::ContentError> {
+    compile_objects_with(source, false)
+}
+
+/// `compile_objects`, optionally with every usage kind and every chain
+/// step's usage mark left out, for objects authored before bills
+/// (issue 298), which carry no marks of their own.
+fn compile_objects_with(
+    source: ObjectsFile,
+    without_usage: bool,
+) -> Result<terri_data::ContentPack, terri_data::ContentError> {
+    let mut tuning: terri_data::schema::TuningFile =
+        toml::from_str(include_str!("../../../content/tuning.toml")).unwrap();
+    let mut chains: terri_data::schema::ChainsFile =
+        toml::from_str(include_str!("../../../content/chains.toml")).unwrap();
+    if without_usage {
+        tuning.bills.uses.clear();
+        tuning.bills.daily.clear();
+        for step in chains.chain.iter_mut().flat_map(|chain| &mut chain.step) {
+            step.bill_uses.clear();
+        }
+    }
     macro_rules! content {
         ($file:literal) => {
             toml::from_str(include_str!(concat!("../../../content/", $file, ".toml"))).unwrap()
@@ -416,13 +437,13 @@ fn compile_objects(
         source,
         content!("lot"),
         toml::from_str(include_str!("../../../assets/sprites/atlas.toml")).unwrap(),
-        content!("tuning"),
+        tuning,
         content!("personalities"),
         content!("household"),
         content!("social"),
         content!("traits"),
         content!("careers"),
-        content!("chains"),
+        chains,
         content!("voice"),
         terri_data::pack()
             .voice_clips
@@ -437,7 +458,9 @@ fn compile_objects(
 fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
     let legacy: ObjectsFile =
         toml::from_str(include_str!("fixtures/pre-hierarchy-objects.toml")).unwrap();
-    let legacy = compile_objects(legacy).unwrap();
+    // The pre-hierarchy objects carry no usage marks (issue 298), so they
+    // compile with no usage kinds defined, as a published pack does.
+    let legacy = compile_objects_with(legacy, true).unwrap();
     let current = terri_data::pack();
     let published = terri_data::contextual_pre_books_pack();
     // The fingerprint covers the shipped social vocabulary too; it moved
@@ -472,6 +495,13 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
         actual.price = expected.price;
         actual.presentation = expected.presentation.clone();
         actual.metadata = None;
+        // Bills (issue 298): usage marks and the room rule are new data the
+        // shipped usage-mark tests in terri-data pin, not gameplay drift.
+        actual.bill_daily = expected.bill_daily.clone();
+        actual.indoor_only = expected.indoor_only;
+        for action in &mut actual.interactions {
+            action.bill_uses.clear();
+        }
         actual.seats.clear();
         actual.shelf_access.clear();
         actual.shelf_capacity = expected.shelf_capacity;
@@ -1147,5 +1177,169 @@ sprite = {{ set = "shelf" }}
     assert!(
         matches!(&refused, Err(terri_data::ContentError::InvalidHierarchy { reason, .. }) if reason.contains("copies")),
         "{refused:?}"
+    );
+}
+
+/// Bills (issue 298, [WB-usage]): `bill_uses` resolves through the
+/// template, type and model layers like every other action collection, so
+/// a model can extend or replace what its type inherited.
+#[test]
+fn resolves_bill_uses_through_template_type_and_model_layers() {
+    let source = r#"
+[[action_template]]
+id = "washing"
+[action_template.properties]
+duration_ticks = { set = 9.0 }
+slots = { set = 1.0 }
+advertises = { set = { hygiene = 11.0 } }
+bill_uses = { set = ["water"] }
+[[category]]
+id = "hygiene"
+label = "Hygiene"
+[[object_type]]
+id = "shower"
+label = "Shower"
+category = "hygiene"
+[[object_type.action]]
+id = "wash"
+template = "washing"
+[object_type.action.properties]
+bill_uses = { extend = ["heat"] }
+[[model]]
+id = "plain"
+object_type = "shower"
+[model.properties]
+name = { set = "Plain" }
+sprite = { set = "offlineShower" }
+[[model]]
+id = "cold"
+object_type = "shower"
+[model.properties]
+name = { set = "Cold" }
+sprite = { set = "offlineShower" }
+[[model.action]]
+id = "wash"
+[model.action.properties]
+bill_uses = { replace = ["water"] }
+[[model]]
+id = "dry"
+object_type = "shower"
+[model.properties]
+name = { set = "Dry" }
+sprite = { set = "offlineShower" }
+[[model.action]]
+id = "wash"
+[model.action.properties]
+bill_uses = { set = [] }
+"#;
+    let resolved = resolve(source).unwrap();
+    let uses = |model: &str| {
+        resolved
+            .object
+            .iter()
+            .find(|object| object.id == model)
+            .unwrap()
+            .interaction[0]
+            .bill_uses
+            .clone()
+    };
+    assert_eq!(uses("plain"), ["water", "heat"]);
+    assert_eq!(uses("cold"), ["water"]);
+    assert!(uses("dry").is_empty());
+    let refused = resolve(&source.replace(
+        "bill_uses = { extend = [\"heat\"] }",
+        "bill_uses = { remove = true }",
+    ));
+    assert!(
+        matches!(&refused, Err(terri_data::ContentError::InvalidHierarchy { reason, .. }) if reason.contains("collections")),
+        "{refused:?}"
+    );
+}
+
+/// Bills (issue 298, [WB-usage] and [WB-beds]): `bill_daily` and
+/// `indoor_only` resolve through the category, type and model layers, and
+/// a model that says nothing inherits both.
+#[test]
+fn resolves_bill_daily_and_indoor_only_through_category_type_and_model_layers() {
+    let source = r#"
+[[category]]
+id = "sleeping"
+label = "Sleeping"
+[category.properties]
+indoor_only = { set = true }
+bill_daily = { set = ["warmer"] }
+[[object_type]]
+id = "bed"
+label = "Bed"
+category = "sleeping"
+[object_type.properties]
+bill_daily = { extend = ["lamp"] }
+[[model]]
+id = "plain"
+object_type = "bed"
+[model.properties]
+name = { set = "Plain" }
+sprite = { set = "offlineBed" }
+[[model]]
+id = "camp"
+object_type = "bed"
+[model.properties]
+name = { set = "Camp" }
+sprite = { set = "offlineBed" }
+indoor_only = { set = false }
+bill_daily = { replace = [] }
+[[category]]
+id = "outdoor"
+label = "Outdoor"
+[[object_type]]
+id = "bench"
+label = "Bench"
+category = "outdoor"
+[[model]]
+id = "bench"
+object_type = "bench"
+[model.properties]
+name = { set = "Bench" }
+sprite = { set = "offlineBench" }
+"#;
+    let resolved = resolve(source).unwrap();
+    let object = |id: &str| resolved.object.iter().find(|o| o.id == id).unwrap();
+    assert!(object("plain").indoor_only);
+    assert_eq!(object("plain").bill_daily, ["warmer", "lamp"]);
+    assert!(!object("camp").indoor_only);
+    assert!(object("camp").bill_daily.is_empty());
+    assert!(!object("bench").indoor_only, "absent means false");
+    assert!(object("bench").bill_daily.is_empty());
+}
+
+/// Bills (issue 298, [WB-tuning]): no usage mark or room rule enters the
+/// content fingerprint, so neither the fingerprint nor the saved action
+/// manifest moves with them. The shipped pack carries marks, so clearing
+/// them is a real change the fingerprint could see.
+#[test]
+fn bill_marks_do_not_move_the_content_fingerprint() {
+    let pack = terri_data::pack();
+    let mut cleared = pack.clone();
+    let mut marks = 0;
+    for object in &mut cleared.objects {
+        marks += object.bill_daily.len() + usize::from(object.indoor_only);
+        object.bill_daily.clear();
+        object.indoor_only = false;
+        for action in &mut object.interactions {
+            marks += action.bill_uses.len();
+            action.bill_uses.clear();
+        }
+    }
+    for chain in &mut cleared.chains {
+        for step in &mut chain.steps {
+            marks += step.bill_uses.len();
+            step.bill_uses.clear();
+        }
+    }
+    assert!(marks > 0, "the shipped pack must carry marks to clear");
+    assert_ne!(&cleared, pack);
+    assert_eq!(
+        terri_data::content_fingerprint(&cleared),
+        terri_data::content_fingerprint(pack)
     );
 }

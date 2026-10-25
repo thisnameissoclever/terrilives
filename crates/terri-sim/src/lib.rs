@@ -5347,6 +5347,8 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                bill_daily: Vec::new(),
+                indoor_only: false,
                 default_interaction: 0,
                 cooking_front: None,
                 shelf_capacity: 0,

@@ -683,7 +683,7 @@ pub struct PublishedContentPack {
     pub item_kinds: Vec<String>,
     /// The multi-step chains - [K1]. May be empty in a test pack. It was
     /// last until the circadian rhythm arrived.
-    pub chains: Vec<CompiledChain>,
+    pub chains: Vec<PublishedCompiledChain>,
     /// The circadian rhythm, if `tuning.toml` authored one - [ML-curve].
     ///
     /// `None` means a flat sleep drive of 1.0, which is exactly the
@@ -745,6 +745,64 @@ pub struct PublishedContentPack {
     pub affinities: Vec<CompiledAffinityKind>,
 }
 
+/// A chain as published, before its steps carried usage kinds (issue 298).
+#[derive(Serialize, Deserialize)]
+pub struct PublishedCompiledChain {
+    pub id: String,
+    pub label: String,
+    pub advertised_by: ObjectDefId,
+    pub advertises: Vec<(u8, f32)>,
+    pub satisfaction: f32,
+    pub steps: Vec<PublishedCompiledChainStep>,
+}
+
+/// A chain step as published, before `bill_uses` was appended (issue 298).
+#[derive(Serialize, Deserialize)]
+pub struct PublishedCompiledChainStep {
+    pub role: u32,
+    pub label: String,
+    pub duration_ticks: u32,
+    pub tags: Vec<String>,
+    pub yields: Option<u32>,
+    pub transforms: Option<(u32, u32)>,
+    pub consumes: Option<u32>,
+    pub visual: Option<CompiledVisual>,
+    pub sound_action: Option<CompiledSoundAction>,
+    pub activity: Option<CompiledActivity>,
+}
+
+impl From<PublishedCompiledChain> for CompiledChain {
+    fn from(old: PublishedCompiledChain) -> Self {
+        Self {
+            id: old.id,
+            label: old.label,
+            advertised_by: old.advertised_by,
+            advertises: old.advertises,
+            satisfaction: old.satisfaction,
+            steps: old.steps.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<PublishedCompiledChainStep> for CompiledChainStep {
+    fn from(old: PublishedCompiledChainStep) -> Self {
+        Self {
+            role: old.role,
+            label: old.label,
+            duration_ticks: old.duration_ticks,
+            tags: old.tags,
+            yields: old.yields,
+            transforms: old.transforms,
+            consumes: old.consumes,
+            visual: old.visual,
+            sound_action: old.sound_action,
+            activity: old.activity,
+            // Bills (issue 298): published content declares no usage.
+            bill_uses: Vec::new(),
+        }
+    }
+}
+
 impl From<PublishedCompiledInteraction> for CompiledInteraction {
     fn from(old: PublishedCompiledInteraction) -> Self {
         Self {
@@ -764,6 +822,8 @@ impl From<PublishedCompiledInteraction> for CompiledInteraction {
             seat_use: SeatUse::Exclusive,
             media: None,
             recipe: None,
+            // Bills (issue 298): published content declares no usage.
+            bill_uses: Vec::new(),
         }
     }
 }
@@ -792,6 +852,10 @@ impl From<PublishedCompiledObject> for CompiledObject {
             shelf_access: Vec::new(),
             cooking_front: None,
             seat_comfort_per_tick: 0.,
+            // Bills (issue 298): no daily usage, and no room rule, because
+            // a published pack predates both.
+            bill_daily: Vec::new(),
+            indoor_only: false,
         }
     }
 }
@@ -812,7 +876,7 @@ impl From<PublishedContentPack> for ContentPack {
             careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
-            chains: old.chains,
+            chains: old.chains.into_iter().map(Into::into).collect(),
             circadian: old.circadian,
             sleep_tag: old.sleep_tag,
             voice_clips: old.voice_clips,
@@ -916,7 +980,7 @@ pub struct Published2fContentPack {
     pub item_kinds: Vec<String>,
     /// The multi-step chains - [K1]. May be empty in a test pack. It was
     /// last until the circadian rhythm arrived.
-    pub chains: Vec<CompiledChain>,
+    pub chains: Vec<PublishedCompiledChain>,
     /// The circadian rhythm, if `tuning.toml` authored one - [ML-curve].
     ///
     /// `None` means a flat sleep drive of 1.0, which is exactly the
@@ -993,7 +1057,7 @@ impl From<Published2fContentPack> for ContentPack {
             careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
-            chains: old.chains,
+            chains: old.chains.into_iter().map(Into::into).collect(),
             circadian: old.circadian,
             sleep_tag: old.sleep_tag,
             voice_clips: old.voice_clips,

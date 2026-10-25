@@ -167,6 +167,10 @@ pub fn compile(
         }
     }
     let objects = crate::hierarchy::resolve(objects)?;
+    // Bills first, because every action, chain step and object below names
+    // its usage kinds by id and compiles them to indices into these lists
+    // ([WB-usage]).
+    let bills = compile_bills(&tuning.bills)?;
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
@@ -460,7 +464,21 @@ pub fn compile(
             )?;
             let completion_sound =
                 compile_completion_sound(act.completion_sound.as_deref(), &object.id, &act.id)?;
+            let bill_uses = compile_bill_marks(
+                &act.bill_uses,
+                &bills.uses,
+                "uses",
+                &format!("object '{}' action '{}'", object.id, act.id),
+            )?;
+            if !bill_uses.is_empty() && act.recipe.is_some() {
+                return Err(ContentError::InvalidBillMark {
+                    context: format!("object '{}' action '{}'", object.id, act.id),
+                    kind: act.bill_uses[0].clone(),
+                    reason: "an action that runs a recipe charges through the recipe's steps",
+                });
+            }
             interactions.push(CompiledInteraction {
+                bill_uses,
                 media: act.media,
                 recipe: act
                     .recipe
@@ -551,6 +569,13 @@ pub fn compile(
             &format!("seat Comfort on {}", object.id),
         )?;
         let definition = CompiledObject {
+            bill_daily: compile_bill_marks(
+                &object.bill_daily,
+                &bills.daily,
+                "daily",
+                &format!("object '{}'", object.id),
+            )?,
+            indoor_only: object.indoor_only,
             cooking_front: object.cooking_front,
             shelf_capacity: object.shelf_capacity,
             shelf_access: compile_shelf_access(object)?,
@@ -598,7 +623,7 @@ pub fn compile(
         &foreground_sprite_names,
         &sprite_index,
     )?;
-    let (tuning, circadian, sleep_tag, affinity, bills) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
     for object in &compiled {
         check_sleep_places(object, &sleep_tag)?;
         check_single_user_actions(object, &sleep_tag)?;
@@ -672,7 +697,7 @@ pub fn compile(
     // capability keys on the hob step now that the stove's standalone
     // interaction is retired. After the lot (the coverage rule needs
     // the placements) and after tuning (steps obey the clipped rule).
-    let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
+    let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning, &bills)?;
     finalize_recipe_bindings(&mut compiled, &chains, &roles, &tuning)?;
     // One tag universe for every definition that keys on an activity, so a
     // trait and a skill cannot disagree about what exists.
@@ -705,6 +730,7 @@ pub fn compile(
     let voice_clips = compile_voice(voice, voice_clip_ticks)?;
     check_voice_floor(&voice_clips, &tuning)?;
     let colourways = compile_colourways(&colourway_defs)?;
+    check_bill_kinds_used(&bills, &compiled, &chains)?;
 
     Ok(ContentPack {
         books: Vec::new(),
@@ -733,6 +759,84 @@ pub fn compile(
         affinities,
         bills,
     })
+}
+
+/// Resolves usage kind ids to indices into `kinds`, ascending ([WB-usage]):
+/// an id the table does not define, an empty id and a repeated id are
+/// refused with the owner named.
+fn compile_bill_marks(
+    marks: &[String],
+    kinds: &[crate::pack::BillKind],
+    table: &'static str,
+    context: &str,
+) -> Result<Vec<u16>, ContentError> {
+    let mut indices = Vec::with_capacity(marks.len());
+    for mark in marks {
+        let Some(index) = kinds.iter().position(|kind| kind.id == *mark) else {
+            return Err(ContentError::InvalidBillMark {
+                context: context.to_string(),
+                kind: mark.clone(),
+                reason: if table == "uses" {
+                    "bill_uses names a kind [bills.uses] does not define"
+                } else {
+                    "bill_daily names a kind [bills.daily] does not define"
+                },
+            });
+        };
+        let index = u16::try_from(index).map_err(|_| ContentError::InvalidBillMark {
+            context: context.to_string(),
+            kind: mark.clone(),
+            reason: "more usage kinds than the compiled index can address",
+        })?;
+        if indices.contains(&index) {
+            return Err(ContentError::InvalidBillMark {
+                context: context.to_string(),
+                kind: mark.clone(),
+                reason: "a usage kind is named twice",
+            });
+        }
+        indices.push(index);
+    }
+    indices.sort_unstable();
+    Ok(indices)
+}
+
+/// Refuses a usage kind no action, chain step or object carries
+/// ([WB-usage]): a defined charge nothing can incur is a typo waiting to
+/// be noticed in a bill that never moves.
+fn check_bill_kinds_used(
+    bills: &crate::pack::BillsTuning,
+    objects: &[CompiledObject],
+    chains: &[crate::pack::CompiledChain],
+) -> Result<(), ContentError> {
+    for (index, kind) in bills.uses.iter().enumerate() {
+        let index = index as u16;
+        let used = objects
+            .iter()
+            .flat_map(|object| &object.interactions)
+            .any(|action| action.bill_uses.contains(&index))
+            || chains
+                .iter()
+                .flat_map(|chain| &chain.steps)
+                .any(|step| step.bill_uses.contains(&index));
+        if !used {
+            return Err(ContentError::UnusedBillKind {
+                kind: kind.id.clone(),
+            });
+        }
+    }
+    for (index, kind) in bills.daily.iter().enumerate() {
+        let index = index as u16;
+        if !objects
+            .iter()
+            .any(|object| object.bill_daily.contains(&index))
+        {
+            return Err(ContentError::UnusedBillKind {
+                kind: kind.id.clone(),
+            });
+        }
+    }
+    Ok(())
 }
 
 /// The largest hue turn a colourway may ask for, in degrees either way.
@@ -980,6 +1084,7 @@ fn compile_chains(
     roles: &[String],
     lot: &CompiledLot,
     tuning: &Tuning,
+    bills: &crate::pack::BillsTuning,
 ) -> Result<(Vec<crate::pack::CompiledChain>, Vec<String>), ContentError> {
     let mut seen = BTreeSet::new();
     let mut item_kinds: Vec<String> = Vec::new();
@@ -1192,6 +1297,12 @@ fn compile_chains(
             }
 
             steps.push(crate::pack::CompiledChainStep {
+                bill_uses: compile_bill_marks(
+                    &step.bill_uses,
+                    &bills.uses,
+                    "uses",
+                    &format!("chain '{}' step {index}", def.id),
+                )?,
                 role,
                 label: step.label.clone(),
                 duration_ticks: step.duration_ticks,
@@ -2087,7 +2198,15 @@ fn compile_social(
             act.activity.as_deref(),
             format!("social.toml interaction '{}'", act.id),
         )?;
+        if let Some(kind) = act.bill_uses.first() {
+            return Err(ContentError::InvalidBillMark {
+                context: format!("social.toml interaction '{}'", act.id),
+                kind: kind.clone(),
+                reason: "a conversation uses no water or electricity",
+            });
+        }
         compiled.push(CompiledInteraction {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: act.book_reading,
@@ -3256,13 +3375,7 @@ fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
 /// The compiled knobs, the circadian table, the sleep tag, and the traits'
 /// verb lines ([TL-affinity]), which the compiler reads and the pack never
 /// holds.
-type CompiledTuning = (
-    Tuning,
-    Option<Circadian>,
-    String,
-    AffinityBands,
-    crate::pack::BillsTuning,
-);
+type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 /// The largest cent amount a bills charge may be, which keeps every month's
 /// arithmetic far inside `i64` ([WB-tuning]).
@@ -3385,7 +3498,6 @@ fn compile_bills(
 }
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
-    let bills = compile_bills(&tuning.bills)?;
     if !tuning.need_interactions.valid(tuning.mood_low_need_level) {
         return Err(ContentError::InvalidNeedInteractionTuning);
     }
@@ -4353,7 +4465,6 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         circadian,
         tuning.sleep_tag,
         affinity,
-        bills,
     ))
 }
 
@@ -5688,6 +5799,8 @@ mod tests {
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    bill_daily: Vec::new(),
+                    indoor_only: false,
                     default_action: None,
                     cooking_front: None,
                     shelf_capacity: 0,
@@ -6135,6 +6248,8 @@ mod tests {
             colourway: Vec::new(),
             affinity: Vec::new(),
             object: vec![ObjectDef {
+                bill_daily: Vec::new(),
+                indoor_only: false,
                 default_action: None,
                 cooking_front: None,
                 shelf_capacity: 0,
@@ -6160,6 +6275,7 @@ mod tests {
 
     fn snack() -> InteractionDef {
         InteractionDef {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: false,
@@ -6675,6 +6791,8 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
@@ -6722,6 +6840,8 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
@@ -9096,6 +9216,8 @@ mod tests {
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    bill_daily: Vec::new(),
+                    indoor_only: false,
                     default_action: None,
                     cooking_front: None,
                     shelf_capacity: 0,
@@ -10670,6 +10792,178 @@ mod tests {
         assert_eq!(compiled.tuning.days_per_season, u32::MAX);
     }
 
+    /// The chain world with use kinds `drip` and `tub` and daily kind
+    /// `glow`, the fridge's snack carrying `tub`, the chain's first step
+    /// carrying `drip`, and the sink carrying `glow` - every kind used once,
+    /// so each test below breaks exactly one thing ([WB-usage]).
+    fn marked_world(
+        edit_objects: impl FnOnce(&mut Vec<ObjectDef>),
+        edit_chain: impl FnOnce(&mut crate::schema::ChainDef),
+    ) -> Result<ContentPack, ContentError> {
+        let mut chain = a_chain("cook_dinner");
+        chain.step[0].bill_uses = vec!["drip".into()];
+        edit_chain(&mut chain);
+        compile_chain_world_with(
+            vec![chain],
+            |objects| {
+                objects[0].interaction[0].bill_uses = vec!["tub".into()];
+                objects[1].bill_daily = vec!["glow".into()];
+                edit_objects(objects);
+            },
+            bills_with_kinds(),
+        )
+    }
+
+    /// [WB-usage]: the marks compile to indices into the id-ordered kind
+    /// lists, on the action, the chain step and the object that carry them.
+    #[test]
+    fn compiles_usage_marks_to_kind_indices() {
+        let pack = marked_world(|_| {}, |_| {}).expect("every kind used once");
+        let uses: Vec<&str> = pack.bills.uses.iter().map(|k| k.id.as_str()).collect();
+        assert_eq!(uses, ["drip", "tub"]);
+        let fridge = pack.object(pack.find("fridge").unwrap());
+        assert_eq!(fridge.interactions[0].bill_uses, [1], "tub is index 1");
+        assert!(fridge.bill_daily.is_empty());
+        let sink = pack.object(pack.find("sink").unwrap());
+        assert_eq!(sink.bill_daily, [0]);
+        let chain = pack.chains.iter().find(|c| c.id == "cook_dinner").unwrap();
+        assert_eq!(chain.steps[0].bill_uses, [0], "drip is index 0");
+        assert!(chain.steps[1].bill_uses.is_empty());
+        // Two marks on one action compile ascending, whatever their order.
+        let pack = marked_world(
+            |objects| objects[0].interaction[0].bill_uses = vec!["tub".into(), "drip".into()],
+            |_| {},
+        )
+        .unwrap();
+        let fridge = pack.object(pack.find("fridge").unwrap());
+        assert_eq!(fridge.interactions[0].bill_uses, [0, 1]);
+    }
+
+    /// [WB-usage]: an action or a chain step naming a use kind that
+    /// `[bills.uses]` does not define is refused, with its owner named; a
+    /// daily kind is not a use kind.
+    #[test]
+    fn rejects_an_unknown_use_kind_on_an_action_or_step() {
+        let refused = marked_world(
+            |objects| objects[0].interaction[0].bill_uses = vec!["tub".into(), "steam".into()],
+            |_| {},
+        );
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { context, kind, .. }) if kind == "steam" && context.contains("fridge")),
+            "{refused:?}"
+        );
+        let refused = marked_world(
+            |_| {},
+            |chain| chain.step[1].bill_uses = vec!["glow".into()],
+        );
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { context, kind, .. }) if kind == "glow" && context.contains("step 1")),
+            "{refused:?}"
+        );
+        let refused = marked_world(
+            |_| {},
+            |chain| chain.step[0].bill_uses = vec![String::new()],
+        );
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { kind, .. }) if kind.is_empty())
+        );
+    }
+
+    /// [WB-usage]: an object naming a daily kind that `[bills.daily]` does
+    /// not define is refused; a use kind is not a daily kind.
+    #[test]
+    fn rejects_an_unknown_daily_kind_on_an_object() {
+        let refused = marked_world(|objects| objects[1].bill_daily = vec!["tub".into()], |_| {});
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { context, kind, .. }) if kind == "tub" && context.contains("sink")),
+            "{refused:?}"
+        );
+    }
+
+    /// [WB-usage]: naming one kind twice in one list is refused, on an
+    /// action, a step and an object alike.
+    #[test]
+    fn rejects_a_repeated_kind_in_one_list() {
+        for refused in [
+            marked_world(
+                |objects| objects[0].interaction[0].bill_uses = vec!["tub".into(), "tub".into()],
+                |_| {},
+            ),
+            marked_world(
+                |_| {},
+                |chain| chain.step[0].bill_uses = vec!["drip".into(), "drip".into()],
+            ),
+            marked_world(
+                |objects| objects[1].bill_daily = vec!["glow".into(), "glow".into()],
+                |_| {},
+            ),
+        ] {
+            assert!(
+                matches!(&refused, Err(ContentError::InvalidBillMark { reason, .. }) if reason.contains("twice")),
+                "{refused:?}"
+            );
+        }
+    }
+
+    /// [WB-usage]: a defined kind that no action, step or object carries is
+    /// refused by name, for a use kind and a daily kind.
+    #[test]
+    fn rejects_a_defined_kind_that_nothing_uses() {
+        assert_eq!(
+            marked_world(|_| {}, |chain| chain.step[0].bill_uses.clear()).unwrap_err(),
+            ContentError::UnusedBillKind {
+                kind: "drip".into()
+            }
+        );
+        assert_eq!(
+            marked_world(
+                |objects| objects[0].interaction[0].bill_uses.clear(),
+                |_| {}
+            )
+            .unwrap_err(),
+            ContentError::UnusedBillKind { kind: "tub".into() }
+        );
+        assert_eq!(
+            marked_world(|objects| objects[1].bill_daily.clear(), |_| {}).unwrap_err(),
+            ContentError::UnusedBillKind {
+                kind: "glow".into()
+            }
+        );
+        // A use kind carried only by a step still counts as used.
+        marked_world(
+            |objects| objects[0].interaction[0].bill_uses.clear(),
+            |chain| chain.step[1].bill_uses = vec!["tub".into()],
+        )
+        .expect("tub is used by a step");
+    }
+
+    /// [WB-usage]: a use mark on a conversation, or on an action that runs a
+    /// recipe, could never be counted, so both are refused.
+    #[test]
+    fn rejects_usage_marks_where_no_use_is_counted() {
+        let mut chat = snack();
+        chat.id = "chat".into();
+        chat.bill_uses = vec!["tub".into()];
+        let refused = compile_bare_with_social(vec![chat]);
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { context, .. }) if context.contains("social")),
+            "{refused:?}"
+        );
+        let refused = marked_world(
+            |objects| {
+                objects[0].interaction[0].recipe = Some(crate::pack::RecipeDef {
+                    id: "cook_dinner".into(),
+                    selected_step: 0,
+                });
+            },
+            |_| {},
+        );
+        assert!(
+            matches!(&refused, Err(ContentError::InvalidBillMark { reason, .. }) if reason.contains("recipe")),
+            "{refused:?}"
+        );
+    }
+
     /// A usage kind row for the bills tests below.
     fn bill_kind(
         label: &str,
@@ -10684,8 +10978,7 @@ mod tests {
     }
 
     /// `full_tuning` with two use kinds and a daily kind, declared out of
-    /// id order, and the snack interaction carrying both use kinds so the
-    /// compiler sees them used.
+    /// id order.
     fn bills_with_kinds() -> TuningFile {
         tuning_where(|t| {
             t.bills.uses = [
@@ -11773,6 +12066,8 @@ mod tests {
     /// `test_atlas` holds.
     fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
         ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             seat_comfort_per_tick: 0.,
             cooking_front: None,
@@ -12329,6 +12624,8 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
@@ -12347,6 +12644,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -13781,6 +14079,7 @@ mod tests {
     fn compiles_the_social_vocabulary_into_the_pack() {
         let pack = compile_bare_with_social(vec![
             InteractionDef {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -13806,6 +14105,7 @@ mod tests {
                 slots: 2,
             },
             InteractionDef {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -13872,6 +14172,7 @@ mod tests {
             })
         };
         let chat = |visual| InteractionDef {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: false,
@@ -14320,6 +14621,8 @@ mod tests {
 
     fn reading_object() -> ObjectDef {
         ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
@@ -14336,6 +14639,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint { width: 3, depth: 3 },
             interaction: vec![InteractionDef {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -14890,6 +15194,7 @@ mod tests {
     fn rejects_social_content_that_breaks_each_rule() {
         let chat = |mutate: fn(&mut InteractionDef)| {
             let mut act = InteractionDef {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -14983,6 +15288,7 @@ mod tests {
     #[test]
     fn rejects_a_social_interaction_the_duration_floor_would_clip() {
         let talk = |duration_ticks| InteractionDef {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: false,
@@ -15231,9 +15537,21 @@ mod tests {
     fn compile_chain_world(
         chain: Vec<crate::schema::ChainDef>,
     ) -> Result<ContentPack, ContentError> {
+        compile_chain_world_with(chain, |_| {}, full_tuning())
+    }
+
+    /// `compile_chain_world` with the two objects edited first and its own
+    /// tuning, for the usage-mark tests ([WB-usage]).
+    fn compile_chain_world_with(
+        chain: Vec<crate::schema::ChainDef>,
+        edit_objects: impl FnOnce(&mut Vec<ObjectDef>),
+        tuning: TuningFile,
+    ) -> Result<ContentPack, ContentError> {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
@@ -15263,11 +15581,15 @@ mod tests {
                 model: vec![],
                 colourway: Vec::new(),
                 affinity: Vec::new(),
-                object: vec![fridge, sink],
+                object: {
+                    let mut objects = vec![fridge, sink];
+                    edit_objects(&mut objects);
+                    objects
+                },
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
             test_atlas(),
-            full_tuning(),
+            tuning,
             PersonalitiesFile { archetype: vec![] },
             HouseholdFile { sim: vec![] },
             SocialFile {
@@ -15293,6 +15615,7 @@ mod tests {
             satisfaction: 2.75,
             step: vec![
                 crate::schema::ChainStepDef {
+                    bill_uses: Vec::new(),
                     role: "cold_storage".to_string(),
                     label: "Fetch".to_string(),
                     duration_ticks: 17,
@@ -15305,6 +15628,7 @@ mod tests {
                     activity: None,
                 },
                 crate::schema::ChainStepDef {
+                    bill_uses: Vec::new(),
                     role: "eating_surface".to_string(),
                     label: "Eat".to_string(),
                     duration_ticks: 23,
@@ -15336,6 +15660,7 @@ mod tests {
         chain.step.insert(
             1,
             crate::schema::ChainStepDef {
+                bill_uses: Vec::new(),
                 role: "eating_surface".to_string(),
                 label: "Warm through".to_string(),
                 duration_ticks: 31,
@@ -15673,6 +15998,8 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_action: None,
             cooking_front: None,
             shelf_capacity: 0,

@@ -144,7 +144,9 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
         let old_bytes = std::fs::read(&path).unwrap();
         if old_bytes != encoded {
             // Issue 298 (wages and bills): the night premium appended to
-            // `Tuning` and the bills appended to the pack. The proof always
+            // `Tuning`, the bills appended to the pack, and the usage marks
+            // and the room rule appended to every object, action and chain
+            // step. The proof always
             // runs against the fixture as it was on main before issue 298
             // (25708 bytes, SHA-256
             // fad1da2c3a7dceca90f5c9158a80c44ffa97d1fe8f0e9767a27111df264a1cb4,
@@ -176,7 +178,9 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
 /// The fixture's bytes as they were before issue 298 (wages and bills),
 /// rebuilt from the current pack by writing it as postcard does while
 /// leaving out the fields that issue appended: the night premium at the end
-/// of `Tuning` and the bills at the end of the pack. Postcard writes a
+/// of `Tuning`, the bills at the end of the pack, `bill_uses` at the end of
+/// every action and chain step, and `bill_daily` and `indoor_only` at the
+/// end of every object. Postcard writes a
 /// struct as its fields in order with no names, so leaving a field out
 /// removes exactly its bytes. The unfiltered writer must reproduce postcard
 /// byte for byte first, or the filtered bytes would prove nothing.
@@ -188,7 +192,11 @@ fn previous_without_bills(pack: &terri_data::ContentPack) -> Vec<u8> {
         "the filtered writer reproduces postcard when it filters nothing"
     );
     filtered_postcard::to_vec(pack, &|owner, field| match (owner, field) {
-        ("Tuning", "night_shift_premium_percent") | ("ContentPack", "bills") => Rule::Omit,
+        ("Tuning", "night_shift_premium_percent")
+        | ("ContentPack", "bills")
+        | ("CompiledInteraction", "bill_uses")
+        | ("CompiledChainStep", "bill_uses")
+        | ("CompiledObject", "bill_daily" | "indoor_only") => Rule::Omit,
         _ => Rule::Keep,
     })
 }

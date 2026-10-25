@@ -198,6 +198,11 @@ pub struct ObjectProperties {
     pub sleep_place: Operation<Vec<SleepPlaceAccess>>,
     pub seat: Operation<Vec<SeatDef>>,
     pub default_action: Operation<String>,
+    /// Daily usage kinds ([WB-usage]); a collection, so a model can extend
+    /// or replace what its type and category say.
+    pub bill_daily: Operation<Vec<String>>,
+    /// Whether the object must stand inside a room ([WB-beds]).
+    pub indoor_only: Operation<bool>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -218,6 +223,9 @@ pub struct ActionProperties {
     pub shared_activity: Operation<String>,
     pub activity: Operation<String>,
     pub completion_sound: Operation<String>,
+    /// Use kinds charged when the action starts its physical work
+    /// ([WB-usage]).
+    pub bill_uses: Operation<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -292,6 +300,8 @@ struct ObjectState {
     sleep_place: Vec<SleepPlaceAccess>,
     seat: Vec<SeatDef>,
     default_action: Option<String>,
+    bill_daily: Vec<String>,
+    indoor_only: Option<bool>,
     actions: Vec<ActionState>,
 }
 
@@ -313,6 +323,7 @@ struct ActionState {
     shared_activity: Option<String>,
     activity: Option<String>,
     completion_sound: Option<String>,
+    bill_uses: Vec<String>,
 }
 
 impl ObjectState {
@@ -351,6 +362,7 @@ impl ObjectState {
         scalar!(base_facing, true);
         scalar!(foreground_sprite, true);
         scalar!(footprint, false);
+        scalar!(indoor_only, true);
         properties.shelf_capacity.number(
             &mut self.shelf_capacity,
             true,
@@ -370,6 +382,7 @@ impl ObjectState {
         collection!(sleep_place);
         collection!(shelf_access);
         collection!(seat);
+        collection!(bill_daily);
         Ok(())
     }
 
@@ -436,6 +449,7 @@ impl ActionProperties {
             + self.shared_activity.count()
             + self.activity.count()
             + self.completion_sound.count()
+            + self.bill_uses.count()
             > 0
     }
 }
@@ -484,6 +498,9 @@ impl ActionState {
         properties
             .tags
             .collection(&mut self.tags, &format!("{context}.tags"))?;
+        properties
+            .bill_uses
+            .collection(&mut self.bill_uses, &format!("{context}.bill_uses"))?;
         properties
             .advertises
             .adverts(&mut self.advertises, &format!("{context}.advertises"))?;
@@ -553,6 +570,7 @@ impl ActionState {
             shared_activity: self.shared_activity,
             activity: self.activity,
             completion_sound: self.completion_sound,
+            bill_uses: self.bill_uses,
         })
     }
 }
@@ -746,6 +764,8 @@ pub fn resolve(mut source: ObjectsFile) -> Result<ObjectsFile, ContentError> {
             }),
             seat: state.seat,
             default_action: state.default_action,
+            bill_daily: state.bill_daily,
+            indoor_only: state.indoor_only.unwrap_or(false),
         });
     }
     source.object.extend(resolved);

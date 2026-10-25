@@ -121,6 +121,7 @@ pub fn interaction(
          name one twice"
     );
     CompiledInteraction {
+        bill_uses: Vec::new(),
         media: None,
         recipe: None,
         book_reading: false,
@@ -218,6 +219,8 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        bill_daily: Vec::new(),
+        indoor_only: false,
         default_interaction: 0,
         cooking_front: None,
         shelf_capacity: 0,

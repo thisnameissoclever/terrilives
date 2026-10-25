@@ -986,6 +986,19 @@ pub enum ContentError {
         id: String,
         reason: &'static str,
     },
+    /// Bills (issue 298, [WB-usage]): an action, chain step or object whose
+    /// `bill_uses` or `bill_daily` names a kind the tables do not define,
+    /// names one twice, or sits where no use can be counted.
+    InvalidBillMark {
+        context: String,
+        kind: String,
+        reason: &'static str,
+    },
+    /// Bills (issue 298, [WB-usage]): a usage kind that no action, chain
+    /// step or object carries.
+    UnusedBillKind {
+        kind: String,
+    },
     /// A career path with no levels.
     CareerPathWithoutLevels {
         id: String,
@@ -2330,6 +2343,16 @@ impl fmt::Display for ContentError {
             ContentError::InvalidBillKind { id, reason } => {
                 write!(f, "bills usage kind '{id}' in tuning.toml is invalid: {reason}")
             }
+            ContentError::InvalidBillMark {
+                context,
+                kind,
+                reason,
+            } => write!(f, "{context} names usage kind '{kind}': {reason}"),
+            ContentError::UnusedBillKind { kind } => write!(
+                f,
+                "bills usage kind '{kind}' in tuning.toml is carried by no action, \
+                 chain step or object, so it can never be charged"
+            ),
             ContentError::CareerPathWithoutLevels { id } => {
                 write!(f, "career path '{id}' has no levels")
             }

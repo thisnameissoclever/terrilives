@@ -308,6 +308,13 @@ pub struct CompiledInteraction {
     pub seat_use: SeatUse,
     pub media: Option<MediaBehavior>,
     pub recipe: Option<RecipeBinding>,
+    /// Use kinds charged once when this action starts its physical work, as
+    /// indices into [`BillsTuning::uses`] ([WB-usage] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`). Ascending, none
+    /// repeated, usually empty. Kept apart from `tags`, so traits, hobbies,
+    /// skills and habituation cannot notice it, and outside the content
+    /// fingerprint. Appended last.
+    pub bill_uses: Vec<u16>,
 }
 
 #[cfg(test)]
@@ -468,8 +475,16 @@ pub struct CompiledObject {
     pub cooking_front: Option<(i32, i32)>,
     pub seat_comfort_per_tick: f32,
     /// The interaction a left click starts. Content names it by action id;
-    /// the first interaction when unnamed. Appended last.
+    /// the first interaction when unnamed.
     pub default_interaction: u32,
+    /// Daily usage kinds, as indices into [`BillsTuning::daily`]: each placed
+    /// object of this definition adds one of each to the month's bills
+    /// every day ([WB-usage]). Ascending, none repeated. Appended after
+    /// `default_interaction`.
+    pub bill_daily: Vec<u16>,
+    /// Whether every tile of the object must be inside an enclosed room when
+    /// it is bought or moved ([WB-beds]). Appended last.
+    pub indoor_only: bool,
 }
 
 /// Navigation offsets from the base-facing footprint, independent of art sockets.
@@ -1774,6 +1789,10 @@ pub struct CompiledChainStep {
     pub sound_action: Option<CompiledSoundAction>,
     /// Optional authored activity indicator; excluded from save compatibility.
     pub activity: Option<CompiledActivity>,
+    /// Use kinds charged once when this step starts its physical work, as
+    /// indices into [`BillsTuning::uses`] ([WB-usage]). Ascending, none
+    /// repeated. Appended last.
+    pub bill_uses: Vec<u16>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -2107,6 +2126,7 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            bill_uses: Vec::new(),
             media: None,
             recipe: None,
             book_reading: false,
@@ -2406,6 +2426,8 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        bill_daily: Vec::new(),
+                        indoor_only: false,
                         default_interaction: 0,
                         cooking_front: None,
                         shelf_capacity: 0,
@@ -2509,6 +2531,7 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                bill_uses: Vec::new(),
                 media: None,
                 recipe: None,
                 book_reading: false,
@@ -2645,6 +2668,7 @@ mod tests {
                 satisfaction: 3.25,
                 steps: vec![
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 1,
                         label: "Get ingredients".to_string(),
                         duration_ticks: 21,
@@ -2657,6 +2681,7 @@ mod tests {
                         activity: None,
                     },
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 0,
                         label: "Cook".to_string(),
                         duration_ticks: 63,
@@ -2669,6 +2694,7 @@ mod tests {
                         activity: None,
                     },
                     CompiledChainStep {
+                        bill_uses: Vec::new(),
                         role: 1,
                         label: "Eat".to_string(),
                         duration_ticks: 42,
@@ -2788,6 +2814,8 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            bill_daily: Vec::new(),
+            indoor_only: false,
             default_interaction: 0,
             cooking_front: None,
             shelf_capacity: 0,
@@ -3826,6 +3854,7 @@ mod tests {
     #[test]
     fn a_chain_step_visual_has_stable_postcard_bytes() {
         let step = CompiledChainStep {
+            bill_uses: Vec::new(),
             role: 7,
             label: "Eat".to_string(),
             duration_ticks: 42,
@@ -3846,9 +3875,10 @@ mod tests {
         assert_eq!(
             postcard::to_allocvec(&step).expect("chain step must serialise"),
             // Visual socket `None` is followed by Some and enum discriminant
-            // 1 for the appended StoveCooking sound action. The final zero is
-            // the independently authored activity's None value.
-            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1, 0]
+            // 1 for the appended StoveCooking sound action. The next zero is
+            // the independently authored activity's None value, and the last
+            // is the empty usage list appended for bills (issue 298).
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1, 0, 0]
         );
     }
 
