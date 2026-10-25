@@ -58,22 +58,25 @@ No golden world hash, wasm golden value, content digest, save manifest or fixtur
 
 ## Tests and targeted mutations
 
-`crates/terri-sim/src/social_episode/tests/sleeping_partner_tests.rs` holds the eight tests. They put a partner to sleep by starting a bed's sleep-tagged interaction on them at a placed bed, which is the state `systems::circadian::is_asleep` reads.
+`crates/terri-sim/src/social_episode/tests/sleeping_partner_tests.rs` holds the nine tests. They put a partner to sleep by starting a bed's sleep-tagged interaction on them at a placed bed, which is the state `systems::circadian::is_asleep` reads.
 
 1. `a_housemate_never_chooses_a_chat_with_a_sleeping_partner` runs the same lonely housemate twice, once with the partner busy and awake at a fridge and once asleep for the same time. Awake, the housemate chooses to wait for them; asleep, no request is created, counted by request identity so a chat chosen and given up in one tick also fails it.
 2. `a_chosen_chat_gives_up_when_its_partner_falls_asleep_and_asks_again_after_waking` lets selection choose the chat while the partner is busy, puts the partner to sleep, and requires the give-up, the release of the asker, no activity log record, no new request while the partner sleeps, and a new request whose chat runs after waking.
 3. `a_player_ordered_chat_keeps_waiting_for_a_sleeping_partner` orders the chat through the public Talk command for a partner who falls asleep during the wait and for one already asleep; the order stays and the chat runs after waking.
-4. `only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting` requires a `LegacyUnattributed` request beside a sleeper to stay, and waiting and suspended self-chosen requests to give up.
+4. `only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting` requires a `LegacyUnattributed` request beside a sleeper to stay, and waiting, suspended and approaching self-chosen requests to give up; the approaching one must also release the recipient it reserved.
 5. `the_game_never_starts_a_fight_with_a_sleeping_partner` gives the same grievance and a certain draw against a partner busy and awake at a fridge and against one asleep; only the awake partner gets a fight order.
-6. `a_waiting_game_made_fight_is_withdrawn_when_its_partner_falls_asleep_and_can_return` queues a game-made fight against a busy partner, puts the partner to sleep, and requires the withdrawal of the exact order, its system identity, its pending cause and the approach, as pull request 302's crisis withdrawal does. The grievance stays unfought, nothing is started while the partner sleeps, and the same grievance starts a new fight after they wake.
+6. `a_waiting_game_made_fight_is_withdrawn_when_its_partner_falls_asleep_and_can_return` queues a game-made fight against a busy partner, puts the partner to sleep, and requires the withdrawal of the exact order, its system identity, its pending cause and the approach, as pull request 302's crisis withdrawal does, with no activity log record. The grievance stays unfought, nothing is started while the partner sleeps, and the same grievance starts a new fight after they wake.
 7. `a_player_ordered_fight_keeps_waiting_for_a_sleeping_partner` orders a Fight through the Talk command; the order waits through the sleep and the fight runs after waking.
 8. `the_published_fight_rules_keep_a_waiting_fight_beside_a_sleeper` requires the published fight rules, which authenticated historical content selects to keep its published outcomes, to leave a waiting game-made fight in place beside a sleeper.
+9. `the_saved_fight_state_restores_straight_after_a_sleep_withdrawal` withdraws a fight through the conversation upkeep alone, before the end-of-tick grievance upkeep, and requires the saved grievance and fight state to hold no cause for the withdrawn fight and to restore. Before the withdrawal it restores the same way, as a control. The tests' sleeping fixture is not a loadable world, so the test restores that saved state in place, which is the step of a full load that refused a stale cause.
 
-On main, tests 1, 2, 4, 5 and 6 failed: test 1 when the sleeping partner was chosen, test 2 when the request stayed after the partner fell asleep, test 4 on its self-chosen rows, test 5 when the sleeper was given a fight order, and test 6 when the fight stayed after the partner fell asleep. Tests 3, 7 and 8 passed on main, as they must: they guard today's behavior against a broader rule. All eight pass on this branch.
+On main, tests 1, 2, 4, 5, 6 and 9 fail: test 1 when the sleeping partner is chosen, test 2 when the request stays after the partner falls asleep, test 4 on its self-chosen rows, test 5 when the sleeper is given a fight order, and tests 6 and 9 when the fight stays after the partner falls asleep. Tests 3, 7 and 8 pass on main, as they must: they guard today's behavior against a broader rule. All nine pass on this branch.
 
-A running fight is not tested separately. Its recipient is reserved and talking, so they cannot start to sleep; the withdrawal also skips a running fight, as pull request 302's crisis withdrawal does.
+Test 9 guards a defect the independent review found: a sleep withdrawal that leaves the fight's pending cause in place until the end-of-tick grievance upkeep makes a save taken in between invalid. The withdrawal therefore sits in `fights::withdraw_invalid` beside the crisis condition, which retires the cause at once. With a withdrawal that leaves the cause in place, test 9 fails: its saved state holds the stale cause, and restoring it returns `InvalidValue`.
 
-Each targeted mutant changed one site, ran the eight tests and restored the file, whose SHA-256 was checked afterward. Every mutant failed at least one test:
+A running fight is not tested separately. Its recipient is reserved and talking, so they cannot start to sleep; the withdrawal also applies only to a fight that has not started.
+
+Each targeted mutant changed one site, ran the nine tests and restored the file, whose SHA-256 was checked afterward. Every mutant failed at least one test:
 
 | Mutant | Failing tests |
 | --- | --- |
@@ -81,8 +84,10 @@ Each targeted mutant changed one site, ran the eight tests and restored the file
 | No chat give-up when the partner sleeps | 2, 4 |
 | The chat give-up applies to every origin | 4 |
 | Suspended chats keep waiting | 4 |
+| The chat give-up applies only while waiting or suspended | 4 |
 | Selection treats any activity as sleep | 1, 2 |
-| The chat give-up treats any activity as sleep, which the fight rules share | 1, 2, 5, 6, 8 |
+| The chat give-up treats any activity as sleep, which the fight rules share | 1, 2, 5, 6, 8, 9 |
 | The fight trigger ignores sleep | 5, 6 |
-| No fight withdrawal when the recipient sleeps | 6 |
-| The fight withdrawal also applies under the published rules | 8 |
+| No fight withdrawal when the recipient sleeps | 6, 9 |
+| A sleep withdrawal that leaves the pending cause until the end of the tick | 9 |
+| The published rules also run the current withdrawal | 8 |

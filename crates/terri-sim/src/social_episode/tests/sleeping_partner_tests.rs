@@ -270,8 +270,9 @@ fn a_player_ordered_chat_keeps_waiting_for_a_sleeping_partner() {
 
 /// A waiting chat loaded from an older save without a recorded origin may
 /// have come from a player's order, so, as with pull request 302's give-up,
-/// it is exempt and keeps waiting. A chosen chat in the same position, waiting
-/// or suspended, gives up.
+/// it is exempt and keeps waiting. A chosen chat in the same position gives
+/// up whether it is waiting, suspended, or approaching a recipient it has
+/// reserved, and an approaching one releases that reservation.
 #[test]
 fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
     for (origin, phase, stays) in [
@@ -288,6 +289,11 @@ fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
         (
             requests::ConversationOrigin::Autonomous,
             requests::RequestPhase::Suspended,
+            false,
+        ),
+        (
+            requests::ConversationOrigin::Autonomous,
+            requests::RequestPhase::Approaching,
             false,
         ),
     ] {
@@ -309,12 +315,31 @@ fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
             request.origin = origin;
             request.phase = phase;
         }
+        let approaching = phase == requests::RequestPhase::Approaching;
+        if approaching {
+            sim.world_mut().entity_mut(b).insert(Reserved);
+            sim.world_mut()
+                .resource_mut::<SocialEpisodes>()
+                .rendezvous
+                .insert(b, a);
+        }
         requests::before_movement(sim.world_mut());
         assert_eq!(
             request_to(&sim, a, b).is_some(),
             stays,
             "{origin:?} {phase:?} beside a sleeper"
         );
+        if approaching {
+            assert!(
+                sim.world().get::<Reserved>(b).is_none(),
+                "the approach releases the sleeper it reserved"
+            );
+            assert!(!sim
+                .world()
+                .resource::<SocialEpisodes>()
+                .rendezvous
+                .contains_key(&b));
+        }
     }
 }
 
@@ -384,10 +409,16 @@ fn a_waiting_game_made_fight_is_withdrawn_when_its_partner_falls_asleep_and_can_
     let first = fight_order(&sim, a, b).expect("the fight is queued");
     sim.tick();
     assert_eq!(fight_order(&sim, a, b), Some(first), "it waits");
+    let logged = sim.activity_log().records().count();
     start_using(&mut sim, b, BED, 90);
     sim.tick();
     assert!(asleep(&sim, b));
     assert_eq!(fight_order(&sim, a, b), None, "fight {first} is withdrawn");
+    assert_eq!(
+        sim.activity_log().records().count(),
+        logged,
+        "a fight that never ran logs nothing, as other called-off fights do"
+    );
     assert!(
         !sim.world()
             .resource::<crate::fights::Fights>()
@@ -473,4 +504,44 @@ fn the_published_fight_rules_keep_a_waiting_fight_beside_a_sleeper() {
     crate::fights::yield_to_critical_needs(sim.world_mut());
     assert!(asleep(&sim, b));
     assert_eq!(fight_order(&sim, a, b), Some(first), "the fight stays");
+}
+
+/// The withdrawal retires the fight's pending cause at once, as the crisis
+/// withdrawal does, so the saved grievance and fight state taken straight
+/// after it, before the end-of-tick grievance upkeep, restores. A stale cause
+/// whose order is gone is refused as an invalid value. The tests' sleeping
+/// fixture is not itself a loadable world (the bed is placed on the
+/// sleeper's own tile), so the check restores that saved state in place, the
+/// step of a full load that refused it.
+#[test]
+fn the_saved_fight_state_restores_straight_after_a_sleep_withdrawal() {
+    let (mut sim, a, b, _) = quarrel();
+    start_using(&mut sim, b, FRIDGE, 200);
+    crate::fights::provoke(sim.world_mut());
+    let first = fight_order(&sim, a, b).expect("the fight is queued");
+    sim.tick();
+    assert_eq!(fight_order(&sim, a, b), Some(first), "it waits");
+    let waiting = crate::social_conflicts::snapshot(sim.world());
+    assert!(waiting.fights.iter().any(|row| row.order_id == Some(first)));
+    assert_eq!(
+        crate::social_conflicts::restore(sim.world_mut(), waiting),
+        Ok(()),
+        "the control: the waiting fight's state restores"
+    );
+    start_using(&mut sim, b, BED, 90);
+    crate::social_episode::maintain(sim.world_mut());
+    assert_eq!(fight_order(&sim, a, b), None, "fight {first} is withdrawn");
+    let withdrawn = crate::social_conflicts::snapshot(sim.world());
+    assert!(
+        withdrawn
+            .fights
+            .iter()
+            .all(|row| row.order_id != Some(first)),
+        "no cause of the withdrawn fight is saved"
+    );
+    assert_eq!(
+        crate::social_conflicts::restore(sim.world_mut(), withdrawn),
+        Ok(()),
+        "the state saved straight after the withdrawal restores"
+    );
 }

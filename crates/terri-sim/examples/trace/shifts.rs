@@ -138,7 +138,10 @@ pub struct Summary {
     /// Fight orders at the front of a queue whose other person sleeps while
     /// the fight has not started, by initiator: the current run, and the
     /// ticks in all and the longest run. The trace gives no orders, so each
-    /// is a fight the game started; issue 338's ruling covers chats only.
+    /// is a fight the game started. Issue 338 withdraws these too: the
+    /// coordinator decided on 2026-10-24, following the owner's ruling for
+    /// chats and pull request 302's withdrawals, that game-made fights are
+    /// not started against a sleeper and give up when the recipient sleeps.
     fight_runs: BTreeMap<Entity, u64>,
     fight_ticks: u64,
     longest_fight: u64,
