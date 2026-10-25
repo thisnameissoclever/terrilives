@@ -459,8 +459,13 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// moved it from 0x9545_3dc6_218e_c371 on purpose: a walk to a bookcase
 /// contact no longer holds it against a reader putting a book back, so Tim
 /// leaves for work on time on Monday; measured on its branch with the log off
-/// and on giving the same worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x77df_2117_a9d4_c4b1;
+/// and on giving the same worlds. Issue 338 moved it from
+/// 0x77df_2117_a9d4_c4b1 on purpose: a housemate no longer chooses a chat
+/// with someone asleep, so at 05:16 on Monday Tim's choice no longer has a
+/// chat with the sleeping Bill among its candidates, the same draw picks
+/// another action, and the household's days differ from then on; measured on
+/// its branch with the log off and on giving the same worlds.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x00a0_3284_1722_e7de;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -468,8 +473,10 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x77df_2117_a9d4_c4b1;
 /// twenty-day check is a manual release test, so this pin catches a change
 /// running in both modes that only shows after the second day. Issue 339
 /// moved it from 0x4e18_0bcf_5070_0111 for the reason given for the two-day
-/// fold, measured on its branch in a release build.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2e8d_746e_12f8_fad2;
+/// fold, measured on its branch in a release build. Issue 338 moved it from
+/// 0x2e8d_746e_12f8_fad2 for the reason given for the two-day fold, measured
+/// on its branch in a release build.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x4080_914e_b342_85e0;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

@@ -41,7 +41,7 @@ The initiator chooses a topic from enjoyed activities. Each person's bubble refl
 
 For other topics, poor Hygiene in the other person or a critical need the chat does not help can block positive friendship gain. Starting a chat when the recipient has an unhelped low or critical need can also cause an immediate interruption penalty. A later interrupted chat earns no completion gain, but does not erase the earlier penalty.
 
-A chat request can wait while the recipient finishes an existing activity, including meal or reading work. The initiator waits outside during private bathroom use. New player instructions can redirect either person. See [orders](home-and-controls/#orders) for priority and cancellation.
+A chat request can wait while the recipient finishes an existing activity, including meal or reading work. The initiator waits outside during private bathroom use. A chat you order also waits for a sleeping recipient to wake up. A housemate never chooses a chat of their own with someone who is asleep, and gives up a chat they were waiting for when the recipient falls asleep; they may ask again after the recipient wakes. New player instructions can redirect either person. See [orders](home-and-controls/#orders) for priority and cancellation.
 
 :::numbers Numbers and limits
 An ordinary Chat starts from {{number:tuning.relationship_gain_per_talk}} opinion points per eligible direction at completion, before compatibility and family. The base unmet-need penalties are {{number:tuning.social_unmet_need_penalty}} for low needs and {{number:tuning.social_critical_need_penalty}} for critical needs, before shyness and family. These are opinion points, not Social need points.

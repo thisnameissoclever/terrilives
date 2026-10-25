@@ -226,8 +226,13 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// both hired levels offer more than one shift. Issue 339 moved the hash
 /// from 17413157888741130017: a returning reader no longer waits out another
 /// reader's walk to the bookcase, so Tim leaves on time on Monday. The draw
-/// counts and every job and shift are unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (18180649999092761866, 7, 2);
+/// counts and every job and shift are unchanged. Issue 338 moved the hash
+/// from 18180649999092761866 on purpose: a housemate no longer chooses a chat
+/// with someone asleep, so at 05:16 on Monday Tim's choice no longer has a
+/// chat with the sleeping Bill among its candidates, the same draw picks
+/// another action, and the household's days differ from then on. The draw
+/// counts and every job and shift are again unchanged.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (17945103458811991316, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),
