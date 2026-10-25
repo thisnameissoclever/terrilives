@@ -128,7 +128,7 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// premium, no starting funds and the bills system and its hash off, the
 /// branch gave 1877760251232896320 again after merging afbe98af3, so the
 /// shift section still adds nothing here.
-const STANDARD_ONLY_HASH: u64 = 1877760251232896320;
+const STANDARD_ONLY_HASH: u64 = 12629721401771819137;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.

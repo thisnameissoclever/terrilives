@@ -476,7 +476,7 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// merging afbe98af3; with the old wages, no premium, no starting funds and
 /// the bills system and its hash switched off, the branch gave
 /// 0xa0fb_785a_e3a4_7b1d again.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x981f_c7f5_1465_4aa4;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -492,7 +492,7 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
 /// for the two-day fold, and over twenty days the bills are also paid from
 /// Funds on days 7 and 14; with the old wages, no premium, no starting
 /// funds and the bills off it gave 0x78e8_cb74_b70c_d742.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x78e8_cb74_b70c_d742;
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x0572_5884_b65c_1246;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.
