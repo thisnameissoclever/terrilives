@@ -360,6 +360,89 @@ fn a_use_on_a_months_first_tick_is_billed_to_the_new_month() {
     );
 }
 
+/// [WB-usage]: in the real schedule the day starts before attendance
+/// counts a trip, so a shift that ends on a month's first tick is a trip of
+/// the new month. Tim's office shift here runs from 15:00 to midnight every
+/// day, so Sunday's ends on Monday's first tick.
+#[test]
+fn a_trip_on_a_months_first_tick_is_billed_to_the_new_month() {
+    let mut pack = pack().clone();
+    for job in pack.careers.iter_mut().filter(|job| job.id == "office_job") {
+        job.shift_start = 900;
+        job.shift_ticks = 540;
+        job.working_days = 0b1111111;
+    }
+    let pack: &'static ContentPack = Box::leak(Box::new(pack));
+    let mut sim = Sim::new_household_with_content(Content(pack), pack.tuning.rng_seed);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetCareerAutonomy {
+            change: false,
+            search: false,
+        });
+    sim.flush_commands();
+    while sim.world().resource::<SimClock>().tick < 7 * DAY {
+        sim.tick();
+    }
+    assert!(
+        sim.world()
+            .resource::<crate::attendance::Attendance>()
+            .outcomes
+            .iter()
+            .any(|outcome| outcome.end_tick == 7 * DAY && outcome.worked_minutes > 0.0),
+        "Sunday's shift ended on Monday's first tick"
+    );
+    assert!(bills(&sim).bills.iter().any(|bill| bill.due_day == 7));
+    assert_eq!(bills(&sim).commutes, 1, "that trip is the new month's");
+}
+
+/// [WB-bills]: a month starts on its first counted day.
+#[test]
+fn a_month_starts_on_its_first_counted_day() {
+    let mut sim = house();
+    for day in 0..=8 {
+        set_tick(&mut sim, day * DAY);
+        tick(sim.world_mut());
+    }
+    assert_eq!(bills(&sim).month_start, 7);
+    assert_eq!(bills(&sim).month_days, 2);
+}
+
+/// [WB-save]: after the tuning shortens months, the open month keeps the
+/// longer length it was counted under, so its days never outnumber it, and
+/// the next month is counted under the new length alone.
+#[test]
+fn a_shorter_month_keeps_the_open_months_length_and_the_next_takes_the_new() {
+    let mut sim = house_with(|pack| {
+        pack.bills.days_per_month = 4;
+        pack.bills.grace_days = 3;
+    });
+    sim.world_mut().insert_resource(Bills {
+        last_counted_day: Some(9),
+        month_days: 3,
+        month_length: 7,
+        month_start: 7,
+        ..Bills::default()
+    });
+    set_tick(&mut sim, 10 * DAY);
+    tick(sim.world_mut());
+    assert_eq!((bills(&sim).month_days, bills(&sim).month_length), (4, 7));
+    set_tick(&mut sim, 11 * DAY);
+    tick(sim.world_mut());
+    assert_eq!((bills(&sim).month_days, bills(&sim).month_length), (5, 7));
+    set_tick(&mut sim, 12 * DAY);
+    tick(sim.world_mut());
+    assert!(bills(&sim).bills.iter().all(|bill| bill.due_day == 12));
+    assert_eq!(
+        (
+            bills(&sim).month_start,
+            bills(&sim).month_days,
+            bills(&sim).month_length
+        ),
+        (12, 1, 4)
+    );
+}
+
 /// [WB-usage]: a use is counted once at physical start, and a save and
 /// load in the middle of the action does not count it again.
 #[test]
