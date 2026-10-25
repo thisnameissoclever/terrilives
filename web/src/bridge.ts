@@ -276,7 +276,148 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
   17: 'That colour is not available.',
+  // Issue 298, [WB-beds]: functional text proposed for the owner's review.
+  21: 'Beds can only go inside a room.',
 };
+
+/** The household status panel's bills numbers ([WB-panel]); amounts are cents, days are day indices. */
+export interface BillsOverview {
+  readonly fundsCents: number;
+  /** Every unpaid bill with its fees, and the next bills as expected. */
+  readonly keepAsideCents: number;
+  readonly shortfallCents: number;
+  /** The day index the next bills are due; the HUD shows it as `Day n + 1`. */
+  readonly nextDueDay: number;
+  readonly overdueCents: number;
+  readonly overdueFeeCents: number;
+  readonly daysPerMonth: number;
+  readonly graceDays: number;
+  readonly lateFeePercent: number;
+  readonly lateFeeCapPercent: number;
+  readonly monthDays: number;
+  /** The month length the current month is counted under. */
+  readonly monthLength: number;
+  /** Every unpaid bill with its fees, overdue or not. */
+  readonly unpaidCents: number;
+  /** The earliest unpaid bill's due day, and the day it is overdue from, or null while nothing is unpaid. */
+  readonly unpaidDueDay: number | null;
+  readonly overdueFromDay: number | null;
+}
+
+/** A bill's kind: 0 rent, 1 electricity, 2 water, 3 transportation. */
+export type BillKind = 0 | 1 | 2 | 3;
+
+/** One of the next bills ([WB-panel]). */
+export interface NextBill {
+  readonly kind: BillKind;
+  readonly soFarCents: number;
+  readonly expectedCents: number;
+}
+
+/**
+ * One line of a next bill: 0 the base charge (`count` days counted), 1
+ * indoor tiles, 2 outdoor tiles (`count` today's tiles, `tileDays` the
+ * tiles summed over the days counted), 3 a use kind, 4 a daily kind (both
+ * by `kindIndex`), 5 trips to work. `amountCents` is the line's share of
+ * the bill so far; a bill's lines add up to it.
+ */
+export interface BillLine {
+  readonly line: 0 | 1 | 2 | 3 | 4 | 5;
+  readonly kindIndex: number;
+  readonly count: number;
+  readonly unitCents: number;
+  readonly amountCents: number;
+  readonly tileDays: number;
+}
+
+/** An issued bill; `paidDay` is null while it is unpaid. */
+export interface IssuedBill {
+  readonly kind: BillKind;
+  readonly dueDay: number;
+  readonly amountCents: number;
+  readonly feeCents: number;
+  readonly paidDay: number | null;
+}
+
+/** The labels of the usage kinds a bill line names. */
+export interface BillKindLabels {
+  readonly uses: readonly string[];
+  readonly daily: readonly string[];
+}
+
+function wholeCents(value: number): boolean {
+  return Number.isSafeInteger(value) && value >= 0;
+}
+
+function billKind(value: number): value is BillKind {
+  return Number.isInteger(value) && value >= 0 && value <= 3;
+}
+
+/** Reads `bills_overview`; null for an empty list or anything malformed. */
+export function parseBillsOverview(values: readonly number[]): BillsOverview | null {
+  if (values.length !== 15) return null;
+  const [fundsCents, keepAsideCents, shortfallCents, nextDueDay, overdueCents, overdueFeeCents,
+    daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength, unpaidCents,
+    unpaidDue, overdueFrom] = values;
+  if (!Number.isSafeInteger(fundsCents)) return null;
+  if (![keepAsideCents, shortfallCents, overdueCents, overdueFeeCents, unpaidCents].every(wholeCents)) return null;
+  if (![nextDueDay, daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength].every(isU32)) {
+    return null;
+  }
+  if (daysPerMonth < 1 || graceDays >= daysPerMonth || lateFeePercent > 100 || lateFeeCapPercent > 100) return null;
+  if (monthLength < 1 || monthDays > monthLength || shortfallCents > keepAsideCents) return null;
+  if (unpaidCents > keepAsideCents || overdueCents + overdueFeeCents > unpaidCents) return null;
+  // Both days are -1 while nothing is unpaid, and day indices otherwise.
+  const day = (value: number) => (value === -1 ? null : isU32(value) ? value : undefined);
+  const unpaidDueDay = day(unpaidDue), overdueFromDay = day(overdueFrom);
+  if (unpaidDueDay === undefined || overdueFromDay === undefined) return null;
+  if ((unpaidDueDay === null) !== (overdueFromDay === null) || (unpaidDueDay === null) !== (unpaidCents === 0)) return null;
+  if (unpaidDueDay !== null && overdueFromDay !== null && overdueFromDay < unpaidDueDay) return null;
+  return { fundsCents, keepAsideCents, shortfallCents, nextDueDay, overdueCents, overdueFeeCents,
+    daysPerMonth, graceDays, lateFeePercent, lateFeeCapPercent, monthDays, monthLength, unpaidCents,
+    unpaidDueDay, overdueFromDay };
+}
+
+/** Reads `bills_next`; empty for anything malformed. */
+export function parseNextBills(values: readonly number[]): NextBill[] {
+  if (values.length % 3 !== 0) return [];
+  const bills: NextBill[] = [];
+  for (let at = 0; at < values.length; at += 3) {
+    const [kind, soFarCents, expectedCents] = values.slice(at, at + 3);
+    if (!billKind(kind) || !wholeCents(soFarCents) || !wholeCents(expectedCents)) return [];
+    if (bills.length > 0 && kind <= bills[bills.length - 1].kind) return [];
+    bills.push({ kind, soFarCents, expectedCents });
+  }
+  return bills;
+}
+
+/** Reads `bills_lines`; empty for anything malformed. */
+export function parseBillLines(values: readonly number[]): BillLine[] {
+  if (values.length % 6 !== 0) return [];
+  const lines: BillLine[] = [];
+  for (let at = 0; at < values.length; at += 6) {
+    const [line, kindIndex, count, unitCents, amountCents, tileDays] = values.slice(at, at + 6);
+    if (!Number.isInteger(line) || line < 0 || line > 5) return [];
+    if (!isU32(kindIndex) || !wholeCents(count) || !wholeCents(unitCents) || !wholeCents(amountCents)
+      || !wholeCents(tileDays)) return [];
+    lines.push({ line: line as BillLine['line'], kindIndex, count, unitCents, amountCents, tileDays });
+  }
+  return lines;
+}
+
+/** Reads `bills_overdue` and `bills_last_month`; empty for anything malformed. */
+export function parseIssuedBills(values: readonly number[]): IssuedBill[] {
+  if (values.length % 5 !== 0) return [];
+  const bills: IssuedBill[] = [];
+  for (let at = 0; at < values.length; at += 5) {
+    const [kind, dueDay, amountCents, feeCents, paidDay] = values.slice(at, at + 5);
+    if (!billKind(kind) || !isU32(dueDay) || !wholeCents(amountCents) || amountCents === 0
+      || !wholeCents(feeCents)) return [];
+    if (paidDay !== -1 && (!isU32(paidDay) || paidDay < dueDay)) return [];
+    bills.push({ kind, dueDay, amountCents, feeCents, paidDay: paidDay === -1 ? null : paidDay });
+  }
+  return bills;
+}
 
 /** One object for sale - [BM-shell]. */
 export interface CatalogueItem {
@@ -349,6 +490,8 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   18: 'Fit the entire window into a solid wall.',
   19: 'A window cannot cross a wall junction.',
   20: 'Select the whole window to change it.',
+  // Issue 298, [WB-beds]: functional text proposed for the owner's review.
+  22: 'That change would leave a bed outside.',
 };
 
 /** An open line or doorway that gives furniture an approach from floor nobody reaches. */
@@ -450,6 +593,8 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   12: 'The room would cut off the front door.',
   13: 'The room would cut off the front-door landing.',
   20: 'Remove the window before changing this room.',
+  // Issue 298, [WB-beds]: functional text proposed for the owner's review.
+  22: 'That change would leave a bed outside.',
 };
 
 export function roomReason(code: number): string | null {
@@ -2161,6 +2306,61 @@ export class SimBridge {
   /** The household's money to the cent (land expansion, issue 254). */
   fundsCents(): number {
     return this.handle.funds_cents();
+  }
+
+  /**
+   * The household's bills at a glance ([WB-panel] in
+   * `docs/specs/2026-10-18-wages-and-bills.md`), or null in a world without
+   * a lot, where there are none, and for anything the boundary should not
+   * have sent.
+   */
+  billsOverview(): BillsOverview | null {
+    return parseBillsOverview(Array.from(this.handle.bills_overview()));
+  }
+
+  /** The next bills in payment order, with what each has come to and is expected to come to. */
+  billsNext(): NextBill[] {
+    return parseNextBills(Array.from(this.handle.bills_next()));
+  }
+
+  /** The lines of next bill `kind`, 0 rent to 3 transportation. */
+  billsLines(kind: number): BillLine[] {
+    if (!isU32(kind) || kind > 3) return [];
+    return parseBillLines(Array.from(this.handle.bills_lines(kind)));
+  }
+
+  /** The overdue bills, oldest first. */
+  billsOverdue(): IssuedBill[] {
+    return parseIssuedBills(Array.from(this.handle.bills_overdue()));
+  }
+
+  /** The bills of the last issued month, paid or not. */
+  billsLastMonth(): IssuedBill[] {
+    return parseIssuedBills(Array.from(this.handle.bills_last_month()));
+  }
+
+  /** The usage kinds' labels: the use kinds, then the daily kinds, as bill lines index them. */
+  billKindLabels(): BillKindLabels {
+    const labels = Array.from(this.handle.bill_kind_labels());
+    const uses = this.handle.bill_use_kind_count();
+    return uses <= labels.length
+      ? { uses: labels.slice(0, uses), daily: labels.slice(uses) }
+      : { uses: [], daily: [] };
+  }
+
+  /**
+   * One shift's pay with the night premium, in cents, while the person holds
+   * a night shift; null for anyone else ([WB-panel], the Career tab).
+   */
+  nightPayCentsOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const cents = this.handle.night_pay_cents_of(entityIndex);
+    return Number.isSafeInteger(cents) && cents >= 0 ? cents : null;
+  }
+
+  /** How many percent more a night shift pays ([WB-wages]). */
+  nightShiftPremiumPercent(): number {
+    return this.handle.night_shift_premium_percent();
   }
 
   /**

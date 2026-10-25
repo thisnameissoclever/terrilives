@@ -121,6 +121,7 @@ pub fn interaction(
          name one twice"
     );
     CompiledInteraction {
+        bill_uses: Vec::new(),
         media: None,
         recipe: None,
         book_reading: false,
@@ -218,6 +219,8 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        bill_daily: Vec::new(),
+        indoor_only: false,
         default_interaction: 0,
         cooking_front: None,
         shelf_capacity: 0,
@@ -374,6 +377,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // from have ONE source rather than two that agree today.
         tuning,
         career_paths: Vec::new(),
+        // The shipped charges and usage kinds, so an object copied from the
+        // shipped pack keeps usage marks that name real kinds. Bills act
+        // only in a world with a lot, which `sim_with` does not build.
+        bills: terri_data::pack().bills.clone(),
         // Empty rather than the shipped people, deliberately, and the
         // opposite call from the lot above. `sim_with` spawns its own
         // agents explicitly, so a fixture pack that also carried Tim,
@@ -592,7 +599,7 @@ pub(crate) fn enclose(sim: &mut Sim) {
 /// Assert complete current admission without changing the live fixture.
 pub(crate) fn assert_current_admission(sim: &Sim) {
     let before = sim.current_v19_view();
-    let restored = crate::save::v20::restore(
+    let restored = crate::save::v22::restore(
         before.0.clone(),
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),
@@ -600,6 +607,29 @@ pub(crate) fn assert_current_admission(sim: &Sim) {
     .expect("fixture must admit its complete current snapshot");
     assert_eq!(restored.current_v19_view(), before);
     assert_eq!(restored.world_hash(), sim.world_hash());
+}
+
+/// `bills` with every charge at zero, so no bill is ever issued ([WB-bills]
+/// in `docs/specs/2026-10-18-wages-and-bills.md`: a zero bill is not issued).
+/// For tests about pay alone, whose Funds must move only with pay.
+pub(crate) fn free_bills(bills: &terri_data::BillsTuning) -> terri_data::BillsTuning {
+    let free = |kind: &terri_data::BillKind| terri_data::BillKind {
+        water_cents: 0,
+        electricity_cents: 0,
+        ..kind.clone()
+    };
+    terri_data::BillsTuning {
+        rent_base_cents: 0,
+        rent_indoor_tile_cents: 0,
+        rent_outdoor_tile_cents: 0,
+        electricity_base_cents: 0,
+        water_base_cents: 0,
+        transportation_base_cents: 0,
+        commute_cents: 0,
+        uses: bills.uses.iter().map(free).collect(),
+        daily: bills.daily.iter().map(free).collect(),
+        ..bills.clone()
+    }
 }
 
 /// The career content and search exactly as they were before issue 296

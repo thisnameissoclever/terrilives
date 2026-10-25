@@ -10,7 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use terri_core::{
     layout::WallLine,
     rooms::{validate_room_name, RoomId, RoomSelection, SavedRooms},
-    SaveSnapshotV21,
+    SaveSnapshotV22,
 };
 
 #[cfg(test)]
@@ -45,11 +45,20 @@ pub enum BuildCommitError {
     InvalidRoom,
     InvalidName,
     Room(RoomError),
-    ReplayMismatch { entry: usize },
+    ReplayMismatch {
+        entry: usize,
+    },
     DraftMismatch,
     Validation(SaveError),
     StaleToken,
     CommandNotAllowed,
+    /// [WB-beds] in `docs/specs/2026-10-18-wages-and-bills.md`: the batch
+    /// would leave a bed outside every room, one that stood inside a room or
+    /// was bought or moved in this session. `object` is the bed's entity
+    /// index in the draft. The draft stays open and unchanged.
+    BedOutside {
+        object: u32,
+    },
 }
 /// Which load rule refused the draft when Build could not open or confirm.
 /// `BuildCommitError::Validation` names only the kind of error; this names the
@@ -142,12 +151,12 @@ pub(crate) struct Replaying;
 struct Prepared {
     review: BuildReview,
     candidate: Box<Sim>,
-    draft: SaveSnapshotV21,
+    draft: SaveSnapshotV22,
     overlaps: Vec<RoomOverlap>,
 }
 #[derive(Resource)]
 pub struct BuildTransaction {
-    baseline: SaveSnapshotV21,
+    baseline: SaveSnapshotV22,
     request_runtime: crate::social_episode::requests::runtime::Runtime,
     journal: Vec<BuildJournalEntry>,
     names: BTreeMap<RoomSelection, String>,
@@ -159,7 +168,7 @@ pub struct BuildTransaction {
 }
 impl BuildTransaction {
     pub(crate) fn new(
-        baseline: SaveSnapshotV21,
+        baseline: SaveSnapshotV22,
         request_runtime: crate::social_episode::requests::runtime::Runtime,
         session: u64,
     ) -> Self {
@@ -194,6 +203,10 @@ impl From<SaveError> for BuildCommitError {
         Self::Validation(e)
     }
 }
+/// Whether a Build session's journal is replaying into its candidate.
+pub(crate) fn replaying(world: &World) -> bool {
+    world.contains_resource::<Replaying>()
+}
 pub(crate) fn deferred(world: &World) -> bool {
     world.contains_resource::<BuildTransaction>()
         || world.contains_resource::<Replaying>()
@@ -224,7 +237,7 @@ pub(crate) fn carry_adoption(old: &World, restored: &mut Sim) -> Result<(), Save
     restored.world.insert_resource(BuildEpoch(epoch));
     Ok(())
 }
-pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV21> {
+pub(crate) fn committed(world: &World) -> Option<&SaveSnapshotV22> {
     world
         .get_resource::<BuildTransaction>()
         .map(|b| &b.baseline)
@@ -253,6 +266,7 @@ impl Sim {
                             .legacy
                             .legacy
                             .legacy
+                            .legacy
                             .rooms
                             .outside_name
                 }
@@ -263,11 +277,12 @@ impl Sim {
                     .legacy
                     .legacy
                     .legacy
+                    .legacy
                     .rooms
                     .record(*id)
                     .is_some_and(|room| room.name != *name),
             })
-            || !same_authored(&build.baseline, &save::v21::capture(self))
+            || !same_authored(&build.baseline, &save::v22::capture(self))
     }
     /// Exact cache identity across edits, names, sessions and successful loads.
     pub fn rooms_revision(&self) -> u64 {
@@ -313,8 +328,8 @@ impl Sim {
                 return Err(error);
             }
         }
-        let baseline = save::v21::capture(self);
-        if let Err(error) = save::v21::restore(
+        let baseline = save::v22::capture(self);
+        if let Err(error) = save::v22::restore(
             baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -350,6 +365,7 @@ impl Sim {
                 .legacy
                 .legacy
                 .legacy
+                .legacy
                 .rooms
                 .record(id)
                 .is_none_or(|r| r.anchor.is_none())
@@ -376,7 +392,7 @@ impl Sim {
             map,
             self.world.resource::<SavedRooms>(),
             map,
-            &b.baseline.legacy.legacy.legacy.legacy.legacy.rooms,
+            &b.baseline.legacy.legacy.legacy.legacy.legacy.legacy.rooms,
         );
         for row in &mut rows {
             if let Some(name) = b.names.get(&row.selection) {
@@ -402,8 +418,8 @@ impl Sim {
         self.prepare_build_commit_projected_validated(
             choices,
             |candidate| {
-                save::v21::restore(
-                    save::v21::capture(candidate),
+                save::v22::restore(
+                    save::v22::capture(candidate),
                     candidate.world.resource::<Content>().0,
                     save::Carried::for_load(&candidate.world),
                 )
@@ -454,7 +470,7 @@ impl Sim {
             revision: b.revision,
             preparation,
         };
-        let mut candidate = save::v21::restore(
+        let mut candidate = save::v22::restore(
             b.baseline.clone(),
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -466,6 +482,9 @@ impl Sim {
             .resource::<terri_core::layout::SavedLayout>()
             .clone();
         let origin = crate::lot_frame::origin(&candidate.world);
+        // [WB-beds]: the beds already outside every room before the session,
+        // as an older save may hold; one left where it stood confirms.
+        let outdoor_beds = beds_outside(&candidate.world, Some(&context.map.topology));
         candidate.world.insert_resource(Replaying);
         for (index, entry) in b.journal.iter().enumerate() {
             if commands::apply(&mut candidate.world, &entry.command).as_ref()
@@ -478,13 +497,13 @@ impl Sim {
             }
         }
         candidate.world.remove_resource::<Replaying>();
-        let draft = save::v21::capture(self);
-        if save::v21::capture(&candidate) != draft {
+        let draft = save::v22::capture(self);
+        if save::v22::capture(&candidate) != draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         let no_net_change = same_authored(&b.baseline, &draft);
         if no_net_change {
-            candidate = save::v21::restore(
+            candidate = save::v22::restore(
                 b.baseline.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -497,8 +516,41 @@ impl Sim {
             now.1 as i32 - origin.1 as i32,
         );
         let topology = RoomTopology::from_world(&candidate.world)?;
+        // A bed left where it stood keeps its entity and footprint, and its
+        // place moves only with land bought west or north.
+        let stood_outside = |(entity, definition, (x, y), footprint): &(
+            Entity,
+            u32,
+            (u32, u32),
+            terri_core::Footprint,
+        )| {
+            outdoor_beds.iter().any(|(e, d, (bx, by), f)| {
+                e == entity
+                    && d == definition
+                    && f == footprint
+                    && i64::from(*bx) + i64::from(offset.0) == i64::from(*x)
+                    && i64::from(*by) + i64::from(offset.1) == i64::from(*y)
+            })
+        };
+        if let Some(bed) = beds_outside(&candidate.world, Some(&topology))
+            .into_iter()
+            .find(|bed| !stood_outside(bed))
+        {
+            let object =
+                draft_entity(&self.world, &candidate.world, bed.0).unwrap_or(bed.0.index_u32());
+            return Err(BuildCommitError::BedOutside { object });
+        }
         let proposal = match_rooms(&context.map, &topology, offset);
-        let mut saved = b.baseline.legacy.legacy.legacy.legacy.legacy.rooms.clone();
+        let mut saved = b
+            .baseline
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .legacy
+            .rooms
+            .clone();
         for (selection, name) in &b.names {
             match selection {
                 RoomSelection::Outside => saved.outside_name = name.clone(),
@@ -523,7 +575,7 @@ impl Sim {
             &resolved.map,
             &resolved.saved,
             &context.map,
-            &b.baseline.legacy.legacy.legacy.legacy.legacy.rooms,
+            &b.baseline.legacy.legacy.legacy.legacy.legacy.legacy.rooms,
         );
         let retired_names = resolved
             .retired_ids
@@ -577,7 +629,7 @@ impl Sim {
                     && token.revision == b.revision
             })
             .ok_or(BuildCommitError::StaleToken)?;
-        if save::v21::capture(self) != prepared.draft {
+        if save::v22::capture(self) != prepared.draft {
             return Err(BuildCommitError::DraftMismatch);
         }
         Ok(prepared)
@@ -656,7 +708,7 @@ impl Sim {
         // shell may have drained records since; installing that copy would
         // hand them over a second time.
         ordinary::runtime::carry_activity_log(&self.world, &mut prepared.candidate.world);
-        let baseline = save::v21::capture(&prepared.candidate);
+        let baseline = save::v22::capture(&prepared.candidate);
         let request_runtime =
             crate::social_episode::requests::runtime::capture(&prepared.candidate.world);
         match ordinary::runtime::install(self, *prepared.candidate) {
@@ -700,7 +752,7 @@ impl Sim {
             .resource::<BuildTransaction>()
             .request_runtime
             .clone();
-        let mut restored = save::v21::restore(
+        let mut restored = save::v22::restore(
             baseline,
             self.world.resource::<Content>().0,
             save::Carried::for_load(&self.world),
@@ -723,7 +775,7 @@ impl Sim {
     }
     pub(crate) fn committed_projection(&self) -> Option<Sim> {
         committed(&self.world).map(|snapshot| {
-            save::v21::restore(
+            save::v22::restore(
                 snapshot.clone(),
                 self.world.resource::<Content>().0,
                 save::Carried::for_load(&self.world),
@@ -732,6 +784,39 @@ impl Sim {
         })
     }
 }
+/// The beds standing outside every room of `topology`, each with what it
+/// is and where it stands, so the same bed left where it stood compares
+/// equal across worlds ([WB-beds]).
+fn beds_outside(
+    world: &World,
+    topology: Option<&RoomTopology>,
+) -> Vec<(Entity, u32, (u32, u32), terri_core::Footprint)> {
+    let Some(topology) = topology else {
+        return Vec::new();
+    };
+    crate::placement::indoor_only_objects(world)
+        .into_iter()
+        .filter(|(_, origin, footprint)| !topology.footprint_indoors(*origin, *footprint))
+        .filter_map(|(entity, origin, footprint)| {
+            let definition = world.get::<terri_core::SmartObject>(entity)?.0 .0;
+            Some((entity, definition, origin, footprint))
+        })
+        .collect()
+}
+
+/// The draft's entity index for the candidate's `entity`: the object of the
+/// same definition standing at the same place.
+fn draft_entity(draft: &World, candidate: &World, entity: Entity) -> Option<u32> {
+    let object = candidate.get::<terri_core::SmartObject>(entity)?.0;
+    let position = *candidate.get::<terri_core::Position>(entity)?;
+    let mut query =
+        draft.try_query::<(Entity, &terri_core::SmartObject, &terri_core::Position)>()?;
+    query
+        .iter(draft)
+        .find(|(_, other, at)| other.0 == object && **at == position)
+        .map(|(found, ..)| found.index_u32())
+}
+
 pub(crate) fn final_maintenance(world: &mut World) {
     crate::reading::reconcile(world);
     crate::targeted_cleanup::prune(world);
@@ -763,9 +848,10 @@ fn unchanged_duties(world: &World) -> DutyChangeReport {
 }
 /// Ignore wire representation and transient activity planning when architecture
 /// and every authored purchase, identity, placement and material are unchanged.
-fn same_authored(a: &SaveSnapshotV21, b: &SaveSnapshotV21) -> bool {
-    // Held shifts are not authored; compare the schema-twenty envelope.
-    let (a, b) = (&a.legacy, &b.legacy);
+fn same_authored(a: &SaveSnapshotV22, b: &SaveSnapshotV22) -> bool {
+    // Bills and held shifts are not authored; compare the schema-twenty
+    // envelope.
+    let (a, b) = (&a.legacy.legacy, &b.legacy.legacy);
     let a = &a.legacy.legacy.legacy.legacy;
     let b = &b.legacy.legacy.legacy.legacy;
     let av = &a.legacy.legacy.legacy.legacy.legacy.legacy.legacy.legacy;

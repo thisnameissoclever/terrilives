@@ -264,8 +264,12 @@ pub fn follow_path(
                     },
                 ));
                 let contact = *target;
+                let (chain_index, step_index) = (chain_state.chain, chain_state.step);
                 commands.queue(move |world: &mut World| {
-                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                    crate::player_actions::record_physical_work_start(world, entity, contact);
+                    // The step's physical work starts here, so its usage is
+                    // charged here, once ([WB-usage]).
+                    crate::bills::count_step(world, chain_index, step_index);
                 });
             } else if let Ok(placed) = objects.get(target.object) {
                 // Both indices are in range by construction: `select_action`
@@ -343,8 +347,12 @@ pub fn follow_path(
                     log.begin_activity(id.0);
                 }
                 let contact = *target;
+                let (object, interaction) = (placed.0, target.interaction);
                 commands.queue(move |world: &mut World| {
-                    crate::player_actions::record_physical_work_start(world, entity, contact)
+                    crate::player_actions::record_physical_work_start(world, entity, contact);
+                    // The action's physical work starts here, so its usage
+                    // is charged here, once ([WB-usage]).
+                    crate::bills::count_action(world, object, interaction);
                 });
                 if act
                     .tags

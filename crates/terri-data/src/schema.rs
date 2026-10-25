@@ -475,6 +475,62 @@ pub struct TuningFile {
     pub chore_fight_response_mood: f32,
     pub chore_repair_base: f32,
     pub chore_repair_cleanliness: f32,
+    /// How much more a shift of the night kind pays, in percent from 0 to
+    /// 100 - [WB-wages] in `docs/specs/2026-10-18-wages-and-bills.md`.
+    pub night_shift_premium_percent: u32,
+    /// The household's monthly bills - [WB-tuning].
+    pub bills: BillsTuningDef,
+}
+
+/// The `[bills]` section of `tuning.toml` - [WB-tuning] in
+/// `docs/specs/2026-10-18-wages-and-bills.md`. Every key is required and an
+/// unknown key is refused, so a misspelled charge cannot silently cost
+/// nothing. Cent amounts are whole cents; a base charge is a whole month's
+/// amount.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BillsTuningDef {
+    /// Days in a billing month, from 1 to 365 ([WB-calendar]).
+    pub days_per_month: u32,
+    /// Days a bill may stay unpaid without a fee, counting the due day;
+    /// below `days_per_month`.
+    pub grace_days: u32,
+    /// The daily late fee, in percent of the bill, from 0 to 100.
+    pub late_fee_percent: u32,
+    /// The most late fees a bill gathers, in percent of the bill, from 0 to
+    /// 100.
+    pub late_fee_cap_percent: u32,
+    /// How much an overdue bill lowers every housemate's mood, finite and
+    /// at least 0.
+    pub overdue_mood: f32,
+    pub rent_base_cents: i64,
+    pub rent_indoor_tile_cents: i64,
+    pub rent_outdoor_tile_cents: i64,
+    pub electricity_base_cents: i64,
+    pub water_base_cents: i64,
+    pub transportation_base_cents: i64,
+    pub commute_cents: i64,
+    /// The money a new household starts with, enough for its first month's
+    /// bills (the owner's ruling of 2026-10-24, [WB-rulings]).
+    pub starting_funds_cents: i64,
+    /// Usage kinds charged each time an action or chain step carrying them
+    /// starts its physical work, by id ([WB-usage]).
+    pub uses: BTreeMap<String, BillKindDef>,
+    /// Usage kinds charged once a day for each placed object carrying them,
+    /// by id ([WB-usage]).
+    pub daily: BTreeMap<String, BillKindDef>,
+}
+
+/// One usage kind's row in `[bills.uses]` or `[bills.daily]`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BillKindDef {
+    /// What the Bills panel calls the kind, 1 to 32 characters.
+    pub label: String,
+    /// Cents added to the water bill per use or per object-day.
+    pub water_cents: i64,
+    /// Cents added to the electricity bill per use or per object-day.
+    pub electricity_cents: i64,
 }
 
 /// The seasons as `season_yard_looks` names them in `tuning.toml`, in the
@@ -875,6 +931,15 @@ pub struct ObjectDef {
     /// Comfort per occupied minute for seats without a standalone sitting action.
     #[serde(default)]
     pub seat_comfort_per_tick: f32,
+    /// Daily usage kinds by id from `[bills.daily]` in `tuning.toml`: each
+    /// placed object adds one of each to its month's bills every day
+    /// ([WB-usage] in `docs/specs/2026-10-18-wages-and-bills.md`).
+    #[serde(default)]
+    pub bill_daily: Vec<String>,
+    /// Whether every tile of the object must be inside an enclosed room
+    /// when it is bought or moved ([WB-beds]).
+    #[serde(default)]
+    pub indoor_only: bool,
 }
 
 /// A named presentation point in object-local lot coordinates.
@@ -991,6 +1056,10 @@ pub struct InteractionDef {
     pub activity: Option<String>,
     #[serde(default)]
     pub completion_sound: Option<String>,
+    /// Use kinds by id from `[bills.uses]` in `tuning.toml`, each charged
+    /// once when this action starts its physical work ([WB-usage]).
+    #[serde(default)]
+    pub bill_uses: Vec<String>,
 }
 
 /// Authored action-presentation metadata before validation.
@@ -1407,6 +1476,10 @@ pub struct ChainStepDef {
     /// Activity shown while this exact station step is actively running.
     #[serde(default)]
     pub activity: Option<String>,
+    /// Use kinds by id from `[bills.uses]` in `tuning.toml`, each charged
+    /// once when this step starts its physical work ([WB-usage]).
+    #[serde(default)]
+    pub bill_uses: Vec<String>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it
@@ -1681,7 +1754,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 153] = [
+    const TUNING_LINES: [(&str, &str); 155] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1778,6 +1851,8 @@ mod tests {
         ("shift_sleep_offset_late", "115"),
         ("shift_sleep_offset_night", "655"),
         ("career_search_temperature", "0.3125"),
+        ("night_shift_premium_percent", "17"),
+        ("bills", BILLS),
         ("days_per_season", "9"),
         ("first_season", "3"),
         ("season_yard_looks", SEASON_YARD_LOOKS),
@@ -1842,6 +1917,12 @@ mod tests {
         // for the same reason the numbers are pairwise distinct.
         ("sleep_tag", "\"snooze\""),
     ];
+
+    /// The `[bills]` section as one inline table, every number distinct so a
+    /// field read off the wrong key is visible ([WB-tuning]). The kinds are
+    /// declared out of id order, so a reader that kept file order rather
+    /// than sorting would be visible to the compiler's tests.
+    const BILLS: &str = "{ days_per_month = 9, grace_days = 4, late_fee_percent = 6,         late_fee_cap_percent = 45, overdue_mood = 7.5, rent_base_cents = 6100,         rent_indoor_tile_cents = 111, rent_outdoor_tile_cents = 21,         electricity_base_cents = 3100, water_base_cents = 2100,         transportation_base_cents = 1100, commute_cents = 301, starting_funds_cents = 40100,         uses = { tub = { label = \"Tubs\", water_cents = 91, electricity_cents = 26 },         drip = { label = \"Drips\", water_cents = 2, electricity_cents = 0 } },         daily = { glow = { label = \"Glows\", water_cents = 0, electricity_cents = 6 } } }";
 
     /// The four seasonal looks as one inline table, each value distinct and
     /// exact in binary32 like the knobs above. Winter is declared first and
@@ -1939,6 +2020,41 @@ mod tests {
         assert_eq!(parsed.shift_sleep_offset_late, 115);
         assert_eq!(parsed.shift_sleep_offset_night, 655);
         assert_eq!(parsed.career_search_temperature, 0.3125);
+        assert_eq!(parsed.night_shift_premium_percent, 17);
+        let bills = &parsed.bills;
+        assert_eq!(
+            (
+                bills.days_per_month,
+                bills.grace_days,
+                bills.late_fee_percent,
+                bills.late_fee_cap_percent,
+                bills.overdue_mood,
+            ),
+            (9, 4, 6, 45, 7.5)
+        );
+        assert_eq!(
+            [
+                bills.rent_base_cents,
+                bills.rent_indoor_tile_cents,
+                bills.rent_outdoor_tile_cents,
+                bills.electricity_base_cents,
+                bills.water_base_cents,
+                bills.transportation_base_cents,
+                bills.commute_cents,
+                bills.starting_funds_cents,
+            ],
+            [6100, 111, 21, 3100, 2100, 1100, 301, 40100]
+        );
+        assert_eq!(bills.uses["tub"].label, "Tubs");
+        assert_eq!(
+            (
+                bills.uses["tub"].water_cents,
+                bills.uses["tub"].electricity_cents
+            ),
+            (91, 26)
+        );
+        assert_eq!(bills.uses["drip"].water_cents, 2);
+        assert_eq!(bills.daily["glow"].electricity_cents, 6);
         assert_eq!(parsed.days_per_season, 9);
         assert_eq!(parsed.first_season, 3);
         assert_eq!(
@@ -2049,6 +2165,78 @@ mod tests {
             assert!(
                 err.to_string().contains(omitted),
                 "the error must name the missing knob '{omitted}'; got {err}"
+            );
+        }
+    }
+
+    /// [WB-tuning]: every key of `[bills]` and of a kind row is required, and
+    /// an unknown key in either is refused by name, so a misspelled charge
+    /// cannot quietly cost nothing.
+    #[test]
+    fn every_bills_key_is_required_and_unknown_keys_are_refused() {
+        let with_bills = |bills: &str| {
+            tuning_toml_without("bills").replacen(
+                &format!("\n[{DECAY_KEY}]"),
+                &format!("bills = {bills}\n\n[{DECAY_KEY}]"),
+                1,
+            )
+        };
+        assert!(
+            toml::from_str::<TuningFile>(&with_bills(BILLS)).is_ok(),
+            "the fixture's bills must parse, or the refusals below prove nothing"
+        );
+        for key in [
+            "days_per_month",
+            "grace_days",
+            "late_fee_percent",
+            "late_fee_cap_percent",
+            "overdue_mood",
+            "rent_base_cents",
+            "rent_indoor_tile_cents",
+            "rent_outdoor_tile_cents",
+            "electricity_base_cents",
+            "water_base_cents",
+            "transportation_base_cents",
+            "commute_cents",
+            "starting_funds_cents",
+            "uses",
+            "daily",
+        ] {
+            let table: toml::Table = toml::from_str(&format!("b = {BILLS}")).unwrap();
+            let mut bills = table["b"].as_table().unwrap().clone();
+            assert!(bills.remove(key).is_some(), "{key} is in the fixture");
+            let err =
+                toml::from_str::<TuningFile>(&with_bills(&toml::Value::Table(bills).to_string()))
+                    .expect_err(key)
+                    .to_string();
+            assert!(err.contains(key), "the error must name '{key}'; got {err}");
+        }
+        for (bad, named) in [
+            (
+                BILLS.replacen(
+                    "commute_cents = 301",
+                    "commute_cents = 301, commuter_cents = 4",
+                    1,
+                ),
+                "commuter_cents",
+            ),
+            (
+                BILLS.replacen("water_cents = 2,", "water_cents = 2, gas_cents = 1,", 1),
+                "gas_cents",
+            ),
+            (BILLS.replacen("label = \"Drips\", ", "", 1), "label"),
+            (
+                BILLS.replacen(", electricity_cents = 6 }", " }", 1),
+                "electricity_cents",
+            ),
+        ] {
+            assert_ne!(bad, BILLS, "the edit for '{named}' must apply");
+            let err = toml::from_str::<TuningFile>(&with_bills(&bad))
+                .expect_err(named)
+                .to_string();
+            assert!(
+                err.contains(named),
+                "the error must name '{named}'; got {err}"
             );
         }
     }

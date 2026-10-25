@@ -706,6 +706,12 @@ shift_sleep_offset_night = 660
 # 0 restores the best-fit search: the best fit wins and nothing is drawn.
 career_search_temperature = 0.25
 
+# WAGES - issue 298 (docs/specs/2026-10-18-wages-and-bills.md, [WB-wages]).
+# A shift of the night kind pays this many percent more, from 0 to 100,
+# applied to each night shift's pay when it starts. The person's pay and the
+# level's range stay without it. Packs published before it reconstruct 15.
+night_shift_premium_percent = 15
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
@@ -1036,3 +1042,68 @@ earliest_hour = 7.0
 latest_hour = 17.0
 leaf_ground_hours = 2.0
 fall_minutes = 15.0
+
+# ============================================================================
+# BILLS - issue 298 (docs/specs/2026-10-18-wages-and-bills.md). Every amount
+# is whole cents. Base charges are a whole month's amount, counted one day at
+# a time, so a month the household lived through completely pays them in
+# full. Packs published before bills, and the frozen pre-books sources,
+# reconstruct these charges with no usage kinds.
+[bills]
+# Days in a billing month, from 1 to 365 ([WB-calendar]). Seven puts the
+# first day of every month on a Monday.
+days_per_month = 7
+# Days a bill may stay unpaid without a fee, counting the due day; below
+# days_per_month ([WB-paying]).
+grace_days = 5
+# The late fee added each day after the grace, in percent of the bill
+# ([WB-paying]).
+late_fee_percent = 5
+# Late fees stop at this percent of the bill ([WB-paying]).
+late_fee_cap_percent = 50
+# How much an overdue bill lowers every housemate's mood, the Behind on bills
+# moodlet ([WB-paying]).
+overdue_mood = 8.0
+# Rent's base charge a month ([WB-rent]).
+rent_base_cents = 6000
+# Rent for each tile inside an enclosed room, a month ([WB-rent]).
+rent_indoor_tile_cents = 90
+# Rent for each floor tile outside every room, the street left out, a month
+# ([WB-rent]).
+rent_outdoor_tile_cents = 20
+# The electricity bill's base charge a month ([WB-bills]).
+electricity_base_cents = 3000
+# The water bill's base charge a month ([WB-bills]).
+water_base_cents = 2000
+# The transportation bill's base charge a month ([WB-bills]).
+transportation_base_cents = 1000
+# The fare for each trip to work, counted when a shift with time worked is
+# paid ([WB-bills]).
+commute_cents = 300
+# The money a new household starts with: at least its first month's bills
+# before any usage, so the Bills panel shows a shortfall only when money
+# really runs short (the owner's ruling of 2026-10-24, [WB-rulings]).
+# Older saves keep their own Funds.
+starting_funds_cents = 40000
+
+# Use kinds ([WB-usage]): charged once each time an action or chain step
+# carrying the kind in its bill_uses starts its physical work. The label is
+# what the Bills panel shows, 1 to 32 characters.
+[bills.uses]
+shower = { label = "Showers", water_cents = 60, electricity_cents = 15 }
+bath = { label = "Baths", water_cents = 90, electricity_cents = 25 }
+hand_wash = { label = "Hand washing", water_cents = 5, electricity_cents = 0 }
+toilet = { label = "Toilet flushes", water_cents = 10, electricity_cents = 0 }
+dishes = { label = "Dish washing", water_cents = 20, electricity_cents = 0 }
+television = { label = "Television", water_cents = 0, electricity_cents = 20 }
+radio = { label = "Radio", water_cents = 0, electricity_cents = 3 }
+stove = { label = "Stove cooking", water_cents = 0, electricity_cents = 40 }
+
+# Daily kinds ([WB-usage]): charged once a day for each placed object carrying
+# the kind in its bill_daily. Lamps have no switch yet, so a placed lamp
+# counts as lit all day.
+[bills.daily]
+fridge = { label = "Fridges", water_cents = 0, electricity_cents = 20 }
+lamp = { label = "Lamps", water_cents = 0, electricity_cents = 5 }
+aquarium = { label = "Aquariums", water_cents = 0, electricity_cents = 10 }
+pool = { label = "Pools", water_cents = 50, electricity_cents = 60 }

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { textWriteProbe } from './helpers/text-write-probe.js';
 
@@ -414,5 +415,87 @@ describe('the held shift on the Career row (issue 296, [WS-shell] item 1)', () =
       );
     }
     expect(formatCareerSchedule('Office clerk', { ...office, shiftTicks: -1, kind: 0 }, 1440)).toBe('Office clerk');
+  });
+});
+
+describe('the Bills row (issue 298, [WB-panel])', () => {
+  const overview = {
+    fundsCents: 100_000, keepAsideCents: 42_455, shortfallCents: 0, nextDueDay: 7, overdueCents: 0,
+    overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3, monthLength: 7, unpaidCents: 0, unpaidDueDay: null, overdueFromDay: null,
+  };
+  function button() {
+    const attributes = new Map<string, string>();
+    return {
+      textContent: '' as string | null, hidden: false, disabled: false, attributes,
+      setAttribute(name: string, value: string) { attributes.set(name, value); },
+      removeAttribute(name: string) { attributes.delete(name); },
+    };
+  }
+  function billsRoots() {
+    const bills = button();
+    const billsRow = target();
+    return { view: { ...roots(), billsRow, bills }, bills, billsRow };
+  }
+
+  it('the Bills row reads the amount due rounded up to the dollar and the due day', () => {
+    const { view, bills, billsRow } = billsRoots();
+    new GameHud(view, 100).update(0, source({ billsOverview: () => overview }));
+    expect(billsRow.hidden).toBe(false);
+    expect(bills.textContent).toBe('$425 due Day 8');
+    expect(bills.attributes.has('data-state')).toBe(false);
+  });
+
+  it('the Bills row reads the overdue total in the danger state', () => {
+    const { view, bills } = billsRoots();
+    const hud = new GameHud(view, 100);
+    hud.update(0, source({ billsOverview: () => ({ ...overview, overdueCents: 29_360, overdueFeeCents: 1_468 }) }));
+    expect(bills.textContent).toBe('$309 overdue');
+    expect(bills.attributes.get('data-state')).toBe('overdue');
+    hud.update(200, source({ billsOverview: () => overview }));
+    expect(bills.attributes.has('data-state')).toBe(false);
+  });
+
+  it("the Bills row button's accessible name adds open bills", () => {
+    const { view, bills } = billsRoots();
+    new GameHud(view, 100).update(0, source({ billsOverview: () => overview }));
+    expect(bills.attributes.get('aria-label')).toBe('$425 due Day 8, open bills');
+  });
+
+  it('the Bills row reads the earliest unpaid bill and its due day while one is unpaid', () => {
+    const { view, bills } = billsRoots();
+    new GameHud(view, 100).update(0, source({ billsOverview: () => ({ ...overview, nextDueDay: 14,
+      keepAsideCents: 77_800, unpaidCents: 38_873, unpaidDueDay: 7, overdueFromDay: 12 }) }));
+    expect(bills.textContent).toBe('$389 due Day 8');
+  });
+
+  it('the Bills row is disabled in Build mode', () => {
+    const { view, bills } = billsRoots();
+    const hud = new GameHud(view, 100);
+    hud.update(0, source({ billsOverview: () => overview }));
+    expect(bills.disabled).toBe(false);
+    hud.setBuilding(true);
+    expect(bills.disabled).toBe(true);
+    hud.update(200, source({ billsOverview: () => overview }));
+    expect(bills.disabled).toBe(true);
+    hud.setBuilding(false);
+    expect(bills.disabled).toBe(false);
+  });
+
+  it('hides the Bills row in a world without bills', () => {
+    const { view, billsRow } = billsRoots();
+    new GameHud(view, 100).update(0, source({ billsOverview: () => null }));
+    expect(billsRow.hidden).toBe(true);
+  });
+
+  it('keeps a hidden Bills row hidden although summary rows are flex boxes', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    expect(html).toMatch(/#bills-row\[hidden\]\s*\{\s*display:\s*none;\s*\}/);
+  });
+
+  it('puts the Bills row below Funds in the household status panel', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    const summary = html.slice(html.indexOf('<section id="household-summary"'), html.indexOf('<div id="hud-status">'));
+    expect(summary.indexOf('id="funds-value"')).toBeLessThan(summary.indexOf('id="bills-row"'));
+    expect(summary).toMatch(/<button id="bills-value"[^>]*type="button"[^>]*aria-haspopup="dialog"/);
   });
 });

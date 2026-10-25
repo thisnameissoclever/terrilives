@@ -1055,10 +1055,13 @@ describe('the Buy tool on real wasm', () => {
     // need 0, and the fridge, the stove and the table all serve it.
     expect(catalogue.filter((item) => (item.needs & 1) !== 0).length).toBeGreaterThanOrEqual(3);
     expect(catalogue.some((item) => item.needs === 0)).toBe(true);
-    expect(bridge.funds()).toBe(0);
+    // A new household starts with $400 ([WB-rulings] ruling 18), so the
+    // refusal is shown for something dearer than that.
+    expect(bridge.funds()).toBe(400);
     const buy = new BuyTool(bridge, 16, 12, { changed: () => undefined });
     buy.enter();
-    const first = buy.items[0];
+    const first = buy.items.find((item) => item.price > bridge.funds())!;
+    expect(first).toBeDefined();
     buy.choose(first.definition);
     expect(buy.status).toBe('The household cannot afford that.');
     expect(bridge.buyObject(first.definition, 3, 3, first.baseFacing)).toBe(true);

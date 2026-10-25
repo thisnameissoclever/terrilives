@@ -138,6 +138,7 @@ fn bare_actor_recipe_keeps_its_exact_owner_through_current_save() {
         advertises: vec![(NeedId::Fun.index() as u8, 20.0)],
         satisfaction: 0.0,
         steps: vec![terri_data::CompiledChainStep {
+            bill_uses: Vec::new(),
             role: 0,
             label: "Work".into(),
             duration_ticks: 30,

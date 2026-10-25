@@ -1221,8 +1221,17 @@ fn the_five_new_paths_match_the_spec_tables() {
                 )
             })
             .collect();
+        // The table keeps issue 296's pay; issue 298 raised every wage by
+        // half, rounded half up ([WB-wages]).
+        let raised = |pay: u32| (pay * 3).div_ceil(2);
+        let expected: Vec<Level> = levels
+            .iter()
+            .map(|&(id, label, pay, pay_max, weeks)| {
+                (id, label, raised(pay), raised(pay_max), weeks)
+            })
+            .collect();
         // The top level's advance_weeks is never read; the table still names it.
-        assert_eq!(actual, levels.to_vec(), "{id}");
+        assert_eq!(actual, expected, "{id}");
     }
 }
 
@@ -1562,6 +1571,37 @@ fn a_change_from_nights_starts_after_the_last_night_ends() {
         starts_through(&mut sim, id, 2 * 1440 + 421),
         vec![1380, 2 * 1440 + 420],
         "Monday's night shift, then the day shift on Wednesday"
+    );
+}
+
+/// [WB-wages]: the Career tab's night pay line is the held pay with the
+/// night premium for a night shift, and absent for a day shift.
+#[test]
+fn night_pay_is_the_held_pay_with_the_premium_and_absent_by_day() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+    });
+    let (_, entity) = worker(&mut sim);
+    assert_eq!(
+        night_pay_cents(sim.world(), entity),
+        None,
+        "the office day shift"
+    );
+    let night_watch = path_index(pack(&sim), "night_watch");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: night_watch,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        night_pay_cents(sim.world(), entity),
+        Some(12_075),
+        "$105 and 15 percent"
     );
 }
 

@@ -3,6 +3,8 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 import type { SatisfactionSurface } from './satisfaction-meter.js';
 import { activityStatusLabel, type ActivityStatus } from '../activity-status.js';
 import { weatherAt, type WeatherTuning } from '../render/weather.js';
+import type { BillsOverview } from '../bridge.js';
+import { formatBillsRow } from './bills-text.js';
 
 /**
  * A job's working days and shift hours as the simulation reports them:
@@ -49,11 +51,20 @@ export interface GameHudSource {
   weekdayIndex(): number;
   seasonIndex(): number;
   weatherTuning(): WeatherTuning | null;
+  /** The bills at a glance, or null in a world without bills ([WB-panel]). */
+  billsOverview?(): BillsOverview | null;
 }
 
 export interface TextTarget {
   textContent: string | null;
   hidden?: boolean;
+}
+
+/** The Bills row's button: its text, its disabled state, its accessible name and its overdue mark. */
+export interface BillsButtonTarget extends TextTarget {
+  disabled: boolean;
+  setAttribute(name: string, value: string): void;
+  removeAttribute(name: string): void;
 }
 
 export interface GameHudRoots {
@@ -65,6 +76,9 @@ export interface GameHudRoots {
   readonly activity: TextTarget;
   readonly ordersRow: TextTarget;
   readonly orders: TextTarget;
+  /** The household status panel's Bills row and its button ([WB-panel]). */
+  readonly billsRow?: TextTarget;
+  readonly bills?: BillsButtonTarget;
 }
 
 const ACTIVITY_NAMES = [
@@ -249,6 +263,9 @@ export function formatSatisfaction(value: number | null): string {
  */
 export class GameHud {
   private lastReadMs: number | null = null;
+  private billsText: string | null = null;
+  private billsOverdue: boolean | null = null;
+  private building = false;
 
   constructor(
     private readonly roots: GameHudRoots,
@@ -258,6 +275,12 @@ export class GameHud {
     if (!Number.isFinite(refreshMs) || refreshMs <= 0) {
       throw new Error('HUD refresh interval must be positive');
     }
+  }
+
+  /** Build mode disables the Bills row at once, as it disables Chores ([WB-panel]). */
+  setBuilding(active: boolean): void {
+    this.building = active;
+    if (this.roots.bills !== undefined) this.roots.bills.disabled = active;
   }
 
   update(nowMs: number, source: GameHudSource): boolean {
@@ -281,6 +304,7 @@ export class GameHud {
       condition,
     ));
     setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
+    this.updateBills(source);
 
     const selected = source.selectedIndex();
     const satisfaction =
@@ -309,5 +333,30 @@ export class GameHud {
     this.roots.ordersRow.hidden = queued === 0;
     setTextIfChanged(this.roots.orders, String(queued));
     return true;
+  }
+
+  /**
+   * The Bills row: `$425 due Day 8`, or the overdue total marked as danger,
+   * hidden in a world without bills and disabled in Build mode. The button's
+   * accessible name repeats its text and adds `, open bills`.
+   */
+  private updateBills(source: GameHudSource): void {
+    const { billsRow, bills } = this.roots;
+    if (billsRow === undefined || bills === undefined) return;
+    const overview = source.billsOverview?.() ?? null;
+    billsRow.hidden = overview === null;
+    if (overview === null) return;
+    const text = formatBillsRow(overview);
+    if (text !== this.billsText) {
+      this.billsText = text;
+      bills.textContent = text;
+      bills.setAttribute('aria-label', `${text}, open bills`);
+    }
+    const overdue = overview.overdueCents > 0;
+    if (overdue !== this.billsOverdue) {
+      this.billsOverdue = overdue;
+      if (overdue) bills.setAttribute('data-state', 'overdue'); else bills.removeAttribute('data-state');
+    }
+    if (bills.disabled !== this.building) bills.disabled = this.building;
   }
 }

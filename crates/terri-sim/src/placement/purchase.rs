@@ -65,6 +65,9 @@ pub fn validate_purchase(
     }
     let footprint = definition.footprint_at(purchase.facing);
     let (grid, _) = plan_rectangle(world, None, footprint, (purchase.x, purchase.y), None)?;
+    if !super::indoors_allowed(world, definition, (purchase.x, purchase.y), footprint) {
+        return Err(OutsideRoom);
+    }
     Ok(PurchasePlan {
         grid,
         price,

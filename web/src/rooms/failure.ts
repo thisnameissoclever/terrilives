@@ -27,7 +27,10 @@ export function parseBuildFailureReport(json: string): BuildFailureReport {
 export const FAILURE_NAMES: readonly string[] = ['Unknown error', 'Build is closed', 'Build is already open', 'Not enough memory',
   'Room counter exhausted', 'Room no longer exists', 'Invalid room name', 'Room choices refused', 'Build replay differs',
   'Build draft differs', 'Build validation failed', 'Review is out of date', 'Command unavailable during Build',
-  'Invalid room request', 'Room request too large'];
+  'Invalid room request', 'Room request too large', 'Bed left outside'];
+
+/** The failure a Confirm reports when it would leave a bed outside every room ([WB-beds]). */
+export const BED_OUTSIDE = 15;
 
 /** What happened, in one sentence for the player. */
 const WHAT: Readonly<Record<number, string>> = {
@@ -44,6 +47,8 @@ const WHAT: Readonly<Record<number, string>> = {
   12: 'That action is not available in Build mode.',
   13: 'The room request was not valid.',
   14: 'The room request is too large.',
+  // Issue 298, [WB-beds]: functional text proposed for the owner's review.
+  15: 'A bed would be left outside.',
 };
 
 /**
@@ -82,7 +87,12 @@ export function failureWhat(error: RoomFailure, report: BuildFailureReport = { r
 }
 
 /** A refused Confirm, with what the player can do about it. */
-export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
+export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }, bedModel = ''): string {
+  if (error.code === BED_OUTSIDE) {
+    // The refusal names the bed it would leave outside when its model is known.
+    const what = bedModel === '' ? WHAT[BED_OUTSIDE] : `The ${bedModel} bed would be left outside.`;
+    return `${what} Move it into a room, or choose Cancel, before confirming.`;
+  }
   const fix = error.code === 10 ? 'Change the walls, doors or windows involved, or choose Cancel to undo all pending changes.'
     : 'Check the pending changes and try again, or choose Cancel to undo them.';
   return `${failureWhat(error, report)} ${fix}`;

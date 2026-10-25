@@ -4,6 +4,7 @@ import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
 import { WeatherScene } from './render/weather-scene.js';
 import {ChoresBoard} from './ui/chores-board.js';
+import { BillsPanel } from './ui/bills-panel.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { CareerAutonomyControls } from './ui/career-autonomy-controls.js';
@@ -895,6 +896,8 @@ async function main(): Promise<void> {
   );
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
+  const billsRow = document.querySelector<HTMLElement>('#bills-row');
+  const billsValue = document.querySelector<HTMLButtonElement>('#bills-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
   const satisfactionSummary = document.querySelector<HTMLElement>('#satisfaction-summary');
   const satisfactionLabel = document.querySelector<HTMLElement>('#satisfaction-label');
@@ -912,6 +915,8 @@ async function main(): Promise<void> {
   if (
     !clockValue ||
     !fundsValue ||
+    !billsRow ||
+    !billsValue ||
     !satisfactionValue ||
     !satisfactionSummary ||
     !satisfactionLabel ||
@@ -1056,6 +1061,8 @@ async function main(): Promise<void> {
       activity: activityValue,
       ordersRow,
       orders: ordersValue,
+      billsRow,
+      bills: billsValue,
     },
     sim.needBarRefreshMs(),
     createSatisfactionSurface(satisfactionSummary, satisfactionLabel, satisfactionMeter),
@@ -1881,6 +1888,14 @@ async function main(): Promise<void> {
   choresClose.addEventListener('click',()=>choresDialog.close());
   document.querySelector('#chores-toggle')!.addEventListener('click',()=>{if(buildSession.active)return;optionsMenu.close();menu.close(); overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
   choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
+  // [WB-panel]: the read-only Bills panel pauses the game while it is open.
+  const billsPanel = new BillsPanel(sim, document, overlayPause);
+  document.body.append(billsPanel.element());
+  billsValue.addEventListener('click', () => {
+    if (buildSession.active) return;
+    optionsMenu.close(); menu.close();
+    billsPanel.open(billsValue);
+  });
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
@@ -2152,6 +2167,7 @@ async function main(): Promise<void> {
   function syncBuildIsolation(): void {
     syncNewHousemateButton(); syncEditHousemateButton();
     document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
+    gameHud.setBuilding(buildSession.active);
     document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
     deathInput!.disabled = buildSession.active;
     careerAutonomy.setDisabled(buildSession.active);
@@ -2681,6 +2697,7 @@ async function main(): Promise<void> {
     bedAssignmentPanel.afterCommands();
     careerPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
+    if (billsPanel.isOpen()) billsPanel.update();
     if (builder.afterCommands()) {
       refreshBuildArchitecture();
     }

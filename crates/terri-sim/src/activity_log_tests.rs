@@ -469,7 +469,14 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// no random draw on Casey's grievance against the sleeping Tim, and Casey's
 /// next choice draws a different number. Both measured on its branch with
 /// the log off and on giving the same worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
+/// Issue 298 (wages and bills) then moved it from 0xa0fb_785a_e3a4_7b1d on
+/// purpose: pay is 1.5 times what it was, a night shift pays 15 percent
+/// more, a new household starts with $400, and the household bills record
+/// joins the hash once a day is counted. Measured on its branch after
+/// merging afbe98af3; with the old wages, no premium, no starting funds and
+/// the bills system and its hash switched off, the branch gave
+/// 0xa0fb_785a_e3a4_7b1d again.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x981f_c7f5_1465_4aa4;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -481,7 +488,11 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0xa0fb_785a_e3a4_7b1d;
 /// 0x2e8d_746e_12f8_fad2, and its fight trigger change then from
 /// 0x4080_914e_b342_85e0, for the reasons given for the two-day fold, both
 /// measured on its branch in a release build.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x78e8_cb74_b70c_d742;
+/// Issue 298 then moved it from 0x78e8_cb74_b70c_d742 for the reason given
+/// for the two-day fold, and over twenty days the bills are also paid from
+/// Funds on days 7 and 14; with the old wages, no premium, no starting
+/// funds and the bills off it gave 0x78e8_cb74_b70c_d742.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x0572_5884_b65c_1246;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

@@ -65,6 +65,9 @@ fn error(error: BuildCommitError) -> Failure {
         }
         StaleToken => (11, None),
         CommandNotAllowed => (12, None),
+        // Issue 298 ([WB-beds]): the bed a Confirm would leave outside, by
+        // its entity index in the draft.
+        BedOutside { object } => (15, Some(u64::from(object))),
     }
 }
 

@@ -35,6 +35,20 @@ export interface CareerPanelSource {
   lastCareerResult(): CareerResult | null;
   jobSearchOf(entity: number): boolean | null;
   setJobSearch(entity: number, search: boolean): boolean;
+  /** One night shift's pay in cents while `entity` holds a night shift, else null ([WB-panel]). */
+  nightPayCentsOf?(entity: number): number | null;
+  nightShiftPremiumPercent?(): number;
+}
+
+/** A night worker's premium: the percentage and one shift's pay with it, in cents. */
+export interface NightPay {
+  readonly percent: number;
+  readonly cents: number;
+}
+
+/** `Night shifts pay 15% more: $207.00 per shift.`, functional text proposed for the owner's review. */
+export function nightPayLine(night: NightPay): string {
+  return `Night shifts pay ${night.percent}% more: $${(night.cents / 100).toFixed(2)} per shift.`;
 }
 
 /** What the section says about a held job, every line already worded. */
@@ -181,7 +195,7 @@ export function careerFactorLines(factors: CareerFactors): string[] {
 /**
  * Words one job. `title`, `pathLabel` and `schedule` come from the row the
  * Overview already shows; the rest from the report, the factors and the
- * reviewed weeks.
+ * reviewed weeks. A night worker's pay line gains the premium's sentence.
  */
 export function careerJobView(
   title: string,
@@ -190,6 +204,7 @@ export function careerJobView(
   report: CareerReport,
   factors: CareerFactors | null,
   weeks: readonly CareerWeek[],
+  night: NightPay | null = null,
 ): CareerJobView {
   const weekSoFar = report.shifts === 0 || report.mean === null
     ? 'No shifts completed this week.'
@@ -209,7 +224,9 @@ export function careerJobView(
     title,
     pathLabel,
     level: `Level ${report.level + 1} of ${report.levels}`,
-    pay: `$${report.pay} per shift, from $${report.payMin} to $${report.payMax} at this level`,
+    pay: night === null
+      ? `$${report.pay} per shift, from $${report.payMin} to $${report.payMax} at this level`
+      : `$${report.pay} per shift, from $${report.payMin} to $${report.payMax} at this level. ${nightPayLine(night)}`,
     schedule,
     weekSoFar,
     lastReview,
@@ -356,8 +373,11 @@ export class CareerPanel {
     }
     this.heldKey = heldKey;
     const schedule = formatCareerSchedule(title, held, this.source.dayTicks());
+    const nightCents = this.source.nightPayCentsOf?.(this.agent) ?? null;
+    const percent = this.source.nightShiftPremiumPercent?.();
+    const night = nightCents === null || percent === undefined ? null : { percent, cents: nightCents };
     this.job = careerJobView(title, this.paths[report.path], schedule, report,
-      this.source.careerFactors(this.agent), this.source.careerHistory(this.agent));
+      this.source.careerFactors(this.agent), this.source.careerHistory(this.agent), night);
     this.job = {...this.job, attendance: careerAttendanceLine(this.source.careerAttendanceOf?.(this.agent) ?? [])};
   }
 

@@ -58,12 +58,23 @@ impl RoomTopology {
     /// Derives physical enclosure without reading movement or furniture blockage.
     /// Enclosed indices address `components`; they must never be saved as room IDs.
     pub fn from_world(world: &World) -> Result<Self, RoomError> {
-        let grid = world
+        // A missing grid is reported before a missing layout, as it always was.
+        world
             .get_resource::<TileGrid>()
             .ok_or(RoomError::MissingGrid)?;
         let layout = world
             .get_resource::<SavedLayout>()
             .ok_or(RoomError::MissingLayout)?;
+        Self::with_layout(world, layout)
+    }
+
+    /// [`Self::from_world`] with `layout` in place of the world's own, for a
+    /// lot edit that has not been written yet ([WB-beds] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`).
+    pub fn with_layout(world: &World, layout: &SavedLayout) -> Result<Self, RoomError> {
+        let grid = world
+            .get_resource::<TileGrid>()
+            .ok_or(RoomError::MissingGrid)?;
         let (width, height) = (grid.width(), grid.height());
         let count = width
             .checked_mul(height)
@@ -168,6 +179,15 @@ impl RoomTopology {
             height,
             cells,
             components,
+        })
+    }
+
+    /// Whether every tile of `footprint` at `origin` is inside an enclosed
+    /// room: the rule a bed is held to ([WB-beds]).
+    pub fn footprint_indoors(&self, origin: (u32, u32), footprint: terri_core::Footprint) -> bool {
+        (origin.1..origin.1 + footprint.depth).all(|y| {
+            (origin.0..origin.0 + footprint.width)
+                .all(|x| matches!(self.at((x, y)), Some(TopologyCell::Enclosed(_))))
         })
     }
 

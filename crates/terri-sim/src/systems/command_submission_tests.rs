@@ -26,16 +26,18 @@ fn household(cap: u32) -> (Sim, Vec<Entity>, Entity) {
     (sim, people, bed)
 }
 
+/// The current schema, so the household bills ([WB-save]) survive the
+/// round trip along with everything schema seventeen held.
 fn roundtrip(sim: &Sim) {
-    let saved = sim.save_snapshot_v17();
+    let saved = sim.save_snapshot_v22();
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
         .world_mut()
         .insert_resource(Content(sim.world().resource::<Content>().0));
     loaded
-        .load_snapshot_v17(saved.clone())
+        .load_snapshot_v22(saved.clone())
         .expect("public commands must leave a loadable self-save");
-    assert_eq!(loaded.save_snapshot_v17(), saved);
+    assert_eq!(loaded.save_snapshot_v22(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 

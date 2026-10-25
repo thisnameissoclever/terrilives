@@ -1188,6 +1188,28 @@
       .chores-board fieldset {display:grid;gap:10px}
       .chores-board fieldset label {display:flex;justify-content:space-between;gap:12px}
       .chores-board input[type=number] {width:80px}
+      /* [WB-panel]: the Bills row's button reads as a value, and the danger color marks an overdue bill. */
+      .bills-button { padding:0; border:0; background:none; color:var(--hud-text); font:inherit; font-weight:700; text-align:right; text-decoration:underline dotted; cursor:pointer; }
+      .bills-button[data-state='overdue'] { color:var(--hud-danger); }
+      /* The summary rows are flex boxes, which would show a hidden row. */
+      #bills-row[hidden] { display: none; }
+      .bills-button:disabled { color:var(--hud-muted); text-decoration:none; cursor:default; }
+      #bills-dialog { width: min(560px, calc(100vw - 24px)); max-height: 85vh; overflow-y:auto; color:var(--hud-text); background:var(--hud-bg); border:1px solid var(--hud-edge); border-radius:8px; padding:20px; box-sizing:border-box; }
+      #bills-dialog::backdrop {background:rgba(0,0,0,.6)}
+      .bills-header {display:flex;justify-content:space-between;align-items:center;gap:12px}
+      .bills-header h2 {margin:0}
+      .bills-body h3 {margin:16px 0 6px;font-size:15px}
+      .bills-body p {margin:4px 0}
+      .bills-short, .bills-overdue p:not(.bills-note) {color:var(--hud-danger)}
+      .bills-note, .bills-due, .bill-so-far {color:var(--hud-muted)}
+      .bill-row {border:1px solid var(--hud-edge);border-radius:6px;margin:6px 0;padding:6px 10px}
+      .bill-row summary {display:grid;grid-template-columns:1fr auto;gap:2px 12px;cursor:pointer;min-height:32px;align-items:center}
+      .bill-row .bill-expected {text-align:right;font-variant-numeric:tabular-nums}
+      /* The grid summary hides the disclosure marker, so the name carries one. */
+      .bill-row summary strong::before {content:'\25B8\00A0';color:var(--hud-muted)}
+      .bill-row[open] summary strong::before {content:'\25BE\00A0'}
+      .bill-row .bill-so-far {grid-column:1 / -1;font-size:12px;font-variant-numeric:tabular-nums}
+      .bill-row .bill-line {padding-left:12px;font-size:13px;font-variant-numeric:tabular-nums}
     </style>
     <link rel="stylesheet" href="/src/ui/compact-hud.css" />
     <link rel="stylesheet" href="/src/ui/build-controls.css" />
@@ -1239,6 +1261,11 @@
         <div class="summary-row">
           <span class="summary-label">Funds</span>
           <strong id="funds-value" class="summary-value">0</strong>
+        </div>
+        <div id="bills-row" class="summary-row" hidden>
+          <span class="summary-label">Bills</span>
+          <button id="bills-value" class="summary-value bills-button" type="button"
+            aria-haspopup="dialog" aria-controls="bills-dialog"></button>
         </div>
 
         <!-- The status lines live here so every compact layout shows them:

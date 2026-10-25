@@ -10,6 +10,7 @@ pub mod activity_status;
 mod activity_tests;
 pub mod affinity;
 pub mod beds;
+pub mod bills;
 pub mod books;
 pub mod build_transaction;
 pub mod burnt_meals;
@@ -1430,7 +1431,7 @@ impl Sim {
         let candidate = save::v16::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(self.world()),
+            save::Carried::for_older_load(self.world()),
         )?;
         self.adopt_current(candidate)
     }
@@ -1461,7 +1462,7 @@ impl Sim {
         let candidate = save::v15::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(self.world()),
+            save::Carried::for_older_load(self.world()),
         )?;
         self.adopt_current(candidate)
     }
@@ -1470,21 +1471,21 @@ impl Sim {
     /// person's job search, which schema eighteen adds.
     pub fn save_snapshot_v17(&self) -> terri_core::SaveSnapshotV17 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy))
+            .map(|snapshot| save::v18::project_v17(&snapshot.legacy.legacy.legacy.legacy))
             .unwrap_or_else(|| save::v17::capture(self))
     }
 
     /// The published schema-eighteen projection.
     pub fn save_snapshot_v18(&self) -> terri_core::SaveSnapshotV18 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v18::capture(self))
     }
 
     /// Historical schema nineteen, before attributable conflict memory.
     pub fn save_snapshot_v19(&self) -> terri_core::SaveSnapshotV19 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.legacy.clone())
             .unwrap_or_else(|| save::v19::capture(self))
     }
 
@@ -1492,7 +1493,7 @@ impl Sim {
     /// repair decisions, with every shift command left out of the queue.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|snapshot| snapshot.legacy.clone())
+            .map(|snapshot| snapshot.legacy.legacy.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
@@ -1503,18 +1504,41 @@ impl Sim {
         let candidate = save::v20::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
+            save::Carried::for_older_load(&self.world),
         )?;
         self.adopt_restored(candidate, false, false)
     }
 
-    /// The current save: schema twenty-one, which adds each person's held
-    /// shift, the shift stream and queued shift commands (issue 296,
-    /// [WS-save] in `docs/specs/2026-10-18-shifts-and-careers.md`).
+    /// Historical schema twenty-one, before bills: each person's held shift,
+    /// the shift stream and queued shift commands (issue 296, [WS-save] in
+    /// `docs/specs/2026-10-18-shifts-and-careers.md`). It has no place for
+    /// the bills, and its loader raises pay saved before issue 298, so it is
+    /// not used to write saves for current content.
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|snapshot| snapshot.legacy.clone())
             .unwrap_or_else(|| save::v21::capture(self))
+    }
+
+    /// The current save: schema twenty-two, which adds the household's
+    /// bills (issue 298, [WB-save] in
+    /// `docs/specs/2026-10-18-wages-and-bills.md`).
+    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
+        build_transaction::committed(&self.world)
+            .cloned()
+            .unwrap_or_else(|| save::v22::capture(self))
+    }
+
+    pub fn load_snapshot_v22(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV22,
+    ) -> Result<(), SaveError> {
+        let candidate = save::v22::restore(
+            snapshot,
+            self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world),
+        )?;
+        self.adopt_restored(candidate, false, false)
     }
 
     pub fn load_snapshot_v21(
@@ -1524,7 +1548,7 @@ impl Sim {
         let candidate = save::v21::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
+            save::Carried::for_older_load(&self.world),
         )?;
         self.adopt_restored(candidate, false, false)
     }
@@ -1536,7 +1560,7 @@ impl Sim {
         let candidate = save::v19::restore(
             snapshot,
             self.world.resource::<Content>().0,
-            save::Carried::for_load(&self.world),
+            save::Carried::for_older_load(&self.world),
         )?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1546,7 +1570,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV18,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let carried = save::Carried::for_load(&self.world);
+        let carried = save::Carried::for_older_load(&self.world);
         let candidate = save::v18::restore(snapshot, content, carried)?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1569,7 +1593,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV17,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let carried = save::Carried::for_load(&self.world);
+        let carried = save::Carried::for_older_load(&self.world);
         let candidate = save::v17::restore(snapshot, content, carried)?;
         self.adopt_current_with_saved_state(candidate)
     }
@@ -1579,7 +1603,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV14,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = save::Carried::for_load(&self.world);
+        let portals = save::Carried::for_older_load(&self.world);
         let candidate = save::v14::restore(snapshot, content, portals)?;
         self.adopt_current(candidate)?;
         Ok(())
@@ -1828,6 +1852,9 @@ impl Sim {
         world.insert_resource(social_conflicts::State::default());
         world.insert_resource(careers::Careers::default());
         world.insert_resource(attendance::Attendance::default());
+        // Bills (issue 298): pristine until a world with a lot counts its
+        // first day, and out of the hash until then.
+        world.insert_resource(bills::Bills::default());
         world.insert_resource(player_actions::PlayerActions::default());
         world.insert_resource(player_actions::ActionDiagnostics::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -2003,7 +2030,11 @@ impl Sim {
                 // is what fails if this line moves.
                 systems::command::drain_commands,
                 (mortality::cleanup, waiting::clear, beds::automatic::assign).chain(),
-                advance_clock,
+                // A new day is counted, and a month's bills issued, right
+                // after the clock and before anything this tick counts a use
+                // or a trip, so a use on a month's first tick belongs to the
+                // new month ([WB-usage]).
+                (advance_clock, bills::begin_day).chain(),
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy
                 // decay just produced. Before selection, because
@@ -2101,6 +2132,11 @@ impl Sim {
                 // reused). Handles clock-in, the countdown, and the
                 // paid return.
                 systems::career::commute_and_work,
+                // Immediately after the paid return, so pay a shift settles
+                // this tick is in Funds before the bills look, and before any
+                // command next tick can spend money a bill is owed
+                // ([WB-paying] in docs/specs/2026-10-18-wages-and-bills.md).
+                bills::pay_due,
                 (
                     reading::tick,
                     domestic::gather_diners,
@@ -2369,6 +2405,11 @@ impl Sim {
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        // A new household starts with its content's starting funds, enough
+        // for the first month's bills ([WB-rulings] ruling 18); historical
+        // content starts with nothing, as those households did.
+        sim.world
+            .insert_resource(terri_core::Funds(pack.bills.starting_funds_cents));
         if pack.reading.is_some()
             && books::MIGRATION_STARTER_TITLES[..3]
                 .iter()
@@ -5261,6 +5302,10 @@ impl Sim {
                 hasher.write_u64(u64::from(frame.purchased_area));
             }
         }
+        // Bills (issue 298, [WB-determinism]): last, and only once a world
+        // with a lot has counted something, so every older world hashes as
+        // it did.
+        bills::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -5347,6 +5392,8 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                bill_daily: Vec::new(),
+                indoor_only: false,
                 default_interaction: 0,
                 cooking_front: None,
                 shelf_capacity: 0,

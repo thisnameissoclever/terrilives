@@ -3154,7 +3154,14 @@ mod tests {
                 outcome.end_tick - outcome.start_tick,
                 u64::from(job.shift_ticks)
             );
-            let pay = i64::from(job.pay) * Funds::CENTS_PER_DOLLAR * worked as i64
+            // Casey's night watch shift carries the night premium
+            // ([WB-wages] in `docs/specs/2026-10-18-wages-and-bills.md`).
+            let kind = if id == casey_id {
+                terri_data::SHIFT_NIGHT
+            } else {
+                terri_data::SHIFT_DAY
+            };
+            let pay = pack.tuning.shift_pay_cents(job.pay, kind) * worked as i64
                 / i64::from(job.shift_ticks);
             assert_eq!(
                 outcome.pay_cents, pay,
@@ -3162,8 +3169,18 @@ mod tests {
             );
             expected += pay;
         }
+        // The first month's bills arrive on Monday morning and are paid.
+        let bills: i64 = sim
+            .world()
+            .resource::<crate::bills::Bills>()
+            .bills
+            .iter()
+            .filter(|bill| bill.paid_day.is_some())
+            .map(crate::bills::Bill::total_cents)
+            .sum();
+        assert!(bills > 0, "the first month's bills were paid");
         assert_eq!(
-            sim.world().resource::<Funds>().0 - start,
+            sim.world().resource::<Funds>().0 - start + bills,
             expected,
             "household receives exactly the prorated payments"
         );

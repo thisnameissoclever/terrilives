@@ -5,6 +5,27 @@ use terri_sim::{Content, LegacySnapshot, Sim};
 pub fn prepare(sim: &mut Sim, seed: u64, scenario: &str) {
     match scenario {
         "new" => (),
+        // Issue 298 ([WB-numbers] condition 1): the shipped worker is the
+        // only earner, so job search is off for the other two housemates
+        // before the first tick.
+        "solo" => {
+            let mut people: Vec<(u32, u32)> = sim
+                .world_mut()
+                .query::<(terri_core::Entity, &terri_core::SimId)>()
+                .iter(sim.world())
+                .map(|(entity, id)| (id.0, entity.index_u32()))
+                .collect();
+            people.sort_unstable();
+            for (_, agent) in people.into_iter().skip(1) {
+                sim.world_mut()
+                    .resource_mut::<CommandQueue>()
+                    .push(SimCommand::SetJobSearch {
+                        agent,
+                        search: false,
+                    });
+            }
+            sim.flush_commands();
+        }
         "migrated" => {
             let old = Sim::new_household_with_content(Content::pre_books(), seed);
             sim.load_legacy_snapshot(LegacySnapshot::V5(Box::new(old.save_snapshot_v5())))
@@ -58,7 +79,7 @@ pub fn prepare(sim: &mut Sim, seed: u64, scenario: &str) {
             }
             println!("BOOK PURCHASES spent {} for five titles, one shelved duplicate and one inventory duplicate", before - sim.funds());
         }
-        other => panic!("unknown catalogue scenario {other}; use new, migrated or purchased"),
+        other => panic!("unknown catalogue scenario {other}; use new, solo, migrated or purchased"),
     }
     if scenario == "purchased" {
         let affordable: Vec<_> = terri_data::pack()

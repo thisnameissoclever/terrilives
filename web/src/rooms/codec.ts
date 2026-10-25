@@ -108,8 +108,10 @@ function point(r: PostcardReader, c: RoomContext): Point { const p: Point = [r.n
 function list<T>(r: PostcardReader, max: number, min: number, read: () => T): T[] { const count = r.count(min); check(count <= max); return Array.from({ length: count }, read); }
 function failure(r: PostcardReader): RoomFailure {
     const code = r.byte(), detail = r.option(() => r.uint(64));
-    check(code >= 1 && code <= 14);
-    check((code === 7 || code === 8 || code === 10) === (detail !== null));
+    check(code >= 1 && code <= 15);
+    // 15 is a bed a Confirm would leave outside, named by its entity index
+    // (issue 298, [WB-beds]).
+    check((code === 7 || code === 8 || code === 10 || code === 15) === (detail !== null));
     if (code === 7)
         check(detail! >= 1n && detail! <= 13n);
     if (code === 10)
