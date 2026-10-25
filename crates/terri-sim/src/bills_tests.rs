@@ -200,6 +200,24 @@ fn a_new_game_counts_its_first_day_on_its_first_tick() {
     assert!(counted.bills.is_empty());
 }
 
+/// [WB-panel]: before a new game's first tick counts its first day, rent
+/// and the base charges are projected over the whole month, the same as
+/// after it; only the first day's usage is added by the tick.
+#[test]
+fn the_first_month_is_projected_whole_before_the_first_tick() {
+    let mut sim = house();
+    let before = next_bills(sim.world());
+    sim.tick();
+    let after = next_bills(sim.world());
+    assert_eq!(before.len(), 4);
+    assert_eq!(before[0].expected_cents, 29_360, "a full month of rent");
+    assert_eq!(before[0].expected_cents, after[0].expected_cents);
+    let base = &pack().bills;
+    assert_eq!(before[1].expected_cents, base.electricity_base_cents);
+    assert_eq!(before[2].expected_cents, base.water_base_cents);
+    assert_eq!(before[3].expected_cents, base.transportation_base_cents);
+}
+
 /// [WB-calendar]: a day is counted once, on the first tick processed in it,
 /// and not on any other tick of that day.
 #[test]

@@ -687,9 +687,12 @@ fn counted(world: &World) -> Option<(&Bills, &'static ContentPack, u32)> {
 /// from the days left, usage is projected by that larger amount.
 fn expected_month(world: &World, bills: &Bills, tuning: &BillsTuning, today: u32) -> Bills {
     let month = tuning.days_per_month;
-    // The days still to count after the last counted one, in this month.
-    let counted_through = bills.last_counted_day.unwrap_or(today);
-    let left = u64::from(month - 1 - counted_through % month);
+    // The days still to count in this month: after the last counted one,
+    // or from today on before a game's first tick has counted anything.
+    let left = u64::from(match bills.last_counted_day {
+        Some(day) => month - 1 - day % month,
+        None => month - today % month,
+    });
     let (indoor, outdoor) = rent_tiles(world);
     Bills {
         month_days: bills.month_days + left as u32,
