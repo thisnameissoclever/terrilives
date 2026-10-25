@@ -1035,7 +1035,7 @@ pub(crate) fn maintain(world: &mut World) {
             .access
             .route
             .path(grid, from)
-            .and_then(|p| grid.anchor_path((position.x, position.y), p))
+            .and_then(|p| next.access.route.bind_path(grid, (position.x, position.y), p))
         else {
             cancel(world, person, target);
             continue;

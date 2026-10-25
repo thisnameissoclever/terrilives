@@ -518,6 +518,10 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 **Status: Partial.** Yard and street merged in PRs 106 and 107. Workers cross the yard to leave via the street, and newcomers enter from it. PR 116 added outdoor daylight reaching rooms through doorways, and PR 126 added windows admitting that daylight. The store sells a decorative pool, a pool lounger with Sit and a decorative patio umbrella for the yard (issue 250, `docs/specs/2026-10-17-outdoor-furniture.md`). Roofs, further exterior presentation, more outdoor objects, outdoor activities such as swimming, and ambience remain. See [B-outside].
 
+### [S-swim-laps] Exercise swimming
+
+**Status: Requested future enhancement.** Add a Swim laps pool action with a dedicated lap-swimming animation and exercise effects. Keep recreational Hop in and exercise swimming as distinct actions. This enhancement is deferred beyond the recreational pool and bathing update.
+
 ### [S-emergencies] Fires, emergencies, and disasters
 
 **Status: Not started.** `[B-emergencies-disasters]` in [FEATURES.md](FEATURES.md) plans a general incident system, with fire and smoke as the first case. It should share [F-event-scheduler] with [S-household-events].

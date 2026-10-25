@@ -13,6 +13,7 @@ import {fitRecliningPose} from './recline-fit.js';
 import {fitSeatedPose} from './seat-fit.js';
 import {fitDiningGrip} from './dining-contact.js';
 import type {SeatFitResolver} from './seat-contact-types.js';
+import {fitBathLegs} from './bath-fit.js';
 
 interface Context {bundle:Bundle;appearance:ShapeParameters;action:string;frame:number;top:number;source:number[][];rest:number[][];matrices:number[][];audit?:PoseDiagnostics;geometry?:Geometry;bikeFit:BikeFitResolver;seatFit?:SeatFitResolver}
 type Matrices=number[][];
@@ -93,7 +94,9 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
     if(!context.geometry)throw new Error('Reclining requires the actual sofa and body surfaces.');
     fitRecliningPose(context.geometry,appearance,top,matrices,rest,rig,source);
   }
-  if(contacts.policy!=='recline'&&contacts.policy!=='sleep'&&!seatedFit){
+  if(contacts.policy==='bath')fitBathLegs(bundle,matrices,source,sides.map(side=>[
+    boneLength(index('thigh.'+side)),boneLength(index('shin.'+side))] as const));
+  if(contacts.policy!=='bath'&&contacts.policy!=='recline'&&contacts.policy!=='sleep'&&!seatedFit){
     if(!supported){
       let lowering=0;
       for(const side of sides){const thigh=index('thigh.'+side),shin=index('shin.'+side),foot=index('foot.'+side),hip=point(matrices[thigh]),ankle=point(source[foot]),reach=boneLength(thigh)+boneLength(shin)-.001;
@@ -200,6 +203,15 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
       grips[1]=add(shaft.bottom,scale(direction,mop.rightFraction));
     }else if(contacts.policy==='bath'||contacts.policy==='seat'){
       for(const [i,side] of sides.entries()){
+        if(contacts.policy==='bath'&&contacts.bath?.hand===i){
+          const bath=contacts.bath,assembly=contactFrame.assemblies[bath.assembly];
+          if(!assembly)throw new Error('Bath toy assembly is missing.');
+          const engagement=contactFrame.handContact?.[i]??0;
+          const free=transform(multiply(pose[index('hand.'+side)],inverse[index('hand.'+side)]),shapePoint(references[i],4,appearance,top));
+          grips[i]=mix(free,transform(assembly,bath.grip),engagement);
+          assemblies[bath.assembly]=assembly;
+          continue;
+        }
         const thigh=index('thigh.'+side),restPoint=transform(multiply(bones[thigh].rest,inverseAffine(source[thigh])),sourceGrips[i]);
         const preferred=transform(multiply(pose[thigh],inverse[thigh]),shapePoint(restPoint,3,appearance,top));
         if(restingPatches){

@@ -122,14 +122,15 @@ failed checkpoint separate from that replacement's acceptance.
 
 ## Build and verify
 
-Use the installed Blender launcher in background mode with two threads:
+From the repository root, use the installed Blender launcher in background mode with two threads:
 
 ```powershell
-Start-Process -FilePath 'C:/Users/myema/AppData/Local/Microsoft/WindowsApps/blender-launcher.exe' -ArgumentList '--background --threads 2 --python-exit-code 1 --python D:/VIBES/.worktrees/terrilives/rigged-sim-animation/assets/models/sims/sim-01/build_rig.py' -WindowStyle Hidden -PassThru
+$rigScript = (Resolve-Path -LiteralPath 'assets/models/sims/sim-01/build_rig.py').Path
+Start-Process -FilePath 'C:/Users/myema/AppData/Local/Microsoft/WindowsApps/blender-launcher.exe' -ArgumentList ('--background --threads 2 --python-exit-code 1 --python "{0}"' -f $rigScript) -WindowStyle Hidden -PassThru
 ```
 
-The launcher detaches. Read `build-status.json`; a returned launcher process
-does not prove completion. Failure records include a traceback. After the
+`Start-Process` returns before the script completes. Read `build-status.json`;
+a returned launcher process does not prove completion. Failure records include a traceback. After the
 status reaches `complete`, run `export_frames.py` with the installed Python
 and Pillow. The recorded export environment uses Pillow 12.3.0; the exporters
 use its documented `Image.get_flattened_data()` API. No older-version export

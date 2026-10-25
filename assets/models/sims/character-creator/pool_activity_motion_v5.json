@@ -1,0 +1,42 @@
+{
+  "version": 5,
+  "status": "Unshipped single rising-body .4 endpoint candidate responding to the rejected held-body motion. No sparse curve or serialized v5 source is declared.",
+  "reference": {
+    "predecessorSourceSha256": "45e01b3e4070a8349ca02c5308c6fc15a708706cfc5e99f12eb0d8b518393c41",
+    "predecessorActualReceiptSha256": "d2d030b39d1c835c640162e62d336ac114b8522e879f067764887f17512db0f2",
+    "fullSourceAncestorSha256": "31fe895dad1b562c9d9cfe921aaa29dc30c283443287f093ae6d6b219c4716b5",
+    "publishedV2AncestorSha256": "3b8b072a7d8e1ffb18171b5bccb85707b8e2ec2a80578860f9be0087e9d17102",
+    "sourceRigSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "matchedHeldEndpointReceiptSha256": "e650c9d80032f3bd9388cd59e88486f130caec663215b87ed61482903ae810a1",
+    "phase": 0.3,
+    "requestId": 0,
+    "root": [0, 0, 0],
+    "skinSha256": "0c5d257450089c530c4ce810f3b58d3c814cc86baf52cba14ac1280f784f6085"
+  },
+  "ownership": {
+    "inheritedIndex": 8,
+    "preservedV3Indices": [9, 10, 11, 12],
+    "supersedesV4Indices": [13, 14, 15, 16],
+    "proposedV5Indices": [13, 14, 15, 16],
+    "predecessorSourcePhases": [0.2, 0.225, 0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4],
+    "preservedPrefixPhases": [0.2, 0.225, 0.25, 0.275, 0.3],
+    "endpointPhase": 0.4,
+    "preservation": "All v4 source and evidence remain unchanged as the matched negative control. V5 proposes replacing only indices13..16 while retaining the v3 prefix and literal actual .3 boundary."
+  },
+  "controls": {
+    "bodyRise": {
+      "phase": 0.4,
+      "quantity": "Actual tread4 top Z minus actual tread3 top Z",
+      "xDisplacement": 0,
+      "yDisplacement": 0,
+      "placement": "Apply translatePoolRoot exactly once to the genuine .3 pre-control basis; then reconstruct the preference through the normal helper before limb solving."
+    },
+    "trunk": "Retain actual .3 WORLD rotation. Its position follows the authored body rise.",
+    "head": "Retain actual .3 local preference.",
+    "feet": "Capture left tread3 and exact right tread4 world goals before moving the body. Preserve their X/Y, original flat output orientations and raw configured-rest constructor inputs.",
+    "hands": "Hold each actual .3 rail parameter, raw orientation and active vertex independently under actual .4 source context.",
+    "elbows": "Transform each existing spine-local elbow preference with the moved body.",
+    "domain": "Check existing configured chain reach for both legs and arms before construction. Refusal ends this candidate; full exact construction and surface observation remain required."
+  },
+  "limits": "One geometry-derived rise, no other height or posture trial, intermediate key, export, changed geometry, numerical allowance, solver or expanded search. The .5 baseline remains parked."
+}

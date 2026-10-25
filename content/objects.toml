@@ -638,6 +638,19 @@ category = "outdoor"
 [object_type.properties]
 rooms = { set = ["yard"] }
 
+[[object_type.action]]
+id = "hop_in"
+template = "hop_in"
+
+[[action_template]]
+id = "hop_in"
+[action_template.properties]
+label = { set = "Hop in" }
+advertises = { set = { fun = 30.0, comfort = 10.0, energy = -5.0 } }
+duration_ticks = { set = 100 }
+slots = { set = 1 }
+tags = { set = ["pool_swimming"] }
+
 [[object_type]]
 id = "pool_lounger"
 label = "Pool lounger"

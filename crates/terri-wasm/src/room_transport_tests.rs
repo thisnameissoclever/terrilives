@@ -47,7 +47,7 @@ fn assert_current_retains_exact_v16_fixture(
         postcard::take_from_bytes::<terri_core::SaveSnapshotV16>(&published[10..]).unwrap();
     assert!(tail.is_empty());
     assert_eq!(postcard::to_allocvec(&historical).unwrap(), published[10..]);
-    let mut snapshot = decode_current(current).previous.legacy.legacy.legacy;
+    let mut snapshot = decode_current(current).previous.previous.previous.legacy.legacy.legacy;
     let old = &historical.legacy.legacy;
     assert_eq!(
         snapshot.legacy.legacy.legacy,
@@ -63,6 +63,8 @@ fn assert_current_retains_exact_v16_fixture(
     assert!(migrated.load_bytes(published));
     let migrated_bytes = migrated.save_bytes();
     let adopted = decode_current(&migrated_bytes)
+        .previous
+        .previous
         .previous
         .legacy
         .legacy

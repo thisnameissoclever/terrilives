@@ -27,9 +27,16 @@ export function composeSkeletonPose(bones:readonly Bone[],rest:readonly number[]
 /** Shared rest joints and sampled source transforms for rendering and contact preparation. */
 export function configuredJointSetup(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number){
   const sample=sampleMotion(bundle,action,frame),bones=bundle.bones;
+  const {heads,tails,rest,inverse}=configuredRestSetup(bundle,a,top);
+  const matrices=composeSkeletonPose(bones,rest,sample.basis);
+  return {sample,source:sample.source,heads,tails,rest,inverse,matrices};
+}
+
+/** One configured hierarchy is shared by preparation and its runtime binding. */
+export function configuredRestSetup(bundle:Bundle,a:ShapeParameters,top:number){
+  const bones=bundle.bones;
   const heads=bones.map(b=>shapePoint(b.head,region(b.name),a,top));
   const tails=bones.map(b=>shapePoint(b.tail,b.name.startsWith('shin')?6:region(b.name),a,top));
   const rest=bones.map((b,i)=>boneFrame(heads[i],tails[i],b.rest));
-  const inverse=rest.map(inverseAffine),matrices=composeSkeletonPose(bones,rest,sample.basis);
-  return {sample,source:sample.source,heads,tails,rest,inverse,matrices};
+  return {heads,tails,rest,inverse:rest.map(inverseAffine)};
 }

@@ -72,6 +72,16 @@ describe('game HUD formatting', () => {
     expect(formatActivity(0, null, null)).toBe('Idle');
   });
 
+  it('leaves an unavailable activity empty while preserving specific context', () => {
+    expect(formatActivity(null, null, null)).toBe('');
+    expect(formatActivity(null, 'Bringing dinner to the table', null)).toBe(
+      'Bringing dinner to the table',
+    );
+    expect(formatActivity(null, null, 'the door is blocked')).toBe(
+      'Waiting: the door is blocked',
+    );
+  });
+
   it('identifies the person a committed initiator is waiting to talk to', () => {
     const r = roots();
     const s = source({ activityOf: () => 2,

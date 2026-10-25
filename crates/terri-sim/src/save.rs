@@ -60,6 +60,8 @@ pub(crate) struct Carried {
     pub current_fight_topics: bool,
     pub surfaces: Option<terri_core::save_v21::WorldSurfaces>,
     pub commutes: Option<Vec<(u32, u8)>>,
+    pub pools: Option<Vec<terri_core::save_v22::SavedPoolEpisode>>,
+    pub baths: Option<Vec<terri_core::save_v23::SavedBathEpisode>>,
 }
 
 impl Carried {
@@ -75,6 +77,8 @@ impl Carried {
             current_fight_topics: false,
             surfaces: None,
             commutes: None,
+            pools: None,
+            baths: None,
         }
     }
 
@@ -97,6 +101,8 @@ impl Carried {
                 .get_resource::<terri_core::save_v21::WorldSurfaces>()
                 .cloned(),
             commutes: crate::world_geometry::current(world).then(|| v21::commutes(world)),
+            pools: Some(crate::pool::capture(world)),
+            baths: Some(crate::bath::capture(world)),
         }
     }
 }
@@ -134,6 +140,8 @@ pub(crate) mod v18;
 pub(crate) mod v19;
 pub(crate) mod v20;
 pub(crate) mod v21;
+pub(crate) mod v22;
+pub(crate) mod v23;
 #[cfg(test)]
 mod v3_tests;
 #[cfg(test)]
@@ -747,6 +755,8 @@ pub(crate) fn restore_with_facings(
     if let Some(commutes) = active_portals.commutes {
         v21::restore_commutes(&mut sim.world, commutes)?;
     }
+    if let Some(pools) = active_portals.pools { crate::pool::restore_physical(&mut sim.world, pools)?; }
+    if let Some(baths) = active_portals.baths { crate::bath::restore(&mut sim.world, baths)?; }
 
     // Sleep pressure, after every entity exists so an index can be
     // resolved. Restored rather than recomputed: it counts elapsed ticks,

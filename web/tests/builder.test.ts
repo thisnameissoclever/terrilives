@@ -1,3 +1,4 @@
+import {CURRENT_SAVE_VERSION} from '../src/storage/save-header.js';
 import { furnitureLabel } from '../src/ui/furniture-label.js';
 import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -430,7 +431,7 @@ it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   expect(source.lastSaleResult()).toMatchObject({ object: 22, payout: 0 });
   expect(source.takeBuildError()).toEqual({ ok: true, value: null });
   const saved = source.saveBytes();
-  expect([...saved.slice(8, 10)]).toEqual([21, 0]);
+  expect([...saved.slice(8, 10)]).toEqual([CURRENT_SAVE_VERSION, 0]);
   expect(restored.load_bytes(saved)).toBe(true);
   expect(restored.save_bytes()).toEqual(saved);
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])

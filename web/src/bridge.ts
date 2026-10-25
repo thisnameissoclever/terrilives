@@ -1092,6 +1092,18 @@ export class SimBridge {
   choreProgress(): Uint32Array {
     return new Uint32Array(this.memory.buffer,this.handle.chore_progress_ptr(),this.count);
   }
+  poolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_phases_ptr(),this.count); }
+  poolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_elapsed_ptr(),this.count); }
+  prevPoolPhases(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_phases_ptr(),this.count); }
+  prevPoolElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_elapsed_ptr(),this.count); }
+  prevPoolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_exit_origins_ptr(),this.count); }
+  prevPoolTargets(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_pool_targets_ptr(),this.count); }
+  poolExitOrigins(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.pool_exit_origins_ptr(),this.count); }
+  bathToys(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_toys_ptr(),this.count); }
+  bathElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.bath_elapsed_ptr(),this.count); }
+  prevBathToys(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_toys_ptr(),this.count); }
+  prevBathElapsed(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_elapsed_ptr(),this.count); }
+  prevBathTargets(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.prev_bath_targets_ptr(),this.count); }
 
 
   /** Exact active socket target IDs, never inferred from position or row order. */

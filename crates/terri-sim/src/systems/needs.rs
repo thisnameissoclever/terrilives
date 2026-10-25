@@ -36,7 +36,9 @@ use crate::Content;
 /// at spawn, because a rate that can change - a condition lifting, a
 /// trait mutating, which is M2e - has to be computed from its sources on
 /// read or the copy goes stale.
-/// A sim AT WORK decays at `at_work_decay_scale` of the rate - [X2].
+/// A sim at work decays at `at_work_decay_scale` of the rate. Hunger,
+/// Bladder and Social refill to half when their decayed level reaches
+/// Critical. A person waiting outside after a shift receives no work care.
 ///
 /// The rabbit hole put a sim somewhere it could reach nothing, and
 /// `decay_needs` went on draining it at the full rate: measured over
@@ -80,12 +82,13 @@ type DecayRow<'a> = (
     &'a mut Needs,
     Option<&'a Personality>,
     Has<terri_core::AtWork>,
+    Has<crate::world_geometry::WaitingToReturn>,
     Option<&'a terri_core::Eating>,
 );
 
 pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
     let rates = &content.0.decay_per_tick;
-    for (mut needs, personality, at_work, eating) in &mut query {
+    for (mut needs, personality, at_work, waiting_to_return, eating) in &mut query {
         let away = if at_work {
             content.0.tuning.at_work_decay_scale
         } else {
@@ -99,6 +102,19 @@ pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
         for id in NeedId::ALL {
             let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
             needs.drain(id, rates[id.index()] * multiplier * away * asleep);
+        }
+        if at_work && !waiting_to_return {
+            refill_work_needs(&mut needs, content.0.tuning.mood_critical_need_level);
+        }
+    }
+}
+
+/// Work covers meals, toilet breaks and company, without filling other needs.
+/// Arrival uses the Low boundary; ongoing care uses the Critical boundary.
+pub(crate) fn refill_work_needs(needs: &mut Needs, at_or_below: f32) {
+    for need in [NeedId::Hunger, NeedId::Bladder, NeedId::Social] {
+        if needs.get(need) <= at_or_below {
+            needs.set(need, terri_core::NEED_MAX / 2.0);
         }
     }
 }

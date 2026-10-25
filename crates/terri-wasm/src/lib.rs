@@ -2116,6 +2116,18 @@ impl SimHandle {
     pub fn chore_progress_ptr(&self) -> *const u32 {
         self.sim.render_buffer().chore_progress.as_ptr()
     }
+    pub fn pool_phases_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_phases.as_ptr() }
+    pub fn pool_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_elapsed.as_ptr() }
+    pub fn prev_pool_phases_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_phases.as_ptr() }
+    pub fn prev_pool_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_elapsed.as_ptr() }
+    pub fn prev_pool_exit_origins_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_exit_origins.as_ptr() }
+    pub fn prev_pool_targets_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_pool_targets.as_ptr() }
+    pub fn pool_exit_origins_ptr(&self) -> *const u32 { self.sim.render_buffer().pool_exit_origins.as_ptr() }
+    pub fn bath_toys_ptr(&self) -> *const u32 { self.sim.render_buffer().bath_toys.as_ptr() }
+    pub fn bath_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().bath_elapsed.as_ptr() }
+    pub fn prev_bath_toys_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_toys.as_ptr() }
+    pub fn prev_bath_elapsed_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_elapsed.as_ptr() }
+    pub fn prev_bath_targets_ptr(&self) -> *const u32 { self.sim.render_buffer().prev_bath_targets.as_ptr() }
 
     /// Authored object-audio category per row. Re-read after every sync or
     /// memory growth like every other zero-copy render column.
@@ -2643,8 +2655,8 @@ impl SimHandle {
     /// Serialises the running game for browser-owned persistent storage.
     /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v21())
-            .expect("SaveSnapshotV21 serializes");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v23())
+            .expect("SaveSnapshotV23 serializes");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2673,6 +2685,18 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 23 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV23>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v23(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 22 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV22>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v22(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 21 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV21>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v21(snapshot).is_ok(),
@@ -4912,20 +4936,20 @@ mod boundary_tests {
         let bytes = uninterrupted.save_bytes();
         assert_eq!(
             decode_current(&bytes),
-            uninterrupted.sim.save_snapshot_v21()
+            uninterrupted.sim.save_snapshot_v23()
         );
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            21,
-            "the public writer must emit the schema-21 envelope"
+            SAVE_SCHEMA_VERSION,
+            "the public writer must emit the complete current envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v21(),
-            uninterrupted.sim.save_snapshot_v21()
+            resumed.sim.save_snapshot_v23(),
+            uninterrupted.sim.save_snapshot_v23()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4937,8 +4961,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v21(),
-            uninterrupted.sim.save_snapshot_v21()
+            resumed.sim.save_snapshot_v23(),
+            uninterrupted.sim.save_snapshot_v23()
         );
     }
 
@@ -9449,7 +9473,6 @@ mod boundary_tests {
             vec![
                 "Miserable",
                 "Starving",
-                "Tired",
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
@@ -9457,7 +9480,7 @@ mod boundary_tests {
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
-        let expected = [-73.5, -25.0, -12.0, -18.0, -6.0, 7.5, -20.0];
+        let expected = [-61.5, -25.0, -18.0, -6.0, 7.5, -20.0];
         for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
             assert!(
                 (*actual - expected).abs() < 1e-5,
@@ -9488,20 +9511,20 @@ mod boundary_tests {
         assert!(handle.sim.world_mut().despawn(stale));
 
         for (level, label, score) in [
-            (20.0, "Starving", -25.0),
-            (20.001, "Hungry", -12.0),
-            (40.0, "Hungry", -12.0),
+            (20.0, Some("Starving"), -25.0),
+            (20.001, None, 0.0),
+            (40.0, None, 0.0),
         ] {
             let mut needs = Needs::all_at(50.0);
             needs.set(NeedId::Hunger, level);
             handle.sim.world_mut().entity_mut(subject).insert(needs);
             assert_eq!(
                 handle.mood_summary_of(subject.index_u32()),
-                vec![if score <= -15.0 { "Low" } else { "Okay" }, label,]
+                label.map_or_else(|| vec!["Okay"], |label| vec!["Low", label])
             );
             assert_eq!(
                 handle.mood_snapshot_of(subject.index_u32()),
-                vec![score, score]
+                if label.is_some() { vec![score, score] } else { vec![score] }
             );
         }
 
@@ -11123,6 +11146,10 @@ mod published_v15_tests;
 mod published_v19_tests;
 #[cfg(test)]
 mod room_save_tests;
+#[cfg(test)]
+mod pool_save_tests;
+#[cfg(test)]
+mod pool_v22_migration_tests;
 
 #[cfg(test)]
 mod current_test_snapshot;

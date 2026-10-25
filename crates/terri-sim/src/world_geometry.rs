@@ -406,12 +406,16 @@ pub fn access_report(world: &World) -> AccessReport {
                     people.push((entity.id().index_u32(), component));
                 }
             }
-            if entity.contains::<SmartObject>() {
-                let Some((_, definition, facing)) =
-                    crate::placement::object_definition(world, entity.id().index_u32())
+            if let Some(object) = entity.get::<SmartObject>() {
+                let Some(definition) = world
+                    .get_resource::<crate::Content>()
+                    .and_then(|content| content.0.objects.get(object.0 .0 as usize))
                 else {
                     continue;
                 };
+                let facing = entity
+                    .get::<terri_core::ObjectFacing>()
+                    .map_or(definition.base_facing, |f| f.0);
                 let footprint = definition.footprint_at(facing);
                 let (x, y) = (position.x as i32, position.y as i32);
                 let (right, bottom) = (
@@ -869,6 +873,127 @@ mod generic_migration_tests {
 #[cfg(test)]
 mod access_tests {
     use super::*;
+    #[test]
+    fn access_report_does_not_repeat_numeric_object_lookup() {
+        for occupied in [false, true] {
+            for count in [4, 16, 32] {
+                let mut sim = crate::Sim::new_with_lot(count + 4, 5);
+                let model = sim
+                    .world()
+                    .resource::<crate::Content>()
+                    .0
+                    .find("radio")
+                    .unwrap();
+                for x in 2..count + 2 {
+                    sim.world_mut()
+                        .spawn((SmartObject(model), Position { x: x as f32, y: 2. }));
+                    if occupied {
+                        sim.world_mut()
+                            .resource_mut::<TileGrid>()
+                            .set_blocked(x, 2, true);
+                    }
+                }
+                crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.set(0));
+                let report = access_report(sim.world());
+                let visits = crate::placement::OBJECT_LOOKUP_VISITS.with(|counter| counter.get());
+                assert_eq!(report, AccessReport::default());
+                assert_eq!(
+                    visits, 0,
+                    "{count} translated objects, occupied={occupied}: repeated numeric lookup visits"
+                );
+            }
+        }
+    }
+    #[test]
+    fn access_report_retains_translated_footprints_facing_fallback_and_missing_data() {
+        use terri_core::{Facing, Footprint, ObjectFacing};
+        let mut definition = crate::test_content::object("access_fixture", &[], 10);
+        definition.footprint = Footprint { width: 2, depth: 1 };
+        definition.base_facing = Facing::NorthEast;
+        let pack = crate::test_content::pack(vec![definition]);
+        for occupied in [false, true] {
+            let mut sim = crate::Sim::new_with_lot_and_content(12, 10, crate::Content(pack));
+            for y in 0..10 {
+                for x in 0..12 {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x, y, true);
+                }
+            }
+            let fallback = sim
+                .world_mut()
+                .spawn((
+                    SmartObject(terri_data::ObjectDefId(0)),
+                    Position { x: 2., y: 2. },
+                ))
+                .id()
+                .index_u32();
+            let turned = sim
+                .world_mut()
+                .spawn((
+                    SmartObject(terri_data::ObjectDefId(0)),
+                    Position { x: 7., y: 5. },
+                    ObjectFacing(Facing::SouthEast),
+                ))
+                .id()
+                .index_u32();
+            sim.world_mut()
+                .spawn(SmartObject(terri_data::ObjectDefId(0)));
+            sim.world_mut().spawn((
+                SmartObject(terri_data::ObjectDefId(u32::MAX)),
+                Position { x: 10., y: 8. },
+            ));
+            sim.world_mut().spawn(Position { x: 1., y: 1. });
+            let footprints = [vec![(2, 2), (3, 2)], vec![(7, 5), (7, 6)]];
+            if !occupied {
+                for &(x, y) in footprints.iter().flatten() {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x as usize, y as usize, false);
+                }
+            }
+            let regions: Vec<_> = if occupied {
+                vec![]
+            } else {
+                footprints
+                    .iter()
+                    .map(|tiles| InaccessibleRegion {
+                        tiles: tiles.clone(),
+                        ..Default::default()
+                    })
+                    .collect()
+            };
+            let mut blocked_targets = vec![
+                BlockedTarget {
+                    target: fallback,
+                    tiles: footprints[0].clone(),
+                },
+                BlockedTarget {
+                    target: turned,
+                    tiles: footprints[1].clone(),
+                },
+            ];
+            blocked_targets.sort_by_key(|target| target.target);
+            let expected = AccessReport {
+                regions: regions.clone(),
+                blocked_targets,
+            };
+            assert_eq!(access_report(sim.world()), expected, "occupied={occupied}");
+            assert_eq!(
+                access_report(sim.world()),
+                expected,
+                "repeat, occupied={occupied}"
+            );
+            sim.world_mut().remove_resource::<crate::Content>();
+            assert_eq!(
+                access_report(sim.world()),
+                AccessReport {
+                    regions,
+                    blocked_targets: vec![]
+                }
+            );
+        }
+    }
     #[test]
     fn every_on_lot_person_must_reach_each_region_even_when_both_sides_have_exits() {
         let mut sim = crate::Sim::new_with_lot(5, 5);

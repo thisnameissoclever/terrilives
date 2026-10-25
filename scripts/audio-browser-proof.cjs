@@ -530,18 +530,23 @@ function memoryHudIsDeselected() {
   };
   const expectedText = [
     ['#needs-caption', 'Select a person'],
+    ['#needs-empty', ''],
     ['#satisfaction-value', 'unavailable'],
-    ['#activity-value', 'Nothing selected'],
+    ['#satisfaction-label', ''],
+    ['#activity-value', ''],
     ['#orders-value', '0'],
     ['#people-caption', 'People'],
     ['#people-empty', 'Select a person to see how they feel about the household.'],
     ['#traits-empty', 'No traits.'],
-    ['#mood-empty', 'Select a person to see their mood.'],
+    ['#mood-empty', ''],
+    ['#dock-critical', ''],
+    ['#sim-dock-collapse', ''],
   ];
-  const hidden = ['#needs-content', '#career-row', '#orders-row', '#action-queue',
-    '#people-list', '#traits-block', '#trait-list', '#mood-content', '#moodlet-list'];
-  const visible = ['#needs-empty', '#people-empty', '#traits-empty', '#mood-empty',
-    '#dock-traits-empty', '#queue-empty'];
+  const hidden = ['#needs-empty', '#career-row', '#orders-row', '#action-queue',
+    '#people-list', '#traits-block', '#trait-list', '#mood-empty', '#moodlet-list',
+    '#satisfaction-meter', '#mood-marker'];
+  const visible = ['#needs-content', '#people-empty', '#traits-empty', '#mood-content',
+    '#dock-traits-empty', '#queue-empty', '#sim-dock-body'];
   const empty = ['#career-value', '#action-queue', '#people-list', '#trait-list',
     '#moodlet-list', '#mood-label'];
   const panelsReady = expectedText.every(([selector, text]) => matches(selector, node => node.textContent === text)) &&
@@ -551,17 +556,29 @@ function memoryHudIsDeselected() {
 
   const warnings = document.querySelectorAll('#needs-content .need-state');
   const warningsReady = warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
+  const needValues = document.querySelectorAll('#needs-content .need-value');
+  const needMeters = document.querySelectorAll('#needs-content [role="meter"]');
+  const hollowMetersReady = needValues.length === 7 && Array.from(needValues).every(span => span.childNodes.length === 0) &&
+    needMeters.length === 7 && Array.from(needMeters).every(meter =>
+      meter.style.width === '0%' && meter.getAttribute('data-state') === 'empty' &&
+      meter.getAttribute('aria-valuenow') === null && meter.getAttribute('aria-valuetext') === 'No person selected') &&
+    matches('#mood-meter', node => node.dataset.empty === 'true' && node.getAttribute('aria-valuenow') === null) &&
+    matches('#mood-marker', node => node.style.width === '0%') &&
+    matches('#satisfaction-summary', node => node.dataset.empty === 'true') &&
+    matches('#satisfaction-meter', node => node.value === 0);
   const members = document.querySelectorAll('#household-roster-members .household-member');
   const rosterReady = document.querySelector('#household-roster-members') !== null &&
     members.length > 0 && Array.from(members).every(button => button.getAttribute('aria-pressed') === 'false');
   const dockReady = matches('#dock-activity', node =>
     node.textContent === document.querySelector('#activity-value')?.textContent && node.dataset.urgent === 'false') &&
-    matches('#needs-caption', node => node.title === node.textContent);
+    matches('#needs-caption', node => node.title === node.textContent) &&
+    matches('#sim-dock-collapse', node => node.getAttribute('aria-expanded') === 'true' &&
+      node.getAttribute('aria-label') === 'Collapse Sim dock');
   // Closed personal details, skills, and likes and dislikes intentionally do not refresh; assert the scenario, not their stale contents.
   const detailsClosed = matches('#personal-details', node => node.open === false) &&
     matches('#skills-block', node => node.open === false) &&
     matches('#affinities-block', node => node.open === false);
-  return panelsReady && warningsReady && rosterReady && dockReady && detailsClosed;
+  return panelsReady && warningsReady && hollowMetersReady && rosterReady && dockReady && detailsClosed;
 }
 
 async function waitForAudioDrain(page) {

@@ -262,6 +262,7 @@ pub fn follow_path(
                 // read them out of this same pack when it scored the advert,
                 // and the pack is fixed at build time.
                 let act = &content.0.object(placed.0).interactions[target.interaction as usize];
+                if crate::pool::is_swimming(act) && beds.pools.get(entity).is_err() { continue; }
                 if act
                     .tags
                     .iter()
@@ -302,12 +303,12 @@ pub fn follow_path(
                 // because that is what an advert can honestly promise; the
                 // sim only finds out how long this particular meal took by
                 // sitting through it.
-                let remaining_ticks = sample_duration(
+                let remaining_ticks = if crate::pool::is_swimming(act) { 100 } else { sample_duration(
                     act.duration_ticks,
                     tuning.duration_variance,
                     tuning.min_interaction_ticks,
                     &mut rng,
-                );
+                ) };
                 // **The capability roll, at the attempt's start** - [E3].
                 // Rolled here beside the duration draw, from the same
                 // generator and in the same entity order, so PRNG
@@ -469,6 +470,9 @@ pub fn follow_path(
         };
 
         let dx = tx as f32 - pos.x;
+        if beds.pools.iter().any(|(owner, episode)| owner != entity && episode.approach == (tx, ty)) {
+            continue;
+        }
         let dy = ty as f32 - pos.y;
         let dist = (dx * dx + dy * dy).sqrt();
 

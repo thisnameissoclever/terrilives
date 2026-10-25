@@ -1,0 +1,118 @@
+{
+  "version": 3,
+  "status": "Unshipped nominal .2-to-.3 contact-transition authoring. Outer source joins and full export are not complete.",
+  "reference": {
+    "fullSourceSha256": "31fe895dad1b562c9d9cfe921aaa29dc30c283443287f093ae6d6b219c4716b5",
+    "phase": 0.2,
+    "requestId": 4,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "skinSha256": "f86a51c062b2445ab7e94f7fd92384d6745b02e33b6f10d1a038f0858d01d543"
+  },
+  "range": [
+    0.2,
+    0.3
+  ],
+  "sourcePolicy": "Unchanged contacts-v1.json. Right sole on tread2; left tread1 release and tread3 arrival; both original rails.",
+  "dimensions": "Actual configured default feminine body and selected two-piece; no scale or rest-offset control.",
+  "interpolation": "Piecewise smoothstep of independently authored quantities; no runtime search or repaired-key table.",
+  "controls": {
+    "pelvisRiseMetres": [
+      {
+        "phase": 0.2,
+        "value": 0
+      },
+      {
+        "phase": 0.225,
+        "value": 0
+      },
+      {
+        "phase": 0.275,
+        "value": 0.25
+      },
+      {
+        "phase": 0.3,
+        "value": 0.3
+      }
+    ],
+    "trunkWorldPitchDegrees": [
+      {
+        "phase": 0.2,
+        "value": 45
+      },
+      {
+        "phase": 0.225,
+        "value": 50
+      },
+      {
+        "phase": 0.275,
+        "value": 60
+      },
+      {
+        "phase": 0.3,
+        "value": 60
+      }
+    ],
+    "swingRetraction": [
+      {
+        "phase": 0.2,
+        "value": 0
+      },
+      {
+        "phase": 0.225,
+        "value": 1
+      },
+      {
+        "phase": 0.275,
+        "value": 1
+      },
+      {
+        "phase": 0.3,
+        "value": 0
+      }
+    ],
+    "swingAltitude": [
+      {
+        "phase": 0.2,
+        "value": "departure"
+      },
+      {
+        "phase": 0.225,
+        "value": "retraction-gap-midpoint"
+      },
+      {
+        "phase": 0.25,
+        "value": "above-arrival"
+      },
+      {
+        "phase": 0.275,
+        "value": "above-arrival"
+      },
+      {
+        "phase": 0.3,
+        "value": "arrival"
+      }
+    ]
+  },
+  "construction": {
+    "pelvisWorldOrientation": "Hold accepted .2 orientation. Hips Y/X stay at the reference while authored Z rises.",
+    "trunkReference": "Source frame0 with independently authored pool-X pitch.",
+    "head": "Hold accepted .2 local preference.",
+    "swingOrientation": "Hold the accepted flat left-foot frame.",
+    "retractionGap": "Midpoint of actual whole-foot ankle-height bounds between tread1 top and tread2 bottom.",
+    "outwardRetraction": "Beyond the actual outer tread front by half the complete nominal foot depth, using positive homogeneous coefficients.",
+    "aboveArrival": "Arrival ankle height plus half the complete nominal foot height.",
+    "arrival": "Actual tread3 source support and unchanged front patch at reference stance X/Y.",
+    "rightFoot": "Actual current source support, unchanged tread2 front patch and reference stance X/Y.",
+    "hands": "Hold actual reference rail parameter and raw orientation; retain discrete selected roll provenance.",
+    "elbows": "Reference pole in the spine frame, transformed by the authored trunk.",
+    "admission": "Existing complete evaluator plus actual source-owned foot/rail construction, arm/skin parity and full selected surfaces. No numerical allowance."
+  },
+  "preservation": {
+    "oldV2": "Unchanged. Original source31fe remains a separate immutable input.",
+    "outsideRange": "No new full source library is emitted by this nominal prototype. Unrelated/zero-ownership parity and source boundary joins remain required before publication."
+  }
+}

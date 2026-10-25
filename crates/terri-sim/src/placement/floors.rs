@@ -1,10 +1,11 @@
 //! Floor coverings: what the player has laid on each tile - [FL-command] in
 //! `docs/specs/2026-09-22-floors.md`.
 //!
-//! The thinnest lot edit there is. A covering changes how a tile is drawn and
-//! nothing else: no barrier, no route, no reservation, so none of the proofs
-//! a wall or a sofa is held to apply. What is checked is that the tile is on
-//! the lot and the covering is one the content has.
+//! Coverings and base surfaces determine appearance, cleaning eligibility and
+//! arrival destinations. Remove clears the covering and changes an indoor base
+//! surface to grass; existing grass and street bases remain. Floor edits create
+//! no physical barrier or reservation, so they do not need wall or furniture
+//! placement proofs. Validation checks the lot bounds and covering identifier.
 
 use super::{LotEditState, PlacementRefusal};
 use bevy_ecs::prelude::*;

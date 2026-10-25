@@ -475,6 +475,25 @@
       }
     },
     {
+      "id": "object:pool/hop_in",
+      "article": "activities",
+      "section": "swimming",
+      "sources": [
+        "content/objects.toml",
+        "content/tuning.toml",
+        "crates/terri-sim/src/need_interactions/physical.rs",
+        "crates/terri-sim/src/player_actions.rs",
+        "crates/terri-sim/src/pool.rs",
+        "crates/terri-sim/src/systems/action.rs",
+        "crates/terri-sim/src/systems/interact.rs",
+        "crates/terri-sim/src/systems/movement.rs"
+      ],
+      "numbers": [],
+      "review": {
+        "basis": "Entry lasts 20 game minutes, swimming 60 and exit 20. Only elapsed swimming supplies baseline Fun +30, Comfort +10 and Energy -5 points; positive refill uses ordinary personality/failure scaling, negative cost stays full and ordinary decay continues. Swimming provides no Social, Hygiene or Fitness practice. Interruption retains delivered effects and physical ownership through controlled exit; saves preserve phase and progress."
+      }
+    },
+    {
       "id": "object:pool_lounger/sit",
       "article": "activities",
       "section": "chairs",

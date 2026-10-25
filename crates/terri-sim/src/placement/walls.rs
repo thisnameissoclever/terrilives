@@ -2,9 +2,9 @@
 //! doorway - [WT-rules] and [WT-apply] in `docs/specs/2026-09-21-wall-tool.md`.
 //!
 //! Preview and commit share [`validate_wall_edit`], exactly as furniture
-//! preview and commit share `validate_placement`, and the two validators share
-//! the layout check and the usability proofs, so a wall can never be accepted
-//! by a rule a sofa would be refused by.
+//! preview and commit share `validate_placement`. Both preserve physical layout
+//! invariants; current accessibility is reviewed separately during Build
+//! preparation. Frozen historical worlds retain their entrance rules.
 
 use super::{
     crosses_wall, current_layout, prove_lot_usable, CurrentLayout, LotEditState, PlacementRefusal,
@@ -71,12 +71,11 @@ fn rectangle_holds(rect: &Rectangle, (x, y): (i32, i32)) -> bool {
         && y < (rect.origin.1 + rect.footprint.depth) as i32
 }
 
-/// The rules every new wall is held to, run over all the new walls of one edit
-/// against the candidate grid - [WT-rules] checks 4 to 9. A single wall passes
-/// one pair of tiles and a room its whole outline ([RT-rules]); each check runs
-/// over every wall before the next check starts, so the reason a player reads
-/// is the first kind of thing wrong, in the order [WT-rules] lists. Only walls
-/// are passed: a doorway or an opening removes a barrier and is never asked.
+/// Physical barrier validation under [WT-rules], run against the candidate grid.
+/// A single wall passes one pair of tiles and a room its whole outline
+/// ([RT-rules]). Each check runs over every wall before the next check starts,
+/// giving refusals a stable priority. Frozen historical worlds also retain
+/// entrance guards. Only new barriers are passed; openings remove barriers.
 pub(super) fn check_new_walls(
     world: &World,
     rectangles: &[Rectangle],
@@ -183,23 +182,20 @@ fn check_barriers(
         }
     }
     prove_lot_usable(world, grid, rectangles)?;
-    // Last, the loader's own grid checks: a wall that passed everything above
-    // can still leave a save that will not load - a sim walking to an object
-    // that is now across the wall from where its walk ends. The review of the
-    // Walls tool found that in ordinary play. The loader's front-door check is
-    // subsumed today by the door rule at the top; it is asked anyway, so a door
-    // rule the loader gains later is honoured here without a second edit.
+    // Delegate candidate-load validation to the save layer. Current edits may
+    // leave routes for Build preparation to reconcile; the save layer checks
+    // the validated source when required. Historical validation retains route
+    // endpoint and portal-return checks, including its entrance rules.
     crate::save::candidate_grid_loads(world, grid).map_err(|problem| match problem {
         crate::save::LoadProblem::PortalReturn => BlockedLanding,
         crate::save::LoadProblem::EdgeWorld => BlockedRoute,
     })
 }
 
-/// An opened line removes a barrier, yet it can still give furniture an
-/// approach from floor nobody reaches: a doorway from a sealed pocket straight
-/// onto a sofa. The usability proof refuses that, and so does a windowed
-/// house's loader. Only what this edit breaks is refused, so a house that is
-/// already cut in two can still be mended by opening it.
+/// Preserve occupied ground when opening a current boundary; Build preparation
+/// reviews accessibility separately. Historical worlds also check furniture
+/// approaches and common-region access. Refuse only a newly introduced failure
+/// so an already disconnected layout can still be repaired.
 pub(super) fn keep_usable(
     world: &World,
     rectangles: &[Rectangle],
@@ -217,8 +213,8 @@ pub(super) fn keep_usable(
 
 /// Produces a complete owned transaction; no mutation and no random draws.
 ///
-/// The checks run in the order [WT-rules] lists, so the reason a player reads
-/// is the first thing wrong, not whichever check happened to run first.
+/// Physical checks have a fixed refusal priority under [WT-rules]. Historical
+/// entrance guards remain scoped to worlds without current explicit geometry.
 pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, PlacementRefusal> {
     use PlacementRefusal::*;
     let Some(layout) = world

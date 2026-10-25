@@ -12,6 +12,7 @@ export interface MeshPart {
   name: string; start: number; count: number; region: number; outline: boolean;
   conditions?: Record<string, (string | number | boolean)[]>[]; densityThreshold?: number;
   stockSlot?:number;
+  activityAttachment?:'bath_water';
 }
 export interface MeshDescription {
   vertices: string; indices: string; vertexCount: number; indexCount: number; parts: MeshPart[];

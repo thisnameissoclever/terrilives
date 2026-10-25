@@ -204,6 +204,8 @@ fn authentic_published_fifteen_conserves_requests_orders_and_current_continuatio
         assert!(source.load_bytes(bytes), "authentic {name}");
         let migrated = decode_current(&source.save_bytes())
             .previous
+            .previous
+            .previous
             .legacy
             .legacy
             .legacy

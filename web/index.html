@@ -642,9 +642,7 @@
         color: var(--hud-muted);
         font-size: 12px;
       }
-      /* An empty line takes no room, so the compact strip grows by one
-         line, the save status, rather than three. It stays rendered: a live
-         region taken out of the page may not be announced when it fills. */
+      /* Empty live regions keep no visible space while remaining available for announcements. */
       #command-feedback:empty,
       #keyboard-target:empty {
         min-height: 0;
@@ -1264,7 +1262,6 @@
         <!-- The status lines live here so every compact layout shows them:
              a live region inside a closed panel is not announced ([OF3]). -->
         <div id="hud-status">
-          <p id="save-status" role="status" aria-live="polite">Starting</p>
           <p id="command-feedback" role="status" aria-live="polite"></p>
           <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
         </div>
@@ -1335,6 +1332,7 @@
 
 
         <button id="new-game" class="hud-button" type="button">New game</button>
+        <p id="save-status" hidden></p>
         <button
           id="show-help"
           class="hud-button"
@@ -1348,7 +1346,7 @@
         </section>
       </div>
     </div></div>
-    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab. Pause first if you want the household to wait.">Player guide</a>
+    <a id="world-player-guide" class="hud-button" href="./guide/" target="_blank" rel="noopener" aria-label="Player guide (opens in a new tab)" title="Opens in a new tab.">Player guide</a>
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
@@ -1409,7 +1407,7 @@
           <div id="career-row-graph" class="career-row-graph" hidden></div>
           <div class="summary-row">
             <span class="summary-label">Doing</span>
-            <span id="activity-value" class="summary-value">Nothing selected</span>
+            <span id="activity-value" class="summary-value"></span>
           </div>
           <div id="orders-row" class="summary-row" hidden>
             <span class="summary-label">Orders waiting</span>

@@ -67,6 +67,53 @@ fn full_fixture(start: u32, duration: u32, day: u32) -> (Sim, Entity, Entity) {
     );
     (sim, actor, object)
 }
+
+#[test]
+fn pool_autonomous_swimmer_keeps_ownership_until_scheduled_work_can_depart() {
+    let (mut sim, actor, _) = full_fixture(40, 120, 240);
+    let pool = sim.spawn_object(
+        Position { x: 8., y: 8. },
+        terri_data::pack().find("pool").unwrap(),
+    );
+    for y in 8..10 {
+        for x in 8..10 {
+            sim.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+    }
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(Position { x: 7., y: 8. });
+    sim.world_mut()
+        .get_mut::<Needs>(actor)
+        .unwrap()
+        .set(NeedId::Fun, 0.);
+    until(&mut sim, "autonomous swimming", 35, |s| {
+        s.world()
+            .get::<crate::pool::PoolEpisode>(actor)
+            .is_some_and(|e| e.phase == 2)
+    });
+    assert!(!crate::player_actions::has_player_work(sim.world(), actor));
+    until(&mut sim, "controlled exit for scheduled work", 30, |s| {
+        s.world()
+            .get::<crate::pool::PoolEpisode>(actor)
+            .is_some_and(|e| e.interrupted)
+    });
+    assert!(sim.world().get::<Commuting>(actor).is_none());
+    assert!(sim.world().get::<terri_core::Reserved>(pool).is_some());
+    continue_roundtrip(&mut sim, 3);
+    while sim.world().get::<crate::pool::PoolEpisode>(actor).is_some() {
+        assert!(sim.world().get::<Commuting>(actor).is_none());
+        assert!(sim.world().get::<terri_core::Target>(actor).is_some());
+        sim.tick();
+    }
+    assert!(sim.world().get::<terri_core::Reserved>(pool).is_none());
+    until(&mut sim, "departure after pool release", 3, |s| {
+        s.world().get::<Commuting>(actor).is_some()
+    });
+    continue_roundtrip(&mut sim, 3);
+}
 fn use_historical_blank_rooms(sim: &mut Sim) {
     assert_eq!(sim.world().resource::<SimClock>().tick, 0);
     sim.world_mut()
@@ -126,6 +173,127 @@ fn continue_roundtrip(sim: &mut Sim, ticks: usize) {
         assert_eq!(
             loaded.save_snapshot_v17().attendance,
             sim.save_snapshot_v17().attendance
+        );
+    }
+}
+
+#[test]
+fn attendance_work_care_refills_only_three_low_needs_on_actual_arrival() {
+    for level in [0.0, 20.0, 20.001, 40.0, 40.001] {
+        let (mut sim, actor, _) = full_fixture(1, 480, 1440);
+        until(&mut sim, "outbound commute", 100, |s| {
+            s.world().get::<Commuting>(actor) == Some(&Commuting::Outbound)
+        });
+        sim.world_mut()
+            .entity_mut(actor)
+            .insert(Needs::all_at(level));
+        sim.tick();
+        assert_eq!(
+            sim.world().get::<Commuting>(actor),
+            Some(&Commuting::Outbound)
+        );
+        for need in NeedId::ALL {
+            assert_eq!(
+                sim.world().get::<Needs>(actor).unwrap().get(need),
+                level,
+                "{need:?} must not refill during the outbound commute"
+            );
+        }
+        until(&mut sim, "office arrival", 100, |s| {
+            s.world().get::<AtWork>(actor).is_some()
+        });
+        for need in NeedId::ALL {
+            let cared_for = matches!(need, NeedId::Hunger | NeedId::Bladder | NeedId::Social);
+            assert_eq!(
+                sim.world().get::<Needs>(actor).unwrap().get(need),
+                if cared_for && level <= 40.0 {
+                    50.0
+                } else {
+                    level
+                },
+                "{need:?} arriving at {level}"
+            );
+        }
+    }
+}
+
+#[test]
+fn attendance_work_care_preserves_decay_and_refills_before_critical() {
+    let (mut sim, actor, _) = full_fixture(1, 480, 1440);
+    until(&mut sim, "office arrival", 100, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.decay_per_tick = [1.0; 7];
+    let scale = pack.tuning.at_work_decay_scale;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let mut personality = Personality::neutral();
+    personality.drain[NeedId::Social.index()] = 2.0;
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert((Needs::all_at(20.75), personality));
+
+    sim.tick();
+    for need in NeedId::ALL {
+        let expected = if need == NeedId::Social {
+            50.0
+        } else {
+            20.75 - scale
+        };
+        assert!(
+            (sim.world().get::<Needs>(actor).unwrap().get(need) - expected).abs() < 1e-5,
+            "{need:?} should decay normally until crossing Critical"
+        );
+    }
+    sim.tick();
+    for need in NeedId::ALL {
+        let expected = match need {
+            NeedId::Hunger | NeedId::Bladder => 50.0,
+            NeedId::Social => 50.0 - 2.0 * scale,
+            _ => 20.75 - 2.0 * scale,
+        };
+        assert!(
+            (sim.world().get::<Needs>(actor).unwrap().get(need) - expected).abs() < 1e-5,
+            "{need:?} should refill only on its own crossing tick"
+        );
+    }
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert((Needs::all_at(20.0 + scale), Personality::neutral()));
+    sim.tick();
+    for need in NeedId::ALL {
+        assert_eq!(
+            sim.world().get::<Needs>(actor).unwrap().get(need),
+            if matches!(need, NeedId::Hunger | NeedId::Bladder | NeedId::Social) {
+                50.0
+            } else {
+                20.0
+            },
+            "{need:?} reaching the exact Critical boundary"
+        );
+    }
+}
+
+#[test]
+fn attendance_work_care_recovers_an_already_critical_current_save_next_tick() {
+    let (mut sim, actor, _) = full_fixture(1, 480, 1440);
+    until(&mut sim, "office arrival", 100, |s| {
+        s.world().get::<AtWork>(actor).is_some()
+    });
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(Needs::all_at(20.0));
+    continue_roundtrip(&mut sim, 1);
+    for need in NeedId::ALL {
+        assert_eq!(
+            sim.world().get::<Needs>(actor).unwrap().get(need),
+            if matches!(need, NeedId::Hunger | NeedId::Bladder | NeedId::Social) {
+                50.0
+            } else {
+                20.0
+            },
+            "{need:?} critical save recovery"
         );
     }
 }
@@ -476,13 +644,13 @@ fn assert_post_energy_shift_base(half: bool) {
     let pack = sim.world().resource::<Content>().0;
     let job = &pack.careers[0];
     let ratio = if half { 0.5 } else { 1.0 };
-    let energy_before = pack.tuning.mood_low_need_level + job.energy_cost * ratio / 2.0;
+    let energy_before = pack.tuning.mood_critical_need_level + job.energy_cost * ratio / 2.0;
     sim.world_mut()
         .get_mut::<Needs>(actor)
         .unwrap()
         .set(NeedId::Energy, energy_before);
     let before_mood = sim.mood_of(actor.index_u32()).unwrap().overall_score;
-    let expected_mood = before_mood - pack.tuning.mood_low_need_penalty;
+    let expected_mood = before_mood - pack.tuning.mood_critical_need_penalty;
     assert!(
         before_mood > -50.0 && expected_mood > -50.0,
         "the comparison must not saturate the career mood term"
@@ -492,7 +660,7 @@ fn assert_post_energy_shift_base(half: bool) {
     let before_base = crate::careers::shift_score(fit, mastery, before_mood / 50.0);
     let expected_base = crate::careers::shift_score(fit, mastery, expected_mood / 50.0);
     assert!(
-        (before_base - expected_base - 2.4).abs() < 0.0001,
+        (before_base - expected_base - 5.0).abs() < 0.0001,
         "the energy boundary must change the established base score"
     );
     sim.tick();

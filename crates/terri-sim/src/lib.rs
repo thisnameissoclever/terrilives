@@ -5,6 +5,10 @@ pub mod action_rows;
 pub mod activity_status;
 #[cfg(test)]
 mod activity_tests;
+#[cfg(test)]
+mod pool_tests;
+mod pool;
+mod bath;
 pub mod affinity;
 pub mod beds;
 pub mod books;
@@ -1486,14 +1490,36 @@ impl Sim {
     /// Complete current persistence, including pending fights and repair decisions.
     pub fn save_snapshot_v20(&self) -> terri_core::SaveSnapshotV20 {
         build_transaction::committed(&self.world)
-            .map(|s| s.previous.clone())
+            .map(|s| s.previous.previous.previous.clone())
             .unwrap_or_else(|| save::v20::capture(self))
     }
 
     pub fn save_snapshot_v21(&self) -> terri_core::SaveSnapshotV21 {
         build_transaction::committed(&self.world)
-            .cloned()
+            .map(|s| s.previous.previous.clone())
             .unwrap_or_else(|| save::v21::capture(self))
+    }
+    pub fn save_snapshot_v22(&self) -> terri_core::SaveSnapshotV22 {
+        self.try_save_snapshot_v22().expect("current swimming is not representable in historical V22; use V23 or the fallible projection")
+    }
+    /// V22 omits bath toys and cannot express the corrected active pool coordinates.
+    pub fn try_save_snapshot_v22(&self) -> Result<terri_core::SaveSnapshotV22, SaveError> {
+        if let Some(baseline)=self.committed_projection() { return baseline.try_save_snapshot_v22(); }
+        if pool::has_swimming_state(&self.world) { return Err(SaveError::InvalidValue); }
+        Ok(save::v22::capture_current_layer(self))
+    }
+    pub fn save_snapshot_v23(&self) -> terri_core::SaveSnapshotV23 {
+        build_transaction::committed(&self.world).cloned().unwrap_or_else(|| save::v23::capture(self))
+    }
+    pub fn load_snapshot_v23(&mut self, snapshot: terri_core::SaveSnapshotV23) -> Result<(), SaveError> {
+        let candidate = save::v23::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
+        self.adopt_restored(candidate, false, false)
+    }
+    pub fn load_snapshot_v22(&mut self, snapshot: terri_core::SaveSnapshotV22) -> Result<(), SaveError> {
+        let candidate = save::v22::restore(snapshot, self.world.resource::<Content>().0,
+            save::Carried::for_load(&self.world))?;
+        self.adopt_restored(candidate, false, false)
     }
     pub fn load_snapshot_v21(
         &mut self,
@@ -1756,6 +1782,11 @@ impl Sim {
             world_geometry::revalidate_routes(&mut restored.world);
         }
         character_draft::ensure_appearance_components(&mut restored.world);
+        // Historical baths select once from the restored simulation stream.
+        // V23 has already required a complete current bath continuation.
+        bath::begin(&mut restored.world);
+        // Restoration attaches activity state in stages; seed interpolation from the final snapshot.
+        restored.render_rows.clear();
         restored.sync_render_buffer_after_commands();
         restored
             .world
@@ -2064,7 +2095,7 @@ impl Sim {
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                (dining::advance, systems::chain::advance_chains).chain(),
+                (dining::advance, systems::chain::advance_chains, pool::prepare).chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -2101,7 +2132,10 @@ impl Sim {
                     domestic::gather_diners,
                     social_company::tick_meals,
                     need_interactions::tick,
+                    pool::tick,
+                    bath::begin,
                     systems::interact::tick_interactions,
+                    bath::maintain,
                 )
                     .chain(),
                 // Beside tick_interactions because it is the same job
@@ -2518,10 +2552,12 @@ impl Sim {
         }
         if build_transaction::needs_atomic_drain(&self.world) {
             build_transaction::run_atomic_drain(self);
+            bath::maintain(&mut self.world);
             return;
         }
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        bath::maintain(&mut self.world);
         if self.build_active()
             || build_transaction::has_error(&self.world)
             || build_transaction::native_batch(&self.world)
@@ -2656,6 +2692,13 @@ impl Sim {
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
+            std::mem::swap(&mut self.render.prev_pool_phases, &mut self.render.pool_phases);
+            std::mem::swap(&mut self.render.prev_pool_elapsed, &mut self.render.pool_elapsed);
+            std::mem::swap(&mut self.render.prev_pool_exit_origins, &mut self.render.pool_exit_origins);
+            self.render.prev_pool_targets.clone_from(&self.render.interaction_targets);
+            std::mem::swap(&mut self.render.prev_bath_toys, &mut self.render.bath_toys);
+            std::mem::swap(&mut self.render.prev_bath_elapsed, &mut self.render.bath_elapsed);
+            self.render.prev_bath_targets.clone_from(&self.render.interaction_targets);
         }
         self.render.positions.clear();
         self.render.kinds.clear();
@@ -2671,6 +2714,11 @@ impl Sim {
         self.render.conversation_preferences.clear();
         self.render.visual_actions.clear();
         self.render.chore_progress.clear();
+        self.render.pool_phases.clear();
+        self.render.pool_elapsed.clear();
+        self.render.pool_exit_origins.clear();
+        self.render.bath_toys.clear();
+        self.render.bath_elapsed.clear();
         self.render.interaction_targets.clear();
         self.render.meal_tables.clear();
         self.render.sleeping_beds.clear();
@@ -3296,11 +3344,18 @@ impl Sim {
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
             self.render.ids.push(row.index);
-            self.render.activities.push(row.activity);
+            let pool = self.world.get::<pool::PoolEpisode>(row.entity).filter(|episode| episode.phase > 0);
+            self.render.activities.push(if pool.is_some() { render_buffer::activity::SWIMMING } else { row.activity });
+            self.render.pool_phases.push(pool.map_or(0, |e| u32::from(e.phase)));
+            self.render.pool_elapsed.push(pool.map_or(0, |e| e.elapsed));
+            self.render.pool_exit_origins.push(pool.map_or(0, |e| e.exit_origin));
+            let bath = bath::current(&self.world, row.entity);
+            self.render.bath_toys.push(bath.map_or(0, |episode| u32::from(episode.toy)));
+            self.render.bath_elapsed.push(bath.map_or(0, |episode| episode.elapsed));
             let (topic, preference) = social_episode::bubble(&self.world, row.index);
             self.render.conversation_topics.push(topic);
             self.render.conversation_preferences.push(preference);
-            self.render.visual_actions.push(row.visual_action);
+            self.render.visual_actions.push(if pool.is_some() { render_buffer::visual_action::SWIM } else { row.visual_action });
             let bin_progress = self
                 .world
                 .get_resource::<terri_core::chores::SavedChores>()
@@ -3316,7 +3371,7 @@ impl Sim {
             self.render
                 .chore_progress
                 .push(row.chore_progress.max(bin_progress));
-            self.render.interaction_targets.push(row.interaction_target);
+            self.render.interaction_targets.push(pool.map_or(row.interaction_target, |e| e.pool.index_u32()));
             self.render.meal_tables.push(row.meal_table);
             self.render.sleeping_beds.push(row.sleeping_bed);
             self.render.sleeping_places.push(row.sleeping_place);
@@ -3457,6 +3512,13 @@ impl Sim {
             || self.render.prev_positions.len() != self.render.positions.len()
         {
             self.render.prev_positions = self.render.positions.clone();
+            self.render.prev_pool_phases.clone_from(&self.render.pool_phases);
+            self.render.prev_pool_elapsed.clone_from(&self.render.pool_elapsed);
+            self.render.prev_pool_exit_origins.clone_from(&self.render.pool_exit_origins);
+            self.render.prev_pool_targets.clone_from(&self.render.interaction_targets);
+            self.render.prev_bath_toys.clone_from(&self.render.bath_toys);
+            self.render.prev_bath_elapsed.clone_from(&self.render.bath_elapsed);
+            self.render.prev_bath_targets.clone_from(&self.render.interaction_targets);
         } else {
             for (slot, row) in rows.iter().enumerate() {
                 if previous_socket_projection.contains(&row.entity) != row.socket_projected
@@ -3465,6 +3527,13 @@ impl Sim {
                     let position = slot * 2;
                     self.render.prev_positions[position] = self.render.positions[position];
                     self.render.prev_positions[position + 1] = self.render.positions[position + 1];
+                    self.render.prev_pool_phases[slot] = self.render.pool_phases[slot];
+                    self.render.prev_pool_elapsed[slot] = self.render.pool_elapsed[slot];
+                    self.render.prev_pool_exit_origins[slot] = self.render.pool_exit_origins[slot];
+                    self.render.prev_pool_targets[slot] = self.render.interaction_targets[slot];
+                    self.render.prev_bath_toys[slot] = self.render.bath_toys[slot];
+                    self.render.prev_bath_elapsed[slot] = self.render.bath_elapsed[slot];
+                    self.render.prev_bath_targets[slot] = self.render.interaction_targets[slot];
                 }
             }
         }
@@ -4292,6 +4361,8 @@ impl Sim {
         let mut hasher = terri_core::FnvHasher::default();
         rooms::hash(&self.world, &mut hasher);
         world_geometry::hash(&self.world, &mut hasher);
+        pool::hash(&self.world, &mut hasher);
+        bath::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
         // (entity index, x, y, all seven need levels). Every level is

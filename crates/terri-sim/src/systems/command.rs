@@ -336,6 +336,7 @@ fn release_commitment_checked(
 }
 
 fn release_commitment_now(world: &mut World, agent: Entity, target: Target) {
+    if crate::pool::request_exit(world, agent) { return; }
     if let Some(journey) = world.get::<crate::reading::ReadingJourney>(agent) {
         if journey.order.is_some() {
             crate::reading::request_return(world, agent);

@@ -1796,7 +1796,7 @@
       "desktopDetail": "images/ui-guide-shortcut-detail-desktop.png",
       "mobileDetail": "images/ui-guide-shortcut-detail-mobile.png",
       "description": "The Player guide link directly below Build and Options. The phone closeup shows its keyboard focus outline.",
-      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab. Pause first to stop game time.",
+      "access": "Choose Player guide below Build and Options. It opens the guide in a separate tab.",
       "sourceSnapshot": "delivery-guide-shortcut",
       "htmlSha256": "c7d673f434074d53f3101e4a6aa2b6de9d3e6aab4e05be0fdf0e8aa0d63d40f6",
       "bundleSha256": "e314e92a041b8559b82c245924dd8884cc8395fc0ab1907edbda2ba4e9cb0d8e",

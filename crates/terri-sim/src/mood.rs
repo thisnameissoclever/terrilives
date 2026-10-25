@@ -82,16 +82,11 @@ fn derive_mood_with_chores(
     }
     for need in NeedId::ALL {
         let level = needs.get(need);
-        let (low_label, critical_label) = need_labels(need);
+        let (_, critical_label) = need_labels(need);
         if level <= pack.tuning.mood_critical_need_level {
             moodlets.push(Moodlet {
                 label: critical_label.to_string(),
                 score: -pack.tuning.mood_critical_need_penalty,
-            });
-        } else if level <= pack.tuning.mood_low_need_level {
-            moodlets.push(Moodlet {
-                label: low_label.to_string(),
-                score: -pack.tuning.mood_low_need_penalty,
             });
         }
     }
@@ -626,7 +621,7 @@ mod tests {
     fn sustained_mood_changes_satisfaction_in_both_directions() {
         let mut sim = Sim::new();
         let happy = subject(&mut sim, Needs::all_at(100.0));
-        let sad = subject(&mut sim, Needs::all_at(25.0));
+        let sad = subject(&mut sim, Needs::all_at(20.0));
         let neutral = subject(&mut sim, Needs::all_at(55.0));
         for person in [happy, sad, neutral] {
             let mut ledger = terri_core::Satisfaction::from_value(0.0);
@@ -789,7 +784,7 @@ mod tests {
     }
 
     #[test]
-    fn need_thresholds_use_the_exact_plain_labels_and_scores() {
+    fn need_penalties_begin_only_at_the_critical_boundary() {
         let pack = test_content::pack(Vec::new());
         let mut sim = test_content::sim_with(8, 8, pack);
         let subject = subject(&mut sim, Needs::all_at(NEED_MAX));
@@ -803,24 +798,25 @@ mod tests {
             ("Uncomfortable", "Very uncomfortable"),
         ];
 
-        for (need, (low, critical)) in NeedId::ALL.into_iter().zip(labels) {
-            for (level, expected_label, expected_score) in [
-                (20.0, critical, -25.0),
-                (20.001, low, -12.0),
-                (40.0, low, -12.0),
-            ] {
+        for (need, (_, critical)) in NeedId::ALL.into_iter().zip(labels) {
+            for level in [0.0, 19.999, 20.0, 20.001, 40.0, 40.001] {
                 let mut needs = Needs::all_at(NEED_MAX);
                 needs.set(need, level);
                 sim.world_mut().entity_mut(subject).insert(needs);
                 let snapshot = mood(&sim, subject);
-                assert_eq!(
-                    snapshot.moodlets,
+                let expected = if level <= 20.0 {
                     vec![Moodlet {
-                        label: expected_label.to_string(),
-                        score: expected_score,
-                    }],
-                    "{} at {level} must use its own threshold label",
-                    need.as_str()
+                        label: critical.to_string(),
+                        score: -25.0,
+                    }]
+                } else {
+                    Vec::new()
+                };
+                assert_eq!(snapshot.moodlets, expected, "{need:?} at {level}");
+                assert_eq!(
+                    snapshot.overall_score,
+                    if level <= 20.0 { -25.0 } else { 0.0 },
+                    "{need:?} at {level} must not include another mood cause"
                 );
             }
 
@@ -840,8 +836,8 @@ mod tests {
         let pack = test_content::pack(Vec::new());
         let mut sim = test_content::sim_with(8, 8, pack);
         let mut needs = Needs::all_at(NEED_MAX);
-        for (offset, need) in NeedId::ALL.into_iter().enumerate() {
-            needs.set(need, if offset % 2 == 0 { 20.0 } else { 40.0 });
+        for need in NeedId::ALL {
+            needs.set(need, 20.0);
         }
         let subject = subject(&mut sim, needs);
         let snapshot = mood(&sim, subject);
@@ -853,11 +849,11 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 "Starving",
-                "Tired",
+                "Exhausted",
                 "Very dirty",
-                "Needs the toilet",
+                "Desperate for the toilet",
                 "Very lonely",
-                "Bored",
+                "Very bored",
                 "Very uncomfortable",
             ]
         );
@@ -867,7 +863,7 @@ mod tests {
                 .iter()
                 .map(|moodlet| moodlet.score)
                 .collect::<Vec<_>>(),
-            vec![-25.0, -12.0, -25.0, -12.0, -25.0, -12.0, -25.0]
+            vec![-25.0; 7]
         );
         assert_eq!(snapshot.overall_score, -100.0, "the sum clamps at -100");
 

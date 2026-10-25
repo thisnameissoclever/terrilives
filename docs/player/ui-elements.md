@@ -2,7 +2,7 @@
 
 ## Find the controls {#overview}
 
-The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. A phone uses a compact dock, with the needs inside Sim details, then Overview. Expand or Collapse changes how much of the dock is shown.
+The user interface (UI) is the game's controls, menus and information panels. The world controls sit at the top; the selected person and Household row sit in the bottom dock. Desktop can keep needs visible in that dock. On a phone, a selected person's needs are inside Sim details, then Overview. The separate down-chevron collapses the dock; the up-chevron expands it.
 
 The paths below use the actual button and panel names. Desktop uses clicks and right-clicks; phone uses taps and long-presses. Scroll inside a panel when its content extends beyond the screen.
 
@@ -10,9 +10,11 @@ The paths below use the actual button and panel names. Desktop uses clicks and r
 
 ## Household and the selected person {#household}
 
-Desktop: choose a name under Household in the bottom dock. Phone: use the Household name buttons along the bottom; Expand reveals more of the dock if collapsed. Selecting a person changes the name, current activity, mood, satisfaction and all Sim details to that person's information.
+Desktop: choose a name under Household in the bottom dock. Phone: use the Household name buttons along the bottom; expand the dock with the up-chevron if needed. Selecting a person changes the name, current activity, mood, satisfaction and all Sim details to that person's information.
 
-Edit sits beside the selected name. It opens that person's character draft. It is unavailable without a selected living person. A warning near a household name helps you spot a person who needs attention without assuming the selected person is the only one in trouble.
+Edit sits beside the selected name and opens that person's character draft. It is hidden without a selected person. Critical needs appear beside the current activity and remain visible when the dock is collapsed. A warning near a household name helps you spot another person who needs attention.
+
+Click or tap empty floor to clear the selection. Hollow mood, life-satisfaction and need tracks mean no person is selected. On a phone, expand the dock to see the empty need tracks. Sim details and Queue require a selected person; Chores remains available for the household.
 
 If the activity beside the selected name is clipped, hover over it, focus it with the keyboard, or click or tap it to read the full text. Escape or a press outside closes the popup. Reading it does not issue an order.
 
@@ -26,7 +28,7 @@ Drag the game view to pan. Use the mouse wheel on desktop or pinch on touch to z
 
 ### Player guide link {#player-guide}
 
-Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. The game keeps running in the background, so use Pause first if you want the household to wait. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
+Choose Player guide directly below Build and Options. The link remains available during Build. The guide opens in another tab. Options and Help also contain guide links. See [time controls](home-and-controls/#camera-and-speed).
 
 :::illustration guide-shortcut
 
@@ -118,11 +120,13 @@ Desktop: right-click a placed object or another person. Phone: long-press the ta
 
 Actions surround the object. More actions opens the next page; Back returns. Close, Escape or an outside press dismisses the menu. Sim-dependent actions need a selected person.
 
-The object's type is primary and its model name secondary. Activate the name for its optional description. Scroll inside a longer description to read the rest.
+On a crowded screen, the menu uses a row that scrolls sideways. Use its scrollbar, swipe the row, or press Tab to reveal each control. Close stays beside the row.
+
+The object's type is primary and its model name secondary. Click or tap the object's name, or focus it and press Enter or Space, to read its description. Activate the name again to close it. The surrounding menu shows a separate description bubble; the compact row shows the description inside that row. Scroll within a longer description to read the rest.
 
 :::illustration object-description
 
-Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading and book commerce. The Nothing action cancels selected-person orders; it is not the menu's Close control.
+Enter build mode selects that exact object in Furniture, including objects without ordinary Sim actions. Bookcases offer automatic reading and book commerce. Clear orders appears when the selected person has a player-directed commitment or waiting orders to cancel. Autonomous activity can continue after cancellation. Close dismisses the menu.
 
 Person menus offer Chat and Fight.
 
@@ -146,7 +150,7 @@ Choose Build, then Buy. Use the catalogue's visible filters to find a type and m
 
 :::illustration build-buy
 
-The catalogue can scroll while the placement controls remain available. Scroll the Buy panel for Colour and other product details. An item must still satisfy placement rules. A purchased decoration does not gain a use action just because it costs money. See [furniture](home-and-controls/#furniture).
+The catalogue can scroll while the placement controls remain available. Back to catalogue returns from the purchase preview to the product list, keeping its filters and position. Scroll the Buy panel for Colour and other product details. An item must still satisfy placement rules. A purchased decoration does not gain a use action just because it costs money. See [furniture](home-and-controls/#furniture).
 
 ## Walls and Windows {#walls}
 
@@ -160,7 +164,9 @@ The status explains refusals. A window must fit entirely within a solid wall. Wi
 
 ## Floors {#floors}
 
-Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it or Remove to restore the original floor within the draft. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
+Choose Build, then Floors, then select a tile, or two opposite corner tiles for a rectangle. Choose a covering beside it to apply that covering within the draft. Remove clears the covering and replaces an underlying indoor floor with grass; underlying grass and street stay unchanged. Selecting a tile alone does not apply a covering. Confirm at the bottom keeps the batch and exits Build.
+
+Missing materials show a spinner beside the floor actions while the edit waits. If loading fails, choose **Retry** or another covering. Retry continues the waiting edit if the selected tiles and draft still match. Changing either, choosing another covering, leaving Floors or loading another household cancels the waiting edit. With no tile selected, material recovery appears in the game view and leaves the floor unchanged.
 
 :::illustration floor-actions
 
@@ -183,7 +189,7 @@ Choose Behind the house, Left side or Right side and inspect dimensions, price a
 
 ## Options {#options}
 
-Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, New game, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab. Pause first if you want the household to wait while you read.
+Choose Options in the top world controls. The panel contains the game version, Close Options, Light, the death checkbox, automatic career changes, sound controls, New housemate, Save, Load, New game, Help, Player guide and Changelog. Player guide opens these longer instructions in a new tab.
 
 Light: auto follows the clock; Light: flat removes the changing light cycle. Sound mutes all sound. Effects changes the overall effects mix; Voices adjusts conversations within that mix. Opening Options does not pause the household. Escape, Close Options or a press outside closes it.
 

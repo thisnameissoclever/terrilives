@@ -34,6 +34,7 @@ import { RoomTool } from './ui/room-tool.js';
 import { RoomSelection, RoomSelectionControls, RoomsTool } from './ui/room-selection.js';
 import { RoomReviewController, RoomReviewControls } from './ui/room-review.js';
 import { BuildSceneFeedback, PendingIndicator, SceneFeedback, operationFeedback } from './ui/operation-feedback.js';
+import { PersistenceSceneFeedback } from './ui/persistence-feedback.js';
 import { SceneLayoutObserver } from './ui/scene-feedback-layout.js';
 import { screenX, screenY } from './render/iso.js';
 import type { BuildReview } from './rooms/codec.js';
@@ -443,12 +444,14 @@ async function main(): Promise<void> {
   if (!commandStatusElement) throw new Error('missing #command-feedback');
   const sceneFeedback = new SceneFeedback(commandStatusElement);
   const commandStatus = sceneFeedback.status;
+  const persistenceFeedback = new PersistenceSceneFeedback(sceneFeedback, saveStatus);
   const persistence = new PersistenceController(
     createSaveStore(),
     buildSession,
     saveStatus,
     (error) => console.error('save storage failed:', error),
     loadCharacters,
+    (event) => persistenceFeedback.present(event),
   );
   loading.step('Loading the household');
   await persistence.restoreAtStartup();
@@ -1215,6 +1218,8 @@ async function main(): Promise<void> {
     event.preventDefault();
     loadingGame = true;
     loadGameDialog.close('confirm');
+    // Clear the old world's command before Load takes ownership of scene feedback.
+    sceneFeedback.clear('command');
     const loading = persistence.load();
     syncPersistenceButtons();
     void loading
@@ -1244,8 +1249,6 @@ async function main(): Promise<void> {
           keyboardTargets.clear();
           bookResults.resetAfterLoad();
           orderDiagnostics.resetAfterLoad(sim.orderEventsSince('0').nextCursor);
-          commandStatus.textContent = '';
-          commandStatus.removeAttribute('data-kind');
           bookCommerce.resetAfterLoad();
           builder.resetAfterLoad();
           // [ES-form]: a draft names a person of the replaced world, so
@@ -1447,7 +1450,7 @@ async function main(): Promise<void> {
   document.addEventListener('visibilitychange', () => {
     const hidden = document.visibilityState === 'hidden';
     if (hidden && !startingNewGame) {
-      const saving = persistence.save('Game saved');
+      const saving = persistence.saveAutomatically();
       syncPersistenceButtons();
       void saving.then(() => syncPersistenceButtons());
     }
@@ -1847,9 +1850,9 @@ async function main(): Promise<void> {
       } catch (error) { lot.architecture.finishes = previousFinishes; throw error; }
     },
     dispose: next => next.renderer.discardFloorFinishes(next.prepared),
+    failure: (error, context) => console.warn('Floor material resource failed', context, error),
     state: (ready, error) => {
       floorResourceError = error;
-      if (error) console.warn('Floor material resource failed', error);
       floorTool.setResourceStatus(ready ? null : error ? 'Floor materials could not load. Try again.' : 'Loading floor materials.', error !== null);
       syncFloorScene();
       cameraDirty = true;

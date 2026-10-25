@@ -113,6 +113,21 @@ pub struct RenderBuffer {
     pub visual_actions: Vec<u32>,
     /// Derived timed-chore phase in thousandths; zero for inactive rows.
     pub chore_progress: Vec<u32>,
+    /// Native pool phase: 0 inactive/approach, 1 entry, 2 paddle, 3 exit, 4 reversed entry.
+    pub pool_phases: Vec<u32>,
+    pub pool_elapsed: Vec<u32>,
+    pub pool_exit_origins: Vec<u32>,
+    /// Previous native pool projection, advanced with the position interpolation pair.
+    pub prev_pool_phases: Vec<u32>,
+    pub prev_pool_elapsed: Vec<u32>,
+    pub prev_pool_exit_origins: Vec<u32>,
+    pub prev_pool_targets: Vec<u32>,
+    /// Stable toy identity and elapsed native bath time; zero means inactive.
+    pub bath_toys: Vec<u32>,
+    pub bath_elapsed: Vec<u32>,
+    pub prev_bath_toys: Vec<u32>,
+    pub prev_bath_elapsed: Vec<u32>,
+    pub prev_bath_targets: Vec<u32>,
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
@@ -279,6 +294,7 @@ pub mod activity {
     pub const MOPPING: u32 = 24;
     pub const WIPING: u32 = 25;
     pub const EMPTYING_BIN: u32 = 26;
+    pub const SWIMMING: u32 = 27;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -322,6 +338,7 @@ pub mod visual_action {
     /// the tile in front of its door. The web selects the drawn sample from
     /// the step's progress in `chore_progress`, not from a looping clock.
     pub const FETCH: u32 = 22;
+    pub const SWIM: u32 = 23;
 }
 
 /// Lot-axis facing codes for projected body actions.

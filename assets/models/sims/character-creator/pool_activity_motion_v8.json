@@ -1,0 +1,296 @@
+{
+  "version": 8,
+  "status": "R60 unadmitted complete contact storyboard and candidate geometry draft; not registered or serialized motion",
+  "fixture": {
+    "layout": "outdoor/pool_activity_layout_v3.py",
+    "model": "outdoor/pool_activity_model_v3.py",
+    "render": "outdoor/render_pool_activity_v3.py"
+  },
+  "anatomicalGauge": {
+    "source": "pool-source-full-v1.json",
+    "sha256": "31fe895dad1b562c9d9cfe921aaa29dc30c283443287f093ae6d6b219c4716b5",
+    "frame": 0,
+    "measurementSha256": "65101958ef1c963bfa3f4403eb4280413b5d8bc4e128744f82dc93cf95f7d61c"
+  },
+  "preserve": {
+    "rigAndRestLengths": true,
+    "squareBasinAndMaterials": true,
+    "nativeDuration": [
+      20,
+      60,
+      20
+    ],
+    "unrelatedClips": true
+  },
+  "construction": {
+    "outside": "step-to adjacent treads, facing pool",
+    "inside": "step-to adjacent treads, facing ladder after supported half-turn",
+    "feet": "complete configured sole patches; finite footprint domains",
+    "hands": "actual advancing mesh-edge contacts in reachable shoulder shells",
+    "body": "source0 near-standing stance carried with planted supports; measured source0 hinge reconstruction",
+    "clearance": "unchanged full selected body/swimwear observer",
+    "reservation": {
+      "x": [
+        -1,
+        0
+      ],
+      "y": [
+        1,
+        2
+      ]
+    }
+  },
+  "events": [
+    {
+      "phase": 0,
+      "state": "ground approach",
+      "feet": [
+        "ground",
+        "ground"
+      ],
+      "hands": [
+        "free",
+        "free"
+      ]
+    },
+    {
+      "phase": 0.06,
+      "state": "first grip",
+      "feet": [
+        "ground",
+        "ground"
+      ],
+      "hands": [
+        "outer rail 1",
+        "outer rail 2"
+      ]
+    },
+    {
+      "phase": 0.16,
+      "state": "outside tread 1 regroup",
+      "feet": [
+        "outside1",
+        "outside1"
+      ],
+      "hands": [
+        "rail 1",
+        "rail 2"
+      ]
+    },
+    {
+      "phase": 0.26,
+      "state": "outside tread 2 regroup",
+      "feet": [
+        "outside2",
+        "outside2"
+      ],
+      "hands": [
+        "rail 1",
+        "rail 2"
+      ]
+    },
+    {
+      "phase": 0.36,
+      "state": "outside tread 3 regroup",
+      "feet": [
+        "outside3",
+        "outside3"
+      ],
+      "hands": [
+        "rail 1",
+        "rail 2"
+      ]
+    },
+    {
+      "phase": 0.46,
+      "state": "outside tread 4 regroup",
+      "feet": [
+        "outside4",
+        "outside4"
+      ],
+      "hands": [
+        "rail 1 crest",
+        "rail 2 crest"
+      ]
+    },
+    {
+      "phase": 0.54,
+      "state": "visible crest landing supported turn",
+      "feet": [
+        "crest landing",
+        "crest landing"
+      ],
+      "hands": [
+        "crest, per-turn ownership",
+        "crest, per-turn ownership"
+      ]
+    },
+    {
+      "phase": 0.62,
+      "state": "inside tread 4 regroup",
+      "feet": [
+        "inside4",
+        "inside4"
+      ],
+      "hands": [
+        "rail 2",
+        "rail 1"
+      ]
+    },
+    {
+      "phase": 0.69,
+      "state": "inside tread 3 regroup",
+      "feet": [
+        "inside3",
+        "inside3"
+      ],
+      "hands": [
+        "rail 2",
+        "rail 1"
+      ]
+    },
+    {
+      "phase": 0.76,
+      "state": "inside tread 2 regroup",
+      "feet": [
+        "inside2",
+        "inside2"
+      ],
+      "hands": [
+        "rail 2",
+        "rail 1"
+      ]
+    },
+    {
+      "phase": 0.83,
+      "state": "inside tread 1 regroup",
+      "feet": [
+        "inside1",
+        "inside1"
+      ],
+      "hands": [
+        "rail 2",
+        "rail 1"
+      ]
+    },
+    {
+      "phase": 0.88,
+      "state": "release into paddle",
+      "feet": [
+        "free",
+        "free"
+      ],
+      "hands": [
+        "release",
+        "release"
+      ]
+    },
+    {
+      "phase": 1,
+      "state": "paddle join",
+      "feet": [
+        "free",
+        "free"
+      ],
+      "hands": [
+        "free",
+        "free"
+      ]
+    }
+  ],
+  "exit": "Actual paddle-origin return and separately verified reverse contacts; same complete exit duration.",
+  "pending": [
+    "evaluated geometry",
+    "first/middle/crest/inside stance measurement",
+    "rail hand-side ownership boundary decision",
+    "complete source and policy",
+    "intervals/body variants/facings",
+    "matched visible artwork and motion"
+  ],
+  "candidateRevision": 4,
+  "geometryRationale": {
+    "treadDepth": {
+      "value": 0.18,
+      "measuredNeutralSolePatchDepth": 0.1286011762363747
+    },
+    "treadRun": {
+      "value": 0.16,
+      "neutralNextSlabShinMinimumRelativeAnkle": -0.0705786943435669,
+      "neutralCenteredSoleAnkleRelativeTreadCenter": 0.032059744986592136,
+      "nextTreadOuterEdgeRelativeCurrentCenter": -0.07,
+      "neutralSampledVertexMargin": 0.03148105064302524,
+      "claim": "source0 vertex design witness only; actual candidate full surface remains unmeasured"
+    },
+    "railWidth": {
+      "value": 0.52,
+      "neutralCompleteFeetOuterSpan": 0.426766145523947,
+      "claim": "room for actual feet; no observer allowance"
+    },
+    "crestLanding": {
+      "top": 1.0,
+      "depth": 0.4,
+      "centerY": 0.905,
+      "revisionReason": "R4 placed both inside legs through the .56..1.26 landing. A .40 m top centered on the actual coping centreline covers the nominal complete sole-patch turn envelope (about .381 m), while removing unsupported overhang from the flights. Full body/turn proof remains required."
+    },
+    "railConstruction": "R63 actual retained Bezier path and explicit 14-profile/73-ring mesh, with X-aligned cross sections and exact zero Y/Z offset at X extrema. Runtime guards unchanged.",
+    "insideFlight": {
+      "treadY": [
+        0.12,
+        0.28,
+        0.44,
+        0.6
+      ],
+      "revisionReason": "The complete top tread must lie basinward of the shortened landing inner edge: .705 - .09 = .615 maximum centre. Author the next lower multiple of the actual .025 tread thickness, .600. Retain .16 run/.20 rise and extend real upper stringers to the landing underside."
+    }
+  },
+  "handOrientationGauge": {
+    "handL": [
+      -1.0111014212843675e-06,
+      0.4459174622062974,
+      0.8950740845865626,
+      0,
+      -0.13511319275398836,
+      -0.8868664680237742,
+      0.4418283524615182,
+      0,
+      0.9908301696773274,
+      -0.12093587058656878,
+      0.06025022873539509,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "handR": [
+      -1.0111014212560503e-06,
+      -0.4459169674118203,
+      -0.895074331088331,
+      0,
+      0.13511319275398836,
+      -0.8868667122650955,
+      0.4418278622041888,
+      0,
+      -0.9908301696773272,
+      -0.12093590389270545,
+      0.06025016188238046,
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  },
+  "handOrientationGaugeSourceSha256": "c7383cede4c52b0c12dc53cdb10102fbb5baa6f5575f7fbc32e1b84cee3d093a",
+  "bodyAuthoring": {
+    "firstRung": "Literal retained R4 neutral-body/contact construction; require exact retained WORLD/skin equality.",
+    "transferFlexionDegrees": 30,
+    "transferHeight": "Use actual configured rest vectors and source0 hinge axis to derive the 30-degree leg chord, then derive pelvis Z from the declared planted hip/ankle X/Y displacement. Do not clamp the old reach failure.",
+    "outsideTransfer": "Keep pelvis centered between the handrails; move its Y halfway along the adjacent-rung travel.",
+    "insideTransfer": "Keep pelvis centered between handrails and one complete configured foot-depth basinward of the planted ankle. The free foot retracts beneath its corresponding hip while still above the outgoing tread, before lowering.",
+    "insideHighFoot": "Departing ankle Z plus half the complete foot height; no descent until complete toe/foot and shin clearance is observed.",
+    "handOrientation": "For non-first stances, derive each hand frame from the actual edge tangent and actual palm/thumb local basis; point the thumb along the upward perpendicular to the rail tangent. Physical side comes from the selected rail.",
+    "handSelection": "One geometry-derived wrist option per real rail edge/reach interval, ranked by the same shoulder-relative wrist preference. No post-observation rescue options or elbow grid. Complete palm/thumb/arm/body observation is mandatory.",
+    "wholeCycle": "Apply this same step-to rule to each adjacent flight segment, then author crest hand release/acquisition and paddle joins as explicit supported events. No endpoint subset is a complete cycle."
+  }
+}

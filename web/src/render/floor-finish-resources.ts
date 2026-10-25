@@ -8,11 +8,12 @@ export class FloorFinishResources<T> {
   private paused = false;
   private destroyed = false;
   private hasRequested=false;
-  private readonly waiters:{resolve:()=>void;reject:(error:Error)=>void}[]=[];
+  private readonly waiters:{resolve:()=>void;reject:(error:unknown)=>void}[]=[];
   constructor(private readonly hooks: {
     prepare(keys: readonly string[]): Promise<T>;
     publish(value: T): void;
     dispose(value: T): void;
+    failure?(error: unknown, context: { operation: 'prepare' | 'publish'; finishKeys: readonly string[] }): void;
     state(ready: boolean, error: string | null): void;
   }, resident?: readonly string[]) {
     // Startup loads the saved floors' finishes with the first renderer, so
@@ -68,10 +69,13 @@ export class FloorFinishResources<T> {
     if (this.running || this.current === this.desired || this.failed || this.paused || this.destroyed) return;
     this.running = true;
     const version = this.version, desired = this.desired;
+    const finishKeys = JSON.parse(desired) as string[];
+    let operation: 'prepare' | 'publish' = 'prepare';
     try {
-      const value = await this.hooks.prepare(JSON.parse(desired) as string[]);
+      const value = await this.hooks.prepare(finishKeys);
       if (version !== this.version) this.hooks.dispose(value);
       else {
+        operation = 'publish';
         try { this.hooks.publish(value); }
         catch (error) { this.hooks.dispose(value); throw error; }
         this.current = desired;
@@ -81,8 +85,9 @@ export class FloorFinishResources<T> {
     } catch (error) {
       if (version === this.version) {
         this.failed = true;
+        this.hooks.failure?.(error, { operation, finishKeys });
         this.hooks.state(false, error instanceof Error ? error.message : String(error));
-        for(const waiter of this.waiters.splice(0))waiter.reject(error instanceof Error?error:new Error(String(error)));
+        for(const waiter of this.waiters.splice(0))waiter.reject(error);
       }
     } finally {
       this.running = false;

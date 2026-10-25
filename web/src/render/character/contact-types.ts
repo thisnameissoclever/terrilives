@@ -3,7 +3,7 @@ import type {BikeDimensions} from './bike-fit.js';
 
 export interface ContactLandmark { point:Vec3; weights:[string,number][]; region:number }
 export interface ClipContacts {
-  version:1;space:'rig';policy:'work'|'carry'|'wash'|'dining'|'mop'|'bag'|'exercise'|'seat'|'bath'|'recline'|'book'|'sleep'|'shower'|'seat_book'|'book_reach';
+  version:1;space:'rig';policy:'work'|'carry'|'wash'|'dining'|'mop'|'bag'|'exercise'|'seat'|'bath'|'recline'|'book'|'sleep'|'shower'|'seat_book'|'book_reach'|'pool';
   landmarks:Record<'pelvis'|'back'|'mouth'|'palmL'|'palmR',ContactLandmark>;
   assemblies:Record<string,string>;
   dining?:{spoon:string;plate:string;length:number;food:Vec3};
@@ -13,6 +13,7 @@ export interface ClipContacts {
   mop?:{shaft:string;head:string;sleeve:string;rightFraction:number;leftRange:[number,number];leftPreferred:number};
   feet?:{kind:'floor'|'basin';forwardRange:[number,number]};
   bike?:BikeDimensions;
+  bath?:{assembly:string;hand:0|1;grip:Vec3;waterZ:number};
 }
 export interface ContactFrame {
   assemblies:Record<string,number[]>;raise?:number;lift?:number;
@@ -20,6 +21,7 @@ export interface ContactFrame {
   handContact?:[number,number];handRegions?:[{mode:string;min:Vec3;max:Vec3}|null,{mode:string;min:Vec3;max:Vec3}|null];
   bookHeld?:boolean;
   heldAssembly?:string;
+  poolTravel?:number;
 }
 export interface ContactWitness {name:string;target:Vec3;actual:Vec3;error:number}
 export interface PoseDiagnostics { contacts:ContactWitness[]; assemblies:Record<string,number[]> }

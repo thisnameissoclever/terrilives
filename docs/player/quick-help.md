@@ -10,7 +10,7 @@
 
 4. Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.
 
-5. Floors selects a tile without changing it. Select a second tile to select every tile in the rectangle between them. Choose Boards, Tiles, Carpet or Outdoor patio beside the selection to apply a covering. Remove restores its original floor in the draft. Confirm at the bottom keeps changes and exits Build.
+5. Floors selects a tile without changing it. Select a second tile to select every tile in the rectangle between them. Choose Boards, Tiles, Carpet or Outdoor patio beside the selection to apply a covering. Remove clears the covering and replaces an underlying indoor floor with grass; underlying grass and street stay unchanged. Confirm at the bottom keeps changes and exits Build.
 
 6. Land starts a fresh batch. If your current batch has changes, choose Confirm changes to keep them, Discard changes to undo them, or Keep building to stay with the current tool and draft. Land purchases have their own Buy land confirmation before joining the draft. See [rooms and land](home-and-controls/#rooms-and-land).
 
@@ -50,4 +50,4 @@
 
 ## Full player guide
 
-Read the [player guide](start-here/) for screenshots, activities and explanations. Open [Options](ui-elements/#options) and choose [New housemate](ui-elements/#new-housemate) to add a person. The guide opens separately; pause first if you want the household to wait.
+Read the [player guide](start-here/) for screenshots, activities and explanations. Open [Options](ui-elements/#options) and choose [New housemate](ui-elements/#new-housemate) to add a person. The guide opens in a separate tab.

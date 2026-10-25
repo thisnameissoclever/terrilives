@@ -42,6 +42,21 @@ const rigs=families.map(family=>{
   return {family,parts,extra:parts.geometry?readGeometry(parts.geometry,'clips/'+family):null};
 });
 
+it('selects occupied bath water without drawing a second tub or retaining it after bathing',()=>{
+  const family=rigs.find(row=>row.family==='bath')!;
+  const rig=prepareClipFamily(base,family.extra,family.parts,library,'bath');
+  const appearance=defaultAppearance(),body=new PreparedBody(base,appearance);
+  const context={wear:'bare' as const,prop:'none',fixture:'none',eyes_closed:false,clip:'bath',includeFixture:false};
+  const dry=body.select(rig,appearance,context);
+  expect(dry.extra).toBeNull();
+  const wet=body.select(rig,appearance,{...context,includeActivityWater:true});
+  expect(wet.extra?.description.parts.map(part=>part.name)).toEqual(['Creator clip bath Bath opaque water surface']);
+  expect(wet.extra?.description.parts.every(part=>part.region===12)).toBe(true);
+  expect(body.select(rig,appearance,{...context,clip:'idle',includeActivityWater:true}).extra).toBeNull();
+  expect(body.select(rig,appearance,context).extra).toBeNull();
+  expect(wet.body.description.parts.map(part=>part.name)).toEqual(dry.body.description.parts.map(part=>part.name));
+});
+
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 it('rejects shared part vertices before hidden geometry can change visible normal adjacency',()=>{
   const source={description:{vertexCount:3,parts:[{name:'Visible head',start:0,count:3},{name:'Hidden accessory',start:3,count:3}]},indices:new Uint32Array([0,1,2,2,1,0])} as unknown as Geometry;

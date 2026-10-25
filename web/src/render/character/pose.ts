@@ -1,8 +1,11 @@
+import type {PoolContactArtifactV1} from './pool-contact-types.js';
+import {requirePoolPose,PoolContactNotReadyError} from './pool-contact-sample.js';
 import type { Bundle, Geometry } from './bundle.js';
 import { add, boneFrame, inverseAffine, length, multiply, scale, solveLimb, sub, transform, type Vec3 } from './math.js';
 import { type ShapeParameters } from './shape.js';
 import { hasBook, isTransition } from './motion.js';
 import {solveInteraction} from './interaction-pose.js';
+import {fitPool} from './pool-fit.js';
 import type {PoseDiagnostics} from './contact-types.js';
 import {configuredJointSetup} from './pose-joints.js';
 import {fitBike} from './bike-fit.js';
@@ -16,7 +19,12 @@ import type {SeatContactArtifactV1,SeatFitResolver} from './seat-contact-types.j
 export {composeSkeletonPose} from './pose-joints.js';
 
 /** Production pose sampling never constructs a contact fit. */
-export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1):Float32Array<ArrayBuffer> {
+export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1,poolContact?:PoolContactArtifactV1):Float32Array<ArrayBuffer> {
+  if(bundle.clipMetadata?.[action]?.contacts.policy==='pool'){
+    if(!geometry)throw new PoolContactNotReadyError();
+    if(audit){audit.contacts=[];audit.assemblies={};}
+    return requirePoolPose(poolContact,geometry,a,top,action,frame);
+  }
   if(action==='bed_sleep'||action==='bunk_sleep'){
     if(!Number.isFinite(frame)||frame<0)throw new Error('Unknown character pose');
     if(audit){audit.contacts=[];audit.assemblies={};}
@@ -41,6 +49,7 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
     const found = bones.findIndex(b => b.name === name); if (found < 0) throw new Error(`Missing bone ${name}`); return found;
   };
   const result = new Float32Array(bones.length * 16);
+  if(clip?.contacts.policy==='pool')return fitPool(bundle,a,top,source,rest,matrices,action,frame,audit);
   if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,matrices,audit,geometry,bikeFit,seatFit});
   const positions = matrices.map(m=>[m[12],m[13],m[14]] as [number,number,number]);
   // The authored foot path is a physical ground/contact target, not a scaled pose translation.

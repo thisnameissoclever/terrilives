@@ -21,10 +21,12 @@ const cameraCode = section('  function applyCamera(): void {', '  // Flagged rat
 const drawCode = section('    if (presenting&&floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
 const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
+const failureHookCode = section('    dispose: next =>', '    state: (ready, error) => {');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
 const drawMainFrame = new Function('ctx', `with(ctx) { ${drawCode} }`);
 const publishMainRenderer = new Function('ctx', 'next', `with(ctx) { ${publishCode} }`);
 const stateMainRenderer = new Function('ctx', 'ready', 'error', `with(ctx) { ${stateCode} }`);
+const failureMainRenderer = new Function('ctx', 'error', 'context', `with(ctx) { return ({ ${failureHookCode} }).failure?.(error, context); }`);
 const recoveryCode = section('        const finishKeys = activeFloorFinishKeys', '\n      catch(error){void replacement.then')
   .replace('let rebuilt: SpriteRenderer;', 'let rebuilt;').replace(/\}\s*$/, '');
 const recoverMainRenderer = new Function('ctx', `return (async () => { with(ctx) { ${recoveryCode} } })();`);
@@ -90,10 +92,11 @@ function fixture() {
     syncFloorScene: () => ctx.floorScene.update(activeFloorFinishKeys(floors, null, catalogue), ctx.lot.architecture.finishes.keys, ctx.floorResourceError),
   };
   const pending: { keys: readonly string[]; resolve(value: { renderer: ReturnType<typeof renderer>; prepared: { finishes: ReturnType<typeof prepareArchitectureFinishes>; device: typeof ctx.gpu.device; disposed: boolean } }): void;
-    reject(error: Error): void }[] = [];
+    reject(error: unknown): void }[] = [];
   const resources = new FloorFinishResources({
     prepare: (keys: readonly string[]) => new Promise<{ renderer: ReturnType<typeof renderer>; prepared: { finishes: ReturnType<typeof prepareArchitectureFinishes>; device: typeof ctx.gpu.device; disposed: boolean } }>((resolve, reject) => pending.push({ keys, resolve, reject })),
     publish: next => publishMainRenderer(ctx, next), dispose: next => next.renderer.discardFloorFinishes(next.prepared),
+    failure: (error: unknown, context: { operation: 'prepare' | 'publish'; finishKeys: readonly string[] }) => failureMainRenderer(ctx, error, context),
     state: (ready, error) => stateMainRenderer(ctx, ready, error),
   });
   const request = (selected: number | null = null) => { resources.request(activeFloorFinishKeys(floors, selected, catalogue)); ctx.syncFloorScene(); };
@@ -105,6 +108,57 @@ function fixture() {
 }
 
 describe('main floor scene presentation', () => {
+  it.each(['prepare', 'publish'] as const)('reports the original current %s failure once and retains Retry publication', async operation => {
+    const f = fixture(), cause = new Error('original download cause');
+    const error = new Error('floor resource unavailable', { cause });
+    error.name = 'AbortError';
+    const originalStack = error.stack, originalFinishes = f.ctx.lot.architecture.finishes;
+    const publish = f.ctx.renderer.publishFloorFinishes;
+    f.request(4);
+    let rejectedCandidate: ReturnType<typeof f.settle> | undefined;
+    if (operation === 'prepare') f.pending[0].reject(error);
+    else {
+      f.ctx.renderer.publishFloorFinishes = () => { throw error; };
+      rejectedCandidate = f.settle(0);
+    }
+    await flush();
+    expect(f.diagnostics).toHaveLength(1);
+    expect(f.diagnostics[0]).toEqual(['Floor material resource failed',
+      { operation, finishKeys: f.pending[0].keys }, error]);
+    const reported = f.diagnostics[0][2] as Error;
+    expect(reported).toBe(error); expect(reported.name).toBe('AbortError');
+    expect(reported.stack).toBe(originalStack); expect(reported.cause).toBe(cause);
+    expect(f.ctx.floorResourceError).toBe(error.message);
+    expect(f.ctx.floorTool.resourceStatus).toBe('Floor materials could not load. Try again.');
+    expect(f.ctx.lot.architecture.finishes).toBe(originalFinishes);
+    if (rejectedCandidate) expect(rejectedCandidate.prepared.disposed).toBe(true);
+    f.request(4); expect(f.pending).toHaveLength(1); expect(f.diagnostics).toHaveLength(1);
+    f.ctx.renderer.publishFloorFinishes = publish;
+    f.resources.retry(); expect(f.pending).toHaveLength(2);
+    const replacement = f.settle(1); await flush();
+    expect(f.ctx.lot.architecture.finishes).toBe(replacement.prepared.finishes);
+    expect(f.ctx.floorResourceError).toBeNull(); expect(f.ctx.floorTool.resourceStatus).toBeNull();
+    expect(f.diagnostics).toHaveLength(1);
+  });
+
+  it.each(['superseded', 'paused', 'destroyed'] as const)('keeps %s preparation failures quiet', async obsolete => {
+    const f = fixture(); f.request(4);
+    if (obsolete === 'superseded') f.resources.request([]);
+    else if (obsolete === 'paused') f.resources.pause();
+    else f.resources.destroy();
+    f.pending[0].reject(new Error('obsolete failure')); await flush();
+    expect(f.diagnostics).toEqual([]); expect(f.ctx.floorResourceError).toBeNull();
+    expect(f.pending).toHaveLength(1);
+  });
+
+  it('reports an unknown thrown value without constructing a replacement Error', async () => {
+    const f = fixture(), error = { detail: 'untyped resource failure' };
+    f.request(4); f.pending[0].reject(error); await flush();
+    expect(f.diagnostics).toHaveLength(1); expect(f.diagnostics[0][2]).toBe(error);
+    expect(f.diagnostics[0][2]).not.toBeInstanceOf(Error);
+    expect(f.ctx.floorResourceError).toBe('[object Object]');
+    expect(f.ctx.floorTool.resourceStatus).toBe('Floor materials could not load. Try again.');
+  });
   it('explicitly loads a new-device base renderer and resumes from its prepared finishes', async () => {
     const f = fixture(), old = f.ctx.renderer, newDevice = { limits }, rebuilt = { ...old, rows: new Float32Array() };
     const calls: string[] = [], atlas = { finishes: prepareArchitectureFinishes([], limits) };
@@ -146,14 +200,16 @@ describe('main floor scene presentation', () => {
     expect(f.draws.at(-1)?.slice(0, 4)).toEqual([72, 422, 72, 422]);
     expect(f.draws.at(-1)?.[4]).toBe(1.75);
     expect(f.overlayPause.suspended).toBe(false);
-    f.pending[0].reject(new Error('pattern unavailable')); await flush();
+    const error = new Error('pattern unavailable');
+    f.pending[0].reject(error); await flush();
     f.ctx.camera.originY += 12; f.ctx.cameraDirty = true; f.frame();
     expect(f.draws.at(-1)?.slice(0, 4)).toEqual([72, 434, 72, 434]);
     expect(f.statuses).toEqual([]);
     expect(f.ctx.floorResourceError).toBe('pattern unavailable');
     expect(f.ctx.floorTool.resourceStatus).toBe('Floor materials could not load. Try again.');
     expect(f.ctx.floorTool.resourceFailed).toBe(true);
-    expect(f.diagnostics.at(-1)).toEqual(['Floor material resource failed', 'pattern unavailable']);
+    expect(f.diagnostics.at(-1)).toEqual(['Floor material resource failed',
+      { operation: 'prepare', finishKeys: f.pending[0].keys }, error]);
   });
 
   it('hides the complete loaded scene on missing resources, reports failure and rebuilds current camera on Retry', async () => {

@@ -80,6 +80,7 @@ const ACTIVITY_NAMES = [
   'Mopping floor',
   'Wiping surface',
   'Emptying bin',
+  'Using pool',
 ] as const;
 
 export function formatActivity(
@@ -89,7 +90,7 @@ export function formatActivity(
 ): string {
   if (chain !== null) return chain;
   if (stalled !== null) return `Waiting: ${stalled}`;
-  if (activity === null) return 'Nothing selected';
+  if (activity === null) return '';
   return ACTIVITY_NAMES[activity] ?? `Activity ${activity}`;
 }
 

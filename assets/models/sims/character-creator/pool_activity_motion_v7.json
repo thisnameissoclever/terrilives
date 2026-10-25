@@ -1,0 +1,62 @@
+{
+  "version": 7,
+  "status": "One unshipped coupled outside-ladder five-pose hypothesis. Art proportions are unmeasured candidate inputs, not physical or visual acceptance.",
+  "reference": {
+    "sourceSha256": "26cb6d9e81abffdf041c590cc696be0e3b4d491b32b9ce6afa6029e15c700787",
+    "actualReceiptSha256": "6f1f0be944eadbe148b7e100f0637af7934976f89d6411d2d0a3dc95509e644c",
+    "ancestorSha256": "31fe895dad1b562c9d9cfe921aaa29dc30c283443287f093ae6d6b219c4716b5",
+    "leftFootPathSha256": "93484d10584d353a2fef199f153ee5d88a1b69afb67dcca4fae445f75ab11021",
+    "rightFootPathSha256": "8bc98a74f34805d822257283c790ee132fb6038fdd91a5683255594478115cfe"
+  },
+  "ownership": {
+    "prospectiveRange": [
+      0.2,
+      0.4
+    ],
+    "prospectiveReauthoredIndices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "studyPhases": [
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4
+    ],
+    "preserve": "Source entry0 anatomy, all archived authorship, rig/rest metrics and unrelated clips. Old .2/.3 silhouettes are not output constraints. No serialized source exists."
+  },
+  "recipe": {
+    "supportPhases": [
+      0.2,
+      0.3,
+      0.4
+    ],
+    "pelvisY": "mean supported ankle Y + 3 * L / 5",
+    "pelvisZ": "lower supported ankle Z + 2 * L / 3",
+    "pelvisX": "midpoint of supported ankle X",
+    "legLength": "Record both configured leg sums. Use their exact shared value only if equal; do not normalize anatomy.",
+    "highPhases": [
+      0.25,
+      0.35
+    ],
+    "bodyAnchorWeight": 0.5,
+    "plantedXWeight": 0.5,
+    "pelvisOrientation": "Source0 canonical pelvis orientation",
+    "trunkWorldPitchDegrees": 35,
+    "headWorldPitchDegrees": 10,
+    "rotationConvention": "World-X rotation multiplied by the source0 joint WORLD frame, applied through existing independent world-rotation helpers.",
+    "elbows": "Source0 neutral lower-arm joint points in the source0 spine frame, transformed by the new trunk.",
+    "feet": "Actual per-phase frames and established geometry-derived left/right high-foot path, captured before body controls.",
+    "hands": "Independent original actual .3 rail parameter/raw orientation/active vertex, with each current phase context.",
+    "placement": "Existing authoring helpers and one root translation per fresh source0 preference, before limb reconstruction."
+  },
+  "limits": "Exactly five poses, no rescue candidate, quarter keys, interval study, export, .5 baseline, new solver or changed admission."
+}

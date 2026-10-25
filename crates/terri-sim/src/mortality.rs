@@ -113,10 +113,14 @@ fn clear_action(world: &mut World, entity: Entity) {
         ConversationVoice,
         terri_core::Fumbled,
         terri_core::StepWork,
+        crate::pool::PoolEpisode,
     )>();
 }
 
 pub(crate) fn remove_person(world: &mut World, dead: Entity) {
+    if world.get::<crate::pool::PoolEpisode>(dead).is_some() {
+        crate::player_actions::cancel_all(world,dead,"Person is no longer available");
+    }
     crate::social_conflicts::remove_actor(world, dead);
     crate::social_episode::forget_person(world, dead);
     if let Some(person) = world.get::<SimId>(dead).copied() {
@@ -179,6 +183,7 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
 /// Reclaim reservations after an owner disappears or loses usable needs,
 /// and stop walks whose object no longer exists as an interaction target.
 pub(crate) fn cleanup(world: &mut World) {
+    crate::pool::cleanup(world);
     let lost: Vec<_> = world
         .query::<(Entity, &crate::recipe_actions::Origin)>()
         .iter(world)

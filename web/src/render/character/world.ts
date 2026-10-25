@@ -20,6 +20,7 @@ import type {CharacterContactRoster} from './contact-admission.js';
 import type {CharacterAppearanceV1} from '../../character/schema.js';
 import {ShowerSteam} from './shower-steam.js';
 import {showerSteamEnvelopes,showerSteamCabin} from './steam-envelope.js';
+import {bathToySelector} from './bath-motion.js';
 
 interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1}
 let nextResourceId=1;
@@ -76,8 +77,9 @@ export class CharacterWorld {
     if(this.closed)throw new Error('Character world renderer is closed.');
     for(const actor of this.plan.actors){
       const clip=creatorClips.clips[actor.action.clip],sample=clip?clip.samples[clipSample(clip.samples.length,actor.action.sample,clip.playback).index]:undefined;
-      const context={wear:['bath','shower'].includes(actor.action.clip)?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
-        fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
+      const context={wear:['bath','shower'].includes(actor.action.clip)||actor.action.clip.startsWith('pool_')?'bare' as const:'clothed' as const,prop:sample?.bookVisible||hasBook(actor.action.clip)?'book':'none',
+        swimwear:actor.action.clip.startsWith('pool_')?(actor.appearance.presentation==='feminine'?'two_piece' as const:'trunks' as const):'none' as const,
+        fixture:'none',eyes_closed:sample?.eyesClosed??actor.action.clip==='sleep',clip:actor.action.clip,grip:actor.action.clip==='mop'?'mop' as const:'relaxed' as const,includeFixture:false,includeActivityWater:actor.action.clip==='bath',bathToy:actor.action.clip==='bath'?bathToySelector(actor.bathToy??0):'none' as const,stockMask:actor.stockMask,heldSlot:actor.action.heldSlot};
       const rig=this.geometries.get(actor.action.clip)!;let resources=this.actors.get(actor.entity);
       if(!resources||resources.renderer.selectionKey!==bodySelectionKey(actor.appearance)){
         if(resources)this.destroyActor(resources);
@@ -105,13 +107,15 @@ export class CharacterWorld {
       const light=view.ambient.slice(0,3).map(value=>value*(1-view.skyShade*shade)*(1-emissive)+emissive) as unknown as Vec3;
       const depth=layeredDepth(actor.x,actor.y,view.gridSize,LAYER_SIM);
       const includeCover=cover!==null;
+      const includeActivityFixture=includeCover||actor.action.clip==='bath';
       const colourway=actor.fixtureRow>=0?colourways[actor.fixtureRow]:0;
-      const fixtureColourway:Vec3=colourway>0&&3*colourway+2<shifts.length
+      // The bath attachment is water; the ordinary tub sprite owns its colourway.
+      const fixtureColourway:Vec3=actor.action.clip!=='bath'&&colourway>0&&3*colourway+2<shifts.length
         ?[shifts[3*colourway],shifts[3*colourway+1]-1,shifts[3*colourway+2]]:[0,0,0];
       renderer.prepareScene(actor.action.clip,actor.action.sample,actor.angle,actor.token,
         {width:view.width,height:view.height,x:screenX(actor.x,actor.y,view.originX,view.scale),y:screenY(actor.x,actor.y,view.originY,view.scale),
          scale:view.scale,depth,step:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),light},
-        {offset:actor.offset,includeFixture:includeCover,fixtureToken:includeCover?actor.fixtureRow+1:0,fixtureColourway});
+        {offset:actor.offset,includeFixture:includeActivityFixture,fixtureToken:includeActivityFixture?actor.fixtureRow+1:0,fixtureColourway});
       const anchors=renderer.renderer.anchors(actor.angle,actor.offset);
       if(actor.action.clip==='shower'){
         const body=renderer.renderer,mesh=body.resources;

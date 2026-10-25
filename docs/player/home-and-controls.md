@@ -6,7 +6,7 @@ Choose a name under Household to select that person. Click or tap an object for 
 
 Queue mode starts on. New instructions join the end of that person's waiting orders. Open Queue from the dock or Sim details to inspect them. On desktop, Ctrl or Cmd while clicking also appends an instruction.
 
-With Queue mode off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use Clear orders to cancel the current player-directed commitment and every waiting order; the object menu's Nothing action also clears orders. Closing a menu with Close, Escape or an outside press only dismisses it.
+With Queue mode off, a new instruction goes first. It interrupts the current activity for that instruction while keeping earlier waiting orders after it. It does not empty the queue. Use **Clear orders** in Queue or the object menu to cancel the current player-directed commitment and every waiting order. The object menu shows Clear orders only when that person has player orders to cancel. Closing a menu with Close, Escape or an outside press only dismisses it.
 
 Your explicit instructions have priority over autonomous choices and critical needs. Ordinary need loss and death remain active. You can interrupt work or delay attendance with a player order; that can reduce pay and performance because shifts retain their scheduled ending time. Do not leave a long queue unattended when basic care is becoming urgent.
 
@@ -28,19 +28,27 @@ The household keeps running at the selected speed when you switch tabs or minimi
 
 ## Build, confirm and discard {#build}
 
-Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land. If Build cannot open, the status line under the world controls says why.
+Open Build from the world controls. You can also choose Enter build mode from a placed object's menu to begin with that exact object selected. Build pauses the household. The tool strip offers Furniture, Buy, Walls, Floors, Rooms and Land. If Build cannot open, a message in the game view explains the refusal.
 
 :::illustration build-furniture
 
-Edits form a draft. Confirm at the bottom keeps the current batch and exits Build. Cancel at the bottom discards the current batch and exits Build. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch. When Confirm cannot keep the batch, Build stays open and the status above it turns red and says what is in the way and what you can do.
+Edits form a draft. Confirm applies the current batch and exits Build after any required review. Cancel at the bottom discards the current batch and exits Build. Cancel beside a selected item, or Escape while it is selected, clears that selection rather than discarding the whole batch. A confirmation failure appears beside Confirm; use its reported cause to correct the draft.
 
 Exit build, or Escape with nothing selected, leaves Build. With unconfirmed changes, it asks you to Confirm changes, Discard changes or Keep building. Read that choice before leaving: a furniture preview and a confirmed household change are different states. If Confirm changes is refused, the question opens again with the reason beside it, so you can still Discard changes or Keep building.
 
+### Review unreachable areas {#access-review}
+
+A layout can leave ground, objects or people unreachable. At Confirm, inspect the highlighted ground and the explanation in Review unreachable areas. Complete any room choices before this access review.
+
+Choose **Confirm** to accept the reviewed layout. Choose **Return to build mode**, or press Escape, to keep editing with the draft and highlight available. An edit requires a fresh review. Ordinary Save and autosave do not repeat this approval after the layout is confirmed.
+
 ## Furniture and buying {#furniture}
 
-In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. Placement can be refused when it blocks routes, conflicts with people or objects, or violates the object's rules; the status explains why.
+In Furniture, select a placed object, choose its destination and turn it with the curved arrows. Place applies the move within the draft. Colour choices change its appearance. Sell shows the payout before activation. A physical conflict or object restriction can refuse placement; the reason appears beside Place. Otherwise valid disconnected layouts use the [access review](#access-review).
 
 Buy lists items with prices and filters. Select an item, point at a destination, rotate as needed and choose Buy. The cost comes from household Funds. Unaffordable items are disabled. Room associations organize the store; they do not restrict where an object can be placed.
+
+Choose **Back to catalogue** beside the preview to return to the item cards. The filters, scroll position, highlighted card and other draft edits remain. Choose the card again to resume placement. A blocked Buy shows its current reason beside the button, separately from a completed purchase receipt.
 
 An object's type identifies what it is, while the model identifies the particular product. Activate its name to read its optional description. A store listing alone does not promise an activity. Some objects are decorative or have no use action; inspect available actions and the [activity reference](activities/#all-actions).
 
@@ -50,11 +58,13 @@ Bookcases also offer automatic [book buying and selling](activities/#reading). A
 
 Walls selects the edge between floor tiles. Click a wall to select it, or the floor near an edge; with a mouse, the edge a click would select is marked first. Select a second edge further along the same row to select every edge between them. Use the contextual controls to add a wall, doorway or window, or remove the selected boundaries. Windows stop people while letting daylight through. They are part of Walls, rather than a separate top-level tool. A wide window centres on the spot you click and slides along the wall to fit. Doors follow doorways and open for passing people.
 
-While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways; a doorway there opens onto nothing until you buy land beyond it.
+While Walls or Rooms is open, walls are drawn low so the front walls do not hide the floor; the selected wall stands at full height. Choose Full height, or press T, to see every wall at full height. Walls on the edge of the lot can hold windows and doorways. An open boundary segment can provide an arrival or departure route; walking within the game remains limited to owned ground.
 
-The game refuses edits that cut off required access or conflict with furniture, people or active use. Opening a line or making a doorway can be refused too, when it would leave furniture facing a space nobody can reach; make a way into that space first. A refused edit has not quietly succeeded; read its status. A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
+Original and player-built walls follow the same editing rules. Physical conflicts with furniture, people or ongoing use remain refusals. A valid edit that disconnects ground or blocks an object's approaches instead requires [access review](#access-review). A wall can also change which people share a room, affecting privacy and ordinary contact once the room changes are confirmed.
 
-Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering, or Remove to restore its original floor in the draft. Confirm at the bottom keeps the changes and exits Build. Covered outdoor ground can collect and be cleaned of grime; default grass and the street do not collect floor grime.
+Floors selects a tile. Select a second tile to select every tile in the rectangle between them; tiles that cannot take a covering are marked and left alone. Choose Boards, Tiles, Carpet or Outdoor patio to change the covering. Remove clears the covering and replaces any underlying indoor floor with grass. Underlying grass and street surfaces stay unchanged. Confirm applies the batch after any required review and exits Build. Covered outdoor ground can collect and be cleaned of grime; bare grass and street do not collect floor grime.
+
+An edit waits for any missing floor materials, then applies automatically. If loading fails, choose **Retry** to continue or select another covering. Retry continues the waiting edit if the selected tiles and draft still match. Changing either, choosing another covering, leaving Floors or loading another household cancels the waiting edit. Retry with no tile selected loads the material for later use; select a tile and choose its covering to apply it.
 
 ## Rooms and land {#rooms-and-land}
 

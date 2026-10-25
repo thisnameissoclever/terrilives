@@ -1,0 +1,642 @@
+{
+  "schema": 22,
+  "producerWasmSha256": "e9d0c4300b6d8bd235a79fbc547eeb65324ad18425139eb90131475b009ae27b",
+  "sourceManifestSha256": "b64393cceb9b5663f7e65a43d40acd3ac4a1b55b8609b0215282bd43e397f885",
+  "files": [
+    {
+      "file": "pool-f0-feminine-short-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "73186be18b7cef5e127dd7f9e588d18f9e09ef4302243b190d2917abc43937f3",
+      "producer": {
+        "file": "pool-f0-feminine-short-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f0-feminine-short-wide-exit.bin",
+      "bytes": 1022,
+      "sha256": "97bd81c613bb80d9dae71a2a8064cb65ccfb00d91c75a515d335353eca760601",
+      "producer": {
+        "file": "pool-f0-feminine-short-wide-exit.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 3,
+        "elapsed": 8,
+        "exitOrigin": 60,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f0-feminine-short-wide-swim.bin",
+      "bytes": 1022,
+      "sha256": "77930f9be89e5bb13a82d531d3b0f015eb35a14ca5ae487b59fb6668e585fbf3",
+      "producer": {
+        "file": "pool-f0-feminine-short-wide-swim.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 2,
+        "elapsed": 17,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f0-feminine-tall-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "b37947437336e6bd08dcac0c64f5a31c3f00bd7939292234ba32cccff1d19c0f",
+      "producer": {
+        "file": "pool-f0-feminine-tall-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-cancel-entry.bin",
+      "bytes": 984,
+      "sha256": "f51bc32016aabe61cd4f4ffbb0141fb5691fff7e7964ef47ba9455083582f079",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-cancel-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 4,
+        "elapsed": 7,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 984
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-cancel-swim.bin",
+      "bytes": 984,
+      "sha256": "7d324190176fd0bc759002d70ff256f71e1bc9a77f5de50f86a1130157c4a58d",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-cancel-swim.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 3,
+        "elapsed": 0,
+        "exitOrigin": 17,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 984
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-entry-step.bin",
+      "bytes": 1023,
+      "sha256": "cb4aebfc8ac31e67607eb0e459bfaf33a26cfb9ba85835e0011dd79f7b20eb6c",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-entry-step.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 7,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-entry.bin",
+      "bytes": 1023,
+      "sha256": "11cd78e2cfed03583bd7d1ff57683d58f7a893ac5603e3c0035bcf9c8acfc212",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-exit.bin",
+      "bytes": 1023,
+      "sha256": "d750ed00e25965a42b632cd1e2b08addc7695bc67467ca710a98ffb8cea5f39d",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-exit.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 3,
+        "elapsed": 8,
+        "exitOrigin": 60,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f0-masculine-neutral-swim.bin",
+      "bytes": 1023,
+      "sha256": "c95082b61ae7de91b94795f86a5599200bfc495cf722536143562316b778c9f4",
+      "producer": {
+        "file": "pool-f0-masculine-neutral-swim.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 2,
+        "elapsed": 17,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f0-masculine-tall-narrow-entry.bin",
+      "bytes": 1023,
+      "sha256": "561b0f31074fc7b0059cae5359ffcce0a52ca79fc27eac4c848384f75469f603",
+      "producer": {
+        "file": "pool-f0-masculine-tall-narrow-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f1-feminine-short-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "4f26804219605ffd3a93a03b6da4fe008c26b4930c4e0019bbb047ae3a226ab6",
+      "producer": {
+        "file": "pool-f1-feminine-short-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 1,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          4,
+          6
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f1-feminine-tall-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "925fdcafd0b1e1b51994ba075730dc558ad777ab5795b7a19f458b2462402659",
+      "producer": {
+        "file": "pool-f1-feminine-tall-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 1,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          4,
+          6
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f1-masculine-neutral-entry.bin",
+      "bytes": 1023,
+      "sha256": "17133043431afd85e77b977a95c61b433a4cbdb933ea3a9b065158b596619637",
+      "producer": {
+        "file": "pool-f1-masculine-neutral-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 1,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          4,
+          6
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f1-masculine-tall-narrow-entry.bin",
+      "bytes": 1023,
+      "sha256": "28b0f94cd235383808d28546594effa2a0ee32a837002c2ad5c85b1261d5219e",
+      "producer": {
+        "file": "pool-f1-masculine-tall-narrow-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 1,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          4,
+          6
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f2-feminine-short-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "9f7182842549459e839442570d7a71867bf41f81d1537cf301179e6cc1ec4378",
+      "producer": {
+        "file": "pool-f2-feminine-short-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 2,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          6,
+          5
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f2-feminine-tall-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "b376583fa1f868bef196aed6ebbc176b7d00d91d07098f8f22f107957610fdd9",
+      "producer": {
+        "file": "pool-f2-feminine-tall-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 2,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          6,
+          5
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f2-masculine-neutral-entry.bin",
+      "bytes": 1023,
+      "sha256": "3567234ee754eaeb0b128dadbc8e544e5ca1c62fcf145f02cc0ae7c0bad39c86",
+      "producer": {
+        "file": "pool-f2-masculine-neutral-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 2,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          6,
+          5
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f2-masculine-tall-narrow-entry.bin",
+      "bytes": 1023,
+      "sha256": "cd34a267db48c880e7f03617e086842634fdbce5a734dc1fef8300e2eefa9463",
+      "producer": {
+        "file": "pool-f2-masculine-tall-narrow-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 2,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          6,
+          5
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f3-feminine-short-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "2ed365c566ecf5521a81742800c019a5249f263acb66c9e86bb03090faa42d0f",
+      "producer": {
+        "file": "pool-f3-feminine-short-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 3,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          5,
+          3
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f3-feminine-tall-wide-entry.bin",
+      "bytes": 1022,
+      "sha256": "9980d173a740ef3485faaa5f9f5fac12b1be491f9baf7e7ae5c533575bcdc828",
+      "producer": {
+        "file": "pool-f3-feminine-tall-wide-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 3,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          5,
+          3
+        ],
+        "bytes": 1022
+      }
+    },
+    {
+      "file": "pool-f3-masculine-neutral-entry.bin",
+      "bytes": 1023,
+      "sha256": "9031851f4fc0c899576f007ae58d0107d450bbb80fbd7e17605a7a5741c1ec25",
+      "producer": {
+        "file": "pool-f3-masculine-neutral-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 3,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          5,
+          3
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-f3-masculine-tall-narrow-entry.bin",
+      "bytes": 1023,
+      "sha256": "149bfea1c8068ae31217e067397055f1330d18130a21f8be3cbc7682ae5fa27f",
+      "producer": {
+        "file": "pool-f3-masculine-tall-narrow-entry.bin",
+        "actor": 1,
+        "pool": 0,
+        "hasEpisode": true,
+        "phase": 1,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 3,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          5,
+          3
+        ],
+        "bytes": 1023
+      }
+    },
+    {
+      "file": "pool-idle-approach.bin",
+      "bytes": 910,
+      "sha256": "83ad80adb5a7c29d23e6a35bcc7f9908372a00f7b0f818db3f1064731f97c20f",
+      "producer": {
+        "file": "pool-idle-approach.bin",
+        "actor": 2,
+        "pool": 0,
+        "hasEpisode": false,
+        "phase": 0,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 910,
+        "secondPool": null,
+        "nextObject": 1,
+        "actors": [
+          {
+            "id": 2,
+            "name": "Alex",
+            "presentation": "masculine",
+            "position": [
+              1,
+              2
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "file": "pool-two-people-two-pools-idle.bin",
+      "bytes": 1184,
+      "sha256": "a72b3a02c2070ff6cec74c9a80fb92d4356d676a6d3d76b00c81e7594d5a1954",
+      "producer": {
+        "file": "pool-two-people-two-pools-idle.bin",
+        "actor": 3,
+        "pool": 0,
+        "hasEpisode": false,
+        "phase": 0,
+        "elapsed": 0,
+        "exitOrigin": 0,
+        "facing": 0,
+        "poolOrigin": [
+          4,
+          4
+        ],
+        "approach": [
+          3,
+          4
+        ],
+        "bytes": 1184,
+        "secondPool": 1,
+        "nextObject": 2,
+        "actors": [
+          {
+            "id": 3,
+            "name": "Alex",
+            "presentation": "masculine",
+            "position": [
+              1,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "name": "Morgan",
+            "presentation": "feminine",
+            "position": [
+              7,
+              2
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

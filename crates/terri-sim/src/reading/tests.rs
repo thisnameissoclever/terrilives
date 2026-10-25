@@ -122,12 +122,35 @@ fn build_keeps_a_carried_book_waiting_when_its_return_contact_is_blocked() {
 
 #[test]
 fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
+    shelf_move_with_optional_pool(false);
+}
+
+#[test]
+fn pool_continuation_survives_active_shelf_move_and_build_commit() {
+    shelf_move_with_optional_pool(true);
+}
+
+fn shelf_move_with_optional_pool(with_pool: bool) {
     let (mut sim, p, shelf, seat, title) = fixture("armchair");
+    let swimmer = with_pool.then(|| {
+        let pool = sim.spawn_object(Position { x: 12., y: 8. }, terri_data::pack().find("pool").unwrap());
+        let actor = sim.spawn_agent(Position { x: 11., y: 8. }, 80.);
+        issue(&mut sim, SimCommand::UseObjectFirst { agent: actor.index_u32(), object: pool.index_u32(), interaction: 0 });
+        actor
+    });
     block_furniture(&mut sim);
+    if let Some(swimmer) = swimmer {
+        for _ in 0..50 {
+            sim.tick();
+            if sim.world().get::<crate::pool::PoolEpisode>(swimmer).is_some_and(|e| e.phase == 1) { break; }
+        }
+        assert_eq!(sim.world().get::<crate::pool::PoolEpisode>(swimmer).unwrap().phase, 1);
+    }
     purchase(&mut sim, Some(shelf), &title);
     read(&mut sim, p, seat, &title, false);
     sim.tick();
     until(&mut sim, p, ReadingStage::Fetch);
+    let pool_before = crate::pool::capture(sim.world());
     sim.begin_build().unwrap();
     issue(
         &mut sim,
@@ -176,6 +199,7 @@ fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
         .prepare_build_commit(crate::rooms::RoomChoices::default())
         .unwrap();
     sim.commit_build(review.token).unwrap();
+    assert_eq!(crate::pool::capture(sim.world()), pool_before);
     assert_eq!(
         sim.world()
             .get::<ReadingJourney>(p)
@@ -186,6 +210,9 @@ fn build_transaction_active_shelf_move_uses_trusted_draft_projection() {
     let saved = sim.current_v19_view();
     sim.load_current_v19_view(saved.clone()).unwrap();
     assert_eq!(sim.current_v19_view(), saved);
+    let saved = sim.save_snapshot_v22();
+    sim.load_snapshot_v22(saved.clone()).unwrap();
+    assert_eq!(sim.save_snapshot_v22(), saved);
 }
 
 #[test]
@@ -3015,7 +3042,7 @@ fn reading_company_case(indoor: bool) {
 
 fn assert_held_return_continuation(sim: &Sim, person: Entity) {
     crate::test_content::assert_current_admission(sim);
-    let mut returning = crate::save::v21::restore(
+    let mut returning = crate::save::v23::restore(
         sim.current_v19_view().0,
         sim.world().resource::<Content>().0,
         crate::save::Carried::for_load(sim.world()),

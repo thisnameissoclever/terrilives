@@ -147,3 +147,9 @@ assets/models/sims/character-creator/verify_choice_influences.cjs -text whitespa
 assets/models/sims/character-repair/color_pixels.py -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
 assets/models/kitchen/export_wall_registration.py -text
 assets/models/kitchen/wall-registration.json -text
+
+# Pool activity receipts bind versioned producers and reviewed proof bytes.
+assets/models/outdoor/pool_activity_*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/outdoor/render_pool_activity_*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/outdoor/export_pool_fixture_v*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/outdoor/owner-review-pending/pool/activity-v*/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

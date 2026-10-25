@@ -50,3 +50,53 @@ it('gives identical command events fresh lifetimes and retains an error until it
     scene.status.textContent='';scene.frame(99001);expect(element.textContent).toBe('');
   }finally{clock.mockRestore();}
 });
+
+it('keeps the scene spinner with its current event and stops delayed work when another owner replaces it', () => {
+  vi.useFakeTimers();
+  try {
+    const attributes = new Map<string, string>();
+    const element = { textContent: '', dataset: {} as Record<string, string>, style: {},
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      removeAttribute: (name: string) => attributes.delete(name),
+      getAttribute: (name: string) => attributes.get(name) ?? null };
+    const scene = new SceneFeedback(element as unknown as HTMLElement);
+    const saving = { ...operationFeedback('save', 'pending', 'Saved game', 'Saving'), expectedSlow: false };
+    scene.present('persistence', saving, null);
+    expect(attributes.get('aria-busy')).toBe('true');
+    expect(attributes.has('data-pending')).toBe(false);
+    vi.advanceTimersByTime(1000);
+    scene.present('persistence', saving, null);
+    vi.advanceTimersByTime(250);
+    expect(attributes.get('data-pending')).toBe('true');
+    scene.present('build', operationFeedback('place', 'failure', 'Chair', 'Occupied.'));
+    expect(attributes.has('data-pending')).toBe(false);
+    expect(attributes.has('aria-busy')).toBe(false);
+    vi.advanceTimersByTime(2000);
+    expect(attributes.has('data-pending')).toBe(false);
+  } finally { vi.useRealTimers(); }
+});
+
+it('clears only owned waits, including the legacy empty command setter, without resurrecting timers', () => {
+  vi.useFakeTimers();
+  try {
+    const attributes = new Map<string, string>();
+    const element = { textContent: '', dataset: {}, style: {},
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      removeAttribute: (name: string) => attributes.delete(name),
+      getAttribute: (name: string) => attributes.get(name) ?? null };
+    const scene = new SceneFeedback(element as unknown as HTMLElement);
+    const pending = () => ({ ...operationFeedback('save', 'pending', 'Saved game', 'Saving'), expectedSlow: false });
+    scene.present('persistence', pending()); scene.clear('build');
+    vi.advanceTimersByTime(1250); expect(attributes.get('data-pending')).toBe('true');
+    scene.clear('persistence'); expect(attributes.has('data-pending')).toBe(false);
+    scene.present('persistence', pending()); scene.clear('persistence');
+    vi.advanceTimersByTime(2000); expect(attributes.has('data-pending')).toBe(false);
+    scene.present('persistence', pending()); scene.status.textContent = '';
+    vi.advanceTimersByTime(2000); expect(attributes.has('data-pending')).toBe(false);
+    expect(attributes.has('aria-busy')).toBe(false);
+    scene.present('floor', operationFeedback('floor', 'pending', 'Floor', 'Loading floor'));
+    expect(attributes.get('data-pending')).toBe('true');
+    scene.present('floor', operationFeedback('floor', 'success', 'Floor', 'Floor laid.'));
+    expect(attributes.has('data-pending')).toBe(false); expect(attributes.has('aria-busy')).toBe(false);
+  } finally { vi.useRealTimers(); }
+});

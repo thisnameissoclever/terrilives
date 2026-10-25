@@ -14,6 +14,7 @@ export interface PlannedActor {
   entity:number;sim:number;row:number;token:number;appearance:CharacterAppearanceV1;action:CharacterActionPlan;
   x:number;y:number;angle:number;offset:Vec3;fixtureRow:number;fixtureEntity:number|null;fixtureModel:string|null;
   includeFixture:boolean;stockMask:number;
+  bathToy?:number;
   head:Vec3;feet:Vec3;hand:Vec3;
 }
 type Source=Pick<SimBridge,'appearanceHash'|'characterAppearances'|'objectModel'|'objectFacing'|'lotRevision'|'modelSeatIds'>&RenderSource;
@@ -66,6 +67,9 @@ export class CharacterScenePlan {
     const whole=source.seatedWhole?.(),seatedPlaces=source.seatedPlaces?.(),sleepingPlaces=source.sleepingPlaces?.(),progress=source.choreProgress?.();
     const targets=source.interactionTargets?.(),beds=source.sleepingBeds?.(),seats=source.seatedFurniture?.(),shelves=source.readingHomeShelves?.();
     const soundActions=source.soundActions?.(),soundSources=source.soundSources?.();
+    const poolPhases=source.poolPhases?.(),poolElapsed=source.poolElapsed?.(),poolOrigins=source.poolExitOrigins?.();
+    const previousPoolPhases=source.prevPoolPhases?.(),previousPoolElapsed=source.prevPoolElapsed?.(),previousPoolOrigins=source.prevPoolExitOrigins?.(),previousPoolTargets=source.prevPoolTargets?.();
+    const bathToys=source.bathToys?.(),bathElapsed=source.bathElapsed?.(),previousBathToys=source.prevBathToys?.(),previousBathElapsed=source.prevBathElapsed?.(),previousBathTargets=source.prevBathTargets?.();
     const shelfOffsets=source.shelfBookOffsets?.(),shelfCounts=source.shelfBookCounts?.(),shelfMasks=source.shelfBookMasks?.();
     const drawnFixtures=new Set<number>();
     for(let row=0;row<count;row++){
@@ -75,6 +79,9 @@ export class CharacterScenePlan {
       const shower=activities[row]===12&&soundActions?.[row]===1;
       let target=interactions.targetRows[row];
       if(shower)target=ids.indexOf(soundSources?.[row]??0xffffffff);
+      const leavingPool=(poolPhases?.[row]??0)===0&&(previousPoolPhases?.[row]??0)>0&&alpha<1;
+      const poolTarget=leavingPool?previousPoolTargets?.[row]:targets?.[row];
+      if(leavingPool||(poolPhases?.[row]??0)>0)target=ids.indexOf(poolTarget??0xffffffff);
       if(target<0){
         const targetId=actions[row]===9?beds?.[row]:whole?.[row]===1||actions[row]===3||actions[row]===8?seats?.[row]:stages?.[row]===6||stages?.[row]===7?shelves?.[row]:targets?.[row];
         if(targetId!==undefined&&targetId!==0xffffffff)target=ids.indexOf(targetId);
@@ -84,6 +91,14 @@ export class CharacterScenePlan {
       const facing=actions[row]===5?walkingFacing(previous[row*2],previous[row*2+1],current[row*2],current[row*2+1],facings[row]):facings[row];
       const action=characterActionPlan({action:shower?20:actions[row],activity:activities[row],entity:ids[row],facing,x,y,tick:tick+alpha,reducedMotion,
         fixtureModel:model?.id??null,wholeSeat:whole?.[row]===1,readingStage:stages?.[row]??0,carriedBook:books!==undefined&&books[row]!==0xffffffff,
+        poolPhase:poolPhases?.[row],poolElapsed:poolElapsed?.[row],poolExitOrigin:poolOrigins?.[row],
+        prevPoolPhase:previousPoolTargets?.[row]===poolTarget?previousPoolPhases?.[row]:0,
+        prevPoolElapsed:previousPoolElapsed?.[row],prevPoolExitOrigin:previousPoolOrigins?.[row],poolAlpha:alpha,
+        bathElapsed:(bathToys?.[row]??0)>0?(()=>{
+          const elapsed=bathElapsed![row],previous=previousBathElapsed?.[row]??elapsed;
+          const continuous=previousBathTargets?.[row]===targets?.[row]&&previousBathToys?.[row]===bathToys![row]&&elapsed>=previous&&elapsed-previous<=1;
+          return continuous?previous+(elapsed-previous)*alpha:elapsed;
+        })():undefined,
         carriedDishes:(dishes?.[row]??0)>0,carriedDinner:carrying[row]===this.dinnerKind&&activities[row]<=2,
         shelfSlot:slots?.[row]??0,reachRemaining:remaining?.[row]??0,reachTotal:totals?.[row]??0,progress:progress?.[row]??0,halfCycleTicks:interactions.timingFor(row)},this.frameCount);
       if(!action)continue;
@@ -104,7 +119,7 @@ export class CharacterScenePlan {
         x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha+fixtureOffsets[fixture*2]:x,
         y:fixture>=0?previous[fixture*2+1]+(current[fixture*2+1]-previous[fixture*2+1])*alpha+fixtureOffsets[fixture*2+1]:y,
         angle:fixture>=0?fixtureAngles[model!.facing]:bodyAngles[facing]??0,offset,fixtureRow:fixture,fixtureEntity:fixture>=0?ids[fixture]:null,
-        fixtureModel:fixture>=0?model!.id:null,includeFixture,stockMask:fixture>=0?interactions.shelfMask(fixture,shelfPresence(fixture,shelfOffsets,shelfCounts,shelfMasks)):0,head:[x,y,0],feet:[x,y,0],hand:[x,y,0]});
+        fixtureModel:fixture>=0?model!.id:null,includeFixture,bathToy:bathToys?.[row]??0,stockMask:fixture>=0?interactions.shelfMask(fixture,shelfPresence(fixture,shelfOffsets,shelfCounts,shelfMasks)):0,head:[x,y,0],feet:[x,y,0],hand:[x,y,0]});
     }
     this.ready?.();
   }

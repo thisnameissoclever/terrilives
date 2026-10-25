@@ -11,6 +11,8 @@ import type {SeatContactArtifactV1,SeatContactInputV1} from './seat-contact-type
 import {PreparationQueue,preparationCancelled,type PreparationLease,type PreparationDefinition} from './preparation-queue.js';
 import {WorkerPreparationTransport,type PreparationTransport} from './preparation-transport.js';
 import {validatePreparationResponse,type PreparationArtifact,type PreparationRequest} from './preparation-protocol.js';
+import {awaitPreparation} from './preparation-abort.js';
+import {restorePreparationFailure,attachPreparationContext} from './preparation-error.js';
 
 export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1}
 export type CharacterPreparationLease=PreparationLease<CharacterPreparation>;
@@ -39,7 +41,7 @@ export class CharacterPreparationService {
     this.bike={key:a=>'bike:'+bikeContactAppearanceKey(a),prepare:async(a,work)=>{
       work.inputPrepared();const input=await(options.bikeInputFactory??prepareBikeContactForAppearance)(a);validateBikeContactInput(input);
       const saved=work.findReady(input.key);if(saved)return saved;
-      work.compiled();const artifact=freezeBikeContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'bike',input}) as BikeContactArtifactV1);
+      work.compiled();const artifact=freezeBikeContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'bike',input},work.signal) as BikeContactArtifactV1);
       if(artifact.key!==input.key||artifact.shapeKey!==input.shapeKey||artifact.shoeKey!==input.shoeKey
         ||artifact.revisions.source!==input.revisions.source||artifact.revisions.fixture!==input.revisions.fixture||artifact.revisions.shoes!==input.revisions.shoes)
         throw new Error('Bike contact artifact does not match its input.');return artifact;
@@ -47,7 +49,7 @@ export class CharacterPreparationService {
     this.sleep={key:a=>'sleep:'+sleepContactAppearanceKey(a),prepare:async(a,work)=>{
       work.inputPrepared();const input=await(options.sleepInputFactory??createSleepContactInput)(a);validateSleepContactInput(input);
       const saved=work.findReady(input.key);if(saved)return saved;
-      work.compiled();const artifact=freezeSleepContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'sleep',input}) as SleepContactArtifactV1);
+      work.compiled();const artifact=freezeSleepContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'sleep',input},work.signal) as SleepContactArtifactV1);
       if(artifact.key!==input.key||artifact.appearanceKey!==input.appearanceKey
         ||Object.keys(input.revisions).some(name=>artifact.revisions[name as keyof typeof input.revisions]!==input.revisions[name as keyof typeof input.revisions]))
         throw new Error('Sleeping support artifact does not match its input.');return artifact;
@@ -55,18 +57,18 @@ export class CharacterPreparationService {
     this.seat={key:a=>'seat:'+seatContactAppearanceKey(a),prepare:async(a,work)=>{
       work.inputPrepared();const input=await(options.seatInputFactory??createSeatContactInput)(a);validateSeatContactInput(input);
       const saved=work.findReady(input.key);if(saved)return saved;
-      work.compiled();const artifact=freezeSeatContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'seat',input}) as SeatContactArtifactV1);
+      work.compiled();const artifact=freezeSeatContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'seat',input},work.signal) as SeatContactArtifactV1);
       if(artifact.key!==input.key||artifact.appearanceKey!==input.appearanceKey
         ||Object.keys(input.revisions).some(name=>artifact.revisions[name as keyof typeof input.revisions]!==input.revisions[name as keyof typeof input.revisions]))
         throw new Error('Seated support artifact does not match its input.');return artifact;
     }};
   }
-  private async compile(request:PreparationRequest):Promise<PreparationArtifact>{
-    this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
-    try{const response=await this.transport.run(request);validatePreparationResponse(response);
+  private async compile(request:PreparationRequest,signal:AbortSignal):Promise<PreparationArtifact>{
+    const transport=this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
+    try{const response=await awaitPreparation(transport.run(request,signal),signal);validatePreparationResponse(response);
       if(response.id!==request.id||response.kind!==request.kind)throw new Error('Character preparation response does not match its request.');
-      if(!response.ok){const error=new Error(response.error);Object.assign(error,{workerStack:response.workerStack,workerErrorName:response.errorName,workerKind:response.kind});throw error;}return response.artifact;
-    }catch(error){this.transport?.dispose();this.transport=undefined;throw error;}
+      if(!response.ok)throw restorePreparationFailure(response,request);return response.artifact;
+    }catch(error){transport.dispose();if(this.transport===transport)this.transport=undefined;throw attachPreparationContext(error,request,'prepare-resource');}
   }
   acquire(owner:string,appearance:CharacterAppearanceV1):CharacterPreparationLease {
     if(this.disposed)throw new Error('The character preparation service is disposed.');

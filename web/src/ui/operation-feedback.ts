@@ -7,6 +7,7 @@ export interface OperationFeedback {
   readonly target: string;
   readonly message: string;
   readonly recovery?: 'retry' | 'move' | 'edit';
+  readonly expectedSlow?: boolean;
 }
 
 export function operationFeedback(operation: string, state: OperationFeedback['state'], target: string,
@@ -40,6 +41,7 @@ export class PendingIndicator {
 
 /** Scene messages share one readable surface; object-menu layout can supply its current anchor. */
 export class SceneFeedback {
+  private readonly pendingIndicator: PendingIndicator;
   private owner = '';
   private current: OperationFeedback | null = null;
   private readonly seen = new Map<string, WeakSet<OperationFeedback>>();
@@ -53,13 +55,14 @@ export class SceneFeedback {
   /** Existing command producers write through this adapter; every text assignment identifies a new event. */
   readonly status: { textContent:string|null; setAttribute(name:string,value:string):void; removeAttribute(name:string):void; getAttribute(name:string):string|null };
   constructor(private readonly element: HTMLElement) {
+    this.pendingIndicator = new PendingIndicator(element);
     element.dataset.surface = 'scene';
     element.ownerDocument?.body.append(element);
     const self=this;
     this.status={
       get textContent(){return element.textContent;},
       set textContent(text:string|null){
-        if(!text){self.owner='command';self.current=null;element.textContent='';self.syncBox();return;}
+        if(!text){self.pendingIndicator.stop();self.owner='command';self.current=null;element.textContent='';self.syncBox();return;}
         self.present('command',operationFeedback('command','success','Scene',text));
       },
       setAttribute:(name,value)=>element.setAttribute(name,value),removeAttribute:name=>element.removeAttribute(name),
@@ -87,13 +90,16 @@ export class SceneFeedback {
     }
     const seen=this.seen.get(owner)??new WeakSet<OperationFeedback>();
     if(seen.has(feedback))return;
+    this.pendingIndicator.stop();
     seen.add(feedback);this.seen.set(owner,seen);this.owner=owner;this.current=feedback;this.eventAnchor=point;this.since=now;
     this.element.textContent=feedback.message;this.element.dataset.state=feedback.state;
     this.element.setAttribute('data-kind',feedback.state==='failure'?'error':'info');
+    if(feedback.state==='pending')this.pendingIndicator.start(feedback.expectedSlow ?? true);
     this.placementDirty=true;this.fits=true;this.syncBox();
   }
   clear(owner:string):void {
     if(this.owner!==owner)return;
+    this.pendingIndicator.stop();
     this.current=null;this.element.textContent='';this.syncBox();
   }
   frame(now = performance.now()): void {

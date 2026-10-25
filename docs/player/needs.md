@@ -20,7 +20,7 @@ A chair adds Comfort while eating, and eligible seated company adds Social. Thos
 
 ## Energy {#energy}
 
-Use a bed for substantial Energy recovery. Long-sofa Lie down supplies a little Energy alongside Comfort, but upright sitting, TV and company do not replace sleep. Showers, exercise and correspondence cost Energy while they run.
+Use a bed for substantial Energy recovery. Long-sofa Lie down supplies a little Energy alongside Comfort, but upright sitting, TV and company do not replace sleep. Showers, exercise and correspondence cost Energy while they run. Swimming also costs Energy during actual paddling; see [swimming](activities/#swimming).
 
 People automatically claim reachable, unassigned sleeping places. A No assigned bed condition means the person lacks permanent ownership of a place, even if someone is currently using an available bed. Add or make a suitable place reachable, then let game time advance. Ownership and current occupancy are different. Find the assignment under [Personality, habits and bed](ui-elements/#schedule).
 
@@ -56,19 +56,19 @@ More participants do not multiply the Social rate. Shared minutes count while th
 
 ## Fun {#fun}
 
-TV, radio, reading, exercise, correspondence, fish watching and Chat provide Fun. Hobbies and personal preferences help determine what someone chooses and enjoys. Books also have personal taste and familiarity effects.
+TV, radio, reading, exercise, correspondence, fish watching, swimming and Chat provide Fun. Hobbies and personal preferences help determine what someone chooses and enjoys. Books also have personal taste and familiarity effects.
 
 Plain sitting or lying down supplies rest rather than entertainment. A chair's own reading Fun is not added again when someone watches TV from it. Repetition makes an activity less appealing and excessive repetition can harm mood, without reducing ordinary need-delivery rates. See [repetition](mood-and-personality/#repetition).
 
 ## Comfort {#comfort}
 
-Sitting, reclining, sleeping, bathing and watching fish can restore Comfort. Models differ; compare the offered action and the seat actually used. TV, radio and meals can add the occupied chair's Comfort while the person actively uses it.
+Sitting, reclining, sleeping, bathing, watching fish and swimming can restore Comfort. Models differ; compare the offered action and the seat actually used. TV, radio and meals can add the occupied chair's Comfort while the person actively uses it.
 
 Walking toward a chair or reserving it gives no seat benefit. A sofa used as a TV seat supplies its seating Comfort, without the Energy reward from Lie down. Standing eating has a small Comfort cost; hand washing has no extra Comfort cost. See [chairs](activities/#chairs).
 
 ## Why a meter keeps falling {#timing-and-decay}
 
-Ordinary actions deliver benefits and costs over their active minutes. Walking and waiting do not collect them. Action length varies, so a longer use supplies more of a continuous benefit and cost; an interruption stops delivery immediately. Meals pay their food benefit at eating completion, while chair Comfort and dining company accrue only during actual eating.
+Ordinary actions deliver benefits and costs over their active minutes. Walking and waiting do not collect them. Most action lengths vary, so a longer use supplies more of a continuous benefit and cost; an interruption stops delivery immediately. Swimming has fixed phases and delivers its action effects only during paddling. Meals pay their food benefit at eating completion, while chair Comfort and dining company accrue only during actual eating.
 
 Personality changes each need's ordinary loss and positive refill. Negative action costs still apply in full. Failed ordinary attempts reduce positive benefits, while cooking quality affects food. A weak benefit may be smaller than ongoing need loss, leaving a falling meter even during the action.
 

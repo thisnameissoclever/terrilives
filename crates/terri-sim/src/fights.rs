@@ -2555,7 +2555,8 @@ mod order_tests {
                 "neither exact context can stand in for the other"
             );
         }
-        let mut expected = crate::current_test_snapshot::CurrentV5View(saved.clone());
+        let mut expected = crate::current_test_snapshot::CurrentV5View(terri_core::SaveSnapshotV23 {
+            previous: terri_core::SaveSnapshotV22 { previous: saved.clone(), pools: vec![] }, baths: vec![] });
         let source_layout = expected.layout.clone();
         let (width, height) = (expected.world.grid_width, expected.world.grid_height);
         sim.load_snapshot_v19(original.clone()).unwrap();
@@ -2564,7 +2565,7 @@ mod order_tests {
         expected.layout = adopted_layout;
         assert_eq!(
             sim.save_snapshot_v19(),
-            expected.0.previous.legacy,
+            expected.0.previous.previous.legacy,
             "only the explicitly checked historical rear shell changes"
         );
         assert_eq!(sim.save_snapshot_v21().conflicts.fights.len(), 2);

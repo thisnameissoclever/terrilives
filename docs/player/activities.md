@@ -48,7 +48,8 @@ On a narrow screen, scroll a table sideways to read its remaining columns. With 
 | Walk, wait, carry or prepare | No direct need benefit | Time passes before relief | No Social from these stages |
 | Buy, sell, move, rotate, recolor, recover a book or edit the home | No direct need benefit | Funds, space and placement rules apply | No direct relationship reward |
 | Stove and counter without a recipe running | No standalone need benefit | They are stations within food preparation, not separate eating actions | No Social |
-| Washer-dryer and pool | No direct need benefit | They currently offer no washing or swimming action | No Social |
+| Pool: Hop in | Fun and Comfort during swimming | Costs Energy; one person per pool; ladder access required | No Social |
+| Washer-dryer | No direct need benefit | It currently offers no washing action | No Social |
 | Patio umbrella, potted plant, floor lamp, coat rack, nightstand and dresser | No direct need benefit | Furniture, decoration or lighting does not itself refill needs | No Social |
 
 ## Food: preparation and eating {#food}
@@ -79,6 +80,24 @@ Toilets, showers and baths are [private activities](relationships/#privacy). Ent
 
 :::numbers Numbers and limits
 Hand washing cannot raise Hygiene above {{number:tuning.need_interactions.handwashing_hygiene_ceiling}}. Washing when already above that ceiling leaves existing Hygiene alone apart from ordinary decay. Body-odor consequences clear only above that level, so bathing is necessary.
+:::
+
+## Swimming {#swimming}
+
+Select a person, open a pool's [object menu](ui-elements/#object-menu), and choose **Hop in**. People can also choose it themselves. The person changes into swimwear, climbs the ladder, paddles and climbs out. Each pool holds one person; the pool and its ladder approach stay reserved until that person is safely out.
+
+Only paddling supplies Fun and Comfort and costs Energy. Walking to the ladder, climbing in and climbing out supply none of those action effects. Ordinary need loss continues throughout. Swimming supplies no Social or whole-body Hygiene, so it does not replace company or bathing.
+
+To end a visit you ordered, choose [Clear orders](ui-elements/#object-menu). To switch to another activity, [turn Queue mode off](home-and-controls/#orders) before giving the new instruction. The person gets out safely before the next activity starts.
+
+Benefits and costs already delivered remain. Save and Load preserve the current phase and progress.
+
+Masculine swim trunks use the person's pants color; a feminine two-piece uses the person's top color. The usual outfit returns after leaving the pool.
+
+:::numbers Numbers and limits
+An uninterrupted visit has 20 game minutes of entry, 60 game minutes of swimming and 20 game minutes of exit. These phases have fixed lengths. The ordinary action-duration variation does not apply.
+
+The 60-minute swimming phase has baseline totals of Fun +30 points, Comfort +10 points and Energy -5 points, delivered over elapsed swimming time. Personality changes positive refill; ordinary need loss and meter limits can change the final meter difference. Interrupting before swimming gives no swimming benefit or cost.
 :::
 
 ## Chairs and secondary seats {#chairs}
@@ -148,5 +167,5 @@ Personality scales positive need delivery separately for each need. Negative act
 Meters remain bounded. Hand washing has an extra ceiling. Need decay continues, so the change you see includes both the action and the time passing. Preferences and repetition influence selection; they do not add an extra need payment. [Mood and personality](mood-and-personality/#personality) explains the other outcomes.
 
 :::numbers Numbers and limits
-All need meters range from 0 to 100. Ordinary action durations can vary up to 40 percent around their reference duration, biased toward shorter actions. Reference totals describe the baseline before personality, failure, need loss and caps. A completed-action food total and a per-minute company rate are different kinds of number.
+All need meters range from 0 to 100. Ordinary action durations can vary up to 40 percent around their reference duration, biased toward shorter actions. Swimming uses the fixed phases described above. Reference totals describe the baseline before personality, failure, need loss and caps. A completed-action food total and a per-minute company rate are different kinds of number.
 :::

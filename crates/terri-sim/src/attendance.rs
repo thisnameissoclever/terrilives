@@ -398,6 +398,9 @@ pub(crate) fn start_tick(world: &mut World) {
     }
 }
 fn depart(world: &mut World, actor: Entity) {
+    if crate::pool::request_exit(world, actor) {
+        return;
+    }
     let Some(position) = world.get::<Position>(actor).copied() else {
         return;
     };
@@ -496,12 +499,7 @@ pub(crate) fn finish_tick(world: &mut World) {
             if world.get::<Commuting>(actor) == Some(&Commuting::Outbound)
                 && world.get::<Path>(actor).is_none()
             {
-                world
-                    .entity_mut(actor)
-                    .remove::<Commuting>()
-                    .insert(AtWork {
-                        remaining_ticks: (shift.end_tick - now) as u32,
-                    });
+                arrive_at_work(world, actor, (shift.end_tick - now) as u32);
             } else if let Some(mut work) = world.get_mut::<AtWork>(actor) {
                 work.remaining_ticks = (shift.end_tick - now) as u32;
             }
@@ -513,12 +511,7 @@ pub(crate) fn finish_tick(world: &mut World) {
             let ticks = world.resource::<Content>().0.careers
                 [world.get::<Career>(actor).unwrap().0 as usize]
                 .shift_ticks;
-            world
-                .entity_mut(actor)
-                .remove::<Commuting>()
-                .insert(AtWork {
-                    remaining_ticks: ticks,
-                });
+            arrive_at_work(world, actor, ticks);
         } else if let Some(mut work) = world.get_mut::<AtWork>(actor) {
             // Pre-schema-fifteen and hand-built workers finish their saved countdown.
             work.remaining_ticks = work.remaining_ticks.saturating_sub(1);
@@ -656,6 +649,17 @@ pub fn report(world: &World, actor: Entity) -> Vec<f32> {
             ]
         })
         .unwrap_or_default()
+}
+
+fn arrive_at_work(world: &mut World, actor: Entity, remaining_ticks: u32) {
+    let low = world.resource::<Content>().0.tuning.mood_low_need_level;
+    if let Some(mut needs) = world.get_mut::<Needs>(actor) {
+        crate::systems::needs::refill_work_needs(&mut needs, low);
+    }
+    world
+        .entity_mut(actor)
+        .remove::<Commuting>()
+        .insert(AtWork { remaining_ticks });
 }
 
 #[cfg(test)]
@@ -1452,6 +1456,9 @@ mod editable_return_tests {
             }
         }
         assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+        sim.world_mut()
+            .entity_mut(actor)
+            .insert(Needs::all_at(20.0));
         let saved = sim.save_snapshot_v21();
         sim.load_snapshot_v21(saved.clone()).unwrap();
         assert_eq!(sim.save_snapshot_v21(), saved);
@@ -1461,6 +1468,23 @@ mod editable_return_tests {
         }
         assert_eq!(sim.funds(), paid);
         assert!(sim.world().get::<WaitingToReturn>(actor).is_some());
+        let pack = sim.world().resource::<Content>().0;
+        for need in [NeedId::Hunger, NeedId::Bladder, NeedId::Social] {
+            let expected = 20.0
+                - 20.0
+                    * pack.decay_per_tick[need.index()]
+                    * pack.tuning.at_work_decay_scale
+                    * sim
+                        .world()
+                        .get::<terri_core::Personality>(actor)
+                        .unwrap()
+                        .drain[need.index()];
+            let actual = sim.world().get::<Needs>(actor).unwrap().get(need);
+            assert!(
+                (actual - expected).abs() < 1e-3,
+                "{need:?}: waiting outside after work must decay without office care"
+            );
+        }
     }
 
     #[test]

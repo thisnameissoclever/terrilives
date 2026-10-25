@@ -3,7 +3,7 @@ import { FloorFinishResources } from '../src/render/floor-finish-resources.js';
 import { readFileSync } from 'node:fs';
 
 function fixture() {
-  const pending: { keys: readonly string[]; resolve(value: string): void; reject(error: Error): void }[] = [];
+  const pending: { keys: readonly string[]; resolve(value: string): void; reject(error: unknown): void }[] = [];
   const published: string[] = [], disposed: string[] = [];
   const states: [boolean, string | null][] = [];
   const manager = new FloorFinishResources<string>({
@@ -25,6 +25,13 @@ it('routes ordinary floor changes through retained renderer preparation and keep
 });
 
 describe('active floor resource replacement', () => {
+  it.each([new Error('native failure', { cause: new Error('original cause') }), { detail: 'unknown failure' }])(
+    'rejects recovery waiters with the original failure value', async error => {
+      const f = fixture(), ready = f.manager.invalidate();
+      const rejected = expect(ready).rejects.toBe(error);
+      f.pending[0].reject(error);
+      await rejected;
+    });
   it('suspends old-device work and resumes from the explicitly rebuilt base resources', async () => {
     const f = fixture(); f.manager.request(['old']); f.manager.pause();
     f.manager.request(['new']); f.pending[0].resolve('old candidate'); await flush();
