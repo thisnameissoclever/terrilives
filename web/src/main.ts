@@ -994,7 +994,7 @@ async function main(): Promise<void> {
     optionsToggle,
     optionsMenu,
     // Any open dialog owns Escape, even when focus has fallen to the page.
-    (target) => document.querySelector('dialog[open]') !== null
+    (target) => document.querySelector('dialog[open], dialog:popover-open') !== null
       || (target instanceof Element && target.closest('dialog') !== null),
   );
   // [AL-panel]: the Log toggle at the top right and its right-side panel.
@@ -1027,7 +1027,7 @@ async function main(): Promise<void> {
     activityLogDom,
     activityLogPanel,
     // A dialog and the object menu keep Escape, as they do for Sim details.
-    (target) => document.querySelector('dialog[open]') !== null
+    (target) => document.querySelector('dialog[open], dialog:popover-open') !== null
       || (target instanceof Element && target.closest('dialog') !== null)
       || menuRoot?.hidden === false,
   );
@@ -2262,7 +2262,7 @@ async function main(): Promise<void> {
     focusView: () => canvas.focus(),
     // Escape clears the current tool's selection first; with none, it asks to leave.
     escapeBuild: () => { if (roomReview.active) roomReview.back(); else routeBuildKey('Escape', buildTools, builder); },
-    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder'),
+    escapeAllowed: () => builder.active && !menu.isShowing() && !overlayPause.suspendedExcept('builder') && !document.querySelector('dialog:popover-open'),
     beforeAsk: () => { optionsMenu.close(); menu.close(); },
   });
   replaceBuildLocalState = reason => {
@@ -2378,7 +2378,7 @@ async function main(): Promise<void> {
     focusView: () => canvas.focus(),
   });
   canvas.addEventListener('keydown', (event) => {
-    if (event.defaultPrevented) return;
+    if (event.defaultPrevented || document.querySelector('dialog:popover-open')) return;
     if (builder.active) {
       if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
         // BuildExit also reads Escape from the rest of the page.

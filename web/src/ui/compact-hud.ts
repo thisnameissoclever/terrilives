@@ -135,7 +135,7 @@ export function createCompactHud(document: Document, refreshQueue: () => void, b
   close.addEventListener('click', closeSheet);
   collapse.addEventListener('click', () => hud.toggleCollapsed());
   document.addEventListener('keydown', event => {
-    if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]')) return;
+    if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open], dialog:popover-open')) return;
     if (sheet.hidden || !element('options-panel').hidden || !element('object-menu').hidden) return;
     event.preventDefault();
     event.stopPropagation();
