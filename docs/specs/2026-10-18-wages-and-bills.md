@@ -239,7 +239,7 @@ A rule checked only at Confirm lets a player remove a wall, move the bed and reb
    - Rent: `Base charge, {d} of {m} days: ${x}`, `Indoor tiles: {n} at ${rate} a month, {d} of {m} days: ${x}` and the same for outdoor tiles. After a layout change in the middle of the month a tile line reads `Indoor tiles: {n} today, {a} a day on average this month, at ${rate} a month, {d} of {m} days: ${x}`, where `{a}` is the month's daily average. Rent rounds once over its parts, and the lines split that rounding by largest remainder, so the lines a player sees add up to the rent so far. Every other bill's lines add up to its amount so far as well.
    - Electricity and water: the base charge line, then one line per usage kind with a nonzero count, `{label}: {count} x ${unit}`, for example `Showers: 14 x $0.60`, or `{label}: {days} days x ${unit}` for a daily kind.
    - Transportation: the base charge line and `Trips to work: {n} x $3.00`.
-4. **Last month**: each bill of the last issued month with its amount and `paid Day {n}` or `unpaid`.
+4. **Last month**: each bill of the last issued month with its amount, `plus ${fees} in late fees` when it gathered any, and `paid Day {n}` or `unpaid`, for example `Rent: $255.20 plus $25.52 in late fees, unpaid`.
 5. **How bills work**, a short fixed text: `Bills arrive on the first day of each month. A month is {m} days. Bills are paid automatically from Funds. A bill still unpaid after {g} days is overdue: a late fee of {p}% of the bill is added each day, up to {c}%, and every housemate is Behind on bills until it is paid.` The numbers come from the tuning.
 
 **Expected amounts.** Rent and base charges are projected exactly for the rest of the month from the current confirmed layout and day count. Usage is projected as the larger of the month's usage so far and the last month's usage, for each utility and for trips. In a game's first month, with no last month, the expected usage is the usage so far.
@@ -257,7 +257,7 @@ All strings below are functional text: labels, values, explanations and refusals
 | Surface | Strings |
 | --- | --- |
 | Household status | Bills; ${amount} due Day {n}, for the next bills or for the earliest unpaid one; ${amount} overdue; {visible text}, open bills |
-| Bills panel | Bills; Close; Funds: ${funds}; Keep aside ${amount} for the bills due Day {n}, {Weekday}.; Keep aside ${amount} for the unpaid bills and the bills due Day {n}, {Weekday}.; Funds cover these bills.; Funds are ${shortfall} short.; Unpaid bills due Day {n} are overdue from Day {o}.; Overdue; {Bill} due Day {n}: ${amount} plus ${fees} in late fees, or {Bill} due Day {n}: ${amount} without fees; Bills are paid in order, oldest first; each is paid as soon as Funds cover it and every bill before it.; Next bills; Due Day {n}, {Weekday}; So far; Expected; Last month; paid Day {n}; unpaid; How bills work, with its paragraph in [WB-panel] |
+| Bills panel | Bills; Close; Funds: ${funds}; Keep aside ${amount} for the bills due Day {n}, {Weekday}.; Keep aside ${amount} for the unpaid bills and the bills due Day {n}, {Weekday}.; Funds cover these bills.; Funds are ${shortfall} short.; Unpaid bills due Day {n} are overdue from Day {o}.; Overdue; {Bill} due Day {n}: ${amount} plus ${fees} in late fees, or {Bill} due Day {n}: ${amount} without fees; Bills are paid in order, oldest first; each is paid as soon as Funds cover it and every bill before it.; Next bills; Due Day {n}, {Weekday}; So far; Expected; Last month; {Bill}: ${amount}, paid Day {n}; {Bill}: ${amount}, unpaid; {Bill}: ${amount} plus ${fees} in late fees, paid Day {n} or unpaid; How bills work, with its paragraph in [WB-panel] |
 | Bill names | Rent; Electricity; Water; Transportation |
 | Bill lines | Base charge, {d} of {m} days: ${x}; Indoor tiles: {n} at ${rate} a month, {d} of {m} days: ${x}; Indoor tiles: {n} today, {a} a day on average this month, at ${rate} a month, {d} of {m} days: ${x}; the same two for Outdoor tiles; {label}: {count} x ${unit}; {label}: {days} days x ${unit}, with day for a single day; Trips to work: {n} x $3.00 |
 | Usage labels, from tuning | Showers; Baths; Hand washing; Toilet flushes; Dish washing; Television; Radio; Stove cooking; Fridges; Lamps; Aquariums; Pools |
@@ -384,7 +384,7 @@ Per [Testing Protocol, section 9](../testing-protocol.md#9-every-milestone-ends-
 1. the Bills row on a new game's first day, on the first bills' due day and while a bill is overdue, at both widths;
 2. the Bills panel with every section open, including an overdue bill and a last month, at both widths, with no sideways scrolling on the phone;
 3. the first bills issued and paid on Day 8, with Funds falling by the amount shown;
-4. a housemate with the Behind on bills moodlet in the Mood tab;
+4. a housemate with the Behind on bills moodlet in their mood list;
 5. a bed refused on a yard tile with the refusal text, a bed placed in a room built in the same session, and a Confirm refused after a wall removal leaves a bed outside;
 6. rent falling in the Bills panel the day after confirming a smaller house;
 7. the Career tab of a night worker showing the night pay line;
