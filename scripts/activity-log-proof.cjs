@@ -71,7 +71,7 @@ function parseArgs(argv) {
     mode: 'performance',
     url: 'http://127.0.0.1:4173/',
     output: null,
-    stress: 1000,
+    stress: 100,
     samplingInterval: SAMPLING_INTERVAL_BYTES,
     fillTicks: 1_440,
     afterTicks: 720,

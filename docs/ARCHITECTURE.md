@@ -1598,9 +1598,12 @@ capacity.
 The release performance gate uses a visible production build on a display
 configured at 120 Hz. A five-second paused calibration must achieve 118 to 122
 animation frames per second with median interval from 8.0 to 8.7 ms; the active
-cadence is then reported rather than inferred. `?stress=1000` runs 600 fixed
-ticks with the first 60 discarded. Sampler p95 is at most 0.25 ms, sampler
-maximum at most 1 ms, application-work p95 regression is at most 1 ms against
+cadence is then reported rather than inferred. `?stress=100` runs 600 fixed
+ticks with the first 60 discarded. The gate measures 100 Sims by the owner's
+decision of 2026-10-25: no household will have more than 100 active Sims on
+screen at once, so the earlier `?stress=1000` gate measured a load the game does
+not reach. Larger counts are revisited when the city is built.
+Sampler p95 is at most 0.25 ms, sampler maximum at most 1 ms, application-work p95 regression is at most 1 ms against
 `&audio=0`, no application-work frame exceeds 16.6 ms, and steady `simIdOf`
 calls remain zero.
 

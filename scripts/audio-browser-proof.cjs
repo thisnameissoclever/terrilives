@@ -50,7 +50,7 @@ function parseArgs(argv) {
 
 function withQuery(baseUrl, audioEnabled) {
   const url = new URL(baseUrl);
-  url.searchParams.set('stress', '1000');
+  url.searchParams.set('stress', '100');
   if (!audioEnabled) url.searchParams.set('audio', '0');
   return url.toString();
 }
