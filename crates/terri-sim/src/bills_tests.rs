@@ -1075,6 +1075,29 @@ fn a_counted_day_moves_the_hash() {
     });
     assert_ne!(sim.world_hash(), counted, "the hash reads the bills");
     let unpaid = sim.world_hash();
+    bills_mut(&mut sim).bills[0].terms.grace_days -= 1;
+    assert_ne!(sim.world_hash(), unpaid, "the hash reads a bill's grace");
+    bills_mut(&mut sim).bills[0].terms.grace_days += 1;
+    bills_mut(&mut sim).bills[0].terms.month_length += 1;
+    assert_ne!(
+        sim.world_hash(),
+        unpaid,
+        "the hash reads a bill's month length"
+    );
+    bills_mut(&mut sim).bills[0].terms.month_length -= 1;
+    bills_mut(&mut sim).bills[0].terms.late_fee_percent += 1;
+    assert_ne!(sim.world_hash(), unpaid, "the hash reads a bill's late fee");
+    bills_mut(&mut sim).bills[0].terms.late_fee_percent -= 1;
+    bills_mut(&mut sim).bills[0].terms.late_fee_cap_percent += 1;
+    assert_ne!(sim.world_hash(), unpaid, "the hash reads a bill's cap");
+    bills_mut(&mut sim).bills[0].terms.late_fee_cap_percent -= 1;
+    bills_mut(&mut sim).month_length += 1;
+    assert_ne!(sim.world_hash(), unpaid, "the hash reads the month length");
+    bills_mut(&mut sim).month_length -= 1;
+    bills_mut(&mut sim).month_start += 1;
+    assert_ne!(sim.world_hash(), unpaid, "the hash reads the month start");
+    bills_mut(&mut sim).month_start -= 1;
+    assert_eq!(sim.world_hash(), unpaid);
     bills_mut(&mut sim).bills[0].paid_day = Some(0);
     assert_ne!(
         sim.world_hash(),

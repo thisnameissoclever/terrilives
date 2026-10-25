@@ -482,8 +482,9 @@ pub fn any_overdue(world: &World) -> bool {
 }
 
 /// The bills record in the world hash, after every older section, only once
-/// it is not pristine ([WB-determinism]). Kinds are hashed by id, as they
-/// are saved.
+/// it is not pristine ([WB-determinism]): every saved field in its saved
+/// order, including the open month's length and start and each bill's
+/// terms. Kinds are hashed by id, as they are saved.
 pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     let Some(bills) = world.get_resource::<Bills>() else {
         return;
@@ -495,6 +496,8 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     hash.write_bytes(b"bills-v1");
     hash.write_u64(saved.last_counted_day.map_or(0, |day| u64::from(day) + 1));
     hash.write_u64(u64::from(saved.month_days));
+    hash.write_u64(u64::from(saved.month_length));
+    hash.write_u64(u64::from(saved.month_start));
     hash.write_u64(saved.indoor_tile_days);
     hash.write_u64(saved.outdoor_tile_days);
     for counts in [&saved.uses, &saved.daily] {
@@ -522,6 +525,10 @@ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
         hash.write_u64(bill.amount_cents as u64);
         hash.write_u64(bill.late_fee_cents as u64);
         hash.write_u64(bill.paid_day.map_or(0, |day| u64::from(day) + 1));
+        hash.write_u64(u64::from(bill.month_length));
+        hash.write_u64(u64::from(bill.grace_days));
+        hash.write_u64(u64::from(bill.late_fee_percent));
+        hash.write_u64(u64::from(bill.late_fee_cap_percent));
     }
 }
 
