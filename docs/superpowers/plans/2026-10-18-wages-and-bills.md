@@ -4,7 +4,7 @@
 
 **Goal:** Multiply every wage by 1.5, pay a 15 percent premium on night shifts, add monthly rent, electricity, water and transportation bills with base charges, usage charges, automatic payment, grace and late fees, keep beds inside rooms, and show the bills in a Bills row and panel, as the spec defines.
 
-**Architecture:** The content compiler adds a `[bills]` tuning section, the night premium knob, `bill_uses` on actions and chain steps, and `bill_daily` and `indoor_only` on object layers. A new simulation module counts each day's base charges, rent tiles and daily usage, counts uses at the physical start of work and trips at shift settlement, issues the month's bills, pays them from Funds and adds late fees. A derived moodlet reports overdue bills. Placement, Confirm and single wall edits enforce the bed rule. Schema twenty saves the bills record on top of schema nineteen and migrates older pay. The shell adds a Bills row and a read-only Bills dialog.
+**Architecture:** The content compiler adds a `[bills]` tuning section, the night premium knob, `bill_uses` on actions and chain steps, and `bill_daily` and `indoor_only` on object layers. A new simulation module counts each day's base charges, rent tiles and daily usage, counts uses at the physical start of work and trips at shift settlement, issues the month's bills, pays them from Funds and adds late fees. A derived moodlet reports overdue bills. Placement, Confirm and single wall edits enforce the bed rule. Schema twenty-two saves the bills record on top of schema twenty-one and migrates older pay. The shell adds a Bills row and a read-only Bills dialog.
 
 **Tech stack:** Rust (`terri-core`, `terri-data`, `terri-sim`, `terri-wasm`), TOML content, TypeScript shell with Vitest. No dependency changes.
 
@@ -13,13 +13,13 @@
 ## Contents
 
 - [Global constraints](#global-constraints)
-- [Task 1: Start from a main that holds schema nineteen](#task-1-start-from-a-main-that-holds-schema-nineteen)
+- [Task 1: Start from a main that holds schema twenty-one](#task-1-start-from-a-main-that-holds-schema-twenty-one)
 - [Task 2: Add months to the calendar](#task-2-add-months-to-the-calendar)
 - [Task 3: Compile the bills tuning and the night premium](#task-3-compile-the-bills-tuning-and-the-night-premium)
 - [Task 4: Compile usage and indoor-only properties and mark the shipped content](#task-4-compile-usage-and-indoor-only-properties-and-mark-the-shipped-content)
 - [Task 5: Count days, rent, usage and trips, and issue bills](#task-5-count-days-rent-usage-and-trips-and-issue-bills)
 - [Task 6: Pay bills, add late fees and report overdue bills in mood](#task-6-pay-bills-add-late-fees-and-report-overdue-bills-in-mood)
-- [Task 7: Raise wages, pay the night premium and save schema twenty](#task-7-raise-wages-pay-the-night-premium-and-save-schema-twenty)
+- [Task 7: Raise wages, pay the night premium and save schema twenty-two](#task-7-raise-wages-pay-the-night-premium-and-save-schema-twenty-two)
 - [Task 8: Keep beds inside rooms](#task-8-keep-beds-inside-rooms)
 - [Task 9: Export bills, refusals and night pay across the boundary](#task-9-export-bills-refusals-and-night-pay-across-the-boundary)
 - [Task 10: Show the Bills row, the Bills panel and the new texts](#task-10-show-the-bills-row-the-bills-panel-and-the-new-texts)
@@ -32,25 +32,25 @@
 
 1. Every rate, base charge, percentage, day count and mood weight lives in `content/tuning.toml`; every wage lives in `content/careers.toml`. None is written into code, and no code names a particular object type, action or usage kind.
 2. Nothing in this change draws from any random stream ([WB-determinism]). All money is integer cents with the rounding steps the spec states.
-3. Run Rust tests with `-- --test-threads=1` and Vitest with `--maxWorkers=1`. Do not overlap heavy builds and tests. Save long output to `.local-build/logs/<step>.log` and report each command's exit code with a bounded digest.
+3. Run Rust tests with `-- --test-threads=1` and Vitest with `--maxWorkers=1`. Do not overlap heavy builds and tests. Save long output to a log outside the tracked tree, such as `.local-build/logs/<step>.log`, and report each command's exit code with a bounded digest.
 4. Scripted edits write LF line endings (Python `newline="\n"`). After each scripted edit, check `git ls-files --eol` for the touched files.
 5. Keep player-visible strings plain and exactly as [WB-strings] proposes; they stay marked proposed until the owner reviews them.
 6. Record every test whose expected value moves in `.local-build/work-queue.md` with its class from [WB-determinism] (unchanged, wages, bills, migration, pack layout) and its cause. A move that fits no class is a defect to investigate, not a value to re-pin.
 7. Before a pull request leaves draft, a fresh adversarial review by subagents covers the exact final head, and every valid finding is resolved and recorded.
 8. Do not commit videos. Close task-owned browser pages and preview servers when a check ends.
 
-## Task 1: Start from a main that holds schema nineteen
+## Task 1: Start from a main that holds schema twenty-one
 
-**Files:** none changed.
+**Files:** `crates/terri-wasm/tests/fixtures/bills-v21/` only.
 
-1. [ ] Check whether pull request 304 (issue 296) has merged with `gh pr view 304 --repo thisnameissoclever/terrilives --json state,mergeCommit`. If it is not `MERGED`, stop and coordinate with its owner; this work does not take schema nineteen ([WB-scope]).
-2. [ ] Run `git fetch origin` and `git merge origin/main` on `twcl/298-wages-and-bills`. Confirm with `rg -n "SAVE_SCHEMA_VERSION: u16 = 19" crates/terri-core/src/save.rs` and `rg -n "CURRENT_SAVE_VERSION = 19" web/src/storage/save-header.ts` that schema nineteen is current, that `content/careers.toml` holds eight paths, and that `career_search_temperature` is the last root knob in `content/tuning.toml`. If another branch has already taken schema twenty, stop and follow [L-save-version-collision].
+1. [ ] Confirm that pull request 304 (issue 296) has merged with `gh pr view 304 --repo thisnameissoclever/terrilives --json state,mergeCommit`. It merged as `44f5fb271` ([WB-scope]).
+2. [ ] Run `git fetch origin` and `git merge origin/main` on `twcl/298-wages-and-bills`. Confirm with `rg -n "SAVE_SCHEMA_VERSION: u16 = 21" crates/terri-core/src/save.rs` and `rg -n "CURRENT_SAVE_VERSION = 21" web/src/storage/save-header.ts` that schema twenty-one is current, that `content/careers.toml` holds eight paths, and that `career_search_temperature` is the last root knob issue 296 added to `content/tuning.toml`. If another branch has already taken schema twenty-two, stop and follow [L-save-version-collision].
 3. [ ] Check free space with `Get-PSDrive -PSProvider FileSystem`; keep at least 30 GB free on the volume holding `target/`.
 4. [ ] In `web/`, run `npm ci`; from the repository root run `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, because a new worktree's ignored wasm can be stale.
-5. [ ] Record the baseline: `cargo test --workspace -- --test-threads=1` saved to `.local-build/logs/baseline-cargo.log`, and the median of three `Measure-Command { cargo run --release -p terri-sim --example trace -- 12000 }` runs.
-6. [ ] Capture the authentic schema-nineteen fixtures before any change, following the method in `crates/terri-wasm/tests/fixtures/job-search-v17/README.md`: in a scratch worktree at the merged main commit, add `crates/terri-wasm/examples/write_bills_v19_fixtures.rs` and run `cargo run --release -p terri-wasm --example write_bills_v19_fixtures`. It writes three saves: a new game after two days with Tim mid-shift, a household with a night watch worker holding a night shift, and a household whose double bed was moved to a yard tile (allowed before this change). Copy them with a README holding their SHA-256 digests to `crates/terri-wasm/tests/fixtures/bills-v19/`, then remove the scratch worktree with `git worktree remove`.
+5. [ ] Record the baseline: `cargo test --workspace -- --test-threads=1` at the merged main commit, saved to a log, and the median of three `Measure-Command { cargo run --release -p terri-sim --example trace -- 12000 }` runs.
+6. [ ] Capture the authentic schema-twenty-one fixtures before any change, following the method in `crates/terri-wasm/tests/fixtures/shifts-v20/README.md`: in a scratch worktree at the merged main commit, add `crates/terri-wasm/examples/write_bills_v21_fixtures.rs` and run `cargo run --release -p terri-wasm --example write_bills_v21_fixtures -- <output directory>`. It writes three saves: the shipped household after two days with Tim mid-shift, a household with a night watch worker holding an open night shift, and a household whose double bed was moved to a yard tile (allowed before this change). Copy them with a README holding their SHA-256 digests and the producer's source to `crates/terri-wasm/tests/fixtures/bills-v21/`, then remove the scratch worktree with `git worktree remove`.
 
-**Done when:** the branch contains main with schema nineteen, the baseline passes, the baseline trace time is in `.local-build/work-queue.md`, and the three fixtures and their README are committed.
+**Done when:** the branch contains main with schema twenty-one, the baseline passes, the baseline trace time is in `.local-build/work-queue.md`, and the three fixtures and their README are committed.
 
 ## Task 2: Add months to the calendar
 
@@ -67,12 +67,12 @@
 
 ## Task 3: Compile the bills tuning and the night premium
 
-**Files:** `crates/terri-data/src/schema.rs` (`TuningFile.bills: Option<BillsTuningDef>`, `TuningFile.night_shift_premium_percent`), `crates/terri-data/src/compile.rs` (`compile_tuning` validation and copy), `crates/terri-data/src/pack.rs` (`Tuning.night_shift_premium_percent`, `Tuning.bills: BillsTuning`, `BillKind { id, label, water_cents, electricity_cents }`, `SHIPPED_*` constants), `crates/terri-data/src/published_pack_wire.rs` (reconstruction for published packs), `crates/terri-data/src/error.rs` (refusals), `crates/terri-data/build_pre_books.rs` (historical source expansion), `crates/terri-data/tests/inherited_runtime.rs` and `crates/terri-data/tests/fixtures/inherited-runtime.pack`, `content/tuning.toml`.
+**Files:** `crates/terri-data/src/schema.rs` (`TuningFile.bills: Option<BillsTuningDef>`, `TuningFile.night_shift_premium_percent`), `crates/terri-data/src/compile.rs` (`compile_tuning` validation and copy), `crates/terri-data/src/pack.rs` (`Tuning.night_shift_premium_percent`, `ContentPack.bills: BillsTuning`, `BillKind { id, label, water_cents, electricity_cents }`, `SHIPPED_*` constants), `crates/terri-data/src/published_pack_wire.rs` (reconstruction for published packs), `crates/terri-data/src/error.rs` (refusals), `crates/terri-data/build_pre_books.rs` (historical source expansion), `crates/terri-data/tests/inherited_runtime.rs` and `crates/terri-data/tests/fixtures/inherited-runtime.pack`, `content/tuning.toml`.
 
-**Interfaces:** `BillsTuning { days_per_month: u32, grace_days: u32, late_fee_percent: u32, late_fee_cap_percent: u32, overdue_mood: f32, rent_base_cents: i64, rent_indoor_tile_cents: i64, rent_outdoor_tile_cents: i64, electricity_base_cents: i64, water_base_cents: i64, transportation_base_cents: i64, commute_cents: i64, uses: Vec<BillKind>, daily: Vec<BillKind> }`, each kind list sorted by id. Both fields are appended after issue 296's last tuning field, the premium first.
+**Interfaces:** `BillsTuning { days_per_month: u32, grace_days: u32, late_fee_percent: u32, late_fee_cap_percent: u32, overdue_mood: f32, rent_base_cents: i64, rent_indoor_tile_cents: i64, rent_outdoor_tile_cents: i64, electricity_base_cents: i64, water_base_cents: i64, transportation_base_cents: i64, commute_cents: i64, uses: Vec<BillKind>, daily: Vec<BillKind> }`, each kind list sorted by id. The premium is appended to `Tuning` after issue 296's last field, `career_search_temperature`. `BillsTuning` is appended to `ContentPack` after `career_paths`, because `Tuning` is `Copy` and the kind lists own their labels ([WB-tuning]).
 
 1. [ ] Write the failing tests in `compile.rs`: `compiles_the_bills_section_with_kinds_in_id_order`, `rejects_each_bad_bills_value` (`days_per_month` 0 and 366; grace equal to `days_per_month`; each percentage at 101; a negative and a non-finite mood; a cent amount of 1,000,001; an empty kind id; an id repeated across `uses` and `daily`; an empty label and a 33-character label; an unknown key in a kind row; a missing key), `rejects_a_night_premium_above_one_hundred` (100 accepted, 101 refused), and `the_shipped_bills_tuning_matches_the_spec` in `crates/terri-data/src/lib.rs`, asserting every value of the `[bills]` block in [WB-tuning] and the premium 15.
-2. [ ] Write `a_published_pack_reconstructs_the_shipped_bills_tuning` beside the published converter's tests, and extend the pre-books expansion test so the frozen source compiles with the shipped bills values.
+2. [ ] Write `a_published_pack_reconstructs_the_shipped_bills_tuning` beside the published converter's tests, and extend the pre-books expansion test so the frozen source compiles with the shipped premium and scalar bills values and empty usage lists.
 3. [ ] Run `cargo test -p terri-data bills -- --test-threads=1` and `cargo test -p terri-data premium -- --test-threads=1`; confirm assertion or compile failures in the new tests only.
 4. [ ] Implement the schema, validation, compiled types and reconstruction. Append `night_shift_premium_percent = 15` after `career_search_temperature` and the `[bills]`, `[bills.uses]` and `[bills.daily]` tables of [WB-tuning] to `content/tuning.toml`, each knob with a one-line comment naming [WB-bills], [WB-paying] or [WB-usage]. The `[bills.uses]` and `[bills.daily]` rows ship in this task; the compiler's "kind nobody uses" refusal arrives in Task 4 with the content that uses them.
 5. [ ] Regenerate the inherited runtime fixture with `TERRI_WRITE_RUNTIME_FIXTURE=1 cargo test -p terri-data --test inherited_runtime -- --test-threads=1`, then prove it with `TERRI_PROVE_RUNTIME_FIXTURE=1` and the same command; the test requires that only appended bytes changed. Update `GOLDEN_PACK_BYTES` in `compile.rs` by its documented method and record the move as class "pack layout".
@@ -97,7 +97,7 @@
 
 **Files:** new `crates/terri-sim/src/bills.rs` and `crates/terri-sim/src/bills_tests.rs` (registered from `bills.rs`), `crates/terri-sim/src/lib.rs` (module, resource insertion, schedule, `world_hash`), `crates/terri-sim/src/systems/movement.rs` (the two physical-start sites), `crates/terri-sim/src/attendance.rs` (`settle`), `crates/terri-sim/src/rooms/runtime.rs` (a shared tile-count helper beside `cleaning_area_at`).
 
-**Interfaces:** resource `Bills` holding the fields of `SavedBills` ([WB-save]) with kinds as compiled indices and `events: BillEvents` (session-local, [WB-hooks]); `bills::tick(world)` scheduled immediately after `systems::career::commute_and_work`; `bills::count_use(world, uses: &[u16])`; `bills::count_trip(world)`; `bills::hash(world, hasher)`; `rooms::runtime::rent_tiles(world) -> (u32, u32)` returning indoor and outdoor tile counts from the confirmed `RoomMap`; `Bills::is_pristine()`.
+**Interfaces:** resource `Bills` holding the fields of `SavedBills` ([WB-save]) with kinds as compiled indices; `bills::tick(world)` scheduled immediately after `systems::career::commute_and_work`; `bills::count_use(world, uses: &[u16])`; `bills::count_trip(world)`; `bills::hash(world, hasher)`; `rooms::runtime::rent_tiles(world) -> (u32, u32)` returning indoor and outdoor tile counts from the confirmed `RoomMap`; `Bills::is_pristine()`.
 
 1. [ ] Write the failing tests in `bills_tests.rs`:
    - `the_shipped_lot_has_192_indoor_and_112_outdoor_rent_tiles` and `the_tiny_house_and_the_wall_free_lot_count_as_the_spec_says` (build the 4 by 4 house and the wall-free lot with real wall commands, then confirm);
@@ -108,12 +108,11 @@
    - `daily_kinds_count_per_placed_object_per_day` (two lamps count two a day; a sold fridge stops counting the next day);
    - `a_trip_counts_once_per_settled_shift_with_time_worked`, `a_missed_shift_counts_no_trip`, `a_worker_sent_home_and_back_counts_one_trip`;
    - `a_zero_bill_is_not_issued` and `bills_are_issued_in_the_order_rent_electricity_water_transportation`;
-   - `a_world_without_a_lot_stays_pristine_and_hashes_as_before` and `a_counted_day_moves_the_hash`;
-   - `the_events_ring_holds_issued_bills_and_is_not_hashed`.
+   - `a_world_without_a_lot_stays_pristine_and_hashes_as_before` and `a_counted_day_moves_the_hash`.
    Pin exact cents and counts, per [L5].
 2. [ ] Run `cargo test -p terri-sim bills -- --test-threads=1`; confirm assertion failures.
 3. [ ] Implement the module. Count uses at the site that calls `player_actions::record_physical_work_start` and at the `StepWork` insertion in `systems/movement.rs`, reading the compiled indices only. Count a trip in `attendance::settle` when the worked minutes are above zero. Do day work in the order of [WB-calendar]. Append the hash section of [WB-determinism] after the career shift section, skipped while pristine.
-4. [ ] Run `cargo test -p terri-sim -- --test-threads=1`. Classify every moved pin as "bills" in the work queue; a shipped-household run that does not cross a day start must not move.
+4. [ ] Run `cargo test -p terri-sim -- --test-threads=1`. Classify every moved pin as "bills" in the work queue; a world without a lot must not move.
 5. [ ] Apply testing protocol rule 1 to `each_day_is_counted_once_on_its_first_processed_tick` and `a_world_without_a_lot_stays_pristine_and_hashes_as_before`: delete the `last_counted_day` guard and the pristine check in turn, record the failing output, restore, and confirm the tree is byte-identical with `git diff --stat`.
 
 **Done when:** the new tests pass, every moved pin is classified, and the rule 1 receipts are in the work queue.
@@ -130,19 +129,19 @@
 
 **Done when:** the tests pass, the rule 1 receipts are recorded, and every moved pin is classified.
 
-## Task 7: Raise wages, pay the night premium and save schema twenty
+## Task 7: Raise wages, pay the night premium and save schema twenty-two
 
-**Files:** `content/careers.toml`; `crates/terri-sim/src/attendance.rs` (`start_tick`, the open-shift validator); `crates/terri-sim/src/careers.rs` (validation comments only; the range check reads content); new `crates/terri-core/src/save_v20.rs` with `SaveSnapshotV20` and `SavedBills`; `crates/terri-core/src/save.rs` (`SAVE_SCHEMA_VERSION = 20`); `crates/terri-core/src/lib.rs`; new `crates/terri-sim/src/save/v20.rs` (`capture`, `capture_without_commands`, `restore`, `project_v19`, the pay migration); `crates/terri-sim/src/lib.rs` (`save_snapshot_v20`, `load_snapshot_v20`, current-save dispatch); `crates/terri-sim/src/build_transaction.rs` (current schema references); `crates/terri-wasm/src/lib.rs` (`load_bytes` dispatch); `crates/terri-sim/src/attendance_tests.rs`, `crates/terri-sim/src/job_search_tests.rs` and every test that pins funds after a shift.
+**Files:** `content/careers.toml`; `crates/terri-sim/src/attendance.rs` (`start_tick`, `work_conflicts`, the open-shift and outcome validators); `crates/terri-sim/src/careers.rs` (validation comments only; the range check reads content); new `crates/terri-core/src/save_v22.rs` with `SaveSnapshotV22` and `SavedBills`; `crates/terri-core/src/save.rs` (`SAVE_SCHEMA_VERSION = 22`); `crates/terri-core/src/lib.rs`; new `crates/terri-sim/src/save/v22.rs` (`capture`, `capture_without_commands`, `restore`) and `crates/terri-sim/src/save/wage_migration.rs` (the pay migration, selected through `save::Carried` by the loaders of schemas fourteen to twenty-one only); `crates/terri-sim/src/save/v14.rs` and `crates/terri-sim/src/save/v17.rs` (apply the migration before validating careers and attendance); `crates/terri-sim/src/lib.rs` (`save_snapshot_v22`, `load_snapshot_v22`, the older loaders' migration flag, current-save dispatch); `crates/terri-sim/src/build_transaction.rs` and its submodules (current schema references; a transaction baseline is never migrated); `crates/terri-wasm/src/lib.rs` (`save_bytes`, `load_bytes` dispatch); `crates/terri-sim/src/attendance_tests.rs`, `crates/terri-sim/src/job_search_tests.rs` and every test that pins funds after a shift.
 
 1. [ ] Write the failing tests:
    - in `crates/terri-data/src/lib.rs`, `the_shipped_wages_are_one_and_a_half_times_the_old_ones` asserting all 32 levels against the [WB-wages] table;
-   - in `attendance_tests.rs`, `a_night_shift_records_the_premium_in_cents` (night watch guard: 12075 cents), `day_early_and_late_shifts_record_no_premium`, `a_prorated_night_shift_pays_its_share_of_the_premium`, and `the_open_shift_validator_accepts_the_premium_range_and_refuses_above_it`;
-   - in `crates/terri-sim/src/save/v20.rs` tests, `schema_twenty_round_trips_the_bills_record` (mid-month, with an overdue bill and a last month), one `refuses_*` test per refusal in [WB-save] that asserts unchanged live bytes, hash and random state, `drops_counts_for_a_usage_kind_content_no_longer_defines`, `loading_schema_nineteen_migrates_pay_and_open_shift_cents` (from the authentic fixture of Task 1, Tim's pay 120 becomes 180 and his open shift's 12000 cents becomes 18000), `migrated_pay_is_clamped_into_the_new_range`, `loading_schemas_fourteen_to_nineteen_starts_an_empty_prorated_month`, and `a_schema_twenty_save_is_not_migrated_twice`.
+   - in `attendance_tests.rs`, `a_night_shift_records_the_premium_in_cents` (night watch guard: 12075 cents), `day_early_and_late_shifts_record_no_premium`, `a_prorated_night_shift_pays_its_share_of_the_premium`, `the_premium_follows_the_shift_worked_on_a_change_day`, and `the_open_shift_validator_accepts_the_premium_range_and_refuses_above_it`;
+   - in `crates/terri-sim/src/save/v22.rs` tests, `schema_twenty_two_round_trips_the_bills_record` (mid-month, with an overdue bill and a last month), one `refuses_*` test per refusal in [WB-save] that asserts unchanged live bytes, hash and random state, `drops_counts_for_a_usage_kind_content_no_longer_defines`, `loading_schema_twenty_one_migrates_pay_and_open_shift_cents` (from the authentic fixtures of Task 1: Tim's pay 120 becomes 180 and his open shift's 12000 cents becomes 18000, and the night watch guard's open night shift becomes 10500 cents without the premium), `settled_shift_records_keep_their_settled_pay`, `migrated_pay_is_clamped_into_the_new_range`, `loading_schemas_fourteen_to_twenty_one_starts_an_empty_prorated_month`, `a_schema_twenty_two_save_is_not_migrated_twice`, and `a_build_session_never_migrates_its_baseline`.
 2. [ ] Run the new tests by name with `cargo test -p terri-sim <name> -- --test-threads=1`; confirm failures.
 3. [ ] Edit `content/careers.toml` to the [WB-wages] values. Update its header comment so pay is described in the new dollars and the "one shift buys a chair and a lamp" comment is recomputed.
-4. [ ] Implement the premium in `start_tick`, the validator range, schema twenty and the migration exactly as [WB-save] defines. Bump `SAVE_SCHEMA_VERSION` to 20.
-5. [ ] Run `cargo test --workspace -- --test-threads=1` saved to `.local-build/logs/task7-cargo.log`. Classify every moved pin as "wages", "bills" or "migration", including issue 296's `the_shipped_household_hash_and_draws_through_thursday` and pull request 303's `every_search_on_plays_out_exactly_as_the_global_setting_did`; re-pin each with a comment naming issue 298. Search for each moved hash in decimal, hex and quoted forms with `rg`, per [L-pinned-hash-search-includes-strings], and update byte-fixture cuts per [L-save-tail-offset-fixtures].
-6. [ ] Apply testing protocol rule 1 to `a_schema_twenty_save_is_not_migrated_twice` (apply the migration to schema twenty too) and `loading_schema_nineteen_migrates_pay_and_open_shift_cents` (skip the open-shift step); record and restore.
+4. [ ] Implement the premium in `start_tick` and `work_conflicts`, the validator ranges, schema twenty-two and the migration exactly as [WB-save] defines. Bump `SAVE_SCHEMA_VERSION` to 22.
+5. [ ] Run `cargo test --workspace -- --test-threads=1` saved to a log. Classify every moved pin as "wages", "bills" or "migration", including issue 296's `the_shipped_household_hash_and_draws_through_thursday` and pull request 303's `every_search_on_plays_out_exactly_as_the_global_setting_did`; re-pin each with a comment naming issue 298. Search for each moved hash in decimal, hex and quoted forms with `rg`, per [L-pinned-hash-search-includes-strings], and update byte-fixture cuts per [L-save-tail-offset-fixtures].
+6. [ ] Apply testing protocol rule 1 to `a_schema_twenty_two_save_is_not_migrated_twice` (apply the migration to schema twenty-two too) and `loading_schema_twenty_one_migrates_pay_and_open_shift_cents` (skip the open-shift step); record and restore.
 
 **Done when:** the workspace passes, every moved pin is classified and re-pinned with its cause, and the rule 1 receipts are recorded.
 
@@ -166,7 +165,7 @@
 
 ## Task 9: Export bills, refusals and night pay across the boundary
 
-**Files:** new `crates/terri-wasm/src/browser_bills.rs`, `crates/terri-wasm/src/lib.rs` (exports, refusal code mappings, schema twenty in the save path), the wasm tests beside them, and `crates/terri-wasm/src/published_v15_tests.rs` only if a pin moves by class.
+**Files:** new `crates/terri-wasm/src/browser_bills.rs`, `crates/terri-wasm/src/lib.rs` (exports, refusal code mappings, schema twenty-two in the save path), the wasm tests beside them, and `crates/terri-wasm/src/published_v15_tests.rs` only if a pin moves by class.
 
 **Interfaces:** each export returns a flat `Float64Array` of cents and counts, empty when the world has no lot:
 - `bills_overview()`: `[funds_cents, keep_aside_cents, shortfall_cents, next_due_day, overdue_cents, overdue_fee_cents, days_per_month, grace_days, late_fee_percent, late_fee_cap_percent, month_days]`;
@@ -177,7 +176,7 @@
 - `night_pay_cents_of(entity_index)`: the premium pay of a person holding a night shift, -1 otherwise.
 The placement refusal 21 and the build commit and wall refusals for a bed are mapped to new codes in the existing result exports.
 
-1. [ ] Write the failing wasm tests: `bills_exports_are_empty_without_a_lot`, `bills_overview_on_a_new_game`, `bills_exports_mid_month_with_an_overdue_bill`, `bills_lines_for_each_bill_kind`, `night_pay_of_a_night_worker_and_of_a_day_worker`, `bed_refusals_cross_the_boundary_with_their_codes`, `schema_twenty_round_trips_through_the_save_bytes`, and `the_authentic_schema_nineteen_fixtures_load_with_migrated_pay`.
+1. [ ] Write the failing wasm tests: `bills_exports_are_empty_without_a_lot`, `bills_overview_on_a_new_game`, `bills_exports_mid_month_with_an_overdue_bill`, `bills_lines_for_each_bill_kind`, `night_pay_of_a_night_worker_and_of_a_day_worker`, `bed_refusals_cross_the_boundary_with_their_codes`, `schema_twenty_two_round_trips_through_the_save_bytes`, and `the_authentic_schema_twenty_one_fixtures_load_with_migrated_pay` (the three saves in `crates/terri-wasm/tests/fixtures/bills-v21/`).
 2. [ ] Run `cargo test -p terri-wasm -- --test-threads=1`; confirm failures.
 3. [ ] Implement the exports and mappings.
 4. [ ] Run `cargo test -p terri-wasm -- --test-threads=1` and classify moved pins.
@@ -186,7 +185,7 @@ The placement refusal 21 and the build commit and wall refusals for a bed are ma
 
 ## Task 10: Show the Bills row, the Bills panel and the new texts
 
-**Files:** `web/index.html` (the Bills row in `#household-summary`, dialog styles), new `web/src/ui/bills-panel.ts`, `web/src/ui/game-hud.ts` (the row's text and danger state), `web/src/main.ts` (dialog wiring with `overlayPause.suspend('bills')`, disabled in Build), `web/src/bridge.ts` (bills exports, `PLACEMENT_REASONS[21]`, the wall and room refusal text, the night pay export), `web/src/ui/build-exit.ts` (`confirmRefusal` with the bed case), `web/src/ui/career-panel.ts` (the night pay sentence), `web/src/storage/save-header.ts` (`CURRENT_SAVE_VERSION = 20`), `web/src/storage/save-worker.ts` (the `terri-save-1.v19-backup.bin` recovery file), a frozen copy of the schema-nineteen worker in `web/tests/fixtures/`, and tests `web/tests/bills-panel.test.ts`, `web/tests/game-hud.test.ts`, `web/tests/bridge.test.ts`, `web/tests/build-exit.test.ts`, `web/tests/career-panel.test.ts`, `web/tests/save-worker.test.ts`.
+**Files:** `web/index.html` (the Bills row in `#household-summary`, dialog styles), new `web/src/ui/bills-panel.ts`, `web/src/ui/game-hud.ts` (the row's text and danger state), `web/src/main.ts` (dialog wiring with `overlayPause.suspend('bills')`, disabled in Build), `web/src/bridge.ts` (bills exports, `PLACEMENT_REASONS[21]`, the wall and room refusal text, the night pay export), `web/src/ui/build-exit.ts` (`confirmRefusal` with the bed case), `web/src/ui/career-panel.ts` (the night pay sentence), `web/src/storage/save-header.ts` (`CURRENT_SAVE_VERSION = 22`), `web/src/storage/save-worker.ts` (the `terri-save-1.v21-backup.bin` recovery file), a frozen copy of the schema-twenty-one worker in `web/tests/fixtures/v21-worker/`, and tests `web/tests/bills-panel.test.ts`, `web/tests/game-hud.test.ts`, `web/tests/bridge.test.ts`, `web/tests/build-exit.test.ts`, `web/tests/career-panel.test.ts`, `web/tests/save-worker.test.ts`.
 
 1. [ ] Write the failing tests:
    - `bills-panel.test.ts`: `renders keep aside, cover and shortfall lines`, `lists overdue bills only when one is overdue`, `lists next bills with so far and expected amounts in cents`, `expands each bill into its lines`, `shows the last month with paid and unpaid bills`, `reads the rules paragraph from the overview numbers`, `closes on Close and Escape and resumes the paused game`;
@@ -194,7 +193,7 @@ The placement refusal 21 and the build commit and wall refusals for a bed are ma
    - `bridge.test.ts`: validation of every bills export, refusal 21's text, the bed wall and room refusal text;
    - `build-exit.test.ts`: the bed Confirm refusal text;
    - `career-panel.test.ts`: the night pay sentence for a night worker and its absence for others;
-   - `save-worker.test.ts`: version 20 writes, the schema-nineteen backup, and the frozen schema-nineteen worker refusing a version 20 file.
+   - `save-worker.test.ts`: version 22 writes, the schema-twenty-one backup, and the frozen schema-twenty-one worker refusing a version 22 file.
 2. [ ] Run `npm --prefix web test -- --maxWorkers=1 tests/bills-panel.test.ts tests/game-hud.test.ts tests/bridge.test.ts tests/build-exit.test.ts tests/career-panel.test.ts tests/save-worker.test.ts`; confirm failures.
 3. [ ] Implement the row, the dialog and the texts exactly as [WB-panel] and [WB-strings] define, using the phone rules of [WB-panel] in `web/src/ui/compact-hud.css` where the dialog needs them.
 4. [ ] Rebuild the wasm with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, then run `npm --prefix web run typecheck` and `npm --prefix web test -- --maxWorkers=1`.
@@ -215,11 +214,11 @@ The placement refusal 21 and the build commit and wall refusals for a bed are ma
 
 ## Task 12: Update documentation and the changelog
 
-**Files:** `docs/changelog/<delivery date>.md`, `docs/specs/2026-10-17-careers.md` (rules 1, 2 and 8 point to [WB-wages]), `docs/specs/2026-10-06-calendar.md` (months point to [WB-calendar]), `docs/GAME-SYSTEMS.md` ([S-money], [S-calendar], [S-careers]), `docs/player-visible-strings.md` (the [WB-strings] rows, marked proposed), `docs/ARCHITECTURE.md` (schema twenty), `docs/specs/2026-10-18-wages-and-bills-verification.md`.
+**Files:** `docs/player/changelog/<delivery date>-<slug>.md`, `docs/specs/2026-10-17-careers.md` (rules 1, 2 and 8 point to [WB-wages]), `docs/specs/2026-10-06-calendar.md` (months point to [WB-calendar]), `docs/GAME-SYSTEMS.md` ([S-money], [S-calendar], [S-careers]), `docs/player-visible-strings.md` (the [WB-strings] rows, marked proposed), `docs/ARCHITECTURE.md` (schema twenty-two), `docs/specs/2026-10-18-activity-log.md` ([AL-sources] gains bills as unlogged source 9), the player guide in `docs/player/` per `docs/player-guide-authoring.md` (the articles on money, careers, the household status panel and Build mode, their screenshots, and `node scripts/check-player-reference.mjs --refresh` after reviewing the source), `docs/specs/2026-10-18-wages-and-bills-verification.md`.
 
 1. [ ] Read `.agents/skills/maintain-changelog/SKILL.md` and `docs/changelog.md`. Extend the delivery date's entry if one exists, otherwise create it, with the player-facing points of [WB-docs] and nothing about implementation.
 2. [ ] Update the documents above. State changed behavior only; do not add progress counts.
-3. [ ] Run `node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs` and `node scripts/build-changelog.mjs`, and read the generated copy for accuracy.
+3. [ ] Run `node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs` and `node scripts/build-changelog.mjs`, and read the generated copy for accuracy. Run `node scripts/build-player-guide.mjs` and `node scripts/check-player-reference.mjs --check`.
 4. [ ] Run `py -3 check-doc-ids.py`.
 
 **Done when:** both changelog commands and the doc-id check exit 0 and every listed document reflects the delivered behavior.
@@ -228,16 +227,8 @@ The placement refusal 21 and the build commit and wall refusals for a bed are ma
 
 **Files:** none changed unless a check finds a defect.
 
-1. [ ] On the committed head, run each of these, saving output under `.local-build/logs/` and recording each exit code:
-   - `cargo fmt --all -- --check`
-   - `cargo clippy --workspace --all-targets -- -D warnings`
-   - `cargo test --workspace -- --test-threads=1`
-   - `py -3 check-doc-ids.py`
-   - `node --test scripts/build-changelog.test.mjs scripts/branding.test.mjs` and `node scripts/build-changelog.mjs`
-   - `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`
-   - in `web/`: `npm run typecheck`, `npx vitest run --maxWorkers=1 --testTimeout=20000` and `npm run build`
-   - the core web-dependency guard from `.github/workflows/ci.yml`, translated to PowerShell for `x86_64-pc-windows-msvc` and `wasm32-unknown-unknown`
-2. [ ] Run a targeted mutation sweep over the diff in the shared mutants worktree: `cargo mutants --in-place --in-diff <diff-file> --package terri-core --package terri-data --package terri-sim`. Each surviving mutant in day counting, rent tiles, use and trip counting, bill amounts, payment order, late fees and the cap, the moodlet, the night premium, the bed checks, the schema-twenty validation, the pay migration or the compiler refusals gets a test or a written reason in the verification record.
+1. [ ] On the committed, clean head, run the project's complete local check catalog, which runs every group in order (documentation ids, CI scripts, art, Rust formatting, Clippy and workspace tests, dependency purity, the public documentation builds and the player reference check, the WebAssembly build, the web type check, tests and production build): `py -3 -B scripts/check-local-ci.py run --report <log directory>/local-ci-298.json`. Record the report path, its checked revision and every group's result; a failed group stops the run and is fixed before running again ([local checks](../../local-checks.md)).
+2. [ ] Run a targeted mutation sweep over the diff in the shared mutants worktree: `cargo mutants --in-place --in-diff <diff-file> --package terri-core --package terri-data --package terri-sim`. Each surviving mutant in day counting, rent tiles, use and trip counting, bill amounts, payment order, late fees and the cap, the moodlet, the night premium, the bed checks, the schema-twenty-two validation, the pay migration or the compiler refusals gets a test or a written reason in the verification record.
 3. [ ] Check `git ls-files --eol` for every changed file and `git status` for a clean tree.
 
 **Done when:** every command exits 0, the mutation results are recorded, and the tree is clean.
@@ -246,7 +237,7 @@ The placement refusal 21 and the build commit and wall refusals for a bed are ma
 
 **Files:** selected screenshots under `docs/evidence/` as its README directs, and the verification record.
 
-1. [ ] Start or reuse the project's preview servers on 5174 and 4173 only. Confirm the served bundle is this branch's before looking.
+1. [ ] Build this branch and serve it on a free port of the task's own, or answer page requests from this branch's build through a Playwright route; ports 4173 and 5174 belong to other sessions. Check for game browsers already running and run one browser at a time, muted, with game stress at most `?stress=50`. Confirm the served bundle is this branch's before looking.
 2. [ ] Play at desktop width and at 375 by 812, muted where possible, per [Testing Protocol, section 9](../../testing-protocol.md#9-every-milestone-ends-with-a-played-visual-pass), covering every point of [WB-played]. To reach an overdue bill quickly, play a household whose only worker quits on Day 1, or load a save prepared by a scratch example and written into the page's save slot.
 3. [ ] Inspect each saved screenshot at full size and write what it shows, including the Bills row's width at 375 pixels. File findings in `docs/alpha-feel-notes.md` with this milestone's entry, fixed or deferred with a reason.
 4. [ ] Give a fresh independent reviewer the [WB-played] points and the captures without an expected verdict. Resolve every disagreement and finding, then inspect the same images yourself.
