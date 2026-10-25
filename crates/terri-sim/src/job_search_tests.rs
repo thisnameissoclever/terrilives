@@ -223,8 +223,11 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
     assert_eq!(jobs, SHIPPED_THURSDAY_JOBS);
 }
 /// Seven careers draws, and two shift draws: one for each search hire, as
-/// both hired levels offer more than one shift.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (17413157888741130017, 7, 2);
+/// both hired levels offer more than one shift. Issue 339 moved the hash
+/// from 17413157888741130017: a returning reader no longer waits out another
+/// reader's walk to the bookcase, so Tim leaves on time on Monday. The draw
+/// counts and every job and shift are unchanged.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (18180649999092761866, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

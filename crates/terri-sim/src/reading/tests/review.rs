@@ -243,7 +243,7 @@ fn fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order() {
     }
 }
 #[test]
-fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhere() {
+fn fix1_a_walk_to_the_near_contact_keeps_the_near_copy_and_shelf_requests_can_fetch_elsewhere() {
     let (mut sim, blocker, far, seat, title) = fixture("armchair");
     sim.world_mut()
         .entity_mut(far)
@@ -279,8 +279,10 @@ fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhe
         sim.world().get::<ReadingJourney>(blocker).unwrap().shelf,
         near
     );
-    assert_eq!(sim.world().get::<ReadingJourney>(p).unwrap().shelf, far);
-    assert!(sim.book_copies()[1].borrower.is_none());
+    // Another walk to the near contact does not hold it, so the near copy wins
+    // over a walk across the lot; the two take their copies one at a time.
+    assert_eq!(sim.world().get::<ReadingJourney>(p).unwrap().shelf, near);
+    assert!(sim.book_copies()[0].borrower.is_none());
     let (mut local, p, far, _seat, title) = fixture("armchair");
     local
         .world_mut()
@@ -295,6 +297,127 @@ fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhe
     assert_eq!(journey.shelf, near);
     assert_eq!(journey.origin.object, far);
 }
+/// A longer use of the near bookcase's only contact, here a radio listener
+/// standing on it, still closes that contact to reading plans, so the planner
+/// falls back to the copy on the far bookcase.
+#[test]
+fn fix1_a_listener_standing_on_the_near_contact_sends_the_reader_to_the_far_copy() {
+    let (mut sim, p, far, seat, title) = fixture("armchair");
+    sim.world_mut()
+        .entity_mut(far)
+        .insert(Position { x: 17.0, y: 17.0 });
+    let pack = sim.world().resource::<Content>().0;
+    let near = sim.spawn_object(Position { x: 3.0, y: 3.0 }, pack.find("bookshelf").unwrap());
+    purchase(&mut sim, Some(far), &title);
+    purchase(&mut sim, Some(near), &title);
+    let contact = (4, 3);
+    assert!(legal_shelf_contact(
+        sim.world(),
+        sim.world().resource::<TileGrid>(),
+        near,
+        contact
+    ));
+    let radio_model = pack.find("radio").unwrap();
+    let listen = pack
+        .object(radio_model)
+        .interactions
+        .iter()
+        .position(|action| action.media.is_some())
+        .unwrap() as u32;
+    // The radio faces the bookcase, so the nearest standing spot in front of
+    // it is the near contact.
+    let radio = sim.spawn_object(Position { x: 5.0, y: 3.0 }, radio_model);
+    let facing = Facing::ALL
+        .into_iter()
+        .find(|facing| facing.rotate_axis(1, 0) == (-1, 0))
+        .unwrap();
+    let at = *sim.world().get::<Position>(radio).unwrap();
+    crate::apply_object_placement(sim.world_mut(), radio, pack.object(radio_model), at, facing);
+    let row = pack
+        .object(sim.world().get::<SmartObject>(seat).unwrap().0)
+        .interactions
+        .iter()
+        .position(|action| action.book_reading)
+        .unwrap() as u32;
+    let preferred = |sim: &mut Sim, reader: Entity| {
+        let origin = Target {
+            object: seat,
+            interaction: row,
+        };
+        let choices = plans(sim.world_mut(), reader, origin, Some(&title));
+        let occupancy = crate::seating::occupancy(sim.world_mut());
+        best_plan(&choices, reader, &occupancy, &Default::default()).map(|plan| plan.shelf)
+    };
+    assert_eq!(
+        preferred(&mut sim, p),
+        Some(near),
+        "with the near contact free, the near copy wins"
+    );
+    // The fixture's reader leaves, so its own autonomy cannot fetch a copy
+    // while the listener walks over; a new reader arrives afterwards.
+    sim.world_mut().despawn(p);
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let listener = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 6.0, y: 6.0 },
+            Needs::all_at(80.0),
+            IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
+                object: radio,
+                interaction: listen,
+            }]),
+        ))
+        .id();
+    let standing_on = |sim: &Sim| {
+        let world = sim.world();
+        let at = world.get::<Position>(listener).unwrap();
+        world
+            .get::<Target>(listener)
+            .filter(|t| t.object == radio)?;
+        Some(
+            world
+                .get::<Path>(listener)
+                .and_then(|path| path.steps.last().copied())
+                .unwrap_or((at.x.round() as i32, at.y.round() as i32)),
+        )
+    };
+    for _ in 0..20 {
+        if standing_on(&sim).is_some() {
+            break;
+        }
+        sim.tick();
+    }
+    assert_eq!(
+        standing_on(&sim),
+        Some(contact),
+        "the listener stands on the near contact"
+    );
+    assert!(sim.book_copies().iter().all(|c| c.borrower.is_none()));
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let reader = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 1.0, y: 1.0 },
+            Needs::all_at(80.0),
+            IntentQueue::default(),
+        ))
+        .id();
+    assert_eq!(preferred(&mut sim, reader), Some(far));
+    read(&mut sim, reader, seat, &title, false);
+    sim.tick();
+    assert_eq!(standing_on(&sim), Some(contact));
+    assert_eq!(
+        sim.world().get::<ReadingJourney>(reader).unwrap().shelf,
+        far
+    );
+}
+
 #[test]
 fn fix1_equal_routes_use_stable_copy_ids_and_reserved_copy_falls_back() {
     for reverse in [false, true] {
