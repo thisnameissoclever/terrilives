@@ -324,6 +324,7 @@ fn accepted_architecture_edits_always_confirm() {
         let grid = sim.world().resource::<terri_core::TileGrid>();
         let (w, h) = (grid.width() as u64, grid.height() as u64);
         let mut accepted = 0;
+        let mut refused_beds = 0;
         for step in 0..60 {
             let axis = if next(2) == 0 {
                 EdgeAxis::Vertical
@@ -415,6 +416,21 @@ fn accepted_architecture_edits_always_confirm() {
             }
             accepted += 1;
             match sim.prepare_build_commit(RoomChoices::default()) {
+                // The bed rule refuses a batch that leaves a bed outside
+                // ([WB-beds] in docs/specs/2026-10-18-wages-and-bills.md):
+                // the search cancels that batch and goes on from the
+                // confirmed layout.
+                Err(crate::build_transaction::BuildCommitError::BedOutside { .. }) => {
+                    refused_beds += 1;
+                    sim.cancel_build().unwrap();
+                    sim.end_build().unwrap();
+                    if let Err(e) = sim.begin_build() {
+                        panic!(
+                            "seed {seed}: Build re-entry after a bed refusal refused {e:?}, {:?}",
+                            sim.build_diagnosis()
+                        );
+                    }
+                }
                 Err(e) => panic!(
                     "seed {seed} step {step}, after {accepted} accepted edits, {command:?}: \
                      {e:?}, {:?}",
@@ -436,7 +452,9 @@ fn accepted_architecture_edits_always_confirm() {
                 Ok(_) => {}
             }
         }
-        eprintln!("seed {seed}: {accepted} accepted edits confirmed");
+        eprintln!(
+            "seed {seed}: {accepted} accepted edits, batches cancelled for a bed left outside: {refused_beds}"
+        );
     }
 }
 
