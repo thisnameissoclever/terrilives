@@ -2366,5 +2366,32 @@
     "work-confirmation": [
       "work-conflict"
     ]
+  },
+  "saveRecoveryCapture": {
+    "capturedAt": "2026-10-25",
+    "sourceRevision": "afbe98af343123dce139338821fdacedc7fbefe8 with Export save recovery and keyboard ownership corrections",
+    "url": "http://127.0.0.1:5224/?stress=0&audio=0",
+    "accessPath": "Options > Export save",
+    "state": "Paused and muted actual game; normal export; native dialog popover",
+    "method": "Actual published game with candidate HTML/CSS. After mode makes exactly the five source guard corrections in the compiled artifact; native simulation and all other scripts are unchanged. This is a played integration proof, not a production build.",
+    "htmlSha256": "93f69dbb4ed52b2fec5f1f5ef8935752758b091fa2f1cda84cb7a256199f553c",
+    "desktop": {
+      "path": "images/guide/save-recovery-desktop.jpg",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "7eccd82710b4fcda60788810ffe7a5831652feb7386572e0c7efc53679da121d"
+    },
+    "mobile": {
+      "path": "images/guide/save-recovery-mobile.jpg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "sha256": "17f8618fdbdc4d6728b434cd9f36ad69db8fce0f93caad6bb5a5e0f66cd838d2"
+    },
+    "javascriptSha256": "62ef5ef98a87064bcca886009c6200b3b154df7b2ceac07ed7a1042e0440d145",
+    "baselineJavascriptSha256": "036b4cdd7675eebfcef9a79f2307c14361f039148aa9012ed36ff1daa60edbc0"
   }
 }
