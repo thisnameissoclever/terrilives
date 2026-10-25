@@ -32,7 +32,7 @@ The measurement is the sleeper-wait report of the trace example, described in [t
 | World seed 11 | 71 | 81 | 0 | 0 |
 | World seed 12 | 36 | 63 | 0 | 0 |
 
-Before the change, every wait on a sleeper in these runs was a self-chosen chat, and five of the fifteen weeks had one over an hour. After it, no request of any origin waited beside a sleeper, because the trace issues no player orders. The shipped week's figures differ from the 119 minutes in the issue because main has changed since that measurement, including the bookcase fix of issue 339, which changes Monday morning for the shipped household.
+Before the change, eight of the fifteen weeks had a self-chosen chat waiting beside a sleeper, four of them for over an hour; in each of those eight weeks the longest wait of any origin was a self-chosen chat, and the other seven weeks had no wait of any origin. After it, no request of any origin waited beside a sleeper, because the trace issues no player orders. The shipped week's figures differ from the 119 minutes in the issue because main has changed since that measurement, including the bookcase fix of issue 339, which changes Monday morning for the shipped household.
 
 Thirty further weeks on this branch, world seeds 13 to 42, also had no self-chosen wait beside a sleeper.
 
