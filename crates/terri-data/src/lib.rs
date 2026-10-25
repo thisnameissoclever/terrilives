@@ -1142,6 +1142,15 @@ mod tests {
     /// shipped night premium and every value of the `[bills]` block, the
     /// kinds in id order with their labels and charges.
     #[test]
+    fn shift_pay_adds_the_night_premium_to_night_shifts_only() {
+        let tuning = &pack().tuning;
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_NIGHT), 12_075);
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_DAY), 10_500);
+        assert_eq!(tuning.shift_pay_cents(105, SHIFT_LATE), 10_500);
+        assert_eq!(tuning.shift_pay_cents(1, SHIFT_NIGHT), 115);
+    }
+
+    #[test]
     fn the_shipped_bills_tuning_matches_the_spec() {
         let pack = pack();
         assert_eq!(pack.tuning.night_shift_premium_percent, 15);

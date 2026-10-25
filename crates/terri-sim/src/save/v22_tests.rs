@@ -285,6 +285,35 @@ fn refuses_a_bad_amount_or_fee() {
 }
 
 #[test]
+fn refuses_an_open_month_outside_the_compiler_range() {
+    refused(|b| b.month_length = 366);
+    refused(|b| b.month_start = 17);
+}
+
+/// Each edit below makes only the bill's own terms invalid: the electricity
+/// bill is in its grace, so its fee and due day stay valid, and an unpaid
+/// bill due on day index 0 is due on the first day of a month of any
+/// length.
+#[test]
+fn refuses_a_bill_with_terms_the_compiler_would_refuse() {
+    refused(|b| b.bills[2].late_fee_percent = 101);
+    refused(|b| b.bills[2].late_fee_cap_percent = 101);
+    refused(|b| b.bills[2].grace_days = 7);
+    let mut live = rich();
+    let mut oldest = live.save_snapshot_v22();
+    oldest.bills.bills.insert(0, bill(0, RENT));
+    assert!(
+        live.load_snapshot_v22(oldest).is_ok(),
+        "an unpaid bill due on day index 0 loads"
+    );
+    refused(|b| {
+        let mut old = bill(0, RENT);
+        old.month_length = 366;
+        b.bills.insert(0, old);
+    });
+}
+
+#[test]
 fn refuses_a_bad_paid_day() {
     refused(|b| b.bills[1].paid_day = Some(13));
     refused(|b| b.bills[1].paid_day = Some(17));
@@ -603,6 +632,57 @@ fn migrate_attendance_raises_an_open_shift_with_no_record_from_its_own_pay() {
         // $120 raised to $180; cents that are not whole dollars stay; a
         // settled shift stays; $120.50 is not whole dollars either.
         [18_000, 11_950, 12_000, 12_050]
+    );
+}
+
+/// [WB-save]: an open shift takes the pay of its own person's career record,
+/// not another person's.
+#[test]
+fn migrate_attendance_raises_each_open_shift_to_its_own_persons_record() {
+    let sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let office = pack
+        .careers
+        .iter()
+        .position(|c| c.id == "office_job")
+        .unwrap() as u32;
+    let shift = |sim: u32| terri_core::save_v17::SavedScheduledShift {
+        sim,
+        career: office,
+        start_tick: 360,
+        end_tick: 840,
+        worked_ticks: 0,
+        accounted_tick: 360,
+        pay_cents: 12_000,
+        settled: false,
+        legacy: false,
+    };
+    let mut attendance = terri_core::save_v17::SavedAttendance {
+        shifts: vec![shift(0), shift(1)],
+        ..Default::default()
+    };
+    let record = |sim: u32, pay: u32| terri_core::save_v14::SavedCareerRecord {
+        sim,
+        pay,
+        job_satisfaction: 50.0,
+        consecutive_poor: 0,
+        consecutive_good: 0,
+        shifts: Vec::new(),
+        history: Vec::new(),
+        review_due: None,
+    };
+    let careers = terri_core::save_v14::SavedCareers {
+        records: vec![record(0, 190), record(1, 200)],
+        ..sim.save_snapshot_v14().careers
+    };
+    super::super::wage_migration::migrate_attendance(sim.world(), &mut attendance, &careers);
+    assert_eq!(
+        attendance
+            .shifts
+            .iter()
+            .map(|s| s.pay_cents)
+            .collect::<Vec<_>>(),
+        [19_000, 20_000]
     );
 }
 

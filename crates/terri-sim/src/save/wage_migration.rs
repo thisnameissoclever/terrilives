@@ -85,3 +85,34 @@ pub(crate) fn migrate_attendance(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn level(pay: u32, pay_max: u32) -> CompiledCareer {
+        CompiledCareer {
+            pay,
+            pay_max,
+            ..terri_data::pack().careers[0].clone()
+        }
+    }
+
+    /// Only a pay below the level's starting pay is raised, and only when
+    /// the raise lands in the level's range ([WB-save]).
+    #[test]
+    fn only_an_old_pay_whose_raise_lands_in_the_range_migrates() {
+        assert_eq!(migrated(80, &level(100, 200)), Some(120));
+        assert_eq!(migrated(100, &level(100, 200)), None, "already a new pay");
+        assert_eq!(
+            migrated(60, &level(100, 120)),
+            None,
+            "raised to 90, below the range"
+        );
+        assert_eq!(
+            migrated(90, &level(100, 120)),
+            None,
+            "raised to 135, above the range"
+        );
+    }
+}

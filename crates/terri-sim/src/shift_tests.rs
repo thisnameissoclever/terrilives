@@ -1574,6 +1574,37 @@ fn a_change_from_nights_starts_after_the_last_night_ends() {
     );
 }
 
+/// [WB-wages]: the Career tab's night pay line is the held pay with the
+/// night premium for a night shift, and absent for a day shift.
+#[test]
+fn night_pay_is_the_held_pay_with_the_premium_and_absent_by_day() {
+    let mut sim = shipped_with(|pack| {
+        pinned(pack);
+        pack.tuning.career_search_chance = 0.0;
+    });
+    let (_, entity) = worker(&mut sim);
+    assert_eq!(
+        night_pay_cents(sim.world(), entity),
+        None,
+        "the office day shift"
+    );
+    let night_watch = path_index(pack(&sim), "night_watch");
+    issue(
+        &mut sim,
+        SimCommand::AssignCareerShift {
+            agent: entity.index_u32(),
+            path: night_watch,
+            shift: 0,
+        },
+    );
+    assert_eq!(reason(&sim), Some(None));
+    assert_eq!(
+        night_pay_cents(sim.world(), entity),
+        Some(12_075),
+        "$105 and 15 percent"
+    );
+}
+
 /// Review of 2026-10-24, R1: a night watch worker works Monday 22:00 to
 /// Tuesday 06:00 and is assigned the office late shift on Tuesday morning.
 /// The new job starts on Wednesday, not at 12:00 on the day the night

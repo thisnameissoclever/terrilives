@@ -991,6 +991,45 @@ fn a_counted_day_moves_the_hash() {
         terms: BillTerms::of(&pack().bills),
     });
     assert_ne!(sim.world_hash(), counted, "the hash reads the bills");
+    let unpaid = sim.world_hash();
+    bills_mut(&mut sim).bills[0].paid_day = Some(0);
+    assert_ne!(
+        sim.world_hash(),
+        unpaid,
+        "the hash tells a bill paid on day 0 from an unpaid one"
+    );
+}
+
+/// [WB-bills]: should days ever be skipped across a month boundary, the
+/// ended month's bills are still due on the first day of the new month.
+#[test]
+fn bills_issued_after_a_skipped_boundary_are_due_on_the_months_first_day() {
+    let mut sim = house();
+    sim.world_mut().insert_resource(Bills {
+        last_counted_day: Some(5),
+        month_days: 6,
+        month_length: 7,
+        month_start: 0,
+        ..Bills::default()
+    });
+    set_tick(&mut sim, 8 * DAY);
+    tick(sim.world_mut());
+    assert!(!bills(&sim).bills.is_empty(), "the month was issued");
+    assert!(bills(&sim).bills.iter().all(|bill| bill.due_day == 7));
+}
+
+/// [WB-save]: a month with no daily usage keeps an empty daily list, as a
+/// saved month with none restores to one.
+#[test]
+fn a_month_without_daily_objects_keeps_an_empty_daily_list() {
+    let mut sim = house_with(|pack| {
+        for object in &mut pack.objects {
+            object.bill_daily.clear();
+        }
+    });
+    sim.tick();
+    assert_eq!(bills(&sim).month_days, 1, "the day was counted");
+    assert!(bills(&sim).daily.is_empty());
 }
 
 // ----------------------------------------------------------- paying ---
@@ -1085,6 +1124,24 @@ fn a_bill_is_never_paid_in_part_and_funds_never_go_below_zero() {
     sim.world_mut().resource_mut::<Funds>().0 = 29_360;
     tick(sim.world_mut());
     assert_eq!(paid_days(&sim), [Some(7)]);
+    assert_eq!(sim.world().resource::<Funds>().0, 0);
+}
+
+/// [WB-paying]: an overdue bill is paid only when Funds cover its amount
+/// and its late fees together, and paying it takes both.
+#[test]
+fn an_overdue_bill_needs_its_amount_and_late_fees_to_be_paid() {
+    let late = Bill {
+        late_fee_cents: 2_000,
+        ..due(RENT, 20_000)
+    };
+    let mut sim = owing(vec![late], 21_999, 12 * DAY + 1);
+    tick(sim.world_mut());
+    assert_eq!(paid_days(&sim), [None]);
+    assert_eq!(sim.world().resource::<Funds>().0, 21_999);
+    sim.world_mut().resource_mut::<Funds>().0 = 22_000;
+    tick(sim.world_mut());
+    assert_eq!(paid_days(&sim), [Some(12)]);
     assert_eq!(sim.world().resource::<Funds>().0, 0);
 }
 
