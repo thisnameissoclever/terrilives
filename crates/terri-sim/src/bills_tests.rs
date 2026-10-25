@@ -109,6 +109,8 @@ fn fixture_month() -> Bills {
     Bills {
         last_counted_day: Some(6),
         month_days: 7,
+        month_length: 7,
+        month_start: 0,
         indoor_tile_days: 192 * 7,
         outdoor_tile_days: 112 * 7,
         uses: dense(
@@ -247,6 +249,136 @@ fn split_rounded_adds_up_to_the_rounded_total() {
     assert_eq!(split_rounded(&[7, 7, 7], 7), [1, 1, 1]);
     assert_eq!(split_rounded(&[1, 1, 1], 7), [1, 0, 0]);
     assert_eq!(split_rounded(&[0, 0], 7), [0, 0]);
+}
+
+/// A month-one bill left unpaid past month two's issue and then paid with
+/// everything else: the review's probe of the record invariant.
+fn paid_late_after_next_issue() -> Sim {
+    let mut sim = owing(vec![due(RENT, 1_000)], 0, 7 * DAY);
+    tick(sim.world_mut());
+    for day in 8..=14u64 {
+        set_tick(&mut sim, day * DAY);
+        tick(sim.world_mut());
+    }
+    assert!(
+        bills(&sim).bills.iter().any(|b| b.due_day == 14),
+        "month two issued"
+    );
+    sim.world_mut().resource_mut::<Funds>().0 = 10_000_000;
+    set_tick(&mut sim, 14 * DAY + 1);
+    tick(sim.world_mut());
+    assert!(bills(&sim).bills.iter().all(|b| b.paid_day.is_some()));
+    sim
+}
+
+/// [WB-save]: the record holds every unpaid bill and the last issued
+/// month's bills only, so an older month's bill paid late leaves it, and the
+/// state saves, loads, opens Build and allows a sale.
+#[test]
+fn an_older_bill_paid_after_the_next_issue_leaves_a_loadable_record() {
+    let mut sim = paid_late_after_next_issue();
+    assert!(bills(&sim).bills.iter().all(|b| b.due_day == 14));
+    let snapshot = sim.save_snapshot_v22();
+    let mut other = house();
+    assert_eq!(other.load_snapshot_v22(snapshot), Ok(()));
+    assert_eq!(other.world_hash(), sim.world_hash());
+    assert!(sim.begin_build().is_ok(), "Build opens");
+    sim.cancel_build().expect("cancel");
+    sim.end_build().expect("leave");
+    let object = {
+        let mut objects = sim
+            .world_mut()
+            .query_filtered::<Entity, With<SmartObject>>();
+        let mut found: Vec<Entity> = objects.iter(sim.world()).collect();
+        found.sort_by_key(|e| e.index());
+        found[0].index_u32()
+    };
+    let funds = sim.world().resource::<Funds>().0;
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SellObject { object });
+    sim.flush_commands();
+    assert_eq!(sim.take_build_error(), None, "an ordinary sale works");
+    assert!(sim.world().resource::<Funds>().0 > funds, "the sale paid");
+}
+
+/// Every state a long run of debt and recovery reaches can be saved,
+/// loaded and taken into Build: months unpaid, fees to the cap, partial
+/// recoveries that pay some bills, and full recovery.
+#[test]
+fn a_long_run_of_debt_and_recovery_always_saves_loads_and_builds() {
+    let mut sim = house();
+    sim.world_mut().resource_mut::<Funds>().0 = 0;
+    for day in 0..60u64 {
+        // Money arrives now and then, sometimes enough for one bill and
+        // sometimes for everything.
+        let funds = match day {
+            20 => 30_000,
+            33 => 5_000,
+            41 => 2_000_000,
+            _ => 0,
+        };
+        sim.world_mut().resource_mut::<Funds>().0 += funds;
+        set_tick(&mut sim, day * DAY);
+        tick(sim.world_mut());
+        set_tick(&mut sim, day * DAY + 1);
+        tick(sim.world_mut());
+        let snapshot = sim.save_snapshot_v22();
+        let mut other = house();
+        assert_eq!(other.load_snapshot_v22(snapshot), Ok(()), "day {day}");
+        assert_eq!(other.world_hash(), sim.world_hash(), "day {day}");
+        assert!(sim.begin_build().is_ok(), "Build opens on day {day}");
+        sim.cancel_build().expect("cancel");
+        sim.end_build().expect("leave");
+    }
+    assert!(
+        bills(&sim).bills.iter().all(|b| b.paid_day.is_some()),
+        "everything is paid in the end"
+    );
+}
+
+/// [WB-usage]: the day starts, and a month's bills are issued, before
+/// anything in the tick counts a use, so a use on a month's first tick is
+/// billed to the new month. This is the schedule's order: `begin_day`
+/// right after the clock, the counting sites in movement and attendance,
+/// then payment.
+#[test]
+fn a_use_on_a_months_first_tick_is_billed_to_the_new_month() {
+    let mut sim = house();
+    sim.world_mut().insert_resource(fixture_month());
+    set_tick(&mut sim, 7 * DAY);
+    begin_day(sim.world_mut());
+    count_uses(sim.world_mut(), &[use_index("shower") as u16]);
+    pay_due(sim.world_mut());
+    assert!(bills(&sim).bills.iter().any(|b| b.due_day == 7));
+    assert_eq!(uses_of(&sim, "shower"), 1, "the new month's first use");
+    let previous_water = bills(&sim).previous.unwrap().water_cents;
+    assert_eq!(
+        previous_water,
+        usage_cents(&fixture_month(), &pack().bills).1,
+        "the ended month's usage is as it was"
+    );
+}
+
+/// [WB-usage]: a use is counted once at physical start, and a save and
+/// load in the middle of the action does not count it again.
+#[test]
+fn a_use_is_not_counted_again_after_a_save_and_load_mid_action() {
+    let mut sim = house();
+    sim.tick();
+    let agent = person(&mut sim);
+    let (shower, interaction) = placed_with(&mut sim, "take_shower");
+    order(&mut sim, agent, shower, interaction);
+    until(&mut sim, "the shower", 400, |sim| eating(sim, agent));
+    assert_eq!(uses_of(&sim, "shower"), 1);
+    let snapshot = sim.save_snapshot_v22();
+    let mut loaded = house();
+    assert_eq!(loaded.load_snapshot_v22(snapshot), Ok(()));
+    assert!(eating(&loaded, agent), "still showering after the load");
+    until(&mut loaded, "the shower to end", 400, |sim| {
+        !eating(sim, agent)
+    });
+    assert_eq!(uses_of(&loaded, "shower"), 1, "counted once");
 }
 
 /// [WB-rulings] ruling 18: a new household starts with the tuned starting
@@ -856,6 +988,7 @@ fn a_counted_day_moves_the_hash() {
         amount_cents: 1,
         late_fee_cents: 0,
         paid_day: None,
+        terms: BillTerms::of(&pack().bills),
     });
     assert_ne!(sim.world_hash(), counted, "the hash reads the bills");
 }
@@ -870,6 +1003,8 @@ fn owing(bills: Vec<Bill>, funds: i64, tick: u64) -> Sim {
     sim.world_mut().insert_resource(Bills {
         last_counted_day: Some(day),
         month_days: day % 7 + 1,
+        month_length: 7,
+        month_start: day - day % 7,
         bills,
         ..Bills::default()
     });
@@ -885,6 +1020,7 @@ fn due(kind: u8, amount_cents: i64) -> Bill {
         amount_cents,
         late_fee_cents: 0,
         paid_day: None,
+        terms: BillTerms::of(&pack().bills),
     }
 }
 
@@ -923,7 +1059,10 @@ fn payment_is_oldest_first_and_stops_at_the_first_unaffordable_bill() {
         7 * DAY + 5,
     );
     tick(sim.world_mut());
-    assert_eq!(paid_days(&sim), [Some(7), None, None]);
+    // The older month's water bill is paid and, paid, leaves the record,
+    // which keeps every unpaid bill and the last month's only.
+    assert_eq!(paid_days(&sim), [None, None]);
+    assert!(bills(&sim).bills.iter().all(|b| b.due_day == 7));
     assert_eq!(
         sim.world().resource::<Funds>().0,
         2_500,
@@ -931,7 +1070,7 @@ fn payment_is_oldest_first_and_stops_at_the_first_unaffordable_bill() {
     );
     sim.world_mut().resource_mut::<Funds>().0 = 3_500;
     tick(sim.world_mut());
-    assert_eq!(paid_days(&sim), [Some(7), Some(7), Some(7)]);
+    assert_eq!(paid_days(&sim), [Some(7), Some(7)]);
     assert_eq!(sim.world().resource::<Funds>().0, 0);
 }
 
@@ -1048,8 +1187,8 @@ fn late_fees_round_up_to_the_cent_and_stop_exactly_at_the_cap() {
         fees,
         [51, 102, 153, 204, 255, 306, 357, 408, 459, 500, 500, 500]
     );
-    assert_eq!(late_fee_cap(1_001, &pack().bills), 500);
-    assert_eq!(late_fee_cap(29_360, &pack().bills), 14_680);
+    assert_eq!(late_fee_cap(&due(RENT, 1_001)), 500);
+    assert_eq!(late_fee_cap(&due(RENT, 29_360)), 14_680);
 }
 
 // ------------------------------------------------------------- mood ---
@@ -1096,9 +1235,10 @@ fn behind_on_bills_ends_on_the_tick_the_last_overdue_bill_is_paid() {
     assert!(behind(&sim, agent).is_some());
     sim.world_mut().resource_mut::<Funds>().0 = 1_000 + 350;
     tick(sim.world_mut());
-    assert_eq!(paid_days(&sim)[0], Some(12));
+    // The older bill is paid and leaves the record; rent is left.
+    assert_eq!(paid_days(&sim), [None]);
     assert!(behind(&sim, agent).is_some(), "rent is still overdue");
-    let rent = bills(&sim).bills[1].total_cents();
+    let rent = bills(&sim).bills[0].total_cents();
     sim.world_mut().resource_mut::<Funds>().0 = rent;
     tick(sim.world_mut());
     assert_eq!(behind(&sim, agent), None);

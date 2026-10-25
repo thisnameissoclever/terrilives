@@ -31,6 +31,13 @@ pub struct SavedBill {
     pub late_fee_cents: i64,
     /// The day index it was paid, `None` while unpaid.
     pub paid_day: Option<u32>,
+    /// The terms it was issued under, so a later tuning change applies to
+    /// later bills only: the month length its due day falls on, its days
+    /// of grace, and its daily late fee and cap in percent.
+    pub month_length: u32,
+    pub grace_days: u32,
+    pub late_fee_percent: u32,
+    pub late_fee_cap_percent: u32,
 }
 
 /// The bills record ([WB-save]).
@@ -41,6 +48,12 @@ pub struct SavedBills {
     pub last_counted_day: Option<u32>,
     /// Days counted in the current month.
     pub month_days: u32,
+    /// The month length the current month is counted under; 0 before the
+    /// first day is counted.
+    pub month_length: u32,
+    /// The day index of the current month's first counted day; 0 before
+    /// the first day is counted.
+    pub month_start: u32,
     pub indoor_tile_days: u64,
     pub outdoor_tile_days: u64,
     /// Ascending by kind id, nonzero counts only.
@@ -61,6 +74,8 @@ impl Default for SavedBills {
         Self {
             last_counted_day: None,
             month_days: 0,
+            month_length: 0,
+            month_start: 0,
             indoor_tile_days: 0,
             outdoor_tile_days: 0,
             uses: Vec::new(),

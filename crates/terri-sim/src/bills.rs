@@ -36,6 +36,39 @@ pub const MAX_SAVED_COUNT: u32 = 100_000;
 /// dollars, far above any month and far inside `i64` for payment.
 pub const MAX_SAVED_AMOUNT_CENTS: i64 = 1_000_000_000_000;
 
+/// The terms a bill was issued under, kept with it so a later change to the
+/// tuning applies to later bills only and never makes a saved bill invalid
+/// ([WB-save]): the month length its due day falls on, its days of grace,
+/// and its daily late fee and cap in percent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BillTerms {
+    pub month_length: u32,
+    pub grace_days: u32,
+    pub late_fee_percent: u32,
+    pub late_fee_cap_percent: u32,
+}
+
+impl BillTerms {
+    /// The terms `tuning` sets for a bill issued now.
+    pub fn of(tuning: &BillsTuning) -> Self {
+        Self {
+            month_length: tuning.days_per_month,
+            grace_days: tuning.grace_days,
+            late_fee_percent: tuning.late_fee_percent,
+            late_fee_cap_percent: tuning.late_fee_cap_percent,
+        }
+    }
+
+    /// Terms the compiler would accept: a month of 1 to 365 days, grace
+    /// shorter than it, and percentages of 0 to 100.
+    pub fn valid(&self) -> bool {
+        (1..=365).contains(&self.month_length)
+            && self.grace_days < self.month_length
+            && self.late_fee_percent <= 100
+            && self.late_fee_cap_percent <= 100
+    }
+}
+
 /// One issued bill ([WB-bills]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Bill {
@@ -49,14 +82,21 @@ pub struct Bill {
     pub late_fee_cents: i64,
     /// The day index it was paid, or `None` while unpaid.
     pub paid_day: Option<u32>,
+    /// The terms it was issued under.
+    pub terms: BillTerms,
 }
 
 impl Bill {
+    /// The first day index on which the bill, if still unpaid, is overdue:
+    /// its due day plus its days of grace ([WB-paying]).
+    pub fn overdue_from(&self) -> u32 {
+        self.due_day.saturating_add(self.terms.grace_days)
+    }
+
     /// Whether the bill is unpaid on day `today` with its grace over
-    /// ([WB-paying]): a bill due on day `d` with `g` days' grace is overdue
-    /// from day `d + g`.
-    pub fn overdue_on(&self, today: u32, grace_days: u32) -> bool {
-        self.paid_day.is_none() && today >= self.due_day.saturating_add(grace_days)
+    /// ([WB-paying]).
+    pub fn overdue_on(&self, today: u32) -> bool {
+        self.paid_day.is_none() && today >= self.overdue_from()
     }
 
     /// What paying it takes: the bill and its late fees.
@@ -83,6 +123,13 @@ pub struct Bills {
     pub last_counted_day: Option<u32>,
     /// Days counted in the current month.
     pub month_days: u32,
+    /// The month length the current month is counted under, which its
+    /// amounts are divided by: the tuning's when it started, or the longer
+    /// one if the tuning changed while it ran; 0 before anything counted.
+    pub month_length: u32,
+    /// The day index the current month's first counted day fell on; 0
+    /// before anything counted.
+    pub month_start: u32,
     /// The sum over counted days of the indoor and outdoor rent tiles.
     pub indoor_tile_days: u64,
     pub outdoor_tile_days: u64,
@@ -146,7 +193,7 @@ pub fn usage_cents(bills: &Bills, tuning: &BillsTuning) -> (i64, i64) {
 /// each with its one rounding step.
 pub fn month_amounts(bills: &Bills, tuning: &BillsTuning) -> [i64; BILL_KINDS as usize] {
     let days = i64::from(bills.month_days);
-    let month = i64::from(tuning.days_per_month);
+    let month = i64::from(month_length(bills, tuning));
     let (electricity, water) = usage_cents(bills, tuning);
     let rent = ceil_div(
         tuning.rent_base_cents * days
@@ -163,18 +210,30 @@ pub fn month_amounts(bills: &Bills, tuning: &BillsTuning) -> [i64; BILL_KINDS as
     ]
 }
 
-/// The most late fees a bill of `amount_cents` gathers: the cap percentage
-/// of it, rounded down to the cent ([WB-paying]).
-pub fn late_fee_cap(amount_cents: i64, tuning: &BillsTuning) -> i64 {
-    amount_cents * i64::from(tuning.late_fee_cap_percent) / 100
+/// The month length the current month's amounts are divided by: the one it
+/// is counted under, or the tuning's before anything has been counted.
+pub fn month_length(bills: &Bills, tuning: &BillsTuning) -> u32 {
+    if bills.month_length == 0 {
+        tuning.days_per_month
+    } else {
+        bills.month_length
+    }
 }
 
-/// One day's late fee on a bill: the fee percentage of it, rounded up to
-/// the cent, less whatever would pass the cap.
-pub fn late_fee_today(bill: &Bill, tuning: &BillsTuning) -> i64 {
-    let fee = ceil_div(bill.amount_cents * i64::from(tuning.late_fee_percent), 100);
-    fee.min(late_fee_cap(bill.amount_cents, tuning) - bill.late_fee_cents)
-        .max(0)
+/// The most late fees a bill gathers: its cap percentage of its amount,
+/// rounded down to the cent ([WB-paying]).
+pub fn late_fee_cap(bill: &Bill) -> i64 {
+    bill.amount_cents * i64::from(bill.terms.late_fee_cap_percent) / 100
+}
+
+/// One day's late fee on a bill: its fee percentage of it, rounded up to
+/// the cent, less whatever would pass its cap.
+pub fn late_fee_today(bill: &Bill) -> i64 {
+    let fee = ceil_div(
+        bill.amount_cents * i64::from(bill.terms.late_fee_percent),
+        100,
+    );
+    fee.min(late_fee_cap(bill) - bill.late_fee_cents).max(0)
 }
 
 /// The rent tiles of the confirmed layout today, `(indoor, outdoor)`.
@@ -182,19 +241,37 @@ fn rent_tiles(world: &World) -> (u32, u32) {
     crate::rooms::rent_tiles(world).unwrap_or((0, 0))
 }
 
-/// The bills system, scheduled immediately after
-/// `systems::career::commute_and_work`, so pay a shift settles this tick is
-/// in Funds before the bills look ([WB-paying]).
+/// Both halves of the bills' tick in order, for tests that drive the
+/// bills alone.
+#[cfg(test)]
 pub(crate) fn tick(world: &mut World) {
+    begin_day(world);
+    pay_due(world);
+}
+
+/// The day's start, scheduled right after the clock advances and before
+/// anything that counts a use or a trip, so a use on a month's first tick
+/// is billed to the new month ([WB-usage]).
+pub(crate) fn begin_day(world: &mut World) {
     if !active(world) {
         return;
     }
     let pack = world.resource::<Content>().0;
-    let now = world.resource::<SimClock>().tick;
-    let today = day_index(now, pack.tuning.day_ticks);
+    let today = day_index(world.resource::<SimClock>().tick, pack.tuning.day_ticks);
     if world.resource::<Bills>().last_counted_day != Some(today) {
         start_day(world, pack, today);
     }
+}
+
+/// Payment, scheduled immediately after `systems::career::commute_and_work`,
+/// so pay a shift settles this tick is in Funds before the bills look
+/// ([WB-paying]).
+pub(crate) fn pay_due(world: &mut World) {
+    if !active(world) {
+        return;
+    }
+    let pack = world.resource::<Content>().0;
+    let today = day_index(world.resource::<SimClock>().tick, pack.tuning.day_ticks);
     pay(world, today);
 }
 
@@ -216,7 +293,13 @@ fn start_day(world: &mut World, pack: &'static ContentPack, today: u32) {
         }
     }
     bills.last_counted_day = Some(today);
+    if bills.month_days == 0 {
+        bills.month_start = today;
+    }
     bills.month_days += 1;
+    // A month counted across a change of month length keeps the longer one,
+    // so its days never outnumber it.
+    bills.month_length = bills.month_length.max(month);
     bills.indoor_tile_days += u64::from(indoor);
     bills.outdoor_tile_days += u64::from(outdoor);
     // A month with no daily usage keeps an empty list, as a saved month
@@ -230,8 +313,8 @@ fn start_day(world: &mut World, pack: &'static ContentPack, today: u32) {
         }
     }
     for bill in &mut bills.bills {
-        if bill.overdue_on(today, tuning.grace_days) {
-            bill.late_fee_cents += late_fee_today(bill, tuning);
+        if bill.overdue_on(today) {
+            bill.late_fee_cents += late_fee_today(bill);
         }
     }
 }
@@ -277,10 +360,12 @@ fn issue(bills: &mut Bills, due_day: u32, tuning: &BillsTuning) {
                 amount_cents,
                 late_fee_cents: 0,
                 paid_day: None,
+                terms: BillTerms::of(tuning),
             });
         }
     }
     bills.month_days = 0;
+    bills.month_length = 0;
     bills.indoor_tile_days = 0;
     bills.outdoor_tile_days = 0;
     bills.uses.clear();
@@ -312,6 +397,13 @@ fn pay(world: &mut World, today: u32) {
         }
         funds -= bill.total_cents();
         bill.paid_day = Some(today);
+    }
+    // The record keeps every unpaid bill and only the last issued month's
+    // paid ones ([WB-save]), so an older month's bill paid late leaves it.
+    if let Some(last_issued) = bills.bills.iter().map(|bill| bill.due_day).max() {
+        bills
+            .bills
+            .retain(|bill| bill.paid_day.is_none() || bill.due_day == last_issued);
     }
     world.resource_mut::<Funds>().0 = funds;
 }
@@ -383,10 +475,7 @@ pub fn any_overdue(world: &World) -> bool {
     };
     let pack = content.0;
     let today = day_index(world.resource::<SimClock>().tick, pack.tuning.day_ticks);
-    bills
-        .bills
-        .iter()
-        .any(|bill| bill.overdue_on(today, pack.bills.grace_days))
+    bills.bills.iter().any(|bill| bill.overdue_on(today))
 }
 
 /// The bills record in the world hash, after every older section, only once
@@ -449,6 +538,8 @@ pub fn to_saved(bills: &Bills, pack: &ContentPack) -> SavedBills {
     SavedBills {
         last_counted_day: bills.last_counted_day,
         month_days: bills.month_days,
+        month_length: bills.month_length,
+        month_start: bills.month_start,
         indoor_tile_days: bills.indoor_tile_days,
         outdoor_tile_days: bills.outdoor_tile_days,
         uses: counts(&bills.uses, &pack.bills.uses),
@@ -468,6 +559,10 @@ pub fn to_saved(bills: &Bills, pack: &ContentPack) -> SavedBills {
                 amount_cents: bill.amount_cents,
                 late_fee_cents: bill.late_fee_cents,
                 paid_day: bill.paid_day,
+                month_length: bill.terms.month_length,
+                grace_days: bill.terms.grace_days,
+                late_fee_percent: bill.terms.late_fee_percent,
+                late_fee_cap_percent: bill.terms.late_fee_cap_percent,
             })
             .collect(),
     }
@@ -487,20 +582,27 @@ pub fn saved(world: &World) -> SavedBills {
 pub fn validate_saved(world: &World, saved: &SavedBills) -> Result<(), crate::SaveError> {
     use crate::SaveError::InvalidValue;
     let pack = world.resource::<Content>().0;
-    let tuning = &pack.bills;
-    let month = tuning.days_per_month;
     let today = day_index(world.resource::<SimClock>().tick, pack.tuning.day_ticks);
     let tiles = world
         .get_resource::<terri_core::TileGrid>()
         .map_or(0, |grid| (grid.width() * grid.height()) as u64);
+    // The open month is checked against the month length it is counted
+    // under, which the save carries, so a later change to the tuning's
+    // month length leaves the save loadable ([WB-save]).
     match saved.last_counted_day {
         Some(day) => {
-            if day > today || saved.month_days > month || saved.month_days > day % month + 1 {
+            if day > today
+                || !(1..=365).contains(&saved.month_length)
+                || saved.month_start > day
+                || saved.month_days == 0
+                || saved.month_days > saved.month_length
+                || saved.month_days > day - saved.month_start + 1
+            {
                 return Err(InvalidValue);
             }
         }
         None => {
-            if saved.month_days != 0 {
+            if saved.month_days != 0 || saved.month_length != 0 || saved.month_start != 0 {
                 return Err(InvalidValue);
             }
         }
@@ -542,16 +644,30 @@ pub fn validate_saved(world: &World, saved: &SavedBills) -> Result<(), crate::Sa
         return Err(InvalidValue);
     }
     let last_issued = saved.bills.iter().map(|bill| bill.due_day).max();
-    for bill in &saved.bills {
-        let grace_over = today >= bill.due_day.saturating_add(tuning.grace_days);
-        if bill.kind >= BILL_KINDS
+    // Each bill is checked against the terms it was issued under.
+    for saved_bill in &saved.bills {
+        let bill = Bill {
+            due_day: saved_bill.due_day,
+            kind: saved_bill.kind,
+            amount_cents: saved_bill.amount_cents,
+            late_fee_cents: saved_bill.late_fee_cents,
+            paid_day: saved_bill.paid_day,
+            terms: BillTerms {
+                month_length: saved_bill.month_length,
+                grace_days: saved_bill.grace_days,
+                late_fee_percent: saved_bill.late_fee_percent,
+                late_fee_cap_percent: saved_bill.late_fee_cap_percent,
+            },
+        };
+        if !bill.terms.valid()
+            || bill.kind >= BILL_KINDS
             || bill.due_day > today
-            || !is_month_start(bill.due_day, month)
+            || !is_month_start(bill.due_day, bill.terms.month_length)
             || bill.amount_cents <= 0
             || bill.amount_cents > MAX_SAVED_AMOUNT_CENTS
             || bill.late_fee_cents < 0
-            || bill.late_fee_cents > late_fee_cap(bill.amount_cents, tuning)
-            || (bill.late_fee_cents > 0 && !grace_over)
+            || bill.late_fee_cents > late_fee_cap(&bill)
+            || (bill.late_fee_cents > 0 && today < bill.overdue_from())
             || bill
                 .paid_day
                 .is_some_and(|paid| paid < bill.due_day || paid > today)
@@ -583,6 +699,8 @@ pub fn restore(world: &mut World, saved: SavedBills) {
     world.insert_resource(Bills {
         last_counted_day: saved.last_counted_day,
         month_days: saved.month_days,
+        month_length: saved.month_length,
+        month_start: saved.month_start,
         indoor_tile_days: saved.indoor_tile_days,
         outdoor_tile_days: saved.outdoor_tile_days,
         uses: dense(&saved.uses, &pack.bills.uses),
@@ -602,6 +720,12 @@ pub fn restore(world: &mut World, saved: SavedBills) {
                 amount_cents: bill.amount_cents,
                 late_fee_cents: bill.late_fee_cents,
                 paid_day: bill.paid_day,
+                terms: BillTerms {
+                    month_length: bill.month_length,
+                    grace_days: bill.grace_days,
+                    late_fee_percent: bill.late_fee_percent,
+                    late_fee_cap_percent: bill.late_fee_cap_percent,
+                },
             })
             .collect(),
     });
@@ -629,6 +753,14 @@ pub struct Overview {
     pub late_fee_cap_percent: u32,
     /// Days counted in the current month.
     pub month_days: u32,
+    /// The month length the current month is counted under.
+    pub month_length: u32,
+    /// Every unpaid bill with its fees, overdue or not.
+    pub unpaid_cents: i64,
+    /// The earliest unpaid bill's due day, and the day it is overdue from,
+    /// while any bill is unpaid.
+    pub unpaid_due_day: Option<u32>,
+    pub overdue_from_day: Option<u32>,
 }
 
 /// One of the next bills: what the month has come to so far and what it is
@@ -856,13 +988,13 @@ pub fn lines(world: &World, kind: u8) -> Vec<Line> {
 
 /// The overdue bills, oldest first ([WB-panel]).
 pub fn overdue_bills(world: &World) -> Vec<Bill> {
-    let Some((bills, pack, today)) = counted(world) else {
+    let Some((bills, _, today)) = counted(world) else {
         return Vec::new();
     };
     bills
         .bills
         .iter()
-        .filter(|bill| bill.overdue_on(today, pack.bills.grace_days))
+        .filter(|bill| bill.overdue_on(today))
         .copied()
         .collect()
 }
@@ -902,6 +1034,11 @@ pub fn overview(world: &World) -> Option<Overview> {
     let overdue = overdue_bills(world);
     let keep_aside_cents = unpaid + expected;
     let month = tuning.days_per_month;
+    let earliest = bills
+        .bills
+        .iter()
+        .filter(|bill| bill.paid_day.is_none())
+        .min_by_key(|bill| (bill.due_day, bill.kind));
     Some(Overview {
         funds_cents,
         keep_aside_cents,
@@ -914,6 +1051,10 @@ pub fn overview(world: &World) -> Option<Overview> {
         late_fee_percent: tuning.late_fee_percent,
         late_fee_cap_percent: tuning.late_fee_cap_percent,
         month_days: bills.month_days,
+        month_length: month_length(bills, tuning),
+        unpaid_cents: unpaid,
+        unpaid_due_day: earliest.map(|bill| bill.due_day),
+        overdue_from_day: earliest.map(Bill::overdue_from),
     })
 }
 

@@ -286,6 +286,30 @@ mod tests {
             .id()
     }
 
+    /// [WB-bills]: a countdown saved before schema fifteen, with no
+    /// scheduled shift, is one trip when it ends, and only one.
+    #[test]
+    fn a_saved_countdown_ending_counts_one_trip() {
+        let pack = career_pack_with_portal();
+        let mut sim = test_content::sim_with_portals(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+        sim.world_mut()
+            .entity_mut(worker)
+            .insert(AtWork { remaining_ticks: 2 });
+        sim.tick();
+        assert_eq!(sim.world().resource::<crate::bills::Bills>().commutes, 0);
+        sim.tick();
+        assert!(
+            sim.world().get::<AtWork>(worker).is_none(),
+            "the countdown ended"
+        );
+        assert_eq!(sim.world().resource::<crate::bills::Bills>().commutes, 1);
+        for _ in 0..30 {
+            sim.tick();
+        }
+        assert_eq!(sim.world().resource::<crate::bills::Bills>().commutes, 1);
+    }
+
     #[test]
     fn a_return_crosses_a_content_portal_and_save_load_does_not_pay_twice() {
         let pack = career_pack_with_portal();

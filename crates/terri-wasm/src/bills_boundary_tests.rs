@@ -75,14 +75,18 @@ fn bills_overview_on_a_new_game() {
     let mut handle = SimHandle::from_lot();
     handle.tick();
     let overview = handle.bills_overview();
-    assert_eq!(overview.len(), 11);
-    let [funds, keep_aside, shortfall, due, overdue, fees, month, grace, fee, cap, days] =
+    assert_eq!(overview.len(), 15);
+    let [funds, keep_aside, shortfall, due, overdue, fees, month, grace, fee, cap, days, length, unpaid, unpaid_due, overdue_from] =
         overview[..]
     else {
         unreachable!()
     };
     assert_eq!((due, overdue, fees), (7.0, 0.0, 0.0));
     assert_eq!((month, grace, fee, cap, days), (7.0, 5.0, 5.0, 50.0, 1.0));
+    assert_eq!(
+        (length, unpaid, unpaid_due, overdue_from),
+        (7.0, 0.0, -1.0, -1.0)
+    );
     let next = handle.bills_next();
     assert_eq!(
         next.chunks(3).map(|bill| bill[0]).collect::<Vec<_>>(),
@@ -113,6 +117,9 @@ fn bills_exports_mid_month_with_an_overdue_bill() {
             amount_cents: 29_360,
             late_fee_cents: 0,
             paid_day: None,
+            terms: terri_sim::bills::BillTerms::of(
+                &handle.sim.world().resource::<terri_sim::Content>().0.bills,
+            ),
         }],
         ..Bills::default()
     };
@@ -125,6 +132,11 @@ fn bills_exports_mid_month_with_an_overdue_bill() {
     let overview = handle.bills_overview();
     assert_eq!(&overview[3..6], [14.0, 29_360.0, 1_468.0]);
     assert_eq!(overview[10], 6.0, "six days of the month counted");
+    assert_eq!(
+        &overview[11..],
+        [7.0, 29_360.0 + 1_468.0, 7.0, 12.0],
+        "the unpaid rent, due day 7, overdue from day 12"
+    );
     let expected: f64 = handle.bills_next().chunks(3).map(|bill| bill[2]).sum();
     assert_eq!(overview[1], 29_360.0 + 1_468.0 + expected);
     assert_eq!(overview[2], overview[1], "Funds hold nothing");
@@ -353,7 +365,12 @@ fn the_authentic_schema_twenty_one_fixtures_load_with_migrated_pay() {
     }
     assert_eq!(
         yard.placement_preview(f64::from(bed), 16.0, 0.0, 0.0)[0],
+        0.0,
+        "left where it stands, it is not refused"
+    );
+    assert_eq!(
+        yard.placement_preview(f64::from(bed), 16.0, 3.0, 0.0)[0],
         21.0,
-        "placing it on a yard tile is refused"
+        "moving it to another yard tile is refused"
     );
 }

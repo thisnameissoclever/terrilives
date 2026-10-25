@@ -2030,7 +2030,11 @@ impl Sim {
                 // is what fails if this line moves.
                 systems::command::drain_commands,
                 (mortality::cleanup, waiting::clear, beds::automatic::assign).chain(),
-                advance_clock,
+                // A new day is counted, and a month's bills issued, right
+                // after the clock and before anything this tick counts a use
+                // or a trip, so a use on a month's first tick belongs to the
+                // new month ([WB-usage]).
+                (advance_clock, bills::begin_day).chain(),
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy
                 // decay just produced. Before selection, because
@@ -2132,7 +2136,7 @@ impl Sim {
                 // this tick is in Funds before the bills look, and before any
                 // command next tick can spend money a bill is owed
                 // ([WB-paying] in docs/specs/2026-10-18-wages-and-bills.md).
-                bills::tick,
+                bills::pay_due,
                 (
                     reading::tick,
                     domestic::gather_diners,

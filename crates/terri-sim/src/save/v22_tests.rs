@@ -61,6 +61,8 @@ fn rich_bills() -> Bills {
     Bills {
         last_counted_day: Some(16),
         month_days: 3,
+        month_length: 7,
+        month_start: 14,
         indoor_tile_days: 192 * 3,
         outdoor_tile_days: 112 * 3,
         uses,
@@ -78,6 +80,7 @@ fn rich_bills() -> Bills {
                 amount_cents: 3_965,
                 late_fee_cents: 199 * 3,
                 paid_day: None,
+                terms: crate::bills::BillTerms::of(&terri_data::pack().bills),
             },
             Bill {
                 due_day: 14,
@@ -85,6 +88,7 @@ fn rich_bills() -> Bills {
                 amount_cents: 29_360,
                 late_fee_cents: 0,
                 paid_day: Some(14),
+                terms: crate::bills::BillTerms::of(&terri_data::pack().bills),
             },
             Bill {
                 due_day: 14,
@@ -92,6 +96,7 @@ fn rich_bills() -> Bills {
                 amount_cents: 4_098,
                 late_fee_cents: 0,
                 paid_day: None,
+                terms: crate::bills::BillTerms::of(&terri_data::pack().bills),
             },
         ],
     }
@@ -106,6 +111,50 @@ fn rich() -> Sim {
     sim.world_mut().resource_mut::<SimClock>().tick = 16 * DAY + 600;
     sim.world_mut().insert_resource(rich_bills());
     sim
+}
+
+/// [WB-save]: a later change to the month length, the grace, the late fee
+/// or its cap leaves a schema-22 save loadable. Each bill keeps the terms
+/// it was issued under, so its fees and overdue day do not change, and the
+/// open month keeps the month length it is counted under.
+#[test]
+fn a_save_loads_after_each_bills_tuning_change() {
+    let snapshot = rich().save_snapshot_v22();
+    let edits: [(&str, fn(&mut terri_data::BillsTuning)); 5] = [
+        ("a longer month", |b| b.days_per_month = 30),
+        ("a shorter month", |b| {
+            b.days_per_month = 3;
+            b.grace_days = 2;
+        }),
+        ("less grace", |b| b.grace_days = 1),
+        ("a lower fee", |b| b.late_fee_percent = 1),
+        ("a lower cap", |b| b.late_fee_cap_percent = 1),
+    ];
+    for (name, edit) in edits {
+        let mut pack = terri_data::pack().clone();
+        edit(&mut pack.bills);
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        let mut loaded = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+        assert_eq!(loaded.load_snapshot_v22(snapshot.clone()), Ok(()), "{name}");
+        assert_eq!(
+            loaded.save_snapshot_v22().bills,
+            snapshot.bills,
+            "{name}: the record is kept as saved"
+        );
+        // Three days on, each day's first tick, so the open month and the
+        // bills go on under the new tuning.
+        for day in 17..20u64 {
+            loaded.world_mut().resource_mut::<SimClock>().tick = day * DAY - 1;
+            loaded.tick();
+        }
+        let resaved = loaded.save_snapshot_v22();
+        let mut again = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
+        assert_eq!(
+            again.load_snapshot_v22(resaved),
+            Ok(()),
+            "{name}: three days on"
+        );
+    }
 }
 
 /// [WB-save]: a record with counts, trips, a last month and an overdue bill
@@ -160,6 +209,10 @@ fn bill(due_day: u32, kind: u8) -> SavedBill {
         amount_cents: 1_000,
         late_fee_cents: 0,
         paid_day: None,
+        month_length: 7,
+        grace_days: 5,
+        late_fee_percent: 5,
+        late_fee_cap_percent: 50,
     }
 }
 
@@ -442,10 +495,10 @@ fn loading_schemas_fourteen_to_twenty_one_starts_an_empty_prorated_month() {
         }
         let issued = &loaded.world.resource::<Bills>().bills;
         let rent = issued.iter().find(|b| b.kind == RENT).expect("rent");
-        // Days 2 to 6, five of seven: (6000 * 5 + 110 * 960 + 20 * 560) / 7.
+        // Days 2 to 6, five of seven: (6000 * 5 + 90 * 960 + 20 * 560) / 7.
         assert_eq!(
             rent.amount_cents,
-            (30_000 + 105_600 + 11_200 + 6) / 7,
+            (30_000 + 86_400 + 11_200 + 6) / 7,
             "{name}"
         );
         assert_eq!(rent.due_day, 7, "{name}");
@@ -501,6 +554,56 @@ fn a_build_session_never_migrates_its_baseline() {
     assert!(!super::super::Carried::for_load(sim.world()).wage_migration);
     assert!(super::super::Carried::for_older_load(sim.world()).wage_migration);
     let _ = Content(terri_data::pack());
+}
+
+/// [WB-save]: an open shift whose person has no career record is raised
+/// from its own whole dollars when they land in the row's new range, and
+/// left alone otherwise; a settled shift keeps its pay.
+#[test]
+fn migrate_attendance_raises_an_open_shift_with_no_record_from_its_own_pay() {
+    let sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let office = pack
+        .careers
+        .iter()
+        .position(|c| c.id == "office_job")
+        .unwrap() as u32;
+    let shift =
+        |sim: u32, pay_cents: i64, settled: bool| terri_core::save_v17::SavedScheduledShift {
+            sim,
+            career: office,
+            start_tick: 360,
+            end_tick: 840,
+            worked_ticks: 0,
+            accounted_tick: 360,
+            pay_cents,
+            settled,
+            legacy: false,
+        };
+    let mut attendance = terri_core::save_v17::SavedAttendance {
+        shifts: vec![
+            shift(0, 12_000, false),
+            shift(1, 11_950, false),
+            shift(2, 12_000, true),
+            shift(3, 12_050, false),
+        ],
+        ..Default::default()
+    };
+    let careers = terri_core::save_v14::SavedCareers {
+        records: Vec::new(),
+        ..sim.save_snapshot_v14().careers
+    };
+    super::super::wage_migration::migrate_attendance(sim.world(), &mut attendance, &careers);
+    assert_eq!(
+        attendance
+            .shifts
+            .iter()
+            .map(|s| s.pay_cents)
+            .collect::<Vec<_>>(),
+        // $120 raised to $180; cents that are not whole dollars stay; a
+        // settled shift stays; $120.50 is not whole dollars either.
+        [18_000, 11_950, 12_000, 12_050]
+    );
 }
 
 /// [WB-save]: schema fourteen, the first with careers, raises pay through
