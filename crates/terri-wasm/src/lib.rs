@@ -9296,7 +9296,9 @@ mod boundary_tests {
         // Zero at move-in AND a nonzero read-through, because a funds()
         // stubbed to 0.0 satisfies the first alone - the sweep found
         // exactly that mutant surviving.
-        assert_eq!(handle.funds(), 0.0, "move-in day, before any shift");
+        // A new household moves in with its starting funds, $400
+        // ([WB-rulings] ruling 18).
+        assert_eq!(handle.funds(), 400.0, "move-in day, before any shift");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260 * 100;
         assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;

@@ -584,6 +584,9 @@ mod tests {
         // housemate who found weekend work (careers, issue 249) would be
         // paid on the Saturday this test wants silent.
         crate::careers::set_autonomy(sim.world_mut(), false, false);
+        // Funds start empty so they measure the week's pay alone, not the
+        // new household's starting money ([WB-rulings] ruling 18).
+        sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
         let content = sim.world().resource::<Content>().0;
         let day_ticks = content.tuning.day_ticks as u64;
         let worker = {

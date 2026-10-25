@@ -230,10 +230,11 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// reader's walk to the bookcase, so Tim leaves on time on Monday. The draw
 /// counts and every job and shift are unchanged. Issue 298 moved it from
 /// 18180649999092761866: pay is 1.5 times what it was, the night watch
-/// guard's night shifts pay 15 percent more, and the bills record joins the
-/// hash once a day is counted. With the old wages, no premium and the bills
-/// off the branch gave 18180649999092761866; the draws and jobs are the same.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (12348020542178266038, 7, 2);
+/// guard's night shifts pay 15 percent more, a new household starts with
+/// $400, and the bills record joins the hash once a day is counted. With the
+/// old wages, no premium, no starting funds and the bills off the branch
+/// gave 18180649999092761866; the draws and jobs are the same.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (6198746867281575482, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

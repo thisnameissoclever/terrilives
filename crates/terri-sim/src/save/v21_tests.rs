@@ -117,11 +117,12 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// for Bill's walk to the bookcase, so Monday morning differs. Re-measured on
 /// that branch twice, with `hash_shifts` returning before it writes anything
 /// and with it unchanged; both runs gave this value. Issue 298 moved it from
-/// 3597462262917285100: pay is 1.5 times what it was and the household bills
-/// record joins the hash once a day is counted. With the old wages, no night
-/// premium and the bills system and its hash off, the branch gave
-/// 3597462262917285100 again, so the shift section still adds nothing here.
-const STANDARD_ONLY_HASH: u64 = 4723876948823417287;
+/// 3597462262917285100: pay is 1.5 times what it was, a new household starts
+/// with $400, and the household bills record joins the hash once a day is
+/// counted. With the old wages, no night premium, no starting funds and the
+/// bills system and its hash off, the branch gave 3597462262917285100 again,
+/// so the shift section still adds nothing here.
+const STANDARD_ONLY_HASH: u64 = 16664189328559112027;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
