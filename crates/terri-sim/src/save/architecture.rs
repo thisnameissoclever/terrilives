@@ -502,6 +502,7 @@ fn dining_contact(
                 Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
                 Some(
                     crate::seating::UseKind::ShelfTransfer
+                    | crate::seating::UseKind::ShelfApproach
                     | crate::seating::UseKind::Standing
                     | crate::seating::UseKind::MediaEndpoint,
                 ) => false,

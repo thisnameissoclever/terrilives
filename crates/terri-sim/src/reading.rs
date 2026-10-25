@@ -145,7 +145,7 @@ fn route_to(
                 && occupancy.endpoint_available(crate::seating::EndpointUse {
                     owner: person,
                     endpoint: contact,
-                    kind: crate::seating::UseKind::ShelfTransfer,
+                    kind: crate::seating::UseKind::ShelfApproach,
                 })
         })
         .filter_map(|contact| {
@@ -219,7 +219,7 @@ pub(crate) fn commit_plan(
     if !occupancy.endpoint_available(crate::seating::EndpointUse {
         owner: person,
         endpoint: plan.transfer_contact,
-        kind: crate::seating::UseKind::ShelfTransfer,
+        kind: crate::seating::UseKind::ShelfApproach,
     }) {
         return false;
     }
@@ -532,6 +532,14 @@ pub(crate) fn tick(world: &mut World) {
         }
         let j = world.get::<ReadingJourney>(person).unwrap().clone();
         let id = *world.get::<SimId>(person).unwrap();
+        // An arrival waits at the contact while someone else's short transfer
+        // there finishes; people earlier in this pass have already started theirs.
+        if matches!(j.stage, ReadingStage::Fetch | ReadingStage::Return)
+            && j.transfer_contact
+                .is_some_and(|contact| !contact_free(world, person, contact))
+        {
+            continue;
+        }
         match j.stage {
             ReadingStage::Fetch => {
                 let ticks = world
@@ -1211,8 +1219,32 @@ impl crate::Sim {
     }
 }
 
-/// A journey explicitly owns its future approach and its short shelf-transfer contact.
-/// Physical-seat ownership remains a separate claim.
+/// How a journey uses its shelf contact at this stage: a walk toward it plans
+/// the contact, and taking or shelving a copy holds it exclusively.
+pub(crate) fn shelf_use(stage: ReadingStage) -> crate::seating::UseKind {
+    if matches!(stage, ReadingStage::Pickup | ReadingStage::Shelve) {
+        crate::seating::UseKind::ShelfTransfer
+    } else {
+        crate::seating::UseKind::ShelfApproach
+    }
+}
+
+/// Whether nobody else is taking or shelving a copy at `contact`, so a walker
+/// who has arrived there may start its own transfer.
+fn contact_free(world: &World, person: Entity, contact: (i32, i32)) -> bool {
+    crate::seating::endpoint_available(
+        world,
+        crate::seating::EndpointUse {
+            owner: person,
+            endpoint: contact,
+            kind: crate::seating::UseKind::ShelfTransfer,
+        },
+    )
+}
+
+/// A journey explicitly owns its future approach and its shelf-transfer contact,
+/// planned while walking and exclusive while transferring. Physical-seat
+/// ownership remains a separate claim.
 pub(crate) fn endpoints(
     owner: Entity,
     j: &ReadingJourney,
@@ -1236,7 +1268,7 @@ pub(crate) fn endpoints(
             .map(|endpoint| crate::seating::EndpointUse {
                 owner,
                 endpoint,
-                kind: crate::seating::UseKind::ShelfTransfer,
+                kind: shelf_use(j.stage),
             }),
     ]
     .into_iter()

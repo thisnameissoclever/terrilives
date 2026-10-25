@@ -516,7 +516,7 @@ pub(crate) fn representatives<'a>(
             && occupancy.endpoint_available(crate::seating::EndpointUse {
                 owner: person,
                 endpoint: p.transfer_contact,
-                kind: crate::seating::UseKind::ShelfTransfer,
+                kind: crate::seating::UseKind::ShelfApproach,
             })
             && occupancy.endpoint_available(crate::seating::EndpointUse {
                 owner: person,
@@ -626,7 +626,7 @@ pub(crate) fn publish_plan(occupancy: &mut crate::beds::Occupancy, person: Entit
     occupancy.claim_endpoint(crate::seating::EndpointUse {
         owner: person,
         endpoint: plan.transfer_contact,
-        kind: crate::seating::UseKind::ShelfTransfer,
+        kind: crate::seating::UseKind::ShelfApproach,
     });
     occupancy.claim_endpoint(crate::seating::EndpointUse {
         owner: person,

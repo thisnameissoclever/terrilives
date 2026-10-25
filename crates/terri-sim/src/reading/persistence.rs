@@ -398,13 +398,15 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
                 if path.is_some() || j.reach_remaining == 0 || j.reach_remaining > total {
                     return Err(bad());
                 }
-            } else if path.is_none() || j.reach_remaining != 0 {
+            } else if j.reach_remaining != 0 {
+                // A walker without a path has arrived and waits at the
+                // contact (checked above) for another transfer to finish.
                 return Err(bad());
             }
             let candidate = crate::seating::EndpointUse {
                 owner: *person,
                 endpoint: contact,
-                kind: crate::seating::UseKind::ShelfTransfer,
+                kind: crate::reading::shelf_use(j.stage),
             };
             if !crate::seating::endpoint_available(world, candidate) {
                 return Err(bad());
