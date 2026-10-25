@@ -368,6 +368,12 @@ pub(crate) fn start_tick(world: &mut World) {
             .shifts
             .get(&sim)
             .is_some_and(|s| !s.settled && s.career == career && s.end_tick > now);
+        if active && world.get::<AtWork>(actor).is_none() && world.get::<Commuting>(actor).is_none()
+        {
+            // A waiting game-made fight never delays the shift; a player's
+            // order still does, through `has_player_work` below.
+            crate::fights::withdraw_waiting_for_shift(world, actor);
+        }
         if !active
             || world.get::<AtWork>(actor).is_some()
             || world.get::<Commuting>(actor).is_some()

@@ -445,10 +445,7 @@ fn withdraw_invalid(world: &mut World) {
             world.resource_mut::<Fights>().system_orders.remove(&actor);
             continue;
         };
-        let running = world
-            .get::<Socialising>(actor)
-            .is_some_and(|s| s.partner == intent.object)
-            && crate::social_episode::request_order_id(world, actor) == Some(id);
+        let running = running(world, actor, id, intent.object);
         let reason_valid = context.as_ref().is_some_and(|c| {
             c.order_id == Some(id)
                 && context_valid(world, c, intent.object)
@@ -469,36 +466,92 @@ fn withdraw_invalid(world: &mut World) {
                             )
                         }))
         });
+        // A fight that has not started is withdrawn when either side is in
+        // crisis (the issue 301 ruling), when its recipient falls asleep
+        // (issue 338: the coordinator's decision of 2026-10-24 applies the
+        // owner's sleeping-partner ruling to fights the game starts, which
+        // are not player orders) or when either side already had a fight.
+        // A fight already under way runs to its end (issue 342): the
+        // recipient leaving for work still ends it; the initiator's shift
+        // waits for it to finish. The published rules, which never call
+        // this, keep their original behavior.
         let unavailable = world.get_entity(intent.object).is_err()
-            || crate::social_episode::urgent(world, actor)
-            || crate::social_episode::urgent(world, intent.object)
             || !running
-                && [actor, intent.object].into_iter().any(|person| {
-                    world.get::<SimId>(person).is_some_and(|id| {
-                        world
-                            .resource::<Fights>()
-                            .active(*id, world.resource::<SimClock>().tick)
-                    })
-                });
+                && (crate::social_episode::urgent(world, actor)
+                    || crate::social_episode::urgent(world, intent.object)
+                    || crate::social_episode::requests::asleep(world, intent.object)
+                    || [actor, intent.object].into_iter().any(|person| {
+                        world.get::<SimId>(person).is_some_and(|id| {
+                            world
+                                .resource::<Fights>()
+                                .active(*id, world.resource::<SimClock>().tick)
+                        })
+                    }));
         if reason_valid && !unavailable {
             continue;
         }
-        crate::social_episode::release_order(world, actor, id);
-        if running {
-            world
-                .entity_mut(actor)
-                .remove::<(Socialising, terri_core::ConversationVoice)>();
-        }
-        if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
-            queue.remove_order(id);
-        }
-        if world.get::<terri_core::Target>(actor).is_none() {
-            world.entity_mut(actor).remove::<terri_core::Blocked>();
-        }
-        crate::social_conflicts::cancel_order(world, actor, id);
-        let mut fights = world.resource_mut::<Fights>();
-        fights.provoked.remove(&actor);
-        fights.system_orders.remove(&actor);
+        withdraw(world, actor, id, running);
+    }
+}
+
+/// Whether `actor`'s game-made fight order `id` against `object` is under
+/// way: the actor is in the conversation that order started.
+fn running(world: &World, actor: Entity, id: u64, object: Entity) -> bool {
+    world
+        .get::<Socialising>(actor)
+        .is_some_and(|s| s.partner == object)
+        && crate::social_episode::request_order_id(world, actor) == Some(id)
+}
+
+/// Withdraws `actor`'s game-made fight order `id`: its claims, its queue
+/// entry, its pending or running cause and its system identity. The
+/// grievance is not marked as fought, so it can start a fight again while
+/// it stays eligible. A running fight's conversation ends with no outcome.
+fn withdraw(world: &mut World, actor: Entity, id: u64, running: bool) {
+    crate::social_episode::release_order(world, actor, id);
+    if running {
+        world
+            .entity_mut(actor)
+            .remove::<(Socialising, terri_core::ConversationVoice)>();
+    }
+    if let Some(mut queue) = world.get_mut::<IntentQueue>(actor) {
+        queue.remove_order(id);
+    }
+    if world.get::<terri_core::Target>(actor).is_none() {
+        world.entity_mut(actor).remove::<terri_core::Blocked>();
+    }
+    crate::social_conflicts::cancel_order(world, actor, id);
+    let mut fights = world.resource_mut::<Fights>();
+    fights.provoked.remove(&actor);
+    fights.system_orders.remove(&actor);
+}
+
+/// Withdraws `actor`'s game-made fight if it has not started, when their
+/// shift is due. The coordinator's decision of 2026-10-25 follows the issue
+/// 301 ruling that a made-up grudge does not outrank work: a waiting
+/// game-made fight never delays its initiator's departure, which otherwise
+/// waits for any queued order (`player_actions::has_player_work`). A fight
+/// already under way finishes first, and a player's order keeps delaying
+/// the departure. The published fight rules keep their original behavior.
+pub(crate) fn withdraw_waiting_for_shift(world: &mut World, actor: Entity) {
+    if published_rules(world) {
+        return;
+    }
+    let Some(id) = world
+        .get_resource::<Fights>()
+        .and_then(|f| f.system_orders.get(&actor).copied())
+    else {
+        return;
+    };
+    let Some(object) = world
+        .get::<IntentQueue>(actor)
+        .and_then(|q| q.order(id))
+        .map(|e| e.intent.object)
+    else {
+        return;
+    };
+    if !running(world, actor, id, object) {
+        withdraw(world, actor, id, false);
     }
 }
 
@@ -506,9 +559,14 @@ fn withdraw_invalid(world: &mut World) {
 /// Energy or Bladder at or below the critical level, or away at work
 /// (`social_episode::urgent`). A player's order survives critical needs; a
 /// made-up grudge does not outrank food and sleep. This is the issue 301
-/// ruling in rule 3 of `docs/specs/2026-10-16-fights.md`, pending the owner's
-/// confirmation. A fight already under way runs to its end. Released claims
-/// follow the execution owner, so a waiting partner is freed on this tick.
+/// ruling recorded in `docs/specs/2026-10-16-fights.md`, pending the owner's
+/// confirmation. Under the current fight rules `withdraw_invalid`, called
+/// first, also withdraws one that has not started when its recipient is
+/// asleep (issue 338). Under both rules a fight already under way runs to
+/// its end through either side's crisis (issue 342). Released claims follow
+/// the execution owner, so a waiting partner is freed on this tick. Neither
+/// withdrawal marks the grievance as fought, so it can start a fight again
+/// while it stays eligible.
 pub(crate) fn yield_to_critical_needs(world: &mut World) {
     if !published_rules(world) {
         withdraw_invalid(world);
@@ -614,6 +672,7 @@ pub(crate) fn provoke(world: &mut World) {
                 .active(SimId(row.responsible), now)
                 || !approachable(world, other, &listeners)
                 || crate::social_episode::urgent(world, other)
+                || crate::social_episode::requests::asleep(world, other)
             {
                 continue;
             }

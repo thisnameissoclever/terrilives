@@ -27,6 +27,11 @@ player orders; need decay and death remain enabled.
    Follow moving recipients through their current activity. Busy never means
    failed, and waiting has no timeout. A new explicit front order may redirect
    either person without deleting another person's request.
+   A sleeping recipient is busy in the same way: an ordered chat or fight
+   waits until they wake. Only a chat a housemate chose for themselves and a
+   fight the game started give up when the partner falls asleep (issue 338,
+   the owner's ruling of 2026-10-23 and the coordinator's decision of
+   2026-10-24 for game-made fights).
 5. A person who is only waiting for their own autonomous chat is not busy to
    an order addressed to them. When that order is admitted, the chat is
    suspended with its identity and age and resumes after the order's

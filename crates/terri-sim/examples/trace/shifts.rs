@@ -2,8 +2,9 @@
 //! [WS-tests] "Measurement"): each person's job and held shift, when each
 //! person sleeps by hour of day, how a night worker meets each shift start,
 //! and the longest any housemate waits on a sleeping conversation
-//! recipient. Every report here reads the world; none draws a random
-//! number or changes state.
+//! recipient, with separate totals for chats a housemate chose and for
+//! fights the game started (issue 338). Every report here reads the world;
+//! none draws a random number or changes state.
 use std::collections::BTreeMap;
 use terri_core::{AtWork, Commuting, Eating, Entity, SimClock, SimId};
 use terri_sim::{Content, Sim};
@@ -128,6 +129,22 @@ pub struct Summary {
     long_waits: Vec<String>,
     /// The wording of each wait still running, by request id.
     open: BTreeMap<u64, String>,
+    /// Waiting ticks beside a sleeping recipient of chats a housemate chose
+    /// for themselves (origin `Autonomous`), in all and the longest run.
+    /// Issue 338's ruling makes both zero; player-ordered and unattributed
+    /// legacy chats may still wait.
+    chosen_ticks: u64,
+    longest_chosen: u64,
+    /// Fight orders at the front of a queue whose other person sleeps while
+    /// the fight has not started, by initiator: the current run, and the
+    /// ticks in all and the longest run. The trace gives no orders, so each
+    /// is a fight the game started. Issue 338 withdraws these too: the
+    /// coordinator decided on 2026-10-24, following the owner's ruling for
+    /// chats and pull request 302's withdrawals, that game-made fights are
+    /// not started against a sleeper and give up when the recipient sleeps.
+    fight_runs: BTreeMap<Entity, u64>,
+    fight_ticks: u64,
+    longest_fight: u64,
 }
 
 impl Summary {
@@ -140,6 +157,11 @@ impl Summary {
             longest_detail: String::new(),
             long_waits: Vec::new(),
             open: BTreeMap::new(),
+            chosen_ticks: 0,
+            longest_chosen: 0,
+            fight_runs: BTreeMap::new(),
+            fight_ticks: 0,
+            longest_fight: 0,
         }
     }
 
@@ -220,6 +242,10 @@ impl Summary {
                 }
                 self.open.insert(request.id, detail);
                 seen.insert(request.id, run);
+                if request.origin == terri_core::save_v15::SavedConversationOrigin::Autonomous {
+                    self.chosen_ticks += 1;
+                    self.longest_chosen = self.longest_chosen.max(run);
+                }
             }
         }
         for (id, run) in &self.waits {
@@ -231,6 +257,32 @@ impl Summary {
         }
         self.open.retain(|id, _| seen.contains_key(id));
         self.waits = seen;
+        for (entity, _) in sims {
+            let waiting = sim.world().get_entity(*entity).is_ok()
+                && sim
+                    .world()
+                    .get::<terri_core::Socialising>(*entity)
+                    .is_none()
+                && sim
+                    .world()
+                    .get::<terri_core::IntentQueue>(*entity)
+                    .and_then(terri_core::IntentQueue::front)
+                    .is_some_and(|intent| {
+                        pack.social
+                            .get(intent.interaction as usize)
+                            .is_some_and(terri_sim::fights::is_fight)
+                            && sim.world().get_entity(intent.object).is_ok()
+                            && asleep(sim, intent.object)
+                    });
+            if waiting {
+                let run = self.fight_runs.entry(*entity).or_insert(0);
+                *run += 1;
+                self.fight_ticks += 1;
+                self.longest_fight = self.longest_fight.max(*run);
+            } else {
+                self.fight_runs.remove(entity);
+            }
+        }
     }
 
     pub fn print(&self, sim: &Sim, sims: &[(Entity, String)]) {
@@ -295,6 +347,14 @@ impl Summary {
         if !self.longest_detail.is_empty() {
             println!("LONGEST WAIT {}", self.longest_detail);
         }
+        println!(
+            "self-chosen chats waiting on a sleeping recipient: {} ticks in all, longest {} ticks",
+            self.chosen_ticks, self.longest_chosen
+        );
+        println!(
+            "game-made fights waiting on a sleeping recipient: {} ticks in all, longest {} ticks",
+            self.fight_ticks, self.longest_fight
+        );
         let running = self
             .open
             .iter()

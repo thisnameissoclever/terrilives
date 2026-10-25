@@ -190,13 +190,22 @@ fn a_returning_reader_is_not_locked_out_by_another_readers_walk_to_the_only_cont
     );
 }
 
-/// Issue 339 in the shipped household: Tim takes a book at 05:47 on Monday,
-/// his shift at 06:00 sends him back to the bookcase's only contact, and Bill
-/// sets out across the house to fetch a book from it at the same tick. Before
-/// the fix Tim stood waiting until about 07:10 and left at about 07:25.
+/// Issue 339 in the shipped household: Tim is carrying a book when his shift
+/// at 06:00 on Monday sends him back to the bookcase's only contact, and
+/// another housemate is walking to the same contact. On the shipped seed,
+/// before the fix, Tim took a book at 05:47, Bill set out at the same tick to
+/// fetch one, and Tim stood waiting until about 07:10 and left at about
+/// 07:25. Issue 338 changed Tim's first choice at 05:16 on Monday, so the
+/// shipped seed no longer reaches that state. World seed 182 is the only one
+/// of seeds 0 to 299 in which Tim, returning a book at his shift start, waits
+/// to return it when a walk holds the contact again (the defect restored in
+/// `endpoints_conflict`): there another housemate is walking back to the same
+/// bookcase with a book of their own, and with the defect restored Tim waits
+/// 40 ticks. With the fix he does not wait and leaves 25 minutes after his
+/// shift starts.
 #[test]
 fn the_shipped_household_returns_tims_book_and_sends_him_to_his_first_shift() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = Sim::new_from_shipped_lot_with_seed(182);
     let tim = sim
         .world_mut()
         .query::<(Entity, &SimName)>()
@@ -211,6 +220,7 @@ fn the_shipped_household_returns_tims_book_and_sends_him_to_his_first_shift() {
             .shift_start,
     );
     let mut returning_at_start = false;
+    let mut contended_at_start = false;
     let mut waited = 0;
     let mut left = None;
     while sim.world().resource::<SimClock>().tick < start + 120 {
@@ -222,6 +232,16 @@ fn the_shipped_household_returns_tims_book_and_sends_him_to_his_first_shift() {
                 journey,
                 Some(ReadingStage::Return | ReadingStage::WaitingReturn)
             );
+            let shelf = sim.world().get::<ReadingJourney>(tim).map(|j| j.shelf);
+            contended_at_start = sim
+                .world_mut()
+                .query::<(Entity, &ReadingJourney)>()
+                .iter(sim.world())
+                .any(|(other, j)| {
+                    other != tim
+                        && Some(j.shelf) == shelf
+                        && matches!(j.stage, ReadingStage::Fetch | ReadingStage::Return)
+                });
         }
         if journey == Some(ReadingStage::WaitingReturn) {
             waited += 1;
@@ -236,6 +256,10 @@ fn the_shipped_household_returns_tims_book_and_sends_him_to_his_first_shift() {
     assert!(
         returning_at_start,
         "the case under test: Tim is putting a book back when his shift starts"
+    );
+    assert!(
+        contended_at_start,
+        "the case under test: another reader is walking to the same bookcase"
     );
     assert_eq!(waited, 0, "Tim waited {waited} ticks to return his book");
     let left = left.expect("Tim left for work within two hours of his shift start");

@@ -228,13 +228,23 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// both hired levels offer more than one shift. Issue 339 moved the hash
 /// from 17413157888741130017: a returning reader no longer waits out another
 /// reader's walk to the bookcase, so Tim leaves on time on Monday. The draw
-/// counts and every job and shift are unchanged. Issue 298 moved it from
-/// 18180649999092761866: pay is 1.5 times what it was, the night watch
-/// guard's night shifts pay 15 percent more, a new household starts with
-/// $400, and the bills record joins the hash once a day is counted. With the
-/// old wages, no premium, no starting funds and the bills off the branch
-/// gave 18180649999092761866; the draws and jobs are the same.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (6198746867281575482, 7, 2);
+/// counts and every job and shift are unchanged. Issue 338 moved the hash
+/// from 18180649999092761866 on purpose: a housemate no longer chooses a chat
+/// with someone asleep, so at 05:16 on Monday Tim's choice no longer has a
+/// chat with the sleeping Bill among its candidates, the same draw picks
+/// another action, and the household's days differ from then on. The fight
+/// trigger's part of issue 338 then moved it from 17945103458811991316: it
+/// no longer considers a sleeping recipient, so at 21:25 on Monday it spends
+/// no random draw on Casey's grievance against the sleeping Tim, and Casey's
+/// next choice draws a different number. The draw counts and every job and
+/// shift are again unchanged.
+/// Issue 298 then moved the hash from 17769474122166916875: pay is 1.5
+/// times what it was, the night watch guard's night shifts pay 15 percent
+/// more, a new household starts with $400, and the bills record joins the
+/// hash once a day is counted. With the old wages, no premium, no starting
+/// funds and the bills off, the branch gave 17769474122166916875 after
+/// merging afbe98af3; the draws and jobs are the same.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (17769474122166916875, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

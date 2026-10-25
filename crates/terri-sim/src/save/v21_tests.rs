@@ -116,13 +116,19 @@ fn the_hash_is_unchanged_while_everyone_holds_the_standard_shift() {
 /// book and leaves for his 06:00 shift instead of waiting about 70 minutes
 /// for Bill's walk to the bookcase, so Monday morning differs. Re-measured on
 /// that branch twice, with `hash_shifts` returning before it writes anything
-/// and with it unchanged; both runs gave this value. Issue 298 moved it from
-/// 3597462262917285100: pay is 1.5 times what it was, a new household starts
-/// with $400, and the household bills record joins the hash once a day is
-/// counted. With the old wages, no night premium, no starting funds and the
-/// bills system and its hash off, the branch gave 3597462262917285100 again,
-/// so the shift section still adds nothing here.
-const STANDARD_ONLY_HASH: u64 = 16664189328559112027;
+/// and with it unchanged; both runs gave this value. Issue 338 moved it from
+/// 3597462262917285100 on purpose: a housemate no longer chooses a chat with
+/// someone asleep, so at 05:16 on Monday Tim's choice no longer has a chat
+/// with the sleeping Bill among its candidates, the same draw picks another
+/// action, and Monday morning differs from then on. Re-measured on that
+/// branch the same two ways; both runs gave this value.
+/// Issue 298 then moved it from 1877760251232896320: pay is 1.5 times what
+/// it was, a new household starts with $400, and the household bills record
+/// joins the hash once a day is counted. With the old wages, no night
+/// premium, no starting funds and the bills system and its hash off, the
+/// branch gave 1877760251232896320 again after merging afbe98af3, so the
+/// shift section still adds nothing here.
+const STANDARD_ONLY_HASH: u64 = 1877760251232896320;
 
 /// [WS-determinism] item 3: the hash sees a chosen shift, a drawn one, and
 /// which shift a person holds.
