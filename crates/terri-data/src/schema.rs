@@ -510,6 +510,9 @@ pub struct BillsTuningDef {
     pub water_base_cents: i64,
     pub transportation_base_cents: i64,
     pub commute_cents: i64,
+    /// The money a new household starts with, enough for its first month's
+    /// bills (the owner's ruling of 2026-10-24, [WB-rulings]).
+    pub starting_funds_cents: i64,
     /// Usage kinds charged each time an action or chain step carrying them
     /// starts its physical work, by id ([WB-usage]).
     pub uses: BTreeMap<String, BillKindDef>,
@@ -1919,7 +1922,7 @@ mod tests {
     /// field read off the wrong key is visible ([WB-tuning]). The kinds are
     /// declared out of id order, so a reader that kept file order rather
     /// than sorting would be visible to the compiler's tests.
-    const BILLS: &str = "{ days_per_month = 9, grace_days = 4, late_fee_percent = 6,         late_fee_cap_percent = 45, overdue_mood = 7.5, rent_base_cents = 6100,         rent_indoor_tile_cents = 111, rent_outdoor_tile_cents = 21,         electricity_base_cents = 3100, water_base_cents = 2100,         transportation_base_cents = 1100, commute_cents = 301,         uses = { tub = { label = \"Tubs\", water_cents = 91, electricity_cents = 26 },         drip = { label = \"Drips\", water_cents = 2, electricity_cents = 0 } },         daily = { glow = { label = \"Glows\", water_cents = 0, electricity_cents = 6 } } }";
+    const BILLS: &str = "{ days_per_month = 9, grace_days = 4, late_fee_percent = 6,         late_fee_cap_percent = 45, overdue_mood = 7.5, rent_base_cents = 6100,         rent_indoor_tile_cents = 111, rent_outdoor_tile_cents = 21,         electricity_base_cents = 3100, water_base_cents = 2100,         transportation_base_cents = 1100, commute_cents = 301, starting_funds_cents = 40100,         uses = { tub = { label = \"Tubs\", water_cents = 91, electricity_cents = 26 },         drip = { label = \"Drips\", water_cents = 2, electricity_cents = 0 } },         daily = { glow = { label = \"Glows\", water_cents = 0, electricity_cents = 6 } } }";
 
     /// The four seasonal looks as one inline table, each value distinct and
     /// exact in binary32 like the knobs above. Winter is declared first and
@@ -2038,8 +2041,9 @@ mod tests {
                 bills.water_base_cents,
                 bills.transportation_base_cents,
                 bills.commute_cents,
+                bills.starting_funds_cents,
             ],
-            [6100, 111, 21, 3100, 2100, 1100, 301]
+            [6100, 111, 21, 3100, 2100, 1100, 301, 40100]
         );
         assert_eq!(bills.uses["tub"].label, "Tubs");
         assert_eq!(
@@ -2194,6 +2198,7 @@ mod tests {
             "water_base_cents",
             "transportation_base_cents",
             "commute_cents",
+            "starting_funds_cents",
             "uses",
             "daily",
         ] {

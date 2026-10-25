@@ -1165,8 +1165,9 @@ mod tests {
                 bills.water_base_cents,
                 bills.transportation_base_cents,
                 bills.commute_cents,
+                bills.starting_funds_cents,
             ],
-            [6000, 110, 20, 3000, 2000, 1000, 300]
+            [6000, 90, 20, 3000, 2000, 1000, 300, 40000]
         );
         let rows = |kinds: &[BillKind]| -> Vec<(String, String, i64, i64)> {
             kinds
@@ -1223,9 +1224,12 @@ mod tests {
             assert_eq!(historical.tuning.night_shift_premium_percent, 15);
             assert_eq!(historical.bills, BillsTuning::shipped_without_usage());
         }
+        // Households from before bills started with nothing, so only the
+        // starting funds differ from the shipped scalars.
         let shipped_scalars = BillsTuning {
             uses: Vec::new(),
             daily: Vec::new(),
+            starting_funds_cents: 0,
             ..bills.clone()
         };
         assert_eq!(shipped_scalars, BillsTuning::shipped_without_usage());

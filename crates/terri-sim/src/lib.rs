@@ -2401,6 +2401,11 @@ impl Sim {
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        // A new household starts with its content's starting funds, enough
+        // for the first month's bills ([WB-rulings] ruling 18); historical
+        // content starts with nothing, as those households did.
+        sim.world
+            .insert_resource(terri_core::Funds(pack.bills.starting_funds_cents));
         if pack.reading.is_some()
             && books::MIGRATION_STARTER_TITLES[..3]
                 .iter()

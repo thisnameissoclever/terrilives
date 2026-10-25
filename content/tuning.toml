@@ -1067,7 +1067,7 @@ overdue_mood = 8.0
 # Rent's base charge a month ([WB-rent]).
 rent_base_cents = 6000
 # Rent for each tile inside an enclosed room, a month ([WB-rent]).
-rent_indoor_tile_cents = 110
+rent_indoor_tile_cents = 90
 # Rent for each floor tile outside every room, the street left out, a month
 # ([WB-rent]).
 rent_outdoor_tile_cents = 20
@@ -1080,6 +1080,11 @@ transportation_base_cents = 1000
 # The fare for each trip to work, counted when a shift with time worked is
 # paid ([WB-bills]).
 commute_cents = 300
+# The money a new household starts with: at least its first month's bills
+# before any usage, so the Bills panel shows a shortfall only when money
+# really runs short (the owner's ruling of 2026-10-24, [WB-rulings]).
+# Older saves keep their own Funds.
+starting_funds_cents = 40000
 
 # Use kinds ([WB-usage]): charged once each time an action or chain step
 # carrying the kind in its bill_uses starts its physical work. The label is

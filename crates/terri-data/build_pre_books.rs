@@ -52,6 +52,10 @@ fn shipped_bills_without_usage() -> toml::Value {
             integer(shipped.transportation_base_cents),
         ),
         ("commute_cents", integer(shipped.commute_cents)),
+        (
+            "starting_funds_cents",
+            integer(shipped.starting_funds_cents),
+        ),
         ("uses", toml::Value::Table(toml::Table::new())),
         ("daily", toml::Value::Table(toml::Table::new())),
     ] {

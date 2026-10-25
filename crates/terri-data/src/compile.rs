@@ -3421,6 +3421,7 @@ fn compile_bills(
             cents(bills.transportation_base_cents),
         ),
         ("commute_cents", cents(bills.commute_cents)),
+        ("starting_funds_cents", cents(bills.starting_funds_cents)),
     ];
     if let Some((key, _)) = rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::BillsTuningOutOfRange {
@@ -3492,6 +3493,7 @@ fn compile_bills(
         water_base_cents: bills.water_base_cents,
         transportation_base_cents: bills.transportation_base_cents,
         commute_cents: bills.commute_cents,
+        starting_funds_cents: bills.starting_funds_cents,
         uses,
         daily,
     })
@@ -6074,6 +6076,7 @@ mod tests {
             water_base_cents: shipped.water_base_cents,
             transportation_base_cents: shipped.transportation_base_cents,
             commute_cents: shipped.commute_cents,
+            starting_funds_cents: shipped.starting_funds_cents,
             uses: BTreeMap::new(),
             daily: BTreeMap::new(),
         }
@@ -11116,6 +11119,17 @@ mod tests {
                 key: "bills.commute_cents".to_string()
             })
         );
+        for bad in [-1, 1_000_001] {
+            let mut bills = shipped_bills_def();
+            bills.starting_funds_cents = bad;
+            assert_eq!(
+                compile_bills(&bills),
+                Err(ContentError::BillsTuningOutOfRange {
+                    key: "bills.starting_funds_cents".to_string()
+                }),
+                "{bad}"
+            );
+        }
         let accepted: [Edit; 8] = [
             // The shipped grace of 5 days fits a six-day month.
             |b| b.days_per_month = 6,

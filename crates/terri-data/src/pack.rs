@@ -1355,6 +1355,8 @@ pub struct BillsTuning {
     pub water_base_cents: i64,
     pub transportation_base_cents: i64,
     pub commute_cents: i64,
+    /// The money a new household starts with ([WB-rulings] ruling 18).
+    pub starting_funds_cents: i64,
     /// Charged once each time an action or chain step carrying the kind
     /// starts its physical work, in id order. Compiled actions and steps
     /// hold indices into this list.
@@ -1387,12 +1389,15 @@ impl BillsTuning {
             late_fee_cap_percent: 50,
             overdue_mood: 8.0,
             rent_base_cents: 6000,
-            rent_indoor_tile_cents: 110,
+            rent_indoor_tile_cents: 90,
             rent_outdoor_tile_cents: 20,
             electricity_base_cents: 3000,
             water_base_cents: 2000,
             transportation_base_cents: 1000,
             commute_cents: 300,
+            // Households from before bills started with nothing, and a
+            // reconstructed one must too.
+            starting_funds_cents: 0,
             uses: Vec::new(),
             daily: Vec::new(),
         }
