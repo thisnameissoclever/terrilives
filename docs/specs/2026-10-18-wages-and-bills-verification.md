@@ -51,7 +51,7 @@ The shipped tuning was not changed. The band's own worked example divides by $90
 | Trips to work | 13.5 | 14 in the first month, 15 after | 5 |
 | Usage with one earner | as three earners | electricity $38.57 to $39.99, water $40.45 to $41.30 | electricity about $41, water $41.50 to $44.25 |
 
-Dish washing counts each Wash dishes step, which runs far more often than the estimate. At 2 cents of water each it adds about 30 cents a month. Housemates at home all day use slightly more water and electricity than housemates at work, as the spec expected.
+Dish washing counts each Wash dishes step, which runs far more often than the estimate. At 20 cents of water each, the three-earner household's 10 to 18 washes a month add $2.00 to $3.60 to the water bill. Housemates at home all day use slightly more water and electricity than housemates at work, as the spec expected.
 
 ## Trace cost
 

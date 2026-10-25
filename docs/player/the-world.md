@@ -52,15 +52,15 @@ Weekly reviews use performance and a limited random contribution. Good results c
 
 ## Bills {#bills}
 
-The household pays four bills on the first day of each month: Rent, Electricity, Water and Transportation. Each bill charges for the month that just ended. A month is seven days, so every month starts on a Monday.
+The household pays four bills on the first day of each month: Rent, Electricity, Water and Transportation. A new household starts with enough money for its first month's bills. Each bill charges for the month that just ended. A month is seven days, so every month starts on a Monday.
 
 - **Rent** has a base charge plus a charge for every floor tile of the lot: indoor tiles, inside a closed room, cost more than outdoor tiles. Building rooms on the yard or buying more land raises the rent from the next day.
 - **Electricity** and **Water** have a base charge plus what the household used: each shower, bath, hand washing, flush, dish washing, use of the stove, television or radio, and every day a fridge, lamp, aquarium or pool stands on the lot.
 - **Transportation** has a base charge plus a fare for each shift someone traveled to.
 
-Bills are paid from Funds automatically, oldest first, as soon as Funds cover a whole bill. A bill is never paid in part. A bill still unpaid after its grace period is overdue: it gains a late fee every day, up to a limit, and every housemate feels Behind on bills until it is paid. Nothing is shut off and nothing is taken away. To catch up, earn more, spend less or sell furniture.
+Bills are paid from Funds automatically and in order, oldest first: each waits until Funds cover it and every bill before it. A bill is never paid in part. A bill still unpaid after its grace period is overdue: it gains a late fee every day, up to a limit, and every housemate feels Behind on bills until it is paid. Nothing is shut off and nothing is taken away. To catch up, earn more, spend less or sell furniture.
 
-Read the Bills row below Funds for the amount to keep aside and the day it is due, or for the overdue total in red. Select the row to open the [Bills panel](ui-elements/#bills), which pauses the game.
+Read the Bills row below Funds for the amount to keep aside and the day it is due. While a bill is unpaid the row shows what is unpaid and its due day, and once a bill is overdue it shows the overdue total in red. Select the row to open the [Bills panel](ui-elements/#bills), which pauses the game.
 
 :::numbers Bills
 A month is {{number:bills.days_per_month}} days. An unpaid bill becomes overdue after {{number:bills.grace_days}} days, then gains a late fee of {{number:bills.late_fee_percent}}% of the bill each day, up to {{number:bills.late_fee_cap_percent}}% of the bill in total. Behind on bills lowers each housemate's mood by {{number:bills.overdue_mood}} points while any bill is overdue.
