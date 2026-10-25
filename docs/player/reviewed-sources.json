@@ -287,7 +287,7 @@
     "crates/terri-sim/src/seating.rs": "1e72fd9346f297398f6e1fae6a0837bc80ad802cc7c83ef16fbae68095d69b28",
     "crates/terri-sim/src/seating/persistence.rs": "79c5a57b1bc67574a7f97a944cf35695a4667ccb149dd292b9236d62d4f7935e",
     "crates/terri-sim/src/seating/tests.rs": "9cad1666d66ea80f3307d51a7cc7bf50fe74d87440738640b5975ca3c4d9a6b6",
-    "crates/terri-sim/src/shift_tests.rs": "f9200a5caf5700d0efb45b426453fe918d3cf2a1413809c27938301d7c235b91",
+    "crates/terri-sim/src/shift_tests.rs": "47a95f02a3c88e08ac056411e8e37ddea857e6f9bd8fbfd87c14bbd4c6cd406b",
     "crates/terri-sim/src/shifts.rs": "94dec15f299912a4ff415f85c75571b3b04b39170424f3711554f4bb696d2118",
     "crates/terri-sim/src/shyness.rs": "e546eb3e13b4d85e8a67e8dda226e7706d2a25b1c6fe960333ef24233de35112",
     "crates/terri-sim/src/skills.rs": "932aae645bc9968d95466b1e80b260533d66af9451ab7608a502af5c9d9dc0c2",

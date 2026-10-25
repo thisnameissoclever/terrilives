@@ -1741,8 +1741,9 @@ fn a_legacy_record_still_blocks_a_second_shift_that_day() {
 }
 
 /// A legacy night recorded from its arrival (22:20) lets the next night of
-/// the same job start, though its start and length differ from the
-/// schedule's.
+/// the same job start, though its start differs from the schedule's. Its
+/// length still counts: a legacy night of another length is another
+/// schedule.
 #[test]
 fn a_legacy_night_lets_the_next_night_of_the_job_start() {
     assert!(starts_after(
@@ -1757,6 +1758,14 @@ fn a_legacy_night_lets_the_next_night_of_the_job_start() {
             1440 + 1320
         ),
         "a scheduled record with another start is another schedule"
+    );
+    assert!(
+        !starts_after(
+            last_shift("night_watch", 1320, 1740, true),
+            "night_watch",
+            1440 + 1320
+        ),
+        "a legacy record of another length is another schedule"
     );
 }
 
