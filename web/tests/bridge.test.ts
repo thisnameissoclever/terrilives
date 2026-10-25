@@ -1095,7 +1095,9 @@ describe('SimBridge', () => {
       throw new Error('the shipped lot houses Tim');
     })();
 
-    expect(bridge.funds()).toBe(0);
+    // A new household starts with $400 ([WB-rulings] ruling 18); pay adds to it.
+    const startCents = 40_000;
+    expect(bridge.fundsCents()).toBe(startCents);
     expect(bridge.careerOf(tim)).toBe('Office clerk');
     // [CAL-hud]: day 1 is a Monday, and the office job runs Monday to
     // Friday (mask 31) from 06:00 for eight hours.
@@ -1125,7 +1127,7 @@ describe('SimBridge', () => {
     }
     expect(arrivedAt).toBeGreaterThan(schedule.shiftStart);
     expect(bridge.activities()[rowOf(tim)]).toBe(6);
-    expect(bridge.funds()).toBe(0);
+    expect(bridge.fundsCents()).toBe(startCents);
 
     let returnedAt: number | undefined;
     for (let tick = 600; tick < bridge.dayTicks(); tick++) {
@@ -1151,10 +1153,10 @@ describe('SimBridge', () => {
     const expectedPay = Math.floor(fullPayCents * worked / scheduled);
     expect(paidCents).toBe(expectedPay);
     expect(Number.isInteger(paidCents)).toBe(true);
-    expect(bridge.fundsCents()).toBe(expectedPay);
-    expect(bridge.funds()).toBe(Math.floor(expectedPay / 100));
+    expect(bridge.fundsCents()).toBe(startCents + expectedPay);
+    expect(bridge.funds()).toBe(Math.floor((startCents + expectedPay) / 100));
     bridge.tick();
-    expect(bridge.fundsCents()).toBe(expectedPay);
+    expect(bridge.fundsCents()).toBe(startCents + expectedPay);
   });
 
   it("reads each person's likes and dislikes through release wasm without changing saves", () => {

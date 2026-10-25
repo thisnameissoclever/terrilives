@@ -86,7 +86,8 @@ describe('context actions use the active controller', () => {
     const f = fixture();
     try {
       f.buy.enter();
-      const item = f.buy.items.find(item => item.facings === 15)!;
+      // A new household starts with $400, so the item must cost more.
+      const item = f.buy.items.find(item => item.facings === 15 && item.price > f.source.funds())!;
       expect(item).toBeDefined(); f.buy.choose(item.definition);
       let model = contextModel(f.tools)!;
       expect(model.tool).toBe('buy');
