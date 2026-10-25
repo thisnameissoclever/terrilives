@@ -4,12 +4,19 @@
 //! player ordered keeps waiting for a sleeping partner. "Asleep" is the
 //! simulation's sleep state, `systems::circadian::is_asleep`: an interaction
 //! under way whose tags include the pack's sleep tag.
+//!
+//! The coordinator's decision of 2026-10-24 extends the same treatment to a
+//! fight the game starts over a grievance, which is not a player's order: it
+//! is not started against a sleeper, and a waiting one is withdrawn when its
+//! recipient falls asleep. A fight the player orders keeps waiting.
 use super::*;
+use crate::fights::FIGHT_TAG;
 
 const FRIDGE: &str = "fridge";
 const BED: &str = "bed";
+const FIGHT: u32 = 1;
 
-/// Two housemates and a pack with a fridge, a bed and one chat. A test puts
+/// Two housemates and a pack with a fridge, a bed, one chat and a fight. A test puts
 /// a partner to sleep by starting the bed's interaction on them, which is all
 /// the sleep state reads. The first housemate is lonely, so a chat with the
 /// second is the choice selection makes when it may.
@@ -21,11 +28,14 @@ fn household() -> (Sim, Entity, Entity) {
             test_content::object(FRIDGE, &[(NeedId::Hunger, 20.)], 60),
             test_content::object_offering(BED, vec![sleep]),
         ],
-        vec![test_content::interaction(
-            "chat",
-            &[(NeedId::Social, 30.)],
-            40,
-        )],
+        vec![
+            test_content::interaction("chat", &[(NeedId::Social, 30.)], 40),
+            {
+                let mut fight = test_content::interaction("fight", &[], 40);
+                fight.tags = vec![FIGHT_TAG.into()];
+                fight
+            },
+        ],
         test_content::tuning(),
     );
     let mut sim = test_content::sim_with(12, 8, pack);
@@ -306,4 +316,161 @@ fn only_a_chosen_chat_gives_up_and_an_unattributed_legacy_chat_keeps_waiting() {
             "{origin:?} {phase:?} beside a sleeper"
         );
     }
+}
+
+/// The fight tests' household: neither housemate is lonely, so the first one
+/// stays idle for the fight trigger, and every fight draw passes. The first
+/// housemate holds a privacy grievance against the second, active for six
+/// game hours; its id is returned.
+fn quarrel() -> (Sim, Entity, Entity, u64) {
+    let (mut sim, a, b) = household();
+    *sim.world_mut().get_mut::<Needs>(a).unwrap() = Needs::all_at(90.);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_chance_per_tick = 1.;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    let affected = *sim.world().get::<SimId>(a).unwrap();
+    let responsible = *sim.world().get::<SimId>(b).unwrap();
+    let grievance = crate::social_conflicts::remember(
+        sim.world_mut(),
+        affected,
+        responsible,
+        terri_core::save_v20::GrievanceKind::PrivacyStart,
+        terri_core::save_v20::GrievanceSubject::None,
+        0.25,
+    )
+    .expect("the grievance is recorded");
+    (sim, a, b, grievance)
+}
+
+/// The fight order queued by `person` against `partner`, if any.
+fn fight_order(sim: &Sim, person: Entity, partner: Entity) -> Option<u64> {
+    sim.world()
+        .get::<IntentQueue>(person)?
+        .entries()
+        .iter()
+        .find(|e| e.intent.object == partner && e.intent.interaction == FIGHT)
+        .map(|e| e.id)
+}
+
+/// With the same grievance and a certain draw, the game starts the fight
+/// against a busy, awake partner and not against a sleeping one.
+#[test]
+fn the_game_never_starts_a_fight_with_a_sleeping_partner() {
+    for (object, sleeping) in [(FRIDGE, false), (BED, true)] {
+        let (mut sim, a, b, _) = quarrel();
+        start_using(&mut sim, b, object, 120);
+        assert_eq!(asleep(&sim, b), sleeping);
+        crate::fights::provoke(sim.world_mut());
+        assert_eq!(
+            fight_order(&sim, a, b).is_some(),
+            !sleeping,
+            "sleeping {sleeping}: only an awake partner is picked"
+        );
+    }
+}
+
+/// A fight the game started waits while its partner is busy and awake. When
+/// the partner falls asleep it is withdrawn the way pull request 302 withdraws
+/// one for a crisis: the exact order, its system identity and its pending
+/// cause go, and the grievance is not marked as fought. Nothing is started
+/// while the partner sleeps; once they wake, the same grievance can start a
+/// new fight.
+#[test]
+fn a_waiting_game_made_fight_is_withdrawn_when_its_partner_falls_asleep_and_can_return() {
+    let (mut sim, a, b, grievance) = quarrel();
+    start_using(&mut sim, b, FRIDGE, 200);
+    crate::fights::provoke(sim.world_mut());
+    let first = fight_order(&sim, a, b).expect("the fight is queued");
+    sim.tick();
+    assert_eq!(fight_order(&sim, a, b), Some(first), "it waits");
+    start_using(&mut sim, b, BED, 90);
+    sim.tick();
+    assert!(asleep(&sim, b));
+    assert_eq!(fight_order(&sim, a, b), None, "fight {first} is withdrawn");
+    assert!(
+        !sim.world()
+            .resource::<crate::fights::Fights>()
+            .owns_order(a, first),
+        "the exact system identity is retired"
+    );
+    assert!(
+        sim.world()
+            .resource::<crate::social_conflicts::State>()
+            .pending_fights
+            .get(&a)
+            .is_none_or(|row| row.order_id != Some(first)),
+        "the exact pending cause is retired"
+    );
+    assert!(
+        sim.world().get::<Target>(a).is_none_or(|t| t.object != b),
+        "the initiator stops approaching"
+    );
+    let unfought = |sim: &Sim| {
+        sim.world()
+            .resource::<crate::social_conflicts::State>()
+            .grievance(grievance)
+            .is_some_and(|row| row.last_fought.is_none())
+    };
+    assert!(unfought(&sim), "a withdrawn fight is not a fight had");
+    sleep_through(&mut sim, b, |sim| {
+        assert_eq!(
+            fight_order(sim, a, b),
+            None,
+            "nothing starts against a sleeper"
+        );
+    });
+    assert!(
+        tick_until(&mut sim, 30, |sim| fight_order(sim, a, b).is_some()),
+        "after the partner wakes, the grievance starts a fight again"
+    );
+    assert!(fight_order(&sim, a, b).is_some_and(|id| id != first));
+}
+
+/// A fight the player orders is exempt: it waits beside a sleeping partner
+/// and runs once they wake.
+#[test]
+fn a_player_ordered_fight_keeps_waiting_for_a_sleeping_partner() {
+    let (mut sim, a, b) = household();
+    *sim.world_mut().get_mut::<Needs>(a).unwrap() = Needs::all_at(90.);
+    start_using(&mut sim, b, BED, 60);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::TalkTo {
+            agent: a.index_u32(),
+            target: b.index_u32(),
+            interaction: FIGHT,
+        });
+    sim.tick();
+    let id = fight_order(&sim, a, b).expect("the order is queued");
+    let slept_beside = sleep_through(&mut sim, b, |sim| {
+        assert_eq!(fight_order(sim, a, b), Some(id), "order {id} keeps waiting");
+    });
+    assert!(slept_beside > 30, "it waited");
+    assert!(
+        tick_until(&mut sim, 120, |sim| sim
+            .world()
+            .get::<Socialising>(a)
+            .is_some_and(|s| s.partner == b && s.interaction == FIGHT)),
+        "the ordered fight runs after waking"
+    );
+}
+
+/// Historical reference content runs the published fight rules, whose
+/// outcomes stay as they were published, so a game-made fight there is not
+/// withdrawn for a sleeping recipient.
+#[test]
+fn the_published_fight_rules_keep_a_waiting_fight_beside_a_sleeper() {
+    let (mut sim, a, b, _) = quarrel();
+    start_using(&mut sim, b, FRIDGE, 200);
+    crate::fights::provoke(sim.world_mut());
+    let first = fight_order(&sim, a, b).expect("the fight is queued");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_rules = terri_data::FightRules::Published;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    start_using(&mut sim, b, BED, 90);
+    crate::fights::yield_to_critical_needs(sim.world_mut());
+    assert!(asleep(&sim, b));
+    assert_eq!(fight_order(&sim, a, b), Some(first), "the fight stays");
 }

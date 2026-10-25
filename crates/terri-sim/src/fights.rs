@@ -507,8 +507,14 @@ fn withdraw_invalid(world: &mut World) {
 /// (`social_episode::urgent`). A player's order survives critical needs; a
 /// made-up grudge does not outrank food and sleep. This is the issue 301
 /// ruling in rule 3 of `docs/specs/2026-10-16-fights.md`, pending the owner's
-/// confirmation. A fight already under way runs to its end. Released claims
-/// follow the execution owner, so a waiting partner is freed on this tick.
+/// confirmation. Under the current fight rules it also withdraws one whose
+/// recipient is asleep (issue 338; the coordinator's decision of 2026-10-24
+/// applies the owner's sleeping-partner ruling to fights the game starts).
+/// The published rules keep their original behavior, as their producer
+/// does. A fight already under way runs to its end. Released claims follow
+/// the execution owner, so a waiting partner is freed on this tick. The
+/// grievance is not marked as fought, so it can start a fight again while it
+/// stays eligible.
 pub(crate) fn yield_to_critical_needs(world: &mut World) {
     if !published_rules(world) {
         withdraw_invalid(world);
@@ -532,9 +538,12 @@ pub(crate) fn yield_to_critical_needs(world: &mut World) {
         let running = world
             .get::<Socialising>(person)
             .is_some_and(|talk| talk.partner == intent.object);
+        let present = world.get_entity(intent.object).is_ok();
         let crisis = crate::social_episode::urgent(world, person)
-            || (world.get_entity(intent.object).is_ok()
-                && crate::social_episode::urgent(world, intent.object));
+            || (present && crate::social_episode::urgent(world, intent.object))
+            || (present
+                && !published_rules(world)
+                && crate::social_episode::requests::asleep(world, intent.object));
         if running || !crisis {
             continue;
         }
@@ -614,6 +623,7 @@ pub(crate) fn provoke(world: &mut World) {
                 .active(SimId(row.responsible), now)
                 || !approachable(world, other, &listeners)
                 || crate::social_episode::urgent(world, other)
+                || crate::social_episode::requests::asleep(world, other)
             {
                 continue;
             }

@@ -1,6 +1,6 @@
 # Work shifts and five new careers
 
-Jobs now come with shifts, there are five new careers, you can choose or change a housemate's shift in the Career tab, putting a book back no longer holds up the start of work, and housemates no longer stand around waiting to chat with someone who is asleep.
+Jobs now come with shifts, there are five new careers, you can choose or change a housemate's shift in the Career tab, putting a book back no longer holds up the start of work, and housemates no longer stand around waiting to chat with or argue with someone who is asleep.
 
 ## New
 
@@ -19,3 +19,4 @@ Jobs now come with shifts, there are five new careers, you can choose or change 
 
 - A housemate putting a book back no longer stands waiting while someone else walks over to the same bookcase for a book, which could make them more than two hours late for work. Only the person taking or shelving a book holds the spot in front of the bookcase, and anyone who arrives meanwhile waits there only for the people ahead of them to finish.
 - Housemates no longer stand for hours beside someone asleep, waiting to chat. Nobody starts a chat of their own with a sleeping housemate, and someone already waiting for a chat gives up when the other person falls asleep and does something else; they may ask again once the sleeper wakes. A chat you order still waits until the sleeper wakes up.
+- Housemates no longer start an argument with someone who is asleep, and an argument the game started gives up when the other person falls asleep before it begins. The grudge can still lead to an argument after they wake. A Fight you order still waits until the sleeper wakes up.
