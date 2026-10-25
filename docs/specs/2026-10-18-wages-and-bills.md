@@ -82,7 +82,7 @@ Each bill has a base charge and usage charges. The base charge is a whole month'
 
 | Bill | Base charge per month | Usage |
 | --- | --- | --- |
-| Rent | $60.00 | Indoor tiles at $1.10 and outdoor tiles at $0.20 per tile per month ([WB-rent]) |
+| Rent | $60.00 | Indoor tiles at $0.90 and outdoor tiles at $0.20 per tile per month ([WB-rent]) |
 | Electricity | $30.00 | Electricity charges of the actions and objects in [WB-usage] |
 | Water | $20.00 | Water charges of the actions and objects in [WB-usage] |
 | Transportation | $10.00 | $3.00 for each trip to work |
@@ -102,9 +102,9 @@ Counts are stored, not cents, so a retuned rate applies to the month in progress
 
 **Which tiles count.** The room topology of the confirmed layout (`RoomMap` and its `RoomTopology` from the room identity work) classifies every tile. An **indoor tile** is a tile in an enclosed room (`TopologyCell::Enclosed`). An **outdoor tile** is a floor tile outside every room (`TopologyCell::Outside`), excluding the street column by the same rule `rooms::runtime::cleaning_area_at` uses. Tiles that are not floor do not count. Doorways, windows and furniture do not change the classification, because they do not change the topology.
 
-**Shipped house.** The shipped lot is 20 by 16 tiles. The house's five rooms hold 192 indoor tiles; the yard holds 112 outdoor tiles after the 16 street tiles are left out. A month's rent is $60.00 + 192 x $1.10 + 112 x $0.20 = **$293.60**.
+**Shipped house.** The shipped lot is 20 by 16 tiles. The house's five rooms hold 192 indoor tiles; the yard holds 112 outdoor tiles after the 16 street tiles are left out. A month's rent is $60.00 + 192 x $0.90 + 112 x $0.20 = **$255.20**. The indoor rate was $1.10 until the owner's ruling 17 of 2026-10-24 ([WB-rulings]).
 
-**A tiny house.** If the player removes the interior and exterior walls and builds one 4 by 4 room, 16 tiles are indoor and 288 outdoor, and rent is $60.00 + $17.60 + $57.60 = **$135.20**, 54 percent less. With every wall removed, rent is $60.00 + 304 x $0.20 = $120.80. Outdoor tiles always pay, as the issue requires; an outdoor tile costs less than a fifth of an indoor one.
+**A tiny house.** If the player removes the interior and exterior walls and builds one 4 by 4 room, 16 tiles are indoor and 288 outdoor, and rent is $60.00 + $14.40 + $57.60 = **$132.00**, 48 percent less. With every wall removed, rent is $60.00 + 304 x $0.20 = $120.80. Outdoor tiles always pay, as the issue requires; an outdoor tile costs less than a quarter of an indoor one.
 
 **Bought land.** A strip bought with the Land tool is outdoor tiles. The first rear strip adds 160 tiles and $32.00 a month. The purchase price stays as it is.
 
@@ -181,23 +181,23 @@ Three figures are estimates, not measurements: dish washing (the trace does not 
 
 | Bill | Base | Usage | Total |
 | --- | --- | --- | --- |
-| Rent | $60.00 | $233.60 for tiles | $293.60 |
+| Rent | $60.00 | $195.20 for tiles | $255.20 |
 | Electricity | $30.00 | $10.84: hot water $3.91, television $2.12, stove $1.88, fridge $1.40, aquarium $0.70, radio $0.48, lamp $0.35 | $40.84 |
 | Water | $20.00 | $19.89: showers $8.55, baths $6.39, toilet $3.39, hand washing $1.16, dishes $0.40 | $39.89 |
 | Transportation | $10.00 | $40.50 for 13.5 trips | $50.50 |
-| **All four** | | | **$424.83** |
+| **All four** | | | **$386.43** |
 
-That is 21.5 percent of the household's $1,975. After bills the household keeps about $1,550 a month, against $1,317 before this change.
+That is 19.6 percent of the household's $1,975. After bills the household keeps about $1,589 a month, against $1,317 before this change. These figures are the design estimate; the measured totals with the shipped values are in the [verification record](2026-10-18-wages-and-bills-verification.md).
 
-**The shipped household with one earner.** If only Tim works, his office clerk pay is 5 x $180 = $900 a month. Transportation falls to $25.00 and the total to about $399.33, 44 percent of his pay. He keeps about $501, against $600 before this change.
+**The shipped household with one earner.** If only Tim works, his office clerk pay is 5 x $180 = $900 a month. Transportation falls to $25.00 and the total to about $360.93, 40 percent of his nominal pay. He keeps about $539, against $600 before this change. Pay follows office time, and his commute uses part of each shift, so he actually earns about $750 a month; the bills are then about 48 percent of it, which ruling 17 makes the reading the band uses.
 
-**A tiny house.** In the 4 by 4 house of [WB-rent], the three-earner household pays about $266.43, 37 percent less than in the shipped house, and the one-earner household about $240.93, 27 percent of Tim's pay, keeping $659.
+**A tiny house.** In the 4 by 4 house of [WB-rent], the three-earner household pays about $263.23, 32 percent less than in the shipped house, and the one-earner household about $237.73, 26 percent of Tim's nominal pay, keeping $662. With the lower indoor rate of ruling 17 the saving falls just short of the third that condition 3 aims for.
 
 **What usage costs.** A month of baths for one person at one a day costs $8.05 in water and electricity, against $5.25 for a daily shower. Usage is half the water bill and a quarter of the electricity bill.
 
-**The first bill.** A new game starts with no money. Tim's five shifts in the first week pay $900 by Day 5, so the first bills on Day 8 are paid on the day they arrive. A new game in which nobody works cannot pay them, and [WB-paying] says what follows.
+**The first bill.** A new game starts with `bills.starting_funds_cents`, $400, which covers the first month's bills as projected before any usage (ruling 18). Tim's shifts in the first week add to it, so the first bills on Day 8 are paid on the day they arrive. A new game in which nobody works can pay its first month from the starting money, but not the second, and [WB-paying] says what follows.
 
-**Acceptance bands.** The plan's calibration task re-measures with the implemented bills and accepts the shipped values when, over four seeds: the three-earner household's bills are 18 to 26 percent of its income and every bill is paid on its due day; the one-earner household's bills are 35 to 50 percent of Tim's pay and every bill is paid within its grace period; water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. If a band fails, the implementer adjusts the tuning values only, records the old and new values and the measurement in the verification record, and reports the change to the owner.
+**Acceptance bands.** The plan's calibration task re-measures with the implemented bills and accepts the shipped values when, over four seeds: the three-earner household's bills are 18 to 26 percent of its income and every bill is paid on its due day; the one-earner household's bills are 35 to 50 percent of Tim's actual earnings (ruling 17) and every bill is paid within its grace period; water usage is 30 to 65 percent of the water bill and electricity usage 15 to 40 percent of the electricity bill. If a band fails, the implementer adjusts the tuning values only, records the old and new values and the measurement in the verification record, and reports the change to the owner.
 
 ## [WB-paying] Paying, grace, late fees and running out of money
 
@@ -205,7 +205,7 @@ That is 21.5 percent of the household's $1,975. After bills the household keeps 
 
 The bills system runs in the schedule immediately after `systems::career::commute_and_work`, so pay from a shift that settles in a tick is available to the bills in the same tick. The order also means a player cannot spend money already owed to a bill that Funds could cover: by the time a command is drained on the next tick, that bill is paid.
 
-**Late fees.** On the first processed tick of each day from the end of the grace period, every unpaid bill gains a late fee of `bills.late_fee_percent` (shipped 5) percent of its amount, rounded up to the cent, until its fees reach `bills.late_fee_cap_percent` (shipped 50) percent of its amount. The last fee is reduced to meet the cap exactly. A rent of $293.60 left unpaid gains $14.68 a day and at most $146.80.
+**Late fees.** On the first processed tick of each day from the end of the grace period, every unpaid bill gains a late fee of `bills.late_fee_percent` (shipped 5) percent of its amount, rounded up to the cent, until its fees reach `bills.late_fee_cap_percent` (shipped 50) percent of its amount. The last fee is reduced to meet the cap exactly. A rent of $255.20 left unpaid gains $12.76 a day and at most $127.60.
 
 **Behind on bills.** While any bill is overdue, every living housemate has the moodlet **Behind on bills**, worth minus `bills.overdue_mood` (shipped 8) mood points, the same weight as disliking one's job. It is derived from the bills state each time moods are computed, like Warned at work, so it needs no timer and no save of its own. It ends on the tick the last overdue bill is paid. Bills still within their grace period do not cause it.
 
@@ -281,12 +281,13 @@ late_fee_percent = 5
 late_fee_cap_percent = 50
 overdue_mood = 8.0
 rent_base_cents = 6000
-rent_indoor_tile_cents = 110
+rent_indoor_tile_cents = 90
 rent_outdoor_tile_cents = 20
 electricity_base_cents = 3000
 water_base_cents = 2000
 transportation_base_cents = 1000
 commute_cents = 300
+starting_funds_cents = 40000
 
 [bills.uses]
 shower = { label = "Showers", water_cents = 60, electricity_cents = 15 }
@@ -368,7 +369,7 @@ The plan measures the shipped household's trace for 12,000 ticks in release mode
 
 **Calendar** (`crates/terri-core`): `month` and `day_of_month` at day 0, the last day of a month, the first day of the next, and the top of the tick range.
 
-**Simulation** (`crates/terri-sim`): the night premium's exact cents on a night shift and its absence on day, early and late shifts, with proration; each shipped use kind counted once at the physical start of its action or step, not at a walk that is abandoned, once per viewer, and not again after a save and load mid-action; daily kinds counted per placed object per day; trips counted once per settled shift with time worked and never for a missed shift; rent from the shipped lot equal to $293.60, and from the tiny house and the wall-free lot equal to [WB-rent]'s figures; rent unaffected by an unconfirmed Build draft and changed from the day after a confirmed one; bills issued on the first day of the month with the exact amounts of a fixture month; a partial first month after loading an older save prorated by days counted; payment in order, never partial, never below zero, in the tick pay arrives; late fees from the first tick after grace, rounded up, capped exactly; the Behind on bills moodlet present only while a bill is overdue and gone on payment; the hash unchanged for a world with no lot and moved by a counted day; the bed rule's purchase and move refusals, the draft topology inside a session, the Confirm refusal and its exceptions for a bed already outside in the baseline, the wall and room command refusals outside a session, and an older save with an outdoor bed that loads, works and confirms unrelated batches; the schema-twenty-two round trip; every refusal in [WB-save]; and loading schemas fourteen to twenty-one with migrated pay and an empty bills record, while a build session's baseline is never migrated.
+**Simulation** (`crates/terri-sim`): the night premium's exact cents on a night shift and its absence on day, early and late shifts, with proration; each shipped use kind counted once at the physical start of its action or step, not at a walk that is abandoned, once per viewer, and not again after a save and load mid-action; daily kinds counted per placed object per day; trips counted once per settled shift with time worked and never for a missed shift; rent from the shipped lot equal to $255.20, and from the tiny house and the wall-free lot equal to [WB-rent]'s figures; rent unaffected by an unconfirmed Build draft and changed from the day after a confirmed one; bills issued on the first day of the month with the exact amounts of a fixture month; a partial first month after loading an older save prorated by days counted; payment in order, never partial, never below zero, in the tick pay arrives; late fees from the first tick after grace, rounded up, capped exactly; the Behind on bills moodlet present only while a bill is overdue and gone on payment; the hash unchanged for a world with no lot and moved by a counted day; the bed rule's purchase and move refusals, the draft topology inside a session, the Confirm refusal and its exceptions for a bed already outside in the baseline, the wall and room command refusals outside a session, and an older save with an outdoor bed that loads, works and confirms unrelated batches; the schema-twenty-two round trip; every refusal in [WB-save]; and loading schemas fourteen to twenty-one with migrated pay and an empty bills record, while a build session's baseline is never migrated.
 
 **Boundary** (`crates/terri-wasm`): the bills exports for a new game, mid-month, with an overdue bill, and after a load; the new refusal codes; the night pay line's value; schema twenty-two through the save bytes; and the published schema-fourteen to schema-twenty-one inputs, including the authentic schema-twenty-one saves in `crates/terri-wasm/tests/fixtures/bills-v21/`, written by main at `44f5fb271` before this change: the shipped household with Tim at work, a night watch worker with an open night shift, and a double bed on a yard tile.
 
