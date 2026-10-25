@@ -814,6 +814,13 @@ pub(crate) fn maintain(world: &mut World) {
             cancel_request(world, r.id);
             continue;
         }
+        if r.origin == ConversationOrigin::Autonomous
+            && r.phase != RequestPhase::Talking
+            && asleep(world, r.recipient)
+        {
+            cancel_request(world, r.id);
+            continue;
+        }
     }
     refresh_markers(world);
     let marked: Vec<_> = world
@@ -841,6 +848,20 @@ pub(crate) fn gives_up_chosen_chat(needs: &terri_core::Needs, tuning: &terri_dat
     [terri_core::NeedId::Hunger, terri_core::NeedId::Energy]
         .into_iter()
         .any(|need| needs.get(need) <= tuning.mood_critical_need_level)
+}
+
+/// Whether `person` is asleep, by the simulation's own sleep state: an
+/// interaction under way that carries the pack's sleep tag. A chat a
+/// housemate chose for themselves is never chosen with, and gives up on, a
+/// sleeping partner (issue 338, the owner's ruling of 2026-10-23); the asker
+/// may choose it again once the partner wakes. Player-ordered and
+/// `LegacyUnattributed` chats keep waiting, as with the critical-needs
+/// give-up above.
+pub(crate) fn asleep(world: &World, person: Entity) -> bool {
+    crate::systems::circadian::is_asleep(
+        world.resource::<crate::Content>().0,
+        world.get::<Eating>(person),
+    )
 }
 
 fn busy(world: &World, person: Entity) -> bool {
