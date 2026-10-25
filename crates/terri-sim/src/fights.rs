@@ -469,23 +469,27 @@ fn withdraw_invalid(world: &mut World) {
                             )
                         }))
         });
-        // Issue 338: the coordinator's decision of 2026-10-24 applies the
+        // A fight that has not started is withdrawn when either side is in
+        // crisis (the issue 301 ruling), when its recipient falls asleep
+        // (issue 338: the coordinator's decision of 2026-10-24 applies the
         // owner's sleeping-partner ruling to fights the game starts, which
-        // are not player orders. One that has not started is withdrawn when
-        // its recipient falls asleep; the published rules, which never call
-        // this, keep their original behavior.
+        // are not player orders) or when either side already had a fight.
+        // A fight already under way runs to its end (issue 342); a shift
+        // start still ends it, because leaving for work ends any
+        // conversation. The published rules, which never call this, keep
+        // their original behavior.
         let unavailable = world.get_entity(intent.object).is_err()
-            || crate::social_episode::urgent(world, actor)
-            || crate::social_episode::urgent(world, intent.object)
-            || !running && crate::social_episode::requests::asleep(world, intent.object)
             || !running
-                && [actor, intent.object].into_iter().any(|person| {
-                    world.get::<SimId>(person).is_some_and(|id| {
-                        world
-                            .resource::<Fights>()
-                            .active(*id, world.resource::<SimClock>().tick)
-                    })
-                });
+                && (crate::social_episode::urgent(world, actor)
+                    || crate::social_episode::urgent(world, intent.object)
+                    || crate::social_episode::requests::asleep(world, intent.object)
+                    || [actor, intent.object].into_iter().any(|person| {
+                        world.get::<SimId>(person).is_some_and(|id| {
+                            world
+                                .resource::<Fights>()
+                                .active(*id, world.resource::<SimClock>().tick)
+                        })
+                    }));
         if reason_valid && !unavailable {
             continue;
         }
@@ -512,12 +516,12 @@ fn withdraw_invalid(world: &mut World) {
 /// Energy or Bladder at or below the critical level, or away at work
 /// (`social_episode::urgent`). A player's order survives critical needs; a
 /// made-up grudge does not outrank food and sleep. This is the issue 301
-/// ruling in rule 3 of `docs/specs/2026-10-16-fights.md`, pending the owner's
+/// ruling recorded in `docs/specs/2026-10-16-fights.md`, pending the owner's
 /// confirmation. Under the current fight rules `withdraw_invalid`, called
 /// first, also withdraws one that has not started when its recipient is
-/// asleep (issue 338). A fight already under way runs to its end. Released
-/// claims follow the execution owner, so a waiting partner is freed on this
-/// tick. Neither withdrawal marks the grievance as fought, so it can start a
+/// asleep (issue 338). Under both rules a fight already under way runs to
+/// its end through either side's crisis (issue 342). Released claims follow
+/// the execution owner, so a waiting partner is freed on this tick. Neither withdrawal marks the grievance as fought, so it can start a
 /// fight again while it stays eligible.
 pub(crate) fn yield_to_critical_needs(world: &mut World) {
     if !published_rules(world) {
