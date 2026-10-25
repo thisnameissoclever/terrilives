@@ -462,26 +462,26 @@
       "source": "images/ui-guide-shortcut-desktop.png",
       "rect": {
         "x": 180,
-        "y": 863,
+        "y": 866,
         "width": 1080,
-        "height": 89
+        "height": 90
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "e80ffc0efe5fd45dbd34533257dec33a1fe5a0f3cc523468c906055ad77af3b3",
-      "outputSha256": "c95727d01173682c2000a21f673ed24e28c0e85b6207b5aa496d008a1b16cb16"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "0ef30fc84cacc8cc000fe385532edf43ada3d813bf8f9416a08b6ebaf913a7e0",
+      "outputSha256": "11f3c8f5eaf57a1062dad7844ee53a9a04be361fd4c9be6d53b204dcfed0d725"
     },
     {
       "output": "images/guide/household-mobile.png",
       "source": "images/ui-guide-shortcut-mobile.png",
       "rect": {
         "x": 8,
-        "y": 676,
+        "y": 687,
         "width": 374,
-        "height": 160
+        "height": 153
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "57535ed4c10ac93bab0803237ace075120671eb9eeba292112f6cc2902ee7dc4",
-      "outputSha256": "1f65e4aeb1b8d262312184ce211fa9a9bd38a9f980c8f079facd588b0bf07c9a"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "25af4a25b5e0e6e349d0b588dd747b1628c96fba4956b4b72e42d468d7747ae1",
+      "outputSha256": "d718c343dc5a4dcc6d82499230fcd2bc5a11daeea66f99c129a1243d606e0de2"
     },
     {
       "output": "images/guide/sim-needs-desktop.png",
@@ -800,13 +800,13 @@
       "source": "images/ui-build-furniture-desktop.png",
       "rect": {
         "x": 8,
-        "y": 112,
+        "y": 129,
         "width": 304,
-        "height": 688
+        "height": 644
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "012f602decb2a3b489f6cdf767ca2a430dc50909e7619eaba5562ecb18cedecb",
-      "outputSha256": "11c6754bfa29c0106d602fccbafa1667fb9572ff012b05b5209b5230fc054665"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "640e8332ae4aa10a0e8ad837b92f3ecbbe0ff950a8953d43d5e691dc803c2064",
+      "outputSha256": "a100d1e59cb917b3681526d842e64b7d0d3ca4c1d657d93941bb6d74bfa914e4"
     },
     {
       "output": "images/guide/build-furniture-mobile.png",
@@ -817,9 +817,9 @@
         "width": 374,
         "height": 304
       },
-      "method": "Browser-native PNG capture of source image at 1:1 size; color managed by the browser",
-      "sourceSha256": "fc63c7a4f1c3c59845d0dca763eba0b5304e5a8fb17df0df756f158a9a6d7ef5",
-      "outputSha256": "14bb25c7537d556583eb4910c210eb77b96c4a5cb113e0a5ae611faeb7db2db8"
+      "method": "Lossless crop of the source image at 1:1 size",
+      "sourceSha256": "36edc19eaa37bb31657868a03d2dfcf9166cd23fbf346e97eb759718a4caab4f",
+      "outputSha256": "8ba4728dd8043317cd1730b68dd7f5782b4f80ff087dee93ba5313c01c296886"
     },
     {
       "output": "images/guide/build-walls-desktop.png",
