@@ -459,8 +459,13 @@ fn assert_log_never_changes_the_world(days: usize) -> (Vec<u64>, Vec<LogRecord>)
 /// moved it from 0x9545_3dc6_218e_c371 on purpose: a walk to a bookcase
 /// contact no longer holds it against a reader putting a book back, so Tim
 /// leaves for work on time on Monday; measured on its branch with the log off
-/// and on giving the same worlds.
-const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x77df_2117_a9d4_c4b1;
+/// and on giving the same worlds. Issue 298 (wages and bills) moved it from
+/// 0x77df_2117_a9d4_c4b1 on purpose: pay is 1.5 times what it was, a night
+/// shift pays 15 percent more, and the household bills record joins the
+/// hash once a day is counted. Measured on its branch after merging
+/// 318da27c6; with the old wages, no premium and the bills system and its
+/// hash switched off, the branch gave 0x77df_2117_a9d4_c4b1 again.
+const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x77d9_1293_12d6_21e2;
 
 /// The same fold over twenty game days, measured the same way. Main at
 /// 6d92fc561 measured 0x8381_918c_1bdb_58be; issue 296 moved it for the
@@ -468,8 +473,11 @@ const TWO_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x77df_2117_a9d4_c4b1;
 /// twenty-day check is a manual release test, so this pin catches a change
 /// running in both modes that only shows after the second day. Issue 339
 /// moved it from 0x4e18_0bcf_5070_0111 for the reason given for the two-day
-/// fold, measured on its branch in a release build.
-const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x2e8d_746e_12f8_fad2;
+/// fold, measured on its branch in a release build. Issue 298 moved it from
+/// 0x2e8d_746e_12f8_fad2 for the reason given for the two-day fold, and over
+/// twenty days the bills are also paid from Funds on days 7 and 14; with the
+/// old wages, no premium and the bills off it gave 0x2e8d_746e_12f8_fad2.
+const TWENTY_DAY_FOLD_WITHOUT_THE_LOG: u64 = 0x61e4_7abc_b9c4_8ae2;
 
 /// Two game days, which a debug build runs in about a minute. The
 /// specification's twenty days are the ignored test below.

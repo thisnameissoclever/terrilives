@@ -58,6 +58,10 @@ impl RoomTopology {
     /// Derives physical enclosure without reading movement or furniture blockage.
     /// Enclosed indices address `components`; they must never be saved as room IDs.
     pub fn from_world(world: &World) -> Result<Self, RoomError> {
+        // A missing grid is reported before a missing layout, as it always was.
+        world
+            .get_resource::<TileGrid>()
+            .ok_or(RoomError::MissingGrid)?;
         let layout = world
             .get_resource::<SavedLayout>()
             .ok_or(RoomError::MissingLayout)?;

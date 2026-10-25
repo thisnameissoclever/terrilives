@@ -125,9 +125,11 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
         .collect();
     assert_eq!(
         outcomes,
+        // The published hires at issue 298's wages, 1.5 times the published
+        // $120 and $80 ([WB-wages]).
         vec![
-            (0, 0, "office_job", 31, 360, 480, 120, Some(240), false),
-            (1, 0, "office_job", 31, 360, 480, 120, Some(240), false),
+            (0, 0, "office_job", 31, 360, 480, 180, Some(240), false),
+            (1, 0, "office_job", 31, 360, 480, 180, Some(240), false),
             (
                 2,
                 4,
@@ -135,7 +137,7 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
                 62,
                 330,
                 420,
-                80,
+                120,
                 Some(150),
                 false
             ),
@@ -182,9 +184,9 @@ fn every_search_on_keeps_published_hires_schedules_and_career_randomness() {
     assert_eq!(
         ongoing,
         vec![
-            (0, 0, 4680, 5160, 12000, false, false),
-            (1, 0, 4680, 5160, 12000, false, false),
-            (2, 4, 4650, 5070, 8000, false, false),
+            (0, 0, 4680, 5160, 18000, false, false),
+            (1, 0, 4680, 5160, 18000, false, false),
+            (2, 4, 4650, 5070, 12000, false, false),
         ]
     );
 }
@@ -226,8 +228,12 @@ fn the_shipped_household_hash_and_draws_through_thursday() {
 /// both hired levels offer more than one shift. Issue 339 moved the hash
 /// from 17413157888741130017: a returning reader no longer waits out another
 /// reader's walk to the bookcase, so Tim leaves on time on Monday. The draw
-/// counts and every job and shift are unchanged.
-const SHIPPED_THURSDAY: (u64, u64, u64) = (18180649999092761866, 7, 2);
+/// counts and every job and shift are unchanged. Issue 298 moved it from
+/// 18180649999092761866: pay is 1.5 times what it was, the night watch
+/// guard's night shifts pay 15 percent more, and the bills record joins the
+/// hash once a day is counted. With the old wages, no premium and the bills
+/// off the branch gave 18180649999092761866; the draws and jobs are the same.
+const SHIPPED_THURSDAY: (u64, u64, u64) = (12348020542178266038, 7, 2);
 const SHIPPED_THURSDAY_JOBS: [(u32, Option<&str>, Option<&str>); 3] = [
     (0, Some("office_job"), Some("standard")),
     (1, Some("kitchen_porter"), Some("standard")),

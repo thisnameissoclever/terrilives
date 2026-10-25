@@ -1484,6 +1484,9 @@ mod tests {
                 career_raise_base: 0.0,
                 ..pack.tuning
             },
+            // A seven-day month of thirty-tick days ends at tick 210, inside
+            // the window below; this test is about pay alone.
+            bills: test_content::free_bills(&pack.bills),
             ..pack.clone()
         }));
         // Loading draws a self-preservation instinct for every person

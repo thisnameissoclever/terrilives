@@ -609,6 +609,29 @@ pub(crate) fn assert_current_admission(sim: &Sim) {
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
+/// `bills` with every charge at zero, so no bill is ever issued ([WB-bills]
+/// in `docs/specs/2026-10-18-wages-and-bills.md`: a zero bill is not issued).
+/// For tests about pay alone, whose Funds must move only with pay.
+pub(crate) fn free_bills(bills: &terri_data::BillsTuning) -> terri_data::BillsTuning {
+    let free = |kind: &terri_data::BillKind| terri_data::BillKind {
+        water_cents: 0,
+        electricity_cents: 0,
+        ..kind.clone()
+    };
+    terri_data::BillsTuning {
+        rent_base_cents: 0,
+        rent_indoor_tile_cents: 0,
+        rent_outdoor_tile_cents: 0,
+        electricity_base_cents: 0,
+        water_base_cents: 0,
+        transportation_base_cents: 0,
+        commute_cents: 0,
+        uses: bills.uses.iter().map(free).collect(),
+        daily: bills.daily.iter().map(free).collect(),
+        ..bills.clone()
+    }
+}
+
 /// The career content and search exactly as they were before issue 296
 /// (`docs/specs/2026-10-18-shifts-and-careers.md`, [WS-determinism]): `pack`
 /// cut back to its first three paths and twelve rows, every row holding its
