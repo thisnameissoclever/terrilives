@@ -8,6 +8,12 @@ const CHAT: u32 = 0;
 const FIGHT: u32 = 1;
 
 fn three_people() -> (Sim, Entity, Entity, Entity) {
+    three_people_on(12, 8)
+}
+
+/// `three_people` on a `width` by `height` lot. A lot of 16 by 12 reaches
+/// the shipped front door at (15, 2), so a shift can start there.
+fn three_people_on(width: usize, height: usize) -> (Sim, Entity, Entity, Entity) {
     let mut fight = test_content::interaction("fight", &[], 40);
     fight.tags = vec![FIGHT_TAG.into()];
     let pack = test_content::pack_with_social(
@@ -18,7 +24,7 @@ fn three_people() -> (Sim, Entity, Entity, Entity) {
         ],
         test_content::tuning(),
     );
-    let mut sim = test_content::sim_with(12, 8, pack);
+    let mut sim = test_content::sim_with(width, height, pack);
     let mut create = |x, y| {
         let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
         sim.world_mut()
@@ -301,6 +307,325 @@ fn a_game_made_fight_yields_to_a_crisis_but_a_player_fight_does_not() {
                 }
             }
         }
+    }
+}
+
+/// Whether `person` is in the fight against `partner`.
+fn fighting(sim: &Sim, person: Entity, partner: Entity) -> bool {
+    sim.world()
+        .get::<Socialising>(person)
+        .is_some_and(|talk| talk.partner == partner && talk.interaction == FIGHT)
+}
+
+/// Starts a game-made fight from Bill against Tim and ticks until it has run
+/// for a few ticks. Returns the fight's order id.
+fn running_game_fight(sim: &mut Sim, bill: Entity, tim: Entity) -> u64 {
+    let id = game_fight(sim, bill, tim);
+    let mut ticks = 0;
+    while !fighting(sim, bill, tim) {
+        assert!(ticks < 200, "the fight starts");
+        sim.tick();
+        ticks += 1;
+    }
+    for _ in 0..5 {
+        sim.tick();
+    }
+    assert!(fighting(sim, bill, tim), "the fight runs");
+    id
+}
+
+/// Whether `person` holds the Had a fight moodlet, which only a finished
+/// fight records.
+fn had_a_fight(sim: &Sim, person: Entity) -> bool {
+    let id = *sim.world().get::<SimId>(person).unwrap();
+    sim.world()
+        .resource::<crate::fights::Fights>()
+        .entries()
+        .iter()
+        .any(|(who, _)| *who == id)
+}
+
+/// Issue 342: the issue 301 ruling withdraws a game-made fight for a crisis
+/// only while it waits. That ruling, as `docs/specs/2026-10-16-fights.md`
+/// records it, lets a fight already under way run to its end, so when either side's Hunger,
+/// Energy or Bladder turns critical mid-fight the fight keeps its order,
+/// finishes, and records its outcome on both sides.
+#[test]
+fn a_running_game_made_fight_finishes_through_either_sides_crisis() {
+    for need in [NeedId::Hunger, NeedId::Energy, NeedId::Bladder] {
+        for critical_recipient in [false, true] {
+            let case = format!("{need:?} critical_recipient={critical_recipient}");
+            let (mut sim, tim, bill, _casey) = three_people();
+            let id = running_game_fight(&mut sim, bill, tim);
+            let critical = if critical_recipient { tim } else { bill };
+            sim.world_mut()
+                .get_mut::<Needs>(critical)
+                .unwrap()
+                .set(need, 5.);
+            assert!(
+                crate::social_episode::urgent(sim.world(), critical),
+                "{case}: the crisis is real"
+            );
+            let mut ticks = 0;
+            while fighting(&sim, bill, tim) {
+                assert!(ticks < 200, "{case}: the fight ends");
+                sim.tick();
+                ticks += 1;
+                if fighting(&sim, bill, tim) {
+                    assert!(
+                        sim.world()
+                            .resource::<crate::fights::Fights>()
+                            .owns_order(bill, id),
+                        "{case}: the running fight keeps its order"
+                    );
+                }
+            }
+            assert!(ticks > 1, "{case}: the fight runs on after the crisis");
+            for person in [bill, tim] {
+                assert!(
+                    had_a_fight(&sim, person),
+                    "{case}: the finished fight records its outcome"
+                );
+            }
+        }
+    }
+}
+
+/// Gives `worker` a job whose shift starts two ticks from now, every day.
+fn employ_from_two_ticks_on(sim: &mut Sim, worker: Entity) {
+    let now = sim.world().resource::<crate::SimClock>().tick;
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let day_ticks = u64::from(pack.tuning.day_ticks);
+    pack.careers = vec![terri_data::CompiledCareer {
+        id: "office_job".into(),
+        label: "Office clerk".into(),
+        shift_start: ((now + 2) % day_ticks) as u32,
+        shift_ticks: 60,
+        pay: 130,
+        energy_cost: 0.,
+        satisfaction: 0.,
+        working_days: 0b111_1111,
+        path: 0,
+        level: 0,
+        pay_max: 130,
+        advance_weeks: 1,
+        social_demand: 0.,
+        skill_tag: None,
+        trait_fit: Vec::new(),
+        standard_kind: terri_data::SHIFT_DAY,
+        standard_weight: 1,
+        shifts: Vec::new(),
+    }];
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut()
+        .entity_mut(worker)
+        .insert(terri_core::Career(0));
+}
+
+/// Whether `worker` is commuting or at work.
+fn away(sim: &Sim, worker: Entity) -> bool {
+    sim.world().get::<terri_core::Commuting>(worker).is_some()
+        || sim.world().get::<terri_core::AtWork>(worker).is_some()
+}
+
+/// Leaving for work is the crisis that can begin mid-fight without a need.
+/// When the recipient's shift starts, the departure ends the conversation,
+/// as it ends a chat: the game-made fight stops with no outcome, its order
+/// is retired and it does not start again while the recipient is away. So
+/// letting a running fight finish through a crisis never strands it.
+#[test]
+fn a_recipients_shift_start_ends_a_running_game_made_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    let id = running_game_fight(&mut sim, bill, tim);
+    employ_from_two_ticks_on(&mut sim, tim);
+    let mut ticks = 0;
+    while !away(&sim, tim) {
+        assert!(ticks < 5, "the shift starts");
+        assert!(fighting(&sim, bill, tim), "the fight runs until then");
+        sim.tick();
+        ticks += 1;
+    }
+    sim.tick();
+    for _ in 0..30 {
+        assert!(away(&sim, tim), "the recipient is still away");
+        assert!(!fighting(&sim, bill, tim), "the departure ends the fight");
+        assert!(
+            !sim.world()
+                .resource::<crate::fights::Fights>()
+                .owns_order(bill, id),
+            "the fight's order is retired"
+        );
+        assert!(
+            sim.world()
+                .get::<IntentQueue>(bill)
+                .is_none_or(|q| q.entries().iter().all(|e| e.id != id)),
+            "the fight's order leaves the queue"
+        );
+        sim.tick();
+    }
+    for person in [bill, tim] {
+        assert!(
+            !had_a_fight(&sim, person),
+            "a fight ended by a departure records no outcome"
+        );
+    }
+}
+
+/// The initiator does not leave for work mid-fight: a shift start waits
+/// while its worker's queue holds an order (`player_actions::has_player_work`),
+/// and the coordinator's decision of 2026-10-25 withdraws only a game-made
+/// fight that has not started. A running fight is short and, by the issue
+/// 301 ruling, runs to its end, so it finishes with its outcome and the
+/// initiator leaves afterwards.
+#[test]
+fn an_initiators_shift_start_waits_for_a_running_game_made_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    running_game_fight(&mut sim, bill, tim);
+    employ_from_two_ticks_on(&mut sim, bill);
+    let mut ticks = 0;
+    while fighting(&sim, bill, tim) {
+        assert!(ticks < 200, "the fight ends");
+        assert!(!away(&sim, bill), "the initiator stays for the fight");
+        sim.tick();
+        ticks += 1;
+    }
+    assert!(ticks > 2, "the shift fell due while the fight ran");
+    for person in [bill, tim] {
+        assert!(had_a_fight(&sim, person), "the fight finishes");
+    }
+    let mut ticks = 0;
+    while !away(&sim, bill) {
+        assert!(ticks < 5, "the initiator then leaves for the shift");
+        sim.tick();
+        ticks += 1;
+    }
+}
+
+/// Keeps `person` busy at a fridge placed under them for `ticks` ticks, as
+/// arrival does, so a fight against them waits without starting.
+fn busy_at_the_fridge(sim: &mut Sim, person: Entity, ticks: u32) {
+    let definition = sim.world().resource::<Content>().0.find("fridge").unwrap();
+    let at = *sim.world().get::<Position>(person).unwrap();
+    let placed = sim
+        .world_mut()
+        .spawn((at, terri_core::SmartObject(definition), Reserved))
+        .id();
+    sim.world_mut().entity_mut(person).insert((
+        Target {
+            object: placed,
+            interaction: 0,
+        },
+        terri_core::Eating {
+            object: definition,
+            interaction: 0,
+            remaining_ticks: ticks,
+        },
+    ));
+}
+
+/// Whether `person`'s queue holds a fight order against `partner`.
+fn fight_queued(sim: &Sim, person: Entity, partner: Entity) -> bool {
+    sim.world().get::<IntentQueue>(person).is_some_and(|q| {
+        q.entries()
+            .iter()
+            .any(|e| e.intent.object == partner && e.intent.interaction == FIGHT)
+    })
+}
+
+/// The coordinator's decision of 2026-10-25, following the issue 301 ruling
+/// that a made-up grudge does not outrank work: a game-made fight that has
+/// not started never delays its initiator's shift. The departure withdraws
+/// the waiting fight through the ordinary withdrawal, so the exact order,
+/// its system identity and its pending cause go, the grievance is not
+/// marked as fought, and the initiator leaves on time.
+#[test]
+fn an_initiators_shift_start_withdraws_a_waiting_game_made_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    let id = game_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the fight waits");
+    assert!(!fighting(&sim, bill, tim), "the fight has not started");
+    employ_from_two_ticks_on(&mut sim, bill);
+    let mut ticks = 0;
+    while !away(&sim, bill) {
+        assert!(ticks < 5, "the initiator leaves for the shift on time");
+        sim.tick();
+        ticks += 1;
+    }
+    assert!(
+        !fight_queued(&sim, bill, tim),
+        "the waiting fight is withdrawn"
+    );
+    assert!(
+        !sim.world()
+            .resource::<crate::fights::Fights>()
+            .owns_order(bill, id),
+        "the exact system identity is retired"
+    );
+    let bill_id = *sim.world().get::<SimId>(bill).unwrap();
+    let conflicts = sim.world().resource::<crate::social_conflicts::State>();
+    assert!(
+        conflicts
+            .pending_fights
+            .get(&bill)
+            .is_none_or(|row| row.order_id != Some(id)),
+        "the exact pending cause is retired"
+    );
+    let grievances: Vec<_> = conflicts.for_person(bill_id).collect();
+    assert!(
+        !grievances.is_empty() && grievances.iter().all(|row| row.last_fought.is_none()),
+        "the grievance is kept and not marked as fought"
+    );
+    for person in [bill, tim] {
+        assert!(!had_a_fight(&sim, person), "no fight was had");
+    }
+}
+
+/// Historical reference content runs the published fight rules, whose
+/// outcomes stay as they were published, so there a waiting game-made fight
+/// still delays its initiator's departure, as it did before the decision of
+/// 2026-10-25.
+#[test]
+fn the_published_fight_rules_keep_a_waiting_fight_ahead_of_the_shift() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    let id = game_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the fight waits");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_rules = terri_data::FightRules::Published;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    employ_from_two_ticks_on(&mut sim, bill);
+    for _ in 0..10 {
+        sim.tick();
+        assert!(!away(&sim, bill), "the shift waits for the queued fight");
+        assert!(
+            sim.world()
+                .resource::<crate::fights::Fights>()
+                .owns_order(bill, id),
+            "the waiting fight stays"
+        );
+    }
+}
+
+/// A Fight the player ordered keeps its current effect on a departure: a
+/// shift start waits while the order is queued, as it waits for any order
+/// the player gives.
+#[test]
+fn an_initiators_shift_start_still_waits_for_a_player_ordered_fight() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    player_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the ordered fight waits");
+    employ_from_two_ticks_on(&mut sim, bill);
+    for _ in 0..10 {
+        sim.tick();
+        assert!(!away(&sim, bill), "the shift waits for the player's order");
+        assert!(fight_queued(&sim, bill, tim), "the ordered fight stays");
     }
 }
 
