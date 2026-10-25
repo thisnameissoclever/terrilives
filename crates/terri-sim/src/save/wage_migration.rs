@@ -20,7 +20,7 @@ use crate::Content;
 
 /// Old whole-dollar pay to new: `pay * 1.5`, rounded half up.
 pub(crate) fn raised(pay: u32) -> u32 {
-    u32::try_from((u64::from(pay) * 3 + 1) / 2).unwrap_or(u32::MAX)
+    u32::try_from((u64::from(pay) * 3).div_ceil(2)).unwrap_or(u32::MAX)
 }
 
 /// The raised pay at `job` of a pay below its starting pay, when the old

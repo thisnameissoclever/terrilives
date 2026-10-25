@@ -82,7 +82,7 @@ macro_rules! primitive {
     };
 }
 
-impl<'b> ser::Serializer for &'b mut Filtered<'_> {
+impl ser::Serializer for &mut Filtered<'_> {
     type Ok = ();
     type Error = Error;
     type SerializeSeq = Self;

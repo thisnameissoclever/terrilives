@@ -988,7 +988,7 @@ mod tests {
                 {
                     // Issue 298 raised every wage by half, rounded half up
                     // ([WB-wages]); the rows keep issue 296's pay before it.
-                    let raised = |pay: u32| (pay * 3 + 1) / 2;
+                    let raised = |pay: u32| (pay * 3).div_ceil(2);
                     let (id, label, start, ticks, days, pay, pay_max) = *expected;
                     (id, label, start, ticks, days, raised(pay), raised(pay_max))
                 },
@@ -1237,7 +1237,9 @@ mod tests {
     /// is visible.
     #[test]
     fn the_shipped_wages_are_one_and_a_half_times_the_old_ones() {
-        let table: [(&str, [(u32, u32, u32, u32); 4]); 8] = [
+        // Each level's old start and top pay, then the new ones.
+        type Levels = [(u32, u32, u32, u32); 4];
+        let table: [(&str, Levels); 8] = [
             (
                 "office",
                 [
@@ -1312,7 +1314,7 @@ mod tests {
             ),
         ];
         let pack = pack();
-        let raised = |old: u32| (old * 3 + 1) / 2;
+        let raised = |old: u32| (old * 3).div_ceil(2);
         let mut levels = 0;
         for (path_id, rows) in table {
             let path = pack

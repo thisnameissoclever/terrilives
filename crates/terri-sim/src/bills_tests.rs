@@ -3,7 +3,7 @@
 use super::*;
 use crate::{Content, Sim};
 use terri_core::layout::{EdgeAxis, WallEdge};
-use terri_core::{Agent, CommandQueue, Eating, SimCommand, StepWork};
+use terri_core::{CommandQueue, Eating, SimCommand, StepWork};
 
 const DAY: u64 = 1440;
 

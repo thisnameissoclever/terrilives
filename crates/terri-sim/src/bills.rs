@@ -114,7 +114,7 @@ pub fn day_index(tick: u64, day_ticks: u32) -> u32 {
 
 /// Whether the day index `day` is the first day of a month.
 pub fn is_month_start(day: u32, days_per_month: u32) -> bool {
-    day % days_per_month == 0
+    day.is_multiple_of(days_per_month)
 }
 
 /// Bills act only in a world with a lot: a lot frame and a confirmed room

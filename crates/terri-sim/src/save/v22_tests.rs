@@ -418,10 +418,8 @@ fn loading_schemas_fourteen_to_twenty_one_starts_an_empty_prorated_month() {
     }
     // The newest older schema, and schema seventeen, whose loader restores
     // attendance itself; the loaders between share their paths.
-    let loads: [(
-        &str,
-        Box<dyn Fn(&Sim, &mut Sim) -> Result<(), crate::SaveError>>,
-    ); 2] = [
+    type Load = Box<dyn Fn(&Sim, &mut Sim) -> Result<(), crate::SaveError>>;
+    let loads: [(&str, Load); 2] = [
         (
             "schema 21",
             Box::new(|s, l| l.load_snapshot_v21(s.save_snapshot_v21())),

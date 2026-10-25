@@ -1223,7 +1223,7 @@ fn the_five_new_paths_match_the_spec_tables() {
             .collect();
         // The table keeps issue 296's pay; issue 298 raised every wage by
         // half, rounded half up ([WB-wages]).
-        let raised = |pay: u32| (pay * 3 + 1) / 2;
+        let raised = |pay: u32| (pay * 3).div_ceil(2);
         let expected: Vec<Level> = levels
             .iter()
             .map(|&(id, label, pay, pay_max, weeks)| {

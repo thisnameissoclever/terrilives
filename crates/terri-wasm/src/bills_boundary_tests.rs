@@ -40,7 +40,7 @@ fn set_tick(handle: &mut SimHandle, tick: u64) {
 
 /// The old whole-dollar pay raised by half, rounded half up ([WB-wages]).
 fn raised(pay: u32) -> u32 {
-    (pay * 3 + 1) / 2
+    (pay * 3).div_ceil(2)
 }
 
 /// The schema-twenty-one snapshot inside `bytes`.
@@ -229,7 +229,7 @@ fn bed_refusals_cross_the_boundary_with_their_codes() {
     for (shift, byte) in refused[4..].iter().enumerate() {
         object |= u64::from(byte & 127) << (7 * shift);
     }
-    assert!(handle.object_details_of(object as u32).first().is_some());
+    assert!(!handle.object_details_of(object as u32).is_empty());
     assert!(handle.build_active(), "the draft stays open");
 }
 
