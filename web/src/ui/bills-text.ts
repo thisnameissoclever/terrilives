@@ -32,10 +32,18 @@ export function formatDay(day: number): string {
   return `Day ${(day + 1).toLocaleString('en-US')}`;
 }
 
-/** The Bills row's text: `$425 due Day 8`, or `$40 overdue` while a bill is overdue. */
+/**
+ * The Bills row's text: `$40 overdue` while a bill is overdue; otherwise,
+ * while a bill is unpaid, what is unpaid and the earliest unpaid due day,
+ * `$389 due Day 8`; otherwise what to keep aside for the next bills and
+ * their due day, `$425 due Day 15`.
+ */
 export function formatBillsRow(overview: BillsOverview): string {
   if (overview.overdueCents > 0) {
     return `${formatDollarsUp(overview.overdueCents + overview.overdueFeeCents)} overdue`;
+  }
+  if (overview.unpaidDueDay !== null) {
+    return `${formatDollarsUp(overview.unpaidCents)} due ${formatDay(overview.unpaidDueDay)}`;
   }
   return `${formatDollarsUp(overview.keepAsideCents)} due ${formatDay(overview.nextDueDay)}`;
 }

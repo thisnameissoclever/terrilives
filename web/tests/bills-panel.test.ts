@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import type { BillLine, BillsOverview, IssuedBill, NextBill } from '../src/bridge.js';
-import { BillsPanel, billLineText, lastMonthLineText, overdueLineText, weekdayOf, type BillsSource } from '../src/ui/bills-panel.js';
+import {
+  BillsPanel, billLineText, keepAsideText, lastMonthLineText, overdueFromText, overdueLineText, weekdayOf, type BillsSource,
+} from '../src/ui/bills-panel.js';
 import { billsRules, formatBillsRow, formatCents, formatDollarsUp } from '../src/ui/bills-text.js';
 
 /** A minimal element: text, children, attributes, listeners and the dialog calls the panel uses. */
@@ -48,6 +50,10 @@ const OVERVIEW: BillsOverview = {
   lateFeePercent: 5,
   lateFeeCapPercent: 50,
   monthDays: 3,
+  monthLength: 7,
+  unpaidCents: 0,
+  unpaidDueDay: null,
+  overdueFromDay: null,
 };
 
 const NEXT: NextBill[] = [
@@ -133,16 +139,16 @@ describe('bills text', () => {
   it('words each line of a bill, leaving out usage nobody used', () => {
     expect(LINES[0].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $30.00',
-      'Indoor tiles: 192 at $1.00 a month: $82.29',
-      'Outdoor tiles: 112 at $0.30 a month: $14.40',
+      'Indoor tiles: 192 at $1.00 a month, 3 of 7 days: $82.29',
+      'Outdoor tiles: 112 at $0.30 a month, 3 of 7 days: $14.40',
     ]);
     // The lines add up to rent so far: $30.00 + $82.29 + $14.40.
     expect(LINES[0].reduce((sum, line) => sum + line.amountCents, 0)).toBe(12_669);
     // After a change this month, today's tiles and the month's average.
     expect(billLineText({ ...LINES[0][1], tileDays: 600, amountCents: 8_572 }, LABELS, 7, 3))
-      .toBe('Indoor tiles: 192 today, 200 a day on average this month, at $1.00 a month: $85.72');
+      .toBe('Indoor tiles: 192 today, 200 a day on average this month, at $1.00 a month, 3 of 7 days: $85.72');
     expect(billLineText({ ...LINES[0][2], tileDays: 340, amountCents: 1_458 }, LABELS, 7, 3))
-      .toBe('Outdoor tiles: 112 today, 113.3 a day on average this month, at $0.30 a month: $14.58');
+      .toBe('Outdoor tiles: 112 today, 113.3 a day on average this month, at $0.30 a month, 3 of 7 days: $14.58');
     expect(LINES[1].map(line => billLineText(line, LABELS, 7, 3))).toEqual([
       'Base charge, 3 of 7 days: $6.00', 'Showers: 14 x $0.60', null, 'Fridges: 6 days x $0.20',
     ]);
@@ -169,12 +175,13 @@ describe('the Bills panel', () => {
     const bill: IssuedBill = { kind: 0, dueDay: 7, amountCents: 29_360, feeCents: 1_468, paidDay: null };
     expect(overdueLineText(bill)).toBe('Rent due Day 8: $293.60 plus $14.68 in late fees');
     const { text } = opened({
-      billsOverview: () => ({ ...OVERVIEW, keepAsideCents: 42_455 + 30_828, overdueCents: 29_360, overdueFeeCents: 1_468 }),
+      billsOverview: () => ({ ...OVERVIEW, keepAsideCents: 42_455 + 30_828, overdueCents: 29_360, overdueFeeCents: 1_468,
+        unpaidCents: 30_828, unpaidDueDay: 7, overdueFromDay: 12 }),
       billsOverdue: () => [bill],
     });
     expect(text).toContain('Overdue');
     expect(text).toContain('Rent due Day 8: $293.60 plus $14.68 in late fees');
-    expect(text).toContain('Overdue bills are paid automatically as soon as Funds cover them, oldest first.');
+    expect(text).toContain('Bills are paid in order, oldest first; each is paid as soon as Funds cover it and every bill before it.');
     expect(text).toContain('Keep aside $732.83 for the unpaid bills and the bills due Day 8, Monday.');
   });
 
@@ -229,6 +236,34 @@ describe('the Bills panel', () => {
     expect(text).toContain('How bills work');
     expect(text).toContain(rules);
     expect(billsRules({ ...OVERVIEW, daysPerMonth: 30, graceDays: 3 })).toContain('A month is 30 days.');
+  });
+
+  it('says when unpaid bills become overdue and leaves out late fees that are zero', () => {
+    const unpaid = { ...OVERVIEW, keepAsideCents: 42_455 + 38_873, unpaidCents: 38_873, unpaidDueDay: 7, overdueFromDay: 12 };
+    expect(overdueFromText(unpaid)).toBe('Unpaid bills due Day 8 are overdue from Day 13.');
+    expect(overdueFromText(OVERVIEW)).toBeNull();
+    expect(overdueFromText({ ...unpaid, overdueCents: 38_873 })).toBeNull();
+    expect(keepAsideText(unpaid, 'Day 15, Monday')).toBe('Keep aside $813.28 for the unpaid bills and the bills due Day 15, Monday.');
+    const { text } = opened({ billsOverview: () => unpaid });
+    expect(text).toContain('Unpaid bills due Day 8 are overdue from Day 13.');
+    expect(overdueLineText({ kind: 1, dueDay: 7, amountCents: 4_900, feeCents: 0, paidDay: null }))
+      .toBe('Electricity due Day 8: $49.00');
+  });
+
+  it('returns focus to what opened it after Close and after Escape', () => {
+    const control = pause();
+    const panel = new BillsPanel(source(), fakeDocument, control);
+    let focused = 0;
+    const opener = { focus: () => { focused += 1; } };
+    expect(panel.open(opener)).toBe(true);
+    const root = panel.element() as unknown as FakeElement;
+    root.find(element => element.tagName === 'button')[0].dispatch('click');
+    expect(focused).toBe(1);
+    expect(panel.open(opener)).toBe(true);
+    // Escape closes a modal dialog in the browser, which fires its close event.
+    root.open = false;
+    root.dispatch('close');
+    expect(focused).toBe(2);
   });
 
   it('closes on Close and Escape and resumes the paused game', () => {

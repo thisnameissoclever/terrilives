@@ -1191,6 +1191,8 @@
       /* [WB-panel]: the Bills row's button reads as a value, and the danger color marks an overdue bill. */
       .bills-button { padding:0; border:0; background:none; color:var(--hud-text); font:inherit; font-weight:700; text-align:right; text-decoration:underline dotted; cursor:pointer; }
       .bills-button[data-state='overdue'] { color:var(--hud-danger); }
+      /* The summary rows are flex boxes, which would show a hidden row. */
+      #bills-row[hidden] { display: none; }
       .bills-button:disabled { color:var(--hud-muted); text-decoration:none; cursor:default; }
       #bills-dialog { width: min(560px, calc(100vw - 24px)); max-height: 85vh; overflow-y:auto; color:var(--hud-text); background:var(--hud-bg); border:1px solid var(--hud-edge); border-radius:8px; padding:20px; box-sizing:border-box; }
       #bills-dialog::backdrop {background:rgba(0,0,0,.6)}

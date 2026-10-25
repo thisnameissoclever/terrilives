@@ -421,7 +421,7 @@ describe('the held shift on the Career row (issue 296, [WS-shell] item 1)', () =
 describe('the Bills row (issue 298, [WB-panel])', () => {
   const overview = {
     fundsCents: 100_000, keepAsideCents: 42_455, shortfallCents: 0, nextDueDay: 7, overdueCents: 0,
-    overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3,
+    overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3, monthLength: 7, unpaidCents: 0, unpaidDueDay: null, overdueFromDay: null,
   };
   function button() {
     const attributes = new Map<string, string>();
@@ -461,6 +461,13 @@ describe('the Bills row (issue 298, [WB-panel])', () => {
     expect(bills.attributes.get('aria-label')).toBe('$425 due Day 8, open bills');
   });
 
+  it('the Bills row reads the earliest unpaid bill and its due day while one is unpaid', () => {
+    const { view, bills } = billsRoots();
+    new GameHud(view, 100).update(0, source({ billsOverview: () => ({ ...overview, nextDueDay: 14,
+      keepAsideCents: 77_800, unpaidCents: 38_873, unpaidDueDay: 7, overdueFromDay: 12 }) }));
+    expect(bills.textContent).toBe('$389 due Day 8');
+  });
+
   it('the Bills row is disabled in Build mode', () => {
     const { view, bills } = billsRoots();
     const hud = new GameHud(view, 100);
@@ -478,6 +485,11 @@ describe('the Bills row (issue 298, [WB-panel])', () => {
     const { view, billsRow } = billsRoots();
     new GameHud(view, 100).update(0, source({ billsOverview: () => null }));
     expect(billsRow.hidden).toBe(true);
+  });
+
+  it('keeps a hidden Bills row hidden although summary rows are flex boxes', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    expect(html).toMatch(/#bills-row\[hidden\]\s*\{\s*display:\s*none;\s*\}/);
   });
 
   it('puts the Bills row below Funds in the household status panel', () => {

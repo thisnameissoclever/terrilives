@@ -209,4 +209,9 @@ describe('a bed left outside (issue 298, [WB-beds])', () => {
     expect(confirmFailure({ code: 15, detail: 42n }))
       .toBe('A bed would be left outside. Move it into a room, or choose Cancel, before confirming.');
   });
+
+  it('names the bed the refusal carries', () => {
+    expect(confirmFailure({ code: 15, detail: 42n }, { rule: null }, 'Standard Double'))
+      .toBe('The Standard Double bed would be left outside. Move it into a room, or choose Cancel, before confirming.');
+  });
 });

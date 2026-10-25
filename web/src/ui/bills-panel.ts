@@ -49,13 +49,13 @@ function dayAndWeekday(day: number, weekday: string | null): string {
 }
 
 /**
- * A tile line: `Indoor tiles: 192 at $0.90 a month: $24.69`, or, once the
+ * A tile line: `Indoor tiles: 192 at $0.90 a month, 1 of 7 days: $24.69`, or, once the
  * layout changed this month so the days counted held other numbers of
  * tiles, today's count and the month's daily average, so the amount can be
  * checked. `monthDays` is the number of days counted.
  */
-function tileLineText(name: string, line: BillLine, monthDays: number): string {
-  const rate = `at ${formatCents(line.unitCents)} a month: ${formatCents(line.amountCents)}`;
+function tileLineText(name: string, line: BillLine, monthDays: number, monthLength: number): string {
+  const rate = `at ${formatCents(line.unitCents)} a month, ${monthDays} of ${monthLength} days: ${formatCents(line.amountCents)}`;
   if (monthDays === 0 || line.tileDays === line.count * monthDays) return `${name}: ${line.count} ${rate}`;
   const average = (line.tileDays / monthDays).toLocaleString('en-US', { maximumFractionDigits: 1 });
   return `${name}: ${line.count} today, ${average} a day on average this month, ${rate}`;
@@ -64,16 +64,17 @@ function tileLineText(name: string, line: BillLine, monthDays: number): string {
 /**
  * One line of a next bill as the panel shows it, or null for a usage line
  * with nothing counted. `daysPerMonth` is the `{m}` of the base charge
- * line, and `monthDays` the days counted so far.
+ * line (the month length the month is counted under), and `monthDays` the
+ * days counted so far.
  */
 export function billLineText(line: BillLine, labels: BillKindLabels, daysPerMonth: number, monthDays: number): string | null {
   switch (line.line) {
     case 0:
       return `Base charge, ${line.count} of ${daysPerMonth} days: ${formatCents(line.amountCents)}`;
     case 1:
-      return tileLineText('Indoor tiles', line, monthDays);
+      return tileLineText('Indoor tiles', line, monthDays, daysPerMonth);
     case 2:
-      return tileLineText('Outdoor tiles', line, monthDays);
+      return tileLineText('Outdoor tiles', line, monthDays, daysPerMonth);
     case 3: {
       const label = labels.uses[line.kindIndex];
       return line.count === 0 || label === undefined ? null
@@ -96,9 +97,9 @@ function withFees(bill: IssuedBill): string {
     : formatCents(bill.amountCents);
 }
 
-/** An overdue bill's line: `Rent due Day 8: $293.60 plus $14.68 in late fees`. */
+/** An overdue bill's line: `Rent due Day 8: $293.60 plus $14.68 in late fees`, without the fees while there are none. */
 export function overdueLineText(bill: IssuedBill): string {
-  return `${billName(bill.kind)} due ${formatDay(bill.dueDay)}: ${formatCents(bill.amountCents)} plus ${formatCents(bill.feeCents)} in late fees`;
+  return `${billName(bill.kind)} due ${formatDay(bill.dueDay)}: ${withFees(bill)}`;
 }
 
 /** A bill of last month: `Rent: $293.60, paid Day 8` or `Rent: $293.60, unpaid`. */
@@ -111,10 +112,18 @@ export function lastMonthLineText(bill: IssuedBill): string {
  * The keep-aside sentence. The amount counts every unpaid bill as well as
  * the next bills, so the sentence names the unpaid ones when there are any.
  */
-export function keepAsideText(overview: BillsOverview, next: readonly NextBill[], due: string): string {
-  const expected = next.reduce((sum, bill) => sum + bill.expectedCents, 0);
-  const what = overview.keepAsideCents > expected ? 'the unpaid bills and the bills' : 'the bills';
+export function keepAsideText(overview: BillsOverview, due: string): string {
+  const what = overview.unpaidCents > 0 ? 'the unpaid bills and the bills' : 'the bills';
   return `Keep aside ${formatCents(overview.keepAsideCents)} for ${what} due ${due}.`;
+}
+
+/**
+ * When the earliest unpaid bill becomes overdue, while it is not yet:
+ * `Unpaid bills due Day 8 are overdue from Day 13.`; null otherwise.
+ */
+export function overdueFromText(overview: BillsOverview): string | null {
+  if (overview.unpaidDueDay === null || overview.overdueFromDay === null || overview.overdueCents > 0) return null;
+  return `Unpaid bills due ${formatDay(overview.unpaidDueDay)} are overdue from ${formatDay(overview.overdueFromDay)}.`;
 }
 
 /** Everything the panel shows, read at once so one comparison decides whether to redraw. */
@@ -132,6 +141,7 @@ export class BillsPanel {
   private readonly dialog: HTMLDialogElement;
   private readonly body: HTMLElement;
   private labels: BillKindLabels | null = null;
+  private opener: { focus(): void } | null = null;
   private signature = '';
   /** The bill kinds whose rows the player has expanded, kept across redraws. */
   private readonly expanded = new Set<number>();
@@ -159,8 +169,14 @@ export class BillsPanel {
     this.body = doc.createElement('div');
     this.body.className = 'bills-body';
     this.dialog.append(header, this.body);
-    // Escape closes a modal dialog by itself; either way the game resumes.
-    this.dialog.addEventListener('close', () => this.pause.resume(PAUSE_REASON));
+    // Escape closes a modal dialog by itself; either way the game resumes
+    // and focus goes back to what opened the panel.
+    this.dialog.addEventListener('close', () => {
+      this.pause.resume(PAUSE_REASON);
+      const opener = this.opener;
+      this.opener = null;
+      opener?.focus();
+    });
   }
 
   /** The dialog, for the page to attach. */
@@ -172,9 +188,14 @@ export class BillsPanel {
     return this.dialog.open;
   }
 
-  /** Pauses the game and opens the panel; false when it is already open or there are no bills. */
-  open(): boolean {
+  /**
+   * Pauses the game and opens the panel; false when it is already open or
+   * there are no bills. `opener`, such as the Bills row's button, gets the
+   * focus back when the panel closes.
+   */
+  open(opener: { focus(): void } | null = null): boolean {
     if (this.dialog.open || this.source.billsOverview() === null) return false;
+    this.opener = opener;
     this.pause.suspend(PAUSE_REASON);
     this.signature = '';
     this.update();
@@ -242,18 +263,20 @@ export class BillsPanel {
     aside.className = 'bills-keep-aside';
     aside.append(
       this.paragraph(`Funds: ${formatCents(overview.fundsCents)}`),
-      this.paragraph(keepAsideText(overview, reading.next, due)),
+      this.paragraph(keepAsideText(overview, due)),
       overview.shortfallCents > 0
         ? this.paragraph(`Funds are ${formatCents(overview.shortfallCents)} short.`, 'bills-short')
         : this.paragraph('Funds cover these bills.'),
     );
+    const overdueFrom = overdueFromText(overview);
+    if (overdueFrom !== null) aside.append(this.paragraph(overdueFrom, 'bills-note'));
     sections.push(aside);
 
     if (reading.overdue.length > 0) {
       const overdue = this.section('Overdue', 'bills-overdue');
       for (const bill of reading.overdue) overdue.append(this.paragraph(overdueLineText(bill)));
       overdue.append(this.paragraph(
-        'Overdue bills are paid automatically as soon as Funds cover them, oldest first.',
+        'Bills are paid in order, oldest first; each is paid as soon as Funds cover it and every bill before it.',
         'bills-note',
       ));
       sections.push(overdue);
@@ -297,7 +320,7 @@ export class BillsPanel {
     row.append(summary);
     const labels = this.kindLabels();
     for (const line of lines) {
-      const text = billLineText(line, labels, overview.daysPerMonth, overview.monthDays);
+      const text = billLineText(line, labels, overview.monthLength, overview.monthDays);
       if (text !== null) row.append(this.paragraph(text, 'bill-line'));
     }
     return row;

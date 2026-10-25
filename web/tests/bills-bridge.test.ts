@@ -18,13 +18,13 @@ beforeAll(async () => {
 
 // funds, keep aside, shortfall, next due day, overdue, overdue fees, days
 // per month, grace days, fee percent, fee cap percent, month days.
-const OVERVIEW = [100_000, 42_455, 0, 7, 0, 0, 7, 5, 5, 50, 3];
+const OVERVIEW = [100_000, 42_455, 0, 7, 0, 0, 7, 5, 5, 50, 3, 7, 0, -1, -1];
 
 describe('the bills exports at the boundary (issue 298, [WB-panel])', () => {
   it('reads a well-formed overview and refuses every malformed one', () => {
     expect(parseBillsOverview(OVERVIEW)).toEqual({
       fundsCents: 100_000, keepAsideCents: 42_455, shortfallCents: 0, nextDueDay: 7, overdueCents: 0,
-      overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3,
+      overdueFeeCents: 0, daysPerMonth: 7, graceDays: 5, lateFeePercent: 5, lateFeeCapPercent: 50, monthDays: 3, monthLength: 7, unpaidCents: 0, unpaidDueDay: null, overdueFromDay: null,
     });
     expect(parseBillsOverview([])).toBeNull();
     expect(parseBillsOverview(OVERVIEW.slice(1))).toBeNull();
@@ -34,6 +34,13 @@ describe('the bills exports at the boundary (issue 298, [WB-panel])', () => {
       expect(parseBillsOverview(broken(index, value)), `slot ${index} = ${value}`).toBeNull();
     }
     expect(parseBillsOverview(broken(0, -500))?.fundsCents).toBe(-500);
+    // An unpaid bill due on day 7, overdue from day 12.
+    const unpaid = [100_000, 42_455, 0, 14, 0, 0, 7, 5, 5, 50, 3, 7, 1_000, 7, 12];
+    expect(parseBillsOverview(unpaid)).toMatchObject({ unpaidCents: 1_000, unpaidDueDay: 7, overdueFromDay: 12 });
+    const changed = (index: number, value: number) => unpaid.map((v, i) => (i === index ? value : v));
+    for (const [index, value] of [[11, 0], [11, 2], [12, 50_000], [13, -1], [14, -1], [14, 6], [13, 0.5]] as const) {
+      expect(parseBillsOverview(changed(index, value)), `slot ${index} = ${value}`).toBeNull();
+    }
   });
 
   it('reads the next bills in kind order and refuses anything else', () => {
@@ -76,7 +83,10 @@ describe('the bills exports at the boundary (issue 298, [WB-panel])', () => {
       const overview = bridge.billsOverview();
       expect(overview).not.toBeNull();
       expect(overview).toMatchObject({ nextDueDay: 7, daysPerMonth: 7, graceDays: 5, monthDays: 1,
-        overdueCents: 0, lateFeePercent: 5, lateFeeCapPercent: 50 });
+        overdueCents: 0, lateFeePercent: 5, lateFeeCapPercent: 50, monthLength: 7, unpaidCents: 0,
+        unpaidDueDay: null, overdueFromDay: null });
+      expect(overview!.fundsCents).toBe(40_000);
+      expect(overview!.shortfallCents).toBe(0);
       expect(overview!.keepAsideCents).toBeGreaterThan(0);
       expect(bridge.billsNext().map(bill => bill.kind)).toEqual([0, 1, 2, 3]);
       expect(bridge.billsLines(0).map(line => line.line)).toEqual([0, 1, 2]);

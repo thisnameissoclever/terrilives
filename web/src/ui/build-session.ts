@@ -1,12 +1,12 @@
 import type { PersistableSim } from './persistence-controller.js';
 import type { SimBridge } from '../bridge.js';
 import type { BuildReview, RoomFailure } from '../rooms/codec.js';
-import { confirmFailure, enterFailure, failureDetails, failureWhat, type BuildFailureReport } from '../rooms/failure.js';
+import { BED_OUTSIDE, confirmFailure, enterFailure, failureDetails, failureWhat, type BuildFailureReport } from '../rooms/failure.js';
 import { logError, logWarning } from '../diagnostics/log.js';
 
 type BuildSource = PersistableSim & Pick<SimBridge, 'flushCommands' | 'buildActive' | 'buildDirty' | 'beginBuild'
   | 'prepareBuildCommit' | 'commitBuild' | 'cancelBuild' | 'endBuild' | 'takeBuildError'>
-  & Partial<Pick<SimBridge, 'buildFailureReport'>>;
+  & Partial<Pick<SimBridge, 'buildFailureReport' | 'objectDetails'>>;
 export interface BuildSessionHooks {
   /** Stage the current valid preview, or refuse confirmation. */
   prepare(): boolean;
@@ -107,7 +107,10 @@ export class BuildSession implements PersistableSim {
 
   private refuse(message: string, error: RoomFailure): void {
     const report = this.report(error);
-    this.error = confirmFailure(error, report);
+    // A bed left outside is named by its entity index in the draft.
+    const bed = error.code === BED_OUTSIDE && error.detail !== null
+      ? this.source.objectDetails?.(Number(error.detail))?.modelName ?? '' : '';
+    this.error = confirmFailure(error, report, bed);
     logError('Build', message, failureDetails(error, report));
   }
 

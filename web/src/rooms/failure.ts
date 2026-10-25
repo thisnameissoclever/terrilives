@@ -87,8 +87,12 @@ export function failureWhat(error: RoomFailure, report: BuildFailureReport = { r
 }
 
 /** A refused Confirm, with what the player can do about it. */
-export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }): string {
-  if (error.code === BED_OUTSIDE) return `${WHAT[BED_OUTSIDE]} Move it into a room, or choose Cancel, before confirming.`;
+export function confirmFailure(error: RoomFailure, report: BuildFailureReport = { rule: null }, bedModel = ''): string {
+  if (error.code === BED_OUTSIDE) {
+    // The refusal names the bed it would leave outside when its model is known.
+    const what = bedModel === '' ? WHAT[BED_OUTSIDE] : `The ${bedModel} bed would be left outside.`;
+    return `${what} Move it into a room, or choose Cancel, before confirming.`;
+  }
   const fix = error.code === 10 ? 'Change the walls, doors or windows involved, or choose Cancel to undo all pending changes.'
     : 'Check the pending changes and try again, or choose Cancel to undo them.';
   return `${failureWhat(error, report)} ${fix}`;

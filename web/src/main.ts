@@ -1894,7 +1894,7 @@ async function main(): Promise<void> {
   billsValue.addEventListener('click', () => {
     if (buildSession.active) return;
     optionsMenu.close(); menu.close();
-    billsPanel.open();
+    billsPanel.open(billsValue);
   });
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
