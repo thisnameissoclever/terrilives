@@ -583,6 +583,34 @@ fn an_initiators_shift_start_withdraws_a_waiting_game_made_fight() {
     }
 }
 
+/// Historical reference content runs the published fight rules, whose
+/// outcomes stay as they were published, so there a waiting game-made fight
+/// still delays its initiator's departure, as it did before the decision of
+/// 2026-10-25.
+#[test]
+fn the_published_fight_rules_keep_a_waiting_fight_ahead_of_the_shift() {
+    let (mut sim, tim, bill, _casey) = three_people_on(16, 12);
+    busy_at_the_fridge(&mut sim, tim, 300);
+    let id = game_fight(&mut sim, bill, tim);
+    sim.tick();
+    assert!(fight_queued(&sim, bill, tim), "the fight waits");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.fight_rules = terri_data::FightRules::Published;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    employ_from_two_ticks_on(&mut sim, bill);
+    for _ in 0..10 {
+        sim.tick();
+        assert!(!away(&sim, bill), "the shift waits for the queued fight");
+        assert!(
+            sim.world()
+                .resource::<crate::fights::Fights>()
+                .owns_order(bill, id),
+            "the waiting fight stays"
+        );
+    }
+}
+
 /// A Fight the player ordered keeps its current effect on a departure: a
 /// shift start waits while the order is queued, as it waits for any order
 /// the player gives.

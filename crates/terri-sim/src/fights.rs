@@ -471,10 +471,10 @@ fn withdraw_invalid(world: &mut World) {
         // (issue 338: the coordinator's decision of 2026-10-24 applies the
         // owner's sleeping-partner ruling to fights the game starts, which
         // are not player orders) or when either side already had a fight.
-        // A fight already under way runs to its end (issue 342); a shift
-        // start still ends it, because leaving for work ends any
-        // conversation. The published rules, which never call this, keep
-        // their original behavior.
+        // A fight already under way runs to its end (issue 342): the
+        // recipient leaving for work still ends it; the initiator's shift
+        // waits for it to finish. The published rules, which never call
+        // this, keep their original behavior.
         let unavailable = world.get_entity(intent.object).is_err()
             || !running
                 && (crate::social_episode::urgent(world, actor)
@@ -564,8 +564,9 @@ pub(crate) fn withdraw_waiting_for_shift(world: &mut World, actor: Entity) {
 /// first, also withdraws one that has not started when its recipient is
 /// asleep (issue 338). Under both rules a fight already under way runs to
 /// its end through either side's crisis (issue 342). Released claims follow
-/// the execution owner, so a waiting partner is freed on this tick. Neither withdrawal marks the grievance as fought, so it can start a
-/// fight again while it stays eligible.
+/// the execution owner, so a waiting partner is freed on this tick. Neither
+/// withdrawal marks the grievance as fought, so it can start a fight again
+/// while it stays eligible.
 pub(crate) fn yield_to_critical_needs(world: &mut World) {
     if !published_rules(world) {
         withdraw_invalid(world);
