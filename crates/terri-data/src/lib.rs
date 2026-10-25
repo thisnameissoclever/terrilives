@@ -871,8 +871,9 @@ mod tests {
     }
 
     /// Shifts (issue 296, [WS-content]): eight paths in the shipped order,
-    /// 32 rows, and rows 0 to 11 exactly as they were before shifts, so the
-    /// shipped worker's save and every older save still name the same jobs.
+    /// 32 rows, and rows 0 to 11 as they were before shifts apart from
+    /// issue 298's raise, so the shipped worker's save and every older save
+    /// still name the same jobs.
     #[test]
     fn the_shipped_careers_hold_eight_paths_with_the_first_twelve_rows_unchanged() {
         let pack = pack();
@@ -984,7 +985,13 @@ mod tests {
                     job.pay,
                     job.pay_max
                 ),
-                *expected,
+                {
+                    // Issue 298 raised every wage by half, rounded half up
+                    // ([WB-wages]); the rows keep issue 296's pay before it.
+                    let raised = |pay: u32| (pay * 3 + 1) / 2;
+                    let (id, label, start, ticks, days, pay, pay_max) = *expected;
+                    (id, label, start, ticks, days, raised(pay), raised(pay_max))
+                },
                 "row {row}"
             );
             assert_eq!((job.path, job.level), (row as u32 / 4, row as u32 % 4));
@@ -1222,6 +1229,116 @@ mod tests {
             ..bills.clone()
         };
         assert_eq!(shipped_scalars, BillsTuning::shipped_without_usage());
+    }
+
+    /// [WB-wages]: every level's pay and pay maximum is the spec's table,
+    /// 1.5 times the wage before issue 298, rounded half up to the dollar.
+    /// The old wages are listed beside the new so a slip in either column
+    /// is visible.
+    #[test]
+    fn the_shipped_wages_are_one_and_a_half_times_the_old_ones() {
+        let table: [(&str, [(u32, u32, u32, u32); 4]); 8] = [
+            (
+                "office",
+                [
+                    (120, 150, 180, 225),
+                    (160, 200, 240, 300),
+                    (220, 280, 330, 420),
+                    (320, 400, 480, 600),
+                ],
+            ),
+            (
+                "cafe",
+                [
+                    (80, 100, 120, 150),
+                    (90, 120, 135, 180),
+                    (130, 170, 195, 255),
+                    (200, 260, 300, 390),
+                ],
+            ),
+            (
+                "night_watch",
+                [
+                    (70, 85, 105, 128),
+                    (85, 105, 128, 158),
+                    (105, 130, 158, 195),
+                    (130, 160, 195, 240),
+                ],
+            ),
+            (
+                "hospital",
+                [
+                    (95, 120, 143, 180),
+                    (125, 160, 188, 240),
+                    (170, 220, 255, 330),
+                    (235, 300, 353, 450),
+                ],
+            ),
+            (
+                "warehouse",
+                [
+                    (90, 110, 135, 165),
+                    (110, 140, 165, 210),
+                    (150, 190, 225, 285),
+                    (210, 270, 315, 405),
+                ],
+            ),
+            (
+                "library",
+                [
+                    (85, 105, 128, 158),
+                    (105, 130, 158, 195),
+                    (140, 175, 210, 263),
+                    (190, 240, 285, 360),
+                ],
+            ),
+            (
+                "restaurant_kitchen",
+                [
+                    (75, 95, 113, 143),
+                    (100, 130, 150, 195),
+                    (150, 195, 225, 293),
+                    (230, 300, 345, 450),
+                ],
+            ),
+            (
+                "buses",
+                [
+                    (110, 135, 165, 203),
+                    (130, 165, 195, 248),
+                    (165, 205, 248, 308),
+                    (205, 255, 308, 383),
+                ],
+            ),
+        ];
+        let pack = pack();
+        let raised = |old: u32| (old * 3 + 1) / 2;
+        let mut levels = 0;
+        for (path_id, rows) in table {
+            let path = pack
+                .career_paths
+                .iter()
+                .find(|path| path.id == path_id)
+                .unwrap_or_else(|| panic!("{path_id} ships"));
+            assert_eq!(path.levels.len(), 4, "{path_id}");
+            for (level, (old_pay, old_max, pay, pay_max)) in path.levels.iter().zip(rows) {
+                let job = &pack.careers[*level as usize];
+                assert_eq!((job.pay, job.pay_max), (pay, pay_max), "{}", job.id);
+                assert_eq!(
+                    (raised(old_pay), raised(old_max)),
+                    (pay, pay_max),
+                    "{}",
+                    job.id
+                );
+                levels += 1;
+            }
+        }
+        assert_eq!(levels, 32);
+        assert_eq!(
+            pack.careers.len(),
+            32,
+            "every shipped level is in the table"
+        );
     }
 
     /// [WB-usage]: every usage mark of the shipped content is exactly the
